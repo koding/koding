@@ -46,25 +46,20 @@ findUsernameFromKey = (req, res, callback) ->
 findUsernameFromSession = (req, res, callback) ->
 
   {clientId} = req.cookies
-
   unless clientId?
-
     return process.nextTick -> callback null
 
-  else
+  koding.models.JSession.fetchSession clientId, (err, result) ->
 
-    koding.models.JSession.fetchSession clientId, (err, result)->
+    if err
+      return callback err
+    else unless result?
+      return callback null
 
-      return if err
-      then callback err
-      else unless result?
-      then callback null
-
-      {session} = result
-
-      return unless session?
-      then callback null
-      else callback null, session.username
+    {session} = result
+    unless session?
+    then callback null
+    else callback null, session.username
 
 fetchJAccountByKiteUserNameAndKey = (req, callback)->
   if req.fields
@@ -186,12 +181,10 @@ handleClientIdNotFound = (res, req)->
 getClientId = (req, res)->
   return req.cookies.clientId or req.pendingCookies.clientId
 
-isInAppRoute = (name)->
+isInAppRoute = (name) ->
   [firstLetter] = name
-  # user nicknames can start with numbers
-  intRegex = /^\d/
-  return false if intRegex.test firstLetter
-  return true  if firstLetter.toUpperCase() is firstLetter
+  return false  if /^[0-9]/.test firstLetter # user nicknames can start with numbers
+  return true   if firstLetter.toUpperCase() is firstLetter
   return false
 
 module.exports = {
