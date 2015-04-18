@@ -65,7 +65,6 @@ app.use require './handlers/setsession'
 
 # GET Routes
 app.get '/-/subscription/check/:kiteToken?/:user?/:groupId?' , require './handlers/kitesubscription'
-app.get '/-/8a51a0a07e3d456c0b00dc6ec12ad85c'   , require './__notify-users'
 app.get '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.get '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
 app.get '/-/auth/check/:key'                    , require './handlers/authkeycheck'
