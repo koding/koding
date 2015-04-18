@@ -8,14 +8,6 @@ handleError = (err, callback) ->
   return callback? err
 
 
-isInAppRoute = (name)->
-  return no  unless name
-  [firstLetter] = name
-  if /^\d/.test firstLetter then no
-  else if firstLetter.toUpperCase() is firstLetter then yes
-  else no
-
-
 fetchGroupName = ({ groupName: name, section }, callback)->
   {JName} = bongo.models
 
