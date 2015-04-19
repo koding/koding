@@ -32,7 +32,6 @@ module.exports = class AccountAppController extends AppController
       items  : [
         { slug : 'Profile',   title : "User profile",        listType: "username" }
         { slug : 'Email',     title : "Email notifications", listType: "emailNotifications" }
-        { slug : 'Shortcuts', title : 'Shortcuts',           listType: 'shortcuts' }
       ]
     billing :
       title : "Billing"
@@ -45,6 +44,7 @@ module.exports = class AccountAppController extends AppController
         { slug : 'SSH',         title : "SSH keys",           listHeader: "Your SSH Keys",          listType: "keys" }
         # { slug : 'Keys',        title : "Koding Keys",        listHeader: "Your Koding Keys",       listType: "kodingKeys" }
         { slug : 'Referral',    title : "Referral System",    listHeader: "Your Referral Options",  listType: "referralSystem" }
+        { slug : 'Shortcuts', title : 'Shortcuts',           listType: 'shortcuts' }
         # { slug : 'Credentials', title : "Credentials",        listHeader: "Your Credentials",       listType: "credentials" }
       ]
     danger  :
