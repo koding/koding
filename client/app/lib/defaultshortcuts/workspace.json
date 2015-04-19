@@ -283,7 +283,7 @@
         "ctrl+shift+enter"
       ],
       [
-        "command+shift+enter"
+        "shift+command+enter"
       ]
     ]
   },
@@ -295,7 +295,7 @@
         "ctrl+alt+shift+up"
       ],
       [
-        "command+alt+shift+up"
+        "alt+shift+command+up"
       ]
     ]
   },
@@ -307,7 +307,7 @@
         "ctrl+alt+shift+down"
       ],
       [
-        "command+alt+shift+down"
+        "alt+shift+command+down"
       ]
     ]
   },
@@ -319,7 +319,7 @@
         "ctrl+alt+shift+left"
       ],
       [
-        "command+alt+shift+left"
+        "alt+shift+command+left"
       ]
     ]
   },
@@ -331,7 +331,7 @@
         "ctrl+alt+shift+right"
       ],
       [
-        "command+alt+shift+right"
+        "alt+shift+command+right"
       ]
     ]
   }
