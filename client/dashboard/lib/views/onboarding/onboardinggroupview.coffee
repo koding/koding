@@ -8,7 +8,7 @@ OnboardingSectionForm = require './onboardingsectionform'
 OnboardingSettingsMenuItem = require '../../onboardingsettingsmenuitem'
 
 
-module.exports = class OnboardingItemView extends CustomViewsDashboardView
+module.exports = class OnboardingGroupView extends CustomViewsDashboardView
 
   constructor: (options = {}, data) ->
 
@@ -38,10 +38,9 @@ module.exports = class OnboardingItemView extends CustomViewsDashboardView
     @loader.on "viewAppended", =>
       @loader.hide()
 
-    @on "DeleteChildItem", (childData) =>
-      @deleteChildItem childData
 
   getMenuItems: ->
+
     data         = @getData()
     activeLabel  = if data.isActive  then "Unpublish"      else "Publish"
     previewLabel = if data.isPreview then "Cancel preview" else "Preview"
@@ -55,7 +54,9 @@ module.exports = class OnboardingItemView extends CustomViewsDashboardView
 
     return items
 
+
   updateState: (key) ->
+
     changeSet = {}
     data      = @getData()
     callback  = =>
@@ -88,20 +89,27 @@ module.exports = class OnboardingItemView extends CustomViewsDashboardView
           cssClass : "solid light-gray medium"
           callback : -> modal.destroy()
 
+
   fetchViews: ->
+
     @loader.hide()
     {items} = @getData().partial
     return @noViewLabel.show()  if items?.length is 0
     @createList items
 
+
   createList: (items) ->
+
     return  unless items
     for item in items
       itemView = new OnboardingChildItem { delegate: this }, item
+      itemView.on 'ItemDeleted', @bound 'deleteChildItem'
       @customViews.push itemView
       @container.addSubView itemView
 
+
   deleteChildItem: (childData) ->
+
     data    = @getData()
     {items} = data.partial
     for item in items when item.name is childData.name
@@ -113,18 +121,27 @@ module.exports = class OnboardingItemView extends CustomViewsDashboardView
       @addNewButton.show()
       @reloadViews()
 
+
   edit: ->
+
     @hideViews()
-    @addSubView new OnboardingSectionForm { delegate: @getDelegate() }, @getData()
+    sectionForm = new OnboardingSectionForm {}, @getData()
+    @forwardEvent sectionForm, 'SectionSaved'
+    sectionForm.on 'SectionCancelled', @bound 'cancel'
+    @addSubView sectionForm
+
 
   delete: ->
+
     @confirmDelete =>
       @getData().remove (err, res) =>
         return kd.warn err  if err
         @getDelegate().container.destroySubViews()
         @getDelegate().reloadViews()
 
+
   confirmDelete: (callback = kd.noop) ->
+
     modal          = new KDModalView
       title        : "Are you sure?"
       content      : "Are you sure you want to delete the item. This cannot be undone."
@@ -140,3 +157,9 @@ module.exports = class OnboardingItemView extends CustomViewsDashboardView
           title    : "Cancel"
           cssClass : "solid light-gray medium"
           callback : -> modal.destroy()
+
+
+  cancel: ->
+
+    @showViews()
+    @emit "SectionCancelled"

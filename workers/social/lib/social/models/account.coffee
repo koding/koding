@@ -210,6 +210,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         expireSubscription:
           (signature Function)
+        fetchOtaToken:
+          (signature Function)
 
     schema                  :
       shareLocation         : Boolean
@@ -936,7 +938,7 @@ module.exports = class JAccount extends jraphical.Module
       @update op, (err) =>
         JAccount.sendUpdateInstanceEvent this, op  unless err
         SocialAccount  = require './socialapi/socialaccount'
-        
+
         SocialAccount.update {
           id            : @socialApiId
           nick          : @profile.nickname
@@ -1386,3 +1388,37 @@ module.exports = class JAccount extends jraphical.Module
 
     {expireSubscription} = require "./socialapi/requests"
     expireSubscription connection.delegate.getId(), callback
+
+
+  ###*
+   * Fetches one time access token from active session
+   * If accesstoken used before (not exists) it creates
+   * and returns new one while updating the session.
+   *
+   * @param  {Function(err, token)} callback
+  ###
+  fetchOtaToken: secure (client, callback) ->
+
+    { sessionToken } = client
+
+    errorCallback = ->
+      callback new KodingError 'Invalid session'
+
+    unless sessionToken
+      return errorCallback()
+
+    JSession         = require './session'
+    { v4: createId } = require 'node-uuid'
+
+    JSession.one {clientId: sessionToken}, (err, session) ->
+
+      if err or not session
+        return errorCallback()
+
+      if session.otaToken?
+        callback null, session.otaToken
+      else
+        otaToken = createId()
+        session.update $set: {otaToken}, (err)->
+          if err then errorCallback()
+          else callback null, otaToken

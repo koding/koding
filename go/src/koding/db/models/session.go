@@ -8,4 +8,5 @@ type Session struct {
 	Username      string        `bson:"username"`
 	GuestId       int           `bson:"guestId"`
 	Impersonating bool          `bson:"impersonating"`
+	OtaToken      string        `bson:"otaToken"`
 }
