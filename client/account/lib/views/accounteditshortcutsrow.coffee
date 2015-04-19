@@ -14,11 +14,28 @@ DESCRIPTION_TRUNC_LEN = 30
 DESCRIPTION_TRUNC_SEP = ' '
 
 # On Mac we display corresponding unicode chars for the following keys.
+# See: http://macbiblioblog.blogspot.nl/2005/05/special-key-symbols.html
+#
 MAC_UNICODE =
-  shift   : '&#x21E7;'
-  command : '&#x2318;'
-  alt     : '&#x2325;'
-  ctrl    : '^'
+  shift       : '&#x21E7;'
+  command     : '&#x2318;'
+  alt         : '&#x2325;'
+  ctrl        : '&#x2303'
+  tab         : '&#x21e5'
+  'caps lock' : '&#x21ea'
+  space       : '&#x2423'
+  enter       : '&#x23ce'
+  backspace   : '&#x232b'
+  home        : '&#x21f1'
+  end         : '&#x21f2'
+  'page up'   : '&#x21de'
+  'page down' : '&#x21df'
+  left        : '&#x2190'
+  up          : '&#x2191'
+  right       : '&#x2192'
+  down        : '&#x2193'
+  esc         : '&#x238b'
+  'num lock'  : '&#x21ed'
 
 # Determines the text conversion method to use when displaying bindings.
 convertCase = _.capitalize
