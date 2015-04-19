@@ -107,13 +107,16 @@
           padding-left 0
 
     div.row.collides
-      .col:nth-child(2)
-        &:before
+      .col:nth-child(3)
+        span:last-child
+          padding-right 25px
+        &:after
           content ""
-          r-sprite app '25-warning'
-          size 25px 25px
-          margin-right 10px
-          float left
+          r-sprite account 'shortcuts-dup'
+          size 20px 21px
+          position absolute
+          top 5px
+          right 10px
 
   .kdtabhandlecontainer
     background-color transparent !important
