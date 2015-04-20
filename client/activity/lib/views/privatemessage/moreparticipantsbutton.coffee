@@ -57,13 +57,13 @@ module.exports = class MoreParticipantsButton extends kd.ButtonViewWithMenu
   ###
   createContextMenu: (event) ->
 
-    options = @getOptions()
+    { style, moreListTitle, participantList } = @getOptions()
     @buttonMenu = new kd.JButtonMenu
-      cssClass : options.style
+      cssClass : style
       ghost    : @$('.chevron').clone()
       event    : event
       delegate : this
-    , options.menu()
+    , createMoreListFromAccounts moreListTitle, participantList
 
     @buttonMenu.on "ContextMenuItemReceivedClick", => @buttonMenu.destroy()
 
@@ -101,7 +101,13 @@ getButtonElement = (view) -> view.getElement().querySelector 'button'
  * @param {Immutable.OrderedMap<string, JAccount>} accounts
  * @return {object} list
 ###
-createMoreListFromAccounts = (accounts) ->
+createMoreListFromAccounts = (title, accounts) ->
+
+  titleItem =
+    type      : 'customView'
+    cssClass  : 'moreList-titleItem'
+    view      : k 'div', 'moreList-title', title
+    separator : yes
 
   createAvatar = (acc) ->
     k 'div', 'moreList-singleItemAvatar', [
@@ -112,17 +118,19 @@ createMoreListFromAccounts = (accounts) ->
       new ProfileTextView {}, acc
     ]
 
-  list = accounts.toJS().reduce (items, account) ->
-    items[account.profile.nickname] =
+  initialItems = { Title: titleItem }
+
+  items = accounts.toJS().reduce (transformedAccounts, account) ->
+    transformedAccounts[account.profile.nickname] =
       type : 'customView'
       view : k 'div', 'moreList-singleItem', [
         createAvatar account
         createName account
       ]
-    return items
-  , {}
+    return transformedAccounts
+  , initialItems
 
-  return list
+  return items
 
 
 ###*
