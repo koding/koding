@@ -19,6 +19,7 @@ ADD definition              /definition
 ADD notification_definition /notification_definition
 ADD sitemap_definition      /sitemap_definition
 ADD payment_definition      /payment_definition
+ADD integration_definition  /integration_definition
 ADD kontrol 	            /kontrol
 
 
