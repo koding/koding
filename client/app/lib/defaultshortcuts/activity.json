@@ -1,17 +1,5 @@
 [
   {
-    "name": "nextwindow",
-    "binding": [
-      [
-        "alt+down"
-      ],
-      [
-        "alt+down"
-      ]
-    ],
-    "description": "Next window"
-  },
-  {
     "name": "prevwindow",
     "binding": [
       [
@@ -22,5 +10,17 @@
       ]
     ],
     "description": "Previous window"
+  },
+  {
+    "name": "nextwindow",
+    "binding": [
+      [
+        "alt+down"
+      ],
+      [
+        "alt+down"
+      ]
+    ],
+    "description": "Next window"
   }
 ]
