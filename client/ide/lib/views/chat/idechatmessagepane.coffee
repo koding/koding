@@ -57,12 +57,14 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     nicknames = Object.keys participants
 
+    @participantHeads.setVideoListTitle()
     @participantsModel.setVideoState on, nicknames
     @videoActive = yes
 
 
   handleVideoEnded: ->
 
+    @participantHeads.setDefaultListTitle()
     @participantsModel.setVideoState off
     @videoActive = no
 

@@ -3,6 +3,16 @@ IDEChatMessageParticipantAvatar = require './idechatmessageparticipantavatar'
 
 module.exports = class IDEChatParticipantHeads extends ParticipantHeads
 
+  setDefaultListTitle: ->
+
+    @options.moreListTitle = 'Other Participants'
+
+
+  setVideoListTitle: ->
+
+    @options.moreListTitle = 'Inactive Participants'
+
+
   updateParticipants: (participantMap, state) ->
 
     @updatePreviewAvatars participantMap.preview, state
