@@ -78,6 +78,19 @@
       &.active
         background-color #fffcdc
 
+        &:after
+          display none
+
+        span.cancel
+          r-sprite account 'shortcuts-cancel'
+          size 9px 9px
+          position absolute
+          right 16px
+          top 10px
+
+          &:hover
+            r-sprite account 'shortcuts-cancel-hover'
+
       .col
         display table-column
         width 45%
