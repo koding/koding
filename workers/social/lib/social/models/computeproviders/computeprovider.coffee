@@ -129,6 +129,11 @@ module.exports = class ComputeProvider extends Base
       return callback new KodingError "No such stack"  unless revivedStack
 
       options.stack = revivedStack
+
+      # Reset it here if someone tries to put users
+      # from client side request
+      options.users = []
+
       @create client, options, callback
 
 
