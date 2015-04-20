@@ -357,6 +357,24 @@ module.exports = class PrivateMessagePane extends MessagePane
     , @getData()
 
 
+  createActionsMenu: ->
+
+    @actionsMenu = new PrivateMessageSettingsView {}, @getData()
+    @forwardEvent @actionsMenu, 'LeftChannel'
+
+    return @actionsMenu
+
+
+  prepareParticipantsModel: ->
+
+    @participantsModel = new ChannelParticipantsModel { channel: @getData() }
+
+
+  createParticipantHeads: ->
+
+    @participantHeads = new ParticipantHeads
+
+
   createParticipantsView : ->
 
     channel = @getData()
@@ -367,13 +385,9 @@ module.exports = class PrivateMessagePane extends MessagePane
       cssClass    : 'chat-heads'
       partial     : '<span class="description">Chat between</span>'
 
-
-    @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, channel
-
-    @forwardEvent @actionsMenu, 'LeftChannel'
-
-    @participantsModel = new ChannelParticipantsModel { channel }
-    @participantsView.addSubView @participantHeads = new ParticipantHeads
+    @prepareParticipantsModel()
+    @participantsView.addSubView @createActionsMenu()
+    @participantsView.addSubView @createParticipantHeads()
 
     @participantHeads.on 'NewParticipantButtonClicked', @bound 'toggleAutoCompleteInput'
 
