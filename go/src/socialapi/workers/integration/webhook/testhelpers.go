@@ -4,6 +4,8 @@ import (
 	"socialapi/models"
 	"testing"
 
+	"github.com/koding/bongo"
+
 	"labix.org/v2/mgo/bson"
 )
 
@@ -41,6 +43,34 @@ func CreateTestIntegration(t *testing.T) *Integration {
 	i.Name = "test_" + models.RandomName()
 
 	err := i.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return i
+}
+
+func CreateIterableIntegration(t *testing.T) *Integration {
+
+	i := NewIntegration()
+	i.Title = "iterable"
+	i.Name = "iterable"
+
+	selector := map[string]interface{}{
+		"name": i.Name,
+	}
+
+	// no need to make it idempotent
+	err := i.One(bongo.NewQS(selector))
+	if err == nil {
+		return i
+	}
+
+	if err != bongo.RecordNotFound {
+		t.Fatal(err)
+	}
+
+	err = i.Create()
 	if err != nil {
 		t.Fatal(err)
 	}
