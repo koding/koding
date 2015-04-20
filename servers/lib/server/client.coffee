@@ -36,13 +36,13 @@ fetchAccount = (username, callback)->
   bongo.models.JAccount.one {"profile.nickname" : username }, callback
 
 updateCookie = (req, res, session)->
-  {clientId} = session
+  { clientId }       = session
   { maxAge, secure } = KONFIG.sessionCookie
   # set cookie as pending cookie
   req.pendingCookies or= {}
   req.pendingCookies.clientId = clientId
 
-  res.cookie "clientId", clientId, { maxAge, secure }
+  res.cookie 'clientId', clientId, { maxAge, secure }
 
 generateFakeClientFromReq = (req, res, callback)->
 
