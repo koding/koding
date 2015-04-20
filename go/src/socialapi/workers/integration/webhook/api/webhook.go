@@ -85,5 +85,18 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, r *PrepareRequest) (in
 		return response.NewBadRequest(err)
 	}
 
+	service, err := h.sf.Create(name)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	errs := service.Validate(r.Data)
+	if len(errs) > 0 {
+		// TODO we need another bad request method here for showing validation errors
+		return response.NewBadRequest(errs[0])
+	}
+
+	//message := service.PrepareMessage(r.Data)
+
 	return response.NewNotImplemented()
 }

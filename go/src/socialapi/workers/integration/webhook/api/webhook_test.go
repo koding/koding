@@ -8,6 +8,7 @@ import (
 	"socialapi/models"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/integration/webhook"
+	"socialapi/workers/integration/webhook/services"
 	"testing"
 	"time"
 
@@ -33,7 +34,7 @@ func newRequest(body string, channelId int64, groupName string) *WebhookRequest 
 	}
 }
 
-func newPrepareRequest(data APIData) *PrepareRequest {
+func newPrepareRequest(data *services.ServiceInput) *PrepareRequest {
 	return &PrepareRequest{
 		Data: data,
 	}
@@ -147,7 +148,7 @@ func TestWebhookListen(t *testing.T) {
 
 func TestWebhookPrepare(t *testing.T) {
 
-	i := webhook.CreateTestIntegration(t)
+	webhook.CreateIterableIntegration(t)
 
 	Convey("while testing incoming webhook", t, func() {
 
@@ -157,7 +158,7 @@ func TestWebhookPrepare(t *testing.T) {
 			s, _, _, err := h.Prepare(
 				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
 				mocking.Header(nil),
-				newPrepareRequest(APIData{}),
+				newPrepareRequest(&services.ServiceInput{}),
 			)
 			So(err.Error(), ShouldEqual, ErrTokenNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -167,7 +168,7 @@ func TestWebhookPrepare(t *testing.T) {
 			s, _, _, err = h.Prepare(
 				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
 				mocking.Header(nil),
-				newPrepareRequest(APIData{}),
+				newPrepareRequest(&services.ServiceInput{}),
 			)
 			So(err.Error(), ShouldEqual, ErrNameNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -176,17 +177,19 @@ func TestWebhookPrepare(t *testing.T) {
 			s, _, _, err = h.Prepare(
 				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
 				mocking.Header(nil),
-				newPrepareRequest(APIData{}),
+				newPrepareRequest(&services.ServiceInput{}),
 			)
 			So(err, ShouldNotBeNil)
 			So(s, ShouldEqual, http.StatusNotFound)
 
 			s, _, _, err = h.Prepare(
-				mocking.URL(m, "POST", "/webhook/"+i.Name+"/"+token),
+				mocking.URL(m, "POST", "/webhook/iterable/"+token),
 				mocking.Header(nil),
-				newPrepareRequest(APIData{}),
+				newPrepareRequest(&services.ServiceInput{}),
 			)
-			So(err, ShouldBeNil)
+			// TODO temporary assertion
+			So(s, ShouldEqual, http.StatusNotImplemented)
+			//So(err, ShouldBeNil)
 		})
 	})
 }
