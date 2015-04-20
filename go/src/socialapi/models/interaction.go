@@ -78,6 +78,26 @@ func (i *Interaction) ListLikedMessages(q *request.Query) ([]LikedMessages, erro
 	return likedMessages, nil
 }
 
+func getLikedMessagesQuery(q *request.Query) *gorm.DB {
+	i := NewInteraction()
+
+	return bongo.B.DB.
+		Model(i).
+		Table(i.BongoName()).
+		Select("api.interaction.message_id").
+		Joins(
+		`left join api.channel_message on
+		api.interaction.message_id = api.channel.id`).
+		Where(
+		`api.interaction.account_id = ? and
+		 api.channel.id = ? and
+		 api.interaction.type_constant = ?`,
+		 i.AccountId,
+		 q.Id,
+		 Interaction_TYPE_LIKE,
+	)
+}
+
 // Tests are done.
 func (i *Interaction) MarkIfExempt() error {
 	isExempt, err := i.isExempt()
