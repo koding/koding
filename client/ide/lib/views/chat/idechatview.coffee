@@ -117,6 +117,15 @@ module.exports = class IDEChatView extends KDTabView
     @unsetClass 'loading'
 
 
+  setVideoActiveState: (state) ->
+
+    if state
+    then @setClass 'is-videoActive'
+    else @unsetClass 'is-videoActive'
+
+    kd.utils.defer @bound 'focus'
+
+
   handleVideoActive: ->
 
     @setClass 'is-videoActive'
@@ -126,9 +135,9 @@ module.exports = class IDEChatView extends KDTabView
 
   handleVideoEnded: ->
 
+    @setVideoActiveState off
     @chatPane.handleVideoEnded()
     @chatVideoView.hide()
-    @unsetClass 'is-videoActive'
 
 
   getVideoView: -> @chatVideoView
