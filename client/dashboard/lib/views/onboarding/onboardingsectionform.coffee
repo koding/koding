@@ -1,10 +1,9 @@
 kd = require 'kd'
 KDFormViewWithFields = kd.FormViewWithFields
 KDSelectBox = kd.SelectBox
-remote = require('app/remote').getInstance()
 globals = require 'globals'
 KodingSwitch = require 'app/commonviews/kodingswitch'
-
+Helpers = require 'dashboard/custompartialhelpers'
 
 module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
@@ -61,8 +60,7 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
         @emit "SectionSaved"
         @destroy()
     else
-      remote.api.JCustomPartials.create data, (err, section) =>
-        return kd.warn err  if err
+      Helpers.createPartial data, (err, section) =>
         @emit "SectionSaved"
         @destroy()
 

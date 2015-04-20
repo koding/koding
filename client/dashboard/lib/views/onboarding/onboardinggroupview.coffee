@@ -98,17 +98,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     @createList items
 
 
-  createList: (items) ->
-
-    return  unless items
-    for item in items
-      itemView = new OnboardingChildItem { delegate: this }, item
-      itemView.on 'ItemDeleted', @bound 'deleteChildItem'
-      @customViews.push itemView
-      @container.addSubView itemView
-
-
-  deleteChildItem: (childData) ->
+  handleViewDeleted: (childData) ->
 
     data    = @getData()
     {items} = data.partial

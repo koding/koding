@@ -4,6 +4,7 @@ CustomViewsDashboardView = require '../customviews/customviewsdashboardview'
 OnboardingAddNewForm = require './onboardingaddnewform'
 OnboardingSectionForm = require './onboardingsectionform'
 OnboardingGroupView = require './onboardinggroupview'
+OnboardingChildItem = require 'dashboard/onboardingchilditem'
 
 
 module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
@@ -34,6 +35,7 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
         title       : section.name
         cssClass    : "onboarding-items"
         formClass   : OnboardingAddNewForm
+        itemClass   : OnboardingChildItem
       , section
       @bindFormEvents view
 

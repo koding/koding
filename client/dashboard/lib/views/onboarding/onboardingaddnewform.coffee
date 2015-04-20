@@ -50,7 +50,7 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     items.push newItem  unless isUpdate
     data.update { "partial.items": items }, (err, res) =>
       return kd.warn err  if err
-      @getDelegate().emit "NewViewAdded"
+      @emit "NewViewAdded"
 
 
   pistachio: ->
