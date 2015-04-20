@@ -1,6 +1,7 @@
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 
+paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
 split = (browser, selector) ->
 
@@ -13,8 +14,10 @@ split = (browser, selector) ->
       assert.equal result.value.length, 2
 
       browser
-        .waitForElementVisible   '.application-tab-handle-holder', 20000
-        .click                   '.application-tab-handle-holder .plus'
+        .waitForElementVisible   '.panel-1 .panel-0 .application-tab-handle-holder', 20000
+        .moveToElement           '.panel-1 .panel-0 .application-tab-handle-holder .plus', 60, 17
+        .pause  300
+        .click                   '.panel-1 .panel-0 .application-tab-handle-holder .plus'
         .waitForElementVisible   '.context-list-wrapper', 20000
         .click                   '.context-list-wrapper ' + selector
         .pause                   2000
