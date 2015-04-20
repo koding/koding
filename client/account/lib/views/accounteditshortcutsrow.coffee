@@ -3,6 +3,7 @@ _  = require 'lodash'
 facade = require('./accounteditshortcutsfacade')
 EventType = require './accounteditshortcutseventtype'
 globals = require 'globals'
+recorder = require 'record-shortcuts'
 
 # On Mac we display corresponding unicode chars for the following keys.
 # See: http://macbiblioblog.blogspot.nl/2005/05/special-key-symbols.html
@@ -63,6 +64,9 @@ class AccountEditShortcutsRow extends kd.View
   # Class name to set for duplicate/colliding items.
   DUP_CLASS_NAME = 'collides'
 
+  # Class name that we use to catch cancel click.
+  CANCEL_CLASS_NAME = 'cancel'
+
   # The maximum description string length.
   DESCRIPTION_TRUNC_LEN = 30
 
@@ -74,6 +78,8 @@ class AccountEditShortcutsRow extends kd.View
   CLASS_NAME = 'row'
 
   TOGGLE_PARTIAL = '<div class=toggle><span class=icon>'
+
+  BINDING_ACTIVE_PARTIAL = '<span class=cancel>'
 
   constructor: (options, data) ->
 
@@ -126,13 +132,15 @@ class AccountEditShortcutsRow extends kd.View
 
     # Handles dom click events.
     #
-    clickHandler = =>
-      return  if @_active
+    clickHandler = (e) =>
+      if @_active
+        recorder.cancel()  if e.target.className is CANCEL_CLASS_NAME
+        return
 
       @setClass ACTIVE_CLASS_NAME
       @unsetClass DUP_CLASS_NAME
       @_active = yes
-      binding.updatePartial ''
+      binding.updatePartial BINDING_ACTIVE_PARTIAL
 
       # Start a recording session.
       @emit EventType.Item.SELECTED,
