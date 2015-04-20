@@ -20,11 +20,11 @@ class ShortcutsController extends events.EventEmitter
 
   # Manages keyboard shortcuts.
   #
-  # Wraps over a _shortcuts_ instance by default (if not passed explicitly
+  # Wraps over a shortcuts instance by default (if not passed explicitly
   # within opts.shortcuts), and makes sure we are listening and dispatching
   # correct keyboard events depending on an application's config.
   #
-  # This also exposes convenience proxy methods to the underlying _keyconfig_
+  # This also exposes convenience proxy methods to the underlying keyconfig
   # instance, and persists the state of a keyconfig#Collection to the app storage.
   #
   constructor: (options={}, data) ->
@@ -60,8 +60,7 @@ class ShortcutsController extends events.EventEmitter
   # Party starts here.
   #
   # This adds the necessary event listeners, and fetches changes.
-  # Make sure to call this after _appStorageController_ & _appManager_
-  # singletons are set.
+  # Make sure to call this after appStorageController & appManager singletons are set.
   #
   addEventListeners: ->
 
@@ -90,11 +89,11 @@ class ShortcutsController extends events.EventEmitter
       @_flushBuffer()
       return
 
-    # take over buffer
+    # Take over buffer.
     buffer = _.clone @_buffer, yes
     @_flushBuffer()
 
-    # transform it, so we can extend the remote object
+    # Transform it, so we can extend the remote object.
     pack =
       _
         .reduce buffer, (sum, collection, key) ->
@@ -105,10 +104,10 @@ class ShortcutsController extends events.EventEmitter
           , sum
         , {}
 
-    # so we extend the remote object
+    # So we extend the remote object.
     @_store._storage.update $set: pack, =>
 
-      # and make sure everybody is aware of the changes we've just made
+      # And make sure everybody is aware of the changes we've just made.
       _.each buffer, (objs, collectionName) =>
         collection = @get collectionName
         _.each objs, (value) =>
@@ -133,8 +132,7 @@ class ShortcutsController extends events.EventEmitter
 
     @_store._storage.update $unset: pack, =>
 
-      # remove change listeners, so we won't try to persist following changes.
-      #
+      # Remove change listeners, so we won't try to persist following changes.
       # XXX: use component-bind, bound or whatever instead
       @shortcuts.removeAllListeners 'change'
 
@@ -160,10 +158,10 @@ class ShortcutsController extends events.EventEmitter
 
   # Buffers up changed models.
   #
-  # This is necessary for not to exhaust given resources, since
-  # we are listening changes in _keyconfig#Model_ level.
+  # This is necessary for not to exhaust given resources, since we are listening
+  # for changes in keyconfig#Model level.
   #
-  # That is to say, each _keyconfig#Model_ change dispatches this.
+  # That is, each keyconfig#Model change dispatches this.
   #
   _handleShortcutsChange: (collection, model) ->
 
@@ -176,8 +174,8 @@ class ShortcutsController extends events.EventEmitter
     else
       obj.binding = null
 
-    # even if enabled is _true_ by default for this model, we always save it on
-    # appstorage. defaults may change, but user overrides should stay.
+    # Even if enabled is true by default for this model, we always save it on
+    # appstorage. Defaults may change, but user overrides should stay.
     obj.enabled = if model.options?.enabled is no then no else yes
 
     idx = _.findIndex queue, name: model.name
@@ -221,8 +219,8 @@ class ShortcutsController extends events.EventEmitter
     return
 
 
-  # Invalidates previous app's keyboard events and adds new
-  # listeners for the current one.
+  # Invalidates previous app's keyboard events and adds new listeners
+  # for the current one.
   #
   _handleFrontAppChange: (app, prevApp) ->
 
@@ -240,7 +238,7 @@ class ShortcutsController extends events.EventEmitter
         @shortcuts.on "key:#{key}", app.bound 'handleShortcut'
 
 
-  # Proxy to _shortcuts#get_.
+  # Proxy to shortcuts#get.
   #
   # See: http://github.com/koding/shortcuts#api
   #
@@ -249,16 +247,15 @@ class ShortcutsController extends events.EventEmitter
     @shortcuts.get.apply @shortcuts, Array::slice.call arguments
 
 
-  # Updates a _keyconfig#Model_.
+  # Updates a keyconfig#Model.
   #
-  # This api is pretty-much same with _shortcuts#update_.
+  # This api is pretty-much same with shortcuts#update.
   #
-  # One important difference is _silent_ argument is handled internally,
-  # and not exposed. That's because passing _silent_ to _shortcuts#update_
-  # as true makes sure _shortcuts_ doesn't add any keyboard event listeners,
-  # yet it still updates the underlying _keyconfig_ instance. This is how we
+  # One important difference is silent argument is handled internally,
+  # and not exposed. That's because passing silent to shortcuts#update
+  # as true makes sure shortcuts doesn't add any keyboard event listeners,
+  # yet it still updates the underlying keyconfig instance. This is how we
   # deal with shortcuts that should be handled manually.
-  #
   #
   update: (collectionName, modelName, value) ->
 
@@ -273,18 +270,18 @@ class ShortcutsController extends events.EventEmitter
 
     throw "#{modelName} not found"  unless model
 
-    # _lodash#pick_ returns a shallow copy; make sure we don't override the given value
+    # lodash#pick returns a shallow copy; make sure we don't override the given value.
     overrides = _.clone overrides, yes
 
-    # _isNull_ test is necessary here to make sure we don't update other
-    # platform bindings accidentally
+    # isNull test is necessary here to make sure we don't update other
+    # platform bindings accidentally.
     if _.isArray(overrides.binding) or _.isNull(overrides.binding)
       overrides.binding = klass._replacePlatformBinding model, overrides.binding
     else
       delete overrides.binding
 
-    # _options.enabled_ must be precisely set to _false_ in order to disable a shortcut;
-    # any other falsey setting will always be converted to _true_
+    # options.enabled must be precisely set to false in order to disable a shortcut;
+    # any other falsey setting will always be converted to true.
     if _.isObject overrides.options
       whitelistedOptions = _.pick overrides.options, 'enabled'
       unless _.isEmpty whitelistedOptions
@@ -293,7 +290,7 @@ class ShortcutsController extends events.EventEmitter
     silent = klass._isCustomShortcut model
     res    = @shortcuts.update collectionName, modelName, overrides, silent
 
-    # we manually trigger change for custom shortcuts
+    # We manually dispatch change for custom shortcuts.
     if silent then @_handleShortcutsChange @shortcuts.get(collectionName), res
 
     return res
@@ -305,10 +302,10 @@ class ShortcutsController extends events.EventEmitter
   # Note that:
   #
   # * Returning value only includes bindings for the current platform.
-  # * _extends_ field is used to merge a collection into the specified one.
+  # * extends field is used to merge a collection into the specified one.
   # That's because some shortcuts are logically in the same group and should
   # be displayed along; but in fact they are not and should be separated
-  # to avoid collisions.
+  # to avoid collisions. (XXX: extends stuff is obsolete)
   #
   toJSON: (predicate) ->
 
@@ -343,7 +340,7 @@ class ShortcutsController extends events.EventEmitter
     new Collection @toJSON predicate
 
 
-  # Convenience method that returns a _keyconfig#Collection's_ json representation
+  # Convenience method that returns a keyconfig#Collection's json representation
   # for the current platform. Optionally takes a filter predicate.
   #
   getJSON: (name, predicate) ->
@@ -392,19 +389,19 @@ class ShortcutsController extends events.EventEmitter
 
   # Returns the app storage key for the current platform.
   #
-  # This will either be *shortcuts-mac* or *shortcuts-win*.
+  # This will either be shortcuts-mac or shortcuts-win.
   #
   @getPlatformStorageKey: ->
 
     "#{STORAGE_NAME}-#{globals.keymapType}"
 
 
-  # Returns _binding_ getter method name of a _keyconfig#Model_ for the current platform.
+  # Returns binding getter method name of a keyconfig#Model for the current platform.
   #
   # This is memoized, so subsequent calls will return the cached result;
-  # it still must be defined at static level since _globals_ must be ready.
+  # it still must be defined at static level since globals must be ready.
   #
-  # This will either be *getMacKeys* or *getWinKeys*.
+  # This will either be getMacKeys or getWinKeys.
   #
   # See: http://github.com/koding/keyconfig#api
   #
@@ -414,7 +411,7 @@ class ShortcutsController extends events.EventEmitter
     return "get#{kmt.charAt(0).toUpperCase()}#{kmt.slice 1, 3}Keys"
 
 
-  # Given a _keyconfig#Model_, returns its binding for the current platform.
+  # Given a keyconfig#Model, returns its binding for the current platform.
   #
   @_getPlatformBinding: (model) ->
 
@@ -423,10 +420,10 @@ class ShortcutsController extends events.EventEmitter
   getPlatformBinding: klass._getPlatformBinding
 
 
-  # Returns _binding_ array index of a _keyconfig#Model_ for the current platform.
+  # Returns binding array index of a keyconfig#Model for the current platform.
   #
   # This is memoized, so subsequent calls will return the cached result;
-  # it still must be defined at static level since _globals_ must be ready.
+  # it still must be defined at static level since globals must be ready.
   #
   # This will either be 1 for mac or 0 for windows/linux.
   #
@@ -450,7 +447,7 @@ class ShortcutsController extends events.EventEmitter
     return binding
 
 
-  # Returns *true* if given _keyconfig#Model_ is a custom shortcut.
+  # Returns true if given keyconfig#Model is a custom shortcut.
   #
   @_isCustomShortcut: (model) ->
 
