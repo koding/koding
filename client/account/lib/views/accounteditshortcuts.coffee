@@ -4,6 +4,15 @@ recorder = require 'record-shortcuts'
 Pane     = require './accounteditshortcutspane'
 facade   = require './accounteditshortcutsfacade'
 
+RESTORE_CONFIRM_TEXT = 'Are you sure you want to restore the default shortcuts?'
+
+restoreDefaults = ->
+
+  return  unless confirm RESTORE_CONFIRM_TEXT
+  kd.getSingleton('shortcuts').restore()
+  @domElement.blur()
+
+
 module.exports =
 
 class AccountEditShortcuts extends kd.View
@@ -12,8 +21,6 @@ class AccountEditShortcuts extends kd.View
   INSTRUCTIONS_PARTIAL = 'To change a shortcut, click on it, then type the new keys.'
   RESTORE_BUTTON_TITLE = 'Restore Defaults'
   RESTORE_BUTTON_CLASS_NAME = 'solid light-gray medium restore'
-  RESTORE_CONFIRM_TEXT = 'Are you sure you want to restore the default shortcuts?'
-
 
   destroy: ->
 
@@ -24,12 +31,6 @@ class AccountEditShortcuts extends kd.View
     facade.dispose()
 
     super
-
-
-  restoreDefaults: ->
-
-    return  unless confirm RESTORE_CONFIRM_TEXT
-    kd.getSingleton('shortcuts').restore()
 
 
   viewAppended: ->
@@ -62,6 +63,6 @@ class AccountEditShortcuts extends kd.View
     @addSubView new kd.ButtonView
       title    : RESTORE_BUTTON_TITLE
       style    : RESTORE_BUTTON_CLASS_NAME
-      callback : @bound 'restoreDefaults'
+      callback : restoreDefaults
 
     @tabView.showPaneByIndex 0
