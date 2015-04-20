@@ -29,7 +29,7 @@ GRANT SELECT, INSERT, UPDATE ON "integration"."integration" TO "social";
 -- ----------------------------
 --  Table structure for channel_integration
 -- ----------------------------
-DROP TABLE IF EXISTS "integration"."channel_integration"
+DROP TABLE IF EXISTS "integration"."channel_integration";
 CREATE TABLE "integration"."channel_integration" (
   "id" BIGINT NOT NULL DEFAULT nextval('integration.channel_integration_id_seq'::regclass),
   "description" VARCHAR (140) NOT NULL COLLATE "default",
