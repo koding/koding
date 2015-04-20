@@ -35,9 +35,28 @@ module.exports =
     split(browser, 'li.split-horizontally')
 
 
-  splitPanesHorizontally: (browser) ->
+  splitPanesHorizontally: (browser, selector) ->
 
-    split(browser, 'li.split-horizontally')
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible '.panel-1', 20000
+      .elements 'css selector', '.panel-1', (result) =>
+        assert.equal result.value.length, 2
+
+        browser
+          .waitForElementVisible   paneSelector + ' .plus', 20000
+          .pause   2000
+          .click                   paneSelector + ' .plus'
+          .waitForElementVisible   '.context-list-wrapper', 20000
+          .pause   2000
+          .click                   '.context-list-wrapper ' + ' .split-horizontally'
+          .pause                   2000
+
+        .elements 'css selector', '.panel-1', (result) =>
+          assert.equal result.value.length, 3
+        .end()
 
 
   splitPanesUndo: (browser) ->
