@@ -79,28 +79,21 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   setActiveParticipantAvatar: (account) ->
 
-    for own id, avatar of @participantMap
-      if id is account._id
-      then avatar.setClass 'is-activeParticipant'
-      else avatar.unsetClass 'is-activeParticipant'
+    @participantsModel.addVideoActiveParticipant account.profile.nickname
 
 
   setSelectedParticipantAvatar: (account) ->
 
-    for own id, avatar of @participantMap
-      # if account is null all avatars will receive `unsetClass` calls.
-      # `null` account means: "SELECT NO ONE!"
-      if id is account?._id
-      then avatar.setClass 'is-selectedParticipant'
-      else avatar.unsetClass 'is-selectedParticipant'
+    participant = account?.profile.nickname or null
+
+    @participantsModel.setVideoSelectedParticipant participant
 
 
   setAvatarTalkingState: (nickname, state) ->
 
-    for _, avatar of @participantMap when avatar.data.profile.nickname is nickname
-      if state
-      then avatar.setClass 'is-talkingParticipant'
-      else avatar.unsetClass 'is-talkingParticipant'
+    if state
+    then @participantsModel.addTalkingParticipant nickname
+    else @participantsModel.removeTalkingParticipant nickname
 
 
   glance: ->
@@ -156,7 +149,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     else
 
-      @newParticipantButton.destroy()
+      @participantHeads.newParticipantButton.destroy()
 
 
   handleOnboardingViewClick: (e) ->
