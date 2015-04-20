@@ -65,6 +65,7 @@ class AccountEditShortcutsRow extends kd.View
     @model = data
     @_enabled = @model.enabled
     @_handlers = null
+    @_active = no
 
     dup = options.dup
     delete options.dup
@@ -101,17 +102,22 @@ class AccountEditShortcutsRow extends kd.View
     # Pass silent to trigger this explicitly, otherwise you will get an inf. loop.
     #
     toggleClickHandler = (e, silent=no) =>
+      e.preventDefault?()
+      e.stopPropagation?()
       @_enabled = if _.isBoolean e then e else not @_enabled
       if @_enabled then toggle.setClass 'enabled' else toggle.unsetClass 'enabled'
       unless silent
         @emit EventType.Item.TOGGLED, @_enabled
 
-    # Handles dom click events on binding cell.
+    # Handles dom click events.
     #
-    bindingClickHandler = =>
-      # Cleanup displayed binding.
+    clickHandler = =>
+      return  if @_active
+
       @setClass 'active'
+      @_active = yes
       binding.updatePartial ''
+
       # Start a recording session.
       @emit EventType.Item.SELECTED,
         # Following will be called upon a recording session is finished.
@@ -119,6 +125,7 @@ class AccountEditShortcutsRow extends kd.View
         # thus eventually we will get a Facade.CHANGED.
         # Otherwise we set the previous binding.
         (res) =>
+          @_active = no
           partial = if res then presentBinding res else presentBinding _.first @model.binding
           binding.updatePartial partial
           @unsetClass 'active'
@@ -149,16 +156,16 @@ class AccountEditShortcutsRow extends kd.View
     destroyHandler = =>
       @off EventType.Facade.CHANGED, changeHandler
       @off EventType.Facade.DUP, dupHandler
+      @off 'click', clickHandler
       toggle.off  'click', toggleClickHandler
-      binding.off 'click', bindingClickHandler
       _.each EventType.Item, (type) =>
         @off type, @_handlers[type]
         @_handlers[type] = null
       @_handlers = null
 
     # Add handlers for dom events.
-    toggle.on  'click', toggleClickHandler
-    binding.on 'click', bindingClickHandler
+    @on 'click', clickHandler
+    toggle.on 'click', toggleClickHandler
 
     # Add handlers for facade events.
     @on EventType.Facade.CHANGED, changeHandler
