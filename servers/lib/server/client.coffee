@@ -64,7 +64,7 @@ generateFakeClientFromReq = (req, res, callback)->
 
     updateCookie req, res, session
 
-    return callback null, fakeClient
+    return callback null, fakeClient, session
 
 
 generateFakeClient = (options, callback) ->

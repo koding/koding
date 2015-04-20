@@ -98,7 +98,7 @@ serveHome = (req, res, next) ->
   {JGroup} = bongoModels = koding.models
   {generateFakeClient}   = require "./client"
 
-  generateFakeClient req, res, (err, client)->
+  generateFakeClient req, res, (err, client, session)->
     if err or not client
       console.error err
       return next()
@@ -112,7 +112,10 @@ serveHome = (req, res, next) ->
       {params}              = req
       {loggedIn, loggedOut} = JGroup.render
       fn                    = if state then loggedIn else loggedOut
-      options = { client, account, bongoModels, params}
+      options = { client, account, bongoModels, params, session}
+
+
+      console.log 'groupName', session
 
       fn.kodingHome options, (err, subPage)->
         return next()  if err
