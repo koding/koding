@@ -114,12 +114,16 @@ module.exports = class SidebarMachineBox extends KDView
     @addSubView @workspacesLabel = new KDCustomHTMLView
       cssClass : 'workspaces-link'
       partial  : 'Workspaces'
-      click    : =>
+      click    : @bound 'handleWorkspaceLabelClicked'
 
-        return no  unless @machine.isMine()
 
-        modal = new MoreWorkspacesModal {}, @getData().workspaces
-        modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
+  handleWorkspaceLabelClicked: ->
+
+    if not @machine.isMine() or not @isMachineRunning()
+      return no
+
+    modal = new MoreWorkspacesModal {}, @getData().workspaces
+    modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
 
 
   createAddWorkspaceInput: ->
