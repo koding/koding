@@ -3,9 +3,11 @@ socialHelpers           = require './collaboration/helpers/social'
 
 module.exports = VideoCollaborationController =
 
-  prepareVideoCollaboration: (channel, view) ->
+  prepareVideoCollaboration: ->
 
-    @videoModel = new VideoCollaborationModel { channel, view }
+    @videoModel = new VideoCollaborationModel
+      channel : @socialChannel
+      view    : @chat.getVideoView()
 
     @videoModel
       .on 'CameraAccessQuestionAsked',     @bound 'handleVideoAccessQuestionAsked'
