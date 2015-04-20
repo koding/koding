@@ -80,7 +80,7 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-    { provider, stack, label, provisioners } = options
+    { provider, stack, label, provisioners, users } = options
     { r: { group, user, account } } = client
 
     provider.create client, options, (err, machineData)->
@@ -94,7 +94,7 @@ module.exports = class ComputeProvider extends Base
       JMachine.create {
         provider : provider.slug
         label, meta, group, user
-        credential, provisioners
+        users, credential, provisioners
       }, (err, machine)->
 
         # TODO if any error occurs here which means user paid for
