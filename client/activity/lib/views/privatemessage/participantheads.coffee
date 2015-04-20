@@ -24,7 +24,8 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'ParticipantHeads clearfix'
+    options.cssClass      = 'ParticipantHeads clearfix'
+    options.moreListTitle = 'Other participants'
 
     super options, data
 
@@ -111,7 +112,9 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
 
     return  @extrasContainer.hide()  unless count = participants.size
 
-    moreButton = new MoreParticipantsButton { participantList: participants }
+    moreButton = new MoreParticipantsButton
+      participantList : participants
+      moreListTitle   : @options.moreListTitle
 
     @extrasContainer.destroySubViews()
     @extrasContainer.addSubView moreButton
