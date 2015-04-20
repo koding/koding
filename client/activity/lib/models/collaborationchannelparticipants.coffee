@@ -108,7 +108,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
       # add video participant without emitting event.
       participants.map (p) => @addVideoParticipant p, no
 
-      # basically we batched the change event updates.
-      @emitChange()
+    # basically we batched the change event updates.
+    @emitChange()
 
 
