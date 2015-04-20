@@ -154,11 +154,21 @@ variable "%s" {
 	}
 
 	var plan *terraform.Plan
-	if err := resp.Unmarshal(plan); err != nil {
+	if err := resp.Unmarshal(&plan); err != nil {
 		return err
 	}
 
-	fmt.Printf("plan = %+v\n", plan)
+	fmt.Printf("plan.State = %+v\n", plan.State)
+	fmt.Printf("plan.Module = %+v\n", plan.Module)
+	fmt.Printf("plan.Vars = %+v\n", plan.Vars)
+	for _, d := range plan.Diff.Modules {
+		for n, r := range d.Resources {
+			fmt.Printf("%s = %+v\n", n, r)
+			for name, a := range r.Attributes {
+				fmt.Printf("%s = %+v\n", name, a)
+			}
+		}
+	}
 
 	return errors.New("THANKS BRO, I've got my PLAN!")
 
