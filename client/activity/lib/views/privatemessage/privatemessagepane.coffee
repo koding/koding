@@ -15,7 +15,7 @@ showError                        = require 'app/util/showError'
 AvatarView                       = require 'app/commonviews/avatarviews/avatarview'
 dateFormat                       = require 'dateformat'
 isMyPost                         = require 'app/util/isMyPost'
-fetchAccounts                    = require 'app/util/fetchAccounts'
+fetchAccount                     = require 'app/util/fetchAccount'
 
 ParticipantHeads = require './participantheads'
 ChannelParticipantsModel = require 'activity/models/channelparticipants'
