@@ -14,7 +14,7 @@ module.exports =
     browser.end()
 
 
-  splitPanesHorizontally: (browser, selector) ->
+  splitPanesHorizontally: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
