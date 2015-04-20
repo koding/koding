@@ -165,6 +165,8 @@ module.exports = class SidebarMachineBox extends KDView
 
   expandList: ->
 
+    return  unless @isMachineRunning()
+
     @listWrapper.show()
     @workspacesLabel.show()
     @unreadIndicator.hide()
@@ -258,3 +260,8 @@ module.exports = class SidebarMachineBox extends KDView
     @unreadIndicator.updatePartial @unreadCount
     if @isListCollapsed and @unreadCount > 0
       @unreadIndicator.show()
+
+
+  isMachineRunning: ->
+
+    return @machine.status.state is Machine.State.Running
