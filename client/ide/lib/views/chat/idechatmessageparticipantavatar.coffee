@@ -32,7 +32,7 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
 
   click: (event) ->
 
-    return  unless participant = @getOption 'origin'
+    return  unless participant = @getData()
 
     kd.utils.stopDOMEvent event
 

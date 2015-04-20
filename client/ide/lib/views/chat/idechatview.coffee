@@ -50,12 +50,11 @@ module.exports = class IDEChatView extends KDTabView
     @on 'VideoParticipantTalkingStateDidChange', @bound 'handleVideoParticipantTalkingStateChanged'
 
 
-  handleParticipantSelected: (participant) ->
 
-    socialHelpers.fetchAccount participant, (err, account) =>
-      return console.error err  if err
-      { nickname } = account.profile
-      kd.singletons.appManager.tell 'IDE', 'switchToUserVideo', nickname
+  handleParticipantSelected: (account) ->
+
+    { nickname } = account.profile
+    kd.singletons.appManager.tell 'IDE', 'switchToUserVideo', nickname
 
 
   handleVideoActiveParticipantChanged: (nickname, account) ->
