@@ -9,7 +9,9 @@ PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane
 isMyChannel          = require 'app/util/isMyChannel'
 isVideoFeatureEnabled = require 'app/util/isVideoFeatureEnabled'
 
+CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
 IDEChatMessageParticipantAvatar = require './idechatmessageparticipantavatar'
+IDEChatParticipantHeads = require './idechatparticipantheads'
 
 module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
@@ -92,6 +94,18 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     channel      = @getData()
 
     mainView.glanceChannelWorkspace channel
+
+
+  prepareParticipantsModel: ->
+
+    @participantsModel = new CollaborationChannelParticipantsModel { channel: @getData() }
+
+
+  createParticipantHeads: ->
+
+    @participantHeads = new IDEChatParticipantHeads
+
+    @forwardEvent @participantHeads, 'ParticipantSelected'
 
 
   createParticipantsView: ->
