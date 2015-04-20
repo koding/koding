@@ -11,6 +11,21 @@ LoginOptions                          = require './loginoptions'
 RegisterOptions                       = require './registeroptions'
 MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
 
+getGroupNameFromLocation = ->
+
+  { hostname } = location
+
+  groupName = if hostname is 'dev.koding.com'
+  then 'koding'
+  else if hostname.indexOf('.dev.koding.com') isnt -1
+  then hostname.replace('.dev.koding.com', '').split('.').last
+  else if hostname.indexOf('.koding.com') isnt -1
+  then hostname.replace('.koding.com', '').split('.').last
+  else 'koding'
+
+  return groupName
+
+
 module.exports = class LoginView extends JView
 
   stop           = KD.utils.stopDOMEvent
@@ -88,9 +103,8 @@ module.exports = class LoginView extends JView
       click       : (event)->
         return  unless $(event.target).is 'a.register'
 
-
     if KD.utils.oauthEnabled() is yes
-      @github          = new KDCustomHTMLView
+      @github = new KDCustomHTMLView
         tagName     : "a"
         cssClass    : "github-login"
         partial     : "Sign in using <strong>GitHub</strong>"
@@ -104,54 +118,36 @@ module.exports = class LoginView extends JView
 
     @github.setPartial "<span class='button-arrow'></span>"
 
-    # @loginOptions = new LoginOptions
-    #   cssClass : "login-options-holder log"
-
-    # @registerOptions = new RegisterOptions
-    #   cssClass : "login-options-holder reg"
-
     @loginForm = new LoginInlineForm
-      cssClass : "login-form"
-      testPath : "login-form"
-      callback : (formData)=>
-
-        @doLogin formData
+      cssClass : 'login-form'
+      testPath : 'login-form'
+      callback : @bound 'doLogin'
 
     @registerForm = new RegisterInlineForm
-      cssClass : "login-form"
-      testPath : "register-form"
-      callback : (formData) =>
-
-        @showExtraInformation formData
+      cssClass : 'login-form'
+      testPath : 'register-form'
+      callback : @bound 'showExtraInformation'
 
     @redeemForm = new RedeemInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
-
-        @doRedeem formData
+      cssClass : 'login-form'
+      callback : @bound 'doRedeem'
 
     @recoverForm = new RecoverInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
-
-        @doRecover formData
+      cssClass : 'login-form'
+      callback : @bound 'doRecover'
 
     @resendForm = new ResendEmailConfirmationLinkInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
-        @resendEmailConfirmationToken formData
-
+      cssClass : 'login-form'
+      callback : @bound 'resendEmailConfirmationToken'
 
     @resetForm = new ResetInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
-        @doReset formData
-
+      cssClass : 'login-form'
+      callback : @bound 'doReset'
 
     @headBanner = new KDCustomHTMLView
-      domId    : "invite-recovery-notification-bar"
-      cssClass : "invite-recovery-notification-bar hidden"
-      partial  : "..."
+      domId    : 'invite-recovery-notification-bar'
+      cssClass : 'invite-recovery-notification-bar hidden'
+      partial  : '...'
 
     KD.singletons.router.on 'RouteInfoHandled', =>
       @signupModal?.destroy()
@@ -542,9 +538,11 @@ module.exports = class LoginView extends JView
       new KDNotificationView title: message
 
 
-  doLogin: (formData)->
+  doLogin: (formData) ->
 
     {username, password, redirectTo} = formData
+
+    groupName = getGroupNameFromLocation()
 
     redirectTo ?= ''
     query       = ''
@@ -557,24 +555,26 @@ module.exports = class LoginView extends JView
 
     $.ajax
       url         : '/Login'
-      data        : { username, password }
+      data        : { username, password, groupName }
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : -> location.replace "/#{redirectTo}#{query}"
       error       : (xhr) =>
         {responseText} = xhr
         if /suspended/i.test responseText
-          new KDModalView
-            title        : "You've been banned!"
-            content      : responseText
-            overlay      : yes
-            cancelable   : no
-            overlayClick : no
-        else
-          new KDNotificationView title : responseText
+        then @handleBanned()
+        else new KDNotificationView title : responseText
 
         @loginForm.button.hideLoader()
 
+
+  handleBanned: ->
+    new KDModalView
+      title        : "You've been banned!"
+      content      : responseText
+      overlay      : yes
+      cancelable   : no
+      overlayClick : no
 
 
   afterLoginCallback: (err, params={})->
