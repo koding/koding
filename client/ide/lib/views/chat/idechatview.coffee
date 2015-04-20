@@ -139,9 +139,11 @@ module.exports = class IDEChatView extends KDTabView
 
   handleVideoActive: ->
 
-    @setClass 'is-videoActive'
-    @chatVideoView.show()
-    @chatPane.handleVideoActive()
+    {appManager} = kd.singletons
+    appManager.tell 'IDE', 'getVideoParticipants', (participants) =>
+      @setVideoActiveState on
+      @chatVideoView.show()
+      @chatPane.handleVideoActive participants
 
 
   handleVideoEnded: ->
