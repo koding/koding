@@ -158,7 +158,7 @@ class AccountEditShortcutsRow extends kd.View
     changeHandler = (model) ->
       { shortcuts } = kd.singletons
       @_binding = _.first shortcuts.getPlatformBinding model
-      enabled = if model.options?.enabled is yes then yes else no
+      enabled = if model.options?.enabled is no then no else yes
       toggleClickHandler enabled, yes
       # Do not update binding while in a recording session.
       if not @_active
