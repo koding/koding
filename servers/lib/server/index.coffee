@@ -74,7 +74,7 @@ app.all '/:name?/Logout'                        , require './handlers/logout'
 app.get '/Verify/:token'                        , require './handlers/verifytoken'
 app.get '/Hackathon/:section?'                  , require './handlers/hackathon'
 app.get '/humans.txt'                           , generateHumanstxt
-app.all '/:name/:section?/:slug?'                , require './handlers/main.coffee'
+app.all '/:name/:section?/:slug?'               , require './handlers/main.coffee'
 app.get '/'                                     , require './handlers/root.coffee'
 app.get '*'                                     , require './handlers/rest.coffee'
 
