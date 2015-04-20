@@ -26,7 +26,7 @@ module.exports =
       .end()
 
 
-  turnOnVm: (browser)->
+  turnOnVm: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
