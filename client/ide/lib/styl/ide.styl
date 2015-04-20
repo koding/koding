@@ -29,6 +29,14 @@ body.ide.dark
         vendor          filter, blur(2px)
         vendor          transform, rotate3d(0,0,0)
 
+    .kdtabhandlecontainer
+      bg                  color, dark-tab-header-bg
+      &.application-tab-handle-holder .kdtabhandle .close-tab
+        r-sprite          'ide', 'tab-close'
+        top               14px
+      .kdtabhandle b
+        width             90%
+
   #kdmaincontainer .kdsplitcomboview .kdtabview
     bg                  color, dark-panel-bg
 
@@ -40,13 +48,6 @@ body.ide.dark
       cursor            ew-resize
       abs()
 
-  .kdtabhandlecontainer
-    bg                  color, dark-tab-header-bg
-    &.application-tab-handle-holder .kdtabhandle .close-tab
-      r-sprite          'ide', 'tab-close'
-      top               14px
-    .kdtabhandle b
-      width             90%
 
   .vm-header .buttons .chevron
     r-sprite            'finder', 'expanded'
