@@ -21,6 +21,9 @@ module.exports = class JSession extends Model
       clientId      : String
       clientIP      : String
       username      : String
+      groupName     :
+        type        : String
+        default     : 'koding'
       guestId       : Number
       terminalId    : String
       sessionBegan  :
