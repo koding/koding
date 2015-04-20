@@ -1,5 +1,5 @@
-LoginViewInlineForm      = require './loginviewinlineform'
-LoginInputView           = require './logininputview'
+LoginViewInlineForm = require './loginviewinlineform'
+LoginInputView      = require './logininputview'
 
 module.exports = class LoginInlineForm extends LoginViewInlineForm
 
@@ -9,10 +9,10 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
 
     @username = new LoginInputView
       inputOptions    :
-        name          : "username"
-        forceCase     : "lowercase"
-        placeholder   : "username or email"
-        testPath      : "login-form-username"
+        name          : 'username'
+        forceCase     : 'lowercase'
+        placeholder   : 'username or email'
+        testPath      : 'login-form-username'
         attributes    :
           testpath    : 'login-form-username'
         validate      :
@@ -24,10 +24,10 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
 
     @password = new LoginInputView
       inputOptions    :
-        name          : "password"
-        type          : "password"
-        placeholder   : "password"
-        testPath      : "login-form-password"
+        name          : 'password'
+        type          : 'password'
+        placeholder   : 'password'
+        testPath      : 'login-form-password'
         attributes    :
           testpath    : 'login-form-password'
         validate      :
@@ -38,8 +38,8 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
             required  : "Please enter your password."
 
     @button = new KDButtonView
-      title       : "Sign in"
-      style       : "solid medium green"
+      title       : 'Sign in'
+      style       : 'solid medium green'
       attributes  :
         testpath  : 'login-button'
       type        : 'submit'
