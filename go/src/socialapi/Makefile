@@ -218,6 +218,9 @@ testwebhook:
 	@./api.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./api.test
 
+	@echo "$(ok_color)--> webhook service tests... $(no_color)"
+	@`which go` test workers/integration/webhook/services/*.go
+
 testpermission:
 	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
 	@`which go` test -c workers/permission/tests/*.go
