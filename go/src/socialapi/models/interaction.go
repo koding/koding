@@ -95,7 +95,7 @@ func getLikedMessagesQuery(q *request.Query) *gorm.DB {
 		 api.interaction.type_constant = ?`,
 		 i.AccountId,
 		 q.Id,
-		 q.Type
+		 q.Type,
 		 Interaction_TYPE_LIKE,
 	)
 }
