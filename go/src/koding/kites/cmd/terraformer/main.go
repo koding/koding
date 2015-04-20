@@ -1,13 +1,12 @@
 package main
 
 import (
-	"io/ioutil"
+	"errors"
 	"koding/artifact"
 	"koding/kites/cmd/terraformer/pkg"
 	"koding/kites/common"
 	"koding/kites/terraformer"
 	"koding/kites/terraformer/commands"
-	"log"
 	"os"
 
 	"github.com/hashicorp/terraform/plugin"
@@ -28,7 +27,7 @@ func main() {
 	// Load the config, reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	log.SetOutput(ioutil.Discard) // terraform outputs many logs, discard them
+	// log.SetOutput(ioutil.Discard) // terraform outputs many logs, discard them
 
 	c := createContex()
 
@@ -47,7 +46,7 @@ func main() {
 }
 
 func createContex() *commands.Context {
-	log.SetOutput(ioutil.Discard) // terraform outputs many logs, discard them
+	// log.SetOutput(ioutil.Discard) // terraform outputs many logs, discard them
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
@@ -96,6 +95,14 @@ func newKite(conf *terraformer.Config, c *commands.Context) *kite.Kite {
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
+
+	// This is a custom authenticator just for kloud
+	k.Authenticators["kloud"] = func(r *kite.Request) error {
+		if r.Auth.Key != "123qwe123qwe" { // TODO: change key with a importable package
+			return errors.New("wrong secret key passed, you are not authenticated")
+		}
+		return nil
+	}
 
 	return k
 }

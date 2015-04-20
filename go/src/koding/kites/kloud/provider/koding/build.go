@@ -122,13 +122,30 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 	defer tfKite.Close()
 
+	appendVariables := func(hclFile string, vars map[string]string) string {
+		// TODO: use hcl encoder, this is just for testing
+		for k, v := range vars {
+			hclFile += "\n"
+			varTemplate := `
+variable "%s" {
+    default = "%s"
+}
+`
+			hclFile += fmt.Sprintf(varTemplate, k, v)
+		}
+
+		return hclFile
+
+	}
+
+	args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
+		"access_key": "AKIAJTDKW5IFUUIWVNAA",
+		"secret_key": "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",
+	})
+
 	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
 	tfReq := terraformer.TerraformRequest{
 		Content: args.TerraformContext,
-		Variables: map[string]string{
-			"access_key": "AKIAJTDKW5IFUUIWVNAA",
-			"secret_key": "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",
-		},
 	}
 
 	resp, err := tfKite.Tell("plan", tfReq)
