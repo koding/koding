@@ -15,6 +15,7 @@ var (
 	ErrChannelNotSet = errors.New("channel is not set")
 	ErrTokenNotSet   = errors.New("token is not set")
 	ErrGroupNotSet   = errors.New("group name is not set")
+	ErrTokenNotValid = errors.New("token is not valid")
 )
 
 type WebhookRequest struct {
@@ -48,14 +49,16 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 		return response.NewBadRequest(err)
 	}
 
-	isVerified, err := verifyRequest(r)
+	teamIntegration, err := r.verify()
+	if err == webhook.ErrTeamIntegrationNotFound {
+		return response.NewAccessDenied(ErrTokenNotValid)
+	}
+
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	if !isVerified {
-		return response.NewAccessDenied(errors.New(""))
-	}
+	r.Message.TeamIntegrationId = teamIntegration.Id
 
 	if err := h.bot.SendMessage(r.Message); err != nil {
 		return response.NewBadRequest(err)
@@ -86,9 +89,12 @@ func (r *WebhookRequest) validate() error {
 	return nil
 }
 
-var verifyRequest = func(r *WebhookRequest) (bool, error) {
-	// verify token
+func (r *WebhookRequest) verify() (*webhook.TeamIntegration, error) {
+	ti := webhook.NewTeamIntegration()
+	err := ti.ByToken(r.Token)
+	if err != nil {
+		return nil, err
+	}
 
-	// verify channel id
-	return false, nil
+	return ti, nil
 }

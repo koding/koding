@@ -1544,20 +1544,40 @@ a.action-link.verify-email
       &.active
         bg              color, #1AAF5D
 
+.onboarding-spotlight
+  z-index               10001
+  .kdoverlay
+    &.top
+    &.bottom
+    &.left
+    &.right
+      background-color  rgba(0,0,0,.6)
+
 .onboarding-wrapper
+  z-index               10001
+
   .kdlistview-contextmenu
     rounded             5px !important
+
+    &.default
+      padding           0px
+      background-color  #fff
+
   .arrow
     bg                  image, none !important
-    top                 -5px !important
+    border-left         10px solid
+    border-right        10px solid
+    size                0, 0
+    abs()
+
     &.top
-      size              0, 0
-      border-left       10px solid transparent
-      border-right      10px solid transparent
-      border-bottom     10px solid #fff
-      left              25px !important
-      top               -15px !important
-      abs()
+      border-bottom         10px solid
+      top                   -15px !important
+
+    &.bottom
+      border-top            10px solid
+      bottom                -15px !important
+
   .close-icon
     r-sprite            "app", "20-close-tab"
     top                 10px
@@ -2101,6 +2121,29 @@ footer.main-footer
 
 .AppModal
 
+
+  .notification
+    padding                 10px 20px
+    color                   #393939
+    font-size               14px
+    rounded                 4px
+    margin                  20px 0
+    max-width               530px
+    borderBox()
+
+    &.warning
+      bg                    color, #FDF8C3
+      border                1px solid #FFFFD7
+
+    &.error
+      bg                    color, #FC6C61
+      border                1px solid #FF776B
+      color                 #FFF
+
+    &.success
+      bg                    color, #1AAF5B
+      border                1px solid #1CC164
+
   .kdmodal-content
     overflow                hidden
     overflow                _visible
@@ -2191,6 +2234,10 @@ footer.main-footer
   noTextDeco()
   pointer()
 
+  &.disabled
+    cursor                  not-allowed
+    opacity                 .5
+
   &.selected
   &.active
     border-color            #E7E7E7
@@ -2205,7 +2252,7 @@ footer.main-footer
 .AppModal-form
   margin                    0 -12px
   padding-top               30px
-  
+
   .formline
     display                 block
     margin-bottom           25px

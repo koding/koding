@@ -68,7 +68,12 @@ const (
 	ChannelMessage_TYPE_JOIN            = "join"
 	ChannelMessage_TYPE_LEAVE           = "leave"
 	ChannelMessage_TYPE_PRIVATE_MESSAGE = "privatemessage"
+	ChannelMessagePayloadKeyLocation    = "location"
 )
+
+func (c *ChannelMessage) Location() *string {
+	return c.GetPayload(ChannelMessagePayloadKeyLocation)
+}
 
 func (c *ChannelMessage) MarkIfExempt() error {
 	isExempt, err := c.isExempt()
@@ -658,4 +663,25 @@ func (cm *ChannelMessage) FetchParentChannel() (*Channel, error) {
 	}
 
 	return ch, nil
+}
+
+func (cm *ChannelMessage) SetPayload(key string, value string) {
+	if cm.Payload == nil {
+		cm.Payload = gorm.Hstore{}
+	}
+
+	cm.Payload[key] = &value
+}
+
+func (cm *ChannelMessage) GetPayload(key string) *string {
+	if cm.Payload == nil {
+		return nil
+	}
+
+	val, ok := cm.Payload[key]
+	if !ok {
+		return nil
+	}
+
+	return val
 }

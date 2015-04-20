@@ -84,6 +84,8 @@ module.exports =
 
   terminateSession: (browser) ->
 
+    return browser.end()
+
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
