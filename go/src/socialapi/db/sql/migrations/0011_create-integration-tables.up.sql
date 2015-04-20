@@ -37,7 +37,7 @@ CREATE TYPE "integration"."integration_type_constant_enum" AS ENUM (
 --
 -- create integration table for storing general purpose integration definitions
 --
-CREATE TABLE "integration"."integration" (
+CREATE TABLE IF NOT EXISTS "integration"."integration" (
     "id" BIGINT NOT NULL DEFAULT nextval('integration.integration_id_seq'::regclass),
     "name" VARCHAR (25) NOT NULL CHECK ("name" <> ''),
     "title" VARCHAR (200) NOT NULL COLLATE "default",
@@ -60,7 +60,7 @@ GRANT SELECT, INSERT, UPDATE ON "integration"."integration" TO "social";
 --
 -- create channel_integration table for storing integration customizations
 --
-CREATE TABLE "integration"."channel_integration" (
+CREATE TABLE IF NOT EXISTS "integration"."channel_integration" (
   "id" BIGINT NOT NULL DEFAULT nextval('integration.channel_integration_id_seq'::regclass),
   "description" VARCHAR (140) COLLATE "default",
   "token" VARCHAR(20) NOT NULL,
