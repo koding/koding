@@ -9,7 +9,7 @@ module.exports =
 class AccountEditShortcuts extends kd.View
 
   INSTRUCTIONS_CSS_CLASS = 'instructions'
-  INSTRUCTIONS_PARTIAL = 'To change a shortcut, click the key combination, then type the new keys.'
+  INSTRUCTIONS_PARTIAL = 'To change a shortcut, click on it, then type the new keys.'
   RESTORE_BUTTON_TITLE = 'Restore Defaults'
   RESTORE_BUTTON_CLASS_NAME = 'solid light-gray medium restore'
   RESTORE_CONFIRM_TEXT = 'Are you sure you want to restore the default shortcuts?'
