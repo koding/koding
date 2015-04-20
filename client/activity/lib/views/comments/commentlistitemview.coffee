@@ -21,6 +21,7 @@ isMyPost               = require 'app/util/isMyPost'
 hasPermission          = require 'app/util/hasPermission'
 updateEmbedBox         = require 'activity/mixins/updateembedbox'
 animatedRemoveMixin    = require 'activity/mixins/animatedremove'
+handleUpdate           = require 'activity/mixins/handleupdate'
 
 module.exports = class CommentListItemView extends KDListItemView
 
@@ -34,8 +35,6 @@ module.exports = class CommentListItemView extends KDListItemView
 
     (kd.singleton 'mainController').on 'AccountChanged', @bound 'addMenu'
 
-    @initDataEvents()
-
     @bindTransitionEnd()
 
 
@@ -43,10 +42,14 @@ module.exports = class CommentListItemView extends KDListItemView
 
     data = @getData()
 
-    data.on 'update', @bound 'handleUpdate'
+    data.on 'update', @bound 'handleDataUpdate'
 
 
-  handleUpdate: require 'activity/mixins/handleupdate'
+  handleDataUpdate: ->
+
+    handleUpdate.call this
+    emojify.run @getElement()
+
 
   handleInternalLink: (event) ->
 
@@ -249,6 +252,10 @@ module.exports = class CommentListItemView extends KDListItemView
 
     @likeView    = new CommentLikeView {}, data
     @timeAgoView = new KDTimeAgoView {}, createdAt
+
+    # subscribe to data update event after all subviews are created
+    # in order to perform update handler after all subviews are updated
+    @initDataEvents()
 
     JView::viewAppended.call this
 
