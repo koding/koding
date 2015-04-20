@@ -99,6 +99,8 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
         <a href="http://learn.koding.com/guides/change-theme/" target="_blank">
           Changing IDE and Terminal themes</a><br/>
 
+        <div class="onboarding-message">Press F1 to see onboarding again</div>
+
         <div class="message-footer">
           Head over to <a href="http://learn.koding.com/faq/" target="_blank">Koding University</a> for more...
         </div>
