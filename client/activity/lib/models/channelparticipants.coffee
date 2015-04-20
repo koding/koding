@@ -133,7 +133,7 @@ module.exports = class ChannelParticipantsModel extends kd.Object
    * implement this method to modify how preview list should be populated.
    *
    * @param {Immutable.OrderedMap} participants - all participants
-   * @return {Immutable.List} computedPreviewParticipants
+   * @return {Immutable.List} computedHiddenParticipants
   ###
   computeHiddenParticipants: (participants) ->
 
@@ -146,7 +146,7 @@ module.exports = class ChannelParticipantsModel extends kd.Object
    * implement this method to modify how preview list should be populated.
    *
    * @param {Immutable.OrderedMap} participants - all participants
-   * @return {Immutable.List} computedPreviewParticipants
+   * @return {Immutable.List} computedAllParticipants
   ###
   computeAllParticipants: (participants) ->
 
