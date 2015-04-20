@@ -16,7 +16,10 @@ import (
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/waitstate"
+	"koding/kites/terraformer"
 
+	"github.com/hashicorp/terraform/terraform"
+	"github.com/koding/kite"
 	kiteprotocol "github.com/koding/kite/protocol"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -65,8 +68,9 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// the user might send us a snapshot id
 	var args struct {
-		SnapshotId string
-		Reason     string
+		SnapshotId       string
+		Reason           string
+		TerraformContext string
 	}
 
 	err = req.Args.One().Unmarshal(&args)
@@ -101,6 +105,47 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	if m.Meta.InstanceName == "" {
 		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
+
+	////////////// TERRAFORMER KITE ////////////////
+
+	terraformerURL := "http://127.0.0.1:3001/kite"
+	m.Log.Debug("Connection to terraformer %s", terraformerURL)
+
+	tfKite := m.Session.Kite.NewClient(terraformerURL)
+	tfKite.Auth = &kite.Auth{
+		Type: "kloud",
+		Key:  "123qwe123qwe", // TODO: replace this
+	}
+
+	if err := tfKite.DialTimeout(time.Second * 10); err != nil {
+		return err
+	}
+	defer tfKite.Close()
+
+	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
+	tfReq := terraformer.TerraformRequest{
+		Content: args.TerraformContext,
+		Variables: map[string]string{
+			"access_key": "AKIAJTDKW5IFUUIWVNAA",
+			"secret_key": "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",
+		},
+	}
+
+	resp, err := tfKite.Tell("plan", tfReq)
+	if err != nil {
+		return err
+	}
+
+	var plan *terraform.Plan
+	if err := resp.Unmarshal(plan); err != nil {
+		return err
+	}
+
+	fmt.Printf("plan = %+v\n", plan)
+
+	return errors.New("THANKS BRO, I've got my PLAN!")
+
+	////////////// TERRAFORMER KITE ////////////////
 
 	// if there is already a machine just check it again
 	if m.Meta.InstanceId == "" {
