@@ -87,13 +87,15 @@ func getLikedMessagesQuery(q *request.Query) *gorm.DB {
 		Select("api.interaction.message_id").
 		Joins(
 		`left join api.channel_message on
-		api.interaction.message_id = api.channel.id`).
+		 api.interaction.message_id = api.channel_message.id`).
 		Where(
 		`api.interaction.account_id = ? and
-		 api.channel.id = ? and
+		 api.channel_message.id = ? and
+		 api.channel_message.type_constant = ? and
 		 api.interaction.type_constant = ?`,
 		 i.AccountId,
 		 q.Id,
+		 q.Type
 		 Interaction_TYPE_LIKE,
 	)
 }
