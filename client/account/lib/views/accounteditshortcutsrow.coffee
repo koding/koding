@@ -152,7 +152,9 @@ class AccountEditShortcutsRow extends kd.View
       @_binding = _.first shortcuts.getPlatformBinding model
       enabled = if model.options?.enabled is yes then yes else no
       toggleClickHandler enabled, yes
-      binding.updatePartial presentBinding @_binding
+      # Do not update binding while in a recording session.
+      if not @_active
+        binding.updatePartial presentBinding @_binding
 
     # Handles Facade.DUP, which is fired on every change made.
     # 
