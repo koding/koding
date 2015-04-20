@@ -27,10 +27,7 @@ module.exports = class SidebarMachineBox extends KDView
 
     @workspaceListItemsById = {}
 
-    { workspaces } = @getData()
-    machineData    = { @machine, workspaces }
-
-    @addSubView @machineItem = new NavigationMachineItem {}, machineData
+    @createMachineItem()
 
     @addSubView @unreadIndicator = new KDCustomHTMLView
       tagName  : 'cite'
@@ -47,6 +44,12 @@ module.exports = class SidebarMachineBox extends KDView
         environmentDataProvider.setLastUpdatedMachineUId null
         @machineItem.showSidebarSharePopup()
 
+
+  createMachineItem: ->
+
+    machineData = { @machine, workspaces: @getData().workspaces }
+
+    @addSubView @machineItem = new NavigationMachineItem {}, machineData
 
   createWorkspacesList: ->
 
