@@ -30,9 +30,11 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
 
     @moreListView = null
 
-    @previewContainer   = k 'div', 'ParticipantHeads-previewContainer clearfix'
-    @extrasContainer    = k 'div', 'ParticipantHeads-extrasContainer clearfix'
-    @newButtonContainer = k 'div', 'ParticipantHeads-newButtonContainer clearfix'
+    @previewContainer = k 'div', 'ParticipantHeads-previewContainer clearfix'
+    @actionsContainer = k 'div', 'ParticipantHeads-actionsContainer clearfix', [
+      @extrasContainer    = k 'div', 'ParticipantHeads-extrasContainer clearfix'
+      @newButtonContainer = k 'div', 'ParticipantHeads-newButtonContainer clearfix'
+    ]
 
     @newButtonContainer.addSubView @newParticipantButton = new kd.ButtonView
       cssClass : 'ParticipantHeads-button ParticipantHeads-button--new'
@@ -40,8 +42,7 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
       callback : @bound 'onNewParticipantClick'
 
     @addSubView @previewContainer
-    @addSubView @extrasContainer
-    @addSubView @newButtonContainer
+    @addSubView @actionsContainer
 
 
   ###*
@@ -50,6 +51,7 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
   onNewParticipantClick: ->
 
     @newParticipantButton.toggleClass 'active'
+    @actionsContainer.toggleClass 'is-newButtonActive'
     @emit 'NewParticipantButtonClicked'
 
 
@@ -59,6 +61,7 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
   resetNewButtonState: ->
 
     @newParticipantButton.unsetClass 'active'
+    @actionsContainer.unsetClass 'is-newButtonActive'
 
 
   ###*
