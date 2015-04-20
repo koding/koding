@@ -150,8 +150,6 @@ module.exports = class SidebarMachineBox extends KDView
   deselect: ->
 
     @unsetClass 'selected'
-
-    @collapseList()
     @deselectWorkspaces()
 
 
