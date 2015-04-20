@@ -235,24 +235,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
 
 
-  addParticipant: (participant) ->
-
-    return  unless participant
-    return  if @participantMap[participant._id]?
-
-    participant.id = participant._id
-
-    @heads.addSubView avatar = new IDEChatMessageParticipantAvatar
-      size      :
-        width   : 25
-        height  : 25
-      origin    : participant
-
-    @forwardEvent avatar, 'ParticipantSelected'
-
-    @participantMap[participant._id] = avatar
-
-
   setHeadsPosition: ->
 
     floors = Math.floor (Object.keys(@participantMap).length + 1) / 8
