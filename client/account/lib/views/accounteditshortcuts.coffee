@@ -8,9 +8,11 @@ module.exports =
 
 class AccountEditShortcuts extends kd.View
 
-  constructor: (options={}, data) ->
-
-    super options, data
+  INSTRUCTIONS_CSS_CLASS = 'instructions'
+  INSTRUCTIONS_PARTIAL = 'To change a shortcut, click the key combination, then type the new keys.'
+  RESTORE_BUTTON_TITLE = 'Restore Defaults'
+  RESTORE_BUTTON_CLASS_NAME = 'solid light-gray medium restore'
+  RESTORE_CONFIRM_TEXT = 'Are you sure you want to restore the default shortcuts?'
 
 
   destroy: ->
@@ -26,9 +28,7 @@ class AccountEditShortcuts extends kd.View
 
   restoreDefaults: ->
 
-    confirmed = confirm 'Are you sure you want to restore the default shortcuts?'
-    return  unless confirmed
-
+    return  unless confirm RESTORE_CONFIRM_TEXT
     kd.getSingleton('shortcuts').restore()
 
 
@@ -40,29 +40,28 @@ class AccountEditShortcuts extends kd.View
 
     shortcuts.pause()
 
-    # exclude hidden shortcuts
+    # Exclude hidden shortcuts.
     predicate = (model) -> true unless model.options and model.options.hidden
     paneData =
       shortcuts.toCollection(predicate).map (collection) ->
-        name: collection.title
-        collection: collection
-        cssClass: 'pane'
+        name       : collection.title
+        collection : collection
 
     @addSubView new kd.View
-      cssClass: 'instructions'
-      partial: 'To change a shortcut, click the key combination, then type the new keys.'
+      cssClass : INSTRUCTIONS_CSS_CLASS
+      partial  : INSTRUCTIONS_PARTIAL
 
     @addSubView @tabView = new kd.TabView
-      tabClass: Pane
-      paneData: paneData
-      hideHandleCloseIcons: yes
-      enableMoveTabHandle: no
+      tabClass             : Pane
+      paneData             : paneData
+      hideHandleCloseIcons : yes
+      enableMoveTabHandle  : no
 
     @tabView.on 'PaneDidShow', recorder.cancel
 
     @addSubView new kd.ButtonView
-      title: 'Restore Defaults'
-      style: 'solid light-gray medium restore'
-      callback: @bound 'restoreDefaults'
+      title    : RESTORE_BUTTON_TITLE
+      style    : RESTORE_BUTTON_CLASS_NAME
+      callback : @bound 'restoreDefaults'
 
     @tabView.showPaneByIndex 0
