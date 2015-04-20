@@ -69,6 +69,7 @@ changeHandler = (collection, model) ->
 #
 exports.dispose = ->
 
+  recorder.cancel()
   getShortcuts().removeListener 'change', changeHandler
   entities = {}
   running = no
