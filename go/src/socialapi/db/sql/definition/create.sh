@@ -87,4 +87,16 @@ sudo -u postgres psql social < $1/payment_definition/modifications/001-add-kodin
 
 sudo -u postgres psql social < $1/payment_definition/modifications/002-add-betatester-plan.sql
 
+# create sequences
+psql $WERCKER_POSTGRESQL_URL < $1/integration_definition/002-schema.sql
+
+# create sequences
+psql $WERCKER_POSTGRESQL_URL < $1/integration_definition/003-sequence.sql
+
+# create tables
+psql $WERCKER_POSTGRESQL_URL < $1/integration_definition/004-table.sql
+
+# create constraints
+psql $WERCKER_POSTGRESQL_URL < $1/integration_definition/005-constraint.sql
+
 # TODO: if you make changes to this file, don't forget `create-wercker.sh`
