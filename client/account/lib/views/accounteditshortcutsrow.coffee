@@ -4,6 +4,12 @@ facade = require('./accounteditshortcutsfacade')
 EventType = require './accounteditshortcutseventtype'
 globals = require 'globals'
 
+# Class name to set for currently recording item.
+ENABLED_CLASS_NAME = 'enabled'
+
+# Class name to set for currently recording item.
+ACTIVE_CLASS_NAME = 'active'
+
 # Class name to set for duplicate/colliding items.
 DUP_CLASS_NAME = 'collides'
 
@@ -64,15 +70,16 @@ class AccountEditShortcutsRow extends kd.View
 
     @model = data
     @_enabled = @model.enabled
+    @_binding = _.first @model.binding
     @_handlers = null
     @_active = no
 
-    dup = options.dup
+    @_dup = options.dup
     delete options.dup
 
     super _.extend cssClass: 'row', options
 
-    if dup then @setClass DUP_CLASS_NAME
+    if @_dup then @setClass DUP_CLASS_NAME
 
 
   viewAppended: ->
@@ -82,7 +89,7 @@ class AccountEditShortcutsRow extends kd.View
       tagName  : 'div'
       partial: '<div class=toggle><span class=icon>'
 
-    if @model.enabled then toggle.setClass 'enabled'
+    if @model.enabled then toggle.setClass ENABLED_CLASS_NAME
 
     descriptionText = _.escape @model.description
 
@@ -95,7 +102,7 @@ class AccountEditShortcutsRow extends kd.View
 
     binding = new kd.View
       cssClass : 'col'
-      partial  : presentBinding _.first @model.binding
+      partial  : presentBinding @_binding
 
     # Handles checkbox clicks.
     #
@@ -105,7 +112,7 @@ class AccountEditShortcutsRow extends kd.View
       e.preventDefault?()
       e.stopPropagation?()
       @_enabled = if _.isBoolean e then e else not @_enabled
-      if @_enabled then toggle.setClass 'enabled' else toggle.unsetClass 'enabled'
+      if @_enabled then toggle.setClass ENABLED_CLASS_NAME else toggle.unsetClass ENABLED_CLASS_NAME
       unless silent
         @emit EventType.Item.TOGGLED, @_enabled
 
@@ -114,7 +121,8 @@ class AccountEditShortcutsRow extends kd.View
     clickHandler = =>
       return  if @_active
 
-      @setClass 'active'
+      @setClass ACTIVE_CLASS_NAME
+      @unsetClass DUP_CLASS_NAME
       @_active = yes
       binding.updatePartial ''
 
@@ -126,9 +134,13 @@ class AccountEditShortcutsRow extends kd.View
         # Otherwise we set the previous binding.
         (res) =>
           @_active = no
-          partial = if res then presentBinding res else presentBinding _.first @model.binding
+          if res
+            partial = presentBinding res
+          else
+            partial = presentBinding @_binding
+            dupHandler @_dup
           binding.updatePartial partial
-          @unsetClass 'active'
+          @unsetClass ACTIVE_CLASS_NAME
 
     # Handles Facade.CHANGED, which is only fired upon app storage is synced-up
     # with internal representation.
@@ -136,17 +148,18 @@ class AccountEditShortcutsRow extends kd.View
     # Beware that returned model is not a json representation, but the keyconfig.Model itself.
     #
     changeHandler = (model) ->
+      { shortcuts } = kd.singletons
+      @_binding = _.first shortcuts.getPlatformBinding model
       enabled = if model.options?.enabled is yes then yes else no
       toggleClickHandler enabled, yes
-      # XXX: do not update binding while recording
-      { shortcuts } = kd.singletons
-      binding.updatePartial presentBinding _.first shortcuts.getPlatformBinding model
+      binding.updatePartial presentBinding @_binding
 
     # Handles Facade.DUP, which is fired on every change made.
     # 
     # Passed value determines if this row's binding is colliding with some other binding or not.
     #
     dupHandler = (dup) =>
+      @_dup = dup
       if dup
       then @setClass   DUP_CLASS_NAME
       else @unsetClass DUP_CLASS_NAME
