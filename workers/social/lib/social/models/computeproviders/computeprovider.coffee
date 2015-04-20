@@ -238,9 +238,26 @@ module.exports = class ComputeProvider extends Base
 
           queue.push ->
             machineInfo.stack = stack
-            ComputeProvider.create client, machineInfo, (err, machine)->
-              results.machines.push { err, obj: machine }
-              queue.next()
+
+            create = (machineInfo) ->
+              ComputeProvider.create client, machineInfo, (err, machine)->
+                results.machines.push { err, obj: machine }
+                queue.next()
+
+            # TODO Do we need all admins or only some of them? ~ GG
+            # Maybe some of them as admin some of them as user etc.
+            group.fetchAdmin (err, admin)->
+
+              if not err and admin and not admin.getId().equals account.getId()
+                admin.fetchUser (err, adminUser)->
+                  if not err and adminUser
+                    machineInfo.users = [
+                      { id: adminUser.getId(), sudo: yes, owner: yes }
+                    ]
+                  create machineInfo
+              else
+                create machineInfo
+
 
         template.domains?.forEach (domainInfo)->
 
