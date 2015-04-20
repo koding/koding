@@ -498,7 +498,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     environmentDataProvider.fetch (data) => callback data
 
 
-  addMachineList: ->
+  addMachineList: (expandedBoxUIds) ->
 
     @machineLists = []
     @machineListsByName = {}
@@ -511,16 +511,17 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @sharedMachinesList = @createMachineList 'shared'
 
     if environmentDataProvider.hasData()
-      @addMachines_ environmentDataProvider.get()
+      @addMachines_ environmentDataProvider.get(), expandedBoxUIds
     else
       environmentDataProvider.fetch (data) =>
-        @addMachines_ data
+        @addMachines_ data, expandedBoxUIds
 
 
   redrawMachineList: ->
 
+    expandedBoxUIds = @getExpandedBoxUIds()
     @machinesWrapper.destroySubViews()
-    @addMachineList()
+    @addMachineList expandedBoxUIds
 
     frontApp = kd.singletons.appManager.getFrontApp()
 
@@ -529,13 +530,15 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @selectWorkspace { machine, workspace }  if machine and workspace
 
 
-  addMachines_: (data) ->
+  addMachines_: (data, expandedBoxUIds = {}) ->
 
     { shared, collaboration } = data
     sharedData = shared.concat collaboration
 
     @ownMachinesList.addMachineBoxes data.own
     @sharedMachinesList.addMachineBoxes sharedData
+
+    @expandWorkspaceLists expandedBoxUIds
 
     @isMachinesListed = yes
     @emit 'MachinesListed'
@@ -670,3 +673,30 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     machineBox = @getMachineBoxByMachineUId workspace.machineUId
       .addWorkspace workspace, yes
+
+
+  # Comment for `expandWorkspaceLists` and `getExpandedBoxUIds`
+  #
+  # These are the methods I added to expand already expanded workspace lists
+  # when we redraw the machine lists. On the fly, I create a map of expanded
+  # machine uids and pass it to sidebar draw method. Now I feel like,
+  # we started again to add methods into this file to do some stuff which
+  # they shouldn't be in this file. The proper solution would be creating a
+  # sidebar singleton and move all machine related methods to there. I hope
+  # I will do it in the future at some point for now let's go with these.
+  getExpandedBoxUIds: ->
+
+    uids = {}
+
+    for list in @machineLists
+      for box in list.machineBoxes when box.isListCollapsed is no
+        uids[box.data.machine.uid] = yes
+
+    return uids
+
+
+  expandWorkspaceLists: (expandedBoxUIds) ->
+
+    for list in @machineLists
+      for box in list.machineBoxes when expandedBoxUIds[box.data.machine.uid]
+        box.expandList()

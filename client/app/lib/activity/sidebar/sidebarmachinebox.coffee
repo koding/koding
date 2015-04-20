@@ -190,8 +190,7 @@ module.exports = class SidebarMachineBox extends KDView
 
   selectWorkspace: (slug) ->
 
-    if @machine.status.state is Machine.State.Running
-      @expandList()
+    @expandList()
 
     @deselectWorkspaces()
     @forEachWorkspaceItem (item) ->
