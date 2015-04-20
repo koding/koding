@@ -4,21 +4,6 @@ facade = require('./accounteditshortcutsfacade')
 EventType = require './accounteditshortcutseventtype'
 globals = require 'globals'
 
-# Class name to set for currently recording item.
-ENABLED_CLASS_NAME = 'enabled'
-
-# Class name to set for currently recording item.
-ACTIVE_CLASS_NAME = 'active'
-
-# Class name to set for duplicate/colliding items.
-DUP_CLASS_NAME = 'collides'
-
-# The maximum description string length.
-DESCRIPTION_TRUNC_LEN = 30
-
-# The separator pattern to truncate to.
-DESCRIPTION_TRUNC_SEP = ' '
-
 # On Mac we display corresponding unicode chars for the following keys.
 # See: http://macbiblioblog.blogspot.nl/2005/05/special-key-symbols.html
 #
@@ -46,7 +31,7 @@ MAC_UNICODE =
 # Determines the text conversion method to use when displaying bindings.
 convertCase = _.capitalize
 
-# Generates a compiled template function.
+# Generates a compiled template function for rendering bindings.
 renderBinding =
   _.template '<% _.forEach(keys, function (key) { %><span><%= key %></span><% }) %>'
 
@@ -66,6 +51,30 @@ module.exports =
 
 class AccountEditShortcutsRow extends kd.View
 
+  # Class name for columns.
+  COL_CLASS_NAME = 'col'
+
+  # Class name to set for currently recording item.
+  ENABLED_CLASS_NAME = 'enabled'
+
+  # Class name to set for currently recording item.
+  ACTIVE_CLASS_NAME = 'active'
+
+  # Class name to set for duplicate/colliding items.
+  DUP_CLASS_NAME = 'collides'
+
+  # The maximum description string length.
+  DESCRIPTION_TRUNC_LEN = 30
+
+  # The separator pattern to truncate to.
+  DESCRIPTION_TRUNC_SEP = ' '
+
+  CLICK = 'click'
+
+  CLASS_NAME = 'row'
+
+  TOGGLE_PARTIAL = '<div class=toggle><span class=icon>'
+
   constructor: (options, data) ->
 
     @model = data
@@ -77,7 +86,7 @@ class AccountEditShortcutsRow extends kd.View
     @_dup = options.dup
     delete options.dup
 
-    super _.extend cssClass: 'row', options
+    super _.extend cssClass: CLASS_NAME, options
 
     if @_dup then @setClass DUP_CLASS_NAME
 
@@ -85,23 +94,22 @@ class AccountEditShortcutsRow extends kd.View
   viewAppended: ->
 
     toggle = new kd.View
-      cssClass : 'col'
-      tagName  : 'div'
-      partial: '<div class=toggle><span class=icon>'
+      cssClass : COL_CLASS_NAME
+      partial  : TOGGLE_PARTIAL
 
     if @model.enabled then toggle.setClass ENABLED_CLASS_NAME
 
     descriptionText = _.escape @model.description
 
     description = new kd.View
-      cssClass : 'col'
+      cssClass : COL_CLASS_NAME
       partial  : _.trunc descriptionText, separator: DESCRIPTION_TRUNC_SEP, length: DESCRIPTION_TRUNC_LEN
 
     if descriptionText.length > DESCRIPTION_TRUNC_LEN
       description.domElement.attr 'title', descriptionText
 
     binding = new kd.View
-      cssClass : 'col'
+      cssClass : COL_CLASS_NAME
       partial  : presentBinding @_binding
 
     # Handles checkbox clicks.
@@ -171,16 +179,16 @@ class AccountEditShortcutsRow extends kd.View
     destroyHandler = =>
       @off EventType.Facade.CHANGED, changeHandler
       @off EventType.Facade.DUP, dupHandler
-      @off 'click', clickHandler
-      toggle.off  'click', toggleClickHandler
+      @off CLICK, clickHandler
+      toggle.off CLICK, toggleClickHandler
       _.each EventType.Item, (type) =>
         @off type, @_handlers[type]
         @_handlers[type] = null
       @_handlers = null
 
     # Add handlers for dom events.
-    @on 'click', clickHandler
-    toggle.on 'click', toggleClickHandler
+    @on CLICK, clickHandler
+    toggle.on CLICK, toggleClickHandler
 
     # Add handlers for facade events.
     @on EventType.Facade.CHANGED, changeHandler
