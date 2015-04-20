@@ -173,6 +173,9 @@ module.exports = class SidebarMachineBox extends KDView
     @isListCollapsed = no
 
 
+  toggleList: -> if @isListCollapsed then @expandList() else @collapseList()
+
+
   selectWorkspace: (slug) ->
 
     if @machine.status.state is Machine.State.Running
