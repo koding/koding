@@ -14,11 +14,12 @@ module.exports = class MoreParticipantsButton extends kd.ButtonViewWithMenu
 
   constructor: (options = {}, data) ->
 
-    options = _.assign {}, options,
-      title    : "+#{options.participantList.size}"
-      cssClass : 'ParticipantHeads-button ParticipantHeads-button--more MoreParticipantsButton'
-      style    : 'resurrection ParticipantHeads-moreList' # context-menu css classes.
-      menu     : createMoreListFromAccounts.bind null, options.participantList
+    options = _.assign {},
+      title         : "+#{options.participantList.size}"
+      cssClass      : 'ParticipantHeads-button ParticipantHeads-button--more MoreParticipantsButton'
+      style         : 'resurrection ParticipantHeads-moreList' # context-menu css classes.
+      moreListTitle : 'Other Participants'
+    , options
 
     super options, data
 
@@ -74,7 +75,7 @@ module.exports = class MoreParticipantsButton extends kd.ButtonViewWithMenu
    *
    * @param {string} cssClass
   ###
-  setDomElement:(cssClass = '')->
+  setDomElement:(cssClass = '') ->
     $ = require 'jquery'
     @domElement = $ """
       <div class='kdbuttonwithmenu-wrapper MoreParticipantsButton-wrapper'>
