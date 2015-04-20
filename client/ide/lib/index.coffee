@@ -943,8 +943,13 @@ class IDEAppController extends AppController
       else
         @addInitialViews()
 
+      { mainView, onboardingController } = kd.singletons
+
       data = { machine, workspace: @workspaceData }
-      kd.singletons.mainView.activitySidebar.selectWorkspace data
+      mainView.activitySidebar.selectWorkspace data
+
+      onboardingController.runOnboarding 'IDE'
+
       @emit 'IDEReady'
 
 
