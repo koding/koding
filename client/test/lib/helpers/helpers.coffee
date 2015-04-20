@@ -412,16 +412,20 @@ module.exports =
 
   splitPanesUndo: (browser) ->
 
+    paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+
     browser
       .waitForElementVisible '.panel-1', 20000
       .elements 'css selector', '.panel-1', (result) =>
         assert.equal result.value.length, 2
 
         browser
-          .waitForElementVisible   '.application-tab-handle-holder', 20000
-          .click                   '.application-tab-handle-holder .plus'
+          .waitForElementVisible   paneSelector + ' .plus', 20000
+          .pause   2000
+          .click                   paneSelector + ' .plus'
           .waitForElementVisible   '.context-list-wrapper', 20000
-          .click                   '.context-list-wrapper li.undo-split'
+          .pause   2000
+          .click                   '.context-list-wrapper ' + ' .undo-split'
           .pause                   2000
 
         .elements 'css selector', '.panel-1', (result) =>
