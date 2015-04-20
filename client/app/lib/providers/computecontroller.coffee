@@ -617,16 +617,16 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().createSnapshot { machineId: machine._id, label }
 
-    .then (res) =>
+      .then (res) =>
 
-      kd.log "createSnapshot res:", res
-      @eventListener.addListener 'createSnapshot', machine._id
+        kd.log "createSnapshot res:", res
+        @eventListener.addListener 'createSnapshot', machine._id
 
-    .timeout globals.COMPUTECONTROLLER_TIMEOUT
+      .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err) =>
+      .catch (err) =>
 
-      (@errorHandler call, 'createSnapshot', machine) err
+        (@errorHandler call, 'createSnapshot', machine) err
 
 
   # Domain management
