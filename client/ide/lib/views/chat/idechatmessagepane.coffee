@@ -53,8 +53,28 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @glance()
 
 
-  handleVideoActive: -> @videoActive = yes
-  handleVideoEnded: -> @videoActive = no
+  handleVideoActive: (participants) ->
+
+    nicknames = Object.keys participants
+
+    @participantsModel.setVideoState on, nicknames
+    @videoActive = yes
+
+
+  handleVideoEnded: ->
+
+    @participantsModel.setVideoState off
+    @videoActive = no
+
+
+  handleVideoParticipantJoined: (participant) ->
+
+    @participantsModel.addVideoActiveParticipant participant.nick
+
+
+  handleVideoParticipantLeft: (participant) ->
+
+    @participantsModel.removeVideoActiveParticipant participant.nick
 
 
   setActiveParticipantAvatar: (account) ->
