@@ -42,7 +42,7 @@ type Machine struct {
 		Region       string `structs:"region" bson:"region"`
 		StorageSize  int    `structs:"storage_size" bson:"storage_size"`
 		SourceAmi    string `structs:"source_ami" bson:"source_ami"`
-		SnapshotId   string `structs:"snapshotId" bson:"-"`
+		SnapshotId   string `structs:"snapshotId" bson:"snapshotId"`
 	} `bson:"meta"`
 	Users  []models.Permissions `bson:"users"`
 	Groups []models.Permissions `bson:"groups"`
