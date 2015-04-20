@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
+	"socialapi/workers/integration/webhook/services"
 
 	"github.com/koding/logging"
 )
@@ -23,6 +24,7 @@ var (
 type Handler struct {
 	log logging.Logger
 	bot *webhook.Bot
+	sf  *services.ServiceFactory
 }
 
 func NewHandler(l logging.Logger) (*Handler, error) {
@@ -34,6 +36,7 @@ func NewHandler(l logging.Logger) (*Handler, error) {
 	return &Handler{
 		log: l,
 		bot: bot,
+		sf:  services.NewServiceFactory(),
 	}, nil
 }
 
