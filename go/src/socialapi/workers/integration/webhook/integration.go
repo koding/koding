@@ -74,7 +74,7 @@ func (i *Integration) Create() error {
 	}
 
 	selector := map[string]interface{}{
-		"title": i.Title,
+		"name": i.Name,
 	}
 
 	// no need to make it idempotent
