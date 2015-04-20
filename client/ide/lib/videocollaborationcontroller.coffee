@@ -29,6 +29,11 @@ module.exports = VideoCollaborationController =
       @videoModel.session.disconnect()
 
 
+  getVideoParticipants: (callback) ->
+
+    callback @videoModel.getParticipants()
+
+
   startVideoCollaboration: ->
 
     @videoModel.start()
