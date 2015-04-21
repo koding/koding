@@ -32,6 +32,7 @@ type stripeMux struct {
 }
 
 func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	var req *stripeWebhookRequest
 
 	err := json.NewDecoder(r.Body).Decode(&req)

@@ -1,3 +1,4 @@
+_  = require 'lodash'
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
@@ -73,7 +74,10 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
 
     activity = @getData()
     {app}    = @getOptions()
-    payload  = @getPayload()
+
+    embedBoxPayload = @getEmbedBoxPayload()
+
+    payload = _.assign {}, activity?.payload, embedBoxPayload
 
     timestamp = Date.now()
     clientRequestId = generateFakeIdentifier timestamp

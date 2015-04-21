@@ -197,7 +197,7 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 // desired err, it will re-try every 100ms until deadline of 15 seconds reached.
 // Algolia doesnt index the records right away, so try to go to a desired state
 func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, error) bool) error {
-	deadLine := time.After(time.Second * 15)
+	deadLine := time.After(time.Minute * 2)
 	tick := time.Tick(time.Millisecond * 100)
 	for {
 		select {

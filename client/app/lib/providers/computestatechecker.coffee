@@ -64,7 +64,7 @@ module.exports = class ComputeStateChecker extends KDObject
     {computeController, kontrol} = kd.singletons
 
     kd.info "Checking all machine states..."  if checkAll
-    
+
     @machines.forEach (machine)=>
 
       machineId = machine._id
@@ -73,8 +73,9 @@ module.exports = class ComputeStateChecker extends KDObject
       if machineId in @ignoredMachines
         return
 
-      if currentState isnt Machine.State.Running and not machine.isManaged()
-        return  if not checkAll
+      if currentState isnt Machine.State.Running \
+        and not machine.provider is 'managed'
+          return  if not checkAll
       else
         {klient}   = kontrol.kites
         machineUid = (computeController.findMachineFromMachineId machineId)?.uid
