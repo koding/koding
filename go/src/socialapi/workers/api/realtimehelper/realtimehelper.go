@@ -79,6 +79,7 @@ func SubscribeMessage(cm *models.ChannelMessage) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	// Need a better response
 	if resp.StatusCode != 200 {
