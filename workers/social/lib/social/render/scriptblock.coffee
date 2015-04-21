@@ -1,24 +1,24 @@
-{dash} = require 'bongo'
-
 module.exports = (options = {}, callback)->
+
+  {dash}  = require 'bongo'
   encoder = require 'htmlencode'
+  {argv}  = require 'optimist'
 
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
   options.client.connection    or= {}
 
-  {argv} = require 'optimist'
 
-  prefetchedFeeds  = null
-  socialapidata    = null
-  currentGroup     = null
-  userMachines     = null
-  userWorkspaces   = null
+  prefetchedFeeds     = null
+  socialapidata       = null
+  currentGroup        = null
+  userMachines        = null
+  userWorkspaces      = null
   userEnvironmentData = null
-  userId = null
+  userId              = null
 
-  {bongoModels, client, slug} = options
+  {bongoModels, client, session} = options
 
   createHTML = ->
     if client.connection?.delegate?.profile?.nickname
@@ -83,14 +83,6 @@ module.exports = (options = {}, callback)->
 
     """
 
-  selector =
-    partialType : "HOME"
-
-  if options.isCustomPreview
-    selector.isPreview = yes
-  else
-    selector.isActive  = yes
-
   queue = [
     ->
       socialApiCacheFn = require '../cache/socialapi'
@@ -98,10 +90,10 @@ module.exports = (options = {}, callback)->
         socialapidata = data
         queue.fin()
     ->
-      bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
-        console.log err if err
-        if group
-          currentGroup = group
+      bongoModels.JGroup.one {slug : session.groupName or 'koding'}, (err, group) ->
+        console.log err  if err
+
+        currentGroup = group  if group
 
         queue.fin()
     ->

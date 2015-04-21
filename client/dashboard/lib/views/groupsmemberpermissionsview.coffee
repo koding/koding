@@ -1,23 +1,22 @@
-_ = require 'lodash'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDHitEnterInputView = kd.HitEnterInputView
-KDListViewController = kd.ListViewController
+_                                   = require 'lodash'
+kd                                  = require 'kd'
+remote                              = require('app/remote').getInstance()
+KDCustomHTMLView                    = kd.CustomHTMLView
+KDHitEnterInputView                 = kd.HitEnterInputView
+KDListViewController                = kd.ListViewController
 GroupsMemberPermissionsListItemView = require './groupsmemberpermissionslistitemview'
-remote = require('app/remote').getInstance()
-JView = require 'app/jview'
 
 
-module.exports = class GroupsMemberPermissionsView extends JView
+module.exports = class GroupsMemberPermissionsView extends kd.View
 
   constructor:(options = {}, data)->
 
-    options.cssClass = "member-related"
+    options.cssClass   = "member-related"
     options.itemLimit ?= 10
 
     super options, data
 
-    @searchWrapper = new KDCustomHTMLView
+    @addSubView @searchWrapper = new KDCustomHTMLView
       tagName  : 'section'
       cssClass : 'searchbar'
 
@@ -45,11 +44,18 @@ module.exports = class GroupsMemberPermissionsView extends JView
       noItemFoundWidget     : new KDCustomHTMLView
         cssClass : "lazy-loader hidden"
         partial  : "Member not found"
-    @listWrapper    = @listController.getView()
+
+    @addSubView @listWrapper = @listController.getView()
 
     @listController.getListView().on 'ItemWasAdded', (view)=>
       view.on 'RolesChanged', @memberRolesChange.bind this, view
       view.on 'OwnershipChanged', @bound "refresh"
+
+    @setListeners()
+    @refresh()
+
+
+  setListeners: ->
 
     @listController.on 'LazyLoadThresholdReached', @bound 'continueLoadingTeasers'
 
@@ -72,10 +78,6 @@ module.exports = class GroupsMemberPermissionsView extends JView
     kd.singletons.groupsController.on "MemberJoinedGroup", (data) =>
       @refresh()  unless @getData().slug is "koding"
 
-    @once 'viewAppended', @bound '_windowDidResize'
-    @listenWindowResize()
-
-    @refresh()
 
   fetchRoles:(callback=->)->
     groupData = @getData()
@@ -84,6 +86,7 @@ module.exports = class GroupsMemberPermissionsView extends JView
     groupData.fetchRoles (err, roles)=>
       return kd.warn err if err
       list.getOptions().roles = roles
+
 
   fetchSomeMembers:->
     @listController.showLazyLoader no
@@ -163,11 +166,3 @@ module.exports = class GroupsMemberPermissionsView extends JView
   memberRolesChange:(view, member, roles)->
     @getData().changeMemberRoles member.getId(), roles, (err)=>
       view.updateRoles roles  unless err
-
-  pistachio:->
-    """
-    {{> @searchWrapper}}
-    {{> @listWrapper}}
-    """
-
-
