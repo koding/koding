@@ -1,7 +1,6 @@
 kd                  = require 'kd'
 nicetime            = require '../util/nicetime'
 Encoder             = require 'htmlencode'
-{computeController} = kd.singletons
 remote              = require('app/remote').getInstance()
 {JSnapshot}         = remote.api
 
@@ -101,8 +100,10 @@ module.exports = class SnapshotListItem extends kd.ListItemView
    * @param {Function(err:Error)} callback
   ###
   deleteSnapshot: (callback=kd.noop) ->
+    computeController       = kd.getSingleton 'computeController'
+    kloud                   = computeController.getKloud()
     {machineId, snapshotId} = @getData()
-    kloud = computeController.getKloud()
+
     kloud.deleteSnapshot {machineId, snapshotId}
       .then =>
         callback null

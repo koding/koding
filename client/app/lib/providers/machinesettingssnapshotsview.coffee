@@ -1,11 +1,11 @@
 kd                        = require 'kd'
 Encoder                   = require 'htmlencode'
 remote                    = require('app/remote').getInstance()
-{computeController}       = kd.singletons
 {JSnapshot}               = remote.api
 MachineSettingsCommonView = require './machinesettingscommonview'
 SnapshotsListController   = require './snapshotslistcontroller'
 SnapshotListItem   = require './snapshotlistitem'
+
 
 
 module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
@@ -27,9 +27,10 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * @param {Function(err:Error, snapshot:JSnapshot)} callback
   ###
   createSnapshot: (label, callback=kd.noop) ->
-    machine   = @getData()
-    machineId = machine._id
-    eventId   = "createSnapshot-#{machineId}"
+    computeController = kd.getSingleton 'computeController'
+    machine           = @getData()
+    machineId         = machine._id
+    eventId           = "createSnapshot-#{machineId}"
     # Because kloud.createSnapshot does not return a snapshot object,
     # we need to request the newest snapshot (sorted by creation date)
     #
