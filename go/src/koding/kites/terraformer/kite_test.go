@@ -1,13 +1,16 @@
-package main
+package terraformer
 
 import (
+	"fmt"
 	"testing"
 
-	"koding/kites/terraformer"
+	"koding/kites/common"
+	"koding/kites/terraformer/kodingcontext"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/multiconfig"
+	"github.com/kr/pretty"
 )
 
 var variables = map[string]string{
@@ -19,20 +22,29 @@ var variables = map[string]string{
 }
 
 func withKite(t *testing.T, f func(k *kite.Kite) error) {
-	conf := &terraformer.Config{}
+	conf := &Config{}
 
 	// Load the config, reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	c := createContex()
-	k := newKite(conf, c)
+	log := common.NewLogger(Name, conf.Debug)
+
+	c, err := kodingcontext.Init()
+	if err != nil {
+		t.Errorf("err while creating koding context %s", err.Error())
+	}
+	defer kodingcontext.Close()
+
+	k, err := NewKite(conf, c, log)
+	if err != nil {
+		t.Errorf("err while creating kite %s", err.Error())
+	}
 	k.Config.DisableAuthentication = true
 	go k.Run()
 	defer k.Close()
 	<-k.ServerReadyNotify()
 
-	err := f(k)
-	if err != nil {
+	if err := f(k); err != nil {
 		t.Errorf("failed with %s", err.Error())
 	}
 }
@@ -47,7 +59,7 @@ func TestApply(t *testing.T) {
 
 		tfr.Dial()
 
-		req := terraformer.TerraformRequest{
+		req := TerraformRequest{
 			Content:   SampleTF,
 			Variables: variables,
 		}
@@ -61,6 +73,7 @@ func TestApply(t *testing.T) {
 		if err := response.Unmarshal(&res); err != nil {
 			return err
 		}
+		fmt.Printf("1 %# v", pretty.Formatter(1))
 
 		return nil
 	})

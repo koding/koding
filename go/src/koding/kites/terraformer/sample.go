@@ -1,4 +1,4 @@
-package main
+package terraformer
 
 var SampleTF = `
 // Provider specific configs
