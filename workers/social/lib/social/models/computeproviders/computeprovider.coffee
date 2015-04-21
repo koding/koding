@@ -200,7 +200,11 @@ module.exports = class ComputeProvider extends Base
       ComputeProvider.createGroupStack client, callback
 
 
-  @createGroupStack = (client, callback = ->)->
+  @createGroupStack = (client, options, callback) ->
+
+    [options, callback] = [callback, options]  unless callback
+    callback ?= ->
+    options  ?= {}
 
     fetchStackTemplate client, (err, res)->
 
@@ -237,12 +241,18 @@ module.exports = class ComputeProvider extends Base
         template.machines?.forEach (machineInfo)->
 
           queue.push ->
+
             machineInfo.stack = stack
 
             create = (machineInfo) ->
               ComputeProvider.create client, machineInfo, (err, machine)->
                 results.machines.push { err, obj: machine }
                 queue.next()
+
+            # This is optional, since for koding group for example
+            # we don't want to add our admins into users machines ~ GG
+            unless options.addGroupAdminToMachines
+              return create machineInfo
 
             # TODO Do we need all admins or only some of them? ~ GG
             # Maybe some of them as admin some of them as user etc.
@@ -334,7 +344,9 @@ module.exports = class ComputeProvider extends Base
           delegate : member
         context    : group : group.slug
 
-      ComputeProvider.createGroupStack client, (err, res = {})->
+      ComputeProvider.createGroupStack client,
+        addGroupAdminToMachines: yes
+      , (err, res = {})->
 
         {stack, results} = res
 
