@@ -2,31 +2,32 @@ helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 
-modalSelector = '.activity-modal.vm-settings'
+modalSelector = '.machine-settings-modal.AppModal'
 
 module.exports =
 
 
   turnOffVm: (browser) ->
 
-    linkSelector  = modalSelector + ' .statustoggle .input-wrapper'
+    linkSelector  = modalSelector + ' .AppModal-form'
+    vmStateModal  = '.env-machine-state .kdmodal-content'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    environmentHelpers.openVmSettingsModal(browser)
+    environmentHelpers.openGeneralSettings(browser)
 
     browser
       .waitForElementVisible   linkSelector, 20000
-      .waitForElementVisible   linkSelector + ' .koding-on-off a.knob', 20000
-      .click                   linkSelector + ' .koding-on-off a.knob'
-      .waitForElementVisible   '.env-machine-state .kdmodal-content .state-label.stopping', 20000
-      .waitForElementVisible   '.env-machine-state .kdmodal-content .state-label.stopped', 300000
-      .waitForElementVisible   '.env-machine-state .kdmodal-content .turn-on.state-button', 20000 # Assertion
+      .waitForElementVisible   linkSelector + ' .statustoggle', 20000
+      .click                   linkSelector + ' .statustoggle .koding-on-off.on'
+      .waitForElementVisible   vmStateModal + ' .state-label.stopping', 20000
+      .waitForElementVisible   vmStateModal + ' .state-label.stopped', 300000
+      .waitForElementVisible   vmStateModal + ' .turn-on.state-button', 20000 # Assertion
       .end()
 
 
-  turnOnVm: (browser)->
+  turnOnVm: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -35,21 +36,18 @@ module.exports =
 
   checkVMDiskUsage: (browser) ->
 
-    diskUsageSelector     = modalSelector + ' .diskusage'
-    diskUsageBarSelector  = diskUsageSelector + ' .input-wrapper .progressbar-container.disk-usage'
+    diskUsageSelector  = modalSelector + ' .disk-usage'
+    circularBar        = '.disk-usage-info .circular-progress-bar'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    environmentHelpers.openVmSettingsModal(browser)
+    environmentHelpers.openDiskUsageSettings(browser)
 
     browser
       .waitForElementVisible   diskUsageSelector, 20000
-      .waitForElementVisible   diskUsageSelector + ' label.disk-usage', 20000
-      .waitForElementVisible   diskUsageBarSelector, 20000
-      .waitForElementVisible   diskUsageBarSelector + ' .bar', 20000 # Assertion
-      .moveToElement           diskUsageBarSelector + ' .bar span.light-label', 70, 7 # Assertion
-      .pause  3000
-      .waitForElementVisible   '.kdtooltip', 20000 # Assertion
+      .click                   diskUsageSelector
+      .waitForElementVisible   circularBar, 20000
+      .assert.containsText     circularBar + ' span.percentage', '53%' # Assertion
       .end()
 

@@ -17,6 +17,7 @@ module.exports =
 
     browser
       .waitForElementVisible   shareButtonSelector, 20000
+      .pause   4000
       .element 'css selector', notStartedButtonSelector, (result) =>
           if result.status is 0
             console.log 'session is not started'

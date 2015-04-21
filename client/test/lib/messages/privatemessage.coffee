@@ -4,7 +4,7 @@ assert  = require 'assert'
 
 module.exports =
 
-  sendPrivateMessage: (browser) ->
+  startConversation: (browser) ->
 
     elementSelector = '.activity-sidebar .messages h3.sidebar-title'
     formSelector    = '.new-message-form.with-fields .formline.recipient'

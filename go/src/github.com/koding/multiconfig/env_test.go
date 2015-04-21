@@ -23,6 +23,23 @@ func TestENV(t *testing.T) {
 	testStruct(t, s, getDefaultServer())
 }
 
+func TestCamelCaseEnv(t *testing.T) {
+	m := EnvironmentLoader{
+		CamelCase: true,
+	}
+	s := &CamelCaseServer{}
+	structName := structs.Name(s)
+
+	// set env variables
+	setEnvVars(t, structName, "")
+
+	if err := m.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	testCamelcaseStruct(t, s, getDefaultCamelCaseServer())
+}
+
 func TestENVWithPrefix(t *testing.T) {
 	const prefix = "Prefix"
 
@@ -45,17 +62,28 @@ func setEnvVars(t *testing.T, structName, prefix string) {
 		t.Fatal("struct name can not be empty")
 	}
 
-	env := map[string]string{
-		"NAME":                       "koding",
-		"PORT":                       "6060",
-		"ENABLED":                    "true",
-		"USERS":                      "ankara,istanbul",
-		"POSTGRES_ENABLED":           "true",
-		"POSTGRES_PORT":              "5432",
-		"POSTGRES_HOSTS":             "192.168.2.1,192.168.2.2,192.168.2.3",
-		"POSTGRES_DBNAME":            "configdb",
-		"POSTGRES_AVAILABILITYRATIO": "8.23",
-		"POSTGRES_FOO":               "8.23,9.12,11,90",
+	var env map[string]string
+	switch structName {
+	case "Server":
+		env = map[string]string{
+			"NAME":                       "koding",
+			"PORT":                       "6060",
+			"ENABLED":                    "true",
+			"USERS":                      "ankara,istanbul",
+			"POSTGRES_ENABLED":           "true",
+			"POSTGRES_PORT":              "5432",
+			"POSTGRES_HOSTS":             "192.168.2.1,192.168.2.2,192.168.2.3",
+			"POSTGRES_DBNAME":            "configdb",
+			"POSTGRES_AVAILABILITYRATIO": "8.23",
+			"POSTGRES_FOO":               "8.23,9.12,11,90",
+		}
+	case "CamelCaseServer":
+		env = map[string]string{
+			"ACCESS_KEY":         "123456",
+			"NORMAL":             "normal",
+			"DB_NAME":            "configdb",
+			"AVAILABILITY_RATIO": "8.23",
+		}
 	}
 
 	if prefix == "" {

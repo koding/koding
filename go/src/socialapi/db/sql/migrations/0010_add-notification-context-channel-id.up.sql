@@ -13,9 +13,13 @@ DO $$
   BEGIN
     DECLARE koding_channel_id BIGINT := get_koding_group_channel();
     BEGIN
-      EXECUTE 'ALTER TABLE notification.notification ADD COLUMN context_channel_id BIGINT NOT NULL DEFAULT ' || koding_channel_id;
-    EXCEPTION
-      WHEN duplicate_column THEN RAISE NOTICE 'column already exists';
+      IF koding_channel_id IS NULL THEN
+        EXECUTE 'ALTER TABLE notification.notification ADD COLUMN context_channel_id BIGINT NOT NULL';
+      ELSE
+        EXECUTE 'ALTER TABLE notification.notification ADD COLUMN context_channel_id BIGINT NOT NULL DEFAULT ' || koding_channel_id;
+      END IF;
+      EXCEPTION
+        WHEN duplicate_column THEN RAISE NOTICE 'column already exists';
     END;
   END;
 $$;
