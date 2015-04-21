@@ -13,7 +13,7 @@ module.exports = class CollaborationStateMachine extends KDStateMachine
     Loading       : ['NotStarted', 'Resuming', 'ErrorLoading']
     ErrorLoading  : ['Loading']
     Resuming      : ['Active']
-    NotStarted    : ['Preparing']
+    NotStarted    : ['Preparing', 'Loading']
     Preparing     : ['Prepared', 'ErrorPreparing']
     ErrorPreparing: ['Preparing', 'NotStarted']
     Prepared      : ['Creating']
