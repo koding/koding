@@ -8,15 +8,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"socialapi/workers/helper"
 	"syscall"
 	"time"
 
 	kiteConfig "github.com/koding/kite/config"
+	"github.com/koding/runner"
 	"github.com/robfig/cron"
 
 	"github.com/koding/kite"
-	"github.com/koding/kodingemail"
 	"github.com/koding/multiconfig"
 )
 
@@ -24,15 +23,14 @@ var (
 	WorkerName    = "Janitor"
 	WorkerVersion = "0.0.1"
 
-	Log = helper.CreateLogger(WorkerName, false)
+	Log = runner.CreateLogger(WorkerName, false)
 
 	// List of warnings to iterate upon in a certain interval.
 	Warnings = []*Warning{
-		FirstEmail, SecondEmail, ThirdEmail, FourthDeleteVM,
+		FirstEmail, SecondEmail, ThirdDeleteVM,
 	}
 
 	KiteClient *kite.Client
-	Email      kodingemail.Client
 
 	// cron runs at utc, 4pm UTC is 8am PST
 	DailyAtEightAM = "0 0 4 * * *"
@@ -61,10 +59,6 @@ func main() {
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
-
-	// initialize client to send email
-	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword,
-		conf.SendgridRecipient)
 
 	c := cron.New()
 
@@ -155,8 +149,4 @@ func initializeKiteClient(kloudKey, kloudAddr string) (*kite.Client, error) {
 	Log.Debug("Connected to klient: %s", kloudAddr)
 
 	return kiteClient, nil
-}
-
-func initializeEmail(username, password, forceRecipient string) kodingemail.Client {
-	return kodingemail.NewSG(username, password, forceRecipient)
 }
