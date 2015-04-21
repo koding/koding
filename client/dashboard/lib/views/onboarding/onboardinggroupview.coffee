@@ -10,6 +10,9 @@ OnboardingSettingsMenuItem = require '../../onboardingsettingsmenuitem'
 
 module.exports = class OnboardingGroupView extends CustomViewsDashboardView
 
+  ###*
+   * View that renders onboarding group and its onboarding items
+  ###
   constructor: (options = {}, data) ->
 
     super options, data
@@ -39,6 +42,11 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
       @loader.hide()
 
 
+  ###*
+   * Returns a hash object with actions for onboarding group and corresponding action handlers
+   *
+   * @return {object<string,function>}
+  ###
   getMenuItems: ->
 
     data         = @getData()
@@ -55,6 +63,14 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     return items
 
 
+  ###*
+   * Once user publishes onboarding group or sets it on preview mode or turns off those flags,
+   * it updates a state of group in DB and reloads a list of onboardings after it
+   * Before changing the state it's necessary to confirm the action from user
+   *
+   * @return {string} - a field of JCustomPartial object which should be toggled. Possible values are 'isActive' (to publish/unpublish onboarding)
+   * and 'isPreview' (to set/unset on preview mode)
+  ###
   updateState: (key) ->
 
     changeSet = {}
@@ -90,6 +106,11 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
           callback : -> modal.destroy()
 
 
+  ###*
+   * Overrides base method
+   * Since we already have onboarding items in onboarding group data,
+   * it's not needed to fetch them from the server - we can render them immediately
+  ###
   fetchViews: ->
 
     @loader.hide()
@@ -98,6 +119,13 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     @createList items
 
 
+  ###*
+   * Overrides base method
+   * Removes onboarding item from onboarding group, updates DB
+   * and reloads a list of onboarding items
+   *
+   * @return {object} - data of deleting onboarding item view
+  ###
   handleViewDeleted: (childData) ->
 
     data    = @getData()
@@ -112,6 +140,10 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
       @reloadViews()
 
 
+  ###*
+   * Shows onboarding group edit form when user performs 'Edit' action
+   * and binds to form events. Onboarding items become invisible
+  ###
   edit: ->
 
     @hideViews()
@@ -121,6 +153,10 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     @addSubView sectionForm
 
 
+  ###*
+   * Deletes onboarding group when user performs 'Delete' action
+   * Before deleting the group it's necessary to confirm action from user
+  ###
   delete: ->
 
     @confirmDelete =>
@@ -130,6 +166,11 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
         @getDelegate().reloadViews()
 
 
+  ###*
+   * Shows a confirmation modal when user performs delete action
+   *
+   * @param {function} callback - it's called when user confirms their action
+  ###
   confirmDelete: (callback = kd.noop) ->
 
     modal          = new KDModalView
@@ -149,6 +190,11 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
           callback : -> modal.destroy()
 
 
+  ###*
+   * When user cancels editing onboarding group,
+   * onboarding items should be shown again
+   * and it's necessary to forward cancel event to parent view
+  ###
   cancel: ->
 
     @showViews()

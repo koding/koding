@@ -6,6 +6,10 @@ Encoder = require 'htmlencode'
 
 module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
 
+  ###*
+   * A View that renders edit form for new
+   * or existent onboarding item
+  ###
   constructor: (options = {}, data = {}) ->
 
     super options, data
@@ -30,6 +34,12 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     @oldData = data
 
 
+  ###*
+   * Collects onboarding item data on the form
+   * and saves it to DB
+   * 
+   * @emits NewViewAdded
+  ###
   addNew: ->
 
     {data}    = @getDelegate()

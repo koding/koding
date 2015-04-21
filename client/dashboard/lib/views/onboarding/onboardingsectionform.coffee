@@ -7,6 +7,9 @@ Helpers = require 'dashboard/custompartialhelpers'
 
 module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
+  ###*
+   * Form view to edit onboarding group
+  ###
   constructor: (options = {}, data) ->
 
     groups = [
@@ -40,6 +43,12 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
     super options, data
 
 
+  ###*
+   * Collects onboarding group data on the form
+   * and saves it in DB. After that emits event for the parent view
+   *
+   * @emits SectionSaved
+  ###
   save: ->
 
     data              =
@@ -65,6 +74,12 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
         @destroy()
 
 
+  ###*
+   * Cancelling onboarding editing destroys the form
+   * and emits event for the parent view
+   *
+   * @emits SectionCancelled
+  ###
   cancel: ->
 
     @emit "SectionCancelled"
