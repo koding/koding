@@ -216,7 +216,7 @@ class Ace extends KDView
     # deletes a command's exec ref.
     @_commandFns = _.reduce @editor.commands.commands, (acc, val, key) ->
       acc[key] = val.exec
-      acc
+      return acc
     , {}
 
     { shortcuts } = kd.singletons
@@ -264,7 +264,7 @@ class Ace extends KDView
 
   setShortcut: (model) ->
 
-    disabled = model.options and model.options.enabled is false
+    disabled = model.options?.enabled is no
 
     if disabled
       @editor.commands.removeCommand model.name
