@@ -5,7 +5,6 @@ remote                    = require('app/remote').getInstance()
 {JSnapshot}               = remote.api
 
 MachineSettingsCommonView = require './machinesettingscommonview'
-SnapshotsListController   = require './snapshotslistcontroller'
 SnapshotListItem          = require './snapshotlistitem'
 
 
@@ -61,7 +60,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
           if err?
             return callback err
           if not snapshot?
-            return callback new Error "SnapshotListController.createSnapshot: Cannot find most recent snapshot"
+            return callback new Error "Cannot find most recent snapshot"
           callback null, snapshot
 
     monitorProgress = => computeController.on eventId, ({percentage}) =>
