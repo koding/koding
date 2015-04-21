@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -18,6 +19,7 @@ import (
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/waitstate"
 
+	"github.com/hashicorp/terraform/terraform"
 	kiteprotocol "github.com/koding/kite/protocol"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -129,25 +131,19 @@ variable "%s" {
 		"access_key": "AKIAJTDKW5IFUUIWVNAA",
 		"secret_key": "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",
 	})
+	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
 
 	plan, err := tfKite.Plan(args.TerraformContext)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
-
-	fmt.Printf("plan.State = %+v\n", plan.State)
-	fmt.Printf("plan.Module = %+v\n", plan.Module)
-	fmt.Printf("plan.Vars = %+v\n", plan.Vars)
-	for _, d := range plan.Diff.Modules {
-		for n, r := range d.Resources {
-			fmt.Printf("%s = %+v\n", n, r)
-			for name, a := range r.Attributes {
-				fmt.Printf("%s = %+v\n", name, a)
-			}
-		}
+	out, err := jsonFromPlan(plan)
+	if err != nil {
+		return err
 	}
+
+	fmt.Println(out)
 
 	return errors.New("THANKS BRO, I've got my PLAN!")
 
@@ -641,4 +637,37 @@ func (m *Machine) addDomainAndTags() {
 	if err := m.Session.AWSClient.AddTags(m.Meta.InstanceId, tags); err != nil {
 		m.Log.Error("Adding tags failed: %v", err)
 	}
+}
+
+// jsonFromPlan returns a simple json string from the given plan
+func jsonFromPlan(plan *terraform.Plan) (string, error) {
+	attrs := make(map[string]string, 0)
+	for _, d := range plan.Diff.Modules {
+		if d.Resources == nil {
+			continue
+		}
+
+		for _, r := range d.Resources {
+			if r.Attributes == nil {
+				continue
+			}
+
+			for name, a := range r.Attributes {
+				attrs[name] = a.New
+			}
+		}
+	}
+
+	var jsonOut = struct {
+		Machines []map[string]string `json:"machines"`
+	}{
+		Machines: []map[string]string{attrs},
+	}
+
+	out, err := json.MarshalIndent(&jsonOut, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(out), nil
 }
