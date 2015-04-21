@@ -36,7 +36,7 @@ var (
 	DailyAtEightAM = "0 0 4 * * *"
 )
 
-type Vmcleaner struct {
+type Janitor struct {
 	Port              string `required:"true"`
 	Mongo             string `required:"true"`
 	KloudSecretKey    string `required:"true"`
@@ -109,12 +109,12 @@ func main() {
 	}
 }
 
-func initializeConf() *Vmcleaner {
-	var conf = new(Vmcleaner)
+func initializeConf() *Janitor {
+	var conf = new(Janitor)
 
 	d := &multiconfig.DefaultLoader{
 		Loader: multiconfig.MultiLoader(
-			&multiconfig.EnvironmentLoader{Prefix: "KONFIG_VMCLEANER"},
+			&multiconfig.EnvironmentLoader{Prefix: "KONFIG_JANITOR"},
 		),
 	}
 

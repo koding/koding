@@ -125,7 +125,7 @@ Configuration = (options={}) ->
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
-    vmcleaner                      : {port          : "6700"              , kloudSecretKey : kloud.secretKey       , kloudAddr : kloud.address, mongo: mongo, sendgridUsername : sendgrid.username , sendgridPassword : sendgrid.password }
+    janitor                        : {port          : "6700"              , kloudSecretKey : kloud.secretKey       , kloudAddr : kloud.address, mongo: mongo }
     vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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"                                                      , kloudSecretKey : kloud.secretKey                      , kloudAddr : kloud.address, connectToKlient: true, debug: true, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
@@ -391,15 +391,15 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
-    vmcleaner           :
+    janitor             :
       group             : "environment"
       instances         : 1
       ports             :
-        incoming        : "#{KONFIG.vmcleaner.port}"
+        incoming        : "#{KONFIG.janitor.port}"
       supervisord       :
-        command         : "#{GOBIN}/vmcleaner"
-      healthCheckURL    : "http://localhost:#{KONFIG.vmcleaner.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.vmcleaner.port}/version"
+        command         : "#{GOBIN}/janitor"
+      healthCheckURL    : "http://localhost:#{KONFIG.janitor.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.janitor.port}/version"
 
     # clientWatcher       :
     #   group             : "webserver"

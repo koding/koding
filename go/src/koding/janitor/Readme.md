@@ -1,6 +1,6 @@
 # janitor
 
-vmcleaner sends emails to users who are inactive for more than specified days, in an attempt to get them to come back; when multiple tries fails, it deletes the user's vm and takes other cost and volume reduction measures.
+janitor sends emails to users who are inactive for more than specified days, in an attempt to get them to come back; when multiple tries fails, it deletes the user's vm and takes other cost and volume reduction measures.
 
 ## Notes
 * See `warnings.go` for the implemention of warnings.
