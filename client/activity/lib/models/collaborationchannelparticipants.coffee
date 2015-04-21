@@ -54,7 +54,9 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
       @emitChange()  if emitEvent
 
 
-  setVideoSelectedParticipant: (nickname) ->
+  setVideoSelectedParticipant: (nickname, isOnline) ->
+
+    return  unless isOnline
 
     @state.selectedParticipant = nickname
 
