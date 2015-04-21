@@ -908,7 +908,7 @@ Configuration = (options={}) ->
 
       function check_go_version () {
         VERSION=$(go version 2> /dev/null)
-        VERSION=${VERSION:13:5}
+        VERSION=${VERSION:13:4}
         MAJOR=`echo $VERSION | cut -d. -f1`
         MINOR=`echo $VERSION | cut -d. -f2`
 
