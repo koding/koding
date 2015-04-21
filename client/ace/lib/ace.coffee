@@ -177,6 +177,7 @@ class Ace extends KDView
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
       @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
+      @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes    ,no
 
 
   saveStarted: ->
@@ -502,12 +503,15 @@ class Ace extends KDView
     @appStorage.setValue 'openRecentFiles', value
 
 
+  setEnableSnippets: (value, save = yes) ->
+
+    @editor.setOption 'enableSnippets', value
+    @appStorage.setValue 'enableSnippets', value  if save
+
+
   setEnableAutocomplete: (value, save = yes) ->
 
-    @editor.setOptions
-      enableBasicAutocompletion: value
-      enableSnippets: value
-
+    @editor.setOption 'enableBasicAutocompletion', value
     @appStorage.setValue 'enableAutocomplete', value  if save
 
 
