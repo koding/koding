@@ -185,7 +185,10 @@ module.exports = class SidebarMachineBox extends KDView
     @isListCollapsed = no
 
 
-  toggleList: -> if @isListCollapsed then @expandList() else @collapseList()
+  toggleList: ->
+
+    if @isListCollapsed then @expandList() else @collapseList()
+    @emit 'ListStateChanged'
 
 
   selectWorkspace: (slug) ->
