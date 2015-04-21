@@ -289,7 +289,7 @@ module.exports = CollaborationController =
 
     @socialChannel
       .on 'AddedToChannel', @bound 'participantAdded'
-      .on 'ChannelDeleted', @bound 'channelDeleted'
+      .on 'ChannelDeleted', @bound 'stopCollaborationSession'
 
 
   participantAdded: (participant) ->
@@ -302,11 +302,6 @@ module.exports = CollaborationController =
       {nickname} = account.profile
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
-
-
-  channelDeleted: ->
-
-    @stateMachine.transition 'Ending'
 
 
   bindRealtimeEvents: ->
@@ -800,6 +795,8 @@ module.exports = CollaborationController =
 
 
   stopCollaborationSession: ->
+
+    return  unless @stateMachine
 
     switch @stateMachine.state
       when 'Active' then @stateMachine.transition 'Ending'
