@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mitchellh/multistep"
-	"github.com/rackspace/gophercloud"
 	"time"
+
+	"github.com/mitchellh/gophercloud-fork-40444fb"
 )
 
 // SSHAddress returns a function that can be given to the SSH communicator
 // for determining the SSH address based on the server AccessIPv4 setting..
-func SSHAddress(csp gophercloud.CloudServersProvider, port int) func(multistep.StateBag) (string, error) {
+func SSHAddress(csp gophercloud.CloudServersProvider, sshinterface string, port int) func(multistep.StateBag) (string, error) {
 	return func(state multistep.StateBag) (string, error) {
 		s := state.Get("server").(*gophercloud.Server)
 
@@ -24,9 +25,14 @@ func SSHAddress(csp gophercloud.CloudServersProvider, port int) func(multistep.S
 			return "", errors.New("Error parsing SSH addresses")
 		}
 		for pool, addresses := range ip_pools {
+			if sshinterface != "" {
+				if pool != sshinterface {
+					continue
+				}
+			}
 			if pool != "" {
 				for _, address := range addresses {
-					if address.Addr != "" {
+					if address.Addr != "" && address.Version == 4 {
 						return fmt.Sprintf("%s:%d", address.Addr, port), nil
 					}
 				}

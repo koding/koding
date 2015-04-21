@@ -4,11 +4,12 @@ package rds
 
 import (
 	"encoding/xml"
-	"github.com/mitchellh/goamz/aws"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/mitchellh/goamz/aws"
 )
 
 // The Rds type encapsulates operations operations with the Rds endpoint.
@@ -18,7 +19,7 @@ type Rds struct {
 	httpClient *http.Client
 }
 
-const APIVersion = "2013-09-09"
+const APIVersion = "2014-10-31"
 
 // New creates a new Rds instance.
 func New(auth aws.Auth, region aws.Region) *Rds {
@@ -92,6 +93,7 @@ func makeParams(action string) map[string]string {
 type DBInstance struct {
 	Address                    string        `xml:"Endpoint>Address"`
 	AllocatedStorage           int           `xml:"AllocatedStorage"`
+	StorageType                string        `xml:"StorageType"`
 	AvailabilityZone           string        `xml:"AvailabilityZone"`
 	BackupRetentionPeriod      int           `xml:"BackupRetentionPeriod"`
 	DBInstanceClass            string        `xml:"DBInstanceClass"`
@@ -100,19 +102,22 @@ type DBInstance struct {
 	DBName                     string        `xml:"DBName"`
 	Engine                     string        `xml:"Engine"`
 	EngineVersion              string        `xml:"EngineVersion"`
+	StorageEncrypted           bool          `xml:"StorageEncrypted"`
 	MasterUsername             string        `xml:"MasterUsername"`
 	MultiAZ                    bool          `xml:"MultiAZ"`
 	Port                       int           `xml:"Endpoint>Port"`
 	PreferredBackupWindow      string        `xml:"PreferredBackupWindow"`
 	PreferredMaintenanceWindow string        `xml:"PreferredMaintenanceWindow"`
-	VpcSecurityGroupIds        []string      `xml:"VpcSecurityGroups"`
+	VpcSecurityGroupIds        []string      `xml:"VpcSecurityGroups>VpcSecurityGroupMembership>VpcSecurityGroupId"`
 	DBSecurityGroupNames       []string      `xml:"DBSecurityGroups>DBSecurityGroup>DBSecurityGroupName"`
 	DBSubnetGroup              DBSubnetGroup `xml:"DBSubnetGroup"`
+	DBParameterGroupName       string        `xml:"DBParameterGroups>DBParameterGroup>DBParameterGroupName"`
 }
 
 type DBSecurityGroup struct {
 	Description              string   `xml:"DBSecurityGroupDescription"`
 	Name                     string   `xml:"DBSecurityGroupName"`
+	EC2SecurityGroupNames    []string `xml:"EC2SecurityGroups>EC2SecurityGroup>EC2SecurityGroupName"`
 	EC2SecurityGroupIds      []string `xml:"EC2SecurityGroups>EC2SecurityGroup>EC2SecurityGroupId"`
 	EC2SecurityGroupOwnerIds []string `xml:"EC2SecurityGroups>EC2SecurityGroup>EC2SecurityGroupOwnerId"`
 	EC2SecurityGroupStatuses []string `xml:"EC2SecurityGroups>EC2SecurityGroup>Status"`
@@ -149,12 +154,25 @@ type DBSnapshot struct {
 	VpcId                string `xml:"VpcId"`
 }
 
+type DBParameterGroup struct {
+	DBParameterGroupFamily string `xml:"DBParameterGroupFamily"`
+	DBParameterGroupName   string `xml:"DBParameterGroupName"`
+	Description            string `xml:"Description"`
+}
+
+type Parameter struct {
+	ApplyMethod    string `xml:"ApplyMethod"`
+	ParameterName  string `xml:"ParameterName"`
+	ParameterValue string `xml:"ParameterValue"`
+}
+
 // ----------------------------------------------------------------------------
 // Create
 
 // The CreateDBInstance request parameters
 type CreateDBInstance struct {
 	AllocatedStorage           int
+	StorageType                string
 	AvailabilityZone           string
 	BackupRetentionPeriod      int
 	DBInstanceClass            string
@@ -163,6 +181,7 @@ type CreateDBInstance struct {
 	DBSubnetGroupName          string
 	Engine                     string
 	EngineVersion              string
+	StorageEncrypted           bool
 	Iops                       int
 	MasterUsername             string
 	MasterUserPassword         string
@@ -173,6 +192,7 @@ type CreateDBInstance struct {
 	PubliclyAccessible         bool
 	VpcSecurityGroupIds        []string
 	DBSecurityGroupNames       []string
+	DBParameterGroupName       string
 
 	SetAllocatedStorage      bool
 	SetBackupRetentionPeriod bool
@@ -185,6 +205,10 @@ func (rds *Rds) CreateDBInstance(options *CreateDBInstance) (resp *SimpleResp, e
 
 	if options.SetAllocatedStorage {
 		params["AllocatedStorage"] = strconv.Itoa(options.AllocatedStorage)
+	}
+
+	if options.StorageType != "" {
+		params["StorageType"] = options.StorageType
 	}
 
 	if options.SetBackupRetentionPeriod {
@@ -227,6 +251,10 @@ func (rds *Rds) CreateDBInstance(options *CreateDBInstance) (resp *SimpleResp, e
 		params["EngineVersion"] = options.EngineVersion
 	}
 
+	if options.StorageEncrypted {
+		params["StorageEncrypted"] = "true"
+	}
+
 	if options.MasterUsername != "" {
 		params["MasterUsername"] = options.MasterUsername
 	}
@@ -257,6 +285,10 @@ func (rds *Rds) CreateDBInstance(options *CreateDBInstance) (resp *SimpleResp, e
 
 	for j, group := range options.DBSecurityGroupNames {
 		params["DBSecurityGroups.member."+strconv.Itoa(j+1)] = group
+	}
+
+	if options.DBParameterGroupName != "" {
+		params["DBParameterGroupName"] = options.DBParameterGroupName
 	}
 
 	resp = &SimpleResp{}
@@ -350,6 +382,31 @@ func (rds *Rds) AuthorizeDBSecurityGroupIngress(options *AuthorizeDBSecurityGrou
 	}
 
 	params["DBSecurityGroupName"] = options.DBSecurityGroupName
+
+	resp = &SimpleResp{}
+
+	err = rds.query(params, resp)
+
+	if err != nil {
+		resp = nil
+	}
+
+	return
+}
+
+// The CreateDBParameterGroup request parameters
+type CreateDBParameterGroup struct {
+	DBParameterGroupFamily string
+	DBParameterGroupName   string
+	Description            string
+}
+
+func (rds *Rds) CreateDBParameterGroup(options *CreateDBParameterGroup) (resp *SimpleResp, err error) {
+	params := makeParams("CreateDBParameterGroup")
+
+	params["DBParameterGroupFamily"] = options.DBParameterGroupFamily
+	params["DBParameterGroupName"] = options.DBParameterGroupName
+	params["Description"] = options.Description
 
 	resp = &SimpleResp{}
 
@@ -480,6 +537,63 @@ func (rds *Rds) DescribeDBSnapshots(options *DescribeDBSnapshots) (resp *Describ
 	return
 }
 
+// DescribeDBParameterGroups request params
+type DescribeDBParameterGroups struct {
+	DBParameterGroupName string
+}
+
+type DescribeDBParameterGroupsResp struct {
+	RequestId         string             `xml:"ResponseMetadata>RequestId"`
+	DBParameterGroups []DBParameterGroup `xml:"DescribeDBParameterGroupsResult>DBParameterGroups>DBParameterGroup"`
+}
+
+func (rds *Rds) DescribeDBParameterGroups(options *DescribeDBParameterGroups) (resp *DescribeDBParameterGroupsResp, err error) {
+	params := makeParams("DescribeDBParameterGroups")
+
+	params["DBParameterGroupName"] = options.DBParameterGroupName
+
+	resp = &DescribeDBParameterGroupsResp{}
+
+	err = rds.query(params, resp)
+
+	if err != nil {
+		resp = nil
+	}
+
+	return
+}
+
+// DescribeDBParameters request params
+type DescribeDBParameters struct {
+	DBParameterGroupName string
+	Source               string
+}
+
+type DescribeDBParametersResp struct {
+	RequestId  string      `xml:"ResponseMetadata>RequestId"`
+	Parameters []Parameter `xml:"DescribeDBParametersResult>Parameters>Parameter"`
+}
+
+func (rds *Rds) DescribeDBParameters(options *DescribeDBParameters) (resp *DescribeDBParametersResp, err error) {
+	params := makeParams("DescribeDBParameters")
+
+	params["DBParameterGroupName"] = options.DBParameterGroupName
+
+	if attr := options.Source; attr != "" {
+		params["Source"] = attr
+	}
+
+	resp = &DescribeDBParametersResp{}
+
+	err = rds.query(params, resp)
+
+	if err != nil {
+		resp = nil
+	}
+
+	return
+}
+
 // DeleteDBInstance request params
 type DeleteDBInstance struct {
 	FinalDBSnapshotIdentifier string
@@ -541,6 +655,27 @@ func (rds *Rds) DeleteDBSubnetGroup(options *DeleteDBSubnetGroup) (resp *SimpleR
 	params := makeParams("DeleteDBSubnetGroup")
 
 	params["DBSubnetGroupName"] = options.DBSubnetGroupName
+
+	resp = &SimpleResp{}
+
+	err = rds.query(params, resp)
+
+	if err != nil {
+		resp = nil
+	}
+
+	return
+}
+
+// DeleteDBParameterGroup request params
+type DeleteDBParameterGroup struct {
+	DBParameterGroupName string
+}
+
+func (rds *Rds) DeleteDBParameterGroup(options *DeleteDBParameterGroup) (resp *SimpleResp, err error) {
+	params := makeParams("DeleteDBParameterGroup")
+
+	params["DBParameterGroupName"] = options.DBParameterGroupName
 
 	resp = &SimpleResp{}
 
@@ -625,6 +760,34 @@ func (rds *Rds) RestoreDBInstanceFromDBSnapshot(options *RestoreDBInstanceFromDB
 
 	if options.PubliclyAccessible {
 		params["PubliclyAccessible"] = "true"
+	}
+
+	resp = &SimpleResp{}
+
+	err = rds.query(params, resp)
+
+	if err != nil {
+		resp = nil
+	}
+
+	return
+}
+
+// ModifyDBParameterGroup request parameters
+type ModifyDBParameterGroup struct {
+	DBParameterGroupName string
+	Parameters           []Parameter
+}
+
+func (rds *Rds) ModifyDBParameterGroup(options *ModifyDBParameterGroup) (resp *SimpleResp, err error) {
+	params := makeParams("ModifyDBParameterGroup")
+
+	params["DBParameterGroupName"] = options.DBParameterGroupName
+
+	for j, group := range options.Parameters {
+		params["Parameters.member."+strconv.Itoa(j+1)+".ApplyMethod"] = group.ApplyMethod
+		params["Parameters.member."+strconv.Itoa(j+1)+".ParameterName"] = group.ParameterName
+		params["Parameters.member."+strconv.Itoa(j+1)+".ParameterValue"] = group.ParameterValue
 	}
 
 	resp = &SimpleResp{}

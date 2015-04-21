@@ -2,8 +2,9 @@ package openstack
 
 import (
 	"fmt"
-	"github.com/rackspace/gophercloud"
 	"log"
+
+	"github.com/mitchellh/gophercloud-fork-40444fb"
 )
 
 // Artifact is an artifact implementation that contains built images.
@@ -35,7 +36,11 @@ func (a *Artifact) String() string {
 	return fmt.Sprintf("An image was created: %v", a.ImageId)
 }
 
+func (a *Artifact) State(name string) interface{} {
+	return nil
+}
+
 func (a *Artifact) Destroy() error {
-	log.Printf("Destroying image: %d", a.ImageId)
+	log.Printf("Destroying image: %s", a.ImageId)
 	return a.Conn.DeleteImageById(a.ImageId)
 }

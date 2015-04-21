@@ -14,12 +14,15 @@ import (
 	"strings"
 
 	"github.com/mitchellh/packer/common"
+	"github.com/mitchellh/packer/common/uuid"
 	"github.com/mitchellh/packer/packer"
 )
 
 type Config struct {
 	common.PackerConfig `mapstructure:",squash"`
 
+	ChefEnvironment      string `mapstructure:"chef_environment"`
+	SslVerifyMode        string `mapstructure:"ssl_verify_mode"`
 	ConfigTemplate       string `mapstructure:"config_template"`
 	ExecuteCommand       string `mapstructure:"execute_command"`
 	InstallCommand       string `mapstructure:"install_command"`
@@ -47,6 +50,8 @@ type ConfigTemplate struct {
 	ServerUrl            string
 	ValidationKeyPath    string
 	ValidationClientName string
+	ChefEnvironment      string
+	SslVerifyMode        string
 }
 
 type ExecuteTemplate struct {
@@ -71,6 +76,31 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	}
 	p.config.tpl.UserVars = p.config.PackerUserVars
 
+	// Accumulate any errors
+	errs := common.CheckUnusedConfig(md)
+
+	templates := map[string]*string{
+		"chef_environment":       &p.config.ChefEnvironment,
+		"ssl_verify_mode":        &p.config.SslVerifyMode,
+		"config_template":        &p.config.ConfigTemplate,
+		"node_name":              &p.config.NodeName,
+		"staging_dir":            &p.config.StagingDir,
+		"chef_server_url":        &p.config.ServerUrl,
+		"execute_command":        &p.config.ExecuteCommand,
+		"install_command":        &p.config.InstallCommand,
+		"validation_key_path":    &p.config.ValidationKeyPath,
+		"validation_client_name": &p.config.ValidationClientName,
+	}
+
+	for n, ptr := range templates {
+		var err error
+		*ptr, err = p.config.tpl.Process(*ptr, nil)
+		if err != nil {
+			errs = packer.MultiErrorAppend(
+				errs, fmt.Errorf("Error processing %s: %s", n, err))
+		}
+	}
+
 	if p.config.ExecuteCommand == "" {
 		p.config.ExecuteCommand = "{{if .Sudo}}sudo {{end}}chef-client " +
 			"--no-color -c {{.ConfigPath}} -j {{.JsonPath}}"
@@ -88,25 +118,6 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 
 	if p.config.StagingDir == "" {
 		p.config.StagingDir = "/tmp/packer-chef-client"
-	}
-
-	// Accumulate any errors
-	errs := common.CheckUnusedConfig(md)
-
-	templates := map[string]*string{
-		"config_template": &p.config.ConfigTemplate,
-		"node_name":       &p.config.NodeName,
-		"staging_dir":     &p.config.StagingDir,
-		"chef_server_url": &p.config.ServerUrl,
-	}
-
-	for n, ptr := range templates {
-		var err error
-		*ptr, err = p.config.tpl.Process(*ptr, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("Error processing %s: %s", n, err))
-		}
 	}
 
 	sliceTemplates := map[string][]string{
@@ -180,7 +191,11 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 }
 
 func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
+
 	nodeName := p.config.NodeName
+	if nodeName == "" {
+		nodeName = fmt.Sprintf("packer-%s", uuid.TimeOrderedUUID())
+	}
 	remoteValidationKeyPath := ""
 	serverUrl := p.config.ServerUrl
 
@@ -202,7 +217,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	}
 
 	configPath, err := p.createConfig(
-		ui, comm, nodeName, serverUrl, remoteValidationKeyPath, p.config.ValidationClientName)
+		ui, comm, nodeName, serverUrl, remoteValidationKeyPath, p.config.ValidationClientName, p.config.ChefEnvironment, p.config.SslVerifyMode)
 	if err != nil {
 		return fmt.Errorf("Error creating Chef config file: %s", err)
 	}
@@ -256,7 +271,7 @@ func (p *Provisioner) uploadDirectory(ui packer.Ui, comm packer.Communicator, ds
 	return comm.UploadDir(dst, src, nil)
 }
 
-func (p *Provisioner) createConfig(ui packer.Ui, comm packer.Communicator, nodeName string, serverUrl string, remoteKeyPath string, validationClientName string) (string, error) {
+func (p *Provisioner) createConfig(ui packer.Ui, comm packer.Communicator, nodeName string, serverUrl string, remoteKeyPath string, validationClientName string, chefEnvironment string, sslVerifyMode string) (string, error) {
 	ui.Message("Creating configuration file 'client.rb'")
 
 	// Read the template
@@ -281,13 +296,15 @@ func (p *Provisioner) createConfig(ui packer.Ui, comm packer.Communicator, nodeN
 		ServerUrl:            serverUrl,
 		ValidationKeyPath:    remoteKeyPath,
 		ValidationClientName: validationClientName,
+		ChefEnvironment:      chefEnvironment,
+		SslVerifyMode:        sslVerifyMode,
 	})
 	if err != nil {
 		return "", err
 	}
 
-	remotePath := filepath.Join(p.config.StagingDir, "client.rb")
-	if err := comm.Upload(remotePath, bytes.NewReader([]byte(configString))); err != nil {
+	remotePath := filepath.ToSlash(filepath.Join(p.config.StagingDir, "client.rb"))
+	if err := comm.Upload(remotePath, bytes.NewReader([]byte(configString)), nil); err != nil {
 		return "", err
 	}
 
@@ -315,8 +332,8 @@ func (p *Provisioner) createJson(ui packer.Ui, comm packer.Communicator) (string
 	}
 
 	// Upload the bytes
-	remotePath := filepath.Join(p.config.StagingDir, "first-boot.json")
-	if err := comm.Upload(remotePath, bytes.NewReader(jsonBytes)); err != nil {
+	remotePath := filepath.ToSlash(filepath.Join(p.config.StagingDir, "first-boot.json"))
+	if err := comm.Upload(remotePath, bytes.NewReader(jsonBytes), nil); err != nil {
 		return "", err
 	}
 
@@ -325,8 +342,14 @@ func (p *Provisioner) createJson(ui packer.Ui, comm packer.Communicator) (string
 
 func (p *Provisioner) createDir(ui packer.Ui, comm packer.Communicator, dir string) error {
 	ui.Message(fmt.Sprintf("Creating directory: %s", dir))
+
+	mkdirCmd := fmt.Sprintf("mkdir -p '%s'", dir)
+	if !p.config.PreventSudo {
+		mkdirCmd = "sudo " + mkdirCmd
+	}
+
 	cmd := &packer.RemoteCmd{
-		Command: fmt.Sprintf("sudo mkdir -p '%s'", dir),
+		Command: mkdirCmd,
 	}
 
 	if err := cmd.StartWithUi(comm, ui); err != nil {
@@ -374,8 +397,14 @@ func (p *Provisioner) cleanClient(ui packer.Ui, comm packer.Communicator, node s
 
 func (p *Provisioner) removeDir(ui packer.Ui, comm packer.Communicator, dir string) error {
 	ui.Message(fmt.Sprintf("Removing directory: %s", dir))
+
+	rmCmd := fmt.Sprintf("rm -rf '%s'", dir)
+	if !p.config.PreventSudo {
+		rmCmd = "sudo " + rmCmd
+	}
+
 	cmd := &packer.RemoteCmd{
-		Command: fmt.Sprintf("sudo rm -rf %s", dir),
+		Command: rmCmd,
 	}
 
 	if err := cmd.StartWithUi(comm, ui); err != nil {
@@ -445,7 +474,7 @@ func (p *Provisioner) copyValidationKey(ui packer.Ui, comm packer.Communicator, 
 	}
 	defer f.Close()
 
-	if err := comm.Upload(remotePath, f); err != nil {
+	if err := comm.Upload(remotePath, f, nil); err != nil {
 		return err
 	}
 
@@ -545,7 +574,11 @@ validation_client_name "chef-validator"
 {{if ne .ValidationKeyPath ""}}
 validation_key "{{.ValidationKeyPath}}"
 {{end}}
-{{if ne .NodeName ""}}
 node_name "{{.NodeName}}"
+{{if ne .ChefEnvironment ""}}
+environment "{{.ChefEnvironment}}"
+{{end}}
+{{if ne .SslVerifyMode ""}}
+ssl_verify_mode :{{.SslVerifyMode}}
 {{end}}
 `

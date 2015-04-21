@@ -1,4 +1,4 @@
-box: koding/base@0.0.18
+box: koding/base@0.0.20
 no-response-timeout: 10
 services:
   - wercker/postgresql@0.0.4

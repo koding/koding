@@ -1,0 +1,65 @@
+//
+// Button Styles
+// --------------------------------------------------
+
+.outline-btn{
+	background-color: transparent;
+	color: $white;
+	border: 2px solid $white;
+	//border-radius: $btn-border-radius;
+	text-decoration: none !important;
+	@include transition(background-color .3s ease-in-out);
+
+	&.purple{
+		color: $purple;
+		border: 2px solid $purple;
+	}
+
+	&:hover{
+		color: $white;
+		background-color: rgba(255, 255, 255, .2);
+		@include transition(background-color .3s ease-in-out);
+
+		&.purple{
+			background-color: rgba(255, 255, 255, .5);
+		}
+	}
+}
+
+.terra-btn{
+  background-color: rgba(130, 47, 247, 0.36);
+  @include transition( background-color 0.3s ease );
+
+  &:hover{
+    background-color: rgba(130, 47, 247, 0.8);
+    @include transition( background-color 0.3s ease );
+  }
+}
+
+//animation on header main nav link hover
+/*.li-under a::after {
+  position: absolute;
+  top: 68%;
+  left: 50%;
+  margin-left: -4px;
+  width: 6px;
+  height: 6px;
+  background-color: white;
+  content: '';
+  opacity: 0;
+  text-decoration: none;
+  -webkit-transition: height 0.3s, opacity 0.3s, -webkit-transform 0.3s;
+  -moz-transition: height 0.3s, opacity 0.3s, -moz-transform 0.3s;
+  transition: height 0.3s, opacity 0.3s, transform 0.3s;
+  -webkit-transform: translateY(-10px);
+  -moz-transform: translateY(-10px);
+  transform: translateY(-10px);
+}
+
+.li-under a:hover::after,
+.li-under a:focus::after {
+    opacity: 1;
+    -webkit-transform: skewY(15deg) translateY(10px);
+    -moz-transform: skewY(15deg) translateY(10px);
+    transform: skewY(15deg) translateY(10px);
+}*/

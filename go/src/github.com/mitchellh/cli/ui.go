@@ -29,6 +29,10 @@ type Ui interface {
 	// Error is used for any error messages that might appear on standard
 	// error.
 	Error(string)
+
+	// Warn is used for any warning messages that might appear on standard
+	// error.
+	Warn(string)
 }
 
 // BasicUi is an implementation of Ui that just outputs to the given
@@ -98,12 +102,17 @@ func (u *BasicUi) Output(message string) {
 	fmt.Fprint(u.Writer, "\n")
 }
 
+func (u *BasicUi) Warn(message string) {
+	u.Error(message)
+}
+
 // PrefixedUi is an implementation of Ui that prefixes messages.
 type PrefixedUi struct {
 	AskPrefix    string
 	OutputPrefix string
 	InfoPrefix   string
 	ErrorPrefix  string
+	WarnPrefix   string
 	Ui           Ui
 }
 
@@ -137,4 +146,12 @@ func (u *PrefixedUi) Output(message string) {
 	}
 
 	u.Ui.Output(message)
+}
+
+func (u *PrefixedUi) Warn(message string) {
+	if message != "" {
+		message = fmt.Sprintf("%s%s", u.WarnPrefix, message)
+	}
+
+	u.Ui.Warn(message)
 }

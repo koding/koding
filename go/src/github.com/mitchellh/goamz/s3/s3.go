@@ -37,7 +37,7 @@ type S3 struct {
 	aws.Region
 	HTTPClient func() *http.Client
 
-	private    byte // Reserve the right of using private data.
+	private byte // Reserve the right of using private data.
 }
 
 // The Bucket type encapsulates operations with an S3 bucket.
@@ -197,9 +197,36 @@ func (b *Bucket) GetReader(path string) (rc io.ReadCloser, err error) {
 // It is the caller's responsibility to call Close on rc when
 // finished reading.
 func (b *Bucket) GetResponse(path string) (*http.Response, error) {
+	return b.getResponseParams(path, nil)
+}
+
+// GetTorrent retrieves an Torrent object from an S3 bucket an io.ReadCloser.
+// It is the caller's responsibility to call Close on rc when finished reading.
+func (b *Bucket) GetTorrentReader(path string) (io.ReadCloser, error) {
+	resp, err := b.getResponseParams(path, url.Values{"torrent": {""}})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
+}
+
+// GetTorrent retrieves an Torrent object from an S3, returning
+// the torrent as a []byte.
+func (b *Bucket) GetTorrent(path string) ([]byte, error) {
+	body, err := b.GetTorrentReader(path)
+	if err != nil {
+		return nil, err
+	}
+	defer body.Close()
+
+	return ioutil.ReadAll(body)
+}
+
+func (b *Bucket) getResponseParams(path string, params url.Values) (*http.Response, error) {
 	req := &request{
 		bucket: b.Name,
 		path:   path,
+		params: params,
 	}
 	err := b.S3.prepare(req)
 	if err != nil {

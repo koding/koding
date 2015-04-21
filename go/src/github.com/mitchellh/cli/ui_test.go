@@ -68,6 +68,16 @@ func TestBasicUi_Output(t *testing.T) {
 	}
 }
 
+func TestBasicUi_Warn(t *testing.T) {
+	writer := new(bytes.Buffer)
+	ui := &BasicUi{Writer: writer}
+	ui.Warn("HELLO")
+
+	if writer.String() != "HELLO\n" {
+		t.Fatalf("bad: %s", writer.String())
+	}
+}
+
 func TestPrefixedUi_implements(t *testing.T) {
 	var _ Ui = new(PrefixedUi)
 }
@@ -108,5 +118,18 @@ func TestPrefixedUiOutput(t *testing.T) {
 	p.Output("bar")
 	if ui.OutputWriter.String() != "foobar\n" {
 		t.Fatalf("bad: %s", ui.OutputWriter.String())
+	}
+}
+
+func TestPrefixedUiWarn(t *testing.T) {
+	ui := new(MockUi)
+	p := &PrefixedUi{
+		WarnPrefix: "foo",
+		Ui:         ui,
+	}
+
+	p.Warn("bar")
+	if ui.ErrorWriter.String() != "foobar\n" {
+		t.Fatalf("bad: %s", ui.ErrorWriter.String())
 	}
 }

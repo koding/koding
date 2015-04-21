@@ -23,6 +23,7 @@ services=(
   koding/kites/kontrol
   github.com/coreos/etcd
   koding/kites/kloud
+  koding/kites/cmd/terraformer
   koding/kites/kloud/kloudctl
   koding/kites/cmd/terraformer
   koding/virt/vmproxy
