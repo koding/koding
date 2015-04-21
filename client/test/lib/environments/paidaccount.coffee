@@ -26,7 +26,7 @@ module.exports =
 
   makeAlwaysOnForNotPaidUser: (browser) ->
 
-    buttonSelector = '.more-form .alwayson'
+    toggleSelector = '.machine-settings-modal .alwayson'
     vmSelector     = 'a[href="/IDE/koding-vm-1"]'
 
     helpers.beginTest(browser)
@@ -37,11 +37,10 @@ module.exports =
       else
         helpers.waitForVMRunning(browser)
         environmentHelpers.openVmSettingsModal(browser)
-        environmentHelpers.clickMoreButtonInVMSettingsModal(browser)
 
         browser
-          .waitForElementVisible  buttonSelector, 20000
-          .click                  buttonSelector + ' .input-wrapper .koding-on-off a.knob'
+          .waitForElementVisible  toggleSelector, 20000
+          .click                  toggleSelector + ' .koding-on-off a.knob'
           .pause                  2000
           .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
           .end()

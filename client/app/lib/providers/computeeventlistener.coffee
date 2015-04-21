@@ -6,7 +6,7 @@ globals = require 'globals'
 
 module.exports = class ComputeEventListener extends KDObject
 
-  {Stopped, Running, Terminated} = Machine.State
+  {Stopped, Running, Terminated, Snapshotting} = Machine.State
 
   constructor:(options = {})->
 
@@ -84,14 +84,28 @@ module.exports = class ComputeEventListener extends KDObject
     delete @machineStatuses[machine.uid]
 
 
-  TypeStateMap =
-
-    stop    : public : "MachineStopped",   private : Stopped
-    start   : public : "MachineStarted",   private : Running
-    build   : public : "MachineBuilt",     private : Running
-    reinit  : public : "MachineBuilt",     private : Running
-    resize  : public : "MachineResized",   private : Running
-    destroy : public : "MachineDestroyed", private : Terminated
+  TypeStateMap     =
+    stop           :
+      public       : "MachineStopped"
+      private      : Stopped
+    start          :
+      public       : "MachineStarted"
+      private      : Running
+    build          :
+      public       : "MachineBuilt"
+      private      : Running
+    reinit         :
+      public       : "MachineBuilt"
+      private      : Running
+    resize         :
+      public       : "MachineResized"
+      private      : Running
+    destroy        :
+      public       : "MachineDestroyed"
+      private      : Terminated
+    createSnapshot :
+      public       : "MachineSnapshotted"
+      private      : Snapshotting
 
 
   tick: (force)->

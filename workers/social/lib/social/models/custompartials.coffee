@@ -16,6 +16,9 @@ module.exports = class JCustomPartials extends Model
       isPreview       : Boolean
       previewInstance : String
       viewInstance    : String
+      createdAt       :
+        type          : Date
+        default       : -> new Date
 
     sharedMethods :
       static      :
