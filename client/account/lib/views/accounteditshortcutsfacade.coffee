@@ -17,7 +17,7 @@ selectHandler = (cb) ->
     .on 'end', (res) =>
       # A valid shortcut can't have less than 2 characters, so pass void to
       # callback.
-      if res.length < 2 then return cb()
+      return cb()  if res.length < 2
 
       # This will eventually dispatch a shortcuts#change when appstorage is synced-up
       # with internal representation.
@@ -42,7 +42,7 @@ toggleHandler = (enabled) ->
   # with internal representation.
   getShortcuts()
     .update @model.collection, @model.name,
-      options: enabled: enabled
+      options: { enabled }
 
 
 # Handles shortcuts#change events.
@@ -89,7 +89,7 @@ exports.createHandler = (type, ctx) ->
 
   # Save given item entity, so we can dispatch events directly on it.
   key = "#{ctx.model.collection}$#{ctx.model.name}"
-  unless _.has entities, key then entities[key] = ctx
+  entities[key] = ctx  unless _.has entities, key
 
   switch type
     when EventType.Item.SELECTED
