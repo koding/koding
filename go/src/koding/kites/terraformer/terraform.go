@@ -2,12 +2,17 @@ package terraformer
 
 import (
 	"bytes"
-	"koding/kites/terraformer/commands"
+	"koding/kites/terraformer/kodingcontext"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+)
+
+var (
+	Name    = "terraformer"
+	Version = "0.0.1"
 )
 
 type Terraformer struct {
@@ -18,7 +23,7 @@ type Terraformer struct {
 	// Enable debug mode
 	Debug bool
 
-	Context *commands.Context
+	Context *kodingcontext.Context
 }
 
 type TerraformRequest struct {
@@ -68,7 +73,7 @@ func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
 	return plan, nil
 }
 
-func (t *Terraformer) plan(c *commands.Context, r *kite.Request) (*terraform.Plan, error) {
+func (t *Terraformer) plan(c *kodingcontext.Context, r *kite.Request) (*terraform.Plan, error) {
 	args := TerraformRequest{}
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err

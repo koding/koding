@@ -1,4 +1,4 @@
-package commands
+package kodingcontext
 
 import (
 	"bytes"
@@ -9,6 +9,9 @@ import (
 	"os"
 	"path"
 
+	"koding/kites/terraformer/kodingcontext/pkg"
+
+	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/mitchellh/cli"
 	uuid "github.com/nu7hatch/gouuid"
@@ -34,6 +37,24 @@ type Context struct {
 	id           string
 	Buffer       *bytes.Buffer
 	ui           *cli.PrefixedUi
+}
+
+func Init() (*Context, error) {
+
+	config := pkg.BuiltinConfig
+	if err := config.Discover(); err != nil {
+		return nil, err
+	}
+
+	providers := config.ProviderFactories()
+	provisioners := config.ProvisionerFactories()
+
+	return NewContext(providers, provisioners), nil
+}
+
+func Close() {
+	// Make sure we clean up any managed plugins at the end of this
+	plugin.CleanupClients()
 }
 
 func NewContext(

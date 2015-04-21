@@ -1,7 +1,7 @@
-package commands
+package kodingcontext
 
 import (
-	"bytes"
+	"io"
 
 	"github.com/mitchellh/cli"
 )
@@ -11,14 +11,14 @@ const (
 	OutputPrefix = "o:"
 )
 
-func NewUI(b *bytes.Buffer) *cli.PrefixedUi {
+// NewUI returns a cli.UI
+func NewUI(w io.Writer) *cli.PrefixedUi {
 	return &cli.PrefixedUi{
 		AskPrefix:    OutputPrefix,
 		OutputPrefix: OutputPrefix,
 		InfoPrefix:   OutputPrefix,
 		ErrorPrefix:  ErrorPrefix,
 
-		// we can override this later easily
-		Ui: &cli.BasicUi{Writer: b},
+		Ui: &cli.BasicUi{Writer: w},
 	}
 }
