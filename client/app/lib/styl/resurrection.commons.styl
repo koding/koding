@@ -1544,20 +1544,40 @@ a.action-link.verify-email
       &.active
         bg              color, #1AAF5D
 
+.onboarding-spotlight
+  z-index               10001
+  .kdoverlay
+    &.top
+    &.bottom
+    &.left
+    &.right
+      background-color  rgba(0,0,0,.6)
+
 .onboarding-wrapper
+  z-index               10001
+
   .kdlistview-contextmenu
     rounded             5px !important
+
+    &.default
+      padding           0px
+      background-color  #fff
+
   .arrow
     bg                  image, none !important
-    top                 -5px !important
+    border-left         10px solid
+    border-right        10px solid
+    size                0, 0
+    abs()
+
     &.top
-      size              0, 0
-      border-left       10px solid transparent
-      border-right      10px solid transparent
-      border-bottom     10px solid #fff
-      left              25px !important
-      top               -15px !important
-      abs()
+      border-bottom         10px solid
+      top                   -15px !important
+
+    &.bottom
+      border-top            10px solid
+      bottom                -15px !important
+
   .close-icon
     r-sprite            "app", "20-close-tab"
     top                 10px

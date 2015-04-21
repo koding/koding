@@ -266,13 +266,12 @@ module.exports = class PaymentForm extends JView
       when PaymentConstants.operation.UPGRADE
 
         @successMessage.updatePartial "
-          Depending on the plan upgraded to, you now have access to more computing
+          Sweet! You now have access to better compute
           and storage resources.
+          <p>
+          <b>Note:</b> You will need to resize your VM to use the additional storage. This
           <a href='http://learn.koding.com/guides/what-happens-upon-upgrade/?utm_source=upgrade_modal&utm_medium=website&utm_campaign=upgrade'
-             target='_blank'>
-           Learn more
-          </a>
-          about how to use your new resources.
+             target='_blank'>simple guide</a> shows you how to do that.
         "
         @successMessage.show()
 

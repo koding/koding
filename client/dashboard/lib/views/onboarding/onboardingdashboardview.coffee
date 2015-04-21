@@ -3,7 +3,7 @@ KDButtonView = kd.ButtonView
 CustomViewsDashboardView = require '../customviews/customviewsdashboardview'
 OnboardingAddNewForm = require './onboardingaddnewform'
 OnboardingSectionForm = require './onboardingsectionform'
-OnboardingItemView = require 'app/onboarding/onboardingitemview'
+OnboardingGroupView = require './onboardinggroupview'
 
 
 module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
@@ -20,25 +20,38 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
       cssClass     : "add-new solid green medium"
       callback     : =>
         @setClass  "form-visible"
-        @addSubView new OnboardingSectionForm
-          delegate : this
+        sectionForm = new OnboardingSectionForm()
+        @bindFormEvents sectionForm
+        @addSubView sectionForm
 
-    @on "NewSectionAdded", =>
-      @unsetClass "form-visible"
-      @container.destroySubViews()
-      @reloadViews()
 
   createList: (sections) ->
+
     @noViewLabel.hide()
     for section in sections
-      view = new OnboardingItemView
+      view = new OnboardingGroupView
         delegate    : this
         title       : section.name
         cssClass    : "onboarding-items"
         formClass   : OnboardingAddNewForm
       , section
+      @bindFormEvents view
 
       @customViews.push view
       @container.addSubView view
 
 
+  bindFormEvents: (formView) ->
+
+    formView.on 'SectionSaved',     @bound 'handleSectionSaved'
+    formView.on 'SectionCancelled', @bound 'handleSectionCancelled'
+
+
+  handleSectionSaved: ->
+
+    @unsetClass 'form-visible'
+    @container.destroySubViews()
+    @reloadViews()
+
+
+  handleSectionCancelled: -> @unsetClass 'form-visible'

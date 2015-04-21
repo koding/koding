@@ -1,17 +1,22 @@
 helpers = require './helpers.js'
 assert  = require 'assert'
 
+modalSelector = '.machine-settings-modal.AppModal'
 
 module.exports =
 
-  openVmSettingsModal: (browser, vmName) ->
 
-    modalSelector = '.activity-modal.vm-settings'
+  openVmSettingsModal: (browser, vmName, cssSelector) ->
 
     if not vmName
       vmName = 'koding-vm-0'
 
-    vmSelector = '.activity-sidebar a[href="/IDE/' + vmName + '"].running'
+    if not cssSelector
+      cssSelector = '.general'
+
+    modalSelector = '.machine-settings-modal.AppModal'
+    itemSelector  = modalSelector + ' .AppModal-navItem' + cssSelector
+    vmSelector    = '.activity-sidebar a[href="/IDE/' + vmName + '"].running'
 
     browser
       .waitForElementVisible   vmSelector, 20000
@@ -20,14 +25,28 @@ module.exports =
       .click                   vmSelector + ' span'
       .waitForElementVisible   modalSelector, 20000 # Assertion
       .pause                   2500
+      .waitForElementVisible   itemSelector, 20000
+      .click                   itemSelector
 
 
-  clickMoreButtonInVMSettingsModal: (browser) ->
+  openDiskUsageSettings: (browser, vmName) ->
 
-    browser
-      .waitForElementVisible  '.settings form.with-fields .moreview', 20000
-      .click                  '.settings form.with-fields .moreview'
-      .pause                  2000
+    @openVmSettingsModal browser, vmName, '.disk-usage'
+
+
+  openSpecsSettings: (browser, vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.specs'
+
+
+  openGeneralSettings: (browser,vmName) ->
+
+    @openVmSettingsModal browser, vmName
+
+
+  openDomainSettings: (browser, vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.domains'
 
 
   clickAddVMButton: (browser) ->
@@ -42,12 +61,14 @@ module.exports =
 
     @clickAddKodingVMButton browser
 
+
   clickAddKodingVMButton: (browser) ->
 
     sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
     browser
       .waitForElementVisible   '.more-modal.more-vms', 20000 # Assertion
       .click                   '.kdbutton.create-koding-vm'
+
 
   seeUpgradeModal: (browser) ->
 
@@ -60,24 +81,22 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    domainSelector    = '.domains .add-domain'
-    paragraph         = helpers.getFakeText()
-    createDomainName  = paragraph.split(' ')[0]
-    domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
+    buttonSelector     = '.domains .kdheaderview button.add-button'
+    buttonLoaderSelector = '.add-view button.loading'
+    paragraph          = helpers.getFakeText()
+    createDomainName   = paragraph.split(' ')[0]
+    domainName         = createDomainName + '.' + user.username + '.dev.koding.io'
 
-    @openVmSettingsModal(browser)
-
-    @clickMoreButtonInVMSettingsModal(browser)
+    @openDomainSettings(browser)
 
     browser
-      .waitForElementVisible    '.more-form .domains', 20000
-      .waitForElementVisible    domainSelector, 20000
-      .click                    domainSelector
-      .waitForElementVisible    '.domains-view input.text', 20000
-      .setValue                 '.domains-view input.text', createDomainName + '\n'
-      .waitForElementVisible    '.domains-view .in-progress.kdloader', 10000
-      .waitForElementNotVisible '.domains-view .in-progress.kdloader', 20000
-      .assert.containsText      '.domains-view .listview-wrapper', domainName
+      .waitForElementVisible    buttonSelector, 20000
+      .click                    buttonSelector
+      .waitForElementVisible    '.add-view input.hitenterview', 20000
+      .setValue                 '.add-view input.hitenterview', createDomainName + '\n'
+      .waitForElementVisible    buttonLoaderSelector, 10000
+      .waitForElementNotVisible buttonLoaderSelector, 20000
+      .assert.containsText      '.kdlistitemview-domain:last-child' , domainName
 
     return domainName
 
