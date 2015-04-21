@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	WorkerName    = "vmcleaner"
+	WorkerName    = "Janitor"
 	WorkerVersion = "0.0.1"
 
 	Log = helper.CreateLogger(WorkerName, false)
