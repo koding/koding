@@ -107,7 +107,7 @@ module.exports = class ChannelParticipantsModel extends kd.Object
   remove: (origin, emitEvent = yes) ->
 
     # sanitize the origin first.
-    origin.id or= origin._id
+    origin.id ?= origin._id
 
     return  unless @participants.get origin.id
 
