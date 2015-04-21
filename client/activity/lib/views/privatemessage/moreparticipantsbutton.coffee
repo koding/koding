@@ -75,7 +75,7 @@ module.exports = class MoreParticipantsButton extends kd.ButtonViewWithMenu
    *
    * @param {string} cssClass
   ###
-  setDomElement:(cssClass = '') ->
+  setDomElement: (cssClass = '') ->
     $ = require 'jquery'
     @domElement = $ """
       <div class='kdbuttonwithmenu-wrapper MoreParticipantsButton-wrapper'>

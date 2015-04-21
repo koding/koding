@@ -16,9 +16,8 @@ AvatarView                       = require 'app/commonviews/avatarviews/avatarvi
 dateFormat                       = require 'dateformat'
 isMyPost                         = require 'app/util/isMyPost'
 fetchAccount                     = require 'app/util/fetchAccount'
-
-ParticipantHeads = require './participantheads'
-ChannelParticipantsModel = require 'activity/models/channelparticipants'
+ParticipantHeads                 = require './participantheads'
+ChannelParticipantsModel         = require 'activity/models/channelparticipants'
 
 
 module.exports = class PrivateMessagePane extends MessagePane
