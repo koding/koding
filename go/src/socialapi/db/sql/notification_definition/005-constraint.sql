@@ -42,3 +42,9 @@ ALTER TABLE notification.notification_activity ADD CONSTRAINT "notification_acti
 -- ----------------------------
 --  Indexes structure for table activity
 -- ----------------------------
+CREATE INDEX  "notification_account_id_context_id_notification_content_id_idx" ON "notification"."notification" USING btree(account_id DESC, context_channel_id DESC, notification_content_id DESC);
+
+CREATE INDEX  "notification_activity_actor_id_content_id_obsolete_idx" ON "notification"."notification_activity" USING btree(actor_id DESC, notification_content_id DESC, obsolete);
+
+CREATE INDEX  "notification_content_type_constant_target_id_idx" ON "notification"."notification_content" USING btree(type_constant DESC, target_id DESC);
+

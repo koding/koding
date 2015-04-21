@@ -30,6 +30,8 @@ func getPlanForUser(username string) (string, error) {
 		return "", err
 	}
 
+	defer resp.Body.Close()
+
 	var subscription *SubscriptionResponse
 	e := json.NewDecoder(resp.Body)
 	if err := e.Decode(&subscription); err != nil {
