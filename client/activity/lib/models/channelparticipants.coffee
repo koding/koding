@@ -57,6 +57,8 @@ module.exports = class ChannelParticipantsModel extends kd.Object
 
   ###*
    * Fetch channel's all participants from backend. Transforms it them into jAccounts.
+   *
+   * @param {boolean=} emitEvent
   ###
   fetchFromBackend: (emitEvent = yes) ->
 
