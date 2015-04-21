@@ -173,27 +173,29 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 // has more than one valid allowed users, we return the one that matches the
 // requesterName.
 func (p *Provider) getOwner(requesterName string, users []models.Permissions) (*models.User, error) {
-	// if the list contains only one user, do a short lookup.
-	if len(users) == 1 || requesterName == "" {
-		var ownerId bson.ObjectId
-
-		for _, user := range users {
-			if user.Sudo && user.Owner {
-				ownerId = user.Id
-			}
+	allowedIds := make([]bson.ObjectId, len(users))
+	for i, perm := range users {
+		// we only going to fetch users that are allowed
+		if perm.Sudo && perm.Owner {
+			allowedIds[i] = perm.Id
 		}
+	}
 
-		if !ownerId.Valid() {
-			return nil, errors.New("owner not found")
-		}
+	// nothing found, just return
+	if len(allowedIds) == 0 {
+		return nil, errors.New("owner not found")
+	}
 
+	// if the list contains only one user or if the requesterName is empty,
+	// just get the do a short lookup and return the first result.
+	if len(allowedIds) == 1 || requesterName == "" {
 		var user *models.User
 		err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
-			return c.FindId(users[0].Id).One(&user)
+			return c.FindId(allowedIds[0]).One(&user)
 		})
 
 		if err == mgo.ErrNotFound {
-			return nil, fmt.Errorf("User with Id not found: %s", ownerId.Hex())
+			return nil, fmt.Errorf("User with Id not found: %s", allowedIds[0].Hex())
 		}
 		if err != nil {
 			return nil, fmt.Errorf("username lookup error: %v", err)
@@ -206,36 +208,23 @@ func (p *Provider) getOwner(requesterName string, users []models.Permissions) (*
 	// requesterName, if not we return someone that is allowed. Note that we
 	// don't do the validation here, this is only to fetch the user, don't put
 	// any validation logic here.
-	var allUsers []*models.User
-	userIds := make([]bson.ObjectId, len(users))
-	for i, perm := range users {
-		// we only going to fetch users that are allowed
-		if perm.Sudo && perm.Owner {
-			userIds[i] = perm.Id
-		}
-	}
-
-	// nothing found, just return
-	if len(userIds) == 0 {
-		return nil, errors.New("owner not found")
-	}
-
+	var allowedUsers []*models.User
 	if err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"_id": bson.M{"$in": userIds}}).All(&users)
+		return c.Find(bson.M{"_id": bson.M{"$in": allowedIds}}).All(&allowedUsers)
 	}); err != nil {
 		return nil, fmt.Errorf("username lookup error: %v", err)
 	}
 
 	// now we have all allowed users, if we have someone that is in match with
 	// the requesterName just return it.
-	for _, u := range allUsers {
+	for _, u := range allowedUsers {
 		if u.Name == requesterName {
 			return u, nil
 		}
 	}
 
 	// nothing found, just return the first one
-	return allUsers[0], nil
+	return allowedUsers[0], nil
 }
 
 func (p *Provider) validate(m *Machine, r *kite.Request) error {
