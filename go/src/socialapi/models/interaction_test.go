@@ -1,6 +1,9 @@
 package models
 
 import (
+	"fmt"
+	"socialapi/config"
+	"socialapi/request"
 	"testing"
 
 	"github.com/koding/bongo"
@@ -43,6 +46,52 @@ func TestInteractiongetAccountId(t *testing.T) {
 			in, err := i.getAccountId()
 			So(err, ShouldBeNil)
 			So(in, ShouldEqual, i.AccountId)
+		})
+	})
+}
+
+func TestInteractionListLikedMessage(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	config.MustRead(r.Conf.Path)
+
+	Convey("while creating requirements", t, func() {
+		account := CreateAccountWithTest()
+
+		channel := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_GROUP, "koding")
+
+		message1 := CreateMessageWithBody(channel.Id, account.Id, ChannelMessage_TYPE_POST, "bisiler")
+		message2 := CreateMessageWithBody(channel.Id, account.Id, ChannelMessage_TYPE_POST, "bisiler22")
+
+		query := request.NewQuery()
+		query.AccountId = account.Id
+		query.Type = Interaction_TYPE_LIKE
+
+		int1, err := AddInteractionWithTest(Interaction_TYPE_LIKE, message1.Id, account.Id)
+		So(int1, ShouldNotBeNil)
+		So(err, ShouldBeNil)
+		int2, err := AddInteractionWithTest(Interaction_TYPE_LIKE, message2.Id, account.Id)
+		So(int2, ShouldNotBeNil)
+		So(err, ShouldBeNil)
+
+		Convey("it should list the message ids that liked", func() {
+			i := NewInteraction()
+			messageIds, err := i.ListLikedMessageIds(query, channel.Id)
+			So(messageIds, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			fmt.Println(messageIds)
+			So(len(messageIds), ShouldEqual, 2)
+		})
+
+		Convey("it should list the messages that liked", func() {
+			messages, err := int1.ListLikedMessages(query, channel.Id)
+			So(err, ShouldBeNil)
+			So(messages, ShouldNotBeNil)
+			So(messages[0].Body, ShouldEqual, message1.Body)
 		})
 	})
 }
