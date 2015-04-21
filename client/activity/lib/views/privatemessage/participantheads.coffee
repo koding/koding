@@ -116,6 +116,8 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
       participantList : participants
       moreListTitle   : @options.moreListTitle
 
+    @forwardEvent moreButton, 'ParticipantSelected'
+
     @extrasContainer.destroySubViews()
     @extrasContainer.addSubView moreButton
     @extrasContainer.show()
