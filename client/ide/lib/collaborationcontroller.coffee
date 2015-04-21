@@ -626,7 +626,6 @@ module.exports = CollaborationController =
   createCollaborationSession: (callbacks) ->
 
     fileName = @getRealtimeFileName()
-    socialHelpers.sendActivationMessage @socialChannel, kd.noop
 
     realtimeHelpers.createCollaborationFile @rtm, fileName, (err, file) =>
       return callbacks.error err  if err
@@ -635,6 +634,9 @@ module.exports = CollaborationController =
         return callbacks.error err  if err
 
         @rtmFileId = file.id
+
+        socialHelpers.sendActivationMessage @socialChannel, kd.noop
+
         @setMachineSharingStatus on, (err) =>
           return callbacks.error err  if err
           callbacks.success doc
