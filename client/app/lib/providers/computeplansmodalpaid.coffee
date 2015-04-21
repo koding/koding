@@ -117,7 +117,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
   ###*
    * Fetch the jSnapshots and populate the snapshotsSelector with any
    * snapshots the user has. If none are available, the selector is
-   * hidden if needed.
+   * left hidden.
   ###
   populateSnapshotsSelector: ->
     JSnapshot.some {}, {}, (err, snapshots) =>
