@@ -50,17 +50,19 @@ module.exports = class OnboardingController extends KDController
       @appStorage.fetchStorage()
 
 
-  runOnboarding: (groupName, delay = 2000) ->
+  runOnboarding: (groupName, delay = 2000, forceRun = no) ->
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
     return  unless onboarding.partial.items?.length
 
+    forceRun = @isPreviewMode  unless forceRun
+
     slug      = @createSlug groupName
     isShown   = @appStorage.getValue slug
     isOldUser = new Date(onboarding.createdAt) > @registrationDate
 
-    return  if (isShown or isOldUser) and not @isPreviewMode
+    return  if (isShown or isOldUser) and not forceRun
 
     @isRunning = yes
     kd.utils.wait delay, =>
@@ -93,9 +95,7 @@ module.exports = class OnboardingController extends KDController
 
     return  unless groupName
 
-    slug = @createSlug groupName
-    @appStorage.setValue slug, no
-    @runOnboarding groupName, 0
+    @runOnboarding groupName, 0, yes
 
 
   createSlug: (groupName) ->
