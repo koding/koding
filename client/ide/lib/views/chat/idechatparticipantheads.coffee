@@ -5,12 +5,12 @@ module.exports = class IDEChatParticipantHeads extends ParticipantHeads
 
   setDefaultListTitle: ->
 
-    @options.moreListTitle = 'Other Participants'
+    @setOption 'moreListTitle', 'Other Participants'
 
 
   setVideoListTitle: ->
 
-    @options.moreListTitle = 'Inactive Participants'
+    @setOption 'moreListTitle', 'Inctive Participants'
 
 
   updateParticipants: (participantMap, state) ->
