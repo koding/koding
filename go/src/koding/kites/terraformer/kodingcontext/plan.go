@@ -56,6 +56,7 @@ func (c *Context) Plan(content io.Reader) (*terraform.Plan, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer planFile.Close()
 
 	return terraform.ReadPlan(planFile)
 }
