@@ -1,14 +1,13 @@
-_         = require 'lodash'
-immutable = require 'immutable'
+_                        = require 'lodash'
 ChannelParticipantsModel = require './channelparticipants'
 
 module.exports = class CollaborationChannelParticipantsModel extends ChannelParticipantsModel
 
   defaultState:
-    videoActive: no
-    selectedParticipant: null
-    talkingParticipants: []
-    videoParticipants: []
+    videoActive         : no
+    selectedParticipant : null
+    talkingParticipants : []
+    videoParticipants   : []
 
   constructor: (options = {}, data) ->
 
