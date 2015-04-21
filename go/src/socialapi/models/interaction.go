@@ -6,6 +6,7 @@ import (
 	"socialapi/request"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -41,62 +42,61 @@ const (
 	Interaction_TYPE_DONWVOTE = "downvote"
 )
 
-func (i *Interaction) ListLikedMessages(q *request.Query) ([]LikedMessages, error) {
-	var likedMessages []LikedMessages
+func (i *Interaction) ListLikedMessageIds(q *request.Query, groupChannelId int64) ([]int64, error) {
+	messageIds := make([]int64, 0)
 
-	if i.AccountId == 0 {
-		return likedMessages, ErrAccountIdIsNotSet
+	query := getLikedMessagesQuery(q, groupChannelId)
+
+	rows, err := query.Rows()
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	if rows == nil {
+		return nil, nil
 	}
 
-	if i.MessageId == 0 {
-		return likedMessages, ErrMessageIdIsNotSet	
+	var messageId int64
+	for rows.Next() {
+		rows.Scan(&messageId)
+		messageIds = append(messageIds, messageId)
 	}
 
-	query := &bongo.Query{
-		Selector : map[string]interface{}{
-		"message_id": i.MessageId,
-		"account_id": i.AccountId,
-		"type_constant": q.Type,
-		}
-	}
-
-	q.AddScope(RemoveTrollContent(i, query.ShowExempt))
-
-	if q.Limit > 0 {
-		query.Pagination.Limit = q.Limit
-	}
-
-	if len(q.Sort) > 0 {
-		query.Sort = q.Sort
-	}
-
-	err := bongo.B.Some(i, &likedMessages, query)
-	if if err != nil {
-		return likedMessages, err
-	}
-	
-	return likedMessages, nil
+	return messageIds, nil
 }
 
-func getLikedMessagesQuery(q *request.Query) *gorm.DB {
+func (i *Interaction) ListLikedMessages(q *request.Query, groupChannelId int64) ([]ChannelMessage, error) {
+	ids, err := i.ListLikedMessageIds(q, groupChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewChannelMessage().FetchByIds(ids)
+}
+
+func getLikedMessagesQuery(q *request.Query, groupChannelId int64) *gorm.DB {
 	i := NewInteraction()
 
 	return bongo.B.DB.
 		Model(i).
 		Table(i.BongoName()).
+		Limit(q.Limit).
+		Offset(q.Skip).
 		Select("api.interaction.message_id").
 		Joins(
 		`left join api.channel_message on
 		 api.interaction.message_id = api.channel_message.id`).
 		Where(
 		`api.interaction.account_id = ? and
-		 api.channel_message.id = ? and
+		 api.channel_message.initial_channel_id = ? and
 		 api.channel_message.type_constant = ? and
-		 api.interaction.type_constant = ?`,
-		 i.AccountId,
-		 q.Id,
-		 q.Type,
-		 Interaction_TYPE_LIKE,
+		 api.interaction.type_constant = ? and
+		 api.channel_message.meta_bits <> ?`,
+		q.AccountId,
+		groupChannelId,
+		ChannelMessage_TYPE_POST,
+		q.Type,
+		Troll,
 	)
 }
 
