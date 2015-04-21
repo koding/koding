@@ -291,6 +291,7 @@ module.exports = CollaborationController =
     @socialChannel
       .on 'AddedToChannel', @bound 'participantAdded'
       .on 'ChannelDeleted', @bound 'stopCollaborationSession'
+      .on 'MessageAdded', @bound 'channelMessageAdded'
 
 
   participantAdded: (participant) ->
@@ -303,6 +304,15 @@ module.exports = CollaborationController =
       {nickname} = account.profile
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
+
+
+  channelMessageAdded: (message) ->
+
+    return  unless message.payload
+
+    if message.payload['system-message'] is 'start'
+      if @stateMachine.state is 'NotStarted'
+        @stateMachine.transition 'Loading'
 
 
   bindRealtimeEvents: ->
