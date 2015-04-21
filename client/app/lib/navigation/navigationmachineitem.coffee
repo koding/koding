@@ -8,6 +8,7 @@ KDProgressBarView = kd.ProgressBarView
 JView = require '../jview'
 Machine = require '../providers/machine'
 MachineSettingsPopup = require '../providers/machinesettingspopup'
+MachineSettingsModal = require '../providers/machinesettingsmodal'
 SidebarMachineSharePopup = require 'app/activity/sidebar/sidebarmachinesharepopup'
 
 
@@ -107,7 +108,7 @@ module.exports = class NavigationMachineItem extends JView
 
     kd.utils.stopDOMEvent event
 
-    new MachineSettingsPopup { position: @getPopupPosition() }, @machine
+    new MachineSettingsModal {}, @machine
 
 
   getPopupPosition: (extraTop = 0) ->
