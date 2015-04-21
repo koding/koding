@@ -49,6 +49,7 @@ module.exports = CollaborationController =
       return callback err  if err
 
       @setSocialChannel channel
+      @bindSocialChannelEvents()
       callback null, @socialChannel
 
 
@@ -672,7 +673,6 @@ module.exports = CollaborationController =
     @transitionViewsToActive()
     @collectButtonShownMetric()
     @bindRealtimeEvents()
-    @bindSocialChannelEvents()
 
     # this method comes from VideoCollaborationController.
     # It's mixed into IDEAppController after CollaborationController.
