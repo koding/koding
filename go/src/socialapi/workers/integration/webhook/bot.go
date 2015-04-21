@@ -15,7 +15,6 @@ type Message struct {
 	Body                 string // TODO check for XSS
 	ChannelId            int64
 	ChannelIntegrationId int64
-	Username             string
 }
 
 func NewBot() (*Bot, error) {

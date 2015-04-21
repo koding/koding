@@ -9,6 +9,9 @@ type PrepareRequest struct {
 	Data  *services.ServiceInput
 	Token string
 	Name  string
+	// Username is used for sending messages
+	// to given user's bot channel
+	Username string
 }
 
 func (p *PrepareRequest) validate() error {
