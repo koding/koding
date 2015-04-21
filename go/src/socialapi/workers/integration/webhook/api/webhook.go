@@ -1,9 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
+	"socialapi/models"
+	"socialapi/workers/common/handler"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/services"
@@ -96,7 +100,51 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, r *PrepareRequest) (in
 		return response.NewBadRequest(errs[0])
 	}
 
-	//message := service.PrepareMessage(r.Data)
+	message := service.PrepareMessage(r.Data)
 
-	return response.NewNotImplemented()
+	endPoint := service.PrepareEndpoint(r.Token)
+	pushRequest := make(map[string]string)
+	pushRequest["body"] = message
+
+	if r.Username != "" {
+		// fetch user bot channel
+		// pushRequest["channelId"] = x
+	}
+
+	if err := push(endPoint, pushRequest); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(nil)
+}
+
+// TODO need to mock the endpoint. up till that time, this push method is
+// defined like this
+var push = func(endPoint string, pushRequest map[string]string) error {
+
+	// relay the cookie to other endpoint
+	request := &handler.Request{
+		Type:     "POST",
+		Endpoint: endPoint,
+		Params:   pushRequest,
+	}
+
+	resp, err := handler.MakeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	// Need a better response
+	if resp.StatusCode != 200 {
+		return fmt.Errorf(resp.Status)
+	}
+
+	var cpr models.CheckParticipationResponse
+	err = json.NewDecoder(resp.Body).Decode(&cpr)
+	resp.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

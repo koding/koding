@@ -182,14 +182,17 @@ func TestWebhookPrepare(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(s, ShouldEqual, http.StatusNotFound)
 
+			push = func(endPoint string, request map[string]string) error {
+				return nil
+			}
 			s, _, _, err = h.Prepare(
 				mocking.URL(m, "POST", "/webhook/iterable/"+token),
 				mocking.Header(nil),
 				newPrepareRequest(&services.ServiceInput{}),
 			)
 			// TODO temporary assertion
-			So(s, ShouldEqual, http.StatusNotImplemented)
-			//So(err, ShouldBeNil)
+			So(err, ShouldBeNil)
+			So(s, ShouldEqual, http.StatusOK)
 		})
 	})
 }
