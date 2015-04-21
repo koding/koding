@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/now"
-	"github.com/koding/kodingemail"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
@@ -15,8 +14,6 @@ import (
 
 func init() {
 	modelhelper.Initialize("localhost:27017/koding_test")
-	Email = initializeEmail("", "", "")
-
 	Log.SetLevel(0)
 }
 
@@ -92,13 +89,6 @@ func deleteUserWithUsername(user *models.User) {
 
 func findUser(username string) (*models.User, error) {
 	return modelhelper.GetUser(username)
-}
-
-func resetEmailClient() *kodingemail.SenderTestClient {
-	senderTestClient := &kodingemail.SenderTestClient{}
-	Email.SetClient(senderTestClient)
-
-	return senderTestClient
 }
 
 func findUserByQuery(selector bson.M) (*models.User, error) {

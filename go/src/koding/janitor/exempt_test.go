@@ -35,7 +35,7 @@ func TestIsUserPaid(t *testing.T) {
 			})
 		}
 
-		err = modelhelper.Mongo.Run(modelhelper.AccountsCollection, query)
+		err = modelhelper.Mongo.Run(modelhelper.AccountsColl, query)
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns error if error fetching plan", func() {
@@ -147,7 +147,7 @@ func TestIsUserVMsEmpty(t *testing.T) {
 			noVms, err := IsUserVMsEmpty(user, warning)
 
 			So(err, ShouldBeNil)
-			So(noVms, ShouldBeTrue)
+			So(noVms, ShouldBeFalse)
 		})
 
 		Reset(func() {
