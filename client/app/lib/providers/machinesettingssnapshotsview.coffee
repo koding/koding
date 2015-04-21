@@ -22,19 +22,18 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     super options, data
 
 
-  helper =
-    ###*
-     * Fetch the list of snapshots from DB
-     *
-     * @param {Function(err:Error, snapshots:[JSnapshot]} callback
-    ###
-    fetchSnapshots: (callback=kd.noop) ->
+  ###*
+   * Fetch the list of snapshots from DB
+   *
+   * @param {Function(err:Error, snapshots:[JSnapshot]} callback
+  ###
+  @fetchSnapshots: (callback=kd.noop) ->
 
-      JSnapshot.some {}, {}, (err, snapshots) =>
-        if err?
-          return callback err
-        callback err, snapshots
-      return
+    JSnapshot.some {}, {}, (err, snapshots) =>
+      if err?
+        return callback err
+      callback err, snapshots
+    return
 
 
   ###*
@@ -110,7 +109,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###
   initList: ->
 
-    MachineSettingsSnapshotsView.helper.fetchSnapshots (err, snapshots=[]) =>
+    MachineSettingsSnapshotsView.fetchSnapshots (err, snapshots=[]) =>
       kd.warn "MachineSettingsSnapshotsView.initList
         Error:", err if err?
       @listController.lazyLoader.hide()
