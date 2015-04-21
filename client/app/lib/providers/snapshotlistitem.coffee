@@ -1,14 +1,17 @@
-kd                  = require 'kd'
-nicetime            = require '../util/nicetime'
 Encoder             = require 'htmlencode'
+
+kd                  = require 'kd'
 remote              = require('app/remote').getInstance()
 {JSnapshot}         = remote.api
+
+nicetime            = require '../util/nicetime'
 
 
 
 module.exports = class SnapshotListItem extends kd.ListItemView
 
   constructor: (options={}, data) ->
+
     options.cssClass = "snapshot #{options.cssClass}"
     super options, data
     @initViews()
@@ -76,11 +79,13 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     @addSubView @editView
     @addSubView @infoView
 
+
   ###*
    * Show the UI confirmation for snapshot delete, and delete the
    * snapshot if Yes is chosen.
   ###
   confirmDeleteSnapshot: ->
+
     modal = kd.ModalView.confirm
       title: "Delete snapshot?"
       ok:
@@ -96,26 +101,25 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
   ###*
    * Delete this snapshot, and destroy this View on success.
-   *
-   * @param {Function(err:Error)} callback
   ###
-  deleteSnapshot: (callback=kd.noop) ->
+  deleteSnapshot: ->
+
     computeController       = kd.getSingleton 'computeController'
     kloud                   = computeController.getKloud()
     {machineId, snapshotId} = @getData()
 
     kloud.deleteSnapshot {machineId, snapshotId}
       .then =>
-        callback null
         @getDelegate().emit 'DeleteSnapshot', @
         @destroy()
-      .catch callback
+      .catch (err) -> kd.warn err
     return
 
 
   # A standard way to communicate to the user.
   # TODO: Use the proper feedback UI (whatever that may be)
   notify: (msg="") ->
+
     new kd.NotificationView content: msg
     return
 
@@ -128,6 +132,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
    * the proper data
   ###
   renameSnapshot: ->
+
     label        = @editView.edit.getValue()
     data         = @getData()
     {snapshotId} = data
@@ -136,6 +141,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       @notify "Name length must be larger than zero"
       return
 
+    # Called once we have a jSnapshot to work with
     rename = (snapshot) => snapshot.rename label, (err) =>
       if err?
         kd.warn "SnapshotListItem.renameSnapshot:", err
@@ -168,6 +174,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
    * @param {Date|String} createdAt - The value to display createdAt
   ###
   setCreatedAt: (createdAt) ->
+
     createdAt = new Date(createdAt) if typeof createdAt is 'string'
     createdAtAgo = nicetime (createdAt - Date.now()) / 1000
     @infoView.createdAtView.updatePartial createdAtAgo
@@ -180,6 +187,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
    * @param {String} label - The label (name) to set.
   ###
   setLabel: (label) ->
+
     @infoView.labelView.updatePartial label
     @editView.edit.setValue label
     return
@@ -191,10 +199,16 @@ module.exports = class SnapshotListItem extends kd.ListItemView
    * @param {Number} storageSize
   ###
   setStorageSize: (storageSize) ->
+
     @infoView.storageSizeView.updatePartial "(#{storageSize}GB)"
     return
 
+
+  ###*
+   * Toggle (swap) the visibility of @infoView and @editView
+  ###
   toggleEditable: ->
+
     if @infoView.$().is ":visible"
       @infoView.hide()
       @editView.show()

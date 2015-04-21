@@ -1,16 +1,19 @@
-kd                        = require 'kd'
 Encoder                   = require 'htmlencode'
+
+kd                        = require 'kd'
 remote                    = require('app/remote').getInstance()
 {JSnapshot}               = remote.api
+
 MachineSettingsCommonView = require './machinesettingscommonview'
 SnapshotsListController   = require './snapshotslistcontroller'
-SnapshotListItem   = require './snapshotlistitem'
+SnapshotListItem          = require './snapshotlistitem'
 
 
 
 module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
 
   constructor:(options = {}, data) ->
+
     options.cssClass             = "snapshots #{options.cssClass}"
     options.headerTitle          = 'Snapshots'
     options.addButtonTitle       = 'ADD SNAPSHOT'
@@ -20,6 +23,21 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     super options, data
 
 
+  helper =
+    ###*
+     * Fetch the list of snapshots from DB
+     *
+     * @param {Function(err:Error, snapshots:[JSnapshot]} callback
+    ###
+    fetchSnapshots: (callback=kd.noop) ->
+
+      JSnapshot.some {}, {}, (err, snapshots) =>
+        if err?
+          return callback err
+        callback err, snapshots
+      return
+
+
   ###*
    * Create a new snapshot with the given name, from the given machineId
    *
@@ -27,16 +45,13 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * @param {Function(err:Error, snapshot:JSnapshot)} callback
   ###
   createSnapshot: (label, callback=kd.noop) ->
+
     computeController = kd.getSingleton 'computeController'
     machine           = @getData()
     machineId         = machine._id
     eventId           = "createSnapshot-#{machineId}"
     # Because kloud.createSnapshot does not return a snapshot object,
     # we need to request the newest snapshot (sorted by creation date)
-    #
-    # Why do we want it? Well, the caller of this method (likely a
-    # listItem) needs to populate itself with the data of this newly
-    # created snapshot. Mostly the snapshotId.
     #
     # TODO: Confirm that this is the proper way to achieve this
     # result.
@@ -61,25 +76,13 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
 
   ###*
-   * Fetch the list of snapshots from DB
-   *
-   * @param {Function(err:Error, snapshots:[JSnapshot]} callback
-  ###
-  fetchSnapshots: (callback=kd.noop) ->
-    JSnapshot.some {}, {}, (err, snapshots) =>
-      if err?
-        return callback err
-      callback err, snapshots
-    return
-
-
-  ###*
    * Called when the Add New button is clicked (the one to actually
    * confirm the submission, not show the new snapshot input form)
   ###
   # TODO: Test the in progress stuff (show a ui if the user tries to press
   # again, etc
   handleAddNew: ->
+
     machineId = @getData()._id
     label = @addInputView.getValue()
     if not label? or label is ""
@@ -89,10 +92,10 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     # Explicitly showing the loader because the hitEnterTextView does
     # not trigger the button loader when entered.
     @addNewButton.showLoader()
-    @isInProgress = true
+    @isInProgress = yes
     @createSnapshot label, (err, snapshot) =>
       @hideAddView()
-      @isInProgress = false
+      @isInProgress = no
       @addInputView.setValue ''
       @addNewButton.hideLoader()
       if err?
@@ -107,7 +110,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * Populate the listController with snapshots fetched from jSnapshot.
   ###
   initList: ->
-    @fetchSnapshots (err, snapshots=[]) =>
+
+    MachineSettingsSnapshotsView.helper.fetchSnapshots (err, snapshots=[]) =>
       kd.warn "MachineSettingsSnapshotsView.initList
         Error:", err if err?
       @listController.lazyLoader.hide()
@@ -117,6 +121,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   # A standard way to communicate to the user.
   # TODO: Use the proper feedback UI (whatever that may be)
   notify: (msg="") ->
+
     new kd.NotificationView content: msg
     return
+
 
