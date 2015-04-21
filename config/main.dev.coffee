@@ -914,7 +914,7 @@ Configuration = (options={}) ->
 
         if [[ $MAJOR -lt 1 ]]; then
             MISMATCH=1
-        elif [[ $MAJOR -eq 1 && $MINOR -lt 5 ]]; then
+        elif [[ $MAJOR -eq 1 && $MINOR -lt 4 ]]; then
             MISMATCH=1
         fi
 
