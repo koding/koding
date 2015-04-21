@@ -63,7 +63,7 @@ module.exports = class MoreParticipantsButton extends kd.ButtonViewWithMenu
       ghost    : @$('.chevron').clone()
       event    : event
       delegate : this
-    , createMoreListFromAccounts moreListTitle, participantList
+    , @createMoreListFromAccounts moreListTitle, participantList
 
     @buttonMenu.on "ContextMenuItemReceivedClick", => @buttonMenu.destroy()
 
@@ -87,50 +87,57 @@ module.exports = class MoreParticipantsButton extends kd.ButtonViewWithMenu
 
     return @domElement
 
+  ###*
+   * Create an object to be used as context menu items map from given accounts.
+   *
+   * @param {string} title
+   * @param {Immutable.OrderedMap<string, JAccount>} accounts
+   * @return {object} items
+  ###
+  createMoreListFromAccounts: (title, accounts) ->
+
+    titleItem =
+      type      : 'customView'
+      cssClass  : 'moreList-titleItem'
+      view      : k 'div', 'moreList-title', title
+      separator : yes
+
+    createAvatar = (acc) ->
+      k 'div', 'moreList-singleItemAvatar', [
+        new AvatarView { size: { width: 25, height: 25 } }, acc
+      ]
+    createName = (acc) ->
+      k 'div', 'moreList-singleItemText', [
+        new ProfileTextView {}, acc
+      ]
+
+    initialItems = { Title: titleItem }
+
+    # we are iterating over accounts object using reduce method basically
+    # because we want to convert an array into a js object with specific keys.
+    # it uses `initialItems` as starting point and then adds all the menu
+    # items how context menu want them.
+    items = accounts.toJS().reduce (transformedAccounts, account) =>
+      # create initial context menu items here.
+      transformedAccounts[account.profile.nickname] =
+        type : 'customView'
+        view : k 'div', 'moreList-singleItem', [
+          createAvatar account
+          createName account
+        ]
+        callback : => @emit 'ParticipantSelected', account
+      return transformedAccounts
+    , initialItems
+
+    return items
+
+
 ###*
  * Helper function to get button element of given view.
  *
  * @param {KDButtonWithMenu} view
 ###
 getButtonElement = (view) -> view.getElement().querySelector 'button'
-
-
-###*
- * Create an object to be used as context menu items map from given accounts.
- *
- * @param {Immutable.OrderedMap<string, JAccount>} accounts
- * @return {object} list
-###
-createMoreListFromAccounts = (title, accounts) ->
-
-  titleItem =
-    type      : 'customView'
-    cssClass  : 'moreList-titleItem'
-    view      : k 'div', 'moreList-title', title
-    separator : yes
-
-  createAvatar = (acc) ->
-    k 'div', 'moreList-singleItemAvatar', [
-      new AvatarView { size: { width: 25, height: 25 } }, acc
-    ]
-  createName = (acc) ->
-    k 'div', 'moreList-singleItemText', [
-      new ProfileTextView {}, acc
-    ]
-
-  initialItems = { Title: titleItem }
-
-  items = accounts.toJS().reduce (transformedAccounts, account) ->
-    transformedAccounts[account.profile.nickname] =
-      type : 'customView'
-      view : k 'div', 'moreList-singleItem', [
-        createAvatar account
-        createName account
-      ]
-    return transformedAccounts
-  , initialItems
-
-  return items
 
 
 ###*
