@@ -8,6 +8,8 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+
+	"github.com/koding/bongo"
 )
 
 func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interaction, error) {
@@ -84,4 +86,38 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	return response.HandleResultAndError(
 		models.FetchAccountOldsIdByIdsFromCache(list),
 	)
+}
+
+func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+
+	// get query
+	query := request.GetQuery(u)
+	if query.Type == "" {
+		query.Type = models.Interaction_TYPE_LIKE
+	}
+
+	// find the group channel id
+	ch := models.NewChannel()
+	selector := map[string]interface{}{
+		"group_name":    c.GroupName,
+		"type_constant": models.Channel_TYPE_GROUP,
+	}
+
+	if err := ch.One(bongo.NewQS(selector)); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// fetch liked messages of the account in this chanenl
+	i := models.NewInteraction()
+	messages, err := i.ListLikedMessages(query, ch.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// populate messages as channel containers, they will have many other data, like count etc
+	rs := models.NewChannelMessageContainers()
+	// start populating
+	rs.PopulateWith(messages, query)
+
+	return response.HandleResultAndError(rs, rs.Err())
 }
