@@ -107,6 +107,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       whoami().on 'NewWorkspaceCreated', @bound 'updateMachines'
 
 
+    @localStorageController = kd.singletons.localStorageController.storage 'Sidebar'
+
+
   # event handling
 
   messageAddedToChannel: (update) ->
@@ -530,18 +533,33 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @selectWorkspace { machine, workspace }  if machine and workspace
 
 
+  addBoxes: (machineList, data) ->
+
+    machineList.addMachineBoxes data
+    machineList.on 'ListStateChanged', @bound 'saveSidebarStateToLocalStorage'
+
+
   addMachines_: (data, expandedBoxUIds = {}) ->
 
     { shared, collaboration } = data
     sharedData = shared.concat collaboration
 
-    @ownMachinesList.addMachineBoxes data.own
-    @sharedMachinesList.addMachineBoxes sharedData
+    @addBoxes @ownMachinesList, data.own
+    @addBoxes @sharedMachinesList, sharedData
+
+    if Object.keys(expandedBoxUIds).length is 0
+      expandedBoxUIds = @localStorageController.getValue('SidebarState') or {}
 
     @expandWorkspaceLists expandedBoxUIds
+    @saveSidebarStateToLocalStorage()
 
     @isMachinesListed = yes
     @emit 'MachinesListed'
+
+
+  saveSidebarStateToLocalStorage: ->
+
+    @localStorageController.setValue 'SidebarState', @getExpandedBoxUIds()
 
 
   createMachineList: (type, options = {}, data = []) ->
