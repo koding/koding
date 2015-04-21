@@ -32,7 +32,10 @@ module.exports = class IDEChatParticipantHeads extends ParticipantHeads
         if nickname in talkingParticipants
           cssClasses.push 'is-talkingParticipant'
 
-      options = { cssClass: cssClasses.join(' '), size: { width: 25, height: 25 } }
+      options =
+        cssClass : cssClasses.join ' '
+        size     : { width: 25, height: 25 }
+
       avatar = new IDEChatMessageParticipantAvatar options, participant
       @forwardEvent avatar, 'ParticipantSelected'
 
