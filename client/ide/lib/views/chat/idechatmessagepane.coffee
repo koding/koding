@@ -88,7 +88,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     participant = account?.profile.nickname or null
 
-    @participantsModel.setVideoSelectedParticipant participant
+    @participantsModel.setVideoSelectedParticipant participant, isOnline
 
 
   setAvatarTalkingState: (nickname, state) ->
