@@ -90,8 +90,9 @@ module.exports = class ChannelParticipantsModel extends kd.Object
   ###
   add: (origin, emitEvent = yes) ->
 
-    fetchAccounts [origin], (err, [account]) =>
+    fetchAccounts [origin], (err, accounts) =>
       return console.error err  if err
+      [account] = accounts
       @setParticipant account
       @emitChange()  if emitEvent
 
