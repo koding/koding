@@ -84,15 +84,15 @@ module.exports = VideoCollaborationController =
     @emitToViews 'VideoParticipantDidLeave', participant
 
 
-  handleVideoSelectedParticipantChanged: (nickname) ->
+  handleVideoSelectedParticipantChanged: (nickname, isOnline) ->
 
     unless nickname
-      @emitToViews 'VideoSelectedParticipantDidChange', null, null
+      @emitToViews 'VideoSelectedParticipantDidChange', null, null, isOnline
       return
 
     socialHelpers.fetchAccount nickname, (err, account) =>
       return console.error err  if err
-      @emitToViews 'VideoSelectedParticipantDidChange', nickname, account
+      @emitToViews 'VideoSelectedParticipantDidChange', nickname, account, isOnline
 
 
   handleVideoActiveParticipantChanged: (nickname) ->

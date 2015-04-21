@@ -84,7 +84,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @participantsModel.addVideoActiveParticipant account.profile.nickname
 
 
-  setSelectedParticipantAvatar: (account) ->
+  setSelectedParticipantAvatar: (account, isOnline) ->
 
     participant = account?.profile.nickname or null
 

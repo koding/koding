@@ -64,9 +64,9 @@ module.exports = class IDEChatView extends KDTabView
     @chatPane.setActiveParticipantAvatar account
 
 
-  handleVideoSelectedParticipantChanged: (nickname, account) ->
+  handleVideoSelectedParticipantChanged: (nickname, account, isOnline) ->
 
-    @chatPane.setSelectedParticipantAvatar account
+    @chatPane.setSelectedParticipantAvatar account, isOnline
 
 
   handleVideoParticipantTalkingStateChanged: (nickname, state) ->
