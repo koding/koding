@@ -7,18 +7,19 @@
 website=website/a/p/p
 rollbar_token=9726e570e4694e09b3702df3a7a1acbc
 version=`cat VERSION`
+folderpath=$website/$version
 
-if [ ! -d $website ]; then
-  echo "$website dir doesn't exists"
+if [ ! -d $folderpath ]; then
+  echo "$folderpath dir doesn't exists"
 fi
 
-cd $website
+cd $folderpath
 for file in $(ls -l | grep ".js$" | awk '{print $9}')
 do
   curl https://api.rollbar.com/api/1/sourcemap \
     -F access_token=$rollbar_token\
     -F version=1 \
-    -F minified_url=https://koding.com/a/p/p/$file \
+    -F minified_url=https://koding.com/a/p/p/$version/$file \
     -F source_map=@$file.map
 done
 
