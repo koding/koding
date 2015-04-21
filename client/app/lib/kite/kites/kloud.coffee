@@ -33,18 +33,20 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       @tell rpcMethod, payload
 
   @createApiMapping
-    stop         : 'stop'
-    start        : 'start'
-    build        : 'build'
-    event        : 'event'
-    reinit       : 'reinit'
-    resize       : 'resize'
-    restart      : 'restart'
-    destroy      : 'destroy'
-    setDomain    : 'domain.set'
-    addDomain    : 'domain.add'
-    unsetDomain  : 'domain.unset'
-    removeDomain : 'domain.remove'
+    stop           : 'stop'
+    start          : 'start'
+    build          : 'build'
+    event          : 'event'
+    reinit         : 'reinit'
+    resize         : 'resize'
+    restart        : 'restart'
+    destroy        : 'destroy'
+    setDomain      : 'domain.set'
+    addDomain      : 'domain.add'
+    unsetDomain    : 'domain.unset'
+    removeDomain   : 'domain.remove'
+    createSnapshot : 'createSnapshot'
+    deleteSnapshot : 'deleteSnapshot'
 
 
   constructor: (options) ->

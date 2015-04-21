@@ -10,6 +10,11 @@ import (
 	"golang.org/x/net/context"
 )
 
+var (
+	// This is an AWS Server which serves a basic HTML page
+	DefaultFallbackIP = "54.173.20.34"
+)
+
 func (m *Machine) Stop(ctx context.Context) (err error) {
 	if err := m.UpdateState("Machine is stopping", machinestate.Stopping); err != nil {
 		return err
@@ -37,9 +42,9 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 		return err
 	}
 
-	m.push("Deleting domain", 85, machinestate.Stopping)
-	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
-		m.Log.Warning("couldn't delete domain %s", err)
+	m.push("Changing domain to sleeping mode", 85, machinestate.Stopping)
+	if err := m.Session.DNSClient.Upsert(m.Domain, DefaultFallbackIP); err != nil {
+		m.Log.Warning("couldn't upsert domain %s", err)
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
@@ -49,8 +54,8 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 	}
 
 	for _, domain := range domains {
-		if err := m.Session.DNSClient.Delete(domain.Name); err != nil {
-			m.Log.Error("couldn't delete domain: %s", err.Error())
+		if err := m.Session.DNSClient.Upsert(domain.Name, DefaultFallbackIP); err != nil {
+			m.Log.Warning("couldn't upsert domain %s", err)
 		}
 	}
 

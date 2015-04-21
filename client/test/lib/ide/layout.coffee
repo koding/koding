@@ -1,48 +1,34 @@
-helpers = require '../helpers/helpers.js'
-assert  = require 'assert'
-
-
-split = (browser, selector) ->
-
-  helpers.beginTest(browser)
-  helpers.waitForVMRunning(browser)
-
-  browser
-    .waitForElementVisible '.panel-1', 20000
-    .elements 'css selector', '.panel-1', (result) =>
-      assert.equal result.value.length, 2
-
-      browser
-        .waitForElementVisible   '.application-tab-handle-holder', 20000
-        .click                   '.application-tab-handle-holder .plus'
-        .waitForElementVisible   '.context-list-wrapper', 20000
-        .click                   '.context-list-wrapper ' + selector
-        .pause                   2000
-
-      .elements 'css selector', '.panel-1', (result) =>
-        assert.equal result.value.length, 3
-      .end()
-
+helpers       = require '../helpers/helpers.js'
+assert        = require 'assert'
+layoutHelpers = require '../helpers/layouthelpers.js'
 
 module.exports =
 
 
   splitPanesVertically: (browser) ->
 
-    split(browser, 'li.split-horizontally')
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    layoutHelpers.split(browser, 'li.split-vertically')
+    browser.end()
 
 
   splitPanesHorizontally: (browser) ->
 
-    split(browser, 'li.split-horizontally')
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    layoutHelpers.split(browser, 'li.split-horizontally')
+    browser.end()
 
 
-  splitPanesUndo: (browser) ->
+  undoSplitPanes: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    helpers.splitPanesUndo(browser)
+    layoutHelpers.undoSplit(browser)
     browser.end()
 
 
@@ -50,25 +36,26 @@ module.exports =
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    helpers.splitPanesUndo(browser)
+
+    layoutHelpers.undoSplit(browser)
 
     browser
-      .waitForElementVisible     '.application-tab-handle-holder', 20000
-      .click                     '.application-tab-handle-holder .plus'
+      .waitForElementVisible     '.panel-1 .application-tab-handle-holder', 20000
+      .click                     '.panel-1 .application-tab-handle-holder .plus'
       .waitForElementNotPresent  '.context-list-wrapper li.undo-split', 20000 # Assertion
       .end()
 
 
   openDrawingBoard: (browser) ->
 
+    return browser.end()
+
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
+    layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
+
     browser
-      .waitForElementVisible   '.application-tab-handle-holder', 20000
-      .click                   '.application-tab-handle-holder .plus'
-      .waitForElementVisible   '.context-list-wrapper', 20000
-      .click                   '.context-list-wrapper li.new-drawing-board'
-      .pause                   2000
+      .pause 4000
       .waitForElementVisible   '.drawing-pane .drawing-board-toolbar', 20000 # Assertion
       .end()
