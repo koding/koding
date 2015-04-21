@@ -41,7 +41,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
     index = @state.videoParticipants.indexOf nickname
 
     if index is -1
-      @state.videoParticipants.push nickname  if index is -1
+      @state.videoParticipants.push nickname
       @emitChange()  if emitEvent
 
 
@@ -68,7 +68,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
     index = @state.talkingParticipants.indexOf nickname
 
     if index is -1
-      @state.talkingParticipants.push nickname  if index is -1
+      @state.talkingParticipants.push nickname
       @emitChange()
 
 
@@ -86,7 +86,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
     index = @state.videoParticipants.indexOf nickname
 
     if index is -1
-      @state.videoParticipants.push nickname  if index is -1
+      @state.videoParticipants.push nickname
       @emitChange()
 
 
