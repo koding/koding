@@ -64,17 +64,15 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     @infoView.addSubView wrapper = new kd.CustomHTMLView
       cssClass: 'buttons'
 
-    wrapper.addSubView @infoView.renameSnapshotBtn = new kd.View
-      partial  : 'rename'
-      tagName  : 'span'
+    wrapper.addSubView @infoView.renameSnapshotBtn = new kd.ButtonView
+      iconOnly : true
       cssClass : 'rename'
-      click    : @bound 'toggleEditable'
+      callback : @bound 'toggleEditable'
 
-    wrapper.addSubView @infoView.deleteSnapshotBtn = new kd.View
-      partial  : 'delete'
-      tagName  : 'span'
+    wrapper.addSubView @infoView.deleteSnapshotBtn = new kd.ButtonView
+      iconOnly : true
       cssClass : 'delete'
-      click    : @bound "confirmDeleteSnapshot"
+      callback : @bound "confirmDeleteSnapshot"
 
     @addSubView @editView
     @addSubView @infoView
