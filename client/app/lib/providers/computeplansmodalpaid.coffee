@@ -8,6 +8,8 @@ ComputePlansModal = require './computeplansmodal'
 CustomLinkView = require '../customlinkview'
 CustomPlanStorageSlider = require './customplanstorageslider'
 trackEvent = require 'app/util/trackEvent'
+remote = require('../remote').getInstance()
+{JSnapshot} = remote.api
 
 
 module.exports = class ComputePlansModalPaid extends ComputePlansModal
@@ -56,6 +58,17 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     regionContainer.addSubView @regionTextView = new KDView
 
+    content.addSubView @snapshotsContainer = new KDView
+      cssClass : "snapshots-container hidden"
+
+    @snapshotsContainer.addSubView new KDView
+      cssClass : "container-title"
+      partial  : "build from snapshot"
+
+    @snapshotsContainer.addSubView @snapshotsSelector = new KDSelectBox
+      name          : "snapshots"
+      selectOptions : [ title: "None", value: null ]
+
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
 
@@ -96,7 +109,34 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     @updateRegionText()
     @regionSelector.on "change", @bound 'updateRegionText'
 
+    @populateSnapshotsSelector()
+
     @setPositions()
+
+
+  ###*
+   * Fetch the jSnapshots and populate the snapshotsSelector with any
+   * snapshots the user has. If none are available, the selector is
+   * hidden if needed.
+  ###
+  populateSnapshotsSelector: ->
+    JSnapshot.some {}, {}, (err, snapshots) =>
+      if err?
+        kd.warn "ComputePlansModalPaid.populateSnapshotsSelector:", err
+        return
+      # If no snapshots were returned, the user has no snapshots, and
+      # no action is needed
+      if not snapshots? or snapshots.length is 0 then return
+      formatted = []
+      for snapshot in snapshots
+        formatted.push
+          title: "#{snapshot.label} (#{snapshot.storageSize}GB)"
+          value: snapshot.snapshotId
+
+      @snapshotsSelector.setSelectOptions formatted
+      @snapshotsSelector.setValue null # Default to None
+      @snapshotsContainer.show()
+    return
 
 
   updateRegionText: ->
@@ -127,9 +167,10 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     stack = computeController.stacks.first._id
     storage = @storageSlider.handles.first.value
     region = @regionSelector.getValue()
+    snapshotId = @snapshotsSelector.getValue()
 
     computeController.create {
-      provider : "koding", stack, storage, region
+      provider : "koding", stack, storage, region, snapshotId
     }, (err, machine)=>
 
       return  if showError err
