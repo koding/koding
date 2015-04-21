@@ -13,6 +13,10 @@ module.exports = class OnboardingItemView extends KDView
 
   ESC_KEY = 27
 
+  ###*
+   * A view that renders onboarding tooltip and highlights target element
+   * for onboarding item
+  ###
   constructor: (options = {}, data) ->
 
     super options, data
@@ -26,6 +30,13 @@ module.exports = class OnboardingItemView extends KDView
     @hasPrev             = index isnt 0
 
 
+  ###*
+   * Tries to find a target element in DOM
+   * If it's found, renders onboarding tooltip for it
+   * Otherwise, emits an event to let know that onboarding item can't be shown
+   *
+   * @emits OnboardingFailed
+  ###
   render: ->
 
     { path } = @getData()
@@ -44,6 +55,10 @@ module.exports = class OnboardingItemView extends KDView
       @emit 'OnboardingFailed'
 
 
+  ###*
+   * Renders onboarding tooltip with OnboardingContextMenu
+   * and highlights a target element with KDSpotlightView
+  ###
   createContextMenu: ->
 
     @overlay       = new KDSpotlightView
@@ -70,6 +85,11 @@ module.exports = class OnboardingItemView extends KDView
       @cancel()  if event.which is ESC_KEY
 
 
+  ###*
+   * Creates subviews for the content of onboarding tooltip
+   *
+   * @return {KDCustomHTMLView} - onboarding item's content view
+  ###
   createContentView: ->
 
     {title, content} = @getData()
@@ -117,6 +137,13 @@ module.exports = class OnboardingItemView extends KDView
     return view
 
 
+  ###*
+   * Searches for a target element by path
+   * If the element is in DOM, tries to find a kd instance for it
+   *
+   * @param {string} path - path to element
+   * @return {KDView} - kd view for the path if it exists
+  ###
   getViewByPath: (path) ->
 
     path = htmlencode.htmlDecode path
@@ -129,6 +156,14 @@ module.exports = class OnboardingItemView extends KDView
         return kdinstance
 
 
+  ###*
+   * It is executed when user clicks on Prev or Next button
+   * It tracks onboarding item completion and emits event
+   * to let know that prev/next onboarding item is requested
+   *
+   * @param {string} direction - direction of the onboarding navigation. Possible values are 'prev' and 'next'
+   * @emits NavigationRequested
+  ###
   requestNavigation: (direction) ->
 
     @destroy()
@@ -136,6 +171,13 @@ module.exports = class OnboardingItemView extends KDView
     @emit 'NavigationRequested', direction
 
 
+  ###*
+   * It is executed when user clicks on Done button
+   * It tracks onboarding item completion and emits event
+   * to let know that onboarding is finished
+   *
+   * @emits OnboardingCompleted
+  ###
   complete: ->
 
     @destroy()
@@ -143,6 +185,13 @@ module.exports = class OnboardingItemView extends KDView
     @emit 'OnboardingCompleted'
 
 
+  ###*
+   * It is executed when user closes onboarding tooltip
+   * It tracks onboarding item cancellation and emits event
+   * to let know that onboarding is cancelled
+   *
+   * @emits OnboardingCancelled
+  ###
   cancel: ->
 
     @destroy()
@@ -150,9 +199,18 @@ module.exports = class OnboardingItemView extends KDView
     @emit 'OnboardingCancelled'
 
 
+  ###*
+   * Returns time spent from the moment when onboarding item was started
+   * till the current time
+   *
+   * @return {number} - number of milliseconds
+  ###
   getTrackedTime: -> new Date() - @startTrackDate
 
 
+  ###*
+   * Destroys the tooltip and all its subviews
+  ###
   destroy: ->
 
     super
