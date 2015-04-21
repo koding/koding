@@ -65,11 +65,8 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   addVideoParticipant: (nickname, emitEvent = yes) ->
 
-    index = @state.videoParticipants.indexOf nickname
-
-    if index is -1
-      @state.videoParticipants.push nickname
-      @emitChange()  if emitEvent
+    pushToCollection @state.videoParticipants, nickname, =>
+      @emitEvent()  if emitEvent
 
 
   ###*
@@ -80,11 +77,8 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   removeVideoParticipant: (nickname, emitEvent = yes) ->
 
-    index = @state.videoParticipants.indexOf nickname
-
-    unless index is -1
-      @state.videoParticipants.splice index, 1
-      @emitChange()  if emitEvent
+    removeFromCollection @state.videoParticipants, nickname, =>
+      @emitEvent()  if emitEvent
 
 
   ###*
@@ -110,10 +104,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   addTalkingParticipant: (nickname) ->
 
-    index = @state.talkingParticipants.indexOf nickname
-
-    if index is -1
-      @state.talkingParticipants.push nickname
+    pushToCollection @state.talkingParticipants, nickname, =>
       @emitChange()
 
 
@@ -124,10 +115,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   removeTalkingParticipant: (nickname) ->
 
-    index = @state.talkingParticipants.indexOf nickname
-
-    unless index is -1
-      @state.talkingParticipants.splice index, 1
+    removeFromCollection @state.talkingParticipants, nickname, =>
       @emitChange()
 
 
@@ -138,10 +126,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   addVideoActiveParticipant: (nickname) ->
 
-    index = @state.videoParticipants.indexOf nickname
-
-    if index is -1
-      @state.videoParticipants.push nickname
+    pushToCollection @state.videoParticipants, nickname, =>
       @emitChange()
 
 
@@ -152,10 +137,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   removeVideoActiveParticipant: (nickname) ->
 
-    index = @state.videoParticipants.indexOf nickname
-
-    unless index is -1
-      @state.videoParticipants.splice index, 1
+    removeFromCollection @state.videoParticipants, nickname, =>
       @emitChange()
 
 
@@ -185,5 +167,45 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
 
     # basically we batched the change event updates.
     @emitChange()
+
+
+###*
+ * Pushes to collection with an existential check first.
+ * If item is not there already it will push it and will call the callback. If
+ * item is already there, this is basically a noop. It won't call the callback
+ * and so on. If this is really weird, we can change the accepted callback into
+ * a callback that accepts an `err` object (just like the other ones) to make
+ * it more familiar.
+ *
+ * @param {array} collection
+ * @param {(string|number)} item
+ * @param {function} callback
+###
+pushToCollection = (collection, item, callback) ->
+
+  # if item is not in collection
+  if collection.indexOf(item) is -1
+    collection.push item
+    callback?()
+
+
+###*
+ * Removes from collection with an existential check first.
+ * If item is there already it remove it and will call the callback. If
+ * item is not already there, this is basically a noop. It won't call the callback
+ * and so on. If this is really weird, we can change the accepted callback into
+ * a callback that accepts an `err` object (just like the other ones) to make
+ * it more familiar.
+ *
+ * @param {array} collection
+ * @param {(string|number)} item
+ * @param {function} callback
+###
+removeFromCollection = (collection, item, callback) ->
+
+  # if item is in collection
+  unless index = collection.indexOf(item) is -1
+    collection.splice index, 1
+    callback?()
 
 
