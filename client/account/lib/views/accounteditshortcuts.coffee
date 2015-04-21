@@ -17,11 +17,6 @@ module.exports =
 
 class AccountEditShortcuts extends kd.View
 
-  INSTRUCTIONS_CSS_CLASS = 'instructions'
-  INSTRUCTIONS_PARTIAL = 'To change a shortcut, click on it, then type the new keys.'
-  RESTORE_BUTTON_TITLE = 'Restore Defaults'
-  RESTORE_BUTTON_CLASS_NAME = 'solid light-gray medium restore'
-
   destroy: ->
 
     @parent.parent.off 'KDTabPaneInactive', @bound 'destroy'
@@ -49,8 +44,8 @@ class AccountEditShortcuts extends kd.View
         collection : collection
 
     @addSubView new kd.View
-      cssClass : INSTRUCTIONS_CSS_CLASS
-      partial  : INSTRUCTIONS_PARTIAL
+      cssClass : 'instructions'
+      partial  : 'To change a shortcut, click on it, then type the new keys.'
 
     @addSubView @tabView = new kd.TabView
       tabClass             : Pane
@@ -61,8 +56,8 @@ class AccountEditShortcuts extends kd.View
     @tabView.on 'PaneDidShow', recorder.cancel
 
     @addSubView new kd.ButtonView
-      title    : RESTORE_BUTTON_TITLE
-      style    : RESTORE_BUTTON_CLASS_NAME
+      title    : 'Restore Defaults'
+      style    : 'solid light-gray medium restore'
       callback : restoreDefaults
 
     @tabView.showPaneByIndex 0
