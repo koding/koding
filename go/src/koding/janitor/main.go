@@ -6,9 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
+	"socialapi/config"
 	"time"
 
 	kiteConfig "github.com/koding/kite/config"
@@ -16,7 +14,6 @@ import (
 	"github.com/robfig/cron"
 
 	"github.com/koding/kite"
-	"github.com/koding/multiconfig"
 )
 
 var (
@@ -47,17 +44,18 @@ type Janitor struct {
 }
 
 func main() {
-	conf := initializeConf()
-	port := conf.Port
+	r := initializeRunner()
+	go r.Listen()
 
-	modelhelper.Initialize(conf.Mongo)
+	port := r.Conf.Janitor.Port
 
 	// initialize client to talk to kloud
 	var err error
 
-	KiteClient, err = initializeKiteClient(conf.KloudSecretKey, conf.KloudAddr)
+	kConf := r.Conf.Kloud
+	KiteClient, err = initializeKiteClient(kConf.SecretKey, kConf.Address)
 	if err != nil {
-		Log.Fatal(err.Error())
+		Log.Fatal("Error initializing kite: %s", err.Error())
 	}
 
 	c := cron.New()
@@ -80,52 +78,35 @@ func main() {
 
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		Log.Fatal(err.Error())
+		Log.Fatal("Error opening tcp connection: %s", err.Error())
 	}
 
-	go func() {
-		signals := make(chan os.Signal, 1)
-		signal.Notify(signals)
-
-		for {
-			signal := <-signals
-			switch signal {
-			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
-				modelhelper.Close()
-				listener.Close()
-
-				if KiteClient != nil {
-					KiteClient.Close()
-				}
-
-				os.Exit(0)
-			}
-		}
+	defer func() {
+		r.Close()
+		modelhelper.Close()
+		KiteClient.Close()
+		listener.Close()
 	}()
 
 	err = http.Serve(listener, mux)
 	if err != nil {
-		Log.Fatal(err.Error())
+		Log.Fatal("Error starting http server: %s", err.Error())
 	}
 }
 
-func initializeConf() *Janitor {
-	var conf = new(Janitor)
-
-	d := &multiconfig.DefaultLoader{
-		Loader: multiconfig.MultiLoader(
-			&multiconfig.EnvironmentLoader{Prefix: "KONFIG_JANITOR"},
-		),
+func initializeRunner() *runner.Runner {
+	r := runner.New(WorkerName)
+	if err := r.Init(); err != nil {
+		Log.Fatal("Error starting runner: %s", err.Error())
 	}
 
-	d.MustLoad(conf)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
-	return conf
+	return r
 }
 
 func initializeKiteClient(kloudKey, kloudAddr string) (*kite.Client, error) {
-	var err error
-
 	// create new kite
 	k := kite.New(WorkerName, WorkerVersion)
 	config, err := kiteConfig.Get()

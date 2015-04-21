@@ -18,6 +18,12 @@ type (
 		// Redis holds connection string for redis
 		Redis Redis
 
+		// Kloud holds connection string for kloud worker
+		Kloud Kloud
+
+		// Janitors holds options for Janitor worker
+		Janitor Janitor
+
 		// Environment holds the environment of the the running application
 		Environment string
 
@@ -61,6 +67,15 @@ type (
 	Redis struct {
 		URL string
 		DB  int
+	}
+
+	Kloud struct {
+		SecretKey string
+		Address   string
+	}
+
+	Janitor struct {
+		Port string
 	}
 )
 
