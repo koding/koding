@@ -2,51 +2,8 @@ kd = require 'kd'
 _  = require 'lodash'
 facade = require('./accounteditshortcutsfacade')
 EventType = require './accounteditshortcutseventtype'
-globals = require 'globals'
 recorder = require 'record-shortcuts'
-
-# On Mac we display corresponding unicode chars for the following keys.
-# See: http://macbiblioblog.blogspot.nl/2005/05/special-key-symbols.html
-#
-MAC_UNICODE =
-  shift       : '&#x21E7;'
-  command     : '&#x2318;'
-  alt         : '&#x2325;'
-  ctrl        : '&#x2303'
-  tab         : '&#x21e5'
-  'caps lock' : '&#x21ea'
-  space       : '&#x2423'
-  enter       : '&#x23ce'
-  backspace   : '&#x232b'
-  home        : '&#x21f1'
-  end         : '&#x21f2'
-  'page up'   : '&#x21de'
-  'page down' : '&#x21df'
-  left        : '&#x2190'
-  up          : '&#x2191'
-  right       : '&#x2192'
-  down        : '&#x2193'
-  esc         : '&#x238b'
-  'num lock'  : '&#x21ed'
-
-# Determines the text conversion method to use when displaying bindings.
-convertCase = _.capitalize
-
-# Generates a compiled template function for rendering bindings.
-renderBinding =
-  _.template '<% _.forEach(keys, function (key) { %><span><%= key %></span><% }) %>'
-
-# Returns a html string presentation for the given binding array or string.
-#
-presentBinding = (keys) ->
-
-  if _.isString keys then keys = keys.split '+'
-
-  renderBinding keys:
-    if globals.os isnt 'mac'
-    then _.map keys, (value) -> convertCase value
-    else _.map keys, (value) -> MAC_UNICODE[value] or convertCase value
-
+{ presentBinding } = require 'app/shortcutscontroller'
 
 module.exports =
 
