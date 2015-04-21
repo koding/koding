@@ -168,12 +168,11 @@ module.exports = class ChannelParticipantsModel extends kd.Object
   ###
   getLists: ->
 
-    all = @computeAllParticipants @participants
+    all     = @computeAllParticipants @participants
+    preview = @computePreviewParticipants all
+    hidden  = @computeHiddenParticipants all
 
-    lists =
-      preview : @computePreviewParticipants all
-      hidden  : @computeHiddenParticipants all
-      all     : all
+    return { all, preview, hidden }
 
 
   ###*
