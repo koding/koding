@@ -30,7 +30,7 @@ pmLinkColor   = #B6B6B6
   .custom-link-view.close
     abs                     15px 19px 0 0
     size                    20px 20px
-    z-index                 1
+    z-index                 10
     .icon
       margin                6px
       r-sprite              ide 'chat-close'
@@ -190,22 +190,31 @@ pmLinkColor   = #B6B6B6
       margin-top            0px
       vendor                transition, margin-top .177s ease
 
-      .heads .avatarview.is-selectedParticipant img
+      .ParticipantHeads .avatarview.is-selectedParticipant img
         border-color        legendary
 
-      .heads .avatarview.is-talkingParticipant:after
+      .ParticipantHeads .avatarview.is-talkingParticipant:after
         vendor              animation, radiate 1s ease infinite
         opacity             1
 
-      .kdbutton.new-participant
+      .ParticipantHeads-actionsContainer
+        position            absolute
+        bottom              -50px
+        right               15px
+        z-index             10
+        vendor              transition, bottom .3s ease
+
+        &.is-newButtonActive
+          bottom            0
+
+      .ParticipantHeads-button
         background          #fff
         rounded             2px
-        border              2px solid #fff
         size                25px 25px
-        margin-top          14px
+        margin-top          6px !important
         contentBox()
 
-      .heads .avatarview
+      .ParticipantHeads .avatarview
         rounded             2px
         overflow            visible
         margin              6px 6px 0 0
@@ -223,7 +232,7 @@ pmLinkColor   = #B6B6B6
           content           ''
           opacity           0
 
-      .heads .avatarview img
+      .ParticipantHeads .avatarview img
         rounded             2px
         border              2px solid rgba(255,255,255,.5)
 

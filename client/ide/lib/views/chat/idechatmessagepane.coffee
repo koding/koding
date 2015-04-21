@@ -9,7 +9,9 @@ PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane
 isMyChannel          = require 'app/util/isMyChannel'
 isVideoFeatureEnabled = require 'app/util/isVideoFeatureEnabled'
 
+CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
 IDEChatMessageParticipantAvatar = require './idechatmessageparticipantavatar'
+IDEChatParticipantHeads = require './idechatparticipantheads'
 
 module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
@@ -51,34 +53,49 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @glance()
 
 
-  handleVideoActive: -> @videoActive = yes
-  handleVideoEnded: -> @videoActive = no
+  handleVideoActive: (participants) ->
+
+    nicknames = Object.keys participants
+
+    @participantHeads.setVideoListTitle()
+    @participantsModel.setVideoState on, nicknames
+    @videoActive = yes
+
+
+  handleVideoEnded: ->
+
+    @participantHeads.setDefaultListTitle()
+    @participantsModel.setVideoState off
+    @videoActive = no
+
+
+  handleVideoParticipantJoined: (participant) ->
+
+    @participantsModel.addVideoActiveParticipant participant.nick
+
+
+  handleVideoParticipantLeft: (participant) ->
+
+    @participantsModel.removeVideoActiveParticipant participant.nick
 
 
   setActiveParticipantAvatar: (account) ->
 
-    for own id, avatar of @participantMap
-      if id is account._id
-      then avatar.setClass 'is-activeParticipant'
-      else avatar.unsetClass 'is-activeParticipant'
+    @participantsModel.addVideoActiveParticipant account.profile.nickname
 
 
-  setSelectedParticipantAvatar: (account) ->
+  setSelectedParticipantAvatar: (account, isOnline) ->
 
-    for own id, avatar of @participantMap
-      # if account is null all avatars will receive `unsetClass` calls.
-      # `null` account means: "SELECT NO ONE!"
-      if id is account?._id
-      then avatar.setClass 'is-selectedParticipant'
-      else avatar.unsetClass 'is-selectedParticipant'
+    participant = account?.profile.nickname or null
+
+    @participantsModel.setVideoSelectedParticipant participant, isOnline
 
 
   setAvatarTalkingState: (nickname, state) ->
 
-    for _, avatar of @participantMap when avatar.data.profile.nickname is nickname
-      if state
-      then avatar.setClass 'is-talkingParticipant'
-      else avatar.unsetClass 'is-talkingParticipant'
+    if state
+    then @participantsModel.addTalkingParticipant nickname
+    else @participantsModel.removeTalkingParticipant nickname
 
 
   glance: ->
@@ -92,6 +109,18 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     channel      = @getData()
 
     mainView.glanceChannelWorkspace channel
+
+
+  prepareParticipantsModel: ->
+
+    @participantsModel = new CollaborationChannelParticipantsModel { channel: @getData() }
+
+
+  createParticipantHeads: ->
+
+    @participantHeads = new IDEChatParticipantHeads
+
+    @forwardEvent @participantHeads, 'ParticipantSelected'
 
 
   createParticipantsView: ->
@@ -122,7 +151,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     else
 
-      @newParticipantButton.destroy()
+      @participantHeads.newParticipantButton.destroy()
 
 
   handleOnboardingViewClick: (e) ->
@@ -219,24 +248,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     appManager = kd.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
-
-
-  addParticipant: (participant) ->
-
-    return  unless participant
-    return  if @participantMap[participant._id]?
-
-    participant.id = participant._id
-
-    @heads.addSubView avatar = new IDEChatMessageParticipantAvatar
-      size      :
-        width   : 25
-        height  : 25
-      origin    : participant
-
-    @forwardEvent avatar, 'ParticipantSelected'
-
-    @participantMap[participant._id] = avatar
 
 
   setHeadsPosition: ->

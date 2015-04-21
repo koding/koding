@@ -3,9 +3,11 @@ socialHelpers           = require './collaboration/helpers/social'
 
 module.exports = VideoCollaborationController =
 
-  prepareVideoCollaboration: (channel, view) ->
+  prepareVideoCollaboration: ->
 
-    @videoModel = new VideoCollaborationModel { channel, view }
+    @videoModel = new VideoCollaborationModel
+      channel : @socialChannel
+      view    : @chat.getVideoView()
 
     @videoModel
       .on 'CameraAccessQuestionAsked',     @bound 'handleVideoAccessQuestionAsked'
@@ -25,6 +27,11 @@ module.exports = VideoCollaborationController =
 
     @on 'CollaborationDidCleanup', =>
       @videoModel.session.disconnect()
+
+
+  fetchVideoParticipants: (callback) ->
+
+    callback @videoModel.getParticipants()
 
 
   startVideoCollaboration: ->
@@ -77,15 +84,15 @@ module.exports = VideoCollaborationController =
     @emitToViews 'VideoParticipantDidLeave', participant
 
 
-  handleVideoSelectedParticipantChanged: (nickname) ->
+  handleVideoSelectedParticipantChanged: (nickname, isOnline) ->
 
     unless nickname
-      @emitToViews 'VideoSelectedParticipantDidChange', null, null
+      @emitToViews 'VideoSelectedParticipantDidChange', null, null, isOnline
       return
 
     socialHelpers.fetchAccount nickname, (err, account) =>
       return console.error err  if err
-      @emitToViews 'VideoSelectedParticipantDidChange', nickname, account
+      @emitToViews 'VideoSelectedParticipantDidChange', nickname, account, isOnline
 
 
   handleVideoActiveParticipantChanged: (nickname) ->

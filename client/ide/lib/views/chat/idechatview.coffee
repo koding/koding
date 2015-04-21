@@ -49,13 +49,14 @@ module.exports = class IDEChatView extends KDTabView
     @on 'VideoSelectedParticipantDidChange', @bound 'handleVideoSelectedParticipantChanged'
     @on 'VideoParticipantTalkingStateDidChange', @bound 'handleVideoParticipantTalkingStateChanged'
 
+    @on 'VideoParticipantDidJoin', @bound 'handleVideoParticipantJoined'
+    @on 'VideoParticipantDidLeave', @bound 'handleVideoParticipantLeft'
 
-  handleParticipantSelected: (participant) ->
 
-    socialHelpers.fetchAccount participant, (err, account) =>
-      return console.error err  if err
-      { nickname } = account.profile
-      kd.singletons.appManager.tell 'IDE', 'switchToUserVideo', nickname
+  handleParticipantSelected: (account) ->
+
+    { nickname } = account.profile
+    kd.singletons.appManager.tell 'IDE', 'switchToUserVideo', nickname
 
 
   handleVideoActiveParticipantChanged: (nickname, account) ->
@@ -63,14 +64,24 @@ module.exports = class IDEChatView extends KDTabView
     @chatPane.setActiveParticipantAvatar account
 
 
-  handleVideoSelectedParticipantChanged: (nickname, account) ->
+  handleVideoSelectedParticipantChanged: (nickname, account, isOnline) ->
 
-    @chatPane.setSelectedParticipantAvatar account
+    @chatPane.setSelectedParticipantAvatar account, isOnline
 
 
   handleVideoParticipantTalkingStateChanged: (nickname, state) ->
 
     @chatPane.setAvatarTalkingState nickname, state
+
+
+  handleVideoParticipantJoined: (nickname) ->
+
+    @chatPane.handleVideoParticipantJoined nickname
+
+
+  handleVideoParticipantLeft: (nickname) ->
+
+    @chatPane.handleVideoParticipantLeft nickname
 
 
   start: ->
@@ -117,18 +128,29 @@ module.exports = class IDEChatView extends KDTabView
     @unsetClass 'loading'
 
 
+  setVideoActiveState: (state) ->
+
+    if state
+    then @setClass 'is-videoActive'
+    else @unsetClass 'is-videoActive'
+
+    kd.utils.defer @bound 'focus'
+
+
   handleVideoActive: ->
 
-    @setClass 'is-videoActive'
-    @chatVideoView.show()
-    @chatPane.handleVideoActive()
+    {appManager} = kd.singletons
+    appManager.tell 'IDE', 'fetchVideoParticipants', (participants) =>
+      @setVideoActiveState on
+      @chatVideoView.show()
+      @chatPane.handleVideoActive participants
 
 
   handleVideoEnded: ->
 
+    @setVideoActiveState off
     @chatPane.handleVideoEnded()
     @chatVideoView.hide()
-    @unsetClass 'is-videoActive'
 
 
   getVideoView: -> @chatVideoView
