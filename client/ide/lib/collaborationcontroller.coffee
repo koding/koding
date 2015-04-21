@@ -731,7 +731,7 @@ module.exports = CollaborationController =
       envHelpers.detachSocialChannel @workspaceData, (err) =>
         throwError err  if err
 
-    @workspaceData.channelId = null
+    @unsetSocialChannel()
     callback()
 
 
