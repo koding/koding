@@ -14,12 +14,10 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
+	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/waitstate"
-	"koding/kites/terraformer"
 
-	"github.com/hashicorp/terraform/terraform"
-	"github.com/koding/kite"
 	kiteprotocol "github.com/koding/kite/protocol"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -107,20 +105,10 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 
 	////////////// TERRAFORMER KITE ////////////////
-
-	terraformerURL := "http://127.0.0.1:3001/kite"
-	m.Log.Debug("Connection to terraformer %s", terraformerURL)
-
-	tfKite := m.Session.Kite.NewClient(terraformerURL)
-	tfKite.Auth = &kite.Auth{
-		Type: "kloud",
-		Key:  "123qwe123qwe", // TODO: replace this
-	}
-
-	if err := tfKite.DialTimeout(time.Second * 10); err != nil {
+	tfKite, err := terraformer.Connect(m.Session.Kite)
+	if err != nil {
 		return err
 	}
-	defer tfKite.Close()
 
 	appendVariables := func(hclFile string, vars map[string]string) string {
 		// TODO: use hcl encoder, this is just for testing
@@ -137,26 +125,17 @@ variable "%s" {
 		return hclFile
 
 	}
-
 	args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
 		"access_key": "AKIAJTDKW5IFUUIWVNAA",
 		"secret_key": "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",
 	})
 
-	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
-	tfReq := terraformer.TerraformRequest{
-		Content: args.TerraformContext,
-	}
-
-	resp, err := tfKite.Tell("plan", tfReq)
+	plan, err := tfKite.Plan(args.TerraformContext)
 	if err != nil {
 		return err
 	}
 
-	var plan *terraform.Plan
-	if err := resp.Unmarshal(&plan); err != nil {
-		return err
-	}
+	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
 
 	fmt.Printf("plan.State = %+v\n", plan.State)
 	fmt.Printf("plan.Module = %+v\n", plan.Module)
