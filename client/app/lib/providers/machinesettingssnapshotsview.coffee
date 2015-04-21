@@ -1,106 +1,121 @@
-kd                      = require 'kd'
-Encoder                 = require 'htmlencode'
-remote                  = require('app/remote').getInstance()
-{computeController}     = kd.singletons
-{JSnapshot}             = remote.api
-SnapshotsListController = require './snapshotslistcontroller'
+kd                        = require 'kd'
+Encoder                   = require 'htmlencode'
+remote                    = require('app/remote').getInstance()
+{computeController}       = kd.singletons
+{JSnapshot}               = remote.api
+MachineSettingsCommonView = require './machinesettingscommonview'
+SnapshotsListController   = require './snapshotslistcontroller'
+SnapshotListItem   = require './snapshotlistitem'
 
 
-module.exports = class MachineSettingsSnapshotsView extends kd.View
+module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
 
   constructor:(options = {}, data) ->
-    options.cssClass = "snapshots #{options.cssClass}"
+    options.cssClass             = "snapshots #{options.cssClass}"
+    options.headerTitle          = 'Snapshots'
+    options.addButtonTitle       = 'ADD SNAPSHOT'
+    options.headerAddButtonTitle = 'ADD NEW SNAPSHOT'
+    options.listViewItemClass    = SnapshotListItem
+
     super options, data
 
-    @machineId = machineId = data?._id
-    if not machineId?
-      console.warn 'MachineSettingsSnapshotsView: Failed to find machineId'
-      return
-    @snapshotsController = new SnapshotsListController {}, machineId: machineId
-    @initViews()
 
-  initViews: ->
-    @header = new kd.HeaderView
-      title: "Snapshots"
+  ###*
+   * Create a new snapshot with the given name, from the given machineId
+   *
+   * @param {String} label - The label (name) of the snapshot
+   * @param {Function(err:Error, snapshot:JSnapshot)} callback
+  ###
+  createSnapshot: (label, callback=kd.noop) ->
+    machine   = @getData()
+    machineId = machine._id
+    eventId   = "createSnapshot-#{machineId}"
+    # Because kloud.createSnapshot does not return a snapshot object,
+    # we need to request the newest snapshot (sorted by creation date)
+    #
+    # Why do we want it? Well, the caller of this method (likely a
+    # listItem) needs to populate itself with the data of this newly
+    # created snapshot. Mostly the snapshotId.
+    #
+    # TODO: Confirm that this is the proper way to achieve this
+    # result.
+    findJustCreatedSnapshot = ->
+      JSnapshot.some {machineId}, {sort: {createdAt: -1}, limit: 1},
+        (err, [snapshot]) =>
+          if err?
+            return callback err
+          if not snapshot?
+            return callback new Error "SnapshotListController.createSnapshot: Cannot find most recent snapshot"
+          callback null, snapshot
 
-    # Create an empty snapshot ui, which will be responsible for adding
-    # the new snapshot.
-    @showNewSnapshotBtn = new kd.ButtonView
-      title: "Add Snapshot"
-      style: "solid green compact add-button"
-      callback: @bound "showNewSnapshot"
+    monitorProgress = => computeController.on eventId, ({percentage}) =>
+      findJustCreatedSnapshot() if percentage >= 100
+      @emit "SnapshotProgress", percentage
 
-    # The new snapshot input form
-    @newSnapshotView = new kd.View
-      cssClass: 'hidden'
-    @newSnapshotView.addSubView @newSnapshotView.label = new kd.InputView
-      placeholder: 'Snapshot Name'
-      style: 'kdinput text Formline--half'
-    @newSnapshotView.addSubView @newSnapshotView.save = new kd.ButtonView
-      title: 'Add Snapshot'
-      style: 'solid green compact'
-      callback: @bound 'createNewSnapshot'
-    @newSnapshotView.addSubView @newSnapshotView.cancel = new kd.ButtonView
-      title: "Cancel"
-      style: "cancel"
-      callback: @bound "hideNewSnapshot"
-
-    @loaderView = new kd.LoaderView
-      showLoader: false
-      loaderOptions:
-        shape: 'spiral'
-
-    # Add the views
-    @addSubView @header
-    @header.addSubView @showNewSnapshotBtn
-    @addSubView @newSnapshotView
-    @addSubView @loaderView
-    @addSubView @snapshotsController.getView()
-
-    @snapshotsController.instantiateSnapshotItems()
+    # TODO: Handle the case where a VM is not built.
+    computeController.createSnapshot machine, label
+      .then monitorProgress
+      .catch callback
     return
 
-  # Create a new snapshot from the machineId on this view, and the name
-  # in the input. This will error check for the validity of the name.
-  createNewSnapshot: ->
-    machineId = @machineId
-    label = @newSnapshotView.label.getValue()
+
+  ###*
+   * Fetch the list of snapshots from DB
+   *
+   * @param {Function(err:Error, snapshots:[JSnapshot]} callback
+  ###
+  fetchSnapshots: (callback=kd.noop) ->
+    JSnapshot.some {}, {}, (err, snapshots) =>
+      if err?
+        return callback err
+      callback err, snapshots
+    return
+
+
+  ###*
+   * Called when the Add New button is clicked (the one to actually
+   * confirm the submission, not show the new snapshot input form)
+  ###
+  # TODO: Test the in progress stuff (show a ui if the user tries to press
+  # again, etc
+  handleAddNew: ->
+    machineId = @getData()._id
+    label = @addInputView.getValue()
     if not label? or label is ""
       @notify "Name length must be larger than zero"
       return
 
-    @snapshotsController.createSnapshot machineId, label, (err, snapshot) =>
+    # Explicitly showing the loader because the hitEnterTextView does
+    # not trigger the button loader when entered.
+    @addNewButton.showLoader()
+    @isInProgress = true
+    @createSnapshot label, (err, snapshot) =>
+      @hideAddView()
+      @isInProgress = false
+      @addInputView.setValue ''
+      @addNewButton.hideLoader()
       if err?
-        console.warn "MachineSettingsSnapshotsView.createSnapshot:", err
+        kd.warn "MachineSettingsSnapshotsView.handleAddNew:", err
         @notify "An error was encountered creating the Snapshot"
         return
-      console.log "machinesettingssnapshotsview.createSnapshot: Done!"
-      @snapshotsController.addSnapshotItem snapshot
-      @hideNewSnapshot()
-      @loaderView.hide()
-
-    # Hide the new snapshot view, and create a throbber to show loading
-    # NOTE: This will likely take UX refinement/tweaking (a throbber isn't
-    # exactly the best UX for more than a few seconds)
-    @newSnapshotView.hide()
-    @loaderView.show()
-
+      @listController.addItem snapshot
     return
 
-  # Hide the new snapshot input, and show the showNewSnapshotBtn
-  hideNewSnapshot: ->
-    @newSnapshotView.hide()
-    @showNewSnapshotBtn.show()
+
+  ###*
+   * Populate the listController with snapshots fetched from jSnapshot.
+  ###
+  initList: ->
+    @fetchSnapshots (err, snapshots=[]) =>
+      kd.warn "MachineSettingsSnapshotsView.initList
+        Error:", err if err?
+      @listController.lazyLoader.hide()
+      @listController.replaceAllItems snapshots
+
 
   # A standard way to communicate to the user.
   # TODO: Use the proper feedback UI (whatever that may be)
   notify: (msg="") ->
     new kd.NotificationView content: msg
     return
-
-  # Show the new snapshot input and hide the showNewSnapshotBtn
-  showNewSnapshot: ->
-    @newSnapshotView.show()
-    @showNewSnapshotBtn.hide()
-    kd.utils.defer @newSnapshotView.label.bound "setFocus"
 

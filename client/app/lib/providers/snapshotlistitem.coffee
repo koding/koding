@@ -1,69 +1,89 @@
-kd       = require 'kd'
-nicetime = require '../util/nicetime'
-Encoder  = require 'htmlencode'
+kd                  = require 'kd'
+nicetime            = require '../util/nicetime'
+Encoder             = require 'htmlencode'
+{computeController} = kd.singletons
+remote              = require('app/remote').getInstance()
+{JSnapshot}         = remote.api
 
 
 
 module.exports = class SnapshotListItem extends kd.ListItemView
+
   constructor: (options={}, data) ->
+    options.cssClass = "snapshot #{options.cssClass}"
     super options, data
     @initViews()
     @setLabel data.label
     @setCreatedAt data.createdAt
     @setStorageSize data.storageSize
 
+
   initViews: ->
+
     data = @getData()
+    @editView = new kd.View
+      cssClass: 'edit hidden'
+
+    @editView.addSubView @editView.edit = new kd.HitEnterInputView
+      type        : 'text'
+      placeholder : 'Snapshot Name'
+      cssClass    : 'label'
+      callback    : @bound 'renameSnapshot'
+
+    @editView.addSubView wrapper = new kd.CustomHTMLView
+      cssClass: 'buttons'
+
+    wrapper.addSubView @editView.renameBtn = new kd.ButtonView
+      title    : 'rename'
+      cssClass : 'solid green compact rename'
+      callback : @bound 'renameSnapshot'
+
+    wrapper.addSubView @editView.cancelBtn = new kd.View
+      partial  : 'cancel'
+      tagName  : 'span'
+      tagName  : 'span'
+      cssClass : 'cancel'
+      click    : @bound 'toggleEditable'
+
     @infoView = new kd.View
-    @editView = new kd.FormViewWithFields
-      fields:
-        name:
-          placeholder: "Snapshot Name"
-      buttons:
-        save:
-          title: "Save"
-          style: "solid compact green"
-          callback: @bound "renameSnapshot"
-        cancel:
-          title: "Cancel"
-          style: "thin compact gray"
-          callback: @bound "toggleEditable"
-        delete:
-          title: "Delete"
-          style: "thin compact red"
-          callback: @bound "deleteSnapshot"
-    # `style: "hidden"` didn't work, so using hide() for now.
-    @editView.hide()
+      cssClass: 'info'
 
-    @nameView = new kd.View
-    @createdAtView = new kd.View tagName: "span"
+    @infoView.addSubView @infoView.labelView = new kd.View
+      tagName  : 'span'
+      cssClass : 'label'
+      click    : @bound 'toggleEditable'
 
-    # TODO: These need to be icon only, but i'm not sure how to assign
-    # icons yet.
-    @renameSnapshotBtn = new kd.ButtonView
-      title: "Rename"
-      callback: => @toggleEditable()
+    @infoView.addSubView @infoView.storageSizeView = new kd.View
+      tagName  : 'span'
+      cssClass : 'storage-size'
 
-    @deleteSnapshotBtn = new kd.ButtonView
-      title: "Delete"
-      callback: @bound "deleteSnapshot"
+    @infoView.addSubView @infoView.createdAtView = new kd.View
+      tagName  : 'span'
+      cssClass : 'created-at'
 
-    # I think this won't be available in the first pass, as per Arslan's
-    # comment on PT
-    #@shareSnapshotBtn = new kd.ButtonView
-    #  title: "Share"
-    #  callback: => @shareSnapshot()
+    @infoView.addSubView wrapper = new kd.CustomHTMLView
+      cssClass: 'buttons'
 
-    @infoView.addSubView @nameView
-    @infoView.addSubView @createdAtView
-    @infoView.addSubView @renameSnapshotBtn
-    @infoView.addSubView @deleteSnapshotBtn
+    wrapper.addSubView @infoView.renameSnapshotBtn = new kd.View
+      partial  : 'rename'
+      tagName  : 'span'
+      cssClass : 'rename'
+      click    : @bound 'toggleEditable'
+
+    wrapper.addSubView @infoView.deleteSnapshotBtn = new kd.View
+      partial  : 'delete'
+      tagName  : 'span'
+      cssClass : 'delete'
+      click    : @bound "confirmDeleteSnapshot"
+
     @addSubView @editView
     @addSubView @infoView
 
-  # Show the UI confirmation for snapshot delete, and emit the
-  # DeleteSnapshot event.
-  deleteSnapshot: ->
+  ###*
+   * Show the UI confirmation for snapshot delete, and delete the
+   * snapshot if Yes is chosen.
+  ###
+  confirmDeleteSnapshot: ->
     modal = kd.ModalView.confirm
       title: "Delete snapshot?"
       ok:
@@ -71,41 +91,116 @@ module.exports = class SnapshotListItem extends kd.ListItemView
         style: "solid red medium"
         callback: =>
           modal.destroy()
-          @getDelegate().emit "DeleteSnapshot", @
+          @deleteSnapshot()
       cancel:
         style: "solid light-grey medium"
         type: "button"
         callback: -> modal.destroy()
 
+  ###*
+   * Delete this snapshot, and destroy this View on success.
+   *
+   * @param {Function(err:Error)} callback
+  ###
+  deleteSnapshot: (callback=kd.noop) ->
+    {machineId, snapshotId} = @getData()
+    kloud = computeController.getKloud()
+    kloud.deleteSnapshot {machineId, snapshotId}
+      .then =>
+        callback null
+        @getDelegate().emit 'DeleteSnapshot', @
+        @destroy()
+      .catch callback
+    return
+
+
+  # A standard way to communicate to the user.
+  # TODO: Use the proper feedback UI (whatever that may be)
+  notify: (msg="") ->
+    new kd.NotificationView content: msg
+    return
+
+
   partial: ->
 
-  # Get the name input value, and emit the RenameSnapshot event with
-  # the proper data
+
+  ###*
+   * Get the name input value, and emit the RenameSnapshot event with
+   * the proper data
+  ###
   renameSnapshot: ->
-    label = @editView.inputs.name.getValue()
-    @getDelegate().emit "RenameSnapshot", @, label
+    label        = @editView.edit.getValue()
+    data         = @getData()
+    {snapshotId} = data
 
+    if not label? or label is ""
+      @notify "Name length must be larger than zero"
+      return
+
+    rename = (snapshot) => snapshot.rename label, (err) =>
+      if err?
+        kd.warn "SnapshotListItem.renameSnapshot:", err
+        return
+      @toggleEditable()
+      @setLabel label
+      @getDelegate().emit "RenameSnapshot", @, label
+
+    # If data is a jsnapshot, we don't need to fetch it
+    if data instanceof JSnapshot
+      rename data
+    else
+      JSnapshot.one snapshotId, (err, snapshot) =>
+        if err?
+          kd.warn "SnapshotListItem.renameSnapshot Error:", err
+          return
+
+        if not snapshot?
+          kd.warn "SnapshotListItem.renameSnapshot Error:
+            Cannot find snapshotId", snapshotId
+          return
+
+        rename snapshot
+    return
+
+
+  ###*
+   * Set the value of the createdAt UI element
+   *
+   * @param {Date|String} createdAt - The value to display createdAt
+  ###
   setCreatedAt: (createdAt) ->
-    @createdAtView.updatePartial nicetime createdAt - Date.now()
+    createdAt = new Date(createdAt) if typeof createdAt is 'string'
+    createdAtAgo = nicetime (createdAt - Date.now()) / 1000
+    @infoView.createdAtView.updatePartial createdAtAgo
     return
 
+
+  ###*
+   * Set the value of the label (name) UI element.
+   *
+   * @param {String} label - The label (name) to set.
+  ###
   setLabel: (label) ->
-    @nameView.updatePartial label
-    @editView.inputs.name.setValue label
+    @infoView.labelView.updatePartial label
+    @editView.edit.setValue label
     return
 
+
+  ###*
+   * Set the value of the Storage Size UI element
+   *
+   * @param {Number} storageSize
+  ###
   setStorageSize: (storageSize) ->
-    console.warn "SnapshotListItem.setStorageSize: Storage size not supported yet"
+    @infoView.storageSizeView.updatePartial "(#{storageSize}GB)"
     return
 
   toggleEditable: ->
     if @infoView.$().is ":visible"
       @infoView.hide()
       @editView.show()
-      kd.utils.defer @editView.inputs.name.bound "setFocus"
+      kd.utils.defer @editView.edit.bound "setFocus"
     else
       @infoView.show()
       @editView.hide()
-
-
 
