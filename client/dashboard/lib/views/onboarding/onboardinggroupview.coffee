@@ -68,8 +68,9 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
    * it updates a state of group in DB and reloads a list of onboardings after it
    * Before changing the state it's necessary to confirm the action from user
    *
-   * @return {string} - a field of JCustomPartial object which should be toggled. Possible values are 'isActive' (to publish/unpublish onboarding)
+   * @param {string} key - a field of JCustomPartial object which should be toggled. Possible values are 'isActive' (to publish/unpublish onboarding)
    * and 'isPreview' (to set/unset on preview mode)
+   * @emits SectionSaved
   ###
   updateState: (key) ->
 
@@ -79,7 +80,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
       changeSet[key] = not data[key]
       data.update changeSet, (err, res) =>
         return kd.warn err  if err
-        @getDelegate().reloadViews()
+        @emit 'SectionSaved'
 
     keyword = "publish"
 
@@ -162,9 +163,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     @confirmDelete =>
       @getData().remove (err, res) =>
         return kd.warn err  if err
-        @getDelegate().container.destroySubViews()
-        @getDelegate().reloadViews()
-
+        @emit 'SectionDeleted'
 
   ###*
    * Shows a confirmation modal when user performs delete action

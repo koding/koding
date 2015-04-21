@@ -5,7 +5,7 @@ KDLoaderView = kd.LoaderView
 AddNewCustomViewForm = require './addnewcustomviewform'
 CustomViewItem = require './customviewitem'
 JView = require 'app/jview'
-Helpers = require 'dashboard/custompartialhelpers'
+CustomPartialHelpers = require 'dashboard/custompartialhelpers'
 
 
 module.exports = class CustomViewsDashboardView extends JView
@@ -92,7 +92,7 @@ module.exports = class CustomViewsDashboardView extends JView
 
     query = { partialType: @getOption "viewType" }
 
-    Helpers.getPartials query, (err, customViews) =>
+    CustomPartialHelpers.getPartials query, (err, customViews) =>
       @loader.hide()
       return @noViewLabel.show()  if err or not customViews.length
 

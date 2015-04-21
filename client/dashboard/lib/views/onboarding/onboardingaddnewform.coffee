@@ -37,7 +37,7 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
   ###*
    * Collects onboarding item data on the form
    * and saves it to DB
-   * 
+   *
    * @emits NewViewAdded
   ###
   addNew: ->

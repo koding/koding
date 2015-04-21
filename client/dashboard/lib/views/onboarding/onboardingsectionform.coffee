@@ -3,7 +3,7 @@ KDFormViewWithFields = kd.FormViewWithFields
 KDSelectBox = kd.SelectBox
 globals = require 'globals'
 KodingSwitch = require 'app/commonviews/kodingswitch'
-Helpers = require 'dashboard/custompartialhelpers'
+CustomPartialHelpers = require 'dashboard/custompartialhelpers'
 
 module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
@@ -69,7 +69,7 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
         @emit "SectionSaved"
         @destroy()
     else
-      Helpers.createPartial data, (err, section) =>
+      CustomPartialHelpers.createPartial data, (err, section) =>
         @emit "SectionSaved"
         @destroy()
 

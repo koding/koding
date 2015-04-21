@@ -5,7 +5,7 @@ KDInputView = kd.InputView
 JView = require 'app/jview'
 Encoder = require 'htmlencode'
 AceView = require 'ace/aceview'
-Helpers = require 'dashboard/custompartialhelpers'
+CustomPartialHelpers = require 'dashboard/custompartialhelpers'
 
 
 module.exports = class AddNewCustomViewForm extends JView
@@ -54,7 +54,7 @@ module.exports = class AddNewCustomViewForm extends JView
         return kd.warn err  if err
         @emit "NewViewAdded", customPartial
     else
-      Helpers.createPartial data, (err, customPartial) =>
+      CustomPartialHelpers.createPartial data, (err, customPartial) =>
         @emit "NewViewAdded", customPartial
 
 

@@ -64,6 +64,7 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
 
     formView.on 'SectionSaved',     @bound 'handleSectionSaved'
     formView.on 'SectionCancelled', @bound 'handleSectionCancelled'
+    formView.on 'SectionDeleted',   @bound 'handleSectionDeleted'
 
 
   ###*
@@ -84,3 +85,13 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
    * and show a list of onboarding groups
   ###
   handleSectionCancelled: -> @unsetClass 'form-visible'
+
+
+  ###*
+   * When onboarding group is deleted,
+   * reload the list of onboardings
+  ###
+  handleSectionDeleted: ->
+
+    @container.destroySubViews()
+    @reloadViews()
