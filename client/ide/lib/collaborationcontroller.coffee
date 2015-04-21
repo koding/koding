@@ -982,3 +982,17 @@ module.exports = CollaborationController =
       IDE.CollaborationController:
       #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
     """
+
+
+  onWorkspaceChannelChanged: ->
+
+    return  unless @stateMachine
+
+    {channelId} = @workspaceData
+
+    if channelId and typeof channelId is 'string' and channelId.length
+      if @stateMachine.state is 'NotStarted'
+        @stateMachine.transition 'Loading'
+    else
+      if @stateMachine.state is 'Active'
+        @stateMachine.transition 'Ending'

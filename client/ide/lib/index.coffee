@@ -169,9 +169,15 @@ class IDEAppController extends AppController
 
   bindWorkspaceDataEvents: ->
 
+    @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
+
     @workspaceData.on 'update', (fields) =>
 
       fields.forEach (field) =>
+
+        switch field
+          when 'channelId'
+            @emit 'WorkspaceChannelChanged'
 
 
   setActiveTabView: (tabView) ->
