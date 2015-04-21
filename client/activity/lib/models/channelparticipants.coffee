@@ -20,7 +20,7 @@ sinkrow       = require 'sinkrow'
 ###
 module.exports = class ChannelParticipantsModel extends kd.Object
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}) ->
 
     super options
 
