@@ -23,7 +23,7 @@ module.exports = class OnboardingItemView extends KDView
     index                = @items.indexOf data
     @isLast              = index is @items.length - 1
     @hasNext             = not @isLast
-    @hasPrev             = index isnt 0 and @hasNext
+    @hasPrev             = index isnt 0
 
 
   render: ->
