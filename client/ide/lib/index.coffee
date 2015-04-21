@@ -169,6 +169,10 @@ class IDEAppController extends AppController
 
   bindWorkspaceDataEvents: ->
 
+    @workspaceData.on 'update', (fields) =>
+
+      fields.forEach (field) =>
+
 
   setActiveTabView: (tabView) ->
 
