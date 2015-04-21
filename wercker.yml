@@ -105,8 +105,8 @@ build:
     - script:
         name: test koding kites
         code: |
-          cd go/src/koding/kites/cmd/terraformer
-          go test -c && mv terraformer.test ./../../../../../bin &&  CONFIG_PORT=1234 CONFIG_REGION="dev" CONFIG_ENVIRONMENT="dev" ./../../../../../bin/terraformer.test
+          cd go/src/koding/kites/terraformer
+          go test -c && mv terraformer.test ./../../../../bin/ &&  CONFIG_PORT=1234 CONFIG_REGION="dev" CONFIG_ENVIRONMENT="dev" ./../../../../bin/terraformer.test
     - script:
         name: testing backend finished
         code: |
