@@ -20,6 +20,18 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     @setStorageSize data.storageSize
 
 
+  ###*
+   * Display a simple Notification to the user.
+  ###
+  @notify: (msg="") ->
+
+    new kd.NotificationView content: msg
+    return
+
+
+  ###*
+   * Create all of the subviews.
+  ###
   initViews: ->
 
     data = @getData()
@@ -116,14 +128,6 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     return
 
 
-  # A standard way to communicate to the user.
-  # TODO: Use the proper feedback UI (whatever that may be)
-  notify: (msg="") ->
-
-    new kd.NotificationView content: msg
-    return
-
-
   partial: ->
 
 
@@ -138,7 +142,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     {snapshotId} = data
 
     if not label? or label is ""
-      @notify "Name length must be larger than zero"
+      SnapshotListItem.notify "Name length must be larger than zero"
       return
 
     # Called once we have a jSnapshot to work with

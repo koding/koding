@@ -37,6 +37,15 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
 
   ###*
+   * Display a simple Notification to the user.
+  ###
+  @notify: (msg="") ->
+
+    new kd.NotificationView content: msg
+    return
+
+
+  ###*
    * Create a new snapshot with the given name, from the given machineId
    *
    * @param {String} label - The label (name) of the snapshot
@@ -59,14 +68,13 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
           if err?
             return callback err
           if not snapshot?
-            return callback new Error "Cannot find most recent snapshot"
+            return callback new Error 'Cannot find most recent snapshot'
           callback null, snapshot
 
     monitorProgress = => computeController.on eventId, ({percentage}) =>
       findJustCreatedSnapshot() if percentage >= 100
-      @emit "SnapshotProgress", percentage
+      @emit 'SnapshotProgress', percentage
 
-    # TODO: Handle the case where a VM is not built.
     computeController.createSnapshot machine, label
       .then monitorProgress
       .catch callback
@@ -77,29 +85,22 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * Called when the Add New button is clicked (the one to actually
    * confirm the submission, not show the new snapshot input form)
   ###
-  # TODO: Test the in progress stuff (show a ui if the user tries to press
-  # again, etc
   handleAddNew: ->
 
     machineId = @getData()._id
     label = @addInputView.getValue()
-    if not label? or label is ""
-      @notify "Name length must be larger than zero"
-      return
+    if not label? or label is ''
+      return MachineSettingsSnapshotsView.notify \
+        'Name length must be larger than zero'
 
     # Explicitly showing the loader because the hitEnterTextView does
     # not trigger the button loader when entered.
     @addNewButton.showLoader()
-    @isInProgress = yes
     @createSnapshot label, (err, snapshot) =>
       @hideAddView()
-      @isInProgress = no
       @addInputView.setValue ''
       @addNewButton.hideLoader()
-      if err?
-        kd.warn "MachineSettingsSnapshotsView.handleAddNew:", err
-        @notify "An error was encountered creating the Snapshot"
-        return
+      return kd.warn err  if err?
       @listController.addItem snapshot
     return
 
@@ -110,17 +111,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   initList: ->
 
     MachineSettingsSnapshotsView.fetchSnapshots (err, snapshots=[]) =>
-      kd.warn "MachineSettingsSnapshotsView.initList
-        Error:", err if err?
+      kd.warn err  if err?
       @listController.lazyLoader.hide()
       @listController.replaceAllItems snapshots
-
-
-  # A standard way to communicate to the user.
-  # TODO: Use the proper feedback UI (whatever that may be)
-  notify: (msg="") ->
-
-    new kd.NotificationView content: msg
-    return
 
 

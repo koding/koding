@@ -120,13 +120,12 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
    * left hidden.
   ###
   populateSnapshotsSelector: ->
+
     JSnapshot.some {}, {}, (err, snapshots) =>
-      if err?
-        kd.warn "ComputePlansModalPaid.populateSnapshotsSelector:", err
-        return
+      return kd.warn err  if err?
       # If no snapshots were returned, the user has no snapshots, and
       # no action is needed
-      if not snapshots? or snapshots.length is 0 then return
+      return  if not snapshots? or snapshots.length is 0
       formatted = []
       for snapshot in snapshots
         formatted.push
