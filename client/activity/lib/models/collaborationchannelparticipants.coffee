@@ -28,8 +28,10 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   computePreviewParticipants: (participants) ->
 
     if @state.videoActive
-      return participants.filter (participant) =>
+      filtered = participants.filter (participant) =>
         participant.profile.nickname in @state.videoParticipants
+
+      return filtered.toList()
 
     super
 
@@ -46,9 +48,11 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   computeHiddenParticipants: (participants) ->
 
     if @state.videoActive
-      return participants.filter (participant) =>
+      filtered = participants.filter (participant) =>
         {nickname} = participant.profile
         return @state.videoParticipants.indexOf(nickname) is -1
+
+      return filtered.toList()
 
     super
 
