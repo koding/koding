@@ -135,7 +135,6 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
     return cascadeData
 
   cascadeHeaderElements = (roles, roleCount)->
-    widthForRows = (global.innerWidth - 754)/roleCount
 
     [current,remainder...] = roles
     cascadeData = {}
@@ -145,7 +144,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       cssClass      : 'text header-item role-' + kd.utils.slugify(current)
       attributes    :
         title       : readableText current
-        style       : "width : #{widthForRows}px"
+
     if current and remainder.length > 0
       cascadeData[current].nextElement = cascadeHeaderElements remainder, roleCount
     return cascadeData
