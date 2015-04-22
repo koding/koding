@@ -51,7 +51,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       cssClass           : "tiny settings-on-off"
       callback           : (state) => @emit 'SettingsChanged', 'scrollPastEnd', state
 
-    @enableAutocomplete       = new KodingSwitch
+    @enableAutocomplete  = new KodingSwitch
       cssClass           : "tiny settings-on-off"
       callback           : (state) => @emit 'SettingsChanged', 'enableAutocomplete', state
 
@@ -84,6 +84,10 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       selectOptions      : editorSettings.tabSizes
       callback           : (state) => @emit 'SettingsChanged', 'tabSize', state
 
+    @enableSnippets      = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) => @emit 'SettingsChanged', 'enableSnippets', state
+
 
   getStorageInformation: -> return { name: 'Ace', version: '1.0.1' }
 
@@ -94,7 +98,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
       'keyboardHandler', 'scrollPastEnd', 'openRecentFiles', 'useAutosave'
-      'enableAutocomplete'
+      'enableAutocomplete', 'enableSnippets'
     ]
 
 
@@ -112,6 +116,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     fontSize             : 12
     tabSize              : 4
     keyboardHandler      : 'default'
+    enableSnippets       : yes
 
 
   pistachio: ->
@@ -127,6 +132,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       <p>Show invisibles                 {{> @showInvisibles}}</p>
       <p>Use scroll past end             {{> @scrollPastEnd}}</p>
       <p>Enable autocomplete             {{> @enableAutocomplete}}</p>
+      <p>Enable snippets                 {{> @enableSnippets}}</p>
       <p class="with-select">Key binding {{> @keyboardHandler}}</p>
       <p class="with-select">Font size   {{> @fontSize}}</p>
       <p class="with-select">Theme       {{> @theme}}</p>
