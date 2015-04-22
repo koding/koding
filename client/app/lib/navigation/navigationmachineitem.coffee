@@ -37,10 +37,12 @@ module.exports = class NavigationMachineItem extends JView
     unless isMyMachine
       machineType = if machine.isPermanent() then 'permanentShare' else 'collaboration'
 
+    @machineRoute = groupifyLink machineRoutes[machineType]
+
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
-      href             : groupifyLink machineRoutes[machineType]
+      href             : '#'
       title            : "Open IDE for #{@alias}"
 
     unless isMyMachine

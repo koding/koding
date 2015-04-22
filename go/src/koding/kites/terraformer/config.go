@@ -13,4 +13,13 @@ type Config struct {
 
 	// Enable debug mode
 	Debug bool
+
+	// AWS secret and key
+	AWS AWS
+}
+
+type AWS struct {
+	Key    string `required:"true"`
+	Secret string `required:"true"`
+	Bucket string `required:"true"`
 }

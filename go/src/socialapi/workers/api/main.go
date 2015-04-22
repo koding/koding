@@ -1,19 +1,15 @@
 package main
 
 import (
-	// _ "expvar"
-
 	"fmt"
-	"socialapi/workers/helper"
 	"koding/db/mongodb/modelhelper"
-	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
-
 	"socialapi/config"
 	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
 	mailapi "socialapi/workers/email/mailparse/api"
+	"socialapi/workers/helper"
 	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
@@ -36,21 +32,17 @@ func main() {
 		return
 	}
 
-	config.MustRead(r.Conf.Path)
+	// appConfig
+	c := config.MustRead(r.Conf.Path)
 
 	mc := mux.NewConfig(Name, r.Conf.Host, r.Conf.Port)
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log)
-
 	m.Metrics = r.Metrics
-	handlers.AddHandlers(m, r.Metrics)
-	m.Listen()
-	// shutdown server
-	defer m.Close()
 
+	handlers.AddHandlers(m, r.Metrics)
 	permissionapi.AddHandlers(m, r.Metrics)
 	topicmoderationapi.AddHandlers(m, r.Metrics)
-
 	collaboration.AddHandlers(m, r.Metrics)
 	paymentapi.AddHandlers(m, r.Metrics)
 	notificationapi.AddHandlers(m, r.Metrics)
@@ -64,11 +56,10 @@ func main() {
 	defer redisConn.Close()
 
 	// init mongo connection
-	appConfig := config.MustRead(r.Conf.Path)
-	modelhelper.Initialize(appConfig.Mongo)
+	modelhelper.Initialize(c.Mongo)
 	defer modelhelper.Close()
 
-	mmdb, err := helper.ReadGeoIPDB(appConfig)
+	mmdb, err := helper.ReadGeoIPDB(c)
 	if err != nil {
 		r.Log.Critical("ip persisting wont work err: %s", err.Error())
 	} else {
@@ -80,7 +71,11 @@ func main() {
 		go setDefaults(r.Log)
 	}
 
-	payment.Initialize(config.MustGet())
+	payment.Initialize(c)
+
+	m.Listen()
+	// shutdown server
+	defer m.Close()
 
 	r.Listen()
 	r.Wait()

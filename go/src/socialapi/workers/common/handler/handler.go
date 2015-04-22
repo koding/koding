@@ -17,10 +17,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/koding/runner"
-	"github.com/koding/bongo"
 	"github.com/juju/ratelimit"
+	"github.com/koding/bongo"
 	kmetrics "github.com/koding/metrics"
+	"github.com/koding/runner"
 
 	tigertonic "github.com/rcrowley/go-tigertonic"
 
@@ -86,7 +86,7 @@ func getAccount(r *http.Request) *models.Account {
 	// err is ignored intentionally
 	err = acc.ByNick(session.Username)
 	if err != nil && err != bongo.RecordNotFound {
-	    runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())    
+		runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())
 	}
 
 	return acc
@@ -106,8 +106,6 @@ func Wrapper(r Request) http.Handler {
 		hHandler = tigertonic.Marshaled(handler)
 	}
 
-	hHandler = buildHandlerWithStatusCount(hHandler, r)
-
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
 	// every request should return under 30 secs, if not return 503 service
@@ -120,11 +118,6 @@ func Wrapper(r Request) http.Handler {
 	}
 	// create the final handler
 	return cors.Build(hHandler)
-}
-
-// count the statuses of the requests
-func buildHandlerWithStatusCount(handler http.Handler, r Request) http.Handler {
-	return CountedByStatus(handler, r.Name, r.CollectMetrics)
 }
 
 // add request time tracking
@@ -192,57 +185,6 @@ func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request)
 	)
 }
 
-//----------------------------------------------------------
-// CounterByStatus
-//----------------------------------------------------------
-
-type CounterByStatus struct {
-	name           string
-	handler        http.Handler
-	collectMetrics bool
-}
-
-func (c *CounterByStatus) ServeHTTP(w0 http.ResponseWriter, r *http.Request) {
-	w := tigertonic.NewTeeHeaderResponseWriter(w0)
-	c.handler.ServeHTTP(w, r)
-
-	if w.StatusCode <= 300 {
-		c.track()
-	}
-}
-
-func (c *CounterByStatus) track() {
-	// don't log if analytics are disabled for that endpoint
-	if !c.collectMetrics {
-		return
-	}
-
-	// set `conf` and `trackers` if either is not set
-	if conf == nil || trackers == nil {
-		conf = config.MustGet()
-
-		// don't log if analytics are disabled globally
-		if !conf.Mixpanel.Enabled {
-			return
-		}
-
-		trackers = metrics.InitTrackers(
-			metrics.NewMixpanelTracker(conf.Mixpanel.Token),
-		)
-	}
-
-	trackers.Track(c.name)
-}
-
-func CountedByStatus(handler http.Handler, name string, collectMetrics bool) *CounterByStatus {
-	return &CounterByStatus{
-		name:           name,
-		handler:        handler,
-		collectMetrics: collectMetrics,
-	}
-}
-
-//
 func MakeRequest(request *Request) (*http.Response, error) {
 	if request.Cookie != "" {
 		request.Cookies = parseCookiesToArray(request.Cookie)

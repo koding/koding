@@ -67,6 +67,8 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
       delete @machineBoxesByMachineUId[machineBox.machine.uid]
       @emit 'MachineBoxDestroyed', machineBox
 
+    machineBox.on 'ListStateChanged', => @emit 'ListStateChanged'
+
 
   removeWorkspaceByChannelId: (channelId) ->
 
