@@ -39,13 +39,11 @@ func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
 
-	plan, err := t.plan(c, r)
+	ctx, err := t.context(c, r, false)
 	if err != nil {
 		return nil, err
 	}
 
-	copts := c.TerraformContextOptsWithPlan(plan)
-	ctx := terraform.NewContext(copts)
 	state, err := ctx.Apply()
 	if err != nil {
 		return nil, err
@@ -58,14 +56,40 @@ func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
 
-	return nil, nil
+	//
+	// plan first with destroy option
+	//
+	plan, err := t.plan(c, r, true)
+	if err != nil {
+		return nil, err
+	}
+
+	//
+	// create terraform context options from plan
+	//
+	copts := c.TerraformContextOptsWithPlan(plan)
+
+	copts.Destroy = true // this is the key point
+
+	// create terraform context with its options
+	ctx := terraform.NewContext(copts)
+
+	//
+	// apply the change
+	//
+	state, err := ctx.Apply()
+	if err != nil {
+		return nil, err
+	}
+
+	return state, nil
 }
 
 func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
 
-	plan, err := t.plan(c, r)
+	plan, err := t.plan(c, r, false)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +97,31 @@ func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
 	return plan, nil
 }
 
-func (t *Terraformer) plan(c *kodingcontext.Context, r *kite.Request) (*terraform.Plan, error) {
+func (t *Terraformer) context(
+	c *kodingcontext.Context,
+	r *kite.Request,
+	destroy bool,
+) (*terraform.Context, error) {
+	// get the plan
+	plan, err := t.plan(c, r, destroy)
+	if err != nil {
+		return nil, err
+	}
+
+	// create terraform context options from plan
+	copts := c.TerraformContextOptsWithPlan(plan)
+
+	// create terraform context with its options
+	ctx := terraform.NewContext(copts)
+
+	return ctx, nil
+}
+
+func (t *Terraformer) plan(
+	c *kodingcontext.Context,
+	r *kite.Request,
+	destroy bool,
+) (*terraform.Plan, error) {
 	args := TerraformRequest{}
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
@@ -81,7 +129,10 @@ func (t *Terraformer) plan(c *kodingcontext.Context, r *kite.Request) (*terrafor
 
 	c.Variables = args.Variables
 
-	plan, err := c.Plan(bytes.NewBufferString(args.Content))
+	plan, err := c.Plan(
+		bytes.NewBufferString(args.Content),
+		destroy,
+	)
 	if err != nil {
 		return nil, err
 	}
