@@ -161,6 +161,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @handlePublishSuccess publisher
       callbacks.success? publisher
 
+    @setActive()
+
     @startPublishing options,
       success : success
       error   : callbacks.error
@@ -246,8 +248,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   setActive: ->
     return  if @state.active
 
-    @emit 'VideoCollaborationActive', @publisher
     @setState { active: yes }
+    @emit 'VideoCollaborationActive', @publisher
 
 
   ###*
@@ -261,8 +263,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   setEnded: ->
     return  unless @state.active
 
-    @emit 'VideoCollaborationEnded'
     @setState { active: no }
+    @emit 'VideoCollaborationEnded'
 
 
   ###*
@@ -367,7 +369,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @registerPublisher publisher
     @setState { publishing: on }
-    @setActive()
 
     @changeActiveParticipant getNick()
 
