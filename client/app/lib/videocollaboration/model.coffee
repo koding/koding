@@ -133,7 +133,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit eventName
 
     session.on 'signal:end', =>
-      @stopPublishing
+      kd.utils.defer => @stopPublishing
         success : @bound 'handleStopSuccess'
         error   : (err) -> console.error err
 
