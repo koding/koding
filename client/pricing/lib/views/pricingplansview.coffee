@@ -132,7 +132,7 @@ module.exports = class PricingPlansView extends KDView
       { partial: '10GB Total Disk' , cssClass: 'storage' }
       { partial: '1 Always on VM'  , cssClass: 'always-on disabled' }
       { partial: 'VM Sharing'      , cssClass: 'share' }
-      { partial: 'Static IP'       , cssClass: 'share' }
+      { partial: 'Static IP'       , cssClass: 'static-ip' }
     ]
   ,
     title        : 'Developer'
@@ -149,7 +149,7 @@ module.exports = class PricingPlansView extends KDView
       { partial: '25GB Total Disk' , cssClass: 'storage' }
       { partial: '1 Always on VM'  , cssClass: 'always-on' }
       { partial: 'VM Sharing'      , cssClass: 'share' }
-      { partial: 'Static IP'       , cssClass: 'share' }
+      { partial: 'Static IP'       , cssClass: 'static-ip' }
     ]
   ,
     title        : 'Professional'
@@ -166,6 +166,6 @@ module.exports = class PricingPlansView extends KDView
       { partial: '50GB Total Disk' , cssClass: 'storage' }
       { partial: '2 Always on VMs' , cssClass: 'always-on' }
       { partial: 'VM Sharing'      , cssClass: 'share' }
-      { partial: 'Static IP'       , cssClass: 'share' }
+      { partial: 'Static IP'       , cssClass: 'static-ip' }
     ]
   ]
