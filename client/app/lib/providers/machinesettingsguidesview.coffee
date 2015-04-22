@@ -38,4 +38,4 @@ module.exports = class MachineSettingsGuidesView extends KDView
     for guide in Guides
       @addSubView new KDCustomHTMLView
         cssClass : 'guide formline'
-        partial  : "<a href='#{guide.link}'>#{guide.title}</a>"
+        partial  : "- <a href='#{guide.link}' target=_blank>#{guide.title}</a>"

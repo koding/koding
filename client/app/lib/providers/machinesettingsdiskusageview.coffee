@@ -55,7 +55,7 @@ module.exports = class MachineSettingsDiskUsageView extends KDView
 
     @addSubView new KDCustomHTMLView
       cssClass : 'footline'
-      partial  : "You can <a href='#' class='resize'>resize your VM</a> or share Koding and <a href='#' class='share'>get extra disk space</a>."
+      partial  : "If you have a paid plan or storage through referrals, you can <a href='#' class='resize' target=_blank>resize your VM</a>.  Share Koding and <a href='#' class='share' target=_blank>get more storage for free</a>!"
       click    : (e) =>
         if e.target.tagName is 'A'
 
