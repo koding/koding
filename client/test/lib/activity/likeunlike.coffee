@@ -9,17 +9,9 @@ module.exports =
 
   likePost: (browser) ->
 
-    user = helpers.beginTest(browser)
-    helpers.postActivity(browser, no)
-    selector    = activitySelector + ' [testpath=activity-like-link]'
-    likeElement = activitySelector + ' .like-summary'
-
-    browser
-      .waitForElementVisible selector, 25000
-      .click                 selector
-      .waitForElementVisible likeElement, 25000
-      .assert.containsText   likeElement, user.username + ' liked this.'
-      .end()
+    user = @beginTest(browser)
+    helpers.likePost(browser, user)
+    browser.end()
 
 
   unlikePost: (browser) ->
