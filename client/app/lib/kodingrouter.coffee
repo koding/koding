@@ -1,15 +1,14 @@
-globals = require 'globals'
-remote = require('./remote').getInstance()
-isLoggedIn = require './util/isLoggedIn'
-showError = require './util/showError'
-isGroup = require './util/isGroup'
-isKoding = require './util/isKoding'
-kd = require 'kd'
-KDRouter = kd.Router
+globals              = require 'globals'
+kd                   = require 'kd'
+remote               = require('./remote').getInstance()
+isLoggedIn           = require './util/isLoggedIn'
+showError            = require './util/showError'
+isGroup              = require './util/isGroup'
+isKoding             = require './util/isKoding'
 KodingAppsController = require './kodingappscontroller'
 
 
-module.exports = class KodingRouter extends KDRouter
+module.exports = class KodingRouter extends kd.Router
 
   constructor: (@defaultRoute) ->
 
@@ -43,7 +42,7 @@ module.exports = class KodingRouter extends KDRouter
 
     entryPoint = options.entryPoint or globals.config.entryPoint
     route      = route.replace /\/+/g, '/'
-    frags      = route.split("?")[0].split "/"
+    frags      = route.split('?')[0].split '/'
 
     [_root, _slug, _content, _extra] = frags
 
