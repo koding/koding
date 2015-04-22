@@ -150,17 +150,17 @@ sendActivationMessage = (channel, callback) ->
  * argument so that, it will fetch the account depending
  * on some other situations.
  *
- * @param {object|string} socialAccount - either bongo constructor or a user id.
+ * @param {object|string} options - either bongo constructor or a user id.
  * @param {function(err: object)}
 ###
-fetchAccount = (socialAccount, callback) ->
+fetchAccount = (options, callback) ->
 
-  if socialAccount.constructorName
-    remote.cacheable socialAccount.constructorName, socialAccount.id, callback
-  else if 'string' is typeof socialAccount
-    remote.cacheable socialAccount, (err, [account]) -> callback err, account
+  if options.constructorName
+    remote.cacheable options.constructorName, options.id, callback
+  else if 'string' is typeof options
+    remote.cacheable options, (err, [account]) -> callback err, account
   else
-    callback null, socialAccount
+    callback null, options
 
 
 module.exports = {
