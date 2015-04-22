@@ -11,7 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestChannelHistory(t *testing.T) {
+func TestInteractionLikedMessages(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
@@ -23,6 +23,9 @@ func TestChannelHistory(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("While testing listing of the liked messages", t, func() {
+		rand.Seed(time.Now().UnixNano())
+		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		
 		account1 := models.NewAccount()
 		account1.OldId = AccountOldId.Hex()
 		account, err := rest.CreateAccount(account1)
