@@ -365,6 +365,10 @@ class Ace extends KDView
     @appStorage.getValue('enableSnippets') ? yes
 
 
+  getEnableEmmet: ->
+    @appStorage.getValue('enableEmmet') ? no
+
+
   getSettings: ->
 
     theme               : @getTheme()
@@ -382,6 +386,7 @@ class Ace extends KDView
     openRecentFiles     : @getOpenRecentFiles()
     enableAutocomplete  : @getEnableAutocomplete()
     enableSnippets      : @getEnableSnippets()
+    enableEmmet         : @getEnableEmmet()
 
 
   ###
