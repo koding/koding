@@ -377,7 +377,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   handleStopSuccess: ->
 
-    @unregisterPublisher()
     @setState { publishing: off }
     @setEnded()
 
@@ -410,6 +409,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
         accessDenied       : => @emit 'CameraAccessDenied'
         accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
         accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
+
+      publisher.on 'streamDestroyed', => @unregisterPublisher()
 
       @session.publish publisher, (err) =>
         return callbacks.error err  if err
