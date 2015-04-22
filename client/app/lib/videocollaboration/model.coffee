@@ -133,6 +133,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit eventName
 
     session.on 'signal:end', =>
+      # when a signal comes here it means that it could have reached to other
+      # users and because of that at this stack we may have extra
+      # `streamDestroyed` events. Since stopPublishing will trigger the events
+      # that eventually nullify the publisher in this stack, this defer tries
+      # to overcome that problem. ~Umut
       kd.utils.defer => @stopPublishing
         success : @bound 'handleStopSuccess'
         error   : (err) -> console.error err
