@@ -37,6 +37,7 @@ func (s S3Storage) Clean(path string) error {
 }
 
 func (s S3Storage) Write(path string, file io.Reader) error {
+	// TODO(cihangir): we can use bucket.PutReader here
 	content, err := ioutil.ReadAll(file)
 	if err != nil {
 		return err
@@ -91,30 +92,26 @@ func (f FileStorage) Clean(path string) error {
 	return os.RemoveAll(path)
 }
 
-func (f FileStorage) Write(path string, file io.Reader) error {
-	content, err := ioutil.ReadAll(file)
-	if err != nil {
-		return err
-	}
-
+func (f FileStorage) Write(path string, file io.Reader) (err error) {
 	tf, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer tf.Close()
 
-	// do the writing
-	_, err = tf.Write(content)
-	if err != nil {
-		return err
-	}
+	defer func() {
+		// Sync commits the current contents of the file to disk
+		if err = tf.Sync(); err != nil {
+			return
+		}
 
-	// Sync commits the current contents of the file to disk
-	if err := tf.Sync(); err != nil {
-		return err
-	}
+		if err = tf.Close(); err != nil {
+			return
+		}
 
-	return nil
+	}()
+
+	_, err = io.Copy(tf, file)
+	return err
 }
 
 func (f FileStorage) Remove(path string) error {
