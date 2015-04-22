@@ -956,6 +956,16 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
+        @emailAvailable email, (err, res)=>
+          if err
+            return callback createKodingError "Something went wrong"
+
+          if res is no
+            return callback createKodingError "Email is already in use!"
+          else
+            queue.next()
+
+      =>
         if aNewRegister
 
           userInfo = { username, firstName, lastName, email, password }
