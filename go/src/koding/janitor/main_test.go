@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/now"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
@@ -13,13 +14,16 @@ import (
 )
 
 func init() {
-	modelhelper.Initialize("localhost:27017/koding_test")
-	Log.SetLevel(0)
+	initializeRunner()
 }
 
 //----------------------------------------------------------
 // helpers
 //----------------------------------------------------------
+
+func resetFakeEmails() {
+	fakeEmails = []int{}
+}
 
 func createUser() (*models.User, error) {
 	username := "regularuser"
@@ -72,13 +76,24 @@ func createUserWithVM() (*models.User, error) {
 }
 
 func createInactiveUser(daysInactive int) (*models.User, error) {
+	username := "inactiveuser"
 	user := &models.User{
-		Name: "inactiveuser", ObjectId: bson.NewObjectId(),
+		Name:          username,
+		ObjectId:      bson.NewObjectId(),
 		Email:         "inactiveuser@koding.com",
 		LastLoginDate: timeNow().Add(-time.Hour * 24 * time.Duration(daysInactive)),
 	}
 
-	return user, modelhelper.CreateUser(user)
+	if err := modelhelper.CreateUser(user); err != nil {
+		return nil, err
+	}
+
+	account := &models.Account{
+		Id:      bson.NewObjectId(),
+		Profile: models.AccountProfile{Nickname: username},
+	}
+
+	return user, modelhelper.CreateAccount(account)
 }
 
 func deleteUserWithUsername(user *models.User) {
@@ -110,4 +125,11 @@ func updateUserModifiedAt(user *models.User, m time.Time) error {
 	update := bson.M{"inactive.modifiedAt": m}
 
 	return modelhelper.UpdateUser(selector, update)
+}
+
+func fakeEmailActionFn() func(user *models.User, levelId int) error {
+	return func(user *models.User, levelId int) error {
+		fakeEmails = append(fakeEmails, levelId)
+		return nil
+	}
 }

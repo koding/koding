@@ -108,7 +108,11 @@ build:
           go build github.com/alecthomas/gometalinter
           ./gometalinter --install
           ./go/bin/gocyclo -top 20 ./go/src/socialapi
-
+    - script:
+        name: test janitor
+        code: |
+          cd go/src/koding/janitor
+          ./test.sh
     - script: # todo generalize this part when we have more tests
         name: test koding mongo models
         code: |
