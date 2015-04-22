@@ -143,7 +143,6 @@ module.exports =
     post = helpers.postActivity(browser)
 
     postSelector            = "#{activitySelector} .activity-content-wrapper"
-    editWidgetSelector      = "#{activitySelector} .activity-input-widget.edit-widget"
     settingsWrapperSelector = "#{activitySelector} .settings-menu-wrapper"
 
     browser
