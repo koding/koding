@@ -571,7 +571,7 @@ module.exports = CollaborationController =
 
     @fetchSocialChannel (err, channel) =>
       if err
-        console.warn "CollaborationController: #{err}"
+        throwError err
         return callMethod 'notStarted'
 
       @isRealtimeSessionActive channel.id, (isActive, file) =>
@@ -971,7 +971,7 @@ module.exports = CollaborationController =
 
   throwError: throwError = (err, args...) ->
 
-    format = \
+    format = JSON.stringify \
       switch typeof err
         when 'string' then err
         when 'object' then err.message or err.description
@@ -980,7 +980,7 @@ module.exports = CollaborationController =
     argIndex = 0
     console.error """
       IDE.CollaborationController:
-      #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
+      #{ format.replace /%s/g, -> JSON.stringify(args[argIndex++]) or '%s' }
     """
 
 
