@@ -137,9 +137,7 @@ sendActivationMessage = (channel, callback) ->
   options =
     body       : "@#{nickname} activated collaboration."
     channelId  : channel.id
-    payload    :
-      'system-message' : 'start'
-      collaboration    : yes
+    payload    : 'system-message': 'start'
 
   message.sendPrivateMessage options, callback
 
