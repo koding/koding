@@ -88,6 +88,10 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       cssClass           : "tiny settings-on-off"
       callback           : (state) => @emit 'SettingsChanged', 'enableSnippets', state
 
+    @enableEmmet         = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) => @emit 'SettingsChanged', 'enableEmmet', state
+
 
   getStorageInformation: -> return { name: 'Ace', version: '1.0.1' }
 
@@ -98,7 +102,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
       'keyboardHandler', 'scrollPastEnd', 'openRecentFiles', 'useAutosave'
-      'enableAutocomplete', 'enableSnippets'
+      'enableAutocomplete', 'enableSnippets', 'enableEmmet'
     ]
 
 
@@ -117,6 +121,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     tabSize              : 4
     keyboardHandler      : 'default'
     enableSnippets       : yes
+    enableEmmet          : no
 
 
   pistachio: ->
@@ -132,6 +137,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       <p>Show invisibles                 {{> @showInvisibles}}</p>
       <p>Use scroll past end             {{> @scrollPastEnd}}</p>
       <p>Enable autocomplete             {{> @enableAutocomplete}}</p>
+      <p>Enable emmet                    {{> @enableEmmet}}</p>
       <p>Enable snippets                 {{> @enableSnippets}}</p>
       <p class="with-select">Key binding {{> @keyboardHandler}}</p>
       <p class="with-select">Font size   {{> @fontSize}}</p>
