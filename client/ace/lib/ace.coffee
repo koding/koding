@@ -359,6 +359,10 @@ class Ace extends KDView
     @appStorage.getValue('enableAutocomplete') ? yes
 
 
+  getEnableSnippets: ->
+    @appStorage.getValue('enableSnippets') ? yes
+
+
   getSettings: ->
 
     theme               : @getTheme()
@@ -375,6 +379,7 @@ class Ace extends KDView
     scrollPastEnd       : @getScrollPastEnd()
     openRecentFiles     : @getOpenRecentFiles()
     enableAutocomplete  : @getEnableAutocomplete()
+    enableSnippets      : @getEnableSnippets()
 
 
   ###
