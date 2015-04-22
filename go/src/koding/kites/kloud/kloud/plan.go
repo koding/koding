@@ -3,7 +3,11 @@ package kloud
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb"
+	"koding/kites/kloud/contexthelper/session"
 	"strings"
+
+	"golang.org/x/net/context"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
@@ -27,7 +31,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		// Terraform template file
 		TerraformContext string
 
-		// provider to jCredential collection id
+		// Credentials contains provider to jCredential collection ids
 		Credentials map[string]string
 	}
 
@@ -39,16 +43,33 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrTerraformContextIsMissing)
 	}
 
+	if len(args.Credentials) == 0 {
+		return nil, errors.New("credential ids are not passed")
+	}
+
 	if k.terraformerKite == nil {
 		return nil, errors.New("terraformer kite is not initialized")
 	}
 
+	ctx := k.ContextCreator(context.Background())
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	creds, err := fetchCredentials(sess.DB, args.Credentials)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO(arslan): fetch the credentials via args.Credentials
-	args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
-		"access_key": "AKIAJTDKW5IFUUIWVNAA",
-		"secret_key": "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",
-	})
-	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
+	// args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
+	// 	"access_key": "AKIAJTDKW5IFUUIWVNAA",
+	// 	"secret_key": "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",
+	// })
+	// fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
+
+	args.TerraformContext = appendVariables(args.TerraformContext, creds)
 
 	plan, err := k.terraformerKite.Plan(args.TerraformContext)
 	if err != nil {
@@ -71,6 +92,10 @@ variable "%s" {
 	}
 
 	return hclFile
+}
+
+func fetchCredentials(db *mongodb.MongoDB, ids map[string]string) (map[string]string, error) {
+	return nil, nil
 }
 
 func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
