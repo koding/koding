@@ -8,8 +8,9 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"github.com/rackspace/gophercloud"
 	"log"
+
+	"github.com/mitchellh/gophercloud-fork-40444fb"
 )
 
 // The unique ID for this builder
@@ -92,13 +93,17 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			Flavor:         b.config.Flavor,
 			SourceImage:    b.config.SourceImage,
 			SecurityGroups: b.config.SecurityGroups,
+			Networks:       b.config.Networks,
+		},
+		&StepWaitForRackConnect{
+			Wait:           b.config.RackconnectWait,
 		},
 		&StepAllocateIp{
 			FloatingIpPool: b.config.FloatingIpPool,
 			FloatingIp:     b.config.FloatingIp,
 		},
 		&common.StepConnectSSH{
-			SSHAddress:     SSHAddress(csp, b.config.SSHPort),
+			SSHAddress:     SSHAddress(csp, b.config.SSHInterface, b.config.SSHPort),
 			SSHConfig:      SSHConfig(b.config.SSHUsername),
 			SSHWaitTimeout: b.config.SSHTimeout(),
 		},

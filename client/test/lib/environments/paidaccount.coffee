@@ -27,7 +27,7 @@ module.exports =
   makeAlwaysOnForNotPaidUser: (browser) ->
 
     toggleSelector = '.machine-settings-modal .alwayson'
-    vmSelector     = 'a[href="/IDE/koding-vm-1"]'
+    vmSelector     = '.sidebar-machine-box.koding-vm-1'
 
     helpers.beginTest(browser)
 
@@ -49,7 +49,7 @@ module.exports =
   # addVM: (browser) ->
 
   #   freeModalSelector = '.computeplan-modal.free-plan'
-  #   vmSelector        = 'a[href="/IDE/koding-vm-1"]'
+  #   vmSelector        = '.sidebar-machine-box.koding-vm-1'
 
   #   helpers.beginTest(browser)
   #   helpers.waitForVMRunning(browser)
@@ -82,7 +82,7 @@ module.exports =
   # turnOnNewPaidVM: (browser) ->
 
   #   vmName     = 'koding-vm-1'
-  #   vmSelector = 'a[href="/IDE/' + vmName + '"]'
+  #   vmSelector = '.sidebar-machine-box.koding-vm-1'
 
   #   helpers.beginTest(browser)
 

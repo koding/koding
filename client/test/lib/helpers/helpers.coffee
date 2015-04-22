@@ -52,7 +52,7 @@ module.exports =
     unless machineName
       machineName = 'koding-vm-0'
 
-    vmSelector     = '[href="/IDE/' + machineName + '"].running.vm'
+    vmSelector     = ".#{machineName} .running.vm"
     modalSelector  = '.env-modal.env-machine-state'
     loaderSelector = modalSelector + ' .kdloader'
     buildingLabel  = modalSelector + ' .state-label.building'

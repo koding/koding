@@ -221,7 +221,7 @@ Configuration = (options={}) ->
     embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github               : {clientId     : "f8e440b796d953ea01e5" }
     newkontrol           : {url          : "#{kontrol.url}"}
-    sessionCookie        : {maxAge       : 1000 * 60 * 60 * 24 * 14 , secure: no   }
+    sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha            : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
     stripe               : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
@@ -883,9 +883,9 @@ Configuration = (options={}) ->
           command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
         elif [[ `uname` == 'Linux' ]]; then
           command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
-
-
         fi
+
+        check_go_version
         check_gulp_version
       }
 
@@ -904,6 +904,39 @@ Configuration = (options={}) ->
               echo 'Installed gulp version must be >= 3.7.0'
               exit 1
           fi
+      }
+
+      function check_go_version () {
+        VERSION=$(go version 2> /dev/null)
+        VERSION=${VERSION:13:4}
+        MAJOR=`echo $VERSION | cut -d. -f1`
+        MINOR=`echo $VERSION | cut -d. -f2`
+
+        if [[ $MAJOR -lt 1 ]]; then
+            MISMATCH=1
+        elif [[ $MAJOR -eq 1 && $MINOR -lt 4 ]]; then
+            MISMATCH=1
+        fi
+
+        if [[ -n $MISMATCH ]]; then
+          echo "Installed go version must be >= 1.4.0\n"
+
+          echo "You can install new version with"
+          if [[ `uname` == 'Darwin' ]]; then
+            echo "# curl -s https://storage.googleapis.com/golang/go1.4.2.darwin-amd64-osx10.8.pkg >> /tmp/go1.4.2.darwin-amd64-osx10.8.pkg && open /tmp/go1.4.2.darwin-amd64-osx10.8.pkg"
+          elif [[ `uname` == 'Linux' ]]; then
+            echo "curl -s https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | tar -v -C /usr/local -xz"
+          fi
+
+          echo "\n"
+          echo "(if go is not in your path use this or add it to our path)"
+          echo "sudo ln -sf /usr/local/go/bin/* /usr/local/bin\n"
+          echo "Dont forget to remove ./go/pkg folder hint: rm -rf ./go/pkg"
+
+          exit 1
+        else
+          echo "You are using go $VERSION"
+        fi
       }
 
       function build_services () {

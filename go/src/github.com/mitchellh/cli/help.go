@@ -57,3 +57,23 @@ func BasicHelpFunc(app string) HelpFunc {
 		return buf.String()
 	}
 }
+
+// FilteredHelpFunc will filter the commands to only include the keys
+// in the include parameter.
+func FilteredHelpFunc(include []string, f HelpFunc) HelpFunc {
+	return func(commands map[string]CommandFactory) string {
+		set := make(map[string]struct{})
+		for _, k := range include {
+			set[k] = struct{}{}
+		}
+
+		filtered := make(map[string]CommandFactory)
+		for k, f := range commands {
+			if _, ok := set[k]; ok {
+				filtered[k] = f
+			}
+		}
+
+		return f(filtered)
+	}
+}

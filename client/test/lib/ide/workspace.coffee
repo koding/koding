@@ -52,3 +52,25 @@ module.exports =
           .waitForElementVisible  '.vm-info', 20000
           .assert.containsText    '.vm-info', name # Assertion
           .end()
+
+
+  switchAnotherWorkspace: (browser, workspaceName) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    workspaceName1 = helpers.createWorkspace(browser)
+    workspaceName2 = helpers.createWorkspace(browser)
+    vmName         = 'koding-vm-0'
+    workspaceLink1 = "a[href='/IDE/#{vmName}/#{workspaceName1}']"
+    workspaceLink2 = "a[href='/IDE/#{vmName}/#{workspaceName2}']"
+
+    browser
+      .waitForElementPresent  workspaceLink1, 20000 # Assertion
+      .click                  workspaceLink1
+      .pause                  300
+      .assert.containsText    '.vm-info', '~/Workspaces/' + workspaceName1 # Assertion
+      .waitForElementPresent  workspaceLink2, 20000 # Assertion
+      .click                  workspaceLink2
+      .pause                  300
+      .assert.containsText    '.vm-info', '~/Workspaces/' + workspaceName2 # Assertion
+      .end()

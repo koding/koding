@@ -1,38 +1,33 @@
-NO_COLOR=\033[0m
-OK_COLOR=\033[32;01m
-ERROR_COLOR=\033[31;01m
-WARN_COLOR=\033[33;01m
-DEPS = $(go list -f '{{range .TestImports}}{{.}} {{end}}' ./...)
-UNAME := $(shell uname -s)
-ifeq ($(UNAME),Darwin)
-ECHO=echo
-else
-ECHO=/bin/echo -e
-endif
+TEST?=./...
+VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods \
+         -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
 
-all: deps
-	@mkdir -p bin/
-	@$(ECHO) "$(OK_COLOR)==> Building$(NO_COLOR)"
-	@bash --norc -i ./scripts/devcompile.sh
+default: test
 
-deps:
-	@$(ECHO) "$(OK_COLOR)==> Installing dependencies$(NO_COLOR)"
-	@go get -d -v ./...
-	@echo $(DEPS) | xargs -n1 go get -d
+bin:
+	@sh -c "$(CURDIR)/scripts/build.sh"
+
+dev:
+	@TF_DEV=1 sh -c "$(CURDIR)/scripts/build.sh"
+
+test:
+	go test $(TEST) $(TESTARGS) -timeout=10s
+	@$(MAKE) vet
+
+testrace:
+	go test -race $(TEST) $(TESTARGS)
 
 updatedeps:
-	@$(ECHO) "$(OK_COLOR)==> Updating all dependencies$(NO_COLOR)"
-	@go get -d -v -u ./...
-	@echo $(DEPS) | xargs -n1 go get -d -u
+	go get -d -v -p 2 ./...
 
-clean:
-	@rm -rf bin/ local/ pkg/ src/ website/.sass-cache website/build
+vet:
+	@go tool vet 2>/dev/null ; if [ $$? -eq 3 ]; then \
+		go get golang.org/x/tools/cmd/vet; \
+	fi
+	@go tool vet $(VETARGS) . ; if [ $$? -eq 1 ]; then \
+		echo ""; \
+		echo "Vet found suspicious constructs. Please check the reported constructs"; \
+		echo "and fix them if necessary before submitting the code for reviewal."; \
+	fi
 
-format:
-	go fmt ./...
-
-test: deps
-	@$(ECHO) "$(OK_COLOR)==> Testing Packer...$(NO_COLOR)"
-	go test ./...
-
-.PHONY: all clean deps format test updatedeps
+.PHONY: bin default test updatedeps vet

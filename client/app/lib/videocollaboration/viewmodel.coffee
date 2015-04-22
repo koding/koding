@@ -9,9 +9,9 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
 
     {@view, @model} = options
 
-    @model.on 'ActiveParticipantChanged', @bound 'switchTo'
-    @model.on 'VideoCollaborationActive', @bound 'fixParticipantVideoElements'
-    @model.on 'OfflineUserSelected'     , @bound 'switchTo'
+    @model.on 'ActiveParticipantChanged',   @bound 'switchTo'
+    @model.on 'VideoCollaborationActive',   @bound 'fixParticipantVideoElements'
+    @model.on 'SelectedParticipantChanged', @bound 'handleParticipantSelected'
 
     viewControlBinder = (control) => (state) => @view[control].setActiveState state
 
@@ -34,6 +34,13 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
     if participant = @model.getParticipant nick
     then showParticipant participant
     else showOfflineParticipant @view, nick
+
+
+  handleParticipantSelected: (nick) ->
+
+    return  unless nick
+
+    @switchTo nick
 
 
   ###*
