@@ -18,6 +18,7 @@ module.exports = class OnboardingController extends KDController
     super options, data
 
     @onboardings   = {}
+    @previewModes  = {}
     @isRunning     = no
     { mainController, windowController } = kd.singletons
 
@@ -33,10 +34,10 @@ module.exports = class OnboardingController extends KDController
     account           = whoami()
     @registrationDate = new Date(account.meta.createdAt)
     @appStorage       = kd.getSingleton('appStorageController').storage 'OnboardingStatus', '1.0.0'
-    @isPreviewMode    = kookies.get('custom-partials-preview-mode') is 'true'
+    isPreviewMode     = kookies.get('custom-partials-preview-mode') is 'true'
     query             = partialType : 'ONBOARDING'
 
-    if @isPreviewMode
+    if isPreviewMode
       query['isPreview'] = yes
     else
       query['isActive']  = yes
@@ -45,7 +46,8 @@ module.exports = class OnboardingController extends KDController
       return kd.warn err  if err
 
       for data in onboardings when data.partial
-        @onboardings[data.name] = data
+        @onboardings[data.name]  = data
+        @previewModes[data.name] = isPreviewMode
 
       @appStorage.fetchStorage()
 
@@ -56,11 +58,15 @@ module.exports = class OnboardingController extends KDController
     return  unless onboarding
     return  unless onboarding.partial.items?.length
 
-    forceRun = @isPreviewMode  unless forceRun
+    forceRun  = @previewModes[groupName]  unless forceRun
 
     slug      = @createSlug groupName
     isShown   = @appStorage.getValue slug
     isOldUser = new Date(onboarding.createdAt) > @registrationDate
+
+    # reset preview mode for onboarding group to avoid onboarding preview being annoying for admin
+    # if admin wants to see onboarding once again, they just need to refresh the page
+    @previewModes[groupName] = no
 
     return  if (isShown or isOldUser) and not forceRun
 
