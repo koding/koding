@@ -16,16 +16,13 @@ module.exports =
 
   unlikePost: (browser) ->
 
-    user = helpers.beginTest(browser)
-    helpers.postActivity(browser, no)
-
+    user        = helpers.beginTest(browser)
     selector    = activitySelector + ' [testpath=activity-like-link]'
-    visibleLike = selector + ':not(.hidden)'
     likeElement = activitySelector + ' .like-summary'
 
+    helpers.likePost(browser, user)
+
     browser
-      .waitForElementVisible    visibleLike, 25000
-      .click                    visibleLike
       .pause                    5000 # required
       .waitForElementVisible    selector + '.liked:not(.count)', 25000
       .click                    selector + '.liked:not(.count)'
