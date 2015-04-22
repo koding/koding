@@ -115,10 +115,10 @@ createPublisher = (view, options = {}, callback) ->
   options.height = 265
   options.width  = 325
 
-  publisher = OT.initPublisher view.getElement(), options, (err) ->
-    return callback err  if err
+  publisher = OT.initPublisher view.getElement(), options, ->
     fixParticipantBackgroundImage publisher, whoami()
-    callback null, publisher
+
+  callback null, publisher
 
 
 ###*
