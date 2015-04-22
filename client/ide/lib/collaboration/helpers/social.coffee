@@ -156,7 +156,7 @@ sendActivationMessage = (channel, callback) ->
 fetchAccount = (options, callback) ->
 
   if options.constructorName
-    remote.cacheable options.constructorName, options.id, callback
+    remote.cacheable options.constructorName, options._id, callback
   else if 'string' is typeof options
     remote.cacheable options, (err, [account]) -> callback err, account
   else
