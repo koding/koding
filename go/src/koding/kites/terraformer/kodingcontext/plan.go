@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func (c *Context) Plan(content io.Reader) (*terraform.Plan, error) {
+func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error) {
 	cmd := command.PlanCommand{
 		Meta: command.Meta{
 			ContextOpts: c.TerraformContextOpts(),
@@ -40,11 +40,17 @@ func (c *Context) Plan(content io.Reader) (*terraform.Plan, error) {
 	// }
 	// cmd.ContextOpts.Module.Config().Variables = variables
 
-	exitCode := cmd.Run([]string{
+	args := []string{
 		"-no-color",          // dont write with color
 		"-out", planFilePath, // save plan to a file
 		outputDir,
-	})
+	}
+
+	if destroy {
+		args = append([]string{"-destroy"}, args...)
+	}
+
+	exitCode := cmd.Run(args)
 
 	log.Printf("Debug output: %+v\n", c.Buffer.String())
 
