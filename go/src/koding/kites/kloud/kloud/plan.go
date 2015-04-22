@@ -29,10 +29,10 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 
 	var args struct {
 		// Terraform template file
-		TerraformContext string
+		TerraformContext string `json:"terraformContext"`
 
-		// Credentials contains provider to jCredential collection ids
-		Credentials map[string]string
+		// PublicKeys contains provider to publicKeys mapping
+		PublicKeys map[string]string `json:"publicKeys"`
 	}
 
 	if err := r.Args.One().Unmarshal(&args); err != nil {
@@ -43,7 +43,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrTerraformContextIsMissing)
 	}
 
-	if len(args.Credentials) == 0 {
+	if len(args.PublicKeys) == 0 {
 		return nil, errors.New("credential ids are not passed")
 	}
 
@@ -57,7 +57,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(sess.DB, args.Credentials)
+	creds, err := fetchCredentials(sess.DB, args.PublicKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +95,11 @@ variable "%s" {
 }
 
 func fetchCredentials(db *mongodb.MongoDB, ids map[string]string) (map[string]string, error) {
+	// 1- fetch jaccount from username
+	// 2- fetch credential from publickey via args
+	// 3- count relationship with credential id and jaccount id as user or owner
+	// 3- targetId: jCredentialId, sourceId: jAccountId, as: "owner", or "user -> `relationsips` check if exits, if yes it has access
+	// 4- fetch credentialdata with publickey
 	return nil, nil
 }
 
