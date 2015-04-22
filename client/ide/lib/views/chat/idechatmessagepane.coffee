@@ -129,29 +129,28 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     super
 
+    if isMyChannel @getData()
+    then @addOnboardingView()
+    else @participantHeads.newParticipantButton.destroy()
+
+
+  addOnboardingView: ->
+
     channel = @getData()
 
-    isMyChannel_ = isMyChannel channel
+    isAlreadyUsed   = channel.lastMessage.payload?['system-message'] not in [ 'initiate', 'start' ]
+    hasParticipants = channel.participantCount > 1
 
-    if isMyChannel_
+    return  if hasParticipants or isAlreadyUsed
 
-      isAlreadyUsed   = channel.lastMessage.payload?['system-message'] not in [ 'initiate', 'start' ]
-      hasParticipants = channel.participantCount > 1
-
-      return  if hasParticipants or isAlreadyUsed
-
-      @addSubView @onboarding = new KDCustomHTMLView
-        cssClass : 'onboarding'
-        click    : @bound 'handleOnboardingViewClick'
-        partial  : """
-          <div class="arrow"></div>
-          <div class="balloon"></div>
-          <p>Start your collaboration session by <a href="#">adding someone</a>.</p>
-        """
-
-    else
-
-      @participantHeads.newParticipantButton.destroy()
+    @addSubView @onboarding = new KDCustomHTMLView
+      cssClass : 'onboarding'
+      click    : @bound 'handleOnboardingViewClick'
+      partial  : """
+        <div class="arrow"></div>
+        <div class="balloon"></div>
+        <p>Start your collaboration session by <a href="#">adding someone</a>.</p>
+      """
 
 
   handleOnboardingViewClick: (e) ->
