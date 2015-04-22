@@ -9,29 +9,36 @@ Dashboard main styles
 }
 
 #content-page-dashboard > .kdtabview
-  padding                   34px 34px 0 0
-  overflow                  visible
+  padding                       34px 34px 0 0
+  overflow                      visible
 
-.AppModal--dashboard
+body.dashboard
+
+  // Between line 15-98 is duplicated from account styles.
+  // To merge these, i need a way to give same classes to document body. [BC]
 
   #main-tab-view
-    overflow                visible
-    overflow                hidden!important
+    overflow                      visible
 
-  .kdmodal-content
-    size                    100% 100%
+  .app-sidebar
+    background                    #EFEFEF
+    padding                       21px 16px 16px 34px
 
-  .AppModal-content
-    height                  570px
-    overflow                auto!important
+    nav
+      a
+        display                   block
+        line-height               24px
+        font-size                 14px
+        color                     #4C4C4C
+        font-weight               600
+        opacity                   .99
+        noTextDeco()
 
+        &.selected
+          text-decoration         underline
 
-
-
-
-
-
-
+      .divider
+        height                    24px
 
   .group-logo
     figure
@@ -555,3 +562,59 @@ Dashboard main styles
     span,strong,cite
       padding-left        5px
       font-style          normal
+
+.product-item
+  padding 10px
+
+.disabled
+  .product-item
+    color      #999
+
+.active
+  .product-item
+    border                dotted #999 1px
+    background-color      #eee
+
+
+.payment-settings-view
+  .product-title
+  .product-price
+  .product-button
+    display               inline !important
+
+  .product-item
+    padding               5px
+
+  .product-embed
+    border                1px solid #aaa
+
+  .linked
+    .payment-method
+      background          #FFF
+  .payment-method
+    padding               20px
+    box-sizing            border-box
+    rounded               6px
+    .billing-link
+      width               300px
+      fl()
+    .payment-links
+      fr()
+      pointer()
+      line-height         40px
+      &.link
+        color             #1AAE5D
+      &.unlink
+        color             #EB4731
+
+body.dashboard
+  .dashboard-tabs
+    border              none !important
+
+   .kdmodal
+    .kdhiddentab
+      display           none
+
+    .formline.permission
+      .kdlabel.permission
+        margin-top      0
