@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -13,16 +12,6 @@ import (
 	"socialapi/workers/integration/webhook/services"
 
 	"github.com/koding/logging"
-)
-
-var (
-	ErrBodyNotSet    = errors.New("body is not set")
-	ErrChannelNotSet = errors.New("channel is not set")
-	ErrTokenNotSet   = errors.New("token is not set")
-	ErrGroupNotSet   = errors.New("group name is not set")
-	ErrTokenNotValid = errors.New("token is not valid")
-	ErrNameNotSet    = errors.New("name is not set")
-	ErrNameNotValid  = errors.New("name is not valid")
 )
 
 type Handler struct {
