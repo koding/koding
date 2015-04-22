@@ -107,6 +107,45 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, r *PrepareRequest) (in
 	return response.NewOK(nil)
 }
 
+func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, r *BotChannelRequest) (int, http.Header, interface{}, error) {
+	nick := u.Query().Get("nick")
+	r.Username = nick
+	if err := r.validate(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// check account existence
+	acc, err := r.verifyAccount()
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// check group existence
+	group, err := r.verifyGroup()
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// prevent sending bot messages when the user is not participant
+	// of the given group
+	canOpen, err := group.CanOpen(acc.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(ErrAccountIsNotParticipant)
+	}
+
+	// now we can fetch the bot channel
+	c, err := h.bot.FetchBotChannel(acc, group)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(map[string]int64{"channelId": c.Id})
+}
+
 // TODO need to mock the endpoint. up till that time, this push method is
 // defined like this
 var push = func(endPoint string, pushRequest map[string]string) error {

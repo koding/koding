@@ -27,4 +27,14 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			CollectMetrics: true,
 		},
 	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:        h.FetchBotChannel,
+			Name:           "bot-fetch-channel",
+			Type:           handler.PostRequest,
+			Endpoint:       "/account/{nick}/bot-channel",
+			CollectMetrics: true,
+		},
+	)
 }

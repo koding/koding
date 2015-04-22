@@ -40,6 +40,12 @@ func newPrepareRequest(data *services.ServiceInput) *PrepareRequest {
 	}
 }
 
+func newBotChannelRequest(groupName string) *BotChannelRequest {
+	return &BotChannelRequest{
+		GroupName: groupName,
+	}
+}
+
 func init() {
 	var err error
 	r = runner.New("test")
@@ -194,5 +200,96 @@ func TestWebhookPrepare(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(s, ShouldEqual, http.StatusOK)
 		})
+	})
+}
+
+func TestWebhookFetchBotChannel(t *testing.T) {
+
+	Convey("while testing bot channel fetcher", t, func() {
+
+		Convey("users should not be able to fetch bot channel when they don't have valid nick or group name", func() {
+			nick := ""
+			s, _, _, err := h.FetchBotChannel(
+				mocking.URL(m, "POST", "/account/"+nick+"/bot-channel"),
+				mocking.Header(nil),
+				newBotChannelRequest("hi"),
+			)
+			So(err.Error(), ShouldEqual, ErrUsernameNotSet.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+
+			nick = "canthefason"
+			s, _, _, err = h.FetchBotChannel(
+				mocking.URL(m, "POST", "/account/"+nick+"/bot-channel"),
+				mocking.Header(nil),
+				newBotChannelRequest(""),
+			)
+			So(err.Error(), ShouldEqual, ErrGroupNotSet.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+		})
+
+		Convey("we should not be able to fetch bot channel for a user when they are not participant of the group", func() {
+
+			creator, err := models.CreateAccountInBothDbsWithNick("canthefason")
+			So(err, ShouldBeNil)
+
+			nick := models.RandomName()
+			s, _, _, err := h.FetchBotChannel(
+				mocking.URL(m, "POST", "/account/"+nick+"/bot-channel"),
+				mocking.Header(nil),
+				newBotChannelRequest("hi"),
+			)
+			So(err.Error(), ShouldEqual, ErrAccountNotFound.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+			//So(err, ShouldEqual, ErrAccountIsNotParticipant)
+
+			account, err := models.CreateAccountInBothDbsWithNick("sinan")
+			if err != nil {
+				t.Fatalf("could not create test account: %s", err)
+			}
+
+			s, _, _, err = h.FetchBotChannel(
+				mocking.URL(m, "POST", "/account/"+account.Nick+"/bot-channel"),
+				mocking.Header(nil),
+				newBotChannelRequest("hi"),
+			)
+			So(err.Error(), ShouldEqual, ErrGroupNotFound.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+
+			groupChannel := models.CreateTypedChannelWithTest(creator.Id, models.Channel_TYPE_GROUP)
+			s, _, _, err = h.FetchBotChannel(
+				mocking.URL(m, "POST", "/account/"+account.Nick+"/bot-channel"),
+				mocking.Header(nil),
+				newBotChannelRequest(groupChannel.GroupName),
+			)
+			So(err.Error(), ShouldEqual, ErrAccountIsNotParticipant.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+		})
+
+		Convey("we should be able to fetch bot channel for the user with given nickname when the user is participant of the group", func() {
+			creator, err := models.CreateAccountInBothDbsWithNick("canthefason")
+			So(err, ShouldBeNil)
+
+			account, err := models.CreateAccountInBothDbsWithNick("sinan")
+			So(err, ShouldBeNil)
+
+			groupChannel := models.CreateTypedChannelWithTest(creator.Id, models.Channel_TYPE_GROUP)
+			_, err = groupChannel.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
+
+			s, _, res, err := h.FetchBotChannel(
+				mocking.URL(m, "POST", "/account/"+account.Nick+"/bot-channel"),
+				mocking.Header(nil),
+				newBotChannelRequest(groupChannel.GroupName),
+			)
+			So(err, ShouldBeNil)
+			So(s, ShouldEqual, http.StatusOK)
+			So(res, ShouldNotBeNil)
+			resultMap, ok := res.(map[string]int64)
+			So(ok, ShouldEqual, true)
+			val, ok := resultMap["channelId"]
+			So(ok, ShouldEqual, true)
+			So(val, ShouldNotEqual, 0)
+		})
+
 	})
 }
