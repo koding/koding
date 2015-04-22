@@ -6,9 +6,10 @@ import (
 )
 
 type PrepareRequest struct {
-	Data  *services.ServiceInput
-	Token string
-	Name  string
+	Data      *services.ServiceInput
+	Token     string
+	Name      string
+	GroupName string
 	// Username is used for sending messages
 	// to given user's bot channel
 	Username string
