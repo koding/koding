@@ -25,15 +25,7 @@ module.exports = (options, callback)->
       <link rel="stylesheet" href="/a/site.#{site}/css/main.css?#{KONFIG.version}" />
     </head>
     <body class='home'>
-
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
-
-      <script src="/a/site.#{site}/js/libs.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{site}/js/kd.libs.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{site}/js/kd.js?#{KONFIG.version}"></script>
-      <script>KD.userAccount=#{userAccount}</script>
-      <script>KD.campaignStats=#{campaignStats}</script>
-      <script src="/a/site.#{site}/js/main.js?#{KONFIG.version}"></script>
 
       <!-- SEGMENT.IO -->
       <script type="text/javascript">
@@ -42,8 +34,14 @@ module.exports = (options, callback)->
         window.analytics.page();
       </script>
 
-      #{addSiteScripts site}
+      <script src="/a/site.#{site}/js/libs.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/kd.libs.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/kd.js?#{KONFIG.version}"></script>
+      <script>KD.userAccount=#{userAccount}</script>
+      <script>KD.campaignStats=#{campaignStats}</script>
+      <script src="/a/site.#{site}/js/main.js?#{KONFIG.version}"></script>
 
+      #{addSiteScripts site}
     </body>
     </html>
     """
