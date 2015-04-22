@@ -38,6 +38,9 @@ type (
 		// Holds access information for realtime message authenticator
 		GateKeeper GateKeeper
 
+		// Holds host and port information for integration worker
+		Integration Integration
+
 		Kloud Kloud
 
 		PaymentWebhook PaymentWebhook
@@ -110,6 +113,11 @@ type (
 		Host   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_HOST"`
 		Port   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PORT"`
 		Pubnub Pubnub
+	}
+
+	Integration struct {
+		Host string `env:"key=KONFIG_SOCIALAPI_INTEGRATION_HOST"`
+		Port string `env:"key=KONFIG_SOCIALAPI_INTEGRATION_PORT"`
 	}
 
 	Pubnub struct {
