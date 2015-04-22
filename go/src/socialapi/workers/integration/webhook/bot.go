@@ -3,6 +3,8 @@ package webhook
 import (
 	"socialapi/models"
 	"strconv"
+
+	"github.com/koding/bongo"
 )
 
 const botNick = "bot"
@@ -53,4 +55,67 @@ func (b *Bot) createMessageList(cm *models.ChannelMessage, channelId int64) erro
 	cml.MessageId = cm.Id
 
 	return cml.Create()
+}
+
+func (b *Bot) FetchBotChannel(username, groupName string) (*models.Channel, error) {
+
+	// fetch account id
+	acc := models.NewAccount()
+	if err := acc.ByNick(username); err != nil {
+		return nil, err
+	}
+
+	c, err := b.fetchOrCreateChannel(acc, groupName)
+	if err != nil {
+		return nil, err
+	}
+
+	// add user as participant
+	_, err = c.AddParticipant(acc.Id)
+
+	return c, err
+}
+
+func (b *Bot) fetchOrCreateChannel(a *models.Account, groupName string) (*models.Channel, error) {
+
+	// fetch or create channel
+	c, err := b.fetchBotChannel(a, groupName)
+	if err == bongo.RecordNotFound {
+		return b.createBotChannel(a, groupName)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return c, err
+}
+
+func (b *Bot) fetchBotChannel(a *models.Account, groupName string) (*models.Channel, error) {
+
+	c := models.NewChannel()
+	selector := map[string]interface{}{
+		"creator_id":    a.Id,
+		"type_constant": models.Channel_TYPE_BOT,
+		"group_name":    groupName,
+	}
+
+	// if err is nil
+	// it means we already have that channel
+	err := c.One(bongo.NewQS(selector))
+
+	return c, err
+}
+
+func (b *Bot) createBotChannel(a *models.Account, groupName string) (*models.Channel, error) {
+	c := models.NewChannel()
+
+	c.CreatorId = a.Id
+	c.GroupName = groupName
+	c.Name = models.RandomName()
+	c.TypeConstant = models.Channel_TYPE_BOT
+
+	err := c.Create()
+
+	return c, err
 }
