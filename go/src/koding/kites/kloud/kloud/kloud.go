@@ -8,7 +8,9 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/idlock"
+	"koding/kites/kloud/terraformer"
 
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"golang.org/x/net/context"
@@ -53,12 +55,14 @@ type Kloud struct {
 
 	Metrics *metrics.DogStatsD
 
+	terraformerKite *terraformer.Terraformer
+
 	// Enable debug mode
 	Debug bool
 }
 
 // New creates a new Kloud instance without initializing the default providers.
-func New() *Kloud {
+func New(k *kite.Kite) *Kloud {
 	kld := &Kloud{
 		idlock:    idlock.New(),
 		Log:       logging.NewLogger(NAME),
@@ -66,6 +70,12 @@ func New() *Kloud {
 		providers: make(map[string]interface{}, 0),
 	}
 
+	// this creates a reconnectable kite connection to a local terraformer
+	// instance. We don't check error, instead of panicing or returning just
+	// fail, so any other functionality still works. TerraformerKite will be
+	// nil and any handler that will have access to it need to check it first
+	tfKite, _ := terraformer.Connect(k)
+	kld.terraformerKite = tfKite
 	return kld
 }
 

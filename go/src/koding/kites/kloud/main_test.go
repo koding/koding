@@ -137,6 +137,7 @@ func init() {
 
 	// Add Kloud handlers
 	kld := kloudWithKodingProvider(provider)
+	kloudKite.HandleFunc("plan", kld.Plan)
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("stop", kld.Stop)
@@ -152,32 +153,41 @@ func init() {
 	<-kloudKite.ServerReadyNotify()
 }
 
-func TestBuildWithTerraform(t *testing.T) {
+func TestTerraformPlan(t *testing.T) {
 	t.Parallel()
-	username := "testuser"
+	username := "testuser0"
 	userData, err := createUser(username)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId, userData.Remote); err != nil {
+	remote := userData.Remote
+
+	planArgs := &args{
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+}`,
+	}
+
+	resp, err := remote.Tell("plan", planArgs)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	// now try to ssh into the machine with temporary private key we created in
-	// the beginning
-	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
-		t.Error(err)
+	var result kloud.PlanOutput
+	if err := resp.Unmarshal(&result); err != nil {
+		t.Fatal(err)
 	}
 
-	// invalid calls after build
-	if err := build(userData.MachineId, userData.Remote); err == nil {
-		t.Error("`build` method can not be called on `running` machines.")
-	}
-
-	if err := destroy(userData.MachineId, userData.Remote); err != nil {
-		t.Error(err)
-	}
+	fmt.Printf("result = %+v\n", result)
 }
 
 func TestBuild(t *testing.T) {
@@ -871,7 +881,7 @@ func kodingProvider() *koding.Provider {
 func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	debugEnabled := false
 
-	kld := kloud.New()
+	kld := kloud.New(p.Kite)
 	kld.PublicKeys = publickeys.NewKeys()
 	kld.Log = common.NewLogger("kloud", debugEnabled)
 	kld.DomainStorage = p.DNSStorage

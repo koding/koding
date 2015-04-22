@@ -220,7 +220,7 @@ func newKite(conf *Config) *kite.Kite {
 	// KLOUD DISPATCHER ///
 	stats := common.MustInitMetrics(Name)
 
-	kld := kloud.New()
+	kld := kloud.New(k)
 	kld.Metrics = stats
 	kld.PublicKeys = publickeys.NewKeys()
 	kld.DomainStorage = dnsStorage
@@ -239,6 +239,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	// Machine handling methods
+	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("stop", kld.Stop)
