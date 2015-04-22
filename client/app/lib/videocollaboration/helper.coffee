@@ -6,6 +6,11 @@ whoami          = require 'app/util/whoami'
 getNick         = require 'app/util/nick'
 ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 
+defaultPublisher = ->
+  nick      : getNick()
+  type      : 'publisher'
+  videoData : null
+
 ###*
  * It makes a request to the backend and gets session id
  * and creates a session with that session id.
@@ -60,8 +65,20 @@ generateToken = (options, callback) ->
 toNickKeyedMap = (subscribers, publisher) ->
 
   map = {}
+
+  # we want get participants to return a publisher no matter what, it may not
+  # have a video data (e.g while camera is being asked), but views are
+  # expecting a Publisher no matter what, and it's how it should be. Video
+  # without a publisher is not permitted atm.
+
   map[subscriber.nick] = subscriber  for own cId, subscriber of subscribers when subscriber
-  map[publisher.nick] = publisher  if publisher
+
+  # if default publisher is mutated via `or=` the passed original is being
+  # mutated and affect other parts of the application. That's why copying into
+  # another variable happens here. ~Umut
+  _publisher = publisher ? defaultPublisher()
+  map[_publisher.nick] = _publisher
+
   return map
 
 
