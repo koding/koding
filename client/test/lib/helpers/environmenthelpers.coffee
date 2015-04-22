@@ -16,7 +16,7 @@ module.exports =
 
     modalSelector = '.machine-settings-modal.AppModal'
     itemSelector  = modalSelector + ' .AppModal-navItem' + cssSelector
-    vmSelector    = '.activity-sidebar a[href="/IDE/' + vmName + '"].running'
+    vmSelector    = ".activity-sidebar .sidebar-machine-box.#{vmName} .running"
 
     browser
       .waitForElementVisible   vmSelector, 20000
