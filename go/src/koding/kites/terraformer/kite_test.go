@@ -1,7 +1,6 @@
 package terraformer
 
 import (
-	"fmt"
 	"testing"
 
 	"koding/kites/common"
@@ -10,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/multiconfig"
-	"github.com/kr/pretty"
 )
 
 var variables = map[string]string{
@@ -49,7 +47,67 @@ func withKite(t *testing.T, f func(k *kite.Kite) error) {
 	}
 }
 
-func TestApply(t *testing.T) {
+// func TestApply(t *testing.T) {
+// 	local := kite.New("testing", "1.0.0")
+
+// 	withKite(t, func(k *kite.Kite) error {
+// 		// Connect to our terraformer kite
+// 		tfr := local.NewClient(k.RegisterURL(true).String())
+// 		defer tfr.Close()
+
+// 		tfr.Dial()
+
+// 		req := TerraformRequest{
+// 			Content:   SampleTF,
+// 			Variables: variables,
+// 		}
+
+// 		response, err := tfr.Tell("apply", req)
+// 		if err != nil {
+// 			return err
+// 		}
+
+// 		res := terraform.Plan{}
+// 		if err := response.Unmarshal(&res); err != nil {
+// 			return err
+// 		}
+
+// 		return nil
+// 	})
+
+// }
+
+// func TestDestroy(t *testing.T) {
+// 	local := kite.New("testing", "1.0.0")
+
+// 	withKite(t, func(k *kite.Kite) error {
+// 		// Connect to our terraformer kite
+// 		tfr := local.NewClient(k.RegisterURL(true).String())
+// 		defer tfr.Close()
+
+// 		tfr.Dial()
+
+// 		req := TerraformRequest{
+// 			Content:   SampleTF,
+// 			Variables: variables,
+// 		}
+
+// 		response, err := tfr.Tell("destroy", req)
+// 		if err != nil {
+// 			return err
+// 		}
+
+// 		res := terraform.Plan{}
+// 		if err := response.Unmarshal(&res); err != nil {
+// 			return err
+// 		}
+
+// 		return nil
+// 	})
+
+// }
+
+func TestPlan(t *testing.T) {
 	local := kite.New("testing", "1.0.0")
 
 	withKite(t, func(k *kite.Kite) error {
@@ -73,7 +131,6 @@ func TestApply(t *testing.T) {
 		if err := response.Unmarshal(&res); err != nil {
 			return err
 		}
-		fmt.Printf("1 %# v", pretty.Formatter(1))
 
 		return nil
 	})
