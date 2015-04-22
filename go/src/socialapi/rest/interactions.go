@@ -48,3 +48,19 @@ func DeleteInteraction(interactionType string, postId, accountId int64) error {
 	}
 	return nil
 }
+
+func ListInteractedMesssagesInteraction(iType string, accountId int64, token string) ([]*models.ChannelMessageContainer, error) {
+	url := fmt.Sprintf("/account/%d/interactions/%s", accountId, iType)
+
+	var cm []*models.ChannelMessageContainer
+	res, err := sendRequestWithAuth("GET", url, nil, token)
+	if err != nil {
+		return cm, err
+	}
+
+	err = json.Unmarshal(res, &cm)
+	if err != nil {
+		return nil, err
+	}
+	return cm, nil
+}
