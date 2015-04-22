@@ -24,7 +24,11 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	var args struct {
+		// Terraform template file
 		TerraformContext string
+
+		// provider to jCredential collection id
+		Credentials map[string]string
 	}
 
 	if err := r.Args.One().Unmarshal(&args); err != nil {
@@ -39,7 +43,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("terraformer kite is not initialized")
 	}
 
-	// TODO(arslan): fetch the credentials before we continue
+	// TODO(arslan): fetch the credentials via args.Credentials
 	args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
 		"access_key": "AKIAJTDKW5IFUUIWVNAA",
 		"secret_key": "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",
@@ -112,5 +116,4 @@ func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
 	}
 
 	return out, nil
-
 }
