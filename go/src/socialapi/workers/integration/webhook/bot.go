@@ -10,7 +10,10 @@ import (
 
 const botNick = "bot"
 
-var ErrAccountIsNotParticipant = errors.New("account is not participant of the channel")
+var (
+	ErrAccountIsNotParticipant = errors.New("account is not participant of the channel")
+	ErrAccountNotFound         = errors.New("account not found")
+)
 
 type Bot struct {
 	account *models.Account
@@ -64,7 +67,12 @@ func (b *Bot) FetchBotChannel(username, groupName string) (*models.Channel, erro
 
 	// fetch account id
 	acc := models.NewAccount()
-	if err := acc.ByNick(username); err != nil {
+	err := acc.ByNick(username)
+	if err == bongo.RecordNotFound {
+		return nil, ErrAccountNotFound
+	}
+
+	if err != nil {
 		return nil, err
 	}
 
