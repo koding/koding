@@ -18,6 +18,7 @@ exports.load = (cb) ->
   listeners.push cb
 
   if not pending
+    pending = yes
     emmetPath = globals.acePath.split('/').slice(0, -1)
       .concat(['_ext-emmet.js']).join('/')
     getscript emmetPath, handle
