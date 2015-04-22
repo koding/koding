@@ -30,10 +30,11 @@ module.exports = class MachineSettingsModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'machine-settings-modal AppModal'
-    options.title    = 'VM Settings'
-    options.width    = 805
-    options.height   = 400
+    options.cssClass  = 'machine-settings-modal AppModal'
+    options.title     = 'VM Settings'
+    options.width     = 805
+    options.height    = 400
+    options.overlay  ?= yes
 
     super options, data
 
