@@ -57,13 +57,6 @@ module.exports = class KodingRouter extends kd.Router
         return kd.warn err  if err
         kd.utils.defer => @handleRoute route, options
 
-    if entryPoint?.slug and entryPoint.type is "group"
-      entrySlug = "/" + entryPoint.slug
-      # if incoming route is prefixed with groupname or entrySlug is the route
-      # also we dont want koding as group name
-      if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
-        route =  entrySlug + route
-
     return @handleRoute @getDefaultRoute()  if /<|>/.test route
     super route, options
 
