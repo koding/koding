@@ -114,9 +114,6 @@ serveHome = (req, res, next) ->
       fn                    = if state then loggedIn else loggedOut
       options = { client, account, bongoModels, params, session}
 
-
-      console.log 'groupName', session
-
       fn.kodingHome options, (err, subPage)->
         return next()  if err
         serve subPage, res
