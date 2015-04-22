@@ -15,6 +15,8 @@ version=$(git rev-parse HEAD || cat ./VERSION || cat ../VERSION || cat ../../../
 ldflags="-X koding/artifact.VERSION ${version:0:8}"
 
 services=(
+  golang.org/x/tools/cmd/stringer
+
   koding/broker
   koding/rerouting
   koding/kites/os
@@ -72,3 +74,17 @@ services=(
 cd $GOPATH
 mkdir -p build/broker
 cp bin/broker build/broker/broker
+
+#
+# terraform related build operations
+# TODO ~ this should be done in a more elegant way
+#
+tldflags="-X main.GitCommit ${version:0:8}"
+
+`which go` build -o bin/terraform-provider-aws -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provider-aws
+`which go` build -o bin/terraform-provider-terraform -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provider-terraform
+
+`which go` build -o bin/terraform-provisioner-file -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-file
+`which go` build -o bin/terraform-provisioner-local-exec -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
+`which go` build -o bin/terraform-provisioner-remote-exec -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
+
