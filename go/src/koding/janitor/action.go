@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
@@ -15,8 +14,6 @@ var (
 		1: "inactive user warning1 v1",
 		2: "inactive user warning2 v1",
 	}
-
-	ErrSubjectNotFound = fmt.Errorf("subject not found")
 )
 
 type Action func(*models.User, int) error
@@ -46,7 +43,6 @@ func SendEmail(user *models.User, levelId int) error {
 	return emailsender.Send(mail)
 }
 
-// request arguments
 type requestArgs struct {
 	MachineId string `json:"machineId"`
 }
@@ -58,12 +54,11 @@ func DeleteVMs(user *models.User, _ int) error {
 	}
 
 	if KiteClient == nil {
-		return fmt.Errorf(
-			"Klient not initialized. Not deleting vms for user: %s", user.Name,
-		)
+		return ErrKloudKlientNotInitialized
 	}
 
 	for _, machine := range machines {
+		// avoid spamming kloud
 		time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
 
 		_, err := KiteClient.Tell("destroy", &requestArgs{
@@ -73,10 +68,6 @@ func DeleteVMs(user *models.User, _ int) error {
 		if err != nil && !isVmAlreadyStoppedErr(err) {
 			Log.Error("Error destroying machine:%s for username: %s, %v", user.Name,
 				machine.ObjectId, err)
-		}
-
-		if err != nil {
-			Log.Error(err.Error())
 		}
 	}
 

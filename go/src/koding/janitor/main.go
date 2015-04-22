@@ -33,33 +33,21 @@ var (
 	DailyAtEightAM = "0 0 4 * * *"
 )
 
-type Janitor struct {
-	Port              string `required:"true"`
-	Mongo             string `required:"true"`
-	KloudSecretKey    string `required:"true"`
-	KloudAddr         string `required:"true"`
-	SendgridUsername  string `required:"true"`
-	SendgridPassword  string `required:"true"`
-	SendgridRecipient string
-}
-
 func main() {
 	r := initializeRunner()
-	go r.Listen()
-
 	port := r.Conf.Janitor.Port
 
-	// initialize client to talk to kloud
-	var err error
+	go r.Listen()
 
+	var err error
 	kConf := r.Conf.Kloud
+
 	KiteClient, err = initializeKiteClient(kConf.SecretKey, kConf.Address)
 	if err != nil {
 		Log.Fatal("Error initializing kite: %s", err.Error())
 	}
 
 	c := cron.New()
-
 	c.AddFunc(DailyAtEightAM, func() {
 		for _, warning := range Warnings {
 			result := warning.Run()
@@ -70,16 +58,15 @@ func main() {
 	c.Start()
 
 	mux := http.NewServeMux()
-
 	mux.HandleFunc("/version", artifact.VersionHandler())
 	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
-
-	Log.Info("Listening on port: %s", port)
 
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		Log.Fatal("Error opening tcp connection: %s", err.Error())
 	}
+
+	Log.Info("Listening on port: %s", port)
 
 	defer func() {
 		r.Close()
