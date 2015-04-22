@@ -116,7 +116,7 @@ subscribeToStream = (session, stream, view, callbacks) ->
  * It creates the `OT.Publisher` instance for sending video/audio.
  *
  * @param {KDView} view - view instance for publisher.
- * @param {objcet=} options - Options to pass to `OT.initPublisher` method
+ * @param {object=} options - Options to pass to `OT.initPublisher` method
  * @param {string=} options.insertMode
  * @param {string=} options.name
  * @param {objcet=} options.style
