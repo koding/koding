@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"errors"
 	"socialapi/models"
 	"strconv"
 
@@ -8,6 +9,8 @@ import (
 )
 
 const botNick = "bot"
+
+var ErrAccountIsNotParticipant = errors.New("account is not participant of the channel")
 
 type Bot struct {
 	account *models.Account
@@ -65,6 +68,17 @@ func (b *Bot) FetchBotChannel(username, groupName string) (*models.Channel, erro
 		return nil, err
 	}
 
+	// prevent sending bot messages when the user is not participant
+	// of the given group
+	canOpen, err := b.checkParticipation(acc, groupName)
+	if err != nil {
+		return nil, err
+	}
+
+	if !canOpen {
+		return nil, ErrAccountIsNotParticipant
+	}
+
 	c, err := b.fetchOrCreateChannel(acc, groupName)
 	if err != nil {
 		return nil, err
@@ -118,4 +132,24 @@ func (b *Bot) createBotChannel(a *models.Account, groupName string) (*models.Cha
 	err := c.Create()
 
 	return c, err
+}
+
+func (b *Bot) checkParticipation(a *models.Account, groupName string) (bool, error) {
+	c := models.NewChannel()
+
+	selector := map[string]interface{}{
+		"type_constant": models.Channel_TYPE_GROUP,
+		"group_name":    groupName,
+	}
+
+	err := c.One(bongo.NewQS(selector))
+	if err == bongo.RecordNotFound {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return c.CanOpen(a.Id)
 }
