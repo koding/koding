@@ -11,6 +11,7 @@ globals              = require 'globals'
 trackEvent           = require 'app/util/trackEvent'
 FSHelper             = require 'app/util/fs/fshelper'
 settings             = require './settings'
+EmmetLoader          = require './emmetloader'
 
 module.exports =
 
@@ -165,19 +166,20 @@ class Ace extends KDView
     @appStorage.fetchStorage (storage) =>
 
       @setTheme()
-      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes    ,no
-      @setShowGutter          @appStorage.getValue('showGutter')          ? yes    ,no
-      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no     ,no
-      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no     ,no
-      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes    ,no
-      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no     ,no
-      @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
-      @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
+      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes       , no
+      @setShowGutter          @appStorage.getValue('showGutter')          ? yes       , no
+      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no        , no
+      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no        , no
+      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes       , no
+      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no        , no
+      @setFontSize            @appStorage.getValue('fontSize')            ? 12        , no
+      @setTabSize             @appStorage.getValue('tabSize')             ? 4         , no
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
-      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
-      @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes    ,no
+      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes       , no
+      @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
+      @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
 
 
   saveStarted: ->
@@ -506,6 +508,20 @@ class Ace extends KDView
 
   setOpenRecentFiles: (value, save = yes) ->
     @appStorage.setValue 'openRecentFiles', value
+
+
+  setEnableEmmet: (value, save = yes) ->
+
+    next = =>
+      @editor.setOption 'enableEmmet', value
+      @appStorage.setValue 'enableEmmet', value  if save
+
+    if value is yes
+      EmmetLoader.load (err) =>
+        throw err  if err
+        next()
+    else
+      next()
 
 
   setEnableSnippets: (value, save = yes) ->
