@@ -59,6 +59,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/dnsstorage"
@@ -87,9 +88,10 @@ var (
 )
 
 type args struct {
-	MachineId  string
-	SnapshotId string
-	Provider   string
+	MachineId        string
+	SnapshotId       string
+	Provider         string
+	TerraformContext string
 }
 
 type singleUser struct {
@@ -148,6 +150,34 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
+}
+
+func TestBuildWithTerraform(t *testing.T) {
+	t.Parallel()
+	username := "testuser"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	// now try to ssh into the machine with temporary private key we created in
+	// the beginning
+	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
+		t.Error(err)
+	}
+
+	// invalid calls after build
+	if err := build(userData.MachineId, userData.Remote); err == nil {
+		t.Error("`build` method can not be called on `running` machines.")
+	}
+
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestBuild(t *testing.T) {
@@ -507,6 +537,17 @@ func build(id string, remote *kite.Client) error {
 	buildArgs := &args{
 		MachineId: id,
 		Provider:  "koding",
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+}`,
 	}
 
 	resp, err := remote.Tell("build", buildArgs)
@@ -804,7 +845,7 @@ func kodingProvider() *koding.Provider {
 
 	return &koding.Provider{
 		DB:         db,
-		Log:        newLogger("koding", true),
+		Log:        common.NewLogger("koding", true),
 		DNSClient:  dnsclient.NewRoute53Client("dev.koding.io", auth),
 		DNSStorage: dnsstorage.NewMongodbStorage(db),
 		Kite:       kloudKite,
@@ -832,7 +873,7 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 
 	kld := kloud.New()
 	kld.PublicKeys = publickeys.NewKeys()
-	kld.Log = newLogger("kloud", debugEnabled)
+	kld.Log = common.NewLogger("kloud", debugEnabled)
 	kld.DomainStorage = p.DNSStorage
 	kld.Domainer = p.DNSClient
 	kld.Locker = p
