@@ -1,10 +1,9 @@
-$ = require 'jquery'
-_ = require 'lodash'
-kd = require 'kd'
-remote = require('app/remote').getInstance()
-whoami = require 'app/util/whoami'
-getNick = require 'app/util/nick'
-
+$               = require 'jquery'
+_               = require 'lodash'
+kd              = require 'kd'
+remote          = require('app/remote').getInstance()
+whoami          = require 'app/util/whoami'
+getNick         = require 'app/util/nick'
 ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 
 ###*
