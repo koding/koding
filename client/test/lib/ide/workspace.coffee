@@ -61,8 +61,8 @@ module.exports =
     workspaceName1 = helpers.createWorkspace(browser)
     workspaceName2 = helpers.createWorkspace(browser)
     vmName         = 'koding-vm-0'
-    workspaceLink1 = 'a[href="/IDE/' + vmName + '/' + workspaceName1 + '"]'
-    workspaceLink2 = 'a[href="/IDE/' + vmName + '/' + workspaceName2 + '"]'
+    workspaceLink1 = "a[href='/IDE/#{vmName}/#{workspaceName1}']"
+    workspaceLink2 = "a[href='/IDE/#{vmName}/#{workspaceName2}']"
 
     browser
       .waitForElementPresent  workspaceLink1, 20000 # Assertion
