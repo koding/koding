@@ -13,6 +13,7 @@ const botNick = "bot"
 var (
 	ErrAccountIsNotParticipant = errors.New("account is not participant of the channel")
 	ErrAccountNotFound         = errors.New("account not found")
+	ErrGroupNotFound           = errors.New("group not found")
 )
 
 type Bot struct {
@@ -152,7 +153,7 @@ func (b *Bot) checkParticipation(a *models.Account, groupName string) (bool, err
 
 	err := c.One(bongo.NewQS(selector))
 	if err == bongo.RecordNotFound {
-		return false, nil
+		return false, ErrGroupNotFound
 	}
 
 	if err != nil {

@@ -116,7 +116,8 @@ func TestFetchBotChannel(t *testing.T) {
 
 		Convey("we should not be able to fetch bot channel for a user when they are not participant of the group", func() {
 
-			_, err := bot.FetchBotChannel(acc.Nick, groupName)
+			groupChannel := models.CreateTypedChannelWithTest(bot.account.Id, models.Channel_TYPE_GROUP)
+			_, err := bot.FetchBotChannel(acc.Nick, groupChannel.GroupName)
 			So(err, ShouldEqual, ErrAccountIsNotParticipant)
 		})
 
