@@ -19,7 +19,7 @@ module.exports =
 
       password = @getPassword()
 
-      email = "kodingtestuser+#{username}@gmail.com"
+      email = "kodingtestuser+#{username}@koding.com"
 
       users.push { name, email, username, password }
 
