@@ -107,7 +107,7 @@ module.exports = class AccountEditUsername extends JView
           cssClass         : 'AppModal-form-sectionHeader'
         shareLocationLabel :
           itemClass        : KDCustomHTMLView
-          partial          : 'Share my location while posting'
+          partial          : 'Share my location when I post something on Koding Channels'
           tagName          : 'ul'
           cssClass         : 'AppModal--account-switchList left-aligned'
           name             : 'shareLocationLabel'
