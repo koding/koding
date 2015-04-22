@@ -15,7 +15,6 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
-	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/waitstate"
 
@@ -107,45 +106,45 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 
 	////////////// TERRAFORMER KITE ////////////////
-	tfKite, err := terraformer.Connect(m.Session.Kite)
-	if err != nil {
-		return err
-	}
+	// 	tfKite, err := terraformer.Connect(m.Session.Kite)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-	appendVariables := func(hclFile string, vars map[string]string) string {
-		// TODO: use hcl encoder, this is just for testing
-		for k, v := range vars {
-			hclFile += "\n"
-			varTemplate := `
-variable "%s" {
-    default = "%s"
-}
-`
-			hclFile += fmt.Sprintf(varTemplate, k, v)
-		}
+	// 	appendVariables := func(hclFile string, vars map[string]string) string {
+	// 		// TODO: use hcl encoder, this is just for testing
+	// 		for k, v := range vars {
+	// 			hclFile += "\n"
+	// 			varTemplate := `
+	// variable "%s" {
+	//     default = "%s"
+	// }
+	// `
+	// 			hclFile += fmt.Sprintf(varTemplate, k, v)
+	// 		}
 
-		return hclFile
+	// 		return hclFile
 
-	}
-	args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
-		"access_key": "AKIAJTDKW5IFUUIWVNAA",
-		"secret_key": "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",
-	})
-	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
+	// 	}
+	// 	args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
+	// 		"access_key": "AKIAJTDKW5IFUUIWVNAA",
+	// 		"secret_key": "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",
+	// 	})
+	// 	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
 
-	plan, err := tfKite.Plan(args.TerraformContext)
-	if err != nil {
-		return err
-	}
+	// 	plan, err := tfKite.Plan(args.TerraformContext)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-	out, err := jsonFromPlan(plan)
-	if err != nil {
-		return err
-	}
+	// 	out, err := jsonFromPlan(plan)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-	fmt.Println(out)
+	// 	fmt.Println(out)
 
-	return errors.New("THANKS BRO, I've got my PLAN!")
+	// 	return errors.New("THANKS BRO, I've got my PLAN!")
 
 	////////////// TERRAFORMER KITE ////////////////
 
