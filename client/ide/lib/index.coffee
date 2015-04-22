@@ -92,12 +92,12 @@ class IDEAppController extends AppController
     @layout = ndpane(16)
     @layoutMap = new Array(16*16)
 
-    {windowController} = kd.singletons
+    {windowController, appManager} = kd.singletons
     windowController.addFocusListener @bound 'setActivePaneFocus'
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
-    kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
+    appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app instanceof IDEAppController
 
@@ -106,9 +106,12 @@ class IDEAppController extends AppController
       # Temporary fix for IDE is not shown after
       # opening pages which uses old SplitView.
       # TODO: This needs to be fixed. ~Umut
-      kd.singletons.windowController.notifyWindowResizeListeners()
+      windowController.notifyWindowResizeListeners()
 
       @resizeActiveTerminalPane()
+
+      {onboardingController} = kd.singletons
+      onboardingController?.runOnboarding 'IDE'  if appManager.frontApp is this and @isMachineRunning()
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -324,7 +327,7 @@ class IDEAppController extends AppController
 
   isMachineRunning: ->
 
-    return @mountedMachine.status.state is Running
+    return @mountedMachine?.status.state is Running
 
 
   createInitialView: (withFakeViews) ->
@@ -943,12 +946,12 @@ class IDEAppController extends AppController
       else
         @addInitialViews()
 
-      { mainView, onboardingController } = kd.singletons
+      { mainView, onboardingController, appManager } = kd.singletons
 
       data = { machine, workspace: @workspaceData }
       mainView.activitySidebar.selectWorkspace data
 
-      onboardingController.runOnboarding 'IDE'
+      onboardingController.runOnboarding 'IDE'  if appManager.frontApp is this
 
       @emit 'IDEReady'
 
