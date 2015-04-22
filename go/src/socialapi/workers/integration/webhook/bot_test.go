@@ -114,5 +114,13 @@ func TestFetchBotChannel(t *testing.T) {
 			So(testchannel.Id, ShouldEqual, channel.Id)
 		})
 
+		Convey("we should be able to fetch bot channel for the user with given nickname", func() {
+
+			testchannel, err := bot.FetchBotChannel(acc.Nick, groupName)
+			So(err, ShouldBeNil)
+			So(testchannel, ShouldNotBeNil)
+			So(testchannel.CreatorId, ShouldEqual, acc.Id)
+		})
+
 	})
 }
