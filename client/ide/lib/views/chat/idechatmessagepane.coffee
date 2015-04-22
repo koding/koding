@@ -152,6 +152,8 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
         <p>Start your collaboration session by <a href="#">adding someone</a>.</p>
       """
 
+    channel.once 'AddedToChannel', @bound 'removeOnboarding'
+
 
   handleOnboardingViewClick: (e) ->
 
@@ -243,7 +245,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   participantAdded: (participant) ->
 
-    @onboarding?.destroy()
+    @removeOnboarding()
 
     appManager = kd.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
@@ -263,3 +265,9 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     item.checkIfItsTooTall()  for item in @listController.getListItems()
     @scrollView.wrapper.emit 'MutationHappened'
     @scrollDown()
+
+
+  removeOnboarding: ->
+
+    @onboarding?.destroy()
+    delete @onboarding
