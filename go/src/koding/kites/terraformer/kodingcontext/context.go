@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 	"path"
 
 	"koding/kites/terraformer/kodingcontext/pkg"
@@ -30,6 +29,9 @@ var (
 
 type Context struct {
 	Variables map[string]string
+
+	// storage holds the plans of terraform
+	Storage Storage
 
 	baseDir      string
 	providers    map[string]terraform.ResourceProviderFactory
@@ -109,52 +111,23 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 }
 
 func (c *Context) Close() error {
-	if c.baseDir == "" {
-		return nil
+	dir, err := c.Storage.BasePath()
+	if err != nil {
+		return err
 	}
 
-	return os.RemoveAll(c.baseDir)
-}
-
-func (c *Context) validate() error {
-	if c.baseDir == "" {
-		return ErrBaseDirNotSet
-	}
-
-	if len(c.Variables) == 0 {
-		return ErrVariablesNotSet
-	}
-
-	return nil
+	return c.Storage.Clean(dir)
 }
 
 func (c *Context) createDirAndFile(content io.Reader) (dir string, err error) {
-	file, err := ioutil.ReadAll(content)
-	if err != nil {
-		return "", err
-	}
-
-	dir, err = c.getBaseDir()
+	dir, err = c.Storage.BasePath()
 	if err != nil {
 		return "", err
 	}
 
 	path := path.Join(dir, c.id+mainFileName+terraformFileExt)
 
-	tf, err := os.Create(path)
-	if err != nil {
-		return "", err
-	}
-	defer tf.Close()
-
-	// do the writing
-	_, err = tf.Write(file)
-	if err != nil {
-		return "", err
-	}
-
-	// Sync commits the current contents of the file to disk
-	if err := tf.Sync(); err != nil {
+	if err := c.Storage.Write(path, content); err != nil {
 		return "", err
 	}
 
