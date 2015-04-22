@@ -112,3 +112,28 @@ module.exports =
       .waitForElementNotVisible  activitySelector + ' [testpath=post-activity-button]',25000
       .pause  3000
       .end()
+
+
+  cancelEditingPost: (browser) ->
+
+    helpers.postActivity(browser)
+
+    postSelector            = "#{activitySelector} .activity-content-wrapper"
+    editWidgetSelector      = "#{activitySelector} .activity-input-widget.edit-widget"
+    settingsWrapperSelector = "#{activitySelector} .settings-menu-wrapper"
+    post                    = helpers.getFakeText()
+
+    browser
+      .waitForElementVisible    settingsWrapperSelector, 25000
+      .click                    settingsWrapperSelector
+      .waitForElementVisible    '.kdcontextmenu .edit-post', 20000
+      .click                    '.kdcontextmenu .edit-post'
+      .waitForElementVisible    editWidgetSelector, 20000
+      .setValue                 "#{editWidgetSelector} [testpath=ActivityInputView]", post
+      .click                    "#{activitySelector} .cancel-editing"
+      .waitForElementNotPresent editWidgetSelector, 20000
+      .pause                    2000, ->
+        text = browser.getText postSelector
+        assert.notEqual text, post # Assertion
+      .end()
+
