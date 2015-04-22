@@ -1203,7 +1203,6 @@ module.exports = class JUser extends jraphical.Module
     unless typeof email is 'string'
       return callback createKodingError 'Not a valid email!'
 
-    email = email.toLowerCase()
     email = (require "./emailSanitize")(email)
 
     @count {email}, (err, count)->

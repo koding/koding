@@ -2,6 +2,10 @@
 emailSanitize = require "../models/user/emailsanitize"
 
 describe 'Gmail Validation', ->
+  it 'downcases', ->
+    expected = 'INDIANAJONES@gmail.com'
+    expect(emailSanitize(expected)).to.equal expected.toLowerCase()
+
   it 'removes dots', ->
     expected = 'indiana.jones@gmail.com'
     equals   = 'indianajones@gmail.com'

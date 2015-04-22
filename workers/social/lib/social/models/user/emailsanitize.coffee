@@ -1,5 +1,7 @@
 module.exports = emailSanitize = (email)->
 
+  email = email.toLowerCase()
+
   # Special rules for Gmail and Googlemail. Googlemail is for users
   # in Germany, Poland and Russia.
   if /^(.)+@(gmail|googlemail).com/.test email
