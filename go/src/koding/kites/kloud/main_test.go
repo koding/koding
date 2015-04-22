@@ -182,7 +182,7 @@ resource "aws_instance" "example" {
 		t.Fatal(err)
 	}
 
-	var result kloud.PlanOutput
+	var result *kloud.PlanOutput
 	if err := resp.Unmarshal(&result); err != nil {
 		t.Fatal(err)
 	}

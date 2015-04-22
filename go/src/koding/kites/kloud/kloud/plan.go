@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -52,7 +51,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return jsonFromPlan(plan)
+	return machineFromPlan(plan)
 }
 
 // appendVariables appends the given key/value credentials to the hclFile (terraform) file
@@ -70,8 +69,7 @@ variable "%s" {
 	return hclFile
 }
 
-// jsonFromPlan returns a simple json string from the given plan
-func jsonFromPlan(plan *terraform.Plan) (string, error) {
+func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
 	out := &PlanOutput{
 		Machines: make([]PlanMachine, 0),
 	}
@@ -79,11 +77,11 @@ func jsonFromPlan(plan *terraform.Plan) (string, error) {
 	attrs := make(map[string]string, 0)
 
 	if plan.Diff == nil {
-		return "", errors.New("plan diff is empty")
+		return nil, errors.New("plan diff is empty")
 	}
 
 	if plan.Diff.Modules == nil {
-		return "", errors.New("plan diff module is empty")
+		return nil, errors.New("plan diff module is empty")
 	}
 
 	for _, d := range plan.Diff.Modules {
@@ -103,7 +101,7 @@ func jsonFromPlan(plan *terraform.Plan) (string, error) {
 			// providerResource is in the form of "aws_instance.foo"
 			splitted := strings.Split(providerResource, "_")
 			if len(splitted) == 0 {
-				return "", fmt.Errorf("provider resource is unknown: %v", splitted)
+				return nil, fmt.Errorf("provider resource is unknown: %v", splitted)
 			}
 
 			out.Machines = append(out.Machines, PlanMachine{
@@ -113,10 +111,6 @@ func jsonFromPlan(plan *terraform.Plan) (string, error) {
 		}
 	}
 
-	jsonOut, err := json.Marshal(&out)
-	if err != nil {
-		return "", err
-	}
+	return out, nil
 
-	return string(jsonOut), nil
 }
