@@ -10,10 +10,12 @@ nicetime            = require '../util/nicetime'
 
 module.exports = class SnapshotListItem extends kd.ListItemView
 
-  constructor: (options={}, data) ->
+  constructor: (options = {}, data) ->
 
-    options.cssClass = "snapshot #{options.cssClass}"
+    options.cssClass = kd.utils.curry options.cssClass, 'snapshot'
+
     super options, data
+
     @initViews()
     @setLabel data.label
     @setCreatedAt data.createdAt
@@ -23,7 +25,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###*
    * Display a simple Notification to the user.
   ###
-  @notify: (msg="") ->
+  @notify: (msg = "") ->
 
     new kd.NotificationView content: msg
     return
@@ -122,7 +124,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     kloud.deleteSnapshot {machineId, snapshotId}
       .then =>
-        @getDelegate().emit 'DeleteSnapshot', @
+        @getDelegate().emit 'DeleteSnapshot', this
         @destroy()
       .catch (err) -> kd.warn err
     return
@@ -147,21 +149,17 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     # Called once we have a jSnapshot to work with
     rename = (snapshot) => snapshot.rename label, (err) =>
-      if err?
-        kd.warn "SnapshotListItem.renameSnapshot:", err
-        return
+      return kd.warn err  if err
       @toggleEditable()
       @setLabel label
-      @getDelegate().emit "RenameSnapshot", @, label
+      @getDelegate().emit "RenameSnapshot", this, label
 
     # If data is a jsnapshot, we don't need to fetch it
     if data instanceof JSnapshot
       rename data
     else
       JSnapshot.one snapshotId, (err, snapshot) =>
-        if err?
-          kd.warn "SnapshotListItem.renameSnapshot Error:", err
-          return
+        return kd.warn err  if err
 
         if not snapshot?
           kd.warn "SnapshotListItem.renameSnapshot Error:

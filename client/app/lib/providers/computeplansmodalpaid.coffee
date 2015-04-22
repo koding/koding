@@ -59,15 +59,15 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     regionContainer.addSubView @regionTextView = new KDView
 
     content.addSubView @snapshotsContainer = new KDView
-      cssClass : "snapshots-container hidden"
+      cssClass : 'snapshots-container hidden'
 
     @snapshotsContainer.addSubView new KDView
-      cssClass : "container-title"
-      partial  : "build from snapshot"
+      cssClass : 'container-title'
+      partial  : 'build from snapshot'
 
     @snapshotsContainer.addSubView @snapshotsSelector = new KDSelectBox
-      name          : "snapshots"
-      selectOptions : [ title: "None", value: null ]
+      name          : 'snapshots'
+      selectOptions : [ title: 'None', value: null ]
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
@@ -122,7 +122,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
   populateSnapshotsSelector: ->
 
     JSnapshot.some {}, {}, (err, snapshots) =>
-      return kd.warn err  if err?
+      return kd.warn err  if err
       # If no snapshots were returned, the user has no snapshots, and
       # no action is needed
       return  if not snapshots? or snapshots.length is 0
@@ -135,7 +135,6 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       @snapshotsSelector.setSelectOptions formatted
       @snapshotsSelector.setValue null # Default to None
       @snapshotsContainer.show()
-    return
 
 
   updateRegionText: ->

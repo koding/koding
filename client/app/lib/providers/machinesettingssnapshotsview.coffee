@@ -13,7 +13,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
   constructor:(options = {}, data) ->
 
-    options.cssClass             = "snapshots #{options.cssClass}"
+    options.cssClass             = kd.utils.curry options.cssClass, 'snapshots'
     options.headerTitle          = 'Snapshots'
     options.addButtonTitle       = 'ADD SNAPSHOT'
     options.headerAddButtonTitle = 'ADD NEW SNAPSHOT'
@@ -27,22 +27,19 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    *
    * @param {Function(err:Error, snapshots:[JSnapshot]} callback
   ###
-  @fetchSnapshots: (callback=kd.noop) ->
+  @fetchSnapshots: (callback = kd.noop) ->
 
     JSnapshot.some {}, {}, (err, snapshots) =>
-      if err?
-        return callback err
+      return callback err  if err
       callback err, snapshots
-    return
 
 
   ###*
    * Display a simple Notification to the user.
   ###
-  @notify: (msg="") ->
+  @notify: (msg = "") ->
 
     new kd.NotificationView content: msg
-    return
 
 
   ###*
@@ -51,7 +48,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * @param {String} label - The label (name) of the snapshot
    * @param {Function(err:Error, snapshot:JSnapshot)} callback
   ###
-  createSnapshot: (label, callback=kd.noop) ->
+  createSnapshot: (label, callback = kd.noop) ->
 
     computeController = kd.getSingleton 'computeController'
     machine           = @getData()
@@ -63,22 +60,22 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     # TODO: Confirm that this is the proper way to achieve this
     # result.
     findJustCreatedSnapshot = ->
-      JSnapshot.some {machineId}, {sort: {createdAt: -1}, limit: 1},
-        (err, [snapshot]) =>
-          if err?
-            return callback err
-          if not snapshot?
+      JSnapshot.some { machineId }, { sort: { createdAt: -1 }, limit: 1 },
+        (err, snapshots) =>
+          return callback err  if err
+          [snapshot] = snapshots
+          if not snapshot
             return callback new Error 'Cannot find most recent snapshot'
           callback null, snapshot
 
-    monitorProgress = => computeController.on eventId, ({percentage}) =>
+    monitorProgress = => computeController.on eventId, (event) =>
+      {percentage} = event
       findJustCreatedSnapshot() if percentage >= 100
       @emit 'SnapshotProgress', percentage
 
     computeController.createSnapshot machine, label
       .then monitorProgress
       .catch callback
-    return
 
 
   ###*
@@ -100,9 +97,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       @hideAddView()
       @addInputView.setValue ''
       @addNewButton.hideLoader()
-      return kd.warn err  if err?
+      return kd.warn err  if err
       @listController.addItem snapshot
-    return
 
 
   ###*
@@ -110,8 +106,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###
   initList: ->
 
-    MachineSettingsSnapshotsView.fetchSnapshots (err, snapshots=[]) =>
-      kd.warn err  if err?
+    MachineSettingsSnapshotsView.fetchSnapshots (err, snapshots = []) =>
+      kd.warn err  if err
       @listController.lazyLoader.hide()
       @listController.replaceAllItems snapshots
 
