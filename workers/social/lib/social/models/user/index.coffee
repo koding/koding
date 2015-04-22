@@ -1203,7 +1203,7 @@ module.exports = class JUser extends jraphical.Module
     unless typeof email is 'string'
       return callback createKodingError 'Not a valid email!'
 
-    email = (require "./emailSanitize")(email)
+    email = (require "./emailsanitize")(email)
 
     @count {email}, (err, count)->
       callback err, count is 0
