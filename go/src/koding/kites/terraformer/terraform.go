@@ -16,13 +16,16 @@ var (
 )
 
 type Terraformer struct {
+	// Log is a specialized log system for terraform
 	Log logging.Logger
 
+	// Metrics holds the metric aggregator
 	Metrics *metrics.DogStatsD
 
 	// Enable debug mode
 	Debug bool
 
+	// Context holds the initial context, all usages should clone it
 	Context *kodingcontext.Context
 }
 
