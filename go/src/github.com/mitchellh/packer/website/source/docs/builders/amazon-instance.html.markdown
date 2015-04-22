@@ -1,13 +1,15 @@
 ---
 layout: "docs"
 page_title: "Amazon AMI Builder (instance-store)"
+description: |-
+  The `amazon-instance` Packer builder is able to create Amazon AMIs backed by instance storage as the root device. For more information on the difference between instance storage and EBS-backed instances, see the storage for the root device section in the EC2 documentation.
 ---
 
 # AMI Builder (instance-store)
 
 Type: `amazon-instance`
 
-The `amazon-instance` builder is able to create Amazon AMIs backed by
+The `amazon-instance` Packer builder is able to create Amazon AMIs backed by
 instance storage as the root device. For more information on the difference
 between instance storage and EBS-backed instances, see the
 ["storage for the root device" section in the EC2 documentation](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ComponentsAMIs.html#storage-for-the-root-device).
@@ -23,12 +25,10 @@ quite a bit.
 The builder does _not_ manage AMIs. Once it creates an AMI and stores it
 in your account, it is up to you to use, delete, etc. the AMI.
 
-<div class="alert alert-block alert-info">
-<strong>Note:</strong> This builder requires that the
-<a href="http://aws.amazon.com/developertools/368">Amazon EC2 AMI Tools</a>
+-> **Note** This builder requires that the
+[Amazon EC2 AMI Tools](http://aws.amazon.com/developertools/368)
 are installed onto the machine. This can be done within a provisioner, but
 must be done before the builder finishes running.
-</div>
 
 ## Configuration Reference
 
@@ -39,8 +39,8 @@ each category, the available configuration keys are alphabetized.
 ### Required:
 
 * `access_key` (string) - The access key used to communicate with AWS.
-  If not specified, Packer will use the environment variables
-  `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (in that order), if set.
+  If not specified, Packer will use the key from any [credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files) file
+  or fall back to environment variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (in that order), if set.
 
 * `account_id` (string) - Your AWS account ID. This is required for bundling
   the AMI. This is _not the same_ as the access key. You can find your
@@ -61,8 +61,8 @@ each category, the available configuration keys are alphabetized.
   This bucket will be created if it doesn't exist.
 
 * `secret_key` (string) - The secret key used to communicate with AWS.
-  If not specified, Packer will use the environment variables
-  `AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (in that order), if set.
+  If not specified, Packer will use the secret from any [credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files) file
+  or fall back to environment variables `AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (in that order), if set.
 
 * `source_ami` (string) - The initial AMI used as a base for the newly
   created machine.
@@ -84,7 +84,7 @@ each category, the available configuration keys are alphabetized.
   device mappings to the AMI. The block device mappings allow for keys:
   "device\_name" (string), "virtual\_name" (string), "snapshot\_id" (string),
   "volume\_type" (string), "volume\_size" (integer), "delete\_on\_termination"
-  (boolean), "no\_device" (boolean), and "iops" (integer).
+  (boolean), "encrypted" (boolean), "no\_device" (boolean), and "iops" (integer).
   See [amazon-ebs](/docs/builders/amazon-ebs.html) for an example template.
 
 * `ami_description` (string) - The description to set for the resulting
@@ -133,6 +133,9 @@ each category, the available configuration keys are alphabetized.
 * `bundle_vol_command` (string) - The command to use to bundle the volume.
   See the "custom bundle commands" section below for more information.
 
+* `enhanced_networking` (boolean) - Enable enhanced networking (SriovNetSupport) on
+  HVM-compatible AMIs. If true, add `ec2:ModifyInstanceAttribute` to your AWS IAM policy.
+
 * `iam_instance_profile` (string) - The name of an
   [IAM instance profile](http://docs.aws.amazon.com/IAM/latest/UserGuide/instance-profiles.html)
   to launch the EC2 instance with.
@@ -153,13 +156,28 @@ each category, the available configuration keys are alphabetized.
 
 * `security_group_ids` (array of strings) - A list of security groups as
   described above. Note that if this is specified, you must omit the
-  security_group_id.
+  `security_group_id`.
+
+* `spot_price` (string) - The maximum hourly price to launch a spot instance
+  to create the AMI. It is a type of instances that EC2 starts when the maximum
+  price that you specify exceeds the current spot price. Spot price will be
+  updated based on available spot instance capacity and current spot Instance
+  requests. It may save you some costs. You can set this to "auto" for
+  Packer to automatically discover the best spot price.
+
+* `spot_price_auto_product` (string) - Required if `spot_price` is set to
+  "auto". This tells Packer what sort of AMI you're launching to find the best
+   spot price. This must be one of: `Linux/UNIX`, `SUSE Linux`, `Windows`,
+   `Linux/UNIX (Amazon VPC)`, `SUSE Linux (Amazon VPC)`, `Windows (Amazon VPC)`
 
 * `ssh_port` (integer) - The port that SSH will be available on. This defaults
   to port 22.
 
 * `ssh_private_key_file` (string) - Use this ssh private key file instead of
   a generated ssh key pair for connecting to the instance.
+
+* `ssh_private_ip` (bool) - If true, then SSH will always use the private
+  IP if available.
 
 * `ssh_timeout` (string) - The time to wait for SSH to become available
   before timing out. The format of this value is a duration such as "5s"
@@ -194,7 +212,7 @@ each category, the available configuration keys are alphabetized.
 
 Here is a basic example. It is completely valid except for the access keys:
 
-<pre class="prettyprint">
+```javascript
 {
   "type": "amazon-instance",
   "access_key": "YOUR KEY HERE",
@@ -212,14 +230,12 @@ Here is a basic example. It is completely valid except for the access keys:
 
   "ami_name": "packer-quick-start {{timestamp}}"
 }
-</pre>
+```
 
-<div class="alert alert-block alert-info">
-<strong>Note:</strong> Packer can also read the access key and secret
+-> **Note:** Packer can also read the access key and secret
 access key from environmental variables. See the configuration reference in
 the section above for more information on what environmental variables Packer
 will look for.
-</div>
 
 ## Accessing the Instance to Debug
 
@@ -253,7 +269,7 @@ across multiple lines for convenience of reading. The bundle volume command
 is responsible for executing `ec2-bundle-vol` in order to store and image
 of the root filesystem to use to create the AMI.
 
-```
+```text
 sudo -n ec2-bundle-vol \
 	-k {{.KeyPath}}  \
 	-u {{.AccountId}} \
@@ -262,19 +278,17 @@ sudo -n ec2-bundle-vol \
 	-e {{.PrivatePath}}/* \
 	-d {{.Destination}} \
 	-p {{.Prefix}} \
-	--batch
+	--batch \
+	--no-filter
 ```
 
 The available template variables should be self-explanatory based on the
 parameters they're used to satisfy the `ec2-bundle-vol` command.
 
-<div class="alert alert-block">
-  <strong>Warning!</strong> Some versions of ec2-bundle-vol silently
-ignore all .pem and .gpg files during the bundling of the AMI, which can
-cause problems on some systems, such as Ubuntu. You may want to
-customize the bundle volume command to include those files (see the
-<code>--no-filter</code> option of ec2-bundle-vol).
-</div>
+~> **Warning!** Some versions of ec2-bundle-vol silently ignore all .pem and
+.gpg files during the bundling of the AMI, which can cause problems on some
+systems, such as Ubuntu. You may want to customize the bundle volume command
+to include those files (see the `--no-filter` option of ec2-bundle-vol).
 
 ### Bundle Upload Command
 
@@ -282,7 +296,7 @@ The default value for `bundle_upload_command` is shown below. It is split
 across multiple lines for convenience of reading. The bundle upload command
 is responsible for taking the bundled volume and uploading it to S3.
 
-```
+```text
 sudo -n ec2-upload-bundle \
 	-b {{.BucketName}} \
 	-m {{.ManifestPath}} \
@@ -290,7 +304,7 @@ sudo -n ec2-upload-bundle \
 	-s {{.SecretKey}} \
 	-d {{.BundleDirectory}} \
 	--batch \
-	--url {{.S3Endpoint}} \
+	--region {{.Region}} \
 	--retry
 ```
 

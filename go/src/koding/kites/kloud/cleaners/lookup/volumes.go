@@ -2,6 +2,7 @@ package lookup
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -43,6 +44,23 @@ func (v Volumes) OlderThan(duration time.Duration) Volumes {
 	}
 
 	return filtered
+}
+
+// Size returns the given volume ids size. Returns 0 if the size is not
+// available
+func (v Volumes) SizeFromVolumeId(id string) int {
+	vol, ok := v[id]
+	if !ok {
+		return 0
+	}
+
+	size, err := strconv.Atoi(vol.Size)
+	if err != nil {
+		log.Printf("volumes.size [%s]: %s\n", id, err)
+		return 0
+	}
+
+	return size
 }
 
 // Ids returns the list of volumeIds of the volumes

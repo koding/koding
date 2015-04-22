@@ -17,7 +17,6 @@ module.exports = fetchAccounts = (origins, callback) ->
 
   _accounts = []
   queue = origins.map (origin) -> ->
-    origin.id or= origin._id
     fetchAccount origin, (err, account) ->
       return queue.fin err  if err
       _accounts.push account

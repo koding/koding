@@ -441,12 +441,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
   changeActiveParticipant: (nick) ->
 
     return  unless @state.active
+    return  unless @isParticipantOnline nick
 
     @setState { activeParticipant: nick }
-
-    # see if the user is in the session, if not emit special event.
-    unless @getParticipant nick
-      @emit 'OfflineUserSelected', nick
 
     @emit 'ActiveParticipantChanged', nick
 
@@ -472,10 +469,17 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setSelectedParticipant: (nick) ->
 
+    unless isOnline = @isParticipantOnline nick
+      @emit 'SelectedParticipantChanged', nick, no
+      return
+
     nick = null  if @state.selectedParticipant is nick
 
     @setState { selectedParticipant: nick }
-    @emit 'SelectedParticipantChanged', nick
+    @emit 'SelectedParticipantChanged', nick, yes
+
+
+  isParticipantOnline: (nickname) -> @getParticipant(nickname)?
 
 
   ###*

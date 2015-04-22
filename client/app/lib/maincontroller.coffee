@@ -254,7 +254,7 @@ class MainController extends KDController
       kd.utils.wait 1000, =>
         @swapAccount replacementAccount: null
         storage.setValue 'loggingOut', '1'
-        global.location.reload()
+        global.location.href = '/'
 
 
   attachListeners:->
@@ -266,7 +266,7 @@ class MainController extends KDController
     kd.utils.wait 15000, ->
       remote.api?.JSystemStatus.on 'forceReload', ->
         global.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
-        global.location.reload()
+        global.location.reload yes
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
@@ -275,7 +275,7 @@ class MainController extends KDController
       cookieMatches     = cookie is (kookies.get 'clientId')
 
       if not cookieExists or (cookieExists and not cookieMatches)
-        location.reload '/'
+        global.location.href = '/'
 
       kd.utils.wait 1000, cookieChangeHandler
 

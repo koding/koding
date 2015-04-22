@@ -58,7 +58,7 @@ module.exports =
 
       machineName     = vms[0]
       machineLink     = "/IDE/#{machineName}"
-      machineSelector = "a[href='#{machineLink}']"
+      machineSelector = ".sidebar-machine-box.#{machineLink}"
 
       unless machineName
         postToSlack username + " doesn't have a always on VM, ignoring user..."
@@ -73,7 +73,7 @@ module.exports =
         .pause 15000
         .waitForElementVisible   machineSelector, 30000
         .click                   machineSelector
-        .element                 'css selector', machineSelector + '.running', (result) ->
+        .element                 'css selector', machineSelector + ' .running', (result) ->
           if result.status is 0
             handleMachineRunning browser, username, machineName
           else

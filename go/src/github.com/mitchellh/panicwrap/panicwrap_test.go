@@ -56,6 +56,22 @@ func TestHelperProcess(*testing.T) {
 
 	cmd, args := args[0], args[1:]
 	switch cmd {
+	case "no-panic-ordered-output":
+		exitStatus, err := BasicWrap(panicHandler)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "wrap error: %s", err)
+			os.Exit(1)
+		}
+
+		if exitStatus < 0 {
+			for i := 0; i < 1000; i++ {
+				os.Stdout.Write([]byte("a"))
+				os.Stderr.Write([]byte("b"))
+			}
+			os.Exit(0)
+		}
+
+		os.Exit(exitStatus)
 	case "no-panic-output":
 		fmt.Fprint(os.Stdout, "i am output")
 		fmt.Fprint(os.Stderr, "stderr out")
@@ -126,6 +142,32 @@ func TestHelperProcess(*testing.T) {
 		}
 
 		os.Exit(exitStatus)
+	case "wrapped":
+		child := false
+		if len(args) > 0 && args[0] == "child" {
+			child = true
+		}
+		config := &WrapConfig{
+			Handler: panicHandler,
+		}
+
+		exitStatus, err := Wrap(config)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "wrap error: %s", err)
+			os.Exit(1)
+		}
+
+		if exitStatus < 0 {
+			if child {
+				fmt.Printf("%v", Wrapped(config))
+			}
+			os.Exit(0)
+		}
+
+		if !child {
+			fmt.Printf("%v", Wrapped(config))
+		}
+		os.Exit(exitStatus)
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %q\n", cmd)
 		os.Exit(2)
@@ -151,6 +193,32 @@ func TestPanicWrap_Output(t *testing.T) {
 		t.Fatalf("didn't forward: %#v", stderr.String())
 	}
 }
+
+/*
+TODO(mitchellh): This property would be nice to gain.
+func TestPanicWrap_Output_Order(t *testing.T) {
+	output := new(bytes.Buffer)
+
+	p := helperProcess("no-panic-ordered-output")
+	p.Stdout = output
+	p.Stderr = output
+	if err := p.Run(); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	expectedBuf := new(bytes.Buffer)
+	for i := 0; i < 1000; i++ {
+		expectedBuf.WriteString("ab")
+	}
+
+	actual := strings.TrimSpace(output.String())
+	expected := strings.TrimSpace(expectedBuf.String())
+
+	if actual != expected {
+		t.Fatalf("bad: %#v", actual)
+	}
+}
+*/
 
 func TestPanicWrap_panicHide(t *testing.T) {
 	stdout := new(bytes.Buffer)
@@ -222,5 +290,33 @@ func TestPanicWrap_panicBoundary(t *testing.T) {
 
 	if !strings.Contains(stdout.String(), "wrapped: 1015") {
 		t.Fatalf("didn't wrap: %#v", stdout.String())
+	}
+}
+
+func TestWrapped(t *testing.T) {
+	stdout := new(bytes.Buffer)
+
+	p := helperProcess("wrapped", "child")
+	p.Stdout = stdout
+	if err := p.Run(); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if !strings.Contains(stdout.String(), "true") {
+		t.Fatalf("bad: %#v", stdout.String())
+	}
+}
+
+func TestWrapped_parent(t *testing.T) {
+	stdout := new(bytes.Buffer)
+
+	p := helperProcess("wrapped")
+	p.Stdout = stdout
+	if err := p.Run(); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if !strings.Contains(stdout.String(), "false") {
+		t.Fatalf("bad: %#v", stdout.String())
 	}
 }

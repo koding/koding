@@ -4,11 +4,12 @@ package elb
 
 import (
 	"encoding/xml"
-	"github.com/mitchellh/goamz/aws"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/mitchellh/goamz/aws"
 )
 
 // The ELB type encapsulates operations operations with the elb endpoint.
@@ -91,11 +92,11 @@ func makeParams(action string) map[string]string {
 
 // A listener attaches to an elb
 type Listener struct {
-	InstancePort     int64  `xml:"member>Listener>InstancePort"`
-	InstanceProtocol string `xml:"member>Listener>InstanceProtocol"`
-	SSLCertificateId string `xml:"member>Listener>SSLCertificateId"`
-	LoadBalancerPort int64  `xml:"member>Listener>LoadBalancerPort"`
-	Protocol         string `xml:"member>Listener>Protocol"`
+	InstancePort     int64  `xml:"Listener>InstancePort"`
+	InstanceProtocol string `xml:"Listener>InstanceProtocol"`
+	SSLCertificateId string `xml:"Listener>SSLCertificateId"`
+	LoadBalancerPort int64  `xml:"Listener>LoadBalancerPort"`
+	Protocol         string `xml:"Listener>Protocol"`
 }
 
 // An Instance attaches to an elb
@@ -115,11 +116,6 @@ type InstanceState struct {
 	Description string `xml:"Description"`
 	State       string `xml:"State"`
 	ReasonCode  string `xml:"ReasonCode"`
-}
-
-// An Instance attaches to an elb
-type AvailabilityZone struct {
-	AvailabilityZone string `xml:"member"`
 }
 
 // ----------------------------------------------------------------------------
@@ -276,15 +272,16 @@ func (elb *ELB) DeleteLoadBalancer(options *DeleteLoadBalancer) (resp *SimpleRes
 
 // An individual load balancer
 type LoadBalancer struct {
-	LoadBalancerName  string             `xml:"member>LoadBalancerName"`
-	Listeners         []Listener         `xml:"member>ListenerDescriptions"`
-	Instances         []Instance         `xml:"member>Instances>member"`
-	HealthCheck       HealthCheck        `xml:"member>HealthCheck"`
-	AvailabilityZones []AvailabilityZone `xml:"member>AvailabilityZones"`
-	DNSName           string             `xml:"member>DNSName"`
-	SecurityGroups    []string           `xml:"member>SecurityGroups>member"`
-	Scheme            string             `xml:"member>Scheme"`
-	Subnets           []string           `xml:"member>Subnets>member"`
+	LoadBalancerName  string      `xml:"LoadBalancerName"`
+	Listeners         []Listener  `xml:"ListenerDescriptions>member"`
+	Instances         []Instance  `xml:"Instances>member"`
+	HealthCheck       HealthCheck `xml:"HealthCheck"`
+	AvailabilityZones []string    `xml:"AvailabilityZones>member"`
+	HostedZoneNameID  string      `xml:"CanonicalHostedZoneNameID"`
+	DNSName           string      `xml:"DNSName"`
+	SecurityGroups    []string    `xml:"SecurityGroups>member"`
+	Scheme            string      `xml:"Scheme"`
+	Subnets           []string    `xml:"Subnets>member"`
 }
 
 // DescribeLoadBalancer request params
@@ -294,7 +291,7 @@ type DescribeLoadBalancer struct {
 
 type DescribeLoadBalancersResp struct {
 	RequestId     string         `xml:"ResponseMetadata>RequestId"`
-	LoadBalancers []LoadBalancer `xml:"DescribeLoadBalancersResult>LoadBalancerDescriptions"`
+	LoadBalancers []LoadBalancer `xml:"DescribeLoadBalancersResult>LoadBalancerDescriptions>member"`
 }
 
 func (elb *ELB) DescribeLoadBalancers(options *DescribeLoadBalancer) (resp *DescribeLoadBalancersResp, err error) {
@@ -316,7 +313,64 @@ func (elb *ELB) DescribeLoadBalancers(options *DescribeLoadBalancer) (resp *Desc
 }
 
 // ----------------------------------------------------------------------------
-// Instance Registration / degregistration
+// Attributes
+
+type AccessLog struct {
+	EmitInterval   int64
+	Enabled        bool
+	S3BucketName   string
+	S3BucketPrefix string
+}
+
+type ConnectionDraining struct {
+	Enabled bool
+	Timeout int64
+}
+
+type LoadBalancerAttributes struct {
+	CrossZoneLoadBalancingEnabled bool
+	ConnectionSettingsIdleTimeout int64
+	ConnectionDraining            ConnectionDraining
+	AccessLog                     AccessLog
+}
+
+type ModifyLoadBalancerAttributes struct {
+	LoadBalancerName       string
+	LoadBalancerAttributes LoadBalancerAttributes
+}
+
+func (elb *ELB) ModifyLoadBalancerAttributes(options *ModifyLoadBalancerAttributes) (resp *SimpleResp, err error) {
+	params := makeParams("ModifyLoadBalancerAttributes")
+
+	params["LoadBalancerName"] = options.LoadBalancerName
+	params["LoadBalancerAttributes.CrossZoneLoadBalancing.Enabled"] = strconv.FormatBool(options.LoadBalancerAttributes.CrossZoneLoadBalancingEnabled)
+	if options.LoadBalancerAttributes.ConnectionSettingsIdleTimeout > 0 {
+		params["LoadBalancerAttributes.ConnectionSettings.IdleTimeout"] = strconv.Itoa(int(options.LoadBalancerAttributes.ConnectionSettingsIdleTimeout))
+	}
+	if options.LoadBalancerAttributes.ConnectionDraining.Timeout > 0 {
+		params["LoadBalancerAttributes.ConnectionDraining.Timeout"] = strconv.Itoa(int(options.LoadBalancerAttributes.ConnectionDraining.Timeout))
+	}
+	params["LoadBalancerAttributes.ConnectionDraining.Enabled"] = strconv.FormatBool(options.LoadBalancerAttributes.ConnectionDraining.Enabled)
+	params["LoadBalancerAttributes.AccessLog.Enabled"] = strconv.FormatBool(options.LoadBalancerAttributes.AccessLog.Enabled)
+	if options.LoadBalancerAttributes.AccessLog.Enabled {
+		params["LoadBalancerAttributes.AccessLog.EmitInterval"] = strconv.Itoa(int(options.LoadBalancerAttributes.AccessLog.EmitInterval))
+		params["LoadBalancerAttributes.AccessLog.S3BucketName"] = options.LoadBalancerAttributes.AccessLog.S3BucketName
+		params["LoadBalancerAttributes.AccessLog.S3BucketPrefix"] = options.LoadBalancerAttributes.AccessLog.S3BucketPrefix
+	}
+
+	resp = &SimpleResp{}
+
+	err = elb.query(params, resp)
+
+	if err != nil {
+		resp = nil
+	}
+
+	return
+}
+
+// ----------------------------------------------------------------------------
+// Instance Registration / deregistration
 
 // The RegisterInstancesWithLoadBalancer request parameters
 type RegisterInstancesWithLoadBalancer struct {
@@ -325,7 +379,7 @@ type RegisterInstancesWithLoadBalancer struct {
 }
 
 type RegisterInstancesWithLoadBalancerResp struct {
-	Instances []Instance `xml:"RegisterInstancesWithLoadBalancerResult>Instances"`
+	Instances []Instance `xml:"RegisterInstancesWithLoadBalancerResult>Instances>member"`
 	RequestId string     `xml:"ResponseMetadata>RequestId"`
 }
 
@@ -356,7 +410,7 @@ type DeregisterInstancesFromLoadBalancer struct {
 }
 
 type DeregisterInstancesFromLoadBalancerResp struct {
-	Instances []Instance `xml:"DeregisterInstancesFromLoadBalancerResult>Instances"`
+	Instances []Instance `xml:"DeregisterInstancesFromLoadBalancerResult>Instances>member"`
 	RequestId string     `xml:"ResponseMetadata>RequestId"`
 }
 

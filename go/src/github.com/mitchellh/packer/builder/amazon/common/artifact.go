@@ -2,11 +2,13 @@ package common
 
 import (
 	"fmt"
+	"log"
+	"sort"
+	"strings"
+
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/packer/packer"
-	"log"
-	"strings"
 )
 
 // Artifact is an artifact implementation that contains built AMIs.
@@ -36,6 +38,7 @@ func (a *Artifact) Id() string {
 		parts = append(parts, fmt.Sprintf("%s:%s", region, amiId))
 	}
 
+	sort.Strings(parts)
 	return strings.Join(parts, ",")
 }
 
@@ -46,7 +49,17 @@ func (a *Artifact) String() string {
 		amiStrings = append(amiStrings, single)
 	}
 
+	sort.Strings(amiStrings)
 	return fmt.Sprintf("AMIs were created:\n\n%s", strings.Join(amiStrings, "\n"))
+}
+
+func (a *Artifact) State(name string) interface{} {
+	switch name {
+	case "atlas.artifact.metadata":
+		return a.stateAtlasMetadata()
+	default:
+		return nil
+	}
 }
 
 func (a *Artifact) Destroy() error {
@@ -71,4 +84,14 @@ func (a *Artifact) Destroy() error {
 	}
 
 	return nil
+}
+
+func (a *Artifact) stateAtlasMetadata() interface{} {
+	metadata := make(map[string]string)
+	for region, imageId := range a.Amis {
+		k := fmt.Sprintf("region.%s", region)
+		metadata[k] = imageId
+	}
+
+	return metadata
 }
