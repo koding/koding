@@ -29,20 +29,6 @@ type PlanOutput struct {
 	Machines []PlanMachine `json:"machines"`
 }
 
-type Credential struct {
-	Id        bson.ObjectId `bson:"_id" json:"-"`
-	Provider  string        `bson:"provider"`
-	PublicKey string        `bson:"publicKey"`
-	OriginId  bson.ObjectId `bson:"originId"`
-}
-
-type CredentialData struct {
-	Id        bson.ObjectId `bson:"_id" json:"-"`
-	PublicKey string        `bson:"publicKey"`
-	Meta      bson.M        `bson:"meta"`
-	OriginId  bson.ObjectId `bson:"originId"`
-}
-
 type terraformCredentials struct {
 	Creds []*terraformCredential
 }
@@ -150,7 +136,7 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 		publicKeys = append(publicKeys, publicKey)
 	}
 
-	var credentials []*Credential
+	var credentials []*models.Credential
 	if err := db.Run("jCredentials", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"publicKey": bson.M{"$in": publicKeys}}).All(&credentials)
 	}); err != nil {
@@ -187,7 +173,7 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 		validPublicKeys = append(validPublicKeys, pKey)
 	}
 
-	var credentialData []*CredentialData
+	var credentialData []*models.CredentialData
 	if err := db.Run("jCredentialDatas", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"publicKey": bson.M{"$in": validPublicKeys}}).All(&credentialData)
 	}); err != nil {
