@@ -19,6 +19,14 @@ defaultPublisher = ->
   type      : 'publisher'
   videoData : null
 
+
+###*
+ * @param {ParticipantType.Participant} participant
+ * @return {boolean}
+###
+isDefaultPublisher = (participant) -> _.isEqual participant, defaultPublisher()
+
+
 ###*
  * It makes a request to the backend and gets session id
  * and creates a session with that session id.
@@ -334,6 +342,7 @@ _errorSignal = (error) ->
 
 
 module.exports = {
+  isDefaultPublisher
   generateSession
   generateToken
   toNickKeyedMap
