@@ -515,7 +515,7 @@ func createUser(username string) (*singleUser, error) {
 		},
 	}
 
-	if err := provider.DB.Run("jCredentialData", func(c *mgo.Collection) error {
+	if err := provider.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
 		return c.Insert(&credentialData)
 	}); err != nil {
 		return nil, err

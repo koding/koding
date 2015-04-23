@@ -84,15 +84,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
-	// TODO(arslan): fetch the credentials via args.Credentials
-	// args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
-	// 	"access_key": "AKIAJTDKW5IFUUIWVNAA",
-	// 	"secret_key": "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",
-	// })
-	// fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
-
 	args.TerraformContext = appendVariables(args.TerraformContext, creds)
-
 	plan, err := tfKite.Plan(args.TerraformContext)
 	if err != nil {
 		return nil, err
@@ -155,7 +147,7 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 				"targetId": cred.Id,
 				"sourceId": account.Id,
 				"as": bson.M{
-					"$or": []string{"owner", "user"},
+					"$in": []string{"owner", "user"},
 				},
 			}).Count()
 			return err
@@ -191,7 +183,6 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 		provider, ok := validKeys[data.PublicKey]
 		if !ok {
 			return nil, fmt.Errorf("provider is not found for key: %s", data.PublicKey)
-
 		}
 		// for now we only support aws
 		if provider != "aws" {
