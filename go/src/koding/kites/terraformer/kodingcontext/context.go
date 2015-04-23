@@ -16,9 +16,12 @@ import (
 )
 
 const (
-	terraformFileExt = ".tf"
-	mainFileName     = "main"
-	planFileName     = "plan"
+	terraformFileExt      = ".tf"
+	terraformPlanFileExt  = ".out"
+	terraformStateFileExt = ".tfstate"
+	mainFileName          = "main"
+	planFileName          = "plan"
+	stateFileName         = "state"
 )
 
 var (
