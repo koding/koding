@@ -44,6 +44,11 @@ module.exports = VideoCollaborationController =
     @videoModel.end()
 
 
+  muteParticipant: (nickname) ->
+
+    @videoModel.muteParticipant nickname
+
+
   toggleVideoControl: (type, activeState) ->
 
     switch type
