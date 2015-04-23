@@ -29,6 +29,14 @@ type PlanOutput struct {
 	Machines []PlanMachine `json:"machines"`
 }
 
+type PlanRequest struct {
+	// Terraform template file
+	TerraformContext string `json:"terraformContext"`
+
+	// PublicKeys contains provider to publicKeys mapping
+	PublicKeys map[string]string `json:"publicKeys"`
+}
+
 type terraformCredentials struct {
 	Creds []*terraformCredential
 }
@@ -43,14 +51,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args struct {
-		// Terraform template file
-		TerraformContext string `json:"terraformContext"`
-
-		// PublicKeys contains provider to publicKeys mapping
-		PublicKeys map[string]string `json:"publicKeys"`
-	}
-
+	var args *PlanRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
@@ -64,6 +65,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	ctx := k.ContextCreator(context.Background())
+
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -206,7 +208,6 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 		creds.Creds = append(creds.Creds, cred)
 
 	}
-
 	return creds, nil
 }
 
