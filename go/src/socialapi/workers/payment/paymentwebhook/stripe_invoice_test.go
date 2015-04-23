@@ -29,7 +29,7 @@ func TestStripeInvoiceGetPlanName(t *testing.T) {
 
 		Convey("When 1 line items", func() {
 			Convey("Then it should return plan name of 1st item", func() {
-				invoice := raw_one_lineitems_invoice()
+				invoice := rawOneLineitemsInvoice()
 				planName, err := getNewPlanName(invoice)
 
 				So(err, ShouldBeNil)
@@ -39,7 +39,7 @@ func TestStripeInvoiceGetPlanName(t *testing.T) {
 
 		Convey("When 2 line items", func() {
 			Convey("Then it should return plan name of 2nd item", func() {
-				invoice := raw_two_lineitems_invoice()
+				invoice := rawTwoLineitemsInvoice()
 				planName, err := getNewPlanName(invoice)
 
 				So(err, ShouldBeNil)
@@ -75,7 +75,7 @@ func raw_empty_lineitems_invoice() *webhookmodels.StripeInvoice {
 	}
 }
 
-func raw_one_lineitems_invoice() *webhookmodels.StripeInvoice {
+func rawOneLineitemsInvoice() *webhookmodels.StripeInvoice {
 	return &webhookmodels.StripeInvoice{
 		ID:         "ID_000",
 		CustomerId: "Cus_000",
@@ -95,7 +95,7 @@ func raw_one_lineitems_invoice() *webhookmodels.StripeInvoice {
 	}
 }
 
-func raw_two_lineitems_invoice() *webhookmodels.StripeInvoice {
+func rawTwoLineitemsInvoice() *webhookmodels.StripeInvoice {
 	return &webhookmodels.StripeInvoice{
 		ID:         "evt_15rcA7Dy8g9bkw8y4opMBcgB",
 		CustomerId: "cus_61nef0wiQMSCGY",
