@@ -65,7 +65,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
     {ace} = @aceView
 
-    ace.once 'ace.ready', =>
+    ace.ready =>
       @getEditor().setValue content, 1
       ace.setReadOnly yes  if @getOptions().readOnly
       @bindChangeListeners()
@@ -305,7 +305,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
     ace = @getAce()
 
-      .once 'ace.ready', =>
+    ace.ready =>
 
         @setContent string.getText(), no
 
@@ -416,4 +416,3 @@ module.exports = class IDEEditorPane extends IDEPane
   destroy: ->
 
     @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
-
