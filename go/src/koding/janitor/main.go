@@ -35,7 +35,8 @@ var (
 
 func main() {
 	r := initializeRunner()
-	port := r.Conf.Janitor.Port
+	conf := config.MustRead(r.Conf.Path)
+	port := conf.Janitor.Port
 
 	go r.Listen()
 
