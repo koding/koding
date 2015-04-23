@@ -8,14 +8,6 @@ handleError = (err, callback) ->
   return callback? err
 
 
-isInAppRoute = (name)->
-  return no  unless name
-  [firstLetter] = name
-  if /^\d/.test firstLetter then no
-  else if firstLetter.toUpperCase() is firstLetter then yes
-  else no
-
-
 fetchGroupName = ({ groupName: name, section }, callback)->
   {JName} = bongo.models
 
@@ -44,13 +36,13 @@ fetchAccount = (username, callback)->
   bongo.models.JAccount.one {"profile.nickname" : username }, callback
 
 updateCookie = (req, res, session)->
-  {clientId} = session
+  { clientId }       = session
   { maxAge, secure } = KONFIG.sessionCookie
   # set cookie as pending cookie
   req.pendingCookies or= {}
   req.pendingCookies.clientId = clientId
 
-  res.cookie "clientId", clientId, { maxAge, secure }
+  res.cookie 'clientId', clientId, { maxAge, secure }
 
 generateFakeClientFromReq = (req, res, callback)->
 
@@ -72,7 +64,7 @@ generateFakeClientFromReq = (req, res, callback)->
 
     updateCookie req, res, session
 
-    return callback null, fakeClient
+    return callback null, fakeClient, session
 
 
 generateFakeClient = (options, callback) ->

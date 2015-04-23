@@ -1,11 +1,15 @@
-$ = require 'jquery'
-_ = require 'lodash'
-kd = require 'kd'
-remote = require('app/remote').getInstance()
-whoami = require 'app/util/whoami'
-getNick = require 'app/util/nick'
-
+$               = require 'jquery'
+_               = require 'lodash'
+kd              = require 'kd'
+remote          = require('app/remote').getInstance()
+whoami          = require 'app/util/whoami'
+getNick         = require 'app/util/nick'
 ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
+
+defaultPublisher = ->
+  nick      : getNick()
+  type      : 'publisher'
+  videoData : null
 
 ###*
  * It makes a request to the backend and gets session id
@@ -61,8 +65,20 @@ generateToken = (options, callback) ->
 toNickKeyedMap = (subscribers, publisher) ->
 
   map = {}
+
+  # we want get participants to return a publisher no matter what, it may not
+  # have a video data (e.g while camera is being asked), but views are
+  # expecting a Publisher no matter what, and it's how it should be. Video
+  # without a publisher is not permitted atm.
+
   map[subscriber.nick] = subscriber  for own cId, subscriber of subscribers when subscriber
-  map[publisher.nick] = publisher  if publisher
+
+  # if default publisher is mutated via `or=` the passed original is being
+  # mutated and affect other parts of the application. That's why copying into
+  # another variable happens here. ~Umut
+  _publisher = publisher ? defaultPublisher()
+  map[_publisher.nick] = _publisher
+
   return map
 
 
@@ -100,7 +116,7 @@ subscribeToStream = (session, stream, view, callbacks) ->
  * It creates the `OT.Publisher` instance for sending video/audio.
  *
  * @param {KDView} view - view instance for publisher.
- * @param {objcet=} options - Options to pass to `OT.initPublisher` method
+ * @param {object=} options - Options to pass to `OT.initPublisher` method
  * @param {string=} options.insertMode
  * @param {string=} options.name
  * @param {objcet=} options.style
@@ -116,10 +132,10 @@ createPublisher = (view, options = {}, callback) ->
   options.height = 265
   options.width  = 325
 
-  publisher = OT.initPublisher view.getElement(), options, (err) ->
-    return callback err  if err
+  publisher = OT.initPublisher view.getElement(), options, ->
     fixParticipantBackgroundImage publisher, whoami()
-    callback null, publisher
+
+  callback null, publisher
 
 
 ###*

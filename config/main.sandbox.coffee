@@ -59,6 +59,7 @@ Configuration = (options={}) ->
 
   disabledFeatures =
     moderation : yes
+    teams : yes
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -173,6 +174,7 @@ Configuration = (options={}) ->
     siftScience                    : 'a41deacd57929378'
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
     tokbox                         : tokbox
+    disabledFeatures               : disabledFeatures
 
     collaboration :
       timeout     : 1 * 60 * 1000
