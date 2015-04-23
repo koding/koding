@@ -30,12 +30,13 @@ var (
 
 func main() {
 	r := initializeRunner()
-	port := r.Conf.Janitor.Port
+	conf := config.MustRead(r.Conf.Path)
+	port := conf.Janitor.Port
 
 	go r.Listen()
 
 	var err error
-	kConf := r.Conf.Kloud
+	kConf := conf.Kloud
 
 	KiteClient, err = initializeKiteClient(kConf.SecretKey, kConf.Address)
 	if err != nil {
