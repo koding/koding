@@ -144,6 +144,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     session.on 'signal:start', => @enableVideo { error: (err) => console.error err }
 
+    # this event only comes to the user who has been muted, so need to make a
+    # filtering here.
+    session.on 'signal:mute', => @setAudioState off
+
 
   subscribeToStream: (session, stream) ->
 
@@ -338,6 +342,20 @@ module.exports = class VideoCollaborationModel extends kd.Object
       return console.error err  if err
       @_service.sendSessionEndSignal @channel, (err) ->
         return console.error err  if err
+
+
+  ###*
+   * Action for muting a participant. Sends the signal, the rest will be
+   * handled by the `signal:mute` handler.
+   *
+   * @param {string} nickname
+  ###
+  muteParticipant: (nickname) ->
+
+    return  unless participant = @getParticipant nickname
+
+    @_service.sendMuteSignal @channel, participant, (err) ->
+      return console.log err  if err
 
 
   ###*
