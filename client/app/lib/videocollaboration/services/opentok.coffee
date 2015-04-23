@@ -183,6 +183,22 @@ module.exports = class OpenTokService extends kd.Object
 
 
   ###*
+   * OpenTok doesn't have an easy mechanism to mute a particular user for all
+   * video session subscribers. Because of that we are sending a signal to be
+   * muted user. Other places can subscribe to OT.Session instance's
+   * `signal:mute` event to register a callback to this. Ideal situtation will be
+   * triggering the `publishAudio(false)` in to be muted user's client.
+   *
+   * @param {SocialChannel} channel
+   * @param {ParticipantType.Subscriber} to
+   * @param {function(err: object)} callback
+  ###
+  sendMuteSignal: (channel, to, callback) ->
+
+    @sendSignal { channel, to, type: 'mute' }, callback
+
+
+  ###*
    * It destroys the publisher for given social channel.
    *
    * @param {SocialChannel} channel
