@@ -4,6 +4,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/mitchellh/goamz/s3"
 )
@@ -25,8 +27,10 @@ type S3Storage struct {
 	bucket *s3.Bucket
 }
 
-func NewS3Storage() *S3Storage {
-	return &S3Storage{}
+func NewS3Storage(bucket *s3.Bucket) S3Storage {
+	return S3Storage{
+		bucket: bucket,
+	}
 }
 
 func (s S3Storage) BasePath() (string, error) {
@@ -140,12 +144,33 @@ func (f FileStorage) BasePath() (string, error) {
 	return f.basePath, nil
 }
 
-func (f FileStorage) Clean(path string) error {
-	return os.RemoveAll(path)
+func (f FileStorage) Clean(filePath string) error {
+	fullPath, err := f.fullPath(filePath)
+	if err != nil {
+		return err
+	}
+
+	return os.RemoveAll(fullPath)
 }
 
-func (f FileStorage) Write(path string, file io.Reader) (err error) {
-	tf, err := os.Create(path)
+func (f FileStorage) Write(filePath string, file io.Reader) (err error) {
+	contents := strings.Split(filePath, string(os.PathSeparator))
+
+	dirPath, err := f.fullPath(strings.Join(contents[:len(contents)-1], string(os.PathSeparator)))
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
+		return err
+	}
+
+	fullPath, err := f.fullPath(filePath)
+	if err != nil {
+		return err
+	}
+
+	tf, err := os.Create(fullPath)
 	if err != nil {
 		return err
 	}
@@ -159,27 +184,39 @@ func (f FileStorage) Write(path string, file io.Reader) (err error) {
 		if err = tf.Close(); err != nil {
 			return
 		}
-
 	}()
 
 	_, err = io.Copy(tf, file)
 	return err
 }
 
-func (f FileStorage) Remove(path string) error {
-	if err := os.RemoveAll(path); err != nil {
+func (f FileStorage) Remove(filePath string) error {
+	fullPath, err := f.fullPath(filePath)
+	if err != nil {
+		return err
+	}
+
+	if err := os.RemoveAll(fullPath); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (f FileStorage) Read(path string) (io.Reader, error) {
-	if r, err := os.Open(path); err != nil {
+func (f FileStorage) Read(filePath string) (io.Reader, error) {
+	fullPath, err := f.fullPath(filePath)
+	if err != nil {
 		return nil, err
-	} else {
-		return r, nil
 	}
+
+	r, err := os.Open(fullPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
 func (f FileStorage) Clone(filePath string, target Storage) error {
 	fullPath, err := f.fullPath(filePath)
 	if err != nil {
