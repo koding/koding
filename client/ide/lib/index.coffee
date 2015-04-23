@@ -182,6 +182,8 @@ class IDEAppController extends AppController
 
   handleWindowFocus: (state) ->
 
+    return  unless global.document.contains @getView().getElement()
+
     @setActivePaneFocus state
 
 
