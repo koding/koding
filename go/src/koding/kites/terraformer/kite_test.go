@@ -92,8 +92,8 @@ func withKite(t *testing.T, f func(k *kite.Kite) error) {
 	}
 }
 
-func TestApply(t *testing.T) {
-	t.Skip("apply should not run")
+func TestApplyAndDestroy(t *testing.T) {
+	// t.Skip("apply should not run")
 	local := kite.New("testing", "1.0.0")
 
 	withKite(t, func(k *kite.Kite) error {
@@ -119,34 +119,12 @@ func TestApply(t *testing.T) {
 			return err
 		}
 
-		return nil
-	})
-
-}
-
-func TestDestroy(t *testing.T) {
-	t.Skip("destroy should not run")
-	local := kite.New("testing", "1.0.0")
-
-	withKite(t, func(k *kite.Kite) error {
-		// Connect to our terraformer kite
-		tfr := local.NewClient(k.RegisterURL(true).String())
-		defer tfr.Close()
-
-		tfr.Dial()
-
-		req := TerraformRequest{
-			Content:   SampleTF,
-			Variables: variables,
-			Location:  "test_file",
-		}
-
-		response, err := tfr.Tell("destroy", req)
+		response, err = tfr.Tell("destroy", req)
 		if err != nil {
 			return err
 		}
 
-		res := terraform.Plan{}
+		res = terraform.Plan{}
 		if err := response.Unmarshal(&res); err != nil {
 			return err
 		}
@@ -157,6 +135,7 @@ func TestDestroy(t *testing.T) {
 }
 
 func TestPlan(t *testing.T) {
+
 	local := kite.New("testing", "1.0.0")
 
 	withKite(t, func(k *kite.Kite) error {
