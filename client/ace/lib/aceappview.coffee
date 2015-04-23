@@ -55,7 +55,7 @@ class AceAppView extends JView
       return  unless ace
 
       ace.focus()
-      ace.on "ace.ready", -> ace.focus()
+      ace.ready -> ace.focus()
       ace.on "AceDidSaveAs", (name, parentPath) ->
         pane.setTitle name
 
