@@ -1,8 +1,9 @@
 package terraformer
 
 import (
-	"bytes"
 	"koding/kites/terraformer/kodingcontext"
+	"runtime/debug"
+	"strings"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
@@ -32,10 +33,27 @@ type Terraformer struct {
 type TerraformRequest struct {
 	Content   string
 	Variables map[string]string
+	Location  string
 }
 
-func New() *Terraformer {
-	return &Terraformer{}
+func New() *Terraformer { return &Terraformer{} }
+
+func (t *Terraformer) Plan(r *kite.Request) (plan interface{}, err error) {
+	defer func() {
+		if err != nil {
+			debug.PrintStack()
+		}
+	}()
+
+	c := t.Context.Clone()
+	defer c.Close()
+
+	plan, err = t.plan(c, r, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return plan, nil
 }
 
 func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
@@ -47,29 +65,20 @@ func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	state, err := ctx.Apply()
-	if err != nil {
-		return nil, err
-	}
-
-	return state, nil
+	return ctx.Apply()
 }
 
 func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
 
-	//
 	// plan first with destroy option
-	//
 	plan, err := t.plan(c, r, true)
 	if err != nil {
 		return nil, err
 	}
 
-	//
 	// create terraform context options from plan
-	//
 	copts := c.TerraformContextOptsWithPlan(plan)
 
 	copts.Destroy = true // this is the key point
@@ -80,24 +89,7 @@ func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
 	//
 	// apply the change
 	//
-	state, err := ctx.Apply()
-	if err != nil {
-		return nil, err
-	}
-
-	return state, nil
-}
-
-func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
-	c := t.Context.Clone()
-	defer c.Close()
-
-	plan, err := t.plan(c, r, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return plan, nil
+	return ctx.Apply()
 }
 
 func (t *Terraformer) context(
@@ -115,9 +107,7 @@ func (t *Terraformer) context(
 	copts := c.TerraformContextOptsWithPlan(plan)
 
 	// create terraform context with its options
-	ctx := terraform.NewContext(copts)
-
-	return ctx, nil
+	return terraform.NewContext(copts), nil
 }
 
 func (t *Terraformer) plan(
@@ -131,14 +121,8 @@ func (t *Terraformer) plan(
 	}
 
 	c.Variables = args.Variables
+	c.Location = args.Location
 
-	plan, err := c.Plan(
-		bytes.NewBufferString(args.Content),
-		destroy,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return plan, nil
+	content := strings.NewReader(args.Content)
+	return c.Plan(content, destroy)
 }
