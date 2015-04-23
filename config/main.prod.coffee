@@ -539,6 +539,20 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
+    integration         :
+      group             : "socialapi"
+      ports             :
+        incoming        : "#{integration.port}"
+      supervisord       :
+        command         : "#{GOBIN}/webhook -c #{socialapi.configFilePath}"
+      healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
+      versionURL        : "#{customDomain.local}/api/integration/version"
+      nginx             :
+        locations       : [
+          location      : "~ /api/integration/(.*)"
+          proxyPass     : "http://integration/$1$is_args$args"
+        ]
+
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------
     # reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"

@@ -462,6 +462,21 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
+    integration         :
+      group             : "socialapi"
+      ports             :
+        incoming        : "#{integration.port}"
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make webhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+      healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
+      versionURL        : "#{customDomain.local}/api/integration/version"
+      nginx             :
+        locations       : [
+          location      : "~ /api/integration/(.*)"
+          proxyPass     : "http://integration/$1$is_args$args"
+        ]
+
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
