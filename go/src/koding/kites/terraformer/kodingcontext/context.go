@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/mitchellh/cli"
-	uuid "github.com/nu7hatch/gouuid"
 )
 
 const (
@@ -36,7 +35,6 @@ type Context struct {
 	baseDir      string
 	providers    map[string]terraform.ResourceProviderFactory
 	provisioners map[string]terraform.ResourceProvisionerFactory
-	id           string
 	Buffer       *bytes.Buffer
 	ui           *cli.PrefixedUi
 }
@@ -63,11 +61,6 @@ func NewContext(
 	providers map[string]terraform.ResourceProviderFactory,
 	provisioners map[string]terraform.ResourceProvisionerFactory,
 ) *Context {
-	id, err := uuid.NewV4()
-	if err != nil {
-		panic(fmt.Sprintf("kite: cannot generate unique ID: %s", err.Error()))
-	}
-
 	b := new(bytes.Buffer)
 
 	return &Context{
