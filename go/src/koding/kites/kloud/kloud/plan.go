@@ -7,7 +7,6 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
-	"log"
 	"strings"
 
 	"labix.org/v2/mgo"
@@ -154,11 +153,11 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 		})
 
 		if err != nil {
-			// doesn't exist
-			log.Printf("[%s] not validated: %s\n", cred.Id.Hex(), err)
-		} else {
-			validKeys[cred.PublicKey] = cred.Provider
+			// we return for any not validated public key.
+			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.PublicKey)
 		}
+
+		validKeys[cred.PublicKey] = cred.Provider
 	}
 
 	// 4- fetch credentialdata with publickey
