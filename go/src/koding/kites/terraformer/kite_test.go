@@ -124,6 +124,7 @@ func TestPlan(t *testing.T) {
 		req := TerraformRequest{
 			Content:   SampleTF,
 			Variables: variables,
+			Location:  "test_file",
 		}
 
 		response, err := tfr.Tell("plan", req)
