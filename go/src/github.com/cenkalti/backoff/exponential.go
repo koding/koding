@@ -49,24 +49,27 @@ type ExponentialBackOff struct {
 	RandomizationFactor float64
 	Multiplier          float64
 	MaxInterval         time.Duration
-	MaxElapsedTime      time.Duration
-	Clock               Clock
+	// After MaxElapsedTime the ExponentialBackOff stops.
+	// It never stops if MaxElapsedTime == 0.
+	MaxElapsedTime time.Duration
+	Clock          Clock
 
 	currentInterval time.Duration
 	startTime       time.Time
 }
 
+// Clock is an interface that returns current time for BackOff.
 type Clock interface {
 	Now() time.Time
 }
 
 // Default values for ExponentialBackOff.
 const (
-	DefaultInitialInterval     = time.Duration(500 * time.Millisecond)
+	DefaultInitialInterval     = 500 * time.Millisecond
 	DefaultRandomizationFactor = 0.5
 	DefaultMultiplier          = 1.5
-	DefaultMaxInterval         = time.Duration(60 * time.Second)
-	DefaultMaxElapsedTime      = time.Duration(15 * time.Minute)
+	DefaultMaxInterval         = 60 * time.Second
+	DefaultMaxElapsedTime      = 15 * time.Minute
 )
 
 // NewExponentialBackOff creates an instance of ExponentialBackOff using default values.
@@ -77,7 +80,7 @@ func NewExponentialBackOff() *ExponentialBackOff {
 		Multiplier:          DefaultMultiplier,
 		MaxInterval:         DefaultMaxInterval,
 		MaxElapsedTime:      DefaultMaxElapsedTime,
-		Clock:               systemClock{},
+		Clock:               SystemClock,
 	}
 }
 
@@ -86,6 +89,9 @@ type systemClock struct{}
 func (t systemClock) Now() time.Time {
 	return time.Now()
 }
+
+// SystemClock implements Clock interface that uses time.Now().
+var SystemClock = systemClock{}
 
 // Reset the interval back to the initial retry interval and restarts the timer.
 func (b *ExponentialBackOff) Reset() {
@@ -97,7 +103,7 @@ func (b *ExponentialBackOff) Reset() {
 // 	randomized_interval = retry_interval +/- (randomization_factor * retry_interval)
 func (b *ExponentialBackOff) NextBackOff() time.Duration {
 	// Make sure we have not gone over the maximum elapsed time.
-	if b.GetElapsedTime() > b.MaxElapsedTime {
+	if b.MaxElapsedTime != 0 && b.GetElapsedTime() > b.MaxElapsedTime {
 		return Stop
 	}
 	defer b.incrementCurrentInterval()

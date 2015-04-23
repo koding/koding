@@ -154,7 +154,7 @@ module.exports = class ComputeController_UI
           title   : "Reinitialize VM?"
           message : "
             If you choose to proceed, this VM will be reset to default state.
-            You will loose all your files, workspaces and data but your VM
+            You will lose all your files, workspaces and data but your VM
             settings (VM aliases, sub-domains etc.) will not be lost.
           "
           button  : "Proceed"

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"github.com/rackspace/gophercloud"
 	"log"
+
+	"github.com/mitchellh/gophercloud-fork-40444fb"
 )
 
 type StepRunSourceServer struct {
@@ -13,6 +14,7 @@ type StepRunSourceServer struct {
 	Name           string
 	SourceImage    string
 	SecurityGroups []string
+	Networks       []string
 
 	server *gophercloud.Server
 }
@@ -30,12 +32,18 @@ func (s *StepRunSourceServer) Run(state multistep.StateBag) multistep.StepAction
 		securityGroups[i]["name"] = groupName
 	}
 
+	networks := make([]gophercloud.NetworkConfig, len(s.Networks))
+	for i, networkUuid := range s.Networks {
+		networks[i].Uuid = networkUuid
+	}
+
 	server := gophercloud.NewServer{
 		Name:          s.Name,
 		ImageRef:      s.SourceImage,
 		FlavorRef:     s.Flavor,
 		KeyPairName:   keyName,
 		SecurityGroup: securityGroups,
+		Networks:      networks,
 	}
 
 	serverResp, err := csp.CreateServer(server)

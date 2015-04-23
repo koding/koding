@@ -36,6 +36,8 @@
     - deleteComment
     - cancelEditingComment
     - cancelCommentDeletion
+    - cancelEditingPost
+    - cancelPostDeletion
 
   - likeunlike
     - likePost
@@ -115,6 +117,7 @@
     - createWorkspaceFromSidebar
     - deleteWorkspace
     - createWorkspaceFromFileTree
+    - switchAnotherWorkspace
 
 
 - register

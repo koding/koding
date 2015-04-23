@@ -2,8 +2,9 @@
 
 cli is a library for implementing powerful command-line interfaces in Go.
 cli is the library that powers the CLI for
-[Packer](https://github.com/mitchellh/packer) and
-[Serf](https://github.com/hashicorp/serf).
+[Packer](https://github.com/mitchellh/packer),
+[Serf](https://github.com/hashicorp/serf), and
+[Consul](https://github.com/hashicorp/consul).
 
 ## Features
 

@@ -1,85 +1,52 @@
 package main
 
 import (
-	"koding/artifact"
+	"io/ioutil"
 	"koding/kites/common"
 	"koding/kites/terraformer"
+	"koding/kites/terraformer/kodingcontext"
+	"log"
 
-	"github.com/koding/kite"
-	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/metrics"
 	"github.com/koding/multiconfig"
-)
-
-var (
-	Name    = "terraformer"
-	Version = "0.0.1"
 )
 
 func main() {
 	conf := &terraformer.Config{}
-
 	// Load the config, reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	k := newKite(conf)
+	if !conf.Debug {
+		// hashicorp.terraform outputs many logs, discard them
+		log.SetOutput(ioutil.Discard)
+	}
 
-	registerURL := k.RegisterURL(true)
+	log := common.NewLogger(terraformer.Name, conf.Debug)
 
-	if err := k.RegisterForever(registerURL); err != nil {
-		k.Log.Fatal(err.Error())
+	c, err := kodingcontext.Init()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer kodingcontext.Close()
+
+	// init s3 auth
+	// awsAuth, err := aws.GetAuth(conf.AWS.Key, conf.AWS.Secret)
+	// if err != nil {
+	// 	log.Fatal(err.Error())
+	// }
+
+	// we are only using us east
+	// awsS3Bucket := s3.New(awsAuth, aws.USEast).Bucket(conf.AWS.Bucket)
+	// fmt.Println("awsS3Bucket-->", awsS3Bucket)
+	c.Storage = kodingcontext.FileStorage{}
+
+	k, err := terraformer.NewKite(conf, c, log)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
+		log.Fatal(err.Error())
 	}
 
 	k.Run()
-}
-
-func newKite(conf *terraformer.Config) *kite.Kite {
-	k := kite.New(Name, Version)
-	k.Config = kiteconfig.MustGet()
-	k.Config.Port = conf.Port
-
-	if conf.Region != "" {
-		k.Config.Region = conf.Region
-	}
-
-	if conf.Environment != "" {
-		k.Config.Environment = conf.Environment
-	}
-
-	if conf.Debug {
-		k.SetLogLevel(kite.DEBUG)
-	}
-
-	stats := common.MustInitMetrics(Name)
-
-	t := terraformer.New()
-	t.Metrics = stats
-	t.Log = common.NewLogger(Name, conf.Debug)
-	t.Debug = conf.Debug
-
-	// track every kind of call
-	k.PreHandleFunc(createTracker(stats))
-
-	// Terraformer handling methods
-	k.HandleFunc("apply", t.Apply)
-	k.HandleFunc("destroy", t.Destroy)
-	k.HandleFunc("plan", t.Plan)
-
-	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
-	k.HandleHTTPFunc("/version", artifact.VersionHandler())
-
-	return k
-}
-
-func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
-	return func(r *kite.Request) (interface{}, error) {
-		metrics.Count(
-			"functionCallCount", // metric name
-			1,                   // count
-			[]string{"funcName:" + r.Method}, // tags for metric call
-			1.0, // rate
-		)
-
-		return true, nil
-	}
 }

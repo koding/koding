@@ -1702,6 +1702,9 @@ paymentGrayLighter  = #f8f8f8
 // machine settings modal styling
 .machine-settings-modal
 
+  .AppModal-content
+    max-width               530px
+
   .AppModal-nav
     min-height              315px
 
@@ -2068,6 +2071,11 @@ paymentGrayLighter  = #f8f8f8
 
   .kdlistitemview-domain
     position                relative
+
+    .custom-link-view .title
+      ellipsis()
+      max-width             475px
+      display               inline-block
 
     &:hover
       .remove

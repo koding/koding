@@ -47,7 +47,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		return err
 	}
 
-	m.push("Starting machine", 10, machinestate.Starting)
+	m.push("Starting machine", 25, machinestate.Starting)
 
 	infoState := amazon.StatusToState(instance.State.Name)
 
@@ -77,7 +77,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
-	m.push("Updating domain aliases", 80, machinestate.Starting)
+	m.push("Updating domain aliases", 70, machinestate.Starting)
 	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for starting err: %s", err.Error())
@@ -92,7 +92,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		}
 	}
 
-	m.push("Checking remote machine", 90, machinestate.Starting)
+	m.push("Checking remote machine", 75, machinestate.Starting)
 	if !m.isKlientReady() {
 		return errors.New("klient is not ready")
 	}

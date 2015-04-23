@@ -690,7 +690,8 @@ func TestMetadata(t *testing.T) {
 		t.Fatalf("err: %s", err.Error())
 	}
 
-	expectedKeys := []string{"Vfoo", "Vbar.Vstring", "Vbar.Vuint", "Vbar"}
+	expectedKeys := []string{"Vbar", "Vbar.Vstring", "Vbar.Vuint", "Vfoo"}
+	sort.Strings(md.Keys)
 	if !reflect.DeepEqual(md.Keys, expectedKeys) {
 		t.Fatalf("bad keys: %#v", md.Keys)
 	}
@@ -772,6 +773,30 @@ func TestTagged(t *testing.T) {
 
 	if result.Extra != "value" {
 		t.Errorf("extra should be 'value', got: %#v", result.Extra)
+	}
+}
+
+func TestWeakDecode(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"foo": "4",
+		"bar": "value",
+	}
+
+	var result struct {
+		Foo int
+		Bar string
+	}
+
+	if err := WeakDecode(input, &result); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if result.Foo != 4 {
+		t.Fatalf("bad: %#v", result)
+	}
+	if result.Bar != "value" {
+		t.Fatalf("bad: %#v", result)
 	}
 }
 

@@ -1,12 +1,15 @@
 ---
 layout: "docs"
+page_title: "DigitalOcean Builder"
+description: |-
+  The `digitalocean` Packer builder is able to create new images for use with DigitalOcean. The builder takes a source image, runs any provisioning necessary on the image after launching it, then snapshots it into a reusable image. This reusable image can then be used as the foundation of new servers that are launched within DigitalOcean.
 ---
 
 # DigitalOcean Builder
 
 Type: `digitalocean`
 
-The `digitalocean` builder is able to create new images for use with
+The `digitalocean` Packer builder is able to create new images for use with
 [DigitalOcean](http://www.digitalocean.com). The builder takes a source
 image, runs any provisioning necessary on the image after launching it,
 then snapshots it into a reusable image. This reusable image can then be
@@ -21,7 +24,7 @@ There are many configuration options available for the builder. They are
 segmented below into two categories: required and optional parameters. Within
 each category, the available configuration keys are alphabetized.
 
-### Required:
+### Required v1 api:
 
 * `api_key` (string) - The API key to use to access your account. You can
   retrieve this on the "API" page visible after logging into your account
@@ -35,7 +38,16 @@ each category, the available configuration keys are alphabetized.
   If not specified, Packer will use the environment variable
   `DIGITALOCEAN_CLIENT_ID`, if set.
 
+### Required v2 api:
+
+* `api_token` (string) - The client TOKEN to use to access your account. If it
+  specified, then use v2 api (current), if not then used old (v1) deprecated api.
+  Also it can be specified via environment variable `DIGITALOCEAN_API_TOKEN`, if set.
+
 ### Optional:
+
+* `api_url` (string) - API endpoint, by default use https://api.digitalocean.com
+  Also it can be specified via environment variable `DIGITALOCEAN_API_URL`, if set.
 
 * `droplet_name` (string) - The name assigned to the droplet. DigitalOcean
   sets the hostname of the machine to this value.
@@ -43,7 +55,7 @@ each category, the available configuration keys are alphabetized.
 * `image` (string) - The name (or slug) of the base image to use. This is the
   image that will be used to launch a new droplet and provision it. This
   defaults to 'ubuntu-12-04-x64' which is the slug for "Ubuntu 12.04.4 x64".
-  See https://developers.digitalocean.com/images/ for the accepted image names/slugs.
+  See https://developers.digitalocean.com/documentation/v2/#list-all-images for details on how to get a list of the the accepted image names/slugs.
 
 * `image_id` (integer) - The ID of the base image to use. This is the image that
   will be used to launch a new droplet and provision it.
@@ -54,8 +66,8 @@ each category, the available configuration keys are alphabetized.
 
 * `region` (string) - The name (or slug) of the region to launch the droplet in.
   Consequently, this is the region where the snapshot will be available.
-  This defaults to "nyc1", which is the slug for "New York 1".
-  See https://developers.digitalocean.com/regions/ for the accepted region names/slugs.
+  This defaults to "nyc3", which is the slug for "New York 3".
+  See https://developers.digitalocean.com/documentation/v2/#list-all-regions for the accepted region names/slugs.
 
 * `region_id` (integer) - The ID of the region to launch the droplet in. Consequently,
   this is the region where the snapshot will be available.
@@ -63,7 +75,7 @@ each category, the available configuration keys are alphabetized.
 
 * `size` (string) - The name (or slug) of the droplet size to use.
   This defaults to "512mb", which is the slug for "512MB".
-  See https://developers.digitalocean.com/sizes/ for the accepted size names/slugs.
+  See https://developers.digitalocean.com/documentation/v2/#list-all-sizes for the accepted size names/slugs.
 
 * `size_id` (integer) - The ID of the droplet size to use.
   This setting is deprecated. Use `size` instead.
@@ -92,13 +104,13 @@ each category, the available configuration keys are alphabetized.
 Here is a basic example. It is completely valid as soon as you enter your
 own access tokens:
 
-<pre class="prettyprint">
+```javascript
 {
   "type": "digitalocean",
   "client_id": "YOUR CLIENT ID",
   "api_key": "YOUR API KEY"
 }
-</pre>
+```
 
 ## Finding Image, Region, and Size IDs
 

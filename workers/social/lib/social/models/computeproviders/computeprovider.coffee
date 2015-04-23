@@ -80,7 +80,7 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-    { provider, stack, label, provisioners } = options
+    { provider, stack, label, provisioners, users } = options
     { r: { group, user, account } } = client
 
     provider.create client, options, (err, machineData)->
@@ -94,7 +94,7 @@ module.exports = class ComputeProvider extends Base
       JMachine.create {
         provider : provider.slug
         label, meta, group, user
-        credential, provisioners
+        users, credential, provisioners
       }, (err, machine)->
 
         # TODO if any error occurs here which means user paid for
@@ -129,6 +129,11 @@ module.exports = class ComputeProvider extends Base
       return callback new KodingError "No such stack"  unless revivedStack
 
       options.stack = revivedStack
+
+      # Reset it here if someone tries to put users
+      # from client side request
+      options.users = []
+
       @create client, options, callback
 
 
@@ -195,7 +200,11 @@ module.exports = class ComputeProvider extends Base
       ComputeProvider.createGroupStack client, callback
 
 
-  @createGroupStack = (client, callback = ->)->
+  @createGroupStack = (client, options, callback) ->
+
+    [options, callback] = [callback, options]  unless callback
+    callback ?= ->
+    options  ?= {}
 
     fetchStackTemplate client, (err, res)->
 
@@ -232,10 +241,33 @@ module.exports = class ComputeProvider extends Base
         template.machines?.forEach (machineInfo)->
 
           queue.push ->
+
             machineInfo.stack = stack
-            ComputeProvider.create client, machineInfo, (err, machine)->
-              results.machines.push { err, obj: machine }
-              queue.next()
+
+            create = (machineInfo) ->
+              ComputeProvider.create client, machineInfo, (err, machine)->
+                results.machines.push { err, obj: machine }
+                queue.next()
+
+            # This is optional, since for koding group for example
+            # we don't want to add our admins into users machines ~ GG
+            unless options.addGroupAdminToMachines
+              return create machineInfo
+
+            # TODO Do we need all admins or only some of them? ~ GG
+            # Maybe some of them as admin some of them as user etc.
+            group.fetchAdmin (err, admin)->
+
+              if not err and admin and not admin.getId().equals account.getId()
+                admin.fetchUser (err, adminUser)->
+                  if not err and adminUser
+                    machineInfo.users = [
+                      { id: adminUser.getId(), sudo: yes, owner: yes }
+                    ]
+                  create machineInfo
+              else
+                create machineInfo
+
 
         template.domains?.forEach (domainInfo)->
 
@@ -301,27 +333,26 @@ module.exports = class ComputeProvider extends Base
 
   do ->
 
-    # This is moved into JUser::convert steps but we need to
-    # re-enable this for Teams product. ~ GG
-    #
-    # JGroup = require '../group'
-    # JGroup.on 'MemberAdded', ({group, member})->
-    #
-    #   # No need to try creating group stacks for guests group members
-    #   return  if group.slug is 'guests'
-    #
-    #   client =
-    #     connection :
-    #       delegate : member
-    #     context    : group : group.slug
-    #
-    #   ComputeProvider.createGroupStack client, (err, res = {})->
-    #
-    #     {stack, results} = res
-    #
-    #     if err?
-    #       {nickname} = member.profile
-    #       console.log "Create group stack failed for #{nickname}:", err, results
+    JGroup = require '../group'
+    JGroup.on 'MemberAdded', ({group, member})->
+
+      # No need to try creating group stacks for guests or koding group members
+      return  if group.slug in ['guests', 'koding']
+
+      client =
+        connection :
+          delegate : member
+        context    : group : group.slug
+
+      ComputeProvider.createGroupStack client,
+        addGroupAdminToMachines: yes
+      , (err, res = {})->
+
+        {stack, results} = res
+
+        if err?
+          {nickname} = member.profile
+          console.log "Create group #{group.slug} stack failed for #{nickname}:", err, results
 
 
     JAccount = require '../account'
