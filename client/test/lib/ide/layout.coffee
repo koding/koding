@@ -48,8 +48,6 @@ module.exports =
 
   openDrawingBoard: (browser) ->
 
-    return browser.end()
-
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
