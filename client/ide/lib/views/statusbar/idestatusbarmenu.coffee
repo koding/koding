@@ -9,18 +9,17 @@ module.exports =
 
 class IDEStatusBarMenu extends KDContextMenu
 
-  constructor: (options) ->
+  constructor: (options={}) ->
 
     { delegate } = options
 
-    defaults =
-      menuWidth     : 220
-      x             : delegate.getX() - 5
-      y             : delegate.getY() + 20
-      cssClass      : 'status-bar-menu'
-      treeItemClass : IDEStatusBarMenuItem
+    options.menuWidth     or= 220
+    options.x             or= delegate.getX() - 5
+    options.y             or= delegate.getY() + 20
+    options.cssClass      or= 'status-bar-menu'
+    options.treeItemClass or= IDEStatusBarMenuItem
 
-    super _.extend(defaults, options), @getItems()
+    super options, @getItems()
 
     @on 'ContextMenuItemReceivedClick', (view, event) =>
       unless event.target.parentNode.classList.contains 'kdselectbox'
