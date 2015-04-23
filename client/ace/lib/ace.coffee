@@ -11,13 +11,18 @@ globals              = require 'globals'
 trackEvent           = require 'app/util/trackEvent'
 FSHelper             = require 'app/util/fs/fshelper'
 settings             = require './settings'
-EmmetLoader          = require './emmetloader'
 
 module.exports =
 
 class Ace extends KDView
 
   ACE_READY = no
+
+  EmmetLoadState =
+    PENDING: no
+    READY  : no
+
+  emmetLoadListeners = {}
 
   @registerStaticEmitter()
 
@@ -515,18 +520,35 @@ class Ace extends KDView
     @appStorage.setValue 'openRecentFiles', value
 
 
+  loadEmmet: (cb) ->
+
+    return cb null  if EmmetLoadState.READY
+
+    emmetLoadListeners[@id] = cb
+
+    if not EmmetLoadState.PENDING
+      EmmetLoadState.PENDING = yes
+      emmetPath = globals.acePath.split('/').slice(0, -1)
+        .concat(['_ext-emmet.js']).join('/')
+      getscript emmetPath, (err) ->
+        console.log 'getscript cb', emmetLoadListeners
+        cb err for key, cb of emmetLoadListeners when typeof cb is 'function'
+        EmmetLoadState.READY = yes
+        emmetLoadListeners = null
+
+
   setEnableEmmet: (value, save = yes) ->
 
-    next = =>
+    next = (err) =>
+      throw err  if err
+      console.log this
       @editor.setOption 'enableEmmet', value
       @appStorage.setValue 'enableEmmet', value  if save
 
-    if value is yes
-      EmmetLoader.load (err) =>
-        throw err  if err
-        next()
+    if value is yes and not EmmetLoadState.READY
+      @loadEmmet next
     else
-      next()
+      next null
 
 
   setEnableSnippets: (value, save = yes) ->
