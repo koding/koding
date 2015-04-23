@@ -60,7 +60,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
     if editor
     then editor.focus()
-    else ace.on 'ace.ready', -> editor.focus()
+    else ace.ready -> editor.focus()
 
 
   navigateToNewFile:(newFile)->
