@@ -107,27 +107,7 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 }
 
 func (c *Context) Close() error {
-	dir, err := c.Storage.BasePath()
-	if err != nil {
-		return err
-	}
-
-	return c.Storage.Clean(dir)
-}
-
-func (c *Context) createDirAndFile(content io.Reader) (dir string, err error) {
-	dir, err = c.Storage.BasePath()
-	if err != nil {
-		return "", err
-	}
-
-	path := path.Join(dir, c.id+mainFileName+terraformFileExt)
-
-	if err := c.Storage.Write(path, content); err != nil {
-		return "", err
-	}
-
-	return dir, nil
+	return c.LocalStorage.Clean(c.Location)
 }
 
 // getBaseDir creates a new temp directory or returns the existing exclusive one
