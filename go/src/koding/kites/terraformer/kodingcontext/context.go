@@ -3,10 +3,7 @@ package kodingcontext
 import (
 	"bytes"
 	"errors"
-	"fmt"
-	"io"
 	"io/ioutil"
-	"path"
 
 	"koding/kites/terraformer/kodingcontext/pkg"
 
@@ -33,8 +30,10 @@ type Context struct {
 	Variables map[string]string
 
 	// storage holds the plans of terraform
-	Storage Storage
+	RemoteStorage Storage
+	LocalStorage  Storage
 
+	Location     string
 	baseDir      string
 	providers    map[string]terraform.ResourceProviderFactory
 	provisioners map[string]terraform.ResourceProvisionerFactory
@@ -42,7 +41,7 @@ type Context struct {
 	ui           *cli.PrefixedUi
 }
 
-func Init() (*Context, error) {
+func Init(ls, rs Storage) (*Context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
@@ -52,7 +51,7 @@ func Init() (*Context, error) {
 	providers := config.ProviderFactories()
 	provisioners := config.ProvisionerFactories()
 
-	return NewContext(providers, provisioners), nil
+	return NewContext(providers, provisioners, ls, rs), nil
 }
 
 func Close() {
@@ -63,21 +62,29 @@ func Close() {
 func NewContext(
 	providers map[string]terraform.ResourceProviderFactory,
 	provisioners map[string]terraform.ResourceProvisionerFactory,
+	local Storage,
+	remote Storage,
 ) *Context {
 	b := new(bytes.Buffer)
 
 	return &Context{
-		baseDir:      "",
-		providers:    providers,
-		provisioners: provisioners,
-		id:           id.String(),
-		Buffer:       b,
-		ui:           NewUI(b),
+		baseDir:       "",
+		providers:     providers,
+		provisioners:  provisioners,
+		Buffer:        b,
+		RemoteStorage: remote,
+		LocalStorage:  local,
+		ui:            NewUI(b),
 	}
 }
 
 func (c *Context) Clone() *Context {
-	return NewContext(c.providers, c.provisioners)
+	return NewContext(
+		c.providers,
+		c.provisioners,
+		c.LocalStorage,
+		c.RemoteStorage,
+	)
 }
 
 func (c *Context) TerraformContextOpts() *terraform.ContextOpts {
