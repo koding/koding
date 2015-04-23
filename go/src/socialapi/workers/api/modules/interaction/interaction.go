@@ -92,6 +92,14 @@ func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.
 
 	// get query
 	query := request.GetQuery(u)
+
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	query.AccountId = id
+
 	if query.Type == "" {
 		query.Type = models.Interaction_TYPE_LIKE
 	}
