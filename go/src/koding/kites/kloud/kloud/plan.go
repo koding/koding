@@ -59,10 +59,13 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	// TODO(arslan): make one single persistent connection if needed, for now
+	// this is ok.
 	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
 		return nil, err
 	}
+	defer tfKite.Close()
 
 	// TODO(arslan): fetch the credentials via args.Credentials
 	// args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
