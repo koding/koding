@@ -21,6 +21,7 @@ module.exports = class Machine extends KDObject
     'Terminated'      # Machine is destroyed, does not exist anymore
     'Updating'        # Machine is being updated by provisioner
     'Pending'         # Machine is being resized by provisioner
+    'Snapshotting'    # Machine is snapshotting
     'Unknown'         # Machine is in an unknown state
                       # needs to be resolved manually
   }
@@ -133,3 +134,4 @@ module.exports = class Machine extends KDObject
   isApproved  : -> @isMine() or @_ruleChecker ['approved']
   isPermanent : -> @_ruleChecker ['permanent']
   isManaged   : -> @provider is 'managed'
+  isRunning   : -> @status.state is Machine.State.Running

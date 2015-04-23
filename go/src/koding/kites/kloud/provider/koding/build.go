@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/waitstate"
 
+	"github.com/hashicorp/terraform/terraform"
 	kiteprotocol "github.com/koding/kite/protocol"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -65,8 +67,9 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// the user might send us a snapshot id
 	var args struct {
-		SnapshotId string
-		Reason     string
+		SnapshotId       string
+		Reason           string
+		TerraformContext string
 	}
 
 	err = req.Args.One().Unmarshal(&args)
@@ -101,6 +104,49 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	if m.Meta.InstanceName == "" {
 		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
+
+	////////////// TERRAFORMER KITE ////////////////
+	// 	tfKite, err := terraformer.Connect(m.Session.Kite)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+
+	// 	appendVariables := func(hclFile string, vars map[string]string) string {
+	// 		// TODO: use hcl encoder, this is just for testing
+	// 		for k, v := range vars {
+	// 			hclFile += "\n"
+	// 			varTemplate := `
+	// variable "%s" {
+	//     default = "%s"
+	// }
+	// `
+	// 			hclFile += fmt.Sprintf(varTemplate, k, v)
+	// 		}
+
+	// 		return hclFile
+
+	// 	}
+	// 	args.TerraformContext = appendVariables(args.TerraformContext, map[string]string{
+	// 		"access_key": "AKIAJTDKW5IFUUIWVNAA",
+	// 		"secret_key": "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",
+	// 	})
+	// 	fmt.Printf("args.TerraformContext = %+v\n", args.TerraformContext)
+
+	// 	plan, err := tfKite.Plan(args.TerraformContext)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+
+	// 	out, err := jsonFromPlan(plan)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+
+	// 	fmt.Println(out)
+
+	// 	return errors.New("THANKS BRO, I've got my PLAN!")
+
+	////////////// TERRAFORMER KITE ////////////////
 
 	// if there is already a machine just check it again
 	if m.Meta.InstanceId == "" {
@@ -147,10 +193,10 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			m.Meta.InstanceId, m.QueryString)
 	}
 
-	m.push("Checking build process", 50, machinestate.Building)
+	m.push("Checking build process", 40, machinestate.Building)
 	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
 
-	instance, err := m.Session.AWSClient.CheckBuild(m.Meta.InstanceId, 50, 70)
+	instance, err := m.Session.AWSClient.CheckBuild(ctx, m.Meta.InstanceId, 50, 70)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
 		m.Log.Warning("machine with instance id '%s' has a problem '%s'. Building a new machine",
@@ -203,7 +249,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
 	m.addDomainAndTags()
 
-	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 90, machinestate.Building)
+	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 80, machinestate.Building)
 	if !m.isKlientReady() {
 		return errors.New("klient is not ready")
 	}
@@ -590,4 +636,37 @@ func (m *Machine) addDomainAndTags() {
 	if err := m.Session.AWSClient.AddTags(m.Meta.InstanceId, tags); err != nil {
 		m.Log.Error("Adding tags failed: %v", err)
 	}
+}
+
+// jsonFromPlan returns a simple json string from the given plan
+func jsonFromPlan(plan *terraform.Plan) (string, error) {
+	attrs := make(map[string]string, 0)
+	for _, d := range plan.Diff.Modules {
+		if d.Resources == nil {
+			continue
+		}
+
+		for _, r := range d.Resources {
+			if r.Attributes == nil {
+				continue
+			}
+
+			for name, a := range r.Attributes {
+				attrs[name] = a.New
+			}
+		}
+	}
+
+	var jsonOut = struct {
+		Machines []map[string]string `json:"machines"`
+	}{
+		Machines: []map[string]string{attrs},
+	}
+
+	out, err := json.MarshalIndent(&jsonOut, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(out), nil
 }

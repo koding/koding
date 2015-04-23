@@ -1,13 +1,15 @@
 ---
 layout: "docs"
 page_title: "vSphere Post-Processor"
+description: |-
+  The Packer vSphere post-processor takes an artifact from the VMware builder and uploads it to a vSphere endpoint.
 ---
 
 # vSphere Post-Processor
 
 Type: `vsphere`
 
-The vSphere post-processor takes an artifact from the VMware builder
+The Packer vSphere post-processor takes an artifact from the VMware builder
 and uploads it to a vSphere endpoint.
 
 ## Configuration
@@ -29,7 +31,8 @@ Required:
 * `password` (string) - Password to use to authenticate to the vSphere
   endpoint.
 
-* `resource_pool` (string) - The resource pool to upload the VM to.
+* `resource_pool` (string) - The resource pool to upload the VM to. This can be
+  " " if you do not have resource pools configured
 
 * `username` (string) - The username to use to authenticate to the vSphere
   endpoint.

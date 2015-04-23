@@ -3,21 +3,27 @@ package common
 import (
 	"bytes"
 	"fmt"
-	"github.com/going/toolkit/xmlpath"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/going/toolkit/xmlpath"
 )
 
 type Parallels9Driver struct {
 	// This is the path to the "prlctl" application.
 	PrlctlPath string
+	// The path to the parallels_dhcp_leases file
+	dhcp_lease_file string
 }
 
-func (d *Parallels9Driver) Import(name, srcPath, dstDir string) error {
+func (d *Parallels9Driver) Import(name, srcPath, dstDir string, reassignMac bool) error {
 
 	err := d.Prlctl("register", srcPath, "--preserve-uuid")
 	if err != nil {
@@ -29,9 +35,12 @@ func (d *Parallels9Driver) Import(name, srcPath, dstDir string) error {
 		return err
 	}
 
-	srcMac, err := getFirtsMacAddress(srcPath)
-	if err != nil {
-		return err
+	srcMac := "auto"
+	if !reassignMac {
+		srcMac, err = getFirtsMacAddress(srcPath)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = d.Prlctl("clone", srcId, "--name", name, "--dst", dstDir)
@@ -70,6 +79,48 @@ func getConfigValueFromXpath(path, xpath string) (string, error) {
 	return value, nil
 }
 
+// Finds an application bundle by identifier (for "darwin" platform only)
+func getAppPath(bundleId string) (string, error) {
+	var stdout bytes.Buffer
+
+	cmd := exec.Command("mdfind", "kMDItemCFBundleIdentifier ==", bundleId)
+	cmd.Stdout = &stdout
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	pathOutput := strings.TrimSpace(stdout.String())
+	if pathOutput == "" {
+		return "", fmt.Errorf(
+			"Could not detect Parallels Desktop! Make sure it is properly installed.")
+	}
+
+	return pathOutput, nil
+}
+
+func (d *Parallels9Driver) DeviceAddCdRom(name string, image string) (string, error) {
+	command := []string{
+		"set", name,
+		"--device-add", "cdrom",
+		"--image", image,
+	}
+
+	out, err := exec.Command(d.PrlctlPath, command...).Output()
+	if err != nil {
+		return "", err
+	}
+
+	deviceRe := regexp.MustCompile(`\s+(cdrom\d+)\s+`)
+	matches := deviceRe.FindStringSubmatch(string(out))
+	if matches == nil {
+		return "", fmt.Errorf(
+			"Could not determine cdrom device name in the output:\n%s", string(out))
+	}
+
+	device_name := matches[1]
+	return device_name, nil
+}
+
 func (d *Parallels9Driver) IsRunning(name string) (bool, error) {
 	var stdout bytes.Buffer
 
@@ -78,6 +129,8 @@ func (d *Parallels9Driver) IsRunning(name string) (bool, error) {
 	if err := cmd.Run(); err != nil {
 		return false, err
 	}
+
+	log.Printf("Checking VM state: %s\n", strings.TrimSpace(stdout.String()))
 
 	for _, line := range strings.Split(stdout.String(), "\n") {
 		if line == "running" {
@@ -88,6 +141,9 @@ func (d *Parallels9Driver) IsRunning(name string) (bool, error) {
 			return true, nil
 		}
 		if line == "paused" {
+			return true, nil
+		}
+		if line == "stopping" {
 			return true, nil
 		}
 	}
@@ -129,43 +185,53 @@ func (d *Parallels9Driver) Prlctl(args ...string) error {
 }
 
 func (d *Parallels9Driver) Verify() error {
-	version, _ := d.Version()
-	if !strings.HasPrefix(version, "9.") {
-		return fmt.Errorf("The packer-parallels builder plugin only supports Parallels Desktop v. 9. You have: %s!\n", version)
-	}
 	return nil
 }
 
 func (d *Parallels9Driver) Version() (string, error) {
-	var stdout bytes.Buffer
-
-	cmd := exec.Command(d.PrlctlPath, "--version")
-	cmd.Stdout = &stdout
-	if err := cmd.Run(); err != nil {
+	out, err := exec.Command(d.PrlctlPath, "--version").Output()
+	if err != nil {
 		return "", err
 	}
 
-	versionOutput := strings.TrimSpace(stdout.String())
-	re := regexp.MustCompile("prlctl version ([0-9\\.]+)")
-	verMatch := re.FindAllStringSubmatch(versionOutput, 1)
-
-	if len(verMatch) != 1 {
-		return "", fmt.Errorf("prlctl version not found!\n")
+	versionRe := regexp.MustCompile(`prlctl version (\d+\.\d+.\d+)`)
+	matches := versionRe.FindStringSubmatch(string(out))
+	if matches == nil {
+		return "", fmt.Errorf(
+			"Could not find Parallels Desktop version in output:\n%s", string(out))
 	}
 
-	version := verMatch[0][1]
-	log.Printf("prlctl version: %s\n", version)
+	version := matches[1]
+	log.Printf("Parallels Desktop version: %s", version)
 	return version, nil
 }
 
 func (d *Parallels9Driver) SendKeyScanCodes(vmName string, codes ...string) error {
 	var stdout, stderr bytes.Buffer
 
+	if codes == nil || len(codes) == 0 {
+		log.Printf("No scan codes to send")
+		return nil
+	}
+
+	f, err := ioutil.TempFile("", "prltype")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(f.Name())
+
+	script := []byte(Prltype)
+	_, err = f.Write(script)
+	if err != nil {
+		return err
+	}
+
 	args := prepend(vmName, codes)
-	cmd := exec.Command("prltype", args...)
+	args = prepend(f.Name(), args)
+	cmd := exec.Command("/usr/bin/python", args...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	err := cmd.Run()
+	err = cmd.Run()
 
 	stdoutString := strings.TrimSpace(stdout.String())
 	stderrString := strings.TrimSpace(stderr.String())
@@ -213,29 +279,52 @@ func (d *Parallels9Driver) Mac(vmName string) (string, error) {
 }
 
 // Finds the IP address of a VM connected that uses DHCP by its MAC address
+//
+// Parses the file /Library/Preferences/Parallels/parallels_dhcp_leases
+// file contain a list of DHCP leases given by Parallels Desktop
+// Example line:
+// 10.211.55.181="1418921112,1800,001c42f593fb,ff42f593fb000100011c25b9ff001c42f593fb"
+// IP Address   ="Lease expiry, Lease time, MAC, MAC or DUID"
 func (d *Parallels9Driver) IpAddress(mac string) (string, error) {
-	var stdout bytes.Buffer
-	dhcp_lease_file := "/Library/Preferences/Parallels/parallels_dhcp_leases"
 
 	if len(mac) != 12 {
 		return "", fmt.Errorf("Not a valid MAC address: %s. It should be exactly 12 digits.", mac)
 	}
 
-	cmd := exec.Command("grep", "-i", mac, dhcp_lease_file)
-	cmd.Stdout = &stdout
-	if err := cmd.Run(); err != nil {
+	leases, err := ioutil.ReadFile(d.dhcp_lease_file)
+	if err != nil {
 		return "", err
 	}
 
-	stdoutString := strings.TrimSpace(stdout.String())
-	re := regexp.MustCompile("(.*)=.*")
-	ipMatch := re.FindAllStringSubmatch(stdoutString, 1)
-
-	if len(ipMatch) != 1 {
-		return "", fmt.Errorf("IP lease not found for MAC address %s in: %s\n", mac, dhcp_lease_file)
+	re := regexp.MustCompile("(.*)=\"(.*),(.*)," + strings.ToLower(mac) + ",.*\"")
+	mostRecentIp := ""
+	mostRecentLease := uint64(0)
+	for _, l := range re.FindAllStringSubmatch(string(leases), -1) {
+		ip := l[1]
+		expiry, _ := strconv.ParseUint(l[2], 10, 64)
+		leaseTime, _ := strconv.ParseUint(l[3], 10, 32)
+		log.Printf("Found lease: %s for MAC: %s, expiring at %d, leased for %d s.\n", ip, mac, expiry, leaseTime)
+		if mostRecentLease <= expiry-leaseTime {
+			mostRecentIp = ip
+			mostRecentLease = expiry - leaseTime
+		}
 	}
 
-	ip := ipMatch[0][1]
-	log.Printf("Found IP lease: %s for MAC address %s\n", ip, mac)
-	return ip, nil
+	if len(mostRecentIp) == 0 {
+		return "", fmt.Errorf("IP lease not found for MAC address %s in: %s\n", mac, d.dhcp_lease_file)
+	}
+
+	log.Printf("Found IP lease: %s for MAC address %s\n", mostRecentIp, mac)
+	return mostRecentIp, nil
+}
+
+func (d *Parallels9Driver) ToolsIsoPath(k string) (string, error) {
+	appPath, err := getAppPath("com.parallels.desktop.console")
+	if err != nil {
+		return "", err
+	}
+
+	toolsPath := filepath.Join(appPath, "Contents", "Resources", "Tools", "prl-tools-"+k+".iso")
+	log.Printf("Parallels Tools path: '%s'", toolsPath)
+	return toolsPath, nil
 }

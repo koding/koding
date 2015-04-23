@@ -2,10 +2,14 @@ package backoff
 
 import (
 	"runtime"
+	"sync"
 	"time"
 )
 
 // Ticker holds a channel that delivers `ticks' of a clock at times reported by a BackOff.
+//
+// Ticks will continue to arrive when the previous operation is still running,
+// so operations that take a while to fail could run in quick succession.
 //
 // Usage:
 // 	operation := func() error {
@@ -22,6 +26,7 @@ import (
 //			continue
 //		}
 //
+//		ticker.Stop()
 //		break
 //	}
 //
@@ -32,10 +37,11 @@ import (
 // 	// Operation is successfull.
 //
 type Ticker struct {
-	C    <-chan time.Time
-	c    chan time.Time
-	b    BackOff
-	stop chan struct{}
+	C        <-chan time.Time
+	c        chan time.Time
+	b        BackOff
+	stop     chan struct{}
+	stopOnce sync.Once
 }
 
 // NewTicker returns a new Ticker containing a channel that will send the time at times
@@ -47,51 +53,53 @@ func NewTicker(b BackOff) *Ticker {
 		C:    c,
 		c:    c,
 		b:    b,
-		stop: make(chan struct{}, 1),
+		stop: make(chan struct{}),
 	}
 	go t.run()
-	runtime.SetFinalizer(t, func(x *Ticker) { x.Stop() })
+	runtime.SetFinalizer(t, (*Ticker).Stop)
 	return t
 }
 
 // Stop turns off a ticker. After Stop, no more ticks will be sent.
 func (t *Ticker) Stop() {
-	select {
-	case t.stop <- struct{}{}:
-	default:
-	}
+	t.stopOnce.Do(func() { close(t.stop) })
 }
 
 func (t *Ticker) run() {
-	var next time.Duration
-	var afterC <-chan time.Time
+	c := t.c
+	defer close(c)
+	t.b.Reset()
 
-	defer close(t.c)
-
-	first := make(chan time.Time, 1)
-	first <- time.Now()
+	// Ticker is guaranteed to tick at least once.
+	afterC := t.send(time.Now())
 
 	for {
-		var tick time.Time
+		if afterC == nil {
+			return
+		}
 
 		select {
-		case tick = <-first:
-			t.c <- tick
-			t.b.Reset()
-			next = t.b.NextBackOff()
-			if next == Stop {
-				return
-			}
-			afterC = time.After(next)
-		case tick = <-afterC:
-			t.c <- tick
-			next = t.b.NextBackOff()
-			if next == Stop {
-				return
-			}
-			afterC = time.After(next)
+		case tick := <-afterC:
+			afterC = t.send(tick)
 		case <-t.stop:
+			t.c = nil // Prevent future ticks from being sent to the channel.
 			return
 		}
 	}
+}
+
+func (t *Ticker) send(tick time.Time) <-chan time.Time {
+	select {
+	case t.c <- tick:
+	case <-t.stop:
+		return nil
+	}
+
+	next := t.b.NextBackOff()
+	if next == Stop {
+		t.Stop()
+		return nil
+	}
+
+	return time.After(next)
 }

@@ -26,7 +26,7 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 		ev.Push(&eventer.Event{
 			Message:    "Starting machine",
 			Status:     machinestate.Starting,
-			Percentage: 10,
+			Percentage: 25,
 		})
 	}
 
@@ -56,7 +56,7 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 	ws := waitstate.WaitState{
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Running,
-		Start:        25,
+		Start:        45,
 		Finish:       60,
 	}
 

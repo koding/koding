@@ -143,7 +143,50 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
       return  Promise.reject 'key and value required'
 
     value = (JSON.stringify value) or ''
+
     @tell 'storage.set', {key, value}
+
+  # Queueing is required for client side calls to get requests
+  # in order correctly. So if you need to set different value
+  # for the same key all the time it's better to use this
+  # setter instead of ::storageSet ~ GG
+
+  # Detailed explanation can be found at
+  # https://github.com/koding/koding/pull/3372#discussion_r28312666
+
+  storageSetQueued: do (queue = []) ->
+
+    locked = no
+
+    (key, value) ->
+
+      if not key or not value
+        return  Promise.reject 'key and value required'
+
+      value = (JSON.stringify value) or ''
+
+      consume = =>
+
+        return  if queue.length is 0 or locked
+        locked = yes
+
+        {key, value, resolve, reject} = queue.shift()
+
+        @tell 'storage.set', {key, value}
+
+          .then (res) ->
+            locked = no
+            consume()
+            resolve res
+
+          .catch (err) ->
+            locked = no
+            consume()
+            reject err
+
+      new Promise (resolve, reject) ->
+        queue.push {key, value, resolve, reject}
+        consume()  if queue.length is 1
 
 
   storageGet: (key) ->

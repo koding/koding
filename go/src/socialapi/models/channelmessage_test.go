@@ -609,3 +609,31 @@ func TestChannelMessageAddReply(t *testing.T) {
 
 	})
 }
+
+func TestChannelMessagePayload(t *testing.T) {
+	Convey("while accessing payload ", t, func() {
+
+		Convey("channel message payload update operations should be functional", func() {
+			cm := NewChannelMessage()
+			cm.SetPayload("hey", "hov")
+			So(*cm.Payload["hey"], ShouldEqual, "hov")
+
+			cm.SetPayload("hey", "hovva")
+			So(*cm.Payload["hey"], ShouldEqual, "hovva")
+		})
+
+		Convey("channel message payload fetch operations should be functional", func() {
+			cm := NewChannelMessage()
+			val := cm.GetPayload("hey")
+			So(val, ShouldBeNil)
+
+			cm.SetPayload("hey", "hov")
+			val = cm.GetPayload("hey")
+			So(*val, ShouldEqual, "hov")
+
+			val = cm.GetPayload("heya")
+			So(val, ShouldBeNil)
+		})
+
+	})
+}

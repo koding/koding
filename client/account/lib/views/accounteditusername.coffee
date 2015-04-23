@@ -107,7 +107,7 @@ module.exports = class AccountEditUsername extends JView
           cssClass         : 'AppModal-form-sectionHeader'
         shareLocationLabel :
           itemClass        : KDCustomHTMLView
-          partial          : 'Share my location while posting'
+          partial          : 'Share my location when I post something on Koding Channels'
           tagName          : 'ul'
           cssClass         : 'AppModal--account-switchList left-aligned'
           name             : 'shareLocationLabel'
@@ -177,7 +177,7 @@ module.exports = class AccountEditUsername extends JView
       =>
         # update firstname and lastname
         me = whoami()
-
+        
         me.modify {
           "profile.firstName": firstName,
           "profile.lastName" : lastName
@@ -216,7 +216,7 @@ module.exports = class AccountEditUsername extends JView
           @emailForm.buttons.Save.hideLoader()
           return
         #check passworg lenght
-        if password.length < 8
+        if password isnt "" and password.length < 8
           notify "Passwords should be at least 8 characters"
           @emailForm.buttons.Save.hideLoader()
           return

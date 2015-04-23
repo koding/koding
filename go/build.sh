@@ -23,7 +23,9 @@ services=(
   koding/kites/kontrol
   github.com/coreos/etcd
   koding/kites/kloud
+  koding/kites/cmd/terraformer
   koding/kites/kloud/kloudctl
+  koding/kites/cmd/terraformer
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview
@@ -70,3 +72,18 @@ services=(
 cd $GOPATH
 mkdir -p build/broker
 cp bin/broker build/broker/broker
+
+
+#
+# terraform related build operations
+# TODO ~ this should be done in a more elegant way
+#
+# tldflags="-X main.GitCommit ${version:0:8}"
+
+# `which go` build -o bin/terraform-provider-aws -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provider-aws
+# `which go` build -o bin/terraform-provider-terraform -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provider-terraform
+
+# `which go` build -o bin/terraform-provisioner-file -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-file
+# `which go` build -o bin/terraform-provisioner-local-exec -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
+# `which go` build -o bin/terraform-provisioner-remote-exec -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
+

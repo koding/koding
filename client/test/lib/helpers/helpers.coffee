@@ -52,7 +52,7 @@ module.exports =
     unless machineName
       machineName = 'koding-vm-0'
 
-    vmSelector     = '[href="/IDE/' + machineName + '"].running.vm'
+    vmSelector     = ".#{machineName} .running.vm"
     modalSelector  = '.env-modal.env-machine-state'
     loaderSelector = modalSelector + ' .kdloader'
     buildingLabel  = modalSelector + ' .state-label.building'
@@ -291,6 +291,7 @@ module.exports =
     webSelector   = "span[title='" + webPath + "']"
 
     browser
+      .pause                   5000 # wait for filetree load
       .waitForElementVisible   '.vm-header', 50000
       .click                   '.vm-header .buttons'
       .waitForElementPresent   '.context-list-wrapper', 50000
@@ -407,24 +408,6 @@ module.exports =
         .waitForElementVisible     modalSelector, 20000
         .click                     modalSelector + ' button.red'
         .waitForElementNotVisible  workspaceSelector, 20000
-
-
-  splitPanesUndo: (browser) ->
-
-    browser
-      .waitForElementVisible '.panel-1', 20000
-      .elements 'css selector', '.panel-1', (result) =>
-        assert.equal result.value.length, 2
-
-        browser
-          .waitForElementVisible   '.application-tab-handle-holder', 20000
-          .click                   '.application-tab-handle-holder .plus'
-          .waitForElementVisible   '.context-list-wrapper', 20000
-          .click                   '.context-list-wrapper li.undo-split'
-          .pause                   2000
-
-        .elements 'css selector', '.panel-1', (result) =>
-          assert.equal result.value.length, 1
 
 
   assertMainHeader: (browser, assertLoginLink = yes) ->

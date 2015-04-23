@@ -95,9 +95,9 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     else
       @state = status
 
-      if error?.length > 0
+      if error
 
-        if /NetworkOut overlimit/i.test event.message
+        if /NetworkOut/i.test error
           @customErrorMessage = "
             <p>You've reached your outbound network usage
             limit for this week.</p><span>
@@ -309,7 +309,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
         if destroyVMs
 
-          @showBusy "Destroying machines..."
+          @showBusy "Deleting your VM(s)..."
           ComputeHelpers.destroyExistingMachines (err)=>
             kd.utils.wait 5000, =>
               @buildExpiredView subscription, "downgrade"

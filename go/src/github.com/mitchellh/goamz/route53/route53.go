@@ -1,4 +1,4 @@
-// The elb package provides types and functions for interaction with the AWS
+// The route53 package provides types and functions for interaction with the AWS
 // Route53 service
 package route53
 
@@ -103,6 +103,18 @@ func (r *Route53) query(method, path string, req, resp interface{}) error {
 			var newBuf bytes.Buffer
 			newBuf.WriteString(strings.Replace(bodyBuf.String(), replace, "", -1))
 			bodyBuf = &newBuf
+		}
+
+		// http://docs.aws.amazon.com/Route53/latest/APIReference/CreateAliasRRSAPI.html
+		if reflect.Indirect(reflect.ValueOf(req)).Type().Name() == "ChangeResourceRecordSetsRequest" {
+			for _, change := range req.(ChangeResourceRecordSetsRequest).Changes {
+				if change.Record.AliasTarget != nil {
+					replace := change.Record.Type + "</Type><TTL>0</TTL>"
+					var newBuf bytes.Buffer
+					newBuf.WriteString(strings.Replace(bodyBuf.String(), replace, change.Record.Type+"</Type>", -1))
+					bodyBuf = &newBuf
+				}
+			}
 		}
 
 		body = bodyBuf

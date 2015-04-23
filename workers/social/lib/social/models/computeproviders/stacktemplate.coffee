@@ -200,15 +200,15 @@ KD.remote.api.JStackTemplate.create({
   domains: [],
   machines: [
     {
-            "label" : "koding-vm-0",
-            "provider" : "koding",
-            "instanceType" : "t2.micro",
-            "provisioners" : [
-                "devrim/koding-base"
-            ],
-            "region" : "us-east-1",
-            "source_ami" : "ami-a6926dce"
-        }
+      "label" : "koding-vm-0",
+      "provider" : "koding",
+      "instanceType" : "t2.micro",
+      "provisioners" : [
+          "devrim/koding-base"
+      ],
+      "region" : "us-east-1",
+      "source_ami" : "ami-a6926dce"
+    }
   ],
   connections: []
 }, function(err, template) {

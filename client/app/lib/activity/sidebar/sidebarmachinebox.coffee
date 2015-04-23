@@ -27,10 +27,7 @@ module.exports = class SidebarMachineBox extends KDView
 
     @workspaceListItemsById = {}
 
-    { workspaces } = @getData()
-    machineData    = { @machine, workspaces }
-
-    @addSubView @machineItem = new NavigationMachineItem {}, machineData
+    @createMachineItem()
 
     @addSubView @unreadIndicator = new KDCustomHTMLView
       tagName  : 'cite'
@@ -46,6 +43,17 @@ module.exports = class SidebarMachineBox extends KDView
       kd.utils.wait 733, => # wait showing popup to get the coordinates correctly
         environmentDataProvider.setLastUpdatedMachineUId null
         @machineItem.showSidebarSharePopup()
+
+
+  createMachineItem: ->
+
+    machineData = { @machine, workspaces: @getData().workspaces }
+
+    @addSubView @machineItem = new NavigationMachineItem {}, machineData
+
+    @machineItem.on 'click', =>
+      if @isMachineRunning() then @toggleList()
+      else kd.singletons.router.handleRoute @machineItem.machineRoute
 
 
   createWorkspacesList: ->
@@ -106,12 +114,16 @@ module.exports = class SidebarMachineBox extends KDView
     @addSubView @workspacesLabel = new KDCustomHTMLView
       cssClass : 'workspaces-link'
       partial  : 'Workspaces'
-      click    : =>
+      click    : @bound 'handleWorkspaceLabelClicked'
 
-        return no  unless @machine.isMine()
 
-        modal = new MoreWorkspacesModal {}, @getData().workspaces
-        modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
+  handleWorkspaceLabelClicked: ->
+
+    if not @machine.isMine() or not @isMachineRunning()
+      return no
+
+    modal = new MoreWorkspacesModal {}, @getData().workspaces
+    modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
 
 
   createAddWorkspaceInput: ->
@@ -150,8 +162,6 @@ module.exports = class SidebarMachineBox extends KDView
   deselect: ->
 
     @unsetClass 'selected'
-
-    @collapseList()
     @deselectWorkspaces()
 
 
@@ -167,16 +177,23 @@ module.exports = class SidebarMachineBox extends KDView
 
   expandList: ->
 
+    return  unless @isMachineRunning()
+
     @listWrapper.show()
     @workspacesLabel.show()
     @unreadIndicator.hide()
     @isListCollapsed = no
 
 
+  toggleList: ->
+
+    if @isListCollapsed then @expandList() else @collapseList()
+    @emit 'ListStateChanged'
+
+
   selectWorkspace: (slug) ->
 
-    if @machine.status.state is Machine.State.Running
-      @expandList()
+    @expandList()
 
     @deselectWorkspaces()
     @forEachWorkspaceItem (item) ->
@@ -260,3 +277,8 @@ module.exports = class SidebarMachineBox extends KDView
     @unreadIndicator.updatePartial @unreadCount
     if @isListCollapsed and @unreadCount > 0
       @unreadIndicator.show()
+
+
+  isMachineRunning: ->
+
+    return @machine.status.state is Machine.State.Running

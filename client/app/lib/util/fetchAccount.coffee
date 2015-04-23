@@ -22,10 +22,11 @@ remote = require('app/remote').getInstance()
 module.exports = fetchAccount = (origin, callback) ->
 
   if origin.constructorName
+    origin.id or= origin._id
     remote.cacheable origin.constructorName, origin.id, callback
   else if 'string' is typeof origin
     remote.cacheable origin, (err, [account]) -> callback err, account
-  else if target?.bongo_?.constructorName is 'JAccount'
+  else if origin?.bongo_?.constructorName is 'JAccount'
     callback null, origin
   else
     callback { message: 'utils.fetchAccount: wrong type of argument - origin' }
