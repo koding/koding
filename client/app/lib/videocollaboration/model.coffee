@@ -133,7 +133,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit eventName
 
     session.on 'signal:end', =>
-      @stopPublishing
+      # when a signal comes here it means that it could have reached to other
+      # users and because of that at this stack we may have extra
+      # `streamDestroyed` events. Since stopPublishing will trigger the events
+      # that eventually nullify the publisher in this stack, this defer tries
+      # to overcome that problem. ~Umut
+      kd.utils.defer => @stopPublishing
         success : @bound 'handleStopSuccess'
         error   : (err) -> console.error err
 
@@ -160,6 +165,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
     success = (publisher) =>
       @handlePublishSuccess publisher
       callbacks.success? publisher
+
+    @setActive()
 
     @startPublishing options,
       success : success
@@ -246,8 +253,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   setActive: ->
     return  if @state.active
 
-    @emit 'VideoCollaborationActive', @publisher
     @setState { active: yes }
+    @emit 'VideoCollaborationActive', @publisher
 
 
   ###*
@@ -261,8 +268,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   setEnded: ->
     return  unless @state.active
 
-    @emit 'VideoCollaborationEnded'
     @setState { active: no }
+    @emit 'VideoCollaborationEnded'
 
 
   ###*
@@ -367,7 +374,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @registerPublisher publisher
     @setState { publishing: on }
-    @setActive()
 
     @changeActiveParticipant getNick()
 
@@ -377,7 +383,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   handleStopSuccess: ->
 
-    @unregisterPublisher()
     @setState { publishing: off }
     @setEnded()
 
@@ -410,6 +415,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
         accessDenied       : => @emit 'CameraAccessDenied'
         accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
         accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
+
+      publisher.on 'streamDestroyed', => @unregisterPublisher()
 
       @session.publish publisher, (err) =>
         return callbacks.error err  if err
