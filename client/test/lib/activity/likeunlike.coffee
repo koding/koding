@@ -9,7 +9,7 @@ module.exports =
 
   likePost: (browser) ->
 
-    user = @beginTest(browser)
+    user = helpers.beginTest(browser)
     helpers.likePost(browser, user)
     browser.end()
 
