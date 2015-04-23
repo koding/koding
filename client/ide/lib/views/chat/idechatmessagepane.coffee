@@ -33,7 +33,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @input.input.on 'focus', @lazyBound 'handleFocus', yes
 
-    @once 'NewParticipantButtonClicked', => @onboarding?.destroy()
+    @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
 
 
   handleThresholdReached: ->
@@ -129,37 +129,38 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     super
 
+    if isMyChannel @getData()
+    then @addOnboardingView()
+    else @participantHeads.newParticipantButton.destroy()
+
+
+  addOnboardingView: ->
+
     channel = @getData()
 
-    isMyChannel_ = isMyChannel channel
+    isAlreadyUsed   = channel.lastMessage.payload?['system-message'] not in [ 'initiate', 'start' ]
+    hasParticipants = channel.participantCount > 1
 
-    if isMyChannel_
+    return  if hasParticipants or isAlreadyUsed
 
-      isAlreadyUsed   = channel.lastMessage.payload?['system-message'] not in [ 'initiate', 'start' ]
-      hasParticipants = channel.participantCount > 1
+    @addSubView @onboarding = new KDCustomHTMLView
+      cssClass : 'onboarding'
+      click    : @bound 'handleOnboardingViewClick'
+      partial  : """
+        <div class="arrow"></div>
+        <div class="balloon"></div>
+        <p>Start your collaboration session by <a href="#">adding someone</a>.</p>
+      """
 
-      return  if hasParticipants or isAlreadyUsed
-
-      @addSubView @onboarding = new KDCustomHTMLView
-        cssClass : 'onboarding'
-        click    : @bound 'handleOnboardingViewClick'
-        partial  : """
-          <div class="arrow"></div>
-          <div class="balloon"></div>
-          <p>Start your collaboration session by <a href="#">adding someone</a>.</p>
-        """
-
-    else
-
-      @participantHeads.newParticipantButton.destroy()
+    channel.once 'AddedToChannel', @bound 'removeOnboarding'
 
 
-  handleOnboardingViewClick: (e) ->
+  handleOnboardingViewClick: (event) ->
 
-    if e.target.tagName is 'A'
+    return  unless event.target.tagName is 'A'
 
-      @onboarding.destroy()
-      @showAutoCompleteInput()
+    @removeOnboarding()
+    @showAutoCompleteInput()
 
 
   createHeaderViews: ->
@@ -244,7 +245,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   participantAdded: (participant) ->
 
-    @onboarding?.destroy()
+    @removeOnboarding()
 
     appManager = kd.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
@@ -264,3 +265,9 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     item.checkIfItsTooTall()  for item in @listController.getListItems()
     @scrollView.wrapper.emit 'MutationHappened'
     @scrollDown()
+
+
+  removeOnboarding: ->
+
+    @onboarding?.destroy()
+    @onboarding = null

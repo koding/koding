@@ -167,6 +167,19 @@ class IDEAppController extends AppController
     baseSplit.resizer.on 'dblclick', @bound 'toggleSidebar'
 
 
+  bindWorkspaceDataEvents: ->
+
+    @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
+
+    @workspaceData.on 'update', (fields) =>
+
+      fields.forEach (field) =>
+
+        switch field
+          when 'channelId'
+            @emit 'WorkspaceChannelChanged'
+
+
   setActiveTabView: (tabView) ->
 
     return  if tabView is @activeTabView
@@ -447,6 +460,7 @@ class IDEAppController extends AppController
           @once 'IDEReady', => @prepareCollaboration()
 
         @bindMachineEvents machineItem
+        @bindWorkspaceDataEvents()
 
       else
         @createMachineStateModal { state: 'NotFound', container }

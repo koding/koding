@@ -49,6 +49,7 @@ module.exports = CollaborationController =
       return callback err  if err
 
       @setSocialChannel channel
+      @bindSocialChannelEvents()
       callback null, @socialChannel
 
 
@@ -289,7 +290,8 @@ module.exports = CollaborationController =
 
     @socialChannel
       .on 'AddedToChannel', @bound 'participantAdded'
-      .on 'ChannelDeleted', @bound 'channelDeleted'
+      .on 'ChannelDeleted', @bound 'stopCollaborationSession'
+      .on 'MessageAdded', @bound 'channelMessageAdded'
 
 
   participantAdded: (participant) ->
@@ -304,9 +306,13 @@ module.exports = CollaborationController =
       @watchParticipant nickname
 
 
-  channelDeleted: ->
+  channelMessageAdded: (message) ->
 
-    @stateMachine.transition 'Ending'
+    return  unless message.payload
+
+    if message.payload['system-message'] is 'start'
+      if @stateMachine.state is 'NotStarted'
+        @stateMachine.transition 'Loading'
 
 
   bindRealtimeEvents: ->
@@ -565,7 +571,7 @@ module.exports = CollaborationController =
 
     @fetchSocialChannel (err, channel) =>
       if err
-        console.warn "CollaborationController: #{err}"
+        throwError err
         return callMethod 'notStarted'
 
       @isRealtimeSessionActive channel.id, (isActive, file) =>
@@ -626,7 +632,6 @@ module.exports = CollaborationController =
   createCollaborationSession: (callbacks) ->
 
     fileName = @getRealtimeFileName()
-    socialHelpers.sendActivationMessage @socialChannel, kd.noop
 
     realtimeHelpers.createCollaborationFile @rtm, fileName, (err, file) =>
       return callbacks.error err  if err
@@ -635,6 +640,9 @@ module.exports = CollaborationController =
         return callbacks.error err  if err
 
         @rtmFileId = file.id
+
+        socialHelpers.sendActivationMessage @socialChannel, kd.noop
+
         @setMachineSharingStatus on, (err) =>
           return callbacks.error err  if err
           callbacks.success doc
@@ -675,7 +683,6 @@ module.exports = CollaborationController =
     @transitionViewsToActive()
     @collectButtonShownMetric()
     @bindRealtimeEvents()
-    @bindSocialChannelEvents()
 
     # this method comes from VideoCollaborationController.
     # It's mixed into IDEAppController after CollaborationController.
@@ -734,7 +741,7 @@ module.exports = CollaborationController =
       envHelpers.detachSocialChannel @workspaceData, (err) =>
         throwError err  if err
 
-    @workspaceData.channelId = null
+    @unsetSocialChannel()
     callback()
 
 
@@ -798,6 +805,8 @@ module.exports = CollaborationController =
 
 
   stopCollaborationSession: ->
+
+    return  unless @stateMachine
 
     switch @stateMachine.state
       when 'Active' then @stateMachine.transition 'Ending'
@@ -962,7 +971,7 @@ module.exports = CollaborationController =
 
   throwError: throwError = (err, args...) ->
 
-    format = \
+    format = JSON.stringify \
       switch typeof err
         when 'string' then err
         when 'object' then err.message or err.description
@@ -971,5 +980,19 @@ module.exports = CollaborationController =
     argIndex = 0
     console.error """
       IDE.CollaborationController:
-      #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
+      #{ format.replace /%s/g, -> JSON.stringify(args[argIndex++]) or '%s' }
     """
+
+
+  onWorkspaceChannelChanged: ->
+
+    return  unless @stateMachine
+
+    {channelId} = @workspaceData
+
+    if channelId and typeof channelId is 'string' and channelId.length
+      if @stateMachine.state is 'NotStarted'
+        @stateMachine.transition 'Loading'
+    else
+      if @stateMachine.state is 'Active'
+        @stateMachine.transition 'Ending'
