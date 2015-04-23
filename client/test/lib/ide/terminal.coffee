@@ -118,6 +118,23 @@ module.exports =
             browser.end()
 
 
+  runCommandOnTerminal: (browser) ->
+
+    time = Date.now()
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+    createTerminalSession(browser, user)
+
+    browser
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{time}')"
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
+      .pause                     5000
+      .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
+      .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', time
+      .end()
+
+
   # this test is deprecated with persistent storage
   # openOldTerminalSession: (browser) ->
 
