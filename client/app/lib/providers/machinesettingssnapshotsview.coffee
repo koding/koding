@@ -69,9 +69,11 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
           callback null, snapshot
 
     monitorProgress = => computeController.on eventId, (event) =>
-      {percentage} = event
-      findJustCreatedSnapshot() if percentage >= 100
+      {error, percentage} = event
       @emit 'SnapshotProgress', percentage
+      return  if percentage < 100
+      return callback error  if error
+      findJustCreatedSnapshot()
 
     computeController.createSnapshot machine, label
       .then monitorProgress
