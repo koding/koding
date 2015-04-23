@@ -33,7 +33,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @input.input.on 'focus', @lazyBound 'handleFocus', yes
 
-    @once 'NewParticipantButtonClicked', => @onboarding?.destroy()
+    @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
 
 
   handleThresholdReached: ->
@@ -155,12 +155,12 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     channel.once 'AddedToChannel', @bound 'removeOnboarding'
 
 
-  handleOnboardingViewClick: (e) ->
+  handleOnboardingViewClick: (event) ->
 
-    if e.target.tagName is 'A'
+    return  unless event.target.tagName is 'A'
 
-      @onboarding.destroy()
-      @showAutoCompleteInput()
+    @removeOnboarding()
+    @showAutoCompleteInput()
 
 
   createHeaderViews: ->
@@ -270,4 +270,4 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
   removeOnboarding: ->
 
     @onboarding?.destroy()
-    delete @onboarding
+    @onboarding = null
