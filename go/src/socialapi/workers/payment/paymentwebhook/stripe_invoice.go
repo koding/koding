@@ -51,7 +51,7 @@ func getNewPlanName(req *webhookmodels.StripeInvoice) (string, error) {
 		)
 	}
 
-	last := req.Lines.Count - 1
+	last := len(req.Lines.Data) - 1
 	planName := req.Lines.Data[last].Plan.Name
 
 	return planName, nil
