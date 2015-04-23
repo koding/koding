@@ -41,7 +41,7 @@ module.exports = class JWorkspace extends Module
         delete          : signature Function
     sharedEvents        :
       static            : []
-      instance          : []
+      instance          : ['updateInstance']
 
 
   @create$ = secure (client, data, callback) ->
