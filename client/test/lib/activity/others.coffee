@@ -66,7 +66,7 @@ module.exports =
 
   changeMostLikedMostRecentTab: (browser) ->
 
-    user             = helpers.beginTest()
+    user             = helpers.beginTest(browser)
     postSelector     = "#{activitySelector} .activity-content-wrapper"
     mostLikeSelector = '.kdtabhandlecontainer [testpath="ActivityTabHandle-/Activity/Public/Liked"]'
 
