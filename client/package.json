@@ -32,6 +32,7 @@
     "marked": "0.3.2",
     "ndpane": "0.1.2",
     "node-uuid": "1.4.2",
+    "raf": "2.0.4",
     "shortcuts": "0.4.0",
     "sinkrow": "git+ssh://git@github.com:koding/sinkrow#v0.1.2",
     "timeago": "0.2.0",

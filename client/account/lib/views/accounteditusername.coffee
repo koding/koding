@@ -88,7 +88,7 @@ module.exports = class AccountEditUsername extends JView
         passwordHeader     :
           itemClass        : KDCustomHTMLView
           partial          : 'CHANGE PASSWORD'
-          cssClass         : 'AppModal-form-sectionHeader'
+          cssClass         : 'AppModal-sectionHeader'
         password           :
           cssClass         : 'Formline--half'
           placeholder      : "password"

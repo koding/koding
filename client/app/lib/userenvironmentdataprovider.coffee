@@ -197,14 +197,23 @@ module.exports = UserEnvironmentDataProvider =
     return instance
 
 
-  createDefaultWorkspace: (machine, callback) ->
+  createDefaultWorkspace: do (inProgress = {}) -> (machine, callback) ->
+
+    if callbacks = inProgress[machine.uid]
+      return callbacks.push callback
+    else
+      callbacks = inProgress[machine.uid] = [callback]
 
     remote.api.JWorkspace.createDefault machine.uid, (err, workspace) ->
 
       if err
-        console.error "User Environment  Data Provider:", err
+        console.error "User Environment Data Provider:", JSON.stringify err
 
-      callback err, workspace
+      delete inProgress[machine.uid]
+
+      callbacks.forEach (callback) ->
+
+        callback err, workspace
 
 
   ensureDefaultWorkspace: (callback) ->
