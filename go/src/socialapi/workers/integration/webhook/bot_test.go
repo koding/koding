@@ -108,6 +108,8 @@ func TestFetchBotChannel(t *testing.T) {
 			So(channel.TypeConstant, ShouldEqual, models.Channel_TYPE_BOT)
 			So(channel.CreatorId, ShouldEqual, acc.Id)
 
+			channel.AddParticipant(acc.Id)
+
 			testchannel, err := bot.fetchOrCreateChannel(acc, groupName)
 			So(err, ShouldBeNil)
 			So(testchannel, ShouldNotBeNil)

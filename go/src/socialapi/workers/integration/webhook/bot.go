@@ -66,6 +66,9 @@ func (b *Bot) FetchBotChannel(a *models.Account, group *models.Channel) (*models
 
 	// add user as participant
 	_, err = c.AddParticipant(a.Id)
+	if err == models.ErrAccountIsAlreadyInTheChannel {
+		return c, nil
+	}
 
 	return c, err
 }
