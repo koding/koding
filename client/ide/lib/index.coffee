@@ -93,7 +93,7 @@ class IDEAppController extends AppController
     @layoutMap = new Array(16*16)
 
     {windowController, appManager} = kd.singletons
-    windowController.addFocusListener @bound 'setActivePaneFocus'
+    windowController.addFocusListener @bound 'handleWindowFocus'
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
@@ -178,6 +178,11 @@ class IDEAppController extends AppController
         switch field
           when 'channelId'
             @emit 'WorkspaceChannelChanged'
+
+
+  handleWindowFocus: (state) ->
+
+    @setActivePaneFocus state
 
 
   setActiveTabView: (tabView) ->
