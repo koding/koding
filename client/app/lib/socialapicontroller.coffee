@@ -741,3 +741,24 @@ module.exports = class SocialApiController extends KDController
 
       endPoint = "/Impersonate/#{username}"
       doXhrRequest {type: 'POST', endPoint, async: yes}, callback
+
+    fetchBotChannel      : (callback) ->
+      getCurrentGroup (group) ->
+
+        { nickname } = whoami().profile
+        doXhrRequest {
+          type     : 'POST'
+          endPoint : "/api/integration/account/#{nickname}/bot-channel"
+          data     : {groupName: group.slug}
+        }, (err, response) ->
+          return callback err  if err
+
+          {channelId} = response
+
+          { socialapi } = kd.singletons
+
+          socialapi.channel.byId {id: channelId}, (err, channel) ->
+
+            return callback err  if err
+
+            return callback null, mapChannel { channel: channel }
