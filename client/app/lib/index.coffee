@@ -40,10 +40,11 @@ bootup = ->
     global._kd      = kd
     global._remote  = remote
 
+  globals.config.entryPoint.slug = globals.currentGroup.slug
+
   remote.once 'ready', ->
     globals.currentGroup           = remote.revive globals.currentGroup
     globals.userAccount            = remote.revive globals.userAccount
-    globals.config.entryPoint.slug = globals.currentGroup.slug
 
     setupAnalytics()
 
