@@ -284,11 +284,11 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(s, ShouldEqual, http.StatusOK)
 			So(res, ShouldNotBeNil)
-			resultMap, ok := res.(map[string]int64)
+			resultMap, ok := res.(map[string]string)
 			So(ok, ShouldEqual, true)
 			val, ok := resultMap["channelId"]
 			So(ok, ShouldEqual, true)
-			So(val, ShouldNotEqual, 0)
+			So(val, ShouldNotEqual, "")
 		})
 
 	})

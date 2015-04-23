@@ -10,6 +10,7 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/services"
+	"strconv"
 
 	"github.com/koding/logging"
 )
@@ -143,7 +144,7 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, r *BotChannelR
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(map[string]int64{"channelId": c.Id})
+	return response.NewOK(map[string]string{"channelId": strconv.FormatInt(c.Id, 10)})
 }
 
 // TODO need to mock the endpoint. up till that time, this push method is
