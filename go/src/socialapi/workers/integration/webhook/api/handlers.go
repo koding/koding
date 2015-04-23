@@ -28,7 +28,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 		},
 	)
 
-	m.AddHandler(
+	m.AddSessionlessHandler(
 		handler.Request{
 			Handler:        h.FetchBotChannel,
 			Name:           "bot-fetch-channel",
