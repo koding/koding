@@ -4,6 +4,7 @@ kd                  = require 'kd'
 remote              = require('app/remote').getInstance()
 {JSnapshot}         = remote.api
 
+JView               = require '../jview'
 nicetime            = require '../util/nicetime'
 
 
@@ -18,8 +19,6 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     @initViews()
     @setLabel data.label
-    @setCreatedAt data.createdAt
-    @setStorageSize data.storageSize
 
 
   ###*
@@ -28,7 +27,16 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   @notify: (msg = "") ->
 
     new kd.NotificationView content: msg
-    return
+
+
+  ###*
+   * Return a nicely formatted created at.
+  ###
+  @prettyCreatedAt: (createdAt) ->
+
+    createdAt = new Date(createdAt) if typeof createdAt is 'string'
+    createdAtAgo = nicetime (createdAt - Date.now()) / 1000
+    return createdAtAgo
 
 
   ###*
@@ -37,61 +45,68 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   initViews: ->
 
     data = @getData()
-    @editView = new kd.View
-      cssClass: 'edit hidden'
-
-    @editView.addSubView @editView.edit = new kd.HitEnterInputView
+    @editInput = new kd.HitEnterInputView
       type        : 'text'
       placeholder : 'Snapshot Name'
       cssClass    : 'label'
       callback    : @bound 'renameSnapshot'
 
-    @editView.addSubView wrapper = new kd.CustomHTMLView
-      cssClass: 'buttons'
-
-    wrapper.addSubView @editView.renameBtn = new kd.ButtonView
+    @editRenameBtn = new kd.ButtonView
       title    : 'rename'
       cssClass : 'solid green compact rename'
       callback : @bound 'renameSnapshot'
 
-    wrapper.addSubView @editView.cancelBtn = new kd.View
+    @editCancelBtn = new kd.View
       partial  : 'cancel'
       tagName  : 'span'
       tagName  : 'span'
       cssClass : 'cancel'
       click    : @bound 'toggleEditable'
 
-    @infoView = new kd.View
-      cssClass: 'info'
-
-    @infoView.addSubView @infoView.labelView = new kd.View
+    @labelView = new kd.View
       tagName  : 'span'
       cssClass : 'label'
       click    : @bound 'toggleEditable'
 
-    @infoView.addSubView @infoView.storageSizeView = new kd.View
-      tagName  : 'span'
-      cssClass : 'storage-size'
-
-    @infoView.addSubView @infoView.createdAtView = new kd.View
-      tagName  : 'span'
-      cssClass : 'created-at'
-
-    @infoView.addSubView wrapper = new kd.CustomHTMLView
-      cssClass: 'buttons'
-
-    wrapper.addSubView @infoView.renameSnapshotBtn = new kd.ButtonView
+    @infoRenameBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'rename'
       callback : @bound 'toggleEditable'
 
-    wrapper.addSubView @infoView.deleteSnapshotBtn = new kd.ButtonView
+    @infoDeleteBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'delete'
       callback : @bound "confirmDeleteSnapshot"
 
-    @addSubView @editView
-    @addSubView @infoView
+    @addSubView @editView = new JView
+      cssClass: 'edit hidden'
+      pistachioParams: {@editInput, @editRenameBtn, @editCancelBtn}
+      pistachio: """
+        <div>
+          {{> editInput}}
+          <div class="buttons">
+            {{> editRenameBtn}}
+            {{> editCancelBtn}}
+          </div>
+        </div>
+        """
+
+    @addSubView @infoView = new JView
+      cssClass: 'info'
+      pistachioParams: {@labelView, @infoRenameBtn, @infoDeleteBtn}
+      pistachio: """
+        <div>
+          {{> labelView}}
+          <span class="storage-size">(#{data.storageSize}GB)</span>
+          <span class="created-at">
+            #{SnapshotListItem.prettyCreatedAt data.createdAt}
+          </span>
+          <div class="buttons">
+            {{> infoRenameBtn}}
+            {{> infoDeleteBtn}}
+          </div>
+        </div>
+        """
 
 
   ###*
@@ -127,7 +142,6 @@ module.exports = class SnapshotListItem extends kd.ListItemView
         @getDelegate().emit 'DeleteSnapshot', this
         @destroy()
       .catch (err) -> kd.warn err
-    return
 
 
   partial: ->
@@ -139,7 +153,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###
   renameSnapshot: ->
 
-    label        = @editView.edit.getValue()
+    label        = @editInput.getValue()
     data         = @getData()
     {snapshotId} = data
 
@@ -167,20 +181,6 @@ module.exports = class SnapshotListItem extends kd.ListItemView
           return
 
         rename snapshot
-    return
-
-
-  ###*
-   * Set the value of the createdAt UI element
-   *
-   * @param {Date|String} createdAt - The value to display createdAt
-  ###
-  setCreatedAt: (createdAt) ->
-
-    createdAt = new Date(createdAt) if typeof createdAt is 'string'
-    createdAtAgo = nicetime (createdAt - Date.now()) / 1000
-    @infoView.createdAtView.updatePartial createdAtAgo
-    return
 
 
   ###*
@@ -190,20 +190,8 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###
   setLabel: (label) ->
 
-    @infoView.labelView.updatePartial label
-    @editView.edit.setValue label
-    return
-
-
-  ###*
-   * Set the value of the Storage Size UI element
-   *
-   * @param {Number} storageSize
-  ###
-  setStorageSize: (storageSize) ->
-
-    @infoView.storageSizeView.updatePartial "(#{storageSize}GB)"
-    return
+    @labelView.updatePartial label
+    @editInput.setValue label
 
 
   ###*
@@ -214,7 +202,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     if @infoView.$().is ":visible"
       @infoView.hide()
       @editView.show()
-      kd.utils.defer @editView.edit.bound "setFocus"
+      kd.utils.defer @editInput.bound "setFocus"
     else
       @infoView.show()
       @editView.hide()
