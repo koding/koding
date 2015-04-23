@@ -60,36 +60,24 @@ func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
 
-	ctx, err := t.context(c, r, false)
+	plan, err := t.apply(c, r, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return ctx.Apply()
+	return plan, nil
 }
 
 func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
 
-	// plan first with destroy option
-	plan, err := t.plan(c, r, true)
+	plan, err := t.apply(c, r, true)
 	if err != nil {
 		return nil, err
 	}
 
-	// create terraform context options from plan
-	copts := c.TerraformContextOptsWithPlan(plan)
-
-	copts.Destroy = true // this is the key point
-
-	// create terraform context with its options
-	ctx := terraform.NewContext(copts)
-
-	//
-	// apply the change
-	//
-	return ctx.Apply()
+	return plan, nil
 }
 
 func (t *Terraformer) context(
@@ -125,4 +113,21 @@ func (t *Terraformer) plan(
 
 	content := strings.NewReader(args.Content)
 	return c.Plan(content, destroy)
+}
+
+func (t *Terraformer) apply(
+	c *kodingcontext.Context,
+	r *kite.Request,
+	destroy bool,
+) (*terraform.Plan, error) {
+	args := TerraformRequest{}
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return nil, err
+	}
+
+	c.Variables = args.Variables
+	c.Location = args.Location
+
+	content := strings.NewReader(args.Content)
+	return c.Apply(content, destroy)
 }
