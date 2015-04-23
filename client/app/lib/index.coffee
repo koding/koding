@@ -41,8 +41,9 @@ bootup = ->
     global._remote  = remote
 
   remote.once 'ready', ->
-    globals.currentGroup = remote.revive globals.currentGroup
-    globals.userAccount  = remote.revive globals.userAccount
+    globals.currentGroup           = remote.revive globals.currentGroup
+    globals.userAccount            = remote.revive globals.userAccount
+    globals.config.entryPoint.slug = globals.currentGroup.slug
 
     setupAnalytics()
 
