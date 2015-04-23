@@ -23,9 +23,8 @@ func TestInteractionLikedMessages(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("While testing listing of the liked messages", t, func() {
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
-		
+		groupName := "koding"
+
 		account1 := models.NewAccount()
 		account1.OldId = AccountOldId.Hex()
 		account, err := rest.CreateAccount(account1)
@@ -44,9 +43,12 @@ func TestInteractionLikedMessages(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(post, ShouldNotBeNil)
 
-		_, err = rest.AddInteraction("like", post.Id, post.AccountId)
+		_, err = rest.AddInteraction("like", post.Id, account.Id)
 		So(err, ShouldBeNil)
 		Convey("We should be able to list the messages that liked", func() {
+			likes, err := rest.GetInteractions("like", post.Id)
+			So(err, ShouldBeNil)
+			So(len(likes), ShouldEqual, 1)
 			interactedMessages, err := rest.ListInteractedMesssagesInteraction(models.Interaction_TYPE_LIKE, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(len(interactedMessages), ShouldEqual, 1)
