@@ -3,15 +3,21 @@ package kloud
 import (
 	"errors"
 	"fmt"
+	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
+	"log"
 	"strings"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
+	"github.com/mitchellh/mapstructure"
 )
 
 type PlanMachine struct {
@@ -21,6 +27,29 @@ type PlanMachine struct {
 
 type PlanOutput struct {
 	Machines []PlanMachine `json:"machines"`
+}
+
+type Credential struct {
+	Id        bson.ObjectId `bson:"_id" json:"-"`
+	Provider  string        `bson:"provider"`
+	PublicKey string        `bson:"publicKey"`
+	OriginId  bson.ObjectId `bson:"originId"`
+}
+
+type CredentialData struct {
+	Id        bson.ObjectId `bson:"_id" json:"-"`
+	PublicKey string        `bson:"publicKey"`
+	Meta      bson.M        `bson:"meta"`
+	OriginId  bson.ObjectId `bson:"originId"`
+}
+
+type terraformCredentials struct {
+	Creds []*terraformCredential
+}
+
+type terraformCredential struct {
+	Provider string
+	Data     map[string]string `mapstructure:"data"`
 }
 
 func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
@@ -54,7 +83,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(sess.DB, args.PublicKeys)
+	creds, err := fetchCredentials(r.Username, sess.DB, args.PublicKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -85,27 +114,114 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 }
 
 // appendVariables appends the given key/value credentials to the hclFile (terraform) file
-func appendVariables(hclFile string, vars map[string]string) string {
+func appendVariables(hclFile string, creds *terraformCredentials) string {
 	// TODO: use hcl encoder, this is just for testing
-	for k, v := range vars {
-		hclFile += "\n"
-		varTemplate := `
+	for _, cred := range creds.Creds {
+		// we only support aws for now
+		if cred.Provider != "aws" {
+			continue
+		}
+
+		for k, v := range cred.Data {
+			hclFile += "\n"
+			varTemplate := `
 variable "%s" {
 	default = "%s"
 }`
-		hclFile += fmt.Sprintf(varTemplate, k, v)
+			hclFile += fmt.Sprintf(varTemplate, k, v)
+		}
 	}
 
 	return hclFile
 }
 
-func fetchCredentials(db *mongodb.MongoDB, ids map[string]string) (map[string]string, error) {
+func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]string) (*terraformCredentials, error) {
 	// 1- fetch jaccount from username
+	var account *models.Account
+	if err := db.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": username}).One(&account)
+	}); err != nil {
+		return nil, err
+	}
+
 	// 2- fetch credential from publickey via args
-	// 3- count relationship with credential id and jaccount id as user or owner
-	// 3- targetId: jCredentialId, sourceId: jAccountId, as: "owner", or "user -> `relationsips` check if exits, if yes it has access
+	publicKeys := make([]string, 0)
+	for _, publicKey := range keys {
+		publicKeys = append(publicKeys, publicKey)
+	}
+
+	var credentials []*Credential
+	if err := db.Run("jCredentials", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"publicKey": bson.M{"$in": publicKeys}}).All(&credentials)
+	}); err != nil {
+		return nil, fmt.Errorf("credentials lookup error: %v", err)
+	}
+
+	// 3- count relationship with credential id and jaccount id as user or
+	// owner. Any non valid credentials will be discarded
+	validKeys := make(map[string]string, 0)
+
+	for _, cred := range credentials {
+		err := db.Run("relationships", func(c *mgo.Collection) error {
+			_, err := c.Find(bson.M{
+				"targetId": cred.Id,
+				"sourceId": account.Id,
+				"as": bson.M{
+					"$or": []string{"owner", "user"},
+				},
+			}).Count()
+			return err
+		})
+
+		if err != nil {
+			// doesn't exist
+			log.Printf("[%s] not validated: %s\n", cred.Id.Hex(), err)
+		} else {
+			validKeys[cred.PublicKey] = cred.Provider
+		}
+	}
+
 	// 4- fetch credentialdata with publickey
-	return nil, nil
+	validPublicKeys := make([]string, 0)
+	for pKey := range validKeys {
+		validPublicKeys = append(validPublicKeys, pKey)
+	}
+
+	var credentialData []*CredentialData
+	if err := db.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"publicKey": bson.M{"$in": validPublicKeys}}).All(&credentialData)
+	}); err != nil {
+		return nil, fmt.Errorf("credential data lookup error: %v", err)
+	}
+
+	// 5- return list of keys. We only support aws for now
+	creds := &terraformCredentials{
+		Creds: make([]*terraformCredential, 0),
+	}
+
+	for _, data := range credentialData {
+		provider, ok := validKeys[data.PublicKey]
+		if !ok {
+			return nil, fmt.Errorf("provider is not found for key: %s", data.PublicKey)
+
+		}
+		// for now we only support aws
+		if provider != "aws" {
+			continue
+		}
+
+		cred := &terraformCredential{
+			Provider: provider,
+		}
+
+		if err := mapstructure.Decode(data.Meta, &cred.Data); err != nil {
+			return nil, err
+		}
+		creds.Creds = append(creds.Creds, cred)
+
+	}
+
+	return creds, nil
 }
 
 func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
