@@ -104,6 +104,12 @@ func (s S3Storage) Clone(path string, target Storage) error {
 	// write them all to target
 	for _, res := range result.Contents {
 		newPath := res.Key
+
+		// if bucket is created but doesnt have any content
+		if newPath == filePath {
+			continue
+		}
+
 		r, err := s.Read(newPath)
 		if err != nil {
 			return err
