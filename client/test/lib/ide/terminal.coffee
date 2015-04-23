@@ -84,8 +84,6 @@ module.exports =
 
   terminateSession: (browser) ->
 
-    return browser.end()
-
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
@@ -93,7 +91,7 @@ module.exports =
 
     getSessionData = =>
 
-      selector = '.kdcontextmenu ul + li:not(.disabled)'
+      selector = '.kdcontextmenu ul + li.disabled'
       matcher  = /session-(\w+)\S+/
 
       return document.querySelector(selector).getAttribute('class').match(matcher)
