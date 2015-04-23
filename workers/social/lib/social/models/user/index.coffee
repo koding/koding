@@ -294,7 +294,7 @@ module.exports = class JUser extends jraphical.Module
       callback err? or prefs?.isRegistrationEnabled or no
 
 
-  @authenticateClient: (clientId, context, callback)->
+  @authenticateClient: (clientId, callback)->
 
     logError = (message, rest...) ->
       console.error "[JUser::authenticateClient] #{message}", rest...
@@ -366,6 +366,8 @@ module.exports = class JUser extends jraphical.Module
             logout "no user found with #{username} and sessionId", clientId, callback
 
           else
+
+            context = { group: session?.groupName ? 'koding' }
 
             user.fetchAccount context, (err, account)->
 
