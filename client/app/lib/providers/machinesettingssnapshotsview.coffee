@@ -19,6 +19,10 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     options.headerAddButtonTitle = 'ADD NEW SNAPSHOT'
     options.listViewItemClass    = SnapshotListItem
 
+    # Trigger the snapshotsLimits fetch, so that we can cache it ahead
+    # of time.
+    @snapshotsLimit()
+
     super options, data
 
 
@@ -40,6 +44,16 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   @notify: (msg = "") ->
 
     new kd.NotificationView content: msg
+
+
+  ###*
+   * The various snapshot total limits.
+  ###
+  @snapshotsLimits:
+    'free'         : 0
+    'hobbyist'     : 1
+    'developer'    : 3
+    'professional' : 5
 
 
   ###*
@@ -112,5 +126,55 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       kd.warn err  if err
       @listController.lazyLoader.hide()
       @listController.replaceAllItems snapshots
+
+
+  ###*
+   * Fetch the snapshot total and in use snapshots to calculate if the
+   * user is within the snapshot limit.
+   *
+   * Note that to save on db calls, this UI just counts the number of
+   * list items as snapshots.
+   *
+   * @param {Function(err:Error, isWithin:Bool)} callback
+  ###
+  isWithinSnapshotLimit: (callback = kd.noop) ->
+    @snapshotsLimit (err, total) =>
+      return callback err  if err
+      count = @listController.listView.items.length
+      callback null, count < total, count, total
+
+
+  ###*
+   * Called when the headerAddNewButton click event fires.
+  ###
+  showAddView: ->
+    @isWithinSnapshotLimit (err, isWithin, current, max) =>
+      kd.warn err  if err
+      if not isWithin
+        msg = "Your current plan allows for a maximum of #{max} Snapshots"
+        @showNotification msg, 'error'
+        @addNewButton.hideLoader()
+        return
+
+      @headerAddNewButton.hide()
+      @addViewContainer.show()
+      kd.utils.defer @addInputView.bound 'setFocus'
+
+
+  ###*
+   * Fetch and cache the user's total snapshot limit.
+   *
+   * @param {Function(err:Error, totalLimit:Number)} callback
+  ###
+  snapshotsLimit: (callback = kd.noop) ->
+    return callback null, @__snapshotsLimit  if @__snapshotsLimit?
+
+    paymentController = kd.getSingleton 'paymentController'
+    paymentController.subscriptions (err, subscription) =>
+      return callback err  if err
+
+      {planTitle} = subscription
+      @__snapshotsLimit = MachineSettingsSnapshotsView.snapshotsLimits[planTitle]
+      callback null, @__snapshotsLimit
 
 
