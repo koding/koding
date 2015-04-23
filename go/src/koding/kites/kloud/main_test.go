@@ -881,7 +881,7 @@ func kodingProvider() *koding.Provider {
 func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	debugEnabled := false
 
-	kld := kloud.New(p.Kite)
+	kld := kloud.New()
 	kld.PublicKeys = publickeys.NewKeys()
 	kld.Log = common.NewLogger("kloud", debugEnabled)
 	kld.DomainStorage = p.DNSStorage

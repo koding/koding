@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/terraformer"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -47,10 +48,6 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("credential ids are not passed")
 	}
 
-	if k.terraformerKite == nil {
-		return nil, errors.New("terraformer kite is not initialized")
-	}
-
 	ctx := k.ContextCreator(context.Background())
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -58,6 +55,11 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	creds, err := fetchCredentials(sess.DB, args.PublicKeys)
+	if err != nil {
+		return nil, err
+	}
+
+	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +73,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 
 	args.TerraformContext = appendVariables(args.TerraformContext, creds)
 
-	plan, err := k.terraformerKite.Plan(args.TerraformContext)
+	plan, err := tfKite.Plan(args.TerraformContext)
 	if err != nil {
 		return nil, err
 	}

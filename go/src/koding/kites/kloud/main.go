@@ -232,7 +232,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	stats := common.MustInitMetrics(Name)
 
-	kld := kloud.New(k)
+	kld := kloud.New()
 	kld.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}
