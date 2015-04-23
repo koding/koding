@@ -162,6 +162,13 @@ class Ace extends KDView
     @suppressListeners = no   unless emitFileContentChangedEvent
 
 
+  destroy: ->
+
+    emmetLoadListeners[@id] = null  unless _.isNull emmetLoadListeners
+
+    super
+
+
   prepareEditor: ->
 
     @setTheme null, no
@@ -531,7 +538,6 @@ class Ace extends KDView
       emmetPath = globals.acePath.split('/').slice(0, -1)
         .concat(['_ext-emmet.js']).join('/')
       getscript emmetPath, (err) ->
-        console.log 'getscript cb', emmetLoadListeners
         cb err for key, cb of emmetLoadListeners when typeof cb is 'function'
         EmmetLoadState.READY = yes
         emmetLoadListeners = null
@@ -541,7 +547,6 @@ class Ace extends KDView
 
     next = (err) =>
       throw err  if err
-      console.log this
       @editor.setOption 'enableEmmet', value
       @appStorage.setValue 'enableEmmet', value  if save
 
