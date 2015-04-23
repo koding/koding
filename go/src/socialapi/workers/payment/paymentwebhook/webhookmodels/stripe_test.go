@@ -83,7 +83,7 @@ var invoiceCreatedWebhookRequest = []byte(`{
 					"metadata": {}
 				}
 			],
-			"count": 1,
+			"total_count": 1,
 			"object": "list",
 			"url": "/v1/invoices/in_15QSl7Dy8g9bkw8yWuzjCCA0/lines"
 		},
