@@ -6,6 +6,14 @@ whoami          = require 'app/util/whoami'
 getNick         = require 'app/util/nick'
 ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 
+###*
+ * Helper utility to be able to pass a fake publisher to the events. Events
+ * mostly don't care about OpenTok specific videoData, so it being `null`
+ * shouldn't affect anything, so be careful when you are passing
+ * `ParticipantType.Participant` instances around.
+ *
+ * @return {object} publisher - a fake object imitates `ParticipantType.Publisher`
+###
 defaultPublisher = ->
   nick      : getNick()
   type      : 'publisher'
