@@ -3,7 +3,6 @@ package kodingcontext
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 
@@ -19,12 +18,25 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 		},
 	}
 
-	outputDir, err := c.createDirAndFile(content)
+	// copy all contents from remote to local for operating
+	if err := c.RemoteStorage.Clone(c.Location, c.LocalStorage); err != nil {
+		return nil, err
+	}
+
+	basePath, err := c.LocalStorage.BasePath()
 	if err != nil {
 		return nil, err
 	}
 
-	planFilePath := path.Join(outputDir, c.id+planFileName+terraformFileExt)
+	outputDir := path.Join(basePath, c.Location)
+	mainFileRelativePath := path.Join(c.Location, mainFileName+terraformFileExt)
+	planFilePath := path.Join(outputDir, planFileName+terraformPlanFileExt)
+	stateFilePath := path.Join(outputDir, stateFileName+terraformStateFileExt)
+
+	// override the current main file
+	if err := c.LocalStorage.Write(mainFileRelativePath, content); err != nil {
+		return nil, err
+	}
 
 	// TODO: doesn't work because Module is not initializde and it panics.
 	// Module is initialized inside cmd.Run, but then it will override
@@ -41,8 +53,10 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 	// cmd.ContextOpts.Module.Config().Variables = variables
 
 	args := []string{
-		"-no-color",          // dont write with color
+		"-no-color", // dont write with color
+		// "-detailed-exitcode", // give more info on exit
 		"-out", planFilePath, // save plan to a file
+		"-state", stateFilePath,
 		outputDir,
 	}
 
@@ -52,7 +66,7 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 
 	exitCode := cmd.Run(args)
 
-	log.Printf("Debug output: %+v\n", c.Buffer.String())
+	fmt.Printf("Debug output: %+v\n", c.Buffer.String())
 
 	if exitCode != 0 {
 		return nil, fmt.Errorf("plan failed with code: %d", exitCode)
@@ -63,6 +77,11 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 		return nil, err
 	}
 	defer planFile.Close()
+
+	// copy all contents from local to remote for later operating
+	if err := c.LocalStorage.Clone(c.Location, c.RemoteStorage); err != nil {
+		return nil, err
+	}
 
 	return terraform.ReadPlan(planFile)
 }
