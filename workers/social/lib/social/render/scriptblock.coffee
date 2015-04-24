@@ -92,6 +92,10 @@ module.exports = (options = {}, callback)->
     ->
       {groupName} = session.data
       groupName or= 'koding'
+
+      # due to some reason, I suspect JSON.stringify somewhere, undefined
+      # is stringified as 'undefined', this check makes sure, it defaults
+      # to 'koding', ie default group in that case
       if groupName is 'undefined' then groupName = 'koding'
 
       bongoModels.JGroup.one {slug : groupName}, (err, group) ->
