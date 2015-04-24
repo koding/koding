@@ -44,7 +44,7 @@ func TestGroupChannel(t *testing.T) {
 			So(channel1, ShouldNotBeNil)
 
 			channel2, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
-			So(err, ShouldNotBeNil)
+			So(err, ShouldBeNil)
 			So(channel2, ShouldNotBeNil)
 		})
 
