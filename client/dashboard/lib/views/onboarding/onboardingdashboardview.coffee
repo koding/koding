@@ -4,10 +4,15 @@ CustomViewsDashboardView = require '../customviews/customviewsdashboardview'
 OnboardingAddNewForm = require './onboardingaddnewform'
 OnboardingSectionForm = require './onboardingsectionform'
 OnboardingGroupView = require './onboardinggroupview'
+OnboardingChildItem = require 'dashboard/onboardingchilditem'
 
 
 module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
 
+  ###*
+   * View that renders a list of onboarding group views
+   * and manages them
+  ###
   constructor: (options = {}, data) ->
 
     options.cssClass = "onboarding-view custom-views"
@@ -25,6 +30,12 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
         @addSubView sectionForm
 
 
+  ###*
+   * Creates a list of onboarding group views
+   * and binds to their events
+   *
+   * @param {Array} sections - a list of onboarding groups
+  ###
   createList: (sections) ->
 
     @noViewLabel.hide()
@@ -34,6 +45,7 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
         title       : section.name
         cssClass    : "onboarding-items"
         formClass   : OnboardingAddNewForm
+        itemClass   : OnboardingChildItem
       , section
       @bindFormEvents view
 
@@ -41,12 +53,25 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
       @container.addSubView view
 
 
+  ###*
+   * Binds to onboarding group view events
+   *
+   * @param {object} formView - if onboarding group is new,
+   * then formView is instance of OnboardingSectionForm. Otherwise,
+   * it's instance of OnboardingGroupView
+  ###
   bindFormEvents: (formView) ->
 
     formView.on 'SectionSaved',     @bound 'handleSectionSaved'
     formView.on 'SectionCancelled', @bound 'handleSectionCancelled'
+    formView.on 'SectionDeleted',   @bound 'handleSectionDeleted'
 
 
+  ###*
+   * When onboarding group is saved,
+   * it's necessary to refresh a list of onboardings
+   * and hide onboarding group form
+  ###
   handleSectionSaved: ->
 
     @unsetClass 'form-visible'
@@ -54,4 +79,19 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
     @reloadViews()
 
 
+  ###*
+   * When onboarding group is cancelled,
+   * hide onboarding group form
+   * and show a list of onboardings
+  ###
   handleSectionCancelled: -> @unsetClass 'form-visible'
+
+
+  ###*
+   * When onboarding group is deleted,
+   * reload a list of onboardings
+  ###
+  handleSectionDeleted: ->
+
+    @container.destroySubViews()
+    @reloadViews()

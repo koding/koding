@@ -78,7 +78,8 @@ app.settings.styl
     .formline
       margin-bottom          15px
 
-      &.AppModal-form-sectionHeader
+      .AppModal-sectionHeader
+        margin-bottom        0px
         padding-top          20px
 
 .AppModal--account-avatarArea
@@ -349,6 +350,21 @@ app.settings.styl
 .ssh-machine-list-tooltip
   line-height                  18px
   text-align                   left!important
+
+.delete-ssh-key-modal
+
+  .guide-link
+    text-decoration            underline
+    color                      #01b05a
+
+  strong
+    font-weight                bold
+
+  .kdbutton
+    width                      85px!important
+
+.delete-ssh-key-overlay
+  z-index                      10001
 
 .AppModal--account-tabSpinner
   display                   block !important

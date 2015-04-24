@@ -144,7 +144,7 @@ func TestStripe(t *testing.T) {
 
 			data := invoice.Lines.Data[0]
 
-			So(data.SubscriptionId, ShouldEqual, "sub_5bg7lgPIPCWEI3")
+			So(data.Id, ShouldEqual, "sub_5bg7lgPIPCWEI3")
 			So(data.Period.Start, ShouldEqual, 1454114143)
 			So(data.Period.End, ShouldEqual, 1485736543)
 			So(data.Plan.Name, ShouldEqual, "Developer")

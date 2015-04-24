@@ -3,23 +3,21 @@ package kodingcontext
 import (
 	"bytes"
 	"errors"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"path"
 
 	"koding/kites/terraformer/kodingcontext/pkg"
 
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/mitchellh/cli"
-	uuid "github.com/nu7hatch/gouuid"
 )
 
 const (
-	terraformFileExt = ".tf"
-	mainFileName     = "main"
-	planFileName     = "plan"
+	terraformFileExt      = ".tf"
+	terraformPlanFileExt  = ".out"
+	terraformStateFileExt = ".tfstate"
+	mainFileName          = "main"
+	planFileName          = "plan"
+	stateFileName         = "state"
 )
 
 var (
@@ -31,27 +29,31 @@ type Context struct {
 	Variables map[string]string
 
 	// storage holds the plans of terraform
-	Storage Storage
+	RemoteStorage Storage
+	LocalStorage  Storage
 
+	ContentID    string
 	baseDir      string
-	providers    map[string]terraform.ResourceProviderFactory
-	provisioners map[string]terraform.ResourceProvisionerFactory
-	id           string
+	Providers    map[string]terraform.ResourceProviderFactory
+	Provisioners map[string]terraform.ResourceProvisionerFactory
 	Buffer       *bytes.Buffer
 	ui           *cli.PrefixedUi
 }
 
-func Init() (*Context, error) {
+func New(ls, rs Storage) (*Context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
 		return nil, err
 	}
 
-	providers := config.ProviderFactories()
-	provisioners := config.ProvisionerFactories()
+	c := newContext()
+	c.Providers = config.ProviderFactories()
+	c.Provisioners = config.ProvisionerFactories()
+	c.LocalStorage = ls
+	c.RemoteStorage = rs
 
-	return NewContext(providers, provisioners), nil
+	return c, nil
 }
 
 func Close() {
@@ -59,29 +61,24 @@ func Close() {
 	plugin.CleanupClients()
 }
 
-func NewContext(
-	providers map[string]terraform.ResourceProviderFactory,
-	provisioners map[string]terraform.ResourceProvisionerFactory,
-) *Context {
-	id, err := uuid.NewV4()
-	if err != nil {
-		panic(fmt.Sprintf("kite: cannot generate unique ID: %s", err.Error()))
-	}
-
+func newContext() *Context {
 	b := new(bytes.Buffer)
 
 	return &Context{
-		baseDir:      "",
-		providers:    providers,
-		provisioners: provisioners,
-		id:           id.String(),
-		Buffer:       b,
-		ui:           NewUI(b),
+		baseDir: "",
+		Buffer:  b,
+		ui:      NewUI(b),
 	}
 }
 
 func (c *Context) Clone() *Context {
-	return NewContext(c.providers, c.provisioners)
+	cc := newContext()
+	cc.Providers = c.Providers
+	cc.Provisioners = c.Provisioners
+	cc.LocalStorage = c.LocalStorage
+	cc.RemoteStorage = c.RemoteStorage
+
+	return cc
 }
 
 func (c *Context) TerraformContextOpts() *terraform.ContextOpts {
@@ -104,51 +101,12 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 		State:  p.State,
 		Diff:   p.Diff,
 
-		Providers:    c.providers,
-		Provisioners: c.provisioners,
+		Providers:    c.Providers,
+		Provisioners: c.Provisioners,
 		Variables:    c.Variables,
 	}
 }
 
 func (c *Context) Close() error {
-	dir, err := c.Storage.BasePath()
-	if err != nil {
-		return err
-	}
-
-	return c.Storage.Clean(dir)
-}
-
-func (c *Context) createDirAndFile(content io.Reader) (dir string, err error) {
-	dir, err = c.Storage.BasePath()
-	if err != nil {
-		return "", err
-	}
-
-	path := path.Join(dir, c.id+mainFileName+terraformFileExt)
-
-	if err := c.Storage.Write(path, content); err != nil {
-		return "", err
-	}
-
-	return dir, nil
-}
-
-// getBaseDir creates a new temp directory or returns the existing exclusive one
-// for the current context
-func (c *Context) getBaseDir() (string, error) {
-	if c.baseDir != "" {
-		return c.baseDir, nil
-	}
-
-	// create dir
-	// calling TempDir simultaneously will not choose the same directory.
-	dir, err := ioutil.TempDir("", "terraformer")
-	if err != nil {
-		return "", err
-	}
-
-	c.baseDir = dir
-
-	return c.baseDir, nil
+	return c.LocalStorage.Clean(c.ContentID)
 }

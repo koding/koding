@@ -4,8 +4,8 @@ KDCustomHTMLView = kd.CustomHTMLView
 KDLoaderView = kd.LoaderView
 AddNewCustomViewForm = require './addnewcustomviewform'
 CustomViewItem = require './customviewitem'
-remote = require('app/remote').getInstance()
 JView = require 'app/jview'
+CustomPartialHelpers = require 'dashboard/custompartialhelpers'
 
 
 module.exports = class CustomViewsDashboardView extends JView
@@ -47,29 +47,6 @@ module.exports = class CustomViewsDashboardView extends JView
     @customViews = []
     @fetchViews()
 
-    @bindEventHandlers()
-
-
-  bindEventHandlers: ->
-
-    @on "NewViewAdded", =>
-      @unsetClass "edit-mode"
-      @addNewView.destroy()
-      @addNewButton.show()
-      @reloadViews()
-
-    @on "ViewDeleted", (customView) ->
-      @customViews.splice @customViews.indexOf(customView), 1
-      @showNoViewLabelIfNeeded()
-
-    @on "ViewEditRequested", (viewData) =>
-      @addNew viewData
-
-    @on "AddingNewViewCancelled", =>
-      @unsetClass "edit-mode"
-      @reloadViews()
-      @addNewButton.show()
-
 
   hideViews: ->
 
@@ -100,6 +77,8 @@ module.exports = class CustomViewsDashboardView extends JView
 
     FormClass = @getOption("formClass") or AddNewCustomViewForm
     @addSubView @addNewView = new FormClass config, data
+    @addNewView.on 'NewViewAdded',     @bound 'handleNewViewAdded'
+    @addNewView.on 'NewViewCancelled', @bound 'handleNewViewCancelled'
 
 
   reloadViews: ->
@@ -113,7 +92,7 @@ module.exports = class CustomViewsDashboardView extends JView
 
     query = { partialType: @getOption "viewType" }
 
-    remote.api.JCustomPartials.some query, {}, (err, customViews) =>
+    CustomPartialHelpers.getPartials query, (err, customViews) =>
       @loader.hide()
       return @noViewLabel.show()  if err or not customViews.length
 
@@ -125,8 +104,35 @@ module.exports = class CustomViewsDashboardView extends JView
     viewClass = @getOption("itemClass") or CustomViewItem
     for customView in customViews
       customViewItem = new viewClass { delegate: this }, customView
+      customViewItem.on 'ViewDeleted',       @bound 'handleViewDeleted'
+      customViewItem.on 'ViewEditRequested', @bound 'handleViewEditRequested'
+
       @customViews.push customViewItem
       @container.addSubView customViewItem
+
+
+  handleNewViewAdded: ->
+
+    @unsetClass "edit-mode"
+    @addNewView.destroy()
+    @addNewButton.show()
+    @reloadViews()
+
+
+  handleViewDeleted: (customView) ->
+
+    @customViews.splice @customViews.indexOf(customView), 1
+    @showNoViewLabelIfNeeded()
+
+
+  handleViewEditRequested: (viewData) -> @addNew viewData
+
+
+  handleNewViewCancelled: ->
+
+    @unsetClass "edit-mode"
+    @reloadViews()
+    @addNewButton.show()
 
 
   pistachio: ->

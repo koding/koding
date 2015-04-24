@@ -40,6 +40,9 @@ bootup = ->
     global._kd      = kd
     global._remote  = remote
 
+  if globals.currentGroup?
+    globals.config.entryPoint.slug = globals.currentGroup.slug
+
   remote.once 'ready', ->
     globals.currentGroup           = remote.revive globals.currentGroup
     globals.userAccount            = remote.revive globals.userAccount

@@ -32,12 +32,6 @@ module.exports = class PrivateMessagePane extends MessagePane
 
     super options, data
 
-    # To keep track of who are the shown participants
-    # This way we are preventing to be duplicates
-    # on page even if events from backend come more than
-    # once.
-    @participantMap = {}
-
     @createPreviousLink()
     @createParticipantsView()
     @createAddParticipantForm()
@@ -341,7 +335,6 @@ module.exports = class PrivateMessagePane extends MessagePane
   removeParticipant: (participant) ->
 
     return  unless participant
-    return  unless @participantMap[participant._id]?
 
     fetchAccount participant, (err, account) =>
       return kd.warn err  if err
