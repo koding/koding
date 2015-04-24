@@ -10,20 +10,7 @@ ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
 LoginOptions                          = require './loginoptions'
 RegisterOptions                       = require './registeroptions'
 MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
-
-getGroupNameFromLocation = ->
-
-  { hostname } = location
-
-  groupName = if hostname in ['dev.koding.com', 'sandbox.koding.com', 'latest.koding.com', 'prod.koding.com']
-  then 'koding'
-  else if hostname.indexOf('.dev.koding.com') isnt -1
-  then hostname.replace('.dev.koding.com', '').split('.').last
-  else if hostname.indexOf('.koding.com') isnt -1
-  then hostname.replace('.koding.com', '').split('.').last
-  else 'koding'
-
-  return groupName
+{ getGroupNameFromLocation }          = KD.utils
 
 
 module.exports = class LoginView extends JView

@@ -332,3 +332,17 @@ utils.extend utils,
   getReferrer: ->
     match = location.pathname.match /\/R\/(.*)/
     return referrer  if match and referrer = match[1]
+
+  getGroupNameFromLocation : ->
+
+    { hostname } = location
+
+    groupName = if hostname is 'dev.koding.com'
+    then 'koding'
+    else if hostname.indexOf('.dev.koding.com') isnt -1
+    then hostname.replace('.dev.koding.com', '').split('.').last
+    else if hostname.indexOf('.koding.com') isnt -1
+    then hostname.replace('.koding.com', '').split('.').last
+    else 'koding'
+
+    return groupName
