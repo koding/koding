@@ -6,7 +6,7 @@ import (
 )
 
 func (h *Handler) AddHandlers(m *mux.Mux) {
-	m.AddHandler(
+	m.AddSessionlessHandler(
 		handler.Request{
 			Handler:        h.Push,
 			Name:           "webhook-push",
