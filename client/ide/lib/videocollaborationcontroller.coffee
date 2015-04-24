@@ -14,6 +14,8 @@ module.exports = VideoCollaborationController =
       .on 'CameraAccessQuestionAnswered',  @bound 'handleVideoAccessQuestionAnswered'
       .on 'VideoCollaborationActive',      @bound 'handleVideoActive'
       .on 'VideoCollaborationEnded',       @bound 'handleVideoEnded'
+      .on 'ParticipantConnected',          @bound 'handleVideoParticipantConnected'
+      .on 'ParticipantDisconnected',       @bound 'handleVideoParticipantDisconnected'
       .on 'ParticipantJoined',             @bound 'handleVideoParticipantJoined'
       .on 'ParticipantLeft',               @bound 'handleVideoParticipantLeft'
       .on 'ActiveParticipantChanged',      @bound 'handleVideoActiveParticipantChanged'
@@ -79,6 +81,14 @@ module.exports = VideoCollaborationController =
 
   handleVideoActive: (publisher) ->
     @emitToViews 'VideoCollaborationActive'
+
+
+  handleVideoParticipantConnected: (participant) ->
+    @emitToViews 'VideoParticipantDidConnect', participant
+
+
+  handleVideoParticipantDisconnected: (participant) ->
+    @emitToViews 'VideoParticipantDidDisconnect', participant
 
 
   handleVideoParticipantJoined: (participant) ->
