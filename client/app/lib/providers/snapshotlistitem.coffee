@@ -140,7 +140,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     kloud.deleteSnapshot {machineId, snapshotId}
       .then =>
         @getDelegate().emit 'DeleteSnapshot', this
-        @destroy()
+        @getDelegate().removeItem this
       .catch (err) -> kd.warn err
 
 
