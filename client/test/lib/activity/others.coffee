@@ -62,3 +62,22 @@ module.exports =
       .waitForElementVisible     publicSelector, 25000
       .assert.elementNotPresent  topicSelector
       .end()
+
+
+  changeMostLikedMostRecentTab: (browser) ->
+
+    user             = helpers.beginTest(browser)
+    postSelector     = "#{activitySelector} .activity-content-wrapper"
+    mostLikeSelector = '.kdtabhandlecontainer [testpath="ActivityTabHandle-/Activity/Public/Liked"]'
+
+    post = helpers.likePost(browser, user)
+
+    browser
+      .refresh()
+      .click                   '[testpath="public-feed-link/Activity/Topic/public"]'
+      .waitForElementVisible   '[testpath=ActivityInputView]', 10000
+      .waitForElementVisible   mostLikeSelector, 20000
+      .click                   mostLikeSelector
+      .assert.containsText     '.kdtabpaneview.most-liked', post # Assertion
+      .end()
+

@@ -153,7 +153,7 @@ module.exports =
 
     if user.gravatar
       browser
-        .assert.valueContains 'input[name=username]',  'kodingtestuser1'
+        .assert.valueContains 'input[name=username]',  'kodingtestuser'
         .assert.valueContains 'input[name=firstName]', 'Koding'
         .assert.valueContains 'input[name=lastName]',  'Testuser'
     else
@@ -265,6 +265,22 @@ module.exports =
       .waitForElementVisible   channelTitle + ' .following', 25000 # Assertion
 
     return hashtag
+
+
+  likePost: (browser, user) ->
+
+    post = @postActivity(browser, no)
+    selector    = activitySelector + ' [testpath=activity-like-link]'
+    likeElement = activitySelector + ' .like-summary'
+
+    browser
+      .waitForElementVisible selector, 25000
+      .click                 selector
+      .waitForElementVisible likeElement, 25000
+      .assert.containsText   likeElement, user.username + ' liked this.'
+
+    return post
+
 
   sendHashtagActivity: (browser) ->
 

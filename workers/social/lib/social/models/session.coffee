@@ -17,7 +17,7 @@ module.exports = class JSession extends Model
       otaToken      : String
       groupName     :
         type        : String
-        default     : 'koding'
+        default     : -> 'koding'
       guestId       : Number
       terminalId    : String
       sessionBegan  :

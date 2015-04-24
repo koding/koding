@@ -1,17 +1,10 @@
 process.title = 'koding-webserver'
 {argv}        = require 'optimist'
 
-Object.defineProperty global, 'KONFIG', value : require('koding-config-manager').load "main.#{argv.c}"
+Object.defineProperty global, \
+  'KONFIG', value : require('koding-config-manager').load "main.#{argv.c}"
 
-{
-  webserver
-  projectRoot
-  basicAuth
-} = KONFIG
-
-
-
-
+{ webserver, projectRoot, basicAuth } = KONFIG
 
 koding                = require './bongo'
 express               = require 'express'
@@ -22,7 +15,6 @@ app                   = express()
 webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
 { generateHumanstxt } = require "./humanstxt"
-
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -54,10 +46,8 @@ do ->
 # handle basic auth
 app.use express.basicAuth basicAuth.username, basicAuth.password  if basicAuth
 
-
 # capture/log exceptions
 process.on 'uncaughtException', require './handlers/uncaughtexception'
-
 
 # this is for creating session for incoming user if it doesnt have
 app.use require './setsession'

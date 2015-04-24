@@ -84,8 +84,6 @@ module.exports =
 
   terminateSession: (browser) ->
 
-    return browser.end()
-
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
@@ -93,7 +91,7 @@ module.exports =
 
     getSessionData = =>
 
-      selector = '.kdcontextmenu ul + li:not(.disabled)'
+      selector = '.kdcontextmenu ul + li.disabled'
       matcher  = /session-(\w+)\S+/
 
       return document.querySelector(selector).getAttribute('class').match(matcher)
@@ -118,6 +116,23 @@ module.exports =
             assert.equal(result.value.indexOf(sessionId), -1)
 
             browser.end()
+
+
+  runCommandOnTerminal: (browser) ->
+
+    time = Date.now()
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+    createTerminalSession(browser, user)
+
+    browser
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{time}')"
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
+      .pause                     5000
+      .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
+      .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', time
+      .end()
 
 
   # this test is deprecated with persistent storage

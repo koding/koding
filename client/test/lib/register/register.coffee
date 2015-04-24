@@ -15,7 +15,7 @@ module.exports =
   registerUserWithGravatarEmail: (browser) ->
 
     user =
-      email    : 'kodingtestuser@koding.com'
+      email    : 'kodingtestuser@gmail.com'
       username : 'kodingtestuser'
       password : 'passwordfortestuser'
       gravatar : yes

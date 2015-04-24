@@ -294,7 +294,7 @@ module.exports = class JUser extends jraphical.Module
       callback err? or prefs?.isRegistrationEnabled or no
 
 
-  @authenticateClient: (clientId, context, callback)->
+  @authenticateClient: (clientId, callback)->
 
     logError = (message, rest...) ->
       console.error "[JUser::authenticateClient] #{message}", rest...
@@ -366,6 +366,8 @@ module.exports = class JUser extends jraphical.Module
             logout "no user found with #{username} and sessionId", clientId, callback
 
           else
+
+            context = { group: session?.groupName ? 'koding' }
 
             user.fetchAccount context, (err, account)->
 
@@ -442,6 +444,7 @@ module.exports = class JUser extends jraphical.Module
     session               = null
     username              = null
     user                  = null
+    groupName            ?= 'koding'
 
     queue = [ =>
       @normalizeLoginId loginId, (err, username_) ->
@@ -1203,10 +1206,7 @@ module.exports = class JUser extends jraphical.Module
     unless typeof email is 'string'
       return callback createKodingError 'Not a valid email!'
 
-    email = (require "./emailsanitize")(email)
-
-    @count {email}, (err, count)->
-      callback err, count is 0
+    @count {email}, (err, count)-> callback err, count is 0
 
 
   @usernameAvailable = (username, callback)->

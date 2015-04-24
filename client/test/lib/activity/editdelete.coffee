@@ -140,8 +140,7 @@ module.exports =
 
   cancelPostDeletion: (browser) ->
 
-    post = helpers.postActivity(browser)
-
+    post                    = helpers.postActivity(browser)
     postSelector            = "#{activitySelector} .activity-content-wrapper"
     settingsWrapperSelector = "#{activitySelector} .settings-menu-wrapper"
 
