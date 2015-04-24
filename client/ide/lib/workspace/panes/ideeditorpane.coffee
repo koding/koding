@@ -320,9 +320,11 @@ module.exports = class IDEEditorPane extends IDEPane
 
     @rtm.bindRealtimeListeners string, 'string'
 
+    modificationHandler = @bound 'handleCollaborativeStringEvent'
+
     @rtm
-      .on 'TextInsertedIntoString', @bound 'handleCollaborativeStringEvent'
-      .on 'TextDeletedFromString',  @bound 'handleCollaborativeStringEvent'
+      .on 'TextInsertedIntoString', modificationHandler
+      .on 'TextDeletedFromString', modificationHandler
       .on 'RealtimeManagerWillDispose', @bound 'unsetRealtimeBindings'
 
 
