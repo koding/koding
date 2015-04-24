@@ -4,6 +4,7 @@ isLoggedIn = require '../util/isLoggedIn'
 $ = require 'jquery'
 kd = require 'kd'
 whoami = require 'app/util/whoami'
+checkFlag = require 'app/util/checkFlag'
 KDController = kd.Controller
 OnboardingViewController = require './onboardingviewcontroller'
 Machine = require 'app/providers/machine'
@@ -34,7 +35,7 @@ module.exports = class OnboardingController extends KDController
     account           = whoami()
     @registrationDate = new Date(account.meta.createdAt)
     @appStorage       = kd.getSingleton('appStorageController').storage 'OnboardingStatus', '1.0.0'
-    isPreviewMode     = kookies.get('custom-partials-preview-mode') is 'true'
+    isPreviewMode     = checkFlag 'super-admin'
     query             = partialType : 'ONBOARDING'
 
     if isPreviewMode
@@ -59,16 +60,18 @@ module.exports = class OnboardingController extends KDController
     return  unless onboarding.partial.items?.length
 
     forceRun  = @previewModes[groupName]  unless forceRun
-
     slug      = @createSlug groupName
-    isShown   = @appStorage.getValue slug
-    isOldUser = new Date(onboarding.createdAt) > @registrationDate
+
+    isAvailableForUser = if onboarding.publishedAt
+    then new Date(onboarding.publishedAt) < @registrationDate
+    else no
+    isAvailableForUser = not(@appStorage.getValue slug)  if isAvailableForUser
 
     # reset preview mode for onboarding group to avoid onboarding preview being annoying for admin
     # if admin wants to see onboarding once again, they just need to refresh the page
     @previewModes[groupName] = no
 
-    return  if (isShown or isOldUser) and not forceRun
+    return  unless (isAvailableForUser or forceRun)
 
     @isRunning = yes
     kd.utils.wait delay, =>
