@@ -25,7 +25,7 @@ module.exports = class OnboardingMetrics extends DatadogMetrics
    *
    * @param {string} groupName - onboarding group name
    * @param {string} itemName  - onboarding item name
-   * @param {number} count     - number of miliseconds user spent for onboarding item
+   * @param {number} count     - tracked time in miliseconds
   ###
   @trackCompleted = (groupName, itemName, count) ->
 

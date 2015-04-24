@@ -65,7 +65,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
 
   ###*
    * Once user publishes onboarding group or sets it on preview mode or turns off those flags,
-   * it updates a state of group in DB and reloads a list of onboardings after it
+   * this method updates a state of group in DB and reloads a list of onboardings
    * Before changing the state it's necessary to confirm the action from user
    *
    * @param {string} key - a field of JCustomPartial object which should be toggled. Possible values are 'isActive' (to publish/unpublish onboarding)
@@ -122,7 +122,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
 
   ###*
    * Overrides base method
-   * Removes onboarding item from onboarding group, updates DB
+   * Removes onboarding item from onboarding group, updates onboarding in DB
    * and reloads a list of onboarding items
    *
    * @return {object} - data of deleting onboarding item view
@@ -142,7 +142,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
 
 
   ###*
-   * Shows onboarding group edit form when user performs 'Edit' action
+   * Shows onboarding group form when user performs 'Edit' action
    * and binds to form events. Onboarding items become invisible
   ###
   edit: ->
@@ -166,7 +166,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
         @emit 'SectionDeleted'
 
   ###*
-   * Shows a confirmation modal when user performs delete action
+   * Shows a confirmation modal for a delete action
    *
    * @param {function} callback - it's called when user confirms their action
   ###

@@ -15,7 +15,6 @@ module.exports = class OnboardingItemView extends KDView
 
   ###*
    * A view that renders onboarding tooltip and highlights target element
-   * for onboarding item
   ###
   constructor: (options = {}, data) ->
 
@@ -88,15 +87,15 @@ module.exports = class OnboardingItemView extends KDView
   ###*
    * Creates subviews for the content of onboarding tooltip
    *
-   * @return {KDCustomHTMLView} - onboarding item's content view
+   * @return {KDCustomHTMLView} - content view
   ###
   createContentView: ->
 
     {title, content} = @getData()
-    title          = new KDCustomHTMLView { tagName     : 'h3', partial  : title          }
-    content        = new KDCustomHTMLView { tagName     : 'p' , partial  : content        }
-    buttonsWrapper = new KDCustomHTMLView { cssClass    : 'buttons'                       }
-    view           = new KDCustomHTMLView { cssClass    : 'onboarding-item'               }
+    title          = new KDCustomHTMLView { tagName  : 'h3', partial  : title   }
+    content        = new KDCustomHTMLView { tagName  : 'p' , partial  : content }
+    buttonsWrapper = new KDCustomHTMLView { cssClass : 'buttons'                }
+    view           = new KDCustomHTMLView { cssClass : 'onboarding-item'        }
     closeButton    = new KDCustomHTMLView
       cssClass     : 'close-icon'
       click        : @bound 'cancel'
@@ -142,7 +141,7 @@ module.exports = class OnboardingItemView extends KDView
    * If the element is in DOM, tries to find a kd instance for it
    *
    * @param {string} path - path to element
-   * @return {KDView} - kd view for the path if it exists
+   * @return {KDView}     - kd view for the path if it exists
   ###
   getViewByPath: (path) ->
 

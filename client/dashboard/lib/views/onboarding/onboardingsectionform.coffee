@@ -45,7 +45,7 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
   ###*
    * Collects onboarding group data on the form
-   * and saves it in DB. After that emits event for the parent view
+   * and saves it in DB. After that, emits event for the parent view
    *
    * @emits SectionSaved
   ###

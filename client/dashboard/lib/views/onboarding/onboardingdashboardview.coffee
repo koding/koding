@@ -69,8 +69,8 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
 
   ###*
    * When onboarding group is saved,
-   * it's necessary to refresh a list of onboarding groups
-   * and hide a form for a new onboarding group
+   * it's necessary to refresh a list of onboardings
+   * and hide onboarding group form
   ###
   handleSectionSaved: ->
 
@@ -81,15 +81,15 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
 
   ###*
    * When onboarding group is cancelled,
-   * hide a form for a new onboarding group
-   * and show a list of onboarding groups
+   * hide onboarding group form
+   * and show a list of onboardings
   ###
   handleSectionCancelled: -> @unsetClass 'form-visible'
 
 
   ###*
    * When onboarding group is deleted,
-   * reload the list of onboardings
+   * reload a list of onboardings
   ###
   handleSectionDeleted: ->
 
