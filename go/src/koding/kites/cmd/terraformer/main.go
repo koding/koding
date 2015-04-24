@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"koding/kites/common"
 	"koding/kites/terraformer"
-	"koding/kites/terraformer/kodingcontext"
 	"log"
 
 	"github.com/koding/multiconfig"
@@ -22,27 +21,19 @@ func main() {
 
 	log := common.NewLogger(terraformer.Name, conf.Debug)
 
-	c, err := kodingcontext.Init()
+	// init terraformer
+	t, err := terraformer.New(conf, log)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	defer kodingcontext.Close()
+	defer t.Close()
 
-	// init s3 auth
-	// awsAuth, err := aws.GetAuth(conf.AWS.Key, conf.AWS.Secret)
-	// if err != nil {
-	// 	log.Fatal(err.Error())
-	// }
-
-	// we are only using us east
-	// awsS3Bucket := s3.New(awsAuth, aws.USEast).Bucket(conf.AWS.Bucket)
-	// fmt.Println("awsS3Bucket-->", awsS3Bucket)
-	c.Storage = kodingcontext.FileStorage{}
-
-	k, err := terraformer.NewKite(conf, c, log)
+	// init terraformer's kite
+	k, err := t.Kite()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	defer k.Close()
 
 	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
 		log.Fatal(err.Error())

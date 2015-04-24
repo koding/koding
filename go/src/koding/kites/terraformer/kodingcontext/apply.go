@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"path"
 
 	"github.com/hashicorp/terraform/command"
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error) {
-	cmd := command.PlanCommand{
+func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error) {
+	cmd := command.ApplyCommand{
+		ShutdownCh: makeShutdownCh(),
 		Meta: command.Meta{
 			ContextOpts: c.TerraformContextOpts(),
 			Ui:          c.ui,
@@ -45,23 +47,24 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 	//
 	// variables := []*config.Variable{}
 	// for k, v := range c.Variables {
-	// 	variables = append(variables, &config.Variable{
-	// 		Name:    k,
-	// 		Default: v,
-	// 	})
+	//  variables = append(variables, &config.Variable{
+	//      Name:    k,
+	//      Default: v,
+	//  })
 	// }
 	// cmd.ContextOpts.Module.Config().Variables = variables
 
+	cmd.Destroy = destroy
+
 	args := []string{
 		"-no-color", // dont write with color
-		// "-detailed-exitcode", // give more info on exit
-		"-out", planFilePath, // save plan to a file
 		"-state", stateFilePath,
+		"-state-out", stateFilePath,
 		outputDir,
 	}
 
 	if destroy {
-		args = append([]string{"-destroy"}, args...)
+		args = append([]string{"-force"}, args...)
 	}
 
 	exitCode := cmd.Run(args)
@@ -88,4 +91,21 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 	}
 
 	return terraform.ReadPlan(planFile)
+}
+
+// makeShutdownCh creates an interrupt listener and returns a channel.
+// A message will be sent on the channel for every interrupt received.
+func makeShutdownCh() <-chan struct{} {
+	resultCh := make(chan struct{})
+
+	signalCh := make(chan os.Signal, 4)
+	signal.Notify(signalCh, os.Interrupt)
+	go func() {
+		for {
+			<-signalCh
+			resultCh <- struct{}{}
+		}
+	}()
+
+	return resultCh
 }
