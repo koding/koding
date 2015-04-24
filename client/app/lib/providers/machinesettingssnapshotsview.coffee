@@ -6,6 +6,7 @@ remote                    = require('app/remote').getInstance()
 
 MachineSettingsCommonView = require './machinesettingscommonview'
 SnapshotListItem          = require './snapshotlistitem'
+SnapshotHelpers           = require './snapshothelpers'
 
 
 
@@ -56,26 +57,15 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     machine           = @getData()
     machineId         = machine._id
     eventId           = "createSnapshot-#{machineId}"
-    # Because kloud.createSnapshot does not return a snapshot object,
-    # we need to request the newest snapshot (sorted by creation date)
-    #
-    # TODO: Confirm that this is the proper way to achieve this
-    # result.
-    findJustCreatedSnapshot = ->
-      JSnapshot.some { machineId }, { sort: { createdAt: -1 }, limit: 1 },
-        (err, snapshots) =>
-          return callback err  if err
-          [snapshot] = snapshots
-          if not snapshot
-            return callback new Error 'Cannot find most recent snapshot'
-          callback null, snapshot
 
     monitorProgress = => computeController.on eventId, (event) =>
       {error, percentage} = event
       @emit 'SnapshotProgress', percentage
       return  if percentage < 100
       return callback error  if error
-      findJustCreatedSnapshot()
+      # Because kloud.createSnapshot does not return a snapshot object,
+      # we need to request the newest snapshot (sorted by creation date)
+      SnapshotHelpers.fetchNewestSnapshot machineId, callback
 
     computeController.createSnapshot machine, label
       .then monitorProgress
