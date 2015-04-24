@@ -29,10 +29,11 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   computePreviewParticipants: (participants) ->
 
     if @state.videoActive
-      filtered = participants.filter (participant) =>
-        participant.profile.nickname in @state.videoParticipants
+      filterList = getOrderedVideoParticipants @state
+      actives = participants.filter (participant) =>
+        participant.profile.nickname in filterList
 
-      return filtered.toList()
+      return actives.toList()
 
     super
 
@@ -49,11 +50,11 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   computeHiddenParticipants: (participants) ->
 
     if @state.videoActive
-      filtered = participants.filter (participant) =>
-        {nickname} = participant.profile
-        return @state.videoParticipants.indexOf(nickname) is -1
+      filterList = getOrderedVideoParticipants @state
+      inactives = participants.filter (participant) =>
+        not (participant.profile.nickname in filterList)
 
-      return filtered.toList()
+      return inactives.toList()
 
     super
 
@@ -230,5 +231,27 @@ removeFromCollection = (collection, item, callback) ->
   unless index = collection.indexOf(item) is -1
     collection.splice index, 1
     callback?()
+
+
+###*
+ * Orders given state's connected participants in a way that publishing users
+ * come first.
+ *
+ * @param {object} state
+ * @param {array.<string>} state.videoParticipants
+ * @param {array.<string>} state.connectedParticipants
+ * @return {array.<string>} orderedList
+###
+getOrderedVideoParticipants = (state) ->
+
+  actives = state.videoParticipants
+
+  # connectedParticipants has already have the active participant ids.
+  # that's why we are diff'ing to get actives b
+  connecteds = _.difference state.connectedParticipants, state.videoParticipants
+
+  # all the diffing and other stuff is for showing video active
+  # participants first and not publishing but connected people after those.
+  filterList = actives.concat connecteds
 
 
