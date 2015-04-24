@@ -1,14 +1,14 @@
-globals = require 'globals'
-showError = require '../util/showError'
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDSelectBox = kd.SelectBox
-KDView = kd.View
-ComputePlansModal = require './computeplansmodal'
-CustomLinkView = require '../customlinkview'
+globals                 = require 'globals'
+showError               = require '../util/showError'
+kd                      = require 'kd'
+KDButtonView            = kd.ButtonView
+KDSelectBox             = kd.SelectBox
+KDView                  = kd.View
+ComputePlansModal       = require './computeplansmodal'
+CustomLinkView          = require '../customlinkview'
 CustomPlanStorageSlider = require './customplanstorageslider'
-trackEvent = require 'app/util/trackEvent'
-remote = require('../remote').getInstance()
+trackEvent              = require 'app/util/trackEvent'
+remote                  = require('../remote').getInstance()
 
 
 module.exports = class ComputePlansModalPaid extends ComputePlansModal
