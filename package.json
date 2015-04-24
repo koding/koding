@@ -107,7 +107,9 @@
   },
   "devDependencies": {
     "crypto": "0.0.3",
-    "which": "1.0.5"
+    "which": "1.0.5",
+    "chai": "2.2.0",
+    "mocha": "2.2.4"
   },
   "optionalDependencies": {},
   "engines": {

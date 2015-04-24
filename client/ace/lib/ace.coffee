@@ -134,11 +134,11 @@ class Ace extends KDView
       @focus()
       @show()
 
-      kd.utils.defer => @emit 'ace.ready'
+      kd.utils.defer @lazyBound 'emit', 'ready'
 
       trackEvent 'Open Ace, success'
 
-    @once 'ace.ready', =>
+    @ready =>
       LineWidgets = ace.require('ace/line_widgets').LineWidgets
       @Range      = ace.require('ace/range').Range
       @Anchor     = ace.require('ace/anchor').Anchor
