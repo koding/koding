@@ -75,9 +75,20 @@ func rawInvoiceCreatedData(subscriptionId string) (*webhookmodels.StripeInvoice,
 	invoice := &webhookmodels.StripeInvoice{
 		ID: "in_00000000000000",
 		Lines: webhookmodels.StripeInvoiceLines{
-			Data: []webhookmodels.StripeInvoiceData{invoiceLine},
+			Data:  []webhookmodels.StripeInvoiceData{invoiceLine},
+			Count: 1,
 		},
 	}
+
+	return invoice, planProviderId
+}
+
+func rawInvoiceCreatedDataPlanChange(subscriptionId string) (*webhookmodels.StripeInvoice, string) {
+	invoice, planProviderId := rawInvoiceCreatedData(subscriptionId)
+
+	oldId := invoice.Lines.Data[0].SubscriptionId
+	invoice.Lines.Data[0].Id = oldId
+	invoice.Lines.Data[0].SubscriptionId = ""
 
 	return invoice, planProviderId
 }
@@ -87,6 +98,31 @@ func TestInvoiceCreatedWebhook(t *testing.T) {
 		subscribeWithReturnsFn(func(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) {
 			subscriptionProviderId := subscription.ProviderSubscriptionId
 			invoice, planProviderId := rawInvoiceCreatedData(subscriptionProviderId)
+
+			err := InvoiceCreatedWebhook(invoice)
+			So(err, ShouldBeNil)
+
+			Convey("When 'invoice.created' webhook is fired", func() {
+				Convey("Then period start, end are updated", func() {
+					err := subscription.ById(subscription.Id)
+					So(err, ShouldBeNil)
+
+					plan := paymentmodels.NewPlan()
+					err = plan.ByProviderId(planProviderId, ProviderName)
+					So(err, ShouldBeNil)
+
+					So(subscription.CurrentPeriodStart, ShouldHappenOnOrBefore, time.Unix(periodStart, 0).UTC())
+					So(subscription.CurrentPeriodEnd, ShouldHappenOnOrBefore, time.Unix(periodEnd, 0).UTC())
+					So(subscription.CanceledAt.IsZero(), ShouldBeTrue)
+				})
+			})
+		}),
+	)
+
+	Convey("Given customer has a subscription", t,
+		subscribeWithReturnsFn(func(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) {
+			subscriptionProviderId := subscription.ProviderSubscriptionId
+			invoice, planProviderId := rawInvoiceCreatedDataPlanChange(subscriptionProviderId)
 
 			err := InvoiceCreatedWebhook(invoice)
 			So(err, ShouldBeNil)
