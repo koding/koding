@@ -26,6 +26,30 @@ defaultPublisher = ->
 ###
 isDefaultPublisher = (participant) -> _.isEqual participant, defaultPublisher()
 
+###*
+ * Helper utility to be able to pass a fake subscriber to the events. Events
+ * mostly don't care about OpenTok specific videoData, so it being `null`
+ * shouldn't affect anything, but be careful when you are passing
+ * `ParticipantType.Participant` instances around.
+ *
+ * @param {string} nickname
+ * @return {object} publisher - a fake object mimics `ParticipantType.Subscriber`
+###
+defaultSubscriber = (nickname) ->
+  nick      : nickname
+  type      : 'subscriber'
+  videoData : 'null'
+
+
+###*
+ * @param {ParticipantType.Participant} participant
+ * @return {boolean}
+###
+isDefaultSubscriber = (participant) ->
+  { type, videoData } = participant
+
+  return type is 'subscriber' and videoData is null
+
 
 ###*
  * It makes a request to the backend and gets session id
@@ -342,7 +366,10 @@ _errorSignal = (error) ->
 
 
 module.exports = {
+  defaultPublisher
   isDefaultPublisher
+  defaultSubscriber
+  isDefaultSubscriber
   generateSession
   generateToken
   toNickKeyedMap
