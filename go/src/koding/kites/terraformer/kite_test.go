@@ -25,6 +25,9 @@ func withKite(t *testing.T, f func(k *kite.Kite) error) {
 	// Load the config, reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
+	// enable test mode
+	conf.Test = true
+
 	if !conf.Debug {
 		// hashicorp.terraform outputs many logs, discard them
 		log.SetOutput(ioutil.Discard)
