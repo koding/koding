@@ -9,10 +9,10 @@ ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 ###*
  * Helper utility to be able to pass a fake publisher to the events. Events
  * mostly don't care about OpenTok specific videoData, so it being `null`
- * shouldn't affect anything, so be careful when you are passing
+ * shouldn't affect anything, but be careful when you are passing
  * `ParticipantType.Participant` instances around.
  *
- * @return {object} publisher - a fake object imitates `ParticipantType.Publisher`
+ * @return {object} publisher - a fake object mimics `ParticipantType.Publisher`
 ###
 defaultPublisher = ->
   nick      : getNick()
