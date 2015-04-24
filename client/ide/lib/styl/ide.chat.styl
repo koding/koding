@@ -200,18 +200,19 @@ pmLinkColor   = #B6B6B6
       .ParticipantHeads-actionsContainer
         position            absolute
         bottom              -50px
-        right               15px
+        right               9px
         z-index             10
         vendor              transition, bottom .3s ease
 
         &.is-newButtonActive
-          bottom            0
+          bottom            -4px
 
       .ParticipantHeads-button
         background          #fff
         rounded             2px
         size                25px 25px
         margin-top          6px !important
+        border              2px solid rgba(204, 204, 204, 0.5)
         contentBox()
 
       .ParticipantHeads .avatarview
@@ -351,7 +352,7 @@ pmLinkColor   = #B6B6B6
     .new-message-form.inline
       background            transparent
       padding               0
-      size                  293px, 37px
+      size                  296px, 37px
       left                  14px
       top                   90px
       opacity               0
