@@ -3,14 +3,12 @@ package kloud
 import (
 	"errors"
 	"fmt"
-	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
 	"strings"
 
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
@@ -166,11 +164,9 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 		validPublicKeys = append(validPublicKeys, pKey)
 	}
 
-	var credentialData []*models.CredentialData
-	if err := db.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"publicKey": bson.M{"$in": validPublicKeys}}).All(&credentialData)
-	}); err != nil {
-		return nil, fmt.Errorf("credential data lookup error: %v", err)
+	credentialData, err := modelhelper.GetCredentialDatasFromPublicKeys(validPublicKeys...)
+	if err != nil {
+		return nil, err
 	}
 
 	// 5- return list of keys. We only support aws for now
