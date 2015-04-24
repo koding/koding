@@ -355,7 +355,15 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @container.destroySubViews()
     @progressBar = null
 
-    @createStateLabel()
+    if @state is 'NotFound'
+      @createStateLabel "
+        <h1>No machine found!</h1>
+        <span>
+          This can happen if you have deleted all your VMs or if your VM was automatically deleted due to inactivity. <a href='http://learn.koding.com/faq/inactive-vms' target='_blank'>Learn more</a> about inactive VM cleanup.
+        </span>
+      "
+    else
+      @createStateLabel()
 
     if @state in [ Stopped, NotInitialized, Unknown, 'NotFound' ]
       @createStateButton()
