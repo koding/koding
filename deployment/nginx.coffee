@@ -328,7 +328,9 @@ module.exports.create = (KONFIG, environment)->
         }
 
         if ($prerender = 0) {
-          proxy_pass http://gowebserver;
+          # we dont want to use gowebserver on teams product just because the code
+          # is not written for it yet, it is currently node only... - SY
+          proxy_pass http://#{if KONFIG.disabledFeatures.teams then 'go' else ''}webserver;
         }
 
         #{if environment is "sandbox" then basicAuth else ""}
