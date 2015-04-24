@@ -444,6 +444,7 @@ module.exports = class JUser extends jraphical.Module
     session               = null
     username              = null
     user                  = null
+    groupName            ?= 'koding'
 
     queue = [ =>
       @normalizeLoginId loginId, (err, username_) ->
