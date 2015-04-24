@@ -56,7 +56,7 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 		return nil
 	}
 
-	item := req.Lines.Data[0]
+	item := req.Lines.Data[len(req.Lines.Data)-1]
 
 	// stripe sends 'subscription' object in line item for 1st
 	// subscription 'invoiceitem' object if it's change in plans
