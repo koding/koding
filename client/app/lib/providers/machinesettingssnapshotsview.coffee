@@ -2,7 +2,6 @@ Encoder                   = require 'htmlencode'
 
 kd                        = require 'kd'
 remote                    = require('app/remote').getInstance()
-{JSnapshot}               = remote.api
 
 MachineSettingsCommonView = require './machinesettingscommonview'
 SnapshotListItem          = require './snapshotlistitem'
@@ -100,6 +99,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###
   initList: ->
 
+    {JSnapshot} = remote.api
     JSnapshot.some {}, {}, (err, snapshots = []) =>
       kd.warn err  if err
       @listController.lazyLoader.hide()

@@ -2,7 +2,6 @@ Encoder             = require 'htmlencode'
 
 kd                  = require 'kd'
 remote              = require('app/remote').getInstance()
-{JSnapshot}         = remote.api
 
 JView               = require '../jview'
 nicetime            = require '../util/nicetime'
@@ -153,6 +152,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###
   renameSnapshot: ->
 
+    {JSnapshot}  = remote.api
     label        = @editInput.getValue()
     data         = @getData()
     {snapshotId} = data

@@ -9,7 +9,6 @@ CustomLinkView = require '../customlinkview'
 CustomPlanStorageSlider = require './customplanstorageslider'
 trackEvent = require 'app/util/trackEvent'
 remote = require('../remote').getInstance()
-{JSnapshot} = remote.api
 
 
 module.exports = class ComputePlansModalPaid extends ComputePlansModal
@@ -121,6 +120,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
   ###
   populateSnapshotsSelector: ->
 
+    {JSnapshot} = remote.api
     JSnapshot.some {}, {}, (err, snapshots) =>
       return kd.warn err  if err
       # If no snapshots were returned, the user has no snapshots, and
