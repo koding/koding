@@ -128,11 +128,9 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 		publicKeys = append(publicKeys, publicKey)
 	}
 
-	var credentials []*models.Credential
-	if err := db.Run("jCredentials", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"publicKey": bson.M{"$in": publicKeys}}).All(&credentials)
-	}); err != nil {
-		return nil, fmt.Errorf("credentials lookup error: %v", err)
+	credentials, err := modelhelper.GetCredentialsFromPublicKeys(publicKeys...)
+	if err != nil {
+		return nil, err
 	}
 
 	// 3- count relationship with credential id and jaccount id as user or
