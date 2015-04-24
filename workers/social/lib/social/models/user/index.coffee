@@ -956,6 +956,16 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
+        @emailAvailable email, (err, res)=>
+          if err
+            return callback createKodingError "Something went wrong"
+
+          if res is no
+            return callback createKodingError "Email is already in use!"
+          else
+            queue.next()
+
+      =>
         if aNewRegister
 
           userInfo = { username, firstName, lastName, email, password }
@@ -1192,7 +1202,9 @@ module.exports = class JUser extends jraphical.Module
   @emailAvailable = (email, callback)->
     unless typeof email is 'string'
       return callback createKodingError 'Not a valid email!'
-    email = email.toLowerCase()
+
+    email = (require "./emailsanitize")(email)
+
     @count {email}, (err, count)->
       callback err, count is 0
 
