@@ -5,7 +5,7 @@ remote                    = require('app/remote').getInstance()
 
 MachineSettingsCommonView = require './machinesettingscommonview'
 SnapshotListItem          = require './snapshotlistitem'
-SnapshotHelpers           = require './snapshothelpers'
+snapshotHelpers           = require './snapshothelpers'
 
 
 
@@ -64,7 +64,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       return callback error  if error
       # Because kloud.createSnapshot does not return a snapshot object,
       # we need to request the newest snapshot (sorted by creation date)
-      SnapshotHelpers.fetchNewestSnapshot machineId, callback
+      snapshotHelpers.fetchNewestSnapshot machineId, callback
 
     computeController.createSnapshot machine, label
       .then monitorProgress
