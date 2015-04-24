@@ -22,15 +22,16 @@ func (e *EventerError) Error() string {
 }
 
 const (
-	ErrMachineInitialized    = 100
-	ErrMachineNotInitialized = 101
-	ErrMachineUnknownState   = 102
-	ErrMachineIsBuilding     = 103
-	ErrMachineIdMissing      = 104
-	ErrMachineTerminating    = 105
-	ErrMachineNotFound       = 106
-	ErrMachineIsLocked       = 107
-	ErrSnapshotIdMissing     = 108
+	ErrMachineInitialized        = 100
+	ErrMachineNotInitialized     = 101
+	ErrMachineUnknownState       = 102
+	ErrMachineIsBuilding         = 103
+	ErrMachineIdMissing          = 104
+	ErrMachineTerminating        = 105
+	ErrMachineNotFound           = 106
+	ErrMachineIsLocked           = 107
+	ErrSnapshotIdMissing         = 108
+	ErrTerraformContextIsMissing = 109
 
 	ErrEventNotFound    = 200
 	ErrEventIdMissing   = 201
@@ -53,15 +54,16 @@ const (
 
 var kloudErrors = map[int]string{
 	// Machine errors
-	ErrMachineIdMissing:      "Machine id is missing.",
-	ErrMachineInitialized:    "Machine is already initialized and prepared.",
-	ErrMachineNotInitialized: "Machine is not initialized.",
-	ErrMachineUnknownState:   "Machine is in unknown state. Please contact support.",
-	ErrMachineIsBuilding:     "Machine is being build. Hold on.",
-	ErrMachineTerminating:    "Machine is terminated.",
-	ErrMachineNotFound:       "Machine is not found",
-	ErrMachineIsLocked:       "Machine is locked by someone else",
-	ErrSnapshotIdMissing:     "Snapshot id is missing.",
+	ErrMachineIdMissing:          "Machine id is missing.",
+	ErrMachineInitialized:        "Machine is already initialized and prepared.",
+	ErrMachineNotInitialized:     "Machine is not initialized.",
+	ErrMachineUnknownState:       "Machine is in unknown state. Please contact support.",
+	ErrMachineIsBuilding:         "Machine is being build. Hold on.",
+	ErrMachineTerminating:        "Machine is terminated.",
+	ErrMachineNotFound:           "Machine is not found",
+	ErrMachineIsLocked:           "Machine is locked by someone else",
+	ErrSnapshotIdMissing:         "Snapshot id is missing.",
+	ErrTerraformContextIsMissing: "Terraform context file is missing.",
 
 	// Event errors
 	ErrEventIdMissing:   "Event id is missing.",

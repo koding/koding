@@ -12,10 +12,13 @@ import (
 	"os"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
@@ -179,6 +182,12 @@ func newKite(conf *Config) *kite.Kite {
 		},
 		Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
 	}
+	ec2clients := multiec2.New(auth, []string{
+		"us-east-1",
+		"ap-southeast-1",
+		"us-west-2",
+		"eu-west-1",
+	})
 
 	/// KODING PROVIDER ///
 
@@ -188,13 +197,8 @@ func newKite(conf *Config) *kite.Kite {
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
-		EC2Clients: multiec2.New(auth, []string{
-			"us-east-1",
-			"ap-southeast-1",
-			"us-west-2",
-			"eu-west-1",
-		}),
-		Userdata: userdata,
+		EC2Clients: ec2clients,
+		Userdata:   userdata,
 		PaymentFetcher: &plans.Payment{
 			PaymentEndpoint: conf.PlanEndpoint,
 		},
@@ -218,9 +222,20 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	// KLOUD DISPATCHER ///
+	sess := &session.Session{
+		DB:         db,
+		Kite:       k,
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		AWSClients: ec2clients,
+	}
+
 	stats := common.MustInitMetrics(Name)
 
 	kld := kloud.New()
+	kld.ContextCreator = func(ctx context.Context) context.Context {
+		return session.NewContext(ctx, sess)
+	}
 	kld.Metrics = stats
 	kld.PublicKeys = publickeys.NewKeys()
 	kld.DomainStorage = dnsStorage
@@ -239,6 +254,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	// Machine handling methods
+	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("stop", kld.Stop)
