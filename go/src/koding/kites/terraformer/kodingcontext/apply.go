@@ -72,7 +72,11 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error
 	fmt.Printf("Debug output: %+v\n", c.Buffer.String())
 
 	if exitCode != 0 {
-		return nil, fmt.Errorf("apply failed with code: %d", exitCode)
+		return nil, fmt.Errorf(
+			"apply failed with code: %d, output: %s",
+			exitCode,
+			c.Buffer.String(),
+		)
 	}
 
 	planFile, err := os.Open(planFilePath)
