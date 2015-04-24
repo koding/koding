@@ -58,8 +58,15 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 
 	item := req.Lines.Data[0]
 
+	// stripe sends 'subscription' object in line item for 1st
+	// subscription 'invoiceitem' object if it's change in plans
+	var id string = item.SubscriptionId
+	if id == "" {
+		id = item.Id
+	}
+
 	subscription := paymentmodels.NewSubscription()
-	err := subscription.ByProviderId(item.SubscriptionId, ProviderName)
+	err := subscription.ByProviderId(id, ProviderName)
 	if err != nil {
 		return err
 	}
@@ -82,12 +89,12 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 		subscription.Id, plan.Id, time.Unix(int64(item.Period.Start), 0),
 	)
 
-	err = subscription.UpdateInvoiceCreated(
+	subscription.UpdateInvoiceCreated(
 		plan.AmountInCents, plan.Id,
 		int64(item.Period.Start), int64(item.Period.End),
 	)
 
-	return err
+	return nil
 }
 
 //----------------------------------------------------------

@@ -24,7 +24,8 @@ type StripePeriod struct {
 }
 
 type StripeInvoiceData struct {
-	SubscriptionId string       `json:"id"`
+	Id             string       `json:"id"`
+	SubscriptionId string       `json:"subscription"`
 	Period         StripePeriod `json:"period"`
 	Plan           StripePlan   `json:"plan"`
 }
