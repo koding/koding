@@ -16,7 +16,7 @@ module.exports = class SnapshotHelpers
       JSnapshot.some { machineId }, { sort: { createdAt: -1 }, limit: 1 },
         (err, snapshots) =>
           return callback err  if err
-          if not snapshots
+          unless snapshots
             return callback new Error 'Cannot find most recent snapshot'
           [snapshot] = snapshots
           callback null, snapshot

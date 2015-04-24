@@ -175,10 +175,8 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       JSnapshot.one snapshotId, (err, snapshot) =>
         return kd.warn err  if err
 
-        if not snapshot?
-          kd.warn "SnapshotListItem.renameSnapshot Error:
-            Cannot find snapshotId", snapshotId
-          return
+        unless snapshot?
+          return kd.warn "Error: Cannot find snapshotId", snapshotId
 
         rename snapshot
 
