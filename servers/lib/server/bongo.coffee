@@ -17,15 +17,16 @@ module.exports = koding = new Bongo
   fetchClient : (sessionToken, context, callback)->
 
     { JUser, JAccount } = koding.models
-    [callback, context] = [context, callback] unless callback
-    context             ?= group: 'koding'
-    callback            ?= ->
+    [callback, context] = [context, callback]  unless callback
 
-    JUser.authenticateClient sessionToken, context, (err, res = {})->
+    callback ?= ->
+
+    JUser.authenticateClient sessionToken, (err, res = {})->
 
       return console.error err  if err
 
       { account, session } = res
+      context ?= { group: session?.groupName ? 'koding' }
 
       if account instanceof JAccount
 

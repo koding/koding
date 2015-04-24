@@ -1,39 +1,11 @@
 {argv} = require 'optimist'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-bongo = require './bongo'
+bongo  = require './bongo'
 
 handleError = (err, callback) ->
   console.error err
   return callback? err
-
-
-fetchGroupName = ({ groupName: name, section }, callback)->
-  {JName} = bongo.models
-
-  groupName = ""
-  # this means it is not a group or profile feed
-  # and it means it is koding group
-  # it is like Activity -- Develop
-
-  if not name or name[0].toUpperCase() is name[0]
-    return callback null, "koding"
-  else
-    JName.fetchModels "#{name}", (err, { models })->
-      return callback if err
-      return callback new Error "JName is not found #{name}/#{section}" if not models and model.length < 1
-
-      model = models.first
-      modelName = model.bongo_.constructorName
-      if modelName is 'JGroup'
-        groupName = model.slug
-      else
-        groupName = "koding"
-
-      callback null, groupName
-
-fetchAccount = (username, callback)->
-  bongo.models.JAccount.one {"profile.nickname" : username }, callback
 
 updateCookie = (req, res, session)->
   { clientId }       = session
@@ -87,27 +59,24 @@ generateFakeClient = (options, callback) ->
 
     return handleError err, callback  if err
 
+    if not response or not response.session
+      return handleError new Error "Session is not set", callback
+
     {session} = response
+    {username, groupName} = session
 
-    return handleError new Error "Session is not set", callback  unless session
+    prepareFakeClient fakeClient, {groupName, session, username}
 
-    fetchGroupName { groupName, section }, (err, groupName)->
-      return handleError err, callback  if err
-
-      {username} = session
-
-      prepareFakeClient fakeClient, {groupName, session, username}
-
-      return callback null, fakeClient, session
+    return callback null, fakeClient, session
 
 
 prepareFakeClient = (fakeClient, options) ->
   {groupName, session, username} = options
 
-  {JAccount} = bongo.models
-  account = new JAccount
+  {JAccount}      = bongo.models
+  account         = new JAccount
   account.profile = nickname: username
-  account.type = 'unregistered'
+  account.type    = 'unregistered'
 
   fakeClient.sessionToken = session.clientId
 
@@ -125,4 +94,3 @@ prepareFakeClient = (fakeClient, options) ->
 
 
 module.exports = { generateFakeClient: generateFakeClientFromReq, updateCookie}
-
