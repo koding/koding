@@ -153,7 +153,7 @@ module.exports =
 
     if user.gravatar
       browser
-        .assert.valueContains 'input[name=username]',  'kodingtestuser1'
+        .assert.valueContains 'input[name=username]',  'kodingtestuser'
         .assert.valueContains 'input[name=firstName]', 'Koding'
         .assert.valueContains 'input[name=lastName]',  'Testuser'
     else
