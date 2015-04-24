@@ -19,7 +19,7 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 	}
 
 	// copy all contents from remote to local for operating
-	if err := c.RemoteStorage.Clone(c.Location, c.LocalStorage); err != nil {
+	if err := c.RemoteStorage.Clone(c.ContentID, c.LocalStorage); err != nil {
 		return nil, err
 	}
 
@@ -28,8 +28,8 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 		return nil, err
 	}
 
-	outputDir := path.Join(basePath, c.Location)
-	mainFileRelativePath := path.Join(c.Location, mainFileName+terraformFileExt)
+	outputDir := path.Join(basePath, c.ContentID)
+	mainFileRelativePath := path.Join(c.ContentID, mainFileName+terraformFileExt)
 	planFilePath := path.Join(outputDir, planFileName+terraformPlanFileExt)
 	stateFilePath := path.Join(outputDir, stateFileName+terraformStateFileExt)
 
@@ -83,7 +83,7 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 	defer planFile.Close()
 
 	// copy all contents from local to remote for later operating
-	if err := c.LocalStorage.Clone(c.Location, c.RemoteStorage); err != nil {
+	if err := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage); err != nil {
 		return nil, err
 	}
 

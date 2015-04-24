@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/s3"
 )
 
@@ -27,10 +28,23 @@ type S3Storage struct {
 	bucket *s3.Bucket
 }
 
-func NewS3Storage(bucket *s3.Bucket) S3Storage {
-	return S3Storage{
-		bucket: bucket,
+func NewS3Storage(key, secret, bucketName string) (S3Storage, error) {
+	// init s3 auth
+	awsAuth, err := aws.GetAuth(key, secret)
+	if err != nil {
+		return S3Storage{}, err
 	}
+
+	// we are only using us east
+	awsS3Bucket := s3.New(awsAuth, aws.USEast).Bucket(bucketName)
+
+	if err := awsS3Bucket.PutBucket(s3.Private); err != nil {
+		return S3Storage{}, err
+	}
+
+	return S3Storage{
+		bucket: awsS3Bucket,
+	}, nil
 }
 
 func (s S3Storage) BasePath() (string, error) {
@@ -105,7 +119,7 @@ func (s S3Storage) Clone(path string, target Storage) error {
 	for _, res := range result.Contents {
 		newPath := res.Key
 
-		// if bucket is created but doesnt have any content
+		// if bucket is created but doesnt have
 		if newPath == filePath {
 			continue
 		}
@@ -127,10 +141,14 @@ type FileStorage struct {
 	basePath string
 }
 
-func NewFileStorage(basePath string) FileStorage {
+func NewFileStorage(basePath string) (FileStorage, error) {
+	if err := os.MkdirAll(basePath, os.ModePerm); err != nil {
+		return FileStorage{}, err
+	}
+
 	return FileStorage{
 		basePath: basePath,
-	}
+	}, nil
 }
 
 func (f FileStorage) BasePath() (string, error) {

@@ -3,7 +3,6 @@ package kodingcontext
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
 
 	"koding/kites/terraformer/kodingcontext/pkg"
 
@@ -35,23 +34,26 @@ type Context struct {
 
 	ContentID    string
 	baseDir      string
-	providers    map[string]terraform.ResourceProviderFactory
-	provisioners map[string]terraform.ResourceProvisionerFactory
+	Providers    map[string]terraform.ResourceProviderFactory
+	Provisioners map[string]terraform.ResourceProvisionerFactory
 	Buffer       *bytes.Buffer
 	ui           *cli.PrefixedUi
 }
 
-func Init(ls, rs Storage) (*Context, error) {
+func New(ls, rs Storage) (*Context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
 		return nil, err
 	}
 
-	providers := config.ProviderFactories()
-	provisioners := config.ProvisionerFactories()
+	c := newContext()
+	c.Providers = config.ProviderFactories()
+	c.Provisioners = config.ProvisionerFactories()
+	c.LocalStorage = ls
+	c.RemoteStorage = rs
 
-	return NewContext(providers, provisioners, ls, rs), nil
+	return c, nil
 }
 
 func Close() {
@@ -59,32 +61,24 @@ func Close() {
 	plugin.CleanupClients()
 }
 
-func NewContext(
-	providers map[string]terraform.ResourceProviderFactory,
-	provisioners map[string]terraform.ResourceProvisionerFactory,
-	local Storage,
-	remote Storage,
-) *Context {
+func newContext() *Context {
 	b := new(bytes.Buffer)
 
 	return &Context{
-		baseDir:       "",
-		providers:     providers,
-		provisioners:  provisioners,
-		Buffer:        b,
-		RemoteStorage: remote,
-		LocalStorage:  local,
-		ui:            NewUI(b),
+		baseDir: "",
+		Buffer:  b,
+		ui:      NewUI(b),
 	}
 }
 
 func (c *Context) Clone() *Context {
-	return NewContext(
-		c.providers,
-		c.provisioners,
-		c.LocalStorage,
-		c.RemoteStorage,
-	)
+	cc := newContext()
+	cc.Providers = c.Providers
+	cc.Provisioners = c.Provisioners
+	cc.LocalStorage = c.LocalStorage
+	cc.RemoteStorage = c.RemoteStorage
+
+	return cc
 }
 
 func (c *Context) TerraformContextOpts() *terraform.ContextOpts {
@@ -107,8 +101,8 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 		State:  p.State,
 		Diff:   p.Diff,
 
-		Providers:    c.providers,
-		Provisioners: c.provisioners,
+		Providers:    c.Providers,
+		Provisioners: c.Provisioners,
 		Variables:    c.Variables,
 	}
 }

@@ -1,9 +1,12 @@
 package terraformer
 
 import (
+	"fmt"
 	"koding/kites/terraformer/kodingcontext"
 	"runtime/debug"
 	"strings"
+
+	"koding/kites/common"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
@@ -28,6 +31,9 @@ type Terraformer struct {
 
 	// Context holds the initial context, all usages should clone it
 	Context *kodingcontext.Context
+
+	// Store app runtime config
+	Config *Config
 }
 
 type TerraformRequest struct {
@@ -36,7 +42,46 @@ type TerraformRequest struct {
 	ContentID string
 }
 
-func New() *Terraformer { return &Terraformer{} }
+func New(conf *Config, log logging.Logger) (*Terraformer, error) {
+	ls, err := kodingcontext.NewFileStorage(conf.LocalStorePath)
+	if err != nil {
+		return nil, fmt.Errorf("err while creating local store %s", err)
+	}
+
+	rs, err := kodingcontext.NewS3Storage(
+		conf.AWS.Key,
+		conf.AWS.Secret,
+		conf.AWS.Bucket,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("err while creating remote store %s", err)
+	}
+
+	c, err := kodingcontext.New(ls, rs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Terraformer{
+		Log:     log,
+		Metrics: common.MustInitMetrics(Name),
+		Debug:   conf.Debug,
+		Context: c,
+		Config:  conf,
+	}, nil
+}
+
+func (t *Terraformer) Close() error {
+	if t.Context != nil {
+		t.Context.Close()
+	}
+
+	return nil
+}
+
+func (t *Terraformer) Kite() (*kite.Kite, error) {
+	return t.newKite(t.Config)
+}
 
 func (t *Terraformer) Plan(r *kite.Request) (plan interface{}, err error) {
 	defer func() {
