@@ -10,6 +10,9 @@ OnboardingSettingsMenuItem = require '../../onboardingsettingsmenuitem'
 
 module.exports = class OnboardingGroupView extends CustomViewsDashboardView
 
+  ###*
+   * View that renders onboarding group and its onboarding items
+  ###
   constructor: (options = {}, data) ->
 
     super options, data
@@ -39,6 +42,11 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
       @loader.hide()
 
 
+  ###*
+   * Returns a hash object with actions for onboarding group and corresponding action handlers
+   *
+   * @return {object<string,function>}
+  ###
   getMenuItems: ->
 
     data         = @getData()
@@ -55,6 +63,15 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     return items
 
 
+  ###*
+   * Once user publishes onboarding group or sets it on preview mode or turns off those flags,
+   * this method updates a state of group in DB and reloads a list of onboardings
+   * Before changing the state it's necessary to confirm the action from user
+   *
+   * @param {string} key - a field of JCustomPartial object which should be toggled. Possible values are 'isActive' (to publish/unpublish onboarding)
+   * and 'isPreview' (to set/unset on preview mode)
+   * @emits SectionSaved
+  ###
   updateState: (key) ->
 
     changeSet = {}
@@ -63,7 +80,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
       changeSet[key] = not data[key]
       data.update changeSet, (err, res) =>
         return kd.warn err  if err
-        @getDelegate().reloadViews()
+        @emit 'SectionSaved'
 
     keyword = "publish"
 
@@ -90,6 +107,11 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
           callback : -> modal.destroy()
 
 
+  ###*
+   * Overrides base method
+   * Since we already have onboarding items in onboarding group data,
+   * it's not needed to fetch them from the server - we can render them immediately
+  ###
   fetchViews: ->
 
     @loader.hide()
@@ -98,17 +120,14 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     @createList items
 
 
-  createList: (items) ->
-
-    return  unless items
-    for item in items
-      itemView = new OnboardingChildItem { delegate: this }, item
-      itemView.on 'ItemDeleted', @bound 'deleteChildItem'
-      @customViews.push itemView
-      @container.addSubView itemView
-
-
-  deleteChildItem: (childData) ->
+  ###*
+   * Overrides base method
+   * Removes onboarding item from onboarding group, updates onboarding in DB
+   * and reloads a list of onboarding items
+   *
+   * @return {object} - data of deleting onboarding item view
+  ###
+  handleViewDeleted: (childData) ->
 
     data    = @getData()
     {items} = data.partial
@@ -122,6 +141,10 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
       @reloadViews()
 
 
+  ###*
+   * Shows onboarding group form when user performs 'Edit' action
+   * and binds to form events. Onboarding items become invisible
+  ###
   edit: ->
 
     @hideViews()
@@ -131,15 +154,22 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     @addSubView sectionForm
 
 
+  ###*
+   * Deletes onboarding group when user performs 'Delete' action
+   * Before deleting the group it's necessary to confirm action from user
+  ###
   delete: ->
 
     @confirmDelete =>
       @getData().remove (err, res) =>
         return kd.warn err  if err
-        @getDelegate().container.destroySubViews()
-        @getDelegate().reloadViews()
+        @emit 'SectionDeleted'
 
-
+  ###*
+   * Shows a confirmation modal for a delete action
+   *
+   * @param {function} callback - it's called when user confirms their action
+  ###
   confirmDelete: (callback = kd.noop) ->
 
     modal          = new KDModalView
@@ -159,6 +189,11 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
           callback : -> modal.destroy()
 
 
+  ###*
+   * When user cancels editing onboarding group,
+   * onboarding items should be shown again
+   * and it's necessary to forward cancel event to parent view
+  ###
   cancel: ->
 
     @showViews()
