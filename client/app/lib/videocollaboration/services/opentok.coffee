@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 $                    = require 'jquery'
+_                    = require 'lodash'
 helper               = require '../helper'
 globals              = require 'globals'
 getNick              = require 'app/util/nick'
@@ -135,24 +136,66 @@ module.exports = class OpenTokService extends kd.Object
    * Sends a signal with type to given subscriber
    * through given session.
    *
-   * @param {SocialChannel} channel
-   * @param {String} type
+   * @param {SocialChannel} options.channel
+   * @param {String} options.type
+   * @param {ParticipantType.Subscriber} options.to
    * @param {function(err: object)} callback
   ###
-  sendSignal: (channel, type, callback) ->
+  sendSignal: (options, callback) ->
+
+    { channel } = options
+
+    return console.error 'sendSignal requires a SocialChannel instance'  unless channel
+
+    options = _.omit options, 'channel'
+
+    if subscriber = options.to
+      options.to = subscriber.videoData.stream.connection
 
     @fetchChannelSession channel, (session) ->
-      session.signal { type }, callback
+      session.signal options, callback
 
 
+  ###*
+   * Sends a signal to already connected users to initiate video session.
+   *
+   * This will take care of the already-online users only. For offline users
+   * SocialChannel instance's payload will have the session id, so that offline
+   * participants can join video as well.
+   *
+   * @param {SocialChannel} channel
+   * @param {function(err: object)} callback
+  ###
   sendSessionStartSignal: (channel, callback) ->
 
-    @sendSignal channel, 'start', callback
+    @sendSignal { channel, type: 'start'}, callback
 
 
+  ###*
+   * Sends a signal to already connected users to end video session.
+   *
+   * @param {SocialChannel} channel
+   * @param {function(err: object)} callback
+  ###
   sendSessionEndSignal: (channel, callback) ->
 
-    @sendSignal channel, 'end', callback
+    @sendSignal { channel, type: 'end' }, callback
+
+
+  ###*
+   * OpenTok doesn't have an easy mechanism to mute a particular user for all
+   * video session subscribers. Because of that we are sending a signal to be
+   * muted user. Other places can subscribe to OT.Session instance's
+   * `signal:mute` event to register a callback to this. Ideal situtation will be
+   * triggering the `publishAudio(false)` in to be muted user's client.
+   *
+   * @param {SocialChannel} channel
+   * @param {ParticipantType.Subscriber} to
+   * @param {function(err: object)} callback
+  ###
+  sendMuteSignal: (channel, to, callback) ->
+
+    @sendSignal { channel, to, type: 'mute' }, callback
 
 
   ###*

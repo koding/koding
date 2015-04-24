@@ -1,0 +1,14 @@
+{
+  "name": "admin",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/:name?/Admin": "home",
+    "/:name?/Admin/:section": "section"
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
+  ]
+}

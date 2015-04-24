@@ -16,7 +16,7 @@ module.exports = class GroupsController extends KDController
 
     super options, data
 
-    @isReady       = no
+    @isReady = no
 
     kd.utils.defer @bound 'init'
 
@@ -28,7 +28,7 @@ module.exports = class GroupsController extends KDController
     @currentGroupData = new GroupData
 
     mainController.ready =>
-      {slug} = entryPoint  if entryPoint?.type is 'group'
+      { slug } = entryPoint  if entryPoint?.type is 'group'
       @changeGroup slug
 
   getCurrentGroup:->
@@ -48,18 +48,19 @@ module.exports = class GroupsController extends KDController
       isExclusive : yes
 
     @filterXssAndForwardEvents @groupChannel, [
-      "MemberJoinedGroup"
-      "FollowHappened"
-      "LikeIsAdded"
-      "PostIsCreated"
-      "ReplyIsAdded"
-      "PostIsDeleted"
-      "LikeIsRemoved"
+      'MemberJoinedGroup'
+      'FollowHappened'
+      'LikeIsAdded'
+      'PostIsCreated'
+      'ReplyIsAdded'
+      'PostIsDeleted'
+      'LikeIsRemoved'
     ]
 
     @groupChannel.once 'setSecretNames', callback
 
-  changeGroup:(groupName = 'koding', callback = (->))->
+  changeGroup: (groupName = 'koding', callback = kd.noop) ->
+
     return callback()  if @currentGroupName is groupName
 
     oldGroupName        = @currentGroupName

@@ -55,7 +55,7 @@ Commands:
   browser    configure browser tests
 
 Options:
-  --help, -h        show this message                                                                                        
+  --help, -h        show this message
   --url             specify a url that koding webserver is running on
   --nightwatch      specify a nightwatch config blueprint file.
                     actual config file will be written to client/.nightwatch.json
@@ -117,6 +117,11 @@ Run `activity/likeunlike` suite
 ```sh
 λ client/test ./test activity likeunlike
 ```
+
+Gravatar:
+
+username: kodingtestuser1 / kodingtestuser@koding.com
+password: passfortestuser
 
 # license
 

@@ -46,25 +46,20 @@ findUsernameFromKey = (req, res, callback) ->
 findUsernameFromSession = (req, res, callback) ->
 
   {clientId} = req.cookies
-
   unless clientId?
-
     return process.nextTick -> callback null
 
-  else
+  koding.models.JSession.fetchSession clientId, (err, result) ->
 
-    koding.models.JSession.fetchSession clientId, (err, result)->
+    if err
+      return callback err
+    else unless result?
+      return callback null
 
-      return if err
-      then callback err
-      else unless result?
-      then callback null
-
-      {session} = result
-
-      return unless session?
-      then callback null
-      else callback null, session.username
+    {session} = result
+    unless session?
+    then callback null
+    else callback null, session.username
 
 fetchJAccountByKiteUserNameAndKey = (req, callback)->
   if req.fields
@@ -101,10 +96,9 @@ serve = (content, res)->
 
 serveHome = (req, res, next) ->
   {JGroup} = bongoModels = koding.models
-  isCustomPreview = req.cookies["custom-partials-preview-mode"]
   {generateFakeClient}   = require "./client"
 
-  generateFakeClient req, res, (err, client)->
+  generateFakeClient req, res, (err, client, session)->
     if err or not client
       console.error err
       return next()
@@ -118,9 +112,7 @@ serveHome = (req, res, next) ->
       {params}              = req
       {loggedIn, loggedOut} = JGroup.render
       fn                    = if state then loggedIn else loggedOut
-      options = { client, account,
-                  bongoModels, params,
-                  isCustomPreview }
+      options = { client, account, bongoModels, params, session}
 
       fn.kodingHome options, (err, subPage)->
         return next()  if err
@@ -189,6 +181,12 @@ handleClientIdNotFound = (res, req)->
 getClientId = (req, res)->
   return req.cookies.clientId or req.pendingCookies.clientId
 
+isInAppRoute = (name) ->
+  [firstLetter] = name
+  return false  if /^[0-9]/.test firstLetter # user nicknames can start with numbers
+  return true   if firstLetter.toUpperCase() is firstLetter
+  return false
+
 module.exports = {
   error_
   error_404
@@ -207,4 +205,5 @@ module.exports = {
   renderOauthPopup
   handleClientIdNotFound
   getClientId
+  isInAppRoute
 }

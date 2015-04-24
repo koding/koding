@@ -31,7 +31,7 @@ type StripeInvoiceData struct {
 
 type StripeInvoiceLines struct {
 	Data  []StripeInvoiceData `json:"data"`
-	Count int                 `json:"count"`
+	Count int                 `json:"total_count"`
 }
 
 type StripeInvoice struct {

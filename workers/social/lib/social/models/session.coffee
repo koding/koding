@@ -15,6 +15,11 @@ module.exports = class JSession extends Model
       clientIP      : String
       username      : String
       otaToken      : String
+      groupName     :
+        type        : String
+        default     : 'koding'
+      guestId       : Number
+      terminalId    : String
       sessionBegan  :
         type        : Date
         default     : -> new Date
