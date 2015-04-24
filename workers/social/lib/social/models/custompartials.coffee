@@ -65,8 +65,8 @@ module.exports = class JCustomPartials extends Model
     @checkPermission client, (err, res)=>
       return callback err if err
 
-      isPublishing     = data.isActive and not @isActive
-      data.publishedAt = new Date()  if isPublishing
+      isPublished      = data.isActive and not @isActive
+      data.publishedAt = new Date()  if isPublished
 
       @update {$set:data}, callback
 
