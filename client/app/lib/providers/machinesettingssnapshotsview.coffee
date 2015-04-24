@@ -140,7 +140,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   isWithinSnapshotLimit: (callback = kd.noop) ->
     @snapshotsLimit (err, total) =>
       return callback err  if err
-      count = @listController.listView.items.length
+      count = @listController.getItemCount()
       callback null, count < total, count, total
 
 
