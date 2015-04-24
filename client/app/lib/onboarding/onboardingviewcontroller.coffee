@@ -51,7 +51,7 @@ module.exports = class OnboardingViewController extends KDViewController
    *
    * @param {OnboardingItemView} view - view which events are necessary to listen
   ###
-  bindViewEvents: (view) =>
+  bindViewEvents: (view) ->
 
     view.on 'NavigationRequested', (direction) =>
       @navigate direction, view.getData()
