@@ -93,7 +93,7 @@ class IDEAppController extends AppController
     @layoutMap = new Array(16*16)
 
     {windowController, appManager} = kd.singletons
-    windowController.addFocusListener @bound 'setActivePaneFocus'
+    windowController.addFocusListener @bound 'handleWindowFocus'
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
@@ -101,7 +101,7 @@ class IDEAppController extends AppController
 
       return  unless app instanceof IDEAppController
 
-      @setActivePaneFocus on
+      @setActivePaneFocus on, yes
 
       # Temporary fix for IDE is not shown after
       # opening pages which uses old SplitView.
@@ -180,6 +180,13 @@ class IDEAppController extends AppController
             @emit 'WorkspaceChannelChanged'
 
 
+  handleWindowFocus: (state) ->
+
+    return  unless global.document.contains @getView().getElement()
+
+    @setActivePaneFocus state
+
+
   setActiveTabView: (tabView) ->
 
     return  if tabView is @activeTabView
@@ -188,10 +195,10 @@ class IDEAppController extends AppController
     @setActivePaneFocus on
 
 
-  setActivePaneFocus: (state) ->
+  setActivePaneFocus: (state, force = no) ->
 
     return  unless pane = @getActivePaneView()
-    return  if pane is @activePaneView
+    return  if pane is @activePaneView and not force
 
     @activePaneView = pane
 
