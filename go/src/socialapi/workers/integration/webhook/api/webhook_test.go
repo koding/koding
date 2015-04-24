@@ -197,6 +197,50 @@ func TestWebhookPrepare(t *testing.T) {
 	})
 }
 
+func TestPrepareUsername(t *testing.T) {
+	Convey("while testing prepareUsername", t, func() {
+		Convey("it should not modify username when it already exists", func() {
+
+			so := &services.ServiceOutput{}
+			so.Username = "canthefason"
+			err := h.prepareUsername(so)
+			So(err, ShouldBeNil)
+			So(so.Username, ShouldEqual, "canthefason")
+
+			so = &services.ServiceOutput{}
+			so.Username = "canthefason"
+			so.Email = "ctf@koding.com"
+			err = h.prepareUsername(so)
+			So(err, ShouldBeNil)
+			So(so.Username, ShouldEqual, "canthefason")
+		})
+
+		Convey("it should prepare username when it is not set depending on email", func() {
+
+			_, err := models.CreateAccountInBothDbsWithNick("ctf")
+			So(err, ShouldBeNil)
+
+			so := &services.ServiceOutput{}
+			so.Username = ""
+			err = h.prepareUsername(so)
+			So(err, ShouldBeNil)
+			So(so.Username, ShouldEqual, "")
+
+			so.Email = "ctf@koding.com"
+			err = h.prepareUsername(so)
+			So(err, ShouldBeNil)
+			So(so.Username, ShouldEqual, "ctf")
+
+			so.Email = "asdfasdfasdf@koding.com"
+			so.Username = ""
+			err = h.prepareUsername(so)
+			So(err, ShouldEqual, ErrEmailNotFound)
+
+		})
+
+	})
+}
+
 func TestWebhookFetchBotChannel(t *testing.T) {
 
 	Convey("while testing bot channel fetcher", t, func() {

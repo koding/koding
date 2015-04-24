@@ -147,6 +147,32 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, r *BotChannelR
 	return response.NewOK(map[string]string{"channelId": strconv.FormatInt(c.Id, 10)})
 }
 
+func (h *Handler) prepareUsername(so *services.ServiceOutput) error {
+
+	if so.Username != "" {
+		return nil
+	}
+
+	if so.Email == "" {
+		return nil
+	}
+
+	// TODO instead of fetching directly from mongo
+	// we can fetch these via an endpoint
+	user, err := modelhelper.FetchUserByEmail(so.Email)
+	if err == mgo.ErrNotFound {
+		return ErrEmailNotFound
+	}
+
+	if err != nil {
+		return err
+	}
+
+	so.Username = user.Name
+
+	return nil
+}
+
 // TODO need to mock the endpoint. up till that time, this push method is
 // defined like this
 var push = func(endPoint string, pushRequest map[string]string) error {
@@ -162,7 +188,6 @@ var push = func(endPoint string, pushRequest map[string]string) error {
 	if err != nil {
 		return err
 	}
-
 	// Need a better response
 	if resp.StatusCode != 200 {
 		return fmt.Errorf(resp.Status)
