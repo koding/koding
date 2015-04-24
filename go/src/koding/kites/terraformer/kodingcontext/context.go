@@ -77,7 +77,6 @@ func NewContext(
 		id:           id.String(),
 		Buffer:       b,
 		ui:           NewUI(b),
-		Storage:      FileStorage{},
 	}
 }
 
