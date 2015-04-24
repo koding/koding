@@ -1,14 +1,17 @@
 console.time 'Koding.com loaded'
+
 require './core/utils'
 require './core/KD.extend.coffee'
 
 # register appclasses
-About    = require './about/AppController'
-Home     = require './home/AppController'
-Login    = require './login/AppController'
-Features = require './features/AppController'
-Legal    = require './legal/AppController'
-Pricing  = require './pricing/AppController'
+require './about/AppController'
+require './home/AppController'
+require './login/AppController'
+require './features/AppController'
+require './legal/AppController'
+require './pricing/AppController'
+require './teams/AppController'
+require './teamlanding/AppController'
 
 # bootstrap app
 MainController = require './core/maincontrollerloggedout'
@@ -22,6 +25,8 @@ do ->
     KD.config.environment = if location.hostname is 'koding.com'\
                             then 'production' else 'development'
 
+    KD.config.groupName   = KD.utils.getGroupNameFromLocation()
+
   registerRoutes = ->
 
     require './core/routes.coffee'
@@ -29,8 +34,7 @@ do ->
     require './pricing/routes.coffee'
     require './legal/routes.coffee'
     require './features/routes.coffee'
-
-
+    require './teams/routes.coffee'
 
 
   setConfig()
