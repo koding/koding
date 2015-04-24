@@ -1,5 +1,3 @@
-TeamsRegisterForm = require './registerform'
-FooterView        = require './footerview'
 CustomLinkView    = require './../core/customlinkview'
 MainHeaderView    = require './../core/mainheaderview'
 
