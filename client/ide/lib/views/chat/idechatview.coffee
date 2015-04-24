@@ -74,14 +74,14 @@ module.exports = class IDEChatView extends KDTabView
     @chatPane.setAvatarTalkingState nickname, state
 
 
-  handleVideoParticipantJoined: (nickname) ->
+  handleVideoParticipantJoined: (participant) ->
 
-    @chatPane.handleVideoParticipantJoined nickname
+    @chatPane.handleVideoParticipantJoined participant
 
 
-  handleVideoParticipantLeft: (nickname) ->
+  handleVideoParticipantLeft: (participant) ->
 
-    @chatPane.handleVideoParticipantLeft nickname
+    @chatPane.handleVideoParticipantLeft participant
 
 
   start: ->
