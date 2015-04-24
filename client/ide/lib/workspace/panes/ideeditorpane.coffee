@@ -330,8 +330,6 @@ module.exports = class IDEEditorPane extends IDEPane
 
   handleCollaborativeStringEvent: (changedString, change) ->
 
-    string = @rtm.getFromModel @getFile().path
-
     return  if @isChangedByMe change
 
     string = @rtm.getFromModel @getFile().path
