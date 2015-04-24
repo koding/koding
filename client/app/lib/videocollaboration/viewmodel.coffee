@@ -90,6 +90,8 @@ hideOfflineUserContainer = (view) ->
 ###
 hideParticipant = (participant) ->
 
+  return  unless participant.videoData
+
   participant.videoData.element.style.display = 'none'
 
 
