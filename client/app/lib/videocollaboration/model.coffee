@@ -149,6 +149,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
     session.on 'signal:mute', => @setAudioState off
 
 
+  ###*
+   * Subscribes to given session's given stream.
+   *
+   * It uses helper method to subscribe, it's success callback will return the
+   * `OT.Subscriber` object. From that on, the conversion from `OT.Subscriber`
+   * to `ParticipantType.Subscriber` and other jobs happen in success handler.
+   *
+   * @param {OT.Session} session
+   * @param {OT.Stream} stream
+  ###
   subscribeToStream: (session, stream) ->
 
     helper.subscribeToStream session, stream, @getView().getContainer(),
@@ -165,13 +175,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   enableVideo: (callbacks) ->
 
-    options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+    @setActive()
+
     success = (publisher) =>
       @handlePublishSuccess publisher
       callbacks.success? publisher
 
-    @setActive()
-
+    options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
     @startPublishing options,
       success : success
       error   : callbacks.error
@@ -308,7 +318,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @unregisterSubscriber connectionId
 
     { nick } = _participant
-    @emit 'ParticipantLeft', {nick}
+    @emit 'ParticipantLeft', helper.defaultSubscriber nick
 
     # if leaving participant is selected or active participant
     if @state.activeParticipant is nick
@@ -504,6 +514,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @emit 'SelectedParticipantChanged', nick, yes
 
 
+  ###*
+   * @param {string} nickname
+   * @return {boolean}
+  ###
   isParticipantOnline: (nickname) -> @getParticipant(nickname)?
 
 
