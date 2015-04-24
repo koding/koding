@@ -12,6 +12,9 @@ type Service interface {
 
 	// PrepareEndpoint prepares the endpoint url with given token
 	PrepareEndpoint(string) string
+
+	// Output extracts data with given input
+	Output(*ServiceInput) *ServiceOutput
 }
 
 // ServiceInput is used for input objects
@@ -30,3 +33,10 @@ func (si ServiceInput) SetKey(key string, value interface{}) {
 	si[key] = value
 }
 
+// ServiceOutput is used for extracting data from
+// integration services
+type ServiceOutput struct {
+	Username  string
+	Email     string
+	GroupName string
+}
