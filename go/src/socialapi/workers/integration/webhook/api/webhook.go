@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -11,6 +12,8 @@ import (
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/services"
 	"strconv"
+
+	"labix.org/v2/mgo"
 
 	"github.com/koding/logging"
 )
@@ -60,7 +63,10 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 	return response.NewOK(nil)
 }
 
-func (h *Handler) Prepare(u *url.URL, header http.Header, r *PrepareRequest) (int, http.Header, interface{}, error) {
+func (h *Handler) Prepare(u *url.URL, header http.Header, request services.ServiceInput) (int, http.Header, interface{}, error) {
+	r := new(PrepareRequest)
+	r.Data = &request
+
 	token := u.Query().Get("token")
 	r.Token = token
 	name := u.Query().Get("name")
@@ -79,7 +85,7 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, r *PrepareRequest) (in
 		return response.NewBadRequest(err)
 	}
 
-	service, err := h.sf.Create(name)
+	service, err := h.sf.Create(name, r.Data)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -96,9 +102,15 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, r *PrepareRequest) (in
 	pushRequest := make(map[string]string)
 	pushRequest["body"] = message
 
-	if r.Username != "" {
-		// fetch user bot channel
-		// pushRequest["channelId"] = x
+	so := service.Output(r.Data)
+
+	channelId, err := h.fetchChannelId(so)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if channelId != 0 {
+		pushRequest["channelId"] = strconv.FormatInt(channelId, 10)
 	}
 
 	if err := push(endPoint, pushRequest); err != nil {
@@ -115,36 +127,57 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, r *BotChannelR
 		return response.NewBadRequest(err)
 	}
 
+	c, err := h.fetchBotChannel(r)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(map[string]string{"channelId": strconv.FormatInt(c.Id, 10)})
+}
+
+func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
 	// check account existence
 	acc, err := r.verifyAccount()
 	if err != nil {
-		return response.NewBadRequest(err)
+		return nil, err
 	}
 
 	// check group existence
 	group, err := r.verifyGroup()
 	if err != nil {
-		return response.NewBadRequest(err)
+		return nil, err
 	}
 
 	// prevent sending bot messages when the user is not participant
 	// of the given group
 	canOpen, err := group.CanOpen(acc.Id)
 	if err != nil {
-		return response.NewBadRequest(err)
+		return nil, err
 	}
 
 	if !canOpen {
-		return response.NewBadRequest(ErrAccountIsNotParticipant)
+		return nil, ErrAccountIsNotParticipant
 	}
 
 	// now we can fetch the bot channel
-	c, err := h.bot.FetchBotChannel(acc, group)
-	if err != nil {
-		return response.NewBadRequest(err)
+	return h.bot.FetchBotChannel(acc, group)
+}
+
+func (h *Handler) fetchChannelId(so *services.ServiceOutput) (int64, error) {
+
+	if err := h.prepareUsername(so); err != nil {
+		return 0, err
 	}
 
-	return response.NewOK(map[string]string{"channelId": strconv.FormatInt(c.Id, 10)})
+	br := new(BotChannelRequest)
+	br.Username = so.Username
+	br.GroupName = so.GroupName
+	c, err := h.fetchBotChannel(br)
+	if err != nil {
+		return 0, err
+	}
+
+	return c.Id, nil
 }
 
 func (h *Handler) prepareUsername(so *services.ServiceOutput) error {
