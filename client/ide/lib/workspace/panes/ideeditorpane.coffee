@@ -320,17 +320,15 @@ module.exports = class IDEEditorPane extends IDEPane
 
     @rtm.bindRealtimeListeners string, 'string'
 
+    modificationHandler = @bound 'handleCollaborativeStringEvent'
+
     @rtm
-      .on 'TextInsertedIntoString', @bound 'handleCollaborativeStringEvent'
-      .on 'TextDeletedFromString',  @bound 'handleCollaborativeStringEvent'
-      .on 'RealtimeManagerWillDispose', =>
-        @rtm.unbindRealtimeListeners string, 'string'
-        @removeAllCursorWidgets()
+      .on 'TextInsertedIntoString', modificationHandler
+      .on 'TextDeletedFromString', modificationHandler
+      .on 'RealtimeManagerWillDispose', @bound 'unsetRealtimeBindings'
 
 
   handleCollaborativeStringEvent: (changedString, change) ->
-
-    string = @rtm.getFromModel @getFile().path
 
     return  if @isChangedByMe change
 
@@ -395,6 +393,14 @@ module.exports = class IDEEditorPane extends IDEPane
       @getEditorSession().remove range
 
     @dontEmitChangeEvent = no
+
+
+  unsetRealtimeBindings: ->
+
+    return  unless string = @rtm.getFromModel @getFile().path
+
+    @rtm.unbindRealtimeListeners string, 'string'
+    @removeAllCursorWidgets()
 
 
   makeReadOnly: ->
