@@ -105,6 +105,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @emits VideoCollaborationModel~HostKickedLoggedInUser
    * @emits VideoCollaborationModel~VideoCollaborationEnded
    * @emits VideoCollaborationModel~VideoCollaborationEndedByNetwork
+   * @emits VideoCollaborationModel~VideoParticipantConnected
+   * @emits VideoCollaborationModel~VideoParticipantDisconnected
   ###
   bindSessionEvents: (session) ->
 
@@ -116,12 +118,35 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @setParticipantLeft connection.connectionId
 
     session.on 'connectionCreated', (event) =>
-      count = @state.connectionCount
-      @setState { connectionCount: count + 1 }
+      # We don't want to deal with own user's events, we basically want to
+      # abstract out logged-in user out of the equation here.
+      return  if @isMyConnection event.connection
+
+      # this is gonna be a fake `ParticipantType.Subscriber` like object for
+      # views to start drawing/rendering for this connection, because our
+      # system doesn't necessarily require people to be publishint to session
+      # to mark them as active. For example, showing participant heads on ide
+      # chat window when video active we are filtering people who are connected
+      # to session as actives. Participant heads doesn't care if you are
+      # publishing or not, since user is hearing the video and seeing other
+      # users he/she needs to be labeled as active/connected.
+      subscriber = @registerDefaultSubscriber event.connection
+
+      @incrementConnectionCount()
+
+      @emit 'ParticipantConnected', subscriber
 
     session.on 'connectionDestroyed', (event) =>
-      count = @state.connectionCount
-      @setState { connectionCount: count - 1 }
+      return  if @isMyConnection event.connection
+
+      # get the name before unregistering.
+      { nick } = @subscribers[event.connection.id]
+
+      @unregisterSubscriber event.connection.id
+
+      @decrementConnectionCount()
+
+      @emit 'ParticipantDisconnected', helper.defaultSubscriber nick
 
     session.on 'sessionDisconnected', (event) =>
       @setState { connected: no }
