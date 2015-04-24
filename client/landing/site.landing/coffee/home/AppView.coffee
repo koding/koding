@@ -1,6 +1,7 @@
 HomeRegisterForm = require './registerform'
 FooterView       = require './footerview'
 CustomLinkView   = require './../core/customlinkview'
+MainHeaderView   = require './../core/mainheaderview'
 
 module.exports = class HomeView extends KDView
 
@@ -230,6 +231,7 @@ module.exports = class HomeView extends KDView
         $h1.removeClass 'flip'
 
 
+    @addSubView new MainHeaderView
     @setPartial @partial()
     @addSubView @signUpForm, '.introduction article'
     @addSubView @slideShow, '.screenshots'
