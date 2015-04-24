@@ -60,5 +60,9 @@ module.exports = ->
 
         analytics?.identify nickname, args
 
+        path  = window.location.pathname
+        title = getFirstPartOfpath(path)
+        analytics?.page(title, {title:document.title, path})
+
   getFirstPartOfpath = (path) -> return path.split("/")[1] or path
 
