@@ -33,7 +33,7 @@ type Terraformer struct {
 type TerraformRequest struct {
 	Content   string
 	Variables map[string]string
-	Location  string
+	ContentID string
 }
 
 func New() *Terraformer { return &Terraformer{} }
@@ -109,7 +109,7 @@ func (t *Terraformer) plan(
 	}
 
 	c.Variables = args.Variables
-	c.Location = args.Location
+	c.ContentID = args.ContentID
 
 	content := strings.NewReader(args.Content)
 	return c.Plan(content, destroy)
@@ -126,7 +126,7 @@ func (t *Terraformer) apply(
 	}
 
 	c.Variables = args.Variables
-	c.Location = args.Location
+	c.ContentID = args.ContentID
 
 	content := strings.NewReader(args.Content)
 	return c.Apply(content, destroy)

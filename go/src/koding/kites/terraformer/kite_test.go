@@ -106,7 +106,7 @@ func TestApplyAndDestroy(t *testing.T) {
 		req := TerraformRequest{
 			Content:   SampleTF,
 			Variables: variables,
-			Location:  "test_file",
+			ContentID: "test_file",
 		}
 
 		response, err := tfr.Tell("apply", req)
@@ -135,9 +135,7 @@ func TestApplyAndDestroy(t *testing.T) {
 }
 
 func TestPlan(t *testing.T) {
-
 	local := kite.New("testing", "1.0.0")
-
 	withKite(t, func(k *kite.Kite) error {
 		// Connect to our terraformer kite
 		tfr := local.NewClient(k.RegisterURL(true).String())
@@ -148,7 +146,7 @@ func TestPlan(t *testing.T) {
 		req := TerraformRequest{
 			Content:   SampleTF,
 			Variables: variables,
-			Location:  "test_file",
+			ContentID: "test_file",
 		}
 
 		response, err := tfr.Tell("plan", req)

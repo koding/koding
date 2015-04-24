@@ -33,7 +33,7 @@ type Context struct {
 	RemoteStorage Storage
 	LocalStorage  Storage
 
-	Location     string
+	ContentID    string
 	baseDir      string
 	providers    map[string]terraform.ResourceProviderFactory
 	provisioners map[string]terraform.ResourceProvisionerFactory
@@ -114,24 +114,5 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 }
 
 func (c *Context) Close() error {
-	return c.LocalStorage.Clean(c.Location)
-}
-
-// getBaseDir creates a new temp directory or returns the existing exclusive one
-// for the current context
-func (c *Context) getBaseDir() (string, error) {
-	if c.baseDir != "" {
-		return c.baseDir, nil
-	}
-
-	// create dir
-	// calling TempDir simultaneously will not choose the same directory.
-	dir, err := ioutil.TempDir("", "terraformer")
-	if err != nil {
-		return "", err
-	}
-
-	c.baseDir = dir
-
-	return c.baseDir, nil
+	return c.LocalStorage.Clean(c.ContentID)
 }
