@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS "integration"."integration" (
     "settings" hstore,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at" timestamp(6) WITH TIME ZONE NOT NULL,
+    "deleted_at" timestamp(6) WITH TIME ZONE,
 
     -- create constraints along with table creation
     PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE,
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS "integration"."channel_integration" (
   "settings" hstore,
   "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
   "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-  "deleted_at" timestamp(6) WITH TIME ZONE NOT NULL,
+  "deleted_at" timestamp(6) WITH TIME ZONE,
 
   -- create constraints along with table creation
   PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE,

@@ -22,7 +22,7 @@ CREATE TABLE "integration"."integration" (
     "settings" hstore,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at" timestamp(6) WITH TIME ZONE NOT NULL
+    "deleted_at" timestamp(6) WITH TIME ZONE
 ) WITH (OIDS = FALSE);
 GRANT SELECT, INSERT, UPDATE ON "integration"."integration" TO "social";
 
@@ -42,6 +42,6 @@ CREATE TABLE "integration"."channel_integration" (
   "settings" hstore,
   "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
   "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-  "deleted_at" timestamp(6) WITH TIME ZONE NOT NULL
+  "deleted_at" timestamp(6) WITH TIME ZONE
 ) WITH (OIDS = FALSE);
 GRANT SELECT, INSERT, UPDATE ON "integration"."channel_integration" TO "social";
