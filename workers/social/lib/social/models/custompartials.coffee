@@ -19,6 +19,7 @@ module.exports = class JCustomPartials extends Model
       createdAt       :
         type          : Date
         default       : -> new Date
+      publishedAt     : Date
 
     sharedMethods :
       static      :
@@ -63,6 +64,10 @@ module.exports = class JCustomPartials extends Model
   update$: secure (client, data, callback)->
     @checkPermission client, (err, res)=>
       return callback err if err
+
+      isPublished      = data.isActive and not @isActive
+      data.publishedAt = new Date()  if isPublished
+
       @update {$set:data}, callback
 
   remove$: secure (client, callback)->

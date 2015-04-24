@@ -37,13 +37,7 @@ module.exports = class OnboardingViewController extends KDViewController
     view.on 'NavigationRequested', (direction) =>
       @navigate direction, view.getData()
 
-    view.on 'OnboardingCompleted', @bound 'handleOnboardingEnded'
-
-    view.on 'OnboardingCancelled', =>
-      @handleOnboardingEnded()
-      showNotification 'You can access it anytime by pressing F1',
-        type     : 'main'
-        duration : 1500
+    view.on ['OnboardingCompleted', 'OnboardingCancelled'], @bound 'handleOnboardingEnded'
 
     view.on 'OnboardingFailed', =>
       # if onboarding item can't be shown, skip it and move to the next
