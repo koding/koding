@@ -16,6 +16,8 @@ type Config struct {
 
 	// AWS secret and key
 	AWS AWS
+
+	LocalStorePath string `required:"true"`
 }
 
 type AWS struct {
