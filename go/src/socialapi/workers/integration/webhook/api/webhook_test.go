@@ -34,12 +34,6 @@ func newRequest(body string, channelId int64, groupName string) *WebhookRequest 
 	}
 }
 
-func newPrepareRequest(data *services.ServiceInput) *PrepareRequest {
-	return &PrepareRequest{
-		Data: data,
-	}
-}
-
 func newBotChannelRequest(groupName string) *BotChannelRequest {
 	return &BotChannelRequest{
 		GroupName: groupName,
@@ -164,7 +158,7 @@ func TestWebhookPrepare(t *testing.T) {
 			s, _, _, err := h.Prepare(
 				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
 				mocking.Header(nil),
-				newPrepareRequest(&services.ServiceInput{}),
+				services.ServiceInput{},
 			)
 			So(err.Error(), ShouldEqual, ErrTokenNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -174,7 +168,7 @@ func TestWebhookPrepare(t *testing.T) {
 			s, _, _, err = h.Prepare(
 				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
 				mocking.Header(nil),
-				newPrepareRequest(&services.ServiceInput{}),
+				services.ServiceInput{},
 			)
 			So(err.Error(), ShouldEqual, ErrNameNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -183,7 +177,7 @@ func TestWebhookPrepare(t *testing.T) {
 			s, _, _, err = h.Prepare(
 				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
 				mocking.Header(nil),
-				newPrepareRequest(&services.ServiceInput{}),
+				services.ServiceInput{},
 			)
 			So(err, ShouldNotBeNil)
 			So(s, ShouldEqual, http.StatusNotFound)
@@ -194,9 +188,9 @@ func TestWebhookPrepare(t *testing.T) {
 			s, _, _, err = h.Prepare(
 				mocking.URL(m, "POST", "/webhook/iterable/"+token),
 				mocking.Header(nil),
-				newPrepareRequest(&services.ServiceInput{}),
+				services.ServiceInput{},
 			)
-			// TODO temporary assertion
+
 			So(err, ShouldBeNil)
 			So(s, ShouldEqual, http.StatusOK)
 		})
