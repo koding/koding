@@ -90,6 +90,8 @@ module.exports = class JStackTemplate extends jraphical.Module
 
       group           : String
 
+      template        : String
+
 
   @create = permit 'create stack template',
 
