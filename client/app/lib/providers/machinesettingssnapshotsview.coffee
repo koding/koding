@@ -27,18 +27,6 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
 
   ###*
-   * Fetch the list of snapshots from DB
-   *
-   * @param {Function(err:Error, snapshots:[JSnapshot]} callback
-  ###
-  @fetchSnapshots: (callback = kd.noop) ->
-
-    JSnapshot.some {}, {}, (err, snapshots) =>
-      return callback err  if err
-      callback err, snapshots
-
-
-  ###*
    * Display a simple Notification to the user.
   ###
   @notify: (msg = "") ->
@@ -122,7 +110,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###
   initList: ->
 
-    MachineSettingsSnapshotsView.fetchSnapshots (err, snapshots = []) =>
+    JSnapshot.some {}, {}, (err, snapshots = []) =>
       kd.warn err  if err
       @listController.lazyLoader.hide()
       @listController.replaceAllItems snapshots
