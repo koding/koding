@@ -138,19 +138,22 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 	validKeys := make(map[string]string, 0)
 
 	for _, cred := range credentials {
-		err := db.Run("relationships", func(c *mgo.Collection) error {
-			_, err := c.Find(bson.M{
-				"targetId": cred.Id,
-				"sourceId": account.Id,
-				"as": bson.M{
-					"$in": []string{"owner", "user"},
-				},
-			}).Count()
-			return err
-		})
+		selector := modelhelper.Selector{
+			"targetId": cred.Id,
+			"sourceId": account.Id,
+			"as": bson.M{
+				"$in": []string{"owner", "user"},
+			},
+		}
 
+		count, err := modelhelper.RelationshipCount(selector)
 		if err != nil {
 			// we return for any not validated public key.
+			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.PublicKey)
+		}
+
+		// does this ever happen ?
+		if count == 0 {
 			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.PublicKey)
 		}
 
