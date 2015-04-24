@@ -3,7 +3,6 @@ package terraformer
 import (
 	"fmt"
 	"koding/kites/terraformer/kodingcontext"
-	"runtime/debug"
 	"strings"
 
 	"koding/kites/common"
@@ -83,17 +82,11 @@ func (t *Terraformer) Kite() (*kite.Kite, error) {
 	return t.newKite(t.Config)
 }
 
-func (t *Terraformer) Plan(r *kite.Request) (plan interface{}, err error) {
-	defer func() {
-		if err != nil {
-			debug.PrintStack()
-		}
-	}()
-
+func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
 
-	plan, err = t.plan(c, r, false)
+	plan, err := t.plan(c, r, false)
 	if err != nil {
 		return nil, err
 	}

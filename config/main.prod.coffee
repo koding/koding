@@ -47,6 +47,7 @@ Configuration = (options={}) ->
 
   kloudPort           = 5500
   kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+  terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
 
@@ -139,6 +140,7 @@ Configuration = (options={}) ->
     rerouting                      : {port          : 9500 }
 
     kloud                          : kloud
+    terraformer                    : terraformer
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -274,6 +276,13 @@ Configuration = (options={}) ->
         locations       : [ location: "~^/kloud/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
+
+    terraformer         :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{region} -environment  #{environment} -aws-key #{KONFIG.aws.key} -aws-secret #{KONFIG.aws.secret} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
+      healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
     # ngrokProxy          :
     #   group             : "environment"
