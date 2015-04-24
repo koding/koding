@@ -220,6 +220,27 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Parse the username from given connection and add a default subscriber
+   * without video to trigger view updates.
+   *
+   * @param {OT.Connection} connection
+   * @return {(undefined|object)}
+  ###
+  registerDefaultSubscriber: (connection) ->
+
+    { id, data } = connection
+    { nickname } = JSON.parse data
+
+    return  if nickname is getNick()
+
+    _subscriber = helper.defaultSubscriber nickname
+
+    @subscribers[id] = _subscriber
+
+    return _subscriber
+
+
+  ###*
    * Transforms given publisher instance from OpenTok into our own
    * `ParticipantType.Publisher` class instance and it registers it into model's
    * participant property.. It sets the model's stream instance to publisher's
@@ -522,6 +543,17 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * @param {OT.Connection} connection
+   * @return {boolean}
+  ###
+  isMyConnection: (connection) ->
+
+    { nickname } = JSON.parse connection.data
+
+    return nickname is getNick()
+
+
+  ###*
    * Public access method for all participants. Just because internally the
    * subscribers are cached with `connectionId` instead of `nickname`s of
    * subscribers/publisher, we are first transforming the subscribers and merge
@@ -548,6 +580,22 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @return {object} state
   ###
   setState: (state) -> @state = _.assign {}, @state, state
+
+
+  ###*
+   * Set state to increment connection count.
+  ###
+  incrementConnectionCount: ->
+
+    @setState { connectionCount: @state.connectionCount + 1 }
+
+
+  ###*
+   * Set state to decrement connection count.
+  ###
+  decrementConnectionCount: ->
+
+    @setState { connectionCount: @state.connectionCount - 1 }
 
 
   ###*
