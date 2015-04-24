@@ -104,7 +104,7 @@ module.exports = class AccountEditUsername extends JView
         locationHeader     :
           itemClass        : KDCustomHTMLView
           partial          : 'LOCATION SERVICES'
-          cssClass         : 'AppModal-form-sectionHeader'
+          cssClass         : 'AppModal-sectionHeader'
         shareLocationLabel :
           itemClass        : KDCustomHTMLView
           partial          : 'Share my location when I post something on Koding Channels'
