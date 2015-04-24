@@ -101,7 +101,7 @@ class IDEAppController extends AppController
 
       return  unless app instanceof IDEAppController
 
-      @setActivePaneFocus on
+      @setActivePaneFocus on, yes
 
       # Temporary fix for IDE is not shown after
       # opening pages which uses old SplitView.
@@ -195,10 +195,10 @@ class IDEAppController extends AppController
     @setActivePaneFocus on
 
 
-  setActivePaneFocus: (state) ->
+  setActivePaneFocus: (state, force = no) ->
 
     return  unless pane = @getActivePaneView()
-    return  if pane is @activePaneView
+    return  if pane is @activePaneView and not force
 
     @activePaneView = pane
 
