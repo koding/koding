@@ -127,6 +127,8 @@ showOfflineParticipant = (view, nickname) ->
 ###
 fixParticipantVideo = (participant) ->
 
+  return  if helper.isDefaultPublisher participant
+
   fixPoster = (element) ->
     posters = element.querySelectorAll '.OT_video-poster'
     poster.style.backgroundSize = 'cover'  for poster in posters
