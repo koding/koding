@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
 	"strings"
@@ -116,10 +117,8 @@ variable "%s" {
 
 func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]string) (*terraformCredentials, error) {
 	// 1- fetch jaccount from username
-	var account *models.Account
-	if err := db.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": username}).One(&account)
-	}); err != nil {
+	account, err := modelhelper.GetAccount(username)
+	if err != nil {
 		return nil, err
 	}
 
