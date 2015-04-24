@@ -169,6 +169,10 @@ func (h *Handler) fetchChannelId(so *services.ServiceOutput) (int64, error) {
 		return 0, err
 	}
 
+	if so.Username == "" {
+		return 0, nil
+	}
+
 	br := new(BotChannelRequest)
 	br.Username = so.Username
 	br.GroupName = so.GroupName
