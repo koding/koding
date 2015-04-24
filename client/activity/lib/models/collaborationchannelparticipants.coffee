@@ -4,10 +4,11 @@ ChannelParticipantsModel = require './channelparticipants'
 module.exports = class CollaborationChannelParticipantsModel extends ChannelParticipantsModel
 
   defaultState:
-    videoActive         : no
-    selectedParticipant : null
-    talkingParticipants : []
-    videoParticipants   : []
+    videoActive           : no
+    selectedParticipant   : null
+    talkingParticipants   : []
+    videoParticipants     : []
+    connectedParticipants : []
 
   constructor: (options = {}, data) ->
 
@@ -138,6 +139,28 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   removeVideoActiveParticipant: (nickname) ->
 
     removeFromCollection @state.videoParticipants, nickname, =>
+      @emitChange()
+
+
+  ###*
+   * Defensively add connected video participant.
+   *
+   * @param {string} nickname
+  ###
+  addVideoConnectedParticipant: (nickname) ->
+
+    pushToCollection @state.connectedParticipants, nickname, =>
+      @emitChange()
+
+
+  ###*
+   * Defensively add connected video participant.
+   *
+   * @param {string} nickname
+  ###
+  removeVideoConnectedParticipant: (nickname) ->
+
+    removeFromCollection @state.connectedParticipants, nickname, =>
       @emitChange()
 
 
