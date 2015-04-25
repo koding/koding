@@ -42,7 +42,6 @@ module.exports =
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
       .click                  '[testpath=login-button]'
-      .pause                  5000
 
 
   waitForVMRunning: (browser, machineName) ->
@@ -85,14 +84,12 @@ module.exports =
 
     @attemptLogin(browser, user)
 
-    browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
+    browser.waitForElementVisible '[testpath=main-sidebar]', 10000, (result) ->
       if result.status is 0
         console.log "Successfully logged in with username: #{user.username} and password: #{user.password}"
 
-        browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
       else
         console.log 'User is not registered yet. Registering...'
-
         @doRegister browser, user
 
 
