@@ -221,7 +221,8 @@ module.exports =
   doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
 
     browser
-      .pause                    5000 # wait for IDE open
+      # not necessary anymore
+      # .pause                    5000 # wait for IDE open
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible    '[testpath=ActivityInputView]', 10000
       .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
