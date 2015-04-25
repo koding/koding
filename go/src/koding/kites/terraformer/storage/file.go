@@ -41,17 +41,6 @@ func (f File) BasePath() (string, error) {
 	return f.basePath, nil
 }
 
-// Clean cleans the underlying folder
-// TODO(cihangir) we dont need this one
-func (f File) Clean(filePath string) error {
-	fullPath, err := f.fullPath(filePath)
-	if err != nil {
-		return err
-	}
-
-	return os.RemoveAll(fullPath)
-}
-
 // Write writes to a file with given path
 func (f File) Write(filePath string, file io.Reader) (err error) {
 	contents := strings.Split(filePath, string(os.PathSeparator))

@@ -41,11 +41,6 @@ func (s S3) BasePath() (string, error) {
 	return s.bucket.Name, nil
 }
 
-// Clean doesnt do anything
-func (s S3) Clean(path string) error {
-	return nil
-}
-
 // Write writes to a s3 bucket
 func (s S3) Write(path string, file io.Reader) error {
 	// TODO(cihangir): we can use bucket.PutReader here

@@ -115,5 +115,5 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 
 // Close terminates the existing context
 func (c *Context) Close() error {
-	return c.LocalStorage.Clean(c.ContentID)
+	return c.LocalStorage.Remove(c.ContentID)
 }

@@ -9,5 +9,4 @@ type Interface interface {
 	Remove(string) error
 	Clone(string, Interface) error
 	BasePath() (string, error)
-	Clean(string) error
 }
