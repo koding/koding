@@ -66,14 +66,17 @@ koding = new Bongo {
         if account instanceof JAccount
           callback null, { context, connection:delegate:account }
 
-  fetchClient :(sessionToken, context, callback)->
+  fetchClient: (sessionToken, context, callback)->
+
     { JUser, JAccount } = koding.models
     [callback, context] = [context, callback] unless callback
-    context             ?= group: 'koding'
     callback            ?= ->
-    JUser.authenticateClient sessionToken, context, (err, res = {})->
+
+    JUser.authenticateClient sessionToken, (err, res = {})->
 
       { account, session } = res
+
+      context ?= { group: session?.groupName ? 'koding' }
 
       if err
         console.error "bongo.fetchClient", {err, sessionToken, context}

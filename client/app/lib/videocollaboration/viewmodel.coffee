@@ -13,6 +13,9 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
     @model.on 'VideoCollaborationActive',   @bound 'fixParticipantVideoElements'
     @model.on 'SelectedParticipantChanged', @bound 'handleParticipantSelected'
 
+    @model.on 'CameraAccessQuestionAsked',    @bound 'handleCameraQuestionAsked'
+    @model.on 'CameraAccessQuestionAnswered', @bound 'handleCameraQuestionAnswered'
+
     viewControlBinder = (control) => (state) => @view[control].setActiveState state
 
     @model.on 'VideoPublishStateChanged', viewControlBinder 'controlVideo'
@@ -49,6 +52,14 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
   fixParticipantVideoElements: ->
 
     fixParticipantVideo participant  for _, participant of @model.getParticipants()
+
+
+  handleCameraQuestionAsked: ->
+
+    @view.showCameraDialog 'Please allow us to use your camera and microphone.'
+
+
+  handleCameraQuestionAnswered: -> @view.hideCameraDialog()
 
 
 ###*
@@ -115,6 +126,8 @@ showOfflineParticipant = (view, nickname) ->
  * @param {ParticipantType.Participant} participant
 ###
 fixParticipantVideo = (participant) ->
+
+  return  if helper.isDefaultPublisher participant
 
   fixPoster = (element) ->
     posters = element.querySelectorAll '.OT_video-poster'

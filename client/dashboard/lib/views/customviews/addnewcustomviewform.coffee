@@ -2,10 +2,10 @@ kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 KDInputView = kd.InputView
-remote = require('app/remote').getInstance()
 JView = require 'app/jview'
 Encoder = require 'htmlencode'
 AceView = require 'ace/aceview'
+CustomPartialHelpers = require 'dashboard/custompartialhelpers'
 
 
 module.exports = class AddNewCustomViewForm extends JView
@@ -26,7 +26,7 @@ module.exports = class AddNewCustomViewForm extends JView
       cssClass    : "solid red medium"
       callback    : =>
         @destroy()
-        @getDelegate().emit "AddingNewViewCancelled"
+        @emit "NewViewCancelled"
 
     @saveButton   = new KDButtonView
       title       : "SAVE"
@@ -52,11 +52,10 @@ module.exports = class AddNewCustomViewForm extends JView
     if jCustomPartial
       jCustomPartial.update data, (err, customPartial) =>
         return kd.warn err  if err
-        @getDelegate().emit "NewViewAdded", customPartial
+        @emit "NewViewAdded", customPartial
     else
-      remote.api.JCustomPartials.create data, (err, customPartial) =>
-        return kd.warn err  if err
-        @getDelegate().emit "NewViewAdded", customPartial
+      CustomPartialHelpers.createPartial data, (err, customPartial) =>
+        @emit "NewViewAdded", customPartial
 
 
   encode: (data) ->

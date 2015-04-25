@@ -266,6 +266,22 @@ module.exports =
 
     return hashtag
 
+
+  likePost: (browser, user) ->
+
+    post = @postActivity(browser, no)
+    selector    = activitySelector + ' [testpath=activity-like-link]'
+    likeElement = activitySelector + ' .like-summary'
+
+    browser
+      .waitForElementVisible selector, 25000
+      .click                 selector
+      .waitForElementVisible likeElement, 25000
+      .assert.containsText   likeElement, user.username + ' liked this.'
+
+    return post
+
+
   sendHashtagActivity: (browser) ->
 
     @beginTest(browser)

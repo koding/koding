@@ -1,17 +1,16 @@
 package terraformer
 
 import (
+	"errors"
 	"koding/artifact"
-	"koding/kites/common"
-	"koding/kites/terraformer/kodingcontext"
+	"koding/kites/terraformer/secretkey"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/logging"
 	"github.com/koding/metrics"
 )
 
-func NewKite(conf *Config, c *kodingcontext.Context, log logging.Logger) (*kite.Kite, error) {
+func (t *Terraformer) newKite(conf *Config) (*kite.Kite, error) {
 	var err error
 	k := kite.New(Name, Version)
 	k.Config, err = kiteconfig.Get()
@@ -20,7 +19,6 @@ func NewKite(conf *Config, c *kodingcontext.Context, log logging.Logger) (*kite.
 	}
 
 	k.Config.Port = conf.Port
-	k.Config.DisableAuthentication = true //TODO make this configurable
 
 	if conf.Region != "" {
 		k.Config.Region = conf.Region
@@ -30,16 +28,13 @@ func NewKite(conf *Config, c *kodingcontext.Context, log logging.Logger) (*kite.
 		k.Config.Environment = conf.Environment
 	}
 
-	if conf.Debug {
+	if t.Debug {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
-	// init terraformer
-	t := New()
-	t.Metrics = common.MustInitMetrics(Name)
-	t.Log = log
-	t.Debug = conf.Debug
-	t.Context = c
+	if conf.Test {
+		k.Config.DisableAuthentication = true
+	}
 
 	// track every kind of call
 	k.PreHandleFunc(createTracker(t.Metrics))
@@ -53,11 +48,24 @@ func NewKite(conf *Config, c *kodingcontext.Context, log logging.Logger) (*kite.
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
+	// allow kloud to make calls to us
+	k.Authenticators["kloud"] = func(r *kite.Request) error {
+		if r.Auth.Key != secretkey.TerraformSecretKey {
+			return errors.New("wrong secret key passed, you are not authenticated")
+		}
+		return nil
+	}
+
 	return k, nil
 }
 
 func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
 	return func(r *kite.Request) (interface{}, error) {
+		// if metrics not set, act as noop
+		if metrics == nil {
+			return true, nil
+		}
+
 		metrics.Count(
 			"callCount", // metric name
 			1,           // count

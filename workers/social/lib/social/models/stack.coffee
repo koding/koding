@@ -145,11 +145,19 @@ module.exports = class JComputeStack extends jraphical.Module
       return callback err  if err?
       callback null, stack
 
-  @getSelector = (selector, account)->
+
+  @getSelector = (client, selector)->
+
+    { delegate } = client.connection
+    { group }    = client.context
+
     selector ?= {}
-    selector.originId = account.getId()
+    selector.originId = delegate.getId()
     selector.status   = $ne: "Terminated"
+    selector.group    = group
+
     return selector
+
 
   @some$ = permit 'list stacks',
 
@@ -158,9 +166,8 @@ module.exports = class JComputeStack extends jraphical.Module
       [options, callback] = [callback, options]  unless callback
       options ?= {}
 
-      { delegate } = client.connection
+      selector = @getSelector client, selector
 
-      selector = @getSelector selector, delegate
 
       JComputeStack.some selector, options, (err, _stacks)->
 

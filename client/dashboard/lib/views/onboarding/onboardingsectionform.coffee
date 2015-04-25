@@ -1,13 +1,15 @@
 kd = require 'kd'
 KDFormViewWithFields = kd.FormViewWithFields
 KDSelectBox = kd.SelectBox
-remote = require('app/remote').getInstance()
 globals = require 'globals'
 KodingSwitch = require 'app/commonviews/kodingswitch'
-
+CustomPartialHelpers = require 'dashboard/custompartialhelpers'
 
 module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
+  ###*
+   * Form view to edit onboarding group
+  ###
   constructor: (options = {}, data) ->
 
     groups = [
@@ -41,6 +43,12 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
     super options, data
 
 
+  ###*
+   * Collects onboarding group data on the form
+   * and saves it in DB. After that, emits event for the parent view
+   *
+   * @emits SectionSaved
+  ###
   save: ->
 
     data              =
@@ -61,12 +69,17 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
         @emit "SectionSaved"
         @destroy()
     else
-      remote.api.JCustomPartials.create data, (err, section) =>
-        return kd.warn err  if err
+      CustomPartialHelpers.createPartial data, (err, section) =>
         @emit "SectionSaved"
         @destroy()
 
 
+  ###*
+   * Cancelling onboarding editing destroys the form
+   * and emits event for the parent view
+   *
+   * @emits SectionCancelled
+  ###
   cancel: ->
 
     @emit "SectionCancelled"
