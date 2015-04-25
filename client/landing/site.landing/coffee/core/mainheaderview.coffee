@@ -4,9 +4,9 @@ module.exports = class MainHeaderView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.tagName or    = 'header'
-    options.domId   or    = 'main-header'
-    options.attributes or = testpath : 'main-header'
+    options.tagName    or= 'header'
+    options.domId      or= 'main-header'
+    options.attributes or= testpath : 'main-header'
 
     super options, data
 
