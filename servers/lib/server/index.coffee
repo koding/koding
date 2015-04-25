@@ -54,6 +54,12 @@ app.use require './setsession'
 
 # ORDER IS IMPORTANT
 # routes ordered as before no particular structure
+
+# temp endpoints @cihangir will reorganize these - SY
+app.all '/-/teams/:name/members'                , require './handlers/getteammembers'
+app.all '/-/teams/:name'                        , require './handlers/getteam'
+# temp endpoints ends
+
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.post '/-/video-chat/session'                 , require './handlers/videosession'
 app.post '/-/video-chat/token'                   , require './handlers/videotoken'
