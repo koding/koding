@@ -20,6 +20,7 @@ type Config struct {
 	LocalStorePath string `required:"true"`
 }
 
+// AWS holds config variables for remote AWS
 type AWS struct {
 	Key    string `required:"true"`
 	Secret string `required:"true"`

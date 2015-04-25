@@ -7,7 +7,10 @@ import (
 )
 
 const (
-	ErrorPrefix  = "e:"
+	// ErrorPrefix all errors will start with this
+	ErrorPrefix = "e:"
+
+	// OutputPrefix all outputs will start with this, except errors
 	OutputPrefix = "o:"
 )
 

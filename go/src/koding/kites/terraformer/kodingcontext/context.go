@@ -1,10 +1,12 @@
+// Package kodingcontext provides manages koding specific operations on top of
+// terraform
 package kodingcontext
 
 import (
 	"bytes"
-	"errors"
 
 	"koding/kites/terraformer/kodingcontext/pkg"
+	"koding/kites/terraformer/storage"
 
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
@@ -20,17 +22,14 @@ const (
 	stateFileName         = "state"
 )
 
-var (
-	ErrBaseDirNotSet   = errors.New("baseDir is not set")
-	ErrVariablesNotSet = errors.New("Variables is not set")
-)
-
+// Context holds the required operational parameters for any kind of terraform
+// call
 type Context struct {
 	Variables map[string]string
 
 	// storage holds the plans of terraform
-	RemoteStorage Storage
-	LocalStorage  Storage
+	RemoteStorage storage.Interface
+	LocalStorage  storage.Interface
 
 	ContentID    string
 	baseDir      string
@@ -40,7 +39,9 @@ type Context struct {
 	ui           *cli.PrefixedUi
 }
 
-func New(ls, rs Storage) (*Context, error) {
+// New creates a new Context, this should not be used directly, use Clone
+// instead from an existing one
+func New(ls, rs storage.Interface) (*Context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
@@ -56,6 +57,7 @@ func New(ls, rs Storage) (*Context, error) {
 	return c, nil
 }
 
+// Close closes globalbly in use variables
 func Close() {
 	// Make sure we clean up any managed plugins at the end of this
 	plugin.CleanupClients()
@@ -71,6 +73,8 @@ func newContext() *Context {
 	}
 }
 
+// Clone creates a new context out of an existing one, this can be called
+// multiple times instead of creating a new Context with New function
 func (c *Context) Clone() *Context {
 	cc := newContext()
 	cc.Providers = c.Providers
@@ -81,10 +85,12 @@ func (c *Context) Clone() *Context {
 	return cc
 }
 
+// TerraformContextOpts creates a basic context options for terraform itself
 func (c *Context) TerraformContextOpts() *terraform.ContextOpts {
 	return c.TerraformContextOptsWithPlan(nil)
 }
 
+// TerraformContextOptsWithPlan creates a new context out of a given plan
 func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.ContextOpts {
 	if p == nil {
 		p = &terraform.Plan{}
@@ -107,6 +113,7 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 	}
 }
 
+// Close terminates the existing context
 func (c *Context) Close() error {
 	return c.LocalStorage.Clean(c.ContentID)
 }
