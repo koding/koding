@@ -8,15 +8,13 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 module.exports =
 
   beginTest: (browser, user) ->
-    url  = @getUrl()
+    url   = @getUrl()
+    user ?= utils.getUser()
 
-    if not user
-      user = utils.getUser()
-
-    browser.url(url)
+    browser.url url
     browser.maximizeWindow()
 
-    @doLogin(browser, user)
+    @doLogin browser, user
 
     browser.execute 'KD.isTesting = true;'
 
