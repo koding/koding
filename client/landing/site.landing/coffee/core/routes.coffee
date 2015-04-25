@@ -1,5 +1,13 @@
 do ->
 
+  checkIfGroupExists = (groupName, callback) ->
+
+    $.ajax
+      url     : "/-/teams/#{groupName}"
+      type    : 'post'
+      success : (group) -> callback null, group
+      error   : (err) -> callback err
+
   getAction = (formName) -> switch formName
     when 'login'    then 'log in'
     when 'register' then 'register'
@@ -11,10 +19,14 @@ do ->
     { router } = KD.singletons
     groupName  = KD.utils.getGroupNameFromLocation()
 
-    if groupName is 'koding'
-    then router.openSection 'Home'
-    else router.openSection 'TeamLanding'
+    return router.openSection 'Home'  if groupName is 'koding'
 
+    checkIfGroupExists groupName, (err, group) ->
+      if err or not group
+        location.replace 'http://' + location.host.replace("#{groupName}.", '') + "/Teams?group=#{groupName}"
+      else
+        KD.config.group = group
+        router.openSection 'Team'
 
 
   KD.registerRoutes 'Core',
