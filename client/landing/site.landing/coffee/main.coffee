@@ -10,8 +10,8 @@ require './login/AppController'
 require './features/AppController'
 require './legal/AppController'
 require './pricing/AppController'
+require './team/AppController'
 require './teams/AppController'
-require './teamlanding/AppController'
 
 # bootstrap app
 MainController = require './core/maincontrollerloggedout'
