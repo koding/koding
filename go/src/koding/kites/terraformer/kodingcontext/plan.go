@@ -58,6 +58,7 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 		// "-detailed-exitcode", // give more info on exit
 		"-out", planFilePath, // save plan to a file
 		"-state", stateFilePath,
+		"-input=false", // do not ask for any input
 		outputDir,
 	}
 

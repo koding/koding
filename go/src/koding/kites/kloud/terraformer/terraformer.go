@@ -3,6 +3,7 @@ package terraformer
 import (
 	"fmt"
 	"koding/kites/terraformer"
+	"koding/kites/terraformer/secretkey"
 	"time"
 
 	"github.com/hashicorp/terraform/terraform"
@@ -17,12 +18,12 @@ type Terraformer struct {
 
 // Connect connects to a remote terraformer instance with the given kite instance
 func Connect(k *kite.Kite) (*Terraformer, error) {
-	terraformerURL := "http://127.0.0.1:3001/kite"
+	terraformerURL := "http://127.0.0.1:2300/kite"
 
 	tfKite := k.NewClient(terraformerURL)
 	tfKite.Auth = &kite.Auth{
 		Type: "kloud",
-		Key:  "123qwe123qwe", // TODO: replace this
+		Key:  secretkey.TerraformSecretKey,
 	}
 
 	connected, err := tfKite.DialForever()
