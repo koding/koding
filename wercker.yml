@@ -98,6 +98,13 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
+    - script:
+        name: check social api code quality
+        code: |
+          go get github.com/fzipp/gocyclo
+          go install github.com/fzipp/gocyclo
+          go build github.com/fzipp/gocyclo
+          ./gocyclo -top 20 ./go/src/socialapi
     - script: # todo generalize this part when we have more tests
         name: test koding mongo models
         code: |
