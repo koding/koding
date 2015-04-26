@@ -5,6 +5,9 @@ import (
 	"socialapi/config"
 	"socialapi/request"
 	"testing"
+	"math/rand"
+	"strconv"
+	"time"
 
 	"github.com/koding/bongo"
 	"github.com/koding/runner"
@@ -61,8 +64,9 @@ func TestInteractionListLikedMessage(t *testing.T) {
 
 	Convey("while creating requirements", t, func() {
 		account := CreateAccountWithTest()
+		kodingGroup := "koding"
 
-		channel := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_GROUP, "koding")
+		channel := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_GROUP, kodingGroup)
 
 		message1 := CreateMessageWithBody(channel.Id, account.Id, ChannelMessage_TYPE_POST, "bisiler")
 		message2 := CreateMessageWithBody(channel.Id, account.Id, ChannelMessage_TYPE_POST, "bisiler22")
@@ -92,6 +96,56 @@ func TestInteractionListLikedMessage(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(messages, ShouldNotBeNil)
 			So(messages[0].Body, ShouldEqual, message1.Body)
+		})
+
+		Convey("it should fetch the messages even if type is not same ", func() {
+			channel2 := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_TOPIC, kodingGroup)
+			message3 := CreateMessageWithBody(channel2.Id, account.Id, ChannelMessage_TYPE_POST, "topuc-not topic ?")
+			int3, err := AddInteractionWithTest(Interaction_TYPE_LIKE, message3.Id, account.Id)
+			So(int3, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			i := NewInteraction()
+			messageIds, err := i.ListLikedMessageIds(query, channel2.Id)
+			So(messageIds, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			fmt.Println(messageIds)
+			So(len(messageIds), ShouldEqual, 1)
+		})
+
+		Convey("it should not fetch the messages if group is different ", func() {
+			// 2 messages is sent the group84 & 2 msg sent to groupKoding,
+			// we should only fetch 2 messages in group84, not messages in the groupKoding 
+			rand.Seed(time.Now().UnixNano())
+			group84 := "group" + strconv.Itoa(rand.Intn(10e9))
+			channel2 := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_GROUP, group84)
+			message4 := CreateMessageWithBody(channel2.Id, account.Id, ChannelMessage_TYPE_POST, "GroupSeksenDort")
+			message5 := CreateMessageWithBody(channel2.Id, account.Id, ChannelMessage_TYPE_POST, "GroupSeksenDort-5")
+			int4, err := AddInteractionWithTest(Interaction_TYPE_LIKE, message4.Id, account.Id)
+			So(int4, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			int5, err := AddInteractionWithTest(Interaction_TYPE_LIKE, message5.Id, account.Id)
+			So(int5, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			i := NewInteraction()
+			messageIds, err := i.ListLikedMessageIds(query, channel2.Id)
+			So(messageIds, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			So(len(messageIds), ShouldEqual, 2)
+		})
+
+		Convey("it should not fetch the messages if message is troll", func() {
+			// Normally, we have 3 messages(2 message is exist above),
+			// but one of the messages is troll message,
+			// so, we should fetch 2 messages, not troll message 
+			messageTroll := CreateTrollMessage(channel.Id, account.Id, ChannelMessage_TYPE_POST)
+			int6, err := AddInteractionWithTest(Interaction_TYPE_LIKE, messageTroll.Id, account.Id)
+			So(int6, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			i := NewInteraction()
+			messageIds, err := i.ListLikedMessageIds(query, channel.Id)
+			So(messageIds, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			So(len(messageIds), ShouldEqual, 2)
 		})
 	})
 }
