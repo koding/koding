@@ -882,7 +882,12 @@ func (c *Channel) FetchPublicChannel(groupName string) error {
 		},
 	}
 
-	return c.One(query)
+	err := c.One(query)
+	if err == bongo.RecordNotFound {
+		return ErrGroupNotFound
+	}
+
+	return nil
 }
 
 func isMessageCrossIndexed(messageId int64) (error, bool) {
