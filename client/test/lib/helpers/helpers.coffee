@@ -84,7 +84,7 @@ module.exports =
 
     @attemptLogin(browser, user)
 
-    browser.waitForElementVisible '[testpath=main-sidebar]', 10000, (result) ->
+    browser.waitForElementVisible '[testpath=main-sidebar]', 10000, (result) =>
       if result.status is 0
         console.log "Successfully logged in with username: #{user.username} and password: #{user.password}"
 
