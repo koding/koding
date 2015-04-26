@@ -63,6 +63,6 @@ func ListInteractedMesssagesInteraction(iType string, accountId int64, token str
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(cm)
+
 	return cm, nil
 }
