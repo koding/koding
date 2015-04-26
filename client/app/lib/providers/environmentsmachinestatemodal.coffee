@@ -368,7 +368,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @label.destroy?()
 
       @createStateLabel "
-        Your VM <strong>#{@machineName or ''}</strong> was
+        The VM <strong>#{@machineName or ''}</strong> was
         successfully deleted. Please select a new VM to operate on from
         the VMs list or create a new one.
       "
@@ -416,7 +416,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
   createStateButton: ->
 
     if @state is 'NotFound'
-      title    = 'Create a New Machine'
+      title    = 'Create a new VM'
       callback = 'requestNewMachine'
     else if @isManaged
       title    = 'Search for Nodes'
