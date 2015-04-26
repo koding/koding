@@ -151,20 +151,20 @@ resource "aws_key_pair" "koding_key_pair" {
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8u3tdgzNBq51ZNK0zXW1FziMU90drNgvY8uLi/zNOL1QuBwbRMNNGj/1ZyZmY+hV3VdmexA9AxsOofWEyvzUtL/hkJCmYglWGnTtIawOyDqTXi8Wjz4d00WW69zOiQqpAIAah5ejVsq9gpHslBy4amU+ExcxYoMYoz3ozccim++HkovLr9EhctfJuWvoPtrqljg4D9bn10eR0gdKNROxpnHPfX/Ge7NGcYAsvod5GsUI5zOV3lGfqJTKs+N1jxuqPVUKhoDiEimUQ4SoxBDneETdhRCZRVIQV7cwTfgw+kF58DqgTJCbwzyTyl9n7827Qi1Ha38oWhkAK+cB3uUgT cihangir@koding.com"
 }
 
-resource "aws_instance" "koding_test_instance" {
-    ami = "${lookup(var.koding_test_instance_amis, var.aws_region)}"
-    instance_type = "t2.micro"
-    key_name = "${aws_key_pair.koding_key_pair.key_name}"
-    security_groups = ["${aws_security_group.allow_all.id}"]
-    subnet_id = "${aws_subnet.main_koding_subnet.id}"
-    associate_public_ip_address = true
-    source_dest_check = false
-    tags {
-        Name = "koding_test_instance"
-        subnet = "public"
-        env = "${var.environment_name}"
-    }
-}
+//resource "aws_instance" "koding_test_instance" {
+//    ami = "${lookup(var.koding_test_instance_amis, var.aws_region)}"
+//    instance_type = "t2.micro"
+//    key_name = "${aws_key_pair.koding_key_pair.key_name}"
+//    security_groups = ["${aws_security_group.allow_all.id}"]
+//    subnet_id = "${aws_subnet.main_koding_subnet.id}"
+//    associate_public_ip_address = true
+//    source_dest_check = false
+//    tags {
+//        Name = "koding_test_instance"
+//        subnet = "public"
+//        env = "${var.environment_name}"
+//    }
+//}
 
 //
 // VPC related outputs

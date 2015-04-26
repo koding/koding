@@ -10,30 +10,19 @@ module.exports =
   likePost: (browser) ->
 
     user = helpers.beginTest(browser)
-    helpers.postActivity(browser, no)
-    selector    = activitySelector + ' [testpath=activity-like-link]'
-    likeElement = activitySelector + ' .like-summary'
-
-    browser
-      .waitForElementVisible selector, 25000
-      .click                 selector
-      .waitForElementVisible likeElement, 25000
-      .assert.containsText   likeElement, user.username + ' liked this.'
-      .end()
+    helpers.likePost(browser, user)
+    browser.end()
 
 
   unlikePost: (browser) ->
 
-    user = helpers.beginTest(browser)
-    helpers.postActivity(browser, no)
-
+    user        = helpers.beginTest(browser)
     selector    = activitySelector + ' [testpath=activity-like-link]'
-    visibleLike = selector + ':not(.hidden)'
     likeElement = activitySelector + ' .like-summary'
 
+    helpers.likePost(browser, user)
+
     browser
-      .waitForElementVisible    visibleLike, 25000
-      .click                    visibleLike
       .pause                    5000 # required
       .waitForElementVisible    selector + '.liked:not(.count)', 25000
       .click                    selector + '.liked:not(.count)'

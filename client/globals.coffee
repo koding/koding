@@ -1,9 +1,7 @@
-g =
+globals =
   appClasses                : {}
   appScripts                : {}
   appLabels                 : {}
-  navItems                  : []
-  navItemIndex              : []
   __logs                    : []
   useWebSockets             : true
   logsEnabled               : false
@@ -11,4 +9,4 @@ g =
   REMOTE_API                : {}
   COMPUTECONTROLLER_TIMEOUT : 30000
 
-module.exports = g
+module.exports = globals

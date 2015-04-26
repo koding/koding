@@ -3,7 +3,6 @@ globals = require 'globals'
 unregisterAppClass = require './unregisterAppClass'
 registerRoute = require './registerRoute'
 registerRoutes = require './registerRoutes'
-registerNavItem = require './registerNavItem'
 
 module.exports = (fn, options) ->
 
