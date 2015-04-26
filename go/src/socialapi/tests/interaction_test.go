@@ -49,7 +49,7 @@ func TestInteractionLikedMessages(t *testing.T) {
 			likes, err := rest.GetInteractions("like", post.Id)
 			So(err, ShouldBeNil)
 			So(len(likes), ShouldEqual, 1)
-			interactedMessages, err := rest.ListInteractedMesssagesInteraction(models.Interaction_TYPE_LIKE, account.Id, ses.ClientId)
+			interactedMessages, err := rest.ListMessageInteractionsByType(models.Interaction_TYPE_LIKE, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(len(interactedMessages), ShouldEqual, 1)
 		})
