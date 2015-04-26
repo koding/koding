@@ -53,7 +53,7 @@ func (i *Interaction) ListLikedMessageIds(q *request.Query, groupChannelId int64
 		return nil, err
 	}
 	if rows == nil {
-		return nil, nil
+		return messageIds, nil
 	}
 
 	var messageId int64
@@ -74,7 +74,7 @@ func (i *Interaction) ListLikedMessages(q *request.Query, groupChannelId int64) 
 	return NewChannelMessage().FetchByIds(ids)
 }
 
-func getLikedMessagesQuery(q *request.Query, groupChannelId int64) *gorm.DB {
+func getLikedMessagesQuery(q *request.Query, channelId int64) *gorm.DB {
 	i := NewInteraction()
 
 	return bongo.B.DB.
@@ -93,7 +93,7 @@ func getLikedMessagesQuery(q *request.Query, groupChannelId int64) *gorm.DB {
 		 api.interaction.type_constant = ? and
 		 api.channel_message.meta_bits <> ?`,
 		q.AccountId,
-		groupChannelId,
+		channelId,
 		ChannelMessage_TYPE_POST,
 		q.Type,
 		Troll,
