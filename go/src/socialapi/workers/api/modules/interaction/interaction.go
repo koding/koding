@@ -8,8 +8,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-
-	"github.com/koding/bongo"
 )
 
 func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interaction, error) {
@@ -106,14 +104,7 @@ func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.
 
 	// find the group channel id
 	ch := models.NewChannel()
-	selector := map[string]interface{}{
-		"group_name":    c.GroupName,
-		"type_constant": models.Channel_TYPE_GROUP,
-	}
-
-	if err := ch.One(bongo.NewQS(selector)); err != nil {
-		return response.NewBadRequest(err)
-	}
+	ch.FetchPublicChannel(c.GroupName)
 
 	// fetch liked messages of the account in this chanenl
 	i := models.NewInteraction()
