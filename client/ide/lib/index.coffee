@@ -1411,6 +1411,11 @@ class IDEAppController extends AppController
       callback null
       return
 
+    handleError = (err) ->
+
+      console.warn 'Failed to fetch snapshot:', err
+      callback null
+
     fetch = (username) =>
 
       key = @getWorkspaceSnapshotName username
@@ -1418,12 +1423,18 @@ class IDEAppController extends AppController
 
     fetch nick()
 
-      .then callback
+      .then (snapshot) =>
 
-      .catch (err) ->
+        return callback snapshot  if snapshot
 
-        console.warn 'Failed to fetch snapshot', err
-        callback null
+        # Backward compatibility plug
+        return  unless @mountedMachine.isMine()
+
+        fetch()
+          .then callback
+          .catch handleError
+
+      .catch handleError
 
 
   switchToPane: (options = {}) ->
