@@ -102,7 +102,7 @@ module.exports =
     webPath    = '/home/' + user.username
     selector   = "span[title='" + webPath + '/' + folderData.name + "']"
 
-    helpers.deleteFolder(browser, folderData.selector)
+    helpers.deleteFile(browser, folderData.selector)
     browser.end()
 
 
