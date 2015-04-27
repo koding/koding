@@ -16,18 +16,14 @@ constants = require '../constants'
 ###
 class BaseVideoParticipant extends kd.EventEmitter
 
-  constructor: (nick, videoData) ->
+  constructor: (options = {}) ->
 
-    # call KDEventEmitter constructor with an empty object to make it start
-    # working.
-    super {}
+    super options
 
-    @nick      = nick
-    @videoData = videoData or null
-    @type      = null
+    { @nick, @type, @status, @videoData } = options
+    @videoData or= null
 
-    @setOffline()
-
+    @setOffline()  unless @status
     @subscribeToAudioChanges()  if @videoData
 
 
@@ -38,9 +34,23 @@ class BaseVideoParticipant extends kd.EventEmitter
       stopped : => @emit 'TalkingDidStop'
 
 
-  setOffline    : -> @status = constants.PARTICIPANT_STATUS_OFFLINE
-  setConnected  : -> @status = constants.PARTICIPANT_STATUS_CONNECTED
-  setPublishing : -> @status = constants.PARTICIPANT_STATUS_PUBLISHING
+  setOffline: ->
+
+    @status = constants.PARTICIPANT_STATUS_OFFLINE
+    @videoData = null
+
+
+  setConnected: ->
+
+    @status = constants.PARTICIPANT_STATUS_CONNECTED
+    @videoData = null
+
+
+  setPublishing: (videoData) ->
+
+    @status = constants.PARTICIPANT_STATUS_PUBLISHING
+    @videoData = videoData
+    @subscribeToAudioChanges()
 
 
   getType: -> @type
