@@ -32,7 +32,7 @@ func main() {
 
 	h, err := api.NewHandler(r.Log)
 	if err != nil {
-		r.Log.Fatal("Could not initialize webhook worker")
+		r.Log.Fatal("Could not initialize webhook worker: %s", err)
 	}
 	h.AddHandlers(m)
 
