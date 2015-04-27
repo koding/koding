@@ -85,8 +85,8 @@ module.exports = class SnapshotListItem extends kd.ListItemView
         <div>
           {{> editInput}}
           <div class="buttons">
-            {{> editRenameBtn}}
             {{> editCancelBtn}}
+            {{> editRenameBtn}}
           </div>
         </div>
         """
