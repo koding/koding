@@ -38,7 +38,7 @@ isDefaultPublisher = (participant) -> _.isEqual participant, defaultPublisher()
 defaultSubscriber = (nickname) ->
   nick      : nickname
   type      : 'subscriber'
-  videoData : 'null'
+  videoData : null
 
 
 ###*
