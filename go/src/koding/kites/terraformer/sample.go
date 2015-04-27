@@ -1,5 +1,6 @@
 package terraformer
 
+// SampleTF holds a sample terraform file
 var SampleTF = `
 // Provider specific configs
 

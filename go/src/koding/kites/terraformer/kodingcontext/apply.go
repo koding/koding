@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+// Apply applies the incoming terraform content to the remote system
 func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error) {
 	cmd := command.ApplyCommand{
 		ShutdownCh: makeShutdownCh(),
