@@ -695,6 +695,8 @@ module.exports = CollaborationController =
     # attach realtime manager when a new editor pane is opened.
     @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
 
+    @updateWorkspaceSnapshotModel()
+
 
   transitionViewsToActive: ->
 
@@ -996,3 +998,9 @@ module.exports = CollaborationController =
     else
       if @stateMachine.state is 'Active'
         @stateMachine.transition 'Ending'
+
+
+  updateWorkspaceSnapshotModel: ->
+
+    for hash, change of @getWorkspaceSnapshot()
+      @mySnapshot.set hash, change
