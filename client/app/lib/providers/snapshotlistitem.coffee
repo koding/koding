@@ -200,7 +200,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###
   toggleEditable: ->
 
-    if @infoView.$().is ':visible'
+    if not @infoView.hasClass 'hidden'
       @infoView.hide()
       @editView.show()
       kd.utils.defer @editInput.bound 'setFocus'
