@@ -45,13 +45,14 @@ module.exports =
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
       .click                  '[testpath=login-button]'
+      .pause                  2500 # required, wait for login complete
 
 
   doLogin: (browser, user) ->
 
     @attemptLogin(browser, user)
 
-    browser.waitForElementVisible '[testpath=main-sidebar]', 10000, false, (result) =>
+    browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
       if result.status is 0
         console.log "Successfully logged in with username: #{user.username} and password: #{user.password}"
       else
