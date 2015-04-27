@@ -573,7 +573,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   isMyConnection: (connection) ->
 
-    { nickname } = JSON.parse connection.data
+    nickname = helper.getNicknameFromConnection connection
 
     return nickname is getNick()
 

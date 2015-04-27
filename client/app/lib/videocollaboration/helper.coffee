@@ -26,6 +26,7 @@ defaultPublisher = ->
 ###
 isDefaultPublisher = (participant) -> _.isEqual participant, defaultPublisher()
 
+
 ###*
  * Helper utility to be able to pass a fake subscriber to the events. Events
  * mostly don't care about OpenTok specific videoData, so it being `null`
@@ -46,6 +47,7 @@ defaultSubscriber = (nickname) ->
  * @return {boolean}
 ###
 isDefaultSubscriber = (participant) ->
+
   { type, videoData } = participant
 
   return type is 'subscriber' and videoData is null
@@ -356,6 +358,19 @@ showOfflineParticipant = (container, nickname, callback) ->
 
 
 ###*
+ * Parses nickname from given connection's data.
+ *
+ * @param {OT.Connection} connection
+ * @return {string} nickname
+###
+getNicknameFromConnection = (connection) ->
+
+  { nickname } = JSON.parse connection.data
+
+  return nickname
+
+
+###*
  * Default error signal.
  *
  * @param {object} error
@@ -382,5 +397,6 @@ module.exports = {
   setChannelVideoSession
   showOfflineParticipant
   getChannelSessionId
+  getNicknameFromConnection
   _errorSignal
 }
