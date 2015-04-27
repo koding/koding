@@ -83,6 +83,7 @@ build:
         name: check social api code quality
         code: |
           sudo rm -rf /usr/local/go/pkg/tool/linux_amd64/vet
+          sudo chown -R $USER /usr/local/go/pkg/tool/linux_amd64
           go get github.com/alecthomas/gometalinter
           go install github.com/alecthomas/gometalinter
           go build github.com/alecthomas/gometalinter
