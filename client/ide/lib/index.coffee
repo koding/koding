@@ -723,7 +723,8 @@ class IDEAppController extends AppController
 
   removeWorkspaceSnapshot: ->
 
-    @mountedMachine.getBaseKite().storageDelete @getWorkspaceSnapshotName()
+    key = @getWorkspaceSnapshotName nick()
+    @mountedMachine.getBaseKite().storageDelete key
 
 
   getWorkspaceSnapshotName: (username) ->
