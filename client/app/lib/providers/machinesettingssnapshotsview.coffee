@@ -74,6 +74,28 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
 
   ###*
+   * Create the add new snapshot buttons. Overloading
+   * MachineSettingsCommonView's method to swap the button order.
+  ###
+  createAddNewViewButtons: ->
+    wrapper = new kd.CustomHTMLView cssClass: 'buttons'
+
+    wrapper.addSubView new kd.CustomHTMLView
+      tagName  : 'span'
+      partial  : 'cancel'
+      cssClass : 'cancel'
+      click    : @bound 'hideAddView'
+
+    wrapper.addSubView @addNewButton = new kd.ButtonView
+      cssClass : 'solid green compact add'
+      loader   : yes
+      title    : @getOptions().addButtonTitle
+      callback : @bound 'handleAddNew'
+
+    @addViewContainer.addSubView wrapper
+
+
+  ###*
    * Called when the Add New button is clicked (the one to actually
    * confirm the submission, not show the new snapshot input form)
   ###

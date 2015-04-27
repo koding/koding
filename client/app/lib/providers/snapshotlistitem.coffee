@@ -128,6 +128,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
         type: 'button'
         callback: -> modal.destroy()
 
+
   ###*
    * Delete this snapshot, and destroy this View on success.
   ###
