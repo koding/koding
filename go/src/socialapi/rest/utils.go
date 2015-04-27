@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -180,12 +181,12 @@ func marshallAndSendRequestWithAuth(reqType, url string, model interface{}, toke
 }
 
 func sendRequest(reqType, url string, data []byte) ([]byte, error) {
-	url = fmt.Sprintf("%s%s", ENDPOINT, url)
+	url = prepareURL(url)
 	return DoRequest(reqType, url, data)
 }
 
 func sendRequestWithHeader(reqType, url string, data []byte, h http.Header) ([]byte, error) {
-	url = fmt.Sprintf("%s%s", ENDPOINT, url)
+	url = prepareURL(url)
 	req, err := createHttpReq(reqType, url, data)
 	if err != nil {
 		return nil, err
@@ -196,6 +197,14 @@ func sendRequestWithHeader(reqType, url string, data []byte, h http.Header) ([]b
 }
 
 func sendRequestWithAuth(reqType, url string, data []byte, token string) ([]byte, error) {
-	url = fmt.Sprintf("%s%s", ENDPOINT, url)
+	url = prepareURL(url)
 	return DoRequestWithAuth(reqType, url, data, token)
+}
+
+func prepareURL(url string) string {
+	if strings.Contains(url, "http") {
+		return url
+	}
+
+	return fmt.Sprintf("%s%s", ENDPOINT, url)
 }
