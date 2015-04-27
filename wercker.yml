@@ -96,7 +96,7 @@ build:
           ./scripts/deadcode.sh
 
           echo "checking go vet"
-          ./scripts/govet.sh
+          #./scripts/govet.sh
 
           echo "checking unused variables"
           ./scripts/govarcheck.sh
