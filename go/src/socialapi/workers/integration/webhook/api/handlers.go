@@ -28,6 +28,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	// TODO add session support
 	m.AddSessionlessHandler(
 		handler.Request{
 			Handler:        h.FetchBotChannel,
