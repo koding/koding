@@ -12,7 +12,7 @@ module.exports = (browser, machineName) ->
   browser.element 'css selector', vmSelector, (result) =>
     if result.status is 0
       console.log 'vm is running'
-      browser.waitForElementNotVisible  modalSelector, 500000, false
+      browser.waitForElementNotVisible  modalSelector, 500000
     else
       console.log 'vm is not running'
       browser
