@@ -601,6 +601,13 @@ Configuration = (options={}) ->
       #!/bin/bash
       export HOME=/home/user-ec2
       export KONFIG_JSON='#{KONFIG.JSON}'
+      function runuserimporter () {
+        node scripts/user-importer -c dev
+      }
+
+      if [ "$1" == "runuserimporter" ]; then
+        runuserimporter
+      fi
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG

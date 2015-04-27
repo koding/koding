@@ -7,9 +7,13 @@ createUsers = (users)->
   { v4: createId }   = require 'node-uuid'
 
   argv      = require('minimist') process.argv
-  KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 
+  KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
   mongo     = "mongodb://#{ KONFIG.mongo }"
+
+  if process.env.MONGO_URL isnt ""
+    mongo = process.env.MONGO_URL + "/koding"
+
   modelPath = '../../workers/social/lib/social/models'
   rekuire   = (p)-> require joinPath modelPath, p
 

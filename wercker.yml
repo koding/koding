@@ -114,15 +114,30 @@ build:
           src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
           bin/migrate -url "postgres://$WERCKER_POSTGRESQL_HOST:$WERCKER_POSTGRESQL_PORT/$WERCKER_POSTGRESQL_DATABASE?user=$WERCKER_POSTGRESQL_USERNAME&password=$WERCKER_POSTGRESQL_PASSWORD" -path "src/socialapi/db/sql/migrations" up
     - script:
+        name: prepare mongodb documents
+        code: |
+          ./run runuserimporter
+          mongo $WERCKER_MONGODB_HOST:$WERCKER_MONGODB_PORT --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true});'
+          go run ./go/src/socialapi/workers/cmd/migrator/main.go -c ./go/src/socialapi/config/test.toml
+    - script:
         name: test social api
         code: |
-           sudo -E scripts/wercker/init-socialapi.sh
-           tail -n 100 /var/log/koding/social-api.log
-           tail -n 100 /var/log/koding/social-populartopic.log
-           tail -n 100 /var/log/koding/social-pinnedpost.log
-           tail -n 100 /var/log/koding/social-webhook.log
-           cd go/src/socialapi
-           make testapi config=./config/test.toml
+          sudo -E scripts/wercker/init-socialapi.sh
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
+          tail -n 100 /var/log/koding/social-webhook.log
+          cd go/src/socialapi
+          make testapi config=./config/test.toml
+    - script:
+        name: check social api code quality
+        code: |
+          echo "more complex one"
+          go get github.com/alecthomas/gometalinter
+          go install github.com/alecthomas/gometalinter
+          go build github.com/alecthomas/gometalinter
+          ./gometalinter --install
+          ./go/bin/gocyclo -top 20 ./go/src/socialapi
     - script: # todo generalize this part when we have more tests
         name: test koding mongo models
         code: |
@@ -254,6 +269,7 @@ build:
     - script:
         name: setup nvm
         code: |
+
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
@@ -279,6 +295,7 @@ build:
           tail -n 1000 /var/log/koding/social-api.log || :
           tail -n 100 /var/log/koding/social-populartopic.log || :
           tail -n 100 /var/log/koding/social-pinnedpost.log || :
+          tail -n 100 /var/log/koding/social-webhook.log || :
 deploy:
   steps:
     - script:

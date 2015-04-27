@@ -1096,6 +1096,10 @@ Configuration = (options={}) ->
         ./notification -c #{socialapi.configFilePath} -h
       }
 
+      function runuserimporter () {
+        node scripts/user-importer -c dev
+      }
+
       function sandbox_buildservices () {
         SANDBOX_SERVICES=54.165.122.100
         SANDBOX_WEB_1=54.165.177.88
@@ -1254,6 +1258,8 @@ Configuration = (options={}) ->
         sh -c scripts/validate-npm.sh
         run $1
 
+      elif [ "$1" == "runuserimporter" ] ; then
+        runuserimporter
       else
         echo "Unknown command: $1"
         printHelp
