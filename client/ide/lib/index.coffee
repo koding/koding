@@ -715,7 +715,7 @@ class IDEAppController extends AppController
 
     return  if @isDestroyed or not @isMachineRunning()
 
-    name  = @getWorkspaceSnapshotName()
+    name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
 
     @mountedMachine.getBaseKite().storageSetQueued name, value
