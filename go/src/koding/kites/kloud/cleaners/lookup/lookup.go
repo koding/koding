@@ -96,7 +96,7 @@ func (l *Lookup) FetchInstances() *MultiInstances {
 func (l *Lookup) Volumes(client *ec2.EC2) (Volumes, error) {
 	volumes := make([]ec2.Volume, 0)
 
-	resp, err := client.VolumesPages(500, "")
+	resp, err := client.VolumesPaginate(500, "")
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (l *Lookup) Volumes(client *ec2.EC2) (Volumes, error) {
 
 	// get all results until nextToken is empty
 	for nextToken != "" {
-		resp, err := client.VolumesPages(0, nextToken)
+		resp, err := client.VolumesPaginate(0, nextToken)
 		if err != nil {
 			return nil, err
 		}
