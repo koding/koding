@@ -5,7 +5,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/workers/email/emailsender"
-	"strings"
 	"time"
 )
 
@@ -65,15 +64,11 @@ func DeleteVMs(user *models.User, _ int) error {
 			MachineId: machine.ObjectId.Hex(),
 		})
 
-		if err != nil && !isVmAlreadyStoppedErr(err) {
+		if err != nil {
 			Log.Error("Error destroying machine:%s for username: %s, %v", user.Name,
 				machine.ObjectId, err)
 		}
 	}
 
 	return nil
-}
-
-func isVmAlreadyStoppedErr(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "already stopped")
 }
