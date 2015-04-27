@@ -29,7 +29,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###*
    * Display a simple Notification to the user.
   ###
-  @notify: (msg = "") ->
+  @notify: (msg = '') ->
 
     new kd.NotificationView content: msg
 
@@ -38,10 +38,10 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * The various snapshot total limits.
   ###
   @snapshotsLimits:
-    'free'         : 0
-    'hobbyist'     : 1
-    'developer'    : 3
-    'professional' : 5
+    free         : 0
+    hobbyist     : 1
+    developer    : 3
+    professional : 5
 
 
   ###*

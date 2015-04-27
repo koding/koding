@@ -23,7 +23,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###*
    * Display a simple Notification to the user.
   ###
-  @notify: (msg = "") ->
+  @notify: (msg = '') ->
 
     new kd.NotificationView content: msg
 
@@ -35,6 +35,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     createdAt = new Date(createdAt) if typeof createdAt is 'string'
     createdAtAgo = nicetime (createdAt - Date.now()) / 1000
+
     return createdAtAgo
 
 
@@ -75,7 +76,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     @infoDeleteBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'delete'
-      callback : @bound "confirmDeleteSnapshot"
+      callback : @bound 'confirmDeleteSnapshot'
 
     @addSubView @editView = new JView
       cssClass: 'edit hidden'
@@ -115,16 +116,16 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   confirmDeleteSnapshot: ->
 
     modal = kd.ModalView.confirm
-      title: "Delete snapshot?"
+      title: 'Delete snapshot?'
       ok:
-        title: "Yes"
-        style: "solid red medium"
+        title: 'Yes'
+        style: 'solid red medium'
         callback: =>
           modal.destroy()
           @deleteSnapshot()
       cancel:
-        style: "solid light-grey medium"
-        type: "button"
+        style: 'solid light-grey medium'
+        type: 'button'
         callback: -> modal.destroy()
 
   ###*
@@ -157,8 +158,8 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     data         = @getData()
     {snapshotId} = data
 
-    if not label? or label is ""
-      SnapshotListItem.notify "Name length must be larger than zero"
+    if not label? or label is ''
+      SnapshotListItem.notify 'Name length must be larger than zero'
       return
 
     # Called once we have a jSnapshot to work with
@@ -166,7 +167,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       return kd.warn err  if err
       @toggleEditable()
       @setLabel label
-      @getDelegate().emit "RenameSnapshot", this, label
+      @getDelegate().emit 'RenameSnapshot', this, label
 
     # If data is a jsnapshot, we don't need to fetch it
     if data instanceof JSnapshot
@@ -176,7 +177,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
         return kd.warn err  if err
 
         unless snapshot?
-          return kd.warn "Error: Cannot find snapshotId", snapshotId
+          return kd.warn 'Error: Cannot find snapshotId', snapshotId
 
         rename snapshot
 
@@ -197,10 +198,10 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   ###
   toggleEditable: ->
 
-    if @infoView.$().is ":visible"
+    if @infoView.$().is ':visible'
       @infoView.hide()
       @editView.show()
-      kd.utils.defer @editInput.bound "setFocus"
+      kd.utils.defer @editInput.bound 'setFocus'
     else
       @infoView.show()
       @editView.hide()
