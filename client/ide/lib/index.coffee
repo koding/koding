@@ -726,9 +726,12 @@ class IDEAppController extends AppController
     @mountedMachine.getBaseKite().storageDelete @getWorkspaceSnapshotName()
 
 
-  getWorkspaceSnapshotName: ->
+  getWorkspaceSnapshotName: (username) ->
 
-    return "wss.#{@workspaceData.slug}"
+    if username
+      return "#{username}.wss.#{@workspaceData.slug}"
+    else
+      return "wss.#{@workspaceData.slug}"
 
 
   registerPane: (pane) ->
