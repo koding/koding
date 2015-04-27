@@ -225,6 +225,11 @@ testwebhook:
 	@echo "$(ok_color)--> webhook service tests... $(no_color)"
 	@`which go` test workers/integration/webhook/services/*.go
 
+	@echo "$(OK_COLOR)--> webhook integration tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/webhook/tests/*.go
+	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./tests.test
+
 testpermission:
 	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
 	@`which go` test -c workers/permission/tests/*.go
