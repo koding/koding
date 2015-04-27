@@ -26,7 +26,7 @@ var (
 
 func newRequest(body string, channelId int64, groupName string) *WebhookRequest {
 	return &WebhookRequest{
-		Message: &webhook.Message{
+		Message: webhook.Message{
 			Body:      body,
 			ChannelId: channelId,
 		},
