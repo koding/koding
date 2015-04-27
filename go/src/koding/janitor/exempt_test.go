@@ -96,7 +96,7 @@ func TestIsUserPaid(t *testing.T) {
 	})
 }
 
-func TestIsUserBlocked(t *testing.T) {
+func TestIsUserNotConfirmed(t *testing.T) {
 	warning := &Warning{}
 
 	Convey("Given user who is blocked", t, func() {
@@ -109,7 +109,7 @@ func TestIsUserBlocked(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns true for exempt", func() {
-			isBlocked, err := IsUserBlocked(user, warning)
+			isBlocked, err := IsUserNotConfirmed(user, warning)
 			So(err, ShouldBeNil)
 			So(isBlocked, ShouldBeTrue)
 		})

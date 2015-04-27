@@ -20,9 +20,9 @@ func IsUserPaid(user *models.User, _ *Warning) (bool, error) {
 	return paymentclient.IsPaidAccount(account)
 }
 
-// Blocked users don't get an email, but vms get deleted.
-func IsUserBlocked(user *models.User, _ *Warning) (bool, error) {
-	return user.Status == modelhelper.UserStatusBlocked, nil
+// Everyone except 'confirmed' users don't get an email, but vms get deleted.
+func IsUserNotConfirmed(user *models.User, _ *Warning) (bool, error) {
+	return user.Status != modelhelper.UserStatusConfirmed, nil
 }
 
 // If user has no vm, don't send email saying their vms will be deleted.

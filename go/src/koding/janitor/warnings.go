@@ -26,7 +26,7 @@ var FirstEmail = &Warning{
 		"inactive.warning": bson.M{"$exists": false},
 	},
 
-	Exempt: []Exempt{IsUserPaid, IsUserBlocked},
+	Exempt: []Exempt{IsUserPaid, IsUserNotConfirmed},
 
 	Action: SendEmail,
 }
@@ -47,7 +47,7 @@ var SecondEmail = &Warning{
 		"inactive.warning": 1,
 	},
 
-	Exempt: []Exempt{IsTooSoon, IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
+	Exempt: []Exempt{IsTooSoon, IsUserPaid, IsUserNotConfirmed, IsUserVMsEmpty},
 
 	Action: SendEmail,
 }
