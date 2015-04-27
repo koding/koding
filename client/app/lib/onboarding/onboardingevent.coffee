@@ -1,0 +1,10 @@
+module.exports =
+  IDE               : 'IDE/Terminal loaded for the first time'
+  Collaboration     : 'Collaboration button clicked for the first time'
+  PublicChannel     : 'Viewed #public'
+  ChangelogChannel  : 'Viewed #changelog'
+  OtherChannel      : 'Viewed other #channel'
+  PrivateMessages   : 'Private Messages viewed for the first time'
+  VMSettings        : 'VM Settings opened'
+  WorkspaceSettings : 'Workspace Settings opened'
+  IDESettings       : 'IDE/Terminal settings clicked'
