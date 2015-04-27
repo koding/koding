@@ -6,9 +6,10 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+// Sane defaults to prevent spamming the system.
 var (
-	EmailLimitPerRun    = 10000
-	DeleteVMLimitPerRun = 1000
+	EmailLimitPerRun    = 500
+	DeleteVMLimitPerRun = 300
 )
 
 // This is a general notification that user is inactive.

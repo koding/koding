@@ -41,8 +41,6 @@ func main() {
 
 	go r.Listen()
 
-	Log = r.Log
-
 	var err error
 	kConf := r.Conf.Kloud
 
@@ -79,8 +77,7 @@ func main() {
 		listener.Close()
 	}()
 
-	err = http.Serve(listener, mux)
-	if err != nil {
+	if err := http.Serve(listener, mux); err != nil {
 		Log.Fatal("Error starting http server: %s", err.Error())
 	}
 }
@@ -93,6 +90,8 @@ func initializeRunner() *runner.Runner {
 
 	appConfig := config.MustRead(r.Conf.Path)
 	modelhelper.Initialize(appConfig.Mongo)
+
+	Log = r.Log
 
 	return r
 }
