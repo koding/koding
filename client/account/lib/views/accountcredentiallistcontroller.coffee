@@ -54,6 +54,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     Providers = ComputeController.providers
 
     Object.keys(Providers).forEach (provider)=>
+
+      return  if Object.keys(Providers[provider].credentialFields).length is 0
+
       providerList[Providers[provider].title] =
         callback : =>
           @_addButtonMenu.destroy()
