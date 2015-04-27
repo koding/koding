@@ -1,5 +1,6 @@
 kd = require 'kd'
 helper = require '../helper'
+constants = require '../constants'
 
 ###*
  * Base class for representing a video participant.
@@ -21,13 +22,25 @@ class BaseVideoParticipant extends kd.EventEmitter
     # working.
     super {}
 
-    @nick = nick
-    @videoData = videoData
-    @type = null
+    @nick      = nick
+    @videoData = videoData or null
+    @type      = null
+
+    @setOffline()
+
+    @subscribeToAudioChanges()  if @videoData
+
+
+  subscribeToAudioChanges: ->
 
     helper.subscribeToAudioChanges @videoData,
       started : => @emit 'TalkingDidStart'
       stopped : => @emit 'TalkingDidStop'
+
+
+  setOffline    : -> @status = constants.PARTICIPANT_STATUS_OFFLINE
+  setConnected  : -> @status = constants.PARTICIPANT_STATUS_CONNECTED
+  setPublishing : -> @status = constants.PARTICIPANT_STATUS_PUBLISHING
 
 
   getType: -> @type
