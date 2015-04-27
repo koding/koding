@@ -98,55 +98,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * Registers callbacks for service events.
    *
    * @param {OT.Session} session
-   * @listens OT.Session~streamCreated
-   * @listens OT.Session~streamDestroyed
-   * @listens OT.Session~connectionCreated
-   * @listens OT.Session~sessionDisconnected
    * @emits VideoCollaborationModel~HostKickedLoggedInUser
    * @emits VideoCollaborationModel~VideoCollaborationEnded
    * @emits VideoCollaborationModel~VideoCollaborationEndedByNetwork
-   * @emits VideoCollaborationModel~VideoParticipantConnected
-   * @emits VideoCollaborationModel~VideoParticipantDisconnected
   ###
   bindSessionEvents: (session) ->
 
-    session.on 'streamCreated', (event) =>
-      @subscribeToStream session, event.stream
-
-    session.on 'streamDestroyed', (event) =>
-      { connection } = event.stream
-      @setParticipantLeft connection.connectionId
-
-    session.on 'connectionCreated', (event) =>
-      # We don't want to deal with own user's events, we basically want to
-      # abstract out logged-in user out of the equation here.
-      return  if @isMyConnection event.connection
-
-      # this is gonna be a fake `ParticipantType.Subscriber` like object for
-      # views to start drawing/rendering for this connection, because our
-      # system doesn't necessarily require people to be publishint to session
-      # to mark them as active. For example, showing participant heads on ide
-      # chat window when video active we are filtering people who are connected
-      # to session as actives. Participant heads doesn't care if you are
-      # publishing or not, since user is hearing the video and seeing other
-      # users he/she needs to be labeled as active/connected.
-      subscriber = @registerDefaultSubscriber event.connection
-
-      @incrementConnectionCount()
-
-      @emit 'ParticipantConnected', subscriber
-
-    session.on 'connectionDestroyed', (event) =>
-      return  if @isMyConnection event.connection
-
-      # get the name before unregistering.
-      { nick } = @subscribers[event.connection.id]
-
-      @unregisterSubscriber event.connection.id
-
-      @decrementConnectionCount()
-
-      @emit 'ParticipantDisconnected', helper.defaultSubscriber nick
+    session.on 'connectionCreated'   , @bound 'onConnectionCreated'
+    session.on 'streamCreated'       , @bound 'onStreamCreated'
+    session.on 'streamDestroyed'     , @bound 'onStreamDestroyed'
+    session.on 'connectionDestroyed' , @bound 'onConnectionDestroyed'
 
     session.on 'sessionDisconnected', (event) =>
       @setState { connected: no }
@@ -172,6 +133,72 @@ module.exports = class VideoCollaborationModel extends kd.Object
     # this event only comes to the user who has been muted, so need to make a
     # filtering here.
     session.on 'signal:mute', => @setAudioState off
+
+
+  ###*
+   * Opentok session's `connectionCreated` event handler.
+   *
+   * @param {OT.ConnectionEvent} event
+   * @emits VideoCollaborationModel~ParticipantConnected
+  ###
+  onConnectionCreated: (event) ->
+    # We don't want to deal with own user's events, we basically want to
+    # abstract out logged-in user out of the equation here.
+    return  if @isMyConnection event.connection
+
+    # this is gonna be a fake `ParticipantType.Subscriber` like object for
+    # views to start drawing/rendering for this connection, because our
+    # system doesn't necessarily require people to be publishint to session
+    # to mark them as active. For example, showing participant heads on ide
+    # chat window when video active we are filtering people who are connected
+    # to session as actives. Participant heads doesn't care if you are
+    # publishing or not, since user is hearing the video and seeing other
+    # users he/she needs to be labeled as active/connected.
+    subscriber = @registerDefaultSubscriber event.connection
+
+    @incrementConnectionCount()
+
+    @emit 'ParticipantConnected', subscriber
+
+
+  ###*
+   * Opentok session's `connectionCreated` event handler.
+   *
+   * @param {OT.ConnectionEvent} event
+   * @emits VideoCollaborationModel~ParticipantDisconnected
+  ###
+  onConnectionDestroyed: (event) ->
+
+    { connection } = event
+
+    return  if @isMyConnection connection
+
+    @setParticipantLeft connection.id
+    @decrementConnectionCount()
+
+    nick = helper.getNicknameFromConnection connection
+
+    @emit 'ParticipantDisconnected', helper.defaultSubscriber nick
+
+
+  ###*
+   * Opentok session's `streamCreated` event handler.
+   *
+   * @param {OT.StreamEvent} event
+  ###
+  onStreamCreated: (event)->
+
+    @subscribeToStream session, event.stream
+
+
+  ###*
+   * Opentok session's `streamDestroyed` event handler.
+   *
+   * @param {OT.StreamEvent} event
+  ###
+  onStreamDestroyed: (event) ->
+    { connection } = event.stream
+    @setParticipantLeft connection.connectionId
 
 
   ###*
