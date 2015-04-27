@@ -139,8 +139,9 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     kloud.deleteSnapshot {machineId, snapshotId}
       .then =>
-        @getDelegate().emit 'DeleteSnapshot', this
-        @getDelegate().removeItem this
+        listView = @getDelegate()
+        listView.emit 'DeleteSnapshot', this
+        listView.removeItem this
       .catch (err) -> kd.warn err
 
 
@@ -167,7 +168,8 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       return kd.warn err  if err
       @toggleEditable()
       @setLabel label
-      @getDelegate().emit 'RenameSnapshot', this, label
+      listView = @getDelegate()
+      listView.emit 'RenameSnapshot', this, label
 
     # If data is a jsnapshot, we don't need to fetch it
     if data instanceof JSnapshot
