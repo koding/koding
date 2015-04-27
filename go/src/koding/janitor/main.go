@@ -71,10 +71,10 @@ func main() {
 	Log.Info("Listening on port: %s", port)
 
 	defer func() {
-		r.Close()
-		modelhelper.Close()
-		KiteClient.Close()
 		listener.Close()
+		r.Close()
+		KiteClient.Close()
+		modelhelper.Close()
 	}()
 
 	if err := http.Serve(listener, mux); err != nil {
