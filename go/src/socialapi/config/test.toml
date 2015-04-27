@@ -78,6 +78,10 @@ serverAuthKey = "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-450
 origin = "pubsub.pubnub.com"
 enabled = true
 
+[integration]
+host = "localhost"
+port = "7300"
+
 [customDomain]
 public = "https://koding-siesta.ngrok.com"
 public_ = "koding-siesta.ngrok.com"
