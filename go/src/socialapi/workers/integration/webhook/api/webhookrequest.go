@@ -4,7 +4,7 @@ import "socialapi/workers/integration/webhook"
 
 // WebhookRequest is used as input data for /push endpoint
 type WebhookRequest struct {
-	*webhook.Message
+	webhook.Message
 	GroupName string
 	Token     string
 }
