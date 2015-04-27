@@ -335,19 +335,6 @@ module.exports =
       .waitForElementNotPresent  fileSelector, 2000
 
 
-  deleteFolder: (browser, selector) ->
-
-    browser
-      .waitForElementPresent     selector, 20000
-      .click                     selector
-      .click                     selector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 20000
-      .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 20000
-      .click                     '.delete-container button.clean-red'
-      .waitForElementNotPresent  selector, 2000
-
-
   openChangeTopFolderMenu: (browser) ->
 
     browser
