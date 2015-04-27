@@ -56,11 +56,14 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 
 	r.Message.ChannelIntegrationId = channelIntegration.Id
 
-	if err := h.bot.SendMessage(r.Message); err != nil {
+	if err := h.bot.SendMessage(&r.Message); err != nil {
 		return response.NewBadRequest(err)
 	}
+	res := map[string]interface{}{
+		"success": true,
+	}
 
-	return response.NewOK(nil)
+	return response.NewOK(res)
 }
 
 func (h *Handler) Prepare(u *url.URL, header http.Header, request services.ServiceInput) (int, http.Header, interface{}, error) {
@@ -112,12 +115,15 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 	if channelId != 0 {
 		pushRequest["channelId"] = strconv.FormatInt(channelId, 10)
 	}
-
 	if err := push(endPoint, pushRequest); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(nil)
+	res := map[string]interface{}{
+		"success": true,
+	}
+
+	return response.NewOK(res)
 }
 
 func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, r *BotChannelRequest) (int, http.Header, interface{}, error) {
