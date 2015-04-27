@@ -20,14 +20,14 @@ module.exports =
       .pause   4000
       .element 'css selector', notStartedButtonSelector, (result) =>
           if result.status is 0
-            console.log 'session is not started'
+            console.log '✔  Session is not started'
             browser
               .click                  shareButtonSelector
               .waitForElementVisible  chatViewSelector, 20000
               .waitForElementVisible  startButtonSelector, 20000
               .click                  startButtonSelector
           else
-            console.log 'session is active'
+            console.log '✔  Session is active'
 
       browser
         .waitForElementVisible  messagePane, 20000 # Assertion
