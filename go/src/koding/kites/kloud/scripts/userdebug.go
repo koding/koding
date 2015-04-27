@@ -6,7 +6,7 @@ import (
 	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
-	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/pkg/multiec2"
 	"os"
 	"text/tabwriter"
 	"time"

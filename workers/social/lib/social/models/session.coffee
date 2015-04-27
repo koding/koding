@@ -1,13 +1,5 @@
 {Model} = require 'bongo'
 
-class JToken extends Model
-
-  @setSchema
-    token       : String
-    expires     : Date
-    authority   : String
-    requester   : String
-
 module.exports = class JSession extends Model
 
   { v4: createId } = require 'node-uuid'
@@ -15,12 +7,17 @@ module.exports = class JSession extends Model
   @set
     indexes         :
       clientId      : 'unique'
+      otaToken      : 'sparse' # unique is also required
       username      : 'descending'
       clientIP      : 'sparse'
     schema          :
       clientId      : String
       clientIP      : String
       username      : String
+      otaToken      : String
+      groupName     :
+        type        : String
+        default     : -> 'koding'
       guestId       : Number
       terminalId    : String
       sessionBegan  :
@@ -55,7 +52,7 @@ module.exports = class JSession extends Model
   # TODO not sure why we are creating session only for guest user
   @createSession = (callback) ->
 
-    JUser = require './user'
+    JUser    = require './user'
     clientId = createId()
 
     JUser.fetchGuestUser (err, resp) =>
@@ -75,6 +72,16 @@ module.exports = class JSession extends Model
         else callback null, { session, account }
 
 
+  @createNewSession = (username, callback) ->
+
+    clientId = createId()
+
+    session = new JSession { clientId, username }
+    session.save (err) ->
+      return callback err  if err
+      return callback null, session
+
+
   @fetchSession = (clientId, callback)->
 
     return @createSession callback  unless clientId
@@ -86,6 +93,7 @@ module.exports = class JSession extends Model
         callback null, { session }
       else
         @createSession callback
+
 
   @updateClientIP = (clientId, ipAddress, callback)->
 

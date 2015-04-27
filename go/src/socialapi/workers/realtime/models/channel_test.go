@@ -3,8 +3,9 @@ package models
 import (
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"testing"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -16,13 +17,15 @@ func TestChannelPrepareName(t *testing.T) {
 	}
 	defer r.Close()
 
+	appConfig := config.MustRead(r.Conf.Path)
+
 	Convey("While creating PubNub channels", t, func() {
 		Convey("Notification channel name format must be as 'notification'-[env]-[nickname]", func() {
 			a := &Account{}
 			a.Nickname = "hello"
 			nc := NewNotificationChannel(a)
 			name := nc.PrepareName()
-			expectedName := fmt.Sprintf("notification-%s-%s", config.MustGet().Environment, a.Nickname)
+			expectedName := fmt.Sprintf("notification-%s-%s", appConfig.Environment, a.Nickname)
 			So(name, ShouldEqual, expectedName)
 		})
 		Convey("Message update and channel name format must be as 'channel'-[token]", func() {

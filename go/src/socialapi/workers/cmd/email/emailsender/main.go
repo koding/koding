@@ -1,11 +1,13 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"log"
-	"socialapi/workers/common/runner"
+	"socialapi/config"
 	"socialapi/workers/email/emailsender"
 
 	"github.com/koding/eventexporter"
+	"github.com/koding/runner"
 )
 
 var (
@@ -19,13 +21,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	exporter := eventexporter.NewSegmentIOExporter(r.Conf.Segment, QueueLength)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+
+	exporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
 	constructor := emailsender.New(exporter, r.Log)
 
 	r.SetContext(constructor)
 
 	r.Register(emailsender.Mail{}).On(emailsender.SendEmailEventName).Handle(
-		(*emailsender.Controller).Process)
+		(*emailsender.Controller).Process,
+	)
 
 	r.Listen()
 	r.Wait()

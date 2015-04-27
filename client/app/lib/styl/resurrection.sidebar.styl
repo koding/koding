@@ -978,6 +978,8 @@ h3.sidebar-title
         border-color   #24B463
         // bg          color, #8CEE71
         // border      2px solid #8CEE71
+      &.reconnecting > figure
+        border-color   #FFC884
       > .progressbar-container
         size        100% 3px
         background  none
@@ -1019,3 +1021,66 @@ h3.sidebar-title
     cursor          default
     &:hover
       color         sidebarSectionHeaderColor
+
+
+
+// sidebar share modalz
+.share-modal
+
+  &.activity-modal
+    bg                      color, #FFF
+    .kdmodal-content
+      overflow              hidden
+    .modal-arrow
+      border-right-color    #FFF
+      &:before
+        border-right-color  #FFF
+
+  &.approved
+    .title
+      margin-top            0
+    .user-view
+      margin-bottom         15px
+    button.solid.red
+      margin-left           0 !important
+      width                 210px
+
+  .close-icon
+    hidden()
+
+  button.solid.medium
+    width                   100px
+    &:last-child
+      margin-left           10px
+
+  .kdmodal-inner
+    margin                  20px !important
+
+  .title
+    color                   #909090
+    font-size               14px
+    margin                  10px 0
+
+  .avatarview
+    display                 inline-block
+    size                    30px, 30px
+
+  .user-view
+    height                  30px
+
+  .user-details
+    display                 inline-block
+    margin-left             10px
+
+    div
+      font-size             13px
+      margin-top            -5px
+
+    .fullname
+      color                 #52a840
+
+    .nickname
+      color                 #626262
+
+.approve-overlay
+  left                      260px

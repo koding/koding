@@ -24,14 +24,15 @@ type StripePeriod struct {
 }
 
 type StripeInvoiceData struct {
-	SubscriptionId string       `json:"id"`
+	Id             string       `json:"id"`
+	SubscriptionId string       `json:"subscription"`
 	Period         StripePeriod `json:"period"`
 	Plan           StripePlan   `json:"plan"`
 }
 
 type StripeInvoiceLines struct {
 	Data  []StripeInvoiceData `json:"data"`
-	Count int                 `json:"count"`
+	Count int                 `json:"total_count"`
 }
 
 type StripeInvoice struct {

@@ -193,8 +193,8 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         requestAccess:
           (signature Function)
-        addCustomRole:
-          (signature Object, Function)
+        # addCustomRole:
+        #   (signature Object, Function)
         resolvePendingRequests:
           (signature Function)
         fetchMembershipStatuses:
@@ -215,44 +215,44 @@ module.exports = class JGroup extends Module
           (signature Function)
           (signature String, Function)
         ]
-        fetchInvitationsFromGraph:
-          (signature String, Object, Function)
-        countInvitationsFromGraph:
-          (signature String, Object, Function)
-        fetchMembersFromGraph:
-          (signature Object, Function)
+        # fetchInvitationsFromGraph:
+        #   (signature String, Object, Function)
+        # countInvitationsFromGraph:
+        #   (signature String, Object, Function)
+        # fetchMembersFromGraph:
+        #   (signature Object, Function)
         remove:
           (signature Function)
         bulkApprove:
           (signature Number, Object, Function)
-        fetchNewestMembers: [
-          (signature Function)
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
+        # fetchNewestMembers: [
+        #   (signature Function)
+        #   (signature Object, Function)
+        #   (signature Object, Object, Function)
+        # ]
         makePayment:
           (signature Object, Function)
         # # addProduct:
         # (signature)
         # # deleteProduct:
         # (signature)
-        fetchProducts: [
-          (signature Function)
-          (signature String, Function)
-          (signature String, Object, Function)
-        ]
-        saveInviteMessage: [
-          (signature String, String)
-          (signature String, String, Function)
-        ]
-        redeemInvitation:
-          (signature String, Function)
-        fetchPaymentMethod:
-          (signature Function)
-        linkPaymentMethod:
-          (signature String, Function)
-        unlinkPaymentMethod:
-          (signature String, Function)
+        # fetchProducts: [
+        #   (signature Function)
+        #   (signature String, Function)
+        #   (signature String, Object, Function)
+        # ]
+        # saveInviteMessage: [
+        #   (signature String, String)
+        #   (signature String, String, Function)
+        # ]
+        # redeemInvitation:
+        #   (signature String, Function)
+        # fetchPaymentMethod:
+        #   (signature Function)
+        # linkPaymentMethod:
+        #   (signature String, Function)
+        # unlinkPaymentMethod:
+        #   (signature String, Function)
         addSubscription:
           (signature String, Function)
         fetchSubscription:
@@ -269,6 +269,7 @@ module.exports = class JGroup extends Module
       title         :
         type        : String
         required    : yes
+
       body          : String
       # channelId for mapping social API
       # to internal usage
@@ -515,6 +516,10 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
+        -> group.createSocialApiChannels (err)->
+            if err then console.error err
+            console.log 'created socialApiId ids'
+            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -529,17 +534,17 @@ module.exports = class JGroup extends Module
   @create$ = secure (client, formData, callback)->
     {delegate} = client.connection
 
-    subOptions = targetOptions: selector: tags: "custom-plan"
-    delegate.fetchSubscription null, subOptions, (err, subscription) =>
-      return callback err  if err
-      return callback new KodingError "Subscription is not found"  unless subscription
-      subscription.debitPack tag: "group", (err) =>
-        return callback err  if err
-        @create client, formData, delegate, (err, group) ->
-          return callback err if err
-          group.addSubscription subscription, (err) ->
-            return callback err  if err
-            callback null, { group, subscription }
+    # subOptions = targetOptions: selector: tags: "custom-plan"
+    # delegate.fetchSubscription null, subOptions, (err, subscription) =>
+    #   return callback err  if err
+    #   return callback new KodingError "Subscription is not found"  unless subscription
+    #   subscription.debitPack tag: "group", (err) =>
+    #     return callback err  if err
+    @create client, formData, delegate, (err, group) ->
+      return callback err if err
+      # group.addSubscription subscription, (err) ->
+      #   return callback err  if err
+      callback null, { group }
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -785,30 +790,6 @@ module.exports = class JGroup extends Module
 
         @fetchMembers {}, options, callback
 
-  fetchNewestMembers$: permit 'list members',
-    success:(client, rest...)->
-      [selector, options, callback] = Module.limitEdges 10, 19, rest
-      selector            or= {}
-      selector.as         = 'member'
-      selector.sourceName = 'JGroup'
-      selector.sourceId   = @getId()
-      selector.targetName = 'JAccount'
-
-      options             or= {}
-      options.sort        or=
-        timestamp         : -1
-      options.limit       or= 16
-
-      Relationship.some selector, options, (err,members)=>
-        if err then callback err
-        else
-          targetIds = (member.targetId for member in members)
-          JAccount = require '../account'
-          JAccount.some
-            _id   :
-              $in : targetIds
-          , {}, (err,memberAccounts)=>
-            callback err,memberAccounts
 
   fetchHomepageView: (options, callback)->
     {account, section} = options
@@ -858,14 +839,14 @@ module.exports = class JGroup extends Module
         isConfigureable : formData.isConfigureable or no
       , callback
 
-  addCustomRole: permit 'grant permissions',
-    success:(client,formData,callback)->
-      @createRole client,formData, (err,role)=>
-        console.log err,role
-        unless err
-          @addRole role, callback
-        else
-          callback err, null
+  # addCustomRole: permit 'grant permissions',
+  #   success:(client,formData,callback)->
+  #     @createRole client,formData, (err,role)=>
+  #       console.log err,role
+  #       unless err
+  #         @addRole role, callback
+  #       else
+  #         callback err, null
 
   createMembershipPolicy:(requestType, queue, callback)->
     [callback, queue] = [queue, callback]  unless callback
@@ -935,7 +916,13 @@ module.exports = class JGroup extends Module
         if err then callback err
         else policy.update $set: formData, callback
 
-  canEditGroup: permit 'grant permissions'
+
+  canEditGroup: permit 'grant permissions',
+    success: (client, callback)->
+      callback null, yes
+    failure: (client, callback)->
+      callback null, no
+
 
   @canReadGroupActivity = permit 'read group activity'
   canReadGroupActivity  : permit 'read group activity'
@@ -1024,14 +1011,14 @@ module.exports = class JGroup extends Module
       queue.push -> callback if errors.length > 0 then errors else null
       daisy queue
 
-  saveInviteMessage: permit 'send invitations',
-    success: (client, messageType, message, callback=->)->
-      @fetchMembershipPolicy (err, policy)=>
-        return callback err  if err
-        return callback new KodingError "No policy found"  unless policy
-        set = {}
-        set["communications.#{messageType}"] = message
-        policy.update $set: set, callback
+  # saveInviteMessage: permit 'send invitations',
+  #   success: (client, messageType, message, callback=->)->
+  #     @fetchMembershipPolicy (err, policy)=>
+  #       return callback err  if err
+  #       return callback new KodingError "No policy found"  unless policy
+  #       set = {}
+  #       set["communications.#{messageType}"] = message
+  #       policy.update $set: set, callback
 
   inviteMember : permit 'send invitations',
     success: (client, email, account, options, callback)->
@@ -1061,22 +1048,6 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, (if count is 0 then no else yes)
 
-  redeemInvitation: secure (client, code, callback)->
-    {delegate} = client.connection
-    @isMember delegate, (err, isMember)=>
-      return callback err  if err or isMember
-      selector = targetOptions: selector: {code, status:$in:['active', 'sent']}
-      @fetchInvitations {}, selector, (err, [invite])=>
-        return callback err  if err
-        return callback new KodingError 'Invitation code is invalid!'  unless invite
-        delegate.fetchUser (err, user)=>
-          return callback err  if err
-          unless invite.type is 'multiuse' or user.email is invite.email
-            return callback new KodingError 'Are you sure invitation e-mail is for you?'
-
-          invite.redeem delegate, (err) =>
-            return callback err if err
-            @approveMember delegate, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
@@ -1458,135 +1429,27 @@ module.exports = class JGroup extends Module
     else
       callback null
 
-  fetchOrCreateBundle: (callback) ->
-    @fetchBundle (err, bundle) =>
-      return callback err, bundle  if err or bundle
-
-      if @slug is 'koding'
-        @createBundle
-          overagePolicy: 'not allowed'
-          paymentPlan  : ''
-          allocation   : 0
-          sharedVM     : yes
-        , (err, bundle) =>
-          if err then return callback new KodingError 'Unable to create default group bundle'
-          callback null, bundle
-      else
-        callback new KodingError 'Unable to fetch group bundle'
-
   fetchOrCountInvitations: permit 'send invitations',
     success: (client, type, method, options, callback)->
       return callback {message: "unimplemented feature"}
 
   fetchInvitationsByStatus: permit 'send invitations',
     success: (client, options, callback)->
-      JInvitation = require '../invitation'
-      if options.type is "InvitationCode"
-        type   = "multiuse"
-        status = if options.showResolved then ["active" , "redeemed"] else ['active']
-      else
-        type   = "admin"
-        status = if options.showResolved then ["sent", "redeemed"] else ["sent"]
+      return callback {message: "unimplemented feature"}
 
-      JInvitation.some
-        group  : @slug
-        type   : type
-        status :
-          $in  : status
-        , options
-        , callback
 
-  fetchInvitationsFromGraph: permit 'send invitations',
-    success: (client, type, options, callback)->
-      @fetchOrCountInvitations client, type, 'fetch', options, (err, results)=>
-        return callback err  if err
-        ids = (res.groupOwnedNodes.data.id  for res in results)
-
-        require(
-          if type is 'InvitationRequest'
-          then '../invitationrequest'
-          else '../invitation'
-        ).some _id: $in: ids, {}, callback
-
-  countInvitationsFromGraph: permit 'send invitations',
-    success: (client, type, options, callback)->
-      @fetchOrCountInvitations client, type, 'count', options, (err, result)=>
-        return callback err, result?[0]?.count
-
-  fetchMembersFromGraph:(client, options, callback)->
-    return callback {message: "unimplemented feature"}
-
-  fetchMembersFromGraph$: permit 'list members',
-    success: (client, rest...) -> @fetchMembersFromGraph client, rest...
 
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'
     @each selector, options, callback
 
-  linkPaymentMethod: permit 'manage payment methods',
-    success: (client, paymentMethodId, callback) ->
-      { delegate } = client.connection
-      JPaymentMethod = require '../payment/method'
-      JPaymentMethod.one { paymentMethodId }, (err, paymentMethod) =>
-        return callback err  if err
-        delegate.hasTarget paymentMethod, 'payment method', (err, hasTarget) =>
-          return callback err  if err
-          return callback { message: 'Access denied!' }  unless hasTarget
-          @addPaymentMethod paymentMethod, callback
 
-  unlinkPaymentMethod: permit 'manage payment methods',
-    success: (client, paymentMethodId, callback) ->
-      JPaymentMethod = require '../payment/method'
-      JPaymentMethod.one { paymentMethodId }, (err, paymentMethod) =>
-        return callback err  if err
-        @removePaymentMethod paymentMethod, callback
-
-  fetchPaymentMethod$: permit 'manage payment methods',
-    success: (client, callback) ->
-      JPaymentMethod = require '../payment/method'
-      @fetchPaymentMethod (err, paymentMethod) ->
-        return callback err  if err
-        JPaymentMethod.decoratePaymentMethods [paymentMethod], (err, paymentMethods) ->
-          return callback err  if err
-          callback null, paymentMethods[0]
-
-  fetchProducts$: (category, options, callback) ->
-    [options, callback] = [callback, options]  unless callback
-    options ?= {}
-    { tag, tags } = options
-    tags = [tag]  if tag and not tags
-
-    options.targetOptions ?= {}
-    options.targetOptions.options ?= {}
-    options.targetOptions.options.sort ?= sortWeight: 1
-    options.targetOptions.selector =
-      if tags
-      then { tags }
-      else {}
-
-    switch category
-      when 'product'
-        @fetchProducts {}, options, callback
-      when 'pack'
-        @fetchPacks {}, options, callback
-      when 'plan'
-        @fetchPlans {}, options, callback
 
   addSubscription$: permit 'edit own groups',
     success: (client, id, callback) ->
       JPaymentSubscription = require '../payment/subscription'
       JPaymentSubscription.one _id: id, (err, subscription) =>
         @addSubscription subscription, callback
-
-  fetchSubscription$: secure (client, callback) ->
-    @fetchSubscription (err, subscription) ->
-      return callback err  if err
-      {planCode} = subscription
-      JPaymentPlan = require '../payment/plan'
-      JPaymentPlan.one {planCode}, (err, plan) ->
-        return callback err  if err
-        subscription.plan = plan
-        callback null, subscription
 
   fetchPermissionSetOrDefault : (callback)->
     @fetchPermissionSet (err, permissionSet) =>
@@ -1596,21 +1459,6 @@ module.exports = class JGroup extends Module
       else
         @fetchDefaultPermissionSet callback
 
-  _fetchSubscription: (callback) ->
-    @fetchSubscription (err, subscription) =>
-      return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
-      return callback new KodingError "Group #{@slug}'s subscription is not found"  unless subscription
-      callback err, subscription
-
-  debitPack: (options, callback) ->
-    @_fetchSubscription (err, subscription) ->
-      return callback err  if err
-      subscription.debitPack options, callback
-
-  creditPack: (options, callback) ->
-    @_fetchSubscription (err, subscription) ->
-      return callback err  if err
-      subscription.creditPack options, callback
 
   createSocialApiChannels: (callback) ->
 
@@ -1681,3 +1529,160 @@ module.exports = class JGroup extends Module
         return callback err if err
         return callback null, channel.id
 
+  # _fetchSubscription: (callback) ->
+  #   @fetchSubscription (err, subscription) =>
+  #     return callback new KodingError "Error when fetching group's subscription: #{err}"  if err
+  #     return callback new KodingError "Group #{@slug}'s subscription is not found"  unless subscription
+  #     callback err, subscription
+
+  # debitPack: (options, callback) ->
+  #   @_fetchSubscription (err, subscription) ->
+  #     return callback err  if err
+  #     subscription.debitPack options, callback
+
+  # creditPack: (options, callback) ->
+  #   @_fetchSubscription (err, subscription) ->
+  #     return callback err  if err
+  #     subscription.creditPack options, callback
+
+  # linkPaymentMethod: permit 'manage payment methods',
+  #   success: (client, paymentMethodId, callback) ->
+  #     { delegate } = client.connection
+  #     JPaymentMethod = require '../payment/method'
+  #     JPaymentMethod.one { paymentMethodId }, (err, paymentMethod) =>
+  #       return callback err  if err
+  #       delegate.hasTarget paymentMethod, 'payment method', (err, hasTarget) =>
+  #         return callback err  if err
+  #         return callback { message: 'Access denied!' }  unless hasTarget
+  #         @addPaymentMethod paymentMethod, callback
+
+  # unlinkPaymentMethod: permit 'manage payment methods',
+  #   success: (client, paymentMethodId, callback) ->
+  #     JPaymentMethod = require '../payment/method'
+  #     JPaymentMethod.one { paymentMethodId }, (err, paymentMethod) =>
+  #       return callback err  if err
+  #       @removePaymentMethod paymentMethod, callback
+
+  # fetchPaymentMethod$: permit 'manage payment methods',
+  #   success: (client, callback) ->
+  #     JPaymentMethod = require '../payment/method'
+  #     @fetchPaymentMethod (err, paymentMethod) ->
+  #       return callback err  if err
+  #       JPaymentMethod.decoratePaymentMethods [paymentMethod], (err, paymentMethods) ->
+  #         return callback err  if err
+  #         callback null, paymentMethods[0]
+
+  # fetchProducts$: (category, options, callback) ->
+  #   [options, callback] = [callback, options]  unless callback
+  #   options ?= {}
+  #   { tag, tags } = options
+  #   tags = [tag]  if tag and not tags
+
+  #   options.targetOptions ?= {}
+  #   options.targetOptions.options ?= {}
+  #   options.targetOptions.options.sort ?= sortWeight: 1
+  #   options.targetOptions.selector =
+  #     if tags
+  #     then { tags }
+  #     else {}
+
+  #   switch category
+  #     when 'product'
+  #       @fetchProducts {}, options, callback
+  #     when 'pack'
+  #       @fetchPacks {}, options, callback
+  #     when 'plan'
+  #       @fetchPlans {}, options, callback
+
+
+  # fetchInvitationsFromGraph: permit 'send invitations',
+  #   success: (client, type, options, callback)->
+  #     @fetchOrCountInvitations client, type, 'fetch', options, (err, results)=>
+  #       return callback err  if err
+  #       ids = (res.groupOwnedNodes.data.id  for res in results)
+
+  #       require(
+  #         if type is 'InvitationRequest'
+  #         then '../invitationrequest'
+  #         else '../invitation'
+  #       ).some _id: $in: ids, {}, callback
+
+  # countInvitationsFromGraph: permit 'send invitations',
+  #   success: (client, type, options, callback)->
+  #     @fetchOrCountInvitations client, type, 'count', options, (err, result)=>
+  #       return callback err, result?[0]?.count
+
+  # fetchMembersFromGraph:(client, options, callback)->
+  #   return callback {message: "unimplemented feature"}
+
+  # fetchMembersFromGraph$: permit 'list members',
+  #   success: (client, rest...) -> @fetchMembersFromGraph client, rest...
+  #
+
+  # fetchOrCreateBundle: (callback) ->
+  #   @fetchBundle (err, bundle) =>
+  #     return callback err, bundle  if err or bundle
+
+  #     if @slug is 'koding'
+  #       @createBundle
+  #         overagePolicy: 'not allowed'
+  #         paymentPlan  : ''
+  #         allocation   : 0
+  #         sharedVM     : yes
+  #       , (err, bundle) =>
+  #         if err then return callback new KodingError 'Unable to create default group bundle'
+  #         callback null, bundle
+  #     else
+  #       callback new KodingError 'Unable to fetch group bundle'
+
+  # fetchNewestMembers$: permit 'list members',
+  #   success:(client, rest...)->
+  #     [selector, options, callback] = Module.limitEdges 10, 19, rest
+  #     selector            or= {}
+  #     selector.as         = 'member'
+  #     selector.sourceName = 'JGroup'
+  #     selector.sourceId   = @getId()
+  #     selector.targetName = 'JAccount'
+
+  #     options             or= {}
+  #     options.sort        or=
+  #       timestamp         : -1
+  #     options.limit       or= 16
+
+  #     Relationship.some selector, options, (err,members)=>
+  #       if err then callback err
+  #       else
+  #         targetIds = (member.targetId for member in members)
+  #         JAccount = require '../account'
+  #         JAccount.some
+  #           _id   :
+  #             $in : targetIds
+  #         , {}, (err,memberAccounts)=>
+  #           callback err,memberAccounts
+
+  # fetchSubscription$: secure (client, callback) ->
+  #   @fetchSubscription (err, subscription) ->
+  #     return callback err  if err
+  #     {planCode} = subscription
+  #     JPaymentPlan = require '../payment/plan'
+  #     JPaymentPlan.one {planCode}, (err, plan) ->
+  #       return callback err  if err
+  #       subscription.plan = plan
+  #       callback null, subscription
+
+  # redeemInvitation: secure (client, code, callback)->
+  #   {delegate} = client.connection
+  #   @isMember delegate, (err, isMember)=>
+  #     return callback err  if err or isMember
+  #     selector = targetOptions: selector: {code, status:$in:['active', 'sent']}
+  #     @fetchInvitations {}, selector, (err, [invite])=>
+  #       return callback err  if err
+  #       return callback new KodingError 'Invitation code is invalid!'  unless invite
+  #       delegate.fetchUser (err, user)=>
+  #         return callback err  if err
+  #         unless invite.type is 'multiuse' or user.email is invite.email
+  #           return callback new KodingError 'Are you sure invitation e-mail is for you?'
+
+  #         invite.redeem delegate, (err) =>
+  #           return callback err if err
+  #           @approveMember delegate, callback

@@ -10,8 +10,8 @@ import (
 )
 
 func (p *Provider) Lock(id string) error {
-	machine := &MachineDocument{}
-	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
+	machine := &Machine{}
+	err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
 		// we use findAndModify() to get a unique lock from the DB. That means only
 		// one instance should be responsible for this action. We will update the
 		// assignee if none else is doing stuff with it.
@@ -54,7 +54,7 @@ func (p *Provider) Lock(id string) error {
 }
 
 func (p *Provider) Unlock(id string) {
-	p.Session.Run("jMachines", func(c *mgo.Collection) error {
+	p.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{"assignee.inProgress": false}},

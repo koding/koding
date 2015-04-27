@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -19,7 +21,8 @@ func TestRenderChannel(t *testing.T) {
 	}
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
 	rand.Seed(time.Now().UnixNano())
 	account1, err := models.CreateAccountInBothDbs()

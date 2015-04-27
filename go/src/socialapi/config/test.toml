@@ -1,6 +1,19 @@
+proxyUrl           = "http://127.0.0.1:8090/api/social"
+port               = "7000"
+
+Mongo              = "localhost:27017/koding"
+Environment        = "test"
+Region             = "test"
+Hostname           = "http://lvh.me:8090"
+protocol           = "http:"
+eventExchangeName  = "BrokerMessageBus"
+disableCaching     = false
+debug              = false
+segment            = "kb2hfdgf20"
+
 [postgres]
 Host=     "localhost"
-Port=     5432
+Port=     "5432"
 Username= "socialapplication"
 Password= "socialapplication"
 DBName=   "social"
@@ -15,14 +28,6 @@ Vhost    = "/"
 [redis]
 URL = "localhost:6379"
 DB  = 0
-
-Mongo              = "localhost:27017/koding"
-
-Environment        = "test"
-
-Region             = "test"
-
-Hostname           = "http://lvh.me:8090"
 
 [email]
 Host            = "lvh.me:8090"
@@ -51,10 +56,6 @@ MessageBodyMinLen    = 1
 PostThrottleDuration = "10s"
 PostThrottleCount    = 100
 
-EventExchangeName ="BrokerMessageBus"
-DisableCaching    = false
-Debug             = false
-
 [stripe]
 secretToken = "sk_test_2ix1eKPy8WtfWTLecG9mPOvN"
 
@@ -67,7 +68,7 @@ CancelUrl = "/-/payments/paypal/cancel"
 
 [gatekeeper]
 host = "localhost"
-port = 7200
+port = "7200"
 
 [gatekeeper.pubnub]
 publishkey = "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6"
@@ -98,3 +99,4 @@ clientSecret = "1iNPDf8-F9bTKmX8OWXlkYra"
 serviceAccountEmail = "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com"
 serviceAccountKeyFile = "/pipeline/build/keys/googleapi-privatekey.pem"
 
+geoipdbpath = "/pipeline/build/go/data/geoipdb"

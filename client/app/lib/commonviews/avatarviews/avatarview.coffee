@@ -160,7 +160,7 @@ module.exports = class AvatarView extends LinkView
       {statusDiameter} = @getOptions()
 
       @addSubView @statusIndicator = new KDCustomHTMLView
-        cssClass : 'statusIndicator'
+        cssClass : 'statusIndicator hidden'
       @statusIndicator.setWidth statusDiameter
       @statusIndicator.setHeight statusDiameter
 

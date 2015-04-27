@@ -67,7 +67,6 @@ func (cue *channelUpdatedEvent) notifyAllParticipants() error {
 	}
 
 	if len(participants) == 0 {
-		cue.Controller.log.Notice("This channel (%d) doesnt have any participant but we are trying to send an event to it, please investigate", cue.Channel.Id)
 		return nil
 	}
 

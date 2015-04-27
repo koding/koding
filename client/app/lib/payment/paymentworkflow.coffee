@@ -14,11 +14,14 @@
 kd = require 'kd'
 KDController = kd.Controller
 PaymentDowngradeErrorModal = require './paymentdowngradeerrormodal'
+PaymentDowngradeWithDeletionModal = require './paymentdowngradewithdeletionmodal'
 PaymentConstants = require './paymentconstants'
 PaymentModal = require './paymentmodal'
-whoami = require '../util/whoami'
-showError = require '../util/showError'
+whoami = require 'app/util/whoami'
+showError = require 'app/util/showError'
 trackEvent = require 'app/util/trackEvent'
+_ = require 'lodash'
+ComputeHelpers = require 'app/providers/computehelpers'
 
 
 module.exports = class PaymentWorkflow extends KDController
@@ -36,7 +39,7 @@ module.exports = class PaymentWorkflow extends KDController
     super options, data
 
     @state = kd.utils.extend @getInitialState(), options.state
-    @startingPlan = @state.currentPlan
+    @startingState = _.extend {}, @state
 
     kd.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
@@ -104,8 +107,14 @@ module.exports = class PaymentWorkflow extends KDController
     paymentController.canChangePlan @state.planTitle, (err) =>
 
       if err?
-        @state.error = err
-        @modal = new PaymentDowngradeErrorModal { @state }
+        if @state.planTitle is PaymentConstants.planTitle.FREE
+          @modal = new PaymentDowngradeWithDeletionModal { @state }
+
+          @modal.on 'PaymentDowngradeWithDeletionSubmitted', @bound 'handeDowngradeWithDeletion'
+          @modal.on 'PaymentWorkflowFinished',               @bound 'finish'
+        else
+          @state.error = err
+          @modal = new PaymentDowngradeErrorModal { @state }
         return
 
       @startRegularFlow()
@@ -177,17 +186,7 @@ module.exports = class PaymentWorkflow extends KDController
 
   subscribeToPlan: (planTitle, planInterval, token, options) ->
 
-    { paymentController } = kd.singletons
-
-    me = whoami()
-    me.fetchEmail (err, email) =>
-
-      return @showError err  if err
-
-      options.email = email
-      options.provider = @state.provider
-
-      paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
+    @subscribeToPlanWithCallback planTitle, planInterval, token, options, (err, result) =>
 
         @modal.form.submitButton.hideLoader()
 
@@ -198,19 +197,43 @@ module.exports = class PaymentWorkflow extends KDController
           @modal.emit 'PaymentSucceeded'
           @trackPaymentSucceeded()
 
+
+  subscribeToPlanWithCallback: (planTitle, planInterval, token, options, callback = kd.noop) ->
+
+    { paymentController } = kd.singletons
+
+    me = whoami()
+    me.fetchEmail (err, email) =>
+
+      return @showError err  if err
+
+      options.email = email
+      options.provider = @state.provider
+
+      paymentController.subscribe token, planTitle, planInterval, options, callback
+
+
   trackPaymentSucceeded: ->
 
-    if @startingPlan is PaymentConstants.planTitle.FREE
-      trackEvent 'Account upgrade plan, success',
-        category : 'userInteraction'
-        action   : 'microConversions'
-        label    : 'upgradeFreeAccount'
+    unless @startingState.currentPlan is PaymentConstants.planTitle.FREE
+      return
 
-    me = whoami().getId()
+    trackEvent 'Account upgrade plan, success',
+      category : 'userInteraction'
+      action   : 'microConversions'
+      label    : 'upgradeFreeAccount'
+
     {planTitle, provider, planInterval} = @state
-
     planId  = "#{planTitle}-#{planInterval}"
-    orderId = "#{me}-#{planId}"
+
+    userId = whoami().getId()
+    orderId = "#{userId}-#{planId}"
+
+    {currentPlanInterval, monthPrice, yearPrice} = @state
+    if currentPlanInterval is PaymentConstants.planInterval.MONTH
+      amount = monthPrice
+    else
+      amount = yearPrice
 
     trackEvent 'Completed Order',
       orderId  : orderId
@@ -220,6 +243,9 @@ module.exports = class PaymentWorkflow extends KDController
         interval : planInterval
         category : provider
         quantity : 1
+        total    : amount
+        revenue  : amount
+        currency : 'USD'
     }]
 
 
@@ -243,6 +269,7 @@ module.exports = class PaymentWorkflow extends KDController
 
   finish: (state) ->
 
+    state.provider = @state.provider
     @emit 'PaymentWorkflowFinishedSuccessfully', state
 
     @modal.destroy()
@@ -253,3 +280,24 @@ module.exports = class PaymentWorkflow extends KDController
     @emit 'PaymentWorkflowFinishedWithError', state
 
     @destroy()
+
+
+  handeDowngradeWithDeletion: ->
+
+    { planTitle, planInterval } = @state
+
+    callback = (err) =>
+      return @modal.emit 'PaymentFailed', err  if err
+
+      @modal.emit 'DowngradingStarted'
+      @subscribeToPlanWithCallback planTitle, planInterval, 'a', { }, (err, result) =>
+        return @modal.emit 'PaymentFailed', err  if err
+
+        options =
+          provider: 'koding'
+          redirectAfterCreation: no
+        ComputeHelpers.handleNewMachineRequest options, =>
+          @modal.emit 'PaymentSucceeded'
+
+    @modal.emit 'DestroyingMachinesStarted'
+    ComputeHelpers.destroyExistingMachines callback, yes

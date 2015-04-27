@@ -1,9 +1,9 @@
 package models
 
 import (
-	"socialapi/workers/common/runner"
 	"testing"
 
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

@@ -18,6 +18,7 @@ AvatarView              = require 'app/commonviews/avatarviews/avatarview'
 Promise                 = require 'bluebird'
 emojify                 = require 'emojify.js'
 htmlencode              = require 'htmlencode'
+animatedRemoveMixin     = require 'activity/mixins/animatedremove'
 
 
 module.exports = class ActivityListItemView extends KDListItemView
@@ -216,52 +217,10 @@ module.exports = class ActivityListItemView extends KDListItemView
 
   partial: -> ''
 
-
-  hide: ->
-
-    @isBeingHidden = yes
-
-    @setClass 'half no-anim'
-    @isBeingHidden = no
-
-
-  delete: ->
-
-    @whenSubmitted().then =>
-
-      @unsetClass 'half no-anim'
-      @once 'transitionend', =>
-        @once 'transitionend', =>
-          @emit 'HideAnimationFinished'
-          @setClass 'hidden'
-
-        height  = @getHeight()
-        element = @getElement()
-        style   = global.getComputedStyle element
-        margins = ['margin-top', 'margin-bottom'].reduce (old, property) ->
-          calculated = parseInt (style.getPropertyValue property), 10
-          calculated = 0  if isNaN calculated
-          return old + calculated
-        , 0
-
-        @setCss 'margin-top', "-#{height + margins}px"
-
-      @setClass 'out'
-
-
-  show: ->
-
-    @unsetClass 'half no-anim out'
-
-    super
-
-
-  whenSubmitted: ->
-
-    new Promise (resolve) =>
-      if @isBeingHidden
-      then @once 'HideAnimationFinished', -> resolve()
-      else resolve()
+  delete               : animatedRemoveMixin.remove
+  hide                 : animatedRemoveMixin.hide
+  show                 : animatedRemoveMixin.show
+  whenRemovingFinished : animatedRemoveMixin.whenRemovingFinished
 
 
   render: ->
@@ -326,13 +285,19 @@ module.exports = class ActivityListItemView extends KDListItemView
 
   pistachio: ->
     @hasShowMoreMark = yes
+    location = "" 
+    if @getData().payload?.location?
+      location =  "<span class='location'> from #{@getData().payload.location}</span>"
+      
     """
     <div class="activity-content-wrapper">
       {{> @settingsButton}}
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        {{> @timeAgoView}} <span class="location hidden"> from San Francisco</span>
+        <div>    
+          {{> @timeAgoView}}#{location}
+        </div>
       </div>
       {{> @editWidgetWrapper}}
       {article.has-markdown{formatContent #(body)}}

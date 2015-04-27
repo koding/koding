@@ -7,7 +7,7 @@ globals = require 'globals'
 
 module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
-  SUPPORTED_PROVIDERS = ['koding']
+  SUPPORTED_PROVIDERS = ['koding', 'amazon']
 
   getProvider = (machineId)->
     kd.singletons.computeController.machinesById[machineId]?.provider
@@ -33,18 +33,20 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       @tell rpcMethod, payload
 
   @createApiMapping
-    stop         : 'stop'
-    start        : 'start'
-    build        : 'build'
-    event        : 'event'
-    reinit       : 'reinit'
-    resize       : 'resize'
-    restart      : 'restart'
-    destroy      : 'destroy'
-    setDomain    : 'domain.set'
-    addDomain    : 'domain.add'
-    unsetDomain  : 'domain.unset'
-    removeDomain : 'domain.remove'
+    stop           : 'stop'
+    start          : 'start'
+    build          : 'build'
+    event          : 'event'
+    reinit         : 'reinit'
+    resize         : 'resize'
+    restart        : 'restart'
+    destroy        : 'destroy'
+    setDomain      : 'domain.set'
+    addDomain      : 'domain.add'
+    unsetDomain    : 'domain.unset'
+    removeDomain   : 'domain.remove'
+    createSnapshot : 'createSnapshot'
+    deleteSnapshot : 'deleteSnapshot'
 
 
   constructor: (options) ->
@@ -123,7 +125,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
           computeController.invalidateCache machineId
           callback null
 
-      .timeout 5000
+      .timeout if managed then 10000 else 5000
 
       .catch (err)->
 

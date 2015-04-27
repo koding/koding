@@ -4,6 +4,8 @@ page_title: "Build an Image"
 prev_url: "/intro/getting-started/setup.html"
 next_url: "/intro/getting-started/provision.html"
 next_title: "Provision"
+description: |-
+  With Packer installed, let's just dive right into it and build our first image. Our first image will be an Amazon EC2 AMI with Redis pre-installed. This is just an example. Packer can create images for many platforms with anything pre-installed.
 ---
 
 # Build an Image
@@ -14,17 +16,14 @@ with Redis pre-installed. This is just an example. Packer can create images
 for [many platforms](/intro/platforms.html) with anything pre-installed.
 
 If you don't have an AWS account, [create one now](http://aws.amazon.com/free/).
-For the example, we'll use a "t1.micro" instance to build our image, which
+For the example, we'll use a "t2.micro" instance to build our image, which
 qualifies under the AWS [free-tier](http://aws.amazon.com/free/), meaning
 it will be free. If you already have an AWS account, you may be charged some
 amount of money, but it shouldn't be more than a few cents.
 
-<div class="alert alert-block alert-warn">
-<strong>Note</strong> that if you're not using an account that qualifies under
-the AWS <a href="http://aws.amazon.com/free/">free-tier</a>, you may be
-charged to run these examples. The charge should only be a few cents, but
-we're not responsible if it ends up being more.
-</div>
+-> **Note:** If you're not using an account that qualifies under the AWS
+free-tier, you may be charged to run these examples. The charge should only be
+a few cents, but we're not responsible if it ends up being more.
 
 Packer can build images for [many platforms](/intro/platforms.html) other than
 AWS, but AWS requires no additional software installed on your computer and
@@ -44,7 +43,7 @@ as machine generated templates to easily be made.
 We'll start by creating the entire template, then we'll go over each section
 briefly. Create a file `example.json` and fill it with the following contents:
 
-<pre class="prettyprint">
+```javascript
 {
   "variables": {
     "aws_access_key": "",
@@ -55,13 +54,13 @@ briefly. Create a file `example.json` and fill it with the following contents:
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
     "region": "us-east-1",
-    "source_ami": "ami-de0d9eb7",
-    "instance_type": "t1.micro",
+    "source_ami": "ami-9eaa1cf6",
+    "instance_type": "t2.micro",
     "ssh_username": "ubuntu",
     "ami_name": "packer-example {{timestamp}}"
   }]
 }
-</pre>
+```
 
 When building, you'll pass in the `aws_access_key` and `aws_secret_key` as
 a [user variable](/docs/templates/user-variables.html), keeping your secret
@@ -91,7 +90,7 @@ as well as the configuration values to verify they look valid. The output should
 look similar to below, because the template should be valid. If there are
 any errors, this command will tell you.
 
-```
+```text
 $ packer validate example.json
 Template validated successfully.
 ```
@@ -111,7 +110,7 @@ This is done by calling `packer build` with the template file. The output
 should look similar to below. Note that this process typically takes a
 few minutes.
 
-```
+```text
 $ packer build \
     -var 'aws_access_key=YOUR ACCESS KEY' \
     -var 'aws_secret_key=YOUR SECRET KEY' \
@@ -149,21 +148,22 @@ we only have a single artifact: the AMI in us-east-1 that was created.
 This AMI is ready to use. If you wanted you can go and launch this AMI
 right now and it would work great.
 
-<div class="alert alert-block alert-info">
-<strong>Note:</strong> Your AMI ID will surely be different than the
+-> **Note:** Your AMI ID will surely be different than the
 one above. If you try to launch the one in the example output above, you
 will get an error. If you want to try to launch your AMI, get the ID from
 the Packer output.
-</div>
 
 ## Managing the Image
 
 Packer only builds images. It does not attempt to manage them in any way.
 After they're built, it is up to you to launch or destroy them as you see
-fit. As a result of this, after running the above example, your AWS account
-now has an AMI associated with it.
+fit. If you want to store and namespace images for easy reference, you
+can use [Atlas by HashiCorp](https://atlas.hashicorp.com). We'll cover
+remotely building and storing images at the end of this getting started guide.
 
-AMIs are stored in S3 by Amazon, so unless you want to be charged about $0.01
+After running the above example, your AWS account
+now has an AMI associated with it. AMIs are stored in S3 by Amazon,
+so unless you want to be charged about $0.01
 per month, you'll probably want to remove it. Remove the AMI by
 first deregistering it on the [AWS AMI management page](https://console.aws.amazon.com/ec2/home?region=us-east-1#s=Images).
 Next, delete the associated snapshot on the

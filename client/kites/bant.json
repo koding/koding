@@ -3,5 +3,8 @@
   "main": "./lib/index.coffee",
   "routes": {
     "/:name?/Kites?/:username?/:kite?": "home"
-  }
+  },
+  "styles": [
+    "./lib/styl"
+  ]
 }

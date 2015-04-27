@@ -15,8 +15,9 @@ showError                        = require 'app/util/showError'
 AvatarView                       = require 'app/commonviews/avatarviews/avatarview'
 dateFormat                       = require 'dateformat'
 isMyPost                         = require 'app/util/isMyPost'
-remote                           = require('app/remote').getInstance()
-
+fetchAccount                     = require 'app/util/fetchAccount'
+ParticipantHeads                 = require './participantheads'
+ChannelParticipantsModel         = require 'activity/models/channelparticipants'
 
 
 module.exports = class PrivateMessagePane extends MessagePane
@@ -30,12 +31,6 @@ module.exports = class PrivateMessagePane extends MessagePane
     options.itemClass         or= PrivateMessageListItemView
 
     super options, data
-
-    # To keep track of who are the shown participants
-    # This way we are preventing to be duplicates
-    # on page even if events from backend come more than
-    # once.
-    @participantMap = {}
 
     @createPreviousLink()
     @createParticipantsView()
@@ -101,7 +96,6 @@ module.exports = class PrivateMessagePane extends MessagePane
 
     super channel
 
-    channel.on 'AddedToChannel', @bound 'addParticipant'
     channel.on 'RemovedFromChannel', @bound 'removeParticipant'
 
 
@@ -338,34 +332,12 @@ module.exports = class PrivateMessagePane extends MessagePane
     @input.on 'EditModeRequested', @bound 'editLastMessage'
 
 
-  addParticipant: (participant) ->
-
-    return  unless participant
-    return  if @participantMap[participant._id]?
-
-    participant.id = participant._id
-
-    @heads.addSubView avatar = new AvatarView
-      size      :
-        width   : 25
-        height  : 25
-      origin    : participant
-
-    @participantMap[participant._id] = avatar
-
-
   removeParticipant: (participant) ->
 
     return  unless participant
-    return  unless @participantMap[participant._id]?
 
-    remote.cacheable 'JAccount', participant._id, (err, account) =>
-
-      return warn err  if err
-
-      @participantMap[participant._id].destroy()
-      delete @participantMap[participant._id]
-
+    fetchAccount participant, (err, account) =>
+      return kd.warn err  if err
       @autoComplete.removeSelectedParticipant account
 
 
@@ -377,28 +349,41 @@ module.exports = class PrivateMessagePane extends MessagePane
     , @getData()
 
 
+  createActionsMenu: ->
+
+    @actionsMenu = new PrivateMessageSettingsView {}, @getData()
+    @forwardEvent @actionsMenu, 'LeftChannel'
+
+    return @actionsMenu
+
+
+  prepareParticipantsModel: ->
+
+    @participantsModel = new ChannelParticipantsModel { channel: @getData() }
+
+
+  createParticipantHeads: ->
+
+    @participantHeads = new ParticipantHeads
+
+
   createParticipantsView : ->
 
-    {participantsPreview} = @getData()
+    channel = @getData()
+
+    {participantsPreview} = channel
 
     @participantsView = new KDCustomHTMLView
       cssClass    : 'chat-heads'
       partial     : '<span class="description">Chat between</span>'
 
+    @prepareParticipantsModel()
+    @participantsView.addSubView @createActionsMenu()
+    @participantsView.addSubView @createParticipantHeads()
 
-    @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, @getData()
+    @participantHeads.on 'NewParticipantButtonClicked', @bound 'toggleAutoCompleteInput'
 
-    @forwardEvent @actionsMenu, 'LeftChannel'
-
-    @participantsView.addSubView @heads = new KDCustomHTMLView
-      cssClass    : 'heads'
-
-    @addParticipant participant for participant in participantsPreview
-
-    @participantsView.addSubView @newParticipantButton = new KDButtonView
-      cssClass    : 'new-participant'
-      iconOnly    : yes
-      callback    : @bound 'toggleAutoCompleteInput'
+    @participantsModel.addChangeListener @participantHeads.bound 'updateParticipants'
 
 
   toggleAutoCompleteInput: ->
@@ -406,7 +391,6 @@ module.exports = class PrivateMessagePane extends MessagePane
     @emit 'NewParticipantButtonClicked'
 
     @autoCompleteForm.toggleClass 'active'
-    @newParticipantButton.toggleClass 'active'
     @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
 
 
@@ -433,7 +417,9 @@ module.exports = class PrivateMessagePane extends MessagePane
 
     @autoCompleteForm.inputs.recipient.addSubView @autoComplete.getView()
 
-    @autoComplete.on 'ItemSelected', @bound 'toggleAutoCompleteInput'
+    @autoComplete.on 'ItemSelected', =>
+      @participantHeads.resetNewButtonState()
+      @toggleAutoCompleteInput()
 
     @autoComplete.on 'ItemListChanged', (count) =>
       participant  = @autoComplete.getSelectedItemData()[count - 1]

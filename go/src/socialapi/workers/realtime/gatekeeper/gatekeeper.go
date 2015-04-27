@@ -122,6 +122,7 @@ func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*mo
 
 	var cpr models.CheckParticipationResponse
 	err = json.NewDecoder(resp.Body).Decode(&cpr)
+	resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -150,6 +151,7 @@ func getAccountInfo(u *url.URL, header http.Header) (*models.Account, error) {
 
 	var a models.Account
 	err = json.NewDecoder(resp.Body).Decode(&a)
+	resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}

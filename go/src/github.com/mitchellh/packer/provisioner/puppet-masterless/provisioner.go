@@ -176,13 +176,10 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		errs = packer.MultiErrorAppend(errs,
 			fmt.Errorf("A manifest_file must be specified."))
 	} else {
-		info, err := os.Stat(p.config.ManifestFile)
+		_, err := os.Stat(p.config.ManifestFile)
 		if err != nil {
 			errs = packer.MultiErrorAppend(errs,
 				fmt.Errorf("manifest_file is invalid: %s", err))
-		} else if info.IsDir() {
-			errs = packer.MultiErrorAppend(errs,
-				fmt.Errorf("manifest_file must point to a file"))
 		}
 	}
 
@@ -193,7 +190,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 				fmt.Errorf("module_path[%d] is invalid: %s", i, err))
 		} else if !info.IsDir() {
 			errs = packer.MultiErrorAppend(errs,
-				fmt.Errorf("module_path[%d] must point to a directory"))
+				fmt.Errorf("module_path[%d] must point to a directory", i))
 		}
 	}
 
@@ -301,7 +298,7 @@ func (p *Provisioner) uploadHieraConfig(ui packer.Ui, comm packer.Communicator) 
 	defer f.Close()
 
 	path := fmt.Sprintf("%s/hiera.yaml", p.config.StagingDir)
-	if err := comm.Upload(path, f); err != nil {
+	if err := comm.Upload(path, f, nil); err != nil {
 		return "", err
 	}
 
@@ -325,7 +322,7 @@ func (p *Provisioner) uploadManifests(ui packer.Ui, comm packer.Communicator) (s
 
 	manifestFilename := filepath.Base(p.config.ManifestFile)
 	remoteManifestFile := fmt.Sprintf("%s/%s", remoteManifestsPath, manifestFilename)
-	if err := comm.Upload(remoteManifestFile, f); err != nil {
+	if err := comm.Upload(remoteManifestFile, f, nil); err != nil {
 		return "", err
 	}
 

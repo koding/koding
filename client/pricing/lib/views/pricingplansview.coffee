@@ -114,6 +114,8 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1GB RAM'        , cssClass: 'ram' }
       { partial: '3GB Total Disk' , cssClass: 'storage' }
       { partial: '0 Always on VM' , cssClass: 'always-on disabled' }
+      { partial: '' } # empty line for 'VM Sharing'
+      { partial: '' } # empty line for 'Static IP'
     ]
   ,
     title        : 'Hobbyist'
@@ -124,11 +126,13 @@ module.exports = class PricingPlansView extends KDView
     description  : 'Best for expanded learning or for running a small blog/website'
     cssClass     : 'hobbyist'
     planFeatures : [
-      { partial: '1 VM '          , cssClass: 'vm-count' }
-      { partial: '1 Core'         , cssClass: 'cpu' }
-      { partial: '1GB RAM'        , cssClass: 'ram' }
-      { partial: '10GB Total Disk', cssClass: 'storage' }
-      { partial: '1 Always on VM' , cssClass: 'always-on disabled' }
+      { partial: '1 VM '           , cssClass: 'vm-count' }
+      { partial: '1 Core'          , cssClass: 'cpu' }
+      { partial: '1GB RAM'         , cssClass: 'ram' }
+      { partial: '10GB Total Disk' , cssClass: 'storage' }
+      { partial: '1 Always on VM'  , cssClass: 'always-on disabled' }
+      { partial: 'VM Sharing'      , cssClass: 'share' }
+      { partial: 'Static IP'       , cssClass: 'static-ip' }
     ]
   ,
     title        : 'Developer'
@@ -144,6 +148,8 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1GB RAM each'    , cssClass: 'ram' }
       { partial: '25GB Total Disk' , cssClass: 'storage' }
       { partial: '1 Always on VM'  , cssClass: 'always-on' }
+      { partial: 'VM Sharing'      , cssClass: 'share' }
+      { partial: 'Static IP'       , cssClass: 'static-ip' }
     ]
   ,
     title        : 'Professional'
@@ -159,5 +165,7 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1GB RAM each'    , cssClass: 'ram' }
       { partial: '50GB Total Disk' , cssClass: 'storage' }
       { partial: '2 Always on VMs' , cssClass: 'always-on' }
+      { partial: 'VM Sharing'      , cssClass: 'share' }
+      { partial: 'Static IP'       , cssClass: 'static-ip' }
     ]
   ]

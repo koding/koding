@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
+
+	"github.com/koding/runner"
 
 	"github.com/jinzhu/now"
 	"github.com/koding/bongo"
@@ -39,13 +40,14 @@ func TestPopularPost(t *testing.T) {
 	defer r.Close()
 
 	// initialize mongo
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
 	// initialize redis
-	helper.MustGetRedisConn()
+	runner.MustGetRedisConn()
 
 	// initialize popular post controller
-	controller := New(r.Log, helper.MustInitRedisConn(r.Conf))
+	controller := New(r.Log, runner.MustInitRedisConn(r.Conf))
 
 	Convey("Given group, channelname and time to keyname", t, func() {
 		keyname := &KeyName{

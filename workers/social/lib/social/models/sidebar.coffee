@@ -10,44 +10,50 @@ KodingError = require '../error'
 
 module.exports = class Sidebar extends bongo.Base
 
+  {revive} = require './computeproviders/computeutils'
+
   @share()
 
   @set
-    sharedMethods:
-      static:
-        fetchEnvironment: (signature Function)
+    sharedMethods        :
+      static             :
+        fetchEnvironment : (signature Function)
 
 
-  @fetchEnvironment = secure (client, callback) ->
+  @fetchEnvironment = secure revive
 
-    data =
-      own: []
-      shared: []
-      collaboration: []
+    shouldReviveClient   : yes
+    shouldReviveProvider : no
+    hasOptions           : no
 
-    client.connection.delegate.fetchUser (err, user) ->
+  , (client, callback)->
 
+    data            =
+      collaboration : []
+      shared        : []
+      own           : []
+
+    {r: {user, group}} = client
+
+    query =
+      'users.id'  : user.getId()
+      'groups.id' : group.getId()
+
+    JMachine.some query, {}, (err, machines) ->
       return callback new KodingError err  if err
 
-      return callback new KodingError {message: "[Sidebar::fetchEnvironment] user not found"}  unless user
+      machineUIds = machines.map (machine) -> machine.uid
+      JWorkspace.some machineUId: $in: machineUIds, {}, (err, workspaces) ->
 
-      query = 'users.id': user.getId()
-
-      JMachine.some query, {}, (err, machines) ->
         return callback new KodingError err  if err
 
-        machineUIds = machines.map (machine) -> machine.uid
-        JWorkspace.some machineUId: $in: machineUIds, {}, (err, workspaces) ->
+        options = {client, user, machines, workspaces, callback}
+        options.addOwnFn = makeEnvironmentNodeAdderFn data.own
+        options.addSharedFn = makeEnvironmentNodeAdderFn data.shared
+        options.addCollaborationFn = makeEnvironmentNodeAdderFn data.collaboration
+        options.callback = -> callback null, data
 
-          return callback new KodingError err  if err
-
-          options = {client, user, machines, workspaces, callback}
-          options.addOwnFn = makeEnvironmentNodeAdderFn data.own
-          options.addSharedFn = makeEnvironmentNodeAdderFn data.shared
-          options.addCollaborationFn = makeEnvironmentNodeAdderFn data.collaboration
-          options.callback = -> callback null, data
-
-          decorateEnvironmentData options
+        decorateEnvironmentData options
 
 
   makeEnvironmentNodeAdderFn = (list) ->
@@ -102,7 +108,7 @@ module.exports = class Sidebar extends bongo.Base
 
           return  unless err
           console.error \
-            new KodingError "Sidebar decorate environment data: #{err}"
+            new KodingError "Sidebar decorate environment data: #{JSON.stringify err}"
 
         makeSuccessFn = (fn) ->
 

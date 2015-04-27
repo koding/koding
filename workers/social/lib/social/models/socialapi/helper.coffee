@@ -60,6 +60,7 @@ doRequest = (funcName, client, options, callback)->
       options.accountNickname = nickname
       options.showExempt    or= delegate.isExempt
       options.sessionToken  or= client.sessionToken
+      options.clientIP        = client.clientIP
 
       bareRequest funcName, options, callback
 

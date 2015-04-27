@@ -1,15 +1,33 @@
-kd             = require 'kd'
-_              = require 'lodash'
-OpenTokService = require './services/opentok'
+kd              = require 'kd'
+_               = require 'lodash'
+getNick         = require 'app/util/nick'
+isMyChannel     = require 'app/util/isMyChannel'
+
+OpenTokService  = require './services/opentok'
+ParticipantType = require './types/participant'
+ViewModel       = require './viewmodel'
+helper          = require './helper'
 
 module.exports = class VideoCollaborationModel extends kd.Object
 
+  defaultState:
+    audio               : off
+    video               : off
+    publishing          : off
+    active              : no
+    connected           : no
+    maxConnectionCount  : 999
+    activeParticipant   : null
+    selectedParticipant : null
+    connectionCount     : 0
+
   # @param {SocialChannel} options.channel
+  # @param {BaseChatVideoView} options.view
   constructor: (options = {}, data) ->
 
     super options, data
 
-    @_service = OpenTokService.getInstance()
+    @state = _.assign {}, @defaultState, options.state
 
     { @channel, @view } = options
 
@@ -18,184 +36,518 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @stream      = null
     @subscribers = {}
 
+    # attach this model and the view into a view model, it can track the model
+    # for necessary events and reacts to it.
+    @_videoModel = new ViewModel { @view, model: this }
+
+    # instantiate the service and when it's ready, start this model's
+    # intitalization process.
+    @_service = OpenTokService.getInstance()
     @_service.whenReady @bound 'init'
 
 
+  ###*
+   * Returns the view.
+   *
+   * @return {KDView} view
+  ###
   getView: -> @view
+
+
+  ###*
+   * Returns the channel.
+   *
+   * @return {SocialChannel} channel
+  ###
   getChannel: -> @channel
 
 
+  isMySession: -> isMyChannel @channel
+
+
   ###*
-   * Gives the initial kick-off for video-chat process.
+   * Connects to service, then delegates to necessary method.
    *
-   * @param {Function=} callback
-   * @listens OpenTokService~SessionCreated
+   * TODO: Error Handling.
   ###
-  init: (callback = kd.noop) ->
+  init: ->
 
-    @_service.on 'SessionCreated', @bound 'handleSessionCreated'
-
-    @_service.connect @channel
-    @subscribe()
-
-
-  ###*
-   * Starts publishing video.
-   *
-   * It ensures that OpenTokService instance
-   * is ready to work via its whenReady method.
-   * The options argument is just a convinient way to extend
-   * publisher options when starting publishing.
-   * `OpenTokService#createPublisher` has necessary defaults already.
-   *
-   * @param {Object=} options - publisher options to be passed.
-   * @listens OpenTokService~CameraAccessAllowed
-   * @listens OpenTokService~CameraAccessDenied
-   * @listens OpenTokService~CameraQuestionAsked
-   * @listens OpenTokService~CameraQuestionAnswered
-   * @listens OpenTokService~StreamDestroyed
-  ###
-  startPublishing: (options) -> @_service.whenReady =>
-
-    @_service
-      .on 'CameraAccessAllowed',          @view.bound 'show'
-      .on 'CameraAccessDenied',           @view.bound 'hide'
-      .on 'CameraAccessQuestionAsked',    @view.bound 'showAccessModal'
-      .on 'CameraAccessQuestionAnswered', @view.bound 'hideAccessModal'
-      .on 'StreamDestroyed',              @bound 'handleStreamDestroyed'
-
-    @publisher = @_service.createPublisher @view.getElement(), options
-
-    @session.publish @publisher, (err) =>
-
-      return warn { message: 'Publishing error.' }  if err
-
-      { @stream } = @publisher
-      me = KD.nick()
-
-      @fixParticipantVideo subscriber  for _, subscriber of @subscribers
-      @switchTo me
+    @_service.connect @channel,
+      success : @bound 'handleSessionConnected'
+      error   : (err) -> console.error err
 
 
   ###*
-   * Subscribes to channel video session.
-   *
-   * It ensures that OpenTokService instance is ready.
-   *
-   * @listens OpenTokService~NewSubscriber
-  ###
-  subscribe: -> @_service.whenReady =>
-
-    @_service.on 'NewSubscriber', @bound 'handleNewSubscriber'
-
-    @_service.subscribeToVideoUpdates @channel, @view
-
-
-  ###*
-   * Session creation handler.
+   * Handler for session connected.
+   * Binds the session, session events and updates the state.
    *
    * @param {OT.Session} session
+   * @emits VideoCollaborationModel~SessionConnected
   ###
-  handleSessionCreated: (session) ->
+  handleSessionConnected: (session) ->
 
     @session = session
+    @bindSessionEvents session
+    @setState { connected: yes }
+    @emit 'SessionConnected', session
+
+    @enableVideo { error: (err) => console.error err }  if helper.isVideoActive @channel
 
 
   ###*
-   * New subscriber handler.
-   * It sets a value with the nickname of
-   * user in the `subscribers` object.
+   * Registers callbacks for service events.
    *
-   * @param {OT.Subscriber} subscriber
+   * @param {OT.Session} session
+   * @listens OT.Session~streamCreated
+   * @listens OT.Session~streamDestroyed
+   * @listens OT.Session~connectionCreated
+   * @listens OT.Session~sessionDisconnected
+   * @emits VideoCollaborationModel~HostKickedLoggedInUser
+   * @emits VideoCollaborationModel~VideoCollaborationEnded
+   * @emits VideoCollaborationModel~VideoCollaborationEndedByNetwork
   ###
-  handleNewSubscriber: (subscriber) ->
+  bindSessionEvents: (session) ->
 
-    { nick, video } = subscriber
+    session.on 'streamCreated', (event) =>
+      @subscribeToStream session, event.stream
+
+    session.on 'streamDestroyed', (event) =>
+      { connection } = event.stream
+      @setParticipantLeft connection.connectionId
+
+    session.on 'connectionCreated', (event) =>
+      count = @state.connectionCount
+      @setState { connectionCount: count + 1 }
+
+    session.on 'connectionDestroyed', (event) =>
+      count = @state.connectionCount
+      @setState { connectionCount: count - 1 }
+
+    session.on 'sessionDisconnected', (event) =>
+      @setState { connected: no }
+      eventName = switch event.reason
+        when 'forceDisconnected'   then 'HostKickedLoggedInUser'
+        when 'clientDisconnected'  then 'VideoCollaborationEnded'
+        when 'networkDisconnected' then 'VideoCollaborationEndedByNetwork'
+
+      @emit eventName
+
+    session.on 'signal:end', =>
+      # when a signal comes here it means that it could have reached to other
+      # users and because of that at this stack we may have extra
+      # `streamDestroyed` events. Since stopPublishing will trigger the events
+      # that eventually nullify the publisher in this stack, this defer tries
+      # to overcome that problem. ~Umut
+      kd.utils.defer => @stopPublishing
+        success : @bound 'handleStopSuccess'
+        error   : (err) -> console.error err
+
+    session.on 'signal:start', => @enableVideo { error: (err) => console.error err }
+
+    # this event only comes to the user who has been muted, so need to make a
+    # filtering here.
+    session.on 'signal:mute', => @setAudioState off
+
+
+  subscribeToStream: (session, stream) ->
+
+    helper.subscribeToStream session, stream, @getView().getContainer(),
+      success : (subscriber) => @setParticipantJoined stream.name, subscriber
+      error   : (err) -> console.error err
 
 
   ###*
-   * Stream destroy handler. Sets back some defaults.
-   * TODO: Destroy maybe?
+   * Initial call to startPublishing method. `startPublishing` is stateless.
+   * This method handles initial automatic publishing with setting some default
+   * options for host, and participant to be different.
+   *
+   * @param {object} callbacks
   ###
-  handleStreamDestroyed: (event) ->
+  enableVideo: (callbacks) ->
+
+    options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+    success = (publisher) =>
+      @handlePublishSuccess publisher
+      callbacks.success? publisher
+
+    @setActive()
+
+    @startPublishing options,
+      success : success
+      error   : callbacks.error
+
+
+  ###*
+   * Creates a `ParticipantType.Subscriber` instance and it caches it with `connectionId`
+   * into `subscribers` map.
+   *
+   * @param {string} nick
+   * @param {string} connectionId
+   * @param {OT.Subscriber} subscriber
+   * @return {ParticipantType.Subscriber} _subscriber
+  ###
+  registerSubscriber: (nick, connectionId, subscriber) ->
+
+    _subscriber = new ParticipantType.Subscriber nick, subscriber
+    @subscribers[connectionId] = _subscriber
+
+    _subscriber.on 'TalkingDidStart', =>
+      @emit 'ParticipantStartedTalking', nick
+      @changeActiveParticipant nick  unless @state.selectedParticipant
+
+    _subscriber.on 'TalkingDidStop', =>
+      @emit 'ParticipantStoppedTalking', nick
+
+    return _subscriber
+
+
+  ###*
+   * Unregisters the subscriber from `subscribers` map.
+   *
+   * @param {strong} connectionId
+  ###
+  unregisterSubscriber: (connectionId) -> @subscribers[connectionId] = null
+
+
+  ###*
+   * Transforms given publisher instance from OpenTok into our own
+   * `ParticipantType.Publisher` class instance and it registers it into model's
+   * participant property.. It sets the model's stream instance to publisher's
+   * stream for easy access.
+   *
+   * @param {OT.Publisher} publisher
+   * @return {ParticipantType.Publisher} _publisher
+  ###
+  registerPublisher: (publisher) ->
+
+    @publisher = _publisher = new ParticipantType.Publisher getNick(), publisher
+    @stream    = _publisher.stream
+
+    _publisher.on 'TalkingDidStart', =>
+      return  unless @state.audio
+      @emit 'ParticipantStartedTalking', getNick()
+
+    _publisher.on 'TalkingDidStop', =>
+      return  unless @state.active
+      @emit 'ParticipantStoppedTalking', getNick()
+
+    return _publisher
+
+
+  ###*
+   * Unregister publisher and stream.
+  ###
+  unregisterPublisher: ->
 
     @publisher = null
+    @stream = null
 
 
   ###*
-   * Returns all the participants including the publisher(Logged in user).
+   * Action to trigger activation of video collaboration.
+   * If given publisher is `null` it means that the video collaboration started
+   * without the user publishing his/her video. It's not a concern of neither
+   * this method's nor this entire class, because simply it will emit an event
+   * with given publisher and it will change set the state to active.
+   * This method doesn't try to activate session, instead this is the final
+   * step of activation of video collaboration session.
    *
-   * @return {Object} participants
+   * @emits VideoCollaborationModel~VideoCollaborationActive
   ###
-  getParticipants: ->
+  setActive: ->
+    return  if @state.active
 
-    participants = _.assign {}, @subscribers
-    participants[KD.nick()] = { video: @publisher }
-
-    return participants
+    @setState { active: yes }
+    @emit 'VideoCollaborationActive', @publisher
 
 
   ###*
-   * Switch to given users video feed.
+   * Action to trigger ending process of video collaboration.
+   * !!! It doesn't stop the session itself, this and other methods starting
+   * with `set` prefix are meant to be called to trigger events for views and
+   * state transitions. This is the final step of ending a session.
    *
-   * @param {String} nick
+   * @emits VideoCollaborationModel~VideoCollaborationEnded
   ###
-  switchTo: (nick) ->
+  setEnded: ->
+    return  unless @state.active
 
-    return  unless participant = @getParticipants()[nick]
-
-    @hideAll()
-    @showParticipant participant
+    @setState { active: no }
+    @emit 'VideoCollaborationEnded'
 
 
   ###*
-   * Hides all video feeds.
-  ###
-  hideAll: ->
-
-    @hideParticipant participant  for own _, participant of @getParticipants()
-
-
-  ###*
-   * Hides given participant's video feed.
+   * Registers given OT.Subscriber to subscribers object. It gets the necessary
+   * connectionId information from subscriber object.
    *
-   * @param {OT.Subscriber|OT.Publisher} participant
+   * @param {string} nick
+   * @param {OT.Subscriber} subscriber
+   * @return {ParticipantType.Subscriber} _participant
+   * @emits VideoCollaborationModel~ParticipantJoined
   ###
-  hideParticipant: (participant) ->
+  setParticipantJoined: (nick, subscriber) ->
 
-    { video } = participant
-    video.element.style.display = 'none'
+    { connectionId } = subscriber.stream.connection
+    _participant = @registerSubscriber nick, connectionId, subscriber
+    @emit 'ParticipantJoined', _participant
+
+    return _participant
 
 
   ###*
-   * Shows given participant's video feed.
+   * Unregisters participant from subscribers object.
+   * It uses given connectionId to do this.
    *
-   * @param {OT.Subscriber|OT.Publisher} participant
+   * @param {string} connectionId - participant's stream's connection id.
+   * @return {ParticipantType.Subscriber} _participant
+   * @emits VideoCollaborationModel~ParticipantLeft
   ###
-  showParticipant: (participant) ->
+  setParticipantLeft: (connectionId) ->
 
-    { element } = participant.video
-    element.style.display = 'block'
+    return  unless _participant = @subscribers[connectionId]
+    @unregisterSubscriber connectionId
 
-    @fixParticipantVideo participant
+    { nick } = _participant
+    @emit 'ParticipantLeft', {nick}
+
+    # if leaving participant is selected or active participant
+    if @state.activeParticipant is nick
+      @changeActiveParticipant getNick()
+      if @state.selectedParticipant is nick
+        @setSelectedParticipant null
+
+    return _participant
 
 
   ###*
-   * This is a convinient method.
-   * This is probably wrong but the way openTok sessions
-   * are working makes all subscriber videos invisible.
-   * This method's pure existence is to support it.
-   * p.s.: 173 is weird.
+   * Action for starting VideoCollaboration session.
    *
-   * @param {OT.Subscriber|OT.Publisher} participant
+   * @param {object} options
   ###
-  fixParticipantVideo: (participant) ->
+  start: (options) ->
 
-    { video } = participant
+    helper.enableVideo @channel, (err) =>
+      return console.error err  if err
+      @_service.sendSessionStartSignal @channel, (err) ->
+        return console.error err  if err
 
-    KD.utils.wait 173, ->
-      vElement = video.videoElement()
-      vElement.style.left   = '-14px'
-      vElement.style.height = '265px'
-      vElement.style.width  = '355px'
+
+  ###*
+   * Action for ending VideoCollaborationSession. Only can be called from
+   * admins of this session.
+  ###
+  end: ->
+
+    helper.disableVideo @channel, (err) =>
+      return console.error err  if err
+      @_service.sendSessionEndSignal @channel, (err) ->
+        return console.error err  if err
+
+
+  ###*
+   * Action for muting a participant. Sends the signal, the rest will be
+   * handled by the `signal:mute` handler.
+   *
+   * @param {string} nickname
+  ###
+  muteParticipant: (nickname) ->
+
+    return  unless participant = @getParticipant nickname
+
+    @_service.sendMuteSignal @channel, participant, (err) ->
+      return console.log err  if err
+
+
+  ###*
+   * Set audio state to given state.
+   *
+   * @param {boolean} state
+  ###
+  setAudioState: (state) ->
+
+    @publisher.videoData.publishAudio state
+    @setState { audio: state }
+    @emit 'AudioPublishStateChanged', state
+
+
+  ###*
+   * Set video state to given state.
+   *
+   * @param {boolean} state
+  ###
+  setVideoState: (state) ->
+
+    @publisher.videoData.publishVideo state
+    @setState { video: state }
+    @emit 'VideoPublishStateChanged', state
+
+
+  ###*
+   * Handler for successful video publishing. It transforms and registers given
+   * `OT.Publisher` instance. Sets active participant to user.
+   *
+   * @param {OT.Publisher} publisher
+  ###
+  handlePublishSuccess: (publisher) ->
+
+    @registerPublisher publisher
+    @setState { publishing: on }
+
+    @changeActiveParticipant getNick()
+
+
+  ###*
+   * Handler for successful video stopping.
+  ###
+  handleStopSuccess: ->
+
+    @setState { publishing: off }
+    @setEnded()
+
+
+  ###*
+   * Starts publishing. It enables video and audio depending on the state
+   * variables. That extension over state with given options object provides a
+   * convinient way to extend the defaults to be passed into service. It can be
+   * forced to open video or audio with options.
+   *
+   * @param {object} options
+   * @param {boolean} options.publishAudio
+   * @param {boolean} options.publishVideo
+   * @param {function(publisher: OT.Publisher)} callbacks.success
+   * @param {function(error: object)} callbacks.error
+  ###
+  startPublishing: (options, callbacks) ->
+    return  if @state.publishing
+
+    defaults =
+      publishAudio: no
+      publishVideo: no
+
+    # first create publisher with defaults.
+    helper.createPublisher @view.getContainer(), defaults, (err, publisher) =>
+      return callbacks.error err  if err
+
+      publisher.on
+        accessAllowed      : => @emit 'CameraAccessAllowed'
+        accessDenied       : => @emit 'CameraAccessDenied'
+        accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
+        accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
+
+      publisher.on 'streamDestroyed', => @unregisterPublisher()
+
+      @session.publish publisher, (err) =>
+        return callbacks.error err  if err
+        callbacks.success publisher
+        @setAudioState options.publishAudio
+        @setVideoState options.publishVideo
+
+
+  ###*
+   * It delegates to necessary methods from service to stop session, and then
+   * calls given callbacks in certain situations.
+   *
+   * @param {function(err: object)} callbacks.error
+   * @param {function} callbacks.success
+  ###
+  stopPublishing: (callbacks) ->
+
+    @_service.destroyPublisher @channel, @publisher, (err) ->
+      return callbacks.error err  if err
+      callbacks.success()
+
+
+  ###*
+   * Changes active user defensively.
+   *
+   * @param {string} nick
+   * @emits VideoCollaboration~ActiveParticipantChanged
+  ####
+  changeActiveParticipant: (nick) ->
+
+    return  unless @state.active
+    return  unless @isParticipantOnline nick
+
+    @setState { activeParticipant: nick }
+
+    @emit 'ActiveParticipantChanged', nick
+
+
+  ###*
+   * Change both active and selected users. It's being used for locking
+   * selected participant's video so that automatic video switching (e.g Audio
+   * level changed) could be prevented.
+   *
+   * @param {string} nick
+  ###
+  changeSelectedParticipant: (nick) ->
+
+    @setSelectedParticipant nick
+    @changeActiveParticipant nick
+
+
+  ###*
+   * Sets state's selected participant to given nick. If nick is null, that
+   * means that user is clicked twice.
+   *
+   * @param {string} nick
+  ###
+  setSelectedParticipant: (nick) ->
+
+    unless isOnline = @isParticipantOnline nick
+      @emit 'SelectedParticipantChanged', nick, no
+      return
+
+    nick = null  if @state.selectedParticipant is nick
+
+    @setState { selectedParticipant: nick }
+    @emit 'SelectedParticipantChanged', nick, yes
+
+
+  isParticipantOnline: (nickname) -> @getParticipant(nickname)?
+
+
+  ###*
+   * Public access method for all participants. Just because internally the
+   * subscribers are cached with `connectionId` instead of `nickname`s of
+   * subscribers/publisher, we are first transforming the subscribers and merge
+   * it with publisher instance to create a unified subscribers/publisher map.
+   *
+   * @return {object<nickname: string, ParticipantType.Participant>} participants
+  ###
+  getParticipants: -> helper.toNickKeyedMap @subscribers, @publisher
+
+
+  ###*
+   * Return `ParticipantType.Participant` instance of participant with given nickname.
+   *
+   * @param {string} nick
+   * @return {ParticipantType.Participant} participant
+  ###
+  getParticipant: (nick) -> @getParticipants()[nick]
+
+
+  ###*
+   * Merges instance state with given state.
+   *
+   * @param {object} _state
+   * @return {object} state
+  ###
+  setState: (state) -> @state = _.assign {}, @state, state
+
+
+  ###*
+   * Check to see if participant with given nickname, and calls the callback
+   * with result.
+   *
+   * @param {string} nickname
+   * @param {function(hasAudio: boolean)} callback
+  ###
+  hasParticipantWithAudio: (nickname, callback) ->
+    return callback no  unless @state.active
+
+    if participant = @getParticipant nickname
+    then callback participant.videoData.stream.hasAudio
+    else callback no
+
 

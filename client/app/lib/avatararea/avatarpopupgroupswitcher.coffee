@@ -220,6 +220,15 @@ module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
         kd.getSingleton("router").handleRoute "/Dashboard"
         @hide()
 
+    @avatarPopupContent.addSubView adminLink = new KDCustomHTMLView
+      tagName  : "a"
+      cssClass : "bottom hidden"
+      partial  : "Team Settings"
+      click    : (event) =>
+        kd.utils.stopDOMEvent event
+        kd.getSingleton("router").handleRoute "/Admin"
+        @hide()
+
     # FIXME:
     groupsController.ready ->
       group = groupsController.getCurrentGroup()
@@ -227,6 +236,7 @@ module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
         kd.utils.defer => setGroupWrapperStyle()
         return  unless success
         dashboardLink.show()
+        adminLink.show()
 
     cookieName = "kdproxy-usehttp"
     if (kookies.get cookieName) is "1"

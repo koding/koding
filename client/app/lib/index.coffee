@@ -1,20 +1,20 @@
 # Make sure none of these modules are calling remote#getInstance before this file. -og
-globals = require 'globals'
-kookies = require 'kookies'
-getscript = require 'getscript'
-Promise = require 'bluebird'
-kd = require 'kd'
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
+globals                = require 'globals'
+kookies                = require 'kookies'
+kd                     = require 'kd'
+KDModalView            = kd.ModalView
+KDNotificationView     = kd.NotificationView
 getFullnameFromAccount = require './util/getFullnameFromAccount'
-socketConnected = require './util/socketConnected'
-enableLogs = require './util/enableLogs'
-whoami = require './util/whoami'
-ConnectionChecker = require './connectionchecker'
-lazyrouter = require './lazyrouter'
-setupAnalytics = require './setupanalytics'
+socketConnected        = require './util/socketConnected'
+enableLogs             = require './util/enableLogs'
+whoami                 = require './util/whoami'
+ConnectionChecker      = require './connectionchecker'
+lazyrouter             = require './lazyrouter'
+setupAnalytics         = require './setupanalytics'
+os                     = require 'os'
 
 isStarted = false
+
 
 module.exports = (defaults) ->
 
@@ -32,14 +32,21 @@ bootup = ->
   remote = require('./remote').getInstance()
   # it is very important that you invoke this method before anything else does, so f important.
 
+  globals.os = os # linux, mac or windows
+  globals.keymapType = do ->
+    if globals.os is 'mac' then globals.os else 'win'
+
   if globals.config.environment in ['dev', 'sandbox']
     global._kd      = kd
     global._remote  = remote
-    global._globals = globals
+
+  if globals.currentGroup?
+    globals.config.entryPoint.slug = globals.currentGroup.slug
 
   remote.once 'ready', ->
-    globals.currentGroup = remote.revive globals.currentGroup
-    globals.userAccount  = remote.revive globals.userAccount
+    globals.currentGroup           = remote.revive globals.currentGroup
+    globals.userAccount            = remote.revive globals.userAccount
+    globals.config.entryPoint.slug = globals.currentGroup.slug
 
     setupAnalytics()
 
@@ -157,12 +164,15 @@ bootup = ->
 
   return true
 
+
 initialize = (defaults, next) ->
-  apps_ = globals.config.apps
 
   kd.utils.extend globals, defaults
 
-  globals.config.apps = apps_
+  globals.config.apps = globals.modules.reduce (acc, app) ->
+    acc[app.name] = app
+    return acc
+  , {}
 
   lazyrouter.register globals.modules
 
@@ -174,16 +184,3 @@ initialize = (defaults, next) ->
   enableLogs logsEnabled
 
   next()
-
-  #scripts = globals.externals.filter (external) -> external.autoload is true
-    #.map (external) ->
-      #if external.file
-        #return globals.baseurl + '/' + external.file
-      #return external.uri
-
-  #Promise.all scripts.map (uri) ->
-    #new Promise (resolve) ->
-      #getscript uri, (err, res) ->
-        #throw err  if err
-        #resolve()
-  #.then next

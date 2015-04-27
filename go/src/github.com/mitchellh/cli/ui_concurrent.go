@@ -38,3 +38,10 @@ func (u *ConcurrentUi) Output(message string) {
 
 	u.Ui.Output(message)
 }
+
+func (u *ConcurrentUi) Warn(message string) {
+	u.l.Lock()
+	defer u.l.Unlock()
+
+	u.Ui.Warn(message)
+}

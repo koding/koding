@@ -4,6 +4,7 @@
 argv       = require('minimist')(process.argv.slice(2))
 log        = console.log
 fs         = require 'fs'
+path       = require 'path'
 os         = require 'os'
 request    = require 'request'
 git        = require 'git-rev'
@@ -45,7 +46,6 @@ rest = ->
 
   KONFIG = require("./config/main.#{o.config}.coffee")(options)
 
-
   createRunFile = (KONFIG)->
 
     fs.writeFileSync "run",KONFIG.runFile
@@ -68,17 +68,27 @@ rest = ->
     log "3) brew install mongodb nginx"
     log "4) do './run install' "
     log "5) do './run buildservices' to create backend service containers after installing docker."
-    log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{options.publicHostname}.ngrok.com"
+    log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{process.env.USER}.ngrok.com"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
+  # write revision to client/.config.json
+  writeVersion = (obj) ->
+    file = __dirname + '/client/.config.json'
+    config = if fs.existsSync file then require file else {}
+    config.rev = obj.client.version
+    fs.writeFileSync file, JSON.stringify config
+    console.log "written #{file}"
+
   createRunFile KONFIG
+  writeVersion KONFIG
+
 
 git.long (str) ->
   if str != ""
     version = str.substring 0, 8
   else
-    version = try (fs.readFileSync (require 'path').join(__dirname, './VERSION'), 'utf-8').trim()
+    version = try (fs.readFileSync path.join(__dirname, './VERSION'), 'utf-8').trim()
 
   if argv.hostname
     options.hostname       = argv.hostname

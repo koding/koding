@@ -135,7 +135,7 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
     switch operation
       when UPGRADE
-        @setTitle 'Congratulations! Upgrade successful'
+        @setTitle 'Congratulations! Upgrade successful.'
         @setSubtitle 'Your account has been upgraded to the plan below.'
       when INTERVAL_CHANGE
         @setTitle 'Billing cycle changed'

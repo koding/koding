@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"testing"
 
@@ -52,4 +53,23 @@ func TestCustomer2(t *testing.T) {
 			})
 		}),
 	)
+}
+
+func TestCustomer3(t *testing.T) {
+	Convey("Given an existing customer", t, func() {
+		token, accId, email := generateFakeUserInfo()
+
+		customer, err := CreateCustomer(token, accId, email)
+		So(err, ShouldBeNil)
+
+		Convey("Then it should delete customer in Stripe", func() {
+			deleteCustomer(customer)
+
+			c, err := GetCustomer(customer.ProviderCustomerId)
+			So(c.Cards, ShouldBeNil)
+
+			_, err = paymentmodels.NewCustomer().ByOldId(accId)
+			So(err, ShouldEqual, paymenterrors.ErrCustomerNotFound)
+		})
+	})
 }

@@ -3,7 +3,6 @@ kd = require 'kd'
 KDObject = kd.Object
 doesQueryStringValid = require '../util/doesQueryStringValid'
 nick = require '../util/nick'
-#FSItem = require '../util/fs/fsitem'
 globals = require 'globals'
 
 
@@ -22,6 +21,7 @@ module.exports = class Machine extends KDObject
     'Terminated'      # Machine is destroyed, does not exist anymore
     'Updating'        # Machine is being updated by provisioner
     'Pending'         # Machine is being resized by provisioner
+    'Snapshotting'    # Machine is snapshotting
     'Unknown'         # Machine is in an unknown state
                       # needs to be resolved manually
   }
@@ -41,8 +41,7 @@ module.exports = class Machine extends KDObject
     @updateLocalData()
 
     @fs =
-      # TODO: add options check
-      create : (options, callback)=>
+      create: (options = {}, callback) =>
         options.machine = this
         require('../util/fs/fsitem').create options, callback
 
@@ -135,3 +134,4 @@ module.exports = class Machine extends KDObject
   isApproved  : -> @isMine() or @_ruleChecker ['approved']
   isPermanent : -> @_ruleChecker ['permanent']
   isManaged   : -> @provider is 'managed'
+  isRunning   : -> @status.state is Machine.State.Running

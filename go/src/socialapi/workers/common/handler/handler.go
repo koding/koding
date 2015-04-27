@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"time"
 
+	"koding/tools/utils"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
@@ -16,7 +18,9 @@ import (
 	"strings"
 
 	"github.com/juju/ratelimit"
+	"github.com/koding/bongo"
 	kmetrics "github.com/koding/metrics"
+	"github.com/koding/runner"
 
 	tigertonic "github.com/rcrowley/go-tigertonic"
 
@@ -43,6 +47,10 @@ type Request struct {
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
+
+	// Securer holds the secure functions for handlers
+	Securer interface{}
+
 	// used for external requests
 	Params    map[string]string
 	Cookie    string
@@ -74,9 +82,11 @@ func getAccount(r *http.Request) *models.Account {
 		return models.NewAccount()
 	}
 
-	acc, err := models.Cache.Account.ByNick(session.Username)
-	if err != nil {
-		return models.NewAccount()
+	acc := models.NewAccount()
+	// err is ignored intentionally
+	err = acc.ByNick(session.Username)
+	if err != nil && err != bongo.RecordNotFound {
+		runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())
 	}
 
 	return acc
@@ -90,8 +100,11 @@ func Wrapper(r Request) http.Handler {
 
 	var hHandler http.Handler
 
-	// count the statuses of the requests
-	hHandler = buildHandlerWithStatusCount(handler, r)
+	if r.Securer != nil {
+		hHandler = Secure(handler, r.Securer, r.Name)
+	} else {
+		hHandler = tigertonic.Marshaled(handler)
+	}
 
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
@@ -105,13 +118,6 @@ func Wrapper(r Request) http.Handler {
 	}
 	// create the final handler
 	return cors.Build(hHandler)
-}
-
-// count the statuses of the requests
-func buildHandlerWithStatusCount(handler interface{}, r Request) http.Handler {
-	return CountedByStatus(
-		tigertonic.Marshaled(handler), r.Name, r.CollectMetrics,
-	)
 }
 
 // add request time tracking
@@ -136,10 +142,12 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 			// this is an example
 			// set group name to context
 			//
+
 			context := &models.Context{
 				GroupName: "koding",
 				Client: &models.Client{
 					Account: getAccount(r),
+					IP:      net.ParseIP(utils.GetIpAddress(r)),
 				},
 			}
 
@@ -168,7 +176,7 @@ func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request)
 			timeToWait := bucket.Take(1)
 			if timeToWait > time.Duration(0) {
 				h.Add("Retry-After", strconv.FormatInt(int64(timeToWait.Seconds()), 10))
-				return h, &response.LimitRateExceededError{}
+				return h, response.LimitRateExceededError{}
 			}
 
 			return h, nil
@@ -177,57 +185,6 @@ func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request)
 	)
 }
 
-//----------------------------------------------------------
-// CounterByStatus
-//----------------------------------------------------------
-
-type CounterByStatus struct {
-	name           string
-	handler        http.Handler
-	collectMetrics bool
-}
-
-func (c *CounterByStatus) ServeHTTP(w0 http.ResponseWriter, r *http.Request) {
-	w := tigertonic.NewTeeHeaderResponseWriter(w0)
-	c.handler.ServeHTTP(w, r)
-
-	if w.StatusCode <= 300 {
-		c.track()
-	}
-}
-
-func (c *CounterByStatus) track() {
-	// don't log if analytics are disabled for that endpoint
-	if !c.collectMetrics {
-		return
-	}
-
-	// set `conf` and `trackers` if either is not set
-	if conf == nil || trackers == nil {
-		conf = config.MustGet()
-
-		// don't log if analytics are disabled globally
-		if !conf.Mixpanel.Enabled {
-			return
-		}
-
-		trackers = metrics.InitTrackers(
-			metrics.NewMixpanelTracker(conf.Mixpanel.Token),
-		)
-	}
-
-	trackers.Track(c.name)
-}
-
-func CountedByStatus(handler http.Handler, name string, collectMetrics bool) *CounterByStatus {
-	return &CounterByStatus{
-		name:           name,
-		handler:        handler,
-		collectMetrics: collectMetrics,
-	}
-}
-
-//
 func MakeRequest(request *Request) (*http.Response, error) {
 	if request.Cookie != "" {
 		request.Cookies = parseCookiesToArray(request.Cookie)
