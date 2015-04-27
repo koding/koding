@@ -64,6 +64,9 @@ services=(
   socialapi/workers/cmd/email/privatemessageemailsender
   socialapi/workers/cmd/email/emailsender
   socialapi/workers/cmd/team
+  socialapi/workers/cmd/integration/webhook
+  socialapi/workers/algoliaconnector/tagmigrator
+  socialapi/workers/algoliaconnector/contentmigrator
 )
 
 

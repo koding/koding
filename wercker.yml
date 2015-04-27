@@ -80,6 +80,29 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
     - script:
+        name: check social api code quality
+        code: |
+          go get github.com/alecthomas/gometalinter
+          go install github.com/alecthomas/gometalinter
+          go build github.com/alecthomas/gometalinter
+          ./gometalinter --install
+
+          echo "checking cyclo complexity"
+          ./go/bin/gocyclo -top 20 ./go/src/socialapi/*/**/**.go
+
+          echo "checking deadcode"
+          ./scripts/deadcode.sh
+
+          echo "checking go vet"
+          ./scripts/govet.sh
+
+          echo "checking unused variables"
+          ./scripts/govarcheck.sh
+
+          echo "more aggressive go vet"
+          ./scripts/go-nyetcheck.sh
+
+    - script:
         name: testing backend started
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
@@ -98,16 +121,6 @@ build:
            tail -n 100 /var/log/koding/social-pinnedpost.log
            cd go/src/socialapi
            make testapi config=./config/test.toml
-    - script:
-        name: check social api code quality
-        code: |
-          echo "more complex one"
-          go get github.com/alecthomas/gometalinter
-          go install github.com/alecthomas/gometalinter
-          go build github.com/alecthomas/gometalinter
-          ./gometalinter --install
-          ./go/bin/gocyclo -top 20 ./go/src/socialapi
-
     - script: # todo generalize this part when we have more tests
         name: test koding mongo models
         code: |

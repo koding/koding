@@ -12,7 +12,6 @@ import (
 	"koding/tools/utils"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/metrics"
 	"socialapi/workers/common/response"
 	"strconv"
 	"strings"
@@ -35,9 +34,7 @@ const (
 
 var (
 	// TODO allowed origins must be configurable
-	cors     = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
-	conf     *config.Config
-	trackers *metrics.Trackers
+	cors = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
 )
 
 type Request struct {
@@ -235,7 +232,7 @@ func prepareQueryString(endpoint string, params map[string]string) string {
 }
 
 func prepareHeaders(req *http.Request, headers map[string]string) *http.Request {
-	newReq := new(http.Request)
+	var newReq *http.Request
 	*newReq = *req
 	for k, v := range headers {
 		newReq.Header.Set(k, v)

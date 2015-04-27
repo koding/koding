@@ -60,8 +60,8 @@ func CheckForLeakedSubscriptions() error {
 
 	subscriptionIds := []int64{}
 
-	for _, subscription := range subscriptions {
-		subscriptionIds = append(subscriptionIds, subscription.Id)
+	for _, s := range subscriptions {
+		subscriptionIds = append(subscriptionIds, s.Id)
 	}
 
 	if len(subscriptions) > 0 {
@@ -81,11 +81,11 @@ func ExpireOutofDateSubscriptions() error {
 		return handleBongoError(err)
 	}
 
-	for _, subscription := range subscriptions {
-		err = subscription.Expire()
+	for _, s := range subscriptions {
+		err = s.Expire()
 		if err != nil {
 			Log.Error(fmt.Sprintf("Error expiring out of date subscription: %v %v",
-				subscription.Id, err.Error()),
+				s.Id, err.Error()),
 			)
 		}
 	}
