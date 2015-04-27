@@ -423,6 +423,40 @@ func (s *S) TestDescribeInstancesExample2(c *C) {
 	c.Assert(r0t1.Value, Equals, "Production")
 }
 
+func (s *S) TestDescribeInstancesPagesExample(c *C) {
+	testServer.Response(200, nil, DescribeInstancesExample1)
+
+	resp, err := s.ec2.InstancesPaginate(100, "")
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeInstances"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "98e3c9a4-848c-4d6d-8e8a-b1bdEXAMPLE")
+	c.Assert(resp.Reservations, HasLen, 2)
+
+	r0 := resp.Reservations[0]
+	c.Assert(r0.ReservationId, Equals, "r-b27e30d9")
+	c.Assert(r0.OwnerId, Equals, "999988887777")
+	c.Assert(r0.RequesterId, Equals, "854251627541")
+	c.Assert(r0.SecurityGroups, DeepEquals, []ec2.SecurityGroup{{Name: "default", Id: "sg-67ad940e"}})
+	c.Assert(r0.Instances, HasLen, 1)
+
+	r0i := r0.Instances[0]
+	c.Assert(r0i.InstanceId, Equals, "i-c5cd56af")
+	c.Assert(r0i.PrivateDNSName, Equals, "domU-12-31-39-10-56-34.compute-1.internal")
+	c.Assert(r0i.DNSName, Equals, "ec2-174-129-165-232.compute-1.amazonaws.com")
+	c.Assert(r0i.AvailZone, Equals, "us-east-1b")
+	c.Assert(r0i.RootDeviceName, Equals, "/dev/sda1")
+
+	b0 := r0i.BlockDevices[0]
+	c.Assert(b0.DeviceName, Equals, "/dev/sda1")
+	c.Assert(b0.VolumeId, Equals, "vol-a082c1c9")
+	c.Assert(b0.Status, Equals, "attached")
+	c.Assert(b0.AttachTime, Equals, "2010-08-17T01:15:21.000Z")
+	c.Assert(b0.DeleteOnTermination, Equals, false)
+}
+
 func (s *S) TestCreateImageExample(c *C) {
 	testServer.Response(200, nil, CreateImageExample)
 
