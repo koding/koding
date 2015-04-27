@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
@@ -106,6 +105,7 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 	pushRequest["body"] = message
 
 	so := service.Output(r.Data)
+	pushRequest["groupName"] = so.GroupName
 
 	channelId, err := h.fetchChannelId(so)
 	if err != nil {
@@ -224,23 +224,22 @@ var push = func(endPoint string, pushRequest map[string]string) error {
 	request := &handler.Request{
 		Type:     "POST",
 		Endpoint: endPoint,
-		Params:   pushRequest,
+		Body:     pushRequest,
+		Headers: map[string]string{
+			"Accept":       "application/json",
+			"Content-Type": "application/json",
+		},
 	}
 
 	resp, err := handler.MakeRequest(request)
 	if err != nil {
 		return err
 	}
-	// Need a better response
+
+	defer resp.Body.Close()
+
 	if resp.StatusCode != 200 {
 		return fmt.Errorf(resp.Status)
-	}
-
-	var cpr models.CheckParticipationResponse
-	err = json.NewDecoder(resp.Body).Decode(&cpr)
-	resp.Body.Close()
-	if err != nil {
-		return err
 	}
 
 	return nil
