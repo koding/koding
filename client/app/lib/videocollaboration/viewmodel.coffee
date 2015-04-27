@@ -119,6 +119,18 @@ showOfflineParticipant = (view, nickname) ->
 
 
 ###*
+ * Shows given participant's avatar on view's nonpublishing container.
+ *
+ * @param {ChatVideoView} view
+ * @param {string} nickname
+###
+showNonpublishingUser = (view, nickname) ->
+
+  nonpublishingContainer = view.getInactiveUserContainer()
+  helper.showContainer nonpublishingContainer, nickname, kd.noop
+
+
+###*
  * This is a workaround.
  * This is probably wrong but the way OpenTok sessions are working makes all
  * subscriber videos invisible. This method's pure existence is to get around
