@@ -358,8 +358,10 @@ testpayment:
 	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
-	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
+	testmoderation testtopicfeeed testnotification testtrollmode \
 	testpayment testteam
+
+  #TODO temporarily disabled algolia tests (indexing takes too much time)
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
