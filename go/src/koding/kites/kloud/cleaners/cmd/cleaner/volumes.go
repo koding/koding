@@ -60,6 +60,19 @@ func (v *Volumes) Process() {
 			// have instnaceIds in it
 			instanceId := machine.Meta["instanceId"].(string)
 
+			if s, ok := machine.Meta["storage_size"]; ok {
+				if storageSize, ok := s.(int); ok {
+					volId := volIds[instanceId]
+					volSize := volumes.SizeFromVolumeId(volId)
+
+					// The maximum storage a free user can have is 10 gig, 3
+					// from the default storage and 7 from referrals. If the storage
+					if storageSize <= 10 && volSize != 0 && volSize <= storageSize {
+						continue
+					}
+				}
+			}
+
 			data := &StopData{
 				id:         machine.Id,
 				instanceId: instanceId,

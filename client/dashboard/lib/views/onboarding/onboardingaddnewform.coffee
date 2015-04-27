@@ -6,9 +6,11 @@ Encoder = require 'htmlencode'
 
 module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
 
+  ###*
+   * A View that renders edit form for new
+   * or existent onboarding item
+  ###
   constructor: (options = {}, data = {}) ->
-
-    options.hasEditor = no
 
     super options, data
 
@@ -31,7 +33,15 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
 
     @oldData = data
 
+
+  ###*
+   * Collects onboarding item data on the form
+   * and saves it to DB
+   *
+   * @emits NewViewAdded
+  ###
   addNew: ->
+
     {data}    = @getDelegate()
     {items}   = data.partial
     newItem   =
@@ -50,14 +60,16 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     items.push newItem  unless isUpdate
     data.update { "partial.items": items }, (err, res) =>
       return kd.warn err  if err
-      @getDelegate().emit "NewViewAdded"
+      @emit "NewViewAdded"
+
 
   pistachio: ->
+
     """
       <div class="inputs">
         <p>Name</p>
         {{> @input}}
-        <p>Parent Path or jQuery selector</p>
+        <p>Target path selector</p>
         {{> @path}}
         <p>Title</p>
         {{> @title}}

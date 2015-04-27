@@ -3,15 +3,17 @@ package response
 import (
 	"errors"
 	"net/http"
+	"os"
 	"socialapi/config"
-	"socialapi/workers/helper"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 var (
 	ErrContentNotFound = errors.New("content not found")
 	ErrNotImplemented  = errors.New("not implemented")
+	socialApiEnv       = os.Getenv("SOCIAL_API_ENV")
 )
 
 // NewBadRequest is creating a new http response with predifined
@@ -22,12 +24,13 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	}
 
 	// make sure errors are outputted
-	helper.MustGetLogger().Error("Bad Request: %s", err)
+	runner.MustGetLogger().Error("Bad Request: %s", err)
 
 	// do not expose errors to the client
 	env := config.MustGet().Environment
+
 	// do not expose errors to the client.
-	if env != "dev" && env != "test" {
+	if env != "dev" && env != "test" && socialApiEnv != "wercker" {
 		err = genericError
 	}
 
@@ -39,7 +42,7 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 // here not to leak info about the resource
 // do send NotFound err
 func NewAccessDenied(err error) (int, http.Header, interface{}, error) {
-	helper.MustGetLogger().Error("Access Denied Err: %s", err.Error())
+	runner.MustGetLogger().Error("Access Denied Err: %s", err.Error())
 	return NewNotFound()
 }
 

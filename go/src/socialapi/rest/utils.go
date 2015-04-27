@@ -161,6 +161,15 @@ func marshallAndSendRequest(reqType, url string, model interface{}) ([]byte, err
 	return sendRequest(reqType, url, data)
 }
 
+func marshallAndSendRequestWithHeader(reqType, url string, model interface{}, h http.Header) ([]byte, error) {
+	data, err := json.Marshal(model)
+	if err != nil {
+		return nil, err
+	}
+
+	return sendRequestWithHeader(reqType, url, data, h)
+}
+
 func marshallAndSendRequestWithAuth(reqType, url string, model interface{}, token string) ([]byte, error) {
 	data, err := json.Marshal(model)
 	if err != nil {
@@ -173,6 +182,17 @@ func marshallAndSendRequestWithAuth(reqType, url string, model interface{}, toke
 func sendRequest(reqType, url string, data []byte) ([]byte, error) {
 	url = fmt.Sprintf("%s%s", ENDPOINT, url)
 	return DoRequest(reqType, url, data)
+}
+
+func sendRequestWithHeader(reqType, url string, data []byte, h http.Header) ([]byte, error) {
+	url = fmt.Sprintf("%s%s", ENDPOINT, url)
+	req, err := createHttpReq(reqType, url, data)
+	if err != nil {
+		return nil, err
+	}
+	req.Header = h
+
+	return DoWithRequest(req, reqType, url, data)
 }
 
 func sendRequestWithAuth(reqType, url string, data []byte, token string) ([]byte, error) {

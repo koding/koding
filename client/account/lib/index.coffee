@@ -43,7 +43,7 @@ module.exports = class AccountAppController extends AppController
       items : [
         { slug : 'SSH',         title : "SSH keys",           listHeader: "Your SSH Keys",          listType: "keys" }
         # { slug : 'Keys',        title : "Koding Keys",        listHeader: "Your Koding Keys",       listType: "kodingKeys" }
-        # { slug : 'Referral',    title : "Referral System",    listHeader: "Your Referral Options",  listType: "referralSystem" }
+        { slug : 'Referral',    title : "Referral System",    listHeader: "Your Referral Options",  listType: "referralSystem" }
         # { slug : 'Credentials', title : "Credentials",        listHeader: "Your Credentials",       listType: "credentials" }
       ]
     danger  :
@@ -71,11 +71,17 @@ module.exports = class AccountAppController extends AppController
 
     {title, listType} = itemData
 
-    new KDTabPaneView
-      view       : new AccountListWrapper
-        cssClass : "settings-list-wrapper #{kd.utils.slugify title}"
-      , itemData
+    wrapper = new AccountListWrapper
+      cssClass : "settings-list-wrapper #{kd.utils.slugify title}"
+    , itemData
 
+    wrapper.on 'ModalCloseRequested', @bound 'closeModal'
+
+    new KDTabPaneView view : wrapper
+
+  closeModal: ->
+
+    @mainView.destroy()
 
   openSection: (section) ->
 
@@ -171,36 +177,3 @@ module.exports = class AccountAppController extends AppController
         title     : "Check your email"
         content   : "We've sent you a confirmation mail."
         duration  : 4500
-
-
-  showRegistrationNeededModal: ->
-
-    return if @modal
-
-    handler = (modal, route) ->
-
-      modal.destroy()
-      kd.utils.wait 1000, -> kd.getSingleton("router").handleRoute route
-
-    @modal = new KDBlockingModalView
-      title           : "Please Login or Register"
-      content : """
-      Every Koding user gets a private virtual machine with root access. Let's give you one in 10 seconds so that you can
-      code, collaborate and have fun! :)
-      <br><br>
-      <iframe width="560" height="315" src="//www.youtube.com/embed/MZOpD8mdFVc" frameborder="0" allowfullscreen></iframe>
-      <br><br>
-      Click play to see what Koding is all about in 2 minutes!
-      """
-      width           : 660
-      overlay         : yes
-      buttons         :
-        "Login"       :
-          style       : "solid light-gray medium"
-          callback    : => handler @modal, "/Login"
-        "Register"    :
-          style       : "solid light-gray medium"
-          callback    : => handler @modal, "/Register"
-
-
-    @modal.on "KDObjectWillBeDestroyed", => @modal = null

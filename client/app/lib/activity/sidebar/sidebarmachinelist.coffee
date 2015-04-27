@@ -67,6 +67,8 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
       delete @machineBoxesByMachineUId[machineBox.machine.uid]
       @emit 'MachineBoxDestroyed', machineBox
 
+    machineBox.on 'ListStateChanged', => @emit 'ListStateChanged'
+
 
   removeWorkspaceByChannelId: (channelId) ->
 
@@ -85,7 +87,12 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
   selectMachineAndWorkspace: (machineUId, workspaceSlug) ->
 
     @forEachMachineBoxes (box) ->
-      if box.machine.uid is machineUId
+      { machine } = box
+      if machine.uid is machineUId
+        # don't select not approved machines
+        if not machine.isMine() and not machine.isApproved()
+          return no
+
         box.select()
         box.selectWorkspace workspaceSlug
       else

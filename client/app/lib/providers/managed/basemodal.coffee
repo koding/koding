@@ -1,5 +1,6 @@
-kd = require 'kd'
-view = require './viewhelpers'
+kd     = require 'kd'
+view   = require './viewhelpers'
+whoami = require 'app/util/whoami'
 
 module.exports = class ManagedVMBaseModal extends kd.ModalView
 
@@ -29,7 +30,18 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
 
 
   viewAppended: ->
-    @switchTo 'initial'
+
+    view.addTo @container, waiting: ''
+
+    @fetchOtaToken (err, token) =>
+
+      console.warn "Couldn't fetch otatoken:", err  if err
+
+      view._otatoken = if err or not token
+      then '# Failed to fetch one time access token.'
+      else token
+
+      @switchTo 'initial'
 
 
   fetchKites: ->
@@ -44,3 +56,16 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
       .catch (err) =>
         console.warn "Error:", err
         @switchTo 'retry', 'Failed to query kites'
+
+
+  ###*
+   * Fetches one time accesstoken from JAccount
+   *
+   * @param {Function(err, token)} callback
+  ###
+  fetchOtaToken: (callback)->
+
+    kd.singletons.mainController.ready =>
+      whoami().fetchOtaToken (err, token) =>
+        if err then callback err
+        else callback null, token

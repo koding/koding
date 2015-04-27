@@ -1,11 +1,23 @@
 -- SET ROLE social;
 
 -- ----------------------------
+--  General types
+-- ----------------------------
+CREATE TYPE "api"."role_constant_enum" AS ENUM (
+    -- 'superadmin', this will be a property of the account
+    'admin',
+    'moderator',
+    'member',
+    'guest'
+);
+
+-- ----------------------------
 --  Table structure for channel
 -- ----------------------------
 CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
     'group',
     'topic',
+    'linkedtopic',
     'followingfeed',
     'followers',
     'pinnedactivity',
@@ -51,7 +63,8 @@ CREATE TABLE "api"."account" (
     "id" BIGINT NOT NULL DEFAULT nextval('api.account_id_seq' :: regclass),
     "old_id" VARCHAR (24) NOT NULL COLLATE "default",
     "is_troll" BOOLEAN NOT NULL DEFAULT FALSE,
-    "nick" VARCHAR (25) NOT NULL CHECK ("nick" <> '')
+    "nick" VARCHAR (25) NOT NULL CHECK ("nick" <> ''),
+    "settings" HSTORE
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."account" OWNER TO "social";
@@ -116,7 +129,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "social"
 CREATE TYPE "api"."channel_participant_status_constant_enum" AS ENUM (
     'active',
     'left',
-    'requestpending'
+    'requestpending',
+    'blocked'
 );
 
 ALTER TYPE "api"."channel_participant_status_constant_enum" OWNER TO "social";
@@ -129,6 +143,7 @@ CREATE TABLE "api"."channel_participant" (
     "channel_id" BIGINT NOT NULL DEFAULT 0,
     "account_id" BIGINT NOT NULL DEFAULT 0,
     "status_constant" "api"."channel_participant_status_constant_enum",
+    -- "role_constant" "api"."role_constant_enum",
     "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
     "last_seen_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -136,7 +151,7 @@ CREATE TABLE "api"."channel_participant" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."channel_participant" OWNER TO "social";
-GRANT SELECT, INSERT, UPDATE ON "api"."channel_participant" TO "social";
+GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_participant" TO "social";
 
 -- ----------------------------
 --  Table structure for interaction
@@ -183,3 +198,40 @@ CREATE TABLE "api"."message_reply" (
 -- ALTER TABLE "api"."message_reply" OWNER TO "social";
 GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "social";
 
+-- ----------------------------
+--  Table structure for permission
+-- ----------------------------
+-- CREATE TYPE "api"."permission_status_constant_enum" AS ENUM (
+--     'allowed',
+--     'disallowed'
+-- );
+
+-- DROP TABLE IF EXISTS "api"."permission";
+-- CREATE TABLE "api"."permission" (
+--     "id" BIGINT NOT NULL DEFAULT nextval(
+--         'api.permission_id_seq' :: regclass
+--     ),
+--     "name" VARCHAR(200) NOT NULL COLLATE "default",
+--     "channel_id" BIGINT NOT NULL,
+--     "role_constant" "api"."role_constant_enum",
+--     "status_constant" "api"."permission_status_constant_enum",
+--     "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+--     "updated_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
+-- ) WITH (OIDS=FALSE);
+-- GRANT SELECT, INSERT, UPDATE ON "api"."permission" TO "social";
+
+
+-- ----------------------------
+--  Table structure for channel_link
+-- ----------------------------
+DROP TABLE IF EXISTS "api"."channel_link";
+CREATE TABLE "api"."channel_link" (
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.channel_link_id_seq' :: regclass
+    ),
+    "root_id" BIGINT NOT NULL,
+    "leaf_id" BIGINT NOT NULL,
+    "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
+) WITH (OIDS=FALSE);
+-- give required channel_link permissions
+GRANT SELECT, INSERT, DELETE ON "api"."channel_link" TO "social";

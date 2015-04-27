@@ -2,8 +2,9 @@ package models
 
 import (
 	"encoding/xml"
-	"socialapi/workers/helper"
 	"time"
+
+	"github.com/koding/runner"
 )
 
 // ItemSet corresponds to sitemap parent urlset element.
@@ -62,7 +63,7 @@ func (s *ItemSet) deleteItems(c *ItemContainer) {
 	for _, v := range c.Delete {
 		_, ok := itemMap[v.Location]
 		if !ok {
-			helper.MustGetLogger().Warning("Updated item does not exist")
+			runner.MustGetLogger().Warning("Updated item does not exist")
 			continue
 		}
 

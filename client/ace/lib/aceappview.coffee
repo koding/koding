@@ -11,10 +11,10 @@ ApplicationTabHandleHolder = require 'app/commonviews/applicationview/applicatio
 AceSettingsView = require './acesettingsview'
 AceApplicationTabView = require './aceapplicationtabview'
 AceView = require './aceview'
-EditorMacroView = require './editormacroview'
 
+module.exports =
 
-module.exports = class AceAppView extends JView
+class AceAppView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -55,7 +55,7 @@ module.exports = class AceAppView extends JView
       return  unless ace
 
       ace.focus()
-      ace.on "ace.ready", -> ace.focus()
+      ace.ready -> ace.focus()
       ace.on "AceDidSaveAs", (name, parentPath) ->
         pane.setTitle name
 
@@ -172,8 +172,6 @@ module.exports = class AceAppView extends JView
     @on "exitMenuItemClicked", =>
       @appManager.quit @appManager.frontApp
       kd.singletons.router.handleRoute "/Activity"
-
-    @on "keyBindingsMenuItemClicked", => new EditorMacroView
 
 
   getAdvancedSettingsMenuView: ->

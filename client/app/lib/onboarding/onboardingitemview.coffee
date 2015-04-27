@@ -1,106 +1,131 @@
 htmlencode = require 'htmlencode'
 $ = require 'jquery'
-trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 KDSpotlightView = kd.SpotlightView
 KDView = kd.View
 OnboardingContextMenu = require '../onboardingcontextmenu'
+OnboardingMetrics = require './onboardingmetrics'
 
 
 module.exports = class OnboardingItemView extends KDView
 
+  ESC_KEY = 27
+
+  ###*
+   * A view that renders onboarding tooltip and highlights target element
+  ###
   constructor: (options = {}, data) ->
 
     super options, data
 
-    data           = @getData()
-    {@items, @app} = @getOptions()
-    path           = data.path
-    appName        = @app.getOptions().name
-    itemName       = data.name
-    index          = @items.indexOf data
-    length         = @items.length - 1
-    @isLast        = index is length
-    @hasNext       = not @isLast
-    @hasPrev       = index isnt 0 and @hasNext
+    data                 = @getData()
+    {@items, @groupName} = @getOptions()
+    @itemName            = data.name
+    index                = @items.indexOf data
+    @isLast              = index is @items.length - 1
+    @hasNext             = not @isLast
+    @hasPrev             = index isnt 0
+
+
+  ###*
+   * Tries to find a target element in DOM
+   * If it's found, renders onboarding tooltip for it
+   * Otherwise, emits an event to let know that onboarding item can't be shown
+   *
+   * @emits OnboardingFailed
+  ###
+  render: ->
+
+    { path } = @getData()
 
     try
-      @parentElement = eval htmlencode.htmlDecode path
-      if @parentElement instanceof KDView
-        @createContextMenu()
-        @listenEvents()
-      else if @parentElement instanceof $
-        @parentElement = @getKDViewFromJQueryElement @parentElement
-        return  unless @parentElement
+      @targetElement = @getViewByPath path
 
+      if @targetElement and not @targetElement.hasClass 'hidden'
         @createContextMenu()
-        @listenEvents()
+        @startTrackDate = new Date()
       else
-        console.warn "Target element should be an instance of KDView or jQuery", { appName, itemName }
+        console.warn 'Target element should be an instance of KDView and should be visible', { @groupName, @itemName }
+        @emit 'OnboardingFailed'
     catch e
-      console.warn "Couldn't create onboarding item", { appName, itemName, e }
+      console.warn "Couldn't create onboarding item", { @groupName, @itemName, e }
+      @emit 'OnboardingFailed'
 
+
+  ###*
+   * Renders onboarding tooltip with OnboardingContextMenu
+   * and highlights a target element with KDSpotlightView
+  ###
   createContextMenu: ->
-    @contextMenu       = new OnboardingContextMenu
-      cssClass         : "onboarding-wrapper"
-      sticky           : yes
-      arrow            :
-        placement      : "top"
-      menuMaxWidth     : 500
-      menuWidth        : 500
-      delegate         : @parentElement
-      x                : @parentElement.getX() - 20
-      y                : @parentElement.getY() + 40
-    , customView       : @createContentView()
 
-    @contextMenu.on "viewAppended", =>
-      @contextMenu.once "KDObjectWillBeDestroyed", =>
+    @overlay       = new KDSpotlightView
+      cssClass     : 'onboarding-spotlight'
+      isRemovable  : no
+      delegate     : @targetElement
+
+    @contextMenu   = new OnboardingContextMenu
+      cssClass     : 'onboarding-wrapper'
+      sticky       : yes
+      menuMaxWidth : 500
+      menuWidth    : 500
+      delegate     : @targetElement
+    , customView   : @createContentView()
+
+    @contextMenu.on 'viewAppended', =>
+      @contextMenu.once 'KDObjectWillBeDestroyed', =>
         @destroy()
 
       kd.utils.defer =>
-        left = @parentElement.getX() - @contextMenu.getX() + 10
-        @contextMenu.arrow.setCss "left", left
-        $("body").addClass "noscroll"
+        $('body').addClass 'noscroll'
 
+    @contextMenu.treeController.on 'keyEventPerformedOnTreeView', (event) =>
+      @cancel()  if event.which is ESC_KEY
+
+
+  ###*
+   * Creates subviews for the content of onboarding tooltip
+   *
+   * @return {KDCustomHTMLView} - content view
+  ###
   createContentView: ->
+
     {title, content} = @getData()
-    @overlay       = new KDSpotlightView  { isRemovable : no,   delegate : @parentElement }
-    title          = new KDCustomHTMLView { tagName     : "h3", partial  : title          }
-    content        = new KDCustomHTMLView { tagName     : "p" , partial  : content        }
-    buttonsWrapper = new KDCustomHTMLView { cssClass    : "buttons"                       }
-    view           = new KDCustomHTMLView { cssClass    : "onboarding-item"               }
+    title          = new KDCustomHTMLView { tagName  : 'h3', partial  : title   }
+    content        = new KDCustomHTMLView { tagName  : 'p' , partial  : content }
+    buttonsWrapper = new KDCustomHTMLView { cssClass : 'buttons'                }
+    view           = new KDCustomHTMLView { cssClass : 'onboarding-item'        }
     closeButton    = new KDCustomHTMLView
-      cssClass     : "close-icon"
-      click        : => @emit "OnboardingCancelled"
+      cssClass     : 'close-icon'
+      click        : @bound 'cancel'
 
     if @hasPrev
       prevButton   = new KDButtonView
-        cssClass   : "solid compact light-gray"
-        title      : "PREV"
-        callback   : => @emit "NavigationRequested", "prev"
+        cssClass   : 'solid compact light-gray'
+        title      : 'PREV'
+        callback   : @lazyBound 'requestNavigation', 'prev'
 
     if @hasNext
       nextButton   = new KDButtonView
-        cssClass   : "solid green compact"
-        title      : "NEXT"
-        callback   : => @emit "NavigationRequested", "next"
+        cssClass   : 'solid green compact'
+        title      : 'NEXT'
+        callback   : @lazyBound 'requestNavigation', 'next'
 
     if @isLast
       doneButton   = new KDButtonView
-        cssClass   : "solid green compact"
-        title      : "DONE"
-        callback   : => @emit "OnboardingCompleted"
+        cssClass   : 'solid green compact'
+        title      : 'DONE'
+        callback   : @bound 'complete'
 
     if @items.length > 1
       stepsWrapper = new KDCustomHTMLView
-        cssClass   : "steps"
+        cssClass   : 'steps'
 
       for item in @items
         stepsWrapper.addSubView new KDCustomHTMLView
-          tagName  : "span"
-          cssClass : if item is @getData() then "active" else ""
+          tagName  : 'span'
+          cssClass : if item is @getData() then 'active' else ''
 
     for child in [ prevButton, nextButton, doneButton, stepsWrapper ] when child
       buttonsWrapper.addSubView child
@@ -110,40 +135,87 @@ module.exports = class OnboardingItemView extends KDView
 
     return view
 
-  getKDViewFromJQueryElement: ($element) ->
-    element = $element[0] # first is jQuery method
-    kdview  = null
+
+  ###*
+   * Searches for a target element by path
+   * If the element is in DOM, tries to find a kd instance for it
+   *
+   * @param {string} path - path to element
+   * @return {KDView}     - kd view for the path if it exists
+  ###
+  getViewByPath: (path) ->
+
+    path = htmlencode.htmlDecode path
+    element = document.querySelector path
+
+    return  unless element
 
     for key, kdinstance of kd.instances
       if kdinstance.getElement?() is element
-        kdview = kdinstance
-        break
+        return kdinstance
 
-    return kdview
 
-  listenEvents: ->
-    @on "NavigationRequested", (direction) =>
-      @destroy()
-      trackEvent "Onboarding navigation, click"
+  ###*
+   * It is executed when user clicks on Prev or Next button
+   * It tracks onboarding item completion and emits event
+   * to let know that prev/next onboarding item is requested
+   *
+   * @param {string} direction - direction of the onboarding navigation. Possible values are 'prev' and 'next'
+   * @emits NavigationRequested
+  ###
+  requestNavigation: (direction) ->
 
-    @on "OnboardingCompleted", =>
-      @destroy()
-      trackEvent "Onboarding navigation, success"
+    @destroy()
+    OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
+    @emit 'NavigationRequested', direction
 
-    @on "OnboardingCancelled", =>
-      @destroy()
-      trackEvent "Onboarding navigation, failure"
 
-    {setStorage, slug} = @getOptions()
-    if setStorage
-      kd.utils.defer =>
-        @emit "OnboardingShown", slug
+  ###*
+   * It is executed when user clicks on Done button
+   * It tracks onboarding item completion and emits event
+   * to let know that onboarding is finished
+   *
+   * @emits OnboardingCompleted
+  ###
+  complete: ->
 
+    @destroy()
+    OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
+    @emit 'OnboardingCompleted'
+
+
+  ###*
+   * It is executed when user closes onboarding tooltip
+   * It tracks onboarding item cancellation and emits event
+   * to let know that onboarding is cancelled
+   *
+   * @emits OnboardingCancelled
+  ###
+  cancel: ->
+
+    @destroy()
+    OnboardingMetrics.trackCancelled @groupName, @itemName
+    @emit 'OnboardingCancelled'
+
+
+  ###*
+   * Returns time spent from the moment when onboarding item was started
+   * till the current time
+   *
+   * @return {number} - number of milliseconds
+  ###
+  getTrackedTime: -> new Date() - @startTrackDate
+
+
+  ###*
+   * Destroys the tooltip and all its subviews
+  ###
   destroy: ->
+
     super
     @overlay?.destroy()
     @contextMenu.destroy()
-    $("body").removeClass "noscroll"
+    $('body').removeClass 'noscroll'
 
 
 

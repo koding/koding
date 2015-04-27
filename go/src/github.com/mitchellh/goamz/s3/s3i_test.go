@@ -32,6 +32,7 @@ func (s *AmazonServer) SetUp(c *C) {
 
 var _ = Suite(&AmazonClientSuite{Region: aws.USEast})
 var _ = Suite(&AmazonClientSuite{Region: aws.EUWest})
+var _ = Suite(&AmazonClientSuite{Region: aws.EUCentral})
 var _ = Suite(&AmazonDomainClientSuite{Region: aws.USEast})
 
 // AmazonClientSuite tests the client against a live S3 server.

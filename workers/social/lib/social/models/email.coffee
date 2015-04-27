@@ -1,122 +1,50 @@
-{Model, signature} = require 'bongo'
+bongo  = require 'bongo'
+{argv} = require 'optimist'
 
-{ v4: createId } = require 'node-uuid'
+KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
+{socialapi}  = KONFIG
+exchangeName = "#{socialapi.eventExchangeName}:0"
+exchangeOpts = {autoDelete: no, durable:yes, type :'fanout'}
 
-getUniqueId = createId
+mqClient = null
 
-module.exports = class JMail extends Model
+module.exports = class Email
 
-  @share()
+  KodingError = require '../error'
 
-  @set
-    indexes           :
-      status          : 'sparse'
-    sharedMethods     :
-      static          :
-        unsubscribeWithId:
-          (signature String, String, String, Function)
-    sharedEvents      :
-      instance        : []
-      static          : []
-    schema            :
-      dateIssued      :
-        type          : Date
-        default       : -> new Date
-      dateAttempted   : Date
-      dateDelivered   : Date
-      email           :
-        type          : String
-        email         : yes
-      from            :
-        type          : String
-        email         : yes
-        default       : 'hello@koding.com'
-      replyto         :
-        type          : String
-        email         : yes
-        default       : 'hello@koding.com'
-      status          :
-        type          : String
-        default       : 'queued'
-        enum          : ['Invalid status'
-                        [
-                          'queued'
-                          'sending'
-                          'attempted'
-                          'failed'
-                          'delivered'
-                          'unsubscribed'
-                        ]]
-      smtpId          : String
-      redemptionToken : String
-      force           :
-        type          : Boolean
-        default       : false
-      subject         : String
-      content         : String
-      unsubscribeId   : String
-      bcc             : String
+  {forcedRecipient, defaultFromMail} = KONFIG.email
 
-  save:(callback)->
-    @unsubscribeId = getUniqueId()+''  unless @_id? or @force
-    super
+  VERSION_1  = ' v1'
+  EVENT_TYPE = 'api.mail_send'
 
-  isUnsubscribed:(callback)->
-    JUnsubscribedMail = require './unsubscribedmail'
-    JUnsubscribedMail.isUnsubscribed @email, callback
+  @types =
+    WELCOME          : 'welcome'          + VERSION_1
+    INVITE           : 'invite'           + VERSION_1
+    FEEDBACK         : 'feedback'         + VERSION_1
+    EMAIL_CHANGED    : 'email changed'    + VERSION_1
+    PASSWORD_CHANGED : 'password changed' + VERSION_1
+    CONFIRM_EMAIL    : 'confirm email'    + VERSION_1
+    PASSWORD_RECOVER : 'password recover' + VERSION_1
 
-  @markDelivered = (status, callback = (->)) ->
-    smtpId = do ([_, id] = status['smtp-id'].match /^<(.+)>$/) -> id
+  @setMqClient = (m)-> mqClient = m
 
-    unless smtpId?
-      return process.nextTick -> callback { message: 'Unknown SMTP id' }
+  @queue = (username, mail, options, callback)->
+    mail.to           = forcedRecipient or mail.to
+    mail.from       or= defaultFromMail
+    mail.properties   = { options, username}
 
-    @one { smtpId }, (err, mail) ->
-      return callback err  if err
-      return callback { message: 'Unrecognized SMTP id' }  unless mail?
+    unless mqClient
+      return callback new KodingError 'RabbitMQ client not found in Email'
 
-      operation = $set  :
-        status          : 'delivered'
-        dateDelivered   : status.timestamp * 1000 # milliseconds
+    sendMessage =->
+      mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) =>
+        unless exchange
+          return console.error "Exchange not found to queue Email!: #{exchangeName} @sent-hil"
 
-      mail.update operation, callback
+        exchange.publish "", mail, type:EVENT_TYPE
+        exchange.close()
 
-  @unsubscribeWithId = (unsubscribeId, email, opt, callback)->
-    JMail.one {email, unsubscribeId}, (err, mail)->
-      return callback err  if err or not mail
+    if mqClient.readyEmitted then sendMessage()
+    else mqClient.on "ready", -> sendMessage()
 
-      JUnsubscribedMail = require './unsubscribedmail'
-      JUnsubscribedMail.one {email}, (err, unsubscribed)->
-        return callback err  if err
-        return callback null, 'Email was already unsubscribed'  if unsubscribed
-
-        unsubscribed = new JUnsubscribedMail {email}
-        unsubscribed.save (err)->
-          callback err, unless err then 'Successfully unsubscribed' else null
-
-  @fetchWithUnsubscribedInfo = (selector, options, callback)->
-    JUnsubscribedMail = require './unsubscribedmail'
-
-    JMail.some selector, options, (err, mails)->
-      return callback err  if err
-      return unless mails?.length > 0
-
-      emailsToCheck = (mail.email  for mail in mails when not mail.force)
-
-      JUnsubscribedMail.some email: $in: emailsToCheck, {}, (err, uMails)->
-        return callback err  if err
-
-        unsubscribedEmails = (uMail.email  for uMail in uMails)
-
-        cleanedMails = []
-        for mail in mails
-          unless mail.email in unsubscribedEmails
-            cleanedMails.push mail
-          else
-            mail.update $set: {status: 'unsubscribed'}, (err)->
-              # it's not fatal enough to break the process
-              # also we don't wait for this to proceed with sending the emails
-              # doing a callback(err) here can have unexpected outcomes
-              console.log err  if err
-
-        callback null, cleanedMails
+    callback null

@@ -44,30 +44,39 @@ Configuration = (options={}) ->
 
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
 
-  sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
-  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"      , forcedRecipient: "foome@koding.com"                       }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipient: "foome@koding.com"                       }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
-  algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        ".#{ os.hostname() }"     }
-  algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  algolia             = { appId:    'DYVV81J2S1'                                  , indexSuffix:        ".#{ os.hostname() }"                 }
+  algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "303eb858050b1067bcd704d6cbfb977c"      , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46'   , apiTokenKey: "d15cab2a1bcead494e38cc33d32c4621" }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
-  postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
+  postgres            = { host:     "#{boot2dockerbox}"                           , port:               "5432"                                  , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
-  gatekeeper          = { host:     "localhost"                                   , port:               7200                                    , pubnub: pubnub                                }
+  gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                  , pubnub: pubnub                                }
   paymentwebhook      = { port : "6600", debug : true }
+  tokbox              = { apiKey: '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
   kloudPort           = 5500
   kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+  terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
 
   segment                 = 'kb2hfdgf20'
+
+  # if you want to disable a feature add here with "true" value do not forget
+  # to add corresponding go struct properties "true" value is used because of
+  # Go's default value for boolean properties is false, so all the features are
+  # enabled as default
+  disabledFeatures =
+    moderation : yes
+    teams      : no
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -96,7 +105,9 @@ Configuration = (options={}) ->
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
+    geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
+    disabledFeatures        : disabledFeatures
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -143,6 +154,8 @@ Configuration = (options={}) ->
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
     kloud                          : kloud
+    terraformer                    : terraformer
+
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -151,7 +164,6 @@ Configuration = (options={}) ->
 
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
-    sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
     odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
@@ -175,7 +187,8 @@ Configuration = (options={}) ->
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
-    tokbox                         : { API_KEY: '45082272', API_SECRET: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
+    tokbox                         : tokbox
+    disabledFeatures               : disabledFeatures
 
     collaboration :
       timeout     : 1 * 60 * 1000
@@ -213,7 +226,7 @@ Configuration = (options={}) ->
     embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github               : {clientId     : "f8e440b796d953ea01e5" }
     newkontrol           : {url          : "#{kontrol.url}"}
-    sessionCookie        : {maxAge       : 1000 * 60 * 60 * 24 * 14 , secure: no   }
+    sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha            : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
     stripe               : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
@@ -230,6 +243,7 @@ Configuration = (options={}) ->
     pubnub               : { subscribekey: pubnub.subscribekey , ssl: no,  enabled: yes     }
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
+    tokbox               : { apiKey: tokbox.apiKey }
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
@@ -279,6 +293,13 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
+    terraformer         :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{region} -environment  #{environment} -aws-key #{KONFIG.aws.key} -aws-secret #{KONFIG.aws.secret} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
+      healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
+
     ngrokProxy          :
       group             : "environment"
       supervisord       :
@@ -319,13 +340,6 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.sourcemaps.port}"
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
-
-    emailsender         :
-      group             : "webserver"
-      supervisord       :
-        command         : "./watch-node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
-      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
 
     appsproxy           :
       group             : "webserver"
@@ -381,6 +395,14 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/collaboration/ping"
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/search-key"
+            proxyPass   : "http://socialapi/search-key$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/moderation/(.*)"
+            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"
@@ -500,9 +522,10 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        cd #{projectRoot}/client
-        npm install --unsafe-perm
-        make build
+        sh -c "scripts/install-npm.sh -d client/landing -u"
+        sh -c "scripts/install-npm.sh -d client/builder -u"
+        sh -c "scripts/install-npm.sh -d client -u -p"
+        make -C #{projectRoot}/client dist
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
@@ -562,7 +585,7 @@ Configuration = (options={}) ->
 
 
         # both of them are  required
-        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+        ps aux | grep koding | grep -v cmd.coffee | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
         pkill -9 koding-
       }
 
@@ -613,12 +636,18 @@ Configuration = (options={}) ->
         fi
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
-            echo your run file is older than your client package json. doing npm i.
             sleep 1
-            cd client && npm i && cd -
+            sh -c "scripts/install-npm.sh -d client -s"
+        fi
 
-            echo -e "\n\nPlease do ./configure and  ./run again\n"
-            exit 1;
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/builder/package.json" ]; then
+            sleep 1
+            sh -c "scripts/install-npm.sh -d client/builder -s"
+        fi
+
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/landing/package.json" ]; then
+            sleep 1
+            sh -c "scripts/install-npm.sh -d client/landing -s"
         fi
 
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
@@ -714,6 +743,8 @@ Configuration = (options={}) ->
 
         # a temporary migration line (do we still need this?)
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
 
         # Create default workspaces
         node scripts/create-default-workspace
@@ -726,12 +757,13 @@ Configuration = (options={}) ->
 
           echo
           echo '---------------------------------------------------------------'
-          echo '>>> CLIENT BUILD DISABLED! DO "cd client/ && make" MANUALLY <<<'
+          echo '>>> CLIENT BUILD DISABLED! DO "make -C client" MANUALLY <<<'
           echo '---------------------------------------------------------------'
           echo
 
         else
-          cd #{projectRoot}/client && make &
+          sh -c "scripts/install-npm.sh -d client -u -p -s"
+          make -C #{projectRoot}/client
         fi
 
         # Show the all logs of workers
@@ -863,9 +895,9 @@ Configuration = (options={}) ->
           command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
         elif [[ `uname` == 'Linux' ]]; then
           command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
-
-
         fi
+
+        check_go_version
         check_gulp_version
       }
 
@@ -884,6 +916,39 @@ Configuration = (options={}) ->
               echo 'Installed gulp version must be >= 3.7.0'
               exit 1
           fi
+      }
+
+      function check_go_version () {
+        VERSION=$(go version 2> /dev/null)
+        VERSION=${VERSION:13:4}
+        MAJOR=`echo $VERSION | cut -d. -f1`
+        MINOR=`echo $VERSION | cut -d. -f2`
+
+        if [[ $MAJOR -lt 1 ]]; then
+            MISMATCH=1
+        elif [[ $MAJOR -eq 1 && $MINOR -lt 4 ]]; then
+            MISMATCH=1
+        fi
+
+        if [[ -n $MISMATCH ]]; then
+          echo "Installed go version must be >= 1.4.0\n"
+
+          echo "You can install new version with"
+          if [[ `uname` == 'Darwin' ]]; then
+            echo "# curl -s https://storage.googleapis.com/golang/go1.4.2.darwin-amd64-osx10.8.pkg >> /tmp/go1.4.2.darwin-amd64-osx10.8.pkg && open /tmp/go1.4.2.darwin-amd64-osx10.8.pkg"
+          elif [[ `uname` == 'Linux' ]]; then
+            echo "curl -s https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | tar -v -C /usr/local -xz"
+          fi
+
+          echo "\n"
+          echo "(if go is not in your path use this or add it to our path)"
+          echo "sudo ln -sf /usr/local/go/bin/* /usr/local/bin\n"
+          echo "Dont forget to remove ./go/pkg folder hint: rm -rf ./go/pkg"
+
+          exit 1
+        else
+          echo "You are using go $VERSION"
+        fi
       }
 
       function build_services () {
@@ -1051,9 +1116,8 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        cd #{projectRoot}/client
-        npm install --unsafe-perm
-        make
+        sh -c "scripts/install-npm.sh -d client -u -p -s"
+        make -C #{projectRoot}/client dist
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies
@@ -1165,6 +1229,7 @@ Configuration = (options={}) ->
       elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
         checkrunfile
+        sh -c scripts/validate-npm.sh
         run $1
 
       else

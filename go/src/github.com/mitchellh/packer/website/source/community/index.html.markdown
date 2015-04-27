@@ -1,6 +1,8 @@
 ---
 layout: "community"
 page_title: "Community"
+description: |-
+  Packer is a new project with a growing community. Despite this, there are dedicated users willing to help through various mediums.
 ---
 
 # Community
@@ -66,8 +68,8 @@ list as contributors come and go.
 		<div class="bio">
 			<h3>Ross Smith II (<a href="https://github.com/rasa" target="_blank">@rasa</a>)</h3>
 			<p>
-<a href="http://smithii.com/" target="_blank">Ross Smith</a> maintains our VMWare builder on Windows, and provides other valuable assistance.
-Ross is an open source enthusist, published author, and freelance consultant.</p>
+<a href="http://smithii.com/" target="_blank">Ross Smith</a> maintains our VMware builder on Windows, and provides other valuable assistance.
+Ross is an open source enthusiast, published author, and freelance consultant.</p>
 		</div>
 	</div>
 

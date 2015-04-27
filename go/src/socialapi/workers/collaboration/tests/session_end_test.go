@@ -2,14 +2,16 @@ package collaboration
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	apimodels "socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/collaboration/models"
-	"socialapi/workers/common/runner"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 var (
@@ -25,7 +27,8 @@ func TestCollaborationSesionEnd(t *testing.T) {
 
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	Convey("while testing collaboration session end", t, func() {

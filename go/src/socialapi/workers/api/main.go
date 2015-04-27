@@ -1,25 +1,24 @@
 package main
 
 import (
-	// _ "expvar"
-
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
-
 	"socialapi/config"
+	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/common/runner"
 	mailapi "socialapi/workers/email/mailparse/api"
 	"socialapi/workers/helper"
+	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
+	permissionapi "socialapi/workers/permission/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
-	"strconv"
+
+	"github.com/koding/runner"
 )
 
 var (
@@ -33,39 +32,50 @@ func main() {
 		return
 	}
 
-	port, _ := strconv.Atoi(r.Conf.Port)
+	// appConfig
+	c := config.MustRead(r.Conf.Path)
 
-	mc := mux.NewConfig(Name, r.Conf.Host, port)
+	mc := mux.NewConfig(Name, r.Conf.Host, r.Conf.Port)
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log)
-
 	m.Metrics = r.Metrics
-	handlers.AddHandlers(m, r.Metrics)
-	m.Listen()
-	// shutdown server
-	defer m.Close()
 
+	handlers.AddHandlers(m, r.Metrics)
+	permissionapi.AddHandlers(m, r.Metrics)
+	topicmoderationapi.AddHandlers(m, r.Metrics)
 	collaboration.AddHandlers(m, r.Metrics)
 	paymentapi.AddHandlers(m, r.Metrics)
 	notificationapi.AddHandlers(m, r.Metrics)
 	trollmodeapi.AddHandlers(m, r.Metrics)
 	sitemapapi.AddHandlers(m, r.Metrics)
 	mailapi.AddHandlers(m, r.Metrics)
+	algoliaapi.AddHandlers(m, r.Metrics, r.Log)
 
 	// init redis
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	modelhelper.Initialize(c.Mongo)
 	defer modelhelper.Close()
+
+	mmdb, err := helper.ReadGeoIPDB(c)
+	if err != nil {
+		r.Log.Critical("ip persisting wont work err: %s", err.Error())
+	} else {
+		defer mmdb.Close()
+	}
 
 	// set default values for dev env
 	if r.Conf.Environment == "dev" {
 		go setDefaults(r.Log)
 	}
 
-	payment.Initialize(config.MustGet())
+	payment.Initialize(c)
+
+	m.Listen()
+	// shutdown server
+	defer m.Close()
 
 	r.Listen()
 	r.Wait()

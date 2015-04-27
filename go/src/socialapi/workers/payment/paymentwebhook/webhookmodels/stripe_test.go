@@ -83,7 +83,7 @@ var invoiceCreatedWebhookRequest = []byte(`{
 					"metadata": {}
 				}
 			],
-			"count": 1,
+			"total_count": 1,
 			"object": "list",
 			"url": "/v1/invoices/in_15QSl7Dy8g9bkw8yWuzjCCA0/lines"
 		},
@@ -144,7 +144,7 @@ func TestStripe(t *testing.T) {
 
 			data := invoice.Lines.Data[0]
 
-			So(data.SubscriptionId, ShouldEqual, "sub_5bg7lgPIPCWEI3")
+			So(data.Id, ShouldEqual, "sub_5bg7lgPIPCWEI3")
 			So(data.Period.Start, ShouldEqual, 1454114143)
 			So(data.Period.End, ShouldEqual, 1485736543)
 			So(data.Plan.Name, ShouldEqual, "Developer")

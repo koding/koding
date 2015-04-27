@@ -26,6 +26,8 @@ module.exports = class JReward extends jraphical.Message
           (signature Object, Function)
         some:
           (signature Object, Object, Function)
+        fetchCustomData:
+          (signature Object, Object, Function)
 
     sharedEvents      :
       static          : []
@@ -45,6 +47,7 @@ module.exports = class JReward extends jraphical.Message
       originId        : 'sparse'
       sourceCampaign  : 'sparse'
       providedBy      : 'sparse'
+      confirmed       : 'sparse'
 
     schema            :
       # for now we only have disk space
@@ -65,6 +68,9 @@ module.exports = class JReward extends jraphical.Message
       originId        :
         type          : ObjectId
         required      : yes
+      confirmed       :
+        type          : Boolean
+        default       : -> no
 
 
   # Helpers
@@ -91,7 +97,7 @@ module.exports = class JReward extends jraphical.Message
     { originId, unit, type } = useDefault options
 
     JReward.aggregate
-      $match     : { unit, type, originId }
+      $match     : { unit, type, originId, confirmed: yes }
     ,
       $group     :
         _id      : "$originId"
@@ -114,9 +120,10 @@ module.exports = class JReward extends jraphical.Message
 
     { originId, unit, type, amount } = useDefault options
 
-    # Force maximum possible disk size to 17000MB ~ 17GB
+    # Force maximum possible disk size to 7000MB ~ 7GB
+    # TODO: Move this to a collection or config  ~ GG
     if type is "disk" and unit is "MB"
-      amount = Math.min amount, 17000
+      amount = Math.min amount, 7000
 
     JEarnedReward = require './earnedreward'
     JEarnedReward.update { originId, unit, type }
@@ -142,6 +149,19 @@ module.exports = class JReward extends jraphical.Message
         return callback err  if err?
 
         callback null, amount
+
+
+  @fetchEarnedAmount = (options, callback)->
+
+    options = useDefault options
+
+    fetchEarnedReward options, (err, earnedReward)->
+      return callback err  if err?
+
+      callback null, earnedReward?.amount or 0
+
+      # We can manually call this if we need.
+      # JReward.calculateAndUpdateEarnedAmount options, callback
 
 
 
@@ -175,6 +195,7 @@ module.exports = class JReward extends jraphical.Message
       reward = new JReward {
         amount         : options.amount         or 512
         sourceCampaign : options.sourceCampaign or "register"
+        confirmed      : yes
         providedBy, originId, type, unit
       }
 
@@ -188,19 +209,6 @@ module.exports = class JReward extends jraphical.Message
 
           return callback err if err
           callback null, reward
-
-
-  @fetchEarnedAmount = (options, callback)->
-
-    options = useDefault options
-
-    fetchEarnedReward options, (err, earnedReward)->
-      return callback err  if err?
-
-      callback null, earnedReward?.amount or 0
-
-      # We can manually call this if we need.
-      # JReward.calculateAndUpdateEarnedAmount options, callback
 
 
   @fetchEarnedAmount$ = secure (client, options, callback)->
@@ -229,16 +237,81 @@ module.exports = class JReward extends jraphical.Message
     @some selector, options, callback
 
 
+  @fetchCustomData = secure (client, selector, options, callback)->
+
+    # To be able to fetch earned amount first
+    # we need to extract type and unit info from selector
+    {type, unit} = selector
+    _options     = useDefault {type, unit}
+
+    @fetchEarnedAmount$ client, _options, (err, total) =>
+      return callback err  if err
+
+      @some$ client, selector, options, (err, rewards) ->
+        return callback err  if err
+
+        queue    = []
+        rewards ?= []
+
+        rewards.forEach (reward)->
+          queue.push ->
+
+            JAccount.one {_id: reward.providedBy}, (err, account)->
+              if not err and account
+                reward.providedBy = account
+              else
+                reward.providedBy = null
+                reward._hasError  = new KodingError "No user found"
+
+              queue.next()
+
+        queue.push ->
+          callback null, {total, rewards}
+
+        daisy queue
+
 
   # Background Processes
   # --------------------
 
   do ->
 
-    persistRewards = (campaign, source, target, callback)->
+    logError = (rest...)-> console.error '[Rewards]', rest...
 
-      reward = null
+    fetchReferrer = (account, callback)->
 
+      unless referrerUsername = account.referrerUsername
+        return callback null # User doesn't have any referrer
+
+      # get referrer
+      JAccount.one 'profile.nickname': referrerUsername, (err, referrer)->
+
+        return callback err  if err
+
+        unless referrer
+          # if referrer not fonud then do nothing and return
+          return callback null # Referrer couldn't found
+
+        callback null, referrer
+
+
+    confirmRewards = (source, target, callback)->
+
+      JReward.update
+        providedBy : source.getId()
+        originId   : target.getId()
+      ,
+        $set       : confirmed : yes
+      , (err)->
+        return callback err  if err?
+
+        options = { originId: target.getId() }
+        JReward.calculateAndUpdateEarnedAmount options, callback
+
+
+    createRewards = (campaign, source, target, callback)->
+
+      reward   = null
       type     = campaign.type
       unit     = campaign.unit
       originId = target.getId()
@@ -260,17 +333,9 @@ module.exports = class JReward extends jraphical.Message
 
         ->
 
-          options = { originId, type, unit }
-
-          JReward.calculateAndUpdateEarnedAmount options, (err)->
-
-            return callback err  if err
-            queue.next()
-
-        ->
-
           campaign.increaseGivenAmount (err)->
-            console.error "Couldn't increase given amount:", err  if err?
+            logError "Couldn't increase given amount:", err  if err?
+
             callback null
 
       ]
@@ -280,21 +345,23 @@ module.exports = class JReward extends jraphical.Message
 
     JRewardCampaign = require "./rewardcampaign"
 
-    JUser.on 'EmailConfirmed', (user)->
+    # When users registers we need to give them
+    # rewards from existing campaign, if its.
+
+    JUser.on 'UserRegistered', ({user, account})->
 
       unless user?
-        return console.warn "User is not defined in 'EmailConfirmed' event"
+        return logError "User is not defined in 'UserRegistered' event"
 
-      me       = null
       referrer = null
       campaign = null
 
       queue = [
         ->
 
+          # TODO Add fetcher for active campaign ~ GG
           JRewardCampaign.isValid "register", (err, res)->
-
-            return console.error err  if err
+            return logError err  if err
             return  unless res.isValid
 
             campaign = res.campaign
@@ -302,52 +369,80 @@ module.exports = class JReward extends jraphical.Message
 
         ->
 
+          fetchReferrer account, (err, _referrer)->
+            return logError err  if err
+            return  unless _referrer
+            referrer = _referrer
+            queue.next()
+
+        ->
+
+          createRewards campaign, referrer, account, (err)->
+            return logError err  if err
+            queue.next()
+
+        ->
+
+          createRewards campaign, account, referrer, (err)->
+            return logError err  if err
+            queue.next()
+
+      ]
+
+      daisy queue
+
+
+    # When users confirm their emails we need to confirm
+    # existing rewards for them.
+
+    JUser.on 'EmailConfirmed', (user)->
+
+      unless user?
+        return logError "User is not defined in 'EmailConfirmed' event"
+
+      me       = null
+      referrer = null
+      campaign = null
+
+      queue = [
+
+        ->
+
           user.fetchOwnAccount (err, myAccount)->
-            return console.error err  if err
-            # if account not fonud then do nothing and return
-            return console.error "Account couldn't found" unless myAccount
+            return logError err  if err
+            # if account not found then do nothing and return
+            return logError "Account couldn't found" unless myAccount
 
             me = myAccount
             queue.next()
 
         ->
 
-          unless referrerUsername = me.referrerUsername
-            return console.info "User doesn't have any referrer"
-
           if me.referralUsed
-            return console.info "User already get the referrer"
+            return logError "User already get the referrer"
 
-          # get referrer
-          JAccount.one 'profile.nickname': referrerUsername, (err, _referrer)->
-
-            if err
-              # if error occurred than do nothing and return
-              return console.error "Error while fetching referrer", err
-
-            unless _referrer
-              # if referrer not fonud then do nothing and return
-              return console.error "Referrer couldnt found"
-
+          fetchReferrer me, (err, _referrer)->
+            return logError err  if err
+            return  unless _referrer
             referrer = _referrer
             queue.next()
 
         ->
 
           me.update $set: "referralUsed": yes, (err)->
-            return console.error err if err
+            return logError err if err
             queue.next()
 
         ->
 
-          persistRewards campaign, referrer, me, (err)->
-            return console.error err if err
+          confirmRewards referrer, me, (err)->
+            return logError err if err
             queue.next()
 
         ->
 
-          persistRewards campaign, me, referrer, (err)->
-            return console.error err if err
+          confirmRewards me, referrer, (err)->
+            return logError err if err
             queue.next()
 
       ]

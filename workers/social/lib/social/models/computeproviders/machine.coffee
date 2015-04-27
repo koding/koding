@@ -210,12 +210,12 @@ module.exports = class JMachine extends Module
     return newUsers
 
 
-  informAccounts = (users, machineUid)->
+  informAccounts = (users, machineUId, action) ->
 
     users.forEach (user)->
       user.fetchOwnAccount (err, account)->
         return if err or not account
-        account.sendNotification 'MachineListUpdated', machineUid
+        account.sendNotification 'MachineListUpdated', {machineUId, action}
 
 
   # Private Methods
@@ -238,7 +238,14 @@ module.exports = class JMachine extends Module
     data.user  = username  = user.username
     data.group = groupSlug = group.slug
 
-    data.users     = [{ id: user.getId(), sudo: yes, owner: yes }]
+    # Users list can be provided before machine create
+    # We also need to make sure that the real owner of the
+    # machine is in list. ~ GG
+    if Array.isArray(data.users) and data.users.length > 0
+      data.users.push { id: user.getId(), sudo: yes, owner: yes }
+    else
+      data.users   = [{ id: user.getId(), sudo: yes, owner: yes }]
+
     data.groups    = [{ id: group.getId() }]
 
     data.uid = "u#{username[0]}#{groupSlug[0]}#{provider[0]}#{(require 'hat')(32)}"
@@ -325,7 +332,7 @@ module.exports = class JMachine extends Module
         "Machine sharing is limited up to 10 users."
     else
       @update $set: { users }, (err) =>
-        informAccounts targets, @getAt 'uid'
+        informAccounts targets, @getAt('uid'), 'added'
         callback err
 
 
@@ -339,7 +346,7 @@ module.exports = class JMachine extends Module
       users = excludeUser { users, user, permanent }
 
     @update $set: { users }, (err) =>
-      informAccounts targets, @getAt 'uid'  if inform
+      informAccounts targets, @getAt('uid'), 'removed'  if inform
       callback err
 
 
@@ -421,6 +428,7 @@ module.exports = class JMachine extends Module
 
       selector             ?= {}
       selector['users.id']  = user.getId()
+      selector['groups.id'] = group.getId()
 
       JMachine.some selector, limit: 30, (err, machines)->
         callback err, machines

@@ -1,3 +1,4 @@
+_  = require 'lodash'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 CommentInputWidget = require './commentinputwidget'
@@ -28,7 +29,7 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
   reset: ->
 
     @input.blur()
-    @embedBox.resetEmbedAndHide()
+    @embedBox.close()
 
 
   cancel: -> @emit 'Cancel'
@@ -40,8 +41,10 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
 
     @emit 'Submit'
 
-    {id} = data = @getData()
-    payload = @getPayload()
+    {id, payload} = data = @getData()
+    embedBoxPayload = @getEmbedBoxPayload()
+
+    payload = _.assign {}, payload, embedBoxPayload
 
     { appManager } = kd.singletons
 

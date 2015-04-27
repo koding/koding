@@ -10,6 +10,7 @@ import (
 	"socialapi/workers/common/response"
 
 	"github.com/koding/bongo"
+	tigertonic "github.com/rcrowley/go-tigertonic"
 )
 
 func validateChannelRequest(c *models.Channel) error {
@@ -97,12 +98,21 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 // ByName finds topics by their name
 func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
-	q.Type = models.Channel_TYPE_TOPIC
+
+	if q.Type == "" {
+		q.Type = models.Channel_TYPE_TOPIC
+	}
 
 	channel, err := models.NewChannel().ByName(q)
 	if err != nil {
 		if err == bongo.RecordNotFound {
 			return response.NewNotFound()
+		}
+
+		if models.IsChannelLeafErr(err) {
+			return http.StatusMovedPermanently,
+				nil, nil,
+				tigertonic.MovedPermanently{err}
 		}
 
 		return response.NewBadRequest(err)
@@ -186,12 +196,6 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 		res.AccountToken = context.Client.Account.Token
 	}
 
-	// it looks like this is public channel and no need to check for participation
-	if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-		channel.TypeConstant != models.Channel_TYPE_COLLABORATION {
-		return response.NewOK(res)
-	}
-
 	canOpen, err := channel.CanOpen(q.AccountId)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -230,7 +234,7 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	return response.NewDeleted()
 }
 
-func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, req *models.Channel, c *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -246,11 +250,11 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return response.NewBadRequest(err)
 	}
 
-	if existingOne.CreatorId != req.CreatorId {
+	if existingOne.CreatorId != c.Client.Account.Id {
 		return response.NewBadRequest(errors.New("creatorId doesnt match"))
 	}
 
-	// only allow purpose and name to be updated
+	// only allow purpose, name and payload to be updated
 	if req.Purpose != "" {
 		existingOne.Purpose = req.Purpose
 	}
@@ -259,9 +263,19 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		existingOne.Name = req.Name
 	}
 
-	if err := req.Update(); err != nil {
+	// some of the channels stores sparse data
+	existingOne.Payload = req.Payload
+
+	// update channel
+	if err := existingOne.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(req)
+	// generate container data
+	cc := models.NewChannelContainer()
+	if err := cc.PopulateWith(*existingOne, c.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(cc)
 }

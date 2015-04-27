@@ -112,7 +112,7 @@ module.exports = class FeaturesView extends KDView
 
     'IDE'                  :
       'Workspaces'         :
-        text               : "Use workspaces to organize your project. Workpsaces keeps everything neat and tidy."
+        text               : "Use workspaces to organize your project. Workspaces keeps everything neat and tidy."
         iconClass          : "ide-workspaces"
       'Previews'           :
         text               : "Easily preview your work using the built-in browser. No more tab switching."

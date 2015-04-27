@@ -1544,20 +1544,42 @@ a.action-link.verify-email
       &.active
         bg              color, #1AAF5D
 
+.onboarding-spotlight
+  z-index               10001
+  .kdoverlay
+    &.top
+    &.bottom
+    &.left
+    &.right
+      background-color  rgba(0,0,0,.4)
+    &.main
+      background        radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .4) 60%)
+
 .onboarding-wrapper
+  z-index               10001
+
   .kdlistview-contextmenu
     rounded             5px !important
+
+    &.default
+      padding           0px
+      background-color  #fff
+
   .arrow
     bg                  image, none !important
-    top                 -5px !important
+    border-left         10px solid
+    border-right        10px solid
+    size                0, 0
+    abs()
+
     &.top
-      size              0, 0
-      border-left       10px solid transparent
-      border-right      10px solid transparent
-      border-bottom     10px solid #fff
-      left              25px !important
-      top               -15px !important
-      abs()
+      border-bottom         10px solid
+      top                   -15px !important
+
+    &.bottom
+      border-top            10px solid
+      bottom                -15px !important
+
   .close-icon
     r-sprite            "app", "20-close-tab"
     top                 10px
@@ -2056,3 +2078,269 @@ footer.main-footer
       &~.footer-block
         margin-top      18px
         border-top      1px solid rgba(255,255,255,.05)
+
+
+
+// autocomplete base styling
+
+.kdautocomplete.listview-wrapper.private-message
+  border            dropdownBorder
+  border-top-color  transparent
+  rounded           0
+  shadow            dropdownShadow
+  margin-top        0
+  min-width         268px
+  fix()
+
+  .kdautocompletelistitem
+    font-size       14px
+    padding         5px 10px 5px 5px
+    border          none
+    cursor          pointer
+    line-height     27px
+    bg              color transparent
+    color           #6D6D6D
+    borderBox()
+
+    .avatarview
+      display       inline-block
+      margin        1px 10px 1px 5px
+      size          25px, 25px
+
+    &.fetching
+    &.no-result
+      width         207px
+      color         #888
+      text-align    center
+
+
+    &.active
+      color           white
+      bg              color #7a7a7a
+
+
+// Generic AppModal Styles
+
+.AppModal
+
+  &.kdmodal
+    border                  none
+
+  .notification
+    padding                 10px 20px
+    color                   #393939
+    font-size               14px
+    rounded                 4px
+    margin                  20px 0
+    max-width               530px
+    borderBox()
+
+    &.warning
+      bg                    color, #FDF8C3
+      border                1px solid #FFFFD7
+
+    &.error
+      bg                    color, #FC6C61
+      border                1px solid #FF776B
+      color                 #FFF
+
+    &.success
+      bg                    color, #1AAF5B
+      border                1px solid #1CC164
+
+  .kdmodal-content
+    overflow                hidden
+    zoom                    1
+    font-size               14px
+    color                   #434343
+
+  button.kdbutton.small
+    border-radius           3px
+    height                  29px
+    line-height             29px
+    text-align              center
+    padding                 0 8px
+
+    .button-title
+      font-size             12px
+      text-rendering        auto
+      line-height           inherit !important
+
+    &.solid
+      &.green
+        background          #00B057
+
+      .button-title
+        color               #fff
+
+    &.thin
+      border-width          1px
+
+      &.gray
+        border-color        #BDC3C7
+
+        .button-title
+          color             #BDC3C7
+
+  .koding-on-off.small
+    size                    42px 22px
+    border-radius           19px
+    background              #D8D8D8
+    padding                 4px 6px
+
+    a.knob
+      background            #fff
+      size                  14px 14px
+
+    &.on
+      background            #52A840
+
+    &.on a.knob
+      vendor                transform, translateX(16px)
+
+  .formline.button-field .kdbutton
+    height                  29px
+    line-height             29px
+
+    .button-title
+      line-height           inherit !important
+
+  // tweaks for tabbed app modals
+  .kdtabview
+
+    .AppModal-content
+      float                 left
+
+    .AppModal-nav
+      bg                    color, transparent !important // to override ide black tab handles
+      border-bottom         none
+      padding-top           0
+
+.AppModal-nav
+  width                     190px
+  float                     left
+  margin                    0 30px 0 0
+  border-right              1px solid #E7E7E7
+
+.AppModal-navItem
+  display                   block
+  height                    45px
+  line-height               45px
+  padding                   0 0 0 13px
+  border                    1px solid transparent
+  border-right              none
+  border-radius             3px 0 0 3px
+  color                     #A1A1A1
+  font-size                 14px
+  font-weight               500
+  borderBox()
+  noTextDeco()
+  pointer()
+
+  &.disabled
+    cursor                  not-allowed
+    opacity                 .5
+
+  &.selected
+  &.active
+    border-color            #E7E7E7
+    color                   #52A840
+
+.AppModal-content
+  overflow                  hidden
+  zoom                      1
+  width                     auto
+
+.AppModal-form
+  margin                    0 -12px
+  padding-top               30px
+
+  .formline
+    display                 block
+    margin-bottom           25px
+    padding                 0 12px
+    width                   auto
+    font-size               14px
+    clear                   both
+    borderBox()
+
+  div.input-wrapper
+    margin-bottom           0 !important
+
+  .formline.button-field
+    padding                 28px 12px 0 !important
+    width                   auto
+    border-top              1px solid #E7E7E7 !important
+
+  .Formline--half
+    width                   50%
+    float                   left
+    clear                   none
+
+  label.kdlabel
+    display                 block
+    margin                  0 0 7px
+    padding                 0
+    line-height             20px
+    color                   #434343
+    float                   none
+
+  input.kdinput
+  textarea.kdinput
+    display                 block
+    width                   100%
+    padding                 8px 14px
+    line-height             20px
+    outline                 none
+    resize                  none
+    border-radius           4px
+    border                  1px solid #D2D2D2
+    background              #fff
+    font-size               14px
+    color                   #A2A2A2
+
+.AppModal-section
+  font-size                 14px
+  rel()
+
+  fieldset
+    margin                  25px 0
+
+    > label
+      display               block
+      margin-bottom         7px
+
+    > p
+    > input.kdinput.text
+      fl()
+      width                 calc(50% - 20px)
+      margin-right          20px
+
+    > p
+      font-size             12px
+      color                 footerLinkColor
+
+
+.AppModal-section.is-collapsed
+  .kdformview
+    hidden()
+
+.AppModal-sectionHeader
+  border-bottom             none
+  padding-top               24px
+  margin-bottom             25px
+  font-size                 14px
+  line-height               19px
+  color                     #A1A1A1
+  &.formline
+    margin-bottom           0
+    border-top              1px solid #E7E7E7
+
+.AppModal-sectionDescription
+  padding-right             100px
+  borderBox()
+  rel()
+
+.AppModal-sectionToggle
+  abs                       -4px 0px 0 0
+

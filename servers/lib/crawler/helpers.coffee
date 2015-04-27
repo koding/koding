@@ -125,7 +125,8 @@ prepareActivity = (models, {activity, profile}, callback) ->
     createdAt        : renderCreatedAt activity
     commentCount     : repliesCount
     likeCount        : actorsCount
-
+    payload          : message.payload
+    
   queue = [
     ->
       prepareComments models, activity, (err, replies) ->

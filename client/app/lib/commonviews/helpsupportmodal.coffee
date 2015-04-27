@@ -93,14 +93,15 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
         <a href="http://learn.koding.com/guides/ssh-into-your-vm/" target="_blank">
           How do I ssh into my Koding VM?</a><br/>
 
-        <a href="http://learn.koding.com/faq/#vm-poweroff" target="_blank">
-          How do I turn off my VM?</a><br/>
-
         <a href="http://learn.koding.com/guides/change-theme/" target="_blank">
           Changing IDE and Terminal themes</a><br/>
 
-        <div class="message-footer">
+        <div class="koding-university">
           Head over to <a href="http://learn.koding.com/faq/" target="_blank">Koding University</a> for more...
+        </div>
+
+        <div class="message-footer">
+          To view the onboarding process again,<br />press <span class="f1-button">F1</span>.
         </div>
       </div>
     """

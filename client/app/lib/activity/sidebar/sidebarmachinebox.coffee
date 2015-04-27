@@ -27,16 +27,33 @@ module.exports = class SidebarMachineBox extends KDView
 
     @workspaceListItemsById = {}
 
-    { workspaces } = @getData()
-    machineData    = { @machine, workspaces }
+    @createMachineItem()
 
-    @addSubView @machineItem = new NavigationMachineItem {}, machineData
+    @addSubView @unreadIndicator = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'count hidden'
 
     @createWorkspacesLabel()
     @createWorkspacesList()
     @watchMachineState()
 
     @machine.on 'MachineLabelUpdated', @bound 'handleMachineLabelUpdated'
+
+    if environmentDataProvider.getLastUpdatedMachineUId() is @machine.uid
+      kd.utils.wait 733, => # wait showing popup to get the coordinates correctly
+        environmentDataProvider.setLastUpdatedMachineUId null
+        @machineItem.showSidebarSharePopup()
+
+
+  createMachineItem: ->
+
+    machineData = { @machine, workspaces: @getData().workspaces }
+
+    @addSubView @machineItem = new NavigationMachineItem {}, machineData
+
+    @machineItem.on 'click', =>
+      if @isMachineRunning() then @toggleList()
+      else kd.singletons.router.handleRoute @machineItem.machineRoute
 
 
   createWorkspacesList: ->
@@ -72,12 +89,15 @@ module.exports = class SidebarMachineBox extends KDView
 
   addWorkspace: (wsData, storeData = no) ->
 
-    @listController.addItem wsData
+    unless @listController.itemForId wsData.getId()
+      @listController.addItem wsData
 
     return  unless storeData
 
     { workspaces } = @getData()
-    workspaces.push wsData
+
+    if workspaces.indexOf(wsData) is -1
+      workspaces.push wsData
 
 
   removeWorkspace: (wsId) ->
@@ -94,12 +114,16 @@ module.exports = class SidebarMachineBox extends KDView
     @addSubView @workspacesLabel = new KDCustomHTMLView
       cssClass : 'workspaces-link'
       partial  : 'Workspaces'
-      click    : =>
+      click    : @bound 'handleWorkspaceLabelClicked'
 
-        return no  unless @machine.isMine()
 
-        modal = new MoreWorkspacesModal {}, @getData().workspaces
-        modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
+  handleWorkspaceLabelClicked: ->
+
+    if not @machine.isMine() or not @isMachineRunning()
+      return no
+
+    modal = new MoreWorkspacesModal {}, @getData().workspaces
+    modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
 
 
   createAddWorkspaceInput: ->
@@ -138,8 +162,6 @@ module.exports = class SidebarMachineBox extends KDView
   deselect: ->
 
     @unsetClass 'selected'
-
-    @collapseList()
     @deselectWorkspaces()
 
 
@@ -147,22 +169,31 @@ module.exports = class SidebarMachineBox extends KDView
 
     return  if @isListCollapsed
 
-    @listWrapper.setClass 'hidden'
-    @workspacesLabel.setClass 'hidden'
+    @listWrapper.hide()
+    @workspacesLabel.hide()
+    @unreadIndicator.show()  if @unreadCount > 0
     @isListCollapsed = yes
 
 
   expandList: ->
 
-    @listWrapper.unsetClass 'hidden'
-    @workspacesLabel.unsetClass 'hidden'
+    return  unless @isMachineRunning()
+
+    @listWrapper.show()
+    @workspacesLabel.show()
+    @unreadIndicator.hide()
     @isListCollapsed = no
+
+
+  toggleList: ->
+
+    if @isListCollapsed then @expandList() else @collapseList()
+    @emit 'ListStateChanged'
 
 
   selectWorkspace: (slug) ->
 
-    if @machine.status.state is Machine.State.Running
-      @expandList()
+    @expandList()
 
     @deselectWorkspaces()
     @forEachWorkspaceItem (item) ->
@@ -221,3 +252,33 @@ module.exports = class SidebarMachineBox extends KDView
       switch state
         when Stopping, Terminating then @deselect()
         when Terminated then @destroy()
+
+
+  setUnreadCount: (channelId, count) ->
+
+    return  unless workspaceItem = @getWorkspaceItemByChannelId channelId
+
+    workspaceItem.setUnreadCount count
+
+    @updateUnreadCount()
+
+    return  unless count is 0
+
+    kd.singletons.socialapi.channel.updateLastSeenTime {channelId}, kd.noop
+
+
+  updateUnreadCount: ->
+
+    @unreadCount = 0
+
+    for own _, workspaceItem of @workspaceListItemsById
+      @unreadCount += workspaceItem.unreadCount or 0
+
+    @unreadIndicator.updatePartial @unreadCount
+    if @isListCollapsed and @unreadCount > 0
+      @unreadIndicator.show()
+
+
+  isMachineRunning: ->
+
+    return @machine.status.state is Machine.State.Running

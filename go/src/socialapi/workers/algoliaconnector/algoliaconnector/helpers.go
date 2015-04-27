@@ -13,6 +13,16 @@ func (f *Controller) insert(indexName string, record map[string]interface{}) err
 	return err
 }
 
+// Delete removes a record from the given indexName
+func (f *Controller) delete(indexName string, objectID string) error {
+	index, err := f.indexes.Get(indexName)
+	if err != nil {
+		return err
+	}
+	_, err = index.DeleteObject(objectID)
+	return err
+}
+
 func (f *Controller) get(indexName string, objectId string) (map[string]interface{}, error) {
 	index, err := f.indexes.Get(indexName)
 	if err != nil {
@@ -33,7 +43,7 @@ func (f *Controller) get(indexName string, objectId string) (map[string]interfac
 }
 
 func (f *Controller) partialUpdate(indexName string, record map[string]interface{}) error {
-	index, err := f.indexes.Get("messages")
+	index, err := f.indexes.Get(indexName)
 	if err != nil {
 		return err
 	}
@@ -45,7 +55,32 @@ func (f *Controller) partialUpdate(indexName string, record map[string]interface
 	return nil
 }
 
-func appendMessageTag(record map[string]interface{}, channelId string) []interface{} {
+func removeTag(record map[string]interface{}, channelId string) []interface{} {
+	if record == nil {
+		return []interface{}{}
+	}
+
+	tagsDoc, ok := record["_tags"]
+	if !ok {
+		return []interface{}{}
+	}
+
+	tags, ok := tagsDoc.([]interface{})
+	if !ok {
+		return []interface{}{}
+	}
+
+	newTags := make([]interface{}, 0)
+	for _, ele := range tags {
+		if ele != channelId {
+			newTags = append(newTags, ele)
+		}
+	}
+
+	return newTags
+}
+
+func appendTag(record map[string]interface{}, channelId string) []interface{} {
 	if record == nil {
 		return []interface{}{channelId}
 	}
@@ -59,7 +94,6 @@ func appendMessageTag(record map[string]interface{}, channelId string) []interfa
 	if !ok {
 		return []interface{}{channelId}
 	}
-
 	for _, ele := range tags {
 		if ele == channelId {
 			return tags

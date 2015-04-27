@@ -1,11 +1,12 @@
 package models
 
 import (
-	"socialapi/workers/common/runner"
 	"testing"
 	"time"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -111,6 +112,49 @@ func TestChannelParticipantIsParticipant(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(ip, ShouldEqual, true)
 			So(cp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_ACTIVE)
+		})
+	})
+}
+
+func TestChannelParticipantBlock(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("While testing blocking a participant", t, func() {
+		Convey("it should have channel id", func() {
+			cp := NewChannelParticipant()
+
+			err := cp.Block()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("it should return false if account is not exist", func() {
+			cp := NewChannelParticipant()
+			cp.ChannelId = 120
+
+			err := cp.Block()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
+		})
+
+		Convey("it should not have error if account is exist", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+			acc := CreateAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+			cp, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(cp, ShouldNotBeNil)
+			err = cp.Block()
+			So(err, ShouldBeNil)
+
+			// fetch the updated participant
+			So(cp.FetchParticipant(), ShouldBeNil)
+			So(cp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_BLOCKED)
 		})
 	})
 }

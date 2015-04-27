@@ -29,10 +29,12 @@ print <<HTML;
 	</ul>    
 </nav>
 <footer>
-<h4>This is an example page running Perl on your Koding Server.</h4> <p>You can create your own simple Perl \"Hello World\" with this:</p>
-<pre>#!/usr/bin/perl -w
-print \"Content-type: text/html&#92;n&#92;n&#92;n\";
-print \"Hello, world from perl!&#92;n\";</pre>
+	<h4>This is an example page running Perl on your Koding Virtual Machine (VM).
+	<p>
+		You can create your own Perl based "Hello World" program by following this <a href="http://learn.koding.com/guides/hello-world/perl/" target=_blank>simple guide</a> over at Koding University.
+	</p>
+	</h4>
+	<p><a href="https://twitter.com/koding" target=_blank>Koding on Twitter</a> | <a href="https://facebook.com/koding" target=_blank>Koding on Facebook</a></p>
 </footer>
 </div> 
 </body>

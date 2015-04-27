@@ -15,7 +15,7 @@ func TestFlag(t *testing.T) {
 	// get flags
 	args := getFlags(t, structName, "")
 
-	m.args = args[1:]
+	m.Args = args[1:]
 
 	if err := m.Load(s); err != nil {
 		t.Error(err)
@@ -34,7 +34,7 @@ func TestFlagWithPrefix(t *testing.T) {
 	// get flags
 	args := getFlags(t, structName, prefix)
 
-	m.args = args[1:]
+	m.Args = args[1:]
 
 	if err := m.Load(s); err != nil {
 		t.Error(err)
@@ -43,22 +43,106 @@ func TestFlagWithPrefix(t *testing.T) {
 	testStruct(t, s, getDefaultServer())
 }
 
+func TestFlattenFlags(t *testing.T) {
+	m := FlagLoader{
+		Flatten: true,
+	}
+	s := &FlattenedServer{}
+	structName := structs.Name(s)
+
+	// get flags
+	args := getFlags(t, structName, "")
+
+	m.Args = args[1:]
+
+	if err := m.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	testFlattenedStruct(t, s, getDefaultServer())
+}
+
+func TestCamelcaseFlags(t *testing.T) {
+	m := FlagLoader{
+		CamelCase: true,
+	}
+	s := &CamelCaseServer{}
+	structName := structs.Name(s)
+
+	// get flags
+	args := getFlags(t, structName, "")
+
+	m.Args = args[1:]
+
+	if err := m.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	testCamelcaseStruct(t, s, getDefaultCamelCaseServer())
+}
+
+func TestFlattenAndCamelCaseFlags(t *testing.T) {
+	m := FlagLoader{
+		Flatten:   true,
+		CamelCase: true,
+	}
+	s := &FlattenedServer{}
+
+	// get flags
+	args := getFlags(t, "FlattenedCamelCaseServer", "")
+
+	m.Args = args[1:]
+
+	if err := m.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	testFlattenedStruct(t, s, getDefaultServer())
+}
+
 // getFlags returns a slice of arguments that can be passed to flag.Parse()
 func getFlags(t *testing.T, structName, prefix string) []string {
 	if structName == "" {
 		t.Fatal("struct name can not be empty")
 	}
 
-	flags := map[string]string{
-		"-name":                       "koding",
-		"-port":                       "6060",
-		"-enabled":                    "",
-		"-users":                      "ankara,istanbul",
-		"-postgres-enabled":           "",
-		"-postgres-port":              "5432",
-		"-postgres-hosts":             "192.168.2.1,192.168.2.2,192.168.2.3",
-		"-postgres-dbname":            "configdb",
-		"-postgres-availabilityratio": "8.23",
+	var flags map[string]string
+	switch structName {
+	case "Server":
+		flags = map[string]string{
+			"-name":                       "koding",
+			"-port":                       "6060",
+			"-enabled":                    "",
+			"-users":                      "ankara,istanbul",
+			"-postgres-enabled":           "",
+			"-postgres-port":              "5432",
+			"-postgres-hosts":             "192.168.2.1,192.168.2.2,192.168.2.3",
+			"-postgres-dbname":            "configdb",
+			"-postgres-availabilityratio": "8.23",
+		}
+	case "FlattenedServer":
+		flags = map[string]string{
+			"--enabled":           "",
+			"--port":              "5432",
+			"--hosts":             "192.168.2.1,192.168.2.2,192.168.2.3",
+			"--dbname":            "configdb",
+			"--availabilityratio": "8.23",
+		}
+	case "FlattenedCamelCaseServer":
+		flags = map[string]string{
+			"--enabled":            "",
+			"--port":               "5432",
+			"--hosts":              "192.168.2.1,192.168.2.2,192.168.2.3",
+			"--db-name":            "configdb",
+			"--availability-ratio": "8.23",
+		}
+	case "CamelCaseServer":
+		flags = map[string]string{
+			"--access-key":         "123456",
+			"--normal":             "normal",
+			"--db-name":            "configdb",
+			"--availability-ratio": "8.23",
+		}
 	}
 
 	prefix = strings.ToLower(prefix)

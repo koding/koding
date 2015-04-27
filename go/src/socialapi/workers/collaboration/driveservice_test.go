@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	apimodels "socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/collaboration/models"
-	"socialapi/workers/common/runner"
 	"testing"
 	"time"
 
-	"socialapi/workers/helper"
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -25,13 +25,14 @@ func TestCollaborationDriveService(t *testing.T) {
 
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	handler := New(r.Log, redisConn, r.Conf, r.Kite)
+	handler := New(r.Log, redisConn, appConfig, r.Kite)
 
 	Convey("while pinging collaboration", t, func() {
 		// owner

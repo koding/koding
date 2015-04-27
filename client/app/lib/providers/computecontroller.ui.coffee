@@ -24,7 +24,7 @@ module.exports = class ComputeController_UI
 
 
   @showProvidersModal = requiresLogin
-    message: "You need to login to create a new machine."
+    message: "You need to login to create a new VM."
   , (stack)->
 
     new KDModalView
@@ -154,7 +154,7 @@ module.exports = class ComputeController_UI
           title   : "Reinitialize VM?"
           message : "
             If you choose to proceed, this VM will be reset to default state.
-            You will loose all your files, workspaces and data but your VM
+            You will lose all your files, workspaces and data but your VM
             settings (VM aliases, sub-domains etc.) will not be lost.
           "
           button  : "Proceed"

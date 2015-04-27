@@ -15,7 +15,6 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
   constructor:(options = {}, data)->
 
     options.cssClass = 'paid-plan'
-    options.height   = 450
 
     super options, data
 
@@ -89,8 +88,6 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
             action   : 'clicks'
             label    : 'upgradeAccountOverlay'
             origin   : 'paidModal'
-    else
-      @setHeight 278
 
     @updateUsageText 5, usage, limits
     @storageSlider.on "ValueIsChanging", (val)=>
@@ -98,6 +95,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     @updateRegionText()
     @regionSelector.on "change", @bound 'updateRegionText'
+
+    @setPositions()
+
 
   updateRegionText: ->
 
@@ -133,8 +133,6 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     }, (err, machine)=>
 
       return  if showError err
-
-      globals.userMachines.push machine
 
       @createVMButton.hideLoader()
       @destroy()

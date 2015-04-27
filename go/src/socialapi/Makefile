@@ -53,7 +53,10 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev collaborationdev mailsenderdev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
+	notificationdev trollmodeldev pinnedpostdev algoliaconnectordev \
+	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
+	teamdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -85,7 +88,7 @@ pinnedpostdev:
 
 algoliaconnectordev:
 	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
@@ -135,7 +138,12 @@ mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(METRICS)
 
-configuremigration:
+
+topicmoderationdev:
+	@echo "$(OK_COLOR)==> Running Topic Moderation Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/moderation -c $(CONFIG) $(DBG) $(METRICS)
+
+onfiguremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jComments.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
@@ -158,6 +166,10 @@ sitemapgeneratordev:
 sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapinitializer -watch socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
+
+teamdev:
+	@echo "$(OK_COLOR)==> Running Team Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c $(CONFIG) $(DBG) $(METRICS)
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
@@ -195,6 +207,64 @@ build:
 	@echo "building with ../../build.sh"
 	../../build.sh
 
+testwebhook:
+	@echo "$(OK_COLOR)--> webhook model tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/webhook/*.go
+	@./webhook.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./webhook.test
+
+	@echo "$(OK_COLOR)--> webhook api tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/webhook/api/*.go
+	@./api.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./api.test
+
+testpermission:
+	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
+	@`which go` test -c workers/permission/tests/*.go
+	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./permission.test
+
+testteam: testteamunit testteamintegration
+
+testteamunit:
+	@echo "$(OK_COLOR)--> team unit tests... $(NO_COLOR)"
+	@`which go` test -c workers/team/*.go
+	@./team.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./team.test
+
+testteamintegration:
+	@echo "$(OK_COLOR)--> team integration tests... $(NO_COLOR)"
+	@`which go` test -c workers/team/tests/*.go
+	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./tests.test
+
+testmoderation: testmoderationunit testmoderationintegration
+
+testmoderationunit:
+	@echo "$(OK_COLOR)--> moderation unit tests... $(NO_COLOR)"
+	@`which go` test -c workers/moderation/topic/*.go
+	@./topic.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./topic.test
+
+testmoderationintegration:
+	@echo "$(OK_COLOR)--> moderation integration tests... $(NO_COLOR)"
+	@`which go` test -c workers/moderation/topic/tests/*.go
+	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./tests.test
+
+testalgolia:
+	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
+	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
+	@./algoliaconnector.test -c $(CONFIG)
+	@rm ./algoliaconnector.test
+
+
+testtopicfeeed:
+	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
+	@`which go` test -c workers/topicfeed/*.go
+	@./topicfeed.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./topicfeed.test
+
 # testcollaboration runs the unit and integration tests of collaboration worker
 testcollaboration:
 	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
@@ -218,6 +288,17 @@ testmailsender:
 	@./emailsender.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./emailsender.test
 
+testmail:
+	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/mailparse/models/*.go
+	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./models.test
+
+	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/mailparse/tests/*.go
+	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./tests.test
+
 testemailworker:
 	# @echo "$(OK_COLOR)--> activity email tests.. $(NO_COLOR)"
 	# @`which go` test -c workers/email/activityemail/*.go
@@ -237,31 +318,21 @@ testemailworker:
 	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./emailmodels.test
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker
-	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
+testnotification:
+	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
+	@`which go` test -c workers/notification/tests/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
 
-	@`which go` test config/*.go $(DBG)
 
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
-	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
-	@./algoliaconnector.test -c $(CONFIG)
-	@rm ./algoliaconnector.test
-
-	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
-	@`which go` test -c workers/common/metrics/*.go
-	@./metrics.test
-	@rm ./metrics.test
-
-	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
+testtrollmode:
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@`which go` test workers/trollmode/tests/*.go
 	@`which go` test -c workers/trollmode/*.go
 	@./trollmode.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./trollmode.test
 
-	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
-	@`which go` test -c workers/topicfeed/*.go
-
+testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
 	@`which go` test -c workers/payment/*.go
 	@./payment.test $(DBG) $(METRICS) -c $(CONFIG)
@@ -277,12 +348,46 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker
 	@./paypal.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./paypal.test
 
+
+	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
+	@`which go` test -c workers/payment/paymentwebhook/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
+	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
+
+testapi: testcollaboration testmailsender testmail testmodels testemailworker \
+	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
+	testpayment testteam
+
+	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
+
+	@`which go` test config/*.go $(DBG)
+
+	@echo "$(OK_COLOR)--> all api tests... $(NO_COLOR)"
+
+	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
+	@`which go` test -c workers/common/metrics/*.go
+	@./metrics.test
+	@rm ./metrics.test
+
+	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
+
+
+	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
+	@`which go` test -c workers/permission/tests/*.go
+	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./permission.test
+
+
+
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
 	@`which go` test -c workers/common/handler/*.go
 	@./handler.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./handler.test
 
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
 	@`which go` test -c tests/*.go
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
@@ -299,14 +404,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker
 
 	@echo "$(OK_COLOR)--> sitemap model tests... $(NO_COLOR)"
 	@`which go` test workers/sitemap/models/*.go
-
-	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/paymentwebhook/*.go
-	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./main.test
-
-	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
-	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
 	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
 	@`which go` test -c workers/realtime/models/*.go
@@ -357,14 +454,3 @@ dep:
 	done;
 
 	@echo "$(OK_COLOR)==> Files are located at files $(NO_COLOR)";
-
-testmail:
-	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/mailparse/models/*.go
-	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./models.test
-
-	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/mailparse/tests/*.go
-	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./tests.test

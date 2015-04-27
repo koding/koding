@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/fatih/camelcase"
 	"github.com/fatih/structs"
 )
 
@@ -16,6 +17,12 @@ type EnvironmentLoader struct {
 	// Prefix prepends given string to every environment variable
 	// {STRUCTNAME}_FIELDNAME will be {PREFIX}_FIELDNAME
 	Prefix string
+
+	// CamelCase adds a seperator for field names in camelcase form. A
+	// fieldname of "AccessKey" would generate a environment name of
+	// "STRUCTNAME_ACCESSKEY". If CamelCase is enabled, the environment name
+	// will be generated in the form of "STRUCTNAME_ACCESS_KEY"
+	CamelCase bool
 }
 
 func (e *EnvironmentLoader) getPrefix(s *structs.Struct) string {
@@ -92,8 +99,13 @@ func (e *EnvironmentLoader) printField(prefix string, field *structs.Field) {
 	}
 }
 
-// generateFieldName generates the fiels name conbined with the prefix and the
+// generateFieldName generates the fiels name combined with the prefix and the
 // struct's field name
 func (e *EnvironmentLoader) generateFieldName(prefix string, field *structs.Field) string {
-	return strings.ToUpper(prefix) + "_" + strings.ToUpper(field.Name())
+	fieldName := strings.ToUpper(field.Name())
+	if e.CamelCase {
+		fieldName = strings.ToUpper(strings.Join(camelcase.Split(field.Name()), "_"))
+	}
+
+	return strings.ToUpper(prefix) + "_" + fieldName
 }

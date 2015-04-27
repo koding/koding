@@ -9,7 +9,8 @@ CREATE TABLE "notification"."notification" (
     "glanced" bool NOT NULL,
     "subscribed_at" timestamp(6) WITH TIME ZONE,
     "unsubscribed_at" timestamp(6) WITH TIME ZONE,
-    "activated_at" timestamp(6) WITH TIME ZONE
+    "activated_at" timestamp(6) WITH TIME ZONE,
+    "context_channel_id" BIGINT NOT NULL
 )
 WITH (OIDS=FALSE);
 GRANT SELECT, INSERT, UPDATE ON "notification"."notification" TO "socialapplication";

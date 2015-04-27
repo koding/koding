@@ -306,10 +306,10 @@ module.exports.create = (KONFIG, environment)->
         if ($http_user_agent ~* "baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator") {
           set $prerender 1;
         }
-        if ($request_uri !~ "(^(\/)?$)|(\/(Pricing|About|Legal|Features)(\/|$))") {
+        if ($request_uri !~ "(^(\/)?$)|(\/(Pricing|About|Legal|Features)(\/[A-Za-z]*$|$))") {
           set $prerender 0;
         }
-        if ($args ~ "_escaped_fragment_=$|(\/(Pricing|About|Legal|Features)(\/|$))") {
+        if ($args ~ "^_escaped_fragment_=($|(\/(Pricing|About|Legal|Features)(\/[A-Za-z]*$|$)))") {
           set $prerender 1;
         }
         if ($http_user_agent ~ "Prerender") {
@@ -328,7 +328,9 @@ module.exports.create = (KONFIG, environment)->
         }
 
         if ($prerender = 0) {
-          proxy_pass http://gowebserver;
+          # we dont want to use gowebserver on teams product just because the code
+          # is not written for it yet, it is currently node only... - SY
+          proxy_pass http://#{if KONFIG.disabledFeatures.teams then 'go' else ''}webserver;
         }
 
         #{if environment is "sandbox" then basicAuth else ""}

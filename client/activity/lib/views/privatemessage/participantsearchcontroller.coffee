@@ -77,7 +77,4 @@ module.exports = class ParticipantSearchController extends KDAutoCompleteControl
         @refreshDropDown data
         @showDropdown()
       else
-        log 'no data found'
         @showNoDataFound()
-
-

@@ -77,6 +77,22 @@ func FetchChannelsByGroupName(accountId int64, groupName string) ([]*models.Chan
 	return channels, nil
 }
 
+func FetchChannelByName(accountId int64, name, groupName, typeConstant, token string) (*models.Channel, error) {
+	url := fmt.Sprintf("/channel/name/%s?groupName=%s&type=%s&accountId=%d", name, groupName, typeConstant, accountId)
+	res, err := sendRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ccs := &models.ChannelContainer{}
+	err = json.Unmarshal(res, ccs)
+	if err != nil {
+		return nil, err
+	}
+
+	return ccs.Channel, nil
+}
+
 func DeleteChannel(creatorId, channelId int64) error {
 	c := models.NewChannel()
 	c.CreatorId = creatorId
@@ -139,14 +155,21 @@ func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant st
 	return cm.(*models.Channel), nil
 }
 
-func UpdateChannel(cm *models.Channel) (*models.Channel, error) {
-	url := fmt.Sprintf("/channel/%d", cm.Id)
-	cmI, err := sendModel("POST", url, cm)
+func UpdateChannel(cm *models.Channel, token string) (*models.Channel, error) {
+	url := fmt.Sprintf("/channel/%d/update", cm.Id)
+
+	res, err := marshallAndSendRequestWithAuth("POST", url, cm, token)
 	if err != nil {
 		return nil, err
 	}
 
-	return cmI.(*models.Channel), nil
+	cc := models.NewChannelContainer()
+	err = json.Unmarshal(res, cc)
+	if err != nil {
+		return nil, err
+	}
+
+	return cc.Channel, nil
 }
 
 func GetChannel(id int64) (*models.Channel, error) {
@@ -160,6 +183,27 @@ func GetChannel(id int64) (*models.Channel, error) {
 	cc = cmI.(*models.ChannelContainer)
 
 	return cc.Channel, nil
+}
+
+func SearchChannels(q *request.Query) ([]*models.Channel, error) {
+	v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("/channel/search?%s", v.Encode())
+	res, err := sendRequestWithAuth("GET", url, nil, "")
+	if err != nil {
+		return nil, err
+	}
+
+	channels := make([]*models.Channel, 0)
+	err = json.Unmarshal(res, &channels)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
 }
 
 func CreateGroupActivityChannel(creatorId int64, groupName string) (*models.Channel, error) {
