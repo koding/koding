@@ -17,5 +17,21 @@ module.exports =
     messagesHelpers.startConversation(browser, messageUser)
     browser.end()
 
+
+  refreshPageAndSeeTheConversationInSidebar: (browser) ->
+
+    messageUser =
+      userName  : 'sinan'
+      fullName  : 'Sinan Yasar'
+
     helpers.beginTest(browser)
 
+    isStarted = messagesHelpers.startConversation(browser, messageUser)
+
+    if isStarted then browser.end()
+    else
+      browser
+        .refresh()
+        .waitForElementVisible  '.activity-sidebar .messages', 20000
+        .assert.containsText    '.activity-sidebar .messages', messageUser.fullName  # Assertion
+        .end()
