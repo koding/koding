@@ -57,18 +57,20 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     machineId         = machine._id
     eventId           = "createSnapshot-#{machineId}"
 
-    monitorProgress = => computeController.on eventId, (event) =>
+    monitorProgress = (event) =>
       {error, percentage} = event
       @emit 'SnapshotProgress', percentage
       return  if percentage < 100
+      # Remove the subscriber if the percent is >= 100
+      computeController.off eventId, monitorProgress
       return callback error  if error
       # Because kloud.createSnapshot does not return a snapshot object,
       # we need to request the newest snapshot (sorted by creation date)
       snapshotHelpers.fetchNewestSnapshot machineId, callback
 
     computeController.createSnapshot machine, label
-      .then monitorProgress
       .catch callback
+      .then -> computeController.on eventId, monitorProgress
 
 
   ###*
