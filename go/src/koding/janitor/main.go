@@ -10,6 +10,7 @@ import (
 	"time"
 
 	kiteConfig "github.com/koding/kite/config"
+	"github.com/koding/logging"
 	"github.com/koding/runner"
 	"github.com/robfig/cron"
 
@@ -20,7 +21,7 @@ var (
 	WorkerName    = "Janitor"
 	WorkerVersion = "0.0.1"
 
-	Log = runner.CreateLogger(WorkerName, false)
+	Log logging.Logger
 
 	// List of warnings to iterate upon in a certain interval.
 	Warnings = []*Warning{
@@ -39,6 +40,8 @@ func main() {
 	port := conf.Janitor.Port
 
 	go r.Listen()
+
+	Log = r.Log
 
 	var err error
 	kConf := r.Conf.Kloud
