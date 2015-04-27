@@ -511,9 +511,8 @@ module.exports = CollaborationController =
 
     return  if @collaborationJustInitialized or @fakeTabView
 
-    mySnapshot   = @mySnapshot.values().filter (item) -> return not item.isInitial
-    hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
-    snapshot     = if hostSnapshot then mySnapshot.concat hostSnapshot else mySnapshot
+    snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
+    snapshot = @appendHostSnapshot snapshot  unless @amIHost
 
     @forEachSubViewInIDEViews_ (pane) =>
       @removePaneFromTabView pane  if pane.isInitial
@@ -521,6 +520,16 @@ module.exports = CollaborationController =
     for change in snapshot when change.context
       @changeActiveTabView change.context.paneType
       @createPaneFromChange change
+
+
+  appendHostSnapshot: (snapshot) ->
+
+    hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
+
+    if hostSnapshot
+      return snapshot.concat hostSnapshot
+
+    return snapshot
 
 
   showShareButton: ->
