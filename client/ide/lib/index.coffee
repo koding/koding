@@ -1405,18 +1405,25 @@ class IDEAppController extends AppController
           @openFile file, contents
 
 
-  fetchSnapshot: (callback)->
+  fetchSnapshot: (callback) ->
 
     if not @mountedMachine or not @mountedMachine.isRunning()
       callback null
       return
 
-    @mountedMachine.getBaseKite().storageGet @getWorkspaceSnapshotName()
-    .then (snapshot)->
-      callback snapshot
-    .catch (err)->
-      console.warn 'Failed to fetch snapshot', err
-      callback null
+    fetch = (username) =>
+
+      key = @getWorkspaceSnapshotName username
+      @mountedMachine.getBaseKite().storageGet key
+
+    fetch nick()
+
+      .then callback
+
+      .catch (err) ->
+
+        console.warn 'Failed to fetch snapshot', err
+        callback null
 
 
   switchToPane: (options = {}) ->
