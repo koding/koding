@@ -524,6 +524,9 @@ module.exports = CollaborationController =
 
   appendHostSnapshot: (snapshot) ->
 
+    watchingHost = -1 < @myWatchMap.values().indexOf @collaborationHost
+    return snapshot  unless watchingHost
+
     hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
 
     if hostSnapshot
