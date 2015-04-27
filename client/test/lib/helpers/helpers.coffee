@@ -8,6 +8,7 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 module.exports =
 
   beginTest: (browser, user) ->
+
     url   = @getUrl()
     user ?= utils.getUser()
 
@@ -22,6 +23,7 @@ module.exports =
 
 
   assertNotLoggedIn: (browser, user) ->
+
     url = @getUrl()
     browser.url(url)
     browser.maximizeWindow()
@@ -35,6 +37,7 @@ module.exports =
 
 
   attemptLogin: (browser, user) ->
+
     browser
       .waitForElementVisible  '[testpath=main-header]', 50000
       .click                  '#main-header [testpath=login-link]'
@@ -162,6 +165,7 @@ module.exports =
 
 
   doPostComment: (browser, comment, shouldAssert = yes, hasEmbeddable = no) ->
+
     browser
       .click                    activitySelector + ' [testpath=CommentInputView]'
       .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
@@ -259,6 +263,7 @@ module.exports =
 
 
   getFakeText: ->
+
     return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
@@ -458,5 +463,6 @@ module.exports =
 
 
   getUrl: ->
+
     return 'http://lvh.me:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
