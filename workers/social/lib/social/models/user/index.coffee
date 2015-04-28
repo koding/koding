@@ -504,13 +504,15 @@ module.exports = class JUser extends jraphical.Module
 
         # continue login
         else
-          afterLogin user, clientId, session, callback
+          afterLogin user, clientId, session, (err, response) ->
 
-        queue.next()
+            callback err, response
+            queue.next()  unless err
+
     , =>
       # temp - sy
       # add loggedin user to the group
-      user.fetchAccount 'koding', (err, account) =>
+      user?.fetchAccount 'koding', (err, account) =>
         @addToGroup account, groupName, null, null, ->
           queue.next()
     ]

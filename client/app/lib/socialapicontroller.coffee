@@ -141,7 +141,7 @@ module.exports = class SocialApiController extends KDController
             catch e then null
 
       if payload.initialParticipants and typeof payload.initialParticipants is 'string'
-        payload.initialParticipants =
+        m.payload.initialParticipants =
           try JSON.parse htmlencode.htmlDecode payload.initialParticipants
           catch e then null
 
