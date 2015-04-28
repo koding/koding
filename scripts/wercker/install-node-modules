@@ -11,14 +11,4 @@ REPOSITORY_URL=$USER@$HOST:koding/$REPOSITORY_NAME
 
 git clone $REPOSITORY_URL node_modules
 
-npm install
-
-cd node_modules
-
-find . -mindepth 2 -iname '.git' -delete
-
-git add --force --ignore-errors .
-git commit --all --message 'Updated' || :
-git push origin master || :
-
 exit 0
