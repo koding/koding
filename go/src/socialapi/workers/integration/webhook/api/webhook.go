@@ -21,7 +21,7 @@ type Handler struct {
 	log         logging.Logger
 	bot         *webhook.Bot
 	sf          *services.ServiceFactory
-	revProxyUrl string
+	RevProxyUrl string
 }
 
 func NewHandler(l logging.Logger) (*Handler, error) {
@@ -34,7 +34,7 @@ func NewHandler(l logging.Logger) (*Handler, error) {
 		log:         l,
 		bot:         bot,
 		sf:          services.NewServiceFactory(),
-		revProxyUrl: "/api/integration",
+		RevProxyUrl: "/api/integration",
 	}, nil
 }
 
@@ -102,7 +102,7 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 	message := service.PrepareMessage(r.Data)
 
 	endPoint := service.PrepareEndpoint(r.Token)
-	endPoint = fmt.Sprintf("%s/%s", h.revProxyUrl, endPoint)
+	endPoint = fmt.Sprintf("%s/%s", h.RevProxyUrl, endPoint)
 	pushRequest := make(map[string]string)
 	pushRequest["body"] = message
 

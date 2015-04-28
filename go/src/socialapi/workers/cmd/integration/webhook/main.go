@@ -31,6 +31,12 @@ func main() {
 	m.Metrics = r.Metrics
 
 	h, err := api.NewHandler(r.Log)
+	if r.Conf.Environment == "dev" || r.Conf.Environment == "test" {
+		h.RevProxyUrl =
+			fmt.Sprintf("http://%s:%s", appConfig.Integration.Host,
+				appConfig.Integration.Port)
+	}
+
 	if err != nil {
 		r.Log.Fatal("Could not initialize webhook worker: %s", err)
 	}
