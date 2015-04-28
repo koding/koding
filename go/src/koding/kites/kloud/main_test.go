@@ -169,7 +169,7 @@ func TestTerraformPlan(t *testing.T) {
 
 	remote := userData.Remote
 
-	args := &kloud.PlanRequest{
+	args := &kloud.TerraformKloudRequest{
 		TerraformContext: `
 provider "aws" {
     access_key = "${var.access_key}"
@@ -213,7 +213,7 @@ func TestTerraformApply(t *testing.T) {
 
 	remote := userData.Remote
 
-	args := &kloud.PlanRequest{
+	args := &kloud.TerraformKloudRequest{
 		TerraformContext: `
 provider "aws" {
     access_key = "${var.access_key}"

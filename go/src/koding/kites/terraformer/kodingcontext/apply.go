@@ -14,7 +14,7 @@ import (
 // Apply applies the incoming terraform content to the remote system
 func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, error) {
 	cmd := command.ApplyCommand{
-		ShutdownCh: makeShutdownCh(),
+		ShutdownCh: makeShutdownCh(), // TODO(fatih): this prevents us to kill terraformer with a SIGINT
 		Meta: command.Meta{
 			ContextOpts: c.TerraformContextOpts(),
 			Ui:          c.ui,
@@ -60,6 +60,7 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, erro
 		"-no-color", // dont write with color
 		"-state", stateFilePath,
 		"-state-out", stateFilePath,
+		"-input=false", // do not ask for any input
 		outputDir,
 	}
 

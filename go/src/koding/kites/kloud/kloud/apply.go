@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 )
 
@@ -17,7 +18,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args *PlanRequest
+	var args *TerraformKloudRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
@@ -54,19 +55,33 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Printf("state = %+v\n", state)
-
-	// out, err := machineFromPlan(plan)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	if err := machineFromState(state); err != nil {
+		return nil, err
+	}
 
 	d, err := json.MarshalIndent(state, "", " ")
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf(string(d))
+	fmt.Printf("string(d) = %+v\n", string(d))
 
 	return nil, errors.New("not implemented yet")
+}
+
+func machineFromState(state *terraform.State) error {
+	fmt.Printf("state = %+v\n", state)
+
+	if state.Modules == nil {
+		return errors.New("state modules is empty")
+	}
+
+	for _, m := range state.Modules {
+		fmt.Printf("m.Output = %+v\n", m.Outputs)
+		fmt.Printf("m.Dependencis = %+v\n", m.Dependencies)
+		fmt.Printf("m.Path = %+v\n", m.Path)
+		fmt.Printf("m.Resources = %+v\n", m.Resources)
+	}
+
+	return nil
 }

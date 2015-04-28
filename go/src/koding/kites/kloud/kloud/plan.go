@@ -27,7 +27,9 @@ type PlanOutput struct {
 	Machines []PlanMachine `json:"machines"`
 }
 
-type PlanRequest struct {
+type TerraformKloudRequest struct {
+	MachineIds []string `json:"machineIds"`
+
 	// Terraform template file
 	TerraformContext string `json:"terraformContext"`
 
@@ -49,7 +51,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args *PlanRequest
+	var args *TerraformKloudRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
