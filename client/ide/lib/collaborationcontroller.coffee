@@ -146,7 +146,7 @@ module.exports = CollaborationController =
 
   onRealtimeParticipantJoined: (data) ->
 
-    return  unless @stateMachine.state is 'Active'
+    return  unless @stateMachine?.state is 'Active'
 
     {sessionId} = data.collaborator
 
@@ -166,7 +166,7 @@ module.exports = CollaborationController =
 
   onRealtimeParticipantLeft: (data) ->
 
-    return  unless @stateMachine.state is 'Active'
+    return  unless @stateMachine?.state is 'Active'
 
     {sessionId} = data.collaborator
 
