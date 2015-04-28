@@ -104,8 +104,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   addTalkingParticipant: (nickname) ->
 
-    pushToCollection @state.talkingParticipants, nickname, =>
-      @emitChange()
+    pushToCollection @state.talkingParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -115,8 +114,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   removeTalkingParticipant: (nickname) ->
 
-    removeFromCollection @state.talkingParticipants, nickname, =>
-      @emitChange()
+    removeFromCollection @state.talkingParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -126,8 +124,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   addVideoActiveParticipant: (nickname) ->
 
-    pushToCollection @state.videoParticipants, nickname, =>
-      @emitChange()
+    pushToCollection @state.videoParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -137,8 +134,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   removeVideoActiveParticipant: (nickname) ->
 
-    removeFromCollection @state.videoParticipants, nickname, =>
-      @emitChange()
+    removeFromCollection @state.videoParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -148,8 +144,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   addVideoConnectedParticipant: (nickname) ->
 
-    pushToCollection @state.connectedParticipants, nickname, =>
-      @emitChange()
+    pushToCollection @state.connectedParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -159,8 +154,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   removeVideoConnectedParticipant: (nickname) ->
 
-    removeFromCollection @state.connectedParticipants, nickname, =>
-      @emitChange()
+    removeFromCollection @state.connectedParticipants, nickname, @bound 'emitChange'
 
 
   ###*
