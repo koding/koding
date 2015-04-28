@@ -1429,7 +1429,7 @@ class IDEAppController extends AppController
         return callback snapshot  if snapshot
 
         # Backward compatibility plug
-        return  unless @mountedMachine.isMine()
+        return callback null  unless @mountedMachine.isMine()
 
         fetch()
           .then callback
