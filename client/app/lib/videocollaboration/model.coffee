@@ -92,7 +92,14 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @setState { connected: yes }
     @emit 'SessionConnected', session
 
-    @enableVideo { error: (err) => console.error err }  if helper.isVideoActive @channel
+    if helper.isVideoActive @channel
+      @setActive()
+
+      if @isMySession()
+        @enableVideo {},
+          success: =>
+            @setVideoState yes
+            @setAudioState yes
 
 
   ###*
@@ -129,7 +136,15 @@ module.exports = class VideoCollaborationModel extends kd.Object
         success : @bound 'handleStopSuccess'
         error   : (err) -> console.error err
 
-    session.on 'signal:start', => @enableVideo { error: (err) => console.error err }
+    session.on 'signal:start', =>
+
+      @setActive()
+
+      if @isMySession()
+        @enableVideo {},
+          success: =>
+            @setVideoState yes
+            @setAudioState yes
 
     # this event only comes to the user who has been muted, so need to make a
     # filtering here.
@@ -143,11 +158,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @emits VideoCollaborationModel~ParticipantConnected
   ###
   onConnectionCreated: (event) ->
-    # We don't want to deal with own user's events, we basically want to
-    # abstract out logged-in user out of the equation here.
-    return  if @isMyConnection event.connection
+
 
     { connection } = event
+
+    # We don't want to deal with own user's events, we basically want to
+    # abstract out logged-in user out of the equation here.
+    return  if @isMyConnection connection
 
     nick = helper.getNicknameFromConnection connection
 
@@ -166,12 +183,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     return  if @isMyConnection connection
 
-    @setParticipantLeft connection.id
-    @decrementConnectionCount()
-
-    nick = helper.getNicknameFromConnection connection
-
-    @emit 'ParticipantDisconnected', helper.defaultSubscriber nick
+    @setParticipantDisconnected connection.id
 
 
   ###*
@@ -219,17 +231,17 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * This method handles initial automatic publishing with setting some default
    * options for host, and participant to be different.
    *
+   * @param {object} options
    * @param {object} callbacks
   ###
-  enableVideo: (callbacks) ->
-
-    @setActive()
+  enableVideo: (options, callbacks) ->
 
     success = (publisher) =>
       @handlePublishSuccess publisher
       callbacks.success? publisher
 
-    options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+    defaults = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+    options  = _.assign {}, defaults, options
     @startPublishing options,
       success : success
       error   : callbacks.error
@@ -314,6 +326,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     publisher.on 'TalkingDidStart', =>
       return  unless @state.audio
       @emit 'ParticipantStartedTalking', getNick()
+      @changeActiveParticipant getNick()  unless @state.selectedParticipant
 
     publisher.on 'TalkingDidStop', =>
       return  unless @state.active
@@ -424,6 +437,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
     if @state.selectedParticipant is subscriber.nick
       @setSelectedParticipant null
 
+    @decrementConnectionCount()
+
+    @unregisterSubscriber connectionId
+
     @emit 'ParticipantDisconnected', subscriber
 
 
@@ -473,9 +490,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setAudioState: (state) ->
 
-    @publisher.videoData.publishAudio state
-    @setState { audio: state }
-    @emit 'AudioPublishStateChanged', state
+    @ensurePublishing {}, =>
+      @publisher.videoData.publishAudio state
+      @setState { audio: state }
+      @emit 'AudioPublishStateChanged', state
 
 
   ###*
@@ -485,9 +503,19 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setVideoState: (state) ->
 
-    @publisher.videoData.publishVideo state
-    @setState { video: state }
-    @emit 'VideoPublishStateChanged', state
+    @ensurePublishing {}, =>
+      @publisher.videoData.publishVideo state
+      @setState { video: state }
+      @emit 'VideoPublishStateChanged', state
+
+
+  ensurePublishing: (options, callback) ->
+
+    @setActive()
+
+    if @state.publishing
+    then callback @publisher
+    else @enableVideo options, { success: callback }
 
 
   ###*
@@ -526,14 +554,17 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {function(error: object)} callbacks.error
   ###
   startPublishing: (options, callbacks) ->
+
     return  if @state.publishing
 
     defaults =
       publishAudio: no
       publishVideo: no
 
+    options = _.assign {}, defaults, options
+
     # first create publisher with defaults.
-    helper.createPublisher @view.getContainer(), defaults, (err, publisher) =>
+    helper.createPublisher @view.getContainer(), options, (err, publisher) =>
       return callbacks.error err  if err
 
       publisher.on
@@ -545,10 +576,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
       publisher.on 'streamDestroyed', => @unregisterPublisher()
 
       @session.publish publisher, (err) =>
-        return callbacks.error err  if err
-        callbacks.success publisher
-        @setAudioState options.publishAudio
-        @setVideoState options.publishVideo
+        if err
+        then callbacks.error err
+        else callbacks.success publisher
 
 
   ###*
@@ -602,14 +632,15 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setSelectedParticipant: (nick) ->
 
-    unless isOnline = @isParticipantOnline nick
-      @emit 'SelectedParticipantChanged', nick, no
+    unless @isParticipantOnline nick
+      @setState { selectedParticipant: null }
+      @emit 'SelectedParticipantChanged', nick
       return
 
     nick = null  if @state.selectedParticipant is nick
-
     @setState { selectedParticipant: nick }
-    @emit 'SelectedParticipantChanged', nick, yes
+
+    @emit 'SelectedParticipantChanged', nick
 
 
   ###*
@@ -650,6 +681,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
   getParticipant: (nick) -> @getParticipants()[nick]
 
 
+  getActiveParticipant: -> @state.activeParticipant
+
+
+  getSelectedParticipant: -> @state.selectedParticipant
+
+
   ###*
    * Merges instance state with given state.
    *
@@ -685,7 +722,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   hasParticipantWithAudio: (nickname, callback) ->
     return callback no  unless @state.active
 
-    if participant = @getParticipant nickname
+    participant             = @getParticipant nickname
+    { isDefaultSubscriber } = helper
+
+    if participant and not isDefaultSubscriber participant
     then callback participant.videoData.stream.hasAudio
     else callback no
 
