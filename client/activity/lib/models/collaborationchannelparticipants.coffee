@@ -1,6 +1,6 @@
 _                        = require 'lodash'
 ChannelParticipantsModel = require './channelparticipants'
-videoConstants = require 'app/videocollaboration/constants'
+videoConstants           = require 'app/videocollaboration/constants'
 
 module.exports = class CollaborationChannelParticipantsModel extends ChannelParticipantsModel
 
@@ -30,7 +30,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
 
     if @state.videoActive
       filterList = getOrderedVideoParticipants @state
-      actives = participants.filter (participant) =>
+      actives = participants.filter (participant) ->
         participant.profile.nickname in filterList
 
       return actives.toList()
@@ -51,7 +51,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
 
     if @state.videoActive
       filterList = getOrderedVideoParticipants @state
-      inactives = participants.filter (participant) =>
+      inactives = participants.filter (participant) ->
         not (participant.profile.nickname in filterList)
 
       return inactives.toList()
