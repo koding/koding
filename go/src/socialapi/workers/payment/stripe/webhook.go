@@ -95,7 +95,7 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 	)
 
 	if err != nil {
-		Log.Info("'invoice.created': updating invoice created failed: %v", err)
+		Log.Error("'invoice.created': updating invoice created failed: %v", err)
 	}
 
 	return nil
