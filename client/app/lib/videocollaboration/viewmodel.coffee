@@ -31,12 +31,16 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
   switchTo: (nick) ->
 
     participants = @model.getParticipants()
-    hideAll participants
-    hideOfflineUserContainer @view
+    hideAll @view, participants
 
-    if participant = @model.getParticipant nick
-    then showParticipant participant
-    else showOfflineParticipant @view, nick
+    participant = @model.getParticipant nick
+
+    if not participant
+      showOfflineParticipant @view, nick
+    else if isDefaultParticipant participant
+      showNonpublishingUser @view, nick
+    else
+      showParticipant participant
 
 
   handleParticipantSelected: (nick) ->
@@ -62,13 +66,21 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
   handleCameraQuestionAnswered: -> @view.hideCameraDialog()
 
 
+isDefaultParticipant = (participant) ->
+
+  { isDefaultPublisher, isDefaultSubscriber } = helper
+  isDefaultPublisher(participant) or isDefaultSubscriber(participant)
+
+
 ###*
  * Hides all participants videos.
  *
+ * @param {ChatVideoView} view
  * @param {object<string, ParticipantType.Participant>} participants
 ###
-hideAll = (participants) ->
+hideAll = (view, participants) ->
 
+  hideContainers view
   hideParticipant participant  for _, participant of participants
 
 
@@ -77,10 +89,10 @@ hideAll = (participants) ->
  *
  * @param {ChatVideoView} view
 ###
-hideOfflineUserContainer = (view) ->
+hideContainers = (view) ->
 
-  offlineContainer = view.getOfflineUserContainer()
-  offlineContainer.hide()
+  view.getOfflineUserContainer().hide()
+  view.getNonpublishingUserContainer().hide()
 
 
 ###*
@@ -115,7 +127,7 @@ showParticipant = (participant) ->
 showOfflineParticipant = (view, nickname) ->
 
   offlineContainer = view.getOfflineUserContainer()
-  helper.showOfflineParticipant offlineContainer, nickname, kd.noop
+  helper.showContainer offlineContainer, nickname, kd.noop
 
 
 ###*
@@ -126,7 +138,7 @@ showOfflineParticipant = (view, nickname) ->
 ###
 showNonpublishingUser = (view, nickname) ->
 
-  nonpublishingContainer = view.getInactiveUserContainer()
+  nonpublishingContainer = view.getNonpublishingUserContainer()
   helper.showContainer nonpublishingContainer, nickname, kd.noop
 
 
@@ -142,6 +154,7 @@ showNonpublishingUser = (view, nickname) ->
 fixParticipantVideo = (participant) ->
 
   return  if helper.isDefaultPublisher participant
+  return  unless participant.videoData
 
   fixPoster = (element) ->
     posters = element.querySelectorAll '.OT_video-poster'

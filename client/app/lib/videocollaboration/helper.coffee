@@ -347,7 +347,7 @@ getChannelSessionId = (channel) -> channel?.payload?.videoSessionId
  * @param {string} nickname
  * @param {function(err: object)}
 ###
-showOfflineParticipant = (container, nickname, callback) ->
+showContainer = (container, nickname, callback) ->
 
   container.destroySubViews()
   remote.cacheable nickname, (err, [account]) ->
@@ -395,7 +395,7 @@ module.exports = {
   disableVideo
   isVideoActive
   setChannelVideoSession
-  showOfflineParticipant
+  showContainer
   getChannelSessionId
   getNicknameFromConnection
   _errorSignal
