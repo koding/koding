@@ -42,14 +42,14 @@ func (err LimitRateExceededError) StatusCode() int {
 }
 
 type SuccessResponse struct {
-	Data    interface{}
-	Error   error
-	Success bool
+	Data   interface{}
+	Error  error
+	Status bool
 }
 
 func NewSuccessResponse(data interface{}) *SuccessResponse {
 	return &SuccessResponse{
-		Success: true,
-		Data:    data,
+		Status: true,
+		Data:   data,
 	}
 }
