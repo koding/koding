@@ -715,7 +715,7 @@ class IDEAppController extends AppController
 
     return  if @isDestroyed or not @isMachineRunning()
 
-    name  = @getWorkspaceSnapshotName()
+    name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
 
     @mountedMachine.getBaseKite().storageSetQueued name, value
@@ -723,12 +723,16 @@ class IDEAppController extends AppController
 
   removeWorkspaceSnapshot: ->
 
-    @mountedMachine.getBaseKite().storageDelete @getWorkspaceSnapshotName()
+    key = @getWorkspaceSnapshotName nick()
+    @mountedMachine.getBaseKite().storageDelete key
 
 
-  getWorkspaceSnapshotName: ->
+  getWorkspaceSnapshotName: (username) ->
 
-    return "wss.#{@workspaceData.slug}"
+    if username
+      return "#{username}.wss.#{@workspaceData.slug}"
+    else
+      return "wss.#{@workspaceData.slug}"
 
 
   registerPane: (pane) ->
@@ -1402,18 +1406,36 @@ class IDEAppController extends AppController
           @openFile file, contents
 
 
-  fetchSnapshot: (callback)->
+  fetchSnapshot: (callback) ->
 
     if not @mountedMachine or not @mountedMachine.isRunning()
       callback null
       return
 
-    @mountedMachine.getBaseKite().storageGet @getWorkspaceSnapshotName()
-    .then (snapshot)->
-      callback snapshot
-    .catch (err)->
-      console.warn 'Failed to fetch snapshot', err
+    handleError = (err) ->
+
+      console.warn 'Failed to fetch snapshot:', err
       callback null
+
+    fetch = (username) =>
+
+      key = @getWorkspaceSnapshotName username
+      @mountedMachine.getBaseKite().storageGet key
+
+    fetch nick()
+
+      .then (snapshot) =>
+
+        return callback snapshot  if snapshot
+
+        # Backward compatibility plug
+        return  unless @mountedMachine.isMine()
+
+        fetch()
+          .then callback
+          .catch handleError
+
+      .catch handleError
 
 
   switchToPane: (options = {}) ->
