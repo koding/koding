@@ -1,6 +1,13 @@
 VideoCollaborationModel = require 'app/videocollaboration/model'
 socialHelpers           = require './collaboration/helpers/social'
 
+generatePayloadFromModel = (model) ->
+  return {
+    activeParticipant   : model.getActiveParticipant()
+    selectedParticipant : model.getSelectedParticipant()
+    participants        : model.getParticipants()
+  }
+
 module.exports = VideoCollaborationController =
 
   prepareVideoCollaboration: ->
@@ -14,10 +21,10 @@ module.exports = VideoCollaborationController =
       .on 'CameraAccessQuestionAnswered',  @bound 'handleVideoAccessQuestionAnswered'
       .on 'VideoCollaborationActive',      @bound 'handleVideoActive'
       .on 'VideoCollaborationEnded',       @bound 'handleVideoEnded'
-      .on 'ParticipantConnected',          @bound 'handleVideoParticipantConnected'
-      .on 'ParticipantDisconnected',       @bound 'handleVideoParticipantDisconnected'
-      .on 'ParticipantJoined',             @bound 'handleVideoParticipantJoined'
-      .on 'ParticipantLeft',               @bound 'handleVideoParticipantLeft'
+      # .on 'ParticipantConnected',          @bound 'handleVideoParticipantConnected'
+      # .on 'ParticipantDisconnected',       @bound 'handleVideoParticipantDisconnected'
+      # .on 'ParticipantJoined',             @bound 'handleVideoParticipantJoined'
+      # .on 'ParticipantLeft',               @bound 'handleVideoParticipantLeft'
       .on 'ActiveParticipantChanged',      @bound 'handleVideoActiveParticipantChanged'
       .on 'SelectedParticipantChanged',    @bound 'handleVideoSelectedParticipantChanged'
       .on 'ParticipantAudioStateChanged',  @bound 'handleVideoParticipantAudioStateChanged'
@@ -26,6 +33,17 @@ module.exports = VideoCollaborationController =
         @handleVideoParticipantTalkingStateChanged participant, on
       .on 'ParticipantStoppedTalking', (participant) =>
         @handleVideoParticipantTalkingStateChanged participant, off
+
+
+    participantEvents = [
+      'SelectedParticipantChanged'
+      'ParticipantConnected'
+      'ParticipantJoined'
+      'ParticipantLeft'
+      'ParticipantDisconnected'
+    ]
+
+    @videoModel.on participantEvents, @bound 'handleVideoParticipantAction'
 
     @on 'CollaborationDidCleanup', =>
       @videoModel.session.disconnect()
@@ -81,6 +99,12 @@ module.exports = VideoCollaborationController =
 
   handleVideoActive: (publisher) ->
     @emitToViews 'VideoCollaborationActive'
+
+
+  handleVideoParticipantAction: ->
+
+    payload = generatePayloadFromModel @videoModel
+    @emitToViews 'VideoParticipantsDidChange', payload
 
 
   handleVideoParticipantConnected: (participant) ->

@@ -54,6 +54,13 @@ module.exports = class IDEChatView extends KDTabView
     @on 'VideoParticipantDidJoin', @bound 'handleVideoParticipantJoined'
     @on 'VideoParticipantDidLeave', @bound 'handleVideoParticipantLeft'
 
+    @on 'VideoParticipantsDidChange', @bound 'handleVideoParticipantsChanged'
+
+
+  handleVideoParticipantsChanged: (payload) ->
+
+    @chatPane.handleVideoParticipantsChanged payload
+
 
   handleParticipantSelected: (account) ->
 

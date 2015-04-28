@@ -69,6 +69,11 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @videoActive = no
 
 
+  handleVideoParticipantsChanged: (payload) ->
+
+    @participantsModel.applyVideoUpdate payload
+
+
   handleVideoParticipantConnected: (participant) ->
 
     @participantsModel.addVideoConnectedParticipant participant.nick
@@ -76,7 +81,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   handleVideoParticipantDisconnected: (participant) ->
 
-    @participantsModel.removeVideoDisconnectedParticipant participant.nick
+    @participantsModel.removeVideoConnectedParticipant participant.nick
 
 
   handleVideoParticipantJoined: (participant) ->
