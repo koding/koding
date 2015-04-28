@@ -16,6 +16,8 @@ MachineSettingsDiskUsageView = require './machinesettingsdiskusageview'
 MachineSettingsVMSharingView = require './machinesettingsvmsharingview'
 MachineSettingsSnapshotsView = require './machinesettingssnapshotsview'
 
+OnboardingEvent = require 'app/onboarding/onboardingevent'
+
 PANE_CONFIG = [
   { title: 'General',       viewClass: MachineSettingsGeneralView   }
   { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
@@ -47,6 +49,8 @@ module.exports = class MachineSettingsModal extends KDModalView
     @tweakStyling_()
 
     @tabView.showPaneByIndex 0
+
+    kd.singletons.onboardingController.runOnboarding OnboardingEvent.VMSettingsOpened
 
 
   createTabView: ->

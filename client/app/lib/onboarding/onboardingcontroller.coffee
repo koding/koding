@@ -24,6 +24,8 @@ module.exports = class OnboardingController extends KDController
 
     @onboardings   = {}
     @previewModes  = {}
+    @pendingQueue  = []
+    @isReady       = no
     @isRunning     = no
     { mainController, windowController } = kd.singletons
 
@@ -59,21 +61,35 @@ module.exports = class OnboardingController extends KDController
         @onboardings[data.name]  = data
         @previewModes[data.name] = isPreviewMode
 
-      @appStorage.fetchStorage()
+      @appStorage.fetchStorage @bound 'ready'
+
+
+  ###*
+   * It is executed once all data is loaded
+   * It runs all onboardings which were requested while data was loading
+   * and therefore were added to pending queue
+  ###
+  ready: ->
+
+    @isReady = yes
+    @runOnboarding.apply this, args for args in @pendingQueue
 
 
   ###*
    * Runs onboarding group by name
    * Onboarding can be run if it was not shown for the current user yet
-   * and user was registered after onboarding had published
+   * and user was registered after onboarding had been published
    * If forceRun is yes, it skips all checks and run onboarding anyway
    * It's used for F1 mode and preview mode
+   * If controller is not ready yet, onboarding request is added to pending queue
    * 
    * @param {string} groupName - name of onboarding group
    * @param {number} delay     - time to wait before running onboarding, by default it's 2s
    * @param {bool} forceRun    - if it's yes, skip all user checks and run onboarding anyway
   ###
   runOnboarding: (groupName, delay = 2000, forceRun = no) ->
+
+    return @pendingQueue.push Array::slice.call(arguments)  unless @isReady
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
