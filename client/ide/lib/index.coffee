@@ -36,6 +36,7 @@ IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
+OnboardingEvent               = require 'app/onboarding/onboardingevent'
 
 require('./routes')()
 
@@ -112,7 +113,7 @@ class IDEAppController extends AppController
       @resizeActiveTerminalPane()
 
       {onboardingController} = kd.singletons
-      onboardingController?.runOnboarding 'IDE'  if appManager.frontApp is this and @isMachineRunning()
+      onboardingController?.runOnboarding OnboardingEvent.IDELoaded  if appManager.frontApp is this and @isMachineRunning()
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -974,7 +975,7 @@ class IDEAppController extends AppController
       data = { machine, workspace: @workspaceData }
       mainView.activitySidebar.selectWorkspace data
 
-      onboardingController.runOnboarding 'IDE'  if appManager.frontApp is this
+      onboardingController.runOnboarding OnboardingEvent.IDELoaded  if appManager.frontApp is this
 
       @emit 'IDEReady'
 
