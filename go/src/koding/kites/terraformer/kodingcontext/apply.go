@@ -12,7 +12,7 @@ import (
 )
 
 // Apply applies the incoming terraform content to the remote system
-func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error) {
+func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, error) {
 	cmd := command.ApplyCommand{
 		ShutdownCh: makeShutdownCh(),
 		Meta: command.Meta{
@@ -33,7 +33,6 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error
 
 	outputDir := path.Join(basePath, c.ContentID)
 	mainFileRelativePath := path.Join(c.ContentID, mainFileName+terraformFileExt)
-	planFilePath := path.Join(outputDir, planFileName+terraformPlanFileExt)
 	stateFilePath := path.Join(outputDir, stateFileName+terraformStateFileExt)
 
 	// override the current main file
@@ -80,18 +79,18 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error
 		)
 	}
 
-	planFile, err := os.Open(planFilePath)
+	stateFile, err := os.Open(stateFilePath)
 	if err != nil {
 		return nil, err
 	}
-	defer planFile.Close()
+	defer stateFile.Close()
 
 	// copy all contents from local to remote for later operating
 	if err := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage); err != nil {
 		return nil, err
 	}
 
-	return terraform.ReadPlan(planFile)
+	return terraform.ReadState(stateFile)
 }
 
 // makeShutdownCh creates an interrupt listener and returns a channel.
