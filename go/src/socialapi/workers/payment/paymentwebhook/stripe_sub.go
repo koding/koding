@@ -30,7 +30,7 @@ func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
 	}
 
 	err = stripe.SubscriptionDeletedWebhook(sub)
-	if err != nil {
+	if err != nil && err != bongo.RecordNotFound {
 		Log.Error(fmt.Sprintf(
 			"Error processing 'SubscriptionDeleted' webhook for customer:%s, %s",
 			sub.CustomerId, err,
