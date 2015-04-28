@@ -16,6 +16,7 @@ module.exports = class ChatVideoView extends kd.View
 
     @createContainer()
     @createOfflineUserContainer()
+    @createNonpublishingUserContainer()
     @createCameraDialogContainer()
     @createControls()
 
@@ -28,8 +29,16 @@ module.exports = class ChatVideoView extends kd.View
 
   createOfflineUserContainer: ->
 
-    @offlineUserContainer = createAbsoluteContainer 'ChatVideo-offlineUserContainer'
+    cssClass = 'ChatVideo-offlineUserContainer'
+    @offlineUserContainer = createAbsoluteContainer cssClass
     @addSubView @offlineUserContainer
+
+
+  createNonpublishingUserContainer: ->
+
+    cssClass = 'ChatVideo-nonPublishingUserContainer'
+    @nonPublishingUserContainer = createAbsoluteContainer cssClass
+    @addSubView @nonPublishingUserContainer
 
 
   createCameraDialogContainer: ->
@@ -71,6 +80,9 @@ module.exports = class ChatVideoView extends kd.View
 
 
   getOfflineUserContainer: -> @offlineUserContainer
+
+
+  getNonpublishingUserContainer: -> @nonPublishingUserContainer
 
 
   getCameraDialogContainer: -> @cameraDialogContainer
