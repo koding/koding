@@ -41,6 +41,7 @@
   },
   "scripts": {
     "preinstall": "./npm-preinstall.sh",
+    "postinstall": "./npm-postinstall.sh",
     "test": "make test"
   },
   "browser": {
