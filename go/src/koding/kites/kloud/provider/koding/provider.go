@@ -173,11 +173,11 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 // has more than one valid allowed users, we return the one that matches the
 // requesterName.
 func (p *Provider) getOwner(requesterName string, users []models.Permissions) (*models.User, error) {
-	allowedIds := make([]bson.ObjectId, len(users))
-	for i, perm := range users {
+	allowedIds := make([]bson.ObjectId, 0)
+	for _, perm := range users {
 		// we only going to fetch users that are allowed
 		if perm.Sudo && perm.Owner {
-			allowedIds[i] = perm.Id
+			allowedIds = append(allowedIds, perm.Id)
 		}
 	}
 

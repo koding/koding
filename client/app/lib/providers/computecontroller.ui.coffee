@@ -24,7 +24,7 @@ module.exports = class ComputeController_UI
 
 
   @showProvidersModal = requiresLogin
-    message: "You need to login to create a new machine."
+    message: "You need to login to create a new VM."
   , (stack)->
 
     new KDModalView

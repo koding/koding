@@ -36,6 +36,8 @@ Create a nice graph from the cpu profile
 */
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -59,8 +61,10 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/keycreator"
@@ -87,17 +91,20 @@ var (
 )
 
 type args struct {
-	MachineId  string
-	SnapshotId string
-	Provider   string
+	MachineId        string
+	SnapshotId       string
+	Provider         string
+	TerraformContext string
 }
 
 type singleUser struct {
-	MachineId  string
-	PrivateKey string
-	PublicKey  string
-	AccountId  bson.ObjectId
-	Remote     *kite.Client
+	MachineId           string
+	PrivateKey          string
+	PublicKey           string
+	AccountId           bson.ObjectId
+	CredentialId        bson.ObjectId
+	CredentialPublicKey string
+	Remote              *kite.Client
 }
 
 func init() {
@@ -135,6 +142,8 @@ func init() {
 
 	// Add Kloud handlers
 	kld := kloudWithKodingProvider(provider)
+	kloudKite.HandleFunc("plan", kld.Plan)
+	kloudKite.HandleFunc("apply", kld.Apply)
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("stop", kld.Stop)
@@ -148,6 +157,95 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
+}
+
+func TestTerraformPlan(t *testing.T) {
+	t.Parallel()
+	username := "testuser0"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformKloudRequest{
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-b47692ed"
+    tags {
+        Name = "KloudTerraform"
+    }
+}`,
+		PublicKeys: map[string]string{
+			"aws": userData.CredentialPublicKey,
+		},
+	}
+
+	resp, err := remote.Tell("plan", args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var result *kloud.PlanOutput
+	if err := resp.Unmarshal(&result); err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("result = %+v\n", result)
+}
+
+func TestTerraformApply(t *testing.T) {
+	t.Parallel()
+	username := "testuser10"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformKloudRequest{
+		MachineIds: []string{userData: userData.MachineId},
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-b47692ed"
+    tags {
+        Name = "KloudTerraform"
+    }
+}`,
+		PublicKeys: map[string]string{
+			"aws": userData.CredentialPublicKey,
+		},
+	}
+
+	resp, err := remote.Tell("apply", args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var result *kloud.PlanOutput
+	if err := resp.Unmarshal(&result); err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("result = %+v\n", result)
 }
 
 func TestBuild(t *testing.T) {
@@ -401,6 +499,7 @@ func createUser(username string) (*singleUser, error) {
 		return c.Remove(bson.M{"profile.nickname": username})
 	})
 
+	// jAccounts
 	accountId := bson.NewObjectId()
 	account := &models.Account{
 		Id: accountId,
@@ -415,6 +514,7 @@ func createUser(username string) (*singleUser, error) {
 		return nil, err
 	}
 
+	// jUsers
 	userId := bson.NewObjectId()
 	user := &models.User{
 		ObjectId:      userId,
@@ -434,6 +534,55 @@ func createUser(username string) (*singleUser, error) {
 
 	if err := provider.DB.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Insert(&user)
+	}); err != nil {
+		return nil, err
+	}
+
+	// jCredentials and jCredentialData
+	credentialId := bson.NewObjectId()
+	credPublicKey := randomID(24)
+	credential := &models.Credential{
+		Id:        credentialId,
+		Provider:  "aws",
+		PublicKey: credPublicKey,
+		OriginId:  accountId,
+	}
+
+	if err := provider.DB.Run("jCredentials", func(c *mgo.Collection) error {
+		return c.Insert(&credential)
+	}); err != nil {
+		return nil, err
+	}
+
+	credentialDataId := bson.NewObjectId()
+	credentialData := &models.CredentialData{
+		Id:        credentialDataId,
+		PublicKey: credPublicKey,
+		OriginId:  accountId,
+		Meta: bson.M{
+			"access_key": "AKIAJTDKW5IFUUIWVNAA",
+			"secret_key": "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",
+		},
+	}
+
+	if err := provider.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		return c.Insert(&credentialData)
+	}); err != nil {
+		return nil, err
+	}
+
+	relationshipId := bson.NewObjectId()
+	relationship := &models.Relationship{
+		Id:         relationshipId,
+		TargetId:   credentialId,
+		TargetName: "JCredential",
+		SourceId:   accountId,
+		SourceName: "JAccount",
+		As:         "owner",
+	}
+
+	if err := provider.DB.Run("relationships", func(c *mgo.Collection) error {
+		return c.Insert(&relationship)
 	}); err != nil {
 		return nil, err
 	}
@@ -495,11 +644,13 @@ func createUser(username string) (*singleUser, error) {
 	}
 
 	return &singleUser{
-		MachineId:  machineId.Hex(),
-		PrivateKey: privateKey,
-		PublicKey:  publicKey,
-		AccountId:  accountId,
-		Remote:     remote,
+		MachineId:           machineId.Hex(),
+		PrivateKey:          privateKey,
+		PublicKey:           publicKey,
+		AccountId:           accountId,
+		CredentialId:        credentialId,
+		CredentialPublicKey: credPublicKey,
+		Remote:              remote,
 	}, nil
 }
 
@@ -507,6 +658,17 @@ func build(id string, remote *kite.Client) error {
 	buildArgs := &args{
 		MachineId: id,
 		Provider:  "koding",
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+}`,
 	}
 
 	resp, err := remote.Tell("build", buildArgs)
@@ -804,7 +966,7 @@ func kodingProvider() *koding.Provider {
 
 	return &koding.Provider{
 		DB:         db,
-		Log:        newLogger("koding", true),
+		Log:        common.NewLogger("koding", true),
 		DNSClient:  dnsclient.NewRoute53Client("dev.koding.io", auth),
 		DNSStorage: dnsstorage.NewMongodbStorage(db),
 		Kite:       kloudKite,
@@ -830,9 +992,20 @@ func kodingProvider() *koding.Provider {
 func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	debugEnabled := false
 
+	sess := &session.Session{
+		DB:         p.DB,
+		Kite:       p.Kite,
+		DNSClient:  p.DNSClient,
+		DNSStorage: p.DNSStorage,
+		AWSClients: p.EC2Clients,
+	}
+
 	kld := kloud.New()
+	kld.ContextCreator = func(ctx context.Context) context.Context {
+		return session.NewContext(ctx, sess)
+	}
 	kld.PublicKeys = publickeys.NewKeys()
-	kld.Log = newLogger("kloud", debugEnabled)
+	kld.Log = common.NewLogger("kloud", debugEnabled)
 	kld.DomainStorage = p.DNSStorage
 	kld.Domainer = p.DNSClient
 	kld.Locker = p
@@ -1001,4 +1174,11 @@ func (t *TestPlan) AllowedInstances(wantInstance plans.InstanceType) error {
 
 func (t *TestPlan) NetworkUsage(username string) error {
 	return nil
+}
+
+// randomID generates a random string of the given length
+func randomID(length int) string {
+	r := make([]byte, length*6/8)
+	rand.Read(r)
+	return base64.URLEncoding.EncodeToString(r)
 }

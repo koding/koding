@@ -2,6 +2,7 @@ kd = require 'kd'
 getNick = require 'app/util/nick'
 VideoControlView = require './controlview'
 isMyChannel = require 'app/util/isMyChannel'
+NoiseView = require 'app/commonviews/noiseview'
 
 module.exports = class ChatVideoView extends kd.View
 
@@ -15,6 +16,8 @@ module.exports = class ChatVideoView extends kd.View
 
     @createContainer()
     @createOfflineUserContainer()
+    @createNonpublishingUserContainer()
+    @createCameraDialogContainer()
     @createControls()
 
 
@@ -26,8 +29,31 @@ module.exports = class ChatVideoView extends kd.View
 
   createOfflineUserContainer: ->
 
-    @offlineUserContainer = new kd.CustomHTMLView { cssClass: 'ChatVideo-offlineUserContainer' }
+    cssClass = 'ChatVideo-offlineUserContainer'
+    @offlineUserContainer = createAbsoluteContainer cssClass
     @addSubView @offlineUserContainer
+
+
+  createNonpublishingUserContainer: ->
+
+    cssClass = 'ChatVideo-nonPublishingUserContainer'
+    @nonPublishingUserContainer = createAbsoluteContainer cssClass
+    @addSubView @nonPublishingUserContainer
+
+
+  createCameraDialogContainer: ->
+
+    cssClass = 'ChatVideo-cameraDialogContainer hidden'
+    @cameraDialogContainer = createAbsoluteContainer cssClass
+
+    title = k 'span', 'title'
+    title.updatePartial 'Default text'
+
+    @cameraDialogContainer.title = title
+    @cameraDialogContainer.addSubView title
+
+    @addSubView @cameraDialogContainer
+
 
 
   createControls: ->
@@ -54,6 +80,33 @@ module.exports = class ChatVideoView extends kd.View
 
 
   getOfflineUserContainer: -> @offlineUserContainer
+
+
+  getNonpublishingUserContainer: -> @nonPublishingUserContainer
+
+
+  getCameraDialogContainer: -> @cameraDialogContainer
+
+
+  showCameraDialog: (title) ->
+
+    width = 325
+    height = 265
+
+    @_noiseView = new NoiseView { size: { width, height } }
+
+    @cameraDialogContainer.addSubView @_noiseView
+
+    @cameraDialogContainer.title.updatePartial title  if title?
+    @cameraDialogContainer.show()
+
+
+  hideCameraDialog: ->
+
+    @_noiseView.destroy()
+    @_noiseView = null
+
+    @cameraDialogContainer.hide()
 
 
   ###*
@@ -98,5 +151,27 @@ createVideoControl = (type, active) ->
       deactiveTooltipText = 'End session'
 
   new VideoControlView { cssClass, active, activeTooltipText, deactiveTooltipText }
+
+
+createAbsoluteContainer = (cssClass) -> k 'div', "ChatVideo-absoluteContainer #{cssClass}"
+
+
+###*
+ * Create a KDView with given tag, css class, and subviews.
+ *
+ * @param {string} tagName
+ * @param {string} cssClass
+ * @param {Array.<(KDView|string)>} subviews
+###
+k = (tagName, cssClass, subviews = []) ->
+
+  view = new kd.CustomHTMLView { tagName, cssClass }
+
+  for subview in subviews
+    if 'string' is typeof subview
+    then view.setPartial subview
+    else view.addSubView subview
+
+  return view
 
 

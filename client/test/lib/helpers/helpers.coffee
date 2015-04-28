@@ -8,15 +8,14 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 module.exports =
 
   beginTest: (browser, user) ->
-    url  = @getUrl()
 
-    if not user
-      user = utils.getUser()
+    url   = @getUrl()
+    user ?= utils.getUser()
 
-    browser.url(url)
+    browser.url url
     browser.maximizeWindow()
 
-    @doLogin(browser, user)
+    @doLogin browser, user
 
     browser.execute 'KD.isTesting = true;'
 
@@ -24,6 +23,7 @@ module.exports =
 
 
   assertNotLoggedIn: (browser, user) ->
+
     url = @getUrl()
     browser.url(url)
     browser.maximizeWindow()
@@ -37,6 +37,7 @@ module.exports =
 
 
   attemptLogin: (browser, user) ->
+
     browser
       .waitForElementVisible  '[testpath=main-header]', 50000
       .click                  '#main-header [testpath=login-link]'
@@ -44,43 +45,7 @@ module.exports =
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
       .click                  '[testpath=login-button]'
-      .pause                  5000
-
-
-  waitForVMRunning: (browser, machineName) ->
-
-    unless machineName
-      machineName = 'koding-vm-0'
-
-    vmSelector     = '[href="/IDE/' + machineName + '"].running.vm'
-    modalSelector  = '.env-modal.env-machine-state'
-    loaderSelector = modalSelector + ' .kdloader'
-    buildingLabel  = modalSelector + ' .state-label.building'
-    turnOnButtonSelector = modalSelector + ' .turn-on.state-button'
-
-    browser.element 'css selector', vmSelector, (result) =>
-      if result.status is 0
-        console.log 'vm is running'
-      else
-        console.log 'vm is not running'
-        browser
-          .waitForElementVisible   modalSelector, 50000
-          .element 'css selector', buildingLabel, (result) =>
-            if result.status is 0
-              console.log 'vm is building, waiting to finish'
-              browser
-                .waitForElementNotVisible  modalSelector, 500000
-                .waitForElementVisible     vmSelector, 500000
-                .pause 10000
-            else
-              console.log 'turn on button is clicked, waiting for VM turn on'
-
-              browser
-                .waitForElementVisible     turnOnButtonSelector, 500000
-                .click                     turnOnButtonSelector
-                .waitForElementNotVisible  modalSelector, 500000
-                .waitForElementVisible     vmSelector, 500000
-                .pause 10000
+      .pause                  2500 # required, wait for login complete
 
 
   doLogin: (browser, user) ->
@@ -90,11 +55,8 @@ module.exports =
     browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
       if result.status is 0
         console.log "Successfully logged in with username: #{user.username} and password: #{user.password}"
-
-        browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
       else
         console.log 'User is not registered yet. Registering...'
-
         @doRegister browser, user
 
 
@@ -106,32 +68,6 @@ module.exports =
       .click                  '[testpath=logout-link]'
       .pause                  3000
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
-
-
-  deleteFile: (browser, fileSelector) ->
-
-    browser
-      .waitForElementPresent     fileSelector, 20000
-      .click                     fileSelector
-      .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 20000
-      .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 20000
-      .click                     '.delete-container button.clean-red'
-      .waitForElementNotPresent  fileSelector, 2000
-
-
-  deleteFolder: (browser, selector) ->
-
-    browser
-      .waitForElementPresent     selector, 20000
-      .click                     selector
-      .click                     selector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 20000
-      .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 20000
-      .click                     '.delete-container button.clean-red'
-      .waitForElementNotPresent  selector, 2000
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
@@ -177,6 +113,17 @@ module.exports =
     @doLogin(browser, user)
 
 
+  assertMainHeader: (browser, assertLoginLink = yes) ->
+
+    logoSelector = '[testpath=main-header] a#koding-logo'
+    loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
+
+    browser.waitForElementVisible logoSelector, 25000
+
+    if assertLoginLink
+      browser.waitForElementVisible loginLinkSelector, 25000
+
+
   postActivity: (browser, shouldBeginTest = yes) ->
 
     if shouldBeginTest
@@ -202,6 +149,7 @@ module.exports =
 
 
   doPostComment: (browser, comment, shouldAssert = yes, hasEmbeddable = no) ->
+
     browser
       .click                    activitySelector + ' [testpath=CommentInputView]'
       .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
@@ -226,7 +174,8 @@ module.exports =
   doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
 
     browser
-      .pause                    5000 # wait for IDE open
+      # not necessary anymore
+      # .pause                    5000 # wait for IDE open
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible    '[testpath=ActivityInputView]', 10000
       .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
@@ -266,6 +215,22 @@ module.exports =
 
     return hashtag
 
+
+  likePost: (browser, user) ->
+
+    post = @postActivity(browser, no)
+    selector    = activitySelector + ' [testpath=activity-like-link]'
+    likeElement = activitySelector + ' .like-summary'
+
+    browser
+      .waitForElementVisible selector, 25000
+      .click                 selector
+      .waitForElementVisible likeElement, 25000
+      .assert.containsText   likeElement, user.username + ' liked this.'
+
+    return post
+
+
   sendHashtagActivity: (browser) ->
 
     @beginTest(browser)
@@ -282,6 +247,7 @@ module.exports =
 
 
   getFakeText: ->
+
     return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
@@ -356,6 +322,19 @@ module.exports =
     return data
 
 
+  deleteFile: (browser, fileSelector) ->
+
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementVisible     'li.delete', 20000
+      .click                     'li.delete'
+      .waitForElementVisible     '.delete-container', 20000
+      .click                     '.delete-container button.clean-red'
+      .waitForElementNotPresent  fileSelector, 2000
+
+
   openChangeTopFolderMenu: (browser) ->
 
     browser
@@ -365,32 +344,7 @@ module.exports =
       .click                   'li.change-top-folder'
 
 
-  createWorkspace: (browser) ->
-
-    paragraph     = @getFakeText()
-    workspaceName = paragraph.split(' ')[0]
-
-    browser
-      .waitForElementVisible   '.activity-sidebar .workspaces-link', 20000
-      .click                   '.activity-sidebar .workspaces-link'
-      .waitForElementVisible   '.kdmodal-inner', 20000
-      .click                   '.kdmodal-inner button'
-      .pause                   3000 # required
-      .waitForElementVisible   '.add-workspace-view', 20000
-      .setValue                '.add-workspace-view input.kdinput.text', workspaceName + '\n'
-      .waitForElementVisible   '.vm-info', 20000
-      .url (data) =>
-        url    = data.value
-        vmName = url.split('/IDE/')[1].split('/')[0]
-
-        browser
-          .waitForElementPresent   'a[href="/IDE/' + vmName + '/' + workspaceName + '"]', 40000 # Assertion
-          .pause                   10000
-          .assert.urlContains      workspaceName # Assertion
-          .waitForElementVisible   '.vm-info', 20000
-          .assert.containsText     '.vm-info', '~/Workspaces/' + workspaceName # Assertion
-
-    return workspaceName
+  createWorkspace: require './createworkspace'
 
 
   deleteWorkspace: (browser, workspaceName) ->
@@ -410,15 +364,7 @@ module.exports =
         .waitForElementNotVisible  workspaceSelector, 20000
 
 
-  assertMainHeader: (browser, assertLoginLink = yes) ->
-
-    logoSelector = '[testpath=main-header] a#koding-logo'
-    loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
-
-    browser.waitForElementVisible logoSelector, 25000
-
-    if assertLoginLink
-      browser.waitForElementVisible loginLinkSelector, 25000
+  waitForVMRunning: require './waitforvmrunning'
 
 
   changeName: (browser, inputSelector, shouldAssertSidebar) ->
@@ -507,5 +453,6 @@ module.exports =
 
 
   getUrl: ->
+
     return 'http://lvh.me:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'

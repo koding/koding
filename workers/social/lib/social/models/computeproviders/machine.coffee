@@ -238,7 +238,14 @@ module.exports = class JMachine extends Module
     data.user  = username  = user.username
     data.group = groupSlug = group.slug
 
-    data.users     = [{ id: user.getId(), sudo: yes, owner: yes }]
+    # Users list can be provided before machine create
+    # We also need to make sure that the real owner of the
+    # machine is in list. ~ GG
+    if Array.isArray(data.users) and data.users.length > 0
+      data.users.push { id: user.getId(), sudo: yes, owner: yes }
+    else
+      data.users   = [{ id: user.getId(), sudo: yes, owner: yes }]
+
     data.groups    = [{ id: group.getId() }]
 
     data.uid = "u#{username[0]}#{groupSlug[0]}#{provider[0]}#{(require 'hat')(32)}"
@@ -421,6 +428,7 @@ module.exports = class JMachine extends Module
 
       selector             ?= {}
       selector['users.id']  = user.getId()
+      selector['groups.id'] = group.getId()
 
       JMachine.some selector, limit: 30, (err, machines)->
         callback err, machines

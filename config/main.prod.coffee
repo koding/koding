@@ -47,6 +47,7 @@ Configuration = (options={}) ->
 
   kloudPort           = 5500
   kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+  terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
 
@@ -57,6 +58,7 @@ Configuration = (options={}) ->
 
   disabledFeatures =
    moderation : yes
+   teams : yes
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -138,6 +140,7 @@ Configuration = (options={}) ->
     rerouting                      : {port          : 9500 }
 
     kloud                          : kloud
+    terraformer                    : terraformer
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -171,6 +174,7 @@ Configuration = (options={}) ->
     siftScience                    : 'e6c3413236e08107'
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
     tokbox                         : tokbox
+    disabledFeatures               : disabledFeatures
 
     collaboration :
       timeout     : 1 * 60 * 1000
@@ -207,7 +211,7 @@ Configuration = (options={}) ->
     embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github               : {clientId     : "5891e574253e65ddb7ea" }
     newkontrol           : {url          : kontrol.url}
-    sessionCookie        : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
+    sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha            : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
     stripe               : { token: 'pk_live_XLpjQ93roiM0jGFXfvSTal9Y' }
@@ -272,6 +276,13 @@ Configuration = (options={}) ->
         locations       : [ location: "~^/kloud/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
+
+    terraformer         :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{region} -environment  #{environment} -aws-key #{KONFIG.aws.key} -aws-secret #{KONFIG.aws.secret} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
+      healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
     # ngrokProxy          :
     #   group             : "environment"

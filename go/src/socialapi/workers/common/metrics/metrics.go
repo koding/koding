@@ -1,9 +1,5 @@
 package metrics
 
-import (
-	"github.com/sjhitchner/go-mixpanel"
-)
-
 // Interface for implementations of tracker, i.e. external analytic
 // services like mixpanel etc.
 type tracker interface {
@@ -39,29 +35,4 @@ func (t *Trackers) TrackWithProp(name string, properties Prop) error {
 	}
 
 	return nil
-}
-
-//----------------------------------------------------------
-// Mixpanel
-//----------------------------------------------------------
-
-type MixpanelTracker struct {
-	Token  string
-	Client *mixpanel.MixpanelClient
-}
-
-func NewMixpanelTracker(token string) *MixpanelTracker {
-	return &MixpanelTracker{
-		Token:  token,
-		Client: mixpanel.NewMixpanel(token),
-	}
-}
-
-func (m *MixpanelTracker) Track(name string, properties Prop) error {
-	err := m.Client.Track(&mixpanel.Event{
-		Name:       name,
-		Properties: properties,
-	})
-
-	return err
 }

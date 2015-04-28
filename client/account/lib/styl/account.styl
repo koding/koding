@@ -70,7 +70,17 @@ app.settings.styl
       r-sprite              'account' 'terminate-active'
 
   .AppModal-content
-    min-height               530px
+    min-height               570px
+
+  .AppModal-form
+    padding-top              20px
+
+    .formline
+      margin-bottom          15px
+
+      .AppModal-sectionHeader
+        margin-bottom        0px
+        padding-top          20px
 
 .AppModal--account-avatarArea
   overflow                  hidden
@@ -309,7 +319,7 @@ app.settings.styl
     .ssh-machine-list
 
       .ssh-machine-list-header
-        padding-bottom         15px
+        padding-bottom         8px
         position               relative
 
         .ssh-machine-list-tooltip-icon
@@ -340,6 +350,21 @@ app.settings.styl
 .ssh-machine-list-tooltip
   line-height                  18px
   text-align                   left!important
+
+.delete-ssh-key-modal
+
+  .guide-link
+    text-decoration            underline
+    color                      #01b05a
+
+  strong
+    font-weight                bold
+
+  .kdbutton
+    width                      85px!important
+
+.delete-ssh-key-overlay
+  z-index                      10001
 
 .AppModal--account-tabSpinner
   display                   block !important

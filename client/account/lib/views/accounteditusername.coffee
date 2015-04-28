@@ -88,7 +88,7 @@ module.exports = class AccountEditUsername extends JView
         passwordHeader     :
           itemClass        : KDCustomHTMLView
           partial          : 'CHANGE PASSWORD'
-          cssClass         : 'AppModal-form-sectionHeader'
+          cssClass         : 'AppModal-sectionHeader'
         password           :
           cssClass         : 'Formline--half'
           placeholder      : "password"
@@ -104,10 +104,10 @@ module.exports = class AccountEditUsername extends JView
         locationHeader     :
           itemClass        : KDCustomHTMLView
           partial          : 'LOCATION SERVICES'
-          cssClass         : 'AppModal-form-sectionHeader'
+          cssClass         : 'AppModal-sectionHeader'
         shareLocationLabel :
           itemClass        : KDCustomHTMLView
-          partial          : 'Share my location while posting'
+          partial          : 'Share my location when I post on a #Channel'
           tagName          : 'ul'
           cssClass         : 'AppModal--account-switchList left-aligned'
           name             : 'shareLocationLabel'
@@ -177,7 +177,7 @@ module.exports = class AccountEditUsername extends JView
       =>
         # update firstname and lastname
         me = whoami()
-        
+
         me.modify {
           "profile.firstName": firstName,
           "profile.lastName" : lastName

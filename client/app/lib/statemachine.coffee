@@ -76,7 +76,7 @@ module.exports = class StateMachine extends machina.Fsm
 
     if @state
       unless next in @transitions[@state]
-        throw new Error "illegal state transition from: #{@state}, to: #{next}"
+        return console.warn "illegal state transition from: #{@state}, to: #{next}"
 
     super next
 

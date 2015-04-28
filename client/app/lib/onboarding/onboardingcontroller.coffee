@@ -4,6 +4,7 @@ isLoggedIn = require '../util/isLoggedIn'
 $ = require 'jquery'
 kd = require 'kd'
 whoami = require 'app/util/whoami'
+checkFlag = require 'app/util/checkFlag'
 KDController = kd.Controller
 OnboardingViewController = require './onboardingviewcontroller'
 Machine = require 'app/providers/machine'
@@ -13,11 +14,16 @@ module.exports = class OnboardingController extends KDController
 
   F1_KEY = 112
 
+  ###*
+   * A controller that manages onboardings for the current user
+   * It fetchs onboardings from DB and starts them when it's necessary
+  ###
   constructor: (options = {}, data) ->
 
     super options, data
 
     @onboardings   = {}
+    @previewModes  = {}
     @isRunning     = no
     { mainController, windowController } = kd.singletons
 
@@ -28,15 +34,20 @@ module.exports = class OnboardingController extends KDController
     windowController.on 'keydown', @bound 'handleF1'
 
 
+  ###*
+   * Fetches onboardings from DB
+   * Preview mode is always enabled for super admin, so super admin always gets onboardings on preview
+   * Other users get published onboardings
+  ###
   fetchItems: ->
 
     account           = whoami()
     @registrationDate = new Date(account.meta.createdAt)
     @appStorage       = kd.getSingleton('appStorageController').storage 'OnboardingStatus', '1.0.0'
-    @isPreviewMode    = kookies.get('custom-partials-preview-mode') is 'true'
+    isPreviewMode     = checkFlag 'super-admin'
     query             = partialType : 'ONBOARDING'
 
-    if @isPreviewMode
+    if isPreviewMode
       query['isPreview'] = yes
     else
       query['isActive']  = yes
@@ -45,24 +56,42 @@ module.exports = class OnboardingController extends KDController
       return kd.warn err  if err
 
       for data in onboardings when data.partial
-        @onboardings[data.name] = data
+        @onboardings[data.name]  = data
+        @previewModes[data.name] = isPreviewMode
 
       @appStorage.fetchStorage()
 
 
+  ###*
+   * Runs onboarding group by name
+   * Onboarding can be run if it was not shown for the current user yet
+   * and user was registered after onboarding had published
+   * If forceRun is yes, it skips all checks and run onboarding anyway
+   * It's used for F1 mode and preview mode
+   * 
+   * @param {string} groupName - name of onboarding group
+   * @param {number} delay     - time to wait before running onboarding, by default it's 2s
+   * @param {bool} forceRun    - if it's yes, skip all user checks and run onboarding anyway
+  ###
   runOnboarding: (groupName, delay = 2000, forceRun = no) ->
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
     return  unless onboarding.partial.items?.length
 
-    forceRun = @isPreviewMode  unless forceRun
-
+    forceRun  = @previewModes[groupName]  unless forceRun
     slug      = @createSlug groupName
-    isShown   = @appStorage.getValue slug
-    isOldUser = new Date(onboarding.createdAt) > @registrationDate
 
-    return  if (isShown or isOldUser) and not forceRun
+    isAvailableForUser = if onboarding.publishedAt
+    then new Date(onboarding.publishedAt) < @registrationDate
+    else no
+    isAvailableForUser = not(@appStorage.getValue slug)  if isAvailableForUser
+
+    # reset preview mode for onboarding group to avoid onboarding preview being annoying for admin
+    # if admin wants to see onboarding once again, they just need to refresh the page
+    @previewModes[groupName] = no
+
+    return  unless (isAvailableForUser or forceRun)
 
     @isRunning = yes
     kd.utils.wait delay, =>
@@ -70,12 +99,25 @@ module.exports = class OnboardingController extends KDController
       viewController.on 'OnboardingEnded', @bound 'handleOnboardingEnded'
 
 
+  ###*
+   * Method is executed once onboarding is ended
+   * It saves a flag that onboarding was shown for the user to DB
+   * 
+   * @param {string} slug - onboarding slug
+  ###
   handleOnboardingEnded: (slug) ->
 
     @appStorage.setValue slug, yes
     @isRunning = no
 
 
+  ###*
+   * Handles F1 button press and checks if it's possible to start onboarding
+   * depending on the current context
+   * If it's so, starts the first proper onboarding
+   * 
+   * @param {KeyboardEvent} event - keydown event
+  ###
   handleF1: (event) ->
 
     return  unless event.which is F1_KEY
@@ -98,6 +140,11 @@ module.exports = class OnboardingController extends KDController
     @runOnboarding groupName, 0, yes
 
 
+  ###*
+   * Creates onboarding slug in correct format
+   * 
+   * @param {string} groupName - name of onboarding group
+  ###
   createSlug: (groupName) ->
 
     return kd.utils.slugify kd.utils.curry 'onboarding', groupName

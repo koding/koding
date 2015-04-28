@@ -1,85 +1,43 @@
 package main
 
 import (
-	"koding/artifact"
+	"io/ioutil"
 	"koding/kites/common"
 	"koding/kites/terraformer"
+	"log"
 
-	"github.com/koding/kite"
-	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/metrics"
 	"github.com/koding/multiconfig"
-)
-
-var (
-	Name    = "terraformer"
-	Version = "0.0.1"
 )
 
 func main() {
 	conf := &terraformer.Config{}
-
 	// Load the config, reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	k := newKite(conf)
+	if !conf.Debug {
+		// hashicorp.terraform outputs many logs, discard them
+		log.SetOutput(ioutil.Discard)
+	}
 
-	registerURL := k.RegisterURL(true)
+	log := common.NewLogger(terraformer.Name, conf.Debug)
 
-	if err := k.RegisterForever(registerURL); err != nil {
-		k.Log.Fatal(err.Error())
+	// init terraformer
+	t, err := terraformer.New(conf, log)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer t.Close()
+
+	// init terraformer's kite
+	k, err := t.Kite()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer k.Close()
+
+	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
+		log.Fatal(err.Error())
 	}
 
 	k.Run()
-}
-
-func newKite(conf *terraformer.Config) *kite.Kite {
-	k := kite.New(Name, Version)
-	k.Config = kiteconfig.MustGet()
-	k.Config.Port = conf.Port
-
-	if conf.Region != "" {
-		k.Config.Region = conf.Region
-	}
-
-	if conf.Environment != "" {
-		k.Config.Environment = conf.Environment
-	}
-
-	if conf.Debug {
-		k.SetLogLevel(kite.DEBUG)
-	}
-
-	stats := common.MustInitMetrics(Name)
-
-	t := terraformer.New()
-	t.Metrics = stats
-	t.Log = common.NewLogger(Name, conf.Debug)
-	t.Debug = conf.Debug
-
-	// track every kind of call
-	k.PreHandleFunc(createTracker(stats))
-
-	// Terraformer handling methods
-	k.HandleFunc("apply", t.Apply)
-	k.HandleFunc("destroy", t.Destroy)
-	k.HandleFunc("plan", t.Plan)
-
-	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
-	k.HandleHTTPFunc("/version", artifact.VersionHandler())
-
-	return k
-}
-
-func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
-	return func(r *kite.Request) (interface{}, error) {
-		metrics.Count(
-			"functionCallCount", // metric name
-			1,                   // count
-			[]string{"funcName:" + r.Method}, // tags for metric call
-			1.0, // rate
-		)
-
-		return true, nil
-	}
 }
