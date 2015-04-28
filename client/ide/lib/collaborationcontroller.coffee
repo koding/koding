@@ -119,6 +119,8 @@ module.exports = CollaborationController =
         showError err
         throwError err
 
+    @removeWorkspaceSnapshot target
+
     @setMachineUser [target], no, (err) =>
       return callbacks.error err  if err
       socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
