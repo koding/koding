@@ -3,6 +3,17 @@
 set -o errexit
 
 PROJECT_NAME=$1
+WORKING_DIR=$2
+
+if [ -n "$WORKING_DIR" ]; then
+  if [ ! -d $WORKING_DIR ]; then
+    echo "error: $WORKING_DIR does not exist"
+    exit 1
+  fi
+
+  cd $WORKING_DIR
+fi
+
 
 USER=git
 HOST=github.com
