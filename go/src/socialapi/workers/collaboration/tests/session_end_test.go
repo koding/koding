@@ -46,9 +46,7 @@ func TestCollaborationSesionEnd(t *testing.T) {
 
 	Convey("while pinging collaboration", t, func() {
 		// owner
-		owner := apimodels.NewAccount()
-		owner.OldId = AccountOldId.Hex()
-		owner, err := rest.CreateAccount(owner)
+		owner, err := apimodels.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
 		So(owner, ShouldNotBeNil)
 
