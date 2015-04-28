@@ -12,7 +12,7 @@ createUsers = (users)->
   mongo     = "mongodb://#{ KONFIG.mongo }"
 
   if process.env.MONGO_URL isnt ""
-    mongo = process.env.MONGO_URL + "/koding"
+    mongo = process.env.MONGO_URL
 
   modelPath = '../../workers/social/lib/social/models'
   rekuire   = (p)-> require joinPath modelPath, p
