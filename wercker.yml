@@ -59,7 +59,7 @@ build:
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
         name: client node modules
-        code: sh -c "scripts/install-npm.sh -d client -u -p"
+        code: scripts/install-npm.sh -d client -u -p
     - script:
         name: build client
         code: |
