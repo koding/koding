@@ -62,7 +62,7 @@ func TestWebhook(t *testing.T) {
 
 	webhook.CreateIterableIntegration(t)
 
-	Convey("While sending a message to push endpoint", t, func() {
+	Convey("We should be able to successfully push message", t, func() {
 
 		account, err := models.CreateAccountInBothDbsWithNick("sinan")
 		So(err, ShouldBeNil)
@@ -106,15 +106,33 @@ func TestWebhook(t *testing.T) {
 		So(channelId, ShouldNotEqual, 0)
 	})
 
-	Convey("While pushing a message to prepare endpoint", t, func() {
-		_, err := models.CreateAccountInBothDbsWithNick("ctf")
+	Convey("We should be able to successfully push messages via prepare endpoint", t, func() {
+
+		account, err := models.CreateAccountInBothDbsWithNick(models.RandomName())
 		So(err, ShouldBeNil)
 
 		err = rest.MakePrepareRequest(newPrepareRequest("xxx@koding.com"), channelIntegration.Token)
 		So(err, ShouldNotBeNil)
 
-		err = rest.MakePrepareRequest(newPrepareRequest("ctf@koding.com"), channelIntegration.Token)
+		err = rest.MakePrepareRequest(newPrepareRequest(account.Nick+"@koding.com"), channelIntegration.Token)
 		So(err, ShouldBeNil)
+
+		ses, err := models.FetchOrCreateSession(account.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		channelId, err := rest.MakeBotChannelRequest(ses.ClientId)
+		So(err, ShouldBeNil)
+
+		resp, err := rest.GetHistory(channelId,
+			&request.Query{
+				AccountId: account.Id,
+			},
+			ses.ClientId,
+		)
+
+		So(err, ShouldBeNil)
+		So(len(resp.MessageList), ShouldEqual, 1)
 	})
 
 }

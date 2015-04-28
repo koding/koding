@@ -7,6 +7,7 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/mux"
+	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/services"
 	"testing"
@@ -274,9 +275,10 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 				mocking.URL(m, "GET", "/botchannel"),
 				mocking.Header(nil),
 				nil,
-				newContext(3, nick, ""),
+				newContext(3, nick, "team"),
 			)
-			So(err.Error(), ShouldEqual, ErrGroupNotSet.Error())
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, ErrGroupNotFound.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
 		})
 
@@ -341,11 +343,15 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(s, ShouldEqual, http.StatusOK)
 			So(res, ShouldNotBeNil)
-			result, ok := res.(*WebhookResponse)
+
+			result, ok := res.(*response.SuccessResponse)
 			So(ok, ShouldEqual, true)
-			val, ok := result.Data["channelId"]
+			val, ok := result.Data.(map[string]interface{})
 			So(ok, ShouldEqual, true)
-			So(val.(string), ShouldNotEqual, "")
+			So(val, ShouldNotBeNil)
+			channelId, ok := val["channelId"]
+			So(ok, ShouldEqual, true)
+			So(channelId.(string), ShouldNotEqual, "")
 		})
 
 	})

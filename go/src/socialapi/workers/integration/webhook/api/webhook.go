@@ -58,9 +58,8 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 	if err := h.bot.SendMessage(&r.Message); err != nil {
 		return response.NewBadRequest(err)
 	}
-	res := map[string]interface{}{
-		"success": true,
-	}
+
+	res := response.NewSuccessResponse(nil)
 
 	return response.NewOK(res)
 }
@@ -119,12 +118,14 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 		return response.NewBadRequest(err)
 	}
 
-	res := map[string]interface{}{
-		"success": true,
+	res := response.NewSuccessResponse(nil)
+
+	return response.NewOK(res)
+}
 
 func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	if !c.IsLoggedIn() {
-		return response.NewBadRequestWithData(NewWebhookResponse(false, models.ErrNotLoggedIn), models.ErrNotLoggedIn)
+		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
 	r := new(BotChannelRequest)
@@ -135,18 +136,20 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 		r.GroupName = "koding"
 	}
 	if err := r.validate(); err != nil {
-		return response.NewBadRequestWithData(NewWebhookResponse(false, err), err)
+		return response.NewBadRequest(err)
 	}
 
 	channel, err := h.fetchBotChannel(r)
 	if err != nil {
-		return response.NewBadRequestWithData(NewWebhookResponse(false, err), err)
+		return response.NewBadRequest(err)
 	}
-	res := NewWebhookResponse(true, nil)
-	res.Data = map[string]interface{}{
+
+	data := map[string]interface{}{
 		"channelId": strconv.FormatInt(channel.Id, 10),
 		"groupName": r.GroupName,
 	}
+
+	res := response.NewSuccessResponse(data)
 
 	return response.NewOK(res)
 }
