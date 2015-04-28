@@ -718,9 +718,9 @@ class IDEAppController extends AppController
     @mountedMachine.getBaseKite().storageSetQueued name, value
 
 
-  removeWorkspaceSnapshot: ->
+  removeWorkspaceSnapshot: (username = nick()) ->
 
-    key = @getWorkspaceSnapshotName nick()
+    key = @getWorkspaceSnapshotName username
     @mountedMachine.getBaseKite().storageDelete key
 
 
