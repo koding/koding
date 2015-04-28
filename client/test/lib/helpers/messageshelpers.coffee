@@ -37,4 +37,5 @@ module.exports =
           .setValue                textareaSelector, message + '\n'
           .waitForElementVisible   '.message-pane.privatemessage', 20000
           .assert.containsText     '.message-pane.privatemessage', message # Assertion
+          .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
           .assert.containsText     '.activity-sidebar .messages', user.fullName # Assertion
