@@ -52,7 +52,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
     if @state.videoActive
       filterList = getOrderedVideoParticipants @state
       inactives = participants.filter (participant) ->
-        not (participant.profile.nickname in filterList)
+        participant.profile.nickname not in filterList
 
       return inactives.toList()
 
@@ -250,12 +250,12 @@ getOrderedVideoParticipants = (state) ->
   participants = state.videoParticipants
   { PARTICIPANT_STATUS_PUBLISHING } = videoConstants
 
-  # _.partition returns 2 arrays from 1. First array will be result of given
-  # predicate function, 2nd array will be the remaining elements of original
-  # array.
+  # split the array into 2: publishing users, non-publishing users
   [publishings, nonpublishings] = _.partition participants, (p) ->
     p.status is PARTICIPANT_STATUS_PUBLISHING
 
+  # merge them here. We basically sorted them to make publishings appear on the
+  # most left.
   filterList = publishings.concat nonpublishings
 
 
