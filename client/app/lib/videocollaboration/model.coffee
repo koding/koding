@@ -7,6 +7,7 @@ OpenTokService  = require './services/opentok'
 ParticipantType = require './types/participant'
 ViewModel       = require './viewmodel'
 helper          = require './helper'
+constants       = require './constants'
 
 module.exports = class VideoCollaborationModel extends kd.Object
 
@@ -91,37 +92,30 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @setState { connected: yes }
     @emit 'SessionConnected', session
 
-    @enableVideo { error: (err) => console.error err }  if helper.isVideoActive @channel
+    if helper.isVideoActive @channel
+      @setActive()
+
+      if @isMySession()
+        @enableVideo {},
+          success: =>
+            @setVideoState yes
+            @setAudioState yes
 
 
   ###*
    * Registers callbacks for service events.
    *
    * @param {OT.Session} session
-   * @listens OT.Session~streamCreated
-   * @listens OT.Session~streamDestroyed
-   * @listens OT.Session~connectionCreated
-   * @listens OT.Session~sessionDisconnected
    * @emits VideoCollaborationModel~HostKickedLoggedInUser
    * @emits VideoCollaborationModel~VideoCollaborationEnded
    * @emits VideoCollaborationModel~VideoCollaborationEndedByNetwork
   ###
   bindSessionEvents: (session) ->
 
-    session.on 'streamCreated', (event) =>
-      @subscribeToStream session, event.stream
-
-    session.on 'streamDestroyed', (event) =>
-      { connection } = event.stream
-      @setParticipantLeft connection.connectionId
-
-    session.on 'connectionCreated', (event) =>
-      count = @state.connectionCount
-      @setState { connectionCount: count + 1 }
-
-    session.on 'connectionDestroyed', (event) =>
-      count = @state.connectionCount
-      @setState { connectionCount: count - 1 }
+    session.on 'connectionCreated'   , @bound 'onConnectionCreated'
+    session.on 'streamCreated'       , @bound 'onStreamCreated'
+    session.on 'streamDestroyed'     , @bound 'onStreamDestroyed'
+    session.on 'connectionDestroyed' , @bound 'onConnectionDestroyed'
 
     session.on 'sessionDisconnected', (event) =>
       @setState { connected: no }
@@ -142,18 +136,94 @@ module.exports = class VideoCollaborationModel extends kd.Object
         success : @bound 'handleStopSuccess'
         error   : (err) -> console.error err
 
-    session.on 'signal:start', => @enableVideo { error: (err) => console.error err }
+    session.on 'signal:start', =>
+
+      @setActive()
+
+      if @isMySession()
+        @enableVideo {},
+          success: =>
+            @setVideoState yes
+            @setAudioState yes
 
     # this event only comes to the user who has been muted, so need to make a
     # filtering here.
     session.on 'signal:mute', => @setAudioState off
 
 
-  subscribeToStream: (session, stream) ->
+  ###*
+   * Opentok session's `connectionCreated` event handler.
+   *
+   * @param {OT.ConnectionEvent} event
+   * @emits VideoCollaborationModel~ParticipantConnected
+  ###
+  onConnectionCreated: (event) ->
 
-    helper.subscribeToStream session, stream, @getView().getContainer(),
+
+    { connection } = event
+
+    # We don't want to deal with own user's events, we basically want to
+    # abstract out logged-in user out of the equation here.
+    return  if @isMyConnection connection
+
+    nick = helper.getNicknameFromConnection connection
+
+    @setParticipantConnected nick, connection
+
+
+  ###*
+   * Opentok session's `connectionCreated` event handler.
+   *
+   * @param {OT.ConnectionEvent} event
+   * @emits VideoCollaborationModel~ParticipantDisconnected
+  ###
+  onConnectionDestroyed: (event) ->
+
+    { connection } = event
+
+    return  if @isMyConnection connection
+
+    @setParticipantDisconnected connection.id
+
+
+  ###*
+   * Opentok session's `streamCreated` event handler.
+   *
+   * @param {OT.StreamEvent} event
+  ###
+  onStreamCreated: (event) ->
+
+    { stream } = event
+    @subscribeToStream @session, stream,
       success : (subscriber) => @setParticipantJoined stream.name, subscriber
       error   : (err) -> console.error err
+
+
+  ###*
+   * Opentok session's `streamDestroyed` event handler.
+   *
+   * @param {OT.StreamEvent} event
+  ###
+  onStreamDestroyed: (event) ->
+
+    { connection } = event.stream
+    @setParticipantLeft connection.connectionId
+
+
+  ###*
+   * Subscribes to given session's given stream.
+   *
+   * It uses helper method to subscribe, it's success callback will return the
+   * `OT.Subscriber` object. From that on, the conversion from `OT.Subscriber`
+   * to `ParticipantType.Subscriber` and other jobs happen in success handler.
+   *
+   * @param {OT.Session} session
+   * @param {OT.Stream} stream
+  ###
+  subscribeToStream: (session, stream, callbacks) ->
+
+    videoContainer = @view.getContainer()
+    helper.subscribeToStream session, stream, videoContainer, callbacks
 
 
   ###*
@@ -161,35 +231,40 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * This method handles initial automatic publishing with setting some default
    * options for host, and participant to be different.
    *
+   * @param {object} options
    * @param {object} callbacks
   ###
-  enableVideo: (callbacks) ->
+  enableVideo: (options, callbacks) ->
 
-    options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
     success = (publisher) =>
       @handlePublishSuccess publisher
       callbacks.success? publisher
 
-    @setActive()
-
+    defaults = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+    options  = _.assign {}, defaults, options
     @startPublishing options,
       success : success
       error   : callbacks.error
 
 
   ###*
-   * Creates a `ParticipantType.Subscriber` instance and it caches it with `connectionId`
-   * into `subscribers` map.
+   * Creates a `ParticipantType.Subscriber` instance and it caches it with
+   * `connectionId` into `subscribers` map.
    *
    * @param {string} nick
-   * @param {string} connectionId
-   * @param {OT.Subscriber} subscriber
+   * @param {OT.Connection} connection
    * @return {ParticipantType.Subscriber} _subscriber
+   * @emits VideoParticipantModel~ParticipantStartedTalking
+   * @emits VideoParticipantModel~ParticipantStoppedTalking
   ###
-  registerSubscriber: (nick, connectionId, subscriber) ->
+  registerSubscriber: (nick, connection) ->
 
-    _subscriber = new ParticipantType.Subscriber nick, subscriber
-    @subscribers[connectionId] = _subscriber
+    _subscriber = new ParticipantType.Subscriber
+      nick      : nick
+      videoData : null
+      status    : constants.PARTICIPANT_STATUS_OFFLINE
+
+    @subscribers[connection.id] = _subscriber
 
     _subscriber.on 'TalkingDidStart', =>
       @emit 'ParticipantStartedTalking', nick
@@ -210,28 +285,54 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Parse the username from given connection and add a default subscriber
+   * without video to trigger view updates.
+   *
+   * @param {OT.Connection} connection
+   * @return {(undefined|object)}
+  ###
+  registerDefaultSubscriber: (connection) ->
+
+    { id, data } = connection
+    { nickname } = JSON.parse data
+
+    return  if nickname is getNick()
+
+    _subscriber = helper.defaultSubscriber nickname
+
+    @subscribers[id] = _subscriber
+
+    return _subscriber
+
+
+  ###*
    * Transforms given publisher instance from OpenTok into our own
    * `ParticipantType.Publisher` class instance and it registers it into model's
    * participant property.. It sets the model's stream instance to publisher's
    * stream for easy access.
    *
-   * @param {OT.Publisher} publisher
+   * @param {OT.Publisher} videoData
    * @return {ParticipantType.Publisher} _publisher
   ###
-  registerPublisher: (publisher) ->
+  registerPublisher: (videoData) ->
 
-    @publisher = _publisher = new ParticipantType.Publisher getNick(), publisher
-    @stream    = _publisher.stream
+    @publisher = publisher = new ParticipantType.Publisher
+      nick      : getNick()
+      videoData : videoData
+      status    : constants.PARTICIPANT_STATUS_PUBLISHING
 
-    _publisher.on 'TalkingDidStart', =>
+    @stream = publisher.stream
+
+    publisher.on 'TalkingDidStart', =>
       return  unless @state.audio
       @emit 'ParticipantStartedTalking', getNick()
+      @changeActiveParticipant getNick()  unless @state.selectedParticipant
 
-    _publisher.on 'TalkingDidStop', =>
+    publisher.on 'TalkingDidStop', =>
       return  unless @state.active
       @emit 'ParticipantStoppedTalking', getNick()
 
-    return _publisher
+    return publisher
 
 
   ###*
@@ -281,17 +382,20 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * connectionId information from subscriber object.
    *
    * @param {string} nick
-   * @param {OT.Subscriber} subscriber
+   * @param {OT.Subscriber} videoData
    * @return {ParticipantType.Subscriber} _participant
    * @emits VideoCollaborationModel~ParticipantJoined
   ###
-  setParticipantJoined: (nick, subscriber) ->
+  setParticipantJoined: (nick, videoData) ->
 
-    { connectionId } = subscriber.stream.connection
-    _participant = @registerSubscriber nick, connectionId, subscriber
-    @emit 'ParticipantJoined', _participant
+    subscriber = @getParticipant nick
 
-    return _participant
+    # change subscriber's state to publishing.
+    subscriber.setPublishing videoData
+
+    @emit 'ParticipantJoined', subscriber
+
+    return subscriber
 
 
   ###*
@@ -304,19 +408,40 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setParticipantLeft: (connectionId) ->
 
-    return  unless _participant = @subscribers[connectionId]
+    return  unless subscriber = @subscribers[connectionId]
+
+    # set subscriber's status back to `connected`, probably from `publishing`
+    subscriber.setConnected()
+
+    @emit 'ParticipantLeft', helper.defaultSubscriber subscriber.nick
+
+    return subscriber
+
+
+  setParticipantConnected: (nick, connection) ->
+
+    subscriber = @registerSubscriber nick, connection
+
+    @incrementConnectionCount()
+
+    @emit 'ParticipantConnected', subscriber
+
+
+  setParticipantDisconnected: (connectionId) ->
+
+    return  unless subscriber = @subscribers[connectionId]
+
+    if @state.activeParticipant is subscriber.nick
+      @changeActiveParticipant getNick()
+
+    if @state.selectedParticipant is subscriber.nick
+      @setSelectedParticipant null
+
+    @decrementConnectionCount()
+
     @unregisterSubscriber connectionId
 
-    { nick } = _participant
-    @emit 'ParticipantLeft', {nick}
-
-    # if leaving participant is selected or active participant
-    if @state.activeParticipant is nick
-      @changeActiveParticipant getNick()
-      if @state.selectedParticipant is nick
-        @setSelectedParticipant null
-
-    return _participant
+    @emit 'ParticipantDisconnected', subscriber
 
 
   ###*
@@ -365,9 +490,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setAudioState: (state) ->
 
-    @publisher.videoData.publishAudio state
-    @setState { audio: state }
-    @emit 'AudioPublishStateChanged', state
+    @ensurePublishing {}, =>
+      @publisher.videoData.publishAudio state
+      @setState { audio: state }
+      @emit 'AudioPublishStateChanged', state
 
 
   ###*
@@ -377,9 +503,19 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setVideoState: (state) ->
 
-    @publisher.videoData.publishVideo state
-    @setState { video: state }
-    @emit 'VideoPublishStateChanged', state
+    @ensurePublishing {}, =>
+      @publisher.videoData.publishVideo state
+      @setState { video: state }
+      @emit 'VideoPublishStateChanged', state
+
+
+  ensurePublishing: (options, callback) ->
+
+    @setActive()
+
+    if @state.publishing
+    then callback @publisher
+    else @enableVideo options, { success: callback }
 
 
   ###*
@@ -418,14 +554,17 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {function(error: object)} callbacks.error
   ###
   startPublishing: (options, callbacks) ->
+
     return  if @state.publishing
 
     defaults =
       publishAudio: no
       publishVideo: no
 
+    options = _.assign {}, defaults, options
+
     # first create publisher with defaults.
-    helper.createPublisher @view.getContainer(), defaults, (err, publisher) =>
+    helper.createPublisher @view.getContainer(), options, (err, publisher) =>
       return callbacks.error err  if err
 
       publisher.on
@@ -437,10 +576,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
       publisher.on 'streamDestroyed', => @unregisterPublisher()
 
       @session.publish publisher, (err) =>
-        return callbacks.error err  if err
-        callbacks.success publisher
-        @setAudioState options.publishAudio
-        @setVideoState options.publishVideo
+        if err
+        then callbacks.error err
+        else callbacks.success publisher
 
 
   ###*
@@ -494,17 +632,33 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setSelectedParticipant: (nick) ->
 
-    unless isOnline = @isParticipantOnline nick
-      @emit 'SelectedParticipantChanged', nick, no
+    unless @isParticipantOnline nick
+      @setState { selectedParticipant: null }
+      @emit 'SelectedParticipantChanged', nick
       return
 
     nick = null  if @state.selectedParticipant is nick
-
     @setState { selectedParticipant: nick }
-    @emit 'SelectedParticipantChanged', nick, yes
+
+    @emit 'SelectedParticipantChanged', nick
 
 
+  ###*
+   * @param {string} nickname
+   * @return {boolean}
+  ###
   isParticipantOnline: (nickname) -> @getParticipant(nickname)?
+
+
+  ###*
+   * @param {OT.Connection} connection
+   * @return {boolean}
+  ###
+  isMyConnection: (connection) ->
+
+    nickname = helper.getNicknameFromConnection connection
+
+    return nickname is getNick()
 
 
   ###*
@@ -527,6 +681,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
   getParticipant: (nick) -> @getParticipants()[nick]
 
 
+  getActiveParticipant: -> @state.activeParticipant
+
+
+  getSelectedParticipant: -> @state.selectedParticipant
+
+
   ###*
    * Merges instance state with given state.
    *
@@ -534,6 +694,22 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @return {object} state
   ###
   setState: (state) -> @state = _.assign {}, @state, state
+
+
+  ###*
+   * Set state to increment connection count.
+  ###
+  incrementConnectionCount: ->
+
+    @setState { connectionCount: @state.connectionCount + 1 }
+
+
+  ###*
+   * Set state to decrement connection count.
+  ###
+  decrementConnectionCount: ->
+
+    @setState { connectionCount: @state.connectionCount - 1 }
 
 
   ###*
@@ -546,7 +722,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   hasParticipantWithAudio: (nickname, callback) ->
     return callback no  unless @state.active
 
-    if participant = @getParticipant nickname
+    participant             = @getParticipant nickname
+    { isDefaultSubscriber } = helper
+
+    if participant and not isDefaultSubscriber participant
     then callback participant.videoData.stream.hasAudio
     else callback no
 

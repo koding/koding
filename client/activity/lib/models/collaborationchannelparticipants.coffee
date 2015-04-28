@@ -1,5 +1,6 @@
 _                        = require 'lodash'
 ChannelParticipantsModel = require './channelparticipants'
+videoConstants           = require 'app/videocollaboration/constants'
 
 module.exports = class CollaborationChannelParticipantsModel extends ChannelParticipantsModel
 
@@ -28,10 +29,11 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   computePreviewParticipants: (participants) ->
 
     if @state.videoActive
-      filtered = participants.filter (participant) =>
-        participant.profile.nickname in @state.videoParticipants
+      filterList = getOrderedVideoParticipants @state
+      actives = participants.filter (participant) ->
+        participant.profile.nickname in filterList
 
-      return filtered.toList()
+      return actives.toList()
 
     super
 
@@ -48,11 +50,11 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   computeHiddenParticipants: (participants) ->
 
     if @state.videoActive
-      filtered = participants.filter (participant) =>
-        {nickname} = participant.profile
-        return @state.videoParticipants.indexOf(nickname) is -1
+      filterList = getOrderedVideoParticipants @state
+      inactives = participants.filter (participant) ->
+        participant.profile.nickname not in filterList
 
-      return filtered.toList()
+      return inactives.toList()
 
     super
 
@@ -66,7 +68,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   addVideoParticipant: (nickname, emitEvent = yes) ->
 
     pushToCollection @state.videoParticipants, nickname, =>
-      @emitEvent()  if emitEvent
+      @emitChange()  if emitEvent
 
 
   ###*
@@ -78,7 +80,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   removeVideoParticipant: (nickname, emitEvent = yes) ->
 
     removeFromCollection @state.videoParticipants, nickname, =>
-      @emitEvent()  if emitEvent
+      @emitChange()  if emitEvent
 
 
   ###*
@@ -88,9 +90,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
    * @param {string} nickname
    * @param {boolean} isOnline
   ###
-  setVideoSelectedParticipant: (nickname, isOnline) ->
-
-    return  unless isOnline
+  setVideoSelectedParticipant: (nickname) ->
 
     @state.selectedParticipant = nickname
 
@@ -104,8 +104,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   addTalkingParticipant: (nickname) ->
 
-    pushToCollection @state.talkingParticipants, nickname, =>
-      @emitChange()
+    pushToCollection @state.talkingParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -115,8 +114,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   removeTalkingParticipant: (nickname) ->
 
-    removeFromCollection @state.talkingParticipants, nickname, =>
-      @emitChange()
+    removeFromCollection @state.talkingParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -126,8 +124,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   addVideoActiveParticipant: (nickname) ->
 
-    pushToCollection @state.videoParticipants, nickname, =>
-      @emitChange()
+    pushToCollection @state.videoParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -137,8 +134,27 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   ###
   removeVideoActiveParticipant: (nickname) ->
 
-    removeFromCollection @state.videoParticipants, nickname, =>
-      @emitChange()
+    removeFromCollection @state.videoParticipants, nickname, @bound 'emitChange'
+
+
+  ###*
+   * Defensively add connected video participant.
+   *
+   * @param {string} nickname
+  ###
+  addVideoConnectedParticipant: (nickname) ->
+
+    pushToCollection @state.connectedParticipants, nickname, @bound 'emitChange'
+
+
+  ###*
+   * Defensively add connected video participant.
+   *
+   * @param {string} nickname
+  ###
+  removeVideoConnectedParticipant: (nickname) ->
+
+    removeFromCollection @state.connectedParticipants, nickname, @bound 'emitChange'
 
 
   ###*
@@ -167,6 +183,17 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
 
     # basically we batched the change event updates.
     @emitChange()
+
+
+  applyVideoUpdate: (payload) ->
+
+    { activeParticipant, selectedParticipant, participants } = payload
+
+    @state.selectedParticipant = selectedParticipant
+    @state.videoParticipants   = Object.keys participants
+
+    @emitChange()
+
 
 
 ###*
@@ -207,5 +234,28 @@ removeFromCollection = (collection, item, callback) ->
   unless index = collection.indexOf(item) is -1
     collection.splice index, 1
     callback?()
+
+
+###*
+ * Orders given state's video participants in a way that publishing users
+ * come first.
+ *
+ * @param {object} state
+ * @param {array.<string>} state.videoParticipants
+ * @param {array.<string>} state.connectedParticipants
+ * @return {array.<string>} orderedList
+###
+getOrderedVideoParticipants = (state) ->
+
+  participants = state.videoParticipants
+  { PARTICIPANT_STATUS_PUBLISHING } = videoConstants
+
+  # split the array into 2: publishing users, non-publishing users
+  [publishings, nonpublishings] = _.partition participants, (p) ->
+    p.status is PARTICIPANT_STATUS_PUBLISHING
+
+  # merge them here. We basically sorted them to make publishings appear on the
+  # most left.
+  filterList = publishings.concat nonpublishings
 
 
