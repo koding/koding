@@ -32,6 +32,7 @@ TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" make -C client/test bu
 ./run services
 ./run install
 ./run resetdb --yes
+./run importusers
 ./run backend &
 disown $!
 
