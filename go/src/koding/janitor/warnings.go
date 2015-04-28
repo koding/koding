@@ -22,9 +22,9 @@ var FirstEmail = &Warning{
 
 	LimitPerRun: EmailLimitPerRun,
 
-	Select: bson.M{
-		"lastLoginDate":    moreThanDaysQuery(20),
-		"inactive.warning": bson.M{"$exists": false},
+	Select: []bson.M{
+		bson.M{"lastLoginDate": moreThanDaysQuery(19)},
+		bson.M{"inactive.warning": bson.M{"$exists": false}},
 	},
 
 	Exempt: []Exempt{IsUserPaid, IsUserNotConfirmed},
@@ -43,9 +43,9 @@ var SecondEmail = &Warning{
 
 	LimitPerRun: EmailLimitPerRun,
 
-	Select: bson.M{
-		"lastLoginDate":    moreThanDaysQuery(24),
-		"inactive.warning": 1,
+	Select: []bson.M{
+		bson.M{"lastLoginDate": moreThanDaysQuery(24)},
+		bson.M{"inactive.warning": 1},
 	},
 
 	Exempt: []Exempt{IsTooSoon, IsUserPaid, IsUserNotConfirmed, IsUserVMsEmpty},
@@ -64,9 +64,9 @@ var ThirdDeleteVM = &Warning{
 
 	LimitPerRun: EmailLimitPerRun,
 
-	Select: bson.M{
-		"lastLoginDate":    moreThanDaysQuery(29),
-		"inactive.warning": 2,
+	Select: []bson.M{
+		bson.M{"lastLoginDate": moreThanDaysQuery(29)},
+		bson.M{"inactive.warning": 2},
 	},
 
 	Exempt: []Exempt{IsTooSoon, IsUserPaid, IsUserVMsEmpty},

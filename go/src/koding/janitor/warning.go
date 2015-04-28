@@ -22,7 +22,7 @@ type Warning struct {
 	IntervalSinceLastWarning time.Duration
 
 	// Query that defines which user to select.
-	Select bson.M
+	Select []bson.M
 
 	// Action the warning will take if user isn't exempt.
 	Action Action
@@ -95,11 +95,11 @@ func (w *Warning) RunSingle() error {
 // `FindAndLockUser` finds user with warning query and locks it
 // so other workers can't work on it.
 func (w *Warning) FindAndLockUser() (*models.User, error) {
-	w.Select["inactive.assigned"] = bson.M{"$ne": true}
-	w.Select["$or"] = []bson.M{
+	w.Select = append(w.Select, bson.M{"inactive.assigned": bson.M{"$ne": true}})
+	w.Select = append(w.Select, bson.M{"$or": []bson.M{
 		bson.M{"inactive.modifiedAt": bson.M{"$exists": false}},
 		bson.M{"inactive.modifiedAt": bson.M{"$lte": now.BeginningOfDay().UTC()}},
-	}
+	}})
 
 	var change = mgo.Change{
 		Update: bson.M{
@@ -110,9 +110,16 @@ func (w *Warning) FindAndLockUser() (*models.User, error) {
 		ReturnNew: true,
 	}
 
+	selectQuery := bson.M{}
+	for _, query := range w.Select {
+		for k, v := range query {
+			selectQuery[k] = v
+		}
+	}
+
 	var user *models.User
 	var query = func(c *mgo.Collection) error {
-		_, err := c.Find(w.Select).Limit(1).Apply(change, &user)
+		_, err := c.Find(selectQuery).Limit(1).Apply(change, &user)
 		return err
 	}
 
