@@ -493,8 +493,6 @@ class IDEAppController extends AppController
 
   handleMachineTerminated: ->
 
-    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
-
 
   handleMachineReinit: ({status}) ->
 
@@ -502,7 +500,6 @@ class IDEAppController extends AppController
       when 'Building'
         environmentDataProvider.ensureDefaultWorkspace kd.noop
       when 'Running'
-        @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
         @quit()
 
 
@@ -721,9 +718,9 @@ class IDEAppController extends AppController
     @mountedMachine.getBaseKite().storageSetQueued name, value
 
 
-  removeWorkspaceSnapshot: ->
+  removeWorkspaceSnapshot: (username = nick()) ->
 
-    key = @getWorkspaceSnapshotName nick()
+    key = @getWorkspaceSnapshotName username
     @mountedMachine.getBaseKite().storageDelete key
 
 

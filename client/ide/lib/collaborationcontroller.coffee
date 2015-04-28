@@ -119,6 +119,8 @@ module.exports = CollaborationController =
         showError err
         throwError err
 
+    @removeWorkspaceSnapshot target
+
     @setMachineUser [target], no, (err) =>
       return callbacks.error err  if err
       socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
@@ -789,13 +791,13 @@ module.exports = CollaborationController =
 
   endCollaborationForParticipant: (callback) ->
 
-    @broadcastMessage { type: 'ParticipantWantsToLeave' }
-
     socialHelpers.leaveChannel @socialChannel, (err) =>
       throwError err  if err
 
-    @setMachineUser [nick()], no, =>
-      throwError err  if err
+    @removeWorkspaceSnapshot().then =>
+      @setMachineUser [nick()], no, =>
+        throwError err  if err
+        @broadcastMessage { type: 'ParticipantWantsToLeave' }
 
     callback()
 
@@ -818,8 +820,6 @@ module.exports = CollaborationController =
       kd.utils.defer @bound 'quit'
 
     @cleanupCollaboration()
-
-    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
 
 
   showChat: ->
