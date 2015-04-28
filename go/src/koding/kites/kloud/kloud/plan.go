@@ -27,7 +27,9 @@ type PlanOutput struct {
 	Machines []PlanMachine `json:"machines"`
 }
 
-type PlanRequest struct {
+type TerraformKloudRequest struct {
+	MachineIds []string `json:"machineIds"`
+
 	// Terraform template file
 	TerraformContext string `json:"terraformContext"`
 
@@ -49,7 +51,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args *PlanRequest
+	var args *TerraformKloudRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
@@ -59,7 +61,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	if len(args.PublicKeys) == 0 {
-		return nil, errors.New("credential ids are not passed")
+		return nil, errors.New("publicKeys are not passed")
 	}
 
 	ctx := k.ContextCreator(context.Background())

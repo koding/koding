@@ -107,12 +107,12 @@ func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
 
-	plan, err := t.apply(c, r, false)
+	state, err := t.apply(c, r, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return plan, nil
+	return state, nil
 }
 
 // Destroy provides a kite call for destroy operation
@@ -155,7 +155,7 @@ func (t *Terraformer) plan(c *kodingcontext.Context, r *kite.Request, destroy bo
 	return c.Plan(content, destroy)
 }
 
-func (t *Terraformer) apply(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.Plan, error) {
+func (t *Terraformer) apply(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.State, error) {
 	args := TerraformRequest{}
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err

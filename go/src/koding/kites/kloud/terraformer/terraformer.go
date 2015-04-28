@@ -62,8 +62,22 @@ func (t *Terraformer) Plan(context string) (*terraform.Plan, error) {
 	return plan, nil
 }
 
-func (t *Terraformer) Apply() error {
-	return nil
+func (t *Terraformer) Apply(context string) (*terraform.State, error) {
+	req := terraformer.TerraformRequest{
+		Content: context,
+	}
+
+	resp, err := t.Client.Tell("apply", req)
+	if err != nil {
+		return nil, err
+	}
+
+	var state *terraform.State
+	if err := resp.Unmarshal(&state); err != nil {
+		return nil, err
+	}
+
+	return state, nil
 }
 
 func (t *Terraformer) Destroy() error {
