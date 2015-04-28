@@ -17,7 +17,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-const TestTimeout = 4 * time.Minute
+const TestTimeout = 6 * time.Minute
 
 func TestTopicSaved(t *testing.T) {
 	runner, handler := getTestHandler()
