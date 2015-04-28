@@ -1,8 +1,11 @@
+// Package terraformer provider bridge between terraformer and application
+// without needing the operation over a cli
 package terraformer
 
 import (
 	"fmt"
 	"koding/kites/terraformer/kodingcontext"
+	"koding/kites/terraformer/storage"
 	"strings"
 
 	"koding/kites/common"
@@ -14,10 +17,14 @@ import (
 )
 
 var (
-	Name    = "terraformer"
+	// Name holds the worker name
+	Name = "terraformer"
+
+	// Version holds the version of the worker
 	Version = "0.0.1"
 )
 
+// Terraformer holds the required parameter for terraformer worker context
 type Terraformer struct {
 	// Log is a specialized log system for terraform
 	Log logging.Logger
@@ -35,23 +42,21 @@ type Terraformer struct {
 	Config *Config
 }
 
+// TerraformRequest is a helper struct for terraformer kite requests
 type TerraformRequest struct {
 	Content   string
 	Variables map[string]string
 	ContentID string
 }
 
+// New creates a new terraformer
 func New(conf *Config, log logging.Logger) (*Terraformer, error) {
-	ls, err := kodingcontext.NewFileStorage(conf.LocalStorePath)
+	ls, err := storage.NewFile(conf.LocalStorePath)
 	if err != nil {
 		return nil, fmt.Errorf("err while creating local store %s", err)
 	}
 
-	rs, err := kodingcontext.NewS3Storage(
-		conf.AWS.Key,
-		conf.AWS.Secret,
-		conf.AWS.Bucket,
-	)
+	rs, err := storage.NewS3(conf.AWS.Key, conf.AWS.Secret, conf.AWS.Bucket)
 	if err != nil {
 		return nil, fmt.Errorf("err while creating remote store %s", err)
 	}
@@ -70,18 +75,21 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 	}, nil
 }
 
+// Close closes the embeded properties of terraformer
 func (t *Terraformer) Close() error {
-	if t.Context != nil {
-		t.Context.Close()
+	if t.Context == nil {
+		return nil
 	}
 
-	return nil
+	return t.Context.Close()
 }
 
+// Kite creates a new Terraformer Kite communication layer
 func (t *Terraformer) Kite() (*kite.Kite, error) {
 	return t.newKite(t.Config)
 }
 
+// Plan provides a kite call for plan operation
 func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
@@ -94,6 +102,7 @@ func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
 	return plan, nil
 }
 
+// Apply provides a kite call for apply operation
 func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
@@ -106,6 +115,7 @@ func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
 	return plan, nil
 }
 
+// Destroy provides a kite call for destroy operation
 func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
 	c := t.Context.Clone()
 	defer c.Close()
@@ -118,29 +128,21 @@ func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
 	return plan, nil
 }
 
-func (t *Terraformer) context(
-	c *kodingcontext.Context,
-	r *kite.Request,
-	destroy bool,
-) (*terraform.Context, error) {
-	// get the plan
-	plan, err := t.plan(c, r, destroy)
-	if err != nil {
-		return nil, err
-	}
+// func (t *Terraformer) context(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.Context, error) {
+// 	// get the plan
+// 	plan, err := t.plan(c, r, destroy)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	// create terraform context options from plan
-	copts := c.TerraformContextOptsWithPlan(plan)
+// 	// create terraform context options from plan
+// 	copts := c.TerraformContextOptsWithPlan(plan)
 
-	// create terraform context with its options
-	return terraform.NewContext(copts), nil
-}
+// 	// create terraform context with its options
+// 	return terraform.NewContext(copts), nil
+// }
 
-func (t *Terraformer) plan(
-	c *kodingcontext.Context,
-	r *kite.Request,
-	destroy bool,
-) (*terraform.Plan, error) {
+func (t *Terraformer) plan(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.Plan, error) {
 	args := TerraformRequest{}
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
@@ -153,11 +155,7 @@ func (t *Terraformer) plan(
 	return c.Plan(content, destroy)
 }
 
-func (t *Terraformer) apply(
-	c *kodingcontext.Context,
-	r *kite.Request,
-	destroy bool,
-) (*terraform.Plan, error) {
+func (t *Terraformer) apply(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.Plan, error) {
 	args := TerraformRequest{}
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err

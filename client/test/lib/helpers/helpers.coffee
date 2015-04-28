@@ -8,6 +8,7 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 module.exports =
 
   beginTest: (browser, user) ->
+
     url   = @getUrl()
     user ?= utils.getUser()
 
@@ -22,6 +23,7 @@ module.exports =
 
 
   assertNotLoggedIn: (browser, user) ->
+
     url = @getUrl()
     browser.url(url)
     browser.maximizeWindow()
@@ -35,6 +37,7 @@ module.exports =
 
 
   attemptLogin: (browser, user) ->
+
     browser
       .waitForElementVisible  '[testpath=main-header]', 50000
       .click                  '#main-header [testpath=login-link]'
@@ -42,15 +45,14 @@ module.exports =
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
       .click                  '[testpath=login-button]'
+      .pause                  2500 # required, wait for login complete
 
-
-  waitForVMRunning: require './waitforvmrunning'
 
   doLogin: (browser, user) ->
 
     @attemptLogin(browser, user)
 
-    browser.waitForElementVisible '[testpath=main-sidebar]', 10000, false, (result) =>
+    browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
       if result.status is 0
         console.log "Successfully logged in with username: #{user.username} and password: #{user.password}"
       else
@@ -66,32 +68,6 @@ module.exports =
       .click                  '[testpath=logout-link]'
       .pause                  3000
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
-
-
-  deleteFile: (browser, fileSelector) ->
-
-    browser
-      .waitForElementPresent     fileSelector, 20000
-      .click                     fileSelector
-      .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 20000
-      .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 20000
-      .click                     '.delete-container button.clean-red'
-      .waitForElementNotPresent  fileSelector, 2000
-
-
-  deleteFolder: (browser, selector) ->
-
-    browser
-      .waitForElementPresent     selector, 20000
-      .click                     selector
-      .click                     selector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 20000
-      .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 20000
-      .click                     '.delete-container button.clean-red'
-      .waitForElementNotPresent  selector, 2000
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
@@ -137,6 +113,17 @@ module.exports =
     @doLogin(browser, user)
 
 
+  assertMainHeader: (browser, assertLoginLink = yes) ->
+
+    logoSelector = '[testpath=main-header] a#koding-logo'
+    loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
+
+    browser.waitForElementVisible logoSelector, 25000
+
+    if assertLoginLink
+      browser.waitForElementVisible loginLinkSelector, 25000
+
+
   postActivity: (browser, shouldBeginTest = yes) ->
 
     if shouldBeginTest
@@ -162,6 +149,7 @@ module.exports =
 
 
   doPostComment: (browser, comment, shouldAssert = yes, hasEmbeddable = no) ->
+
     browser
       .click                    activitySelector + ' [testpath=CommentInputView]'
       .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
@@ -259,6 +247,7 @@ module.exports =
 
 
   getFakeText: ->
+
     return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
@@ -333,6 +322,19 @@ module.exports =
     return data
 
 
+  deleteFile: (browser, fileSelector) ->
+
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementVisible     'li.delete', 20000
+      .click                     'li.delete'
+      .waitForElementVisible     '.delete-container', 20000
+      .click                     '.delete-container button.clean-red'
+      .waitForElementNotPresent  fileSelector, 2000
+
+
   openChangeTopFolderMenu: (browser) ->
 
     browser
@@ -343,6 +345,7 @@ module.exports =
 
 
   createWorkspace: require './createworkspace'
+
 
   deleteWorkspace: (browser, workspaceName) ->
 
@@ -361,15 +364,7 @@ module.exports =
         .waitForElementNotVisible  workspaceSelector, 20000
 
 
-  assertMainHeader: (browser, assertLoginLink = yes) ->
-
-    logoSelector = '[testpath=main-header] a#koding-logo'
-    loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
-
-    browser.waitForElementVisible logoSelector, 25000
-
-    if assertLoginLink
-      browser.waitForElementVisible loginLinkSelector, 25000
+  waitForVMRunning: require './waitforvmrunning'
 
 
   changeName: (browser, inputSelector, shouldAssertSidebar) ->
@@ -458,5 +453,6 @@ module.exports =
 
 
   getUrl: ->
+
     return 'http://lvh.me:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
