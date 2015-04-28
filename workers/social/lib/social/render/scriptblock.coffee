@@ -90,7 +90,7 @@ module.exports = (options = {}, callback)->
         socialapidata = data
         queue.fin()
     ->
-      groupName = session?.groupName or= 'koding'
+      groupName = session?.groupName or 'koding'
 
       # due to some reason, I suspect JSON.stringify somewhere, undefined
       # is stringified as 'undefined', this check makes sure, it defaults

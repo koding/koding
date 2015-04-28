@@ -1560,6 +1560,13 @@ paymentGrayLighter  = #f8f8f8
     &.running
       .icon
         r-sprite        'ide', 'vm-state-running'
+    &.notfound
+      h1
+        margin-bottom   25px
+      span
+        font-size       16px
+      a
+        color           #1aaf5d
 
   .footer
     .upgrade-link
@@ -2072,6 +2079,7 @@ paymentGrayLighter  = #f8f8f8
 
   .kdlistitemview-domain
     position                relative
+    overflow                hidden
 
     .custom-link-view .title
       ellipsis()
@@ -2116,7 +2124,6 @@ paymentGrayLighter  = #f8f8f8
 
 
 // machine settings modal vm sharing
-
 .machine-settings-modal .vm-sharing
 
   .avatarview

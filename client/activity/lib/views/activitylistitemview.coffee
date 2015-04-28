@@ -295,7 +295,7 @@ module.exports = class ActivityListItemView extends KDListItemView
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        <div>    
+        <div class='edited-right'>    
           {{> @timeAgoView}}#{location}
         </div>
       </div>
