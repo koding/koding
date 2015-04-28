@@ -49,6 +49,7 @@ module.exports = CollaborationController =
       return callback err  if err
 
       @setSocialChannel channel
+      @bindSocialChannelEvents()
       callback null, @socialChannel
 
 
@@ -118,6 +119,8 @@ module.exports = CollaborationController =
         showError err
         throwError err
 
+    @removeWorkspaceSnapshot target
+
     @setMachineUser [target], no, (err) =>
       return callbacks.error err  if err
       socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
@@ -145,7 +148,7 @@ module.exports = CollaborationController =
 
   onRealtimeParticipantJoined: (data) ->
 
-    return  unless @stateMachine.state is 'Active'
+    return  unless @stateMachine?.state is 'Active'
 
     {sessionId} = data.collaborator
 
@@ -165,7 +168,7 @@ module.exports = CollaborationController =
 
   onRealtimeParticipantLeft: (data) ->
 
-    return  unless @stateMachine.state is 'Active'
+    return  unless @stateMachine?.state is 'Active'
 
     {sessionId} = data.collaborator
 
@@ -285,11 +288,23 @@ module.exports = CollaborationController =
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
+  makeParticipantWatchMap: (nickname) ->
+
+    return  unless @amIHost
+
+    key  = "#{nickname}WatchMap"
+    host = nick()
+
+    map = @rtm.create 'map', key, {}
+    map.set host, host
+
+
   bindSocialChannelEvents: ->
 
     @socialChannel
       .on 'AddedToChannel', @bound 'participantAdded'
-      .on 'ChannelDeleted', @bound 'channelDeleted'
+      .on 'ChannelDeleted', @bound 'stopCollaborationSession'
+      .on 'MessageAdded', @bound 'channelMessageAdded'
 
 
   participantAdded: (participant) ->
@@ -302,11 +317,16 @@ module.exports = CollaborationController =
       {nickname} = account.profile
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
+      @makeParticipantWatchMap nickname
 
 
-  channelDeleted: ->
+  channelMessageAdded: (message) ->
 
-    @stateMachine.transition 'Ending'
+    return  unless message.payload
+
+    if message.payload['system-message'] is 'start'
+      if @stateMachine.state is 'NotStarted'
+        @stateMachine.transition 'Loading'
 
 
   bindRealtimeEvents: ->
@@ -505,9 +525,8 @@ module.exports = CollaborationController =
 
     return  if @collaborationJustInitialized or @fakeTabView
 
-    mySnapshot   = @mySnapshot.values().filter (item) -> return not item.isInitial
-    hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
-    snapshot     = if hostSnapshot then mySnapshot.concat hostSnapshot else mySnapshot
+    snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
+    snapshot = @appendHostSnapshot snapshot  unless @amIHost
 
     @forEachSubViewInIDEViews_ (pane) =>
       @removePaneFromTabView pane  if pane.isInitial
@@ -515,6 +534,19 @@ module.exports = CollaborationController =
     for change in snapshot when change.context
       @changeActiveTabView change.context.paneType
       @createPaneFromChange change
+
+
+  appendHostSnapshot: (snapshot) ->
+
+    watchingHost = -1 < @myWatchMap.values().indexOf @collaborationHost
+    return snapshot  unless watchingHost
+
+    hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
+
+    if hostSnapshot
+      return snapshot.concat hostSnapshot
+
+    return snapshot
 
 
   showShareButton: ->
@@ -565,7 +597,7 @@ module.exports = CollaborationController =
 
     @fetchSocialChannel (err, channel) =>
       if err
-        console.warn "CollaborationController: #{err}"
+        throwError err
         return callMethod 'notStarted'
 
       @isRealtimeSessionActive channel.id, (isActive, file) =>
@@ -626,7 +658,6 @@ module.exports = CollaborationController =
   createCollaborationSession: (callbacks) ->
 
     fileName = @getRealtimeFileName()
-    socialHelpers.sendActivationMessage @socialChannel, kd.noop
 
     realtimeHelpers.createCollaborationFile @rtm, fileName, (err, file) =>
       return callbacks.error err  if err
@@ -635,6 +666,9 @@ module.exports = CollaborationController =
         return callbacks.error err  if err
 
         @rtmFileId = file.id
+
+        socialHelpers.sendActivationMessage @socialChannel, kd.noop
+
         @setMachineSharingStatus on, (err) =>
           return callbacks.error err  if err
           callbacks.success doc
@@ -675,7 +709,6 @@ module.exports = CollaborationController =
     @transitionViewsToActive()
     @collectButtonShownMetric()
     @bindRealtimeEvents()
-    @bindSocialChannelEvents()
 
     # this method comes from VideoCollaborationController.
     # It's mixed into IDEAppController after CollaborationController.
@@ -687,6 +720,8 @@ module.exports = CollaborationController =
 
     # attach realtime manager when a new editor pane is opened.
     @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
+
+    @updateWorkspaceSnapshotModel()
 
 
   transitionViewsToActive: ->
@@ -734,7 +769,7 @@ module.exports = CollaborationController =
       envHelpers.detachSocialChannel @workspaceData, (err) =>
         throwError err  if err
 
-    @workspaceData.channelId = null
+    @unsetSocialChannel()
     callback()
 
 
@@ -756,13 +791,13 @@ module.exports = CollaborationController =
 
   endCollaborationForParticipant: (callback) ->
 
-    @broadcastMessage { type: 'ParticipantWantsToLeave' }
-
     socialHelpers.leaveChannel @socialChannel, (err) =>
       throwError err  if err
 
-    @setMachineUser [nick()], no, =>
-      throwError err  if err
+    @removeWorkspaceSnapshot().then =>
+      @setMachineUser [nick()], no, =>
+        throwError err  if err
+        @broadcastMessage { type: 'ParticipantWantsToLeave' }
 
     callback()
 
@@ -786,8 +821,6 @@ module.exports = CollaborationController =
 
     @cleanupCollaboration()
 
-    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
-
 
   showChat: ->
 
@@ -798,6 +831,8 @@ module.exports = CollaborationController =
 
 
   stopCollaborationSession: ->
+
+    return  unless @stateMachine
 
     switch @stateMachine.state
       when 'Active' then @stateMachine.transition 'Ending'
@@ -962,7 +997,7 @@ module.exports = CollaborationController =
 
   throwError: throwError = (err, args...) ->
 
-    format = \
+    format = JSON.stringify \
       switch typeof err
         when 'string' then err
         when 'object' then err.message or err.description
@@ -971,5 +1006,25 @@ module.exports = CollaborationController =
     argIndex = 0
     console.error """
       IDE.CollaborationController:
-      #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
+      #{ format.replace /%s/g, -> JSON.stringify(args[argIndex++]) or '%s' }
     """
+
+
+  onWorkspaceChannelChanged: ->
+
+    return  unless @stateMachine
+
+    {channelId} = @workspaceData
+
+    if channelId and typeof channelId is 'string' and channelId.length
+      if @stateMachine.state is 'NotStarted'
+        @stateMachine.transition 'Loading'
+    else
+      if @stateMachine.state is 'Active'
+        @stateMachine.transition 'Ending'
+
+
+  updateWorkspaceSnapshotModel: ->
+
+    for hash, change of @getWorkspaceSnapshot()
+      @mySnapshot.set hash, change

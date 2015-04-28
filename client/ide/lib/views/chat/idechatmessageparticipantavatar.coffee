@@ -67,11 +67,11 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
     appManager.tell 'IDE', 'getCollaborationData', (data) =>
       appManager.tell 'IDE', 'hasParticipantWithAudio', @nickname, (hasAudio) =>
         if hasAudio
-          items['Unmute'] =
-            title    : 'Unmute'
+          items['Mute'] =
+            title    : 'Mute'
             callback : =>
               MENU?.destroy()
-              appManager.tell 'IDE', 'unmuteParticipant', @nickname
+              appManager.tell 'IDE', 'muteParticipant', @nickname
 
         if data.amIHost
           items['Kick'] =

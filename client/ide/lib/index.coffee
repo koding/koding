@@ -57,6 +57,7 @@ class IDEAppController extends AppController
   @options = require './ideappcontrolleroptions'
 
   constructor: (options = {}, data) ->
+
     options.appInfo =
       type          : 'application'
       name          : 'IDE'
@@ -92,23 +93,26 @@ class IDEAppController extends AppController
     @layout = ndpane(16)
     @layoutMap = new Array(16*16)
 
-    {windowController} = kd.singletons
-    windowController.addFocusListener @bound 'setActivePaneFocus'
+    {windowController, appManager} = kd.singletons
+    windowController.addFocusListener @bound 'handleWindowFocus'
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
-    kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
+    appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app instanceof IDEAppController
 
-      @setActivePaneFocus on
+      @setActivePaneFocus on, yes
 
       # Temporary fix for IDE is not shown after
       # opening pages which uses old SplitView.
       # TODO: This needs to be fixed. ~Umut
-      kd.singletons.windowController.notifyWindowResizeListeners()
+      windowController.notifyWindowResizeListeners()
 
       @resizeActiveTerminalPane()
+
+      {onboardingController} = kd.singletons
+      onboardingController?.runOnboarding 'IDE'  if appManager.frontApp is this and @isMachineRunning()
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -164,6 +168,26 @@ class IDEAppController extends AppController
     baseSplit.resizer.on 'dblclick', @bound 'toggleSidebar'
 
 
+  bindWorkspaceDataEvents: ->
+
+    @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
+
+    @workspaceData.on 'update', (fields) =>
+
+      fields.forEach (field) =>
+
+        switch field
+          when 'channelId'
+            @emit 'WorkspaceChannelChanged'
+
+
+  handleWindowFocus: (state) ->
+
+    return  unless global.document.contains @getView().getElement()
+
+    @setActivePaneFocus state
+
+
   setActiveTabView: (tabView) ->
 
     return  if tabView is @activeTabView
@@ -172,10 +196,10 @@ class IDEAppController extends AppController
     @setActivePaneFocus on
 
 
-  setActivePaneFocus: (state) ->
+  setActivePaneFocus: (state, force = no) ->
 
     return  unless pane = @getActivePaneView()
-    return  if pane is @activePaneView
+    return  if pane is @activePaneView and not force
 
     @activePaneView = pane
 
@@ -324,7 +348,7 @@ class IDEAppController extends AppController
 
   isMachineRunning: ->
 
-    return @mountedMachine.status.state is Running
+    return @mountedMachine?.status.state is Running
 
 
   createInitialView: (withFakeViews) ->
@@ -444,6 +468,7 @@ class IDEAppController extends AppController
           @once 'IDEReady', => @prepareCollaboration()
 
         @bindMachineEvents machineItem
+        @bindWorkspaceDataEvents()
 
       else
         @createMachineStateModal { state: 'NotFound', container }
@@ -468,8 +493,6 @@ class IDEAppController extends AppController
 
   handleMachineTerminated: ->
 
-    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
-
 
   handleMachineReinit: ({status}) ->
 
@@ -477,7 +500,6 @@ class IDEAppController extends AppController
       when 'Building'
         environmentDataProvider.ensureDefaultWorkspace kd.noop
       when 'Running'
-        @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
         @quit()
 
 
@@ -690,20 +712,24 @@ class IDEAppController extends AppController
 
     return  if @isDestroyed or not @isMachineRunning()
 
-    name  = @getWorkspaceSnapshotName()
+    name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
 
     @mountedMachine.getBaseKite().storageSetQueued name, value
 
 
-  removeWorkspaceSnapshot: ->
+  removeWorkspaceSnapshot: (username = nick()) ->
 
-    @mountedMachine.getBaseKite().storageDelete @getWorkspaceSnapshotName()
+    key = @getWorkspaceSnapshotName username
+    @mountedMachine.getBaseKite().storageDelete key
 
 
-  getWorkspaceSnapshotName: ->
+  getWorkspaceSnapshotName: (username) ->
 
-    return "wss.#{@workspaceData.slug}"
+    if username
+      return "#{username}.wss.#{@workspaceData.slug}"
+    else
+      return "wss.#{@workspaceData.slug}"
 
 
   registerPane: (pane) ->
@@ -924,6 +950,10 @@ class IDEAppController extends AppController
 
   handleIDEBecameReady: (machine) ->
 
+    unless @fakeViewsDestroyed
+      @removeFakeViews()
+      @fakeViewsDestroyed = yes
+
     {finderController} = @finderPane
     if @workspaceData
       finderController.updateMachineRoot @mountedMachine.uid, @workspaceData.rootPath
@@ -934,21 +964,17 @@ class IDEAppController extends AppController
 
     @fetchSnapshot (snapshot) =>
 
-      unless @fakeViewsDestroyed
-        @removeFakeViews()
-        @fakeViewsDestroyed = yes
-
       if snapshot
         @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
       else
         @addInitialViews()
 
-      { mainView, onboardingController } = kd.singletons
+      { mainView, onboardingController, appManager } = kd.singletons
 
       data = { machine, workspace: @workspaceData }
       mainView.activitySidebar.selectWorkspace data
 
-      onboardingController.runOnboarding 'IDE'
+      onboardingController.runOnboarding 'IDE'  if appManager.frontApp is this
 
       @emit 'IDEReady'
 
@@ -956,9 +982,9 @@ class IDEAppController extends AppController
   removeFakeViews: ->
 
     fakeEditorPane = @fakeEditor?.parent
-    fakeEditorPane?.parent.removePane fakeEditorPane
+    fakeEditorPane?.parent?.removePane fakeEditorPane
 
-    @fakeTerminalPane?.parent.removePane @fakeTerminalPane
+    @fakeTerminalPane?.parent?.removePane @fakeTerminalPane
     @fakeFinderView?.destroy()
 
 
@@ -1359,23 +1385,54 @@ class IDEAppController extends AppController
 
     return  unless kookies.get('newRegister') is 'true'
 
-    @machineStateModal?.once 'MachineTurnOnStarted', ->
+    @machineStateModal?.once 'MachineTurnOnStarted', =>
       kookies.expire 'newRegister', path: '/'
       kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
+      # open README.md for the first time for newly registered users.
+      @machineStateModal.once 'IDEBecameReady', =>
+        machine = @mountedMachine
+        owner   = machine.getOwner()
+        path    = "/home/#{owner}/README.md"
+        file    = FSHelper.createFileInstance { path, machine }
 
-  fetchSnapshot: (callback)->
+        file.fetchContents (err, contents = '') =>
+          return kd.warn err  if err # no need to do anything if there is an error.
+
+          @setActiveTabView @ideViews.first.tabView
+          @openFile file, contents
+
+
+  fetchSnapshot: (callback) ->
 
     if not @mountedMachine or not @mountedMachine.isRunning()
       callback null
       return
 
-    @mountedMachine.getBaseKite().storageGet @getWorkspaceSnapshotName()
-    .then (snapshot)->
-      callback snapshot
-    .catch (err)->
-      console.warn 'Failed to fetch snapshot', err
+    handleError = (err) ->
+
+      console.warn 'Failed to fetch snapshot:', err
       callback null
+
+    fetch = (username) =>
+
+      key = @getWorkspaceSnapshotName username
+      @mountedMachine.getBaseKite().storageGet key
+
+    fetch nick()
+
+      .then (snapshot) =>
+
+        return callback snapshot  if snapshot
+
+        # Backward compatibility plug
+        return callback null  unless @mountedMachine.isMine()
+
+        fetch()
+          .then callback
+          .catch handleError
+
+      .catch handleError
 
 
   switchToPane: (options = {}) ->

@@ -49,8 +49,17 @@ module.exports = class IDEChatView extends KDTabView
     @on 'VideoSelectedParticipantDidChange', @bound 'handleVideoSelectedParticipantChanged'
     @on 'VideoParticipantTalkingStateDidChange', @bound 'handleVideoParticipantTalkingStateChanged'
 
+    @on 'VideoParticipantDidConnect', @bound 'handleVideoParticipantConnected'
+    @on 'VideoParticipantDidDisconnect', @bound 'handleVideoParticipantDisconnected'
     @on 'VideoParticipantDidJoin', @bound 'handleVideoParticipantJoined'
     @on 'VideoParticipantDidLeave', @bound 'handleVideoParticipantLeft'
+
+    @on 'VideoParticipantsDidChange', @bound 'handleVideoParticipantsChanged'
+
+
+  handleVideoParticipantsChanged: (payload) ->
+
+    @chatPane.handleVideoParticipantsChanged payload
 
 
   handleParticipantSelected: (account) ->
@@ -74,14 +83,24 @@ module.exports = class IDEChatView extends KDTabView
     @chatPane.setAvatarTalkingState nickname, state
 
 
-  handleVideoParticipantJoined: (nickname) ->
+  handleVideoParticipantConnected: (participant) ->
 
-    @chatPane.handleVideoParticipantJoined nickname
+    @chatPane.handleVideoParticipantConnected participant
 
 
-  handleVideoParticipantLeft: (nickname) ->
+  handleVideoParticipantDisconnected: (participant) ->
 
-    @chatPane.handleVideoParticipantLeft nickname
+    @chatPane.handleVideoParticipantDisconnected participant
+
+
+  handleVideoParticipantJoined: (participant) ->
+
+    @chatPane.handleVideoParticipantJoined participant
+
+
+  handleVideoParticipantLeft: (participant) ->
+
+    @chatPane.handleVideoParticipantLeft participant
 
 
   start: ->
