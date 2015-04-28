@@ -747,9 +747,8 @@ module.exports = class SocialApiController extends KDController
 
         { nickname } = whoami().profile
         doXhrRequest {
-          type     : 'POST'
-          endPoint : "/api/integration/account/#{nickname}/bot-channel"
-          data     : {groupName: group.slug}
+          type     : 'GET'
+          endPoint : "/api/integration/botchannel"
         }, (err, response) ->
           return callback err  if err
 

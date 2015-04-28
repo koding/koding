@@ -28,13 +28,12 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 		},
 	)
 
-	// TODO add session support
-	m.AddSessionlessHandler(
+	m.AddHandler(
 		handler.Request{
 			Handler:        h.FetchBotChannel,
-			Name:           "bot-fetch-channel",
-			Type:           handler.PostRequest,
-			Endpoint:       "/account/{nick}/bot-channel",
+			Name:           "bot-channel",
+			Type:           handler.GetRequest,
+			Endpoint:       "/botchannel",
 			CollectMetrics: true,
 		},
 	)

@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"encoding/json"
 	"fmt"
 	"socialapi/workers/integration/webhook/api"
 	"socialapi/workers/integration/webhook/services"
@@ -30,15 +31,21 @@ func MakePushRequest(data *api.WebhookRequest, token string) error {
 	return nil
 }
 
-func MakeBotChannelRequest(data *api.BotChannelRequest) (int64, error) {
-	url := fmt.Sprintf("%s/account/%s/bot-channel", IntegrationEndPoint, data.Username)
-	resp, err := sendModel("POST", url, data)
+func MakeBotChannelRequest(token string) (int64, error) {
+	data := new(api.WebhookResponse)
+	url := fmt.Sprintf("%s/botchannel", IntegrationEndPoint)
+
+	resp, err := marshallAndSendRequestWithAuth("GET", url, data, token)
 	if err != nil {
 		return 0, err
 	}
 
-	response := resp.(map[string]string)
-	channelId, _ := response["channelId"]
+	err = json.Unmarshal(resp, data)
+	if err != nil {
+		return 0, err
+	}
+	channelIdResponse, _ := data.Data["channelId"]
+	channelId, _ := channelIdResponse.(string)
 
 	return strconv.ParseInt(channelId, 10, 64)
 }

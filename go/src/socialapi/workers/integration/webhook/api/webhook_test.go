@@ -40,6 +40,19 @@ func newBotChannelRequest(groupName string) *BotChannelRequest {
 	}
 }
 
+func newContext(accountId int64, nick, groupName string) *models.Context {
+
+	return &models.Context{
+		GroupName: groupName,
+		Client: &models.Client{
+			Account: &models.Account{
+				Id:   accountId,
+				Nick: nick,
+			},
+		},
+	}
+}
+
 func init() {
 	var err error
 	r = runner.New("test")
@@ -248,18 +261,20 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 		Convey("users should not be able to fetch bot channel when they don't have valid nick or group name", func() {
 			nick := ""
 			s, _, _, err := h.FetchBotChannel(
-				mocking.URL(m, "POST", "/account/"+nick+"/bot-channel"),
+				mocking.URL(m, "GET", "/botchannel"),
 				mocking.Header(nil),
-				newBotChannelRequest("hi"),
+				nil,
+				newContext(3, "", "koding"),
 			)
 			So(err.Error(), ShouldEqual, ErrUsernameNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
 
 			nick = "canthefason"
 			s, _, _, err = h.FetchBotChannel(
-				mocking.URL(m, "POST", "/account/"+nick+"/bot-channel"),
+				mocking.URL(m, "GET", "/botchannel"),
 				mocking.Header(nil),
-				newBotChannelRequest(""),
+				nil,
+				newContext(3, nick, ""),
 			)
 			So(err.Error(), ShouldEqual, ErrGroupNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -272,9 +287,10 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 
 			nick := models.RandomName()
 			s, _, _, err := h.FetchBotChannel(
-				mocking.URL(m, "POST", "/account/"+nick+"/bot-channel"),
+				mocking.URL(m, "GET", "/botchannel"),
 				mocking.Header(nil),
-				newBotChannelRequest("hi"),
+				nil,
+				newContext(3, nick, "koding"),
 			)
 			So(err.Error(), ShouldEqual, ErrAccountNotFound.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -286,18 +302,20 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 			}
 
 			s, _, _, err = h.FetchBotChannel(
-				mocking.URL(m, "POST", "/account/"+account.Nick+"/bot-channel"),
+				mocking.URL(m, "GET", "/botchannel"),
 				mocking.Header(nil),
-				newBotChannelRequest("hi"),
+				nil,
+				newContext(account.Id, account.Nick, models.RandomName()),
 			)
 			So(err.Error(), ShouldEqual, ErrGroupNotFound.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
 
 			groupChannel := models.CreateTypedChannelWithTest(creator.Id, models.Channel_TYPE_GROUP)
 			s, _, _, err = h.FetchBotChannel(
-				mocking.URL(m, "POST", "/account/"+account.Nick+"/bot-channel"),
+				mocking.URL(m, "GET", "/botchannel"),
 				mocking.Header(nil),
-				newBotChannelRequest(groupChannel.GroupName),
+				nil,
+				newContext(account.Id, account.Nick, groupChannel.GroupName),
 			)
 			So(err.Error(), ShouldEqual, ErrAccountIsNotParticipant.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -315,18 +333,19 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			s, _, res, err := h.FetchBotChannel(
-				mocking.URL(m, "POST", "/account/"+account.Nick+"/bot-channel"),
+				mocking.URL(m, "GET", "/botchannel"),
 				mocking.Header(nil),
-				newBotChannelRequest(groupChannel.GroupName),
+				nil,
+				newContext(account.Id, account.Nick, groupChannel.GroupName),
 			)
 			So(err, ShouldBeNil)
 			So(s, ShouldEqual, http.StatusOK)
 			So(res, ShouldNotBeNil)
-			resultMap, ok := res.(map[string]string)
+			result, ok := res.(*WebhookResponse)
 			So(ok, ShouldEqual, true)
-			val, ok := resultMap["channelId"]
+			val, ok := result.Data["channelId"]
 			So(ok, ShouldEqual, true)
-			So(val, ShouldNotEqual, "")
+			So(val.(string), ShouldNotEqual, "")
 		})
 
 	})

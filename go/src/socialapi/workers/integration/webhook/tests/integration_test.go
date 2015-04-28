@@ -89,14 +89,18 @@ func TestWebhook(t *testing.T) {
 		So(len(resp.MessageList), ShouldEqual, 1)
 	})
 
-	SkipConvey("While fetching participant bot channel", t, func() {
+	Convey("We should be able to successfully fetch bot channel of the user", t, func() {
 		account, err := models.CreateAccountInBothDbsWithNick("sinan")
 		So(err, ShouldBeNil)
 		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, models.RandomName())
 		_, err = channel.AddParticipant(account.Id)
 		So(err, ShouldBeNil)
 
-		channelId, err := rest.MakeBotChannelRequest(newBotChannelRequest(account.Nick, channel.GroupName))
+		ses, err := models.FetchOrCreateSession(account.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		channelId, err := rest.MakeBotChannelRequest(ses.ClientId)
 
 		So(err, ShouldBeNil)
 		So(channelId, ShouldNotEqual, 0)

@@ -121,24 +121,34 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 
 	res := map[string]interface{}{
 		"success": true,
+
+func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewBadRequestWithData(NewWebhookResponse(false, models.ErrNotLoggedIn), models.ErrNotLoggedIn)
+	}
+
+	r := new(BotChannelRequest)
+
+	r.Username = c.Client.Account.Nick
+	r.GroupName = c.GroupName
+	if r.GroupName == "" {
+		r.GroupName = "koding"
+	}
+	if err := r.validate(); err != nil {
+		return response.NewBadRequestWithData(NewWebhookResponse(false, err), err)
+	}
+
+	channel, err := h.fetchBotChannel(r)
+	if err != nil {
+		return response.NewBadRequestWithData(NewWebhookResponse(false, err), err)
+	}
+	res := NewWebhookResponse(true, nil)
+	res.Data = map[string]interface{}{
+		"channelId": strconv.FormatInt(channel.Id, 10),
+		"groupName": r.GroupName,
 	}
 
 	return response.NewOK(res)
-}
-
-func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, r *BotChannelRequest) (int, http.Header, interface{}, error) {
-	nick := u.Query().Get("nick")
-	r.Username = nick
-	if err := r.validate(); err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	c, err := h.fetchBotChannel(r)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	return response.NewOK(map[string]string{"channelId": strconv.FormatInt(c.Id, 10)})
 }
 
 func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
