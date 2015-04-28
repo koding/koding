@@ -44,7 +44,7 @@ func TestCollaborationSesionEnd(t *testing.T) {
 		})
 	})
 
-	Convey("while pinging collaboration", t, func() {
+	SkipConvey("while pinging collaboration", t, func() {
 		// owner
 		owner, err := apimodels.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
