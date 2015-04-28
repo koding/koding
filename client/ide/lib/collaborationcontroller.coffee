@@ -807,8 +807,6 @@ module.exports = CollaborationController =
 
     @cleanupCollaboration()
 
-    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
-
 
   showChat: ->
 

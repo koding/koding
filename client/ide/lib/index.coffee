@@ -493,8 +493,6 @@ class IDEAppController extends AppController
 
   handleMachineTerminated: ->
 
-    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
-
 
   handleMachineReinit: ({status}) ->
 
@@ -502,7 +500,6 @@ class IDEAppController extends AppController
       when 'Building'
         environmentDataProvider.ensureDefaultWorkspace kd.noop
       when 'Running'
-        @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
         @quit()
 
 
