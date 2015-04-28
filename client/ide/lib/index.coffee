@@ -57,6 +57,7 @@ class IDEAppController extends AppController
   @options = require './ideappcontrolleroptions'
 
   constructor: (options = {}, data) ->
+
     options.appInfo =
       type          : 'application'
       name          : 'IDE'
@@ -1383,9 +1384,22 @@ class IDEAppController extends AppController
 
     return  unless kookies.get('newRegister') is 'true'
 
-    @machineStateModal?.once 'MachineTurnOnStarted', ->
+    @machineStateModal?.once 'MachineTurnOnStarted', =>
       kookies.expire 'newRegister', path: '/'
       kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
+
+      # open README.md for the first time for newly registered users.
+      @machineStateModal.once 'IDEBecameReady', =>
+        machine = @mountedMachine
+        owner   = machine.getOwner()
+        path    = "/home/#{owner}/README.md"
+        file    = FSHelper.createFileInstance { path, machine }
+
+        file.fetchContents (err, contents = '') =>
+          return kd.warn err  if err # no need to do anything if there is an error.
+
+          @setActiveTabView @ideViews.first.tabView
+          @openFile file, contents
 
 
   fetchSnapshot: (callback)->
