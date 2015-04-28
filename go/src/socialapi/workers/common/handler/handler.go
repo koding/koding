@@ -190,8 +190,11 @@ func MakeRequest(request *Request) (*http.Response, error) {
 	request.Endpoint = prepareQueryString(request.Endpoint, request.Params)
 
 	client := new(http.Client)
-	hostname := config.MustGet().CustomDomain.Local
-	endpoint := fmt.Sprintf("%s/%s", hostname, request.Endpoint)
+	endpoint := request.Endpoint
+	if !strings.Contains(request.Endpoint, "http") {
+		hostname := config.MustGet().CustomDomain.Local
+		endpoint = fmt.Sprintf("%s/%s", hostname, request.Endpoint)
+	}
 
 	var byteData io.Reader
 	if request.Body != nil {
