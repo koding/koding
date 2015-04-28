@@ -255,6 +255,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Machine handling methods
 	k.HandleFunc("plan", kld.Plan)
+	k.HandleFunc("apply", kld.Apply)
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("stop", kld.Stop)
