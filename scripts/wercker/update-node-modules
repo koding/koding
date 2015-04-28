@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -o errexit
+
+WORKING_DIR=$1
+
+if [ -n "$WORKING_DIR" ]; then
+  if [ ! -d $WORKING_DIR ]; then
+    echo "error: $WORKING_DIR does not exist"
+    exit 1
+  fi
+else
+  WORKING_DIR=$(pwd)
+fi
+
+cd $WORKING_DIR/node_modules
+
+find . -mindepth 2 -iname '.git' -delete
+
+git add --force --ignore-errors . > /dev/null
+git commit --all --message 'Updated' > /dev/null || :
+git push origin master || :
+
+exit 0
