@@ -68,7 +68,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   addVideoParticipant: (nickname, emitEvent = yes) ->
 
     pushToCollection @state.videoParticipants, nickname, =>
-      @emitEvent()  if emitEvent
+      @emitChange()  if emitEvent
 
 
   ###*
@@ -80,7 +80,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
   removeVideoParticipant: (nickname, emitEvent = yes) ->
 
     removeFromCollection @state.videoParticipants, nickname, =>
-      @emitEvent()  if emitEvent
+      @emitChange()  if emitEvent
 
 
   ###*
@@ -90,9 +90,7 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
    * @param {string} nickname
    * @param {boolean} isOnline
   ###
-  setVideoSelectedParticipant: (nickname, isOnline) ->
-
-    return  unless isOnline
+  setVideoSelectedParticipant: (nickname) ->
 
     @state.selectedParticipant = nickname
 
@@ -191,6 +189,17 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
 
     # basically we batched the change event updates.
     @emitChange()
+
+
+  applyVideoUpdate: (payload) ->
+
+    { activeParticipant, selectedParticipant, participants } = payload
+
+    @state.selectedParticipant = selectedParticipant
+    @state.videoParticipants   = Object.keys participants
+
+    @emitChange()
+
 
 
 ###*
