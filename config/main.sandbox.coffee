@@ -318,7 +318,6 @@ Configuration = (options={}) ->
 
     authworker          :
       group             : "webserver"
-      instances         : 2
       supervisord       :
         command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
       healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
@@ -354,7 +353,7 @@ Configuration = (options={}) ->
 
     socialworker        :
       group             : "webserver"
-      instances         : 2
+      instances         : 4
       ports             :
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
