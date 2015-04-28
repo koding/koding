@@ -982,9 +982,9 @@ class IDEAppController extends AppController
   removeFakeViews: ->
 
     fakeEditorPane = @fakeEditor?.parent
-    fakeEditorPane?.parent.removePane fakeEditorPane
+    fakeEditorPane?.parent?.removePane fakeEditorPane
 
-    @fakeTerminalPane?.parent.removePane @fakeTerminalPane
+    @fakeTerminalPane?.parent?.removePane @fakeTerminalPane
     @fakeFinderView?.destroy()
 
 
