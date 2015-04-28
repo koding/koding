@@ -61,7 +61,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	if len(args.PublicKeys) == 0 {
-		return nil, errors.New("credential ids are not passed")
+		return nil, errors.New("publicKeys are not passed")
 	}
 
 	ctx := k.ContextCreator(context.Background())

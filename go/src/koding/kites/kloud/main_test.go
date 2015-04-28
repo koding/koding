@@ -214,6 +214,7 @@ func TestTerraformApply(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformKloudRequest{
+		MachineIds: []string{userData: userData.MachineId},
 		TerraformContext: `
 provider "aws" {
     access_key = "${var.access_key}"

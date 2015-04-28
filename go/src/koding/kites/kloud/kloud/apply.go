@@ -28,7 +28,15 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	}
 
 	if len(args.PublicKeys) == 0 {
-		return nil, errors.New("credential ids are not passed")
+		return nil, errors.New("publicKeys are not passed")
+	}
+
+	if len(args.MachineIds) == 0 {
+		return nil, errors.New("machine ids are not passed")
+	}
+
+	if len(args.MachineIds) != len(args.PublicKeys) {
+		return nil, errors.New("machineIds and publicKeys do not match")
 	}
 
 	ctx := k.ContextCreator(context.Background())
