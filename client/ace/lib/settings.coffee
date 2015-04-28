@@ -126,6 +126,7 @@ module.exports =
     go          : "golang"
     less        : "css"
     lisp        : "lisp"
+    livescript  : "ls"
     # liquid      : null
     lua         : "lua"
     markdown    : "markdown"
