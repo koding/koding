@@ -286,6 +286,17 @@ module.exports = CollaborationController =
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
+  makeParticipantWatchMap: (nickname) ->
+
+    return  unless @amIHost
+
+    key  = "#{nickname}WatchMap"
+    host = nick()
+
+    map = @rtm.create 'map', key, {}
+    map.set host, host
+
+
   bindSocialChannelEvents: ->
 
     @socialChannel
@@ -304,6 +315,7 @@ module.exports = CollaborationController =
       {nickname} = account.profile
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
+      @makeParticipantWatchMap nickname
 
 
   channelMessageAdded: (message) ->
