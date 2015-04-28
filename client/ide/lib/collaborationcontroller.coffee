@@ -782,8 +782,9 @@ module.exports = CollaborationController =
     socialHelpers.leaveChannel @socialChannel, (err) =>
       throwError err  if err
 
-    @setMachineUser [nick()], no, =>
-      throwError err  if err
+    @removeWorkspaceSnapshot().then =>
+      @setMachineUser [nick()], no, =>
+        throwError err  if err
 
     callback()
 
