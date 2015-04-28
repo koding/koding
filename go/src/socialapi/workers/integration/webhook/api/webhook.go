@@ -18,9 +18,10 @@ import (
 )
 
 type Handler struct {
-	log logging.Logger
-	bot *webhook.Bot
-	sf  *services.ServiceFactory
+	log         logging.Logger
+	bot         *webhook.Bot
+	sf          *services.ServiceFactory
+	revProxyUrl string
 }
 
 func NewHandler(l logging.Logger) (*Handler, error) {
@@ -30,9 +31,10 @@ func NewHandler(l logging.Logger) (*Handler, error) {
 	}
 
 	return &Handler{
-		log: l,
-		bot: bot,
-		sf:  services.NewServiceFactory(),
+		log:         l,
+		bot:         bot,
+		sf:          services.NewServiceFactory(),
+		revProxyUrl: "/api/integration",
 	}, nil
 }
 
@@ -100,6 +102,7 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 	message := service.PrepareMessage(r.Data)
 
 	endPoint := service.PrepareEndpoint(r.Token)
+	endPoint = fmt.Sprintf("%s/%s", h.revProxyUrl, endPoint)
 	pushRequest := make(map[string]string)
 	pushRequest["body"] = message
 
@@ -114,6 +117,7 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 	if channelId != 0 {
 		pushRequest["channelId"] = strconv.FormatInt(channelId, 10)
 	}
+
 	if err := push(endPoint, pushRequest); err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -132,6 +136,8 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 
 	r.Username = c.Client.Account.Nick
 	r.GroupName = c.GroupName
+	// TODO after group name session implementation
+	// we should no longer need this
 	if r.GroupName == "" {
 		r.GroupName = "koding"
 	}

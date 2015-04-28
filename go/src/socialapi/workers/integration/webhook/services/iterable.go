@@ -38,7 +38,7 @@ func (i Iterable) Validate(input *ServiceInput) []error {
 
 func (i Iterable) PrepareEndpoint(token string) string {
 
-	return fmt.Sprintf("/api/integration/webhook/push/%s", token)
+	return fmt.Sprintf("/webhook/push/%s", token)
 }
 
 func (i Iterable) Output(input *ServiceInput) *ServiceOutput {

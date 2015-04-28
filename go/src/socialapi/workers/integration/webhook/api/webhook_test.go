@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"net/http"
@@ -75,6 +76,7 @@ func init() {
 	}
 
 	h.AddHandlers(m)
+	h.revProxyUrl = fmt.Sprintf("http://%s:%s", appConfig.Integration.Host, appConfig.Integration.Port)
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }
