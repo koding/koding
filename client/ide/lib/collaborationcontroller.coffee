@@ -777,14 +777,13 @@ module.exports = CollaborationController =
 
   endCollaborationForParticipant: (callback) ->
 
-    @broadcastMessage { type: 'ParticipantWantsToLeave' }
-
     socialHelpers.leaveChannel @socialChannel, (err) =>
       throwError err  if err
 
     @removeWorkspaceSnapshot().then =>
       @setMachineUser [nick()], no, =>
         throwError err  if err
+        @broadcastMessage { type: 'ParticipantWantsToLeave' }
 
     callback()
 
