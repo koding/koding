@@ -1,14 +1,14 @@
 _                        = require 'lodash'
 ChannelParticipantsModel = require './channelparticipants'
+videoConstants = require 'app/videocollaboration/constants'
 
 module.exports = class CollaborationChannelParticipantsModel extends ChannelParticipantsModel
 
   defaultState:
-    videoActive           : no
-    selectedParticipant   : null
-    talkingParticipants   : []
-    videoParticipants     : []
-    connectedParticipants : []
+    videoActive         : no
+    selectedParticipant : null
+    talkingParticipants : []
+    videoParticipants   : []
 
   constructor: (options = {}, data) ->
 
@@ -234,7 +234,7 @@ removeFromCollection = (collection, item, callback) ->
 
 
 ###*
- * Orders given state's connected participants in a way that publishing users
+ * Orders given state's video participants in a way that publishing users
  * come first.
  *
  * @param {object} state
@@ -244,14 +244,15 @@ removeFromCollection = (collection, item, callback) ->
 ###
 getOrderedVideoParticipants = (state) ->
 
-  actives = state.videoParticipants
+  participants = state.videoParticipants
+  { PARTICIPANT_STATUS_PUBLISHING } = videoConstants
 
-  # connectedParticipants has already have the active participant ids.
-  # that's why we are diff'ing to get actives b
-  connecteds = _.difference state.connectedParticipants, state.videoParticipants
+  # _.partition returns 2 arrays from 1. First array will be result of given
+  # predicate function, 2nd array will be the remaining elements of original
+  # array.
+  [publishings, nonpublishings] = _.partition participants, (p) ->
+    p.status is PARTICIPANT_STATUS_PUBLISHING
 
-  # all the diffing and other stuff is for showing video active
-  # participants first and not publishing but connected people after those.
-  filterList = actives.concat connecteds
+  filterList = publishings.concat nonpublishings
 
 
