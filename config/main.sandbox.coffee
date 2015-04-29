@@ -547,19 +547,19 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
-    #integration         :
-      #group             : "socialapi"
-      #ports             :
-        #incoming        : "#{integration.port}"
-      #supervisord       :
-        #command         : "#{GOBIN}/webhook -c #{socialapi.configFilePath}"
-      #healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
-      #versionURL        : "#{customDomain.local}/api/integration/version"
-      #nginx             :
-        #locations       : [
-          #location      : "~ /api/integration/(.*)"
-          #proxyPass     : "http://integration/$1$is_args$args"
-        #]
+    integration         :
+      group             : "socialapi"
+      ports             :
+        incoming        : "#{integration.port}"
+      supervisord       :
+        command         : "#{GOBIN}/webhook -c #{socialapi.configFilePath}"
+      healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
+      versionURL        : "#{customDomain.local}/api/integration/version"
+      nginx             :
+        locations       : [
+          location      : "~ /api/integration/(.*)"
+          proxyPass     : "http://integration/$1$is_args$args"
+        ]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
