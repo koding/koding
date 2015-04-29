@@ -52,9 +52,9 @@ module.exports = class MoreVMsModal extends KDModalView
 
       @addSubView @addManagedButton, '.kdmodal-content'
 
+
   listMachines: ->
 
     for machine in @getData()
-      view = new ModalMachineItem {}, machine.data
+      @addSubView view = new ModalMachineItem {}, machine.data
       view.once 'ModalItemSelected', @bound 'destroy'
-      @addSubView view
