@@ -71,6 +71,10 @@ module.exports = class AdminAppView extends kd.ModalView
 
       @emit 'ready'
 
+      # borrow invitations tab styling
+      # should be implemented by refactoring stylus
+      @tabs.getPaneByName('Members').setClass 'invitations'
+
 
   search: (searchValue)->
     if @tabs.getActivePane().name is 'Invitations'
