@@ -7,8 +7,8 @@ import (
 )
 
 type BotChannelRequest struct {
-	GroupName string
-	Username  string
+	GroupName string `json:"groupName"`
+	Username  string `json:"username"`
 }
 
 func (b *BotChannelRequest) validate() error {

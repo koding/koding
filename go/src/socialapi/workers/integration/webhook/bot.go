@@ -14,7 +14,7 @@ type Bot struct {
 }
 
 type Message struct {
-	Body                 string // TODO check for XSS
+	Body                 string `json:"body"`
 	ChannelId            int64  `json:"channelId,string"`
 	ChannelIntegrationId int64  `json:"channelIntegrationId,string"`
 }

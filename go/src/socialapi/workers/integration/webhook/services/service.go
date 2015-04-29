@@ -36,7 +36,7 @@ func (si ServiceInput) SetKey(key string, value interface{}) {
 // ServiceOutput is used for extracting data from
 // integration services
 type ServiceOutput struct {
-	Username  string
-	Email     string
-	GroupName string
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	GroupName string `json:"groupName"`
 }

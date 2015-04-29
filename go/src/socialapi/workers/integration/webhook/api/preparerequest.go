@@ -6,13 +6,13 @@ import (
 )
 
 type PrepareRequest struct {
-	Data      *services.ServiceInput
-	Token     string
-	Name      string
-	GroupName string
+	Data      *services.ServiceInput `json:"data"`
+	Token     string                 `json:"token"`
+	Name      string                 `json:"name"`
+	GroupName string                 `json:"groupName"`
 	// Username is used for sending messages
 	// to given user's bot channel
-	Username string
+	Username string `json:"username"`
 }
 
 func (p *PrepareRequest) validate() error {
