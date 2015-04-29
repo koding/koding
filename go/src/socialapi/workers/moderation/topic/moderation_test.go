@@ -77,19 +77,28 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process 0 participated channels with messages", func() {
+			groupName := models.RandomName()
 
-			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
+			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
+			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
+			// add participants with tests
+			// models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
 
 			// create a message to the regarding leaf channel
-			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
-			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
-			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
+			models.CreateMessage(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST)
+			models.CreateMessage(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST)
+			models.CreateMessage(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST)
+
+			cl := &models.ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf.Id,
+			}
 
 			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
-				cp.ChannelId = cl.LeafId
+				cp.ChannelId = leaf.Id
 				cpc, err := cp.FetchParticipantCount()
 
 				So(err, ShouldBeNil)
@@ -99,7 +108,7 @@ func TestProcess(t *testing.T) {
 
 			Convey("root node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
-				cp.ChannelId = cl.RootId
+				cp.ChannelId = root.Id
 				cpc, err := cp.FetchParticipantCount()
 
 				So(err, ShouldBeNil)
@@ -108,23 +117,29 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process participated channels with no messages", func() {
+			groupName := models.RandomName()
 
-			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
+			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
+			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+			models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
 
 			cp := models.NewChannelParticipant()
-			cp.ChannelId = cl.LeafId
+			cp.ChannelId = leaf.Id
 			cpc, err := cp.FetchParticipantCount()
 			So(err, ShouldBeNil)
 			So(cpc, ShouldEqual, 2)
 
-			// create the link
+			cl := &models.ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf.Id,
+			}
+
 			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
-				cp.ChannelId = cl.LeafId
+				cp.ChannelId = leaf.Id
 				cpc, err := cp.FetchParticipantCount()
 
 				So(err, ShouldBeNil)
@@ -133,7 +148,7 @@ func TestProcess(t *testing.T) {
 
 			Convey("root node should have 2 participants", func() {
 				cp := models.NewChannelParticipant()
-				cp.ChannelId = cl.RootId
+				cp.ChannelId = root.Id
 				cpc, err := cp.FetchParticipantCount()
 
 				So(err, ShouldBeNil)
@@ -142,20 +157,26 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process participated channels with messages", func() {
-			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
+			groupName := models.RandomName()
+			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
+			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+			models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
 
 			// create messages to the regarding leaf channel
-			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
-			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
-			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
+			models.CreateMessage(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST)
+			models.CreateMessage(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST)
+			models.CreateMessage(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST)
 
+			cl := &models.ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf.Id,
+			}
 			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
-				cp.ChannelId = cl.LeafId
+				cp.ChannelId = leaf.Id
 				cpc, err := cp.FetchParticipantCount()
 
 				So(err, ShouldBeNil)
@@ -164,7 +185,7 @@ func TestProcess(t *testing.T) {
 
 			Convey("root node should have 2 participants", func() {
 				cp := models.NewChannelParticipant()
-				cp.ChannelId = cl.RootId
+				cp.ChannelId = root.Id
 				cpc, err := cp.FetchParticipantCount()
 
 				So(err, ShouldBeNil)
@@ -173,25 +194,26 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process messages that are in multiple channels - when origin is linked channel", func() {
-			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
-			// add participants with tests
-			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+			groupName := models.RandomName()
 
-			otherChannel := models.CreateChannelWithTest(acc1.Id)
+			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
+			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
+			// add participants with tests
+			models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
+
+			otherChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
 			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
-			// add same messages to the otherChannel
 
-			leaf, err := models.ChannelById(cl.LeafId)
-			So(err, ShouldBeNil)
+			// add same messages to the otherChannel
 			body := fmt.Sprintf("#%s and #%s are my topics", leaf.Name, otherChannel.Name)
 
 			// create messages to the regarding leaf channel
-			cm1 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm2 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm3 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm1 := models.CreateMessageWithBody(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2 := models.CreateMessageWithBody(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3 := models.CreateMessageWithBody(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 
-			_, err = otherChannel.EnsureMessage(cm1, true)
+			_, err := otherChannel.EnsureMessage(cm1, true)
 			So(err, ShouldBeNil)
 
 			_, err = otherChannel.EnsureMessage(cm2, true)
@@ -205,19 +227,26 @@ func TestProcess(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(cmlc, ShouldEqual, 3)
 
+			cl := &models.ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf.Id,
+			}
+
+			// So(cl.Create(), ShouldBeNil)
+
 			// do the switch
 			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any messages", func() {
 				//check leaf channel
-				cmlc, err = models.NewChannelMessageList().Count(cl.LeafId)
+				cmlc, err = models.NewChannelMessageList().Count(leaf.Id)
 				So(err, ShouldBeNil)
 				So(cmlc, ShouldEqual, 0)
 			})
 
 			Convey("root node should have 3 messages", func() {
 				// check root channel
-				cmlc, err = models.NewChannelMessageList().Count(cl.RootId)
+				cmlc, err = models.NewChannelMessageList().Count(root.Id)
 				So(err, ShouldBeNil)
 				So(cmlc, ShouldEqual, 3)
 			})
@@ -231,25 +260,25 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process messages that are initiated in leaf channels", func() {
-			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
-			// add participants with tests
-			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+			groupName := models.RandomName()
 
-			otherChannel := models.CreateChannelWithTest(acc1.Id)
+			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
+			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
+			// add participants with tests
+			models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
+
+			otherChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
 			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
-			// add same messages to the otherChannel
 
-			leaf, err := models.ChannelById(cl.LeafId)
-			So(err, ShouldBeNil)
 			body := fmt.Sprintf("#%s and #%s are my topics", leaf.Name, otherChannel.Name)
 
 			// create messages to the regarding leaf channel
-			cm1 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm2 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm3 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm1 := models.CreateMessageWithBody(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2 := models.CreateMessageWithBody(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3 := models.CreateMessageWithBody(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 
-			_, err = otherChannel.EnsureMessage(cm1, true)
+			_, err := otherChannel.EnsureMessage(cm1, true)
 			So(err, ShouldBeNil)
 
 			_, err = otherChannel.EnsureMessage(cm2, true)
@@ -269,6 +298,13 @@ func TestProcess(t *testing.T) {
 			cm3.Body = updatedBody
 			So(cm3.Update(), ShouldBeNil)
 
+			cl := &models.ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf.Id,
+			}
+
+			So(cl.Create(), ShouldBeNil)
+
 			// do the switch
 			So(controller.process(cl), ShouldBeNil)
 
@@ -278,7 +314,7 @@ func TestProcess(t *testing.T) {
 			err = bongo.B.DB.
 				Model(models.ChannelMessage{}).
 				Unscoped().
-				Where("initial_channel_id = ?", cl.LeafId).
+				Where("initial_channel_id = ?", leaf.Id).
 				Find(&messages).Error
 
 			So(err, ShouldEqual, bongo.RecordNotFound)
@@ -286,10 +322,14 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure message order still same", func() {
-			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
-			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
-			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
-			leafChannel, err := models.ChannelById(cl.LeafId)
+			groupName := models.RandomName()
+
+			rootChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
+			leafChannel := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
+			// add participants with tests
+			models.AddParticipants(leafChannel.Id, acc1.Id, acc2.Id)
+
+			leafChannel, err := models.ChannelById(leafChannel.Id)
 			So(err, ShouldBeNil)
 
 			otherChannel := models.CreateChannelWithTest(acc1.Id)
@@ -299,12 +339,17 @@ func TestProcess(t *testing.T) {
 
 			body := "hey yo! #" + leafChannel.Name
 			// add 3 message for each channel one by one
-			cm1Leaf := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm1Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm2Leaf := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm2Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm3Leaf := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm3Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm1Leaf := models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm1Root := models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2Leaf := models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2Root := models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3Leaf := models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3Root := models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+
+			cl := &models.ChannelLink{
+				RootId: rootChannel.Id,
+				LeafId: leafChannel.Id,
+			}
 
 			// do the switch
 			So(controller.process(cl), ShouldBeNil)
@@ -317,7 +362,7 @@ func TestProcess(t *testing.T) {
 			So(ses, ShouldNotBeNil)
 
 			history, err := rest.GetHistory(
-				cl.RootId,
+				rootChannel.Id,
 				&request.Query{
 					AccountId: acc1.Id,
 				},
@@ -339,29 +384,33 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure messages got deleted if delete option is passed", func() {
-			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
-			cl.DeleteMessages = true
+			groupName := models.RandomName()
 
-			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
-			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
-			rootChannel, err := models.ChannelById(cl.RootId)
-			So(err, ShouldBeNil)
-			leafChannel, err := models.ChannelById(cl.LeafId)
-			So(err, ShouldBeNil)
+			rootChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
+			leafChannel := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
+			// add participants with tests
+			models.AddParticipants(rootChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipants(leafChannel.Id, acc1.Id, acc2.Id)
 
-			otherChannel := models.CreateChannelWithTest(acc1.Id)
+			otherChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
 			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
-			// add same messages to the otherChannel
 
+			// add same messages to the otherChannel
 			body := "hey yo! #" + leafChannel.Name
 			// add 3 message for each channel one by one
-			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm1Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm2Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			cm3Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm1Root := models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2Root := models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3Root := models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+
+			cl := &models.ChannelLink{
+				RootId:         rootChannel.Id,
+				LeafId:         leafChannel.Id,
+				DeleteMessages: true,
+			}
 
 			// do the switch
 			So(controller.process(cl), ShouldBeNil)
@@ -374,7 +423,7 @@ func TestProcess(t *testing.T) {
 			So(ses, ShouldNotBeNil)
 
 			history, err := rest.GetHistory(
-				cl.RootId,
+				rootChannel.Id,
 				&request.Query{
 					AccountId: acc1.Id,
 				},
@@ -422,19 +471,19 @@ func TestProcess(t *testing.T) {
 
 			So(cl.Create(), ShouldBeNil)
 
-			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
-			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
-			leafChannel, err := models.ChannelById(cl.LeafId)
+			models.AddParticipants(rootChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipants(leafChannel.Id, acc1.Id, acc2.Id)
+			leafChannel, err := models.ChannelById(leafChannel.Id)
 			So(err, ShouldBeNil)
 
 			body := "hey yo! #" + leafChannel.Name
 			// add 3 message for each channel one by one
-			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
-			models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 
 			// do the switch
 			So(controller.process(cl), ShouldBeNil)
@@ -447,7 +496,7 @@ func TestProcess(t *testing.T) {
 			So(ses, ShouldNotBeNil)
 
 			history, err := rest.GetHistory(
-				cl.RootId,
+				rootChannel.Id,
 				&request.Query{
 					AccountId: acc1.Id,
 				},
