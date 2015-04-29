@@ -1,4 +1,8 @@
 #!/bin/bash
+
+#  make relative paths work.
+cd $(dirname $0)/..
+
 if [[ -z "$GOPACKAGES" ]]; then
     GOPACKAGES=socialapi/...
 fi
