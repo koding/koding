@@ -26,8 +26,7 @@ func (b *BotChannelRequest) validate() error {
 func (b *BotChannelRequest) verifyAccount() (*models.Account, error) {
 
 	// fetch account id
-	acc := models.NewAccount()
-	err := acc.ByNick(b.Username)
+	acc, err := models.Cache.Account.ByNick(b.Username)
 	if err == bongo.RecordNotFound {
 		return nil, ErrAccountNotFound
 	}
