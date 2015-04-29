@@ -20,11 +20,6 @@ install()
 
   echo -e "\033[0;33m${RELATIVE_DIR}\033[0m: installing npm dependencies"
   npm install --prefix $TARGET $NPM_ARGS
-
-  if [ -n "$FORCE_PREINSTALL" ]; then
-    echo -e "\033[0;34m${RELATIVE_DIR}\033[0m: running npm preinstall script"
-    npm run preinstall --prefix $TARGET $NPM_ARGS
-  fi
 }
 
 NPM_ARGS=
@@ -34,7 +29,6 @@ while getopts ":d:usp" OPTION; do
     d) RELATIVE_DIR=$OPTARG ;;
     u) NPM_ARGS+=" --unsafe-perm" ;;
     s) NPM_ARGS+=" --silent" ;;
-    p) FORCE_PREINSTALL=TRUE ;;
   esac
 done
 

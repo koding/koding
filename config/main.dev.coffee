@@ -522,7 +522,7 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        scripts/install-npm.sh -d client -u -p
+        scripts/install-npm.sh -d client -u
         make -C #{projectRoot}/client dist
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
@@ -760,7 +760,7 @@ Configuration = (options={}) ->
           echo
 
         else
-          scripts/install-npm.sh -d client -u -p -s
+          scripts/install-npm.sh -d client -u -s
           make -C #{projectRoot}/client
         fi
 
@@ -1114,7 +1114,7 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        scripts/install-npm.sh -d client -u -p -s
+        scripts/install-npm.sh -d client -u -s
         make -C #{projectRoot}/client dist
 
       elif [ "$1" == "services" ]; then
