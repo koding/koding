@@ -214,13 +214,22 @@ func TestProcess(t *testing.T) {
 			cm3 := models.CreateMessageWithBody(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 
 			_, err := otherChannel.EnsureMessage(cm1, true)
-			So(err, ShouldBeNil)
+			// ignore ErrMessageAlreadyInTheChannel error
+			if err != models.ErrMessageAlreadyInTheChannel {
+				So(err, ShouldBeNil)
+			}
 
 			_, err = otherChannel.EnsureMessage(cm2, true)
-			So(err, ShouldBeNil)
+			// ignore ErrMessageAlreadyInTheChannel error
+			if err != models.ErrMessageAlreadyInTheChannel {
+				So(err, ShouldBeNil)
+			}
 
 			_, err = otherChannel.EnsureMessage(cm3, true)
-			So(err, ShouldBeNil)
+			// ignore ErrMessageAlreadyInTheChannel error
+			if err != models.ErrMessageAlreadyInTheChannel {
+				So(err, ShouldBeNil)
+			}
 
 			// make sure we added messages to the otherChannel
 			cmlc, err := models.NewChannelMessageList().Count(otherChannel.Id)
@@ -397,7 +406,8 @@ func TestProcess(t *testing.T) {
 			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
 
 			// add same messages to the otherChannel
-			body := "hey yo! #" + leafChannel.Name
+			body := fmt.Sprintf("hey yo! #%s #%s"+leafChannel.Name, rootChannel.Name)
+
 			// add 3 message for each channel one by one
 			models.CreateMessageWithBody(leafChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 			cm1Root := models.CreateMessageWithBody(rootChannel.Id, acc1.Id, models.ChannelMessage_TYPE_POST, body)
