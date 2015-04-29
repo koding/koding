@@ -1,6 +1,7 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
+KDButtonView           = kd.ButtonView
 KDListItemView         = kd.ListItemView
 KDCustomHTMLView       = kd.CustomHTMLView
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
@@ -27,8 +28,29 @@ module.exports = class MemberItemView extends KDListItemView
         @settings.toggleClass 'hidden'
         @roleLabel.toggleClass 'active'
 
+    @createSettingsView()
+
+
+  createSettingsView: ->
+
     @settings  = new KDCustomHTMLView
       cssClass : 'settings hidden'
+
+    @settings.addSubView adminSwitch = new KDButtonView
+      cssClass : 'solid compact outline'
+      title    : 'MAKE ADMIN'
+
+    @settings.addSubView moderatorSwitch = new KDButtonView
+      cssClass : 'solid compact outline'
+      title    : 'MAKE MODERATOR'
+
+    @settings.addSubView makeOwnerButton = new KDButtonView
+      cssClass : 'solid compact outline'
+      title    : 'MAKE OWNER'
+
+    @settings.addSubView kickButton = new KDButtonView
+      cssClass : 'solid compact outline red'
+      title    : 'KICK USER'
 
 
   pistachio: ->
