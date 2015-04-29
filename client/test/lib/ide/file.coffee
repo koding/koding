@@ -1,6 +1,7 @@
-helpers = require '../helpers/helpers.js'
-assert  = require 'assert'
+helpers    = require '../helpers/helpers.js'
+ideHelpers = require '../helpers/idehelpers.js'
 
+paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
 module.exports =
 
@@ -158,3 +159,32 @@ module.exports =
     helpers.deleteFile(browser, newFile)
 
     browser.end()
+
+
+  findInFiles: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    contentSearchModalSelector  = '.content-search-modal'
+    findInFilesSelector         = '.kdlistview-contextmenu li.find-in-files'
+    matchedWordSelector         = '.content-search-result pre p.match'
+    activeUntitledFileSelector  = "#{paneSelector} .untitledtxt.active"
+    activeEditorSelector        = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
+
+    ideHelpers.openNewFile(browser)
+    ideHelpers.openContextMenu(browser)
+
+    browser
+      .waitForElementVisible     findInFilesSelector, 20000
+      .click                     findInFilesSelector
+      .waitForElementVisible     contentSearchModalSelector, 20000
+      .setValue                  contentSearchModalSelector + ' input[name=findInput]', 'hello'
+      .click                     contentSearchModalSelector + ' button.search'
+      .waitForElementVisible     paneSelector + ' .search-result', 20000 # Assertion
+      .waitForElementNotPresent  activeUntitledFileSelector, 20000 # Assertion
+      .waitForElementVisible     matchedWordSelector, 20000
+      .click                     matchedWordSelector
+      .waitForElementNotPresent  paneSelector + '.search-result .active', 20000 # Assertion
+      .assert.containsText       activeEditorSelector, 'hello'
+      .end()
