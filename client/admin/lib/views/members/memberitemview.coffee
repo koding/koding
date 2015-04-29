@@ -20,13 +20,23 @@ module.exports = class MemberItemView extends KDListItemView
       size     : width: 40, height : 40
     , @getData()
 
+    @roleLabel = new KDCustomHTMLView
+      cssClass : 'role'
+      partial  : "Member <span class='settings-icon'></span>"
+      click    : =>
+        @settings.toggleClass 'hidden'
+        @roleLabel.toggleClass 'active'
+
+    @settings  = new KDCustomHTMLView
+      cssClass : 'settings hidden'
+
 
   pistachio: ->
     data     = @getData()
     fullname = getFullnameFromAccount data
     nickname = data.profile.nickname
     email    = "#{nickname}@koding.com"
-
+    role     = 'Member'
 
     return """
       <div class="details">
@@ -35,4 +45,7 @@ module.exports = class MemberItemView extends KDListItemView
         <p class="nickname">@#{nickname}</p>
       </div>
       <p class="email">#{email}</p>
+      {{> @roleLabel}}
+      <div class='clear'></div>
+      {{> @settings}}
     """
