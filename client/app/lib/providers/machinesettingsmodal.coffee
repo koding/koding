@@ -14,12 +14,14 @@ MachineSettingsModalTabView  = require './machinesettingsmodaltabview'
 MachineSettingsAdvancedView  = require './machinesettingsadvancedview'
 MachineSettingsDiskUsageView = require './machinesettingsdiskusageview'
 MachineSettingsVMSharingView = require './machinesettingsvmsharingview'
+MachineSettingsSnapshotsView = require './machinesettingssnapshotsview'
 
 PANE_CONFIG = [
   { title: 'General',       viewClass: MachineSettingsGeneralView   }
   { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
   { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
   { title: 'Domains',       viewClass: MachineSettingsDomainsView   }
+  { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
   { title: 'VM Sharing',    viewClass: MachineSettingsVMSharingView }
   { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
   { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
