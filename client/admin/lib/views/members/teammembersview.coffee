@@ -3,7 +3,6 @@ KDView                = kd.View
 TeamMembersCommonView = require './teammemberscommonview.coffee'
 
 
-
 module.exports = class TeamMembersView extends TeamMembersCommonView
 
   constructor: (options = {}, data) ->

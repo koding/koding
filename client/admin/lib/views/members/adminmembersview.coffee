@@ -3,13 +3,13 @@ remote                = require('app/remote').getInstance()
 KDView                = kd.View
 KDTabView             = kd.TabView
 KDTabPaneView         = kd.TabPaneView
-TeamMembersView       = require './members/teammembersview.coffee'
+TeamMembersView       = require './teammembersview.coffee'
 KDCustomHTMLView      = kd.CustomHTMLView
 KDHitEnterInputView   = kd.HitEnterInputView
 KDListViewController  = kd.ListViewController
 
 
-module.exports = class GroupsMemberPermissionsView extends KDView
+module.exports = class AdminMembersView extends KDView
 
   constructor: (options = {}, data) ->
 
