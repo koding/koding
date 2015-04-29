@@ -201,6 +201,7 @@ module.exports = CollaborationController =
 
     @setCollaborativeReferences()
     @addParticipant whoami()
+    @setWatchMap()
     @registerCollaborationSessionId()
 
     if @amIHost
@@ -210,11 +211,15 @@ module.exports = CollaborationController =
     @rtm.isReady = yes
     @emit 'RTMIsReady'
 
-    unless @myWatchMap.values().length
-      @listChatParticipants (accounts) =>
-        accounts.forEach (account) =>
-          {nickname} = account.profile
-          @myWatchMap.set nickname, nickname
+
+  setWatchMap: ->
+
+    return  if @myWatchMap.values().length
+
+    @listChatParticipants (accounts) =>
+      accounts.forEach (account) =>
+        {nickname} = account.profile
+        @myWatchMap.set nickname, nickname
 
 
   activateRealtimeManagerForHost: ->
@@ -228,20 +233,8 @@ module.exports = CollaborationController =
     @startRealtimePolling()
     @resurrectSnapshot()
 
-    if @collaborationHost in @myWatchMap.values()
-      @reviveHostSnapshot()
-
     if @permissions.get(nick()) is 'read'
       @makeReadOnly()
-
-
-  reviveHostSnapshot: ->
-
-    hostName     = @getCollaborationHost()
-    hostSnapshot = realtimeHelpers.getFromManager @rtm, "#{hostName}Snapshot"
-
-    for key, change of hostSnapshot.values()
-      @createPaneFromChange change
 
 
   setCollaborativeReferences: ->
@@ -288,17 +281,6 @@ module.exports = CollaborationController =
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
-  makeParticipantWatchMap: (nickname) ->
-
-    return  unless @amIHost
-
-    key  = "#{nickname}WatchMap"
-    host = nick()
-
-    map = @rtm.create 'map', key, {}
-    map.set host, host
-
-
   bindSocialChannelEvents: ->
 
     @socialChannel
@@ -317,7 +299,6 @@ module.exports = CollaborationController =
       {nickname} = account.profile
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
-      @makeParticipantWatchMap nickname
 
 
   channelMessageAdded: (message) ->
@@ -530,30 +511,28 @@ module.exports = CollaborationController =
 
   resurrectSnapshot: ->
 
-    return  if @collaborationJustInitialized or @fakeTabView
+    return  if @fakeTabView
 
     snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
     snapshot = @appendHostSnapshot snapshot  unless @amIHost
 
-    @forEachSubViewInIDEViews_ (pane) =>
-      @removePaneFromTabView pane  if pane.isInitial
+    @removeInitialViews()
 
     for change in snapshot when change.context
-      @changeActiveTabView change.context.paneType
       @createPaneFromChange change
+
+    @changeActiveTabView change?.context?.paneType
 
 
   appendHostSnapshot: (snapshot) ->
 
-    watchingHost = -1 < @myWatchMap.values().indexOf @collaborationHost
-    return snapshot  unless watchingHost
+    if snapshot.length or @myWatchMap.values().length
+      return snapshot
 
-    hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
+    key = "#{@collaborationHost}Snapshot"
 
-    if hostSnapshot
+    if hostSnapshot = @rtm.getFromModel(key)?.values()
       return snapshot.concat hostSnapshot
-
-    return snapshot
 
 
   showShareButton: ->
