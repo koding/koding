@@ -201,6 +201,7 @@ module.exports = CollaborationController =
 
     @setCollaborativeReferences()
     @addParticipant whoami()
+    @setWatchMap()
     @registerCollaborationSessionId()
 
     if @amIHost
@@ -210,11 +211,15 @@ module.exports = CollaborationController =
     @rtm.isReady = yes
     @emit 'RTMIsReady'
 
-    unless @myWatchMap.values().length
-      @listChatParticipants (accounts) =>
-        accounts.forEach (account) =>
-          {nickname} = account.profile
-          @myWatchMap.set nickname, nickname
+
+  setWatchMap: ->
+
+    return  if @myWatchMap.values().length
+
+    @listChatParticipants (accounts) =>
+      accounts.forEach (account) =>
+        {nickname} = account.profile
+        @myWatchMap.set nickname, nickname
 
 
   activateRealtimeManagerForHost: ->
