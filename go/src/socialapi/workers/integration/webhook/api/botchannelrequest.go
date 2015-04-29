@@ -39,14 +39,7 @@ func (b *BotChannelRequest) verifyAccount() (*models.Account, error) {
 }
 
 func (b *BotChannelRequest) verifyGroup() (*models.Channel, error) {
-	c := models.NewChannel()
-
-	selector := map[string]interface{}{
-		"type_constant": models.Channel_TYPE_GROUP,
-		"group_name":    b.GroupName,
-	}
-
-	err := c.One(bongo.NewQS(selector))
+	c, err := models.Cache.Channel.ByGroupName(b.GroupName)
 	if err == bongo.RecordNotFound {
 		return nil, ErrGroupNotFound
 	}
