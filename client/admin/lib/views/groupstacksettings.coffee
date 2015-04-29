@@ -223,17 +223,17 @@ module.exports = class GroupStackSettings extends kd.View
 
     for machine, index in machines
 
+      {label, provider, region} = machine
       {instance_type, ami} = machine.attributes
 
       out.machines.push {
-        label        : "aws-#{index}" # TODO we need this from kloud
-        provider     : 'amazon'       # TODO we have now aws and amaon ~ GG
+        label, provider, region
         source_ami   : ami
         instanceType : instance_type
-        provisioners : []             # TODO what are we going to do with provisioners? ~ GG
-        region       : 'us-east-1'    # TODO we need this from kloud ~ GG
+        provisioners : [] # TODO what are we going to do with provisioners? ~ GG
       }
 
-    console.log "WOHOOO RES::", response, out
+    console.info "Kloud's response:", response
+    console.info "Converted stack :", out.machines
 
     return out.machines
