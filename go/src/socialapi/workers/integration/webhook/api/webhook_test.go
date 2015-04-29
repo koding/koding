@@ -348,12 +348,10 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 
 			result, ok := res.(*response.SuccessResponse)
 			So(ok, ShouldEqual, true)
-			val, ok := result.Data.(map[string]interface{})
+			val, ok := result.Data.(*BotChannelResponse)
 			So(ok, ShouldEqual, true)
 			So(val, ShouldNotBeNil)
-			channelId, ok := val["channelId"]
-			So(ok, ShouldEqual, true)
-			So(channelId.(string), ShouldNotEqual, "")
+			So(val.ChannelId, ShouldNotEqual, 0)
 		})
 
 	})

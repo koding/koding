@@ -150,10 +150,8 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 		return response.NewBadRequest(err)
 	}
 
-	data := map[string]interface{}{
-		"channelId": strconv.FormatInt(channel.Id, 10),
-		"groupName": r.GroupName,
-	}
+	data := NewBotChannelResponse()
+	data.ChannelId = channel.Id
 
 	res := response.NewSuccessResponse(data)
 
