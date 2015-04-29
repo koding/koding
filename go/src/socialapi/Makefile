@@ -393,11 +393,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	@./handler.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./handler.test
 
-	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
-	@`which go` test -c tests/*.go
-	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./main.test
-
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
 	@`which go` test -c workers/realtime/realtime/*.go
 	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
