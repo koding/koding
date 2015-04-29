@@ -9,6 +9,3 @@ module.exports = class TeamMembersView extends TeamMembersCommonView
 
     super options, data
 
-
-  listMembers: ->
-
