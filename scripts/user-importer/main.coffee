@@ -11,7 +11,7 @@ createUsers = (users)->
   KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
   mongo     = "mongodb://#{ KONFIG.mongo }"
 
-  if process.env.MONGO_URL isnt ""
+  if process.env.MONGO_URL
     mongo = process.env.MONGO_URL
 
   modelPath = '../../workers/social/lib/social/models'
