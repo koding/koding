@@ -232,7 +232,7 @@ func prepareQueryString(endpoint string, params map[string]string) string {
 }
 
 func prepareHeaders(req *http.Request, headers map[string]string) *http.Request {
-	var newReq *http.Request
+	newReq := new(http.Request)
 	*newReq = *req
 	for k, v := range headers {
 		newReq.Header.Set(k, v)
