@@ -233,20 +233,8 @@ module.exports = CollaborationController =
     @startRealtimePolling()
     @resurrectSnapshot()
 
-    if @collaborationHost in @myWatchMap.values()
-      @reviveHostSnapshot()
-
     if @permissions.get(nick()) is 'read'
       @makeReadOnly()
-
-
-  reviveHostSnapshot: ->
-
-    hostName     = @getCollaborationHost()
-    hostSnapshot = realtimeHelpers.getFromManager @rtm, "#{hostName}Snapshot"
-
-    for key, change of hostSnapshot.values()
-      @createPaneFromChange change
 
 
   setCollaborativeReferences: ->
