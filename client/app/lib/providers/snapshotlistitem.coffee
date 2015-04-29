@@ -79,9 +79,9 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       callback : @bound 'confirmDeleteSnapshot'
 
     @addSubView @editView = new JView
-      cssClass: 'edit hidden'
-      pistachioParams: {@editInput, @editRenameBtn, @editCancelBtn}
-      pistachio: """
+      cssClass        : 'edit hidden'
+      pistachioParams : { @editInput, @editRenameBtn, @editCancelBtn }
+      pistachio       : """
         <div>
           {{> editInput}}
           <div class="buttons">
@@ -92,9 +92,9 @@ module.exports = class SnapshotListItem extends kd.ListItemView
         """
 
     @addSubView @infoView = new JView
-      cssClass: 'info'
-      pistachioParams: {@labelView, @infoRenameBtn, @infoDeleteBtn}
-      pistachio: """
+      cssClass        : 'info'
+      pistachioParams : { @labelView, @infoRenameBtn, @infoDeleteBtn }
+      pistachio       : """
         <div>
           {{> labelView}}
           <span class="storage-size">(#{data.storageSize}GB)</span>
@@ -116,17 +116,17 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   confirmDeleteSnapshot: ->
 
     modal = kd.ModalView.confirm
-      title: 'Delete snapshot?'
-      ok:
-        title: 'Yes'
-        style: 'solid red medium'
-        callback: =>
+      title      : 'Delete snapshot?'
+      ok         :
+        title    : 'Yes'
+        style    : 'solid red medium'
+        callback : =>
           modal.destroy()
           @deleteSnapshot()
-      cancel:
-        style: 'solid light-grey medium'
-        type: 'button'
-        callback: -> modal.destroy()
+      cancel     :
+        style    : 'solid light-grey medium'
+        type     : 'button'
+        callback : -> modal.destroy()
 
 
   ###*
