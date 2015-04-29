@@ -31,7 +31,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:        h.FetchBotChannel,
-			Name:           "bot-channel",
+			Name:           "webhook-bot-channel",
 			Type:           handler.GetRequest,
 			Endpoint:       "/botchannel",
 			CollectMetrics: true,
