@@ -9,10 +9,10 @@ ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 ###*
  * Helper utility to be able to pass a fake publisher to the events. Events
  * mostly don't care about OpenTok specific videoData, so it being `null`
- * shouldn't affect anything, so be careful when you are passing
+ * shouldn't affect anything, but be careful when you are passing
  * `ParticipantType.Participant` instances around.
  *
- * @return {object} publisher - a fake object imitates `ParticipantType.Publisher`
+ * @return {object} publisher - a fake object mimics `ParticipantType.Publisher`
 ###
 defaultPublisher = ->
   nick      : getNick()
@@ -25,6 +25,32 @@ defaultPublisher = ->
  * @return {boolean}
 ###
 isDefaultPublisher = (participant) -> _.isEqual participant, defaultPublisher()
+
+
+###*
+ * Helper utility to be able to pass a fake subscriber to the events. Events
+ * mostly don't care about OpenTok specific videoData, so it being `null`
+ * shouldn't affect anything, but be careful when you are passing
+ * `ParticipantType.Participant` instances around.
+ *
+ * @param {string} nickname
+ * @return {object} publisher - a fake object mimics `ParticipantType.Subscriber`
+###
+defaultSubscriber = (nickname) ->
+  nick      : nickname
+  type      : 'subscriber'
+  videoData : null
+
+
+###*
+ * @param {ParticipantType.Participant} participant
+ * @return {boolean}
+###
+isDefaultSubscriber = (participant) ->
+
+  { type, videoData } = participant
+
+  return type is 'subscriber' and videoData is null
 
 
 ###*
@@ -321,7 +347,7 @@ getChannelSessionId = (channel) -> channel?.payload?.videoSessionId
  * @param {string} nickname
  * @param {function(err: object)}
 ###
-showOfflineParticipant = (container, nickname, callback) ->
+showContainer = (container, nickname, callback) ->
 
   container.destroySubViews()
   remote.cacheable nickname, (err, [account]) ->
@@ -329,6 +355,19 @@ showOfflineParticipant = (container, nickname, callback) ->
     container.getElement().style.backgroundImage = "url(#{_getGravatarUri account})"
     container.addSubView new ProfileTextView {}, account
     container.show()
+
+
+###*
+ * Parses nickname from given connection's data.
+ *
+ * @param {OT.Connection} connection
+ * @return {string} nickname
+###
+getNicknameFromConnection = (connection) ->
+
+  { nickname } = JSON.parse connection.data
+
+  return nickname
 
 
 ###*
@@ -342,7 +381,10 @@ _errorSignal = (error) ->
 
 
 module.exports = {
+  defaultPublisher
   isDefaultPublisher
+  defaultSubscriber
+  isDefaultSubscriber
   generateSession
   generateToken
   toNickKeyedMap
@@ -353,7 +395,8 @@ module.exports = {
   disableVideo
   isVideoActive
   setChannelVideoSession
-  showOfflineParticipant
+  showContainer
   getChannelSessionId
+  getNicknameFromConnection
   _errorSignal
 }

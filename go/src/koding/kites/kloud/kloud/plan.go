@@ -13,6 +13,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/mitchellh/mapstructure"
@@ -20,6 +21,8 @@ import (
 
 type PlanMachine struct {
 	Provider   string            `json:"provider"`
+	Label      string            `json:"label"`
+	Region     string            `json:"region"`
 	Attributes map[string]string `json:"attributes"`
 }
 
@@ -27,7 +30,9 @@ type PlanOutput struct {
 	Machines []PlanMachine `json:"machines"`
 }
 
-type PlanRequest struct {
+type TerraformKloudRequest struct {
+	MachineIds []string `json:"machineIds"`
+
 	// Terraform template file
 	TerraformContext string `json:"terraformContext"`
 
@@ -49,7 +54,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args *PlanRequest
+	var args *TerraformKloudRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
@@ -59,7 +64,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	if len(args.PublicKeys) == 0 {
-		return nil, errors.New("credential ids are not passed")
+		return nil, errors.New("publicKeys are not passed")
 	}
 
 	ctx := k.ContextCreator(context.Background())
@@ -83,12 +88,41 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	defer tfKite.Close()
 
 	args.TerraformContext = appendVariables(args.TerraformContext, creds)
+
 	plan, err := tfKite.Plan(args.TerraformContext)
 	if err != nil {
 		return nil, err
 	}
 
-	return machineFromPlan(plan)
+	// currently there is no multi provider support for terraform. Until it's
+	// been released with 0.5,  we're going to retrieve it from the "provider"
+	// block: https://github.com/hashicorp/terraform/pull/1281
+	out, err := hcl.Parse(args.TerraformContext)
+	if err != nil {
+		return nil, err
+	}
+
+	rg := out.Get("provider", true).Get("aws", true).Get("region", true)
+	if rg == nil {
+		return nil, fmt.Errorf("out shouldn't produce a nil r: %v", out)
+	}
+
+	region, ok := rg.Value.(string)
+	if !ok {
+		return nil, fmt.Errorf("region is not of type string: %v", region)
+	}
+
+	output, err := machineFromPlan(plan)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, machine := range output.Machines {
+		machine.Region = region
+		output.Machines[i] = machine
+	}
+
+	return output, nil
 }
 
 // appendVariables appends the given key/value credentials to the hclFile (terraform) file
@@ -226,14 +260,21 @@ func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
 				attrs[name] = a.New
 			}
 
-			// providerResource is in the form of "aws_instance.foo"
+			// providerResource is in the form of "aws_instance.foo.bar"
 			splitted := strings.Split(providerResource, "_")
-			if len(splitted) == 0 {
+			if len(splitted) < 2 {
 				return nil, fmt.Errorf("provider resource is unknown: %v", splitted)
 			}
 
+			// splitted[1]: instance.foo.bar
+			resourceSplitted := strings.SplitN(splitted[1], ".", 2)
+
+			providerName := splitted[0]          // aws
+			resourceLabel := resourceSplitted[1] // foo.bar
+
 			out.Machines = append(out.Machines, PlanMachine{
-				Provider:   splitted[0],
+				Provider:   providerName,
+				Label:      resourceLabel,
 				Attributes: attrs,
 			})
 		}

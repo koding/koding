@@ -143,6 +143,7 @@ func init() {
 	// Add Kloud handlers
 	kld := kloudWithKodingProvider(provider)
 	kloudKite.HandleFunc("plan", kld.Plan)
+	kloudKite.HandleFunc("apply", kld.Apply)
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("stop", kld.Stop)
@@ -168,7 +169,7 @@ func TestTerraformPlan(t *testing.T) {
 
 	remote := userData.Remote
 
-	args := &kloud.PlanRequest{
+	args := &kloud.TerraformKloudRequest{
 		TerraformContext: `
 provider "aws" {
     access_key = "${var.access_key}"
@@ -179,6 +180,10 @@ provider "aws" {
 resource "aws_instance" "example" {
     ami = "ami-d05e75b8"
     instance_type = "t2.micro"
+    subnet_id = "subnet-b47692ed"
+    tags {
+        Name = "KloudTerraform"
+    }
 }`,
 		PublicKeys: map[string]string{
 			"aws": userData.CredentialPublicKey,
@@ -186,6 +191,61 @@ resource "aws_instance" "example" {
 	}
 
 	resp, err := remote.Tell("plan", args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var result *kloud.PlanOutput
+	if err := resp.Unmarshal(&result); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, machine := range result.Machines {
+		if machine.Label != "example" {
+			t.Errorf("plan label: want: example got: %s\n", machine.Label)
+		}
+
+		if machine.Region != "us-east-1" {
+			t.Errorf("plan region: want: example got: %s\n", machine.Label)
+		}
+	}
+
+	fmt.Printf("result = %+v\n", result)
+}
+
+func TestTerraformApply(t *testing.T) {
+	t.Parallel()
+	username := "testuser10"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformKloudRequest{
+		MachineIds: []string{userData.MachineId},
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-b47692ed"
+    tags {
+        Name = "KloudTerraform"
+    }
+}`,
+		PublicKeys: map[string]string{
+			"aws": userData.CredentialPublicKey,
+		},
+	}
+
+	resp, err := remote.Tell("apply", args)
 	if err != nil {
 		t.Fatal(err)
 	}

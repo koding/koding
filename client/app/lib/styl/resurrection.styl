@@ -15,6 +15,7 @@ html.app
   height            100%
   body
     height          100%
+    overflow        hidden  // this is to avoid rubber-band/elastic scroll on macs
 
 body
   font-family             openSansFamily
@@ -1544,7 +1545,7 @@ paymentGrayLighter  = #f8f8f8
     font-size           18px
     color               #7D7D7D
 
-    font-weight         600
+    font-weight         400
     strong
       color             #404040
     .icon
@@ -1559,6 +1560,13 @@ paymentGrayLighter  = #f8f8f8
     &.running
       .icon
         r-sprite        'ide', 'vm-state-running'
+    &.notfound
+      h1
+        margin-bottom   25px
+      span
+        font-size       16px
+      a
+        color           #1aaf5d
 
   .footer
     .upgrade-link
@@ -1806,6 +1814,13 @@ paymentGrayLighter  = #f8f8f8
 
     &.active:before
       r-sprite              'app', 'ms-shared-vm-active'
+
+  .AppModal-navItem.snapshots
+    &:before
+      r-sprite              'app', 'ms-snapshots'
+
+    &.active:before
+      r-sprite              'app', 'ms-snapshots-active'
 
 
 // machine settings modal common formline
@@ -2071,6 +2086,7 @@ paymentGrayLighter  = #f8f8f8
 
   .kdlistitemview-domain
     position                relative
+    overflow                hidden
 
     .custom-link-view .title
       ellipsis()
@@ -2115,7 +2131,6 @@ paymentGrayLighter  = #f8f8f8
 
 
 // machine settings modal vm sharing
-
 .machine-settings-modal .vm-sharing
 
   .avatarview
@@ -2179,4 +2194,82 @@ paymentGrayLighter  = #f8f8f8
   border                    1px solid #aaa
   border-top                none
   margin-top                -1px !important
+
+
+.machine-settings-modal .snapshots .add-view
+  height                    45px
+  line-height               45px
+  margin-top                0
+  border-bottom             1px solid #efefef
+
+  .buttons
+    abs                     0px 0px 0 0
+
+  .add
+    margin-top              6px
+
+  .cancel
+    top                     -2px
+    margin-right            8px
+
+
+.machine-settings-modal .snapshots .snapshot .info
+  &:hover .buttons
+    opacity                 1
+
+  .buttons
+    height                  16px
+    abs                     12px 0px 0 0
+    opacity                 0
+    vendor                  transition, opacity .2s ease
+
+  .kdbutton
+    background              none
+    margin                  0 0 0 11px
+    padding                 0
+    height                  16px
+    border                  none
+    outline                 none
+
+  .kdbutton .icon
+    display                 inline-block
+
+  .delete .icon
+    r-sprite                'account', 'ssh-delete'
+
+  .rename .icon
+    r-sprite                'account', 'ssh-edit'
+
+  .storage-size
+    margin-left             4px
+    color                   #393939
+
+  .created-at
+    margin-left             4px
+    color                   #8b8b8b
+
+
+.machine-settings-modal .snapshots .snapshot .edit
+  .buttons
+    abs                     0px 0px 0 0
+
+  .label
+    color                   #a2a2a2
+    font-size               14px
+    size                    175px, 38px
+    line-height             38px
+    bg                      image, none
+
+  .rename
+    margin-top              6px
+
+  .cancel
+    font-size               12px
+    color                   #787878
+    position                relative
+    text-decoration         underline
+    top                     -2px
+    margin-right            4px
+    cursor                  pointer
+
 

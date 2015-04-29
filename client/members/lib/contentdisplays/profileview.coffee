@@ -31,14 +31,8 @@ module.exports = class ProfileView extends JView
     options.bind   = "mouseenter mouseleave"
     super options, data
 
-    # filter from xss attacks
-    @memberData = @getData()
-    Traverse(@memberData).forEach (node)->
-      if 'string' is typeof node
-      then @update Encoder.XSSEncode node
-      else @update node
-
-    mainController = kd.getSingleton "mainController"
+    @memberData        = @getData()
+    { mainController } = kd.singletons
 
     if @memberData.isExempt
       if not checkFlag 'super-admin'

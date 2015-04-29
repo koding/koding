@@ -874,6 +874,7 @@ func (ec2 *EC2) TerminateInstances(instIds []string) (resp *TerminateInstancesRe
 //
 // See http://goo.gl/mLbmw for more details.
 type InstancesResp struct {
+	NextToken    string        `xml:"nextToken"`
 	RequestId    string        `xml:"requestId"`
 	Reservations []Reservation `xml:"reservationSet>item"`
 }
@@ -887,6 +888,30 @@ type Reservation struct {
 	RequesterId    string          `xml:"requesterId"`
 	SecurityGroups []SecurityGroup `xml:"groupSet>item"`
 	Instances      []Instance      `xml:"instancesSet>item"`
+}
+
+// InstancesPaginate returns details about instances in EC2 in pages. It
+// fetches results in batches, this is useful if you have a lot of instances
+// where the normal API call would fail. Pass the response nextToken (if not
+// empty) to get the next page of results.
+//
+// See http://goo.gl/4No7c for more details.
+func (ec2 *EC2) InstancesPaginate(maxResults int64, nextToken string) (resp *InstancesResp, err error) {
+	params := makeParams("DescribeInstances")
+
+	if maxResults > 0 {
+		params["MaxResults"] = strconv.FormatInt(maxResults, 10)
+	}
+	if nextToken != "" {
+		params["NextToken"] = nextToken
+	}
+
+	resp = &InstancesResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
 }
 
 // Instances returns details about instances in EC2.  Both parameters
@@ -952,6 +977,7 @@ type Volume struct {
 	SnapshotId  string             `xml:"snapshotId"`
 	AvailZone   string             `xml:"availabilityZone"`
 	Status      string             `xml:"status"`
+	CreateTime  time.Time          `xml:"createTime"`
 	Attachments []VolumeAttachment `xml:"attachmentSet>item"`
 	VolumeType  string             `xml:"volumeType"`
 	IOPS        int64              `xml:"iops"`
@@ -968,6 +994,7 @@ type VolumeAttachment struct {
 
 // Response to a DescribeVolumes request
 type VolumesResp struct {
+	NextToken string   `xml:"nextToken"`
 	RequestId string   `xml:"requestId"`
 	Volumes   []Volume `xml:"volumeSet>item"`
 }
@@ -1040,6 +1067,27 @@ func (ec2 *EC2) DetachVolume(id string) (resp *SimpleResp, err error) {
 	params["VolumeId"] = id
 
 	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// VolumesPaginate lists all volumes in set of pages. Use it to fetch batch
+// results of volumes, useful if you have a lot of volumes (in terms of
+// thousands).
+func (ec2 *EC2) VolumesPaginate(maxResults int64, nextToken string) (resp *VolumesResp, err error) {
+	params := makeParams("DescribeVolumes")
+	if maxResults > 0 {
+		params["MaxResults"] = strconv.FormatInt(maxResults, 10)
+	}
+
+	if nextToken != "" {
+		params["NextToken"] = nextToken
+	}
+
+	resp = &VolumesResp{}
 	err = ec2.query(params, resp)
 	if err != nil {
 		return nil, err

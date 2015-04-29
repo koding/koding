@@ -56,8 +56,8 @@ Configuration = (options={}) ->
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                  , pubnub: pubnub                                }
-  paymentwebhook      = { port : "6600", debug : true }
-  tokbox              = { apiKey: '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
+  paymentwebhook      = { port   : "6600",     debug    : false }
+  tokbox              = { apiKey : '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -522,9 +522,7 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        sh -c "scripts/install-npm.sh -d client/landing -u"
-        sh -c "scripts/install-npm.sh -d client/builder -u"
-        sh -c "scripts/install-npm.sh -d client -u -p"
+        scripts/install-npm.sh -d client -u
         make -C #{projectRoot}/client dist
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
@@ -637,17 +635,17 @@ Configuration = (options={}) ->
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
             sleep 1
-            sh -c "scripts/install-npm.sh -d client -s"
+            scripts/install-npm.sh -d client -s
         fi
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/builder/package.json" ]; then
             sleep 1
-            sh -c "scripts/install-npm.sh -d client/builder -s"
+            scripts/install-npm.sh -d client/builder -s
         fi
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/landing/package.json" ]; then
             sleep 1
-            sh -c "scripts/install-npm.sh -d client/landing -s"
+            scripts/install-npm.sh -d client/landing -s
         fi
 
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
@@ -762,7 +760,7 @@ Configuration = (options={}) ->
           echo
 
         else
-          sh -c "scripts/install-npm.sh -d client -u -p -s"
+          scripts/install-npm.sh -d client -u -s
           make -C #{projectRoot}/client
         fi
 
@@ -1116,7 +1114,7 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        sh -c "scripts/install-npm.sh -d client -u -p -s"
+        scripts/install-npm.sh -d client -u -s
         make -C #{projectRoot}/client dist
 
       elif [ "$1" == "services" ]; then

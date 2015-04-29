@@ -18,23 +18,7 @@ func (t *Terraformer) newKite(conf *Config) (*kite.Kite, error) {
 		return nil, err
 	}
 
-	k.Config.Port = conf.Port
-
-	if conf.Region != "" {
-		k.Config.Region = conf.Region
-	}
-
-	if conf.Environment != "" {
-		k.Config.Environment = conf.Environment
-	}
-
-	if t.Debug {
-		k.SetLogLevel(kite.DEBUG)
-	}
-
-	if conf.Test {
-		k.Config.DisableAuthentication = true
-	}
+	k = t.setupKite(k, conf)
 
 	// track every kind of call
 	k.PreHandleFunc(createTracker(t.Metrics))
@@ -59,6 +43,29 @@ func (t *Terraformer) newKite(conf *Config) (*kite.Kite, error) {
 	return k, nil
 }
 
+func (t *Terraformer) setupKite(k *kite.Kite, conf *Config) *kite.Kite {
+
+	k.Config.Port = conf.Port
+
+	if conf.Region != "" {
+		k.Config.Region = conf.Region
+	}
+
+	if conf.Environment != "" {
+		k.Config.Environment = conf.Environment
+	}
+
+	if t.Debug {
+		k.SetLogLevel(kite.DEBUG)
+	}
+
+	if conf.Test {
+		k.Config.DisableAuthentication = true
+	}
+
+	return k
+}
+
 func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
 	return func(r *kite.Request) (interface{}, error) {
 		// if metrics not set, act as noop
@@ -66,12 +73,14 @@ func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
 			return true, nil
 		}
 
-		metrics.Count(
+		if err := metrics.Count(
 			"callCount", // metric name
 			1,           // count
 			[]string{"funcName:" + r.Method}, // tags for metric call
 			1.0, // rate
-		)
+		); err != nil {
+			// TODO(cihangir) should we log/return error?
+		}
 
 		return true, nil
 	}

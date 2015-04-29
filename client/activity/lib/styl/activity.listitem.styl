@@ -19,12 +19,13 @@ activity.listitem.styl
     hidden()
 
 
-  &.edited .meta time:after
-    content                 ' (edited)'
-    display                 inline
-    font-family             openSansFamily
-    font-size               11px
-    color                   #ccc
+  &.edited .meta .edited-right
+    &:after
+      content                 ' (edited)'
+      display                 inline
+      font-family             openSansFamily
+      font-size               11px
+      color                   #ccc
 
   .activity-content-wrapper
     rel()
