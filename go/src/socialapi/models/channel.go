@@ -886,6 +886,10 @@ func (c *Channel) FetchPublicChannel(groupName string) error {
 	if err == bongo.RecordNotFound {
 		return ErrGroupNotFound
 	}
+	
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
