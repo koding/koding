@@ -157,34 +157,6 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 	return response.NewOK(res)
 }
 
-func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
-	// check account existence
-	acc, err := r.verifyAccount()
-	if err != nil {
-		return nil, err
-	}
-
-	// check group existence
-	group, err := r.verifyGroup()
-	if err != nil {
-		return nil, err
-	}
-
-	// prevent sending bot messages when the user is not participant
-	// of the given group
-	canOpen, err := group.CanOpen(acc.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	if !canOpen {
-		return nil, ErrAccountIsNotParticipant
-	}
-
-	// now we can fetch the bot channel
-	return h.bot.FetchBotChannel(acc, group)
-}
-
 func (h *Handler) fetchChannelId(so *services.ServiceOutput) (int64, error) {
 
 	if err := h.prepareUsername(so); err != nil {
@@ -230,6 +202,34 @@ func (h *Handler) prepareUsername(so *services.ServiceOutput) error {
 	so.Username = user.Name
 
 	return nil
+}
+
+func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
+	// check account existence
+	acc, err := r.verifyAccount()
+	if err != nil {
+		return nil, err
+	}
+
+	// check group existence
+	group, err := r.verifyGroup()
+	if err != nil {
+		return nil, err
+	}
+
+	// prevent sending bot messages when the user is not participant
+	// of the given group
+	canOpen, err := group.CanOpen(acc.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !canOpen {
+		return nil, ErrAccountIsNotParticipant
+	}
+
+	// now we can fetch the bot channel
+	return h.bot.FetchBotChannel(acc, group)
 }
 
 // TODO need to mock the endpoint. up till that time, this push method is
