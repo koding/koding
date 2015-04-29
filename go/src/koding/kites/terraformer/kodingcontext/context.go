@@ -66,6 +66,9 @@ func New(ls, rs storage.Interface) (*Context, error) {
 	c.LocalStorage = ls
 	c.RemoteStorage = rs
 
+	// create global shut down handlers
+	makeShutdownChans()
+
 	return c, nil
 }
 
@@ -139,8 +142,8 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 func (c *Context) Close() error {
 	if c.ContentID != "" {
 		shutdownChansMu.Lock()
-		defer shutdownChansMu.Unlock()
 		delete(shutdownChans, c.ContentID)
+		shutdownChansMu.Unlock()
 	}
 
 	return c.LocalStorage.Remove(c.ContentID)
@@ -157,17 +160,18 @@ func createShutdownChan(contentID string) (<-chan struct{}, error) {
 
 	resultCh := make(chan struct{})
 
-	if shutdownChans == nil {
-		shutdownChans = make(map[string]chan struct{})
-	}
 	shutdownChans[contentID] = resultCh
 
 	return resultCh, nil
 }
 
-func makeShutdownCh() {
+func makeShutdownChans() {
 	signalCh := make(chan os.Signal, 4)
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+
+	// init channels map
+	shutdownChans = make(map[string]chan struct{})
+
 	go func() {
 		for {
 			<-signalCh
