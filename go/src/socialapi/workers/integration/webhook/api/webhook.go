@@ -250,7 +250,7 @@ var push = func(endPoint string, pushRequest map[string]string) error {
 		},
 	}
 
-	resp, err := handler.MakeRequest(request)
+	resp, err := handler.DoRequest(request)
 	if err != nil {
 		return err
 	}

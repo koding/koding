@@ -110,7 +110,7 @@ func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*mo
 	}
 
 	// TODO update this requester
-	resp, err := handler.MakeRequest(request)
+	resp, err := handler.DoRequest(request)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func getAccountInfo(u *url.URL, header http.Header) (*models.Account, error) {
 	}
 
 	// TODO update this requester
-	resp, err := handler.MakeRequest(request)
+	resp, err := handler.DoRequest(request)
 	if err != nil {
 		return nil, err
 	}

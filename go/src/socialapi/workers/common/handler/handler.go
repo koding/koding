@@ -182,7 +182,7 @@ func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request)
 	)
 }
 
-func MakeRequest(request *Request) (*http.Response, error) {
+func DoRequest(request *Request) (*http.Response, error) {
 	if request.Cookie != "" {
 		request.Cookies = parseCookiesToArray(request.Cookie)
 	}

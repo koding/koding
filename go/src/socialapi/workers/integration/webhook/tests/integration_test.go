@@ -71,7 +71,7 @@ func TestWebhook(t *testing.T) {
 		_, err = channel.AddParticipant(account.Id)
 		So(err, ShouldBeNil)
 
-		err = rest.MakePushRequest(newPushRequest(channel.Id, channelIntegration.GroupName), channelIntegration.Token)
+		err = rest.DoPushRequest(newPushRequest(channel.Id, channelIntegration.GroupName), channelIntegration.Token)
 		So(err, ShouldBeNil)
 
 		ses, err := models.FetchOrCreateSession(account.Nick)
@@ -100,7 +100,7 @@ func TestWebhook(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
-		channelId, err := rest.MakeBotChannelRequest(ses.ClientId)
+		channelId, err := rest.DoBotChannelRequest(ses.ClientId)
 
 		So(err, ShouldBeNil)
 		So(channelId, ShouldNotEqual, 0)
@@ -111,17 +111,17 @@ func TestWebhook(t *testing.T) {
 		account, err := models.CreateAccountInBothDbsWithNick(models.RandomName())
 		So(err, ShouldBeNil)
 
-		err = rest.MakePrepareRequest(newPrepareRequest("xxx@koding.com"), channelIntegration.Token)
+		err = rest.DoPrepareRequest(newPrepareRequest("xxx@koding.com"), channelIntegration.Token)
 		So(err, ShouldNotBeNil)
 
-		err = rest.MakePrepareRequest(newPrepareRequest(account.Nick+"@koding.com"), channelIntegration.Token)
+		err = rest.DoPrepareRequest(newPrepareRequest(account.Nick+"@koding.com"), channelIntegration.Token)
 		So(err, ShouldBeNil)
 
 		ses, err := models.FetchOrCreateSession(account.Nick)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
-		channelId, err := rest.MakeBotChannelRequest(ses.ClientId)
+		channelId, err := rest.DoBotChannelRequest(ses.ClientId)
 		So(err, ShouldBeNil)
 
 		resp, err := rest.GetHistory(channelId,

@@ -75,7 +75,7 @@ func SubscribeMessage(cm *models.ChannelMessage) error {
 		},
 	}
 
-	resp, err := handler.MakeRequest(request)
+	resp, err := handler.DoRequest(request)
 	if err != nil {
 		return err
 	}

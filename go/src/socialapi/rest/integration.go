@@ -11,7 +11,7 @@ import (
 
 const IntegrationEndPoint = "http://localhost:7300"
 
-func MakePrepareRequest(data *services.ServiceInput, token string) error {
+func DoPrepareRequest(data *services.ServiceInput, token string) error {
 	url := fmt.Sprintf("%s/webhook/iterable/%s", IntegrationEndPoint, token)
 	_, err := sendModel("POST", url, data)
 	if err != nil {
@@ -21,18 +21,15 @@ func MakePrepareRequest(data *services.ServiceInput, token string) error {
 	return nil
 }
 
-func MakePushRequest(data *api.WebhookRequest, token string) error {
+func DoPushRequest(data *api.WebhookRequest, token string) error {
 
 	url := fmt.Sprintf("%s/webhook/push/%s", IntegrationEndPoint, token)
 	_, err := sendModel("POST", url, data)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
-func MakeBotChannelRequest(token string) (int64, error) {
+func DoBotChannelRequest(token string) (int64, error) {
 	req := new(response.SuccessResponse)
 	url := fmt.Sprintf("%s/botchannel", IntegrationEndPoint)
 
