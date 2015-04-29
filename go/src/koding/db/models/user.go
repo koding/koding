@@ -10,7 +10,7 @@ type User struct {
 	ObjectId      bson.ObjectId `bson:"_id" json:"-"`
 	Uid           int           `bson:"uid" json:"uid"`
 	Email         string        `bson:"email" json:"email"`
-	LastLoginDate time.Time     `bson:"lastLoginDate" json:"lastLoginDate"`
+	LastLoginDate time.Time     `bson:"lastLoginDate,omitempty" json:"lastLoginDate"`
 	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
 	BlockedUntil  time.Time     `bson:"blockedUntil" json:"blockedUntil"`
 
@@ -30,6 +30,7 @@ type User struct {
 	BlockedReason string `bson:"blockedReason" json:"blockedReason"`
 
 	EmailFrequency EmailFrequency `bson:"emailFrequency" json:"emailFrequency"`
+	Inactive       UserInactive   `bson:"inactive,omitempty" json:"inactive"`
 }
 
 type EmailFrequency struct {
@@ -46,4 +47,12 @@ type EmailFrequency struct {
 	Leave             bool   `bson:"groupLeft"`
 	Mention           bool   `bson:"mention"`
 	NotificationDelay string `bson:"pmNotificationDelay"`
+}
+
+type UserInactive struct {
+	Warning    int                  `bson:"warning" json:"warning"`
+	Assigned   bool                 `bson:"assigned" json:"assigned"`
+	AssignedAt time.Time            `bson:"assignedAt" json:"assignedAt"`
+	ModifiedAt time.Time            `bson:"modifiedAt" json:"modifiedAt"`
+	Warnings   map[string]time.Time `bson:"warnings,omitempty" json:"warnings"`
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"strings"
 	"time"
@@ -51,13 +50,14 @@ func blockUserAndDestroyVm(machineId, username, reason string) error {
 
 	for _, machine := range machines {
 		err := stopVm(machine.ObjectId.Hex(), username, reason)
-		if err != nil {
-			Log.Error(fmt.Sprintf(
-				"Error stopping machine: %s of user: %s: %s", machine.ObjectId,
-				username, err.Error(),
-			))
+		if err != nil && !isVmAlreadyStoppedErr(err) {
+			Log.Error("Error stopping machine:%s for username: %s, %v", username, machine, err)
 		}
 	}
 
 	return nil
+}
+
+func isVmAlreadyStoppedErr(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "already stopped")
 }

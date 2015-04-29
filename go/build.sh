@@ -39,6 +39,7 @@ services=(
   github.com/mattes/migrate
   koding/go-webserver
   koding/vmwatcher
+  koding/janitor
 
   socialapi/workers/api
   socialapi/workers/cmd/notification
