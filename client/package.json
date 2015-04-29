@@ -40,7 +40,8 @@
     "validator": "3.33.0"
   },
   "scripts": {
-    "preinstall": "../scripts/install-npm.sh -d client/builder && ../scripts/install-npm.sh -d client/landing",
+    "preinstall": "./npm-preinstall.sh",
+    "postinstall": "./npm-postinstall.sh",
     "test": "make test"
   },
   "browser": {
