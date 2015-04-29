@@ -36,7 +36,6 @@ kontrol-data-*
 /go/binexport
 /go/src/socialapi/db/sql/kontrol
 /go/src/socialapi/config/*.toml
-/go/src/code.google.com/p/go-uuid/*
 
 /node_modules
 /node_modules/*
