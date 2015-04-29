@@ -102,9 +102,12 @@ func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.
 		query.Type = models.Interaction_TYPE_LIKE
 	}
 
-	// find the group channel id
+	// find the group channel
 	ch := models.NewChannel()
-	ch.FetchPublicChannel(c.GroupName)
+	err = ch.FetchPublicChannel(c.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
 
 	// fetch liked messages of the account in this chanenl
 	i := models.NewInteraction()
