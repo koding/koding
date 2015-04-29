@@ -9,7 +9,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 )
 
@@ -89,41 +88,4 @@ func updateMachines(ctx context.Context, data *Machines, ids ...string) error {
 	}
 
 	return nil
-}
-
-func machinesFromState(state *terraform.State) (*Machines, error) {
-	if state.Modules == nil {
-		return nil, errors.New("state modules is empty")
-	}
-
-	out := &Machines{
-		Machines: make([]PlanMachine, 0),
-	}
-
-	attrs := make(map[string]string, 0)
-
-	for _, m := range state.Modules {
-		for resource, r := range m.Resources {
-			if r.Primary == nil {
-				continue
-			}
-
-			provider, label, err := parseProviderAndLabel(resource)
-			if err != nil {
-				return nil, err
-			}
-
-			for key, val := range r.Primary.Attributes {
-				attrs[key] = val
-			}
-
-			out.Machines = append(out.Machines, PlanMachine{
-				Provider:   provider,
-				Label:      label,
-				Attributes: attrs,
-			})
-		}
-	}
-
-	return out, nil
 }
