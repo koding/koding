@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook/api"
@@ -10,6 +11,8 @@ import (
 )
 
 const IntegrationEndPoint = "http://localhost:7300"
+
+var ErrTypecastError = errors.New("typecast error")
 
 func DoPrepareRequest(data *services.ServiceInput, token string) error {
 	url := fmt.Sprintf("%s/webhook/iterable/%s", IntegrationEndPoint, token)
@@ -42,9 +45,19 @@ func DoBotChannelRequest(token string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	res, _ := req.Data.(map[string]interface{})
-	channelIdResponse, _ := res["channelId"]
-	channelId, _ := channelIdResponse.(string)
+	res, ok := req.Data.(map[string]interface{})
+	if !ok {
+		return 0, ErrTypecastError
+	}
+	channelIdResponse, channelIdFound := res["channelId"]
+	if !channelIdFound {
+		return 0, fmt.Errorf("channelId field does not exit")
+	}
+
+	channelId, channelIdOk := channelIdResponse.(string)
+	if !channelIdOk {
+		return 0, ErrTypecastError
+	}
 
 	return strconv.ParseInt(channelId, 10, 64)
 }
