@@ -524,8 +524,9 @@ module.exports = CollaborationController =
     @removeInitialViews()
 
     for change in snapshot when change.context
-      @changeActiveTabView change.context.paneType
       @createPaneFromChange change
+
+    @changeActiveTabView change?.context?.paneType
 
 
   appendHostSnapshot: (snapshot) ->
