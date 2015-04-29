@@ -6,6 +6,7 @@ import (
 	"socialapi/request"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -40,6 +41,64 @@ const (
 	Interaction_TYPE_UPVOTE   = "upvote"
 	Interaction_TYPE_DONWVOTE = "downvote"
 )
+
+func (i *Interaction) ListLikedMessageIds(q *request.Query, channelId int64) ([]int64, error) {
+	messageIds := make([]int64, 0)
+
+	query := getLikedMessagesQuery(q, channelId)
+
+	rows, err := query.Rows()
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	if rows == nil {
+		return messageIds, nil
+	}
+
+	var messageId int64
+	for rows.Next() {
+		rows.Scan(&messageId)
+		messageIds = append(messageIds, messageId)
+	}
+
+	return messageIds, nil
+}
+
+func (i *Interaction) ListLikedMessages(q *request.Query, channelId int64) ([]ChannelMessage, error) {
+	ids, err := i.ListLikedMessageIds(q, channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewChannelMessage().FetchByIds(ids)
+}
+
+func getLikedMessagesQuery(q *request.Query, channelId int64) *gorm.DB {
+	i := NewInteraction()
+
+	return bongo.B.DB.
+		Model(i).
+		Table(i.BongoName()).
+		Limit(q.Limit).
+		Offset(q.Skip).
+		Select("api.interaction.message_id").
+		Joins(
+		`left join api.channel_message on
+		 api.interaction.message_id = api.channel_message.id`).
+		Where(
+		`api.interaction.account_id = ? and
+		 api.channel_message.initial_channel_id = ? and
+		 api.channel_message.type_constant = ? and
+		 api.interaction.type_constant = ? and
+		 api.channel_message.meta_bits <> ?`,
+		q.AccountId,
+		channelId,
+		ChannelMessage_TYPE_POST,
+		q.Type,
+		Troll,
+	)
+}
 
 // Tests are done.
 func (i *Interaction) MarkIfExempt() error {

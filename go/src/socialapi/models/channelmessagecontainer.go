@@ -275,6 +275,16 @@ func (ccs *ChannelMessageContainers) Add(containers ...*ChannelMessageContainer)
 	return ccs
 }
 
+func (ccs *ChannelMessageContainers) Err() error {
+	for _, cc := range *ccs {
+		if cc.Err != nil {
+			return cc.Err
+		}
+	}
+
+	return nil
+}
+
 func (ccs *ChannelMessageContainers) AddIsInteracted(query *request.Query) *ChannelMessageContainers {
 	for i, cc := range *ccs {
 		(*ccs)[i] = *cc.AddIsInteracted(query)
