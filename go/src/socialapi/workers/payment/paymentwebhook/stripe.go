@@ -57,5 +57,5 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	Log.Info("Stripe: succesfully processed webhook: %s", req.Name)
+	Log.Debug("Stripe: succesfully processed webhook: %s", req.Name)
 }
