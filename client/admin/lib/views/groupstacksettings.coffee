@@ -167,7 +167,6 @@ module.exports = class GroupStackSettings extends kd.View
     credentials = [publicKeys.aws] # TODO Make it work with other providers ~ GG
 
     if stackTemplate
-      console.log ">>>>>", stackTemplate
       stackTemplate.update {machines, template, credentials}, (err) =>
         return @showError err  if err
         @setGroupTemplate stackTemplate
@@ -183,9 +182,20 @@ module.exports = class GroupStackSettings extends kd.View
   setGroupTemplate: (stackTemplate) ->
 
     { groupsController } = kd.singletons
+
     currentGroup = groupsController.getCurrentGroup()
+    { slug }     = currentGroup
+
+    if slug is 'koding'
+      return new kd.NotificationView
+        title: 'Setting stack template for koding is disabled'
+
     currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
       return @showError err  if err
+
+      new kd.NotificationView
+        title: "Group (#{slug}) stack has been saved!"
+
 
 
   parseTerraformOutput: (response) ->
