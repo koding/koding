@@ -11,9 +11,10 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error) {
+// Apply applies the incoming terraform content to the remote system
+func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, error) {
 	cmd := command.ApplyCommand{
-		ShutdownCh: makeShutdownCh(),
+		ShutdownCh: makeShutdownCh(), // TODO(fatih): this prevents us to kill terraformer with a SIGINT
 		Meta: command.Meta{
 			ContextOpts: c.TerraformContextOpts(),
 			Ui:          c.ui,
@@ -32,7 +33,6 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error
 
 	outputDir := path.Join(basePath, c.ContentID)
 	mainFileRelativePath := path.Join(c.ContentID, mainFileName+terraformFileExt)
-	planFilePath := path.Join(outputDir, planFileName+terraformPlanFileExt)
 	stateFilePath := path.Join(outputDir, stateFileName+terraformStateFileExt)
 
 	// override the current main file
@@ -60,6 +60,7 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error
 		"-no-color", // dont write with color
 		"-state", stateFilePath,
 		"-state-out", stateFilePath,
+		"-input=false", // do not ask for any input
 		outputDir,
 	}
 
@@ -79,18 +80,18 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.Plan, error
 		)
 	}
 
-	planFile, err := os.Open(planFilePath)
+	stateFile, err := os.Open(stateFilePath)
 	if err != nil {
 		return nil, err
 	}
-	defer planFile.Close()
+	defer stateFile.Close()
 
 	// copy all contents from local to remote for later operating
 	if err := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage); err != nil {
 		return nil, err
 	}
 
-	return terraform.ReadPlan(planFile)
+	return terraform.ReadState(stateFile)
 }
 
 // makeShutdownCh creates an interrupt listener and returns a channel.

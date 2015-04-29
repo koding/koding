@@ -69,6 +69,7 @@ module.exports =
     user             = helpers.beginTest(browser)
     postSelector     = "#{activitySelector} .activity-content-wrapper"
     mostLikeSelector = '.kdtabhandlecontainer [testpath="ActivityTabHandle-/Activity/Public/Liked"]'
+    mostLikedPostSelector = '.most-liked [testpath=ActivityListItemView]'
 
     post = helpers.likePost(browser, user)
 
@@ -78,6 +79,7 @@ module.exports =
       .waitForElementVisible   '[testpath=ActivityInputView]', 10000
       .waitForElementVisible   mostLikeSelector, 20000
       .click                   mostLikeSelector
+      .waitForElementVisible   mostLikedPostSelector, 20000
       .assert.containsText     '.kdtabpaneview.most-liked', post # Assertion
       .end()
 

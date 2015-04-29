@@ -43,14 +43,26 @@ module.exports = class EmbedBoxWidget extends KDView
 
   watchInput: ->
 
-    input = @getDelegate()
-    input.on ['paste', 'change', 'keyup'], @bound 'checkInputForUrls'
+    input       = @getDelegate()
+    previousUrl = null
+    timer       = null
+    kallback    = (url) => @fetchEmbed url, {}, @bound 'populateEmbed'
+
+    input.on ['paste', 'change', 'keyup'], =>
+      return  unless url = @checkInputForUrls()
+      kd.utils.killWait timer  if timer
+      if previousUrl is url
+      then kallback url
+      else timer = kd.utils.wait 1000, -> kallback url
+      previousUrl = url
+
     input.on 'reset', @bound 'close'
     input.on 'BeingEdited', (url) =>
       if url
       then @fetchEmbed url, {}, @bound 'populateEmbed'
-      else @checkInputForUrls()
-
+      else
+        if url = @checkInputForUrls()
+          @fetchEmbed url, {}, @bound('populateEmbed')
 
   checkInputForUrls: ->
 
@@ -58,9 +70,8 @@ module.exports = class EmbedBoxWidget extends KDView
     value = input.getValue()
     urls  = urlGrabber value
 
-    return if not urls.first or @isFetching
-
-    @fetchEmbed urls.first, {}, _.debounce @bound('populateEmbed'), 1000, leading : yes, maxWait : 5000
+    return null  if not urls.first or @isFetching
+    return urls.first
 
 
   close: ->

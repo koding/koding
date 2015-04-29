@@ -14,8 +14,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-// Machine represents a single MongodDB document from the jMachines
-// collection.
+// Machine represents a single MongodDB document that represents a Koding
+// Provider from the jMachines collection.
 type Machine struct {
 	Id          bson.ObjectId `bson:"_id" json:"-"`
 	Label       string        `bson:"label"`

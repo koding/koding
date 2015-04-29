@@ -17,6 +17,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const TestTimeout = 6 * time.Minute
+
 func TestTopicSaved(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
@@ -178,7 +180,7 @@ func doBasicTestForMessage(handler *Controller, id int64) error {
 // will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
 // index the records right away, so try to go to a desired state
 func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
-	deadLine := time.After(time.Minute * 2)
+	deadLine := time.After(TestTimeout)
 	tick := time.Tick(time.Millisecond * 100)
 	for {
 		select {
@@ -197,7 +199,7 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 // desired err, it will re-try every 100ms until deadline of 15 seconds reached.
 // Algolia doesnt index the records right away, so try to go to a desired state
 func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, error) bool) error {
-	deadLine := time.After(time.Minute * 2)
+	deadLine := time.After(TestTimeout)
 	tick := time.Tick(time.Millisecond * 100)
 	for {
 		select {
@@ -220,7 +222,7 @@ func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, 
 // it will re-try every 100ms until deadline of 2 minutes. Algolia doesnt index
 // the records right away, so try to go to a desired state
 func makeSureTopic(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
-	deadLine := time.After(time.Minute * 2)
+	deadLine := time.After(TestTimeout)
 	tick := time.Tick(time.Millisecond * 100)
 	for {
 		select {

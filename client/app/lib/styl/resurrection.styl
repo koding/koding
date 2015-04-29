@@ -15,6 +15,7 @@ html.app
   height            100%
   body
     height          100%
+    overflow        hidden  // this is to avoid rubber-band/elastic scroll on macs
 
 body
   font-family             openSansFamily
@@ -1544,7 +1545,7 @@ paymentGrayLighter  = #f8f8f8
     font-size           18px
     color               #7D7D7D
 
-    font-weight         600
+    font-weight         400
     strong
       color             #404040
     .icon
@@ -1559,6 +1560,13 @@ paymentGrayLighter  = #f8f8f8
     &.running
       .icon
         r-sprite        'ide', 'vm-state-running'
+    &.notfound
+      h1
+        margin-bottom   25px
+      span
+        font-size       16px
+      a
+        color           #1aaf5d
 
   .footer
     .upgrade-link
@@ -2071,6 +2079,7 @@ paymentGrayLighter  = #f8f8f8
 
   .kdlistitemview-domain
     position                relative
+    overflow                hidden
 
     .custom-link-view .title
       ellipsis()
@@ -2115,7 +2124,6 @@ paymentGrayLighter  = #f8f8f8
 
 
 // machine settings modal vm sharing
-
 .machine-settings-modal .vm-sharing
 
   .avatarview

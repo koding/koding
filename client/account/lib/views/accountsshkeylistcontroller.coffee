@@ -64,8 +64,15 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
   deleteItem: (item) ->
 
+    isNew = item instanceof AccountNewSshKeyView
+
     @cancelItem item
     @removeItem item
+
+    # If item is new, just remove it from DOM
+    # It doesn't have data in DB, so there is no need to update items
+    return  if isNew
+
     @saveItems()
     @showDeleteModal()
 
@@ -104,6 +111,7 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
       else
         @addItem { key, title }
         @deleteItem item
+        @saveItems()
 
 
   editItem: (item) ->
