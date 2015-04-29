@@ -29,12 +29,15 @@ type Warning struct {
 
 	// Definitions of exemptions.
 	Exempt []Exempt
+
+	// Current result
+	Result *Result
 }
 
 var defaultLimitPerRun = 100
 
 func (w *Warning) Run() *Result {
-	result := &Result{Warning: w.Name}
+	w.Result = NewResult(w.Name)
 	limit := w.GetLimit()
 
 	for {
@@ -44,18 +47,16 @@ func (w *Warning) Run() *Result {
 
 		err := w.RunSingle()
 		if err != nil && !isErrNotFound(err) {
-			result.Failure += 1
 			continue
 		}
 
 		if isErrNotFound(err) {
 			break
 		}
-
-		result.Successful += 1
 	}
 
-	return result
+	w.Result.EndedAt = time.Now().String()
+	return w.Result
 }
 
 func (w *Warning) GetLimit() int {
@@ -128,8 +129,20 @@ func (w *Warning) FindAndLockUser() (*models.User, error) {
 
 func (w *Warning) IsUserExempt(user *models.User) (bool, error) {
 	for _, exemptFn := range w.Exempt {
-		isExempt, err := exemptFn(user, w)
-		if err != nil || isExempt {
+		isExempt, exemptName, err := exemptFn(user, w)
+		if err != nil {
+			return true, err
+		}
+
+		if isExempt {
+			userResult := &UserResult{
+				Username:      user.Name,
+				LastLoginDate: user.LastLoginDate.String(),
+				Level:         w.Level,
+				ExemptReson:   exemptName,
+			}
+			w.Result.Exempt = append(w.Result.Exempt, userResult)
+
 			return true, err
 		}
 	}
@@ -138,16 +151,15 @@ func (w *Warning) IsUserExempt(user *models.User) (bool, error) {
 }
 
 func (w *Warning) Act(user *models.User) error {
-	isExempt, err := w.IsUserExempt(user)
-	if err != nil {
-		return err
+	userResult := &UserResult{
+		Username:      user.Name,
+		LastLoginDate: user.LastLoginDate.String(),
+		Level:         w.Level,
 	}
 
-	if !isExempt {
-		return w.Action(user, w.Level)
-	}
+	w.Result.Successful = append(w.Result.Successful, userResult)
 
-	return nil
+	return w.Action(user, w.Level)
 }
 
 // `UpdateAndReleaseUser` updates user to indicate current warning
