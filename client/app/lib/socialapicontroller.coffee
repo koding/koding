@@ -205,7 +205,7 @@ module.exports = class SocialApiController extends KDController
 
   mapChannel = (channel) ->
     { socialapi } = kd.singletons
-    
+
     data  = channel.channel
 
     # hold state of cache hit
@@ -213,7 +213,7 @@ module.exports = class SocialApiController extends KDController
 
     # item is initially our data
     item = data
-        
+
     # if we find the channel in cache, replace item with it
     if cacheItem = socialapi.retrieveCachedItem item.typeConstant, item.id
       cacheFound = yes
@@ -221,7 +221,7 @@ module.exports = class SocialApiController extends KDController
 
     item._id                 = data.id
     item.isParticipant       = channel.isParticipant
-    # we only allow name, purpose and payload to be updated  
+    # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
     item.name                = data.name
     item.purpose             = data.purpose
@@ -229,10 +229,10 @@ module.exports = class SocialApiController extends KDController
     item.participantsPreview = mapAccounts channel.participantsPreview
     item.unreadCount         = channel.unreadCount
     item.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
-        
-    unless cacheFound 
+
+    unless cacheFound
       channelInstance = new remote.api.SocialChannel item
-    else 
+    else
       channelInstance = item
 
     kd.singletons.socialapi.cacheItem channelInstance
@@ -743,21 +743,19 @@ module.exports = class SocialApiController extends KDController
       doXhrRequest {type: 'POST', endPoint, async: yes}, callback
 
     fetchBotChannel      : (callback) ->
-      getCurrentGroup (group) ->
 
-        { nickname } = whoami().profile
-        doXhrRequest {
-          type     : 'GET'
-          endPoint : "/api/integration/botchannel"
-        }, (err, response) ->
+      doXhrRequest {
+        type     : 'GET'
+        endPoint : "/api/integration/botchannel"
+      }, (err, response) ->
+        return callback err  if err
+
+        { channelId } = response.data
+
+        { socialapi } = kd.singletons
+
+        socialapi.channel.byId {id: channelId}, (err, channel) ->
+
           return callback err  if err
 
-          {channelId} = response
-
-          { socialapi } = kd.singletons
-
-          socialapi.channel.byId {id: channelId}, (err, channel) ->
-
-            return callback err  if err
-
-            return callback null, mapChannel { channel: channel }
+          return callback null, mapChannel { channel: channel }
