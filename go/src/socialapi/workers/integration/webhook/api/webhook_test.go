@@ -198,6 +198,7 @@ func TestWebhookPrepare(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(s, ShouldEqual, http.StatusNotFound)
 
+			tempPush := push
 			push = func(endPoint string, request *PushRequest) error {
 				return nil
 			}
@@ -206,7 +207,7 @@ func TestWebhookPrepare(t *testing.T) {
 				mocking.Header(nil),
 				services.ServiceInput{},
 			)
-
+			push = tempPush
 			So(err, ShouldBeNil)
 			So(s, ShouldEqual, http.StatusOK)
 		})
