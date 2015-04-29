@@ -20,7 +20,7 @@ func TestPopularTopic(t *testing.T) {
 
 	account := models.NewAccount()
 	account.OldId = AccountOldId.Hex()
-
+	var err error
 	account, err = rest.CreateAccount(account)
 	if err != nil {
 		t.Fatalf("err %s", err.Error())
