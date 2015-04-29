@@ -38,7 +38,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * The various snapshot total limits.
   ###
   @snapshotsLimits:
-    free         : 0
+    free         : 1
     hobbyist     : 1
     developer    : 3
     professional : 5
