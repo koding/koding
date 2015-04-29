@@ -40,16 +40,3 @@ func (err LimitRateExceededError) StatusCode() int {
 	// implemented it, Go has builtin status code but not exported yet.
 	return 429
 }
-
-type SuccessResponse struct {
-	Data   interface{}
-	Error  error
-	Status bool
-}
-
-func NewSuccessResponse(data interface{}) *SuccessResponse {
-	return &SuccessResponse{
-		Status: true,
-		Data:   data,
-	}
-}
