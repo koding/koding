@@ -114,55 +114,45 @@ Admin main styles
 
     &.members
 
-      .listview-wrapper > .kdscrollview
-        padding-right     34px
-        kalc              height, 100vh \- 73px
-        kalc              width, 100% \+ 34px
-        borderBox()
-
       .kdlistitemview-member
-        padding           23px 0
-        border-bottom     1px solid #DEDEDE
-        font-size         14px
-        line-height       19px
-        borderBox()
+        padding             15px 0
+        border-bottom       1px solid #DEDEDE
+        font-size           14px
+        height              40px
+        color               #4c4c4c
 
-        .avatarview
-          margin          0 18px 0 0
-          fl()
+      .avatarview
+        margin              0 18px 0 0
+        fl()
 
-        a
-          color           #4c4c4c
-          noTextDeco()
+      a
+        color               #4c4c4c
+        height              40px
+        noTextDeco()
 
-        a.profile
-          font-weight     600
+      .details
+        fl()
+        size                250px, 40px
 
-        .user-numbers
-          color           #7b7b7b
+      .fullname
+        font-weight         bold
+        font-size           15px
 
-        .edit-btn
-          fr()
+      .nickname
+        font-size           14px
+        color               #969696
 
-        .kd-checkbox-holder
-          line-height    24px
-          padding        0 12px 6px 0
-          fl()
-
-        .edit-container
-          display         block
-          clear           both
-          padding-left    54px
-          borderBox()
-
-          .buttons .kdbutton
-            width         23.5%
-
-            &~.kdbutton
-              margin-left 2%
+      .email
+        size                250px, 40px
+        line-height         40px
+        color               #969696
+        fl()
+        ellipsis()
 
 
     &.invitations
+
+      margin-top            50px // temp hack
 
       .invitations-tabs
         overflow          visible
