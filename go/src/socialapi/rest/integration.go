@@ -24,7 +24,7 @@ func DoPrepareRequest(data *services.ServiceInput, token string) error {
 	return nil
 }
 
-func DoPushRequest(data *api.WebhookRequest, token string) error {
+func DoPushRequest(data *api.PushRequest, token string) error {
 
 	url := fmt.Sprintf("%s/webhook/push/%s", IntegrationEndPoint, token)
 	_, err := sendModel("POST", url, data)

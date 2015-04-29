@@ -26,8 +26,8 @@ var (
 	m *mux.Mux
 )
 
-func newRequest(body string, channelId int64, groupName string) *WebhookRequest {
-	return &WebhookRequest{
+func newRequest(body string, channelId int64, groupName string) *PushRequest {
+	return &PushRequest{
 		Message: webhook.Message{
 			Body:      body,
 			ChannelId: channelId,
@@ -198,7 +198,7 @@ func TestWebhookPrepare(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(s, ShouldEqual, http.StatusNotFound)
 
-			push = func(endPoint string, request map[string]string) error {
+			push = func(endPoint string, request *PushRequest) error {
 				return nil
 			}
 			s, _, _, err = h.Prepare(

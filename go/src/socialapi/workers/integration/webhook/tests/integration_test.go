@@ -30,8 +30,8 @@ func newPrepareRequest(email string) *services.ServiceInput {
 	}
 }
 
-func newPushRequest(channelId int64, groupName string) *api.WebhookRequest {
-	wr := &api.WebhookRequest{
+func newPushRequest(channelId int64, groupName string) *api.PushRequest {
+	wr := &api.PushRequest{
 		GroupName: groupName,
 	}
 	wr.Body = "hey"

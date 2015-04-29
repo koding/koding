@@ -2,15 +2,15 @@ package api
 
 import "socialapi/workers/integration/webhook"
 
-// WebhookRequest is used as input data for /push endpoint
-type WebhookRequest struct {
+// PushRequest is used as input data for /push endpoint
+type PushRequest struct {
 	webhook.Message
-	GroupName string
-	Token     string
+	GroupName string `json:"groupName"`
+	Token     string `json:"token"`
 }
 
 // tests are handled within webhook_test file
-func (r *WebhookRequest) validate() error {
+func (r *PushRequest) validate() error {
 	if r.Token == "" {
 		return ErrTokenNotSet
 	}
@@ -30,7 +30,7 @@ func (r *WebhookRequest) validate() error {
 	return nil
 }
 
-func (r *WebhookRequest) verify() (*webhook.ChannelIntegration, error) {
+func (r *PushRequest) verify() (*webhook.ChannelIntegration, error) {
 	ti := webhook.NewChannelIntegration()
 	err := ti.ByToken(r.Token)
 	if err != nil {

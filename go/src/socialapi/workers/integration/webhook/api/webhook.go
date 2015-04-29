@@ -10,7 +10,6 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/services"
-	"strconv"
 
 	"labix.org/v2/mgo"
 
@@ -38,7 +37,7 @@ func NewHandler(l logging.Logger) (*Handler, error) {
 	}, nil
 }
 
-func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, http.Header, interface{}, error) {
+func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, http.Header, interface{}, error) {
 	val := u.Query().Get("token")
 	r.Token = val
 
@@ -102,12 +101,12 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 	message := service.PrepareMessage(r.Data)
 
 	endPoint := service.PrepareEndpoint(r.Token)
-	endPoint = fmt.Sprintf("%s/%s", h.RevProxyUrl, endPoint)
-	pushRequest := make(map[string]string)
-	pushRequest["body"] = message
+	endPoint = fmt.Sprintf("%s%s", h.RevProxyUrl, endPoint)
+	pr := new(PushRequest)
+	pr.Body = message
 
 	so := service.Output(r.Data)
-	pushRequest["groupName"] = so.GroupName
+	pr.GroupName = so.GroupName
 
 	channelId, err := h.fetchChannelId(so)
 	if err != nil {
@@ -115,10 +114,10 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 	}
 
 	if channelId != 0 {
-		pushRequest["channelId"] = strconv.FormatInt(channelId, 10)
+		pr.ChannelId = channelId
 	}
 
-	if err := push(endPoint, pushRequest); err != nil {
+	if err := push(endPoint, pr); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -235,7 +234,7 @@ func (h *Handler) prepareUsername(so *services.ServiceOutput) error {
 
 // TODO need to mock the endpoint. up till that time, this push method is
 // defined like this
-var push = func(endPoint string, pushRequest map[string]string) error {
+var push = func(endPoint string, pushRequest *PushRequest) error {
 
 	// relay the cookie to other endpoint
 	request := &handler.Request{
