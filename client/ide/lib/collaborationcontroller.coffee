@@ -504,7 +504,7 @@ module.exports = CollaborationController =
 
   resurrectSnapshot: ->
 
-    return  if @collaborationJustInitialized or @fakeTabView
+    return  if @fakeTabView
 
     snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
     snapshot = @appendHostSnapshot snapshot  unless @amIHost
