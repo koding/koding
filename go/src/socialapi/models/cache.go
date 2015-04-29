@@ -27,7 +27,8 @@ func init() {
 			session: cache.NewLRU(cacheSize),
 		},
 		Channel: &ChannelCache{
-			id: cache.NewLRU(cacheSize),
+			id:        cache.NewLRU(cacheSize),
+			groupName: cache.NewLRU(cacheSize),
 		},
 	}
 }
@@ -149,8 +150,10 @@ func (s *SessionCache) SetToCache(ses *mongomodels.Session) error {
 	return nil
 }
 
+//////////////// Channel Cache ////////////////////
 type ChannelCache struct {
-	id cache.Cache
+	id        cache.Cache
+	groupName cache.Cache
 }
 
 func (c *ChannelCache) ById(id int64) (*Channel, error) {
@@ -178,8 +181,42 @@ func (c *ChannelCache) ById(id int64) (*Channel, error) {
 	return ch, nil
 }
 
+func (c *ChannelCache) ByGroupName(name string) (*Channel, error) {
+	data, err := c.groupName.Get(name)
+	if err != nil && err != cache.ErrNotFound {
+		return nil, err
+	}
+
+	if err == nil {
+		ch, ok := data.(*Channel)
+		if ok {
+			return ch, nil
+		}
+	}
+
+	ch := NewChannel()
+	if err := ch.FetchPublicChannel(name); err != nil {
+		return nil, err
+	}
+
+	if err := c.SetToCache(ch); err != nil {
+		return nil, err
+	}
+
+	return ch, nil
+}
+
 func (c *ChannelCache) SetToCache(ch *Channel) error {
+
 	if err := c.id.Set(strconv.FormatInt(ch.Id, 10), ch); err != nil {
+		return err
+	}
+
+	if ch.TypeConstant != Channel_TYPE_GROUP {
+		return nil
+	}
+
+	if err := c.groupName.Set(ch.GroupName, ch); err != nil {
 		return err
 	}
 
