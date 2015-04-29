@@ -87,7 +87,6 @@ func TestInteractionListLikedMessage(t *testing.T) {
 			messageIds, err := i.ListLikedMessageIds(query, channel.Id)
 			So(messageIds, ShouldNotBeNil)
 			So(err, ShouldBeNil)
-			fmt.Println(messageIds)
 			So(len(messageIds), ShouldEqual, 2)
 		})
 
@@ -108,7 +107,6 @@ func TestInteractionListLikedMessage(t *testing.T) {
 			messageIds, err := i.ListLikedMessageIds(query, channel2.Id)
 			So(messageIds, ShouldNotBeNil)
 			So(err, ShouldBeNil)
-			fmt.Println(messageIds)
 			So(len(messageIds), ShouldEqual, 1)
 		})
 

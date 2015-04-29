@@ -42,10 +42,10 @@ const (
 	Interaction_TYPE_DONWVOTE = "downvote"
 )
 
-func (i *Interaction) ListLikedMessageIds(q *request.Query, groupChannelId int64) ([]int64, error) {
+func (i *Interaction) ListLikedMessageIds(q *request.Query, channelId int64) ([]int64, error) {
 	messageIds := make([]int64, 0)
 
-	query := getLikedMessagesQuery(q, groupChannelId)
+	query := getLikedMessagesQuery(q, channelId)
 
 	rows, err := query.Rows()
 	defer rows.Close()
@@ -65,8 +65,8 @@ func (i *Interaction) ListLikedMessageIds(q *request.Query, groupChannelId int64
 	return messageIds, nil
 }
 
-func (i *Interaction) ListLikedMessages(q *request.Query, groupChannelId int64) ([]ChannelMessage, error) {
-	ids, err := i.ListLikedMessageIds(q, groupChannelId)
+func (i *Interaction) ListLikedMessages(q *request.Query, channelId int64) ([]ChannelMessage, error) {
+	ids, err := i.ListLikedMessageIds(q, channelId)
 	if err != nil {
 		return nil, err
 	}
