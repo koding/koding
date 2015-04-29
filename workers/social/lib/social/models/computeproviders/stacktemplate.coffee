@@ -101,28 +101,29 @@ module.exports = class JStackTemplate extends jraphical.Module
     success: (client, data, callback)->
 
       { delegate } = client.connection
-      { profile:{nickname} } = delegate
 
-      { title, description, config } = data
-      return callback new KodingError "Title required."  unless title
+      unless data?.title
+        return callback new KodingError "Title required."
 
-      template = new JStackTemplate {
-        title, description, config
-        rules         : data.rules       ? []
-        domains       : data.domains     ? []
-        machines      : data.machines    ? []
-        extras        : data.extras      ? []
-        connections   : data.connections ? []
-        accessLevel   : data.accessLevel ? "private"
-        group         : client.context.group
-        originId      : delegate.getId()
-      }
+      stackTemplate = new JStackTemplate
+        originId    : delegate.getId()
+        group       : client.context.group
+        title       : data.title
+        config      : data.config      ? {}
+        description : data.description ? ''
+        rules       : data.rules       ? []
+        domains     : data.domains     ? []
+        machines    : data.machines    ? []
+        extras      : data.extras      ? []
+        connections : data.connections ? []
+        accessLevel : data.accessLevel ? 'private'
+        template    : data.template    ? ''
+        credentials : data.credentials ? []
 
-      template.save (err)->
+      stackTemplate.save (err)->
         if err
-          callback new KodingError "Failed to save stack template", err
-        else
-          callback null, template
+        then callback new KodingError 'Failed to save stack template', err
+        else callback null, stackTemplate
 
 
   @some$: permit 'list stack templates',
