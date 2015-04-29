@@ -188,9 +188,13 @@ func TestWebhookPrepare(t *testing.T) {
 			)
 			So(err.Error(), ShouldEqual, ErrNameNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
+		})
 
-			integrationName = "testing"
-			s, _, _, err = h.Prepare(
+		Convey("users should not be able to send any message when integration service name is wrong", func() {
+
+			token := "123123123"
+			integrationName := "testing"
+			s, _, _, err := h.Prepare(
 				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
 				mocking.Header(nil),
 				services.ServiceInput{},
@@ -198,11 +202,16 @@ func TestWebhookPrepare(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(s, ShouldEqual, http.StatusNotFound)
 
+		})
+
+		Convey("users should be able to send bot messages when they have valid token", func() {
+			// assume that token is valid
 			tempPush := push
+			token := "123123"
 			push = func(endPoint string, request *PushRequest) error {
 				return nil
 			}
-			s, _, _, err = h.Prepare(
+			s, _, _, err := h.Prepare(
 				mocking.URL(m, "POST", "/webhook/iterable/"+token),
 				mocking.Header(nil),
 				services.ServiceInput{},
