@@ -20,6 +20,13 @@ type Machines struct {
 	Machines []TerraformMachine `json:"machines"`
 }
 
+func (m *Machines) AppendRegion(region string) {
+	for i, machine := range m.Machines {
+		machine.Region = region
+		m.Machines[i] = machine
+	}
+}
+
 func machinesFromState(state *terraform.State) (*Machines, error) {
 	if state.Modules == nil {
 		return nil, errors.New("state modules is empty")

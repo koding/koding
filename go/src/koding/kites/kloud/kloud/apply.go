@@ -62,16 +62,23 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	data, err := machinesFromState(state)
+	region, err := regionFromHCL(args.TerraformContext)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := updateMachines(ctx, data, args.MachineIds...); err != nil {
+	machines, err := machinesFromState(state)
+	if err != nil {
 		return nil, err
 	}
 
-	d, err := json.MarshalIndent(data, "", " ")
+	machines.AppendRegion(region)
+
+	if err := updateMachines(ctx, machines, args.MachineIds...); err != nil {
+		return nil, err
+	}
+
+	d, err := json.MarshalIndent(machines, "", " ")
 	if err != nil {
 		return nil, err
 	}

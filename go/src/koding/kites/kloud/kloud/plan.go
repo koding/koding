@@ -88,17 +88,14 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	output, err := machinesFromPlan(plan)
+	machines, err := machinesFromPlan(plan)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, machine := range output.Machines {
-		machine.Region = region
-		output.Machines[i] = machine
-	}
+	machines.AppendRegion(region)
 
-	return output, nil
+	return machines, nil
 }
 
 func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]string) (*terraformCredentials, error) {
