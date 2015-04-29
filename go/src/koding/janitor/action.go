@@ -1,11 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
-	"socialapi/workers/email/emailsender"
-	"time"
 )
 
 var (
@@ -23,23 +21,25 @@ func SendEmail(user *models.User, levelId int) error {
 		return ErrSubjectNotFound
 	}
 
-	account, err := modelhelper.GetAccount(user.Name)
-	if err != nil {
-		return err
-	}
+	fmt.Printf("Sending %v to user: %v with subject: %v\n", levelId, user.Name, subject)
 
-	mail := &emailsender.Mail{
-		To:      user.Email,
-		Subject: subject,
-		Properties: &emailsender.Properties{
-			Username: user.Name,
-			Options: map[string]interface{}{
-				"firstName": account.Profile.FirstName,
-			},
-		},
-	}
+	// account, err := modelhelper.GetAccount(user.Name)
+	// if err != nil {
+	//   return err
+	// }
 
-	return emailsender.Send(mail)
+	// mail := &emailsender.Mail{
+	//   To:      user.Email,
+	//   Subject: subject,
+	//   Properties: &emailsender.Properties{
+	//     Username: user.Name,
+	//     Options: map[string]interface{}{
+	//       "firstName": account.Profile.FirstName,
+	//     },
+	//   },
+	// }
+
+	return nil
 }
 
 type requestArgs struct {
@@ -56,18 +56,20 @@ func DeleteVMs(user *models.User, _ int) error {
 		return ErrKloudKlientNotInitialized
 	}
 
-	for _, machine := range machines {
-		// avoid spamming kloud
-		time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
+	for _ = range machines {
+		fmt.Printf("Deleting machine for user: %v\n", user.Name)
 
-		_, err := KiteClient.Tell("destroy", &requestArgs{
-			MachineId: machine.ObjectId.Hex(),
-		})
+		// // avoid spamming kloud
+		// time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
 
-		if err != nil {
-			Log.Error("Error destroying machine:%s for username: %s, %v", user.Name,
-				machine.ObjectId, err)
-		}
+		// _, err := KiteClient.Tell("destroy", &requestArgs{
+		//   MachineId: machine.ObjectId.Hex(),
+		// })
+
+		// if err != nil {
+		//   Log.Error("Error destroying machine:%s for username: %s, %v", user.Name,
+		//     machine.ObjectId, err)
+		// }
 	}
 
 	return nil

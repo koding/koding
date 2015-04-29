@@ -12,7 +12,6 @@ import (
 	kiteConfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
-	"github.com/robfig/cron"
 
 	"github.com/koding/kite"
 )
@@ -25,7 +24,7 @@ var (
 
 	// List of warnings to iterate upon in a certain interval.
 	Warnings = []*Warning{
-		FirstEmail, SecondEmail, ThirdDeleteVM,
+		FirstEmail, SecondEmail, ThirdDeleteVM, FourthDeleteBlockedUserVm,
 	}
 
 	KiteClient *kite.Client
@@ -49,15 +48,17 @@ func main() {
 		Log.Fatal("Error initializing kite: %s", err.Error())
 	}
 
-	c := cron.New()
-	c.AddFunc(DailyAtEightAM, func() {
+	// c := cron.New()
+	// c.AddFunc(DailyAtEightAM, func() {
+	go func() {
 		for _, warning := range Warnings {
 			result := warning.Run()
 			Log.Info(result.String())
 		}
-	})
+	}()
+	// })
 
-	c.Start()
+	// c.Start()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/version", artifact.VersionHandler())
@@ -70,12 +71,12 @@ func main() {
 
 	Log.Info("Listening on port: %s", port)
 
-	defer func() {
+	r.ShutdownHandler = func() {
 		listener.Close()
 		r.Close()
 		KiteClient.Close()
 		modelhelper.Close()
-	}()
+	}
 
 	if err := http.Serve(listener, mux); err != nil {
 		Log.Fatal("Error starting http server: %s", err.Error())
@@ -88,8 +89,8 @@ func initializeRunner() *runner.Runner {
 		Log.Fatal("Error starting runner: %s", err.Error())
 	}
 
-	appConfig := config.MustRead(r.Conf.Path)
-	modelhelper.Initialize(appConfig.Mongo)
+	// appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize("localhost:27017/koding")
 
 	Log = r.Log
 
