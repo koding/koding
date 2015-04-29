@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 KDView               = kd.View
+MemberItemView       = require './memberitemview'
 KDListItemView       = kd.ListItemView
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
@@ -9,21 +10,28 @@ module.exports = class TeamMembersCommonView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.noItemFoundWidget or= new KDCustomHTMLView
-    options.listViewItemClass or= KDListItemView
+    options.noItemFoundWidget   or= new KDCustomHTMLView
+    options.listViewItemClass   or= MemberItemView
+    options.listViewItemOptions or= {}
+    options.itemLimit            ?= 10
 
     super options, data
 
+    @skip = 0
+
     @createListController()
-    @listMembers()
+    @fetchMembers()
 
 
   createListController: ->
 
-    { listViewItemClass, noItemFoundWidget } = @getOptions
+    { listViewItemClass, noItemFoundWidget, listViewItemOptions } = @getOptions()
 
     @listController       = new KDListViewController
-      itemClass           : listViewItemClass
+      viewOptions         :
+        wrapper           : yes
+        itemClass         : listViewItemClass
+        itemOptions       : listViewItemOptions
       noItemFoundWidget   : noItemFoundWidget
       startWithLazyLoader : yes
       lazyLoadThreshold   : .90
@@ -34,9 +42,26 @@ module.exports = class TeamMembersCommonView extends KDView
     @addSubView @listController.getView()
 
 
-  ###*
-    This method needs to be implemented in subclasses.
+  fetchMembers: ->
 
-    @abstract
-  ###
-  listMembers: -> throw new Error 'Method needs to be implemented in subclasses'
+    selector = @query or ''
+    options  =
+      limit  : @getOptions().itemLimit
+      sort   : { timestamp: -1 }
+      skip   : @skip
+
+    @getData().searchMembers selector, options, (err, members) =>
+      return kd.warn err  if err
+      @listMembers members
+
+
+  listMembers: (members) ->
+
+    return  unless members.length
+
+    @skip += members.length
+
+    for member in members
+      @listController.addItem member
+
+    @listController.lazyLoader.hide()
