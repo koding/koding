@@ -516,8 +516,6 @@ module.exports = CollaborationController =
 
   broadcastMachineUserChange: (participants, state) ->
 
-    return  if @stateMachine?.state is 'Active'
-
     type = "#{if state then 'Set' else 'Unset'}MachineUser"
 
     @broadcastMessage {type, participants}
@@ -732,6 +730,8 @@ module.exports = CollaborationController =
 
     @updateWorkspaceSnapshotModel()
 
+    @on 'SetMachineUser', @bound 'broadcastMachineUserChange'
+
 
   transitionViewsToActive: ->
 
@@ -749,6 +749,8 @@ module.exports = CollaborationController =
   onCollaborationEnding: ->
 
     @chat.settingsPane.endSession.disable()
+
+    @off 'SetMachineUser'
 
     if @amIHost
       @endCollaborationForHost =>
@@ -938,7 +940,7 @@ module.exports = CollaborationController =
     setMachineUser @mountedMachine, usernames, share, (err) =>
       return callback err  if err
 
-      @broadcastMachineUserChange usernames, share
+      @emit 'SetMachineUser', usernames, share
 
       callback null
 
