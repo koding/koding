@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
+	"socialapi/models"
+	"socialapi/request"
+	"socialapi/rest"
 	"testing"
 
 	"github.com/koding/runner"
