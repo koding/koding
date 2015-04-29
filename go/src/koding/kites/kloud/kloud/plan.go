@@ -26,7 +26,7 @@ type PlanMachine struct {
 	Attributes map[string]string `json:"attributes"`
 }
 
-type PlanOutput struct {
+type Machines struct {
 	Machines []PlanMachine `json:"machines"`
 }
 
@@ -112,7 +112,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("region is not of type string: %v", region)
 	}
 
-	output, err := machineFromPlan(plan)
+	output, err := machinesFromPlan(plan)
 	if err != nil {
 		return nil, err
 	}
@@ -231,13 +231,7 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 	return creds, nil
 }
 
-func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
-	out := &PlanOutput{
-		Machines: make([]PlanMachine, 0),
-	}
-
-	attrs := make(map[string]string, 0)
-
+func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 	if plan.Diff == nil {
 		return nil, errors.New("plan diff is empty")
 	}
@@ -245,6 +239,12 @@ func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
 	if plan.Diff.Modules == nil {
 		return nil, errors.New("plan diff module is empty")
 	}
+
+	out := &Machines{
+		Machines: make([]PlanMachine, 0),
+	}
+
+	attrs := make(map[string]string, 0)
 
 	for _, d := range plan.Diff.Modules {
 		if d.Resources == nil {
@@ -260,25 +260,34 @@ func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
 				attrs[name] = a.New
 			}
 
-			// providerResource is in the form of "aws_instance.foo.bar"
-			splitted := strings.Split(providerResource, "_")
-			if len(splitted) < 2 {
-				return nil, fmt.Errorf("provider resource is unknown: %v", splitted)
+			provider, label, err := parseProviderAndLabel(providerResource)
+			if err != nil {
+				return nil, err
 			}
 
-			// splitted[1]: instance.foo.bar
-			resourceSplitted := strings.SplitN(splitted[1], ".", 2)
-
-			providerName := splitted[0]          // aws
-			resourceLabel := resourceSplitted[1] // foo.bar
-
 			out.Machines = append(out.Machines, PlanMachine{
-				Provider:   providerName,
-				Label:      resourceLabel,
+				Provider:   provider,
+				Label:      label,
 				Attributes: attrs,
 			})
 		}
 	}
 
 	return out, nil
+}
+
+func parseProviderAndLabel(resource string) (string, string, error) {
+	// resource is in the form of "aws_instance.foo.bar"
+	splitted := strings.Split(resource, "_")
+	if len(splitted) < 2 {
+		return "", "", fmt.Errorf("provider resource is unknown: %v", splitted)
+	}
+
+	// splitted[1]: instance.foo.bar
+	resourceSplitted := strings.SplitN(splitted[1], ".", 2)
+
+	provider := splitted[0]      // aws
+	label := resourceSplitted[1] // foo.bar
+
+	return provider, label, nil
 }

@@ -63,11 +63,16 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := machineFromState(state); err != nil {
+	data, err := machinesFromState(state)
+	if err != nil {
 		return nil, err
 	}
 
-	d, err := json.MarshalIndent(state, "", " ")
+	if err := updateMachines(ctx, data, args.MachineIds...); err != nil {
+		return nil, err
+	}
+
+	d, err := json.MarshalIndent(data, "", " ")
 	if err != nil {
 		return nil, err
 	}
@@ -77,19 +82,53 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	return nil, errors.New("not implemented yet")
 }
 
-func machineFromState(state *terraform.State) error {
+func updateMachines(ctx context.Context, data *Machines, ids ...string) error {
+	_, ok := session.FromContext(ctx)
+	if !ok {
+		return errors.New("session context is not passed")
+	}
+
+	return errors.New("not implemented yet")
+}
+
+func machinesFromState(state *terraform.State) (*Machines, error) {
 	fmt.Printf("state = %+v\n", state)
 
 	if state.Modules == nil {
-		return errors.New("state modules is empty")
+		return nil, errors.New("state modules is empty")
 	}
+
+	out := &Machines{
+		Machines: make([]PlanMachine, 0),
+	}
+
+	attrs := make(map[string]string, 0)
 
 	for _, m := range state.Modules {
-		fmt.Printf("m.Output = %+v\n", m.Outputs)
-		fmt.Printf("m.Dependencis = %+v\n", m.Dependencies)
-		fmt.Printf("m.Path = %+v\n", m.Path)
-		fmt.Printf("m.Resources = %+v\n", m.Resources)
+		for resource, r := range m.Resources {
+			if r.Primary == nil {
+				continue
+			}
+
+			provider, label, err := parseProviderAndLabel(resource)
+			if err != nil {
+				return nil, err
+			}
+
+			fmt.Printf("provider = %+v\n", provider)
+			fmt.Printf("label = %+v\n", label)
+
+			for key, val := range r.Primary.Attributes {
+				attrs[key] = val
+			}
+
+			out.Machines = append(out.Machines, PlanMachine{
+				Provider:   provider,
+				Label:      label,
+				Attributes: attrs,
+			})
+		}
 	}
 
-	return nil
+	return out, nil
 }
