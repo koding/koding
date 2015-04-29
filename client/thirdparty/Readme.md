@@ -21,7 +21,6 @@ ace@1.1.4/ext-emmet is not compatible with recent versions of emmet since emmet 
 - bundled emmet release is from 2013
 - underscore@1.3.3 is bundled within
 - pollutes global space and stuff
-- also f c9
 
 So I had to dirty-hack [ext-emmet.js](./ace/ext-emmet.js) to be compatible with emmet@1.3.0.
 
