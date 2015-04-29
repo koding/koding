@@ -514,6 +514,15 @@ module.exports = CollaborationController =
       @statusBar.emit 'ParticipantUnwatched', property
 
 
+  broadcastMachineUserChange: (participants, state) ->
+
+    return  if @stateMachine?.state is 'Active'
+
+    type = "#{if state then 'Set' else 'Unset'}MachineUser"
+
+    @broadcastMessage {type, participants}
+
+
   handleSharedMachine: ->
 
     @unmountMachine @mountedMachine
@@ -929,10 +938,7 @@ module.exports = CollaborationController =
     setMachineUser @mountedMachine, usernames, share, (err) =>
       return callback err  if err
 
-      if @stateMachine.state is 'Active'
-        @broadcastMessage
-          type: "#{if share then 'Set' else 'Unset'}MachineUser"
-          participants: usernames
+      @broadcastMachineUserChange usernames, share
 
       callback null
 
