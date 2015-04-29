@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"socialapi/config"
 	"socialapi/request"
 	"testing"
