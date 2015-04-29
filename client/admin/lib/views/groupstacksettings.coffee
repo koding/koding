@@ -2,9 +2,26 @@ kd             = require 'kd'
 
 remote         = require('app/remote').getInstance()
 FSHelper       = require 'app/util/fs/fshelper'
+applyMarkdown  = require 'app/util/applyMarkdown'
 IDEEditorPane  = require 'ide/workspace/panes/ideeditorpane'
+Encoder        = require 'htmlencode'
 
 module.exports = class GroupStackSettings extends kd.View
+
+  # This will be used if stack template is not defined yet
+  defaultTemplate = """
+    provider "aws" {
+        access_key = "${var.access_key}"
+        secret_key = "${var.secret_key}"
+        region = "us-east-1"
+    }
+
+    resource "aws_instance" "example" {
+        count = 2
+        ami = "ami-25773a24"
+        instance_type = "t1.micro"
+    }
+  """
 
   constructor: (options = {}, data) ->
 
@@ -13,108 +30,200 @@ module.exports = class GroupStackSettings extends kd.View
     super options, data
 
 
+  fetchData: (callback)->
+
+    { groupsController }            = kd.singletons
+    { JCredential, JStackTemplate } = remote.api
+
+    JCredential.some {}, { limit: 30 }, (err, credentials) ->
+
+      return callback {message: 'Failed to fetch credentials:', err}  if err
+
+      currentGroup = groupsController.getCurrentGroup()
+
+      if not currentGroup.stackTemplates?.length > 0
+        callback null, {credentials}
+        return
+
+      {stackTemplates} = currentGroup
+      stackTemplateId  = stackTemplates.first # TODO support multiple templates
+
+      JStackTemplate.some
+        _id   : stackTemplateId
+      , limit : 1
+      , (err, stackTemplate)->
+
+          if err
+            console.warn 'Failed to fetch stack template:', err
+            callback null, {credentials}
+          else
+            stackTemplate = stackTemplate.first
+            stackTemplate.template = Encoder.htmlDecode stackTemplate.template
+
+            callback null, {credentials, stackTemplate}
+
+
+  createEditorPane: (content) ->
+
+    file = FSHelper.createFileInstance path: 'localfile:/stack.yml'
+
+    @addSubView editorContainer = new kd.View
+    editorContainer.setCss height: '240px'
+
+    editorContainer.addSubView @editorPane = new IDEEditorPane {
+      file, content, delegate: this
+    }
+
+    @editorPane.setCss background: 'black'
+
+
+  createCredentialsBox: (credentials) ->
+
+    creds = ({title: c.title, value: c.publicKey} for c in credentials)
+
+    @addSubView new kd.LabelView
+      title: "Select credential to use:"
+
+    @addSubView @credentialBox = new kd.SelectBox
+      name          : "credential"
+      selectOptions : creds
+
+  createOutputView: ->
+
+    @outputView = new kd.View
+    @outputView.setCss height: 'auto'
+
+    @addSubView @outputView
+
+
   viewAppended: ->
 
     kd.singletons.appManager.require 'IDE', =>
 
-      file = FSHelper.createFileInstance path: 'localfile:/stack.yml'
-      content = """
-        provider "aws" {
-            access_key = "${var.access_key}"
-            secret_key = "${var.secret_key}"
-            region = "us-east-1"
-        }
-
-        resource "aws_instance" "example" {
-            count = 2
-            ami = "ami-25773a24"
-            instance_type = "t1.micro"
-        }
-      """
-
-      @addSubView editorContainer = new kd.View
-      editorContainer.setCss height: '240px'
-
-      editorContainer.addSubView editorPane  = new IDEEditorPane {
-        file, content, delegate: this
-      }
-
-      editorPane.setCss background: 'black'
-
-      { JCredential } = remote.api
-
-      JCredential.some {}, { limit: 30 }, (err, credentials)=>
+      @fetchData (err, data) =>
 
         return console.warn err  if err
 
-        credentials = ({title: c.title, value: c.publicKey} for c in credentials)
+        {credentials, stackTemplate} = data
 
-        @addSubView new kd.LabelView
-          title: "Select credential to use:"
+        @createEditorPane stackTemplate?.template or defaultTemplate
+        @createCredentialsBox credentials
 
-        @addSubView credentialBox = new kd.SelectBox
-          name          : "credential"
-          selectOptions : credentials
-
-        output = new kd.View
-        output.setCss height: 'auto'
-
-        @addSubView new kd.ButtonView
+        @addSubView @saveButton = new kd.ButtonView
           title    : 'Set as default stack'
           loader   : yes
-          callback : ->
+          callback : =>
+            @setStack stackTemplate
 
-            terraformContext = editorPane.getValue()
-            publicKeys = {aws: credentialBox.getValue()}
+        @createOutputView()
 
-            console.log {terraformContext, publicKeys}
 
-            { computeController } = kd.singletons
+  setStack: (stackTemplate) ->
 
-            computeController.getKloud()
+    terraformContext = @editorPane.getValue()
+    publicKeys = aws : @credentialBox.getValue()
 
-              .checkPlan {terraformContext, publicKeys}
+    console.log {terraformContext, publicKeys}
 
-              .then (res) ->
+    { computeController } = kd.singletons
 
-                # An example of a valid stack template
-                # ------------------------------------
-                # machines: [
-                #   {
-                #     "label" : "koding-vm-0",
-                #     "provider" : "koding",
-                #     "instanceType" : "t2.micro",
-                #     "provisioners" : [
-                #         "devrim/koding-base"
-                #     ],
-                #     "region" : "us-east-1",
-                #     "source_ami" : "ami-a6926dce"
-                #   }
-                # ],
+    computeController.getKloud()
 
-                out = machines: []
+      .checkPlan {terraformContext, publicKeys}
 
-                {machines} = res
+      .then (response) =>
 
-                for machine, index in machines
+        machines = @parseTerraformOutput response
+        @outputView.updatePartial applyMarkdown "
+          ```json\n#{JSON.stringify machines, null, 2}\n```
+        "
 
-                  {instance_type, ami} = machine.attributes
+        @updateStackTemplate {
+          template: terraformContext
+          stackTemplate, publicKeys, machines
+        }
 
-                  out.machines.push {
-                    label        : "aws-#{index}" # TODO we need this from kloud
-                    provider     : 'amazon'       # TODO we have now aws and amaon ~ GG
-                    source_ami   : ami
-                    instanceType : instance_type
-                    provisioners : []             # TODO what are we going to do with provisioners? ~ GG
-                    region       : 'us-east-1'    # TODO we need this from kloud ~ GG
-                  }
+      .catch   @bound 'showError'
+      .finally @saveButton.bound 'hideLoader'
 
-                console.log "WOHOOO RES::", res, out
 
-              .catch (err) ->
-                console.warn "WOJOOO BOM ERR::", err
+  showError: (err) ->
 
-              .finally =>
-                @hideLoader()
+    @outputView.updatePartial applyMarkdown """
+      Failed to parse template:
 
-        @addSubView output
+      ```json\n#{err}\n```
+    """
+
+    console.warn "ERROR:", err
+
+
+  updateStackTemplate: (data)->
+
+    { template, publicKeys, machines, stackTemplate } = data
+
+    { JCredential, JStackTemplate } = remote.api
+
+    credentials = [publicKeys.aws] # TODO Make it work with other providers ~ GG
+
+    if stackTemplate
+      console.log ">>>>>", stackTemplate
+      stackTemplate.update {machines, template, credentials}, (err) =>
+        return @showError err  if err
+        @setGroupTemplate stackTemplate
+    else
+      JStackTemplate.create {
+        title : "Default stack template"
+        template, machines, credentials
+      }, (err, stackTemplate) =>
+        return @showError err  if err
+        @setGroupTemplate stackTemplate
+
+
+  setGroupTemplate: (stackTemplate) ->
+
+    { groupsController } = kd.singletons
+    currentGroup = groupsController.getCurrentGroup()
+    currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
+      return @showError err  if err
+
+
+  parseTerraformOutput: (response) ->
+
+    # An example of a valid stack template
+    # ------------------------------------
+    # title: "Default stack",
+    # description: "Koding's default stack template for new users",
+    # machines: [
+    #   {
+    #     "label" : "koding-vm-0",
+    #     "provider" : "koding",
+    #     "instanceType" : "t2.micro",
+    #     "provisioners" : [
+    #         "devrim/koding-base"
+    #     ],
+    #     "region" : "us-east-1",
+    #     "source_ami" : "ami-a6926dce"
+    #   }
+    # ],
+
+    out = machines: []
+
+    {machines} = response
+
+    for machine, index in machines
+
+      {instance_type, ami} = machine.attributes
+
+      out.machines.push {
+        label        : "aws-#{index}" # TODO we need this from kloud
+        provider     : 'amazon'       # TODO we have now aws and amaon ~ GG
+        source_ami   : ami
+        instanceType : instance_type
+        provisioners : []             # TODO what are we going to do with provisioners? ~ GG
+        region       : 'us-east-1'    # TODO we need this from kloud ~ GG
+      }
+
+    console.log "WOHOOO RES::", response, out
+
+    return out.machines
