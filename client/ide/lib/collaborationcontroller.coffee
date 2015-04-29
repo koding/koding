@@ -519,15 +519,13 @@ module.exports = CollaborationController =
 
   appendHostSnapshot: (snapshot) ->
 
-    watchingHost = -1 < @myWatchMap.values().indexOf @collaborationHost
-    return snapshot  unless watchingHost
+    if snapshot.length or @myWatchMap.values().length
+      return snapshot
 
     key = "#{@collaborationHost}Snapshot"
 
     if hostSnapshot = @rtm.getFromModel(key)?.values()
       return snapshot.concat hostSnapshot
-
-    return snapshot
 
 
   showShareButton: ->
