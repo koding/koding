@@ -22,7 +22,7 @@ module.exports = class AdminMembersView extends KDView
 
   createTabView: ->
 
-    @tabView = new KDTabView hideHandleCloseIcons: yes
+    @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
     @tabView.addPane @allMembersPane     = new KDTabPaneView name: 'All Members'
     @tabView.addPane @adminsPane         = new KDTabPaneView name: 'Admins'
@@ -30,6 +30,4 @@ module.exports = class AdminMembersView extends KDView
     @tabView.addPane @blockedMembersPane = new KDTabPaneView name: 'Blocked'
 
     @tabView.showPaneByIndex 0
-    @allMembersPane.addSubView new TeamMembersView
-
-    @addSubView @tabView
+    @allMembersPane.addSubView new TeamMembersView {}, @getData()
