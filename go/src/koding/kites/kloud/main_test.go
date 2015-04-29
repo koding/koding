@@ -200,6 +200,16 @@ resource "aws_instance" "example" {
 		t.Fatal(err)
 	}
 
+	for _, machine := range result.Machines {
+		if machine.Label != "example" {
+			t.Errorf("plan label: want: example got: %s\n", machine.Label)
+		}
+
+		if machine.Region != "us-east-1" {
+			t.Errorf("plan region: want: example got: %s\n", machine.Label)
+		}
+	}
+
 	fmt.Printf("result = %+v\n", result)
 }
 
