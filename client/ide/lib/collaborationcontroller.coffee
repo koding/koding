@@ -961,7 +961,7 @@ module.exports = CollaborationController =
           callback : =>
             @modal.destroy()
 
-    @chat.end()
+    @chat?.end()
     @showModal options
     @handleCollaborationEndedForParticipant()
 
@@ -981,7 +981,7 @@ module.exports = CollaborationController =
           callback : =>
             @modal.destroy()
 
-    @chat.end()
+    @chat?.end()
     @showModal options
     @handleCollaborationEndedForParticipant()
 
