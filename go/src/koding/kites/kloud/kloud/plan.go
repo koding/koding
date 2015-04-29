@@ -20,6 +20,8 @@ import (
 
 type PlanMachine struct {
 	Provider   string            `json:"provider"`
+	Label      string            `json:"label"`
+	Region     string            `json:"region"`
 	Attributes map[string]string `json:"attributes"`
 }
 
@@ -228,14 +230,21 @@ func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
 				attrs[name] = a.New
 			}
 
-			// providerResource is in the form of "aws_instance.foo"
+			// providerResource is in the form of "aws_instance.foo.bar"
 			splitted := strings.Split(providerResource, "_")
-			if len(splitted) == 0 {
+			if len(splitted) < 2 {
 				return nil, fmt.Errorf("provider resource is unknown: %v", splitted)
 			}
 
+			// splitted[1]: instance.foo.bar
+			resourceSplitted := strings.SplitN(splitted[1], ".", 2)
+
+			providerName := splitted[0]          // aws
+			resourceLabel := resourceSplitted[1] // foo.bar
+
 			out.Machines = append(out.Machines, PlanMachine{
-				Provider:   splitted[0],
+				Provider:   providerName,
+				Label:      resourceLabel,
 				Attributes: attrs,
 			})
 		}
