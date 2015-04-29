@@ -28,11 +28,5 @@ func (p *PrepareRequest) validate() error {
 }
 
 func (p *PrepareRequest) verify() (*webhook.Integration, error) {
-	i := webhook.NewIntegration()
-	err := i.ByName(p.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	return i, nil
+	return webhook.Cache.Integration.ByName(p.Name)
 }
