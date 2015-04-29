@@ -92,6 +92,9 @@ module.exports = class JStackTemplate extends jraphical.Module
 
       template        : String
 
+      # Public keys of JCredentials
+      credentials     : [ String ]
+
 
   @create = permit 'create stack template',
 
