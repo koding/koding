@@ -27,7 +27,6 @@ build:
     - script:
         name: check package.json files
         code: |
-          cd $WERCKER_ROOT
           scripts/check_package_json_constraints.sh
     - script:
         name: setup nvm
@@ -36,8 +35,7 @@ build:
           nvm use 0.10.33
     - script:
         name: koding node modules
-        code: |
-          $WERCKER_ROOT/scripts/wercker/install-node-modules koding
+        code: scripts/wercker/install-node-modules koding
     - script:
         name: notify cebeci
         code: |
@@ -66,7 +64,7 @@ build:
         name: build client
         code: |
           make -C client dist
-          ./scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
+          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
         code: go/build.sh
