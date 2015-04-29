@@ -533,8 +533,7 @@ module.exports = CollaborationController =
     snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
     snapshot = @appendHostSnapshot snapshot  unless @amIHost
 
-    @forEachSubViewInIDEViews_ (pane) =>
-      @removePaneFromTabView pane  if pane.isInitial
+    @removeInitialViews()
 
     for change in snapshot when change.context
       @changeActiveTabView change.context.paneType

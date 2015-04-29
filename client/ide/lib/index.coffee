@@ -1451,3 +1451,9 @@ class IDEAppController extends AppController
       tabView = tabPane.parent
 
       tabView.showPane tabPane
+
+
+  removeInitialViews: ->
+
+    @forEachSubViewInIDEViews_ (pane) =>
+      @removePaneFromTabView pane  if pane.isInitial
