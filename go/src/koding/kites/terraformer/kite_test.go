@@ -1,6 +1,7 @@
 package terraformer
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"testing"
@@ -81,9 +82,17 @@ func TestApplyAndDestroy(t *testing.T) {
 			return err
 		}
 
-		res := terraform.Plan{}
+		res := terraform.State{}
 		if err := response.Unmarshal(&res); err != nil {
 			return err
+		}
+
+		if len(res.Modules) != 1 {
+			return fmt.Errorf("expected Modules to have length 1, got: %d", len(res.Modules))
+		}
+
+		if len(res.Modules[0].Resources) != 7 {
+			return fmt.Errorf("Expected Resources to have length 7, got: %d", len(res.Modules[0].Resources))
 		}
 
 		response, err = tfr.Tell("destroy", req)
@@ -91,9 +100,17 @@ func TestApplyAndDestroy(t *testing.T) {
 			return err
 		}
 
-		res = terraform.Plan{}
+		res = terraform.State{}
 		if err := response.Unmarshal(&res); err != nil {
 			return err
+		}
+
+		if len(res.Modules) != 1 {
+			return fmt.Errorf("expected Modules to have length 1, got: %d", len(res.Modules))
+		}
+
+		if len(res.Modules[0].Resources) != 0 {
+			return fmt.Errorf("Expected Resources to have length 0, got: %d", len(res.Modules[0].Resources))
 		}
 
 		return nil

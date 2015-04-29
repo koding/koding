@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"path"
 
 	"github.com/hashicorp/terraform/command"
@@ -14,7 +13,7 @@ import (
 // Apply applies the incoming terraform content to the remote system
 func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, error) {
 	cmd := command.ApplyCommand{
-		ShutdownCh: makeShutdownCh(), // TODO(fatih): this prevents us to kill terraformer with a SIGINT
+		ShutdownCh: c.ShutdownChan,
 		Meta: command.Meta{
 			ContextOpts: c.TerraformContextOpts(),
 			Ui:          c.ui,
@@ -92,21 +91,4 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, erro
 	}
 
 	return terraform.ReadState(stateFile)
-}
-
-// makeShutdownCh creates an interrupt listener and returns a channel.
-// A message will be sent on the channel for every interrupt received.
-func makeShutdownCh() <-chan struct{} {
-	resultCh := make(chan struct{})
-
-	signalCh := make(chan os.Signal, 4)
-	signal.Notify(signalCh, os.Interrupt)
-	go func() {
-		for {
-			<-signalCh
-			resultCh <- struct{}{}
-		}
-	}()
-
-	return resultCh
 }

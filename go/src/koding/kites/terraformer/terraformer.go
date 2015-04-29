@@ -91,79 +91,50 @@ func (t *Terraformer) Kite() (*kite.Kite, error) {
 
 // Plan provides a kite call for plan operation
 func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
-	c := t.Context.Clone()
-	defer c.Close()
-
-	plan, err := t.plan(c, r, false)
-	if err != nil {
+	args := TerraformRequest{}
+	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
 
-	return plan, nil
+	c, err := t.Context.Get(args.ContentID)
+	if err != nil {
+		return nil, err
+	}
+	defer c.Close()
+
+	// set variables if sent
+	c.Variables = args.Variables
+
+	destroy := false
+	return c.Plan(strings.NewReader(args.Content), destroy)
 }
 
 // Apply provides a kite call for apply operation
 func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
-	c := t.Context.Clone()
-	defer c.Close()
-
-	state, err := t.apply(c, r, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return state, nil
+	destroy := false
+	return t.apply(r, destroy)
 }
 
 // Destroy provides a kite call for destroy operation
 func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
-	c := t.Context.Clone()
-	defer c.Close()
+	destroy := true
+	return t.apply(r, destroy)
+}
 
-	plan, err := t.apply(c, r, true)
+func (t *Terraformer) apply(r *kite.Request, destroy bool) (*terraform.State, error) {
+	args := TerraformRequest{}
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return nil, err
+	}
+
+	c, err := t.Context.Get(args.ContentID)
 	if err != nil {
 		return nil, err
 	}
+	defer c.Close()
 
-	return plan, nil
-}
-
-// func (t *Terraformer) context(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.Context, error) {
-// 	// get the plan
-// 	plan, err := t.plan(c, r, destroy)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// create terraform context options from plan
-// 	copts := c.TerraformContextOptsWithPlan(plan)
-
-// 	// create terraform context with its options
-// 	return terraform.NewContext(copts), nil
-// }
-
-func (t *Terraformer) plan(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.Plan, error) {
-	args := TerraformRequest{}
-	if err := r.Args.One().Unmarshal(&args); err != nil {
-		return nil, err
-	}
-
+	// set variables if sent
 	c.Variables = args.Variables
-	c.ContentID = args.ContentID
 
-	content := strings.NewReader(args.Content)
-	return c.Plan(content, destroy)
-}
-
-func (t *Terraformer) apply(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.State, error) {
-	args := TerraformRequest{}
-	if err := r.Args.One().Unmarshal(&args); err != nil {
-		return nil, err
-	}
-
-	c.Variables = args.Variables
-	c.ContentID = args.ContentID
-
-	content := strings.NewReader(args.Content)
-	return c.Apply(content, destroy)
+	return c.Apply(strings.NewReader(args.Content), destroy)
 }

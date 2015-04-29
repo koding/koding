@@ -4,6 +4,11 @@ package kodingcontext
 
 import (
 	"bytes"
+	"errors"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	"koding/kites/terraformer/kodingcontext/pkg"
 	"koding/kites/terraformer/storage"
@@ -11,6 +16,11 @@ import (
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/mitchellh/cli"
+)
+
+var (
+	shutdownChans   map[string]chan struct{}
+	shutdownChansMu sync.Mutex
 )
 
 const (
@@ -30,6 +40,8 @@ type Context struct {
 	// storage holds the plans of terraform
 	RemoteStorage storage.Interface
 	LocalStorage  storage.Interface
+
+	ShutdownChan <-chan struct{}
 
 	ContentID    string
 	baseDir      string
@@ -75,14 +87,24 @@ func newContext() *Context {
 
 // Clone creates a new context out of an existing one, this can be called
 // multiple times instead of creating a new Context with New function
-func (c *Context) Clone() *Context {
+func (c *Context) Get(contentID string) (*Context, error) {
+	if contentID == "" {
+		return nil, errors.New("contentID is not set")
+	}
+
+	sc, err := createShutdownChan(contentID)
+	if err != nil {
+		return nil, err
+	}
+
 	cc := newContext()
+	cc.ContentID = contentID
 	cc.Providers = c.Providers
 	cc.Provisioners = c.Provisioners
 	cc.LocalStorage = c.LocalStorage
 	cc.RemoteStorage = c.RemoteStorage
-
-	return cc
+	cc.ShutdownChan = sc
+	return cc, nil
 }
 
 // TerraformContextOpts creates a basic context options for terraform itself
@@ -115,5 +137,47 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 
 // Close terminates the existing context
 func (c *Context) Close() error {
+	if c.ContentID != "" {
+		shutdownChansMu.Lock()
+		defer shutdownChansMu.Unlock()
+		delete(shutdownChans, c.ContentID)
+	}
+
 	return c.LocalStorage.Remove(c.ContentID)
+}
+
+func createShutdownChan(contentID string) (<-chan struct{}, error) {
+	shutdownChansMu.Lock()
+	defer shutdownChansMu.Unlock()
+
+	_, ok := shutdownChans[contentID]
+	if ok {
+		return nil, errors.New("content is already locked")
+	}
+
+	resultCh := make(chan struct{})
+
+	if shutdownChans == nil {
+		shutdownChans = make(map[string]chan struct{})
+	}
+	shutdownChans[contentID] = resultCh
+
+	return resultCh, nil
+}
+
+func makeShutdownCh() {
+	signalCh := make(chan os.Signal, 4)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		for {
+			<-signalCh
+			shutdownChansMu.Lock()
+			defer shutdownChansMu.Unlock()
+
+			// broadcast this message to others
+			for _, shutdownChan := range shutdownChans {
+				shutdownChan <- struct{}{}
+			}
+		}
+	}()
 }
