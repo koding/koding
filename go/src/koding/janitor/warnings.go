@@ -8,8 +8,8 @@ import (
 
 // Sane defaults to prevent spamming the system.
 var (
-	EmailLimitPerRun    = 500
-	DeleteVMLimitPerRun = 300
+	EmailLimitPerRun    = 5000
+	DeleteVMLimitPerRun = 5000
 )
 
 // This is a general notification that user is inactive.
@@ -18,12 +18,10 @@ var FirstEmail = &Warning{
 
 	Level: 1,
 
-	Interval: 20,
-
 	LimitPerRun: EmailLimitPerRun,
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": moreThanDaysQuery(19)},
+		bson.M{"lastLoginDate": moreThanDaysQuery(20)},
 		bson.M{"inactive.warning": bson.M{"$exists": false}},
 	},
 
@@ -38,7 +36,6 @@ var SecondEmail = &Warning{
 
 	Level: 2,
 
-	Interval:                 24,
 	IntervalSinceLastWarning: time.Hour * 24 * 4, // 4 days since last warning
 
 	LimitPerRun: EmailLimitPerRun,
@@ -59,7 +56,6 @@ var ThirdDeleteVM = &Warning{
 
 	Level: 3,
 
-	Interval:                 29,
 	IntervalSinceLastWarning: time.Hour * 24 * 5, // 4 days since last warning
 
 	LimitPerRun: EmailLimitPerRun,
@@ -70,6 +66,26 @@ var ThirdDeleteVM = &Warning{
 	},
 
 	Exempt: []Exempt{IsTooSoon, IsUserPaid, IsUserVMsEmpty},
+
+	Action: DeleteVMs,
+}
+
+// User hasn't come back, take action.
+var FourthDeleteBlockedUserVm = &Warning{
+	Name: "Find blocked users, delete ALL their vms",
+
+	Level: 4,
+
+	IntervalSinceLastWarning: time.Hour * 24 * 7, // 4 days since last warning
+
+	LimitPerRun: EmailLimitPerRun,
+
+	Select: []bson.M{
+		bson.M{"lastLoginDate": moreThanDaysQuery(5)},
+		bson.M{"status": "blocked"},
+	},
+
+	Exempt: []Exempt{IsTooSoon, IsUserVMsEmpty},
 
 	Action: DeleteVMs,
 }
