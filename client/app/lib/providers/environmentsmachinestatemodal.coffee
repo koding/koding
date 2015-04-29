@@ -311,15 +311,18 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
           @showBusy "Deleting your VM(s)..."
           ComputeHelpers.destroyExistingMachines (err)=>
-            kd.utils.wait 5000, =>
-              @buildExpiredView subscription, "downgrade"
+            @buildExpiredView subscription, "downgrade"
+          , yes
 
         else
 
           @showBusy "Downgrading..."
-          @downgradePlan (err)=> if err? \
-            then @buildExpiredView subscription, "destroy-vms"
-            else @buildInitial()
+          @downgradePlan (err) =>
+            if err?
+              @buildExpiredView subscription, "destroy-vms"
+            else
+              @_busy = no
+              @buildInitial()
 
     @container.addSubView new KDCustomHTMLView
       cssClass : 'expired-message'
