@@ -33,7 +33,7 @@ var (
 
 	ErrNameIsNotSet       = errors.New("name is not set")
 	ErrGroupNameIsNotSet  = errors.New("group name is not set")
-	ErrGroupNotFound 	  = errors.New("group is not found")
+	ErrGroupNotFound      = errors.New("group is not found")
 	ErrLastSeenAtIsNotSet = errors.New("lastSeenAt is not set")
 	ErrAddedAtIsNotSet    = errors.New("addedAt is not set")
 
