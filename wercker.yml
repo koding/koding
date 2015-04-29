@@ -60,9 +60,11 @@ build:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
+        name: client node modules
+        code: sh -c "scripts/install-npm.sh -d client -u -p"
+    - script:
         name: build client
         code: |
-          sh -c "scripts/install-npm.sh -d client -u -p"
           make -C client dist
           ./scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
