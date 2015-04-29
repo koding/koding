@@ -97,19 +97,9 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	// currently there is no multi provider support for terraform. Until it's
 	// been released with 0.5,  we're going to retrieve it from the "provider"
 	// block: https://github.com/hashicorp/terraform/pull/1281
-	out, err := hcl.Parse(args.TerraformContext)
+	region, err := regionFromHCL(args.TerraformContext)
 	if err != nil {
 		return nil, err
-	}
-
-	rg := out.Get("provider", true).Get("aws", true).Get("region", true)
-	if rg == nil {
-		return nil, fmt.Errorf("out shouldn't produce a nil r: %v", out)
-	}
-
-	region, ok := rg.Value.(string)
-	if !ok {
-		return nil, fmt.Errorf("region is not of type string: %v", region)
 	}
 
 	output, err := machinesFromPlan(plan)
@@ -123,6 +113,26 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	return output, nil
+}
+
+func regionFromHCL(hclContent string) (string, error) {
+	var data struct {
+		Provider struct {
+			Aws struct {
+				Region string
+			}
+		}
+	}
+
+	if err := hcl.Decode(&data, hclContent); err != nil {
+		return "", err
+	}
+
+	if data.Provider.Aws.Region == "" {
+		return "", fmt.Errorf("HCL content doesn't contain region information: %s", hclContent)
+	}
+
+	return data.Provider.Aws.Region, nil
 }
 
 // appendVariables appends the given key/value credentials to the hclFile (terraform) file

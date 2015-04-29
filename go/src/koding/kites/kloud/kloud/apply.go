@@ -77,7 +77,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Printf("string(d) = %+v\n", string(d))
+	fmt.Printf(string(d))
 
 	return nil, errors.New("not implemented yet")
 }
@@ -88,12 +88,10 @@ func updateMachines(ctx context.Context, data *Machines, ids ...string) error {
 		return errors.New("session context is not passed")
 	}
 
-	return errors.New("not implemented yet")
+	return nil
 }
 
 func machinesFromState(state *terraform.State) (*Machines, error) {
-	fmt.Printf("state = %+v\n", state)
-
 	if state.Modules == nil {
 		return nil, errors.New("state modules is empty")
 	}
@@ -114,9 +112,6 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 			if err != nil {
 				return nil, err
 			}
-
-			fmt.Printf("provider = %+v\n", provider)
-			fmt.Printf("label = %+v\n", label)
 
 			for key, val := range r.Primary.Attributes {
 				attrs[key] = val
