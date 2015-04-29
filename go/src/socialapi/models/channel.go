@@ -887,11 +887,7 @@ func (c *Channel) FetchPublicChannel(groupName string) error {
 		return ErrGroupNotFound
 	}
 	
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func isMessageCrossIndexed(messageId int64) (error, bool) {
