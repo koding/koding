@@ -243,7 +243,7 @@ func TestPrepareUsername(t *testing.T) {
 
 		Convey("it should prepare username when it is not set depending on email", func() {
 
-			_, err := models.CreateAccountInBothDbsWithNick("ctf")
+			_, err := models.CreateAccountInBothDbsWithNick("electricmayhem")
 			So(err, ShouldBeNil)
 
 			so := &services.ServiceOutput{}
@@ -252,10 +252,10 @@ func TestPrepareUsername(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(so.Username, ShouldEqual, "")
 
-			so.Email = "ctf@koding.com"
+			so.Email = "electricmayhem@koding.com"
 			err = h.prepareUsername(so)
 			So(err, ShouldBeNil)
-			So(so.Username, ShouldEqual, "ctf")
+			So(so.Username, ShouldEqual, "electricmayhem")
 
 			so.Email = "asdfasdfasdf@koding.com"
 			so.Username = ""
