@@ -19,12 +19,19 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     options.addButtonTitle       = 'ADD SNAPSHOT'
     options.headerAddButtonTitle = 'ADD NEW SNAPSHOT'
     options.listViewItemClass    = SnapshotListItem
+    options.noItemFoundWidget    = new kd.CustomHTMLView
+      cssClass : 'no-item'
+      partial  : 'You do not have any snapshots created'
 
     # Trigger the snapshotsLimits fetch, so that we can cache it ahead
     # of time.
     @snapshotsLimit()
 
     super options, data
+
+    @listController.getListView().on 'DeleteSnapshot', =>
+      if @listController.getItemCount() is 0
+        @listController.noItemView.show()
 
 
   ###*
