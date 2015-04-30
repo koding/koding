@@ -234,6 +234,11 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
     - script:
+        name: setup nvm
+        code: |
+          source $HOME/.nvm/nvm.sh
+          nvm use 0.10.33
+    - script:
         name: cat socialapi
         code: |
           tail -n 1000 /var/log/koding/social-api.log
