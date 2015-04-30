@@ -175,6 +175,12 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
         @addNewButton.hideLoader()
         return
 
+      # Assign the no-line class if the itemCount is 0. Note that this
+      # will attempt to remove the class repeated times
+      if @listController.getItemCount() is 0
+      then @addViewContainer.setClass 'no-line'
+      else @addViewContainer.unsetClass 'no-line'
+
       @headerAddNewButton.hide()
       @addViewContainer.show()
       kd.utils.defer @addInputView.bound 'setFocus'
