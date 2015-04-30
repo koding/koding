@@ -21,6 +21,7 @@ import (
 var (
 	shutdownChans   map[string]chan struct{}
 	shutdownChansMu sync.Mutex
+	shutdownChansWG sync.WaitGroup
 )
 
 const (
@@ -49,11 +50,12 @@ type Context struct {
 	Provisioners map[string]terraform.ResourceProvisionerFactory
 	Buffer       *bytes.Buffer
 	ui           *cli.PrefixedUi
+	closeChan    chan struct{}
 }
 
 // New creates a new Context, this should not be used directly, use Clone
 // instead from an existing one
-func New(ls, rs storage.Interface) (*Context, error) {
+func New(ls, rs storage.Interface, closeChan chan struct{}) (*Context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
@@ -65,9 +67,10 @@ func New(ls, rs storage.Interface) (*Context, error) {
 	c.Provisioners = config.ProvisionerFactories()
 	c.LocalStorage = ls
 	c.RemoteStorage = rs
+	c.closeChan = closeChan
 
 	// create global shut down handlers
-	makeShutdownChans()
+	c.makeShutdownChans()
 
 	return c, nil
 }
@@ -143,6 +146,7 @@ func (c *Context) Close() error {
 	if c.ContentID != "" {
 		shutdownChansMu.Lock()
 		delete(shutdownChans, c.ContentID)
+		shutdownChansWG.Done()
 		shutdownChansMu.Unlock()
 	}
 
@@ -161,27 +165,30 @@ func createShutdownChan(contentID string) (<-chan struct{}, error) {
 	resultCh := make(chan struct{})
 
 	shutdownChans[contentID] = resultCh
-
+	shutdownChansWG.Add(1)
 	return resultCh, nil
 }
 
-func makeShutdownChans() {
-	signalCh := make(chan os.Signal, 4)
-	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-
+func (c *Context) makeShutdownChans() {
 	// init channels map
 	shutdownChans = make(map[string]chan struct{})
-
 	go func() {
-		for {
-			<-signalCh
-			shutdownChansMu.Lock()
-			defer shutdownChansMu.Unlock()
+		signalCh := make(chan os.Signal, 1)
+		signal.Notify(signalCh)
 
+		s := <-signalCh
+		signal.Stop(signalCh)
+		switch s {
+		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
+			shutdownChansMu.Lock()
 			// broadcast this message to others
 			for _, shutdownChan := range shutdownChans {
 				shutdownChan <- struct{}{}
 			}
+			shutdownChansMu.Unlock()
 		}
+
+		shutdownChansWG.Wait()
+		close(c.closeChan)
 	}()
 }

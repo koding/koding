@@ -26,18 +26,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	defer t.Close()
 
-	// init terraformer's kite
-	k, err := t.Kite()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	defer k.Close()
-
-	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
-		log.Fatal(err.Error())
-	}
-
-	k.Run()
+	t.Run()
 }

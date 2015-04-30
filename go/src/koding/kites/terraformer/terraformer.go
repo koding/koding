@@ -40,6 +40,8 @@ type Terraformer struct {
 
 	// Store app runtime config
 	Config *Config
+
+	closeChan chan struct{} // To signal when terraformer is closed
 }
 
 // TerraformRequest is a helper struct for terraformer kite requests
@@ -61,17 +63,20 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 		return nil, fmt.Errorf("err while creating remote store %s", err)
 	}
 
-	c, err := kodingcontext.New(ls, rs)
+	closeChan := make(chan struct{})
+
+	c, err := kodingcontext.New(ls, rs, closeChan)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Terraformer{
-		Log:     log,
-		Metrics: common.MustInitMetrics(Name),
-		Debug:   conf.Debug,
-		Context: c,
-		Config:  conf,
+		Log:       log,
+		Metrics:   common.MustInitMetrics(Name),
+		Debug:     conf.Debug,
+		Context:   c,
+		Config:    conf,
+		closeChan: closeChan,
 	}, nil
 }
 
@@ -80,8 +85,29 @@ func (t *Terraformer) Close() error {
 	if t.Context == nil {
 		return nil
 	}
-
+	fmt.Println("3333-->", 3333)
 	return t.Context.Close()
+}
+
+// Run runs Terraformer Kite
+func (t *Terraformer) Run() error {
+	// init terraformer's kite
+	k, err := t.Kite()
+	if err != nil {
+		return err
+	}
+
+	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
+		return err
+	}
+
+	go k.Run()
+
+	<-t.closeChan // wait for exit
+
+	k.Close()
+	t.Close()
+	return nil
 }
 
 // Kite creates a new Terraformer Kite communication layer
