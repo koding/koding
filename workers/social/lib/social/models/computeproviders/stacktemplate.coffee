@@ -1,15 +1,15 @@
+jraphical = require 'jraphical'
+crypto    = require 'crypto'
 
-jraphical       = require 'jraphical'
-JCredentialData = require './credentialdata'
-JName           = require '../name'
-JUser           = require '../user'
-JGroup          = require '../group'
-
-# TODO Credential relations ~g
 
 module.exports = class JStackTemplate extends jraphical.Module
 
   KodingError        = require '../../error'
+
+  JName              = require '../name'
+  JUser              = require '../user'
+  JGroup             = require '../group'
+  JCredentialData    = require './credentialdata'
 
   {Inflector, secure, ObjectId, signature, daisy} = require 'bongo'
   {Relationship}     = jraphical
@@ -90,10 +90,25 @@ module.exports = class JStackTemplate extends jraphical.Module
 
       group           : String
 
-      template        : String
+      template        :
+        content       : String
+        sum           : String
 
       # Public keys of JCredentials
       credentials     : [ String ]
+
+
+  generateTemplateObject = (content)->
+
+    content = ''  unless typeof content is 'string'
+
+    return {
+      content
+      sum: crypto.createHash 'sha1'
+        .update content
+        .digest 'hex'
+    }
+
 
 
   @create = permit 'create stack template',
@@ -117,7 +132,7 @@ module.exports = class JStackTemplate extends jraphical.Module
         extras      : data.extras      ? []
         connections : data.connections ? []
         accessLevel : data.accessLevel ? 'private'
-        template    : data.template    ? ''
+        template    : generateTemplateObject data.template
         credentials : data.credentials ? []
 
       stackTemplate.save (err)->
@@ -188,6 +203,9 @@ module.exports = class JStackTemplate extends jraphical.Module
 
       delete data.originId
       delete data.group
+
+      if data.template?
+        data.template = generateTemplateObject data.template
 
       @update $set: data, (err)-> callback err
 
