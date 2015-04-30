@@ -1125,6 +1125,7 @@ Configuration = (options={}) ->
 
         if [ "$2" == "--yes" ]; then
 
+          env PGPASSWORD=social_superuser psql -tA -h #{postgres.host} #{postgres.dbname} -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
           restoredefaultmongodump
           migrateusers
 
@@ -1139,6 +1140,7 @@ Configuration = (options={}) ->
             exit 1
         fi
 
+        env PGPASSWORD=social_superuser psql -tA -h #{postgres.host} #{postgres.dbname} -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
         restoredefaultmongodump
         migrateusers
 
