@@ -1,6 +1,7 @@
 kd = require 'kd'
 registerRoutes = require 'app/util/registerRoutes'
 lazyrouter = require 'app/lazyrouter'
+isBotChannel = require 'activity/util/isBotChannel'
 
 activityPane = (callback) ->
   {appManager} = kd.singletons
@@ -49,7 +50,9 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
       handleChannel 'post', slug
     when 80
       {params:{name, slug}, query} = info
-      handleChannel 'message', slug
+      type = if isBotChannel slug then 'bot' else 'message'
+      handleChannel type, slug
+
     when 90
       {params:{name, slug}, query} = info
       handleChannel 'post', slug
