@@ -496,6 +496,8 @@ module.exports = class SocialApiController extends KDController
         @channel.byId {id}, topicChannelKallback
       when 'post', 'message'
         @message.byId {id}, kallback
+      when 'bot'
+        @account.fetchBotChannel kallback
       else callback { message: "#{type} not implemented in revive" }
 
   getMessageEvents = ->
