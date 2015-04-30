@@ -3,6 +3,7 @@ Encoder                   = require 'htmlencode'
 kd                        = require 'kd'
 remote                    = require('app/remote').getInstance()
 
+ComputeErrorUsageModal    = require './computeerrorusagemodal'
 MachineSettingsCommonView = require './machinesettingscommonview'
 SnapshotListItem          = require './snapshotlistitem'
 snapshotHelpers           = require './snapshothelpers'
@@ -151,6 +152,15 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###
   showAddView: ->
     @isWithinSnapshotLimit (err, isWithin, current, max) =>
+      # If the max is 0, the user has no allotted snapshots (free plan)
+      if max is 0
+        new ComputeErrorUsageModal
+          plan    : 'free'
+          message : 'VM share feature is only available for paid accounts.'
+
+        return @emit 'ModalDestroyRequested'
+
+
       kd.warn err  if err
       if not isWithin
         msg = "Your current plan allows for a maximum of #{max} Snapshots"
