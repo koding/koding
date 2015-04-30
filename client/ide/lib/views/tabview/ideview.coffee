@@ -469,13 +469,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       'Split Horizontally':
         callback          : -> frontApp.splitHorizontally()
 
-    if @parent instanceof KDSplitViewPanel
-      items['Undo Split'] =
-        separator         : yes
-        callback          : -> frontApp.mergeSplitView()
-    else
-      items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
-        type              : 'separator'
+    items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
+      type              : 'separator'
 
     label                 = if @isFullScreen then 'Exit Fullscreen' else 'Enter Fullscreen'
     items[label]          =
