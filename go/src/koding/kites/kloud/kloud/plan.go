@@ -16,14 +16,12 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type TerraformKloudRequest struct {
-	MachineIds []string `json:"machineIds"`
-
+type TerraformPlanRequest struct {
 	// Terraform template file
 	TerraformContext string `json:"terraformContext"`
 
-	// PublicKeys contains provider to publicKeys mapping
-	PublicKeys map[string]string `json:"publicKeys"`
+	// PublicKeys contains publicKeys to be used with terraform
+	PublicKeys []string `json:"publicKeys"`
 }
 
 type terraformCredentials struct {
@@ -40,7 +38,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args *TerraformKloudRequest
+	var args *TerraformPlanRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
@@ -98,7 +96,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	return machines, nil
 }
 
-func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]string) (*terraformCredentials, error) {
+func fetchCredentials(username string, db *mongodb.MongoDB, keys []string) (*terraformCredentials, error) {
 	// 1- fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
@@ -106,12 +104,7 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 	}
 
 	// 2- fetch credential from publickey via args
-	publicKeys := make([]string, 0)
-	for _, publicKey := range keys {
-		publicKeys = append(publicKeys, publicKey)
-	}
-
-	credentials, err := modelhelper.GetCredentialsFromPublicKeys(publicKeys...)
+	credentials, err := modelhelper.GetCredentialsFromPublicKeys(keys...)
 	if err != nil {
 		return nil, err
 	}

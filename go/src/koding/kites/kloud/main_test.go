@@ -170,7 +170,7 @@ func TestTerraformPlan(t *testing.T) {
 
 	remote := userData.Remote
 
-	args := &kloud.TerraformKloudRequest{
+	args := &kloud.TerraformPlanRequest{
 		TerraformContext: `
 provider "aws" {
     access_key = "${var.access_key}"
@@ -186,9 +186,7 @@ resource "aws_instance" "example" {
         Name = "KloudTerraform"
     }
 }`,
-		PublicKeys: map[string]string{
-			"aws": userData.CredentialPublicKey,
-		},
+		PublicKeys: []string{userData.CredentialPublicKey},
 	}
 
 	resp, err := remote.Tell("plan", args)
@@ -224,26 +222,30 @@ func TestTerraformApply(t *testing.T) {
 
 	remote := userData.Remote
 
-	args := &kloud.TerraformKloudRequest{
-		MachineIds: []string{userData.MachineId},
-		TerraformContext: `
-provider "aws" {
-    access_key = "${var.access_key}"
-    secret_key = "${var.secret_key}"
-    region = "us-east-1"
-}
+	// 	args := &kloud.TerraformKloudRequest{
+	// 		MachineIds: []string{userData.MachineId},
+	// 		TerraformContext: `
+	// provider "aws" {
+	//     access_key = "${var.access_key}"
+	//     secret_key = "${var.secret_key}"
+	//     region = "us-east-1"
+	// }
+	//
+	// resource "aws_instance" "example" {
+	//     ami = "ami-d05e75b8"
+	//     instance_type = "t2.micro"
+	//     subnet_id = "subnet-b47692ed"
+	//     tags {
+	//         Name = "KloudTerraform"
+	//     }
+	// }`,
+	// 		PublicKeys: map[string]string{
+	// 			"aws": userData.CredentialPublicKey,
+	// 		},
+	// 	}
 
-resource "aws_instance" "example" {
-    ami = "ami-d05e75b8"
-    instance_type = "t2.micro"
-    subnet_id = "subnet-b47692ed"
-    tags {
-        Name = "KloudTerraform"
-    }
-}`,
-		PublicKeys: map[string]string{
-			"aws": userData.CredentialPublicKey,
-		},
+	args := &kloud.TerraformApplyRequest{
+		StackId: "",
 	}
 
 	resp, err := remote.Tell("apply", args)

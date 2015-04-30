@@ -19,30 +19,54 @@ import (
 	"github.com/koding/kite"
 )
 
+// Stack is struct that contains all necessary information Apply needs to
+// perform successfully.
+type Stack struct {
+	// jMachine ids
+	Machines []string
+
+	// jCredential public keys
+	PublicKeys []string
+
+	// Terraform template
+	Template string
+}
+
+// ComputeStack is a document from jComputeStack collection
+type ComputeStack struct {
+	Id bson.ObjectId `bson:"_id" json:"-"`
+
+	// Points to a document in jStackTemplates
+	BaseStackId bson.ObjectId   `bson:"baseStackId"`
+	Machines    []bson.ObjectId `bson:"machines"`
+}
+
+// StackTemplate is a document from jStackTemplates collection
+type StackTemplate struct {
+	Id       bson.ObjectId `bson:"_id" json:"-"`
+	Template struct {
+		Content string `bson:"content"`
+		Sum     string `bson:"sum"`
+	} `bson:"template"`
+	Credentials []string `bson:"credentials"`
+}
+
+type TerraformApplyRequest struct {
+	StackId string `json:"stackId"`
+}
+
 func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	if r.Args == nil {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args *TerraformKloudRequest
+	var args *TerraformApplyRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
 
-	if args.TerraformContext == "" {
-		return nil, NewError(ErrTerraformContextIsMissing)
-	}
-
-	if len(args.PublicKeys) == 0 {
-		return nil, errors.New("publicKeys are not passed")
-	}
-
-	if len(args.MachineIds) == 0 {
-		return nil, errors.New("machine ids are not passed")
-	}
-
-	if len(args.MachineIds) != len(args.PublicKeys) {
-		return nil, errors.New("machineIds and publicKeys do not match")
+	if args.StackId == "" {
+		return nil, errors.New("stackId is not passed")
 	}
 
 	ctx := request.NewContext(context.Background(), r)
@@ -53,29 +77,40 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	machines, err := fetchMachines(ctx, args.MachineIds...)
+	stack, err := fetchStack(ctx, args.StackId)
 	if err != nil {
 		return nil, err
 	}
 
-	creds, err := fetchCredentials(r.Username, sess.DB, args.PublicKeys)
+	k.Log.Debug("Fetching and validating '%d' machines from user '%s'", len(stack.Machines), r.Username)
+	machines, err := fetchMachines(ctx, stack.Machines...)
 	if err != nil {
 		return nil, err
 	}
 
+	k.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), r.Username)
+	creds, err := fetchCredentials(r.Username, sess.DB, stack.PublicKeys)
+	if err != nil {
+		return nil, err
+	}
+
+	k.Log.Debug("Connection to Terraformer")
 	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
 		return nil, err
 	}
 	defer tfKite.Close()
 
-	args.TerraformContext = appendVariables(args.TerraformContext, creds)
-	state, err := tfKite.Apply(args.TerraformContext)
+	stack.Template = appendVariables(stack.Template, creds)
+	k.Log.Debug("Calling terraform.apply method with context:")
+	k.Log.Debug(stack.Template)
+
+	state, err := tfKite.Apply(stack.Template)
 	if err != nil {
 		return nil, err
 	}
 
-	region, err := regionFromHCL(args.TerraformContext)
+	region, err := regionFromHCL(stack.Template)
 	if err != nil {
 		return nil, err
 	}
@@ -86,6 +121,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	}
 	output.AppendRegion(region)
 
+	k.Log.Debug("Updating and syncing terraform output to jMachine documents")
 	if err := updateMachines(ctx, output, machines); err != nil {
 		return nil, err
 	}
@@ -98,6 +134,10 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	fmt.Printf(string(d))
 
 	return nil, errors.New("not implemented yet")
+}
+
+func fetchStack(ctx context.Context, stackId string) (*Stack, error) {
+	return nil, nil
 }
 
 func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, error) {
