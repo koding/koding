@@ -1,9 +1,7 @@
 package realtimehelper
 
 import (
-	"fmt"
 	"socialapi/models"
-	"socialapi/workers/common/handler"
 	"strconv"
 
 	"github.com/koding/bongo"
@@ -60,31 +58,4 @@ func NotifyUser(a *models.Account, eventName string, body interface{}, groupName
 	}
 
 	return bongo.B.Emit("dispatcher_notify_user", request)
-}
-
-func SubscribeMessage(cm *models.ChannelMessage) error {
-	newCm := models.NewChannelMessage()
-	newCm.Token = cm.Token
-	request := &handler.Request{
-		Type:     "POST",
-		Endpoint: "/api/gatekeeper/subscribe/message",
-		Body:     newCm,
-		Headers: map[string]string{
-			"Accept":       "application/json",
-			"Content-Type": "application/json",
-		},
-	}
-
-	resp, err := handler.DoRequest(request)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Need a better response
-	if resp.StatusCode != 200 {
-		return fmt.Errorf(resp.Status)
-	}
-
-	return nil
 }
