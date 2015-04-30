@@ -1,9 +1,12 @@
 kd                   = require 'kd'
 KDView               = kd.View
-MemberItemView       = require './memberitemview'
+KDSelectBox          = kd.SelectBox
 KDListItemView       = kd.ListItemView
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
+KDHitEnterInputView  = kd.HitEnterInputView
+
+MemberItemView = require './memberitemview'
 
 
 module.exports = class TeamMembersCommonView extends KDView
@@ -19,8 +22,35 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip = 0
 
+    @createSearchView()
     @createListController()
     @fetchMembers()
+
+
+  createSearchView: ->
+
+    @addSubView @searchContainer = new KDCustomHTMLView
+      cssClass: 'search hidden'
+      partial : 'Sort by'
+
+    @searchContainer.addSubView new KDSelectBox
+      defaultValue  : 'nickname'
+      selectOptions : [
+        { title     : 'Screen name',  value : 'fullname'  }
+        { title     : 'Nickname',     value : 'nickname'  }
+      ]
+      callback      : (value) ->
+
+    @searchContainer.addSubView new KDHitEnterInputView
+      type                    : 'text'
+      placeholder             : 'Find by name/username'
+      validationNotifications : yes
+      validate                :
+        rules                 :
+          required            : yes
+        messages              :
+          required            : 'Please enter a name or username'
+      callback                : -> kd.log ',,,,,,,,,,,,,,,,,,'
 
 
   createListController: ->
@@ -73,3 +103,4 @@ module.exports = class TeamMembersCommonView extends KDView
       @listController.addItem member
 
     @listController.lazyLoader.hide()
+    @searchContainer.show()
