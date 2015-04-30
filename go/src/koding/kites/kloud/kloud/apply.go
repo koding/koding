@@ -137,7 +137,35 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 }
 
 func fetchStack(ctx context.Context, stackId string) (*Stack, error) {
-	return nil, nil
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	var computeStack *ComputeStack
+	if err := sess.DB.Run("jComputeStack", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": bson.ObjectIdHex(stackId)}).One(&computeStack)
+	}); err != nil {
+		return nil, err
+	}
+
+	var stackTemplate *StackTemplate
+	if err := sess.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": computeStack.BaseStackId}).One(&stackTemplate)
+	}); err != nil {
+		return nil, err
+	}
+
+	machineIds := make([]string, len(computeStack.Machines))
+	for i, m := range computeStack.Machines {
+		machineIds[i] = m.Hex()
+	}
+
+	return &Stack{
+		Machines:   machineIds,
+		PublicKeys: stackTemplate.Credentials,
+		Template:   stackTemplate.Template.Content,
+	}, nil
 }
 
 func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, error) {
