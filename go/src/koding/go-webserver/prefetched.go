@@ -120,6 +120,7 @@ func socialUrls(userInfo *UserInfo, extras ...string) map[string]string {
 		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id, extras...),
 		"privateMessages":  buildUrl("%s/privatechannel/list?accountId=%s", id, extras...),
 		"popularPosts":     buildUrl("%s/popular/posts/public?accountId=%s", id, extras...),
+		"bot":              fmt.Sprintf("%s%s/botchannel", conf.SocialApi.CustomDomain.Local, "/api/integration"),
 		// "pinnedMessages":   buildUrl("%s/activity/pin/list?accountId=%s", id, extras...),
 	}
 
