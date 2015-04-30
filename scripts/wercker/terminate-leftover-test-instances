@@ -60,6 +60,22 @@ getExpirationTime = (argv) ->
   return new Date Date.now() - (minutes * 60 * 1000)
 
 
+checkApiTermination = (InstanceId, callback) ->
+
+  Attribute = 'disableApiTermination'
+
+  params = {InstanceId, Attribute}
+
+  EC2.describeInstanceAttribute params, (err, data) ->
+    return callback false  if err
+
+    state = if data \
+      then not data.DisableApiTermination.Value
+      else false
+
+    callback state
+
+
 error = (err) ->
   console.error "error: #{JSON.stringify err}"  if err
   process.exit 1
