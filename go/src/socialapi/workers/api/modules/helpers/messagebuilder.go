@@ -69,6 +69,7 @@ func decorateContainers(containers []*models.ChannelMessageContainer, messages [
 	var err error
 	for i, message := range messages {
 		d := models.NewChannelMessage()
+		d = d
 		*d = message
 
 		containers[i], err = d.BuildEmptyMessageContainer()
