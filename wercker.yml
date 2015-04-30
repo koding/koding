@@ -239,12 +239,6 @@ build:
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
-        name: cat socialapi
-        code: |
-          tail -n 1000 /var/log/koding/social-api.log || :
-          tail -n 100 /var/log/koding/social-populartopic.log || :
-          tail -n 100 /var/log/koding/social-pinnedpost.log || :
-    - script:
         name: cleanup
         code: |
           export INSTANCE_DATA=$(cat INSTANCE_DATA)
@@ -261,6 +255,12 @@ build:
         name: build finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is $WERCKER_RESULT " $WERCKER_RESULT 100
+    - script:
+        name: cat socialapi
+        code: |
+          tail -n 1000 /var/log/koding/social-api.log || :
+          tail -n 100 /var/log/koding/social-populartopic.log || :
+          tail -n 100 /var/log/koding/social-pinnedpost.log || :
 deploy:
   steps:
     - script:
