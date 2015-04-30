@@ -48,5 +48,5 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	Log.Info("Paypal: succesfully processed webhook: %s for user: %s", req.TransactionType, req.PayerId)
+	Log.Debug("Paypal: succesfully processed webhook: %s for user: %s", req.TransactionType, req.PayerId)
 }

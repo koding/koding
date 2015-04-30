@@ -1,32 +1,28 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-SidebarSearchModal = require './sidebarsearchmodal'
-ModalMachineItem = require './modalmachineitem'
+kd                        = require 'kd'
+checkFlag                 = require 'app/util/checkFlag'
+KDModalView               = kd.ModalView
+KDButtonView              = kd.ButtonView
+ModalMachineItem          = require './modalmachineitem'
 {handleNewMachineRequest} = require '../../providers/computehelpers'
-checkFlag = require 'app/util/checkFlag'
 
-module.exports = class MoreVMsModal extends SidebarSearchModal
+
+module.exports = class MoreVMsModal extends KDModalView
 
   constructor: (options = {}, data = []) ->
 
-    hasContainer             = options.container?
-
-    options.cssClass         = kd.utils.curry 'more-modal more-vms', options.cssClass
-    options.width            = 462
-    options.title          or= 'Your VMs'
-    options.disableSearch    = yes
-    options.itemClass      or= ModalMachineItem
-    options.bindModalDestroy = no
-    options.appendToDomBody  = !hasContainer
-    options.draggable        = no
-    options.overlay          = !hasContainer
+    options.cssClass = kd.utils.curry 'more-modal more-vms', options.cssClass
+    options.width    = 462
+    options.title    = 'Your VMs'
+    options.overlay  = yes
 
     super options, data
 
-    if container = @getOption 'container'
-      kd.utils.defer => container.addSubView this
+    @createAddKodingVMButton()
+    @createAddYourVMButton()
+    @listMachines()
 
-  viewAppended: ->
+
+  createAddKodingVMButton: ->
 
     @addButton = new KDButtonView
       title    : "Create a Koding VM"
@@ -39,8 +35,11 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
 
     @addSubView @addButton, '.kdmodal-content'
 
+
+  createAddYourVMButton: ->
+
     if checkFlag 'super-admin'
-      
+
       @setClass 'managed'
       @addManagedButton = new KDButtonView
         title    : "Add Your own VM"
@@ -53,13 +52,9 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
 
       @addSubView @addManagedButton, '.kdmodal-content'
 
-    super
 
+  listMachines: ->
 
-  populate: ->
-
-    machines = @getData()
-
-    for machine in machines
-      item = @listController.addItem machine.data
-      item.once 'ModalItemSelected', @bound 'destroy'
+    for machine in @getData()
+      @addSubView view = new ModalMachineItem {}, machine.data
+      view.once 'ModalItemSelected', @bound 'destroy'

@@ -47,6 +47,7 @@ func NewQuery() *Query {
 	return &Query{
 		Exclude: make(map[string]interface{}, 0),
 		Sort:    make(map[string]string, 0),
+		Limit:   MAX_LIMIT,
 	}
 }
 

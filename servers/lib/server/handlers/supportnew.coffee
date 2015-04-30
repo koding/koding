@@ -15,4 +15,5 @@ module.exports = (req, res) ->
       res.status(401).send authTemplate errMessage
       return
 
-    (require './helpscout') account, req, res
+
+    (require '../helpscout') account, req, res
