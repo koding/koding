@@ -51,21 +51,20 @@ module.exports = class GroupStackSettings extends kd.View
       JStackTemplate.some
         _id   : stackTemplateId
       , limit : 1
-      , (err, stackTemplate)->
+      , (err, stackTemplates)->
 
           if err
             console.warn 'Failed to fetch stack template:', err
             callback null, {credentials}
           else
-            stackTemplate = stackTemplate.first
-            stackTemplate.template = Encoder.htmlDecode stackTemplate.template
-
+            stackTemplate = stackTemplates.first
             callback null, {credentials, stackTemplate}
 
 
   createEditorPane: (content) ->
 
-    file = FSHelper.createFileInstance path: 'localfile:/stack.yml'
+    content = Encoder.htmlDecode content
+    file    = FSHelper.createFileInstance path: 'localfile:/stack.yml'
 
     @addSubView editorContainer = new kd.View
     editorContainer.setCss height: '240px'
@@ -106,7 +105,7 @@ module.exports = class GroupStackSettings extends kd.View
 
         {credentials, stackTemplate} = data
 
-        @createEditorPane stackTemplate?.template or defaultTemplate
+        @createEditorPane stackTemplate?.template?.content or defaultTemplate
         @createCredentialsBox credentials
 
         @addSubView @saveButton = new kd.ButtonView
