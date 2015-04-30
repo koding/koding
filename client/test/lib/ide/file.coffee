@@ -163,7 +163,7 @@ module.exports =
 
   findInFiles: (browser) ->
 
-    user = helpers.beginTest(browser)
+    helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
     contentSearchModalSelector  = '.content-search-modal'
@@ -188,3 +188,26 @@ module.exports =
       .waitForElementNotPresent  paneSelector + '.search-result .active', 20000 # Assertion
       .assert.containsText       activeEditorSelector, 'hello'
       .end()
+
+
+  jumpToFile: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    searchModalSelector  = '.file-finder'
+    findInFilesSelector  = '.kdlistview-contextmenu li.jump-to-file'
+    paneSelector         = '.pane-wrapper .kdsplitview-panel .application-tab-handle-holder .pythonpy'
+
+    ideHelpers.openNewFile(browser)
+    ideHelpers.openContextMenu(browser)
+
+    browser
+      .waitForElementVisible   findInFilesSelector, 20000
+      .click                   findInFilesSelector
+      .waitForElementVisible   searchModalSelector, 20000
+      .setValue                searchModalSelector + ' input.text', 'python'
+      .waitForElementVisible   searchModalSelector + ' .file-item:first-child', 20000
+      .click                   searchModalSelector + ' .file-item:first-child'
+      .waitForElementVisible   '.ws-tabview .kdtabview .pythonpy.active', 20000 # Assertion
+      .waitForElementVisible   paneSelector, 20000 # Assertion
