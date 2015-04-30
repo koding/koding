@@ -1,10 +1,10 @@
+kd                     = require 'kd'
+JView                  = require '../../jview'
+KDView                 = kd.View
+SidebarMoreLink        = require './sidebarmorelink'
+KDCustomHTMLView       = kd.CustomHTMLView
+KDListViewController   = kd.ListViewController
 isChannelCollaborative = require '../../util/isChannelCollaborative'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDListViewController = kd.ListViewController
-KDView = kd.View
-JView = require '../../jview'
-SidebarMoreLink = require './sidebarmorelink'
 
 
 module.exports = class ActivitySideView extends JView
@@ -89,8 +89,17 @@ module.exports = class ActivitySideView extends JView
 
   init: ->
 
+    # TODO: until KodingBot is in the prefetched data, just reload automatically
+    # so that sidebar won't use the prefetched data.
+    return @reload()
+
     {dataPath} = @getOptions()
     items = kd.singletons.socialapi.getPrefetchedData dataPath
+
+    # delete this line if `getPrefetchedeData 'bot'` returns an array.
+    # this is justn an assumption that the result will be a single social
+    # channel instance rather than an array. ~Umut
+    items = [items]  unless Array.isArray items
 
     if items?.length
     then @renderItems null, items
