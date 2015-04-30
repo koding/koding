@@ -30,7 +30,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     super options, data
 
     @listController.getListView().on 'DeleteSnapshot', =>
-      @listController.noItemView.show()  if @listController.getItemCount() is 0
+      @listController.showNoItemWidget()
 
 
   ###*
@@ -132,7 +132,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
     super
 
-    @listController.noItemView.show()  if @listController.getItemCount() is 0
+    @listController.showNoItemWidget()
 
 
   ###*
@@ -186,7 +186,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
         return
 
-      @listController.noItemView.hide() if @listController.getItemCount() is 0
+      @listController.hideNoItemWidget()
 
       @headerAddNewButton.hide()
       @addViewContainer.show()
