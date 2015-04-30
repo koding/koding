@@ -85,7 +85,7 @@ func (t *Terraformer) Close() error {
 	if t.Context == nil {
 		return nil
 	}
-	fmt.Println("3333-->", 3333)
+
 	return t.Context.Close()
 }
 
@@ -107,6 +107,7 @@ func (t *Terraformer) Run() error {
 
 	k.Close()
 	t.Close()
+
 	return nil
 }
 
