@@ -13,6 +13,24 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       alt      : 'Sign up with GitHub'
       click    : ->
         KD.singletons.oauthController.openPopup "github"
+    @facebook = new CustomLinkView
+      cssClass : 'fb'
+      title    : 'Sign up with Facebook'
+      alt      : 'Sign up with Facebook'
+      click    : ->
+        KD.singletons.oauthController.openPopup "facebook"
+    @twitter = new CustomLinkView
+      cssClass : 'twt'
+      title    : 'Sign up with Twitter'
+      alt      : 'Sign up with Twitter'
+      click    : ->
+        KD.singletons.oauthController.openPopup "twitter"
+    @google = new CustomLinkView
+      cssClass : 'gogl'
+      title    : 'Sign up with Google'
+      alt      : 'Sign up with Google'
+      click    : ->
+        KD.singletons.oauthController.openPopup "google"
 
     @email.setOption 'stickyTooltip', yes
     @password.setOption 'stickyTooltip', yes
@@ -76,5 +94,10 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       <div class='fl password'>{{> @password}}</div>
       <div class='fl submit'>{{> @button}}</div>
       {{> @github}}
+      <div class='buttons-extra'>
+        {{> @facebook}}
+        {{> @twitter}}
+        {{> @google}}
+      </div>
     </section>
     """
