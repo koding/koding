@@ -69,7 +69,7 @@ var (
 	Free = &Plan{
 		Name:               "Free",
 		TotalLimit:         1,
-		SnapshotTotalLimit: 1,
+		SnapshotTotalLimit: 0,
 		AlwaysOnLimit:      0,
 		StorageLimit:       3,
 		Timeout:            60 * time.Minute,
