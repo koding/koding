@@ -23,6 +23,7 @@ module.exports =
     browser
       .waitForElementVisible  paneSelector + fileSelector, 20000
       .moveToElement          paneSelector + fileSelector, 60, 17
+      .moveToElement          paneSelector + fileSelector + ' span.options', 8, 8
       .waitForElementVisible  paneSelector + fileSelector + ' span.options', 20000
       .click                  paneSelector + fileSelector + ' span.options'
       .waitForElementVisible  '.kdlistview-contextmenu', 20000 # Assertion
