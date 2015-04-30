@@ -6,6 +6,9 @@ if argv.help
   printHelp()
   process.exit 1
 
+AWS = require './aws'
+EC2 = new AWS.EC2()
+
 run = ->
   unless argv.hours or argv.minutes
     console.error "error: Please specify an expiration time\n"
@@ -17,8 +20,6 @@ run = ->
 
   Filters = [{ Name: 'image-id', Values: imageIds }]
 
-  AWS = require './aws'
-  EC2 = new AWS.EC2()
   EC2.describeInstances {Filters}, (err, data) ->
 
     error err  if err
