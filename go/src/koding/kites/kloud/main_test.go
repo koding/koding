@@ -100,6 +100,7 @@ type args struct {
 type singleUser struct {
 	MachineId           string
 	MachineLabel        string
+	StackId             string
 	PrivateKey          string
 	PublicKey           string
 	AccountId           bson.ObjectId
@@ -221,31 +222,8 @@ func TestTerraformApply(t *testing.T) {
 	}
 
 	remote := userData.Remote
-
-	// 	args := &kloud.TerraformKloudRequest{
-	// 		MachineIds: []string{userData.MachineId},
-	// 		TerraformContext: `
-	// provider "aws" {
-	//     access_key = "${var.access_key}"
-	//     secret_key = "${var.secret_key}"
-	//     region = "us-east-1"
-	// }
-	//
-	// resource "aws_instance" "example" {
-	//     ami = "ami-d05e75b8"
-	//     instance_type = "t2.micro"
-	//     subnet_id = "subnet-b47692ed"
-	//     tags {
-	//         Name = "KloudTerraform"
-	//     }
-	// }`,
-	// 		PublicKeys: map[string]string{
-	// 			"aws": userData.CredentialPublicKey,
-	// 		},
-	// 	}
-
 	args := &kloud.TerraformApplyRequest{
-		StackId: "",
+		StackId: userData.StackId,
 	}
 
 	resp, err := remote.Tell("apply", args)
@@ -632,6 +610,47 @@ func createUser(username string) (*singleUser, error) {
 		return nil, err
 	}
 
+	// jComputeStack and jStackTemplates
+	stackTemplateId := bson.NewObjectId()
+	stackTemplate := &kloud.StackTemplate{
+		Id:          stackTemplateId,
+		Credentials: []string{credPublicKey},
+	}
+	stackTemplate.Template.Content = `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-b47692ed"
+    tags {
+        Name = "KloudTerraform"
+    }
+}`
+
+	if err := provider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
+		return c.Insert(&stackTemplate)
+	}); err != nil {
+		return nil, err
+	}
+
+	computeStackId := bson.NewObjectId()
+	computeStack := &kloud.ComputeStack{
+		Id:          computeStackId,
+		BaseStackId: stackTemplateId,
+		Machines:    []bson.ObjectId{machineId},
+	}
+
+	if err := provider.DB.Run("jComputeStack", func(c *mgo.Collection) error {
+		return c.Insert(&computeStack)
+	}); err != nil {
+		return nil, err
+	}
+
 	userKite := kite.New("user", "0.0.1")
 	c := conf.Copy()
 	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
@@ -659,6 +678,7 @@ func createUser(username string) (*singleUser, error) {
 	return &singleUser{
 		MachineId:           machineId.Hex(),
 		MachineLabel:        machine.Label,
+		StackId:             computeStackId.Hex(),
 		PrivateKey:          privateKey,
 		PublicKey:           publicKey,
 		AccountId:           accountId,
