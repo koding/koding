@@ -13,22 +13,32 @@ import (
 	"github.com/koding/logging"
 )
 
+const (
+	CheckParticipationPath = "/api/social/channel/checkparticipation"
+	AccountPath            = "/api/social/account"
+)
+
 type Handler struct {
 	pubnub *models.PubNub
 	logger logging.Logger
+
+	checkParticipationEndpoint string
+	accountEndpoint            string
 }
 
 func NewHandler(p *models.PubNub, l logging.Logger) *Handler {
 	return &Handler{
 		pubnub: p,
 		logger: l,
+		checkParticipationEndpoint: fmt.Sprintf("%s%s", handler.RootPath(), CheckParticipationPath),
+		accountEndpoint:            fmt.Sprintf("%s%s", handler.RootPath(), AccountPath),
 	}
 }
 
 // SubscribeChannel checks users channel accessability and regarding to that
 // grants channel access for them
 func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	res, err := checkParticipation(u, header, req)
+	res, err := h.checkParticipation(u, header, req)
 	if err != nil {
 		return response.NewAccessDenied(err)
 	}
@@ -52,7 +62,7 @@ func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.C
 func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *models.Account) (int, http.Header, interface{}, error) {
 
 	// fetch account information from session
-	account, err := getAccountInfo(u, header)
+	account, err := h.getAccountInfo(u, header)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -74,7 +84,7 @@ func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *mo
 func (h *Handler) GetToken(u *url.URL, header http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 
 	// fetch account information from session
-	account, err := getAccountInfo(u, header)
+	account, err := h.getAccountInfo(u, header)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -95,12 +105,12 @@ func responseWithCookie(req interface{}, token string) (int, http.Header, interf
 }
 
 // TODO needs a better request handler
-func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*models.CheckParticipationResponse, error) {
+func (h *Handler) checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*models.CheckParticipationResponse, error) {
 	// relay the cookie to other endpoint
 	cookie := header.Get("Cookie")
 	request := &handler.Request{
 		Type:     "GET",
-		Endpoint: "/api/social/channel/checkparticipation",
+		Endpoint: h.checkParticipationEndpoint,
 		Params: map[string]string{
 			"name":  cr.Name,
 			"group": cr.Group,
@@ -130,11 +140,11 @@ func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*mo
 	return &cpr, nil
 }
 
-func getAccountInfo(u *url.URL, header http.Header) (*models.Account, error) {
+func (h *Handler) getAccountInfo(u *url.URL, header http.Header) (*models.Account, error) {
 	cookie := header.Get("Cookie")
 	request := &handler.Request{
 		Type:     "GET",
-		Endpoint: "/api/social/account",
+		Endpoint: h.accountEndpoint,
 		Cookie:   cookie,
 	}
 
