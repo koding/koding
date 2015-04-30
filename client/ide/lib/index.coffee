@@ -113,7 +113,8 @@ class IDEAppController extends AppController
       @resizeActiveTerminalPane()
 
       {onboardingController} = kd.singletons
-      onboardingController?.runOnboarding OnboardingEvent.IDELoaded  if appManager.frontApp is this and @isMachineRunning()
+      if appManager.frontApp is this and @isMachineRunning()
+        onboardingController?.runOnboarding OnboardingEvent.IDELoaded
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -975,7 +976,8 @@ class IDEAppController extends AppController
       data = { machine, workspace: @workspaceData }
       mainView.activitySidebar.selectWorkspace data
 
-      onboardingController.runOnboarding OnboardingEvent.IDELoaded  if appManager.frontApp is this
+      if appManager.frontApp is this
+        onboardingController.runOnboarding OnboardingEvent.IDELoaded
 
       @emit 'IDEReady'
 
