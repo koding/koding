@@ -241,9 +241,9 @@ build:
     - script:
         name: cat socialapi
         code: |
-          tail -n 1000 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
+          tail -n 1000 /var/log/koding/social-api.log || :
+          tail -n 100 /var/log/koding/social-populartopic.log || :
+          tail -n 100 /var/log/koding/social-pinnedpost.log || :
     - script:
         name: cleanup
         code: |
