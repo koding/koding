@@ -8,6 +8,7 @@ checkFlag = require 'app/util/checkFlag'
 KDController = kd.Controller
 OnboardingViewController = require './onboardingviewcontroller'
 OnboardingEvent = require 'app/onboarding/onboardingevent'
+Promise = require 'bluebird'
 
 
 module.exports = class OnboardingController extends KDController
@@ -69,8 +70,18 @@ module.exports = class OnboardingController extends KDController
   ###
   ready: ->
 
+    if @isPreviewMode()
+      @resetOnboardings @bound 'processPendingQueue'
+    else
+      @processPendingQueue()
+
+
+  ###*
+   * Marks controller as ready to work and runs onboardings in pending queue
+  ###
+  processPendingQueue: ->
+
     @isReady = yes
-    @resetOnboardings()  if @isPreviewMode()
     @runOnboarding args...  for args in @pendingQueue
 
 
@@ -110,12 +121,30 @@ module.exports = class OnboardingController extends KDController
 
   ###*
    * For all onboardings it saves a value in DB that requests to show onboarding again
+   *
+   * @param {function} callback - it's called when all values are saved in DB
   ###
-  resetOnboardings: ->
+  resetOnboardings: (callback) ->
 
+    promises = []
     for event of OnboardingEvent
+      promises.push @resetOnboarding(event)
+
+    Promise
+      .all promises
+      .then -> callback?()
+
+
+  ###*
+   * Saves a value in DB that requests to show onboarding again
+   *
+   * @return {Promise} - promise object that resolves once value is saved
+  ###
+  resetOnboarding: (event) ->
+
+    return new Promise (resolve) =>
       slug = @createSlug event
-      @appStorage.setValue slug, NEED_TO_BE_SHOWN
+      @appStorage.setValue slug, NEED_TO_BE_SHOWN, resolve
 
 
   ###*

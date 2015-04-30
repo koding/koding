@@ -90,9 +90,9 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
       tagName : 'a'
       partial : 'Click here to reset & reload'
       click   : =>
-        kd.singletons.onboardingController.resetOnboardings
-        @destroy()
-        global.location.reload yes
+        kd.singletons.onboardingController.resetOnboardings =>
+          @destroy()
+          global.location.reload yes
 
     @addSubView new JCustomHTMLView
       cssClass        : 'onboarding-text'
