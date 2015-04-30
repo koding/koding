@@ -34,12 +34,14 @@ module.exports = class TeamMembersCommonView extends KDView
         itemOptions       : listViewItemOptions
       noItemFoundWidget   : noItemFoundWidget
       startWithLazyLoader : yes
-      lazyLoadThreshold   : .90
+      lazyLoadThreshold   : .99
       lazyLoaderOptions   :
         spinnerOptions    :
           size            : width: 28
 
     @addSubView @listController.getView()
+
+    @listController.on 'LazyLoadThresholdReached', @bound 'fetchMembers'
 
 
   fetchMembers: ->
