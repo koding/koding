@@ -88,7 +88,7 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
     resetOnboardingLink = new KDView
       tagName : 'a'
-      partial : 'Click here to reset & reload'
+      partial : 'Click here to reset'
       click   : =>
         kd.singletons.onboardingController.resetOnboardings =>
           @destroy()
