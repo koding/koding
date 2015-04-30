@@ -30,8 +30,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     super options, data
 
     @listController.getListView().on 'DeleteSnapshot', =>
-      if @listController.getItemCount() is 0
-        @listController.noItemView.show()
+      @listController.noItemView.show()  if @listController.getItemCount() is 0
 
 
   ###*
@@ -126,12 +125,14 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       @listController.addItem snapshot
 
 
+  ###*
+   * Triggered when the header add new snapshot is pressed.
+  ###
   hideAddView: ->
 
     super
 
-    if @listController.getItemCount() is 0
-      @listController.noItemView.show()
+    @listController.noItemView.show()  if @listController.getItemCount() is 0
 
 
   ###*
@@ -166,20 +167,23 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * Called when the headerAddNewButton click event fires.
   ###
   showAddView: ->
+
     @isWithinSnapshotLimit (err, isWithin, current, max) =>
+      kd.warn err  if err
+
       # If the max is 0, the user has no allotted snapshots (free plan)
       if max is 0
         new ComputeErrorUsageModal
           plan    : 'free'
-          message : 'VM share feature is only available for paid accounts.'
+          message : 'The Snapshot feature is only available for paid accounts.'
 
         return @emit 'ModalDestroyRequested'
 
-      kd.warn err  if err
       if not isWithin
         msg = "Your current plan allows for a maximum of #{max} Snapshots"
         @showNotification msg, 'error'
         @addNewButton.hideLoader()
+
         return
 
       # Assign the no-line class if the itemCount is 0. Note that this
