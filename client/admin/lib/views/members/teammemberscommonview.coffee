@@ -33,7 +33,7 @@ module.exports = class TeamMembersCommonView extends KDView
       cssClass: 'search hidden'
       partial : '<span class="label">Sort by</span>'
 
-    @searchContainer.addSubView new KDSelectBox
+    @searchContainer.addSubView @sortSelectBox = new KDSelectBox
       defaultValue  : 'nickname'
       selectOptions : [
         { title     : 'Screen name',  value : 'fullname'  }
@@ -41,16 +41,10 @@ module.exports = class TeamMembersCommonView extends KDView
       ]
       callback      : (value) ->
 
-    @searchContainer.addSubView new KDHitEnterInputView
-      type                    : 'text'
-      placeholder             : 'Find by name/username'
-      validationNotifications : yes
-      validate                :
-        rules                 :
-          required            : yes
-        messages              :
-          required            : 'Please enter a name or username'
-      callback                : -> kd.log ',,,,,,,,,,,,,,,,,,'
+    @searchContainer.addSubView @searchInput = new KDHitEnterInputView
+      type        : 'text'
+      placeholder : 'Find by name/username'
+      callback    : @bound 'search'
 
 
   createListController: ->
@@ -104,3 +98,13 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @listController.lazyLoader.hide()
     @searchContainer.show()
+
+
+  search: ->
+
+    @skip  = 0
+    @query = @searchInput.getValue()
+
+    @listController.removeAllItems()
+    @listController.lazyLoader.show()
+    @fetchMembers()
