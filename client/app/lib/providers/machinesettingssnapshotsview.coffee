@@ -186,13 +186,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
         return
 
-      # Assign the no-line class if the itemCount is 0. Note that this
-      # will attempt to remove the class repeated times
-      if @listController.getItemCount() is 0
-        @addViewContainer.setClass 'no-line'
-        @listController.noItemView.hide()
-      else
-        @addViewContainer.unsetClass 'no-line'
+      @listController.noItemView.hide() if @listController.getItemCount() is 0
 
       @headerAddNewButton.hide()
       @addViewContainer.show()
