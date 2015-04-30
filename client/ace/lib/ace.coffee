@@ -18,6 +18,12 @@ class Ace extends KDView
 
   ACE_READY = no
 
+  EmmetLoadState =
+    PENDING: no
+    READY  : no
+
+  emmetLoadListeners = {}
+
   @registerStaticEmitter()
 
   getscript globals.acePath, (err) =>
@@ -156,6 +162,13 @@ class Ace extends KDView
     @suppressListeners = no   unless emitFileContentChangedEvent
 
 
+  destroy: ->
+
+    emmetLoadListeners[@id] = null  unless _.isNull emmetLoadListeners
+
+    super
+
+
   prepareEditor: ->
 
     @setTheme null, no
@@ -165,18 +178,20 @@ class Ace extends KDView
     @appStorage.fetchStorage (storage) =>
 
       @setTheme()
-      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes    ,no
-      @setShowGutter          @appStorage.getValue('showGutter')          ? yes    ,no
-      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no     ,no
-      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no     ,no
-      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes    ,no
-      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no     ,no
-      @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
-      @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
+      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes       , no
+      @setShowGutter          @appStorage.getValue('showGutter')          ? yes       , no
+      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no        , no
+      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no        , no
+      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes       , no
+      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no        , no
+      @setFontSize            @appStorage.getValue('fontSize')            ? 12        , no
+      @setTabSize             @appStorage.getValue('tabSize')             ? 4         , no
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
-      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
+      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes       , no
+      @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
+      @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
 
 
   saveStarted: ->
@@ -358,6 +373,14 @@ class Ace extends KDView
     @appStorage.getValue('enableAutocomplete') ? yes
 
 
+  getEnableSnippets: ->
+    @appStorage.getValue('enableSnippets') ? yes
+
+
+  getEnableEmmet: ->
+    @appStorage.getValue('enableEmmet') ? no
+
+
   getSettings: ->
 
     theme               : @getTheme()
@@ -374,6 +397,8 @@ class Ace extends KDView
     scrollPastEnd       : @getScrollPastEnd()
     openRecentFiles     : @getOpenRecentFiles()
     enableAutocomplete  : @getEnableAutocomplete()
+    enableSnippets      : @getEnableSnippets()
+    enableEmmet         : @getEnableEmmet()
 
 
   ###
@@ -502,12 +527,44 @@ class Ace extends KDView
     @appStorage.setValue 'openRecentFiles', value
 
 
+  loadEmmet: (cb) ->
+
+    return cb null  if EmmetLoadState.READY
+
+    emmetLoadListeners[@id] = cb
+
+    if not EmmetLoadState.PENDING
+      EmmetLoadState.PENDING = yes
+      emmetPath = globals.acePath.split('/').slice(0, -1)
+        .concat(['_ext-emmet.js']).join('/')
+      getscript emmetPath, (err) ->
+        cb err for key, cb of emmetLoadListeners when typeof cb is 'function'
+        EmmetLoadState.READY = yes
+        emmetLoadListeners = null
+
+
+  setEnableEmmet: (value, save = yes) ->
+
+    next = (err) =>
+      throw err  if err
+      @editor.setOption 'enableEmmet', value
+      @appStorage.setValue 'enableEmmet', value  if save
+
+    if value is yes and not EmmetLoadState.READY
+      @loadEmmet next
+    else
+      next null
+
+
+  setEnableSnippets: (value, save = yes) ->
+
+    @editor.setOption 'enableSnippets', value
+    @appStorage.setValue 'enableSnippets', value  if save
+
+
   setEnableAutocomplete: (value, save = yes) ->
 
-    @editor.setOptions
-      enableBasicAutocompletion: value
-      enableSnippets: value
-
+    @editor.setOption 'enableBasicAutocompletion', value
     @appStorage.setValue 'enableAutocomplete', value  if save
 
 
