@@ -38,6 +38,9 @@ type UserInfo struct {
 
 	// Group holds the current group context for the request
 	Group *models.Group
+
+	// User's cookie
+	Cookies []*http.Cookie
 }
 
 func getGroup(r *http.Request) (*models.Group, error) {
@@ -112,6 +115,7 @@ func prepareUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) 
 		Account:       account,
 		Impersonating: session.Impersonating,
 		Group:         group,
+		Cookies:       r.Cookies(),
 	}
 
 	return userInfo, nil
