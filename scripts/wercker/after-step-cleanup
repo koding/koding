@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ "$WERCKER_RESULT" = "failed" ]; then
+  if [ "$CLIENT_TEST" = "started" ]; then
+    if [ -z "$TERMINATE_FAILED_TEST_INSTANCE" ]; then
+      exit 0
+    fi
+  fi
+fi
+
+INSTANCE_ID=$(echo $INSTANCE_DATA | awk '{print $1}')
+scripts/wercker/terminate-test-instance $INSTANCE_ID
+
+exit 0
