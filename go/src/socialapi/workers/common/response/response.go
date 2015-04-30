@@ -103,9 +103,8 @@ func NewDeleted() (int, http.Header, interface{}, error) {
 
 // NewDefaultOK returns http StatusOK response with `{status:true}` response
 func NewDefaultOK() (int, http.Header, interface{}, error) {
-	res := map[string]interface{}{
-		"status": true,
-	}
+	res := &SuccessResponse{}
+	res.Status = true
 
 	return NewOK(res)
 }
