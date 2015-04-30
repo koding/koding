@@ -8,7 +8,6 @@ checkFlag = require 'app/util/checkFlag'
 KDController = kd.Controller
 OnboardingViewController = require './onboardingviewcontroller'
 OnboardingEvent = require 'app/onboarding/onboardingevent'
-KDModalView = kd.ModalView
 
 
 module.exports = class OnboardingController extends KDController
@@ -72,7 +71,7 @@ module.exports = class OnboardingController extends KDController
 
     @isReady = yes
     @resetOnboardings()  if @isPreviewMode()
-    @runOnboarding.apply this, args for args in @pendingQueue
+    @runOnboarding args...  for args in @pendingQueue
 
 
   ###*
@@ -87,7 +86,7 @@ module.exports = class OnboardingController extends KDController
   ###
   runOnboarding: (groupName, delay = 2000) ->
 
-    return @pendingQueue.push Array::slice.call(arguments)  unless @isReady
+    return @pendingQueue.push [].slice.call(arguments)  unless @isReady
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
@@ -111,31 +110,12 @@ module.exports = class OnboardingController extends KDController
 
   ###*
    * For all onboardings it saves a value in DB that requests to show onboarding again
-   *
-   * @param {bool} showNotification - indicates if notification modal should appear after resetting onboardings
   ###
-  resetOnboardings: (showNotification) ->
+  resetOnboardings: ->
 
     for event of OnboardingEvent
       slug = @createSlug event
       @appStorage.setValue slug, NEED_TO_BE_SHOWN
-
-    if showNotification
-      modal = new KDModalView
-        title          : 'Onboarding has been reset'
-        content        : '''
-          <p>
-            To start the onboarding process, please reload this page
-          </p>
-        '''
-        overlay        : yes
-        buttons        :
-          reload       :
-            cssClass   : 'solid green medium'
-            title      : 'Reload page'
-            callback   : ->
-              modal.destroy()
-              global.location.reload yes
 
 
   ###*

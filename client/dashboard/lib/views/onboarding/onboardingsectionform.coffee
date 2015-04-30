@@ -15,7 +15,7 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
   constructor: (options = {}, data) ->
 
     groups = []
-    groups.push { title: OnboardingEventName[event], value: event } for event of OnboardingEvent
+    groups.push { title: OnboardingEventName[event], value: event }  for event of OnboardingEvent
 
     options.cssClass      = "section-form"
     @jCustomPartial       = data
