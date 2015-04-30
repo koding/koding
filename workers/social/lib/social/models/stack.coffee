@@ -1,4 +1,6 @@
 jraphical = require 'jraphical'
+
+
 module.exports = class JComputeStack extends jraphical.Module
 
   KodingError        = require '../error'
@@ -66,6 +68,7 @@ module.exports = class JComputeStack extends jraphical.Module
         required         : yes
 
       baseStackId        : ObjectId
+      stackRevision      : String
 
       rules              : [ ObjectId ]
       domains            : [ ObjectId ]
@@ -120,7 +123,9 @@ module.exports = class JComputeStack extends jraphical.Module
 
     data.account   = client.connection.delegate
     data.groupSlug = client.context.group
+
     delete data.baseStackId
+    delete data.stackRevision
 
     JComputeStack.create data, callback
 
@@ -133,11 +138,12 @@ module.exports = class JComputeStack extends jraphical.Module
   ###
   @create = (data, callback)->
 
-    { account, groupSlug, config, title, baseStackId } = data
+    { account, groupSlug, config, title, baseStackId, stackRevision } = data
+
     originId = account.getId()
 
     stack = new JComputeStack {
-      title, config, originId, baseStackId,
+      title, config, originId, baseStackId, stackRevision
       group: groupSlug
     }
 
