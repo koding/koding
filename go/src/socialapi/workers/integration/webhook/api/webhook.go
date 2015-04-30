@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
@@ -152,8 +153,13 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 		return response.NewBadRequest(err)
 	}
 
+	cc := models.NewChannelContainer()
+	if err := cc.Fetch(channel.Id, &request.Query{}); err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	data := NewBotChannelResponse()
-	data.ChannelId = channel.Id
+	data.ChannelContainer = cc
 
 	res := response.NewSuccessResponse(data)
 

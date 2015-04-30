@@ -1,7 +1,9 @@
 package api
 
+import "socialapi/models"
+
 type BotChannelResponse struct {
-	ChannelId int64 `json:"channelId,string"`
+	*models.ChannelContainer
 }
 
 func NewBotChannelResponse() *BotChannelResponse {

@@ -49,9 +49,19 @@ func DoBotChannelRequest(token string) (int64, error) {
 	if !ok {
 		return 0, ErrTypecastError
 	}
-	channelIdResponse, channelIdFound := res["channelId"]
+	channelResponse, channelFound := res["channel"]
+	if !channelFound {
+		return 0, fmt.Errorf("channel field does not exit")
+	}
+
+	cr, ok := channelResponse.(map[string]interface{})
+	if !ok {
+		return 0, ErrTypecastError
+	}
+
+	channelIdResponse, channelIdFound := cr["id"]
 	if !channelIdFound {
-		return 0, fmt.Errorf("channelId field does not exit")
+		return 0, fmt.Errorf("channel.id field does not exist")
 	}
 
 	channelId, channelIdOk := channelIdResponse.(string)
