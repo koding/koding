@@ -40,7 +40,7 @@ func (b *BotChannelRequest) verifyAccount() (*models.Account, error) {
 
 func (b *BotChannelRequest) verifyGroup() (*models.Channel, error) {
 	c, err := models.Cache.Channel.ByGroupName(b.GroupName)
-	if err == bongo.RecordNotFound {
+	if err == models.ErrGroupNotFound {
 		return nil, ErrGroupNotFound
 	}
 
