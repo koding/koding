@@ -5,23 +5,17 @@ package kodingcontext
 import (
 	"bytes"
 	"errors"
-	"os"
-	"os/signal"
+	"fmt"
 	"sync"
-	"syscall"
+	"time"
 
 	"koding/kites/terraformer/kodingcontext/pkg"
 	"koding/kites/terraformer/storage"
 
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/kr/pretty"
 	"github.com/mitchellh/cli"
-)
-
-var (
-	shutdownChans   map[string]chan struct{}
-	shutdownChansMu sync.Mutex
-	shutdownChansWG sync.WaitGroup
 )
 
 const (
@@ -31,6 +25,12 @@ const (
 	mainFileName          = "main"
 	planFileName          = "plan"
 	stateFileName         = "state"
+)
+
+var (
+	shutdownChans   map[string]chan struct{}
+	shutdownChansMu sync.Mutex
+	shutdownChansWG sync.WaitGroup
 )
 
 // Context holds the required operational parameters for any kind of terraform
@@ -45,17 +45,15 @@ type Context struct {
 	ShutdownChan <-chan struct{}
 
 	ContentID    string
-	baseDir      string
 	Providers    map[string]terraform.ResourceProviderFactory
 	Provisioners map[string]terraform.ResourceProvisionerFactory
 	Buffer       *bytes.Buffer
 	ui           *cli.PrefixedUi
-	closeChan    chan struct{}
 }
 
 // New creates a new Context, this should not be used directly, use Clone
 // instead from an existing one
-func New(ls, rs storage.Interface, closeChan chan struct{}) (*Context, error) {
+func New(ls, rs storage.Interface) (*Context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
@@ -67,10 +65,8 @@ func New(ls, rs storage.Interface, closeChan chan struct{}) (*Context, error) {
 	c.Provisioners = config.ProvisionerFactories()
 	c.LocalStorage = ls
 	c.RemoteStorage = rs
-	c.closeChan = closeChan
 
-	// create global shut down handlers
-	c.makeShutdownChans()
+	shutdownChans = make(map[string]chan struct{})
 
 	return c, nil
 }
@@ -85,9 +81,8 @@ func newContext() *Context {
 	b := new(bytes.Buffer)
 
 	return &Context{
-		baseDir: "",
-		Buffer:  b,
-		ui:      NewUI(b),
+		Buffer: b,
+		ui:     NewUI(b),
 	}
 }
 
@@ -98,7 +93,7 @@ func (c *Context) Get(contentID string) (*Context, error) {
 		return nil, errors.New("contentID is not set")
 	}
 
-	sc, err := createShutdownChan(contentID)
+	sc, err := c.createShutdownChan(contentID)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +105,7 @@ func (c *Context) Get(contentID string) (*Context, error) {
 	cc.LocalStorage = c.LocalStorage
 	cc.RemoteStorage = c.RemoteStorage
 	cc.ShutdownChan = sc
+
 	return cc, nil
 }
 
@@ -143,6 +139,7 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 
 // Close terminates the existing context
 func (c *Context) Close() error {
+	fmt.Printf("c.ContentID %# v", pretty.Formatter(c.ContentID))
 	if c.ContentID != "" {
 		shutdownChansMu.Lock()
 		delete(shutdownChans, c.ContentID)
@@ -153,7 +150,47 @@ func (c *Context) Close() error {
 	return c.LocalStorage.Remove(c.ContentID)
 }
 
-func createShutdownChan(contentID string) (<-chan struct{}, error) {
+// BroadcastShutdown sends a message to the current listeners
+func (c *Context) BroadcastForceShutdown() {
+	shutdownChansMu.Lock()
+	for _, shutdownChan := range shutdownChans {
+		// broadcast this message to listeners
+		shutdownChan <- struct{}{}
+	}
+	shutdownChansMu.Unlock()
+}
+
+// Shutdown shutsdown koding context
+func (c *Context) Shutdown() error {
+	shutdown := make(chan struct{})
+	go func() {
+		shutdownChansWG.Wait()
+		close(shutdown)
+	}()
+
+	select {
+	case <-time.After(time.Second * 15):
+		// wait for 15 seconds, after that close forcefully, but still
+		// gracefully
+		c.BroadcastForceShutdown()
+
+	case <-time.After(time.Second * 25):
+		// if operations dont end in 15 secs, close them ungracefully
+		c.BroadcastForceShutdown()
+
+	case <-time.After(time.Second * 30):
+		// return if nothing happens in 30 sec
+		return errors.New("deadline reached")
+
+	case <-shutdown:
+		// if all the requests finish before 15 secs
+		return nil
+	}
+
+	return nil
+}
+
+func (c *Context) createShutdownChan(contentID string) (<-chan struct{}, error) {
 	shutdownChansMu.Lock()
 	defer shutdownChansMu.Unlock()
 
@@ -167,28 +204,4 @@ func createShutdownChan(contentID string) (<-chan struct{}, error) {
 	shutdownChans[contentID] = resultCh
 	shutdownChansWG.Add(1)
 	return resultCh, nil
-}
-
-func (c *Context) makeShutdownChans() {
-	// init channels map
-	shutdownChans = make(map[string]chan struct{})
-	go func() {
-		signalCh := make(chan os.Signal, 1)
-		signal.Notify(signalCh)
-
-		s := <-signalCh
-		signal.Stop(signalCh)
-		switch s {
-		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
-			shutdownChansMu.Lock()
-			// broadcast this message to others
-			for _, shutdownChan := range shutdownChans {
-				shutdownChan <- struct{}{}
-			}
-			shutdownChansMu.Unlock()
-		}
-
-		shutdownChansWG.Wait()
-		close(c.closeChan)
-	}()
 }

@@ -20,6 +20,9 @@ func (t *Terraformer) newKite(conf *Config) (*kite.Kite, error) {
 
 	k = t.setupKite(k, conf)
 
+	// handle current status of terraformer
+	k.PostHandleFunc(t.handleState)
+
 	// track every kind of call
 	k.PreHandleFunc(createTracker(t.Metrics))
 
@@ -84,4 +87,15 @@ func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
 
 		return true, nil
 	}
+}
+
+func (t *Terraformer) handleState(r *kite.Request) (interface{}, error) {
+	t.rwmu.RLock()
+	defer t.rwmu.RUnlock()
+
+	if t.closing {
+		return false, errors.New("terraformer is closing")
+	}
+
+	return true, nil
 }

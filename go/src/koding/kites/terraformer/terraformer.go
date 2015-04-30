@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"koding/kites/terraformer/kodingcontext"
 	"koding/kites/terraformer/storage"
+	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 
 	"koding/kites/common"
 
@@ -41,7 +45,10 @@ type Terraformer struct {
 	// Store app runtime config
 	Config *Config
 
-	closeChan chan struct{} // To signal when terraformer is closed
+	closeChan chan struct{} // To signal when terraformer is closing
+
+	closing bool
+	rwmu    sync.RWMutex
 }
 
 // TerraformRequest is a helper struct for terraformer kite requests
@@ -65,7 +72,7 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 
 	closeChan := make(chan struct{})
 
-	c, err := kodingcontext.New(ls, rs, closeChan)
+	c, err := kodingcontext.New(ls, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +109,7 @@ func (t *Terraformer) Run() error {
 	}
 
 	go k.Run()
+	t.handleSignals()
 
 	<-t.closeChan // wait for exit
 
@@ -109,6 +117,29 @@ func (t *Terraformer) Run() error {
 	t.Close()
 
 	return nil
+}
+
+func (t *Terraformer) handleSignals() {
+	go func() {
+		signalCh := make(chan os.Signal, 1)
+		signal.Notify(signalCh)
+
+		s := <-signalCh
+		signal.Stop(signalCh)
+		switch s {
+		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
+			t.rwmu.Lock()
+			// mark terraformer as closing and stop accepting new requests
+			t.closing = true
+			t.rwmu.Unlock()
+
+			if err := t.Context.Shutdown(); err != nil {
+				t.Log.Critical("err while shutting down context %s", err.Error())
+			}
+
+			close(t.closeChan)
+		}
+	}()
 }
 
 // Kite creates a new Terraformer Kite communication layer
