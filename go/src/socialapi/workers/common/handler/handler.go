@@ -190,11 +190,6 @@ func DoRequest(request *Request) (*http.Response, error) {
 	request.Endpoint = prepareQueryString(request.Endpoint, request.Params)
 
 	client := new(http.Client)
-	endpoint := request.Endpoint
-	if !strings.Contains(request.Endpoint, "http") {
-		hostname := config.MustGet().CustomDomain.Local
-		endpoint = fmt.Sprintf("%s/%s", hostname, request.Endpoint)
-	}
 
 	var byteData io.Reader
 	if request.Body != nil {
@@ -205,7 +200,7 @@ func DoRequest(request *Request) (*http.Response, error) {
 		byteData = bytes.NewReader(body)
 	}
 
-	req, err := http.NewRequest(request.Type, endpoint, byteData)
+	req, err := http.NewRequest(request.Type, request.Endpoint, byteData)
 	req = prepareHeaders(req, request.Headers)
 
 	if err != nil {
