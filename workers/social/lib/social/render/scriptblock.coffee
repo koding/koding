@@ -87,6 +87,7 @@ module.exports = (options = {}, callback)->
     ->
       socialApiCacheFn = require '../cache/socialapi'
       socialApiCacheFn options, (err, data)->
+        console.error 'could not get prefetched data', err  if err
         socialapidata = data
         queue.fin()
     ->
