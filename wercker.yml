@@ -245,12 +245,12 @@ build:
           tail -n 100 /var/log/koding/social-populartopic.log
           tail -n 100 /var/log/koding/social-pinnedpost.log
     - script:
-        name: terminate test instance
+        name: cleanup
         code: |
-          INSTANCE_ID=$(cat INSTANCE_DATA | awk '{print $1}')
-          if [ -n "$INSTANCE_ID" ]; then scripts/wercker/terminate-test-instance $INSTANCE_ID; fi
+          export INSTANCE_DATA=$(cat INSTANCE_DATA)
+          export CLIENT_TEST=$(cat CLIENT_TEST)
+          scripts/wercker/after-step-cleanup
           rm INSTANCE_DATA CLIENT_TEST
-
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
