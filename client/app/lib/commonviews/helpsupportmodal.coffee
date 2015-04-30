@@ -96,7 +96,7 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
     @addSubView new JCustomHTMLView
       cssClass        : 'onboarding-text'
-      pistachio       : 'Want to view all the onboarding steps again? {{> resetOnboardingLink}}'
+      pistachio       : 'Want to view all the onboarding steps again?<br />{{> resetOnboardingLink}}'
       pistachioParams : { resetOnboardingLink }
 
 
