@@ -49,11 +49,11 @@ module.exports =
       usersFile = fs.readFileSync('users.json')
       users = JSON.parse(usersFile)
 
-      console.log 'users.json found, returning first user'
+      console.log '✔  users.json found, returning first user'
       return users[0]
 
     catch
-      console.log 'users.json does not exist, creating new user data'
+      console.log '✔  users.json does not exist, creating new user data'
 
       users = @generateUsers()
       return users[0]

@@ -1,6 +1,7 @@
-helpers = require '../helpers/helpers.js'
-assert  = require 'assert'
+helpers    = require '../helpers/helpers.js'
+ideHelpers = require '../helpers/idehelpers.js'
 
+paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
 module.exports =
 
@@ -158,3 +159,56 @@ module.exports =
     helpers.deleteFile(browser, newFile)
 
     browser.end()
+
+
+  findInFiles: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    contentSearchModalSelector  = '.content-search-modal'
+    findInFilesSelector         = '.kdlistview-contextmenu li.find-in-files'
+    matchedWordSelector         = '.content-search-result pre p.match'
+    activeUntitledFileSelector  = "#{paneSelector} .untitledtxt.active"
+    activeEditorSelector        = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
+
+    ideHelpers.openNewFile(browser)
+    ideHelpers.openContextMenu(browser)
+
+    browser
+      .waitForElementVisible     findInFilesSelector, 20000
+      .click                     findInFilesSelector
+      .waitForElementVisible     contentSearchModalSelector, 20000
+      .setValue                  contentSearchModalSelector + ' input[name=findInput]', 'hello'
+      .click                     contentSearchModalSelector + ' button.search'
+      .waitForElementVisible     paneSelector + ' .search-result', 20000 # Assertion
+      .waitForElementNotPresent  activeUntitledFileSelector, 20000 # Assertion
+      .waitForElementVisible     matchedWordSelector, 20000
+      .click                     matchedWordSelector
+      .waitForElementNotPresent  paneSelector + '.search-result .active', 20000 # Assertion
+      .assert.containsText       activeEditorSelector, 'hello'
+      .end()
+
+
+  jumpToFile: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    searchModalSelector  = '.file-finder'
+    findInFilesSelector  = '.kdlistview-contextmenu li.jump-to-file'
+    paneSelector         = '.pane-wrapper .kdsplitview-panel .application-tab-handle-holder .pythonpy'
+
+    ideHelpers.openNewFile(browser)
+    ideHelpers.openContextMenu(browser)
+
+    browser
+      .waitForElementVisible   findInFilesSelector, 20000
+      .click                   findInFilesSelector
+      .waitForElementVisible   searchModalSelector, 20000
+      .setValue                searchModalSelector + ' input.text', 'python'
+      .waitForElementVisible   searchModalSelector + ' .file-item:first-child', 20000
+      .click                   searchModalSelector + ' .file-item:first-child'
+      .waitForElementVisible   '.ws-tabview .kdtabview .pythonpy.active', 20000 # Assertion
+      .waitForElementVisible   paneSelector, 20000 # Assertion
+      .end()
