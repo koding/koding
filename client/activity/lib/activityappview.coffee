@@ -57,6 +57,7 @@ module.exports = class ActivityAppView extends KDView
 
     @tabs.on 'PaneDidShow', (pane) =>
       if type = pane.getData()?.typeConstant
+        type = 'privatemessage'  if type is 'bot'
         @tabs.setAttribute 'class', kd.utils.curry 'kdview kdtabview', type
 
     { router } = kd.singletons
