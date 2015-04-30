@@ -46,6 +46,10 @@ module.exports = class TeamMembersCommonView extends KDView
 
   fetchMembers: ->
 
+    return if @isFetching
+
+    @isFetching = yes
+
     selector = @query or ''
     options  =
       limit  : @getOptions().itemLimit
@@ -55,11 +59,13 @@ module.exports = class TeamMembersCommonView extends KDView
     @getData().searchMembers selector, options, (err, members) =>
       return kd.warn err  if err
       @listMembers members
+      @isFetching = no
 
 
   listMembers: (members) ->
 
-    return  unless members.length
+    unless members.length
+      return @listController.lazyLoader.hide()
 
     @skip += members.length
 
