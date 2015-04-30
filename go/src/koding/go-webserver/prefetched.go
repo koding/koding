@@ -7,6 +7,8 @@ import (
 	"koding/db/models"
 	"net"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -34,7 +36,7 @@ func fetchSocial(userInfo *UserInfo, outputter *Outputter) {
 		go func(name, url string) {
 			defer wg.Done()
 
-			item, err := fetchSocialItem(url)
+			item, err := fetchSocialItem(url, userInfo)
 			if err != nil {
 				Log.Error("Fetching prefetched socialdata item: %s, %v", name, err)
 
@@ -71,11 +73,23 @@ func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, timeout)
 }
 
-func fetchSocialItem(url string) (interface{}, error) {
+func fetchSocialItem(fetchURL string, userInfo *UserInfo) (interface{}, error) {
 	transport := http.Transport{Dial: dialTimeout}
 	client := http.Client{Transport: &transport}
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := client.Get(url)
+	u, err := url.Parse(conf.SocialApi.CustomDomain.Local)
+	if err != nil {
+		return nil, err
+	}
+
+	jar.SetCookies(u, userInfo.Cookies)
+	client.Jar = jar
+
+	resp, err := client.Get(fetchURL)
 	if err != nil {
 		return nil, err
 	}
