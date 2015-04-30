@@ -7,6 +7,7 @@ ActivityPane           = require './views/activitypane'
 AnnouncementPane       = require './views/announcementpane'
 MoreChannelsModal      = require './sidebar/morechannelsmodal'
 PrivateMessagePane     = require './views/privatemessage/privatemessagepane'
+KodingBotMessagePane   = require './views/privatemessage/kodingbotmessagepane'
 PrivateMessageForm     = require './views/privatemessage/privatemessageform'
 SingleActivityPane     = require './views/singleactivitypane'
 TopicMessagePane       = require './views/topicmessagepane'
@@ -197,6 +198,7 @@ module.exports = class ActivityAppView extends KDView
 
     paneClass = switch type
       when 'topic'          then TopicMessagePane
+      when 'bot'            then KodingBotMessagePane
       when 'privatemessage' then PrivateMessagePane
       when 'post'           then SingleActivityPane
       else
