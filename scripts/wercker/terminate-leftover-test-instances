@@ -1,5 +1,7 @@
 #!/usr/bin/env coffee
 
+async = require 'async'
+
 argv = (require 'minimist') process.argv.slice 2
 
 if argv.help
@@ -40,8 +42,11 @@ run = ->
 
     return process.exit 0  unless InstanceIds.length
 
-    EC2.terminateInstances {DryRun, InstanceIds}, (err) ->
-      return error err  if err
+    async.filter InstanceIds, checkApiTermination, (InstanceIds) ->
+      return process.exit 0  unless InstanceIds.length
+
+      EC2.terminateInstances {DryRun, InstanceIds}, (err) ->
+        return error err  if err
 
 
 getOptions = (argv) ->
