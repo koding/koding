@@ -22,7 +22,7 @@ run = ->
 
   EC2.describeInstances {Filters}, (err, data) ->
 
-    error err  if err
+    return error err  if err
 
     unless data or data.Reservations
       return error 'Reservations not found'
