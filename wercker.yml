@@ -45,15 +45,16 @@ build:
         code: |
           chmod 600 $KODING_DEPLOYMENT_KEY
     - mktemp:
-        envvar: INSTANCE_DATA
-    - mktemp:
         envvar: INSTANCE_IP
+    - script:
+        name: create data files
+        code: touch INSTANCE_DATA CLIENT_TEST
     - script:
         name: launch test instance
         code: |
           INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
-          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
-          cat $INSTANCE_DATA
+          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
+          cat INSTANCE_DATA
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
@@ -129,7 +130,7 @@ build:
     - script:
         name: check connectivity
         code: |
-          HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
+          HOST=$(cat INSTANCE_DATA | awk '{print $2}')
           if [ -z "$HOST" ]; then exit 1; fi
           echo $HOST > $INSTANCE_IP
           scripts/wercker/check-connectivity $HOST 8090 1m 10
@@ -137,6 +138,7 @@ build:
     - script:
         name: testing client started
         code: |
+          echo started > CLIENT_TEST
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     - script:
         name: run register test suite
@@ -232,17 +234,17 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
     - script:
-        name: cat socialapi
+        name: setup nvm
         code: |
-          tail -n 1000 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
+          source $HOME/.nvm/nvm.sh
+          nvm use 0.10.33
     - script:
-        name: terminate test instance
+        name: cleanup
         code: |
-          INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
-          if [ -n "$INSTANCE_ID" ]; then scripts/wercker/terminate-test-instance $INSTANCE_ID; fi
-
+          export INSTANCE_DATA=$(cat INSTANCE_DATA)
+          export CLIENT_TEST=$(cat CLIENT_TEST)
+          scripts/wercker/after-step-cleanup
+          rm INSTANCE_DATA CLIENT_TEST
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
@@ -253,6 +255,12 @@ build:
         name: build finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is $WERCKER_RESULT " $WERCKER_RESULT 100
+    - script:
+        name: cat socialapi
+        code: |
+          tail -n 1000 /var/log/koding/social-api.log || :
+          tail -n 100 /var/log/koding/social-populartopic.log || :
+          tail -n 100 /var/log/koding/social-pinnedpost.log || :
 deploy:
   steps:
     - script:
