@@ -1,14 +1,13 @@
-htmlencode = require 'htmlencode'
-globals = require 'globals'
-groupifyLink = require '../util/groupifyLink'
-nick = require '../util/nick'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDProgressBarView = kd.ProgressBarView
-JView = require '../jview'
-Machine = require '../providers/machine'
-MachineSettingsPopup = require '../providers/machinesettingspopup'
-MachineSettingsModal = require '../providers/machinesettingsmodal'
+kd                       = require 'kd'
+nick                     = require '../util/nick'
+JView                    = require '../jview'
+Machine                  = require '../providers/machine'
+globals                  = require 'globals'
+htmlencode               = require 'htmlencode'
+groupifyLink             = require '../util/groupifyLink'
+KDCustomHTMLView         = kd.CustomHTMLView
+KDProgressBarView        = kd.ProgressBarView
+MachineSettingsModal     = require '../providers/machinesettingsmodal'
 SidebarMachineSharePopup = require 'app/activity/sidebar/sidebarmachinesharepopup'
 
 

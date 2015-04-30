@@ -2,10 +2,11 @@ package models
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
-	"github.com/koding/bongo"
 	"socialapi/request"
 	"strings"
+
+	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 type Account struct {

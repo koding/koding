@@ -85,3 +85,41 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		models.FetchAccountOldsIdByIdsFromCache(list),
 	)
 }
+
+func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+
+	// get query
+	query := request.GetQuery(u)
+
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	query.AccountId = id
+
+	if query.Type == "" {
+		query.Type = models.Interaction_TYPE_LIKE
+	}
+
+	// find the group channel
+	ch := models.NewChannel()
+	err = ch.FetchPublicChannel(c.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// fetch liked messages of the account in this chanenl
+	i := models.NewInteraction()
+	messages, err := i.ListLikedMessages(query, ch.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// populate messages as channel containers, they will have many other data, like count etc
+	rs := models.NewChannelMessageContainers()
+	// start populating
+	rs.PopulateWith(messages, query)
+
+	return response.HandleResultAndError(rs, rs.Err())
+}
