@@ -18,14 +18,14 @@ module.exports = class MemberItemView extends KDListItemView
     super options, data
 
     @avatar = new AvatarView
-      size     : width: 40, height : 40
+      size  : width: 40, height : 40
     , @getData()
 
     @roleLabel = new KDCustomHTMLView
       cssClass : 'role'
       partial  : "Member <span class='settings-icon'></span>"
       click    : =>
-        @settings.toggleClass 'hidden'
+        @settings.toggleClass  'hidden'
         @roleLabel.toggleClass 'active'
 
     @createSettingsView()
