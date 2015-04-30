@@ -160,12 +160,12 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 	}
 
 	for _, machine := range jMachines {
-		terraformMachine, err := data.Label(machine.Label)
+		tf, err := data.Label(machine.Label)
 		if err != nil {
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", machine.Label)
 		}
 
-		storageSize, err := strconv.Atoi(terraformMachine.Attributes["root_block_device.0.volume_size"])
+		size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
 		if err != nil {
 			return err
 		}
@@ -174,13 +174,13 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 			return c.UpdateId(
 				machine.Id,
 				bson.M{"$set": bson.M{
-					"provider":          terraformMachine.Provider,
-					"meta.region":       terraformMachine.Region,
-					"ipAddress":         terraformMachine.Attributes["public_ip"],
-					"meta.instanceId":   terraformMachine.Attributes["id"],
-					"meta.instanceType": terraformMachine.Attributes["instance_type"],
-					"meta.source_ami":   terraformMachine.Attributes["ami"],
-					"meta.storage_size": storageSize,
+					"provider":          tf.Provider,
+					"meta.region":       tf.Region,
+					"ipAddress":         tf.Attributes["public_ip"],
+					"meta.instanceId":   tf.Attributes["id"],
+					"meta.instanceType": tf.Attributes["instance_type"],
+					"meta.source_ami":   tf.Attributes["ami"],
+					"meta.storage_size": size,
 				}},
 			)
 		}); err != nil {
