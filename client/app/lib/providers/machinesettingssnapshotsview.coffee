@@ -126,6 +126,14 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       @listController.addItem snapshot
 
 
+  hideAddView: ->
+
+    super
+
+    if @listController.getItemCount() is 0
+      @listController.noItemView.show()
+
+
   ###*
    * Populate the listController with snapshots fetched from jSnapshot.
   ###
@@ -167,7 +175,6 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
         return @emit 'ModalDestroyRequested'
 
-
       kd.warn err  if err
       if not isWithin
         msg = "Your current plan allows for a maximum of #{max} Snapshots"
@@ -178,8 +185,10 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       # Assign the no-line class if the itemCount is 0. Note that this
       # will attempt to remove the class repeated times
       if @listController.getItemCount() is 0
-      then @addViewContainer.setClass 'no-line'
-      else @addViewContainer.unsetClass 'no-line'
+        @addViewContainer.setClass 'no-line'
+        @listController.noItemView.hide()
+      else
+        @addViewContainer.unsetClass 'no-line'
 
       @headerAddNewButton.hide()
       @addViewContainer.show()
