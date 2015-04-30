@@ -537,6 +537,7 @@ module.exports = {
   updateChannel
   checkOwnership
   expireSubscription
+  fetchBotChannel
   post
   get
   deleteReq

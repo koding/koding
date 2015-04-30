@@ -66,6 +66,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         update:
           (signature Object, Function)
+        fetchBotChannel:
+          (signature Object, Function)
 
     schema             :
       id               : Number
@@ -287,3 +289,8 @@ module.exports = class SocialChannel extends Base
         return callback err  if err
 
         return callback null, options.channelId
+
+  @fetchBotChannel = (options, callback) ->
+
+    {fetchBotChannel} = require './requests'
+    fetchBotChannel options, callback
