@@ -292,3 +292,7 @@ func ParseCookiesToMap(cookie string) map[string]*http.Cookie {
 
 	return cookies
 }
+
+func RootPath() string {
+	return config.MustGet().CustomDomain.Local
+}
