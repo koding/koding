@@ -98,12 +98,25 @@ body.ide.dark
     background          rgba(0, 0, 0, .6)
 
   .kdtabhandle.plus
-    r-sprite            'ide', 'tab-plus'
-    border-left         none
-    margin              4px
+    r-sprite                'ide', 'tab-plus'
+    border-left             none
+    margin                  4px
     .icon
-      bg                image, none
-      margin            0
+      bg                    image, none
+      margin                0
+      opacity               0.5
+    .icon.opaque
+      opacity               1
+
+  .kdtabhandle.close-handle
+    position                absolute
+    right                   0
+    border-left             none
+    .icon
+      position              absolute
+      top                   14px
+      right                 16px
+      r-sprite              'ide', 'tab-close'
 
   .ace-find-replace-view
     bottom              1px !important
@@ -197,6 +210,9 @@ body.ide.dark
 
 .ide-files-tab .application-tabview
   overflow                  hidden
+
+.ide-files-tab .close-handle
+  hidden()
 
 // sidebar icons
 .ide-files-tab
