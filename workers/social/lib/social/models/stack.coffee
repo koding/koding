@@ -43,6 +43,8 @@ module.exports = class JComputeStack extends jraphical.Module
           (signature Function)
         modify           :
           (signature Object, Function)
+        checkRevision     :
+          (signature Function)
 
     sharedEvents         :
       static             : [ ]
@@ -298,3 +300,42 @@ module.exports = class JComputeStack extends jraphical.Module
       @update $set : { title, config }, (err)->
         return callback err  if err?
         callback null
+
+
+  stackRevisionErrors =
+    TEMPLATESAME      :
+      message         : 'Base stack template is same'
+      code            : 0
+    TEMPLATEDIFFERENT :
+      message         : 'Base stack template is different'
+      code            : 1
+    NOTFROMTEMPLATE   :
+      message         : 'This stack is not created from a template'
+      code            : 2
+    INVALIDTEMPLATE   :
+      message         : 'This stack has no revision or template is not valid.'
+      code            : 3
+
+
+  checkRevision: permit
+
+    advanced: [
+      { permission: 'list stacks', validateWith: Validators.own }
+    ]
+
+    success: (client, callback)->
+
+      if not @baseStackId
+        return callback null, stackRevisionErrors.NOTFROMTEMPLATE
+
+      JStackTemplate = require "./computeproviders/stacktemplate"
+      JStackTemplate.one { _id: @baseStackId }, (err, template)=>
+        return callback err  if err
+
+        callback null,
+          if not template?.template?.sum or not @stackRevision
+            stackRevisionErrors.INVALIDTEMPLATE
+          else if template.template.sum is @stackRevision
+            stackRevisionErrors.TEMPLATESAME
+          else
+            stackRevisionErrors.TEMPLATEDIFFERENT
