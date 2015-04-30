@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/db/models"
+	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/provider/generic"
 	"koding/kites/kloud/terraformer"
@@ -42,7 +44,8 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("machineIds and publicKeys do not match")
 	}
 
-	ctx := k.ContextCreator(context.Background())
+	ctx := request.NewContext(context.Background(), r)
+	ctx = k.ContextCreator(ctx)
 
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -115,11 +118,39 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, erro
 		return nil, err
 	}
 
-	for i, m := range machines {
-		fmt.Printf("[%d] %v\n", i, m)
+	allowedIds := make([]bson.ObjectId, len(machines))
+
+	for i, machine := range machines {
+		for _, perm := range machine.Users {
+			// we only going to fetch users that are allowed
+			if perm.Sudo && perm.Owner {
+				allowedIds[i] = perm.Id
+			} else {
+				return nil, fmt.Errorf("machine '%s' is not valid. Aborting apply", machine.Id.Hex())
+			}
+		}
 	}
 
-	return nil, nil
+	var allowedUsers []*models.User
+	if err := sess.DB.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": bson.M{"$in": allowedIds}}).All(&allowedUsers)
+	}); err != nil {
+		return nil, fmt.Errorf("username lookup error: %v", err)
+	}
+
+	req, ok := request.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("request context is not passed")
+	}
+
+	// validate users
+	for _, u := range allowedUsers {
+		if u.Name != req.Username {
+			return nil, fmt.Errorf("machine is only allowed for user: %s. But have: %s", req.Username, u.Name)
+		}
+	}
+
+	return machines, nil
 }
 
 func updateMachines(ctx context.Context, data *Machines, ids ...string) error {
