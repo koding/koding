@@ -45,15 +45,16 @@ build:
         code: |
           chmod 600 $KODING_DEPLOYMENT_KEY
     - mktemp:
-        envvar: INSTANCE_DATA
-    - mktemp:
         envvar: INSTANCE_IP
+    - script:
+        name: create data files
+        code: touch INSTANCE_DATA
     - script:
         name: launch test instance
         code: |
           INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
-          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
-          cat $INSTANCE_DATA
+          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
+          cat INSTANCE_DATA
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
@@ -129,7 +130,7 @@ build:
     - script:
         name: check connectivity
         code: |
-          HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
+          HOST=$(cat INSTANCE_DATA | awk '{print $2}')
           if [ -z "$HOST" ]; then exit 1; fi
           echo $HOST > $INSTANCE_IP
           scripts/wercker/check-connectivity $HOST 8090 1m 10
@@ -240,8 +241,9 @@ build:
     - script:
         name: terminate test instance
         code: |
-          INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
+          INSTANCE_ID=$(cat INSTANCE_DATA | awk '{print $1}')
           if [ -n "$INSTANCE_ID" ]; then scripts/wercker/terminate-test-instance $INSTANCE_ID; fi
+          rm INSTANCE_DATA
 
     - jessefulton/slack-notify:
         subdomain: koding
