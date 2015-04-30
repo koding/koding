@@ -4,8 +4,11 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 request        = require 'request'
 _ = require "underscore"
 
-getNextApiURL = (callback)->
-  return callback null, KONFIG.socialapi.proxyUrl
+getNextApiURL = (proxyUrl, callback)->
+
+  return callback null, KONFIG.socialapi.proxyUrl  unless proxyUrl
+
+  return callback null, "#{KONFIG.socialapi.customDomain.local}#{proxyUrl}"
 
 wrapCallback = (callback)->
   (err, response, body) ->
@@ -396,8 +399,13 @@ expireSubscription = (accountId, callback) ->
   url = "/payments/customers/#{accountId}/expire"
   post url, {}, callback
 
+fetchBotChannel = (data, callback) ->
+  url = "/botchannel"
+  data.proxyUrl = "/api/integration"
+  get url, data, callback
+
 post = (url, data, callback)->
-  getNextApiURL (err, apiurl)->
+  getNextApiURL data.proxyUrl, (err, apiurl)->
     return callback err if err
     reqOptions =
       url    : "#{apiurl}#{url}"
@@ -414,7 +422,7 @@ post = (url, data, callback)->
 deleteReq = (url, data, callback)->
   [data, callback] = [callback, null] unless callback
 
-  getNextApiURL (err, apiurl)->
+  getNextApiURL data.proxyUrl, (err, apiurl)->
     return callback err if err
 
     reqOptions =
@@ -427,7 +435,7 @@ deleteReq = (url, data, callback)->
     request reqOptions, wrapCallback callback
 
 getXml = (url, data, callback)->
-  getNextApiURL (err, apiurl)->
+  getNextApiURL data.proxyUrl, (err, apiurl)->
     return callback err if err
     reqOptions =
       url    : "#{apiurl}#{url}"
@@ -438,7 +446,8 @@ getXml = (url, data, callback)->
     request reqOptions, wrapCallback callback
 
 get = (url, data, callback)->
-  getNextApiURL (err, apiurl)->
+
+  getNextApiURL data.proxyUrl, (err, apiurl)->
     return callback err if err
     reqOptions =
       url    : "#{apiurl}#{url}"
