@@ -16,11 +16,13 @@ import (
 	"github.com/koding/logging"
 )
 
+const RevProxyPath = "/api/integration"
+
 type Handler struct {
-	log         logging.Logger
-	bot         *webhook.Bot
-	sf          *services.ServiceFactory
-	RevProxyUrl string
+	log      logging.Logger
+	bot      *webhook.Bot
+	sf       *services.ServiceFactory
+	RootPath string
 }
 
 func NewHandler(l logging.Logger) (*Handler, error) {
@@ -29,11 +31,13 @@ func NewHandler(l logging.Logger) (*Handler, error) {
 		return nil, err
 	}
 
+	rootPath := fmt.Sprintf("%s%s", handler.RootPath(), RevProxyPath)
+
 	return &Handler{
-		log:         l,
-		bot:         bot,
-		sf:          services.NewServiceFactory(),
-		RevProxyUrl: "/api/integration",
+		log:      l,
+		bot:      bot,
+		sf:       services.NewServiceFactory(),
+		RootPath: rootPath,
 	}, nil
 }
 
@@ -100,8 +104,7 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 
 	message := service.PrepareMessage(r.Data)
 
-	endPoint := service.PrepareEndpoint(r.Token)
-	endPoint = fmt.Sprintf("%s%s", h.RevProxyUrl, endPoint)
+	endPoint := fmt.Sprintf("%s%s", h.RootPath, service.PrepareEndpoint(r.Token))
 	pr := new(PushRequest)
 	pr.Body = message
 

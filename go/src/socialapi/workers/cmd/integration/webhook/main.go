@@ -36,7 +36,7 @@ func main() {
 	}
 
 	if r.Conf.Environment == "dev" || r.Conf.Environment == "test" {
-		h.RevProxyUrl =
+		h.RootPath =
 			fmt.Sprintf("http://%s:%s", appConfig.Integration.Host,
 				appConfig.Integration.Port)
 	}

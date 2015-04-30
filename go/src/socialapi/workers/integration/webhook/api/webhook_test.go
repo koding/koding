@@ -76,7 +76,7 @@ func init() {
 	}
 
 	h.AddHandlers(m)
-	h.RevProxyUrl = fmt.Sprintf("http://%s:%s", appConfig.Integration.Host, appConfig.Integration.Port)
+	h.RootPath = fmt.Sprintf("http://%s:%s", appConfig.Integration.Host, appConfig.Integration.Port)
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }
