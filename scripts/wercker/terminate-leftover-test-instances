@@ -35,10 +35,8 @@ run = ->
       Instances.forEach ({InstanceId, LaunchTime, State}) ->
         return  if State.Name is 'terminated'
         return  if ExpirationTime <= LaunchTime
-        InstanceIds.push InstanceId
-        console.log InstanceId, LaunchTime
 
-    process.stdout.write "\n"
+        InstanceIds.push InstanceId
 
     return process.exit 0  unless InstanceIds.length
 
