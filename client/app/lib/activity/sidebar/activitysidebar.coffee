@@ -16,11 +16,13 @@ ChatSearchModal           = require './chatsearchmodal'
 ActivitySideView          = require './activitysideview'
 KDCustomHTMLView          = kd.CustomHTMLView
 SidebarTopicItem          = require './sidebartopicitem'
+fetchChatChannels         = require 'activity/util/fetchchatchannels'
 SidebarPinnedItem         = require './sidebarpinneditem'
 KDNotificationView        = kd.NotificationView
 SidebarMessageItem        = require './sidebarmessageitem'
 JTreeViewController       = kd.JTreeViewController
 MoreWorkspacesModal       = require './moreworkspacesmodal'
+fetchChatChannelCount     = require 'activity/util/fetchchatchannelcount'
 isChannelCollaborative    = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList    = require './sidebarownmachineslist'
 environmentDataProvider   = require 'app/userenvironmentdataprovider'
@@ -622,11 +624,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         title    : ' '
         href     : groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
-        kd.singletons.socialapi.message.fetchPrivateMessages
-          limit  : limit
-        , callback
+        fetchChatChannels { limit }, callback
       countSource: (callback) ->
-        remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
+        fetchChatChannelCount {}, callback
 
     @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
 
