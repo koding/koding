@@ -34,6 +34,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
   bindListeners: ->
 
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
+    @on 'CloseHandleClicked', @bound 'closeSplitView'
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
@@ -507,6 +508,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     contextMenu = new KDContextMenu options, @getPlusMenuItems()
 
     contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
+
+
+  closeSplitView: ->
+
+    { frontApp } = kd.singletons.appManager
+    frontApp.mergeSplitView()
 
 
   terminateSessions: (machine)->
