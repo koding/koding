@@ -36,6 +36,9 @@ module.exports = class SocialApiController extends KDController
       when 'followedChannels' then mapChannels
       when 'popularPosts', 'pinnedMessages', 'navigated' then mapActivities
       when 'privateMessages'                   then mapPrivateMessages
+      when 'bot'
+        data = data.data
+        mapChannel
 
     return fn(data) or []
 
@@ -750,12 +753,5 @@ module.exports = class SocialApiController extends KDController
       }, (err, response) ->
         return callback err  if err
 
-        { channelId } = response.data
+        return callback null, mapChannel response.data
 
-        { socialapi } = kd.singletons
-
-        socialapi.channel.byId {id: channelId}, (err, channel) ->
-
-          return callback err  if err
-
-          return callback null, mapChannel { channel: channel }
