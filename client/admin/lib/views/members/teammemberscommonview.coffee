@@ -31,7 +31,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @addSubView @searchContainer = new KDCustomHTMLView
       cssClass: 'search hidden'
-      partial : 'Sort by'
+      partial : '<span class="label">Sort by</span>'
 
     @searchContainer.addSubView new KDSelectBox
       defaultValue  : 'nickname'
