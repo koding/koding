@@ -211,3 +211,4 @@ module.exports =
       .click                   searchModalSelector + ' .file-item:first-child'
       .waitForElementVisible   '.ws-tabview .kdtabview .pythonpy.active', 20000 # Assertion
       .waitForElementVisible   paneSelector, 20000 # Assertion
+      .end()
