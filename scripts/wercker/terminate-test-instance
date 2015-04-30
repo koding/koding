@@ -1,17 +1,10 @@
 #!/usr/bin/env coffee
 
-AWS_DEPLOY_KEY = require('fs').readFileSync "#{__dirname}/../../install/keys/aws/koding-prod-deployment.pem"
-
-AWS               = require 'aws-sdk'
-AWS.config.region = 'us-east-1'
-AWS.config.update
-  accessKeyId     : 'AKIAI7RHT42HWAA652LA'
-  secretAccessKey : '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'
-
 instanceId = process.argv[2]
 
 return  unless instanceId
 
+AWS = require './aws'
 EC2 = new AWS.EC2()
 EC2.terminateInstances InstanceIds: [instanceId], (err, res) ->
   console.error err  if err
