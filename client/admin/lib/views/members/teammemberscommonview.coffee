@@ -81,7 +81,10 @@ module.exports = class TeamMembersCommonView extends KDView
       skip   : @skip
 
     @getData().searchMembers selector, options, (err, members) =>
-      return kd.warn err  if err
+      if err
+        @listController.lazyLoader.hide()
+        return kd.warn err
+
       @listMembers members
       @isFetching = no
 
