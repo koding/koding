@@ -9,6 +9,7 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/provider/generic"
 	"koding/kites/kloud/terraformer"
+	"strconv"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -52,7 +53,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	_, err := fetchMachines(ctx, args.MachineIds...)
+	machines, err := fetchMachines(ctx, args.MachineIds...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,18 +80,17 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	machines, err := machinesFromState(state)
+	output, err := machinesFromState(state)
 	if err != nil {
 		return nil, err
 	}
+	output.AppendRegion(region)
 
-	machines.AppendRegion(region)
-
-	if err := updateMachines(ctx, machines, args.MachineIds...); err != nil {
+	if err := updateMachines(ctx, output, machines); err != nil {
 		return nil, err
 	}
 
-	d, err := json.MarshalIndent(machines, "", " ")
+	d, err := json.MarshalIndent(output, "", " ")
 	if err != nil {
 		return nil, err
 	}
@@ -153,26 +153,39 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, erro
 	return machines, nil
 }
 
-func updateMachines(ctx context.Context, data *Machines, ids ...string) error {
+func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Machine) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
 	}
 
-	for _, id := range ids {
-		bsonId := bson.ObjectIdHex(id)
+	for _, machine := range jMachines {
+		terraformMachine, err := data.Label(machine.Label)
+		if err != nil {
+			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", machine.Label)
+		}
 
-		sess.DB.Run("jMachines", func(c *mgo.Collection) error {
+		storageSize, err := strconv.Atoi(terraformMachine.Attributes["root_block_device.0.volume_size"])
+		if err != nil {
+			return err
+		}
+
+		if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
-				bsonId,
+				machine.Id,
 				bson.M{"$set": bson.M{
-					"meta.instanceId": "",
-					"queryString":     "",
-					"meta.region":     "us-east-1",
+					"provider":          terraformMachine.Provider,
+					"meta.region":       terraformMachine.Region,
+					"ipAddress":         terraformMachine.Attributes["public_ip"],
+					"meta.instanceId":   terraformMachine.Attributes["id"],
+					"meta.instanceType": terraformMachine.Attributes["instance_type"],
+					"meta.source_ami":   terraformMachine.Attributes["ami"],
+					"meta.storage_size": storageSize,
 				}},
 			)
-		})
-
+		}); err != nil {
+			return err
+		}
 	}
 
 	return nil

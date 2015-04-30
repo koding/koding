@@ -99,6 +99,7 @@ type args struct {
 
 type singleUser struct {
 	MachineId           string
+	MachineLabel        string
 	PrivateKey          string
 	PublicKey           string
 	AccountId           bson.ObjectId
@@ -201,7 +202,7 @@ resource "aws_instance" "example" {
 	}
 
 	for _, machine := range result.Machines {
-		if machine.Label != "example" {
+		if machine.Label != userData.MachineLabel {
 			t.Errorf("plan label: want: example got: %s\n", machine.Label)
 		}
 
@@ -605,7 +606,7 @@ func createUser(username string) (*singleUser, error) {
 	machineId := bson.NewObjectId()
 	machine := &koding.Machine{
 		Id:         machineId,
-		Label:      "",
+		Label:      "example",
 		Domain:     username + ".dev.koding.io",
 		Credential: username,
 		Provider:   "koding",
@@ -655,6 +656,7 @@ func createUser(username string) (*singleUser, error) {
 
 	return &singleUser{
 		MachineId:           machineId.Hex(),
+		MachineLabel:        machine.Label,
 		PrivateKey:          privateKey,
 		PublicKey:           publicKey,
 		AccountId:           accountId,

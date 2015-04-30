@@ -27,6 +27,17 @@ func (m *Machines) AppendRegion(region string) {
 	}
 }
 
+// Label returns the machine with the associated label
+func (m *Machines) Label(label string) (TerraformMachine, error) {
+	for _, machine := range m.Machines {
+		if machine.Label == label {
+			return machine, nil
+		}
+	}
+
+	return TerraformMachine{}, fmt.Errorf("couldn't find machine with label '%s", label)
+}
+
 func machinesFromState(state *terraform.State) (*Machines, error) {
 	if state.Modules == nil {
 		return nil, errors.New("state modules is empty")
