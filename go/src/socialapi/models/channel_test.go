@@ -595,6 +595,18 @@ func TestChannelAddParticipant(t *testing.T) {
 			So(cp, ShouldNotBeNil)
 			So(cp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_ACTIVE)
 		})
+		Convey("we should not be able to add participants into linked channel", func() {
+			account := CreateAccountWithTest()
+			c := CreateTypedPublicChannelWithTest(
+				account.Id,
+				models.Channel_TYPE_LINKED_TOPIC,
+			)
+
+			cp, err := c.AddParticipant(account.Id)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIsLinked)
+			So(cp, ShouldBeNil)
+		})
 	})
 }
 
