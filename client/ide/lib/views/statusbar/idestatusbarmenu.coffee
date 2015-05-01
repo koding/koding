@@ -5,25 +5,22 @@ IDESyntaxSelectorMenuItem = require './idesyntaxselectormenuitem'
 { presentBinding } = require 'app/shortcutscontroller'
 _ = require 'lodash'
 
-module.exports =
-
-class IDEStatusBarMenu extends KDContextMenu
+module.exports = class IDEStatusBarMenu extends KDContextMenu
 
   constructor: (options={}) ->
 
     { delegate } = options
 
-    options.menuWidth     or= 220
-    options.x             or= delegate.getX() - 5
-    options.y             or= delegate.getY() + 20
+    options.menuWidth      ?= 220
+    options.x              ?= delegate.getX() - 5
+    options.y              ?= delegate.getY() + 20
     options.cssClass      or= 'status-bar-menu'
     options.treeItemClass or= IDEStatusBarMenuItem
 
     super options, @getItems()
 
     @on 'ContextMenuItemReceivedClick', (view, event) =>
-      unless event.target.parentNode.classList.contains 'kdselectbox'
-        @destroy()
+      @destroy()  unless event.target.parentNode.classList.contains 'kdselectbox'
 
 
   getItems: ->
