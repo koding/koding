@@ -23,8 +23,8 @@ PANE_CONFIG = [
   { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
   { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
   { title: 'Domains',       viewClass: MachineSettingsDomainsView   }
-  { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
   { title: 'VM Sharing',    viewClass: MachineSettingsVMSharingView }
+  { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
   { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
   { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
 ]
