@@ -37,7 +37,7 @@ module.exports =
         return browser.end() unless lowercase
 
         tabHandleSelector = ".panel-1 div[title='#{fileName}']"
-        editorSelector    = ".panel-1 .kdtabpaneview.#{lowercase} .ace_content"
+        editorSelector    = ".panel-1 .kdtabpaneview.active.#{lowercase} .ace_content"
 
         browser
           .waitForElementVisible     matchedWordSelector, 20000
