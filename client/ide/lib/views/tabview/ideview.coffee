@@ -33,6 +33,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
   bindListeners: ->
 
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
+    @on 'CloseHandleClicked', @bound 'closeSplitView'
+    @on 'FullscreenHandleClicked', @bound 'toggleFullscreen'
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
@@ -364,6 +366,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @toggleClass 'fullscren'
     kd.getSingleton('windowController').notifyWindowResizeListeners()
     @isFullScreen = !@isFullScreen
+    @holderView.setFullscreenHandleState @isFullScreen
 
 
   handlePaneRemoved: (pane) ->
@@ -463,13 +466,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       'Split Horizontally':
         callback          : -> frontApp.splitHorizontally()
 
-    if @parent instanceof KDSplitViewPanel
-      items['Undo Split'] =
-        separator         : yes
-        callback          : -> frontApp.mergeSplitView()
-    else
-      items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
-        type              : 'separator'
+    items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
+      type              : 'separator'
 
     label                 = if @isFullScreen then 'Exit Fullscreen' else 'Enter Fullscreen'
     items[label]          =
@@ -506,6 +504,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     contextMenu = new KDContextMenu options, @getPlusMenuItems()
 
     contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
+
+
+  closeSplitView: ->
+
+    { frontApp } = kd.singletons.appManager
+    frontApp.mergeSplitView()
 
 
   terminateSessions: (machine)->
