@@ -9,6 +9,7 @@ module.exports = class AdminAppView extends kd.ModalView
 
   constructor:(options={}, data)->
 
+    options.title    = 'Team Dashboard'
     options.cssClass = 'AppModal AppModal--admin'
     options.width    = 1000
     options.height   = 600
