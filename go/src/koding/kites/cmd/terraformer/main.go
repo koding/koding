@@ -29,11 +29,11 @@ func main() {
 
 	k, err := terraformer.NewKite(t, conf)
 	if err != nil {
-		return err
+		log.Fatal(err.Error())
 	}
 
 	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
-		return err
+		log.Fatal(err.Error())
 	}
 
 	go k.Run()
