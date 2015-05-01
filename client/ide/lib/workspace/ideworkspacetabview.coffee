@@ -18,6 +18,7 @@ module.exports = class IDEWorkspaceTabView extends JView
 
   createTabHolderView: ->
     @holderView     = new ApplicationTabHandleHolder
+      cssClass      : 'idetabhandle-holder'
       addPlusHandle : @getOption 'addPlusHandle'
       delegate      : this
 

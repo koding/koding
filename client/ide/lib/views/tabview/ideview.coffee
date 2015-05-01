@@ -35,6 +35,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
     @on 'CloseHandleClicked', @bound 'closeSplitView'
+    @on 'FullscreenHandleClicked', @bound 'toggleFullscreen'
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
@@ -371,6 +372,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @toggleClass 'fullscren'
     kd.getSingleton('windowController').notifyWindowResizeListeners()
     @isFullScreen = !@isFullScreen
+    @holderView.setFullscreenHandleState @isFullScreen
 
 
   handlePaneRemoved: (pane) ->

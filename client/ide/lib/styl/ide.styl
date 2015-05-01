@@ -15,6 +15,9 @@ dark-active-tab-color = #9C9C9C
 dark-tab-color        = #5C5C5C
 text-color-green      = #4EA04C
 
+.ide-general-handle-tooltip
+  white-space               nowrap
+  min-width                 80px !important
 
 // theming
 body.ide.dark
@@ -108,15 +111,47 @@ body.ide.dark
     .icon.opaque
       opacity               1
 
-  .kdtabhandle.close-handle
+  .general-handles
     position                absolute
     right                   0
+    top                     0
+
+  .idetabhandle-holder .kdtabhandle-tabs
+    kalc                    width, 100% \- 80px
+    height                  37px
+
+  .general-handles .kdtabhandle:hover
+    opacity                 1
+
+  .general-handles .kdtabhandle
+    padding                 0
     border-left             none
+    width                   30px
+    opacity                 0.25
+    vendor                  transition, opacity .177s ease
     .icon
       position              absolute
-      top                   14px
-      right                 16px
-      r-sprite              'ide', 'tab-close'
+      top                   50%
+      left                  50%
+      vendor                transform, translateX(-50%) translateY(-50%)
+
+  .idetabhandle-holder:hover
+    .general-handles .kdtabhandle
+      opacity               0.5
+
+  .general-handles .kdtabhandle
+    &:hover
+      opacity               1 !important
+
+  .kdtabhandle.close-handle .icon
+    r-sprite                'ide', 'tab-close'
+
+  .kdtabhandle.fullscreen-handle .icon
+    r-sprite                'app', 'fullscreen'
+
+  .kdtabhandle.fullscreen-handle.shrink .icon
+    r-sprite                'app', 'shrink'
+
 
   .ace-find-replace-view
     bottom              1px !important
@@ -211,7 +246,7 @@ body.ide.dark
 .ide-files-tab .application-tabview
   overflow                  hidden
 
-.ide-files-tab .close-handle
+.ide-files-tab .general-handles
   hidden()
 
 // sidebar icons
