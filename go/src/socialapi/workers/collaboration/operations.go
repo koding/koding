@@ -266,7 +266,7 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping, toBeRemovedUsers 
 		Username string
 
 		// we are not gonna use this propery here, just for reference
-		Permanent bool
+		// Permanent bool
 	}
 
 	var iterErr error

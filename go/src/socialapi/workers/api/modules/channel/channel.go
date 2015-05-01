@@ -115,7 +115,7 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		if models.IsChannelLeafErr(err) {
 			return http.StatusMovedPermanently,
 				nil, nil,
-				tigertonic.MovedPermanently{err}
+				tigertonic.MovedPermanently{Err: err}
 		}
 
 		return response.NewBadRequest(err)

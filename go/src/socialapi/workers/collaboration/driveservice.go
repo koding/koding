@@ -1,7 +1,6 @@
 package collaboration
 
 import (
-	"bytes"
 	"io/ioutil"
 	"net/http"
 	"socialapi/config"
@@ -11,24 +10,6 @@ import (
 	"code.google.com/p/google-api-go-client/drive/v2"
 	"code.google.com/p/google-api-go-client/googleapi"
 )
-
-func createTestFile(c *Controller) (*drive.File, error) {
-	svc, err := CreateService(&c.conf.GoogleapiServiceAccount)
-	if err != nil {
-		return nil, err
-	}
-
-	// Define the metadata for the file we are going to create.
-	f := &drive.File{
-		Title:       "My Document",
-		Description: "My test document",
-	}
-
-	m := bytes.NewReader([]byte(`selamlar nasilsin?`))
-
-	// Make the API request to upload metadata and file data.
-	return svc.Files.Insert(f).Media(m).Do()
-}
 
 // deleteFile deletes the file from google drive api, if file is not there
 // doesnt do anything

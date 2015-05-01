@@ -85,14 +85,3 @@ func validateAccount(accountId int64) error {
 
 	return nil
 }
-
-func validateMessage(messageId int64) error {
-	if err := socialmodels.NewChannelMessage().ById(messageId); err != nil {
-		if err == bongo.RecordNotFound {
-			return errors.New("Channel message does not exist")
-		}
-		return err
-	}
-
-	return nil
-}

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/algoliaconnector/algoliaconnector"
 
@@ -21,12 +22,15 @@ func main() {
 	}
 	defer r.Close()
 
+	appConfig := config.MustRead(r.Conf.Path)
+
 	algolia := algoliasearch.NewClient(
-		r.Conf.Algolia.AppId,
-		r.Conf.Algolia.ApiSecretKey)
+		appConfig.Algolia.AppId,
+		appConfig.Algolia.ApiSecretKey,
+	)
 
 	// create message handler
-	handler := algoliaconnector.New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
+	handler := algoliaconnector.New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
 
 	if err := migrateChannels(r, handler); err != nil {
 		panic(err)

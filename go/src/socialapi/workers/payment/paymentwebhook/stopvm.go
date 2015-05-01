@@ -70,10 +70,6 @@ func errUsernameEmpty(customerId string) error {
 	)
 }
 
-func errUnmarshalFailed(data interface{}) error {
-	return fmt.Errorf("unmarshalling webhook failed: %v", data)
-}
-
 func isVmAlreadyStoppedErr(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "not allowed for current state")
 }

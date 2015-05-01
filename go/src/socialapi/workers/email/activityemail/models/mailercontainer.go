@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	socialmodels "socialapi/models"
-	"socialapi/request"
 	"socialapi/workers/notification/models"
 	"time"
 )
@@ -161,21 +160,4 @@ func fetchRepliedMessage(replyId int64) *socialmodels.ChannelMessage {
 	}
 
 	return parent
-}
-
-func fetchLastReplyBody(targetId int64) string {
-	mr := socialmodels.NewMessageReply()
-	mr.MessageId = targetId
-	query := request.NewQuery()
-	query.Limit = 1
-	messages, err := mr.List(query)
-	if err != nil {
-		return ""
-	}
-
-	if len(messages) == 0 {
-		return ""
-	}
-
-	return messages[0].Body
 }
