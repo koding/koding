@@ -34,19 +34,19 @@ module.exports =
     browser.end()
 
 
+  undoSplitPanesNotShowOnScreen: (browser) ->
 
-  # undoSplitPanesNotShowOnList: (browser) ->
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   helpers.beginTest(browser)
-  #   helpers.waitForVMRunning(browser)
+    newPaneSelector   = '.kdsplitcomboview .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
-  #   layoutHelpers.undoSplit(browser)
+    layoutHelpers.undoSplit(browser)
 
-  #   browser
-  #     .waitForElementVisible     '.panel-1 .application-tab-handle-holder', 20000
-  #     .click                     '.panel-1 .application-tab-handle-holder .plus'
-  #     .waitForElementNotPresent  '.context-list-wrapper li.undo-split', 20000 # Assertion
-  #     .end()
+    browser
+      .waitForElementVisible   newPaneSelector, 20000
+      .waitForElementPresent   newPaneSelector + ' .general-handles .close-handle.hidden', 20000 # Assertion
+      .end()
 
 
   openDrawingBoard: (browser) ->
