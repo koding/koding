@@ -85,12 +85,12 @@ func (c *context) Get(contentID string) (*KodingContext, error) {
 	}
 
 	kc := newKodingContext(sc)
-	kc.ContentID = contentID
 	kc.Providers = c.Providers
 	kc.Provisioners = c.Provisioners
 	kc.LocalStorage = c.LocalStorage
 	kc.RemoteStorage = c.RemoteStorage
-	kc.ShutdownChan = sc
+
+	kc.ContentID = contentID
 
 	return kc, nil
 }
@@ -100,36 +100,44 @@ func (c *context) BroadcastForceShutdown() {
 	shutdownChansMu.Lock()
 	for _, shutdownChan := range shutdownChans {
 		// broadcast this message to listeners
-		shutdownChan <- struct{}{}
+		select {
+		case shutdownChan <- struct{}{}:
+		default:
+		}
 	}
 	shutdownChansMu.Unlock()
 }
 
 // Shutdown shutsdown koding context
 func (c *context) Shutdown() error {
-	shutdown := make(chan struct{})
+	shutdown := make(chan struct{}, 1)
 	go func() {
 		shutdownChansWG.Wait()
-		close(shutdown)
+		shutdown <- struct{}{}
 	}()
 
-	select {
-	case <-time.After(time.Second * 15):
-		// wait for 15 seconds, after that close forcefully, but still
-		// gracefully
-		c.BroadcastForceShutdown()
+	after15 := time.After(time.Second * 15)
+	after25 := time.After(time.Second * 25)
+	after30 := time.After(time.Second * 30)
+	for {
+		select {
+		case <-after15:
+			// wait for 15 seconds, after that close forcefully, but still
+			// gracefully
+			c.BroadcastForceShutdown()
 
-	case <-time.After(time.Second * 25):
-		// if operations dont end in 15 secs, close them ungracefully
-		c.BroadcastForceShutdown()
+		case <-after25:
+			// if operations dont end in 15 secs, close them ungracefully
+			c.BroadcastForceShutdown()
 
-	case <-time.After(time.Second * 30):
-		// return if nothing happens in 30 sec
-		return errors.New("deadline reached")
+		case <-after30:
+			// return if nothing happens in 30 sec
+			return errors.New("deadline reached")
 
-	case <-shutdown:
-		// if all the requests finish before 15 secs
-		return nil
+		case <-shutdown:
+			// if all the requests finish before 15 secs
+			return nil
+		}
 	}
 
 	return nil

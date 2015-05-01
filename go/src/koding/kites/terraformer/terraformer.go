@@ -93,6 +93,10 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 // Close closes the embeded properties of terraformer
 func (t *Terraformer) Close() error {
 	t.rwmu.Lock()
+	if t.closing {
+		defer t.rwmu.Unlock()
+		return errors.New("already closing")
+	}
 	// mark terraformer as closing and stop accepting new requests
 	t.closing = true
 	t.rwmu.Unlock()
