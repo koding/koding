@@ -201,7 +201,7 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 	}
 
 	for _, machine := range jMachines {
-		tf, err := data.Label(machine.Label)
+		tf, err := data.WithLabel(machine.Label)
 		if err != nil {
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", machine.Label)
 		}

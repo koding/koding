@@ -27,8 +27,8 @@ func (m *Machines) AppendRegion(region string) {
 	}
 }
 
-// Label returns the machine with the associated label
-func (m *Machines) Label(label string) (TerraformMachine, error) {
+// WithLabel returns the machine with the associated label
+func (m *Machines) WithLabel(label string) (TerraformMachine, error) {
 	for _, machine := range m.Machines {
 		if machine.Label == label {
 			return machine, nil
