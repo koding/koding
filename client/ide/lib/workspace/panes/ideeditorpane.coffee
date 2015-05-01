@@ -10,8 +10,6 @@ IDEHelpers = require '../../idehelpers'
 
 module.exports = class IDEEditorPane extends IDEPane
 
-  shortcutsShown = no
-
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'editor-pane', options.cssClass
@@ -422,5 +420,6 @@ module.exports = class IDEEditorPane extends IDEPane
   destroy: ->
 
     @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
+    super
 
     super

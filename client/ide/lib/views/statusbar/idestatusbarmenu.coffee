@@ -2,82 +2,70 @@ kd = require 'kd'
 KDContextMenu = kd.ContextMenu
 IDEStatusBarMenuItem = require './idestatusbarmenuitem'
 IDESyntaxSelectorMenuItem = require './idesyntaxselectormenuitem'
-isNavigatorApple = require 'app/util/isNavigatorApple'
-
+{ presentBinding } = require 'app/shortcutscontroller'
+_ = require 'lodash'
 
 module.exports = class IDEStatusBarMenu extends KDContextMenu
 
   constructor: (options = {}) ->
 
-    menuItems             = @getMenuItems options
-    {delegate}            = options
-    options.menuWidth     = 220
-    options.x             = delegate.getX() - 5
-    options.y             = delegate.getY() + 20
-    options.cssClass      = 'status-bar-menu'
-    options.treeItemClass = IDEStatusBarMenuItem
+    { delegate } = options
 
-    super options, menuItems
+    options.menuWidth      ?= 220
+    options.x              ?= delegate.getX() - 5
+    options.y              ?= delegate.getY() + 20
+    options.cssClass      or= 'status-bar-menu'
+    options.treeItemClass or= IDEStatusBarMenuItem
+
+    super options, @getItems()
 
     @on 'ContextMenuItemReceivedClick', (view, event) =>
-      unless event.target.parentNode.classList.contains 'kdselectbox'
-        @destroy()
+      @destroy()  unless event.target.parentNode.classList.contains 'kdselectbox'
 
-  getMenuItems: ->
-    navigatorIsApple = isNavigatorApple()
+
+  getItems: ->
+
+    { shortcuts, appManager } = kd.singletons
+
+    collection = shortcuts.toCollection()
+
+    subcollections =
+      editor: collection.find _key: 'editor'
+      workspace: collection.find _key: 'workspace'
 
     @syntaxSelector = new IDESyntaxSelectorMenuItem
 
-    list = [
-      # name                   # shortcut      # cmd
-      [ 'Save'               , 'Meta+S'      , 'saveFile' ]
-      [ 'Save As...'         , 'Meta+Shift+S', 'saveAs' ]
-      [ 'Save All'           , 'Ctrl+Alt+S'  , 'saveAllFiles' ]
-      [ 'Syntax'             , @syntaxSelector ]
-      [ 'Preview'            , 'Ctrl+Alt+P'  , 'previewFile' ]
-      [ 'Find...'            , 'Meta+F'      , 'showFindReplaceView' ]
-      [ 'Find and replace...', 'Meta+Shift+F', 'showFindReplaceViewWithReplaceMode' ]
-      [ 'Find in files...'   , 'Ctrl+Alt+F'  , 'showContentSearch' ]
-      [ 'Jump to file...'    , 'Ctrl+Alt+O'  , 'showFileFinder' ]
-      [ 'Go to line...'      , 'Meta+G'      , 'goToLine' ]
-    ]
+    _
+      .chain [
+        # Shortcut                 # IDE method
+        'editor.save'              , 'saveFile'
+        'editor.saveas'            , 'saveAs'
+        'workspace.saveallfiles'   , 'saveAllFiles'
+        'Syntax'                   , @syntaxSelector # Title/Instance
+        'workspace.previewfile'    , 'previewFile'
+        'editor.find'              , 'showFindReplaceView'
+        'editor.replace'           , 'showFindReplaceViewWithReplaceMode'
+        'workspace.searchallfiles' , 'showContentSearch'
+        'workspace.findfilebyname' , 'showFileFinder'
+        'editor.gotoline'          , 'goToLine'
+      ]
+      .chunk 2
+      .reduce (acc, pair) ->
+        [ key, value ] = pair
 
-    # it is safe to display unicode definitions on mac
-    macKeysUnicodeMapping =
-      'Shift': '&#x21E7;'
-      'Meta' : '&#x2318;'
-      'Alt'  : '&#x2325;'
-      'Ctrl' : '^'
-
-    winKeysMapping =
-      'Meta': 'Ctrl'
-
-    appManager = kd.getSingleton 'appManager'
-
-    items = {}
-
-    while (item = list.shift())?
-      isCustomView = typeof item[1] isnt 'string'
-      key = item[0]
-
-      unless isCustomView
-
-        if navigatorIsApple
-          for own k, v of macKeysUnicodeMapping
-            item[1] = item[1].replace(k, v)
-          # by tradition osx is not displaying + for shortcuts
-          item[1] = item[1].replace(/\+/g, '')
+        if _.isString value
+          [ collectionName, modelName ] = key.split '.'
+          { description, binding } = subcollections[collectionName].find name: modelName
+          obj =
+            shortcut: presentBinding _.first binding
+            callback: appManager.tell.bind appManager, 'IDE', value
         else
-          for own k, v of winKeysMapping
-            item[1] = item[1].replace(k, v)
+          obj =
+            type: 'customView'
+            view: value
 
-        items[key] =
-          shortcut: item[1]
-          callback: appManager.tell.bind appManager, 'IDE', item[2]
+        acc[description or key] = obj
 
-      else
-        items[key] =
-          type: 'customView'
-          view: item[1]
-
-    return items
+        acc
+      , {}
+      .value()

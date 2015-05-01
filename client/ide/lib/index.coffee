@@ -25,7 +25,6 @@ IDEContentSearch              = require './views/contentsearch/idecontentsearch'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
-IDEShortcutsView              = require './views/shortcutsview/ideshortcutsview'
 IDEStatusBar                  = require './views/statusbar/idestatusbar'
 IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
@@ -790,18 +789,6 @@ class IDEAppController extends AppController
 
 
   disableAutoSave: -> kd.utils.killRepeat @autoSaveInterval
-
-
-  showShortcutsView: ->
-
-    paneView = null
-
-    @forEachSubViewInIDEViews_ (view) ->
-      paneView = view.parent  if view instanceof IDEShortcutsView
-
-    return paneView.parent.showPane paneView if paneView
-
-    @activeTabView.emit 'ShortcutsViewRequested'
 
 
   getActivePaneView: ->
