@@ -5,6 +5,7 @@ AppController             = require 'app/appcontroller'
 AdminMembersView          = require './views/members/adminmembersview'
 AdministrationView        = require './views/administrationview'
 CustomViewsManager        = require './views/customviews/customviewsmanager'
+TopicModerationView       = require './views/moderation/topicmoderationview'
 OnboardingAdminView       = require './views/onboarding/onboardingadminview'
 GroupPermissionsView      = require './views/grouppermissionsview'
 GroupsInvitationView      = require './views/groupsinvitationview'
@@ -48,6 +49,11 @@ module.exports = class AdminAppController extends AppController
         name         : 'Permissions'
         viewOptions  :
           viewClass  : GroupPermissionsView
+          lazy       : yes
+      ,
+        name         : 'Topic Moderation'
+        viewOptions  :
+          viewClass  : TopicModerationView
           lazy       : yes
       ,
         name         : 'Membership policy'
