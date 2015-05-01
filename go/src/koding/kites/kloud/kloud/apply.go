@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/provider/generic"
@@ -30,25 +31,6 @@ type Stack struct {
 
 	// Terraform template
 	Template string
-}
-
-// ComputeStack is a document from jComputeStack collection
-type ComputeStack struct {
-	Id bson.ObjectId `bson:"_id" json:"-"`
-
-	// Points to a document in jStackTemplates
-	BaseStackId bson.ObjectId   `bson:"baseStackId"`
-	Machines    []bson.ObjectId `bson:"machines"`
-}
-
-// StackTemplate is a document from jStackTemplates collection
-type StackTemplate struct {
-	Id       bson.ObjectId `bson:"_id" json:"-"`
-	Template struct {
-		Content string `bson:"content"`
-		Sum     string `bson:"sum"`
-	} `bson:"template"`
-	Credentials []string `bson:"credentials"`
 }
 
 type TerraformApplyRequest struct {
@@ -77,7 +59,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	stack, err := fetchStack(ctx, args.StackId)
+	stack, err := fetchStack(args.StackId)
 	if err != nil {
 		return nil, err
 	}
@@ -136,23 +118,14 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	return nil, errors.New("not implemented yet")
 }
 
-func fetchStack(ctx context.Context, stackId string) (*Stack, error) {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("session context is not passed")
-	}
-
-	var computeStack *ComputeStack
-	if err := sess.DB.Run("jComputeStack", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"_id": bson.ObjectIdHex(stackId)}).One(&computeStack)
-	}); err != nil {
+func fetchStack(stackId string) (*Stack, error) {
+	computeStack, err := modelhelper.GetComputeStack(stackId)
+	if err != nil {
 		return nil, err
 	}
 
-	var stackTemplate *StackTemplate
-	if err := sess.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"_id": computeStack.BaseStackId}).One(&stackTemplate)
-	}); err != nil {
+	stackTemplate, err := modelhelper.GetStackTemplate(computeStack.BaseStackId.Hex())
+	if err != nil {
 		return nil, err
 	}
 

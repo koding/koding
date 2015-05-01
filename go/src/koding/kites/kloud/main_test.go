@@ -612,7 +612,7 @@ func createUser(username string) (*singleUser, error) {
 
 	// jComputeStack and jStackTemplates
 	stackTemplateId := bson.NewObjectId()
-	stackTemplate := &kloud.StackTemplate{
+	stackTemplate := &models.StackTemplate{
 		Id:          stackTemplateId,
 		Credentials: []string{credPublicKey},
 	}
@@ -639,7 +639,7 @@ resource "aws_instance" "example" {
 	}
 
 	computeStackId := bson.NewObjectId()
-	computeStack := &kloud.ComputeStack{
+	computeStack := &models.ComputeStack{
 		Id:          computeStackId,
 		BaseStackId: stackTemplateId,
 		Machines:    []bson.ObjectId{machineId},
