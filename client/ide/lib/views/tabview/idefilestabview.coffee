@@ -4,6 +4,9 @@ KDTabPaneView = kd.TabPaneView
 IDEFinderPane = require '../../workspace/panes/idefinderpane'
 IDESettingsPane = require '../../workspace/panes/settings/idesettingspane'
 IDEWorkspaceTabView = require '../../workspace/ideworkspacetabview'
+OnboardingEvent = require 'app/onboarding/onboardingevent'
+
+
 module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
 
   constructor: (options = {}, data) ->
@@ -66,6 +69,9 @@ module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
 
     settingsPane.addSubView @settingsPane = new IDESettingsPane
     @tabView.addPane settingsPane
+
+    settingsPane.on 'KDTabPaneActive', ->
+      kd.singletons.onboardingController.runOnboarding OnboardingEvent.IDESettingsOpened
 
 
   # createToggleMenu: ->
