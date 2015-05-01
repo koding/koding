@@ -48,7 +48,7 @@ func (c *KodingContext) populateApplyArgs(paths *paths, destroy bool) []string {
 	for key, val := range c.Variables {
 		// Set a variable in the Terraform configuration. This flag can be set
 		// multiple times.
-		vars = append(vars, []string{"-var", fmt.Sprintf("%s=%s", key, val)}...)
+		vars = append(vars, "-var", fmt.Sprintf("%s=%s", key, val))
 	}
 
 	// prepend vars if there are

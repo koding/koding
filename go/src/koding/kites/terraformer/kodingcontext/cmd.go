@@ -8,7 +8,9 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-func (c *KodingContext) run(cmd cli.Command, content io.Reader, destroy bool, argsFunc func(paths *paths, destroy bool) []string) (*paths, error) {
+type ArgsFunc func(paths *paths, destroy bool) []string
+
+func (c *KodingContext) run(cmd cli.Command, content io.Reader, destroy bool, argsFunc ArgsFunc) (*paths, error) {
 	// copy all contents from remote to local for operating
 	if err := c.RemoteStorage.Clone(c.ContentID, c.LocalStorage); err != nil {
 		return nil, err
@@ -25,11 +27,9 @@ func (c *KodingContext) run(cmd cli.Command, content io.Reader, destroy bool, ar
 		return nil, err
 	}
 
-	// populate args for apply
 	args := argsFunc(paths, destroy)
 
 	exitCode := cmd.Run(args)
-
 	if exitCode != 0 {
 		return nil, fmt.Errorf(
 			"apply failed with code: %d, output: %s",
