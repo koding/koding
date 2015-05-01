@@ -171,6 +171,7 @@ module.exports =
     matchedWordSelector         = '.content-search-result pre p.match'
     activeUntitledFileSelector  = "#{paneSelector} .untitledtxt.active"
     activeEditorSelector        = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
+    fileNameSelector            = '.content-search-result .filename:first-child'
 
     ideHelpers.openNewFile(browser)
     ideHelpers.openContextMenu(browser)
@@ -183,11 +184,24 @@ module.exports =
       .click                     contentSearchModalSelector + ' button.search'
       .waitForElementVisible     paneSelector + ' .search-result', 20000 # Assertion
       .waitForElementNotPresent  activeUntitledFileSelector, 20000 # Assertion
-      .waitForElementVisible     matchedWordSelector, 20000
-      .click                     matchedWordSelector
-      .waitForElementNotPresent  paneSelector + '.search-result .active', 20000 # Assertion
-      .assert.containsText       activeEditorSelector, 'hello'
-      .end()
+      .getText                   fileNameSelector, (result = {}) ->
+
+        fileName  = result.value.split('/')?.reverse()[0]
+        lowercase = fileName?.replace(/\./g, '').toLowerCase()
+
+        return browser.end() unless lowercase
+
+        tabHandleSelector = ".panel-1 div[title='#{fileName}']"
+        editorSelector    = ".panel-1 .kdtabpaneview.#{lowercase} .ace_content"
+
+        browser
+          .waitForElementVisible     matchedWordSelector, 20000
+          .click                     matchedWordSelector
+          .waitForElementNotPresent  paneSelector + '.search-result .active', 20000 # Assertion
+          .waitForElementVisible     tabHandleSelector, 20000
+          .waitForElementVisible     editorSelector, 20000
+          .assert.containsText       editorSelector, 'hello'
+          .end()
 
 
   jumpToFile: (browser) ->
