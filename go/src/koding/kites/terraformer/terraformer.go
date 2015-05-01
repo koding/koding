@@ -40,8 +40,8 @@ type Terraformer struct {
 	// Enable debug mode
 	Debug bool
 
-	// Context holds the initial context, all usages should clone it
-	Context *kodingcontext.Context
+	// Context holds the initial context, all usages should get from it
+	Context kodingcontext.Context
 
 	// Store app runtime config
 	Config *Config
@@ -71,8 +71,6 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 		return nil, fmt.Errorf("err while creating remote store %s", err)
 	}
 
-	closeChan := make(chan struct{})
-
 	c, err := kodingcontext.New(ls, rs)
 	if err != nil {
 		return nil, err
@@ -84,7 +82,7 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 		Debug:     conf.Debug,
 		Context:   c,
 		Config:    conf,
-		closeChan: closeChan,
+		closeChan: make(chan struct{}),
 	}
 
 	t.handleSignals()
@@ -105,11 +103,12 @@ func (t *Terraformer) Close() error {
 		if err != nil {
 			t.Log.Critical("err while shutting down context %s", err.Error())
 		}
-
-		err = t.Context.Close()
 	}
 
 	close(t.closeChan)
+
+	// clean up global vars
+	kodingcontext.Close()
 
 	return err
 }

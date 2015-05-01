@@ -10,7 +10,7 @@ import (
 )
 
 // Apply applies the incoming terraform content to the remote system
-func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, error) {
+func (c *KodingContext) Apply(content io.Reader, destroy bool) (*terraform.State, error) {
 	cmd := &command.ApplyCommand{
 		ShutdownCh: c.ShutdownChan,
 		Meta: command.Meta{
@@ -34,7 +34,7 @@ func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, erro
 	return terraform.ReadState(stateFile)
 }
 
-func (c *Context) populateApplyArgs(paths *paths, destroy bool) []string {
+func (c *KodingContext) populateApplyArgs(paths *paths, destroy bool) []string {
 	// generate base args
 	args := []string{
 		"-no-color", // dont write with color

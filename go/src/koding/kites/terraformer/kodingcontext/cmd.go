@@ -8,7 +8,7 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-func (c *Context) run(cmd cli.Command, content io.Reader, destroy bool, argsFunc func(paths *paths, destroy bool) []string) (*paths, error) {
+func (c *KodingContext) run(cmd cli.Command, content io.Reader, destroy bool, argsFunc func(paths *paths, destroy bool) []string) (*paths, error) {
 	// copy all contents from remote to local for operating
 	if err := c.RemoteStorage.Clone(c.ContentID, c.LocalStorage); err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ type paths struct {
 	mainRelativePath string
 }
 
-func (c *Context) paths() (*paths, error) {
+func (c *KodingContext) paths() (*paths, error) {
 	basePath, err := c.LocalStorage.BasePath()
 	if err != nil {
 		return nil, err

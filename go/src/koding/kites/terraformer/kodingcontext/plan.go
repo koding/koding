@@ -10,7 +10,7 @@ import (
 )
 
 // Plan plans the operation accoring to the given content
-func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error) {
+func (c *KodingContext) Plan(content io.Reader, destroy bool) (*terraform.Plan, error) {
 	cmd := &command.PlanCommand{
 		Meta: command.Meta{
 			ContextOpts: c.TerraformContextOpts(),
@@ -32,7 +32,7 @@ func (c *Context) Plan(content io.Reader, destroy bool) (*terraform.Plan, error)
 	return terraform.ReadPlan(planFile)
 }
 
-func (c *Context) populatePlanArgs(paths *paths, destroy bool) []string {
+func (c *KodingContext) populatePlanArgs(paths *paths, destroy bool) []string {
 	// generate base args
 	args := []string{
 		"-no-color",            // dont write with color

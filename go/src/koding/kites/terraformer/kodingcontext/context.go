@@ -3,7 +3,6 @@
 package kodingcontext
 
 import (
-	"bytes"
 	"errors"
 	"sync"
 	"time"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/mitchellh/cli"
 )
 
 const (
@@ -31,38 +29,37 @@ var (
 	shutdownChansWG sync.WaitGroup
 )
 
+type Context interface {
+	Get(string) (*KodingContext, error)
+	Shutdown() error
+}
+
 // Context holds the required operational parameters for any kind of terraform
 // call
-type Context struct {
-	Variables map[string]string
-
+type context struct {
 	// storage holds the plans of terraform
 	RemoteStorage storage.Interface
 	LocalStorage  storage.Interface
 
-	ShutdownChan <-chan struct{}
-
-	ContentID    string
 	Providers    map[string]terraform.ResourceProviderFactory
 	Provisioners map[string]terraform.ResourceProvisionerFactory
-	Buffer       *bytes.Buffer
-	ui           *cli.PrefixedUi
 }
 
-// New creates a new Context, this should not be used directly, use Clone
+// New creates a new context, this should not be used directly, use Clone
 // instead from an existing one
-func New(ls, rs storage.Interface) (*Context, error) {
+func New(ls, rs storage.Interface) (*context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
 		return nil, err
 	}
 
-	c := newContext()
-	c.Providers = config.ProviderFactories()
-	c.Provisioners = config.ProvisionerFactories()
-	c.LocalStorage = ls
-	c.RemoteStorage = rs
+	c := &context{
+		Providers:     config.ProviderFactories(),
+		Provisioners:  config.ProvisionerFactories(),
+		LocalStorage:  ls,
+		RemoteStorage: rs,
+	}
 
 	shutdownChans = make(map[string]chan struct{})
 
@@ -75,18 +72,9 @@ func Close() {
 	plugin.CleanupClients()
 }
 
-func newContext() *Context {
-	b := new(bytes.Buffer)
-
-	return &Context{
-		Buffer: b,
-		ui:     NewUI(b),
-	}
-}
-
 // Get creates a new context out of an existing one, this can be called
 // multiple times instead of creating a new Context with New function
-func (c *Context) Get(contentID string) (*Context, error) {
+func (c *context) Get(contentID string) (*KodingContext, error) {
 	if contentID == "" {
 		return nil, errors.New("contentID is not set")
 	}
@@ -96,60 +84,19 @@ func (c *Context) Get(contentID string) (*Context, error) {
 		return nil, err
 	}
 
-	cc := newContext()
-	cc.ContentID = contentID
-	cc.Providers = c.Providers
-	cc.Provisioners = c.Provisioners
-	cc.LocalStorage = c.LocalStorage
-	cc.RemoteStorage = c.RemoteStorage
-	cc.ShutdownChan = sc
+	kc := newKodingContext(sc)
+	kc.ContentID = contentID
+	kc.Providers = c.Providers
+	kc.Provisioners = c.Provisioners
+	kc.LocalStorage = c.LocalStorage
+	kc.RemoteStorage = c.RemoteStorage
+	kc.ShutdownChan = sc
 
-	return cc, nil
-}
-
-// TerraformContextOpts creates a basic context options for terraform itself
-func (c *Context) TerraformContextOpts() *terraform.ContextOpts {
-	return c.TerraformContextOptsWithPlan(nil)
-}
-
-// TerraformContextOptsWithPlan creates a new context out of a given plan
-func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.ContextOpts {
-	if p == nil {
-		p = &terraform.Plan{}
-	}
-
-	return &terraform.ContextOpts{
-		Destroy:     false, // this should be true with kite.destroy command
-		Parallelism: 0,
-
-		Hooks: nil,
-
-		// Targets      []string
-		Module: p.Module,
-		State:  p.State,
-		Diff:   p.Diff,
-
-		Providers:    c.Providers,
-		Provisioners: c.Provisioners,
-		Variables:    c.Variables,
-	}
-}
-
-// Close terminates the existing context
-func (c *Context) Close() error {
-	// content id is null for parent context
-	if c.ContentID != "" {
-		shutdownChansMu.Lock()
-		delete(shutdownChans, c.ContentID)
-		shutdownChansWG.Done()
-		shutdownChansMu.Unlock()
-	}
-
-	return c.LocalStorage.Remove(c.ContentID)
+	return kc, nil
 }
 
 // BroadcastForceShutdown sends a message to the current operations
-func (c *Context) BroadcastForceShutdown() {
+func (c *context) BroadcastForceShutdown() {
 	shutdownChansMu.Lock()
 	for _, shutdownChan := range shutdownChans {
 		// broadcast this message to listeners
@@ -159,7 +106,7 @@ func (c *Context) BroadcastForceShutdown() {
 }
 
 // Shutdown shutsdown koding context
-func (c *Context) Shutdown() error {
+func (c *context) Shutdown() error {
 	shutdown := make(chan struct{})
 	go func() {
 		shutdownChansWG.Wait()
@@ -188,7 +135,7 @@ func (c *Context) Shutdown() error {
 	return nil
 }
 
-func (c *Context) createShutdownChan(contentID string) (<-chan struct{}, error) {
+func (c *context) createShutdownChan(contentID string) (<-chan struct{}, error) {
 	shutdownChansMu.Lock()
 	defer shutdownChansMu.Unlock()
 
