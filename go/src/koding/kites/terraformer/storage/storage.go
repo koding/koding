@@ -1,3 +1,4 @@
+// Package storage provides backend storage systems
 package storage
 
 import "io"

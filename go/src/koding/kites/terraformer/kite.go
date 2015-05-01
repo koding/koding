@@ -10,6 +10,7 @@ import (
 	"github.com/koding/metrics"
 )
 
+// NewKite creates a new kite for serving terraformer
 func NewKite(t *Terraformer, conf *Config) (*kite.Kite, error) {
 	var err error
 	k := kite.New(Name, Version)

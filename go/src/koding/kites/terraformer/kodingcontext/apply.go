@@ -44,7 +44,7 @@ func (c *Context) populateApplyArgs(paths *paths, destroy bool) []string {
 		paths.contentPath,
 	}
 
-	vars := make([]string, 0)
+	var vars []string
 	for key, val := range c.Variables {
 		// Set a variable in the Terraform configuration. This flag can be set
 		// multiple times.

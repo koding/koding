@@ -84,7 +84,7 @@ func newContext() *Context {
 	}
 }
 
-// Clone creates a new context out of an existing one, this can be called
+// Get creates a new context out of an existing one, this can be called
 // multiple times instead of creating a new Context with New function
 func (c *Context) Get(contentID string) (*Context, error) {
 	if contentID == "" {
@@ -148,7 +148,7 @@ func (c *Context) Close() error {
 	return c.LocalStorage.Remove(c.ContentID)
 }
 
-// BroadcastShutdown sends a message to the current listeners
+// BroadcastForceShutdown sends a message to the current operations
 func (c *Context) BroadcastForceShutdown() {
 	shutdownChansMu.Lock()
 	for _, shutdownChan := range shutdownChans {
