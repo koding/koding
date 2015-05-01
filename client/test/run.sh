@@ -3,7 +3,7 @@
 cd $(dirname $0)
 
 MAX_TRY_COUNT=3
-NIGHTWATCH_BIN="../node_modules/.bin/nightwatch --config ../.nightwatch.json"
+NIGHTWATCH_BIN="../node_modules/.bin/nightwatch --verbose --config ../.nightwatch.json"
 BUILD_DIR=build/lib
 
 REVISION=$(node -e "process.stdout.write(require('../.config.json').rev)")
