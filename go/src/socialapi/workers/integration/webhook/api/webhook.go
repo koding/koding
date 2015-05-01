@@ -157,6 +157,7 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 	if err := cc.Fetch(channel.Id, &request.Query{}); err != nil {
 		return response.NewBadRequest(err)
 	}
+	cc.ParticipantsPreview = append([]string{h.bot.Account().OldId}, cc.ParticipantsPreview...)
 
 	data := NewBotChannelResponse()
 	data.ChannelContainer = cc

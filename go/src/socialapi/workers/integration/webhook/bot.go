@@ -116,3 +116,7 @@ func (b *Bot) createBotChannel(a *models.Account, groupName string) (*models.Cha
 
 	return c, err
 }
+
+func (b *Bot) Account() *models.Account {
+	return b.account
+}
