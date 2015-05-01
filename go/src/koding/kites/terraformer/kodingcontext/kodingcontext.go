@@ -61,7 +61,7 @@ func (c *KodingContext) TerraformContextOptsWithPlan(p *terraform.Plan) *terrafo
 
 // Close terminates the existing context
 func (c *KodingContext) Close() error {
-	if c.ContentID != "" {
+	if c.ContentID == "" {
 		return errors.New("contentID is nil")
 	}
 
