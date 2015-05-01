@@ -196,7 +196,7 @@ module.exports =
     helpers.waitForVMRunning(browser)
 
     searchModalSelector  = '.file-finder'
-    findInFilesSelector  = '.kdlistview-contextmenu li.jump-to-file'
+    findInFilesSelector  = '.kdlistview-contextmenu li.find-file-by-name'
     paneSelector         = '.pane-wrapper .kdsplitview-panel .application-tab-handle-holder .pythonpy'
 
     ideHelpers.openNewFile(browser)
