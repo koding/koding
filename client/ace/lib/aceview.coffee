@@ -31,10 +31,9 @@ module.exports = class AceView extends JView
 
     @listenWindowResize()
 
-    aceOptions        =
-      delegate        : options.delegate or this
-      enableShortcuts : yes
-      createFindAndReplaceView : options.createFindAndReplaceView
+    aceOptions =
+      delegate: options.delegate or this
+      createFindAndReplaceView: options.createFindAndReplaceView
 
     @ace = new Ace aceOptions, file
 
