@@ -91,10 +91,13 @@ module.exports = class ActivitySideView extends JView
 
     # TODO: until KodingBot is in the prefetched data, just reload automatically
     # so that sidebar won't use the prefetched data.
-    return @reload()
 
     {dataPath} = @getOptions()
     items = kd.singletons.socialapi.getPrefetchedData dataPath
+
+    if dataPath is 'privateMessages'
+      bot =  kd.singletons.socialapi.getPrefetchedData "bot"
+      items.unshift bot  if bot
 
     # delete this line if `getPrefetchedeData 'bot'` returns an array.
     # this is justn an assumption that the result will be a single social
