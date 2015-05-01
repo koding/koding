@@ -10,6 +10,7 @@ import (
 
 	"labix.org/v2/mgo"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
@@ -36,15 +37,16 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-// HandleParticipant handles participant operations, if a user joins to
+// HandleParticipant handles participant operations
 func (c *Controller) HandleParticipant(cp *models.ChannelParticipant) error {
-	channel := models.NewChannel()
-	if err := channel.ById(cp.ChannelId); err != nil {
-		return err
+	channel, err := models.Cache.Channel.ById(cp.ChannelId)
+	if err != nil {
+		c.log.Error("Channel: %d is not found", cp.ChannelId)
+		return nil
 	}
 
 	if channel.TypeConstant != models.Channel_TYPE_GROUP {
-		return nil
+		return nil // following logic ensures that channel is a group channel
 	}
 
 	group, err := modelhelper.GetGroup(channel.GroupName)
@@ -62,26 +64,56 @@ func (c *Controller) HandleParticipant(cp *models.ChannelParticipant) error {
 		if err != nil {
 			return err
 		}
-		cp := models.NewChannelParticipant()
-		cp.ChannelId = ci
-		cp.AccountId = cp.AccountId
-
-		// i wrote all of them to have a referance for future, because we
-		// are gonna need this logic while implementing invitations ~ CS
-		switch cp.StatusConstant {
-		case models.ChannelParticipant_STATUS_ACTIVE:
-			err = cp.Create()
-		case models.ChannelParticipant_STATUS_BLOCKED:
-			err = cp.Block()
-		case models.ChannelParticipant_STATUS_LEFT:
-			err = cp.Delete()
-		}
-
-		// participant can be blocked before
-		if err != nil && err != models.ErrParticipantBlocked {
+		if err := c.handleDefaultChannel(ci, cp); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (c *Controller) handleDefaultChannel(channelId int64, cp *models.ChannelParticipant) error {
+	defChan, err := models.Cache.Channel.ById(channelId)
+	if err != nil && err != bongo.RecordNotFound {
+		return err
+	}
+
+	if err == bongo.RecordNotFound {
+		c.log.Error("Channel: %d is not found", channelId)
+		return nil
+	}
+
+	// i wrote all of them to have a referance for future, because we
+	// are gonna need this logic while implementing invitations ~ CS
+	switch cp.StatusConstant {
+	case models.ChannelParticipant_STATUS_ACTIVE:
+		_, err = defChan.AddParticipant(cp.AccountId)
+	case models.ChannelParticipant_STATUS_BLOCKED:
+		err = defChan.RemoveParticipant(cp.AccountId)
+	case models.ChannelParticipant_STATUS_LEFT:
+		err = defChan.RemoveParticipant(cp.AccountId)
+	}
+
+	switch err {
+	case models.ErrChannelIsLinked:
+		// if channel is linked to another, add it to root channel
+		root, err := defChan.FetchRoot()
+		if err != nil && err != bongo.RecordNotFound {
+			return err
+		}
+
+		if err == bongo.RecordNotFound {
+			c.log.Error("Root Channel of %d not found", cp.ChannelId)
+			return nil
+		}
+
+		// self handling with root channel
+		return c.handleDefaultChannel(root.Id, cp)
+	case models.ErrParticipantBlocked:
+		// nothing to do here, user should be unblocked first
+		return nil
+
+	default:
+		return nil
+	}
 }
