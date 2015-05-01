@@ -1728,11 +1728,19 @@ paymentGrayLighter  = #f8f8f8
   .AppModal-nav
     min-height              315px
 
+  .kdtabview
+    float                   left
+    width                   510px
+
   .AppModal-form
     padding-top             0
+    margin                  0
 
   .kdmodal-content
-    max-height              320px !important // override computed element style
+    height                  370px !important // override computed element style
+
+  .listview-wrapper
+    height                  auto
 
 
 // machine settings modal general view
@@ -1772,11 +1780,15 @@ paymentGrayLighter  = #f8f8f8
 // machine settings modal sidebar icon
 .machine-settings-modal
 
+  .AppModal-navItem
+    b
+      abs()
+
+
   .AppModal-navItem:before
     content                 ''
     display                 inline-block
     vertical-align          sub
-    margin-right            13px
 
   .AppModal-navItem.general
     &:before
@@ -1840,7 +1852,7 @@ paymentGrayLighter  = #f8f8f8
 
   .formline
     line-height             45px
-    size                    545px, 45px
+    size                    530px, 45px
     border-bottom           1px solid #efefef
     margin-bottom           0
 
@@ -1976,6 +1988,7 @@ paymentGrayLighter  = #f8f8f8
 
   .circular-progress-bar
     margin                  15px 0 20px 185px
+    height                  190px
 
   .disk-usage-info
     overflow                hidden
@@ -2018,7 +2031,7 @@ paymentGrayLighter  = #f8f8f8
 .machine-settings-modal
 
   .kdheaderview
-    width                   530px
+    width                   510px
     height                  38px
     line-height             38px
     font-size               14px
@@ -2104,6 +2117,7 @@ paymentGrayLighter  = #f8f8f8
       ellipsis()
       max-width             475px
       display               inline-block
+      text-indent           5px
 
     &:hover
       .remove
@@ -2214,6 +2228,9 @@ paymentGrayLighter  = #f8f8f8
     color                   #a1a1a1
     text-align              center
     font-size               14px
+
+  .kdlistitemview-snapshot
+    overflow                hidden
 
 
 .machine-settings-modal .snapshots .add-view

@@ -1,18 +1,15 @@
-Encoder                   = require 'htmlencode'
-
 kd                        = require 'kd'
 remote                    = require('app/remote').getInstance()
-
-ComputeErrorUsageModal    = require './computeerrorusagemodal'
-MachineSettingsCommonView = require './machinesettingscommonview'
+Encoder                   = require 'htmlencode'
 SnapshotListItem          = require './snapshotlistitem'
 snapshotHelpers           = require './snapshothelpers'
-
+ComputeErrorUsageModal    = require './computeerrorusagemodal'
+MachineSettingsCommonView = require './machinesettingscommonview'
 
 
 module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
 
-  constructor:(options = {}, data) ->
+  constructor: (options = {}, data) ->
 
     options.cssClass             = kd.utils.curry options.cssClass, 'snapshots'
     options.headerTitle          = 'Snapshots'
@@ -23,8 +20,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       cssClass : 'no-item'
       partial  : 'You do not have any snapshots created'
 
-    # Trigger the snapshotsLimits fetch, so that we can cache it ahead
-    # of time.
+    # Trigger the snapshotsLimits fetch, so that we can cache it ahead of time.
     @snapshotsLimit()
 
     super options, data
