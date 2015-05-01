@@ -5,7 +5,6 @@ package kodingcontext
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/kr/pretty"
 	"github.com/mitchellh/cli"
 )
 
@@ -139,7 +137,7 @@ func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.Con
 
 // Close terminates the existing context
 func (c *Context) Close() error {
-	fmt.Printf("c.ContentID %# v", pretty.Formatter(c.ContentID))
+	// content id is null for parent context
 	if c.ContentID != "" {
 		shutdownChansMu.Lock()
 		delete(shutdownChans, c.ContentID)

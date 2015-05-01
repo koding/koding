@@ -10,7 +10,7 @@ import (
 	"github.com/koding/metrics"
 )
 
-func (t *Terraformer) newKite(conf *Config) (*kite.Kite, error) {
+func NewKite(t *Terraformer, conf *Config) (*kite.Kite, error) {
 	var err error
 	k := kite.New(Name, Version)
 	k.Config, err = kiteconfig.Get()
@@ -18,7 +18,7 @@ func (t *Terraformer) newKite(conf *Config) (*kite.Kite, error) {
 		return nil, err
 	}
 
-	k = t.setupKite(k, conf)
+	k = setupKite(k, conf)
 
 	// handle current status of terraformer
 	k.PostHandleFunc(t.handleState)
@@ -46,7 +46,7 @@ func (t *Terraformer) newKite(conf *Config) (*kite.Kite, error) {
 	return k, nil
 }
 
-func (t *Terraformer) setupKite(k *kite.Kite, conf *Config) *kite.Kite {
+func setupKite(k *kite.Kite, conf *Config) *kite.Kite {
 
 	k.Config.Port = conf.Port
 
@@ -58,7 +58,7 @@ func (t *Terraformer) setupKite(k *kite.Kite, conf *Config) *kite.Kite {
 		k.Config.Environment = conf.Environment
 	}
 
-	if t.Debug {
+	if conf.Debug {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
@@ -87,15 +87,4 @@ func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
 
 		return true, nil
 	}
-}
-
-func (t *Terraformer) handleState(r *kite.Request) (interface{}, error) {
-	t.rwmu.RLock()
-	defer t.rwmu.RUnlock()
-
-	if t.closing {
-		return false, errors.New("terraformer is closing")
-	}
-
-	return true, nil
 }

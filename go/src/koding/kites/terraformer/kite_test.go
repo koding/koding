@@ -44,7 +44,7 @@ func withKite(t *testing.T, f func(k *kite.Kite) error) {
 	defer tr.Close()
 
 	// init terraformer's kite
-	k, err := tr.Kite()
+	k, err := NewKite(tr, conf)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -53,7 +53,6 @@ func withKite(t *testing.T, f func(k *kite.Kite) error) {
 	k.Config.DisableAuthentication = true
 
 	go k.Run()
-	defer k.Close()
 	<-k.ServerReadyNotify()
 
 	if err := f(k); err != nil {

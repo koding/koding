@@ -3,6 +3,7 @@
 package terraformer
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/terraformer/kodingcontext"
 	"koding/kites/terraformer/storage"
@@ -77,45 +78,45 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 		return nil, err
 	}
 
-	return &Terraformer{
+	t := &Terraformer{
 		Log:       log,
 		Metrics:   common.MustInitMetrics(Name),
 		Debug:     conf.Debug,
 		Context:   c,
 		Config:    conf,
 		closeChan: closeChan,
-	}, nil
+	}
+
+	t.handleSignals()
+
+	return t, nil
 }
 
 // Close closes the embeded properties of terraformer
 func (t *Terraformer) Close() error {
-	if t.Context == nil {
-		return nil
+	t.rwmu.Lock()
+	// mark terraformer as closing and stop accepting new requests
+	t.closing = true
+	t.rwmu.Unlock()
+
+	var err error
+	if t.Context != nil {
+		err = t.Context.Shutdown()
+		if err != nil {
+			t.Log.Critical("err while shutting down context %s", err.Error())
+		}
+
+		err = t.Context.Close()
 	}
 
-	return t.Context.Close()
+	close(t.closeChan)
+
+	return err
 }
 
-// Run runs Terraformer Kite
-func (t *Terraformer) Run() error {
-	// init terraformer's kite
-	k, err := t.Kite()
-	if err != nil {
-		return err
-	}
-
-	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
-		return err
-	}
-
-	go k.Run()
-	t.handleSignals()
-
+// Wait wait for Terraformer to exit
+func (t *Terraformer) Wait() error {
 	<-t.closeChan // wait for exit
-
-	k.Close()
-	t.Close()
-
 	return nil
 }
 
@@ -128,23 +129,10 @@ func (t *Terraformer) handleSignals() {
 		signal.Stop(signalCh)
 		switch s {
 		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
-			t.rwmu.Lock()
-			// mark terraformer as closing and stop accepting new requests
-			t.closing = true
-			t.rwmu.Unlock()
-
-			if err := t.Context.Shutdown(); err != nil {
-				t.Log.Critical("err while shutting down context %s", err.Error())
-			}
-
-			close(t.closeChan)
+			t.Log.Info("%s signal recieved, closing terraformer", s)
+			t.Close()
 		}
 	}()
-}
-
-// Kite creates a new Terraformer Kite communication layer
-func (t *Terraformer) Kite() (*kite.Kite, error) {
-	return t.newKite(t.Config)
 }
 
 // Plan provides a kite call for plan operation
@@ -195,4 +183,15 @@ func (t *Terraformer) apply(r *kite.Request, destroy bool) (*terraform.State, er
 	c.Variables = args.Variables
 
 	return c.Apply(strings.NewReader(args.Content), destroy)
+}
+
+func (t *Terraformer) handleState(r *kite.Request) (interface{}, error) {
+	t.rwmu.RLock()
+	defer t.rwmu.RUnlock()
+
+	if t.closing {
+		return false, errors.New("terraformer is closing")
+	}
+
+	return true, nil
 }

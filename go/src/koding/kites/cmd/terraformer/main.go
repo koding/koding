@@ -27,5 +27,23 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	t.Run()
+	k, err := terraformer.NewKite(t, conf)
+	if err != nil {
+		return err
+	}
+
+	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
+		return err
+	}
+
+	go k.Run()
+	<-k.ServerReadyNotify()
+	log.Debug("Kite Started Listening")
+
+	// terraformer can only be closed with signals, wait for any signal
+	if err := t.Wait(); err != nil {
+		log.Error("Err after waiting terraformer %s", err)
+	}
+
+	k.Close()
 }
