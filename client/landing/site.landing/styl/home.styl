@@ -34,11 +34,10 @@ body.home
       position            absolute
 
     section
-
-      a.octo,
-      a.fb,
-      a.twt,
-      a.gogl
+      a.gh
+      a.fb
+      a.tw
+      a.go
         size              32px 32px
         margin            3px 0 0 57px
         opacity           .7
@@ -46,27 +45,27 @@ body.home
         span.title
           hidden()
 
-      a.octo
-        r-sprite          home 'octo-home'
+      a.gh
+        r-sprite          home 'gh-home'
         &:hover
-          r-sprite        home 'octo-home-white'
+          r-sprite        home 'gh-home-white'
 
       a.fb
         r-sprite          home 'fb-home'
         &:hover
           r-sprite        home 'fb-home-white'
 
-      a.twt
-        r-sprite          home 'twt-home'
+      a.tw
+        r-sprite          home 'tw-home'
         &:hover
-          r-sprite        home 'twt-home-white'
+          r-sprite        home 'tw-home-white'
 
-      a.gogl
-        r-sprite          home 'gogl-home'
+      a.go
+        r-sprite          home 'go-home'
         &:hover
-          r-sprite        home 'gogl-home-white'
+          r-sprite        home 'go-home-white'
 
-      a.octo
+      a.gh
         &:hover + .buttons-extra
           opacity         1
           visibility      visible
@@ -235,22 +234,22 @@ body.home
           border-right    1px solid rgba(255, 255, 255, .1)
         &:before
           opacity         .3
-        a.octo
-          r-sprite          home 'octo-home-white'
+        a.gh
+          r-sprite        home 'gh-home-white'
           &:hover
-            opacity         1
+            opacity       1
         a.fb
-          r-sprite          home 'fb-home-white'
+          r-sprite        home 'fb-home-white'
           &:hover
-            opacity         1
-        a.twt
-          r-sprite          home 'twt-home-white'
+            opacity       1
+        a.tw
+          r-sprite        home 'tw-home-white'
           &:hover
-            opacity         1
-        a.gogl
-          r-sprite          home 'gogl-home-white'
+            opacity       1
+        a.go
+          r-sprite        home 'go-home-white'
           &:hover
-            opacity         1
+            opacity       1
 
         > div:after
           background      radial-gradient(ellipse at center, rgba(66, 88, 110, 0.65) 0%, rgba(66, 88, 110, 0) 65%);
@@ -730,7 +729,7 @@ body.home
             padding       0
             border        none
 
-        a.octo
+        a.gh
           abs             198px 0 0 0px
           background      rgba(0,0,0,.3)
           width           100% !important
@@ -753,7 +752,7 @@ body.home
           .title:before
             content       ''
             display       inline-block
-            r-sprite      home 'octo-home-white'
+            r-sprite      home 'gh-home-white'
             vendor        transform, scale(0.7)
             vertical-align middle
             margin-top    -2px
