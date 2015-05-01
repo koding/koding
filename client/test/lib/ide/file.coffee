@@ -167,7 +167,7 @@ module.exports =
     helpers.waitForVMRunning(browser)
 
     contentSearchModalSelector  = '.content-search-modal'
-    findInFilesSelector         = '.kdlistview-contextmenu li.find-in-files'
+    findInFilesSelector         = '.kdlistview-contextmenu li.search-in-all-files'
     matchedWordSelector         = '.content-search-result pre p.match'
     activeUntitledFileSelector  = "#{paneSelector} .untitledtxt.active"
     activeEditorSelector        = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
