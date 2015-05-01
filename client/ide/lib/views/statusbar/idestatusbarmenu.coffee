@@ -7,7 +7,7 @@ _ = require 'lodash'
 
 module.exports = class IDEStatusBarMenu extends KDContextMenu
 
-  constructor: (options={}) ->
+  constructor: (options = {}) ->
 
     { delegate } = options
 
