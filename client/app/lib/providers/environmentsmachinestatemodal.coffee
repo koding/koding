@@ -51,18 +51,14 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @showBusy()
     @show()
 
-    whoami().isEmailVerified (err, verified)=>
+    {computeController} = kd.singletons
+
+    computeController.ready => whoami().isEmailVerified (err, verified) =>
 
       kd.warn err  if err?
 
       if not verified
         @buildVerifyView()
-      else if not @machine.isApproved()
-        if @machine.isPermanent()
-          @buildApproveView()
-        else
-          @prepareIDE()
-          @destroy()
       else
         kd.singletons.paymentController.subscriptions (err, subscription)=>
           kd.warn err  if err?
@@ -99,9 +95,9 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     else
       @state = status
 
-      if error?.length > 0
+      if error
 
-        if /NetworkOut overlimit/i.test event.message
+        if /NetworkOut/i.test error
           @customErrorMessage = "
             <p>You've reached your outbound network usage
             limit for this week.</p><span>
@@ -277,49 +273,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @container.addSubView @button
 
 
-  buildApproveView: ->
-
-    @container.destroySubViews()
-
-    @approveButton = new KDButtonView
-      title    : 'Approve'
-      cssClass : 'solid medium green plan-change-button'
-      callback : =>
-        @showBusy "Working..."
-        @machine.jMachine.approve (err)=>
-          unless showError err
-            @_busy = no
-            @buildInitial()
-
-    @denyButton = new KDButtonView
-      title    : 'Deny'
-      cssClass : 'solid medium green plan-change-button downgrade'
-      callback : =>
-
-        @showBusy "Working..."
-
-        @machine.jMachine.deny (err)->
-          {computeController, router} = kd.singletons
-
-          @_busy = no
-
-          unless showError err
-            computeController.once 'RenderMachines', ->
-              router.handleRoute '/IDE'
-            computeController.reset yes
-
-    @container.addSubView new KDCustomHTMLView
-      cssClass : 'expired-message'
-      partial  : """
-        <h1>A Shared VM</h1>
-        <p>This machine is shared with you by <b>#{@machine.getOwner()}</b>.
-        You need to approve this action before start using this machine.</p>
-      """
-
-    @container.addSubView @approveButton
-    @container.addSubView @denyButton
-
-
   buildExpiredView: (subscription, nextState)->
 
     plan = if subscription? then "(<b>#{subscription.planTitle}</b>)" else ""
@@ -356,17 +309,20 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
         if destroyVMs
 
-          @showBusy "Destroying machines..."
+          @showBusy "Deleting your VM(s)..."
           ComputeHelpers.destroyExistingMachines (err)=>
-            kd.utils.wait 5000, =>
-              @buildExpiredView subscription, "downgrade"
+            @buildExpiredView subscription, "downgrade"
+          , yes
 
         else
 
           @showBusy "Downgrading..."
-          @downgradePlan (err)=> if err? \
-            then @buildExpiredView subscription, "destroy-vms"
-            else @buildInitial()
+          @downgradePlan (err) =>
+            if err?
+              @buildExpiredView subscription, "destroy-vms"
+            else
+              @_busy = no
+              @buildInitial()
 
     @container.addSubView new KDCustomHTMLView
       cssClass : 'expired-message'
@@ -402,7 +358,15 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @container.destroySubViews()
     @progressBar = null
 
-    @createStateLabel()
+    if @state is 'NotFound'
+      @createStateLabel "
+        <h1>You don't have any VMs!</h1>
+        <span>
+          This can happen if you have deleted all your VMs or if your VM was automatically deleted due to inactivity. <a href='http://learn.koding.com/faq/inactive-vms' target='_blank'>Learn more</a> about inactive VM cleanup.
+        </span>
+      "
+    else
+      @createStateLabel()
 
     if @state in [ Stopped, NotInitialized, Unknown, 'NotFound' ]
       @createStateButton()
@@ -415,8 +379,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @label.destroy?()
 
       @createStateLabel "
-        Your VM <strong>#{@machineName or ''}</strong> was
-        successfully deleted.Please select a new VM to operate on from
+        The VM <strong>#{@machineName or ''}</strong> was
+        successfully deleted. Please select a new VM to operate on from
         the VMs list or create a new one.
       "
     else if @state is Running
@@ -463,7 +427,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
   createStateButton: ->
 
     if @state is 'NotFound'
-      title    = 'Create a New Machine'
+      title    = 'Create a new VM'
       callback = 'requestNewMachine'
     else if @isManaged
       title    = 'Search for Nodes'

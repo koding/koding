@@ -24,6 +24,10 @@ func Check(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan
 		return NewSubscription, nil
 	}
 
+	if IsDowngradeToFreePlan(plan) {
+		return DowngradeToFreePlan, nil
+	}
+
 	currentSubscription, err := customer.FindActiveSubscription()
 	if err != nil && err != paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
 		return Error, err
@@ -41,10 +45,6 @@ func Check(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan
 
 	if IsAlreadySubscribedToPlan(oldPlan, plan) {
 		return AlreadySubscribedToPlan, nil
-	}
-
-	if IsDowngradeToFreePlan(plan) {
-		return DowngradeToFreePlan, nil
 	}
 
 	if IsDowngradeToNonFreePlan(oldPlan, plan) {

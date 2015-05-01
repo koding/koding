@@ -7,12 +7,12 @@ import (
 	"socialapi/config"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/models"
 	"strings"
 	"time"
 
 	"github.com/koding/metrics"
+	"github.com/koding/runner"
 )
 
 var ErrFetch = errors.New("could not fetch files")
@@ -100,7 +100,7 @@ func appendXmlHeader(data []byte) []byte {
 }
 
 func handleError(w http.ResponseWriter, err error, errMessage string) {
-	helper.MustGetLogger().Error("%s: %s", errMessage, err)
+	runner.MustGetLogger().Error("%s: %s", errMessage, err)
 	w.Header().Set("Content-Type", "application/xml")
 	w.Write(NewDefaultError(ErrFetch))
 }

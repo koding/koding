@@ -40,7 +40,7 @@ type Channel struct {
 	MetaBits MetaBits `json:"metaBits"`
 
 	// Extra data storage
-	Payload gorm.Hstore `json:"payload,omitempty"`
+	Payload gorm.Hstore `json:"payload"`
 
 	// Creation date of the channel
 	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
@@ -54,10 +54,12 @@ type Channel struct {
 
 // to-do check for allowed channels
 const (
+	ChannelLinkedPrefix = "linked"
 	// TYPES
 	Channel_TYPE_GROUP           = "group"
 	Channel_TYPE_ANNOUNCEMENT    = "announcement"
 	Channel_TYPE_TOPIC           = "topic"
+	Channel_TYPE_LINKED_TOPIC    = ChannelLinkedPrefix + Channel_TYPE_TOPIC
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
@@ -77,7 +79,7 @@ const (
 // Tests are done
 func NewChannel() *Channel {
 	return &Channel{
-		Name:            "channel_" + RandomName(),
+		Name:            "channel-" + RandomName(),
 		GroupName:       Channel_KODING_NAME,
 		TypeConstant:    Channel_TYPE_DEFAULT,
 		PrivacyConstant: Channel_PRIVACY_PRIVATE,
@@ -250,33 +252,50 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 // if user is already removed from the channel, don't need to do anything
 //
 // Tests are done.
-func (c *Channel) RemoveParticipant(participantId int64) error {
+func (c *Channel) RemoveParticipant(participantIds ...int64) error {
+	return c.removeParticipation(ChannelParticipant_STATUS_LEFT, participantIds...)
+}
+
+// BlockParticipant blocks the user(participant) from reaching to a channel
+func (c *Channel) BlockParticipant(participantIds ...int64) error {
+	return c.removeParticipation(ChannelParticipant_STATUS_BLOCKED, participantIds...)
+}
+
+func (c *Channel) removeParticipation(typeConstant string, participantIds ...int64) error {
 	if c.Id == 0 {
 		return ErrChannelIdIsNotSet
 	}
 
-	cp := NewChannelParticipant()
-	cp.ChannelId = c.Id
-	cp.AccountId = participantId
+	for _, participantId := range participantIds {
+		cp := NewChannelParticipant()
+		cp.ChannelId = c.Id
+		cp.AccountId = participantId
 
-	err := cp.FetchParticipant()
-	// if user is not in this channel, do nothing
-	if err == bongo.RecordNotFound {
-		return nil
-	}
+		err := cp.FetchParticipant()
+		// if user is not in this channel, do nothing
+		if err == bongo.RecordNotFound {
+			continue
+		}
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	// status of the participant is left (participant is not in the channel), do nothing
-	if cp.StatusConstant == ChannelParticipant_STATUS_LEFT {
-		return nil
-	}
+		if cp.StatusConstant == typeConstant {
+			continue
+		}
 
-	cp.StatusConstant = ChannelParticipant_STATUS_LEFT
-	if err := cp.Update(); err != nil {
-		return err
+		// if status of the participant is left or blocked (participant is not in
+		// the channel), do nothing
+		if cp.StatusConstant == ChannelParticipant_STATUS_BLOCKED &&
+			typeConstant == ChannelParticipant_STATUS_LEFT {
+			continue
+		}
+
+		cp.StatusConstant = typeConstant
+		if err := cp.Update(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -348,6 +367,10 @@ func (c *Channel) AddMessage(cm *ChannelMessage) (*ChannelMessageList, error) {
 	cml.ClientRequestId = cm.ClientRequestId
 
 	if err := cml.Create(); err != nil {
+		if IsUniqueConstraintError(err) {
+			return nil, ErrMessageAlreadyInTheChannel
+		}
+
 		return nil, err
 	}
 
@@ -480,6 +503,10 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 		return nil, ErrGroupNameIsNotSet
 	}
 
+	if q.Type == "" {
+		q.Type = Channel_TYPE_TOPIC
+	}
+
 	var channels []Channel
 
 	bongoQuery := &bongo.Query{
@@ -490,6 +517,9 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 		},
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
+
+	// this will hide moderation needed channels
+	bongoQuery.AddScope(RemoveModerationNeededContent(c, false))
 
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
@@ -511,11 +541,17 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
+// ByName fetches the channel by name, type_constant and group_name, it doesnt
+// have the best name, but evolved to this situation :/
 func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	var channel Channel
 
 	if q.GroupName == "" {
 		return channel, ErrGroupNameIsNotSet
+	}
+
+	if q.Type == "" {
+		q.Type = Channel_TYPE_TOPIC
 	}
 
 	query := &bongo.Query{
@@ -529,8 +565,23 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
-	if err := c.One(query); err != nil {
+	err := c.One(query)
+	if err != nil && err != bongo.RecordNotFound {
 		return channel, err
+	}
+
+	// try to fetch it's root
+	if err == bongo.RecordNotFound {
+		query.Selector["type_constant"] = ChannelLinkedPrefix + q.Type
+		if err := c.One(query); err != nil {
+			return channel, err
+		}
+
+		if root, err := c.FetchRoot(); err != nil {
+			return channel, err
+		} else {
+			return channel, ErrChannelIsLeafFunc(root.Name, root.TypeConstant)
+		}
 	}
 
 	return *c, nil
@@ -554,6 +605,8 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 		query.Selector["type_constant"] = q.Type
 	}
 
+	// this will hide moderation needed channels
+	query.AddScope(RemoveModerationNeededContent(c, false))
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	err := c.Some(&channels, query)
@@ -708,27 +761,23 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return true, nil
 	}
 
-	// anyone can read group activity
-	if c.TypeConstant == Channel_TYPE_GROUP {
-		return true, nil
-	}
+	// special cases for koding group
+	if c.GroupName == Channel_KODING_NAME {
+		// anyone can read group activity
+		if c.TypeConstant == Channel_TYPE_GROUP {
+			return true, nil
+		}
 
-	// anyone can read announcement activity
-	if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
-		return true, nil
-	}
+		// anyone can read announcement activity
+		if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
+			return true, nil
+		}
 
-	// anyone can read topic feed
-	// this is here for non-participated topic channels
-	if c.TypeConstant == Channel_TYPE_TOPIC {
-		return true, nil
-	}
-
-	// see only your private messages
-	// user should be added as a participant to private message
-	if c.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE ||
-		c.TypeConstant == Channel_TYPE_COLLABORATION {
-		return false, nil
+		// anyone can read topic feed
+		// this is here for non-participated topic channels
+		if c.TypeConstant == Channel_TYPE_TOPIC {
+			return true, nil
+		}
 	}
 
 	return false, nil
@@ -833,7 +882,12 @@ func (c *Channel) FetchPublicChannel(groupName string) error {
 		},
 	}
 
-	return c.One(query)
+	err := c.One(query)
+	if err == bongo.RecordNotFound {
+		return ErrGroupNotFound
+	}
+	
+	return err
 }
 
 func isMessageCrossIndexed(messageId int64) (error, bool) {
@@ -912,4 +966,18 @@ func (c *Channel) deleteChannelLists() (map[int64]struct{}, error) {
 			return messageMap, nil
 		}
 	}
+}
+
+// FetchRoot fetches the root of a channel if linked
+func (c *Channel) FetchRoot() (*Channel, error) {
+	cl := NewChannelLink()
+	cl.LeafId = c.Id
+	return cl.FetchRoot()
+}
+
+// FetchLeaves fetches the leaves of a channel if linked
+func (c *Channel) FetchLeaves() ([]Channel, error) {
+	cl := NewChannelLink()
+	cl.RootId = c.Id
+	return cl.List(request.NewQuery())
 }

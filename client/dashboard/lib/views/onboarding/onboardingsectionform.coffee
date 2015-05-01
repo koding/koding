@@ -1,47 +1,35 @@
 kd = require 'kd'
 KDFormViewWithFields = kd.FormViewWithFields
 KDSelectBox = kd.SelectBox
-remote = require('app/remote').getInstance()
 globals = require 'globals'
 KodingSwitch = require 'app/commonviews/kodingswitch'
-
+CustomPartialHelpers = require 'dashboard/custompartialhelpers'
+OnboardingEvent = require 'app/onboarding/onboardingevent'
+OnboardingEventName = require './onboardingeventname'
 
 module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
+  ###*
+   * Form view to edit onboarding group
+  ###
   constructor: (options = {}, data) ->
 
-    apps = []
-    apps.push { title: app, value: app }  for app of globals.config.apps
+    groups = []
+    groups.push { title: OnboardingEventName[event], value: event }  for event of OnboardingEvent
 
     options.cssClass      = "section-form"
     @jCustomPartial       = data
     formData              = data?.partial or {}
     options.fields        =
-      name                :
-        placeholder       : "Name of your set"
-        name              : "name"
-        cssClass          : "thin"
-        label             : "Name"
-        defaultValue      : data?.name or ""
-      app                 :
-        name              : "app"
-        label             : "App"
-        cssClass          : "app"
-        type              : "hidden"
+      event               :
+        name              : "event"
+        label             : "Initiator Event"
+        type              : 'hidden'
         nextElement       :
-          app             :
+          event           :
             itemClass     : KDSelectBox
-            cssClass      : "apps"
-            defaultValue  : formData?.app
-            selectOptions : apps
-      visibility          :
-        label             : "Show items together"
-        itemClass         : KodingSwitch
-        defaultValue      : formData?.visibility ? no
-      overlay             :
-        label             : "Add Overlay"
-        itemClass         : KodingSwitch
-        defaultValue      : formData?.overlay ? yes
+            defaultValue  : data?.name
+            selectOptions : groups
 
     options.buttons       =
       Save                :
@@ -55,15 +43,22 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
     super options, data
 
+
+  ###*
+   * Collects onboarding group data on the form
+   * and saves it in DB. After that, emits event for the parent view
+   *
+   * @emits SectionSaved
+  ###
   save: ->
+
     data              =
       partialType     : "ONBOARDING"
       partial         :
-        visibility    : @inputs.visibility.getValue()
-        overlay       : @inputs.overlay.getValue()
-        app           : @inputs.app.getValue()
-        items         : @jCustomPartial?.items           or []
-      name            : @inputs.name.getValue()          or ""
+        visibility    : no
+        overlay       : yes
+        items         : @jCustomPartial?.partial.items   or []
+      name            : @inputs.event.getValue()         or ""
       viewInstance    : @jCustomPartial?.viewInstance    or ""
       isActive        : @jCustomPartial?.isActive        or no
       isPreview       : @jCustomPartial?.isPreview       or no
@@ -72,16 +67,21 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
     if @jCustomPartial
       @jCustomPartial.update data, (err, section) =>
         return kd.warn err  if err
+        @emit "SectionSaved"
         @destroy()
-        @getDelegate().emit "NewSectionAdded"
     else
-      remote.api.JCustomPartials.create data, (err, section) =>
-        return kd.warn err  if err
+      CustomPartialHelpers.createPartial data, (err, section) =>
+        @emit "SectionSaved"
         @destroy()
-        @getDelegate().emit "NewSectionAdded"
 
+
+  ###*
+   * Cancelling onboarding editing destroys the form
+   * and emits event for the parent view
+   *
+   * @emits SectionCancelled
+  ###
   cancel: ->
+
+    @emit "SectionCancelled"
     @destroy()
-    @getDelegate().unsetClass "form-visible"
-
-

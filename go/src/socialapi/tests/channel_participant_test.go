@@ -3,14 +3,16 @@ package main
 import (
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -21,7 +23,8 @@ func TestChannelParticipantOperations(t *testing.T) {
 	}
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	Convey("while testing channel participants", t, func() {
@@ -115,6 +118,47 @@ func TestChannelParticipantOperations(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(participants, ShouldNotBeNil)
 					So(len(participants), ShouldEqual, 3)
+				})
+
+				Convey("when a user is blocked", func() {
+					_, err = rest.BlockChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+					So(err, ShouldBeNil)
+
+					Convey("it should not be in channel participant list", func() {
+						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+						So(err, ShouldBeNil)
+						So(participants, ShouldNotBeNil)
+						So(len(participants), ShouldEqual, 3)
+					})
+
+					Convey("should not be able to add it back", func() {
+						_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+						So(err, ShouldNotBeNil)
+					})
+
+					Convey("should be able to unblock", func() {
+						_, err = rest.UnblockChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+						So(err, ShouldBeNil)
+
+						Convey("it should not be in channel participant list still", func() {
+							participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+							So(err, ShouldBeNil)
+							So(participants, ShouldNotBeNil)
+							So(len(participants), ShouldEqual, 3)
+						})
+
+						Convey("when we add the same user as participant", func() {
+							_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id, thirdAccount.Id)
+							So(err, ShouldBeNil)
+
+							Convey("it should be in channel participant list", func() {
+								participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+								So(err, ShouldBeNil)
+								So(participants, ShouldNotBeNil)
+								So(len(participants), ShouldEqual, 4)
+							})
+						})
+					})
 				})
 
 				Convey("Second user should not be able to kick another conversation participant", func() {

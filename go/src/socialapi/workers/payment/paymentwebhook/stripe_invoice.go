@@ -24,30 +24,35 @@ func stripePaymentSucceeded(raw []byte, c *Controller) error {
 }
 
 func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller) error {
-	user, err := getUserForCustomer(req.CustomerId)
+	planName, err := getNewPlanName(req)
 	if err != nil {
 		return err
 	}
 
+	opts := map[string]interface{}{
+		"planName":  planName,
+		"price":     formatStripeAmount(req.Currency, req.AmountDue),
+		"amountDue": req.AmountDue,
+	}
+
+	return SendEmail(req.CustomerId, PaymentCreated, opts)
+}
+
+func getNewPlanName(req *webhookmodels.StripeInvoice) (string, error) {
 	if req.Lines.Data == nil {
-		return fmt.Errorf(
+		return "", fmt.Errorf(
 			"Invoice: %s for %s has nil line items", req.ID, req.CustomerId,
 		)
 	}
 
-	if len(req.Lines.Data) < 0 {
-		return fmt.Errorf(
+	if req.Lines.Count < 1 {
+		return "", fmt.Errorf(
 			"Invoice: %s for %s has 0 line items", req.ID, req.CustomerId,
 		)
 	}
 
-	planName := req.Lines.Data[0].Plan.Name
-	opts := map[string]interface{}{
-		"planName": planName,
-		"price":    formatStripeAmount(req.Currency, req.AmountDue),
-	}
+	last := len(req.Lines.Data) - 1
+	planName := req.Lines.Data[last].Plan.Name
 
-	Log.Info("Stripe: Sent invoice email to: %s with plan: %s", user.Email, planName)
-
-	return SendEmail(user, PaymentCreated, opts)
+	return planName, nil
 }

@@ -83,7 +83,7 @@ module.exports = class JPermissionSet extends Module
     groupName =\
       if 'function' is typeof target
         module = target.name
-        client.context.group ? 'koding'
+        client?.context?.group ? 'koding'
       else if target instanceof JGroup
         module = 'JGroup'
         target.slug

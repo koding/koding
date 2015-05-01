@@ -31,10 +31,9 @@ module.exports = class AceView extends JView
 
     @listenWindowResize()
 
-    aceOptions        =
-      delegate        : options.delegate or this
-      enableShortcuts : yes
-      createFindAndReplaceView : options.createFindAndReplaceView
+    aceOptions =
+      delegate: options.delegate or this
+      createFindAndReplaceView: options.createFindAndReplaceView
 
     @ace = new Ace aceOptions, file
 
@@ -70,7 +69,7 @@ module.exports = class AceView extends JView
   setViewListeners:->
     hasBottomBar = @getOptions().createBottomBar
 
-    @ace.on 'ace.ready', @advancedSettings.bound 'enable'
+    @ace.ready @advancedSettings.bound 'enable'
 
     @ace.on 'ace.changeSetting', (setting, value) =>
       @ace["set#{setting.capitalize()}"]? value

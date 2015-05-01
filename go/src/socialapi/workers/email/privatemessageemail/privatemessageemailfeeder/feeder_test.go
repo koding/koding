@@ -1,12 +1,13 @@
 package feeder
 
 import (
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/privatemessageemail/common"
 	"socialapi/workers/email/privatemessageemail/testhelper"
-	"socialapi/workers/helper"
 	"testing"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -18,8 +19,10 @@ func TestNewMessageCreation(t *testing.T) {
 	}
 	defer r.Close()
 
+	config.MustRead(r.Conf.Path)
+
 	redisConf := r.Conf
-	redisConn := helper.MustInitRedisConn(redisConf)
+	redisConn := runner.MustInitRedisConn(redisConf)
 	defer redisConn.Close()
 
 	controller := New(r.Log, redisConn)
@@ -32,9 +35,15 @@ func TestNewMessageCreation(t *testing.T) {
 		}
 
 		Convey("do not add any future notifier if message type is not private message", func() {
+
+			_, err := redisConn.Del(common.AccountNextPeriodHashSetKey())
+			So(err, ShouldBeNil)
+
+			channel, accounts := models.CreateChannelWithParticipants()
+
 			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
 			cm.TypeConstant = models.ChannelMessage_TYPE_JOIN
-			err := controller.AddMessageToQueue(cm)
+			err = controller.AddMessageToQueue(cm)
 			So(err, ShouldBeNil)
 
 			length, err := redisConn.GetHashLength(common.AccountNextPeriodHashSetKey())
@@ -68,13 +77,8 @@ func TestNewMessageCreation(t *testing.T) {
 
 		Convey("when a message is sent to a channel with 3 participants two of them must be notified", func() {
 			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_PRIVATE_MESSAGE)
-			cml := models.NewChannelMessageList()
-			cml.ChannelId = channel.Id
-			cml.MessageId = cm.Id
-			err := cml.Create()
-			So(err, ShouldBeNil)
 
-			err = controller.AddMessageToQueue(cm)
+			err := controller.AddMessageToQueue(cm)
 			So(err, ShouldBeNil)
 
 			length, err := redisConn.GetHashLength(common.AccountNextPeriodHashSetKey())

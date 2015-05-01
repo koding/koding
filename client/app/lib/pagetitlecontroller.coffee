@@ -2,6 +2,7 @@ Encoder  = require 'htmlencode'
 kd       = require 'kd'
 KDObject = kd.Object
 remote   = require('./remote').getInstance()
+isMyNotification = require 'app/util/isMyNotification'
 
 module.exports = class PageTitleController extends KDObject
 
@@ -23,11 +24,13 @@ module.exports = class PageTitleController extends KDObject
   processNotification: (notification) ->
 
     return  if @focused
+    return  if isMyNotification notification
 
-    { socialapi }        = kd.singletons
     { id, typeConstant } = notification.channelMessage
 
     return  if typeConstant isnt 'privatemessage'
+
+    { socialapi } = kd.singletons
 
     socialapi.message.byId {id}, (err, message) =>
       id              = message.account._id

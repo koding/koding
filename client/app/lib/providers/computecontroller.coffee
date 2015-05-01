@@ -1,25 +1,28 @@
-htmlencode = require 'htmlencode'
-Promise = require 'bluebird'
-globals = require 'globals'
-remote = require('../remote').getInstance()
-showError = require '../util/showError'
-isLoggedIn = require '../util/isLoggedIn'
-nick = require '../util/nick'
-kd = require 'kd'
-KDController = kd.Controller
-KDNotificationView = kd.NotificationView
+htmlencode           = require 'htmlencode'
+Promise              = require 'bluebird'
+globals              = require 'globals'
+
+kd                   = require 'kd'
+KDController         = kd.Controller
+KDNotificationView   = kd.NotificationView
+
+remote               = require('../remote').getInstance()
+showError            = require '../util/showError'
+isLoggedIn           = require '../util/isLoggedIn'
+nick                 = require '../util/nick'
+
+Machine              = require './machine'
+KiteCache            = require '../kite/kitecache'
+ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
-ComputeStateChecker = require './computestatechecker'
-KiteCache = require '../kite/kitecache'
-Machine = require './machine'
-TerminalModal = require '../terminal/terminalmodal'
 ComputeController_UI = require './computecontroller.ui'
+
 require './config'
+
 
 module.exports = class ComputeController extends KDController
 
   @providers = globals.config.providers
-  @timeout   = globals.config.COMPUTECONTROLLER_TIMEOUT
   @Error     = {
     'TimeoutError', 'KiteError', 'NotSupported'
     Pending: '107', NotVerified: '500'
@@ -587,6 +590,43 @@ module.exports = class ComputeController extends KDController
     remote.api.ComputeProvider.update options, (err)=>
       @triggerReviveFor machine._id  unless err?
       callback err
+
+  # Snapshots
+  #
+
+  ###*
+   * Create a snapshot for the given machine. For progress updates,
+   * subscribe to computeController's `"createSnapshot-#{machine._id}"`
+   * event.
+   *
+   * @param {Machine} machine - The Machine to create a snapshot from
+   * @param {String} label - The label (name) of the snapshot
+   * @return {Promise}
+   * @emits ComputeController~createSnapshot-machineId
+  ###
+  createSnapshot: (machine, label) ->
+
+    return if methodNotSupportedBy machine
+
+    @eventListener.triggerState machine,
+      status      : Machine.State.Snapshotting
+      percentage  : 0
+
+    # Do we plan to stop machine before snapshot starts? ~ GG
+    # machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+    call = @getKloud().createSnapshot { machineId: machine._id, label }
+
+      .then (res) =>
+
+        kd.log "createSnapshot res:", res
+        @eventListener.addListener 'createSnapshot', machine._id
+
+      .timeout globals.COMPUTECONTROLLER_TIMEOUT
+
+      .catch (err) =>
+
+        (@errorHandler call, 'createSnapshot', machine) err
 
 
   # Domain management

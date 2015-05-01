@@ -21,9 +21,9 @@ module.exports = class JInvitation extends jraphical.Module
   {ObjectRef, dash, daisy, secure, signature} = require 'bongo'
 
   KodingError  = require '../error'
-  JMail        = require './email'
   JGroup       = require './group'
   JPaymentPack = require './payment/pack'
+  Email        = require './email'
 
   @share()
 
@@ -190,15 +190,12 @@ module.exports = class JInvitation extends jraphical.Module
       }
 
       JUser.fetchUser client, (err, inviter)=>
-        email = new JMail {
-          @email
-          subject : @constructor.getSubject details
-          content : @constructor.getMessage details
-          replyto : inviter.email
-          bcc     : options.bcc
-        }
-        email.save (err)=>
-          @update {$set: status: if err then 'couldnt send email' else 'sent'}, callback
+        Email.queue delegate.profile.nickname, {
+          to         : @email
+          subject    : @constructor.getSubject details
+          content    : getTextBody {firstName, @pin, action}
+        }, {inviterEmail : inviter.email}, callback
+
 
   @getSubject = ({inviter, group, isPublic})->
     subject    = "#{inviter} has invited you to #{group}"
@@ -367,14 +364,14 @@ module.exports = class JInvitation extends jraphical.Module
 
     JUser = require './user'
     JUser.fetchUser client, (err,inviter)=>
-      email = new JMail {
-        @email
-        subject  : @constructor.getInviteFriendSubject messageOptions
-        content  : @constructor.getInviteFriendMessage messageOptions
-        replyto  : inviter.email
-      }
-      email.save (err)=>
-        @update {$set: status: if err then 'couldnt send email' else 'sent'}, callback
+      {inviter, url, message} = messageOptions
+
+      Email.queue delegate.profile.nickname, {
+        to         : @email
+        subject    : Email.types.Invite
+      },{inviterEmail: inviter.email, inviter, url, message}, (err) =>
+        status = if err then 'couldnt send email' else 'sent'
+        @update {$set: status: status}, callback
 
   @getInviteFriendSubject = ({inviter})-> "#{inviter} has invited you to Koding!"
 

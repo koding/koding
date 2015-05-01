@@ -1,14 +1,13 @@
+globals               = require 'globals'
+kd                    = require 'kd'
+isLoggedIn            = require 'app/util/isLoggedIn'
+
 module.exports =
   name          : "Ace"
   multiple      : yes
   hiddenHandle  : no
   openWith      : "lastActive"
   behavior      : "application"
-  preCondition  :
-    condition   : (options, cb)-> cb isLoggedIn() or globals.isLoggedInOnLoad
-    failure     : (options, cb)->
-      kd.singletons.appManager.open 'Ace', conditionPassed : yes
-      showEnforceLoginModal()
   menu          : [
     { title     : "Save",                eventName : "save" }
     { title     : "Save as...",          eventName : "saveAs" }

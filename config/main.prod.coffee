@@ -29,24 +29,25 @@ Configuration = (options={}) ->
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
   mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://127.0.0.1"     , local_:          "127.0.0.1"                          , port:     80                   }
-  sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
+  email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding' }
   kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               3000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
-  algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.prod'              }
-  algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  algolia             = { appId:    'DYVV81J2S1'                                     , indexSuffix:     '.prod'                                }
+  algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46', apiTokenKey: "d15cab2a1bcead494e38cc33d32c4621" }
   mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
-  postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               "5432"                                , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
   kontrolPostgres     = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "kontrolapplication"   , password:        "kontrolapplication"                 , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6"   , subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe", secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                                           , enabled:  yes                         }
-  gatekeeper          = { host:       "localhost"                                    , port:               7200                                  , pubnub: pubnub                                }
-  paymentwebhook      = { port : "6600", debug : true }
+  gatekeeper          = { host:       "localhost"                                    , port:               "7200"                                , pubnub: pubnub                                }
+  paymentwebhook      = { port : "6600", debug : false }
+  tokbox              = { apiKey: '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
 
   kloudPort           = 5500
   kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+  terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
 
@@ -54,6 +55,10 @@ Configuration = (options={}) ->
   # ./go/src/socialapi/config/configtypes.go
 
   segment                 = '4c570qjqo0'
+
+  disabledFeatures =
+   moderation : yes
+   teams : yes
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -82,7 +87,9 @@ Configuration = (options={}) ->
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
+    geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
+    disabledFeatures        : disabledFeatures
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -133,6 +140,7 @@ Configuration = (options={}) ->
     rerouting                      : {port          : 9500 }
 
     kloud                          : kloud
+    terraformer                    : terraformer
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -142,7 +150,6 @@ Configuration = (options={}) ->
 
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
-    sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "5891e574253e65ddb7ea"                         , clientSecret  : "9c8e89e9ae5818a2896c01601e430808ad31c84a"}
     odesk                          : {key           : "9ed4e3e791c61a1282c703a42f6e10b7"             , secret        : "1df959f971cb437c"                           , request_url  : "https://www.odesk.com/api/auth/v1/oauth/token/request"                , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://koding.com/-/oauth/odesk/callback"}
@@ -166,7 +173,8 @@ Configuration = (options={}) ->
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'e6c3413236e08107'
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
-    tokbox                         : { API_KEY: '45082272', API_SECRET: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
+    tokbox                         : tokbox
+    disabledFeatures               : disabledFeatures
 
     collaboration :
       timeout     : 1 * 60 * 1000
@@ -203,7 +211,7 @@ Configuration = (options={}) ->
     embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github               : {clientId     : "5891e574253e65ddb7ea" }
     newkontrol           : {url          : kontrol.url}
-    sessionCookie        : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
+    sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha            : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
     stripe               : { token: 'pk_live_XLpjQ93roiM0jGFXfvSTal9Y' }
@@ -220,6 +228,7 @@ Configuration = (options={}) ->
     pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: yes     }
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 24 * 60 * 60 * 1000 # 24 hours
+    tokbox               : { apiKey: tokbox.apiKey }
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
@@ -268,6 +277,13 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
+    terraformer         :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{region} -environment  #{environment} -aws-key #{KONFIG.aws.key} -aws-secret #{KONFIG.aws.secret} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
+      healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
+
     # ngrokProxy          :
     #   group             : "environment"
     #   supervisord       :
@@ -297,7 +313,6 @@ Configuration = (options={}) ->
 
     authworker          :
       group             : "webserver"
-      instances         : 2
       supervisord       :
         command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
       healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
@@ -309,13 +324,6 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.sourcemaps.port}"
       supervisord       :
         command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
-
-    emailsender         :
-      group             : "webserver"
-      supervisord       :
-        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
-      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
 
     appsproxy           :
       group             : "webserver"
@@ -338,7 +346,7 @@ Configuration = (options={}) ->
 
     socialworker        :
       group             : "webserver"
-      instances         : 2
+      instances         : 4
       ports             :
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
@@ -400,6 +408,14 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/collaboration/ping"
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/search-key"
+            proxyPass   : "http://socialapi/search-key$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/moderation/(.*)"
+            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"
@@ -482,6 +498,11 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
 
+    topicmoderation     :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
+
     collaboration :
       group             : "socialapi"
       supervisord       :
@@ -510,6 +531,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
+    team                :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------
@@ -559,10 +585,6 @@ Configuration = (options={}) ->
       #!/bin/bash
       export HOME=/home/user-ec2
       export KONFIG_JSON='#{KONFIG.JSON}'
-
-      cd #{projectRoot}/client
-      npm install --unsafe-perm
-      make build
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG

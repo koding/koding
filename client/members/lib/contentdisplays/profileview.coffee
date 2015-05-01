@@ -1,25 +1,26 @@
-kd = require 'kd'
-globals = require 'globals'
-KDCustomHTMLView = kd.CustomHTMLView
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
-ExternalProfileView = require './externalprofileview'
+kd                         = require 'kd'
+globals                    = require 'globals'
+KDCustomHTMLView           = kd.CustomHTMLView
+KDModalView                = kd.ModalView
+KDNotificationView         = kd.NotificationView
+ExternalProfileView        = require './externalprofileview'
 ProfileContentEditableView = require './profilecontenteditableview'
-remote = require('app/remote').getInstance()
-globals = require 'globals'
-proxifyUrl = require 'app/util/proxifyUrl'
-checkFlag = require 'app/util/checkFlag'
-isMine = require 'app/util/isMine'
-whoami = require 'app/util/whoami'
-isGuest = require 'app/util/isGuest'
-MemberMailLink = require 'app/members/contentdisplays/membermaillink'
-JView = require 'app/jview'
-JCustomHTMLView = require 'app/jcustomhtmlview'
-FSHelper = require 'app/util/fs/fshelper'
-AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
-MetaInfoButtonView = require 'app/commonviews/metainfobuttonview'
-TrollButtonView = require 'app/commonviews/trollbuttonview'
-
+remote                     = require('app/remote').getInstance()
+globals                    = require 'globals'
+proxifyUrl                 = require 'app/util/proxifyUrl'
+checkFlag                  = require 'app/util/checkFlag'
+isMine                     = require 'app/util/isMine'
+whoami                     = require 'app/util/whoami'
+isGuest                    = require 'app/util/isGuest'
+MemberMailLink             = require 'app/members/contentdisplays/membermaillink'
+JView                      = require 'app/jview'
+JCustomHTMLView            = require 'app/jcustomhtmlview'
+FSHelper                   = require 'app/util/fs/fshelper'
+AvatarStaticView           = require 'app/commonviews/avatarviews/avatarstaticview'
+MetaInfoButtonView         = require 'app/commonviews/metainfobuttonview'
+TrollButtonView            = require 'app/commonviews/trollbuttonview'
+Encoder                    = require 'htmlencode'
+Traverse                   = require 'traverse'
 
 module.exports = class ProfileView extends JView
 
@@ -30,8 +31,8 @@ module.exports = class ProfileView extends JView
     options.bind   = "mouseenter mouseleave"
     super options, data
 
-    @memberData    = @getData()
-    mainController = kd.getSingleton "mainController"
+    @memberData        = @getData()
+    { mainController } = kd.singletons
 
     if @memberData.isExempt
       if not checkFlag 'super-admin'

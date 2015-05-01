@@ -141,8 +141,8 @@ func (l *Consumer) Close() error {
 
 	return fmt.Errorf(
 		"err while closing consumer connections ConsumerErr: %s, MaintenanceErr: %s",
-		err.Error(),
-		err2.Error(),
+		err,
+		err2,
 	)
 }
 

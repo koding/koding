@@ -5,16 +5,20 @@ import (
 	"github.com/mitchellh/multistep"
 	parallelscommon "github.com/mitchellh/packer/builder/parallels/common"
 	"github.com/mitchellh/packer/packer"
+	"log"
 )
 
 // This step attaches the ISO to the virtual machine.
 //
 // Uses:
+//   driver Driver
+//   isoPath string
+//   ui packer.Ui
+//   vmName string
 //
 // Produces:
-type stepAttachISO struct {
-	diskPath string
-}
+//	 attachedIso bool
+type stepAttachISO struct{}
 
 func (s *stepAttachISO) Run(state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(parallelscommon.Driver)
@@ -22,7 +26,8 @@ func (s *stepAttachISO) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vmName := state.Get("vmName").(string)
 
-	// Attach the disk to the controller
+	// Attach the disk to the cdrom0 device. We couldn't use a separated device because it is failed to boot in PD9 [GH-1667]
+	ui.Say("Attaching ISO to the default CD/DVD ROM device...")
 	command := []string{
 		"set", vmName,
 		"--device-set", "cdrom0",
@@ -42,4 +47,24 @@ func (s *stepAttachISO) Run(state multistep.StateBag) multistep.StepAction {
 	return multistep.ActionContinue
 }
 
-func (s *stepAttachISO) Cleanup(state multistep.StateBag) {}
+func (s *stepAttachISO) Cleanup(state multistep.StateBag) {
+	if _, ok := state.GetOk("attachedIso"); !ok {
+		return
+	}
+
+	driver := state.Get("driver").(parallelscommon.Driver)
+	ui := state.Get("ui").(packer.Ui)
+	vmName := state.Get("vmName").(string)
+
+	// Detach ISO by setting an empty string image.
+	log.Println("Detaching ISO from the default CD/DVD ROM device...")
+	command := []string{
+		"set", vmName,
+		"--device-set", "cdrom0",
+		"--image", "", "--disconnect", "--enable",
+	}
+
+	if err := driver.Prlctl(command...); err != nil {
+		ui.Error(fmt.Sprintf("Error detaching ISO: %s", err))
+	}
+}

@@ -31,13 +31,13 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
     href   = groupifyLink path
     @title = new CustomLinkView { href, title }
 
-    @unreadCount = new KDCustomHTMLView
-      tagName    : 'cite'
-      cssClass   : 'count hidden'
+    @unreadIndicator = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'count hidden'
 
     iconOptions = {}
 
-    unless workspace.isDefault
+    if not workspace.isDefault and machine.isMine()
       iconOptions =
         tagName   : 'span'
         cssClass  : 'ws-settings-icon'
@@ -67,17 +67,17 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
       @emit 'WorkspaceDeleted', wsId
 
 
-  setUnreadCount: (unreadCount = 0) ->
+  setUnreadCount: (count = 0) ->
 
-    @count = unreadCount
+    @unreadCount = count
 
-    if unreadCount is 0
-      @unreadCount.hide()
-      @unsetClass 'unread'
-    else
-      @unreadCount.updatePartial unreadCount
-      @unreadCount.show()
+    if count > 0
+      @unreadIndicator.updatePartial count
+      @unreadIndicator.show()
       @setClass 'unread'
+    else
+      @unreadIndicator.hide()
+      @unsetClass 'unread'
 
 
   pistachio: ->
@@ -85,6 +85,5 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
       <figure></figure>
       {{> @title}}
       {{> @settingsIcon}}
-      {{> @unreadCount}}
+      {{> @unreadIndicator}}
     """
-

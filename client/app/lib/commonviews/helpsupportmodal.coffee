@@ -1,8 +1,11 @@
 $ = require 'jquery'
 uploadLogs = require '../util/uploadLogs'
 kd = require 'kd'
+KDView = kd.View
 KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView = kd.NotificationView
+JCustomHTMLView = require 'app/jcustomhtmlview'
+
 
 module.exports = class HelpSupportModal extends KDModalViewWithForms
 
@@ -45,6 +48,8 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
     super options, data
 
+    @addOnboardingView()
+
     @on "NewTicketRequested", (form)=>
 
       return if @ticketRequested
@@ -79,6 +84,22 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
       @_logUrl = logUrl  if not err and logUrl?
 
 
+  addOnboardingView: ->
+
+    resetOnboardingLink = new KDView
+      tagName : 'a'
+      partial : 'Click here to reset'
+      click   : =>
+        kd.singletons.onboardingController.resetOnboardings =>
+          @destroy()
+          global.location.reload yes
+
+    @addSubView new JCustomHTMLView
+      cssClass        : 'onboarding-text'
+      pistachio       : 'Want to view all the onboarding steps again?<br />{{> resetOnboardingLink}}'
+      pistachioParams : { resetOnboardingLink }
+
+
   @getTopics = ->
     """
       <div class="container">
@@ -93,13 +114,10 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
         <a href="http://learn.koding.com/guides/ssh-into-your-vm/" target="_blank">
           How do I ssh into my Koding VM?</a><br/>
 
-        <a href="http://learn.koding.com/faq/#vm-poweroff" target="_blank">
-          How do I turn off my VM?</a><br/>
-
         <a href="http://learn.koding.com/guides/change-theme/" target="_blank">
           Changing IDE and Terminal themes</a><br/>
 
-        <div class="message-footer">
+        <div class="koding-university">
           Head over to <a href="http://learn.koding.com/faq/" target="_blank">Koding University</a> for more...
         </div>
       </div>

@@ -14,7 +14,9 @@ module.exports = class CustomViewItem extends JView
 
     @creteElements()
 
+
   creteElements: ->
+
     @deleteButton = new KDButtonView
       cssClass    : "delete"
       iconOnly    : yes
@@ -26,7 +28,9 @@ module.exports = class CustomViewItem extends JView
       iconOnly    : yes
       callback    : @bound "edit"
 
+
   notify: (callback = kd.noop) ->
+
     modal          = new KDModalView
       title        : "Are you sure?"
       content      : "Are you sure you want to delete the item. This cannot be undone."
@@ -43,15 +47,18 @@ module.exports = class CustomViewItem extends JView
           cssClass : "solid light-gray medium"
           callback : -> modal.destroy()
 
-  edit: ->
-    @getDelegate().emit "ViewEditRequested", @getData()
+
+  edit: -> @emit "ViewEditRequested", @getData()
+
 
   delete: ->
+
     viewData = @getData()
     viewData.remove (err, res) =>
       return kd.warn err  if err
-      @getDelegate().emit "ViewDeleted", viewData
+      @emit "ViewDeleted", viewData
       @destroy()
+
 
   pistachio: ->
     data = @getData()

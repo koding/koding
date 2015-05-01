@@ -1,30 +1,30 @@
-globals = require 'globals'
-Promise = require 'bluebird'
-sinkrow = require 'sinkrow'
-kd = require 'kd'
-JTreeViewController = kd.JTreeViewController
-KDCustomHTMLView = kd.CustomHTMLView
-KDNotificationView = kd.NotificationView
-isChannelCollaborative = require '../../util/isChannelCollaborative'
-groupifyLink = require '../../util/groupifyLink'
-remote = require('../../remote').getInstance()
-showError = require '../../util/showError'
-whoami = require '../../util/whoami'
-nick = require '../../util/nick'
-ActivitySideView = require './activitysideview'
-ChatSearchModal = require './chatsearchmodal'
-CustomLinkView = require '../../customlinkview'
-FSHelper = require '../../util/fs/fshelper'
-Machine = require 'app/providers/machine'
-MoreVMsModal = require './morevmsmodal'
-MoreWorkspacesModal = require './moreworkspacesmodal'
-SidebarMessageItem = require './sidebarmessageitem'
-SidebarPinnedItem = require './sidebarpinneditem'
-SidebarTopicItem = require './sidebartopicitem'
-ComputeHelpers = require 'app/providers/computehelpers'
-SidebarOwnMachinesList = require './sidebarownmachineslist'
+kd                        = require 'kd'
+nick                      = require '../../util/nick'
+whoami                    = require '../../util/whoami'
+remote                    = require('../../remote').getInstance()
+globals                   = require 'globals'
+Promise                   = require 'bluebird'
+sinkrow                   = require 'sinkrow'
+Machine                   = require 'app/providers/machine'
+FSHelper                  = require '../../util/fs/fshelper'
+showError                 = require '../../util/showError'
+MoreVMsModal              = require './morevmsmodal'
+groupifyLink              = require '../../util/groupifyLink'
+ComputeHelpers            = require 'app/providers/computehelpers'
+CustomLinkView            = require '../../customlinkview'
+ChatSearchModal           = require './chatsearchmodal'
+ActivitySideView          = require './activitysideview'
+KDCustomHTMLView          = kd.CustomHTMLView
+SidebarTopicItem          = require './sidebartopicitem'
+SidebarPinnedItem         = require './sidebarpinneditem'
+KDNotificationView        = kd.NotificationView
+SidebarMessageItem        = require './sidebarmessageitem'
+JTreeViewController       = kd.JTreeViewController
+MoreWorkspacesModal       = require './moreworkspacesmodal'
+isChannelCollaborative    = require '../../util/isChannelCollaborative'
+SidebarOwnMachinesList    = require './sidebarownmachineslist'
+environmentDataProvider   = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList = require './sidebarsharedmachineslist'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
@@ -107,13 +107,16 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       whoami().on 'NewWorkspaceCreated', @bound 'updateMachines'
 
 
+    @localStorageController = kd.singletons.localStorageController.storage 'Sidebar'
+
+
   # event handling
 
   messageAddedToChannel: (update) ->
 
     { channel, channelMessage, unreadCount } = update
 
-    if isChannelCollaborative channel
+    if isChannelCollaborative(channel) and channelMessage.payload
       if channelMessage.payload['system-message'] in ['start', 'stop']
         @fetchEnvironmentData =>
           @setWorkspaceUnreadCount channel, unreadCount
@@ -166,24 +169,16 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     item.setUnreadCount? unreadCount
 
 
-  setWorkspaceUnreadCount: (data, unreadCount) ->
+  setWorkspaceUnreadCount: (data, count) ->
 
     channelId = data._id
     provider  = environmentDataProvider
 
     provider.fetchMachineAndWorkspaceByChannelId channelId, (machine, workspace) =>
-      if machine and workspace
-        box    = @getMachineBoxByMachineUId machine.uid
-        wsItem = box?.getWorkspaceItemByChannelId channelId
 
-        if wsItem
-          wsItem.setUnreadCount unreadCount
-
-          return  unless unreadCount is 0
-
-          { socialapi } = kd.singletons
-
-          socialapi.channel.updateLastSeenTime channelId : data._id, kd.noop
+      return  unless machine and workspace
+      return  unless box = @getMachineBoxByMachineUId machine.uid
+      box.setUnreadCount channelId, count
 
 
   handleFollowedFeedUpdate: (update) ->
@@ -264,7 +259,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
       if isChannelCollaborative channel
         @fetchEnvironmentData (data) =>
-          @sharedMachinesList.updateList data.shared.concat data.collaboration
+          # @sharedMachinesList.updateList data.shared.concat data.collaboration
           @setWorkspaceUnreadCount channel, unreadCount
       else
         item = @addItem channel, index
@@ -337,7 +332,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   getListController: (type) ->
 
     section = switch type
-      when 'topic'                  then @sections.channels
+      when 'topic', 'announcement'  then @sections.channels
       when 'privatemessage'         then @sections.messages
       else {}
 
@@ -463,11 +458,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   deselectAllItems: (route) ->
 
     @selectedItem = null
-    isIDEVisited  = route?.params?.machineLabel
-
-    if @machineLists and not isIDEVisited
-      for machineList in @machineLists
-        machineList.deselectMachines()
 
     for own name, {listController} of @sections
       listController.deselectAllItems()
@@ -477,10 +467,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     super
 
-    kd.getSingleton('mainController').ready =>
-      @addMachineList()
-      @addFollowedTopics()
-      @addMessages()
+    @addMachineList()
+    @addFollowedTopics()
+    @addMessages()
 
 
   initiateFakeCounter: ->
@@ -512,7 +501,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     environmentDataProvider.fetch (data) => callback data
 
 
-  addMachineList: ->
+  addMachineList: (expandedBoxUIds) ->
 
     @machineLists = []
     @machineListsByName = {}
@@ -525,16 +514,17 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @sharedMachinesList = @createMachineList 'shared'
 
     if environmentDataProvider.hasData()
-      @addMachines_ environmentDataProvider.get()
+      @addMachines_ environmentDataProvider.get(), expandedBoxUIds
     else
       environmentDataProvider.fetch (data) =>
-        @addMachines_ data
+        @addMachines_ data, expandedBoxUIds
 
 
   redrawMachineList: ->
 
+    expandedBoxUIds = @getExpandedBoxUIds()
     @machinesWrapper.destroySubViews()
-    @addMachineList()
+    @addMachineList expandedBoxUIds
 
     frontApp = kd.singletons.appManager.getFrontApp()
 
@@ -543,16 +533,33 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @selectWorkspace { machine, workspace }  if machine and workspace
 
 
-  addMachines_: (data) ->
+  addBoxes: (machineList, data) ->
+
+    machineList.addMachineBoxes data
+    machineList.on 'ListStateChanged', @bound 'saveSidebarStateToLocalStorage'
+
+
+  addMachines_: (data, expandedBoxUIds = {}) ->
 
     { shared, collaboration } = data
     sharedData = shared.concat collaboration
 
-    @ownMachinesList.addMachineBoxes data.own
-    @sharedMachinesList.addMachineBoxes sharedData
+    @addBoxes @ownMachinesList, data.own
+    @addBoxes @sharedMachinesList, sharedData
+
+    if Object.keys(expandedBoxUIds).length is 0
+      expandedBoxUIds = @localStorageController.getValue('SidebarState') or {}
+
+    @expandWorkspaceLists expandedBoxUIds
+    @saveSidebarStateToLocalStorage()
 
     @isMachinesListed = yes
     @emit 'MachinesListed'
+
+
+  saveSidebarStateToLocalStorage: ->
+
+    @localStorageController.setValue 'SidebarState', @getExpandedBoxUIds()
 
 
   createMachineList: (type, options = {}, data = []) ->
@@ -678,3 +685,36 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   machineBuilt: ->
 
     environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
+
+
+  addWorkspace: (workspace) ->
+
+    machineBox = @getMachineBoxByMachineUId workspace.machineUId
+      .addWorkspace workspace, yes
+
+
+  # Comment for `expandWorkspaceLists` and `getExpandedBoxUIds`
+  #
+  # These are the methods I added to expand already expanded workspace lists
+  # when we redraw the machine lists. On the fly, I create a map of expanded
+  # machine uids and pass it to sidebar draw method. Now I feel like,
+  # we started again to add methods into this file to do some stuff which
+  # they shouldn't be in this file. The proper solution would be creating a
+  # sidebar singleton and move all machine related methods to there. I hope
+  # I will do it in the future at some point for now let's go with these.
+  getExpandedBoxUIds: ->
+
+    uids = {}
+
+    for list in @machineLists
+      for box in list.machineBoxes when box.isListCollapsed is no
+        uids[box.data.machine.uid] = yes
+
+    return uids
+
+
+  expandWorkspaceLists: (expandedBoxUIds) ->
+
+    for list in @machineLists
+      for box in list.machineBoxes when expandedBoxUIds[box.data.machine.uid]
+        box.expandList()

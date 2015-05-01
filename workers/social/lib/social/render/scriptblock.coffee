@@ -1,24 +1,24 @@
-{dash} = require 'bongo'
-
 module.exports = (options = {}, callback)->
+
+  {dash}  = require 'bongo'
   encoder = require 'htmlencode'
+  {argv}  = require 'optimist'
 
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
   options.client.connection    or= {}
 
-  {argv} = require 'optimist'
 
-  prefetchedFeeds  = null
-  socialapidata    = null
-  currentGroup     = null
-  userMachines     = null
-  userWorkspaces   = null
+  prefetchedFeeds     = null
+  socialapidata       = null
+  currentGroup        = null
+  userMachines        = null
+  userWorkspaces      = null
   userEnvironmentData = null
-  userId = null
+  userId              = null
 
-  {bongoModels, client, slug} = options
+  {bongoModels, client, session} = options
 
   createHTML = ->
     if client.connection?.delegate?.profile?.nickname
@@ -43,15 +43,11 @@ module.exports = (options = {}, callback)->
         !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
           analytics.load("#{segment}");
         }}();
-     };
+      };
     </script>
 
-    <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
-    <script src="/a/p/p/common.js?#{KONFIG.version}"></script>
-    <script src="/a/p/p/app.js?#{KONFIG.version}"></script>
-
     <script>
-      require('app')({
+      var _globals = {
         config: #{config},
         userId: #{userId},
         userAccount: #{userAccount},
@@ -61,8 +57,12 @@ module.exports = (options = {}, callback)->
         isLoggedInOnLoad: true,
         socialApiData: #{encodedSocialApiData},
         userEnvironmentData: #{userEnvironmentData}
-      });
+      };
     </script>
+
+    <script src="/a/p/p/#{KONFIG.version}/thirdparty/pubnub.min.js"></script>
+    <script src="/a/p/p/#{KONFIG.version}/bundle.js"></script>
+    <script>require('app')();</script>
 
     <script>
       (function(d) {
@@ -83,14 +83,6 @@ module.exports = (options = {}, callback)->
 
     """
 
-  selector =
-    partialType : "HOME"
-
-  if options.isCustomPreview
-    selector.isPreview = yes
-  else
-    selector.isActive  = yes
-
   queue = [
     ->
       socialApiCacheFn = require '../cache/socialapi'
@@ -98,10 +90,17 @@ module.exports = (options = {}, callback)->
         socialapidata = data
         queue.fin()
     ->
-      bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
-        console.log err if err
-        if group
-          currentGroup = group
+      groupName = session?.groupName or 'koding'
+
+      # due to some reason, I suspect JSON.stringify somewhere, undefined
+      # is stringified as 'undefined', this check makes sure, it defaults
+      # to 'koding', ie default group in that case
+      if groupName is 'undefined' then groupName = 'koding'
+
+      bongoModels.JGroup.one {slug : groupName}, (err, group) ->
+        console.log err  if err
+
+        currentGroup = group  if group
 
         queue.fin()
     ->

@@ -1,37 +1,75 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+$                    = require 'jquery'
+_                    = require 'lodash'
+getscript            = require 'getscript'
+kd                   = require 'kd'
+KDButtonView         = kd.ButtonView
 KDModalViewWithForms = kd.ModalViewWithForms
-KDNotificationView = kd.NotificationView
-KDView = kd.View
-remote = require('app/remote').getInstance()
-globals = require 'globals'
-trackEvent = require 'app/util/trackEvent'
-FSHelper = require 'app/util/fs/fshelper'
-$ = require 'jquery'
-settings = require './settings'
-getscript = require 'getscript'
-_ = require 'underscore'
+KDNotificationView   = kd.NotificationView
+KDView               = kd.View
+remote               = require('app/remote').getInstance()
+globals              = require 'globals'
+trackEvent           = require 'app/util/trackEvent'
+FSHelper             = require 'app/util/fs/fshelper'
+settings             = require './settings'
 
+module.exports =
 
-module.exports = class Ace extends KDView
+class Ace extends KDView
 
-  ACE_LOADED = false
+  ACE_READY = no
+
+  EmmetLoadState =
+    PENDING: no
+    READY  : no
+
+  emmetLoadListeners = {}
+
   @registerStaticEmitter()
 
-  getscript '/a/p/p/thirdparty/ace/_ace.js', (err) =>
-
+  getscript globals.acePath, (err) =>
     throw err  if err
 
-    ace.config.set 'basePath', '/a/p/p/thirdparty/ace'
-    ace.config.set 'themePath', '/a/p/p/thirdparty/ace'
-    ace.config.set 'modePath', '/a/p/p/thirdparty/ace'
-    ace.config.set 'workerPath', '/a/p/p/thirdparty/ace'
+    for k, v of globals.aceConfig
+      ace.config.set k, v
 
-    ACE_LOADED = true
+    ACE_READY = yes
     Ace.emit 'ScriptLoaded'
 
 
-  constructor:(options, file)->
+  toBindKey = (binding) ->
+
+    bindKey = {}
+    bindKey[globals.keymapType] = binding
+      .split '+'
+      .map (frag) ->
+        return "#{frag.charAt(0).toUpperCase()}#{frag.slice(1)}"
+      .join '-'
+
+
+  # Given a keyconfig model json and a callback, converts it to conform to the ace command spec.
+  #
+  # See: https://github.com/ajaxorg/ace/blob/v1.1.4/lib/ace/commands/default_commands.js
+  #
+  toCommand = (model, exec) ->
+
+    binding = model.binding[0]
+
+    # Since shortcuts#change emits a raw keyconfig.Model, binding prop might include
+    # all bindings for all platforms.
+    #
+    # In that case we need to get platform bindings explicitly:
+    if _.isArray binding
+      { shortcuts } = kd.singletons
+      binding = shortcuts.getPlatformBinding(model)[0]
+
+    return {
+      name    : model.name
+      exec    : exec
+      bindKey : toBindKey binding
+    }
+
+
+  constructor: (options, file) ->
 
     super options, file
 
@@ -39,53 +77,58 @@ module.exports = class Ace extends KDView
     {appStorageController} = kd.singletons
     @appStorage            = appStorageController.storage 'Ace', '1.0.1'
 
-  setDomElement:(cssClass)->
+
+  setDomElement: (cssClass) ->
 
     @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
 
-  viewAppended:->
-    super
-    @hide()
-    @appStorage.fetchStorage (storage)=>
 
-    if ACE_LOADED
+  viewAppended: ->
+
+    super
+
+    @hide()
+
+    @appStorage.fetchStorage (storage)=> # XXX: wtf? -og
+
+    if ACE_READY
     then @scriptLoaded()
     else Ace.once 'ScriptLoaded', @bound 'scriptLoaded'
 
 
   scriptLoaded: ->
 
-    @fetchContents (err, contents)=>
+    @fetchContents (err, contents) =>
+
       notification?.destroy()
       element = @getElement().querySelector "#editor#{@getId()}"
+
       return  unless element
+
       @editor = ace.edit element
+
       element.classList.remove 'ace-tm' # remove default white theme to avoid flashing
-      @prepareEditor()
+
       if contents
         @setContents contents
         @lastSavedContents = contents
 
       @editor.on 'change', =>
-        @emit 'FileContentChanged'  unless @suppressListeners
+        @emit 'FileContentChanged'   unless @suppressListeners
         @emit 'FileContentRestored'  unless @isCurrentContentChanged()
 
       @editor.gotoLine 0
 
-      # remove cmd+L binding. we have already defined cmd+g for this purpose
-      @editor.commands.removeCommand 'gotoline'
-
-      # we are using ctrl+alt+s for 'Save All' action
-      @editor.commands.removeCommand 'sortlines'
+      @prepareEditor()
 
       @focus()
       @show()
 
-      kd.utils.defer => @emit 'ace.ready'
+      kd.utils.defer @lazyBound 'emit', 'ready'
 
       trackEvent 'Open Ace, success'
 
-    @once 'ace.ready', =>
+    @ready =>
       LineWidgets = ace.require('ace/line_widgets').LineWidgets
       @Range      = ace.require('ace/range').Range
       @Anchor     = ace.require('ace/anchor').Anchor
@@ -95,6 +138,7 @@ module.exports = class Ace extends KDView
 
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
+
     @suppressListeners = yes  unless emitFileContentChangedEvent
 
     @editor.setValue content, -1
@@ -102,28 +146,45 @@ module.exports = class Ace extends KDView
     @suppressListeners = no   unless emitFileContentChangedEvent
 
 
-  prepareEditor:->
+  destroy: ->
+
+    { shortcuts } = kd.singletons
+    shortcuts.removeListener 'change', @bound 'handleShortcutChange'
+    emmetLoadListeners[@id] = null  unless _.isNull emmetLoadListeners
+
+    @_commandFns = null
+
+    super
+
+
+  prepareEditor: ->
 
     @setTheme null, no
     @setSyntax()
     @setEditorListeners()
+    @setShortcuts yes
 
-    @appStorage.fetchStorage (storage)=>
+    @appStorage.fetchStorage (storage) =>
+
       @setTheme()
-      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes    ,no
-      @setShowGutter          @appStorage.getValue('showGutter')          ? yes    ,no
-      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no     ,no
-      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no     ,no
-      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes    ,no
-      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no     ,no
-      @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
-      @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
+      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes       , no
+      @setShowGutter          @appStorage.getValue('showGutter')          ? yes       , no
+      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no        , no
+      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no        , no
+      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes       , no
+      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no        , no
+      @setFontSize            @appStorage.getValue('fontSize')            ? 12        , no
+      @setTabSize             @appStorage.getValue('tabSize')             ? 4         , no
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
-      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
+      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes       , no
+      @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
+      @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
 
-  saveStarted:->
+
+  saveStarted: ->
+
     @lastContentsSentForSave = @getContents()
 
 
@@ -137,13 +198,101 @@ module.exports = class Ace extends KDView
     @askedForSave = no
 
 
-  saveAsFinished:(newFile, oldFile)->
+  saveAsFinished: (newFile, oldFile) ->
 
     @emit 'FileContentRestored'
     @emit 'FileHasBeenSavedAs', @getData()
 
 
-  setEditorListeners:->
+  handleShortcutChange: (collection, model) ->
+
+    return  if collection.name isnt 'editor'
+    @setShortcut model
+
+
+  setShortcuts: (removeObsolete=yes) ->
+
+    # A stupid workaround to keep commands since ace@1.1.4#removeCommand
+    # deletes a command's exec ref.
+    @_commandFns = _.reduce @editor.commands.commands, (acc, val, key) ->
+      acc[key] = val.exec
+      return acc
+    , {}
+
+    { shortcuts } = kd.singletons
+
+    collection = shortcuts.toCollection().find _key: 'editor'
+    names = collection.map (model) -> model.name
+
+    if removeObsolete
+      obsolete = [
+        'sortlines' # XXX
+        'showSettingsMenu'
+        'findprevious'
+        'findnext'
+        'findAll'
+        'toggleFoldWidget'
+        'toggleParentFoldWidget'
+        'passKeysToBrowser'
+        'jumptomatching'
+        'selecttomatching'
+        'expandToMatching'
+        'iSearch'
+        'iSearchAndGo'
+        'iSearchBackwardsAndGo'
+        'recenterTopBottom'
+        'selectAllMatches'
+        'searchAsRegExp'
+        'yankNextChar'
+        'yankNextWord'
+        'occurisearch'
+        'cancelSearch'
+        'confirmSearch'
+        'restartSearch'
+        'searchBackward'
+        'searchForward'
+        'shrinkSearchTerm'
+        'extendSearchTermSpace'
+      ]
+
+      # make sure we are not removing an already overridden shortcut
+      @editor.commands.removeCommands _.filter obsolete, (key) ->
+        !~_.indexOf names, key
+
+    collection.each (model) => @setShortcut model
+
+
+  setShortcut: (model) ->
+
+    disabled = model.options?.enabled is no
+
+    if disabled
+      @editor.commands.removeCommand model.name
+      return
+
+    key = model.name
+    exec =
+    switch key
+      when 'save'     then @requestSave.bind this
+      when 'saveas'   then @requestSaveAs.bind this
+      when 'gotoline' then @showGotoLine.bind this
+      else
+        { createFindAndReplaceView } = @getOptions()
+        if match = /^find$|^replace$/.exec key
+          replace = match.input is 'replace'
+          if createFindAndReplaceView
+            @showFindReplaceView.bind this, replace
+          else
+            @emit.bind this, 'FindAndReplaceViewRequested', replace
+
+    exec or= @_commandFns[model.name]
+    @editor.commands.addCommand toCommand(model, exec)
+
+
+  setEditorListeners: ->
+
+    { shortcuts } = kd.singletons
+    shortcuts.on 'change', @bound 'handleShortcutChange'
 
     @editor.getSession().selection.on 'changeCursor', (cursor) =>
       return if @suppressListeners
@@ -154,25 +303,6 @@ module.exports = class Ace extends KDView
         @editor.completer and @editor.completer.autoInsert = off
         @editor.execCommand 'startAutocomplete'
 
-    {enableShortcuts, createFindAndReplaceView} = @getOptions()
-
-    if enableShortcuts
-      @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
-      @addKeyCombo 'saveAs',     'Ctrl-Shift-S',     @bound 'requestSaveAs'
-      @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
-      @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
-      @addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
-
-      if createFindAndReplaceView
-        @addKeyCombo 'find',    'Ctrl-F', =>        @showFindReplaceView no
-        @addKeyCombo 'replace', 'Ctrl-Shift-F', =>  @showFindReplaceView yes
-      else
-        @addKeyCombo 'find',    'Ctrl-F', =>        @emit 'FindAndReplaceViewRequested', no
-        @addKeyCombo 'replace', 'Ctrl-Shift-F', =>  @emit 'FindAndReplaceViewRequested', yes
-
-      # these features are broken with IDE, should reimplement again
-      # @addKeyCombo "preview",    "Ctrl-Shift-P", =>  @getDelegate().preview()
-      # @addKeyCombo "closeTab",   "Ctrl-W", "Ctrl-W", @bound "closeTab"
 
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()
@@ -181,32 +311,28 @@ module.exports = class Ace extends KDView
     findAndReplaceView.setTextIntoFindInput selectedText
     findAndReplaceView.on 'FindAndReplaceViewClosed', => @focus()
 
-  addKeyCombo: (name, winKey, macKey, callback) ->
-    if typeof macKey is 'function'
-      callback = macKey
-      macKey   = winKey.replace 'Ctrl', 'Command'
-      macKey   = macKey.replace 'Alt', 'Option'
-    @editor.commands.addCommand
-      name    : name
-      bindKey :
-        win   : winKey
-        mac   : macKey
-      exec    : => callback?()
 
   isContentChanged: -> @contentChanged
+
+
   isCurrentContentChanged:-> @getContents() isnt @lastSavedContents
 
+
   closeTab: ->
+
     aceView   = @getDelegate()
     {tabView} = aceView.getDelegate()
     tabView.removePane_ tabView.getActivePane()
+
 
   ###
   FS REQUESTS
   ###
 
-  requestSave:->
+  requestSave: ->
+
     contents = @getContents()
+
     unless contents is '' or @isContentChanged()
       if @getDelegate().parent.active
         @notify 'Nothing to save!'
@@ -217,62 +343,93 @@ module.exports = class Ace extends KDView
 
 
   requestSaveAs: ->
+
     @emit 'ace.requests.saveAs', @getContents()
 
-  fetchContents:(callback)->
+
+  fetchContents: (callback) ->
+
     file = @getData()
+
     unless /localfile:/.test file.path
       file.fetchContents callback
     else
       callback null, file.contents or ''
 
+
   ###
   GETTERS
   ###
 
-  getContents:-> @editor.getSession().getValue()
+  getContents: ->
+    @editor.getSession().getValue()
 
-  getTheme:-> @editor.getTheme().replace 'ace/theme/', ''
 
-  getSyntax:-> @syntaxMode
+  getTheme: ->
+    @editor.getTheme().replace 'ace/theme/', ''
 
-  getUseSoftTabs:->
+
+  getSyntax: -> @syntaxMode
+
+
+  getUseSoftTabs: ->
     @appStorage.getValue('useSoftTabs') ? @editor.getSession().getUseSoftTabs()
 
-  getShowGutter:->
+
+  getShowGutter: ->
     @appStorage.getValue('showGutter') ? @editor.renderer.getShowGutter()
 
-  getShowPrintMargin:->
+
+  getShowPrintMargin: ->
     @appStorage.getValue('showPrintMargin') ? @editor.getShowPrintMargin()
 
-  getHighlightActiveLine:->
+
+  getHighlightActiveLine: ->
     @appStorage.getValue('highlightActiveLine') ? @editor.getHighlightActiveLine()
 
-  getShowInvisibles:->
+
+  getShowInvisibles: ->
     @appStorage.getValue('showInvisibles') ? @editor.getShowInvisibles()
 
-  getFontSize:->
+
+  getFontSize: ->
     @appStorage.getValue('fontSize') ? parseInt @$("#editor#{@getId()}").css('font-size') ? 12, 10
 
-  getTabSize:->
+
+  getTabSize: ->
     @appStorage.getValue('tabSize') ? @editor.getSession().getTabSize()
 
-  getUseWordWrap:->
+
+  getUseWordWrap: ->
     @appStorage.getValue('useWordWrap') ? @editor.getSession().getUseWrapMode()
+
 
   getKeyboardHandler: ->
     @appStorage.getValue('keyboardHandler') ? 'default'
 
+
   getScrollPastEnd: ->
     @appStorage.getValue('scrollPastEnd') ? yes
 
-  getOpenRecentFiles:->
+
+  getOpenRecentFiles: ->
     @appStorage.getValue('openRecentFiles') ? yes
 
-  getEnableAutocomplete:->
+
+  getEnableAutocomplete: ->
     @appStorage.getValue('enableAutocomplete') ? yes
 
-  getSettings:->
+
+  getEnableSnippets: ->
+    @appStorage.getValue('enableSnippets') ? yes
+
+
+  getEnableEmmet: ->
+    @appStorage.getValue('enableEmmet') ? no
+
+
+  getSettings: ->
+
     theme               : @getTheme()
     syntax              : @getSyntax()
     useSoftTabs         : @getUseSoftTabs()
@@ -287,14 +444,19 @@ module.exports = class Ace extends KDView
     scrollPastEnd       : @getScrollPastEnd()
     openRecentFiles     : @getOpenRecentFiles()
     enableAutocomplete  : @getEnableAutocomplete()
+    enableSnippets      : @getEnableSnippets()
+    enableEmmet         : @getEnableEmmet()
+
 
   ###
   SETTERS
   ###
 
-  setContents:(contents)-> @editor.getSession().setValue contents
+  setContents: (contents) ->
+    @editor.getSession().setValue contents
 
-  setSyntax:(mode)->
+
+  setSyntax: (mode) ->
 
     file = @getData()
     mode or= file.syntax
@@ -311,54 +473,69 @@ module.exports = class Ace extends KDView
     @editor.getSession().setMode "ace/mode/#{mode}"
     @syntaxMode = mode
 
-  setTheme:(themeName, save = yes)->
+
+  setTheme: (themeName, save = yes) ->
+
     themeName or= @appStorage.getValue('theme') or 'base16'
+
     @editor.setTheme "ace/theme/#{themeName}"
     return  unless save
     @appStorage.setValue 'theme', themeName, => # do what is necessary here if any - SY
 
-  setUseSoftTabs:(value, save = yes)->
+
+  setUseSoftTabs: (value, save = yes) ->
 
     @editor.getSession().setUseSoftTabs value
     return  unless save
     @appStorage.setValue 'useSoftTabs', value
 
-  setShowGutter:(value, save = yes)->
+
+  setShowGutter: (value, save = yes) ->
 
     @editor.renderer.setShowGutter value
     return  unless save
     @appStorage.setValue 'showGutter', value
 
-  setShowPrintMargin:(value, save = yes)->
+
+  setShowPrintMargin: (value, save = yes) ->
 
     @editor.setShowPrintMargin value
     return  unless save
     @appStorage.setValue 'showPrintMargin', value
 
-  setHighlightActiveLine:(value, save = yes)->
+
+  setHighlightActiveLine: (value, save = yes) ->
 
     @editor.setHighlightActiveLine value
     return  unless save
     @appStorage.setValue 'highlightActiveLine', value
 
+
   # setHighlightSelectedWord:(value)-> @editor.setHighlightActiveLine value
 
-  setShowInvisibles:(value, save = yes)->
+
+  setShowInvisibles: (value, save = yes) ->
 
     @editor.setShowInvisibles value
     return  unless save
     @appStorage.setValue 'showInvisibles', value
 
+
   setKeyboardHandler: (name = 'default') ->
+
     @appStorage.setValue 'keyboardHandler', name
     handler = if name isnt 'default' then "ace/keyboard/#{name}" else null
     @editor.setKeyboardHandler handler
 
+
   setScrollPastEnd: (value = yes) ->
+
     @editor.setOption 'scrollPastEnd', value
     @appStorage.setValue 'scrollPastEnd', value
 
-  setFontSize:(value, save = yes)->
+
+  setFontSize: (value, save = yes) ->
+
     return if value is globals.config.oldFontSize
 
     style           = global.document.createElement 'style'
@@ -374,42 +551,84 @@ module.exports = class Ace extends KDView
     return  unless save
     @appStorage.setValue 'fontSize', value
 
-  setTabSize:(value, save = yes)->
+
+  setTabSize: (value, save = yes) ->
 
     @editor.getSession().setTabSize +value
     return  unless save
     @appStorage.setValue 'tabSize', value
 
-  setUseWordWrap:(value, save = yes)->
+
+  setUseWordWrap: (value, save = yes) ->
 
     @editor.getSession().setUseWrapMode value
     return  unless save
     @appStorage.setValue 'useWordWrap', value
 
-  setReadOnly:(value)-> @editor.setReadOnly value
 
-  setOpenRecentFiles:(value, save = yes)->
+  setReadOnly: (value) ->
+    @editor.setReadOnly value
+
+
+  setOpenRecentFiles: (value, save = yes) ->
     @appStorage.setValue 'openRecentFiles', value
 
-  setEnableAutocomplete:(value, save = yes)->
 
-    @editor.setOptions
-      enableBasicAutocompletion: value
-      enableSnippets: value
+  loadEmmet: (cb) ->
 
+    return cb null  if EmmetLoadState.READY
+
+    emmetLoadListeners[@id] = cb
+
+    if not EmmetLoadState.PENDING
+      EmmetLoadState.PENDING = yes
+      emmetPath = globals.acePath.split('/').slice(0, -1)
+        .concat(['_ext-emmet.js']).join('/')
+      getscript emmetPath, (err) ->
+        cb err for key, cb of emmetLoadListeners when typeof cb is 'function'
+        EmmetLoadState.READY = yes
+        emmetLoadListeners = null
+
+
+  setEnableEmmet: (value, save = yes) ->
+
+    next = (err) =>
+      throw err  if err
+      @editor.setOption 'enableEmmet', value
+      @appStorage.setValue 'enableEmmet', value  if save
+
+    if value is yes and not EmmetLoadState.READY
+      @loadEmmet next
+    else
+      next null
+
+
+  setEnableSnippets: (value, save = yes) ->
+
+    @editor.setOption 'enableSnippets', value
+    @appStorage.setValue 'enableSnippets', value  if save
+
+
+  setEnableAutocomplete: (value, save = yes) ->
+
+    @editor.setOption 'enableBasicAutocompletion', value
     @appStorage.setValue 'enableAutocomplete', value  if save
+
 
   gotoLine: (lineNumber) ->
     @editor.gotoLine lineNumber
 
+
   focus: -> @editor?.focus()
+
 
   ###
   HELPERS
   ###
 
   notification = null
-  notify:(msg, style, details, duration)->
+
+  notify: (msg, style, details, duration) ->
 
     notification.destroy() if notification
 
@@ -435,6 +654,7 @@ module.exports = class Ace extends KDView
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
 
+
   #obsolete: Now we are using IDE saveAllFiles method
   saveAllFiles: ->
     aceApp = kd.singletons.appManager.get 'Ace'
@@ -446,7 +666,9 @@ module.exports = class Ace extends KDView
       aceView.ace.requestSave()
       aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
 
+
   removeModifiedFromTab: ->
+
     aceView      = @parent
 
     unless aceView
@@ -467,8 +689,11 @@ module.exports = class Ace extends KDView
         targetHandle.unsetClass 'modified'
         targetHandle.unsetClass 'saved'
 
+
   showGotoLine: ->
+
     unless @gotoLineModal
+
       @gotoLineModal = new KDModalViewWithForms
         cssClass                : 'goto'
         width                   : 180

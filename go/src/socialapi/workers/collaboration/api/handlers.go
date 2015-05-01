@@ -8,10 +8,10 @@ import (
 	"socialapi/workers/collaboration"
 	"socialapi/workers/collaboration/models"
 	"socialapi/workers/common/response"
-	"socialapi/workers/helper"
 	"time"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 // Ping handles the pings coming from client side
@@ -24,7 +24,7 @@ func Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Contex
 
 	// set the last seen at time
 	key := collaboration.PrepareFileKey(req.FileId)
-	if err := helper.MustGetRedisConn().Setex(
+	if err := runner.MustGetRedisConn().Setex(
 		key,
 		collaboration.ExpireSessionKeyDuration, // expire the key after this period
 		req.CreatedAt.Unix(),                   // value - unix time
@@ -49,7 +49,7 @@ func End(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context
 
 	key := collaboration.PrepareFileKey(req.FileId)
 	// when key is deleted, with the first ping received, collab will be ended
-	if _, err := helper.MustGetRedisConn().Del(key); err != nil {
+	if _, err := runner.MustGetRedisConn().Del(key); err != nil {
 		return response.NewBadRequest(err)
 	}
 

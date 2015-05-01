@@ -1,11 +1,12 @@
 package sender
 
 import (
-	"socialapi/workers/common/runner"
+	"socialapi/config"
 	"socialapi/workers/email/privatemessageemail/common"
 	"socialapi/workers/email/privatemessageemail/testhelper"
-	"socialapi/workers/helper"
 	"testing"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -17,11 +18,13 @@ func TestChatEmailSender(t *testing.T) {
 	}
 	defer r.Close()
 
+	config.MustRead(r.Conf.Path)
+
 	redisConf := r.Conf
-	redisConn := helper.MustInitRedisConn(redisConf)
+	redisConn := runner.MustInitRedisConn(redisConf)
 	defer redisConn.Close()
 
-	controller, _ := New(redisConn, r.Log, r.Metrics)
+	controller, _ := New(redisConn, r.Log, r.Metrics, config.MustGet())
 
 	Convey("while fetching a message from pending notification queue", t, func() {
 		testPeriod := "1"

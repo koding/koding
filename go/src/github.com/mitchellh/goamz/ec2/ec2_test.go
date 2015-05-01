@@ -136,6 +136,7 @@ func (s *S) TestRunInstancesExample(c *C) {
 		KernelId:              "kernel-id",
 		RamdiskId:             "ramdisk-id",
 		AvailZone:             "zone",
+		Tenancy:               "dedicated",
 		PlacementGroupName:    "group",
 		Monitoring:            true,
 		SubnetId:              "subnet-id",
@@ -375,6 +376,7 @@ func (s *S) TestDescribeInstancesExample1(c *C) {
 	c.Assert(r0i.PrivateDNSName, Equals, "domU-12-31-39-10-56-34.compute-1.internal")
 	c.Assert(r0i.DNSName, Equals, "ec2-174-129-165-232.compute-1.amazonaws.com")
 	c.Assert(r0i.AvailZone, Equals, "us-east-1b")
+	c.Assert(r0i.RootDeviceName, Equals, "/dev/sda1")
 
 	b0 := r0i.BlockDevices[0]
 	c.Assert(b0.DeviceName, Equals, "/dev/sda1")
@@ -419,6 +421,40 @@ func (s *S) TestDescribeInstancesExample2(c *C) {
 	c.Assert(r0t0.Value, Equals, "")
 	c.Assert(r0t1.Key, Equals, "stack")
 	c.Assert(r0t1.Value, Equals, "Production")
+}
+
+func (s *S) TestDescribeInstancesPagesExample(c *C) {
+	testServer.Response(200, nil, DescribeInstancesExample1)
+
+	resp, err := s.ec2.InstancesPaginate(100, "")
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeInstances"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "98e3c9a4-848c-4d6d-8e8a-b1bdEXAMPLE")
+	c.Assert(resp.Reservations, HasLen, 2)
+
+	r0 := resp.Reservations[0]
+	c.Assert(r0.ReservationId, Equals, "r-b27e30d9")
+	c.Assert(r0.OwnerId, Equals, "999988887777")
+	c.Assert(r0.RequesterId, Equals, "854251627541")
+	c.Assert(r0.SecurityGroups, DeepEquals, []ec2.SecurityGroup{{Name: "default", Id: "sg-67ad940e"}})
+	c.Assert(r0.Instances, HasLen, 1)
+
+	r0i := r0.Instances[0]
+	c.Assert(r0i.InstanceId, Equals, "i-c5cd56af")
+	c.Assert(r0i.PrivateDNSName, Equals, "domU-12-31-39-10-56-34.compute-1.internal")
+	c.Assert(r0i.DNSName, Equals, "ec2-174-129-165-232.compute-1.amazonaws.com")
+	c.Assert(r0i.AvailZone, Equals, "us-east-1b")
+	c.Assert(r0i.RootDeviceName, Equals, "/dev/sda1")
+
+	b0 := r0i.BlockDevices[0]
+	c.Assert(b0.DeviceName, Equals, "/dev/sda1")
+	c.Assert(b0.VolumeId, Equals, "vol-a082c1c9")
+	c.Assert(b0.Status, Equals, "attached")
+	c.Assert(b0.AttachTime, Equals, "2010-08-17T01:15:21.000Z")
+	c.Assert(b0.DeleteOnTermination, Equals, false)
 }
 
 func (s *S) TestCreateImageExample(c *C) {
@@ -758,12 +794,19 @@ func (s *S) TestDescribeSecurityGroupsExample(c *C) {
 	c.Assert(g0.Id, Equals, "sg-67ad940e")
 	c.Assert(g0.Description, Equals, "Web Servers")
 	c.Assert(g0.IPPerms, HasLen, 1)
+	c.Assert(g0.IPPermsEgress, HasLen, 1)
 
 	g0ipp := g0.IPPerms[0]
 	c.Assert(g0ipp.Protocol, Equals, "tcp")
 	c.Assert(g0ipp.FromPort, Equals, 80)
 	c.Assert(g0ipp.ToPort, Equals, 80)
 	c.Assert(g0ipp.SourceIPs, DeepEquals, []string{"0.0.0.0/0"})
+
+	g0ippe := g0.IPPermsEgress[0]
+	c.Assert(g0ippe.Protocol, Equals, "tcp")
+	c.Assert(g0ippe.FromPort, Equals, 80)
+	c.Assert(g0ippe.ToPort, Equals, 80)
+	c.Assert(g0ippe.SourceIPs, DeepEquals, []string{"0.0.0.0/0"})
 
 	g1 := resp.Groups[1]
 	c.Assert(g1.OwnerId, Equals, "999988887777")
@@ -1355,4 +1398,138 @@ func (s *S) TestDescribeAvailabilityZonesExample2(c *C) {
 	c.Assert(z1.Region, Equals, "us-east-1")
 	c.Assert(z1.State, Equals, "unavailable")
 	c.Assert(z1.MessageSet, DeepEquals, []string{"us-east-1b is currently down for maintenance."})
+}
+
+func (s *S) TestCreateNetworkAcl(c *C) {
+	testServer.Response(200, nil, CreateNetworkAclExample)
+
+	options := &ec2.CreateNetworkAcl{
+		VpcId: "vpc-11ad4878",
+	}
+
+	resp, err := s.ec2.CreateNetworkAcl(options)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["VpcId"], DeepEquals, []string{"vpc-11ad4878"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+	c.Assert(resp.NetworkAcl.VpcId, Equals, "vpc-11ad4878")
+	c.Assert(resp.NetworkAcl.NetworkAclId, Equals, "acl-5fb85d36")
+	c.Assert(resp.NetworkAcl.Default, Equals, "false")
+	c.Assert(resp.NetworkAcl.EntrySet, HasLen, 2)
+	c.Assert(resp.NetworkAcl.EntrySet[0].RuleNumber, Equals, 32767)
+	c.Assert(resp.NetworkAcl.EntrySet[0].Protocol, Equals, -1)
+	c.Assert(resp.NetworkAcl.EntrySet[0].RuleAction, Equals, "deny")
+	c.Assert(resp.NetworkAcl.EntrySet[0].Egress, Equals, true)
+	c.Assert(resp.NetworkAcl.EntrySet[0].CidrBlock, Equals, "0.0.0.0/0")
+}
+
+func (s *S) TestCreateNetworkAclEntry(c *C) {
+	testServer.Response(200, nil, CreateNetworkAclEntryRespExample)
+
+	options := &ec2.NetworkAclEntry{
+		RuleNumber: 32767,
+		Protocol:   6,
+		RuleAction: "deny",
+		Egress:     true,
+		CidrBlock:  "0.0.0.0/0",
+		PortRange: ec2.PortRange{
+			To:   22,
+			From: 22,
+		},
+	}
+
+	resp, err := s.ec2.CreateNetworkAclEntry("acl-11ad4878", options)
+
+	req := testServer.WaitRequest()
+
+	c.Assert(req.Form["NetworkAclId"], DeepEquals, []string{"acl-11ad4878"})
+	c.Assert(req.Form["RuleNumber"], DeepEquals, []string{"32767"})
+	c.Assert(req.Form["Protocol"], DeepEquals, []string{"6"})
+	c.Assert(req.Form["RuleAction"], DeepEquals, []string{"deny"})
+	c.Assert(req.Form["Egress"], DeepEquals, []string{"true"})
+	c.Assert(req.Form["CidrBlock"], DeepEquals, []string{"0.0.0.0/0"})
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+}
+
+func (s *S) TestDescribeNetworkAcls(c *C) {
+	testServer.Response(200, nil, DescribeNetworkAclsExample)
+
+	filter := ec2.NewFilter()
+	filter.Add("vpc-id", "vpc-5266953b")
+
+	resp, err := s.ec2.NetworkAcls([]string{"acl-5566953c", "acl-5d659634"}, filter)
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+	c.Assert(resp.NetworkAcls, HasLen, 2)
+	c.Assert(resp.NetworkAcls[1].AssociationSet, HasLen, 2)
+	c.Assert(resp.NetworkAcls[1].AssociationSet[0].NetworkAclAssociationId, Equals, "aclassoc-5c659635")
+	c.Assert(resp.NetworkAcls[1].AssociationSet[0].NetworkAclId, Equals, "acl-5d659634")
+	c.Assert(resp.NetworkAcls[1].AssociationSet[0].SubnetId, Equals, "subnet-ff669596")
+}
+
+func (s *S) TestReplaceNetworkAclAssociation(c *C) {
+	testServer.Response(200, nil, ReplaceNetworkAclAssociationResponseExample)
+
+	resp, err := s.ec2.ReplaceNetworkAclAssociation("aclassoc-e5b95c8c", "acl-5fb85d36")
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+	c.Assert(resp.NewAssociationId, Equals, "aclassoc-17b85d7e")
+}
+
+func (s *S) TestCreateCustomerGateway(c *C) {
+	testServer.Response(200, nil, CreateCustomerGatewayResponseExample)
+
+	options := &ec2.CreateCustomerGateway{
+		Type:      "ipsec.1",
+		IpAddress: "10.0.0.20",
+		BgpAsn:    65534,
+	}
+
+	resp, err := s.ec2.CreateCustomerGateway(options)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Type"], DeepEquals, []string{"ipsec.1"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "7a62c49f-347e-4fc4-9331-6e8eEXAMPLE")
+	c.Assert(resp.CustomerGateway.Type, Equals, "ipsec.1")
+	c.Assert(resp.CustomerGateway.State, Equals, "pending")
+	c.Assert(resp.CustomerGateway.BgpAsn, Equals, 65534)
+	c.Assert(resp.CustomerGateway.IpAddress, Equals, "10.0.0.20")
+}
+
+func (s *S) TestDescribeCustomerGateways(c *C) {
+	testServer.Response(200, nil, DescribeCustomerGatewaysResponseExample)
+
+	filter := ec2.NewFilter()
+	filter.Add("state", "pending")
+
+	resp, err := s.ec2.DescribeCustomerGateways([]string{"cgw-b4dc3961", "cgw-b4dc3962"}, filter)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Filter.1.Name"], DeepEquals, []string{"state"})
+	c.Assert(req.Form["Filter.1.Value.1"], DeepEquals, []string{"pending"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "7a62c49f-347e-4fc4-9331-6e8eEXAMPLE")
+	c.Assert(resp.CustomerGateways, HasLen, 2)
+	c.Assert(resp.CustomerGateways[0].CustomerGatewayId, Equals, "cgw-b4dc3961")
+	c.Assert(resp.CustomerGateways[1].CustomerGatewayId, Equals, "cgw-b4dc3962")
+}
+
+func (s *S) TestDeleteCustomerGateway(c *C) {
+	testServer.Response(200, nil, DeleteCustomerGatewayResponseExample)
+
+	resp, err := s.ec2.DeleteCustomerGateway("cgw-b4dc3961")
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["CustomerGatewayId"], DeepEquals, []string{"cgw-b4dc3961"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "7a62c49f-347e-4fc4-9331-6e8eEXAMPLE")
+	c.Assert(resp.Return, Equals, true)
 }

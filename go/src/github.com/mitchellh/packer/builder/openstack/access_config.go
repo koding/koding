@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
-	"github.com/rackspace/gophercloud"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/mitchellh/gophercloud-fork-40444fb"
 )
 
 // AccessConfig is for common configuration related to openstack access
@@ -115,8 +116,10 @@ func (c *AccessConfig) Prepare(t *packer.ConfigTemplate) []error {
 		}
 	}
 
-	if c.Region() == "" {
-		errs = append(errs, fmt.Errorf("region must be specified"))
+	if strings.HasPrefix(c.Provider, "rackspace") {
+		if c.Region() == "" {
+			errs = append(errs, fmt.Errorf("region must be specified when using rackspace"))
+		}
 	}
 
 	if len(errs) > 0 {

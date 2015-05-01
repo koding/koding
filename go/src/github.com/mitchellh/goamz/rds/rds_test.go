@@ -44,10 +44,12 @@ func (s *S) Test_CreateDBInstance(c *C) {
 		EngineVersion:              "",
 		DBName:                     "5.6.13",
 		AllocatedStorage:           10,
+		StorageType:                "gp2",
 		MasterUsername:             "foobar",
 		MasterUserPassword:         "bazbarbaz",
 		DBInstanceClass:            "db.m1.small",
 		DBSecurityGroupNames:       []string{"foo", "bar"},
+		DBParameterGroupName:       "default.mysql5.6",
 
 		SetBackupRetentionPeriod: true,
 	}
@@ -57,6 +59,7 @@ func (s *S) Test_CreateDBInstance(c *C) {
 
 	c.Assert(req.Form["Action"], DeepEquals, []string{"CreateDBInstance"})
 	c.Assert(req.Form["Engine"], DeepEquals, []string{"mysql"})
+	c.Assert(req.Form["StorageType"], DeepEquals, []string{"gp2"})
 	c.Assert(req.Form["DBSecurityGroups.member.1"], DeepEquals, []string{"foo"})
 	c.Assert(err, IsNil)
 	c.Assert(resp.RequestId, Equals, "523e3218-afc7-11c3-90f5-f90431260ab4")
@@ -101,6 +104,26 @@ func (s *S) Test_CreateDBSubnetGroup(c *C) {
 	c.Assert(resp.RequestId, Equals, "3a401b3f-bb9e-11d3-f4c6-37db295f7674")
 }
 
+func (s *S) Test_CreateDBParameterGroup(c *C) {
+	testServer.Response(200, nil, CreateDBParameterGroupExample)
+
+	options := rds.CreateDBParameterGroup{
+		DBParameterGroupFamily: "mysql5.6",
+		DBParameterGroupName:   "mydbparamgroup3",
+		Description:            "My new DB Parameter Group",
+	}
+
+	resp, err := s.rds.CreateDBParameterGroup(&options)
+	req := testServer.WaitRequest()
+
+	c.Assert(req.Form["Action"], DeepEquals, []string{"CreateDBParameterGroup"})
+	c.Assert(req.Form["DBParameterGroupFamily"], DeepEquals, []string{"mysql5.6"})
+	c.Assert(req.Form["DBParameterGroupName"], DeepEquals, []string{"mydbparamgroup3"})
+	c.Assert(req.Form["Description"], DeepEquals, []string{"My new DB Parameter Group"})
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "7805c127-af22-11c3-96ac-6999cc5f7e72")
+}
+
 func (s *S) Test_DescribeDBInstances(c *C) {
 	testServer.Response(200, nil, DescribeDBInstancesExample)
 
@@ -117,6 +140,9 @@ func (s *S) Test_DescribeDBInstances(c *C) {
 	c.Assert(resp.RequestId, Equals, "01b2685a-b978-11d3-f272-7cd6cce12cc5")
 	c.Assert(resp.DBInstances[0].DBName, Equals, "mysampledb")
 	c.Assert(resp.DBInstances[0].DBSecurityGroupNames, DeepEquals, []string{"my-db-secgroup"})
+	c.Assert(resp.DBInstances[0].DBParameterGroupName, Equals, "default.mysql5.6")
+	c.Assert(resp.DBInstances[0].StorageType, Equals, "gp2")
+	c.Assert(resp.DBInstances[1].VpcSecurityGroupIds, DeepEquals, []string{"my-vpc-secgroup"})
 }
 
 func (s *S) Test_DescribeDBSecurityGroups(c *C) {
@@ -157,6 +183,53 @@ func (s *S) Test_DescribeDBSubnetGroups(c *C) {
 	c.Assert(resp.DBSubnetGroups[0].Status, DeepEquals, "Complete")
 	c.Assert(resp.DBSubnetGroups[0].SubnetIds, DeepEquals, []string{"subnet-e8b3e5b1", "subnet-44b2f22e"})
 	c.Assert(resp.DBSubnetGroups[0].VpcId, DeepEquals, "vpc-e7abbdce")
+}
+
+func (s *S) Test_DescribeDBParameterGroups(c *C) {
+	testServer.Response(200, nil, DescribeDBParameterGroupsExample)
+
+	options := rds.DescribeDBParameterGroups{
+		DBParameterGroupName: "mydbparamgroup3",
+	}
+
+	resp, err := s.rds.DescribeDBParameterGroups(&options)
+	req := testServer.WaitRequest()
+
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeDBParameterGroups"})
+	c.Assert(req.Form["DBParameterGroupName"], DeepEquals, []string{"mydbparamgroup3"})
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "b75d527a-b98c-11d3-f272-7cd6cce12cc5")
+	c.Assert(resp.DBParameterGroups[0].DBParameterGroupFamily, Equals, "mysql5.6")
+	c.Assert(resp.DBParameterGroups[0].Description, Equals, "My new DB Parameter Group")
+	c.Assert(resp.DBParameterGroups[0].DBParameterGroupName, Equals, "mydbparamgroup3")
+}
+
+func (s *S) Test_DescribeDBParameters(c *C) {
+	testServer.Response(200, nil, DescribeDBParametersExample)
+
+	options := rds.DescribeDBParameters{
+		DBParameterGroupName: "mydbparamgroup3",
+		Source:               "user",
+	}
+
+	resp, err := s.rds.DescribeDBParameters(&options)
+	req := testServer.WaitRequest()
+
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeDBParameters"})
+	c.Assert(req.Form["DBParameterGroupName"], DeepEquals, []string{"mydbparamgroup3"})
+	c.Assert(req.Form["Source"], DeepEquals, []string{"user"})
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "8c40488f-b9ff-11d3-a15e-7ac49293f4fa")
+	c.Assert(resp.Parameters[0].ParameterName, Equals, "character_set_server")
+	c.Assert(resp.Parameters[0].ParameterValue, Equals, "utf8")
+	c.Assert(resp.Parameters[1].ParameterName, Equals, "character_set_client")
+	c.Assert(resp.Parameters[1].ParameterValue, Equals, "utf8")
+	c.Assert(resp.Parameters[2].ParameterName, Equals, "character_set_results")
+	c.Assert(resp.Parameters[2].ParameterValue, Equals, "utf8")
+	c.Assert(resp.Parameters[3].ParameterName, Equals, "collation_server")
+	c.Assert(resp.Parameters[3].ParameterValue, Equals, "utf8_unicode_ci")
+	c.Assert(resp.Parameters[4].ParameterName, Equals, "collation_connection")
+	c.Assert(resp.Parameters[4].ParameterValue, Equals, "utf8_unicode_ci")
 }
 
 func (s *S) Test_DeleteDBInstance(c *C) {
@@ -229,6 +302,22 @@ func (s *S) Test_DeleteDBSubnetGroup(c *C) {
 	c.Assert(resp.RequestId, Equals, "6295e5ab-bbf3-11d3-f4c6-37db295f7674")
 }
 
+func (s *S) Test_DeleteDBParameterGroup(c *C) {
+	testServer.Response(200, nil, DeleteDBParameterGroupExample)
+
+	options := rds.DeleteDBParameterGroup{
+		DBParameterGroupName: "mydbparamgroup3",
+	}
+
+	resp, err := s.rds.DeleteDBParameterGroup(&options)
+	req := testServer.WaitRequest()
+
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DeleteDBParameterGroup"})
+	c.Assert(req.Form["DBParameterGroupName"], DeepEquals, []string{"mydbparamgroup3"})
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "cad6c267-ba25-11d3-fe11-33d33a9bb7e3")
+}
+
 func (s *S) Test_AuthorizeDBSecurityGroupIngress(c *C) {
 	testServer.Response(200, nil, AuthorizeDBSecurityGroupIngressExample)
 
@@ -286,4 +375,62 @@ func (s *S) Test_RestoreDBInstanceFromDBSnapshot(c *C) {
 	c.Assert(req.Form["DBSnapshotIdentifier"], DeepEquals, []string{"bar"})
 	c.Assert(err, IsNil)
 	c.Assert(resp.RequestId, Equals, "863fd73e-be2b-11d3-855b-576787000e19")
+}
+
+func (s *S) Test_ModifyDBParameterGroup(c *C) {
+	testServer.Response(200, nil, ModifyDBParameterGroupExample)
+
+	options := rds.ModifyDBParameterGroup{
+		DBParameterGroupName: "mydbparamgroup3",
+		Parameters: []rds.Parameter{
+			rds.Parameter{
+				ApplyMethod:    "immediate",
+				ParameterName:  "character_set_server",
+				ParameterValue: "utf8",
+			},
+			rds.Parameter{
+				ApplyMethod:    "immediate",
+				ParameterName:  "character_set_client",
+				ParameterValue: "utf8",
+			},
+			rds.Parameter{
+				ApplyMethod:    "immediate",
+				ParameterName:  "character_set_results",
+				ParameterValue: "utf8",
+			},
+			rds.Parameter{
+				ApplyMethod:    "immediate",
+				ParameterName:  "collation_server",
+				ParameterValue: "utf8_unicode_ci",
+			},
+			rds.Parameter{
+				ApplyMethod:    "immediate",
+				ParameterName:  "collation_connection",
+				ParameterValue: "utf8_unicode_ci",
+			},
+		},
+	}
+
+	resp, err := s.rds.ModifyDBParameterGroup(&options)
+	req := testServer.WaitRequest()
+
+	c.Assert(req.Form["Action"], DeepEquals, []string{"ModifyDBParameterGroup"})
+	c.Assert(req.Form["DBParameterGroupName"], DeepEquals, []string{"mydbparamgroup3"})
+	c.Assert(req.Form["Parameters.member.1.ApplyMethod"], DeepEquals, []string{"immediate"})
+	c.Assert(req.Form["Parameters.member.1.ParameterName"], DeepEquals, []string{"character_set_server"})
+	c.Assert(req.Form["Parameters.member.1.ParameterValue"], DeepEquals, []string{"utf8"})
+	c.Assert(req.Form["Parameters.member.2.ApplyMethod"], DeepEquals, []string{"immediate"})
+	c.Assert(req.Form["Parameters.member.2.ParameterName"], DeepEquals, []string{"character_set_client"})
+	c.Assert(req.Form["Parameters.member.2.ParameterValue"], DeepEquals, []string{"utf8"})
+	c.Assert(req.Form["Parameters.member.3.ApplyMethod"], DeepEquals, []string{"immediate"})
+	c.Assert(req.Form["Parameters.member.3.ParameterName"], DeepEquals, []string{"character_set_results"})
+	c.Assert(req.Form["Parameters.member.3.ParameterValue"], DeepEquals, []string{"utf8"})
+	c.Assert(req.Form["Parameters.member.4.ApplyMethod"], DeepEquals, []string{"immediate"})
+	c.Assert(req.Form["Parameters.member.4.ParameterName"], DeepEquals, []string{"collation_server"})
+	c.Assert(req.Form["Parameters.member.4.ParameterValue"], DeepEquals, []string{"utf8_unicode_ci"})
+	c.Assert(req.Form["Parameters.member.5.ApplyMethod"], DeepEquals, []string{"immediate"})
+	c.Assert(req.Form["Parameters.member.5.ParameterName"], DeepEquals, []string{"collation_connection"})
+	c.Assert(req.Form["Parameters.member.5.ParameterValue"], DeepEquals, []string{"utf8_unicode_ci"})
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "12d7435e-bba0-11d3-fe11-33d33a9bb7e3")
 }

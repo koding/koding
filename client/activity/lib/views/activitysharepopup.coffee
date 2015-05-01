@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 shortenText = require 'app/util/shortenText'
 SharePopup = require 'app/sharepopup'
 

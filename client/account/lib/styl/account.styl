@@ -8,153 +8,6 @@ app.settings.styl
 */
 }
 
-// Generic AppModal Styles
-
-.AppModal
-  .kdmodal-content
-    overflow                hidden
-    overflow                _visible
-    zoom                    1
-    font-size               14px
-    color                   #434343
-
-  button.kdbutton.small
-    border-radius           3px
-    height                  29px
-    line-height             29px
-    text-align              center
-    padding                 0 8px
-
-    .button-title
-      font-size             12px
-      text-rendering        auto
-      line-height           inherit !important
-
-    &.solid
-      &.green
-        background          #00B057
-
-      .button-title
-        color               #fff
-
-    &.thin
-      border-width          1px
-
-      &.gray
-        border-color        #BDC3C7
-
-        .button-title
-          color             #BDC3C7
-
-  .koding-on-off.small
-    size                    42px 22px
-    border-radius           19px
-    background              #D8D8D8
-    padding                 4px 6px
-
-    a.knob
-      background            #fff
-      size                  14px 14px
-
-    &.on
-      background            #52A840
-
-    &.on a.knob
-      vendor                transform, translateX(16px)
-
-  .formline.button-field .kdbutton
-    height                  29px
-    line-height             29px
-
-    .button-title
-      line-height           inherit !important
-
-.AppModal-nav
-  width                     190px
-  float                     left
-  margin                    0 30px 0 0
-  border-right              1px solid #E7E7E7
-
-.AppModal-navItem
-  display                   block
-  height                    45px
-  line-height               45px
-  padding                   0 0 0 13px
-  border                    1px solid transparent
-  border-right              none
-  border-radius             3px 0 0 3px
-  color                     #A1A1A1
-  font-size                 14px
-  font-weight               500
-  borderBox()
-  noTextDeco()
-
-  &.selected
-    border-color            #E7E7E7
-    color                   #52A840
-
-.AppModal-content
-  overflow                  hidden
-  overflow                  _visible
-  zoom                      1
-  width                     auto
-
-.AppModal-form
-  margin                    0 -12px
-  padding-top               30px
-
-  .formline
-    display                 block
-    margin-bottom           25px
-    padding                 0 12px
-    width                   auto
-    font-size               14px
-    clear                   both
-    borderBox()
-
-  div.input-wrapper
-    margin-bottom           0 !important
-
-  .formline.button-field
-    padding                 28px 12px 0 !important
-    width                   auto
-    border-top              1px solid #E7E7E7 !important
-
-  .Formline--half
-    width                   50%
-    float                   left
-    clear                   none
-
-  label.kdlabel
-    display                 block
-    margin                  0 0 7px
-    padding                 0
-    line-height             20px
-    color                   #434343
-    font-weight             14px
-    float                   none
-
-  input.kdinput
-  textarea.kdinput
-    display                 block
-    width                   100%
-    padding                 8px 14px
-    line-height             20px
-    outline                 none
-    resize                  none
-    border-radius           4px
-    border                  1px solid #D2D2D2
-    background              #fff
-    font-size               14px
-    color                   #A2A2A2
-
-.AppModal-form-sectionHeader.formline
-  border-top                1px solid #E7E7E7
-  border-bottom             none
-  padding-top               24px
-  font-size                 14px
-  line-height               19px
-  color                     #A1A1A1
 
 // Account AppModal Styles
 
@@ -201,6 +54,13 @@ app.settings.styl
     &.selected:before
       r-sprite              'account' 'sshkeys-active'
 
+  .AppModal-navItem.referral
+    &:before
+      r-sprite              'account' 'referrals'
+
+    &.selected:before
+      r-sprite              'account' 'referrals-active'
+
   .AppModal-navItem.delete
     margin-right            15px
     &:before
@@ -209,7 +69,26 @@ app.settings.styl
     &.selected:before
       r-sprite              'account' 'terminate-active'
 
+  .AppModal-navItem.shortcuts
+    &:before
+      margin-bottom         3px
+      r-sprite              'account' 'shortcuts'
 
+    &.selected:before
+      r-sprite              'account' 'shortcuts-active'
+
+  .AppModal-content
+    min-height               570px
+
+  .AppModal-form
+    padding-top              20px
+
+    .formline
+      margin-bottom          15px
+
+      .AppModal-sectionHeader
+        margin-bottom        0px
+        padding-top          20px
 
 .AppModal--account-avatarArea
   overflow                  hidden
@@ -247,6 +126,8 @@ app.settings.styl
   z-index                   10
 
 .AppModal--account-switchList
+  div.input-wrapper > ul
+    float                   left
   .koding-on-off
     float                   right
     margin-left             75px
@@ -336,7 +217,6 @@ app.settings.styl
     color                   #787878
     line-height             30px
     padding                 0 0 17px
-    boreder-bottom          1px solid #EFEFEF
 
     > span
       margin                0
@@ -371,6 +251,9 @@ app.settings.styl
 
     .AppModal-form
       margin-bottom         24px
+
+      textarea.kdinput
+        height                   180px
 
   li ~ li
     .ssh-key-item
@@ -428,6 +311,69 @@ app.settings.styl
     &:hover .buttons
       opacity               1
 
+  .ssh-key-help
+    padding-top                15px
+    font-size                  14px
+    text-align                 center
+
+    a
+      color                    #52a840
+
+  .add-ssh-key-view
+
+    .no-machines-text
+      margin-bottom            30px
+
+    .ssh-machine-list
+
+      .ssh-machine-list-header
+        padding-bottom         8px
+        position               relative
+
+        .ssh-machine-list-tooltip-icon
+          display              inline-block
+          width                15px
+          height               25px
+          r-sprite             account help
+          margin-left          7px
+          vertical-align       text-top
+
+      .ssh-machine-item
+        width                  30%
+        float                  left
+
+        .checkbox
+          display              inline
+          width                auto
+          position             relative
+          margin               0px
+          vertical-align       middle
+
+        .kdlabel
+          display              inline
+
+      .ssh-machine-list-footer
+        clear                  left
+
+.ssh-machine-list-tooltip
+  line-height                  18px
+  text-align                   left!important
+
+.delete-ssh-key-modal
+
+  .guide-link
+    text-decoration            underline
+    color                      #01b05a
+
+  strong
+    font-weight                bold
+
+  .kdbutton
+    width                      85px!important
+
+.delete-ssh-key-overlay
+  z-index                      10001
+
 .AppModal--account-tabSpinner
   display                   block !important
   width                     40px
@@ -443,6 +389,174 @@ app.settings.styl
     -webkit-transform       translateX(-200px)
     -moz-transform          translateX(-200px)
     transform               translateX(-200px)
+
+.AppModal--account .referral-system
+
+  font-size                 14px
+
+  .initial-loader
+    text-align              center
+    margin-top              230px
+
+  .top
+    height                  150px
+
+  .total-space
+
+    size                    150px, 150px
+
+    border                  1px solid #ccc
+    padding                 40px 10px
+    text-align              center
+    border-radius           4px
+
+    borderBox()
+    fl()
+
+    div
+      width                 auto
+      height                auto
+
+    .total
+      font-size             33px
+      color                 #449940
+
+    .text
+      line-height           20px
+      font-size             15px
+      color                 #aaa
+      padding               15px 5px
+
+  .share-box
+    size                    320px, 150px
+    margin                  0 20px
+    fl()
+
+    > div
+      height                auto
+
+    a
+      color                 #888
+      noTextDeco()
+
+    .subtitle
+      color                 #888
+
+    .custom-link-view
+
+      span.icon
+        display             inline-block
+        margin              7px 3px 3px
+        size                26px, 26px
+
+      .google
+        r-sprite            'account' 'ext-gplus'
+
+      .linkedin
+        r-sprite            'account' 'ext-linkedin'
+
+      .twitter
+        r-sprite            'account' 'ext-twitter'
+
+      .facebook
+        r-sprite            'account' 'ext-facebook'
+
+      .mail
+        r-sprite            'account' 'ext-mail'
+
+  .bottom
+    margin                  25px 0
+    border-top              1px solid #ddd
+    padding-top             25px
+
+  .progress
+    padding                 1px 0
+    clear                   both
+    height                  34px
+
+    .text
+      line-height           34px
+      fl()
+
+      &.label
+        width               170px
+
+      &.value
+        width               auto
+        text-align          right
+        padding-right       15px
+        fr()
+
+    .progressbar-container
+      background            none
+      border                none
+      size                  270px, 34px
+      fl()
+
+      .bar
+        box-shadow          none
+
+  .kdcustomscrollview
+    &.has-vertical
+      padding-right         0
+    .kdscrolltrack.vertical
+      right                 -5px
+    .lazy-loader
+      text-align            center
+
+  .kdscrollview
+    max-height              205px
+    margin-top              25px
+    border-top              1px solid #ddd
+    border-bottom           1px solid #ddd
+
+    borderBox()
+
+  .no-referral
+    padding                 20px 0
+    opacity                 .6
+
+  .referral-item
+    display                 flex
+    display                 -webkit-flex
+
+    border-bottom           1px solid #ccc
+    cursor                  default
+
+    &.header
+      padding               10px 0 5px
+      > div
+        opacity             .6
+        color               initial !important
+
+    &.waiting
+      > div
+        &:nth-child(2)
+          color             #F7B91A
+
+    > div
+      margin                auto
+      width                 120px
+      padding               8px 0
+      white-space           nowrap
+      text-overflow         ellipsis
+      overflow              hidden
+
+      span
+        opacity             .6
+      &:nth-child(1)
+        width               240px
+
+      &:nth-child(2)
+      &:nth-child(4)
+        color               #409531
+
+      &:nth-child(3)
+        opacity             .6
+
+      &:nth-child(4)
+        text-align          right
+        padding-right       15px
 
 
 .kdmodal.payments-modal

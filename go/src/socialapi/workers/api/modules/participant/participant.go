@@ -8,9 +8,9 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-	"socialapi/workers/helper"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 var ErrSkipActivity = errors.New("skip activity")
@@ -36,10 +36,8 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewAccessDenied(fmt.Errorf("user %d tried to open unattended channel %d", query.AccountId, query.Id))
 	}
 
-	req := models.NewChannelParticipant()
-	req.ChannelId = query.Id
 	return response.HandleResultAndError(
-		req.List(request.GetQuery(u)),
+		fetchChannelParticipants(query),
 	)
 }
 
@@ -98,7 +96,7 @@ func notifyParticipants(channel *models.Channel, event string, participants []*m
 	pe.Id = channel.Id
 	pe.Participants = participants
 	pe.ChannelToken = channel.Token
-	logger := helper.MustGetLogger()
+	logger := runner.MustGetLogger()
 
 	for _, participant := range participants {
 		acc, err := models.Cache.Account.ById(participant.AccountId)
@@ -152,11 +150,87 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	// for just a few times
 	go func() {
 		if err := DeleteDesertedChannelMessages(query.Id); err != nil {
-			helper.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
+			runner.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
 		}
 	}()
 
 	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, participants)
+
+	return response.NewOK(participants)
+}
+
+func BlockMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+
+	if err := checkChannelPrerequisites(
+		query.Id,
+		query.AccountId,
+		participants,
+	); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	err := ch.ById(query.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	for i := range participants {
+		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
+		// return bad request
+		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
+			return response.NewBadRequest(fmt.Errorf("User is not allowed to block other users"))
+		}
+
+		participants[i].ChannelId = query.Id
+		if err := participants[i].Block(); err != nil {
+			return response.NewBadRequest(err)
+		}
+	}
+
+	// this could be moved into another worker, but i did not want to create a new worker that will be used
+	// for just a few times
+	go func() {
+		if err := DeleteDesertedChannelMessages(query.Id); err != nil {
+			runner.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
+		}
+	}()
+
+	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, participants)
+
+	return response.NewOK(participants)
+}
+
+func UnblockMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+
+	if err := checkChannelPrerequisites(
+		query.Id,
+		query.AccountId,
+		participants,
+	); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	err := ch.ById(query.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	for i := range participants {
+		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
+		// return bad request
+		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
+			return response.NewBadRequest(fmt.Errorf("User is not allowed to unblock other users"))
+		}
+
+		participants[i].ChannelId = query.Id
+		if err := participants[i].Unblock(); err != nil {
+			return response.NewBadRequest(err)
+		}
+	}
 
 	return response.NewOK(participants)
 }
@@ -261,7 +335,9 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 
 	// return early for non private message channels
 	// no need to continue from here for other channels
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE && c.TypeConstant != models.Channel_TYPE_COLLABORATION {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
+		c.TypeConstant != models.Channel_TYPE_GROUP {
 		return nil
 	}
 
@@ -326,4 +402,26 @@ func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
 	}
 
 	return c, nil
+}
+
+func fetchChannelParticipants(query *request.Query) ([]models.ChannelParticipantContainer, error) {
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = query.Id
+
+	participants, err := cp.List(query)
+	if err != nil {
+		return nil, err
+	}
+
+	cps := make([]models.ChannelParticipantContainer, len(participants))
+
+	for i, participant := range participants {
+		cpc, err := models.NewChannelParticipantContainer(participant)
+		if err != nil {
+			return cps, err
+		}
+		cps[i] = *cpc
+	}
+
+	return cps, nil
 }

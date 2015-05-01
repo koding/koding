@@ -15,7 +15,21 @@ func RemoveTrollContent(i bongo.Modellable, disabled bool) bongo.Scope {
 		}
 
 		if bongo.B.DB.NewScope(i).HasColumn("MetaBits") {
-			d = d.Where("meta_bits = ?", 0)
+			d = d.Where("meta_bits <> ?", Troll)
+		}
+
+		return d
+	}
+}
+
+func RemoveModerationNeededContent(i bongo.Modellable, disabled bool) bongo.Scope {
+	return func(d *gorm.DB) *gorm.DB {
+		if disabled {
+			return d
+		}
+
+		if bongo.B.DB.NewScope(i).HasColumn("MetaBits") {
+			d = d.Where("meta_bits <> ?", NeedsModeration)
 		}
 
 		return d

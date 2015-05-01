@@ -1,7 +1,12 @@
 kd                   = require 'kd'
 $                    = require 'jquery'
+_                    = require 'lodash'
 helper               = require '../helper'
+globals              = require 'globals'
+getNick              = require 'app/util/nick'
 KodingAppsController = require '../../kodingappscontroller'
+
+OPENTOK_URL = '//static.opentok.com/webrtc/v2.2/js/opentok.min.js'
 
 module.exports = class OpenTokService extends kd.Object
 
@@ -39,67 +44,32 @@ module.exports = class OpenTokService extends kd.Object
 
   ###*
    * Initializes the client library of OpenTok.
-   * TODO: It may be wise to include this in our bundle?
    *
-   * @emits OpenTokService#ClientLoaded
+   * @emits OpenTokService~ClientLoaded
   ###
   initOpenTokClient: ->
 
     options =
       identifier : 'open-tok'
-      url        : '//static.opentok.com/webrtc/v2.2/js/opentok.min.js'
+      url        : OPENTOK_URL
 
     KodingAppsController.appendHeadElement 'script', options, =>
       @emit 'ClientLoaded'
       @_loaded = yes
 
 
+  ###*
+   * Call given callback if loaded, otherwise register callback to be called
+   * when 'ClientLoaded' event is emitted.
+   *
+   * @param {function} callback
+   * @listens OpenTokService~ClientLoaded
+  ###
   whenReady: (callback) ->
 
     if @_loaded
     then callback()
     else @once 'ClientLoaded', callback
-
-
-  ###*
-   * It makes a request to the backend and gets session id
-   * and creates a session with that session id.
-   *
-   * @param {SocialChannel} channel - Session will be generated based on channel.
-   * @param {Function=} callback - it will be called on success.
-   * @private
-  ###
-  generateChannelSession = (channel, callback) ->
-
-    $.ajax
-      url      : '/-/video-chat/session'
-      method   : 'post'
-      dataType : 'JSON'
-      data     : { channelId: channel.id }
-      success  : callback
-
-
-  ###*
-   * It makes a request to the backend and gets the token for given session id.
-   *
-   * @param {string} options.sessionId - session id for token to be generated.
-   * @param {string=} options.role - role of user in video chat.  (e.g 'publisher', 'moderator')
-   * @param {number=} options.expireTime - expiration time for a token. Needs to be lower than 30 days.
-   * @param {Function=} callback - callback to be called with token from backend.
-   * @see {@link https://tokbox.com/opentok/concepts/token_creation.html}
-  ###
-  getToken = (options, callback) ->
-
-    { sessionId, role } = options
-
-    role or= 'publisher'
-
-    $.ajax
-      url      : "/-/video-chat/token"
-      method   : 'post'
-      dataType : 'JSON'
-      data     : { role, sessionId }
-      success  : (options) -> callback options.token
 
 
   ###*
@@ -113,62 +83,33 @@ module.exports = class OpenTokService extends kd.Object
    * @param {SocialChannel} channel - Pair channel of session.
    * @param {Function=} callback - it will be called with the session object.
   ###
-  getChannelSession: (channel, callback) ->
-
-    # TODO: move this to config.
-    API_KEY = '45082272'
+  fetchChannelSession: (channel, callback) ->
 
     { id } = channel
 
-    return callback @sessions[id]  if @sessions[id]
-
-    generateChannelSession channel, (session) =>
-
-      { sessionId } = session
-
-      session = @sessions[channel.id] = OT.initSession API_KEY, sessionId
-
+    kallback = (sessionId) =>
+      { apiKey } = globals.config.tokbox
+      session = @sessions[channel.id] = OT.initSession apiKey, sessionId
       session.sessionId = sessionId
+      return callback session
 
-      callback session
+    # return cached OT.session if that session exists.
+    if session = @sessions[id]
+      return callback session
 
+    # initate a OT.Session with channel's sessionId if it's present.
+    else if sessionId = helper.getChannelSessionId channel
+      kallback sessionId
 
-  ###*
-   * This method is necessary to be called before everything to be able
-   * to get updates from tokbox. It registers the given view's dom element
-   * as a container for the video chat session.
-   *
-   * When publishing from a client, we are adding `KD.nick()` as `name`
-   * in `publisherOptions`, when we want to cache the subscribers for easy
-   * access later, we are getting that published name from stream's name property
-   * when we are listening session's `streamCreated` event. And we are using it
-   * as a key to write instance's `subscribers` object when the subscriber is created.
-   * So that we can be able to switch the main video to subscriber videos, by
-   * just using user's `nickname`.
-   *
-   * @param {SocialChannel} channel
-   * @param {KDView} view - container view for video chat.
-   * @param {Object} options - options to be passed to subscribe event
-   * @listens OT.session~streamCreated
-  ###
-  subscribeToVideoUpdates: (channel, view, options = {}) ->
-
-    @getChannelSession channel, (session) =>
-
-      { sessionId } = session
-
-      session.on 'streamCreated', (event) =>
-
-        options.height     or= "100%"
-        options.width      or= "100%"
-        options.insertMode or= 'append'
-
-        { stream } = event
-        nick       = stream.name
-        element    = view.getElement()
-        subscriber = session.subscribe stream, element, options
-
-        @emit 'NewSubscriber', { nick, video: subscriber }
+    # first generate a sessionId, then assign that sessionId to channel, and
+    # then initiate a new OT.Session.
+    else
+      helper.generateSession channel, (result) ->
+        { sessionId } = result
+        helper.setChannelVideoSession channel, sessionId, (err) ->
+          # TODO: requires proper error handling.
+          return console.error err  if err
+          kallback sessionId
 
 
   ###*
@@ -179,74 +120,95 @@ module.exports = class OpenTokService extends kd.Object
    *
    * @param {SocialChannel} channel
    * @param {String} role
+   * @param {object} callbacks
   ###
-  connect: (channel, role) ->
+  connect: (channel, callbacks) ->
 
-    @getChannelSession channel, (session) =>
-      { sessionId } = session
-      getToken { sessionId, role }, (token) =>
-        session.connect token, (err) =>
-          return warn { err }  if err
-          @emit 'SessionCreated', session
-
-          session.on 'connectionCreated', \
-            @lazyBound 'emit', 'ConnectionCreated'
+    @fetchChannelSession channel, (session) ->
+      helper.generateToken session, (token) ->
+        session.connect token, (err) ->
+          if err
+          then callbacks.error err
+          else callbacks.success session
 
 
   ###*
    * Sends a signal with type to given subscriber
    * through given session.
    *
-   * @param {OT.Session} session
-   * @param {String} type
-   * @param {OT.Subscriber} to
-   * @param {Object=} data
+   * @param {SocialChannel} options.channel
+   * @param {String} options.type
+   * @param {ParticipantType.Subscriber} options.to
+   * @param {function(err: object)} callback
   ###
-  sendSignal: (session, type, to, data = {})->
+  sendSignal: (options, callback) ->
 
-    data.to = to
+    { channel } = options
 
-    # TODO: proper signal error handling maybe?
-    session.signal data, _errorSignal
+    return console.error 'sendSignal requires a SocialChannel instance'  unless channel
+
+    options = _.omit options, 'channel'
+
+    if subscriber = options.to
+      options.to = subscriber.videoData.stream.connection
+
+    @fetchChannelSession channel, (session) ->
+      session.signal options, callback
 
 
   ###*
-   * Default error signal.
-  ###
-  _errorSignal = (error) ->
-
-    log "signal error #{error.reason}"  if error
-
-
-  ###*
-   * It creates the `OT.Publisher` instance for sending video/audio.
-   * It listens to publisher events and emits KDEvents to the passed view.
+   * Sends a signal to already connected users to initiate video session.
    *
-   * @param {KDView} view - view instance for publisher.
-   * @param {Object=} publisherOptions - Options to pass to `OT.initPublisher` method
-   * @param {string=} publisherOptions.insertMode
-   * @param {string=} publisherOptions.name
-   * @param {Object=} publisherOptions.style
-   * @return {OT.Publisher} publisher
-   * @see {@link https://tokbox.com/opentok/libraries/client/js/reference/OT.html#initPublisher}
+   * This will take care of the already-online users only. For offline users
+   * SocialChannel instance's payload will have the session id, so that offline
+   * participants can join video as well.
+   *
+   * @param {SocialChannel} channel
+   * @param {function(err: object)} callback
   ###
-  createPublisher: (element, publisherOptions = {}) ->
+  sendSessionStartSignal: (channel, callback) ->
 
-    publisherOptions.name       or= KD.nick()
-    publisherOptions.style      or= { nameDisplayMode: on }
-    publisherOptions.insertMode or= 'append'
+    @sendSignal { channel, type: 'start'}, callback
 
-    publisherOptions.height = 265
-    publisherOptions.width  = 325
 
-    publisher = OT.initPublisher element, publisherOptions
+  ###*
+   * Sends a signal to already connected users to end video session.
+   *
+   * @param {SocialChannel} channel
+   * @param {function(err: object)} callback
+  ###
+  sendSessionEndSignal: (channel, callback) ->
 
-    publisher.on
-      accessAllowed      : => @emit 'CameraAccessAllowed'
-      accessDenied       : => @emit 'CameraAccessDenied'
-      accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
-      accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
+    @sendSignal { channel, type: 'end' }, callback
 
-    return publisher
+
+  ###*
+   * OpenTok doesn't have an easy mechanism to mute a particular user for all
+   * video session subscribers. Because of that we are sending a signal to be
+   * muted user. Other places can subscribe to OT.Session instance's
+   * `signal:mute` event to register a callback to this. Ideal situtation will be
+   * triggering the `publishAudio(false)` in to be muted user's client.
+   *
+   * @param {SocialChannel} channel
+   * @param {ParticipantType.Subscriber} to
+   * @param {function(err: object)} callback
+  ###
+  sendMuteSignal: (channel, to, callback) ->
+
+    @sendSignal { channel, to, type: 'mute' }, callback
+
+
+  ###*
+   * It destroys the publisher for given social channel.
+   *
+   * @param {SocialChannel} channel
+   * @param {ParticipantType.Publisher} publisher
+   * @param {function(err: object)} callback
+  ###
+  destroyPublisher: (channel, publisher, callback) ->
+
+    @fetchChannelSession channel, (session) ->
+      session.unpublish publisher.videoData
+      callback null
 
 

@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 htmlencode = require 'htmlencode'
 globals = require 'globals'
 getGroup = require './util/getGroup'
@@ -76,7 +76,7 @@ module.exports = class SocialApiController extends KDController
 
     {socialapi} = kd.singletons
 
-    channel = socialapi._cache["privatemessage"][channelId]
+    channel = socialapi.retrieveCachedItemById channelId
 
     return  unless channel
 
@@ -86,7 +86,7 @@ module.exports = class SocialApiController extends KDController
     delete socialapi.openedChannels[channelName] if socialapi.openedChannels[channelName]?
 
     {typeConstant, id} = channel
-    delete socialapi._cache[typeConstant][id]
+    socialapi.deleteCachedItem typeConstant, id
 
     {realtime} = kd.singletons
 
@@ -141,7 +141,7 @@ module.exports = class SocialApiController extends KDController
             catch e then null
 
       if payload.initialParticipants and typeof payload.initialParticipants is 'string'
-        payload.initialParticipants =
+        m.payload.initialParticipants =
           try JSON.parse htmlencode.htmlDecode payload.initialParticipants
           catch e then null
 
@@ -204,17 +204,36 @@ module.exports = class SocialApiController extends KDController
 
 
   mapChannel = (channel) ->
+    { socialapi } = kd.singletons
+    
+    data  = channel.channel
 
-    data                     = channel.channel
-    data._id                 = data.id
-    data.isParticipant       = channel.isParticipant
-    data.participantCount    = channel.participantCount
-    data.participantsPreview = mapAccounts channel.participantsPreview
-    data.unreadCount         = channel.unreadCount
-    data.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
+    # hold state of cache hit
+    cacheFound = no
 
+    # item is initially our data
+    item = data
+        
+    # if we find the channel in cache, replace item with it
+    if cacheItem = socialapi.retrieveCachedItem item.typeConstant, item.id
+      cacheFound = yes
+      item = cacheItem
 
-    channelInstance = new remote.api.SocialChannel data
+    item._id                 = data.id
+    item.isParticipant       = channel.isParticipant
+    # we only allow name, purpose and payload to be updated  
+    item.payload             = data.payload
+    item.name                = data.name
+    item.purpose             = data.purpose
+    item.participantCount    = channel.participantCount
+    item.participantsPreview = mapAccounts channel.participantsPreview
+    item.unreadCount         = channel.unreadCount
+    item.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
+        
+    unless cacheFound 
+      channelInstance = new remote.api.SocialChannel item
+    else 
+      channelInstance = item
 
     kd.singletons.socialapi.cacheItem channelInstance
 
@@ -306,7 +325,7 @@ module.exports = class SocialApiController extends KDController
   # existing message. This is for preventing the case. - ctf
   filterMessage = (data) ->
     {message} = data  unless data.typeConstant?
-    if cachedMessage = kd.singletons.socialapi._cache?[message.typeConstant]?[message.id]
+    if cachedMessage = kd.singletons.socialapi.retrieveCachedItem message.typeConstant, message.id
       return yes  if cachedMessage.isShown
 
     message.isShown = yes
@@ -426,13 +445,25 @@ module.exports = class SocialApiController extends KDController
 
     if type is 'topic'
       for own id_, topic of @_cache.topic when topic.name is id
-        item = topic
+        return topic
 
-    if not item and type is 'activity'
+    if type is 'activity'
       for own id_, post of @_cache.post when post.slug is id
-        item = post
+        return post
 
-    return item
+    return null
+
+
+  retrieveCachedItemById: (id) ->
+
+    for own typeConstant, items of @_cache
+      return item  if item = @_cache[typeConstant][id]
+
+    return null
+
+
+  deleteCachedItem: (type, id) ->
+    delete @_cache[type]?[id]
 
 
   cacheable: (type, id, force, callback) ->
@@ -562,6 +593,11 @@ module.exports = class SocialApiController extends KDController
       validateOptionsWith: ['name']
       mapperFn           : mapChannel
 
+    update               : channelRequesterFn
+      fnName             : 'update'
+      validateOptionsWith: ["id"]
+      mapperFn           : mapChannel
+
     list                 : channelRequesterFn
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
@@ -664,6 +700,35 @@ module.exports = class SocialApiController extends KDController
 
     revive               : mapChannel
 
+  moderation:
+    link     : (options, callback) ->
+      doXhrRequest {
+        endPoint : "/api/social/moderation/channel/#{options.rootId}/link"
+        type     : 'POST'
+        data     : options
+      }, callback
+
+    unlink   : (options, callback) ->
+      doXhrRequest {
+        endPoint : "/api/social/moderation/channel/#{options.rootId}/link/#{options.leafId}?#{serialize(options)}"
+        type     : 'DELETE'
+      }, callback
+
+    list     : (options, callback) ->
+      doXhrRequest {
+        endPoint : "/api/social/moderation/channel/#{options.rootId}/link?#{serialize(options)}"
+        type     : 'GET'
+      }, (err, result)->
+        return callback err if err
+        return callback null, mapChannels result
+
+    blacklist: (options, callback) ->
+      doXhrRequest {
+        endPoint : "/api/social/moderation/channel/blacklist"
+        type     : 'POST'
+        data     : options
+      }, callback
+
   notifications          :
     fetch                : notificationRequesterFn
       fnName             : 'fetch'
@@ -671,4 +736,8 @@ module.exports = class SocialApiController extends KDController
     glance               : notificationRequesterFn
       fnName             : 'glance'
 
+  account                :
+    impersonate          : (username, callback) ->
 
+      endPoint = "/Impersonate/#{username}"
+      doXhrRequest {type: 'POST', endPoint, async: yes}, callback

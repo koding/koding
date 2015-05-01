@@ -63,6 +63,8 @@ module.exports = class ComputeStateChecker extends KDObject
 
     {computeController, kontrol} = kd.singletons
 
+    kd.info "Checking all machine states..."  if checkAll
+
     @machines.forEach (machine)=>
 
       machineId = machine._id
@@ -71,8 +73,9 @@ module.exports = class ComputeStateChecker extends KDObject
       if machineId in @ignoredMachines
         return
 
-      unless currentState is Machine.State.Running
-        return  if not checkAll
+      if currentState isnt Machine.State.Running \
+        and not machine.provider is 'managed'
+          return  if not checkAll
       else
         {klient}   = kontrol.kites
         machineUid = (computeController.findMachineFromMachineId machineId)?.uid
@@ -81,8 +84,6 @@ module.exports = class ComputeStateChecker extends KDObject
           # instance available for them. Kontrol instance will create a new
           # one if it's not exists. ~ GG
           return  unless machine.provider is 'managed'
-
-      kd.info "Checking all machine states..."  if checkAll
 
       call = computeController.getKloud().info { machineId, currentState }
 

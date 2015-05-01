@@ -14,7 +14,7 @@ wrapCallback = (callback)->
         return callback {message: "Social API is currently under maintenance"}
       return callback err
 
-    if response.statusCode >= 400
+    if response.statusCode >= 300
       return callback body
     else
       return callback null, body
@@ -25,11 +25,12 @@ createAccount = ({id, nickname}, callback)->
   url = "/account"
   post url, {oldId: id, nick: nickname}, callback
 
-updateAccount = ({id, nick}, callback)->
+updateAccount = (data, callback)->
+  {id, nick} = data
   if not id or not nick
     return callback {message:"Request is not valid for updating account"}
   url = "/account/#{id}"
-  post url, {id, nick}, callback
+  post url, data , callback
 
 createChannel = (data, callback)->
   unless data.name or data.creatorId
@@ -379,6 +380,10 @@ getSiteMap = (data, callback)->
   url = data.name
   getXml url, {}, callback
 
+updateChannel = (data, callback) ->
+  url = "/channel/#{data.id}/update"
+  post url, data, callback
+
 deleteChannel = (data, callback) ->
   url = "/channel/#{data.channelId}/delete"
   post url, data, callback
@@ -400,7 +405,8 @@ post = (url, data, callback)->
       method : 'POST'
 
     {reqOptions, data} = setCookieIfRequired reqOptions, data
-
+    {reqOptions, data} = setHeaderIfRequired reqOptions, data
+    
     reqOptions.body = data
 
     request reqOptions, wrapCallback callback
@@ -458,6 +464,17 @@ setCookieIfRequired = (reqOptions, data)->
 
   return {reqOptions, data}
 
+setHeaderIfRequired = (reqOptions, data)->
+  # inject clientId cookie if exists
+  if data?.clientIP
+    reqOptions.headers = {
+      'X-Forwarded-For': data.clientIP
+    }
+
+    delete data.clientIP
+
+  return {reqOptions, data}
+
 module.exports = {
   unmarkAsTroll
   markAsTroll
@@ -508,6 +525,7 @@ module.exports = {
   createGroupNotification
   getSiteMap
   deleteChannel
+  updateChannel
   checkOwnership
   expireSubscription
   post

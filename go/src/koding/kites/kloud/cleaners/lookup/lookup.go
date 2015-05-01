@@ -2,7 +2,7 @@ package lookup
 
 import (
 	"fmt"
-	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/pkg/multiec2"
 	"sync"
 
 	"github.com/mitchellh/goamz/aws"
@@ -32,11 +32,7 @@ func NewAWS(auth aws.Auth) *Lookup {
 func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 	instances := make([]ec2.Instance, 0)
 
-	opts := &ec2.InstancesOpts{
-		MaxResults: 500,
-	}
-
-	resp, err := client.InstancesWithOpts([]string{}, opts)
+	resp, err := client.InstancesPaginate(500, "")
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +45,7 @@ func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 
 	// get all results until nextToken is empty
 	for nextToken != "" {
-		opts := &ec2.InstancesOpts{
-			NextToken: nextToken,
-		}
-
-		resp, err := client.InstancesWithOpts([]string{}, opts)
+		resp, err := client.InstancesPaginate(0, nextToken)
 		if err != nil {
 			return nil, err
 		}
@@ -104,11 +96,7 @@ func (l *Lookup) FetchInstances() *MultiInstances {
 func (l *Lookup) Volumes(client *ec2.EC2) (Volumes, error) {
 	volumes := make([]ec2.Volume, 0)
 
-	opts := &ec2.VolumesOpts{
-		MaxResults: 500,
-	}
-
-	resp, err := client.VolumesWithOpts([]string{}, opts)
+	resp, err := client.VolumesPaginate(500, "")
 	if err != nil {
 		return nil, err
 	}
@@ -121,11 +109,7 @@ func (l *Lookup) Volumes(client *ec2.EC2) (Volumes, error) {
 
 	// get all results until nextToken is empty
 	for nextToken != "" {
-		opts := &ec2.VolumesOpts{
-			NextToken: nextToken,
-		}
-
-		resp, err := client.VolumesWithOpts([]string{}, opts)
+		resp, err := client.VolumesPaginate(0, nextToken)
 		if err != nil {
 			return nil, err
 		}

@@ -99,12 +99,17 @@ module.exports = class PricingAppView extends KDView
       'Full sudo access'
       'VMs hosted on Amazon EC2'
       'SSH Access'
-      'Real EC2 VM, no LXCs/hypervising'
+      'Unlimited workspaces'
 
       'Custom sub-domains'
       'Publicly accessible IP'
       'Ubuntu 14.04'
-      'IDE/Terminal/Collaboration'
+      'Built-in IDE and Terminal'
+
+      'Realtime collaboration'
+      'Audio/Video in collaboration'
+      'Custom IDE shortcuts'
+      'Connect your own VM'
     ]
 
     footer = new KDCustomHTMLView
@@ -256,6 +261,7 @@ module.exports = class PricingAppView extends KDView
 
         @state.currentPlan = state.planTitle
         @state.currentPlanInterval = state.planInterval
+        @state.provider = state.provider
         @plans.setState @state
 
         kd.singletons.router.handleRoute '/'

@@ -18,8 +18,8 @@ Lets define and struct that defines our configuration
 
 ```go
 type Server struct {
-	Name    string
-	Port    int `default:6060`
+	Name    string `required:"true"`
+	Port    int    `default:6060`
 	Enabled bool
 	Users   []string
 }

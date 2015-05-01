@@ -13,13 +13,13 @@ AccountKodingKeyList = require './accountkodingkeylist'
 AccountKodingKeyListController = require './views/accountkodingkeylistcontroller'
 AccountLinkedAccountsList = require './accountlinkedaccountslist'
 AccountLinkedAccountsListController = require './views/accountlinkedaccountslistcontroller'
-AccountReferralSystemList = require './accountreferralsystemlist'
-AccountReferralSystemListController = require './views/accountreferralsystemlistcontroller'
+AccountReferralSystem = require './views/referral/accountreferralsystem'
 AccountSshKeyList = require './accountsshkeylist'
 AccountSshKeyListController = require './views/accountsshkeylistcontroller'
 DeleteAccountView = require './views/deleteaccountview'
 PrivacyPolicyView = require './views/privacypolicyview'
 TermsOfServiceView = require './views/termsofserviceview'
+AccountEditShortcuts = require './views/accounteditshortcuts'
 
 
 module.exports = class AccountListWrapper extends KDView
@@ -31,8 +31,7 @@ module.exports = class AccountListWrapper extends KDView
     billing                    : AccountBilling
     linkedAccountsController   : AccountLinkedAccountsListController
     linkedAccounts             : AccountLinkedAccountsList
-    referralSystemController   : AccountReferralSystemListController
-    referralSystem             : AccountReferralSystemList
+    referralSystem             : AccountReferralSystem
     editorsController          : AccountEditorListController
     editors                    : AccountEditorList
     keysController             : AccountSshKeyListController
@@ -44,6 +43,7 @@ module.exports = class AccountListWrapper extends KDView
     deleteAccount              : DeleteAccountView
     termsOfService             : TermsOfServiceView
     privacyPolicy              : PrivacyPolicyView
+    shortcuts                  : AccountEditShortcuts
 
   viewAppended:->
     {listType} = @getData()
@@ -59,4 +59,3 @@ module.exports = class AccountListWrapper extends KDView
         view       : view
         wrapper    : no
         scrollView : no
-

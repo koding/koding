@@ -26,6 +26,7 @@
     less        : ["LESS"         , "less"]
     liquid      : ["Liquid"       , "liquid"]
     lisp        : ["Lisp"         , "lisp"]
+    livescript  : ["Livescript"   , "ls"]
     lucene      : ["Lucene"       , "cfs"]
     lua         : ["Lua"          , "lua"]
     luapage     : ["LuaPage"      , "lp"]

@@ -13,23 +13,28 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
 
     super options, data
 
+
   busy: ->
 
+    return if @_busy
+    @_busy = yes
+
     @off 'click'
+    @message.hide()
 
     @loader.updatePartial 'Connecting'
-
-    @message.hide()
     @loader.show()
 
     @show()
 
     @loader.repeater = kd.utils.repeat 200, @loader.lazyBound 'setPartial', '.'
 
+
   hide: ->
 
     super
 
+    @_busy = no
     kd.utils.killRepeat @loader.repeater
 
 
@@ -50,7 +55,7 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
     @once 'click', @lazyBound 'emit', signal
 
     @message.show()
-
+    @_busy = no
     @show()
 
 

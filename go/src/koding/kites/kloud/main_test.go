@@ -36,6 +36,8 @@ Create a nice graph from the cpu profile
 */
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -55,17 +57,25 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
+	"golang.org/x/net/context"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/dnsclient"
-	"koding/kites/kloud/keys"
+	"koding/kites/common"
+	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/dnsstorage"
+	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/multiec2"
-	kloudprotocol "koding/kites/kloud/protocol"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/multiec2"
+	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/sshutil"
+	"koding/kites/kloud/userdata"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
@@ -74,7 +84,6 @@ import (
 var (
 	kloudKite *kite.Kite
 	kld       *kloud.Kloud
-	remote    *kite.Client
 	conf      *config.Config
 	provider  *koding.Provider
 
@@ -82,15 +91,20 @@ var (
 )
 
 type args struct {
-	MachineId  string
-	SnapshotId string
+	MachineId        string
+	SnapshotId       string
+	Provider         string
+	TerraformContext string
 }
 
 type singleUser struct {
-	MachineId  string
-	PrivateKey string
-	PublicKey  string
-	AccountId  bson.ObjectId
+	MachineId           string
+	PrivateKey          string
+	PublicKey           string
+	AccountId           bson.ObjectId
+	CredentialId        bson.ObjectId
+	CredentialPublicKey string
+	Remote              *kite.Client
 }
 
 func init() {
@@ -124,53 +138,135 @@ func init() {
 		log.Fatal(err)
 	}
 
-	provider = newKodingProvider()
+	provider = kodingProvider()
 
 	// Add Kloud handlers
-	kld := newKloud(provider)
+	kld := kloudWithKodingProvider(provider)
+	kloudKite.HandleFunc("plan", kld.Plan)
+	kloudKite.HandleFunc("apply", kld.Apply)
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
-	kloudKite.HandleFunc("start", kld.Start)
 	kloudKite.HandleFunc("stop", kld.Stop)
+	kloudKite.HandleFunc("start", kld.Start)
 	kloudKite.HandleFunc("reinit", kld.Reinit)
-	kloudKite.HandleFunc("restart", kld.Restart)
 	kloudKite.HandleFunc("resize", kld.Resize)
+	kloudKite.HandleFunc("restart", kld.Restart)
 	kloudKite.HandleFunc("event", kld.Event)
 	kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
 	kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
-
-	user := kite.New("user", "0.0.1")
-	user.Config = conf.Copy()
-
-	kloudQuery := &protocol.KontrolQuery{
-		Username:    "testuser",
-		Environment: conf.Environment,
-		Name:        "kloud",
-	}
-	kites, err := user.GetKites(kloudQuery)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Get the caller
-	remote = kites[0]
-	if err := remote.Dial(); err != nil {
-		log.Fatal(err)
-	}
 }
 
-func TestBuild(t *testing.T) {
+func TestTerraformPlan(t *testing.T) {
 	t.Parallel()
-	username := "testuser1"
+	username := "testuser0"
 	userData, err := createUser(username)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId); err != nil {
+	remote := userData.Remote
+
+	args := &kloud.TerraformKloudRequest{
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-b47692ed"
+    tags {
+        Name = "KloudTerraform"
+    }
+}`,
+		PublicKeys: map[string]string{
+			"aws": userData.CredentialPublicKey,
+		},
+	}
+
+	resp, err := remote.Tell("plan", args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var result *kloud.PlanOutput
+	if err := resp.Unmarshal(&result); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, machine := range result.Machines {
+		if machine.Label != "example" {
+			t.Errorf("plan label: want: example got: %s\n", machine.Label)
+		}
+
+		if machine.Region != "us-east-1" {
+			t.Errorf("plan region: want: example got: %s\n", machine.Label)
+		}
+	}
+
+	fmt.Printf("result = %+v\n", result)
+}
+
+func TestTerraformApply(t *testing.T) {
+	t.Parallel()
+	username := "testuser10"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformKloudRequest{
+		MachineIds: []string{userData.MachineId},
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-b47692ed"
+    tags {
+        Name = "KloudTerraform"
+    }
+}`,
+		PublicKeys: map[string]string{
+			"aws": userData.CredentialPublicKey,
+		},
+	}
+
+	resp, err := remote.Tell("apply", args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var result *kloud.PlanOutput
+	if err := resp.Unmarshal(&result); err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("result = %+v\n", result)
+}
+
+func TestBuild(t *testing.T) {
+	t.Parallel()
+	username := "testuser"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
@@ -181,305 +277,32 @@ func TestBuild(t *testing.T) {
 	}
 
 	// invalid calls after build
-	if err := build(userData.MachineId); err == nil {
+	if err := build(userData.MachineId, userData.Remote); err == nil {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
 
-	if err := destroy(userData.MachineId); err != nil {
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
 		t.Error(err)
 	}
-}
-
-func TestStop(t *testing.T) {
-	t.Parallel()
-	username := "testuser2"
-	userData, err := createUser(username)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := build(userData.MachineId); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Stopping machine")
-	if err := stop(userData.MachineId); err != nil {
-		t.Fatal(err)
-	}
-
-	// the following calls should give an error, if not there is a problem
-	if err := build(userData.MachineId); err == nil {
-		t.Error("`build` method can not be called on `stopped` machines.")
-	}
-
-	if err := stop(userData.MachineId); err == nil {
-		t.Error("`stop` method can not be called on `stopped` machines.")
-	}
-
-	if err := destroy(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestStart(t *testing.T) {
-	t.Parallel()
-	username := "testuser3"
-	userData, err := createUser(username)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := build(userData.MachineId); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Stopping machine to start machine again")
-	if err := stop(userData.MachineId); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Starting machine")
-	if err := start(userData.MachineId); err != nil {
-		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
-	}
-
-	if err := start(userData.MachineId); err == nil {
-		t.Error("`start` method can not be called on `started` machines.")
-	}
-
-	if err := destroy(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestSnapshot(t *testing.T) {
-	t.Parallel()
-	username := "testuser4"
-	userData, err := createUser(username)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := build(userData.MachineId); err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Creating snapshot")
-	if err := createSnapshot(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	log.Println("Retrieving snapshot id")
-	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Deleting snapshot")
-	if err := deleteSnapshot(userData.MachineId, snapshotId); err != nil {
-		t.Error(err)
-	}
-
-	// once deleted there shouldn't be any snapshot data in MongoDB
-	log.Println("Checking snapshot data in MongoDB")
-	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
-		t.Error(err)
-	}
-
-	// also check AWS, be sure it's been deleted
-	log.Println("Checking snapshot data in AWS")
-	err = checkSnapshotAWS(userData.MachineId, snapshotId)
-	if err != nil && !isSnapshotNotFoundError(err) {
-		t.Error(err)
-	}
-
-	if err := destroy(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestResize(t *testing.T) {
-	t.Parallel()
-	username := "testuser"
-	userData, err := createUser(username)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := build(userData.MachineId); err != nil {
-		t.Fatal(err)
-	}
-
-	resize := func(storageWant int) {
-		log.Printf("Resizing machine to %dGB\n", storageWant)
-		err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				bson.ObjectIdHex(userData.MachineId),
-				bson.M{
-					"$set": bson.M{
-						"meta.storage_size": storageWant,
-					},
-				},
-			)
-		})
-		if err != nil {
-			t.Error(err)
-		}
-
-		if err := resize(userData.MachineId); err != nil {
-			t.Error(err)
-		}
-
-		storageGot, err := getAmazonStorageSize(userData.MachineId)
-		if err != nil {
-			t.Error(err)
-		}
-
-		if storageGot != storageWant {
-			t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
-				storageWant,
-				storageGot,
-			)
-		}
-	}
-
-	resize(5) // first increase
-	resize(7) // second increase
-	resize(9) // third increase
-
-	log.Println("Destroying machine")
-	if err := destroy(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-}
-
-// createUser creates a test user in jUsers and a single jMachine document.
-func createUser(username string) (*singleUser, error) {
-	privateKey, publicKey, err := sshutil.TemporaryKey()
-	if err != nil {
-		return nil, err
-	}
-
-	// cleanup old document
-	provider.Session.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Remove(bson.M{"username": username})
-	})
-
-	provider.Session.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Remove(bson.M{"profile.nickname": username})
-	})
-
-	accountId := bson.NewObjectId()
-	account := &models.Account{
-		Id: accountId,
-		Profile: models.AccountProfile{
-			Nickname: username,
-		},
-	}
-
-	if err := provider.Session.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Insert(&account)
-	}); err != nil {
-		return nil, err
-	}
-
-	userId := bson.NewObjectId()
-	user := &models.User{
-		ObjectId:      userId,
-		Email:         username + "@" + username + ".com",
-		LastLoginDate: time.Now().UTC(),
-		RegisteredAt:  time.Now().UTC(),
-		Name:          username, // bson equivelant is username
-		Password:      "somerandomnumbers",
-		Status:        "confirmed",
-		SshKeys: []struct {
-			Title string `bson:"title"`
-			Key   string `bson:"key"`
-		}{
-			{Key: publicKey},
-		},
-	}
-
-	if err := provider.Session.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Insert(&user)
-	}); err != nil {
-		return nil, err
-	}
-
-	// later we can add more users with "Owner:false" to test sharing capabilities
-	users := []models.Permissions{
-		{Id: userId, Sudo: true, Owner: true},
-	}
-
-	machineId := bson.NewObjectId()
-	machine := &koding.MachineDocument{
-		Id:         machineId,
-		Label:      "",
-		Domain:     username + ".dev.koding.io",
-		Credential: username,
-		Provider:   "koding",
-		CreatedAt:  time.Now().UTC(),
-		Meta: bson.M{
-			"region":        "eu-west-1",
-			"instance_type": "t2.micro",
-			"storage_size":  3,
-			"alwaysOn":      false,
-		},
-		Users:  users,
-		Groups: make([]models.Permissions, 0),
-	}
-	machine.Assignee.InProgress = false
-	machine.Assignee.AssignedAt = time.Now().UTC()
-	machine.Status.State = machinestate.NotInitialized.String()
-	machine.Status.ModifiedAt = time.Now().UTC()
-
-	if err := provider.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Insert(&machine)
-	}); err != nil {
-		return nil, err
-	}
-
-	return &singleUser{
-		MachineId:  machineId.Hex(),
-		PrivateKey: privateKey,
-		PublicKey:  publicKey,
-		AccountId:  accountId,
-	}, nil
-}
-
-func build(id string) error {
-	buildArgs := &args{
-		MachineId: id,
-	}
-
-	resp, err := remote.Tell("build", buildArgs)
-	if err != nil {
-		return err
-	}
-
-	var result kloud.ControlResult
-	err = resp.Unmarshal(&result)
-	if err != nil {
-		return err
-	}
-
-	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
-			EventId: buildArgs.MachineId,
-			Type:    "build",
-		},
-	})
-
-	return listenEvent(eArgs, machinestate.Running)
-
 }
 
 func checkSSHKey(id, privateKey string) error {
+	log.Println("Checking deployed ssh key")
 	// now try to ssh into the machine with temporary private key we created in
 	// the beginning
-	machine, err := provider.Get(id)
+	ctx := request.NewContext(context.Background(), &kite.Request{
+		Username: "testuser",
+	})
+	ctx = eventer.NewContext(ctx, eventer.New(id))
+
+	m, err := provider.Machine(ctx, id)
 	if err != nil {
 		return err
+	}
+
+	machine, ok := m.(*koding.Machine)
+	if !ok {
+		return fmt.Errorf("%v doesn't is a koding.Machine struct", m)
 	}
 
 	sshConfig, err := sshutil.SshConfig("root", privateKey)
@@ -506,9 +329,384 @@ func checkSSHKey(id, privateKey string) error {
 	return nil
 }
 
-func destroy(id string) error {
+func TestStop(t *testing.T) {
+	t.Parallel()
+	username := "testuser2"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine")
+	if err := stop(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	// the following calls should give an error, if not there is a problem
+	if err := build(userData.MachineId, userData.Remote); err == nil {
+		t.Error("`build` method can not be called on `stopped` machines.")
+	}
+
+	if err := stop(userData.MachineId, userData.Remote); err == nil {
+		t.Error("`stop` method can not be called on `stopped` machines.")
+	}
+
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestStart(t *testing.T) {
+	t.Parallel()
+	username := "testuser3"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine to start machine again")
+	if err := stop(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Starting machine")
+	if err := start(userData.MachineId, userData.Remote); err != nil {
+		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
+	}
+
+	if err := start(userData.MachineId, userData.Remote); err == nil {
+		t.Error("`start` method can not be called on `started` machines.")
+	}
+
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSnapshot(t *testing.T) {
+	t.Parallel()
+	username := "testuser4"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Creating snapshot")
+	if err := createSnapshot(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+
+	log.Println("Retrieving snapshot id")
+	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Deleting snapshot")
+	if err := deleteSnapshot(userData.MachineId, snapshotId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+
+	// once deleted there shouldn't be any snapshot data in MongoDB
+	log.Println("Checking snapshot data in MongoDB")
+	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
+		t.Error(err)
+	}
+
+	// also check AWS, be sure it's been deleted
+	log.Println("Checking snapshot data in AWS")
+	err = checkSnapshotAWS(userData.MachineId, snapshotId)
+	if err != nil && !isSnapshotNotFoundError(err) {
+		t.Error(err)
+	}
+
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestResize(t *testing.T) {
+	t.Parallel()
+	username := "testuser5"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		log.Println("Destroying machine")
+		if err := destroy(userData.MachineId, userData.Remote); err != nil {
+			t.Error(err)
+		}
+	}()
+
+	resize := func(storageWant int) {
+		log.Printf("Resizing machine to %dGB\n", storageWant)
+		err = provider.DB.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(userData.MachineId),
+				bson.M{
+					"$set": bson.M{
+						"meta.storage_size": storageWant,
+					},
+				},
+			)
+		})
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := resize(userData.MachineId, userData.Remote); err != nil {
+			t.Error(err)
+		}
+
+		storageGot, err := getAmazonStorageSize(userData.MachineId)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if storageGot != storageWant {
+			t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
+				storageWant,
+				storageGot,
+			)
+		}
+	}
+
+	resize(5) // first increase
+	resize(7) // second increase
+}
+
+// createUser creates a test user in jUsers and a single jMachine document.
+func createUser(username string) (*singleUser, error) {
+	privateKey, publicKey, err := sshutil.TemporaryKey()
+	if err != nil {
+		return nil, err
+	}
+
+	// cleanup old document
+	provider.DB.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"username": username})
+	})
+
+	provider.DB.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"profile.nickname": username})
+	})
+
+	// jAccounts
+	accountId := bson.NewObjectId()
+	account := &models.Account{
+		Id: accountId,
+		Profile: models.AccountProfile{
+			Nickname: username,
+		},
+	}
+
+	if err := provider.DB.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Insert(&account)
+	}); err != nil {
+		return nil, err
+	}
+
+	// jUsers
+	userId := bson.NewObjectId()
+	user := &models.User{
+		ObjectId:      userId,
+		Email:         username + "@" + username + ".com",
+		LastLoginDate: time.Now().UTC(),
+		RegisteredAt:  time.Now().UTC(),
+		Name:          username, // bson equivelant is username
+		Password:      "somerandomnumbers",
+		Status:        "confirmed",
+		SshKeys: []struct {
+			Title string `bson:"title"`
+			Key   string `bson:"key"`
+		}{
+			{Key: publicKey},
+		},
+	}
+
+	if err := provider.DB.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Insert(&user)
+	}); err != nil {
+		return nil, err
+	}
+
+	// jCredentials and jCredentialData
+	credentialId := bson.NewObjectId()
+	credPublicKey := randomID(24)
+	credential := &models.Credential{
+		Id:        credentialId,
+		Provider:  "aws",
+		PublicKey: credPublicKey,
+		OriginId:  accountId,
+	}
+
+	if err := provider.DB.Run("jCredentials", func(c *mgo.Collection) error {
+		return c.Insert(&credential)
+	}); err != nil {
+		return nil, err
+	}
+
+	credentialDataId := bson.NewObjectId()
+	credentialData := &models.CredentialData{
+		Id:        credentialDataId,
+		PublicKey: credPublicKey,
+		OriginId:  accountId,
+		Meta: bson.M{
+			"access_key": "AKIAJTDKW5IFUUIWVNAA",
+			"secret_key": "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",
+		},
+	}
+
+	if err := provider.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		return c.Insert(&credentialData)
+	}); err != nil {
+		return nil, err
+	}
+
+	relationshipId := bson.NewObjectId()
+	relationship := &models.Relationship{
+		Id:         relationshipId,
+		TargetId:   credentialId,
+		TargetName: "JCredential",
+		SourceId:   accountId,
+		SourceName: "JAccount",
+		As:         "owner",
+	}
+
+	if err := provider.DB.Run("relationships", func(c *mgo.Collection) error {
+		return c.Insert(&relationship)
+	}); err != nil {
+		return nil, err
+	}
+
+	// later we can add more users with "Owner:false" to test sharing capabilities
+	users := []models.Permissions{
+		{Id: userId, Sudo: true, Owner: true},
+	}
+
+	machineId := bson.NewObjectId()
+	machine := &koding.Machine{
+		Id:         machineId,
+		Label:      "",
+		Domain:     username + ".dev.koding.io",
+		Credential: username,
+		Provider:   "koding",
+		CreatedAt:  time.Now().UTC(),
+		Users:      users,
+		Groups:     make([]models.Permissions, 0),
+	}
+
+	machine.Meta.Region = "eu-west-1"
+	machine.Meta.InstanceType = "t2.micro"
+	machine.Meta.StorageSize = 3
+	machine.Meta.AlwaysOn = false
+	machine.Assignee.InProgress = false
+	machine.Assignee.AssignedAt = time.Now().UTC()
+	machine.Status.State = machinestate.NotInitialized.String()
+	machine.Status.ModifiedAt = time.Now().UTC()
+
+	if err := provider.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Insert(&machine)
+	}); err != nil {
+		return nil, err
+	}
+
+	userKite := kite.New("user", "0.0.1")
+	c := conf.Copy()
+	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
+	c.Username = username
+	userKite.Config = c
+
+	kloudQuery := &protocol.KontrolQuery{
+		Username:    "testuser",
+		Environment: c.Environment,
+		Name:        "kloud",
+	}
+	kites, err := userKite.GetKites(kloudQuery)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the caller
+	remote := kites[0]
+	fmt.Printf("remote = %+v\n", remote)
+	fmt.Printf("remote.Username = %+v\n", remote.Username)
+	if err := remote.Dial(); err != nil {
+		log.Fatal(err)
+	}
+
+	return &singleUser{
+		MachineId:           machineId.Hex(),
+		PrivateKey:          privateKey,
+		PublicKey:           publicKey,
+		AccountId:           accountId,
+		CredentialId:        credentialId,
+		CredentialPublicKey: credPublicKey,
+		Remote:              remote,
+	}, nil
+}
+
+func build(id string, remote *kite.Client) error {
+	buildArgs := &args{
+		MachineId: id,
+		Provider:  "koding",
+		TerraformContext: `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+}`,
+	}
+
+	resp, err := remote.Tell("build", buildArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: buildArgs.MachineId,
+			Type:    "build",
+		},
+	})
+
+	return listenEvent(eArgs, machinestate.Running, remote)
+
+}
+
+func destroy(id string, remote *kite.Client) error {
 	destroyArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("destroy", destroyArgs)
@@ -528,12 +726,13 @@ func destroy(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Terminated)
+	return listenEvent(eArgs, machinestate.Terminated, remote)
 }
 
-func start(id string) error {
+func start(id string, remote *kite.Client) error {
 	startArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("start", startArgs)
@@ -554,12 +753,13 @@ func start(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func stop(id string) error {
+func stop(id string, remote *kite.Client) error {
 	stopArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("stop", stopArgs)
@@ -580,12 +780,13 @@ func stop(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Stopped)
+	return listenEvent(eArgs, machinestate.Stopped, remote)
 }
 
-func reinit(id string) error {
+func reinit(id string, remote *kite.Client) error {
 	reinitArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("reinit", reinitArgs)
@@ -606,12 +807,13 @@ func reinit(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func restart(id string) error {
+func restart(id string, remote *kite.Client) error {
 	restartArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("restart", restartArgs)
@@ -632,12 +834,13 @@ func restart(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func resize(id string) error {
+func resize(id string, remote *kite.Client) error {
 	resizeArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("resize", resizeArgs)
@@ -658,12 +861,13 @@ func resize(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func createSnapshot(id string) error {
+func createSnapshot(id string, remote *kite.Client) error {
 	createSnapshotArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("createSnapshot", createSnapshotArgs)
@@ -684,13 +888,14 @@ func createSnapshot(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func deleteSnapshot(id, snapshotId string) error {
+func deleteSnapshot(id, snapshotId string, remote *kite.Client) error {
 	deleteSnapshotArgs := &args{
 		MachineId:  id,
 		SnapshotId: snapshotId,
+		Provider:   "koding",
 	}
 
 	resp, err := remote.Tell("deleteSnapshot", deleteSnapshotArgs)
@@ -698,22 +903,26 @@ func deleteSnapshot(id, snapshotId string) error {
 		return err
 	}
 
-	result, err := resp.Bool()
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
 	if err != nil {
 		return err
 	}
 
-	if !result {
-		return errors.New("Successfull snapshot deletion should return true, got false")
-	}
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: deleteSnapshotArgs.MachineId,
+			Type:    "deleteSnapshot",
+		},
+	})
 
-	return nil
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
 // listenEvent calls the event method of kloud with the given arguments until
 // the desiredState is received. It times out if the desired state is not
 // reached in 10 miunuts.
-func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
+func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *kite.Client) error {
 	tryUntil := time.Now().Add(time.Minute * 10)
 	for {
 		resp, err := remote.Tell("event", args)
@@ -731,7 +940,12 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 			return e.Error
 		}
 
+		// fmt.Printf("e = %+v\n", e)
+
 		event := e.Event
+		if event.Error != "" {
+			return fmt.Errorf("%s: %s", args[0].Type, event.Error)
+		}
 
 		if event.Status == desiredState {
 			return nil
@@ -746,7 +960,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 	}
 }
 
-func newKodingProvider() *koding.Provider {
+func kodingProvider() *koding.Provider {
 	auth := aws.Auth{
 		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
 		SecretKey: "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",
@@ -759,56 +973,75 @@ func newKodingProvider() *koding.Provider {
 
 	modelhelper.Initialize(mongoURL)
 	db := modelhelper.Mongo
-	domainStorage := koding.NewDomainStorage(db)
 
 	return &koding.Provider{
-		Session:           db,
-		Kite:              kloudKite,
-		Log:               newLogger("koding", true),
-		KontrolURL:        conf.KontrolURL,
-		KontrolPrivateKey: testkeys.Private,
-		KontrolPublicKey:  testkeys.Public,
-		Test:              true,
+		DB:         db,
+		Log:        common.NewLogger("koding", true),
+		DNSClient:  dnsclient.NewRoute53Client("dev.koding.io", auth),
+		DNSStorage: dnsstorage.NewMongodbStorage(db),
+		Kite:       kloudKite,
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:           dnsclient.New("dev.koding.io", auth),
-		DomainStorage: domainStorage,
-		Bucket:        koding.NewBucket("koding-klient", "development/latest", auth),
-		KeyName:       keys.DeployKeyName,
-		PublicKey:     keys.DeployPublicKey,
-		PrivateKey:    keys.DeployPrivateKey,
-		Fetcher:       NewTestFetcher(koding.Koding),
+		Userdata: &userdata.Userdata{
+			Keycreator: &keycreator.Key{
+				KontrolURL:        conf.KontrolURL,
+				KontrolPrivateKey: testkeys.Private,
+				KontrolPublicKey:  testkeys.Public,
+			},
+			Bucket: userdata.NewBucket("koding-klient", "development/latest", auth),
+		},
+		PaymentFetcher: NewTestFetcher("hobbyist"),
+		CheckerFetcher: NewTestChecker(),
 	}
 }
 
-func newKloud(p *koding.Provider) *kloud.Kloud {
+func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
+	debugEnabled := false
+
+	sess := &session.Session{
+		DB:         p.DB,
+		Kite:       p.Kite,
+		DNSClient:  p.DNSClient,
+		DNSStorage: p.DNSStorage,
+		AWSClients: p.EC2Clients,
+	}
+
 	kld := kloud.New()
-	kld.Log = newLogger("kloud", true)
+	kld.ContextCreator = func(ctx context.Context) context.Context {
+		return session.NewContext(ctx, sess)
+	}
+	kld.PublicKeys = publickeys.NewKeys()
+	kld.Log = common.NewLogger("kloud", debugEnabled)
+	kld.DomainStorage = p.DNSStorage
+	kld.Domainer = p.DNSClient
 	kld.Locker = p
-	kld.Storage = p
-	kld.DomainStorage = p.DomainStorage
-	kld.Domainer = p.DNS
-	kld.Debug = true
 	kld.AddProvider("koding", p)
 	return kld
 }
 
 func getAmazonStorageSize(machineId string) (int, error) {
-	m, err := provider.Get(machineId)
+	ctx := request.NewContext(context.Background(), &kite.Request{
+		Username: "testuser5",
+	})
+	ctx = eventer.NewContext(ctx, eventer.New(machineId))
+
+	m, err := provider.Machine(ctx, machineId)
 	if err != nil {
 		return 0, err
 	}
 
-	a, err := provider.NewClient(m)
-	if err != nil {
-		return 0, err
+	machine, ok := m.(*koding.Machine)
+	if !ok {
+		return 0, fmt.Errorf("%v doesn't is a koding.Machine struct", m)
 	}
 
-	instance, err := a.Instance(a.Id())
+	a := machine.Session.AWSClient
+
+	instance, err := a.Instance()
 	if err != nil {
 		return 0, err
 	}
@@ -820,7 +1053,7 @@ func getAmazonStorageSize(machineId string) (int, error) {
 	// we need in a lot of placages!
 	oldVolumeId := instance.BlockDevices[0].VolumeId
 
-	oldVolResp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
+	oldVolResp, err := machine.Session.AWSClient.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
 	if err != nil {
 		return 0, err
 	}
@@ -836,7 +1069,7 @@ func getAmazonStorageSize(machineId string) (int, error) {
 
 func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
 	var snapshot *koding.SnapshotDocument
-	if err := provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
+	if err := provider.DB.Run("jSnapshots", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"originId": accountId, "machineId": bson.ObjectIdHex(machineId)}).One(&snapshot)
 	}); err != nil {
 		return "", err
@@ -846,17 +1079,22 @@ func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
 }
 
 func checkSnapshotAWS(machineId, snapshotId string) error {
-	m, err := provider.Get(machineId)
+	ctx := request.NewContext(context.Background(), &kite.Request{
+		Username: "testuser4",
+	})
+	ctx = eventer.NewContext(ctx, eventer.New(machineId))
+
+	m, err := provider.Machine(ctx, machineId)
 	if err != nil {
 		return err
 	}
 
-	a, err := provider.NewClient(m)
-	if err != nil {
-		return err
+	machine, ok := m.(*koding.Machine)
+	if !ok {
+		return fmt.Errorf("%v doesn't is a koding.Machine struct", m)
 	}
 
-	_, err = a.Client.Snapshots([]string{snapshotId}, ec2.NewFilter())
+	_, err = machine.Session.AWSClient.Client.Snapshots([]string{snapshotId}, ec2.NewFilter())
 	return err // nil means it exists
 }
 
@@ -864,7 +1102,7 @@ func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
 	var err error
 	var count int
 
-	err = provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
+	err = provider.DB.Run("jSnapshots", func(c *mgo.Collection) error {
 		count, err = c.Find(bson.M{
 			"originId":   accountId,
 			"snapshotId": snapshotId,
@@ -882,7 +1120,6 @@ func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
 	}
 
 	return nil
-
 }
 
 func isSnapshotNotFoundError(err error) bool {
@@ -896,18 +1133,62 @@ func isSnapshotNotFoundError(err error) bool {
 
 // TestFetcher satisfies the fetcher interface
 type TestFetcher struct {
-	Plan koding.Plan
+	Plan string
 }
 
-func NewTestFetcher(plan koding.Plan) *TestFetcher {
+func NewTestFetcher(plan string) *TestFetcher {
 	return &TestFetcher{
 		Plan: plan,
 	}
 }
 
-func (t *TestFetcher) Fetch(m *kloudprotocol.Machine) (*koding.FetcherResponse, error) {
-	return &koding.FetcherResponse{
+func (t *TestFetcher) Fetch(ctx context.Context, username string) (*plans.PaymentResponse, error) {
+	return &plans.PaymentResponse{
 		Plan:  t.Plan,
 		State: "active",
 	}, nil
+}
+
+// TestFetcher satisfies the fetcher interface
+type TestChecker struct{}
+
+func NewTestChecker() *TestChecker {
+	return &TestChecker{}
+}
+
+func (t *TestChecker) Fetch(ctx context.Context, plan string) (plans.Checker, error) {
+	return &TestPlan{}, nil
+}
+
+type TestPlan struct{}
+
+func (t *TestPlan) Total(username string) error {
+	return nil
+}
+
+func (t *TestPlan) AlwaysOn(username string) error {
+	return nil
+}
+
+func (t *TestPlan) SnapshotTotal(machineId, username string) error {
+	return nil
+}
+
+func (t *TestPlan) Storage(wantStorage int, username string) error {
+	return nil
+}
+
+func (t *TestPlan) AllowedInstances(wantInstance plans.InstanceType) error {
+	return nil
+}
+
+func (t *TestPlan) NetworkUsage(username string) error {
+	return nil
+}
+
+// randomID generates a random string of the given length
+func randomID(length int) string {
+	r := make([]byte, length*6/8)
+	rand.Read(r)
+	return base64.URLEncoding.EncodeToString(r)
 }

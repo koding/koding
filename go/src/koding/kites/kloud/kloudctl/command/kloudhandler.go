@@ -21,6 +21,7 @@ type KloudArgs struct {
 	MachineId  string `json:"machineId"`
 	SnapshotId string `json:"snapshotId"`
 	Username   string `json:"username"`
+	Provider   string `json:"provider"`
 }
 
 type Actioner interface {
@@ -52,12 +53,13 @@ func kloudWrapper(args []string, actioner Actioner) error {
 
 func kloudClient() (*kite.Client, error) {
 	k := kite.New("kloudctl", "0.0.1")
-	config, err := config.Get()
+	c, err := config.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	k.Config = config
+	k.Config = c
+	k.Config.Transport = config.XHRPolling
 	k.SetLogLevel(kite.WARNING)
 
 	remoteKite := k.NewClient(flagKloudAddr)

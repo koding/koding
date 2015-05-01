@@ -3,10 +3,12 @@ package handler
 import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -18,7 +20,8 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 	}
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	Convey("while testing get account", t, func() {
