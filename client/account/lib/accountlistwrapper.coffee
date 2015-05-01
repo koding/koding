@@ -19,6 +19,7 @@ AccountSshKeyListController = require './views/accountsshkeylistcontroller'
 DeleteAccountView = require './views/deleteaccountview'
 PrivacyPolicyView = require './views/privacypolicyview'
 TermsOfServiceView = require './views/termsofserviceview'
+AccountEditShortcuts = require './views/accounteditshortcuts'
 
 
 module.exports = class AccountListWrapper extends KDView
@@ -42,6 +43,7 @@ module.exports = class AccountListWrapper extends KDView
     deleteAccount              : DeleteAccountView
     termsOfService             : TermsOfServiceView
     privacyPolicy              : PrivacyPolicyView
+    shortcuts                  : AccountEditShortcuts
 
   viewAppended:->
     {listType} = @getData()

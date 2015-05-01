@@ -164,6 +164,17 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 		},
 	)
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  interaction.ListInteractedMessages,
+			Name:     "interactions-list-liked",
+			Type:     handler.GetRequest,
+			Endpoint: "/account/{id}/interaction/{type}",
+			Metrics:  metric,
+			Securer:  models.InteractionReadSecurer,
+		},
+	)
+
 	// Channel Operations
 	//----------------------------------------------------------
 	m.AddHandler(

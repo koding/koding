@@ -44,8 +44,8 @@ func TestGroupChannel(t *testing.T) {
 			So(channel1, ShouldNotBeNil)
 
 			channel2, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
-			So(err, ShouldNotBeNil)
-			So(channel2, ShouldBeNil)
+			So(err, ShouldBeNil)
+			So(channel2, ShouldNotBeNil)
 		})
 
 		Convey("group channel should be shown before announcement", func() {

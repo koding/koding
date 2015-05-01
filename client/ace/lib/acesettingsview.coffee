@@ -57,14 +57,6 @@ module.exports = class AceSettingsView extends JView
       selectOptions : settings.tabSizes
       callback      : (value) -> button.emit "ace.changeSetting", "tabSize", value
 
-    @shortcuts      = new KDCustomHTMLView
-      tagName       : "a"
-      cssClass      : "shortcuts"
-      attributes    :
-        href        : "#"
-      partial       : "⌘ Keyboard Shortcuts"
-      click         : => kd.log "show shortcuts"
-
   setDefaultValues:(settings)->
 
     @[key]?.setDefaultValue value for own key, value of settings
@@ -101,7 +93,6 @@ module.exports = class AceSettingsView extends JView
     <p class="with-select">Font                {{> @fontSize}}</p>
     <p class="with-select">Theme               {{> @theme}}</p>
     <p class="with-select">Tab size            {{> @tabSize}}</p>
-    <p class='hidden'>{{> @shortcuts}}</p>
     <hr>
     <p>Open Recent Files                       {{> @openRecentFiles}}</p>
     """

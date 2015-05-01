@@ -357,9 +357,15 @@ testpayment:
 	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
 	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
+testintegration:
+	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
+	@`which go` test -c tests/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
-	testpayment testteam
+	testpayment testteam testintegration
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
@@ -386,11 +392,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	@`which go` test -c workers/common/handler/*.go
 	@./handler.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./handler.test
-
-	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
-	@`which go` test -c tests/*.go
-	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./main.test
 
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
 	@`which go` test -c workers/realtime/realtime/*.go

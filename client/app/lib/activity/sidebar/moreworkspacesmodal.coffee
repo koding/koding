@@ -1,24 +1,23 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+kd                 = require 'kd'
+KDButtonView       = kd.ButtonView
+KDModalView        = kd.ModalView
 ModalWorkspaceItem = require './modalworkspaceitem'
-SidebarSearchModal = require './sidebarsearchmodal'
+OnboardingEvent = require 'app/onboarding/onboardingevent'
 
 
-module.exports = class MoreWorkspacesModal extends SidebarSearchModal
+module.exports = class MoreWorkspacesModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass            = kd.utils.curry 'more-modal more-workspaces', options.cssClass
-    options.width               = 462
-    options.title             or= "Workspaces on #{data.first.machineLabel}"
-    options.disableSearch       = yes
-    options.itemClass         or= ModalWorkspaceItem
-    options.bindModalDestroy    = no
+    options.cssClass = kd.utils.curry 'more-modal more-workspaces', options.cssClass
+    options.title    = "Workspaces on #{data.first.machineLabel}"
+    options.width    = 462
+    options.overlay  = yes
 
     super options, data
 
     @addButton = new KDButtonView
-      title    : "Add Workspace"
+      title    : 'Add Workspace'
       style    : 'add-big-btn'
       loader   : yes
       callback : =>
@@ -27,8 +26,8 @@ module.exports = class MoreWorkspacesModal extends SidebarSearchModal
 
     @addSubView @addButton, '.kdmodal-content'
 
-  populate: ->
-
     for workspace in @getData()
-      item = @listController.addItem workspace
-      item.once 'ModalItemSelected', @bound 'destroy'
+      @addSubView view = new ModalWorkspaceItem {}, workspace
+      view.once 'ModalItemSelected', @bound 'destroy'
+
+    kd.singletons.onboardingController.runOnboarding OnboardingEvent.WorkspaceSettingsOpened
