@@ -201,9 +201,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       return showError err  if err
 
       index = switch data.typeConstant
-        when 'topic'        then 2
-        when 'group'        then 2
-        when 'announcement' then 2
+        when 'topic'          then 2
+        when 'group'          then 2
+        when 'announcement'   then 2
+        when 'privatemessage' then 1
         else 0
 
       if isChannelCollaborative data
