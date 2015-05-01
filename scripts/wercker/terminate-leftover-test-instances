@@ -1,10 +1,15 @@
 #!/usr/bin/env coffee
 
+async = require 'async'
+
 argv = (require 'minimist') process.argv.slice 2
 
 if argv.help
   printHelp()
   process.exit 1
+
+AWS = require './aws'
+EC2 = new AWS.EC2()
 
 run = ->
   unless argv.hours or argv.minutes
@@ -17,11 +22,9 @@ run = ->
 
   Filters = [{ Name: 'image-id', Values: imageIds }]
 
-  AWS = require './aws'
-  EC2 = new AWS.EC2()
   EC2.describeInstances {Filters}, (err, data) ->
 
-    error err  if err
+    return error err  if err
 
     unless data or data.Reservations
       return error 'Reservations not found'
@@ -34,15 +37,16 @@ run = ->
       Instances.forEach ({InstanceId, LaunchTime, State}) ->
         return  if State.Name is 'terminated'
         return  if ExpirationTime <= LaunchTime
-        InstanceIds.push InstanceId
-        console.log InstanceId, LaunchTime
 
-    process.stdout.write "\n"
+        InstanceIds.push InstanceId
 
     return process.exit 0  unless InstanceIds.length
 
-    EC2.terminateInstances {DryRun, InstanceIds}, (err) ->
-      return error err  if err
+    async.filter InstanceIds, checkApiTermination, (InstanceIds) ->
+      return process.exit 0  unless InstanceIds.length
+
+      EC2.terminateInstances {DryRun, InstanceIds}, (err) ->
+        return error err  if err
 
 
 getOptions = (argv) ->
@@ -59,6 +63,22 @@ getExpirationTime = (argv) ->
   minutes ?= 0 + (hours * 60)
 
   return new Date Date.now() - (minutes * 60 * 1000)
+
+
+checkApiTermination = (InstanceId, callback) ->
+
+  Attribute = 'disableApiTermination'
+
+  params = {InstanceId, Attribute}
+
+  EC2.describeInstanceAttribute params, (err, data) ->
+    return callback false  if err
+
+    state = if data \
+      then not data.DisableApiTermination.Value
+      else false
+
+    callback state
 
 
 error = (err) ->

@@ -43,7 +43,7 @@ SocialApiController      = require './socialapicontroller'
 WelcomeModal             = require './welcomemodal'
 WidgetController         = require './widgetcontroller'
 PageTitleController      = require './pagetitlecontroller'
-ShortcutsController      = require './shortcuts'
+ShortcutsController      = require './shortcutscontroller'
 
 module.exports =
 

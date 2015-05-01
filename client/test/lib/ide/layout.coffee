@@ -23,27 +23,27 @@ module.exports =
     browser.end()
 
 
-  undoSplitPanes: (browser) ->
+  # undoSplitPanes: (browser) ->
 
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  #   helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
 
-    layoutHelpers.undoSplit(browser)
-    browser.end()
+  #   layoutHelpers.undoSplit(browser)
+  #   browser.end()
 
 
-  undoSplitPanesNotShowOnList: (browser) ->
+  # undoSplitPanesNotShowOnList: (browser) ->
 
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  #   helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
 
-    layoutHelpers.undoSplit(browser)
+  #   layoutHelpers.undoSplit(browser)
 
-    browser
-      .waitForElementVisible     '.panel-1 .application-tab-handle-holder', 20000
-      .click                     '.panel-1 .application-tab-handle-holder .plus'
-      .waitForElementNotPresent  '.context-list-wrapper li.undo-split', 20000 # Assertion
-      .end()
+  #   browser
+  #     .waitForElementVisible     '.panel-1 .application-tab-handle-holder', 20000
+  #     .click                     '.panel-1 .application-tab-handle-holder .plus'
+  #     .waitForElementNotPresent  '.context-list-wrapper li.undo-split', 20000 # Assertion
+  #     .end()
 
 
   openDrawingBoard: (browser) ->
