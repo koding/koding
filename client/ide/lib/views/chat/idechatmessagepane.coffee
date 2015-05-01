@@ -27,6 +27,11 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @isInSession = options.isInSession
     @videoActive = no
 
+    isHost = not @isInSession
+
+    if isVideoFeatureEnabled() and isHost
+      @createStartVideoButton()
+
     @define 'visible', => @getDelegate().visible
 
     @on 'AddedParticipant', @bound 'participantAdded'
@@ -34,6 +39,20 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @input.input.on 'focus', @lazyBound 'handleFocus', yes
 
     @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
+
+
+  createStartVideoButton: ->
+
+    @addSubView @startVideoButtonContainer = new kd.CustomHTMLView
+      cssClass : 'ChatVideo-startVideoContainer'
+
+    @startVideoButton = new kd.ButtonView
+      iconOnly : yes
+      cssClass : 'ChatVideo-startButton'
+      callback : @bound 'requestStartVideo'
+      tooltip  : { title: 'Start Video Chat [BETA]', placement: 'left' }
+
+    @startVideoButtonContainer.addSubView @startVideoButton
 
 
   handleThresholdReached: ->
@@ -57,12 +76,17 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     nicknames = Object.keys participants
 
+    @startVideoButton?.hide()
+
     @participantHeads.setVideoListTitle()
     @participantsModel.setVideoState on, nicknames
     @videoActive = yes
 
 
+
   handleVideoEnded: ->
+
+    @startVideoButton?.show()
 
     @participantHeads.setDefaultListTitle()
     @participantsModel.setVideoState off
@@ -236,12 +260,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
       # 'Settings' : { callback : @getDelegate().bound 'showSettingsPane' }
 
     isHost = not @isInSession
-
-    if isVideoFeatureEnabled() and isHost
-      seperator = yes
-      if @videoActive
-      then menu['End Video Chat'] = { seperator, callback: @bound 'requestEndVideo' }
-      else menu['Start Video Chat']  = { seperator, callback: @bound 'requestStartVideo' }
 
     if isHost
     then menu['End Session']   = { callback : => @parent.settingsPane.stopSession() }
