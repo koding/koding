@@ -73,7 +73,7 @@ module.exports = class JSnapshot extends Module
       return callback err  if err
       return callback new KodingError 'No such snapshot'  unless snapshot
 
-      if +(snapshot.storageSize) + 1 > storage
+      if +(snapshot.storageSize) > storage
         return callback new KodingError \
           'Storage size is not enough for this snapshot', 'SizeError'
 

@@ -522,9 +522,7 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        sh -c "scripts/install-npm.sh -d client/landing -u"
-        sh -c "scripts/install-npm.sh -d client/builder -u"
-        sh -c "scripts/install-npm.sh -d client -u -p"
+        scripts/install-npm.sh -d client -u
         make -C #{projectRoot}/client dist
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
@@ -637,17 +635,17 @@ Configuration = (options={}) ->
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
             sleep 1
-            sh -c "scripts/install-npm.sh -d client -s"
+            scripts/install-npm.sh -d client -s
         fi
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/builder/package.json" ]; then
             sleep 1
-            sh -c "scripts/install-npm.sh -d client/builder -s"
+            scripts/install-npm.sh -d client/builder -s
         fi
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/landing/package.json" ]; then
             sleep 1
-            sh -c "scripts/install-npm.sh -d client/landing -s"
+            scripts/install-npm.sh -d client/landing -s
         fi
 
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
@@ -762,7 +760,7 @@ Configuration = (options={}) ->
           echo
 
         else
-          sh -c "scripts/install-npm.sh -d client -u -p -s"
+          scripts/install-npm.sh -d client -u -s
           make -C #{projectRoot}/client
         fi
 
@@ -1116,7 +1114,7 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        sh -c "scripts/install-npm.sh -d client -u -p -s"
+        scripts/install-npm.sh -d client -u -s
         make -C #{projectRoot}/client dist
 
       elif [ "$1" == "services" ]; then
