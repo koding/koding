@@ -2,6 +2,7 @@ helpers       = require '../helpers/helpers.js'
 assert        = require 'assert'
 layoutHelpers = require '../helpers/layouthelpers.js'
 
+
 module.exports =
 
 
@@ -23,13 +24,15 @@ module.exports =
     browser.end()
 
 
-  # undoSplitPanes: (browser) ->
+  undoSplitPanes: (browser) ->
 
-  #   helpers.beginTest(browser)
-  #   helpers.waitForVMRunning(browser)
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   layoutHelpers.undoSplit(browser)
-  #   browser.end()
+    browser
+    layoutHelpers.undoSplit(browser)
+    browser.end()
+
 
 
   # undoSplitPanesNotShowOnList: (browser) ->
