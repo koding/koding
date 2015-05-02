@@ -12,6 +12,8 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
   constructor: (options = {}, data) ->
 
+    options.type = 'snapshot'
+
     options.cssClass = kd.utils.curry options.cssClass, 'snapshot'
 
     super options, data

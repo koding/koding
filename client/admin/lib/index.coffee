@@ -5,12 +5,12 @@ AppController             = require 'app/appcontroller'
 AdminMembersView          = require './views/members/adminmembersview'
 AdministrationView        = require './views/administrationview'
 CustomViewsManager        = require './views/customviews/customviewsmanager'
+GroupStackSettings        = require './views/groupstacksettings'
 OnboardingAdminView       = require './views/onboarding/onboardingadminview'
 GroupPermissionsView      = require './views/grouppermissionsview'
 GroupsInvitationView      = require './views/groupsinvitationview'
 GroupsBlockedUserView     = require './views/groupsblockeduserview'
 GroupGeneralSettingsView  = require './views/groupgeneralsettingsview'
-
 
 require('./routehandler')()
 
@@ -48,6 +48,11 @@ module.exports = class AdminAppController extends AppController
         name         : 'Permissions'
         viewOptions  :
           viewClass  : GroupPermissionsView
+          lazy       : yes
+      ,
+        name         : 'Stacks'
+        viewOptions  :
+          viewClass  : GroupStackSettings
           lazy       : yes
       ,
         name         : 'Membership policy'
@@ -112,5 +117,3 @@ module.exports = class AdminAppController extends AppController
     @getOptions().view.ready =>
       {q} = query
       @emit "SearchFilterChanged", q or ""
-
-

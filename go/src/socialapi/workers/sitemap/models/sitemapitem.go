@@ -40,7 +40,7 @@ func (s *SitemapItem) Populate(value string) error {
 
 	id, err := strconv.ParseInt(r[0], 0, 64)
 	if err != nil {
-		return fmt.Errorf("id cannot be cast", err)
+		return fmt.Errorf("id cannot be cast %s", err)
 	}
 
 	s.Id = id

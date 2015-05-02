@@ -23,7 +23,7 @@ import (
 )
 
 func CreatePrivateMessageUser() {
-	acc, err := modelhelper.GetAccount("sinan")
+	_, err := modelhelper.GetAccount("sinan")
 	if err == nil {
 		return
 	}
@@ -32,7 +32,7 @@ func CreatePrivateMessageUser() {
 		panic(err)
 	}
 
-	acc = new(mongomodels.Account)
+	acc := new(mongomodels.Account)
 	acc.Id = bson.NewObjectId()
 	acc.Profile.Nickname = "sinan"
 

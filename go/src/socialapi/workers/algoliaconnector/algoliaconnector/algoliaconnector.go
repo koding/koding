@@ -56,7 +56,7 @@ func IsAlgoliaError(err error, message string) bool {
 
 type algoliaErrorRes struct {
 	Message string `json:"message"`
-	Status  int    `json:"status"`
+	// Status  int    `json:"status"`
 }
 
 func (i *IndexSet) Get(name string) (*algoliasearch.Index, error) {
@@ -209,19 +209,16 @@ func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
 }
 
 const accountIndexName = "accounts"
+
 // ParticipantUpdated operates with the participant deleted/created events, adds
 // to algolia if the state is active, else removes from algolia
 func (f *Controller) ParticipantUpdated(p *models.ChannelParticipant) error {
 	// if status of the participant is active, then add user
 	if p.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
 		return f.handleParticipantOperation(p, appendTag)
-	} else {
-		return f.handleParticipantOperation(p, removeTag)
 	}
 
-	f.log.Debug("ignoring event: status: %s", p.StatusConstant)
-
-	return nil
+	return f.handleParticipantOperation(p, removeTag)
 }
 
 // ParticipantCreated operates with the participant createad event, adds new

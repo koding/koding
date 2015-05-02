@@ -54,6 +54,7 @@ module.exports = class ComputeController extends KDController
             @lastKnownUserPlan = null
             @fetchUserPlan()
 
+        # TODO Find a better way to trigger stack create ~ GG
         if @stacks.length is 0 then do @createDefaultStack
 
         @storage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
@@ -191,6 +192,11 @@ module.exports = class ComputeController extends KDController
           for machine in _machines
             machines.push machine = new Machine { machine }
             @machinesById[machine._id] = machine
+
+          unless kd.singletons.groupsController.getGroupSlug() is 'koding'
+            stacks.forEach (stack)->
+              stack.checkRevision (err, res)->
+                console.info "Revision info for stack #{stack.title}", res
 
           @stacks   = stacks
           @machines = machines

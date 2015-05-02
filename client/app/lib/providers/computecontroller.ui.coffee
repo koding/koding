@@ -1,15 +1,18 @@
-globals = require 'globals'
-remote = require('../remote').getInstance()
-showError = require '../util/showError'
-isLoggedIn = require '../util/isLoggedIn'
-isMine = require '../util/isMine'
-kd = require 'kd'
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
+kd                   = require 'kd'
+_                    = require 'underscore'
+KDModalView          = kd.ModalView
+KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
-ProviderView = require './providerview'
-MachineListModal = require './machinelistmodal'
-TerminalModal = require '../terminal/terminalmodal'
+
+globals              = require 'globals'
+isMine               = require '../util/isMine'
+showError            = require '../util/showError'
+isLoggedIn           = require '../util/isLoggedIn'
+remote               = require('../remote').getInstance()
+
+ProviderView         = require './providerview'
+MachineListModal     = require './machinelistmodal'
+TerminalModal        = require '../terminal/terminalmodal'
 
 
 module.exports = class ComputeController_UI

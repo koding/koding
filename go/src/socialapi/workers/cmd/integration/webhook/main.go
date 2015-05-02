@@ -2,9 +2,6 @@ package main
 
 import (
 	"fmt"
-	"socialapi/config"
-	"socialapi/workers/common/mux"
-	"socialapi/workers/integration/webhook/api"
 
 	"github.com/koding/runner"
 )
@@ -20,19 +17,19 @@ func main() {
 		return
 	}
 
-	appConfig := config.MustRead(r.Conf.Path)
+	// appConfig := config.MustRead(r.Conf.Path)
 
-	mc := mux.NewConfig(Name)
-	m := mux.New(mc, r.Log)
-	m.Metrics = r.Metrics
+	// mc := mux.NewConfig(Name)
+	// m := mux.New(mc, r.Log)
+	// m.Metrics = r.Metrics
 
-	h := api.NewHandler(r.Log)
-	h.AddHandlers(m)
+	// h := api.NewHandler(r.Log)
+	// h.AddHandlers(m)
 
 	go r.Listen()
 
-	m.Listen()
-	defer m.Close()
+	// m.Listen()
+	// defer m.Close()
 
 	r.Wait()
 }
