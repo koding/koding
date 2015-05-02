@@ -66,8 +66,6 @@ func (c *Controller) createPosts() error {
 
 		query.Pagination.Skip += LIMIT
 	}
-
-	return nil
 }
 
 func (c *Controller) createChannels() error {
@@ -98,8 +96,6 @@ func (c *Controller) createChannels() error {
 
 		query.Pagination.Skip += LIMIT
 	}
-
-	return nil
 }
 
 func (c *Controller) queuePosts(posts []socialmodels.ChannelMessage) {

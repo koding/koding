@@ -9,7 +9,7 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
-	"github.com/rcrowley/go-tigertonic"
+	tigertonic "github.com/rcrowley/go-tigertonic"
 )
 
 type Config struct {

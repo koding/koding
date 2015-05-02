@@ -17,9 +17,8 @@ const (
 )
 
 type Controller struct {
-	log             logging.Logger
-	rmqConn         *amqp.Connection
-	notifierRmqConn *amqp.Connection
+	log     logging.Logger
+	rmqConn *amqp.Connection
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {

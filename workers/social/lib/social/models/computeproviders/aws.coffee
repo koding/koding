@@ -1,6 +1,6 @@
 ProviderInterface = require './providerinterface'
 
-module.exports = class Amazon extends ProviderInterface
+module.exports = class Aws extends ProviderInterface
 
   @ping = (client, options, callback)->
     callback null, "AWS RULEZ #{ client.r.account.profile.nickname }!"
@@ -11,14 +11,14 @@ module.exports = class Amazon extends ProviderInterface
 
     # @fetchCredentialData credential, (err, cred)->
     #   return callback err  if err?
-   
+
     storage ?= 8
     if isNaN storage
       return callback new KodingError \
       'Requested storage size is not valid.', 'WrongParameter'
 
     meta =
-      type          : "amazon"
+      type          : 'aws'
       region        : region ? "us-east-1"
       instance_type : instanceType ? "t2.micro"
       storage_size  : storage

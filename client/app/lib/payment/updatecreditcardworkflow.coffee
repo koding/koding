@@ -14,7 +14,13 @@ module.exports = class UpdateCreditCardWorkflow extends KDController
 
   start: ->
 
+    { overlay } = @getOptions()
+
     @modal = new CreditCardModal
+      cssClass       : 'CreditCardModal--update'
+      overlay        : yes
+      overlayOptions : { cssClass: 'CreditCardModal-overlay' }
+
     @modal.on 'CreditCardSubmitted',        @bound 'handleSubmit'
     @modal.on 'CreditCardWorkflowFinished', @bound 'finish'
 
