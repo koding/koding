@@ -3,14 +3,15 @@
 package kodingcontext
 
 import (
-	"bytes"
+	"errors"
+	"sync"
+	"time"
 
 	"koding/kites/terraformer/kodingcontext/pkg"
 	"koding/kites/terraformer/storage"
 
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/mitchellh/cli"
 )
 
 const (
@@ -22,37 +23,45 @@ const (
 	stateFileName         = "state"
 )
 
+var (
+	shutdownChans   map[string]chan struct{}
+	shutdownChansMu sync.Mutex
+	shutdownChansWG sync.WaitGroup
+)
+
+type Context interface {
+	Get(string) (*KodingContext, error)
+	Shutdown() error
+}
+
 // Context holds the required operational parameters for any kind of terraform
 // call
-type Context struct {
-	Variables map[string]string
-
+type context struct {
 	// storage holds the plans of terraform
 	RemoteStorage storage.Interface
 	LocalStorage  storage.Interface
 
-	ContentID    string
-	baseDir      string
 	Providers    map[string]terraform.ResourceProviderFactory
 	Provisioners map[string]terraform.ResourceProvisionerFactory
-	Buffer       *bytes.Buffer
-	ui           *cli.PrefixedUi
 }
 
-// New creates a new Context, this should not be used directly, use Clone
+// New creates a new context, this should not be used directly, use Clone
 // instead from an existing one
-func New(ls, rs storage.Interface) (*Context, error) {
+func New(ls, rs storage.Interface) (*context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
 		return nil, err
 	}
 
-	c := newContext()
-	c.Providers = config.ProviderFactories()
-	c.Provisioners = config.ProvisionerFactories()
-	c.LocalStorage = ls
-	c.RemoteStorage = rs
+	c := &context{
+		Providers:     config.ProviderFactories(),
+		Provisioners:  config.ProvisionerFactories(),
+		LocalStorage:  ls,
+		RemoteStorage: rs,
+	}
+
+	shutdownChans = make(map[string]chan struct{})
 
 	return c, nil
 }
@@ -63,57 +72,89 @@ func Close() {
 	plugin.CleanupClients()
 }
 
-func newContext() *Context {
-	b := new(bytes.Buffer)
-
-	return &Context{
-		baseDir: "",
-		Buffer:  b,
-		ui:      NewUI(b),
-	}
-}
-
-// Clone creates a new context out of an existing one, this can be called
+// Get creates a new context out of an existing one, this can be called
 // multiple times instead of creating a new Context with New function
-func (c *Context) Clone() *Context {
-	cc := newContext()
-	cc.Providers = c.Providers
-	cc.Provisioners = c.Provisioners
-	cc.LocalStorage = c.LocalStorage
-	cc.RemoteStorage = c.RemoteStorage
-
-	return cc
-}
-
-// TerraformContextOpts creates a basic context options for terraform itself
-func (c *Context) TerraformContextOpts() *terraform.ContextOpts {
-	return c.TerraformContextOptsWithPlan(nil)
-}
-
-// TerraformContextOptsWithPlan creates a new context out of a given plan
-func (c *Context) TerraformContextOptsWithPlan(p *terraform.Plan) *terraform.ContextOpts {
-	if p == nil {
-		p = &terraform.Plan{}
+func (c *context) Get(contentID string) (*KodingContext, error) {
+	if contentID == "" {
+		return nil, errors.New("contentID is not set")
 	}
 
-	return &terraform.ContextOpts{
-		Destroy:     false, // this should be true with kite.destroy command
-		Parallelism: 0,
-
-		Hooks: nil,
-
-		// Targets      []string
-		Module: p.Module,
-		State:  p.State,
-		Diff:   p.Diff,
-
-		Providers:    c.Providers,
-		Provisioners: c.Provisioners,
-		Variables:    c.Variables,
+	sc, err := c.createShutdownChan(contentID)
+	if err != nil {
+		return nil, err
 	}
+
+	kc := newKodingContext(sc)
+	kc.Providers = c.Providers
+	kc.Provisioners = c.Provisioners
+	kc.LocalStorage = c.LocalStorage
+	kc.RemoteStorage = c.RemoteStorage
+
+	kc.ContentID = contentID
+
+	return kc, nil
 }
 
-// Close terminates the existing context
-func (c *Context) Close() error {
-	return c.LocalStorage.Remove(c.ContentID)
+// BroadcastForceShutdown sends a message to the current operations
+func (c *context) BroadcastForceShutdown() {
+	shutdownChansMu.Lock()
+	for _, shutdownChan := range shutdownChans {
+		// broadcast this message to listeners
+		select {
+		case shutdownChan <- struct{}{}:
+		default:
+		}
+	}
+	shutdownChansMu.Unlock()
+}
+
+// Shutdown shutsdown koding context
+func (c *context) Shutdown() error {
+	shutdown := make(chan struct{}, 1)
+	go func() {
+		shutdownChansWG.Wait()
+		shutdown <- struct{}{}
+	}()
+
+	after15 := time.After(time.Second * 15)
+	after25 := time.After(time.Second * 25)
+	after30 := time.After(time.Second * 30)
+	for {
+		select {
+		case <-after15:
+			// wait for 15 seconds, after that close forcefully, but still
+			// gracefully
+			c.BroadcastForceShutdown()
+
+		case <-after25:
+			// if operations dont end in 15 secs, close them ungracefully
+			c.BroadcastForceShutdown()
+
+		case <-after30:
+			// return if nothing happens in 30 sec
+			return errors.New("deadline reached")
+
+		case <-shutdown:
+			// if all the requests finish before 15 secs
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func (c *context) createShutdownChan(contentID string) (<-chan struct{}, error) {
+	shutdownChansMu.Lock()
+	defer shutdownChansMu.Unlock()
+
+	_, ok := shutdownChans[contentID]
+	if ok {
+		return nil, errors.New("content is already locked")
+	}
+
+	resultCh := make(chan struct{})
+
+	shutdownChans[contentID] = resultCh
+	shutdownChansWG.Add(1)
+	return resultCh, nil
 }
