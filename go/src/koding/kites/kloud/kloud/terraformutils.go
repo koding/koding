@@ -179,6 +179,16 @@ variable "%s" {
 	return hclFile
 }
 
+func varsFromCredentials(creds *terraformCredentials) map[string]string {
+	vars := make(map[string]string, 0)
+	for _, cred := range creds.Creds {
+		for k, v := range cred.Data {
+			vars[k] = v
+		}
+	}
+	return vars
+}
+
 func sha1sum(s string) string {
 	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
 }
