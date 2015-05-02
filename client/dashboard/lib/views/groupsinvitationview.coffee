@@ -72,51 +72,52 @@ module.exports = class GroupsInvitationView extends KDView
     return modal
 
   showCreateInvitationCodeModal:->
-    remote.api.JInvitation.suggestCode (err, suggestedCode)=>
-      return @showErrorMessage err  if err
-      @createInvitationCode = @showModalForm
-        title             : 'Create an Invitation Code'
-        cssClass          : 'create-invitation-code'
-        callback          : (formData)=>
-          remote.api.JInvitation.createMultiuse formData,
-            @modalCallback.bind this, @createInvitationCode, (err)->
-              unless err.code is 11000
-                return err.message ? 'An error occurred! Please try again later.'
-              return 'Invitation code already exists. Please try a different one or leave empty to generate'
-        submitButtonLabel : 'Create'
-        fields            :
-          invitationCode  :
-            label         : "Invitation code"
-            itemClass     : KDInputView
-            name          : "code"
-            placeholder   : "Enter a creative invitation code!"
-            defaultValue  : suggestedCode
-            nextElement   :
-              Suggest     :
-                itemClass : KDButtonView
-                cssClass  : 'solid suggest-button'
-                callback  : =>
-                  remote.api.JInvitation.suggestCode (err, suggestedCode)=>
-                    return @showErrorMessage err  if err
-                    form = @createInvitationCode.modalTabs.forms.invite
-                    form.inputs.invitationCode.setValue suggestedCode
-          maxUses         :
-            label         : "Maximum uses"
-            itemClass     : KDInputView
-            name          : "maxUses"
-            placeholder   : "How many times can this code be redeemed?"
-            validate      :
-              rules       :
-                required  : yes
-                regExp    : /\d+/i
-              messages    :
-                required  : 'Max usage is required'
-                regExp    : 'numbers only please'
-          memo            :
-            label         : "Memo"
-            itemClass     : KDInputView
-            name          : "memo"
-            placeholder   : "(optional)"
+    throw new Error "not implemented"
+    # remote.api.JInvitation.suggestCode (err, suggestedCode)=>
+    #   return @showErrorMessage err  if err
+    #   @createInvitationCode = @showModalForm
+    #     title             : 'Create an Invitation Code'
+    #     cssClass          : 'create-invitation-code'
+    #     callback          : (formData)=>
+    #       remote.api.JInvitation.createMultiuse formData,
+    #         @modalCallback.bind this, @createInvitationCode, (err)->
+    #           unless err.code is 11000
+    #             return err.message ? 'An error occurred! Please try again later.'
+    #           return 'Invitation code already exists. Please try a different one or leave empty to generate'
+    #     submitButtonLabel : 'Create'
+    #     fields            :
+    #       invitationCode  :
+    #         label         : "Invitation code"
+    #         itemClass     : KDInputView
+    #         name          : "code"
+    #         placeholder   : "Enter a creative invitation code!"
+    #         defaultValue  : suggestedCode
+    #         nextElement   :
+    #           Suggest     :
+    #             itemClass : KDButtonView
+    #             cssClass  : 'solid suggest-button'
+    #             callback  : =>
+    #               remote.api.JInvitation.suggestCode (err, suggestedCode)=>
+    #                 return @showErrorMessage err  if err
+    #                 form = @createInvitationCode.modalTabs.forms.invite
+    #                 form.inputs.invitationCode.setValue suggestedCode
+    #       maxUses         :
+    #         label         : "Maximum uses"
+    #         itemClass     : KDInputView
+    #         name          : "maxUses"
+    #         placeholder   : "How many times can this code be redeemed?"
+    #         validate      :
+    #           rules       :
+    #             required  : yes
+    #             regExp    : /\d+/i
+    #           messages    :
+    #             required  : 'Max usage is required'
+    #             regExp    : 'numbers only please'
+    #       memo            :
+    #         label         : "Memo"
+    #         itemClass     : KDInputView
+    #         name          : "memo"
+    #         placeholder   : "(optional)"
 
   getDefaultInvitationMessage:->
     fullName = "#{whoami().profile.firstName} #{whoami().profile.lastName}"
