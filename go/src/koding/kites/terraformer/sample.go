@@ -2,41 +2,32 @@ package terraformer
 
 // SampleTF holds a sample terraform file
 var SampleTF = `
-// Provider specific configs
-
-provider "aws" {
-    access_key = "AKIAJTDKW5IFUUIWVNAA"
-    secret_key = "BKULK7pWB2crKtBafYnfcPhh7Ak+iR/ChPfkvrLC"
-    region = "sa-east-1"
-}
-
-
 // Template variables
 
 //
 // AWS General Config
 //
 
-//variable "key_name" {
-//    description = "Name of the SSH keypair to use in AWS."
-//}
-
 // set the region which is close to you
 variable "aws_region" {
     description = "Region name in which resources will be created"
-    default     = "sa-east-1"
 }
 
 // set secret key
 variable "aws_secret_key" {
     description = "AWS Secret key"
-    default     = "BKULK7pWB2crKtBafYnfcPhh7Ak+iR/ChPfkvrLC"
 }
 
 // set access key
 variable "aws_access_key" {
     description = "AWS Access key"
-    default     = "AKIAJTDKW5IFUUIWVNAA"
+}
+
+// Provider specific configs, using variables
+provider "aws" {
+    access_key = "${var.aws_access_key}"
+    secret_key = "${var.aws_secret_key}"
+    region = "${var.aws_region}"
 }
 
 //
