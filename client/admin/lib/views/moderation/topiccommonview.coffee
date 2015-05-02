@@ -72,16 +72,12 @@ module.exports = class TopicCommonView extends KDView
 
       skip   : @skip
 
-    @listChannels ["hebe", "hube"]
-    @isFetching = no
-    
-    return
-    
-    @getData().searchChannels selector, options, (err, channels) =>
+    kd.singletons.socialapi.channel.searchTopics {name: "deneme"}, (err, channels) =>
       if err
-        @listController.lazyLoader.hide()
+        @listController.lazyLoader?.hide()
         return kd.warn err
-
+      
+      console.log channels
       @listChannels channels
       @isFetching = no
 
