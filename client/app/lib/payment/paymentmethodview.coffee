@@ -1,7 +1,8 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+_                = require 'lodash'
+kd               = require 'kd'
+JView            = require '../jview'
+KDButtonView     = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
-JView = require '../jview'
 
 module.exports = class PaymentMethodView extends JView
 
@@ -41,26 +42,7 @@ module.exports = class PaymentMethodView extends JView
 
     data = @getData()
 
-    @editLink = new KDButtonView
-      title    : 'Update'
-      cssClass : 'edit solid medium gray'
-      callback : (e) =>
-        e.preventDefault()
-        @emit 'PaymentMethodEditRequested', data
-
-    @removeLink = new KDButtonView
-      title    : 'Remove'
-      cssClass : 'remove'
-      click    : (e) =>
-        e.preventDefault()
-        @emit 'PaymentMethodRemoveRequested', data
-
-    if @getOption 'editLink' or @getOption 'removeLink'
-    then @controlsView = new KDCustomHTMLView cssClass : 'payment-method-controls hidden'
-    else @controlsView = new KDCustomHTMLView tagName  : 'span'
-
-    if @getOption 'editLink'   then @controlsView.addSubView @editLink
-    if @getOption 'removeLink' then @controlsView.addSubView @removeLink
+    @controlsView = new kd.CustomHTMLView { cssClass: 'payment-method-controls' }
 
     @paymentMethodInfo = new KDCustomHTMLView cssClass : 'billing-link'
     @paymentMethodInfo.hide()

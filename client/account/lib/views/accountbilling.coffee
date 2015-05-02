@@ -1,17 +1,14 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDHeaderView = kd.HeaderView
-KDView = kd.View
+kd                        = require 'kd'
+showError                 = require 'app/util/showError'
+trackEvent                = require 'app/util/trackEvent'
+SubscriptionView          = require 'app/payment/subscriptionview'
+PaymentMethodView         = require 'app/payment/paymentmethodview'
+PaymentHistoryListItem    = require './paymenthistorylistitem'
+UpdateCreditCardWorkflow  = require 'app/payment/updatecreditcardworkflow'
 AccountListViewController = require '../controllers/accountlistviewcontroller'
-PaymentHistoryListItem = require './paymenthistorylistitem'
-showError = require 'app/util/showError'
-SubscriptionView = require 'app/payment/subscriptionview'
-UpdateCreditCardWorkflow = require 'app/payment/updatecreditcardworkflow'
-trackEvent = require 'app/util/trackEvent'
-KDButtonView = kd.ButtonView
 
 
-module.exports = class AccountBilling extends KDView
+module.exports = class AccountBilling extends kd.View
 
   initialState: {
     subscription: null
@@ -27,7 +24,7 @@ module.exports = class AccountBilling extends KDView
 
   viewAppended: ->
 
-    @addSubView @subscriptionWrapper = new KDCustomHTMLView
+    @addSubView @subscriptionWrapper = new kd.CustomHTMLView
       tagName  : 'section'
       cssClass : 'subscription-wrapper clearfix'
 
@@ -44,10 +41,10 @@ module.exports = class AccountBilling extends KDView
 
     { paymentController } = kd.singletons
 
-    @subscriptionWrapper.addSubView header = new KDHeaderView
+    @subscriptionWrapper.addSubView header = new kd.HeaderView
       title : 'Subscriptions'
 
-    header.addSubView new KDButtonView
+    header.addSubView new kd.ButtonView
       style    : 'solid small green'
       title    : 'Upgrade'
       callback : @lazyBound 'emit', 'ChangeSubscriptionRequested'
@@ -73,7 +70,7 @@ module.exports = class AccountBilling extends KDView
 
 
   noItemView = (partial) ->
-    return new KDCustomHTMLView
+    return new kd.CustomHTMLView
       cssClass : 'no-item'
       partial  : partial
 
@@ -82,7 +79,7 @@ module.exports = class AccountBilling extends KDView
 
     { paymentController } = kd.singletons
 
-    @paymentHistoryWrapper.addSubView new KDHeaderView
+    @paymentHistoryWrapper.addSubView new kd.HeaderView
       title : 'Payment History'
 
     paymentController.invoices (err, invoices) =>
