@@ -214,10 +214,11 @@ module.exports = class ComputeProvider extends Base
 
       JComputeStack = require '../stack'
       JComputeStack.create {
-        title       : template.title
-        config      : template.config
-        baseStackId : template._id
-        groupSlug   : group.slug
+        title         : template.title
+        config        : template.config
+        baseStackId   : template._id
+        stackRevision : template.template?.sum or ''
+        groupSlug     : group.slug
         account
       }, (err, stack)->
 

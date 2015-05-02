@@ -2,7 +2,7 @@
 KodingError = require '../../error'
 
 PROVIDERS =
-  amazon       : require './amazon'
+  aws          : require './aws'
   koding       : require './koding'
   rackspace    : require './rackspace'
   digitalocean : require './digitalocean'

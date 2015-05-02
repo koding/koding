@@ -14,7 +14,7 @@ module.exports = globals.config.providers =
         placeholder        : "credential in JSON format"
         type               : "textarea"
 
-  amazon                   :
+  aws                      :
     name                   : "Amazon Web Services"
     link                   : "https://aws.amazon.com"
     title                  : "AWS Credential"

@@ -1,15 +1,15 @@
+jraphical = require 'jraphical'
+crypto    = require 'crypto'
 
-jraphical       = require 'jraphical'
-JCredentialData = require './credentialdata'
-JName           = require '../name'
-JUser           = require '../user'
-JGroup          = require '../group'
-
-# TODO Credential relations ~g
 
 module.exports = class JStackTemplate extends jraphical.Module
 
   KodingError        = require '../../error'
+
+  JName              = require '../name'
+  JUser              = require '../user'
+  JGroup             = require '../group'
+  JCredentialData    = require './credentialdata'
 
   {Inflector, secure, ObjectId, signature, daisy} = require 'bongo'
   {Relationship}     = jraphical
@@ -90,34 +90,55 @@ module.exports = class JStackTemplate extends jraphical.Module
 
       group           : String
 
+      template        :
+        content       : String
+        sum           : String
+
+      # Public keys of JCredentials
+      credentials     : [ String ]
+
+
+  generateTemplateObject = (content)->
+
+    content = ''  unless typeof content is 'string'
+
+    return {
+      content
+      sum: crypto.createHash 'sha1'
+        .update content
+        .digest 'hex'
+    }
+
+
 
   @create = permit 'create stack template',
 
     success: (client, data, callback)->
 
       { delegate } = client.connection
-      { profile:{nickname} } = delegate
 
-      { title, description, config } = data
-      return callback new KodingError "Title required."  unless title
+      unless data?.title
+        return callback new KodingError "Title required."
 
-      template = new JStackTemplate {
-        title, description, config
-        rules         : data.rules       ? []
-        domains       : data.domains     ? []
-        machines      : data.machines    ? []
-        extras        : data.extras      ? []
-        connections   : data.connections ? []
-        accessLevel   : data.accessLevel ? "private"
-        group         : client.context.group
-        originId      : delegate.getId()
-      }
+      stackTemplate = new JStackTemplate
+        originId    : delegate.getId()
+        group       : client.context.group
+        title       : data.title
+        config      : data.config      ? {}
+        description : data.description ? ''
+        rules       : data.rules       ? []
+        domains     : data.domains     ? []
+        machines    : data.machines    ? []
+        extras      : data.extras      ? []
+        connections : data.connections ? []
+        accessLevel : data.accessLevel ? 'private'
+        template    : generateTemplateObject data.template
+        credentials : data.credentials ? []
 
-      template.save (err)->
+      stackTemplate.save (err)->
         if err
-          callback new KodingError "Failed to save stack template", err
-        else
-          callback null, template
+        then callback new KodingError 'Failed to save stack template', err
+        else callback null, stackTemplate
 
 
   @some$: permit 'list stack templates',
@@ -182,6 +203,9 @@ module.exports = class JStackTemplate extends jraphical.Module
 
       delete data.originId
       delete data.group
+
+      if data.template?
+        data.template = generateTemplateObject data.template
 
       @update $set: data, (err)-> callback err
 
