@@ -8,12 +8,14 @@ resurrection.account.dropdown.styl
 }
 .avatararea-popup
   font-family             adelleFamily
-  size                    sidebarWidth, auto
-  bottom                  46px
-  left                    0
-  bg                      color, #1D1D1D
+  size                    190px, auto
+  bottom                  65px
+  left                    105px
+  bg                      color, #F3F3F3
   z-index                 100
   display                 none
+  rounded                 3px
+  box-shadow              0 12px 19px rgba(0,0,0,0.5)
   borderBox()
   fix()
 
@@ -21,7 +23,7 @@ resurrection.account.dropdown.styl
     display               block
 
   .content
-    padding               13px
+    padding               10px
     width                 auto
     color                 #A0A0A0
 
@@ -30,7 +32,7 @@ resurrection.account.dropdown.styl
       line-height         30px
       rounded             3px
       display             block
-      color               #fff
+      color               #a0a0a0
       font-size           14px
       font-weight         400
       opacity             .99
@@ -38,11 +40,23 @@ resurrection.account.dropdown.styl
       noTextDeco()
 
       &:hover
-        bg                color, #424242
+        color             #444444
+        bg                color, #E7E7E7
 
       &.support
-        border-bottom     1px solid #424242
+        border-bottom     1px solid #E7E7E7
 
+  &:after
+    content               ''
+    display               block
+    width                 0
+    height                0
+    border-left           6px solid transparent
+    border-right          6px solid transparent
+    border-top            7px solid #f3f3f3
+    position              absolute
+    bottom                -7px
+    left                  38%
 
 .notification-list
   .no-item-found
