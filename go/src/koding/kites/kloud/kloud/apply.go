@@ -10,6 +10,7 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/provider/generic"
 	"koding/kites/kloud/terraformer"
+	tf "koding/kites/terraformer"
 	"strconv"
 
 	"labix.org/v2/mgo"
@@ -87,7 +88,11 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	k.Log.Debug("Calling terraform.apply method with context:")
 	k.Log.Debug(stack.Template)
 
-	state, err := tfKite.Apply(stack.Template)
+	state, err := tfKite.Apply(&tf.TerraformRequest{
+		Content:   stack.Template,
+		ContentID: r.Username + "-" + sha1sum(stack.Template),
+		Variables: nil,
+	})
 	if err != nil {
 		return nil, err
 	}

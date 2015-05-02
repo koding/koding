@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"crypto/sha1"
 	"errors"
 	"fmt"
 	"strings"
@@ -176,4 +177,8 @@ variable "%s" {
 	}
 
 	return hclFile
+}
+
+func sha1sum(s string) string {
+	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
 }

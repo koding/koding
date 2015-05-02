@@ -7,6 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
+	tf "koding/kites/terraformer"
 
 	"labix.org/v2/mgo/bson"
 
@@ -73,7 +74,11 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 
 	args.TerraformContext = appendVariables(args.TerraformContext, creds)
 
-	plan, err := tfKite.Plan(args.TerraformContext)
+	plan, err := tfKite.Plan(&tf.TerraformRequest{
+		Content:   args.TerraformContext,
+		ContentID: r.Username + "-" + sha1sum(args.TerraformContext),
+		Variables: nil,
+	})
 	if err != nil {
 		return nil, err
 	}
