@@ -7,37 +7,31 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
     super
 
+    { oauthController } = KD.singletons
+
     @github = new CustomLinkView
       cssClass : 'gh'
       title    : 'Sign up with GitHub'
       alt      : 'Sign up with GitHub'
-      click    : ->
-        { oauthController } = KD.singletons
-        oauthController.openPopup 'github'
-    
+      click    : -> oauthController.openPopup 'github'
+
     @google = new CustomLinkView
       cssClass : 'go'
       title    : 'Sign up with Google'
       alt      : 'Sign up with Google'
-      click    : ->
-        { oauthController } = KD.singletons
-        oauthController.openPopup 'google'
-        
+      click    : -> oauthController.openPopup 'google'
+
     @facebook = new CustomLinkView
       cssClass : 'fb'
       title    : 'Sign up with Facebook'
       alt      : 'Sign up with Facebook'
-      click    : ->
-        { oauthController } = KD.singletons
-        oauthController.openPopup 'facebook'
-        
+      click    : -> oauthController.openPopup 'facebook'
+
     @twitter = new CustomLinkView
       cssClass : 'tw'
       title    : 'Sign up with Twitter'
       alt      : 'Sign up with Twitter'
-      click    : ->
-        { oauthController } = KD.singletons
-        oauthController.openPopup 'twitter'
+      click    : -> oauthController.openPopup 'twitter'
 
     @email.setOption 'stickyTooltip', yes
     @password.setOption 'stickyTooltip', yes
@@ -63,7 +57,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
     input.setValue oauthData.email
     @email.placeholder.setClass 'out'
 
-    @emailIsAvailable = no
+    @emailIsAvailable = yes
     @once 'gravatarInfoFetched', (gravatar) =>
       # oath username has more priority over gravatar username
       gravatar.preferredUsername = @oauthData.username  if @oauthData.username

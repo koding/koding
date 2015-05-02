@@ -347,6 +347,7 @@ module.exports = class LoginView extends JView
                 title                 : 'LET\'S GO'
                 style                 : 'solid green medium'
                 type                  : 'submit'
+
     @signupModal.setOption 'userData', formData
 
     usernameView = @signupModal.modalTabs.forms.extraInformation.inputs.username
