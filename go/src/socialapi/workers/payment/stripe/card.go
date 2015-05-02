@@ -14,6 +14,7 @@ type CreditCardResponse struct {
 	Month    uint8  `json:"month"`
 	Year     uint16 `json:"year"`
 	Name     string `json:"name"`
+	Brand    string `json:"brand"`
 }
 
 func GetCreditCard(oldId string) (*CreditCardResponse, error) {
@@ -45,6 +46,7 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 		Month:    creditCard.Month,
 		Year:     creditCard.Year,
 		Name:     creditCard.Name,
+		Brand:    string(creditCard.Brand),
 	}
 
 	return creditCardResponse, nil

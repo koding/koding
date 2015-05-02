@@ -4,14 +4,14 @@ import (
 	"socialapi/workers/payment/paymentmodels"
 	"time"
 
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 	stripeInvoice "github.com/stripe/stripe-go/invoice"
 )
 
 type StripeInvoiceResponse struct {
 	Amount      int64     `json:"amount"`
 	Paid        bool      `json:"paid"`
-	PeriodStart time.Time `json"periodStart"`
+	PeriodStart time.Time `json:"periodStart"`
 	PeriodEnd   time.Time `json:"periodEnd"`
 }
 

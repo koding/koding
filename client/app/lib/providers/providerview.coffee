@@ -1,18 +1,21 @@
-kd = require 'kd'
-KDView = kd.View
-KDTabView = kd.TabView
-KDHeaderView = kd.HeaderView
-KDModalView = kd.ModalView
-KDListViewController = kd.ListViewController
-ProviderKoding = require './providerkoding'
-ProviderRackspace = require './providerrackspace'
-ProviderDigitalOcean = require './providerdigitalocean'
-ProviderGoogle = require './providergoogle'
-ProviderAmazon = require './provideramazon'
-ProviderEngineyard = require './providerengineyard'
-ProviderItemView = require './provideritemview'
-ProviderWelcomeView = require './providerwelcomeview'
+kd                         = require 'kd'
+KDView                     = kd.View
+KDTabView                  = kd.TabView
+KDHeaderView               = kd.HeaderView
+KDModalView                = kd.ModalView
+KDListViewController       = kd.ListViewController
+
+ProviderKoding             = require './providerkoding'
+ProviderRackspace          = require './providerrackspace'
+ProviderDigitalOcean       = require './providerdigitalocean'
+ProviderGoogle             = require './providergoogle'
+ProviderAws                = require './provideraws'
+ProviderEngineyard         = require './providerengineyard'
+ProviderItemView           = require './provideritemview'
+ProviderWelcomeView        = require './providerwelcomeview'
+
 SplitViewWithOlderSiblings = '../commonviews/splitviewwitholdersiblings'
+
 
 module.exports = class ProviderView extends KDView
 
@@ -31,7 +34,7 @@ module.exports = class ProviderView extends KDView
       { name : "Rackspace",    view : new ProviderRackspace }
       { name : "DigitalOcean", view : new ProviderDigitalOcean }
       { name : "Google",       view : new ProviderGoogle }
-      { name : "Amazon",       view : new ProviderAmazon }
+      { name : "AWS",          view : new ProviderAws }
       { name : "EngineYard",   view : new ProviderEngineyard }
     ]
 

@@ -246,7 +246,6 @@ func (cc *ChannelMessageContainer) AddIsFollowed(query *request.Query) *ChannelM
 func (cc *ChannelMessageContainer) AddUnreadRepliesCount() *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 		panic("method not implemented")
-		return nil
 	})
 }
 

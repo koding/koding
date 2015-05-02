@@ -7,7 +7,6 @@ import (
 	socialmodels "socialapi/models"
 	"socialapi/workers/email/activityemail/models"
 	"socialapi/workers/email/emailmodels"
-	"socialapi/workers/email/templates"
 	notificationmodels "socialapi/workers/notification/models"
 	"time"
 
@@ -17,12 +16,6 @@ import (
 	"github.com/koding/runner"
 	"github.com/streadway/amqp"
 )
-
-var emailConfig = map[string]string{
-	notificationmodels.NotificationContent_TYPE_COMMENT: "comment",
-	notificationmodels.NotificationContent_TYPE_LIKE:    "likeActivities",
-	notificationmodels.NotificationContent_TYPE_MENTION: "mention",
-}
 
 const (
 	DAY           = 24 * time.Hour
@@ -130,24 +123,6 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 	}
 
 	return mailer.SendMail()
-}
-
-func prepareSubject(mc *models.MailerContainer) string {
-	t, err := mc.Content.GetContentType()
-	if err != nil {
-		return ""
-	}
-
-	return fmt.Sprintf(Subject, t.GetDefinition())
-}
-
-func prepareInformation(mc *models.MailerContainer) string {
-	t, err := mc.Content.GetContentType()
-	if err != nil {
-		return ""
-	}
-
-	return fmt.Sprintf("You have a new %s on %s.", t.GetDefinition(), templates.KodingLink)
 }
 
 func (c *Controller) validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {

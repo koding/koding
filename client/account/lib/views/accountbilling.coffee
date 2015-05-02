@@ -1,20 +1,18 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDHeaderView = kd.HeaderView
-KDView = kd.View
+kd                        = require 'kd'
+showError                 = require 'app/util/showError'
+trackEvent                = require 'app/util/trackEvent'
+SubscriptionView          = require 'app/payment/subscriptionview'
+PaymentMethodView         = require 'app/payment/paymentmethodview'
+PaymentHistoryListItem    = require './paymenthistorylistitem'
+UpdateCreditCardWorkflow  = require 'app/payment/updatecreditcardworkflow'
 AccountListViewController = require '../controllers/accountlistviewcontroller'
-PaymentHistoryListItem = require './paymenthistorylistitem'
-showError = require 'app/util/showError'
-SubscriptionView = require 'app/payment/subscriptionview'
-UpdateCreditCardWorkflow = require 'app/payment/updatecreditcardworkflow'
-trackEvent = require 'app/util/trackEvent'
-KDButtonView = kd.ButtonView
 
 
-module.exports = class AccountBilling extends KDView
+module.exports = class AccountBilling extends kd.View
 
   initialState: {
     subscription: null
+    paymentMethod: null
     paymentHistory: null
   }
 
@@ -27,27 +25,34 @@ module.exports = class AccountBilling extends KDView
 
   viewAppended: ->
 
-    @addSubView @subscriptionWrapper = new KDCustomHTMLView
+    @addSubView @subscriptionWrapper = new kd.CustomHTMLView
       tagName  : 'section'
       cssClass : 'subscription-wrapper clearfix'
 
-    @addSubView @paymentHistoryWrapper = new KDCustomHTMLView
+    @addSubView @paymentMethodWrapper = new kd.CustomHTMLView
+      tagName  : 'section'
+      cssClass : 'payment-method-wrapper clearfix'
+
+    @addSubView @paymentHistoryWrapper = new kd.CustomHTMLView
       tagName  : 'section'
       cssClass : 'payment-history-wrapper clearfix'
 
-
     @initSubscription()
     @initPaymentHistory()
+
+    # put payment method view with empty data first,
+    # fetch and populate later.
+    @putPaymentMethodView null
 
 
   initSubscription: ->
 
     { paymentController } = kd.singletons
 
-    @subscriptionWrapper.addSubView header = new KDHeaderView
+    @subscriptionWrapper.addSubView header = new kd.HeaderView
       title : 'Subscriptions'
 
-    header.addSubView new KDButtonView
+    header.addSubView new kd.ButtonView
       style    : 'solid small green'
       title    : 'Upgrade'
       callback : @lazyBound 'emit', 'ChangeSubscriptionRequested'
@@ -71,18 +76,60 @@ module.exports = class AccountBilling extends KDView
 
       @subscriptionWrapper.addSubView @subscription
 
+      @initPaymentMethod subscription
+
 
   noItemView = (partial) ->
-    return new KDCustomHTMLView
+    return new kd.CustomHTMLView
       cssClass : 'no-item'
       partial  : partial
+
+
+  putPaymentMethodView: (method) ->
+
+    @paymentMethod?.destroy()
+
+    @paymentMethod = new PaymentMethodView {}, method
+
+    @paymentMethodWrapper.addSubView header = new kd.HeaderView
+      title : 'Payment Method'
+
+    header.addSubView button = new kd.ButtonView
+      style    : 'solid small green'
+      cssClass : 'hidden'
+      title    : 'Update'
+      callback : => @startWorkflow method
+
+    @paymentMethodHeader = header
+    @paymentMethodButton = button
+
+    @paymentMethodWrapper.addSubView @paymentMethod
+
+
+  initPaymentMethod: (subscription) ->
+
+    { paymentController } = kd.singletons
+
+    card = null
+    paymentController.creditCard (err, result) =>
+
+      if err
+        card = null
+      else
+        { provider, state } = subscription
+        creditCardExists = provider is 'stripe' and state isnt 'expired'
+
+        # only show the button if card exists.
+        card = result  if creditCardExists
+
+      @setPaymentMethod card
 
 
   initPaymentHistory: ->
 
     { paymentController } = kd.singletons
 
-    @paymentHistoryWrapper.addSubView new KDHeaderView
+    @paymentHistoryWrapper.addSubView new kd.HeaderView
       title : 'Payment History'
 
     paymentController.invoices (err, invoices) =>
@@ -112,6 +159,17 @@ module.exports = class AccountBilling extends KDView
 
   handleFinishedWithSuccess: ({ paymentMethod }) ->
 
-    @putPaymentMethodView paymentMethod
+    @setPaymentMethod paymentMethod
+
+
+  setPaymentMethod: (method) ->
+
+    @state.paymentMethod = method
+
+    if method
+    then @paymentMethodButton.show()
+    else @paymentMethodButton.hide()
+
+    @paymentMethod.setPaymentInfo method
 
 

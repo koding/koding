@@ -54,9 +54,9 @@ module.exports =
 
     browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
       if result.status is 0
-        console.log "Successfully logged in with username: #{user.username} and password: #{user.password}"
+        console.log "✔  Successfully logged in with username: #{user.username} and password: #{user.password}"
       else
-        console.log 'User is not registered yet. Registering...'
+        console.log '✔  User is not registered yet. Registering...'
         @doRegister browser, user
 
 

@@ -22,7 +22,7 @@
     "nib": "^1.1.0",
     "node-notifier": "^4.1.2",
     "nub": "^1.0.0",
-    "pistachioify": "^0.1.0",
+    "pistachioify": "^0.1.1",
     "pretty-bytes": "^1.0.3",
     "throttleit": "^1.0.0",
     "through2": "^0.6.3",

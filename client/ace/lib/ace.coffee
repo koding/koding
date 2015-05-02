@@ -677,8 +677,11 @@ class Ace extends KDView
       kd.warn 'possible race condition, shadowing the error! @acet'
       return
 
+    {tabView}    = aceView.delegate
+    return  unless tabView
+
     {name}       = aceView.ace.data
-    {handles}    = aceView.delegate.tabView
+    {handles}    = tabView
     targetHandle = null
 
     for handle in handles when handle.getOptions().title is name

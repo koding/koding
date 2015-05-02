@@ -34,23 +34,6 @@ func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription) error {
 // InvoiceCreated
 //----------------------------------------------------------
 
-type InvoiceCreatedWebhookRequest struct {
-	Id    string `json:"id"`
-	Lines struct {
-		Data []struct {
-			SubscriptionId string `json:"id"`
-			Period         struct {
-				Start float64 `json:"start"`
-				End   float64 `json:"end"`
-			} `json:"period"`
-			Plan struct {
-				PlanId string `json:"id"`
-			} `json:"plan"`
-		} `json:"data"`
-		Count int `json:"count"`
-	} `json:"lines"`
-}
-
 func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 	if !IsLineCountAllowed(req.Lines.Count) {
 		return nil

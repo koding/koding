@@ -88,7 +88,7 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
     resetOnboardingLink = new KDView
       tagName : 'a'
-      partial : 'Click here to reset'
+      partial : 'Click here'
       click   : =>
         kd.singletons.onboardingController.resetOnboardings =>
           @destroy()
@@ -96,7 +96,7 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
     @addSubView new JCustomHTMLView
       cssClass        : 'onboarding-text'
-      pistachio       : 'Want to view all the onboarding steps again?<br />{{> resetOnboardingLink}}'
+      pistachio       : '{{> resetOnboardingLink}} if you want to see the onboarding steps again. (requires reload)'
       pistachioParams : { resetOnboardingLink }
 
 

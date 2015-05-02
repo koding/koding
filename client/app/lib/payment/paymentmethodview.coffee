@@ -1,7 +1,8 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+_                = require 'lodash'
+kd               = require 'kd'
+JView            = require '../jview'
+KDButtonView     = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
-JView = require '../jview'
 
 module.exports = class PaymentMethodView extends JView
 
@@ -41,26 +42,7 @@ module.exports = class PaymentMethodView extends JView
 
     data = @getData()
 
-    @editLink = new KDButtonView
-      title    : 'Update'
-      cssClass : 'edit solid medium gray'
-      callback : (e) =>
-        e.preventDefault()
-        @emit 'PaymentMethodEditRequested', data
-
-    @removeLink = new KDButtonView
-      title    : 'Remove'
-      cssClass : 'remove'
-      click    : (e) =>
-        e.preventDefault()
-        @emit 'PaymentMethodRemoveRequested', data
-
-    if @getOption 'editLink' or @getOption 'removeLink'
-    then @controlsView = new KDCustomHTMLView cssClass : 'payment-method-controls hidden'
-    else @controlsView = new KDCustomHTMLView tagName  : 'span'
-
-    if @getOption 'editLink'   then @controlsView.addSubView @editLink
-    if @getOption 'removeLink' then @controlsView.addSubView @removeLink
+    @controlsView = new kd.CustomHTMLView { cssClass: 'payment-method-controls' }
 
     @paymentMethodInfo = new KDCustomHTMLView cssClass : 'billing-link'
     @paymentMethodInfo.hide()
@@ -73,22 +55,15 @@ module.exports = class PaymentMethodView extends JView
 
     return noCardPartial  if not paymentMethod or @isNoCard paymentMethod
 
-    { last4 } = paymentMethod
+    { last4, brand } = paymentMethod
 
-    # TODO: we need to get the
-    # card type info with the payload, but for now
-    # let's just use visa, and don't show it anywhere. ~U
-    cardType = 'visa'
+    type = kd.utils.slugify(brand).toLowerCase()
 
-    type = kd.utils.slugify(cardType).toLowerCase()
-    @setClass type
-
-    numberPrefix = if type is 'american-express'
-    then '**** ****** *'
-    else '**** **** **** '
+    prefix = 'ending with '
 
     """
-    <pre>#{numberPrefix}#{last4}</pre>
+    <cite class='icon #{type}'></cite>
+    <span class='credit-card-title'>#{prefix}#{last4}</span>
     """
 
 
@@ -96,7 +71,7 @@ module.exports = class PaymentMethodView extends JView
 
     return @data = null  if @isNoCard paymentMethod
 
-    @data[key] = value  for key, value of paymentMethod
+    @data = _.assign {}, paymentMethod
 
 
   setPaymentInfo: (paymentMethod) ->
