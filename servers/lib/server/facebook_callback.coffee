@@ -20,7 +20,8 @@ module.exports = (req, res) ->
   url += "client_id=#{facebook.clientId}&"
   url += "redirect_uri=#{facebook.redirectUri}&"
   url += "client_secret=#{facebook.clientSecret}&"
-  url += "code=#{code}"
+  url += "code=#{code}&"
+  url += "scope=email"
 
   # Get access token with code
   http.get url, (httpResp)->
@@ -45,8 +46,8 @@ module.exports = (req, res) ->
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
       userInfo                  = JSON.parse rawResp
-      {id, username}            = userInfo
-      facebookResp              = {username}
+      {id, username, email}     = userInfo
+      facebookResp              = {username, email}
       facebookResp["token"]     = access_token
       facebookResp["foreignId"] = id
       facebookResp["profile"]   = userInfo

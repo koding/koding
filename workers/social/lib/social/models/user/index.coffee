@@ -949,7 +949,8 @@ module.exports = class JUser extends jraphical.Module
           # Password is not required for GitHub users since they are authorized via GitHub.
           # To prevent having the same password for all GitHub users since it may be
           # a security hole, let's auto generate it if it's not provided in request
-          if foreignAuthInfo?.foreignAuthType is 'github' and not password?
+          # oauths = ['github', 'facebook', 'twitter', 'google']
+          unless password?
             password = userFormData.password = createId()
             passwordConfirm = userFormData.passwordConfirm = password
 

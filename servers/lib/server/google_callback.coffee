@@ -32,8 +32,10 @@ module.exports = (req, res) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
+      console.log ">>>>>>", rawResp
+
       try
-        {id} = JSON.parse rawResp
+        {id, email} = JSON.parse rawResp
       catch e
         renderOauthPopup res, {error:"Error getting id", provider}
 
@@ -43,46 +45,49 @@ module.exports = (req, res) ->
         googleResp["foreignId"]    = id
         googleResp["refreshToken"] = refresh_token
         googleResp["expires"]      = new Date().getTime()+3600
+        googleResp["email"]        = email
 
         saveOauthToSession googleResp, clientId, provider, (err)->
           if err
             renderOauthPopup res, {error:"Error saving oauth info", provider}
             return
 
-          path  = "/m8/feeds/contacts/default/full?"
-          path += "access_token=#{access_token}&"
-          # path += "updated-min=2010-01-01T00:00:00" # just a random date to get latest contacts
+          renderOauthPopup res, {error:null, provider}
 
-          options =
-            host   : "www.google.com"
-            path   : path
-            method : "GET"
-          r = http.request options, fetchUserContacts
-          r.end()
-      else
-        renderOauthPopup res, {error:"Error getting id", provider}
+  #         path  = "/m8/feeds/contacts/default/full?"
+  #         path += "access_token=#{access_token}&"
+  #         # path += "updated-min=2010-01-01T00:00:00" # just a random date to get latest contacts
 
-  # Get user contacts with access token
-  fetchUserContacts = (contactsResp)->
-    rawResp = ""
-    contactsResp.on "data", (chunk) -> rawResp += chunk
-    contactsResp.on "end", ->
-      try
-        parseString rawResp, (err, result) ->
-          if err
-            renderOauthPopup res, {error:"Error parsing contacts info", provider}
-            return
+  #         options =
+  #           host   : "www.google.com"
+  #           path   : path
+  #           method : "GET"
+  #         r = http.request options, fetchUserContacts
+  #         r.end()
+  #     else
+  #       renderOauthPopup res, {error:"Error getting id", provider}
 
-          for i in result.feed.entry
-            title = i.title[0]["_"]
-            for e in i["gd:email"]
-              email = e["$"].address
-              JReferrableEmail.create clientId, {email, title}, (err)->
-                console.error "saving JReferrableEmail", err  if err
-      catch e
-        console.error "google callback error parsing emails", e
+  # # Get user contacts with access token
+  # fetchUserContacts = (contactsResp)->
+  #   rawResp = ""
+  #   contactsResp.on "data", (chunk) -> rawResp += chunk
+  #   contactsResp.on "end", ->
+  #     try
+  #       parseString rawResp, (err, result) ->
+  #         if err
+  #           renderOauthPopup res, {error:"Error parsing contacts info", provider}
+  #           return
 
-      renderOauthPopup res, {error:null, provider}
+  #         for i in result.feed.entry
+  #           title = i.title[0]["_"]
+  #           for e in i["gd:email"]
+  #             email = e["$"].address
+  #             JReferrableEmail.create clientId, {email, title}, (err)->
+  #               console.error "saving JReferrableEmail", err  if err
+  #     catch e
+  #       console.error "google callback error parsing emails", e
+
+  #     renderOauthPopup res, {error:null, provider}
 
   authorizeUser = (authUserResp)->
     rawResp = ""
