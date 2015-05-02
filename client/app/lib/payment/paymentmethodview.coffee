@@ -55,22 +55,15 @@ module.exports = class PaymentMethodView extends JView
 
     return noCardPartial  if not paymentMethod or @isNoCard paymentMethod
 
-    { last4 } = paymentMethod
+    { last4, brand } = paymentMethod
 
-    # TODO: we need to get the
-    # card type info with the payload, but for now
-    # let's just use visa, and don't show it anywhere. ~U
-    cardType = 'visa'
+    type = kd.utils.slugify(brand).toLowerCase()
 
-    type = kd.utils.slugify(cardType).toLowerCase()
-    @setClass type
-
-    numberPrefix = if type is 'american-express'
-    then '**** ****** *'
-    else '**** **** **** '
+    prefix = 'ending with '
 
     """
-    <pre>#{numberPrefix}#{last4}</pre>
+    <cite class='icon #{type}'></cite>
+    <span class='credit-card-title'>#{prefix}#{last4}</span>
     """
 
 
@@ -78,7 +71,7 @@ module.exports = class PaymentMethodView extends JView
 
     return @data = null  if @isNoCard paymentMethod
 
-    @data[key] = value  for key, value of paymentMethod
+    @data = _.assign {}, paymentMethod
 
 
   setPaymentInfo: (paymentMethod) ->

@@ -12,6 +12,7 @@ module.exports = class AccountBilling extends kd.View
 
   initialState: {
     subscription: null
+    paymentMethod: null
     paymentHistory: null
   }
 
@@ -28,13 +29,20 @@ module.exports = class AccountBilling extends kd.View
       tagName  : 'section'
       cssClass : 'subscription-wrapper clearfix'
 
-    @addSubView @paymentHistoryWrapper = new KDCustomHTMLView
+    @addSubView @paymentMethodWrapper = new kd.CustomHTMLView
+      tagName  : 'section'
+      cssClass : 'payment-method-wrapper clearfix'
+
+    @addSubView @paymentHistoryWrapper = new kd.CustomHTMLView
       tagName  : 'section'
       cssClass : 'payment-history-wrapper clearfix'
 
-
     @initSubscription()
     @initPaymentHistory()
+
+    # put payment method view with empty data first,
+    # fetch and populate later.
+    @putPaymentMethodView null
 
 
   initSubscription: ->
@@ -68,11 +76,53 @@ module.exports = class AccountBilling extends kd.View
 
       @subscriptionWrapper.addSubView @subscription
 
+      @initPaymentMethod subscription
+
 
   noItemView = (partial) ->
     return new kd.CustomHTMLView
       cssClass : 'no-item'
       partial  : partial
+
+
+  putPaymentMethodView: (method) ->
+
+    @paymentMethod?.destroy()
+
+    @paymentMethod = new PaymentMethodView {}, method
+
+    @paymentMethodWrapper.addSubView header = new kd.HeaderView
+      title : 'Payment Method'
+
+    header.addSubView button = new kd.ButtonView
+      style    : 'solid small green'
+      cssClass : 'hidden'
+      title    : 'Update'
+      callback : => @startWorkflow method
+
+    @paymentMethodHeader = header
+    @paymentMethodButton = button
+
+    @paymentMethodWrapper.addSubView @paymentMethod
+
+
+  initPaymentMethod: (subscription) ->
+
+    { paymentController } = kd.singletons
+
+    card = null
+    paymentController.creditCard (err, result) =>
+
+      if err
+        card = null
+      else
+        { provider, state } = subscription
+        creditCardExists = provider is 'stripe' and state isnt 'expired'
+
+        # only show the button if card exists.
+        card = result  if creditCardExists
+
+      @setPaymentMethod card
 
 
   initPaymentHistory: ->
@@ -109,6 +159,17 @@ module.exports = class AccountBilling extends kd.View
 
   handleFinishedWithSuccess: ({ paymentMethod }) ->
 
-    @putPaymentMethodView paymentMethod
+    @setPaymentMethod paymentMethod
+
+
+  setPaymentMethod: (method) ->
+
+    @state.paymentMethod = method
+
+    if method
+    then @paymentMethodButton.show()
+    else @paymentMethodButton.hide()
+
+    @paymentMethod.setPaymentInfo method
 
 
