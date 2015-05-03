@@ -33,7 +33,7 @@ DROP TABLE IF EXISTS "integration"."channel_integration";
 CREATE TABLE "integration"."channel_integration" (
   "id" BIGINT NOT NULL DEFAULT nextval('integration.channel_integration_id_seq'::regclass),
   "description" VARCHAR (140) NOT NULL COLLATE "default",
-  "token" VARCHAR(20) NOT NULL,
+  "token" UUID NOT NULL DEFAULT uuid_generate_v4(),
   "integration_id" BIGINT NOT NULL,
   "group_name" VARCHAR(200) NOT NULL CHECK ("group_name" <> '') COLLATE "default",
   "channel_id" BIGINT NOT NULL,
