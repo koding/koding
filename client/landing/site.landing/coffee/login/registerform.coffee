@@ -10,20 +10,10 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     super options, data
 
     @emailIsAvailable = no
+    @on 'EmailIsAvailable'   , => @emailIsAvailable = yes
+    @on 'EmailIsNotAvailable', => @emailIsAvailable = no
 
-    @email?.destroy()
-    @email = new LoginInputViewWithLoader
-      inputOptions        :
-        name              : 'email'
-        placeholder       : 'Email address'
-        attributes        :
-          testpath        : 'register-form-email'
-        validate          : @getEmailValidator()
-        decorateValidation: no
-        focus             : => @email.icon.unsetTooltip()
-        keydown           : (event) => @submitForm event  if event.which is ENTER
-        blur              : => @fetchGravatarInfo @email.input.getValue()
-        change            : => @emailIsAvailable = no
+    @on 'EmailValidationPassed', @bound 'callbackAfterValidation'
 
     @password?.destroy()
     @password = new LoginInputView
@@ -47,6 +37,23 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             required      : "Please enter a password."
             minLength     : "Passwords should be at least 8 characters."
         decorateValidation: no
+
+    @email?.destroy()
+    @email = new LoginInputViewWithLoader
+      inputOptions        :
+        name              : 'email'
+        placeholder       : 'Email address'
+        attributes        :
+          testpath        : 'register-form-email'
+        validate          : KD.utils.getEmailValidator
+          container       : this
+          password        : @password
+        decorateValidation: no
+        focus             : => @email.icon.unsetTooltip()
+        keydown           : (event) => @submitForm event  if event.which is ENTER
+        blur              : => @fetchGravatarInfo @email.input.getValue()
+        change            : => @emailIsAvailable = no
+
 
     {buttonTitle} = @getOptions()
 
@@ -85,48 +92,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     input.clearValidationFeedback() for input in inputs
 
     super
-
-
-  getEmailValidator: ->
-    container   : this
-    event       : 'submit'
-    rules       :
-      required  : yes
-      minLength : 4
-      email     : yes
-      available : (input, event) =>
-        return if event?.which is 9
-
-        {required, email, minLength} = input.validationResults
-
-        return  if required or minLength
-
-        input.setValidationResult 'available', null
-        email     = input.getValue()
-        passInput = @password.input
-
-        @emailIsAvailable = no
-        if input.valid
-          $.ajax
-            url         : "/Validate/Email/#{email}"
-            type        : 'POST'
-            data        : password : passInput.getValue()
-            xhrFields   : withCredentials : yes
-            success     : (res) =>
-              return location.replace("/")  if res is 'User is logged in!'
-
-              @emailIsAvailable = yes
-              input.setValidationResult 'available', null
-
-              if res is yes
-                @callbackAfterValidation()
-            error       : ({responseJSON}) =>
-              @emailIsAvailable = no
-              input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
-    messages    :
-      required  : 'Please enter your email address.'
-      email     : 'That doesn\'t seem like a valid email address.'
-
 
   callbackAfterValidation: ->
 
