@@ -85,6 +85,7 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 
 	_, err := r.verify()
 	if err == webhook.ErrIntegrationNotFound {
+		h.log.Warning("Could not find integration: %s", r.Name)
 		return response.NewNotFound()
 	}
 
