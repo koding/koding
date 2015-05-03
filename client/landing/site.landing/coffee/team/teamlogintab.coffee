@@ -28,7 +28,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     # @logo.setCss 'background-image', KD.config.group.backgroundImage
 
     @loginForm = new LoginInlineForm
-      cssClass : 'login-form'
+      cssClass : 'login-form clearfix'
       testPath : 'login-form'
       callback : (formData) =>
         mainController.on 'LoginFailed', => @loginForm.button.hideLoader()
