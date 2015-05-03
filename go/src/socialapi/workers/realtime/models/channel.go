@@ -35,7 +35,10 @@ func (pmc *PrivateMessageChannel) PrepareName() string {
 }
 
 func (pmc *PrivateMessageChannel) GrantAccess(p *PubNub, a *Authenticate) error {
-	if pmc.Channel.Type == "privatemessage" || pmc.Channel.Type == "pinnedactivity" {
+	if pmc.Channel.Type == "privatemessage" ||
+		pmc.Channel.Type == "pinnedactivity" ||
+		pmc.Channel.Type == "collaboration" ||
+		pmc.Channel.Type == "bot" {
 		return p.GrantAccess(a, pmc)
 	}
 
