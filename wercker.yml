@@ -83,12 +83,14 @@ build:
     - script:
         name: check social api code quality
         code: |
-          sudo rm -rf /usr/local/go/pkg/tool/linux_amd64/vet
-          sudo chown -R $USER /usr/local/go/pkg/tool/linux_amd64
-          go get github.com/alecthomas/gometalinter
-          go install github.com/alecthomas/gometalinter
-          go build github.com/alecthomas/gometalinter
-          ./gometalinter --install
+          checks=(
+            github.com/alecthomas/gocyclo
+            github.com/remyoudompheng/go-misc/deadcode
+            github.com/opennota/check/cmd/varcheck
+            github.com/barakmich/go-nyet
+          )
+
+          `which go` install -v "${checks[@]}"
 
           echo "checking cyclo complexity"
           ./go/bin/gocyclo -top 20 ./go/src/socialapi/*/**/**.go
