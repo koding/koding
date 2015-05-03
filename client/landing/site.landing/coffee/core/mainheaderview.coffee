@@ -5,7 +5,7 @@ module.exports = class MainHeaderView extends KDView
   constructor: (options = {}, data) ->
 
     options.tagName    or= 'header'
-    options.domId      or= 'main-header'
+    options.cssClass     = KD.utils.curry options.cssClass, 'main-header'
     options.attributes or= testpath : 'main-header'
 
     super options, data
@@ -15,7 +15,8 @@ module.exports = class MainHeaderView extends KDView
 
     @addSubView @mobileMenu = new TopNavigation cssClass : 'mobile-menu'
 
-    @addSubView new TopNavigation
+    { navItems } = @getOptions()
+    @addSubView new TopNavigation { navItems }
 
     @addSubView @hamburgerMenu = new KDButtonView
       cssClass  : 'hamburger-menu'
