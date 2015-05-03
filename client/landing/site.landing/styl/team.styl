@@ -69,36 +69,66 @@ team.styl
       margin-left           13px
       font-size             12px
 
+  // GENERIC SIGNUPFORM CUSTOMIZATIONS
+
+  .kdtabpaneview .SignupForm
+    margin-bottom           100px
+
+    .login-input-view
+      margin                0 0 26px
+      rel()
+      &.tr
+        bg                  color transparent
+
+      input.kdinput
+        bg                  color white
+        text-align          left
+        borderBox()
+
+      span
+        bg                  color #EAEAEA
+        line-height         44px
+        z-index             4
+
+    .SignupForm-button
+      margin-top            52px
+      width                 90px
+      float                 right
+
+    .SignupForm-linkButton.skip
+      abs                   0 150px 40px 0
+
 .SignupForm
   width                     60%
   padding                   31px 44px
-  max-width                 600px
+  max-width                 553px
   margin                    110px auto 0
   bg                        color #FAFAFA
   top                       0px
   color                     #434343
   z-index                   3
   rounded                   3px
+  text-align                center
   shadow                    inset 0 -102px 0 #EFEFEF
   borderBox()
   rel()
 
   .login-input-view
     bg                      color white
-
-  .login-input-view .kdinput
-    rounded                 1px
-    border-color            #DBDBDB
-
-  .login-input-view .placeholder-helper
     font-family             adelleSans
 
+  .login-input-view input.kdinput
+    rounded                 1px
+    border-color            #DBDBDB
+    font-family             adelleSans
+    font-size               14px
+    padding                 12px 14px 8px
+
   > form
-    max-width               450px
     margin                  30px auto 0
 
-    .SignupForm-button
-      margin-top            62px
+  .SignupForm-button
+    margin-top              62px
 
 
   > figure
@@ -110,11 +140,25 @@ team.styl
 
 
   > h4
+    color                   #00B153
     font-family             adelle
-    font-size               32px
+    font-size               26px
     line-height             50px
-    text-align              center
 
+  > h5
+    font-family             adelleSans
+    font-size               20px
+    line-height             27px
+    width                   361px
+    margin                  0 auto
+
+  p
+    width                   361px
+    margin                  0 auto
+    line-height             23px
+
+  .dim
+    color                   #9E9E9E
 
 .SignupForm-button
   font-family               adelleSans
