@@ -333,7 +333,8 @@ utils.extend utils,
     match = location.pathname.match /\/R\/(.*)/
     return referrer  if match and referrer = match[1]
 
-  getGroupNameFromLocation : ->
+
+  getGroupNameFromLocation: ->
 
     { hostname } = location
 

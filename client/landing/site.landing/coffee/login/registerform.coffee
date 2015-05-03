@@ -4,7 +4,7 @@ LoginInputViewWithLoader = require './logininputwithloader'
 
 module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
-  ENTER          = 13
+  ENTER = 13
 
   constructor:(options={},data)->
     super options, data
