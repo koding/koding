@@ -19,7 +19,12 @@ module.exports = class TeamsView extends JView
         { title : 'Success Stories', href : '/Features',                name : 'success' }
         { title : 'SIGN IN',         href : '/Team/Login',              name : 'buttonized white login',  attributes : testpath : 'login-link' }
       ]
-    @form   = new TeamSignupForm cssClass : 'SignupForm--middle login-form'
+    @form   = new TeamSignupForm
+      cssClass : 'SignupForm--middle login-form'
+      callback : =>
+        console.log 'go to domain'
+        KD.singletons.router.handleRoute '/Team/domain'
+
     @footer = new FooterView
 
 
