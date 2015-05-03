@@ -115,7 +115,7 @@ module.exports =
 
   assertMainHeader: (browser, assertLoginLink = yes) ->
 
-    logoSelector = '[testpath=main-header] a#koding-logo'
+    logoSelector = '[testpath=main-header] a.koding-header-logo'
     loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
 
     browser.waitForElementVisible logoSelector, 25000
