@@ -47,7 +47,7 @@ func TestCreateAndGetGroup(t *testing.T) {
 	}
 
 	if g2.Id.Hex() != g.Id.Hex() {
-		t.Errorf("groups are not same: expected: %+v, got: ", g2.Id.Hex())
+		t.Errorf("groups are not same: expected: %+v, got: %+v ", g.Id.Hex(), g2.Id.Hex())
 	}
 
 	randomName := bson.NewObjectId().Hex()
