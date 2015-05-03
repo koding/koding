@@ -3,8 +3,7 @@ TeamView = require './AppView'
 module.exports = class TeamAppController extends KDViewController
 
   KD.registerAppClass this,
-    name       : 'Team'
-    background : yes
+    name : 'Team'
 
   constructor: (options = {}, data) ->
 

@@ -1,0 +1,130 @@
+@import "lib/core.fonts"
+@import "lib/core.fn"
+
+@css {
+/*
+Team stylesheet
+team.styl
+*/
+}
+
+.main-header.team
+  padding                   0 22px
+  max-width                 none
+  top                       32px
+  fix()
+
+.content-area-pane.team
+  font-family               adelleSans
+  bg                        color #111
+
+  &:before
+    content                 ''
+    bg                      image, url('/a/site.landing/images/unsplash/4.jpg')
+    size                    100% 100%
+    top                     0
+    left                    0
+    bg                      size cover
+    // opacity                 0.001
+    z-index                 0
+    vendor                  transition, opacity .3s ease
+    fix()
+
+  &:after
+    size                    100% 100%
+    z-index                 1
+    top                     0
+    left                    0
+    bg                      color, rgba(0,0,0,.6)
+    fix()
+
+.content-page.Team
+  overflow                  auto
+  z-index                   2
+  color                     white
+
+  section
+    width                   60%
+    max-width               600px
+    color                   rgba(255, 255, 255, .8)
+    margin                  0 auto 100px
+    padding                 20px 0
+    font-size               14px
+    line-height             20px
+    text-align              center
+    borderBox()
+    p
+      margin-bottom         10px
+    a
+      color                 #27ae60
+      font-weight           600
+
+  footer
+    bottom                  22px
+    left                    9px
+    z-index                 2
+    fix()
+    a
+      color                 rgba(255, 255, 255, .5)
+      margin-left           13px
+      font-size             12px
+
+.SignupForm
+  width                     60%
+  padding                   31px 44px
+  max-width                 600px
+  margin                    110px auto 0
+  bg                        color #FAFAFA
+  top                       0px
+  color                     #434343
+  z-index                   3
+  rounded                   3px
+  shadow                    inset 0 -102px 0 #EFEFEF
+  borderBox()
+  rel()
+
+  .login-input-view
+    bg                      color white
+
+  .login-input-view .kdinput
+    rounded                 1px
+    border-color            #DBDBDB
+
+  .login-input-view .placeholder-helper
+    font-family             adelleSans
+
+  > form
+    max-width               450px
+    margin                  30px auto 0
+
+    .SignupForm-button
+      margin-top            62px
+
+
+  > figure
+    margin                  0 auto 20px
+    size                    64px 64px
+    bg                      color #ddd
+    bg                      image url('http://lorempixel.com/64/64/animals/')
+    rounded                 3px
+
+
+  > h4
+    font-family             adelle
+    font-size               32px
+    line-height             50px
+    text-align              center
+
+
+.SignupForm-button
+  font-family               adelleSans
+  rounded                   3px
+  size                      100% 40px
+  border                    none
+  font-size                 14px
+  line-height               40px
+  text-transform            uppercase
+
+.SignupForm-button--green
+  color                     white
+  bg                        color #00B057
