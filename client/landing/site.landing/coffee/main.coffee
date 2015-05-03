@@ -18,15 +18,6 @@ MainController = require './core/maincontrollerloggedout'
 
 do ->
 
-  setConfig = ->
-
-    KD.config or= {}
-
-    KD.config.environment = if location.hostname is 'koding.com'\
-                            then 'production' else 'development'
-
-    KD.config.groupName   = KD.utils.getGroupNameFromLocation()
-
   registerRoutes = ->
 
     require './core/routes.coffee'
@@ -35,10 +26,19 @@ do ->
     require './legal/routes.coffee'
     require './features/routes.coffee'
     require './teams/routes.coffee'
+    require './team/routes.coffee'
+
+  setGroup = (err, group) ->
+    registerRoutes()
+    KD.config.group = group  if group
+    # BIG BANG
+    new MainController group
 
 
-  setConfig()
-  registerRoutes()
+  KD.config             or= {}
+  KD.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
+  KD.config.groupName     = groupName = KD.utils.getGroupNameFromLocation()
 
-  # BIG BANG
-  new MainController
+  if groupName is 'koding'
+  then setGroup()
+  else KD.utils.checkIfGroupExists groupName, setGroup

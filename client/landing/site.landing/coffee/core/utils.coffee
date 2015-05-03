@@ -348,6 +348,15 @@ utils.extend utils,
     return groupName
 
 
+  checkIfGroupExists: (groupName, callback) ->
+
+    $.ajax
+      url     : "/-/teams/#{groupName}"
+      type    : 'post'
+      success : (group) -> callback null, group
+      error   : (err) -> callback err
+
+
   getEmailValidator: (options = {}) ->
 
     { container, password } = options
