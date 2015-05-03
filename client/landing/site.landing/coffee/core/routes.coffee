@@ -16,7 +16,7 @@ do ->
     unless group
       location.replace 'http://' + location.host.replace("#{groupName}.", '') + "/Teams?group=#{groupName}"
     else
-      router.openSection 'Team'
+      router.openSection 'Team', null, null, (app) -> app.jumpTo 'login'
 
 
   KD.registerRoutes 'Core',

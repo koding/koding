@@ -1,19 +1,13 @@
 do ->
 
+  handleRoot = -> KD.singletons.router.handleRoute '/'
+
   KD.registerRoutes 'Team',
 
-    '/Team': ->
+    '/Team'       : handleRoot
+    '/Team/:step' : ({ params : { step }, query }) ->
 
       { router } = KD.singletons
-      groupName  = KD.utils.getGroupNameFromLocation()
-
-      if groupName is 'koding'
-      then router.handleRoute '/'
-      else router.openSection 'Team'
-
-
-    '/Team/create/:step?': ({ params : { step }, query }) ->
-
-      KD.singletons.router.openSection 'Team', null, null, (app) ->
+      router.openSection 'Team', null, null, (app) ->
         app.jumpTo step, query  if step
 
