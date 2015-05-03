@@ -137,6 +137,25 @@ team.styl
         size                42px 42px
         border-right        1px solid #DBDBDB
 
+  // INVITE TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.invite .SignupForm
+
+    .login-input-view
+        margin-bottom       5px
+
+    p.dim
+      abs                   0 0 26px 44px
+      width                 calc(100% - 300px)
+      text-align            left
+
+
+    .SignupForm-button.add
+      float                 none
+      margin                15px 0 0
+      display               block
+      width                 auto
+
 .SignupForm
   width                     60%
   padding                   31px 44px
@@ -207,7 +226,20 @@ team.styl
   font-size                 14px
   line-height               40px
   text-transform            uppercase
+  &.compact
+    height                  24px
+    font-size               10px
+    line-height             16px
+    padding                 4px 7px 0
 
 .SignupForm-button--green
   color                     white
   bg                        color #00B057
+
+.SignupForm-button--gray
+  color                     white
+  bg                        color #BDC3C7
+
+.SignupForm-linkButton
+  color                     #929292
+  font-size                 14px
