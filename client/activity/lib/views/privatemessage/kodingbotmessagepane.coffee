@@ -12,7 +12,8 @@ module.exports = class KodingBotMessagePane extends PrivateMessagePane
     super options, data
 
     @listController.getListView().setClass 'kdlistview-privatemessage'
-
+    @actionsMenu?.destroy()
+    @participantHeads?.newParticipantButton?.destroy()
 
   fetch: (options = {}, callback) ->
 
