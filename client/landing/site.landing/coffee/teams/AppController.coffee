@@ -2,10 +2,7 @@ TeamsView = require './AppView'
 
 module.exports = class TeamsAppController extends KDViewController
 
-  KD.registerAppClass this,
-    name  : 'Teams'
-    route : '/Teams'
-
+  KD.registerAppClass this, name : 'Teams'
 
   constructor: (options = {}, data) ->
 
@@ -14,8 +11,5 @@ module.exports = class TeamsAppController extends KDViewController
 
     super options, data
 
-    console.log 'hellllllllllllllllllloooooooooooooooooooooo'
 
-  jumpTo: ->
-
-    console.log 'jumpTo'
+  jumpTo: (step, query) -> # new KDNotificationView title : step

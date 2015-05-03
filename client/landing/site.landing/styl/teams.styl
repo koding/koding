@@ -1,0 +1,67 @@
+@import "lib/core.fonts"
+@import "lib/core.fn"
+
+@css {
+/*
+Teams Homepage stylesheet
+teams.styl
+*/
+}
+
+// .content-area-pane.teams
+//   overflow                  auto
+
+.content-page.teams
+  overflow                  auto
+  color                     white
+
+  section.main-wrapper
+    bg                      color #2D5EAB
+    min-height              600px
+    padding                 20px 0
+    font-family             adelleSans
+    font-size               14px
+    line-height             20px
+    text-align              center
+    borderBox()
+
+    h1
+    h2
+      width                 60%
+      max-width             600px
+      margin                0 auto
+
+    h1
+      margin-top            180px
+      font-family           proximaFamily
+      font-weight           600
+      font-size             42px
+      line-height           50px
+      color                 #F4E327
+
+    h2
+      font-size             22px
+      line-height           40px
+
+  .SignupForm--middle
+    margin-top              30px
+
+    section > div
+      &.email
+      &.company-name
+        width               calc(50% - 54px)
+
+      &.submit:after
+        hidden()
+
+      &:before
+        hidden()
+
+      .login-input-view
+        .placeholder-helper
+          padding           0
+          text-align        center
+
+        input.kdinput
+          text-align        center
+          padding           8px 0
