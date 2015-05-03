@@ -1,7 +1,14 @@
 do ->
 
-  handler = (callback)-> (options) ->
+  handler = (callback) -> (options) ->
     cb = (app) -> callback app, options
+    groupName = KD.utils.getGroupNameFromLocation()
+
+    # we need to remove this and make it selectively only
+    # for login and register routes
+    # redeem/reset etc should work for groups - SY
+    return KD.singletons.router.handleRoute '/'  if groupName isnt 'koding'
+
     KD.singletons.router.openSection 'Login', null, null, cb
 
 
