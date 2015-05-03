@@ -10,3 +10,8 @@ module.exports = class TeamAppController extends KDViewController
     options.view = new TeamView cssClass : 'Team content-page'
 
     super options, data
+
+
+  jumpTo: (step, query) ->
+
+    new KDNotificationView title : step
