@@ -31,7 +31,7 @@ module.exports = class MainHeaderView extends KDView
 
     @addSubView @logo = new KDCustomHTMLView
       tagName   : 'a'
-      domId     : 'koding-logo'
+      cssClass  : 'koding-header-logo'
       partial   : '<cite></cite>'
       click     : (event) ->
         KD.utils.stopDOMEvent event
