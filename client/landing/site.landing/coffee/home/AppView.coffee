@@ -21,7 +21,7 @@ module.exports = class HomeView extends KDView
     @infoDots = []
 
     @signUpForm = new HomeRegisterForm
-      cssClass    : 'login-form register no-anim'
+      cssClass    : 'SignupForm--middle login-form register no-anim'
       buttonTitle : 'SIGN UP'
       callback    : (formData) =>
         router.requireApp 'Login', (controller) =>
