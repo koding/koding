@@ -36,9 +36,7 @@ module.exports = class SocialApiController extends KDController
       when 'followedChannels' then mapChannels
       when 'popularPosts', 'pinnedMessages', 'navigated' then mapActivities
       when 'privateMessages'                   then mapPrivateMessages
-      when 'bot'
-        data = data.data
-        mapChannel
+      when 'bot' then mapBotChannel
 
     return fn(data) or []
 
@@ -247,6 +245,15 @@ module.exports = class SocialApiController extends KDController
 
     return  unless participant
     return {_id: participant.accountOldId, constructorName: "JAccount"}
+
+  mapBotChannel = (data) ->
+    data = data.data
+    revivedChannel = mapChannel data
+
+    revivedChannels = [revivedChannel]
+    registerAndOpenChannels revivedChannels
+
+    return revivedChannel
 
 
   mapChannels: mapChannels
