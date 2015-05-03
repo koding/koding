@@ -10,7 +10,7 @@ home.styl
 body.home
   -webkit-font-smoothing  antialiased
 
-  #main-header nav
+  .main-header nav
     a.signup
       hidden()
 
@@ -450,7 +450,7 @@ body.home
 // Smartphones
 
 @media only screen and (min-width : 320px) and (max-width : 767px)
-  #main-header
+  .main-header
     height                61px
     line-height           61px
     top                   0
@@ -517,11 +517,11 @@ body.home
       padding-top         10px
       height              130px
 
-    &.active ~ #main-header
+    &.active ~ .main-header
       top                 130px
 
   body.home
-    #main-header .hamburger-menu .icon
+    .main-header .hamburger-menu .icon
       background          #fff
 
     .content-page.home

@@ -8,7 +8,7 @@ resurrection.commons.styl
 }
 
 html.app
-  #main-header
+  .main-header
     nav
       margin            -37px 18px 0 0
 
@@ -28,7 +28,7 @@ body
     overflow        hidden
 
   &.logged-in
-    #main-header
+    .main-header
       nav
         hidden()
 
@@ -88,17 +88,17 @@ button
   overflow            visible
   height              auto
 
-#main-header
-  margin                0
-  size                  100%,55px
-  z-index               1000
-  overflow              visible
-  max-width             1290px
-  shadow                none
-  padding               0 45px
-  abs                   48px 0 0 50%
-  vendor                transform, translateX(-50%)
-  z-index               15
+.main-header
+  margin                    0
+  size                      100% 55px
+  z-index                   1000
+  overflow                  visible
+  max-width                 1290px
+  shadow                    none
+  padding                   0 45px
+  abs                       48px 0 0 50%
+  vendor                    transform, translateX(-50%)
+  z-index                   15
   borderBox()
 
 
