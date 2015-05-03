@@ -346,3 +346,53 @@ utils.extend utils,
     else 'koding'
 
     return groupName
+
+
+  getEmailValidator: (options = {}) ->
+
+    { container, password } = options
+
+    container   : container
+    event       : 'submit'
+    messages    :
+      required  : 'Please enter your email address.'
+      email     : 'That doesn\'t seem like a valid email address.'
+    rules       :
+      required  : yes
+      email     : yes
+      available : (input, event) ->
+
+        return  if event?.which is 9
+
+        { required, email, minLength } = input.validationResults
+
+        return  if required or minLength
+
+        input.setValidationResult 'available', null
+        email = input.getValue()
+        if password
+          passInput = password.input
+          passValue = passInput.getValue()
+        container.emit 'EmailIsNotAvailable'
+
+        return  unless input.valid
+
+        $.ajax
+          url         : "/-/validate/email"
+          type        : 'POST'
+          data        :
+            password  : passValue
+            email     : email
+          xhrFields   : withCredentials : yes
+          success     : (res) ->
+
+            return location.replace '/'  if res is 'User is logged in!'
+
+            container.emit 'EmailIsAvailable'
+            input.setValidationResult 'available', null
+
+            container.emit 'EmailValidationPassed'  if res is yes
+
+          error       : ({responseJSON}) ->
+            container.emit 'EmailIsNotAvailable'
+            input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"

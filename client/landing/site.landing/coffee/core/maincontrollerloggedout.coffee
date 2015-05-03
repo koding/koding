@@ -1,9 +1,10 @@
 require './utils'
 require './KD.extend.coffee'
-KodingRouter       = require './kodingrouter'
-OAuthController    = require './oauthcontroller'
-MainView           = require './mainview'
-MainViewController = require './mainviewcontroller'
+KodingRouter                 = require './kodingrouter'
+OAuthController              = require './oauthcontroller'
+MainView                     = require './mainview'
+MainViewController           = require './mainviewcontroller'
+{ getGroupNameFromLocation } = KD.utils
 
 module.exports = class MainControllerLoggedOut extends KDController
 
@@ -61,3 +62,43 @@ module.exports = class MainControllerLoggedOut extends KDController
 
       return  unless args
       KD.utils.trackPage args
+
+
+  login: (formData, callback) ->
+
+    {username, password, redirectTo} = formData
+
+    groupName = getGroupNameFromLocation()
+
+    redirectTo ?= ''
+    query       = ''
+
+    if redirectTo is 'Pricing'
+      { planInterval, planTitle } = formData
+      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = "?#{query}"
+
+    KD.utils.clearKiteCaches()
+
+    $.ajax
+      url         : '/Login'
+      data        : { username, password, groupName }
+      type        : 'POST'
+      xhrFields   : withCredentials : yes
+      success     : -> location.replace "/#{redirectTo}#{query}"
+      error       : ({responseText}) =>
+
+        if /suspended/i.test responseText
+        then handleBanned()
+        else new KDNotificationView title : responseText
+
+        @emit 'LoginFailed'
+
+
+  handleBanned = ->
+    new KDModalView
+      title        : "You've been banned!"
+      content      : responseText
+      overlay      : yes
+      cancelable   : no
+      overlayClick : no

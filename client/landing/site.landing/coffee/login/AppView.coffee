@@ -527,95 +527,11 @@ module.exports = class LoginView extends JView
 
   doLogin: (formData) ->
 
-    {username, password, redirectTo} = formData
-
-    groupName = getGroupNameFromLocation()
-
-    redirectTo ?= ''
-    query       = ''
-    if redirectTo is 'Pricing'
-      { planInterval, planTitle } = formData
-      query = KD.utils.stringifyQuery {planTitle, planInterval}
-      query = "?#{query}"
-
-    KD.utils.clearKiteCaches()
-
-    $.ajax
-      url         : '/Login'
-      data        : { username, password, groupName }
-      type        : 'POST'
-      xhrFields   : withCredentials : yes
-      success     : -> location.replace "/#{redirectTo}#{query}"
-      error       : (xhr) =>
-        {responseText} = xhr
-        if /suspended/i.test responseText
-        then @handleBanned responseText
-        else new KDNotificationView title : responseText
-
-        @loginForm.button.hideLoader()
+    { mainController } = KD.singletons
+    mainController.on 'LoginFailed', => @loginForm.button.hideLoader()
+    mainController.login formData
 
 
-  handleBanned: (responseText)->
-    new KDModalView
-      title        : "You've been banned!"
-      content      : responseText
-      overlay      : yes
-      cancelable   : no
-      overlayClick : no
-
-
-  afterLoginCallback: (err, params={})->
-    @loginForm.button.hideLoader()
-    {entryPoint} = KD.config
-    if err
-      showError err
-      @loginForm.resetDecoration()
-      @$('.flex-wrapper').removeClass 'shake'
-      KD.utils.defer => @$('.flex-wrapper').addClass 'animate shake'
-    else
-      {account} = params
-      # check and set preferred BE domain for Koding
-      # prevent user from seeing the main wiev
-      KD.utils.setPreferredDomain account if account
-
-      # this implementation below needs to be handled in the server (express)
-      # otherwise it makes the login experience slower
-      # or we can do it after login is performed and page is reloaded
-      # - SY
-
-      window.location.replace '/'
-
-
-      # firstRoute = KD.getSingleton('router').visitedRoutes.first
-
-      # if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
-      #   firstRoute = '/'
-
-      # @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
-      # @appStorage.fetchValue "redirectTo", (redirectTo) =>
-      #   if redirectTo
-      #     firstRoute = "/#{redirectTo}"
-      #     @appStorage.unsetKey "redirectTo", (err) ->
-      #       warn "Failed to reset redirectTo", err  if err
-
-      #   KD.getSingleton('appManager').quitAll()
-      #   KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
-      #   KD.getSingleton('groupsController').on 'GroupChanged', =>
-      #     @headBanner?.hide()
-      #     @loginForm.reset()
-
-      #   new KDNotificationView
-      #     cssClass  : "login"
-      #     title     : "<span></span>Happy Koding!"
-      #     # content   : "Successfully logged in."
-      #     duration  : 2000
-      #   @loginForm.reset()
-
-      #
-      #   if redirectTo
-      #     window.location.reload()
-      #   else
-      #     window.location.replace '/Activity'
 
   doRedeem: -> new KDNotificationView title: "This feature is disabled."
 
