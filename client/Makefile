@@ -24,6 +24,7 @@ BUILDER_DEBUG_FLAGS?=--debug-js --debug-css
 BUILDER_WATCH_FLAGS?=--watch-js --watch-css --watch-sprites
 BUILDER_MINIFY_FLAGS?=--minify-css --minify-js --collapse-js
 BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
+BUILDER_EXCLUDE_TESTRUNNER_FLAG?=--exclude-testrunner
 
 all: landing development
 
@@ -44,10 +45,11 @@ minify-with-external-sourcemaps:
 	$(BUILDER) -v \
 		$(BUILDER_MINIFY_FLAGS) \
 		$(BUILDER_EXT_SOURCEMAPS_FLAGS) \
+		$(BUILDER_EXCLUDE_TESTRUNNER_FLAG) \
 		$(BUILDER_ARGS)
 
 minify:
-	$(BUILDER) $(BUILDER_MINIFY_FLAGS) $(BUILDER_ARGS)
+	$(BUILDER) $(BUILDER_MINIFY_FLAGS) $(BUILDER_ARGS) $(BUILDER_EXCLUDE_TESTRUNNER_FLAG)
 
 landing:
 	$(MAKE) -C landing
