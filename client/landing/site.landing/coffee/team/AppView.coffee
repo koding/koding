@@ -1,9 +1,10 @@
-CustomLinkView  = require './../core/customlinkview'
-MainHeaderView  = require './../core/mainheaderview'
-LoginInlineForm = require './../login/loginform'
-JView           = require './../core/jview'
+TeamLoginTab         = require './teamlogintab'
+TeamDomainTab        = require './teamdomaintab'
+TeamAllowedDomainTab = require './teamalloweddomaintab'
+TeamInviteTab        = require './teaminvitetab'
+TeamUsernameTab      = require './teamusernametab'
 
-module.exports = class TeamView extends JView
+module.exports = class TeamView extends KDView
 
   constructor:(options = {}, data)->
 
@@ -60,4 +61,18 @@ module.exports = class TeamView extends JView
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
-    """
+    """    @addSubView @tabView = new KDTabView
+    @addSubView @tabView = new KDTabView
+      tagName             : 'main'
+      hideHandleContainer : yes
+
+
+  createLoginTab: -> @tabView.addPane new TeamLoginTab
+
+  createDomainTab: -> @tabView.addPane new TeamDomainTab
+
+  createAllowedDomainTab: -> @tabView.addPane new TeamAllowedDomainTab
+
+  createInviteTab: -> @tabView.addPane new TeamInviteTab
+
+  createUsernameTab: -> @tabView.addPane new TeamUsernameTab

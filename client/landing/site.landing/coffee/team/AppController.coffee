@@ -5,6 +5,9 @@ module.exports = class TeamAppController extends KDViewController
   KD.registerAppClass this,
     name : 'Team'
 
+  stepMap =
+    alloweddomain : 'allowedDomain'
+
   constructor: (options = {}, data) ->
 
     options.view = new TeamView cssClass : 'Team content-page'
@@ -14,4 +17,9 @@ module.exports = class TeamAppController extends KDViewController
 
   jumpTo: (step, query) ->
 
-    new KDNotificationView title : step
+    return  unless step
+
+    appView = @getView()
+    method  = "create#{(stepMap[step] or step).capitalize()}Tab"
+
+    appView[method]? query
