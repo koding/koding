@@ -40,7 +40,7 @@ module.exports =
 
     browser
       .waitForElementVisible  '[testpath=main-header]', 50000
-      .click                  '#main-header [testpath=login-link]'
+      .click                  '.main-header [testpath=login-link]'
       .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
