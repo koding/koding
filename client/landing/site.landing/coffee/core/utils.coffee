@@ -337,9 +337,8 @@ utils.extend utils,
   getGroupNameFromLocation: ->
 
     { hostname } = location
-
-    groupName = if hostname is 'dev.koding.com'
-    then 'koding'
+    mainDomains = ['dev.koding.com', 'sandbox.koding.com', 'latest.koding.com', 'prod.koding.com']
+    groupName = if hostname in mainDomains then 'koding'
     else if hostname.indexOf('.dev.koding.com') isnt -1
     then hostname.replace('.dev.koding.com', '').split('.').last
     else if hostname.indexOf('.koding.com') isnt -1
