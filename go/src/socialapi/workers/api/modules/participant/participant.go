@@ -323,6 +323,10 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 		return errors.New("can not add/remove participants for pinned activity channel")
 	}
 
+	if c.TypeConstant == models.Channel_TYPE_BOT {
+		return errors.New("can not add/remove participants for bot channel")
+	}
+
 	if c.TypeConstant == models.Channel_TYPE_TOPIC {
 		if len(participants) != 1 {
 			return errors.New("you can not add only one participant into topic channel")

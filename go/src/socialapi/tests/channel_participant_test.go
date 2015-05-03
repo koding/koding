@@ -194,6 +194,30 @@ func TestChannelParticipantOperations(t *testing.T) {
 				err = bongo.B.Unscoped().Where("initial_channel_id = ?", channelContainer.Channel.Id).Find(testMessage).Error
 				So(err, ShouldEqual, bongo.RecordNotFound)
 			})
+			Convey("Users should not be able to add/remove users to/from bot channels", func() {
+
+				ownerAccount := models.NewAccount()
+				ownerAccount.OldId = AccountOldId.Hex()
+				ownerAccount, err = rest.CreateAccount(ownerAccount)
+				So(err, ShouldBeNil)
+				So(ownerAccount, ShouldNotBeNil)
+
+				participant := models.NewAccount()
+				participant.OldId = AccountOldId.Hex()
+				participant, err = rest.CreateAccount(participant)
+				So(err, ShouldBeNil)
+				So(participant, ShouldNotBeNil)
+
+				ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, models.RandomName(), models.Channel_TYPE_BOT)
+				So(err, ShouldBeNil)
+				So(ch, ShouldNotBeNil)
+				_, err = ch.AddParticipant(ownerAccount.Id)
+				So(err, ShouldBeNil)
+
+				_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
+				So(err.Error(), ShouldEqual, "can not add/remove participants for bot channel")
+
+			})
 		})
 	})
 }
