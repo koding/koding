@@ -19,7 +19,7 @@ module.exports = (req, res) ->
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
       if err and isEmail
-        JUser.emailAvailable email, (err_, response) =>
+        JUser.emailAvailable email, (err_, response) ->
           return res.status(400).send 'Bad request'  if err_
 
           return if response
