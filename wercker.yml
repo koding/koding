@@ -90,7 +90,7 @@ build:
             github.com/barakmich/go-nyet
           )
 
-          `which go` install -v "${checks[@]}"
+          go install -v "${checks[@]}"
 
           echo "checking cyclo complexity"
           ./go/bin/gocyclo -top 20 ./go/src/socialapi/*/**/**.go
