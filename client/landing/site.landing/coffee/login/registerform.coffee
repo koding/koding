@@ -109,8 +109,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     return @emit 'gravatarInfoFetched', @gravatars[email]  if @gravatars[email]
 
     $.ajax
-      url         : "/Gravatar"
-      data        : {email}
+      url         : "/-/gravatar"
+      data        : { email }
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : (gravatar) =>

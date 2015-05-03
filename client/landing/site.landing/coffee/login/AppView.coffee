@@ -396,8 +396,9 @@ module.exports = class LoginView extends JView
         return  unless @signupModal?
 
         $.ajax
-          url         : "/Validate/Username/#{username}"
+          url         : "/-/validate/username"
           type        : 'POST'
+          data        : { username }
           xhrFields   : withCredentials : yes
           success     : =>
 
