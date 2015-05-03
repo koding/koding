@@ -61,11 +61,3 @@ module.exports = class TeamView extends JView
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
     """
-
-
-    # @addSubView new KDInputView
-    #   placeholder : 'username'
-
-    # @addSubView new KDInputView
-    #   type        : 'password'
-    #   placeholder : 'password'
