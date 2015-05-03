@@ -1322,15 +1322,27 @@ paymentGrayLighter  = #f8f8f8
 
     .koding-university
       line-height         27px
-      margin-top          18px
+      margin-top          5px
 
-    .message-footer
-      bottom              15px
-      abs()
+  .onboarding-text
+    bottom                20px
+    abs()
+    left                  28px
+    width                 275px
+    -webkit-border-radius 3px
+    -moz-border-radius    3px
+    border-radius         3px
+    border                1px solid #0da84c
+    height                65px
+    box-sizing            border-box
+    padding               8px 10px
+    text-align            left
+    font-size             12px
 
-      .f1-button
-        color             #0da84c
-        font-weight       700
+    a
+      cursor              pointer
+      text-decoration     underline
+      line-height         18px
 
 .kdmodal.welcome-modal
   overflow                hidden
@@ -1716,11 +1728,19 @@ paymentGrayLighter  = #f8f8f8
   .AppModal-nav
     min-height              315px
 
+  .kdtabview
+    float                   left
+    width                   510px
+
   .AppModal-form
     padding-top             0
+    margin                  0
 
   .kdmodal-content
-    max-height              320px !important // override computed element style
+    height                  370px !important // override computed element style
+
+  .listview-wrapper
+    height                  auto
 
 
 // machine settings modal general view
@@ -1760,11 +1780,16 @@ paymentGrayLighter  = #f8f8f8
 // machine settings modal sidebar icon
 .machine-settings-modal
 
+  .AppModal-navItem
+    b
+      left                  42px
+      abs()
+
+
   .AppModal-navItem:before
     content                 ''
     display                 inline-block
     vertical-align          sub
-    margin-right            13px
 
   .AppModal-navItem.general
     &:before
@@ -1815,13 +1840,20 @@ paymentGrayLighter  = #f8f8f8
     &.active:before
       r-sprite              'app', 'ms-shared-vm-active'
 
+  .AppModal-navItem.snapshots
+    &:before
+      r-sprite              'app', 'ms-snapshots'
+
+    &.active:before
+      r-sprite              'app', 'ms-snapshots-active'
+
 
 // machine settings modal common formline
 .machine-settings-modal
 
   .formline
     line-height             45px
-    size                    545px, 45px
+    size                    530px, 45px
     border-bottom           1px solid #efefef
     margin-bottom           0
 
@@ -1957,6 +1989,7 @@ paymentGrayLighter  = #f8f8f8
 
   .circular-progress-bar
     margin                  15px 0 20px 185px
+    height                  190px
 
   .disk-usage-info
     overflow                hidden
@@ -1999,7 +2032,7 @@ paymentGrayLighter  = #f8f8f8
 .machine-settings-modal
 
   .kdheaderview
-    width                   530px
+    width                   510px
     height                  38px
     line-height             38px
     font-size               14px
@@ -2085,6 +2118,7 @@ paymentGrayLighter  = #f8f8f8
       ellipsis()
       max-width             475px
       display               inline-block
+      text-indent           5px
 
     &:hover
       .remove
@@ -2187,4 +2221,93 @@ paymentGrayLighter  = #f8f8f8
   border                    1px solid #aaa
   border-top                none
   margin-top                -1px !important
+
+
+.machine-settings-modal .snapshots
+  .no-item
+    margin-top              30px
+    color                   #a1a1a1
+    text-align              center
+    font-size               14px
+
+  .kdlistitemview-snapshot
+    overflow                hidden
+
+
+.machine-settings-modal .snapshots .add-view
+  height                    45px
+  line-height               45px
+  margin-top                0
+  border-bottom             1px solid #efefef
+
+  .buttons
+    abs                     0px 0px 0 0
+
+  .add
+    margin-top              6px
+
+  .cancel
+    top                     -2px
+    margin-right            8px
+
+
+.machine-settings-modal .snapshots .snapshot .info
+  &:hover .buttons
+    opacity                 1
+
+  .buttons
+    height                  16px
+    abs                     12px 0px 0 0
+    opacity                 0
+    vendor                  transition, opacity .2s ease
+
+  .kdbutton
+    background              none
+    margin                  0 0 0 11px
+    padding                 0
+    height                  16px
+    border                  none
+    outline                 none
+
+  .kdbutton .icon
+    display                 inline-block
+
+  .delete .icon
+    r-sprite                'account', 'ssh-delete'
+
+  .rename .icon
+    r-sprite                'account', 'ssh-edit'
+
+  .storage-size
+    margin-left             4px
+    color                   #393939
+
+  .created-at
+    margin-left             4px
+    color                   #8b8b8b
+
+
+.machine-settings-modal .snapshots .snapshot .edit
+  .buttons
+    abs                     0px 0px 0 0
+
+  .label
+    color                   #a2a2a2
+    font-size               14px
+    size                    175px, 38px
+    line-height             38px
+    bg                      image, none
+
+  .rename
+    margin-top              6px
+
+  .cancel
+    font-size               12px
+    color                   #787878
+    position                relative
+    text-decoration         underline
+    top                     -2px
+    margin-right            4px
+    cursor                  pointer
+
 

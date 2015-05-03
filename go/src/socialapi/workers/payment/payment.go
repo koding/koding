@@ -2,7 +2,6 @@ package payment
 
 import (
 	"errors"
-	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paypal"
@@ -229,23 +228,4 @@ type PaypalGetTokenRequest struct {
 
 func (p *PaypalGetTokenRequest) Do() (interface{}, error) {
 	return paypal.GetToken(p.PlanTitle, p.PlanInterval)
-}
-
-//----------------------------------------------------------
-// Helpers
-//----------------------------------------------------------
-
-func isUsernameEmpty(username string) bool {
-	return username == ""
-}
-
-func errUsernameEmpty(customerId string) error {
-	return fmt.Errorf(
-		"stopping machine for paypal customer: %s failed since username is empty",
-		customerId,
-	)
-}
-
-func errUnmarshalFailed(data interface{}) error {
-	return fmt.Errorf("unmarshalling webhook failed: %v", data)
 }

@@ -14,8 +14,7 @@ import (
 const SCHEDULE = "0 */5 * * * *"
 
 var (
-	ErrMigrated     = errors.New("already migrated")
-	kodingChannelId int64
+	ErrMigrated = errors.New("already migrated")
 )
 
 type Controller struct {

@@ -112,56 +112,6 @@ Admin main styles
 
   .kdtabpaneview
 
-    &.members
-
-      .listview-wrapper > .kdscrollview
-        padding-right     34px
-        kalc              height, 100vh \- 73px
-        kalc              width, 100% \+ 34px
-        borderBox()
-
-      .kdlistitemview-member
-        padding           23px 0
-        border-bottom     1px solid #DEDEDE
-        font-size         14px
-        line-height       19px
-        borderBox()
-
-        .avatarview
-          margin          0 18px 0 0
-          fl()
-
-        a
-          color           #4c4c4c
-          noTextDeco()
-
-        a.profile
-          font-weight     600
-
-        .user-numbers
-          color           #7b7b7b
-
-        .edit-btn
-          fr()
-
-        .kd-checkbox-holder
-          line-height    24px
-          padding        0 12px 6px 0
-          fl()
-
-        .edit-container
-          display         block
-          clear           both
-          padding-left    54px
-          borderBox()
-
-          .buttons .kdbutton
-            width         23.5%
-
-            &~.kdbutton
-              margin-left 2%
-
-
     &.invitations
 
       .invitations-tabs
@@ -173,54 +123,25 @@ Admin main styles
         kalc              width, 100% \+ 34px
         borderBox()
 
-      .kdtabhandlecontainer
-        background        none
-        margin            -34px 0 0
-        padding           0
-        height            62px
-        line-height       62px
-        box-shadow        inset 0 -3px 0 #f2f2f2
-        border            none
+      .button-bar
+        size            auto, auto
+        margin          18px 0 0 0
+        fr()
 
-        .kdtabhandle-tabs
-          size            auto, auto
+        .show-resolved
+          size          auto, auto
+          padding       3px 18px 0 0
           fl()
 
-        .kdtabhandle
-          padding         0 23px
-          margin          0
-          border          none
-          line-height     inherit
-          height          62px
-          background      none
-          color           #969696
-          opacity         0.99
-          font-size       14px
-          font-weight     600
-
-          &.active
-            box-shadow    inset 0 -3px 0 #01b05a
-            color         #575757
-
-        .button-bar
-          size            auto, auto
-          margin          18px 0 0 0
-          fr()
-
-          .show-resolved
-            size          auto, auto
-            padding       3px 18px 0 0
+          .kdlabel
             fl()
 
-            .kdlabel
-              fl()
+          .kdinput
+            margin     1px 0 0 6px
+            fr()
 
-            .kdinput
-              margin     1px 0 0 6px
-              fr()
-
-          .kdbutton
-            fl()
+        .kdbutton
+          fl()
 
       .kdlistitemview-invitation-request
         padding           23px 0
@@ -548,3 +469,163 @@ Admin main styles
     span,strong,cite
       padding-left        5px
       font-style          normal
+
+
+
+// Admin modal specific styling
+.AppModal--admin
+
+  .kdmodal-content
+    max-height              515px !important // to override computed height
+
+
+// common tab styling
+.AppModal--admin
+
+  .kdtabhandlecontainer
+    background              none
+    padding                 0
+    height                  62px
+    line-height             62px
+    box-shadow              inset 0 -3px 0 #f2f2f2
+    border                  none
+
+    .kdtabhandle-tabs
+      size                  auto, auto
+      fl()
+
+    .kdtabhandle
+      padding               0 23px
+      margin                0
+      border                none
+      line-height           inherit
+      height                62px
+      background            none
+      color                 #969696
+      opacity               0.99
+      font-size             14px
+      font-weight           600
+
+      &.active
+        box-shadow          inset 0 -3px 0 #01b05a
+        color               #575757
+
+
+// outline button styling
+.AppModal--admin
+
+  .outline.kdbutton
+    background              none
+    border                  2px solid #4a4e52
+    margin-right            15px
+
+    span
+      color                 #4a4e52
+      line-height           26px
+
+    &.red
+      border-color          #e14a35
+
+      span
+        color               #e14a35
+
+
+// members tab styling
+.AppModal--admin .members
+
+  .search
+    margin                  25px 0
+
+    .label
+      font-size             14px
+      color                 #727272
+      line-height           40px
+      margin-right          15px
+
+    .kdselectbox
+      size                  180px, 40px
+      margin-right          15px
+      border-color          #DBDBDB
+      borderBox()
+
+      .title
+        line-height         40px
+        font-size           14px
+        color               #727272
+
+      .arrows
+        top                 13px
+
+    .kdinput
+      size                  230px, 40px
+      border-color          #DBDBDB
+
+  .kdlistitemview-member
+    padding                 15px 0
+    border-top              1px solid #DEDEDE
+    font-size               14px
+    color                   #4c4c4c
+
+  .avatarview
+    margin                  0 12px 0 0
+    fl()
+
+  a
+    color                   #4c4c4c
+    height                  40px
+    noTextDeco()
+
+  .details
+    fl()
+    size                    250px, 40px
+
+  .fullname
+    font-size               14px
+    color                   #434343
+
+  .nickname
+    font-size               14px
+    color                   #8D8D8D
+
+  .email
+    size                    250px, 40px
+    line-height             40px
+    color                   #8D8D8D
+    fl()
+    ellipsis()
+
+  .role
+    abs()
+    right                   0
+    line-height             40px
+    height                  40px
+    font-size               14px
+    font-weight             bold
+    color                   #434343
+    vendor                  user-select, none
+    pointer()
+
+  .role.active .settings-icon
+    vendor                  transform, rotate(270deg)
+    width                   10px
+    margin-left             6px
+
+  .clear
+    clear                   both
+
+  .settings-icon
+    display                 inline-block
+    r-sprite                'app', 'sidebar-toggle'
+    vendor                  transform, rotate(180deg)
+    margin-left             10px
+
+  .settings
+    padding-top             15px
+
+
+
+
+
+
+
+

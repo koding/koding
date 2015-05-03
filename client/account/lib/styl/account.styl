@@ -9,8 +9,14 @@ app.settings.styl
 }
 
 
-// Account AppModal Styles
+.CreditCardModal-overlay
+  z-index                   10002
+  background                rgba(0, 0, 0, 0.6)
 
+.CreditCardModal--update
+  z-index                   10003
+
+// Account AppModal Styles
 .AppModal--account
   .AppModal-navItem:before
     content                 ''
@@ -54,6 +60,14 @@ app.settings.styl
     &.selected:before
       r-sprite              'account' 'sshkeys-active'
 
+  // FIXME credentials icon ~ GG
+  .AppModal-navItem.credentials
+    &:before
+      r-sprite              'account' 'sshkeys'
+
+    &.selected:before
+      r-sprite              'account' 'sshkeys-active'
+
   .AppModal-navItem.referral
     &:before
       r-sprite              'account' 'referrals'
@@ -68,6 +82,14 @@ app.settings.styl
 
     &.selected:before
       r-sprite              'account' 'terminate-active'
+
+  .AppModal-navItem.shortcuts
+    &:before
+      margin-bottom         3px
+      r-sprite              'account' 'shortcuts'
+
+    &.selected:before
+      r-sprite              'account' 'shortcuts-active'
 
   .AppModal-content
     min-height               570px
@@ -707,7 +729,59 @@ app.settings.styl
               opacity       0.5
 
     .section-header
-      width              100%
+      width                 100%
 
     .button-field
-      width              100%
+      width                 100%
+
+.AppModal--account
+  .subscription-wrapper
+  .payment-method-wrapper
+  .payment-history-wrapper
+    min-height              70px
+
+  .payment-method-wrapper .payment-method
+    height                  auto
+    line-height             19px
+    font-size               14px
+    padding                 13px 0 0
+    borderBox()
+
+    .billing-link
+      float                 none
+      height                30px
+      cf()
+
+    .credit-card-title
+      line-height           23px
+      height                23px
+      fl()
+
+    .icon
+      display               block
+      margin-right          5px
+      fl()
+
+    .icon.visa
+      r-sprite              'pricing', 'visa'
+    .icon.american-express
+      r-sprite              'pricing', 'american-express'
+    .icon.mastercard
+      r-sprite              'pricing', 'mastercard'
+    .icon.discover
+      r-sprite              'pricing', 'discover'
+
+    .card-type
+      color                   #7B7B7B
+      opacity                 .99
+
+  .payment-history-wrapper .listview-wrapper
+    margin-top              20px
+    font-size               14px
+
+  .payment-history-wrapper .no-item-found
+    text-align              left
+    padding-top             0
+    top                     -4px
+
+

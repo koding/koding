@@ -1,0 +1,108 @@
+#!/usr/bin/env coffee
+
+async = require 'async'
+
+argv = (require 'minimist') process.argv.slice 2
+
+if argv.help
+  printHelp()
+  process.exit 1
+
+AWS = require './aws'
+EC2 = new AWS.EC2()
+
+run = ->
+  unless argv.hours or argv.minutes
+    console.error "error: Please specify an expiration time\n"
+    printHelp()
+    process.exit 1
+
+  {DryRun, ExpirationTime} = getOptions argv
+  imageIds = (require './instance-ami').list
+
+  Filters = [{ Name: 'image-id', Values: imageIds }]
+
+  EC2.describeInstances {Filters}, (err, data) ->
+
+    return error err  if err
+
+    unless data or data.Reservations
+      return error 'Reservations not found'
+
+    InstanceIds = []
+
+    data.Reservations.forEach ({Instances}) ->
+      return  unless Instances
+
+      Instances.forEach ({InstanceId, LaunchTime, State}) ->
+        return  if State.Name is 'terminated'
+        return  if ExpirationTime <= LaunchTime
+
+        InstanceIds.push InstanceId
+
+    return process.exit 0  unless InstanceIds.length
+
+    async.filter InstanceIds, checkApiTermination, (InstanceIds) ->
+      return process.exit 0  unless InstanceIds.length
+
+      EC2.terminateInstances {DryRun, InstanceIds}, (err) ->
+        return error err  if err
+
+
+getOptions = (argv) ->
+  DryRun = argv['dry-run']
+  ExpirationTime = getExpirationTime argv
+
+  return {DryRun, ExpirationTime}
+
+
+getExpirationTime = (argv) ->
+  {hours, minutes} = argv
+
+  hours   ?= 0
+  minutes ?= 0 + (hours * 60)
+
+  return new Date Date.now() - (minutes * 60 * 1000)
+
+
+checkApiTermination = (InstanceId, callback) ->
+
+  Attribute = 'disableApiTermination'
+
+  params = {InstanceId, Attribute}
+
+  EC2.describeInstanceAttribute params, (err, data) ->
+    return callback false  if err
+
+    state = if data \
+      then not data.DisableApiTermination.Value
+      else false
+
+    callback state
+
+
+error = (err) ->
+  console.error "error: #{JSON.stringify err}"  if err
+  process.exit 1
+
+
+printHelp = ->
+  console.log """
+Invalid options are given. Please specify only options described
+below.
+
+--dry-run   Specify this option to test run
+--hours     How many hours to set expiration time
+--minutes   How many minutes to set expiration time
+
+Hours and minutes options are combined.
+
+Example usage:
+
+  ./terminate-leftover-test-instances --hours 1 --minutes 15
+
+This command will terminate test instances older than an hour and 15
+minutes.
+"""
+
+run()

@@ -2,6 +2,7 @@ helpers       = require '../helpers/helpers.js'
 assert        = require 'assert'
 layoutHelpers = require '../helpers/layouthelpers.js'
 
+
 module.exports =
 
 
@@ -28,21 +29,23 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
+    browser
     layoutHelpers.undoSplit(browser)
     browser.end()
 
 
-  undoSplitPanesNotShowOnList: (browser) ->
+  undoSplitPanesNotShowOnScreen: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
+    newPaneSelector   = '.kdsplitcomboview .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+
     layoutHelpers.undoSplit(browser)
 
     browser
-      .waitForElementVisible     '.panel-1 .application-tab-handle-holder', 20000
-      .click                     '.panel-1 .application-tab-handle-holder .plus'
-      .waitForElementNotPresent  '.context-list-wrapper li.undo-split', 20000 # Assertion
+      .waitForElementVisible   newPaneSelector, 20000
+      .waitForElementPresent   newPaneSelector + ' .general-handles .close-handle.hidden', 20000 # Assertion
       .end()
 
 

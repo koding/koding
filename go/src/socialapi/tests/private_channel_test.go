@@ -19,7 +19,7 @@ import (
 )
 
 func CreatePrivateChannelUser(nickname string) {
-	acc, err := modelhelper.GetAccount(nickname)
+	_, err := modelhelper.GetAccount(nickname)
 	if err == nil {
 		return
 	}
@@ -28,7 +28,7 @@ func CreatePrivateChannelUser(nickname string) {
 		panic(err)
 	}
 
-	acc = new(mongomodels.Account)
+	acc := new(mongomodels.Account)
 	acc.Id = bson.NewObjectId()
 	acc.Profile.Nickname = nickname
 

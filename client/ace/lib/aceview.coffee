@@ -31,10 +31,9 @@ module.exports = class AceView extends JView
 
     @listenWindowResize()
 
-    aceOptions        =
-      delegate        : options.delegate or this
-      enableShortcuts : yes
-      createFindAndReplaceView : options.createFindAndReplaceView
+    aceOptions =
+      delegate: options.delegate or this
+      createFindAndReplaceView: options.createFindAndReplaceView
 
     @ace = new Ace aceOptions, file
 
@@ -98,7 +97,7 @@ module.exports = class AceView extends JView
 
     @ace.on 'FileContentChanged', =>
       @ace.contentChanged = yes
-      @getActiveTabHandle().setClass 'modified'
+      @setActiveTabHandleClass 'modified'
       @getDelegate().quitOptions =
         message : 'You have unsaved changes. You will lose them if you close this tab.'
         title   : 'Do you want to close this tab?'
@@ -109,9 +108,7 @@ module.exports = class AceView extends JView
       delete @getDelegate().quitOptions
 
     @on 'KDObjectWillBeDestroyed', =>
-      file = @getData()
-      kd.singletons.localSync.removeFromOpenedFiles file
-      @getDelegate().removeOpenDocument @
+      @getDelegate().removeOpenDocument? this
 
     @ace.on 'ace.changeSetting', (setting, value)->
       if setting is 'syntax'
@@ -121,7 +118,7 @@ module.exports = class AceView extends JView
         appStorage.setValue "syntax_#{fileExtension}", value
 
     @ace.on 'FileIsReadOnly', =>
-      @getActiveTabHandle().setClass 'readonly'
+      @setActiveTabHandleClass 'readonly'
       @ace.setReadOnly yes
       modal             = new KDModalView
         title           : 'This file is readonly'
@@ -144,8 +141,8 @@ module.exports = class AceView extends JView
             callback    : ->
               modal.destroy()
 
-  getActiveTabHandle: ->
-    return  @getDelegate().tabView.getActivePane().tabHandle
+  setActiveTabHandleClass: (cssClass)->
+    @getDelegate().tabView?.getActivePane().tabHandle.setClass cssClass
 
   toggleFullscreen: ->
     mainView = kd.getSingleton 'mainView'

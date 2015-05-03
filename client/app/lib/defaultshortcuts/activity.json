@@ -1,0 +1,26 @@
+[
+  {
+    "name": "prevwindow",
+    "binding": [
+      [
+        "alt+up"
+      ],
+      [
+        "alt+up"
+      ]
+    ],
+    "description": "Previous window"
+  },
+  {
+    "name": "nextwindow",
+    "binding": [
+      [
+        "alt+down"
+      ],
+      [
+        "alt+down"
+      ]
+    ],
+    "description": "Next window"
+  }
+]

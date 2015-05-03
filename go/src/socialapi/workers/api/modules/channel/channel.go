@@ -44,10 +44,13 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 
 	if err := req.Create(); err != nil {
 		return response.NewBadRequest(err)
-	}
+	} 
 
 	if _, err := req.AddParticipant(req.CreatorId); err != nil {
-		return response.NewBadRequest(err)
+		// channel create works as idempotent, that channel might have been created before
+		if err != models.ErrAccountIsAlreadyInTheChannel {
+			return response.NewBadRequest(err)
+		}
 	}
 
 	return response.NewOK(req)
@@ -112,7 +115,7 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		if models.IsChannelLeafErr(err) {
 			return http.StatusMovedPermanently,
 				nil, nil,
-				tigertonic.MovedPermanently{err}
+				tigertonic.MovedPermanently{Err: err}
 		}
 
 		return response.NewBadRequest(err)

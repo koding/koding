@@ -13,6 +13,7 @@ AccountListWrapper    = require './accountlistwrapper'
 AccountNavigationItem = require './accountnavigationitem'
 ReferrerModal         = require './views/referrermodal'
 whoami                = require 'app/util/whoami'
+checkFlag             = require 'app/util/checkFlag'
 showError             = require 'app/util/showError'
 oauthEnabled          = require 'app/util/oauthEnabled'
 AppController         = require 'app/appcontroller'
@@ -44,7 +45,7 @@ module.exports = class AccountAppController extends AppController
         { slug : 'SSH',         title : "SSH keys",           listHeader: "Your SSH Keys",          listType: "keys" }
         # { slug : 'Keys',        title : "Koding Keys",        listHeader: "Your Koding Keys",       listType: "kodingKeys" }
         { slug : 'Referral',    title : "Referral System",    listHeader: "Your Referral Options",  listType: "referralSystem" }
-        # { slug : 'Credentials', title : "Credentials",        listHeader: "Your Credentials",       listType: "credentials" }
+        { slug : 'Shortcuts', title : 'Shortcuts',           listType: 'shortcuts' }
       ]
     danger  :
       title : "Danger"
@@ -54,7 +55,7 @@ module.exports = class AccountAppController extends AppController
 
 
   if oauthEnabled() is yes
-    NAV_ITEMS.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })
+    NAV_ITEMS.personal.items.push { slug : 'Externals',   title : "Linked accounts", listType: "linkedAccounts" }
 
   constructor: (options = {}, data) ->
 
@@ -117,6 +118,10 @@ module.exports = class AccountAppController extends AppController
     items = []
     for own sectionKey, section of NAV_ITEMS
       items = items.concat section.items
+
+    # Temporary solution to hide this from other users ~ GG
+    if checkFlag 'super-admin'
+      items.push { slug : 'Credentials', title : "Credentials", listHeader: "Your Credentials", listType: "credentials" }
 
     @navController.instantiateListItems items
 

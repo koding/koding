@@ -13,18 +13,22 @@ import (
 )
 
 func TestPopularTopic(t *testing.T) {
-
-	account := models.NewAccount()
-	account.OldId = AccountOldId.Hex()
-	account, err := rest.CreateAccount(account)
-
-	rand.Seed(time.Now().UnixNano())
-	groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
-
 	env := os.Getenv("SOCIAL_API_ENV")
 	if env == "wercker" {
 		return
 	}
+
+	account := models.NewAccount()
+	account.OldId = AccountOldId.Hex()
+	var err error
+	account, err = rest.CreateAccount(account)
+	if err != nil {
+		t.Fatalf("err %s", err.Error())
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
 	// Since the wercker tests are failing it is skipped for temporarily
 	Convey("order should be preserved", t, func() {
 		So(err, ShouldBeNil)

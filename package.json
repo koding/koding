@@ -34,6 +34,7 @@
     "cors": "2.1.1",
     "cron": "1.0.1",
     "csv": "0.3.6",
+    "curlrequest": "0.5.2",
     "dateformat": "1.0.2-1.2.3",
     "deep-equal": "0.1.2",
     "dogapi": "0.1.8",
@@ -75,7 +76,6 @@
     "oauth": "0.9.10",
     "opentok": "2.2.5",
     "optimist": "0.3.1",
-    "pistachio-compiler": "0.0.4",
     "pkgcloud": "0.9.6",
     "portchecker": "0.1.2",
     "progress": "0.0.4",
@@ -102,8 +102,7 @@
     "validator": "0.2.0",
     "ws": "0.4.25",
     "xml2js": "0.2.6",
-    "yield-siftscience": "0.0.8",
-    "curlrequest": "0.5.2"
+    "yield-siftscience": "0.0.8"
   },
   "devDependencies": {
     "crypto": "0.0.3",

@@ -1,0 +1,34 @@
+#!/usr/bin/env coffee
+
+argv = (require 'minimist') process.argv.slice 2
+
+unless InstanceId = argv['instance-id']
+  console.error 'error: instance id is not specified'
+  process.exit 1
+
+unless action = argv.action
+  console.error "error: action is not specified"
+  process.exit 1
+
+params =
+  DryRun: argv['dry-run']
+  InstanceId: InstanceId
+
+switch action
+  when 'disableApiTermination'
+    params.Attribute = 'disableApiTermination'
+    params.Value = 'true'
+  when 'enableApiTermination'
+    params.Attribute = 'disableApiTermination'
+    params.Value = 'false'
+  else
+    console.error "error: illegal attribute is specified"
+    process.exit 1
+
+AWS = require './aws'
+EC2 = new AWS.EC2()
+EC2.modifyInstanceAttribute params, (err) ->
+
+  if err
+    console.error "error: #{JSON.stringify err}"
+    process.exit 1

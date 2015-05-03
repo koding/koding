@@ -46,7 +46,7 @@ userData =
 
 options              =
   params             :
-    ImageId          : 'ami-cc7842a4'
+    ImageId          : (require './instance-ami.coffee').current
     InstanceType     : 'c3.xlarge'
     MinCount         : 1
     MaxCount         : 1

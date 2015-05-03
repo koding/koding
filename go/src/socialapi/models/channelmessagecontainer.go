@@ -246,7 +246,6 @@ func (cc *ChannelMessageContainer) AddIsFollowed(query *request.Query) *ChannelM
 func (cc *ChannelMessageContainer) AddUnreadRepliesCount() *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 		panic("method not implemented")
-		return nil
 	})
 }
 
@@ -273,6 +272,16 @@ func (ccs *ChannelMessageContainers) Add(containers ...*ChannelMessageContainer)
 	}
 
 	return ccs
+}
+
+func (ccs *ChannelMessageContainers) Err() error {
+	for _, cc := range *ccs {
+		if cc.Err != nil {
+			return cc.Err
+		}
+	}
+
+	return nil
 }
 
 func (ccs *ChannelMessageContainers) AddIsInteracted(query *request.Query) *ChannelMessageContainers {

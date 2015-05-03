@@ -8,7 +8,7 @@ showError = require 'app/util/showError'
 
 module.exports = class AccountCredentialList extends KDListView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data)->
 
     options.tagName  ?= "ul"
     options.itemClass = AccountCredentialListItem
@@ -68,6 +68,3 @@ module.exports = class AccountCredentialList extends KDListView
           title    : credential.title
           subtitle : credential.provider
           content  : "<pre>#{cred}</pre>"
-
-
-

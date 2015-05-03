@@ -27,7 +27,6 @@ build:
     - script:
         name: check package.json files
         code: |
-          cd $WERCKER_ROOT
           scripts/check_package_json_constraints.sh
     - script:
         name: setup nvm
@@ -36,8 +35,7 @@ build:
           nvm use 0.10.33
     - script:
         name: koding node modules
-        code: |
-          $WERCKER_ROOT/scripts/wercker/install-node-modules koding
+        code: scripts/wercker/install-node-modules koding
     - script:
         name: notify cebeci
         code: |
@@ -47,24 +45,27 @@ build:
         code: |
           chmod 600 $KODING_DEPLOYMENT_KEY
     - mktemp:
-        envvar: INSTANCE_DATA
-    - mktemp:
         envvar: INSTANCE_IP
+    - script:
+        name: create data files
+        code: touch INSTANCE_DATA CLIENT_TEST
     - script:
         name: launch test instance
         code: |
           INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
-          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
-          cat $INSTANCE_DATA
+          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
+          cat INSTANCE_DATA
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
+        name: client node modules
+        code: scripts/install-npm.sh -d client -u -p
+    - script:
         name: build client
         code: |
-          sh -c "scripts/install-npm.sh -d client -u -p"
           make -C client dist
-          ./scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
+          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
         code: go/build.sh
@@ -79,6 +80,31 @@ build:
         name: build backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
+    - script:
+        name: check social api code quality
+        code: |
+          sudo rm -rf /usr/local/go/pkg/tool/linux_amd64/vet
+          sudo chown -R $USER /usr/local/go/pkg/tool/linux_amd64
+          go get github.com/alecthomas/gometalinter
+          go install github.com/alecthomas/gometalinter
+          go build github.com/alecthomas/gometalinter
+          ./gometalinter --install
+
+          echo "checking cyclo complexity"
+          ./go/bin/gocyclo -top 20 ./go/src/socialapi/*/**/**.go
+
+          echo "checking deadcode"
+          ./scripts/deadcode.sh
+
+          echo "checking go vet"
+          #./scripts/govet.sh
+
+          echo "checking unused variables"
+          ./scripts/govarcheck.sh
+
+          echo "more aggressive go vet"
+          ./scripts/go-nyetcheck.sh
+
     - script:
         name: testing backend started
         code: |
@@ -98,16 +124,6 @@ build:
            tail -n 100 /var/log/koding/social-pinnedpost.log
            cd go/src/socialapi
            make testapi config=./config/test.toml
-    - script:
-        name: check social api code quality
-        code: |
-          echo "more complex one"
-          go get github.com/alecthomas/gometalinter
-          go install github.com/alecthomas/gometalinter
-          go build github.com/alecthomas/gometalinter
-          ./gometalinter --install
-          ./go/bin/gocyclo -top 20 ./go/src/socialapi
-
     - script: # todo generalize this part when we have more tests
         name: test koding mongo models
         code: |
@@ -129,7 +145,7 @@ build:
     - script:
         name: check connectivity
         code: |
-          HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
+          HOST=$(cat INSTANCE_DATA | awk '{print $2}')
           if [ -z "$HOST" ]; then exit 1; fi
           echo $HOST > $INSTANCE_IP
           scripts/wercker/check-connectivity $HOST 8090 1m 10
@@ -137,6 +153,7 @@ build:
     - script:
         name: testing client started
         code: |
+          echo started > CLIENT_TEST
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     - script:
         name: run register test suite
@@ -191,6 +208,10 @@ build:
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide file'
     - script:
+        name: run ide search test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide search'
+    - script:
         name: run ide terminal sessions test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide terminal'
@@ -206,10 +227,10 @@ build:
         name: run ide workspace test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide workspace'
-    - script:
-        name: run collaboration test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh collaboration collaboration'
+    # - script:
+    #     name: run collaboration test suite
+    #     code: |
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh collaboration collaboration'
     - script:
         name: run static page loggedout test suite
         code: |
@@ -232,17 +253,17 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
     - script:
-        name: cat socialapi
+        name: setup nvm
         code: |
-          tail -n 1000 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
+          source $HOME/.nvm/nvm.sh
+          nvm use 0.10.33
     - script:
-        name: terminate test instance
+        name: cleanup
         code: |
-          INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
-          if [ -n "$INSTANCE_ID" ]; then scripts/wercker/terminate-test-instance $INSTANCE_ID; fi
-
+          export INSTANCE_DATA=$(cat INSTANCE_DATA)
+          export CLIENT_TEST=$(cat CLIENT_TEST)
+          scripts/wercker/after-step-cleanup
+          rm INSTANCE_DATA CLIENT_TEST
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
@@ -253,6 +274,12 @@ build:
         name: build finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is $WERCKER_RESULT " $WERCKER_RESULT 100
+    - script:
+        name: cat socialapi
+        code: |
+          tail -n 1000 /var/log/koding/social-api.log || :
+          tail -n 100 /var/log/koding/social-populartopic.log || :
+          tail -n 100 /var/log/koding/social-pinnedpost.log || :
 deploy:
   steps:
     - script:

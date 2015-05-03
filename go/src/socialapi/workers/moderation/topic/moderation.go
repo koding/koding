@@ -85,10 +85,6 @@ func (c *Controller) validateRequest(cl *models.ChannelLink) error {
 		return errors.New("channel link is not set (nil)")
 	}
 
-	if cl.Id == 0 {
-		return errors.New("id is not set")
-	}
-
 	if cl.RootId == 0 {
 		return errors.New("root id is not set")
 	}

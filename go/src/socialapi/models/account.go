@@ -2,10 +2,11 @@ package models
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
-	"github.com/koding/bongo"
 	"socialapi/request"
 	"strings"
+
+	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 type Account struct {
@@ -325,9 +326,9 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 		return oldIds, nil
 	}
 
-	for _, account := range accounts {
+	for _, acc := range accounts {
 		// The append built-in function appends elements to the end of a slice
-		oldIds = append(oldIds, account.OldId)
+		oldIds = append(oldIds, acc.OldId)
 	}
 
 	return oldIds, nil

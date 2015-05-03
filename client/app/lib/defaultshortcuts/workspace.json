@@ -1,0 +1,338 @@
+[
+  {
+    "name": "findfilebyname",
+    "description": "Find File by Name",
+    "binding": [
+      [
+        "ctrl+alt+o"
+      ],
+      [
+        "ctrl+alt+o"
+      ]
+    ]
+  },
+  {
+    "name": "searchallfiles",
+    "description": "Search in All Files",
+    "binding": [
+      [
+        "ctrl+alt+f"
+      ],
+      [
+        "ctrl+alt+f"
+      ]
+    ]
+  },
+  {
+    "name": "splitvertically",
+    "description": "Split Vertically",
+    "binding": [
+      [
+        "ctrl+alt+v"
+      ],
+      [
+        "ctrl+alt+v"
+      ]
+    ]
+  },
+  {
+    "name": "splithorizontally",
+    "description": "Split Horizontally",
+    "binding": [
+      [
+        "ctrl+alt+h"
+      ],
+      [
+        "ctrl+alt+h"
+      ]
+    ]
+  },
+  {
+    "name": "mergesplitview",
+    "description": "Merge Split Panes",
+    "binding": [
+      [
+        "ctrl+alt+m"
+      ],
+      [
+        "ctrl+alt+m"
+      ]
+    ]
+  },
+  {
+    "name": "previewfile",
+    "description": "Preview File",
+    "binding": [
+      [
+        "ctrl+alt+p"
+      ],
+      [
+        "ctrl+alt+p"
+      ]
+    ]
+  },
+  {
+    "name": "saveallfiles",
+    "description": "Save All",
+    "binding": [
+      [
+        "ctrl+alt+s"
+      ],
+      [
+        "ctrl+alt+s"
+      ]
+    ]
+  },
+  {
+    "name": "createnewfile",
+    "description": "New File",
+    "binding": [
+      [
+        "ctrl+alt+n"
+      ],
+      [
+        "ctrl+alt+n"
+      ]
+    ]
+  },
+  {
+    "name": "createnewterminal",
+    "description": "New Terminal",
+    "binding": [
+      [
+        "ctrl+alt+t"
+      ],
+      [
+        "ctrl+alt+t"
+      ]
+    ]
+  },
+  {
+    "name": "createnewdrawing",
+    "description": "New Drawing Board",
+    "binding": [
+      [
+        "ctrl+alt+d"
+      ],
+      [
+        "ctrl+alt+d"
+      ]
+    ]
+  },
+  {
+    "name": "togglesidebar",
+    "description": "Toggle Sidebar",
+    "binding": [
+      [
+        "ctrl+alt+k"
+      ],
+      [
+        "ctrl+alt+k"
+      ]
+    ]
+  },
+  {
+    "name": "closetab",
+    "description": "Close Tab",
+    "binding": [
+      [
+        "ctrl+alt+w"
+      ],
+      [
+        "ctrl+alt+w"
+      ]
+    ]
+  },
+  {
+    "name": "gotolefttab",
+    "description": "Go to Left Tab",
+    "binding": [
+      [
+        "ctrl+alt+["
+      ],
+      [
+        "ctrl+alt+["
+      ]
+    ]
+  },
+  {
+    "name": "gotorighttab",
+    "description": "Go to Right Tab",
+    "binding": [
+      [
+        "ctrl+alt+]"
+      ],
+      [
+        "ctrl+alt+]"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber1",
+    "description": "Go to Tab #1",
+    "binding": [
+      [
+        "ctrl+1"
+      ],
+      [
+        "command+1"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber2",
+    "description": "Go to Tab #2",
+    "binding": [
+      [
+        "ctrl+2"
+      ],
+      [
+        "command+2"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber3",
+    "description": "Go to Tab #3",
+    "binding": [
+      [
+        "ctrl+3"
+      ],
+      [
+        "command+3"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber4",
+    "description": "Go to Tab #4",
+    "binding": [
+      [
+        "ctrl+4"
+      ],
+      [
+        "command+4"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber5",
+    "description": "Go to Tab #5",
+    "binding": [
+      [
+        "ctrl+5"
+      ],
+      [
+        "command+5"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber6",
+    "description": "Go to Tab #6",
+    "binding": [
+      [
+        "ctrl+6"
+      ],
+      [
+        "command+6"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber7",
+    "description": "Go to Tab #7",
+    "binding": [
+      [
+        "ctrl+7"
+      ],
+      [
+        "command+7"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber8",
+    "description": "Go to Tab #8",
+    "binding": [
+      [
+        "ctrl+8"
+      ],
+      [
+        "command+8"
+      ]
+    ]
+  },
+  {
+    "name": "gototabnumber9",
+    "description": "Go to Tab #9",
+    "binding": [
+      [
+        "ctrl+9"
+      ],
+      [
+        "command+9"
+      ]
+    ]
+  },
+  {
+    "name": "fullscreen",
+    "description": "Fullscreen",
+    "binding": [
+      [
+        "ctrl+shift+enter"
+      ],
+      [
+        "shift+command+enter"
+      ]
+    ]
+  },
+  {
+    "name": "movetabup",
+    "description": "Move Tab Up",
+    "binding": [
+      [
+        "ctrl+alt+shift+up"
+      ],
+      [
+        "alt+shift+command+up"
+      ]
+    ]
+  },
+  {
+    "name": "movetabdown",
+    "description": "Move Tab Down",
+    "binding": [
+      [
+        "ctrl+alt+shift+down"
+      ],
+      [
+        "alt+shift+command+down"
+      ]
+    ]
+  },
+  {
+    "name": "movetableft",
+    "description": "Move Tab Left",
+    "binding": [
+      [
+        "ctrl+alt+shift+left"
+      ],
+      [
+        "alt+shift+command+left"
+      ]
+    ]
+  },
+  {
+    "name": "movetabright",
+    "description": "Move Tab Right",
+    "binding": [
+      [
+        "ctrl+alt+shift+right"
+      ],
+      [
+        "alt+shift+command+right"
+      ]
+    ]
+  }
+]

@@ -1,15 +1,17 @@
-kd                          = require 'kd'
-AdministrationView          = require './views/administrationview'
-CustomViewsManager          = require './views/customviews/customviewsmanager'
-AdminAppView            = require './adminappview'
-GroupGeneralSettingsView    = require './views/groupgeneralsettingsview'
-GroupPermissionsView        = require './views/grouppermissionsview'
-GroupsBlockedUserView       = require './views/groupsblockeduserview'
-GroupsInvitationView        = require './views/groupsinvitationview'
-GroupsMemberPermissionsView = require './views/groupsmemberpermissionsview'
-OnboardingAdminView     = require './views/onboarding/onboardingadminview'
-AppController               = require 'app/appcontroller'
-Encoder                     = require 'htmlencode'
+kd                        = require 'kd'
+Encoder                   = require 'htmlencode'
+AdminAppView              = require './adminappview'
+AppController             = require 'app/appcontroller'
+AdminMembersView          = require './views/members/adminmembersview'
+AdministrationView        = require './views/administrationview'
+CustomViewsManager        = require './views/customviews/customviewsmanager'
+GroupStackSettings        = require './views/groupstacksettings'
+OnboardingAdminView       = require './views/onboarding/onboardingadminview'
+GroupPermissionsView      = require './views/grouppermissionsview'
+GroupsInvitationView      = require './views/groupsinvitationview'
+GroupsBlockedUserView     = require './views/groupsblockeduserview'
+GroupGeneralSettingsView  = require './views/groupgeneralsettingsview'
+
 require('./routehandler')()
 
 
@@ -34,7 +36,7 @@ module.exports = class AdminAppController extends AppController
       ,
         name         : 'Members'
         viewOptions  :
-          viewClass  : GroupsMemberPermissionsView
+          viewClass  : AdminMembersView
           lazy       : yes
           callback   : @bound 'membersViewAdded'
       ,
@@ -46,6 +48,11 @@ module.exports = class AdminAppController extends AppController
         name         : 'Permissions'
         viewOptions  :
           viewClass  : GroupPermissionsView
+          lazy       : yes
+      ,
+        name         : 'Stacks'
+        viewOptions  :
+          viewClass  : GroupStackSettings
           lazy       : yes
       ,
         name         : 'Membership policy'
@@ -110,5 +117,3 @@ module.exports = class AdminAppController extends AppController
     @getOptions().view.ready =>
       {q} = query
       @emit "SearchFilterChanged", q or ""
-
-

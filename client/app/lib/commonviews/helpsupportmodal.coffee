@@ -1,8 +1,11 @@
 $ = require 'jquery'
 uploadLogs = require '../util/uploadLogs'
 kd = require 'kd'
+KDView = kd.View
 KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView = kd.NotificationView
+JCustomHTMLView = require 'app/jcustomhtmlview'
+
 
 module.exports = class HelpSupportModal extends KDModalViewWithForms
 
@@ -45,6 +48,8 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
     super options, data
 
+    @addOnboardingView()
+
     @on "NewTicketRequested", (form)=>
 
       return if @ticketRequested
@@ -79,6 +84,22 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
       @_logUrl = logUrl  if not err and logUrl?
 
 
+  addOnboardingView: ->
+
+    resetOnboardingLink = new KDView
+      tagName : 'a'
+      partial : 'Click here'
+      click   : =>
+        kd.singletons.onboardingController.resetOnboardings =>
+          @destroy()
+          global.location.reload yes
+
+    @addSubView new JCustomHTMLView
+      cssClass        : 'onboarding-text'
+      pistachio       : '{{> resetOnboardingLink}} if you want to see the onboarding steps again. (requires reload)'
+      pistachioParams : { resetOnboardingLink }
+
+
   @getTopics = ->
     """
       <div class="container">
@@ -98,10 +119,6 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
         <div class="koding-university">
           Head over to <a href="http://learn.koding.com/faq/" target="_blank">Koding University</a> for more...
-        </div>
-
-        <div class="message-footer">
-          To view the onboarding process again,<br />press <span class="f1-button">F1</span>.
         </div>
       </div>
     """
