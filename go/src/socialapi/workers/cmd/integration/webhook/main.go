@@ -5,7 +5,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/realtime/gatekeeper"
+	"socialapi/workers/integration/webhook/api"
 
 	"github.com/koding/runner"
 )
