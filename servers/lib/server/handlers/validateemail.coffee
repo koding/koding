@@ -3,9 +3,8 @@ koding          = require './../bongo'
 
 module.exports = (req, res) ->
 
-  { JUser }    = koding.models
-  { email }    = req.params
-  { password } = req.body
+  { JUser }           = koding.models
+  { password, email } = req.body
 
   return res.status(400).send 'Bad request'  unless email?
 

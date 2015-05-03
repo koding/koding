@@ -3,7 +3,7 @@ koding  = require './../bongo'
 module.exports = (req, res) ->
 
   { JUser } = koding.models
-  { username } = req.params
+  { username } = req.body
 
   return res.status(400).send 'Bad request'  unless username?
 
