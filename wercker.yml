@@ -83,10 +83,10 @@ build:
     - script:
         name: check social api code quality
         code: |
-          go install github.com/alecthomas/gocyclo \
-            github.com/remyoudompheng/go-misc/deadcode \
-            github.com/opennota/check/cmd/varcheck \
-            github.com/barakmich/go-nyet
+          go install github.com/alecthomas/gocyclo
+          go install github.com/remyoudompheng/go-misc/deadcode
+          go install github.com/opennota/check/cmd/varcheck
+          go install github.com/barakmich/go-nyet
 
           echo "checking cyclo complexity"
           ./go/bin/gocyclo -top 20 ./go/src/socialapi/*/**/**.go
