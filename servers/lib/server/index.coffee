@@ -56,8 +56,9 @@ app.use require './setsession'
 # routes ordered as before no particular structure
 
 # temp endpoints @cihangir will reorganize these - SY
-app.all '/-/teams/:name/members'                , require './handlers/getteammembers'
-app.all '/-/teams/:name'                        , require './handlers/getteam'
+app.post '/-/teams/create'                       , require './handlers/createteam'
+app.all  '/-/teams/:name/members'                , require './handlers/getteammembers'
+app.all  '/-/teams/:name'                        , require './handlers/getteam'
 # temp endpoints ends
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
