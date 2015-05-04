@@ -4,6 +4,13 @@ CustomLinkView    = require './../core/customlinkview'
 module.exports = class TeamInviteTabForm extends KDFormView
 
   JView.mixin @prototype
+  count = 0
+  createInput = ->
+    count++
+    new KDInputView
+      placeholder : "email@domain.com"
+      name        : "invitee#{count}"
+
 
   constructor:(options = {}, data)->
 
@@ -21,26 +28,34 @@ module.exports = class TeamInviteTabForm extends KDFormView
       name         : 'allow'
       label        : @label
 
-    @input1 = new KDInputView placeholder : 'email@domain.com'
-    @input2 = new KDInputView placeholder : 'email@domain.com'
-    @input3 = new KDInputView placeholder : 'email@domain.com'
+    @input1 = createInput()
+    @input2 = createInput()
+    @input3 = createInput()
+
     @add = new KDButtonView
-      title       : 'ADD INVITATION'
-      style       : 'SignupForm-button compact SignupForm-button--gray add'
+      title    : 'ADD INVITATION'
+      style    : 'SignupForm-button compact SignupForm-button--gray add'
+      callback : @bound 'addInvitee'
 
     @skip = new CustomLinkView
-      title       : 'Skip this step'
-      cssClass    : 'SignupForm-linkButton skip'
-      href        : '/Team/username'
+      title    : 'Skip this step'
+      cssClass : 'SignupForm-linkButton skip'
+      href     : '/Team/username'
 
     @button = new KDButtonView
-      title       : 'NEXT'
-      style       : 'SignupForm-button SignupForm-button--green'
-      attributes  : testpath  : 'invite-button'
-      loader      : yes
-      callback    : =>
-        console.log 'go to username:'
-        KD.singletons.router.handleRoute '/Team/username'
+      title      : 'NEXT'
+      style      : 'SignupForm-button SignupForm-button--green'
+      attributes : testpath : 'invite-button'
+      type       : 'submit'
+
+
+  addInvitee: ->
+
+    input   = createInput()
+    wrapper = new KDCustomHTMLView cssClass : 'login-input-view'
+    wrapper.addSubView input
+    @addSubView wrapper, '.additional'
+    input.setFocus()
 
 
   pistachio: ->
@@ -49,6 +64,7 @@ module.exports = class TeamInviteTabForm extends KDFormView
     <div class='login-input-view'>{{> @input1}}</div>
     <div class='login-input-view'>{{> @input2}}</div>
     <div class='login-input-view'>{{> @input3}}</div>
+    <div class='additional'></div>
     {{> @add}}
     <p class='dim'>if you’d like, you can send invitations after you finish setting up your team.</p>
     {{> @skip}}{{> @button}}
