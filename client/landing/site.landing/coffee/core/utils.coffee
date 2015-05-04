@@ -444,3 +444,31 @@ utils.extend utils,
     return {}
 
 
+  createTeam: ->
+
+    teamData = KD.utils.getTeamData()
+    formData = {}
+
+    for key, value of teamData
+      for k, v of value
+        if k.search('invitee') >= 0
+          formData['invitees'] ?= v
+          formData['invitees'] += ",#{v}"
+        else
+          formData[k] = v
+
+    # manually add legacy fields - SY
+    formData.agree           = 'on'
+    formData.passwordConfirm = formData.password
+    formData.redirect        = "#{location.protocol}//#{formData.slug}.#{location.host}?username=#{formData.username}"
+
+    $.ajax
+      url       : "/-/teams/create"
+      data      : formData
+      type      : 'POST'
+      xhrFields : withCredentials : yes
+      success   : ->
+        localStorage.team = null
+        location.href = formData.redirect
+      error     : ({responseText}) =>
+        new KDNotificationView title : responseText
