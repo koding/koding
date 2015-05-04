@@ -127,5 +127,3 @@ KD.extend
     return "Logs are enabled now."
 
   runningInFrame: -> window.top isnt window.self
-
-  tell: -> KD.getSingleton('appManager').tell arguments...
