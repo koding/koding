@@ -6,6 +6,7 @@ snapshotHelpers           = require './snapshothelpers'
 ComputeErrorUsageModal    = require './computeerrorusagemodal'
 EnvironmentsProgressModal = require './environmentsprogressmodal'
 MachineSettingsCommonView = require './machinesettingscommonview'
+getIdeByMachine           = require '../util/getIdeByMachine'
 
 
 module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
@@ -113,12 +114,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
         'Name length must be larger than zero'
 
     # Get the IDE view.
-    { appControllers } = kd.getSingleton 'appManager'
-    ideInstances       = appControllers.IDE?.instances ? []
-    for ideController in ideInstances
-      if ideController.mountedMachine._id is machineId
-        container = ideController.getView()
-        break
+    ideController = getIdeByMachine machine
+    container     = ideController?.getView()
 
     unless container?
       router = kd.getSingleton 'router'
