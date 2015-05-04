@@ -4,6 +4,8 @@ HelpSupportModal      = require '../commonviews/helpsupportmodal'
 JView                 = require '../jview'
 
 
+DEFAULT_PERCENTAGE = 10
+
 
 ###*
  * EnvironmentsProgressModal is a simple progressbar with an overlay for
@@ -86,7 +88,7 @@ module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
   ###*
    * Create the progress bar.
   ###
-  createProgressBar: (initial = 10) ->
+  createProgressBar: (initial = DEFAULT_PERCENTAGE) ->
 
     @container.addSubView @progressBar = new kd.ProgressBarView { initial }
 
@@ -115,7 +117,7 @@ module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
    *
    * @param {Number} percentage - The percentage to set the bar to.
   ###
-  updatePercentage: (percentage = 10) ->
+  updatePercentage: (percentage = DEFAULT_PERCENTAGE) ->
 
     @progressBar.updateBar percentage
 
