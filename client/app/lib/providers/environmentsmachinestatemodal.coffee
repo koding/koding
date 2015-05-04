@@ -1,22 +1,25 @@
-$ = require 'jquery'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDHitEnterInputView = kd.HitEnterInputView
-KDButtonView = kd.ButtonView
-KDLoaderView = kd.LoaderView
-KDProgressBarView = kd.ProgressBarView
-KDNotificationView = kd.NotificationView
-Encoder = require 'htmlencode'
-EnvironmentsModalView = require './environmentsmodalview'
-Machine = require './machine'
-whoami = require '../util/whoami'
-ComputeController = require './computecontroller'
-remote = require('../remote').getInstance()
-showError = require '../util/showError'
-ComputeHelpers = require './computehelpers'
-sendDataDogEvent = require '../util/sendDataDogEvent'
-HelpSupportModal = '../commonviews/helpsupportmodal'
-trackEvent = require 'app/util/trackEvent'
+$                       = require 'jquery'
+Encoder                 = require 'htmlencode'
+
+kd                      = require 'kd'
+KDButtonView            = kd.ButtonView
+KDLoaderView            = kd.LoaderView
+KDCustomHTMLView        = kd.CustomHTMLView
+KDProgressBarView       = kd.ProgressBarView
+KDNotificationView      = kd.NotificationView
+KDHitEnterInputView     = kd.HitEnterInputView
+
+remote                  = require('../remote').getInstance()
+Machine                 = require './machine'
+ComputeHelpers          = require './computehelpers'
+HelpSupportModal        = '../commonviews/helpsupportmodal'
+ComputeController       = require './computecontroller'
+EnvironmentsModalView   = require './environmentsmodalview'
+
+whoami                  = require '../util/whoami'
+showError               = require '../util/showError'
+trackEvent              = require 'app/util/trackEvent'
+sendDataDogEvent        = require '../util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -46,7 +49,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @machineId   = jMachine._id
     {@state}     = @machine.status
     @isManaged   = @machine.provider is 'managed'
-
 
     @showBusy()
     @show()
