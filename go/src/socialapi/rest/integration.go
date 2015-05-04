@@ -54,8 +54,8 @@ func DoBotChannelRequest(token string) (int64, error) {
 		return 0, fmt.Errorf("channel field does not exit")
 	}
 
-	cr, ok := channelResponse.(map[string]interface{})
-	if !ok {
+	cr, channelResponseOk := channelResponse.(map[string]interface{})
+	if !channelResponseOk {
 		return 0, ErrTypecastError
 	}
 
