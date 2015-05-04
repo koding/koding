@@ -130,7 +130,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     @emit 'ModalDestroyRequested'
     modal = new EnvironmentsProgressModal
       container: container
-      actionLabel: 'snapshotting'
+      actionLabel: 'Creating a snapshot'
       machine
     modal.show()
     percentageUpdater = modal.bound 'updatePercentage'

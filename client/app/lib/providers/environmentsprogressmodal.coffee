@@ -24,7 +24,7 @@ module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
     options.cssClass    ?= 'env-machine-state'
     options.width        = 440
     options.initial     ?= 10
-    options.actionLabel ?= 'processing'
+    options.actionLabel ?= 'Processing a task'
 
     super
 
@@ -43,7 +43,7 @@ module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
     message = new kd.CustomHTMLView
       cssClass    : 'error-message'
       partial     : customErrorMessage or """
-        <p>There was an error during #{actionLabel}.</p>
+        <p>There was an error while #{actionLabel}.</p>
         <span>Please try reloading this page or <span
         class="contact-support">contact support</span> for further
         assistance.</span>
@@ -79,7 +79,7 @@ module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
       cssClass : "state-label"
       partial  : """
         <span class='icon'></span>
-        Creating a snapshot for <strong>#{@machineName or 'your vm'}</strong>
+        #{actionLabel} for <strong>#{@machineName or 'your vm'}</strong>
       """
 
 
