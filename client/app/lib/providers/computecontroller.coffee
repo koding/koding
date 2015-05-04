@@ -80,6 +80,7 @@ module.exports = class ComputeController extends KDController
     @stacks       = []
     @machines     = []
     @machinesById = {}
+    @stacksById   = {}
     @plans        = null
     @_trials      = {}
 
@@ -186,6 +187,10 @@ module.exports = class ComputeController extends KDController
             queue = []
             return
 
+          @stacksById   = {}
+          for stack in stacks
+            @stacksById[stack._id] = stack
+
           @machinesById = {}
 
           machines = []
@@ -251,6 +256,12 @@ module.exports = class ComputeController extends KDController
   findMachineFromMachineId: (machineId)->
     return @machinesById[machineId]
 
+  findStackFromStackId: (stackId)->
+    return @stacksById[stackId]
+
+  findStackFromMachineId: (machineId)->
+    for stack in @stacks
+      return stack  if machineId in stack.machines
 
   findMachineFromQueryString: (queryString)->
 
