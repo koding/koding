@@ -1,9 +1,12 @@
+{argv}    = require 'optimist'
+KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 jraphical = require 'jraphical'
 crypto    = require 'crypto'
 Bongo     = require "bongo"
 Email     = require './email'
 
-{secure, signature, dash} = Bongo
+{ protocol, hostname } = KONFIG
+{ secure, signature, dash } = Bongo
 
 module.exports = class JInvitation extends jraphical.Module
 
@@ -13,17 +16,14 @@ module.exports = class JInvitation extends jraphical.Module
 
   {permit} = require './group/permissionset'
 
-  @isEnabledGlobally = yes
-
-
-
   @share()
 
   @set
     permissions     :
-      'send invitations'                  : ['moderator', 'admin']
+      'send invitations' : ['moderator', 'admin']
     indexes         :
       code          : 'unique'
+      # TODO create a compound index on groupName and
     sharedMethods   :
 
       instance:
@@ -32,7 +32,7 @@ module.exports = class JInvitation extends jraphical.Module
 
       static:
         create:
-          (signature String, String, Object, Function)
+          (signature Object, Function)
         byCode:
           (signature String, Function)
 
@@ -43,51 +43,61 @@ module.exports = class JInvitation extends jraphical.Module
       code          :
         type        : String
         required    : yes
-      email         : String
+      email         :
         type        : String
         required    : yes
+      firstName     :
+        type        : String
+      lastName      :
+        type        : String
       groupName     :
         type        : String
         required    : yes
       status        :
         type        : String
         enum        : ['invalid status type', [
-          'sent','active','blocked',
-          'redeemed','couldnt send email',
-          'accepted','ignored'
+          'pending',
+          'accepted'
         ]]
-        default     : 'active'
+        default     : 'pending'
       createdAt     :
         type        : Date
         default     : -> new Date
 
   remove$: permit 'send invitations',
-    success: (client, callback=->)-> @remove callback
+    success: (client, callback=->)->
+      @remove callback
 
-  @byCode = (code, callback)-> @one {code}, callback
+  @byCode = (code, callback)->
+    @one {code}, callback
 
+  # TODO - generate a better invitation code
   @generateInvitationCode = (email, group)->
     code = crypto.createHmac 'sha1', 'kodingsecret'
     code.update email
     code.update group
     code.digest 'hex'
 
-  redeem$: secure ({connection:{delegate}}, callback=->)->
-    @redeem delegate, callback
+  accept$: secure (client, callback=->)->
+    { delegate } = client.connection
+    @accept delegate, callback
 
-  redeem: (account, callback) ->
-    operation = $set : { status: 'redeemed' }
+  accept: (account, callback) ->
+    operation = $set : { status: 'accepted' }
     @update operation, callback
 
   @create = secure (client, options, callback)->
-    { groupName } = client.connection
+    { groupName, delegate } = client.connection
 
     groupName  or= 'koding'
 
     { emails }  = options
 
+    name = getName delegate
+
     queue = emails.map (email)=>=>
       code = @generateInvitationCode email, groupName
+
 
       invite = new JInvitation {
         code
@@ -97,21 +107,29 @@ module.exports = class JInvitation extends jraphical.Module
 
       invite.save (err)->
         return callback err   if err
-        queue.fin()
+
+        options =
+          to      : email,
+          subject : Email.types.INVITE
+
+        properties =
+          groupName: groupName
+          invitee  : name
+          link     : "#{protocol}//#{groupName}.#{hostname}/Invitation/#{encodeURIComponent code}"
+
+        Email.queue email, options, properties, -> queue.fin()
 
     dash queue, callback
 
-  # sendMail: permit 'send invitations',
-  #   success: (client, group, options, callback)->
-  #     [callback, options] = [options, callback]  unless callback
-  #     options ?= {}
+  getName = (delegate)->
+    { nickname, firstName, lastName } = delegate.profile.nickname
 
-  #     JUser            = require './user'
-  #     {delegate}       = client.connection
+    name = nickname
 
-  #     JUser.fetchUser client, (err, inviter)=>
-  #       Email.queue delegate.profile.nickname, {
-  #         to         : @email
-  #         subject    : "subject"
-  #         content    : "content"
-  #       }, {inviterEmail : inviter.email}, callback
+    if "#{firstName}" is not ""
+      name = firstName
+
+    if "#{lastName}" is not ""
+      name = "#{name} #{lastName}"
+
+    return name
