@@ -405,3 +405,18 @@ utils.extend utils,
           error       : ({responseJSON}) ->
             container.emit 'EmailIsNotAvailable'
             input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
+
+  checkedPasswords: {}
+  checkPasswordStrength: KD.utils.debounce 300, (password, callback) ->
+
+    return callback msg : 'No password specified!'  unless password
+    return callback null, res                       if res = KD.utils.checkedPasswords[password]
+
+    $.ajax
+      url         : "/-/password-strength"
+      type        : 'POST'
+      data        : { password }
+      success     : (res) ->
+        KD.utils.checkedPasswords[res.password] = res
+        callback null, res
+      error       : ({responseJSON}) -> callback msg : responseJSON
