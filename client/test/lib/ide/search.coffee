@@ -71,3 +71,32 @@ module.exports =
       .waitForElementVisible   '.ws-tabview .kdtabview .pythonpy.active', 20000 # Assertion
       .waitForElementVisible   paneSelector, 20000 # Assertion
       .end()
+
+
+  saveNewFile: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    saveSelector        = '.kdlistview-contextmenu li.save'
+    saveAsModalSelector = '.save-as-dialog'
+    saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
+    newName             = helpers.getFakeText().split(' ')[0] + '.txt'
+    filesTabSelector    = '.ide-files-tab .file-container'
+    saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons span.button-title"
+
+    ideHelpers.openNewFile(browser)
+    ideHelpers.openContextMenu(browser)
+
+    browser
+      .waitForElementVisible  saveSelector, 20000
+      .click                  saveSelector
+      .waitForElementVisible  saveAsModalSelector, 20000
+      .waitForElementVisible  saveAsInputSelector, 20000
+      .clearValue             saveAsInputSelector
+      .setValue               saveAsInputSelector, newName
+      .click                  saveButtonSelector
+      .waitForElementVisible  "#{paneSelector} div[title='#{newName}']", 20000 # Assertion
+      .waitForElementVisible  fileNameSelector, 20000
+      .assert.containsText    fileNameSelector, newName # Assertion
+      .end()
