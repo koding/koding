@@ -26,6 +26,7 @@
     "cli-table": "0.3.1",
     "cloudflare": "0.0.6",
     "coffee-script": "1.7.1",
+    "coffeenode-zxcvbn": "1.0.1",
     "colors": "0.6.0-1",
     "commander": "1.0.4",
     "compress-buffer": "1.2.2",

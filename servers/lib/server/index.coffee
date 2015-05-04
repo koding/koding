@@ -71,6 +71,7 @@ app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregis
 app.post '/:name?/Validate/Username/:username?'  , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'        , require './handlers/validateemail'
 app.post '/:name?/Validate'                      , require './handlers/validate'
+app.post '/-/password-strength'                  , require './handlers/passwordstrength'
 app.post '/-/validate/username'                  , require './handlers/validateusername'
 app.post '/-/validate/email'                     , require './handlers/validateemail'
 app.post '/-/validate'                           , require './handlers/validate'
