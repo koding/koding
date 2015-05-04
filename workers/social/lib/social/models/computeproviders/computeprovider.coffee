@@ -212,14 +212,15 @@ module.exports = class ComputeProvider extends Base
 
       { account, user, group, template } = res
 
+      stackRevision = template.template?.sum or ''
+
       JComputeStack = require '../stack'
       JComputeStack.create {
         title         : template.title
         config        : template.config
         baseStackId   : template._id
-        stackRevision : template.template?.sum or ''
         groupSlug     : group.slug
-        account
+        account, stackRevision
       }, (err, stack)->
 
         return callback err  if err
@@ -244,6 +245,9 @@ module.exports = class ComputeProvider extends Base
           queue.push ->
 
             machineInfo.stack = stack
+            machineInfo.generatedFrom =
+              templateId : template._id
+              revision   : stackRevision
 
             create = (machineInfo) ->
               ComputeProvider.create client, machineInfo, (err, machine)->
