@@ -53,7 +53,7 @@ build:
         name: launch test instance
         code: |
           INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
-          scripts/test-instance/launch $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
+          scripts/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
           cat INSTANCE_DATA
     - script:
         name: configure build
