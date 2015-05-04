@@ -85,8 +85,16 @@ func GetAccountByUserId(id bson.ObjectId) (*models.Account, error) {
 
 func GetSomeUsersBySelector(s Selector) ([]models.User, error) {
 	users := make([]models.User, 0)
+
 	query := func(c *mgo.Collection) error {
-		return c.Find(s).All(&users)
+		iter := c.Find(s).Iter()
+
+		var user models.User
+		for iter.Next(&user) {
+			users = append(users, user)
+		}
+
+		return iter.Close()
 	}
 
 	return users, Mongo.Run(UserColl, query)
@@ -144,6 +152,17 @@ func RemoveUser(username string) error {
 	return Mongo.Run(UserColl, query)
 }
 
+func RemoveAllUsers(username string) error {
+	selector := bson.M{"username": username}
+
+	query := func(c *mgo.Collection) error {
+		_, err := c.RemoveAll(selector)
+		return err
+	}
+
+	return Mongo.Run(UserColl, query)
+}
+
 func GetUserByAccountId(id string) (*models.User, error) {
 	account, err := GetAccountById(id)
 	if err != nil {
@@ -151,4 +170,13 @@ func GetUserByAccountId(id string) (*models.User, error) {
 	}
 
 	return GetUser(account.Profile.Nickname)
+}
+
+func UpdateUser(selector, update bson.M) error {
+	query := func(c *mgo.Collection) error {
+		err := c.Update(selector, bson.M{"$set": update})
+		return err
+	}
+
+	return Mongo.Run(UserColl, query)
 }
