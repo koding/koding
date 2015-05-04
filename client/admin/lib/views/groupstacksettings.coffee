@@ -108,6 +108,17 @@ module.exports = class GroupStackSettings extends kd.View
 
         {credentials, stackTemplate} = data
 
+        if not credentials or credentials.length is 0
+          @addSubView new kd.CustomHTMLView
+            partial  : "You don't have any credentials, please add
+                       one Amazon credential first."
+          @addSubView new kd.ButtonView
+            title    : 'Credentials'
+            callback : ->
+              kd.singletons.router.handleRoute '/Account/Credentials'
+
+          return
+
         @createEditorPane stackTemplate?.template?.content or defaultTemplate
         @createCredentialsBox credentials
 
@@ -166,7 +177,7 @@ module.exports = class GroupStackSettings extends kd.View
 
     { JCredential, JStackTemplate } = remote.api
 
-    credentials = [publicKeys.aws] # TODO Make it work with other providers ~ GG
+    credentials = publicKeys
 
     if stackTemplate
       stackTemplate.update {machines, template, credentials}, (err) =>
