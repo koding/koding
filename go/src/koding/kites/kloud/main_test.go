@@ -655,7 +655,7 @@ resource "aws_instance" "example" {
 		Machines:    []bson.ObjectId{machineId},
 	}
 
-	if err := provider.DB.Run("jComputeStack", func(c *mgo.Collection) error {
+	if err := provider.DB.Run("jComputeStacks", func(c *mgo.Collection) error {
 		return c.Insert(&computeStack)
 	}); err != nil {
 		return nil, err

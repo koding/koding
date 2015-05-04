@@ -158,7 +158,7 @@ func regionFromHCL(hclContent string) (string, error) {
 	return data.Provider.Aws.Region, nil
 }
 
-func injectUserdata(hclContent, userdata string) (string, error) {
+func injectUserdataAndKey(hclContent, userdata, keyName string) (string, error) {
 	var data struct {
 		Resource struct {
 			Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
@@ -177,6 +177,7 @@ func injectUserdata(hclContent, userdata string) (string, error) {
 
 	for resourceName, instance := range data.Resource.Aws_Instance {
 		instance["user_data"] = userdata
+		instance["key_name"] = keyName
 		data.Resource.Aws_Instance[resourceName] = instance
 	}
 
@@ -189,14 +190,16 @@ func injectUserdata(hclContent, userdata string) (string, error) {
 }
 
 // appendVariables appends the given key/value credentials to the hclFile (terraform) file
-func appendVariables(hclFile string, creds *terraformCredentials) string {
-	// TODO: use hcl encoder, this is just for testing
+func appendVariables(hclFile string, creds *terraformCredentials) (string, error) {
+
+	found := false
 	for _, cred := range creds.Creds {
 		// we only support aws for now
 		if cred.Provider != "aws" {
 			continue
 		}
 
+		found = true
 		for k, v := range cred.Data {
 			hclFile += "\n"
 			varTemplate := `
@@ -207,7 +210,11 @@ variable "%s" {
 		}
 	}
 
-	return hclFile
+	if !found {
+		return "", fmt.Errorf("no creds found for: %v", creds)
+	}
+
+	return hclFile, nil
 }
 
 func varsFromCredentials(creds *terraformCredentials) map[string]string {
