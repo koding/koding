@@ -142,7 +142,7 @@ module.exports = class GroupStackSettings extends kd.View
 
     computeController.getKloud()
 
-      .checkPlan {terraformContext, publicKeys}
+      .checkTemplate {terraformContext, publicKeys}
 
       .then (response) =>
 
