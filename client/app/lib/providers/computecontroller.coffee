@@ -107,7 +107,7 @@ module.exports = class ComputeController extends KDController
 
     retryIfNeeded = kd.utils.throttle 500, (task, machine)=>
 
-      return  if task is 'info'
+      return  if task in ['info', 'buildStack']
 
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
@@ -538,6 +538,32 @@ module.exports = class ComputeController extends KDController
     .catch (err)=>
 
       (@errorHandler call, 'build', machine) err
+
+
+  buildStack: (stack) ->
+
+    stack.machines.forEach (machineId) =>
+      return  unless machine = @findMachineFromMachineId machineId
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Building
+        percentage  : 0
+
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+    call = @getKloud().buildStack { stackId: stack._id }
+
+    .then (res) =>
+
+      kd.log "build stack res:", res
+      @eventListener.addListener 'apply', stack._id
+
+    .timeout globals.COMPUTECONTROLLER_TIMEOUT
+
+    .catch (err) =>
+
+      (@errorHandler call, 'buildStack', stack) err
+
 
 
   start: (machine)->
