@@ -14,6 +14,5 @@ module.exports = getIdeByMachine = (machine) ->
   for ideController in ideInstances
     if ideController.mountedMachine._id is machineId
       return ideController
-  return
 
 
