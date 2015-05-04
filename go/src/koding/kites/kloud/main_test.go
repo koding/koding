@@ -231,12 +231,22 @@ func TestTerraformApply(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var result *kloud.Machines
-	if err := resp.Unmarshal(&result); err != nil {
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("result = %+v\n", result)
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestBuild(t *testing.T) {
@@ -964,7 +974,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 			return e.Error
 		}
 
-		// fmt.Printf("e = %+v\n", e)
+		fmt.Printf("e = %+v\n", e)
 
 		event := e.Event
 		if event.Error != "" {
@@ -1025,13 +1035,14 @@ func kodingProvider() *koding.Provider {
 
 func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	debugEnabled := false
-
+	kloudLogger := common.NewLogger("kloud", debugEnabled)
 	sess := &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		AWSClients: p.EC2Clients,
+		Log:        kloudLogger,
 	}
 
 	kld := kloud.New()
@@ -1039,7 +1050,7 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 		return session.NewContext(ctx, sess)
 	}
 	kld.PublicKeys = publickeys.NewKeys()
-	kld.Log = common.NewLogger("kloud", debugEnabled)
+	kld.Log = kloudLogger
 	kld.DomainStorage = p.DNSStorage
 	kld.Domainer = p.DNSClient
 	kld.Locker = p

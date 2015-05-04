@@ -8,10 +8,14 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/generic"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 	"strconv"
+	"strings"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -52,75 +56,156 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("stackId is not passed")
 	}
 
+	// create context with the given request
 	ctx := request.NewContext(context.Background(), r)
 	ctx = k.ContextCreator(ctx)
 
+	// create eventer and also add it to the context
+	eventId := r.Method + "-" + args.StackId
+	ev := k.NewEventer(eventId)
+	ev.Push(&eventer.Event{
+		Message: r.Method + " started",
+		Status:  machinestate.Building,
+	})
+	ctx = eventer.NewContext(ctx, ev)
+
+	go func() {
+		finalEvent := &eventer.Event{
+			Message:    r.Method + " finished",
+			Status:     machinestate.Running,
+			Percentage: 100,
+		}
+
+		k.Log.Info("[%s] ======> %s started <======", args.StackId, strings.ToUpper(r.Method))
+		start := time.Now()
+
+		if err := apply(ctx, r.Username, args.StackId); err != nil {
+			// don't pass the error directly to the eventer, mask it to avoid
+			// error leaking to the client. We just log it here.
+			k.Log.Error("[%s] %s error: %s", args.StackId, r.Method, err)
+			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
+			// however, eventerErr is an error we want to pass explicitly to
+			// the client side
+			if eventerErr, ok := err.(*EventerError); ok {
+				finalEvent.Error = eventerErr.Error()
+			}
+
+			finalEvent.Status = machinestate.NotInitialized
+		}
+
+		k.Log.Info("[%s] ======> %s finished (time: %s) <======",
+			args.StackId, strings.ToUpper(r.Method), time.Since(start))
+
+		ev.Push(finalEvent)
+	}()
+
+	return ControlResult{
+		EventId: eventId,
+	}, nil
+}
+
+func apply(ctx context.Context, username, stackId string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
-		return nil, errors.New("session context is not passed")
+		return errors.New("session context is not passed")
 	}
 
-	stack, err := fetchStack(args.StackId)
+	ev, ok := eventer.FromContext(ctx)
+	if !ok {
+		return errors.New("eventer context is not passed")
+	}
+
+	ev.Push(&eventer.Event{
+		Message:    "Fetching and validating machines",
+		Percentage: 20,
+		Status:     machinestate.Building,
+	})
+
+	stack, err := fetchStack(stackId)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	k.Log.Debug("Fetching and validating '%d' machines from user '%s'", len(stack.Machines), r.Username)
+	sess.Log.Debug("Fetching and validating '%d' machines from user '%s'", len(stack.Machines), username)
 	machines, err := fetchMachines(ctx, stack.Machines...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	k.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), r.Username)
-	creds, err := fetchCredentials(r.Username, sess.DB, stack.PublicKeys)
+	ev.Push(&eventer.Event{
+		Message:    "Fetching and validating credentials",
+		Percentage: 30,
+		Status:     machinestate.Building,
+	})
+
+	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
+	creds, err := fetchCredentials(username, sess.DB, stack.PublicKeys)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	k.Log.Debug("Connection to Terraformer")
+	sess.Log.Debug("Connection to Terraformer")
 	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer tfKite.Close()
 
+	ev.Push(&eventer.Event{
+		Message:    "Building machines",
+		Percentage: 50,
+		Status:     machinestate.Building,
+	})
+
 	stack.Template = appendVariables(stack.Template, creds)
-	k.Log.Debug("Calling terraform.apply method with context:")
-	k.Log.Debug(stack.Template)
+	sess.Log.Debug("Calling terraform.apply method with context:")
+	sess.Log.Debug(stack.Template)
 
 	state, err := tfKite.Apply(&tf.TerraformRequest{
 		Content:   stack.Template,
-		ContentID: r.Username + "-" + sha1sum(stack.Template),
+		ContentID: username + "-" + sha1sum(stack.Template),
 		Variables: nil,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
+
+	ev.Push(&eventer.Event{
+		Message:    "Creating artficat",
+		Percentage: 70,
+		Status:     machinestate.Building,
+	})
 
 	region, err := regionFromHCL(stack.Template)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	output, err := machinesFromState(state)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	output.AppendRegion(region)
 
-	k.Log.Debug("Updating and syncing terraform output to jMachine documents")
+	ev.Push(&eventer.Event{
+		Message:    "Updating existing machines",
+		Percentage: 90,
+		Status:     machinestate.Building,
+	})
+
+	sess.Log.Debug("Updating and syncing terraform output to jMachine documents")
 	if err := updateMachines(ctx, output, machines); err != nil {
-		return nil, err
+		return err
 	}
 
 	d, err := json.MarshalIndent(output, "", " ")
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	fmt.Printf(string(d))
 
-	return nil, errors.New("not implemented yet")
+	return nil
 }
 
 func fetchStack(stackId string) (*Stack, error) {
