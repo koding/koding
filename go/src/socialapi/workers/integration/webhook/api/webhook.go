@@ -155,9 +155,15 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 	}
 
 	cc := models.NewChannelContainer()
-	if err := cc.Fetch(channel.Id, &request.Query{}); err != nil {
+	if err := cc.Fetch(channel.Id, &request.Query{AccountId: c.Client.Account.Id}); err != nil {
 		return response.NewBadRequest(err)
 	}
+
+	if err := cc.PopulateWith(*channel, c.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+	cc.AddUnreadCount(c.Client.Account.Id)
+
 	cc.ParticipantsPreview = append([]string{h.bot.Account().OldId}, cc.ParticipantsPreview...)
 
 	data := NewBotChannelResponse()
