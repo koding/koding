@@ -987,3 +987,12 @@ func (c *Channel) FetchLeaves() ([]Channel, error) {
 	cl.RootId = c.Id
 	return cl.List(request.NewQuery())
 }
+
+func (c *Channel) ShowUnreadCount() bool {
+	return c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY ||
+		c.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE ||
+		c.TypeConstant == Channel_TYPE_COLLABORATION ||
+		c.TypeConstant == Channel_TYPE_ANNOUNCEMENT ||
+		c.TypeConstant == Channel_TYPE_TOPIC ||
+		c.TypeConstant == Channel_TYPE_BOT
+}

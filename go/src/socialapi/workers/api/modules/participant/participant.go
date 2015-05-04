@@ -341,7 +341,8 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	// no need to continue from here for other channels
 	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
 		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
-		c.TypeConstant != models.Channel_TYPE_GROUP {
+		c.TypeConstant != models.Channel_TYPE_GROUP &&
+		c.TypeConstant != models.Channel_TYPE_BOT {
 		return nil
 	}
 

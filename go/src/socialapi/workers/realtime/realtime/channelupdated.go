@@ -145,12 +145,7 @@ func (cue *channelUpdatedEvent) isValidNotifyAllParticipantsEvent() bool {
 	}
 
 	// filter evets according to their TypeConstants
-	if cue.Channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_COLLABORATION &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_TOPIC &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_ANNOUNCEMENT {
-
+	if !cue.Channel.ShowUnreadCount() {
 		cue.Controller.log.Debug(
 			"Not sending channelUpdatedEvent for  (%s)",
 			cue.Channel.TypeConstant,
@@ -174,7 +169,8 @@ func (cue *channelUpdatedEvent) isValidNotifyAllParticipantsEvent() bool {
 
 	// send only post operations the the client
 	if cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_POST ||
-		cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_PRIVATE_MESSAGE {
+		cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_PRIVATE_MESSAGE ||
+		cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_BOT {
 		return true
 	}
 
@@ -230,11 +226,7 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 	// PinnedActivity
 	// PrivateMessage
 	// Topic
-	if cue.Channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_COLLABORATION &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_ANNOUNCEMENT &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_TOPIC {
+	if !cue.Channel.ShowUnreadCount() {
 		return 0, fmt.Errorf("not supported channel type for unread count calculation %+v", cue.Channel.TypeConstant)
 	}
 
