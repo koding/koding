@@ -1,5 +1,7 @@
-kd     = require 'kd'
-remote = require('app/remote').getInstance()
+kd                        = require 'kd'
+remote                    = require('app/remote').getInstance()
+
+EnvironmentsProgressModal = require './environmentsprogressmodal'
 
 
 ###*
@@ -20,6 +22,25 @@ fetchNewestSnapshot = (machineId, callback = kd.noop) ->
       callback null, snapshot
 
 
+###*
+ * Show the snapshotting modal (EnvironmentsProgressModal)
+ *
+ * @param {KDView} container - A view that the Modal will overlay (usually
+ *  the IDE)
+ * @param {actionLabel} actionLabel - the action label used in the modal.
+ * @returns {EnvironmentsProgressModal}
+###
+showSnapshottingModal = (machine, container) ->
+  modal = new EnvironmentsProgressModal
+    container: container
+    actionLabel: 'Creating a snapshot'
+    machine
+  modal.show()
+
+
 module.exports = {
   fetchNewestSnapshot
+  showSnapshottingModal
 }
+
+

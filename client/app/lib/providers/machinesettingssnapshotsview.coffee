@@ -4,7 +4,6 @@ Encoder                   = require 'htmlencode'
 SnapshotListItem          = require './snapshotlistitem'
 snapshotHelpers           = require './snapshothelpers'
 ComputeErrorUsageModal    = require './computeerrorusagemodal'
-EnvironmentsProgressModal = require './environmentsprogressmodal'
 MachineSettingsCommonView = require './machinesettingscommonview'
 getIdeByMachine           = require '../util/getIdeByMachine'
 
@@ -125,11 +124,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       return kd.error "Unable to create snapshot, IDE Could not be found"
 
     @emit 'ModalDestroyRequested'
-    modal = new EnvironmentsProgressModal
-      container: container
-      actionLabel: 'Creating a snapshot'
-      machine
-    modal.show()
+    modal = snapshotHelpers.showSnapshottingModal machine, container
 
     @on 'SnapshotProgress', modal.bound 'updatePercentage'
     @createSnapshot label, (err, snapshot) =>
