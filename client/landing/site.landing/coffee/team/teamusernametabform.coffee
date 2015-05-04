@@ -47,7 +47,10 @@ module.exports = class TeamUsernameTabForm extends KDFormView
         strength = ['bad', 'weak', 'moderate', 'good', 'excellent']
 
         return  if pass is oldPass
-        return  ps.unsetClass strength.join ' '  if pass is ''
+        if pass is ''
+          ps.unsetClass strength.join ' '
+          oldPass = null
+          return
 
         KD.utils.checkPasswordStrength pass, (err, report) ->
           oldPass = pass
