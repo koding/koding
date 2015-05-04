@@ -8,24 +8,28 @@ module.exports = class TeamSignupForm extends LoginViewInlineForm
 
     super
 
+    team        = KD.utils.getTeamData()
+    email       = team.signup?.email
+    companyName = team.signup?.companyName
+
+
     @email = new LoginInputViewWithLoader
-      inputOptions         :
-        name               : 'email'
-        placeholder        : 'Email address'
-        attributes         :
-          testpath         : 'register-form-email'
-        validate           : KD.utils.getEmailValidator
-          container        : this
-        decorateValidation : no
-        # focus             : => @email.icon.unsetTooltip()
-        # keydown           : (event) => @submitForm event  if event.which is ENTER
-        # blur              : => @fetchGravatarInfo @email.input.getValue()
-        # change            : => @emailIsAvailable = no
+      inputOptions   :
+        name         : 'email'
+        placeholder  : 'Email address'
+        defaultValue : email  if email
+        attributes   : testpath : 'register-form-email'
+        validate     :
+          rules      :
+            email    : yes
+          messages   :
+            email    : 'Please type a valid email address.'
 
     @companyName = new LoginInputView
       inputOptions    :
         name          : 'companyName'
         placeholder   : 'Company Name'
+        defaultValue  : companyName  if companyName
         attributes    : testpath : 'company-name'
         validate      :
           event       : 'blur'
@@ -34,21 +38,15 @@ module.exports = class TeamSignupForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter a your company name."
 
+    # make the placeholders go away
+    @companyName.inputReceivedKeyup()  if companyName
+    @email.inputReceivedKeyup()        if email
+
     @button = new KDButtonView
       title       : 'Sign up'
       style       : 'solid medium green'
       attributes  : testpath : 'signup-company-button'
       type        : 'submit'
-      loader      : yes
-
-
-  activate: ->
-    @username.setFocus()
-
-
-  resetDecoration:->
-    @username.resetDecoration()
-    @password.resetDecoration()
 
 
   pistachio:->
