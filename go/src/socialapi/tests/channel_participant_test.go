@@ -211,8 +211,6 @@ func TestChannelParticipantOperations(t *testing.T) {
 				ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, models.RandomName(), models.Channel_TYPE_BOT)
 				So(err, ShouldBeNil)
 				So(ch, ShouldNotBeNil)
-				_, err = ch.AddParticipant(ownerAccount.Id)
-				So(err, ShouldBeNil)
 
 				_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
 				So(err.Error(), ShouldEqual, "can not add/remove participants for bot channel")
