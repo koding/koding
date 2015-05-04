@@ -297,14 +297,14 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, erro
 		return nil, errors.New("request context is not passed")
 	}
 
-	// validate users
+	// now check if the requested user is inside the allowed users list
 	for _, u := range allowedUsers {
-		if u.Name != req.Username {
-			return nil, fmt.Errorf("machine is only allowed for user: %s. But have: %s", req.Username, u.Name)
+		if u.Name == req.Username {
+			return machines, nil
 		}
 	}
 
-	return machines, nil
+	return nil, fmt.Errorf("machine is only allowed for users: %v. But have: %s", allowedUsers, req.Username)
 }
 
 func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Machine) error {
