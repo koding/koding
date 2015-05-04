@@ -336,7 +336,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     section = switch type
       when 'topic', 'announcement'  then @sections.channels
-      when 'privatemessage'         then @sections.messages
+      when 'privatemessage','bot'   then @sections.messages
       else {}
 
     return section.listController
