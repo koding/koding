@@ -420,3 +420,27 @@ utils.extend utils,
         KD.utils.checkedPasswords[res.password] = res
         callback null, res
       error       : ({responseJSON}) -> callback msg : responseJSON
+
+
+  storeNewTeamData: (formName, formData) ->
+
+    KD.team              ?= {}
+    { team }              = KD
+    team[formName]        = formData
+    localStorage.teamData = JSON.stringify team
+
+
+  getTeamData: ->
+
+    return KD.team  if KD.team
+
+    return {}  unless data = localStorage.teamData
+
+    try
+      team    = JSON.parse data
+      KD.team = team
+
+    return team  if team
+    return {}
+
+
