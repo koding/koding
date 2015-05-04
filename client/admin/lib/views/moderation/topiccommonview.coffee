@@ -6,7 +6,8 @@ KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
 
-TopicItemView = require './topicitemview'
+TopicItemView        = require './topicitemview'
+TopicLeafItemView    = require './topicleafitemview'
 
 
 module.exports = class TopicCommonView extends KDView
@@ -29,7 +30,7 @@ module.exports = class TopicCommonView extends KDView
 
   createSearchView: ->
     @addSubView @searchContainer = new KDCustomHTMLView
-      cssClass: 'search hidden'
+      cssClass: 'search'
       partial : '<span class="label">Sort by</span>'
 
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
@@ -59,27 +60,28 @@ module.exports = class TopicCommonView extends KDView
     @listController.on 'LazyLoadThresholdReached', @bound 'fetchChannels'
 
 
-  fetchChannels: ->
-
+  fetchChannels:(query = "") ->
+    
     return if @isFetching
 
     @isFetching = yes
 
-    selector = @query or ''
     options  =
+      name   : query
       limit  : @getOptions().itemLimit
       sort   : { timestamp: -1 }
-
       skip   : @skip
-
-    kd.singletons.socialapi.channel.searchTopics {name: "deneme"}, (err, channels) =>
+    console.log options
+    kd.singletons.socialapi.channel.searchTopics options , (err, channels) =>
+      @isFetching = no
+      console.log arguments
       if err
         @listController.lazyLoader?.hide()
         return kd.warn err
       
-      console.log channels
+
       @listChannels channels
-      @isFetching = no
+      
 
 
   listChannels: (channels) ->
@@ -103,4 +105,5 @@ module.exports = class TopicCommonView extends KDView
 
     @listController.removeAllItems()
     @listController.lazyLoader.show()
-    @fetchChannels()
+    @fetchChannels @query
+    console.log @query
