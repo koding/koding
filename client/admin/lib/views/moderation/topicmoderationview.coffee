@@ -24,9 +24,13 @@ module.exports = class TopicModerationView extends KDView
 
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @tabView.addPane @allTopicsPane     = new KDTabPaneView name: 'All Topics'
-
+    @tabView.addPane @allTopicsPane         = new KDTabPaneView name: 'All Topics'
+    @tabView.addPane @newlyTopicsPane       = new KDTabPaneView name: 'Newly Topics'
+    @tabView.addPane @deletedTopicsPane     = new KDTabPaneView name: 'Deleted Topics'
+    
     @tabView.showPaneByIndex 0
 
-    @allTopicsPane.addSubView new TopicCommonView {}, @getData()
+    @allTopicsPane.addSubView       new TopicCommonView {}, @getData()
+    @newlyTopicsPane.addSubView     new TopicCommonView {}, @getData()
+    @deletedTopicsPane.addSubView   new TopicCommonView {}, @getData()
 
