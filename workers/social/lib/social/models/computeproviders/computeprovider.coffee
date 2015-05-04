@@ -80,7 +80,7 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-    { provider, stack, label, provisioners, users } = options
+    { provider, stack, label, provisioners, users, generatedFrom } = options
     { r: { group, user, account } } = client
 
     provider.create client, options, (err, machineData)->
@@ -93,7 +93,7 @@ module.exports = class ComputeProvider extends Base
 
       JMachine.create {
         provider : provider.slug
-        label, meta, group, user
+        label, meta, group, user, generatedFrom
         users, credential, provisioners
       }, (err, machine)->
 
@@ -133,6 +133,9 @@ module.exports = class ComputeProvider extends Base
       # Reset it here if someone tries to put users
       # from client side request
       options.users = []
+
+      # Remove generatedFrom option if provided
+      delete options.generatedFrom
 
       @create client, options, callback
 
