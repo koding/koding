@@ -20,8 +20,13 @@ module.exports = class TeamUsernameTabForm extends KDFormView
       name         : 'newsletter'
       label        : @label
 
+    team     = KD.utils.getTeamData()
+    username = email.split('@').first  if email = team.signup?.email
+
     @username = new KDInputView
-      placeholder : 'username'
+      placeholder  : 'username'
+      name         : 'username'
+      defaultValue : username  if username
 
     @passwordStrength = ps = new KDCustomHTMLView
       tagName  : 'figure'
@@ -32,6 +37,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
     oldPass   = null
     @password = new KDInputView
       type          : 'password'
+      name          : 'password'
       placeholder   : '*********'
       validate      :
         event       : 'blur'
@@ -40,8 +46,8 @@ module.exports = class TeamUsernameTabForm extends KDFormView
           required  : yes
           minLength : 8
         messages    :
-          required  : "Please enter a password."
-          minLength : "Passwords should be at least 8 characters."
+          required  : 'Please enter a password.'
+          minLength : 'Passwords should be at least 8 characters.'
       keyup         : (event) ->
         pass     = @getValue()
         strength = ['bad', 'weak', 'moderate', 'good', 'excellent']
@@ -63,13 +69,10 @@ module.exports = class TeamUsernameTabForm extends KDFormView
 
 
     @button = new KDButtonView
-      title       : 'Continue to environmental setup'
-      style       : 'SignupForm-button SignupForm-button--green'
-      attributes  : testpath  : 'register-button'
-      loader      : yes
-      callback    : =>
-        console.log 'go to invites:'
-        KD.singletons.router.handleRoute '/Team/invite'
+      title      : 'Continue to environmental setup'
+      style      : 'SignupForm-button SignupForm-button--green'
+      attributes : testpath : 'register-button'
+      type       : 'submit'
 
 
   pistachio: ->
