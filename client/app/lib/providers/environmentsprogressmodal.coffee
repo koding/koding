@@ -6,7 +6,7 @@ JView                 = require '../jview'
 
 
 ###*
- * EnvironmentsProgressModal is a simple progressbar with an overaly for
+ * EnvironmentsProgressModal is a simple progressbar with an overlay for
  * the given container.
 ###
 module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
