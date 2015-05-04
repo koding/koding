@@ -4,6 +4,7 @@ Encoder                   = require 'htmlencode'
 SnapshotListItem          = require './snapshotlistitem'
 snapshotHelpers           = require './snapshothelpers'
 ComputeErrorUsageModal    = require './computeerrorusagemodal'
+EnvironmentsProgressModal = require './environmentsprogressmodal'
 MachineSettingsCommonView = require './machinesettingscommonview'
 
 
@@ -104,21 +105,50 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###
   handleAddNew: ->
 
-    machineId = @getData()._id
-    label = @addInputView.getValue()
+    machine   = @getData()
+    machineId = machine._id
+    label     = @addInputView.getValue()
     if not label? or label is ''
       return MachineSettingsSnapshotsView.notify \
         'Name length must be larger than zero'
 
-    # Explicitly showing the loader because the hitEnterTextView does
-    # not trigger the button loader when entered.
-    @addNewButton.showLoader()
+    # Get the IDE view.
+    { appControllers } = kd.getSingleton 'appManager'
+    ideInstances       = appControllers.IDE?.instances ? []
+    for ideController in ideInstances
+      if ideController.mountedMachine._id is machineId
+        container = ideController.getView()
+        break
+
+    if not container?
+      router = kd.getSingleton 'router'
+      router.handleRoute "/IDE/#{machine.slug}"
+      msg = "Unable to create snapshot, IDE Could not be found. Please retry"
+      @showNotification msg, 'error'
+      return kd.error "Unable to create snapshot, IDE Could not be found"
+
+    @emit 'ModalDestroyRequested'
+    modal = new EnvironmentsProgressModal
+      container: container
+      actionLabel: 'snapshotting'
+      machine
+    modal.show()
+    percentageUpdater = modal.bound 'updatePercentage'
+
+    @on 'SnapshotProgress', percentageUpdater
     @createSnapshot label, (err, snapshot) =>
-      @hideAddView()
-      @addInputView.setValue ''
-      @addNewButton.hideLoader()
-      return kd.warn err  if err
-      @listController.addItem snapshot
+      @off 'SnapshotProgress', percentageUpdater
+      if err
+        kd.warn err
+        return modal.showError()
+
+      modal.destroy()
+      # Importing this here, because the order of imports means that
+      # MachineSettingsSnapshotsView gets created before MachineSettingsModal.
+      # Ie, we can't import it at the beginning of this file.
+      MachineSettingsModal = require './machinesettingsmodal'
+      settingsModal        = new MachineSettingsModal {}, machine
+      settingsModal.tabView.showPaneByName 'Snapshots'
 
 
   ###*
