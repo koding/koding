@@ -19,6 +19,9 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
       navItems : []
 
     @form = new TeamUsernameTabForm
+      callback : (formData) ->
+        KD.utils.storeNewTeamData 'username', formData
+        KD.utils.createTeam (err, res) -> console.log err, res
 
 
   pistachio: ->

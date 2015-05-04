@@ -19,6 +19,9 @@ module.exports = class TeamDomainTab extends KDTabPaneView
       navItems : []
 
     @form = new TeamDomainTabForm
+      callback: (formData) ->
+        KD.utils.storeNewTeamData 'domain', formData
+        KD.singletons.router.handleRoute '/Team/alloweddomain'
 
 
   pistachio: ->
