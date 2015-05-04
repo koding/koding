@@ -11,17 +11,23 @@ module.exports = class TeamDomainTab extends KDFormView
 
     super options, data
 
+    team = KD.utils.getTeamData()
+
+    if name = team.signup?.companyName
+      teamName = KD.utils.slugify name
+
     @input = new KDInputView
-      placeholder : 'your-team'
+      placeholder  : 'your-team'
+      defaultValue : teamName  if teamName
+      name         : 'slug'
+      # change      : @bound 'verifySlug'
+      # keyUp       : KD.utils.debounce 300, @bound 'verifySlug'
 
     @button = new KDButtonView
-      title       : 'NEXT'
-      style       : 'SignupForm-button SignupForm-button--green'
-      attributes  : testpath  : 'domain-button'
-      loader      : yes
-      callback    : =>
-        console.log 'go to email:'
-        KD.singletons.router.handleRoute '/Team/alloweddomain'
+      title      : 'NEXT'
+      style      : 'SignupForm-button SignupForm-button--green'
+      attributes : testpath  : 'domain-button'
+      type       : 'submit'
 
 
   pistachio: ->
