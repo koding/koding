@@ -309,6 +309,10 @@ module.exports = class JGroup extends Module
       # channels
       # those should be social api channel ids
       defaultChannels : [ String ]
+      # tmp: the data stored here should be processed while
+      # we create the group - SY
+      # cc/ @cihangir
+      initalData    : Object
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
