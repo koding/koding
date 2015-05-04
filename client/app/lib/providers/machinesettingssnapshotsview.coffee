@@ -120,7 +120,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
         container = ideController.getView()
         break
 
-    if not container?
+    unless container?
       router = kd.getSingleton 'router'
       router.handleRoute "/IDE/#{machine.slug}"
       msg = "Error, unable to create snapshot. Please try again."
