@@ -55,6 +55,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     {computeController} = kd.singletons
 
+    @stack = computeController.findStackFromMachineId @machine._id
+
     computeController.ready => whoami().isEmailVerified (err, verified) =>
 
       kd.warn err  if err?
@@ -178,6 +180,9 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "start-#{@machineId}", @bound 'updateStatus'
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
+
+    # Stack build events
+    computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
 
     computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
