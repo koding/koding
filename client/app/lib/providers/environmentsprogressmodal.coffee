@@ -115,8 +115,8 @@ module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
    *
    * @param {Number} percentage - The percentage to set the bar to.
   ###
-  updatePercentage: (percentage) ->
+  updatePercentage: (percentage = 10) ->
 
-    @progressBar.updateBar Math.max percentage, 10
+    @progressBar.updateBar percentage
 
 
