@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -285,11 +284,9 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, erro
 		}
 	}
 
-	var allowedUsers []*models.User
-	if err := sess.DB.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"_id": bson.M{"$in": allowedIds}}).All(&allowedUsers)
-	}); err != nil {
-		return nil, fmt.Errorf("username lookup error: %v", err)
+	allowedUsers, err := modelhelper.GetUsersById(allowedIds...)
+	if err != nil {
+		return nil, err
 	}
 
 	req, ok := request.FromContext(ctx)
