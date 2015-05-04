@@ -37,6 +37,13 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     @loginForm.button.unsetClass 'solid medium green'
     @loginForm.button.setClass 'SignupForm-button SignupForm-button--green'
 
+    if location.search isnt '' and location.search.search('username=') > 0
+      username = location.search.split('username=').last.replace(/\&.+/, '')
+      @loginForm.username.input.setValue username
+      @loginForm.username.inputReceivedKeyup()
+
+
+
     @invitationLink = new CustomLinkView
       cssClass    : 'invitation-link'
       title       : 'Ask for an invite'
