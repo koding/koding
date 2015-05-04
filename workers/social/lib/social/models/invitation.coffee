@@ -65,20 +65,10 @@ module.exports = class JInvitation extends jraphical.Module
         default     : -> new Date
 
   remove$: permit 'send invitations',
-    success: (client, callback=->)->
+    success: (client, callback) ->
       @remove callback
 
-  @byCode = (code, callback)->
-    @one {code}, callback
-
-  # TODO - generate a better invitation code
-  @generateInvitationCode = (email, group)->
-    code = crypto.createHmac 'sha1', 'kodingsecret'
-    code.update email
-    code.update group
-    code.digest 'hex'
-
-  accept$: secure (client, callback=->)->
+  accept$: secure (client, callback) ->
     { delegate } = client.connection
     @accept delegate, callback
 
@@ -86,26 +76,37 @@ module.exports = class JInvitation extends jraphical.Module
     operation = $set : { status: 'accepted' }
     @update operation, callback
 
-  @create = secure (client, options, callback)->
+  @byCode: (code, callback) ->
+    @one {code}, callback
+
+  # TODO - generate a better invitation code
+  @generateInvitationCode = (email, group) ->
+    code = crypto.createHmac 'sha1', 'kodingsecret'
+    code.update email
+    code.update group
+    code.digest 'hex'
+
+  @create: secure (client, options, callback) ->
+
     { groupName, delegate } = client.connection
+    { invitations }         = options
+    groupName             or= 'koding'
+    name                    = getName delegate
 
-    groupName  or= 'koding'
+    queue = invitations.map (invitation) => =>
+      { email, firstName, lastName } = invitation
 
-    { emails }  = options
-
-    name = getName delegate
-
-    queue = emails.map (email)=>=>
       code = @generateInvitationCode email, groupName
-
 
       invite = new JInvitation {
         code
         email
         groupName
+        firstName
+        lastName
       }
 
-      invite.save (err)->
+      invite.save (err) ->
         return callback err   if err
 
         options =
@@ -121,7 +122,7 @@ module.exports = class JInvitation extends jraphical.Module
 
     dash queue, callback
 
-  getName = (delegate)->
+  getName = (delegate) ->
     { nickname, firstName, lastName } = delegate.profile.nickname
 
     name = nickname
