@@ -26,7 +26,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
     @passwordStrength = ps = new KDCustomHTMLView
       tagName  : 'figure'
       cssClass : 'PasswordStrength'
-      partial  : '<span></span><span></span><span></span><span></span>'
+      partial  : '<span></span>'
 
     # make this a reusable component - SY
     oldPass   = null

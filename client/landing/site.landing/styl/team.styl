@@ -184,8 +184,8 @@ team.styl
         border-right        1px solid #DBDBDB
 
       .PasswordStrength
-        width               calc(100% - 104px)
-        abs                 0 0 2px 102px
+        width               calc(100% - 100px)
+        abs                 0 0 0px 100px
         z-index             4
 
     p.dim
@@ -296,19 +296,11 @@ team.styl
   borderBox()
   rel()
   span
-    size                    25% 100%
+    size                    0% 100%
     bg                      color #EAEAEA
     display                 inline-block
-    top                     0
-    abs()
-    &:first-child
-      left                  0
-    &:nth-child(2)
-      left                  25%
-    &:nth-child(3)
-      left                  50%
-    &:last-child
-      left                  75%
+    vendor                  transition, all .177s ease
+    abs                     0px 0 0 0px
 
   &.bad
   &.weak
@@ -317,20 +309,22 @@ team.styl
   &.excellent
     opacity                 1
 
-  &.bad span:first-child
-    bg                      color red
-
-  &.weak span:first-child
+  &.bad span
+    width                   20%
     bg                      color #FF6B5D
 
-  &.moderate span:first-child
-  &.moderate span:nth-child(2)
+  &.weak span
+    width                   40%
+    bg                      color #FF6B5D
+
+  &.moderate span
+    width                   60%
     bg                      color #FBB62B
 
-  &.good span:first-child
-  &.good span:nth-child(2)
-  &.good span:nth-child(3)
+  &.good span
+    width                   80%
     bg                      color #00B057
 
   &.excellent span
+    width                   100%
     bg                      color #00B057
