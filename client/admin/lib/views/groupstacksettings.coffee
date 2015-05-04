@@ -11,15 +11,18 @@ module.exports = class GroupStackSettings extends kd.View
   # This will be used if stack template is not defined yet
   defaultTemplate = """
     provider "aws" {
-        access_key = "${var.access_key}"
-        secret_key = "${var.secret_key}"
-        region = "us-east-1"
+      access_key = "${var.access_key}"
+      secret_key = "${var.secret_key}"
+      region = "us-east-1"
     }
 
     resource "aws_instance" "example" {
-        count = 2
-        ami = "ami-25773a24"
-        instance_type = "t1.micro"
+        ami = "ami-d05e75b8"
+        instance_type = "t2.micro"
+        subnet_id = "subnet-b47692ed"
+        tags {
+            Name = "KloudTerraform"
+        }
     }
   """
 
