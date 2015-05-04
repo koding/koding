@@ -82,7 +82,7 @@ module.exports =
   #   browser.execute 'KD.isTesting = true;'
   #   browser
   #     .waitForElementVisible  '[testpath=main-header]', 50000
-  #     .click                  '.main-header [testpath=login-link]'
+  #     .click                  'nav:not(.mobile-menu) [testpath=login-link]'
   #     .waitForElementVisible  '.forgot-link', 50000
   #     .click                  '.forgot-link'
   #     .waitForElementVisible  '.login-input-view', 20000

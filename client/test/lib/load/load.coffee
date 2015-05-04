@@ -29,7 +29,7 @@ login = (browser) ->
 
   browser
     .waitForElementVisible  '[testpath=main-header]', 5000
-    .click                  '.main-header [testpath=login-link]'
+    .click                  'nav:not(.mobile-menu) [testpath=login-link]'
     .waitForElementVisible  '[testpath=login-container]', 5000
     .setValue               '[testpath=login-form-username]', user.username
     .setValue               '[testpath=login-form-password]', user.password
