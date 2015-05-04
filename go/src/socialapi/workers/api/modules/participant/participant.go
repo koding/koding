@@ -58,6 +58,10 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		return response.NewBadRequest(err)
 	}
 
+	if ch.TypeConstant == models.Channel_TYPE_BOT {
+		return response.NewBadRequest(errors.New("can not add participants for bot channel"))
+	}
+
 	for i := range participants {
 		participant := models.NewChannelParticipant()
 		participant.ChannelId = query.Id
@@ -127,6 +131,9 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	err := ch.ById(query.Id)
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+	if ch.TypeConstant == models.Channel_TYPE_BOT {
+		return response.NewBadRequest(errors.New("can not remove participants for bot channel"))
 	}
 
 	for i := range participants {
@@ -321,10 +328,6 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 
 	if c.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
 		return errors.New("can not add/remove participants for pinned activity channel")
-	}
-
-	if c.TypeConstant == models.Channel_TYPE_BOT {
-		return errors.New("can not add/remove participants for bot channel")
 	}
 
 	if c.TypeConstant == models.Channel_TYPE_TOPIC {

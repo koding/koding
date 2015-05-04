@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	"socialapi/rest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -213,7 +214,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 				So(ch, ShouldNotBeNil)
 
 				_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
-				So(err.Error(), ShouldEqual, "can not add/remove participants for bot channel")
+				So(strings.Contains(err.Error(), "can not add participants for bot channel"), ShouldBeTrue)
 
 			})
 		})
