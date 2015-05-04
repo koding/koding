@@ -580,8 +580,14 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       label    : 'turnedOnVM'
       action   : 'clicks'
 
+    target     = @machine
+
+    if @state is NotInitialized and @machine.jMachine.generatedFrom?.templateId?
+      action   = 'buildStack'
+      target   = @stack
+
     computeController = kd.getSingleton 'computeController'
-    computeController.off  "error-#{@machineId}"
+    computeController.off  "error-#{target._id}"
 
     @emit 'MachineTurnOnStarted'
 
@@ -589,17 +595,17 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     nextState    = 'Starting'
 
     if @state in [ NotInitialized, Terminated ]
-      methodName = 'build'
+      methodName = action ? 'build'
       nextState  = 'Building'
 
-    computeController.once "error-#{@machineId}", ({err})=>
+    computeController.once "error-#{target._id}", ({err})=>
 
       unless err?.code is ComputeController.Error.NotVerified
         @hasError = yes
 
       @buildViews State: @machine.status.state
 
-    kd.singletons.computeController[methodName] @machine
+    kd.singletons.computeController[methodName] target
 
     @state = nextState
     @buildViews()
