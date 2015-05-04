@@ -120,7 +120,7 @@ module.exports = class GroupStackSettings extends kd.View
   setStack: (stackTemplate) ->
 
     terraformContext = @editorPane.getValue()
-    publicKeys = aws : @credentialBox.getValue()
+    publicKeys = [@credentialBox.getValue()]
 
     console.log {terraformContext, publicKeys}
 
