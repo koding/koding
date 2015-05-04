@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/generic"
 	"koding/kites/kloud/terraformer"
+	"koding/kites/kloud/userdata"
 	tf "koding/kites/terraformer"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
+	"github.com/nu7hatch/gouuid"
 )
 
 // Stack is struct that contains all necessary information Apply needs to
@@ -150,9 +152,28 @@ func apply(ctx context.Context, username, stackId string) error {
 	}
 	defer tfKite.Close()
 
+	kiteUUID, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
+	kiteId := kiteUUID.String()
+
+	userdata, err := sess.Userdata.Create(&userdata.CloudInitConfig{
+		Username: username,
+		Groups:   []string{"sudo"},
+		Hostname: username, // no typo here. hostname = username
+		KiteId:   kiteId,
+	})
+	if err != nil {
+		return err
+	}
+
 	stack.Template = appendVariables(stack.Template, creds)
-	sess.Log.Debug("Calling terraform.apply method with context:")
-	sess.Log.Debug(stack.Template)
+	stack.Template, err = injectUserdata(stack.Template, string(userdata))
+	if err != nil {
+		return err
+	}
 
 	done := make(chan struct{})
 
@@ -180,6 +201,8 @@ func apply(ctx context.Context, username, stackId string) error {
 		}
 	}()
 
+	sess.Log.Debug("Calling terraform.apply method with context:")
+	sess.Log.Debug(stack.Template)
 	state, err := tfKite.Apply(&tf.TerraformRequest{
 		Content:   stack.Template,
 		ContentID: username + "-" + sha1sum(stack.Template),
