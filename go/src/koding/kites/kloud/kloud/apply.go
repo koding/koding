@@ -151,15 +151,35 @@ func apply(ctx context.Context, username, stackId string) error {
 	}
 	defer tfKite.Close()
 
-	ev.Push(&eventer.Event{
-		Message:    "Building machines",
-		Percentage: 50,
-		Status:     machinestate.Building,
-	})
-
 	stack.Template = appendVariables(stack.Template, creds)
 	sess.Log.Debug("Calling terraform.apply method with context:")
 	sess.Log.Debug(stack.Template)
+
+	done := make(chan struct{})
+
+	// because apply can last long, we are going to increment the eventer's
+	// percentage as long as we build automatically.
+	go func() {
+		ticker := time.NewTicker(time.Second * 5)
+		start := 45
+
+		for {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				if start < 70 {
+					start += 5
+				}
+
+				ev.Push(&eventer.Event{
+					Message:    "Building machines",
+					Percentage: start,
+					Status:     machinestate.Building,
+				})
+			}
+		}
+	}()
 
 	state, err := tfKite.Apply(&tf.TerraformRequest{
 		Content:   stack.Template,
@@ -167,8 +187,11 @@ func apply(ctx context.Context, username, stackId string) error {
 		Variables: nil,
 	})
 	if err != nil {
+		close(done)
 		return err
 	}
+
+	close(done)
 
 	ev.Push(&eventer.Event{
 		Message:    "Creating artficat",
