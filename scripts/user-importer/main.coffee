@@ -148,6 +148,7 @@ try
 
       console.log "Read completed, #{users.length} item found."
       createUsers users
+      console.log 'User import completed'
 
 catch e
 

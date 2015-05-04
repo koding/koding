@@ -117,7 +117,9 @@ build:
         name: prepare mongodb documents
         code: |
           ./run runuserimporter
+          echo "updating jAccount documents"
           mongo $WERCKER_MONGODB_HOST:$WERCKER_MONGODB_PORT --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true});'
+          echo "running account migrator"
           go run ./go/src/socialapi/workers/cmd/migrator/main.go -c ./go/src/socialapi/config/test.toml
     - script:
         name: test social api
