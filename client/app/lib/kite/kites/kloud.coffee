@@ -42,6 +42,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     restart        : 'restart'
     destroy        : 'destroy'
     checkTemplate  : 'plan'
+    buildStack     : 'apply'
     setDomain      : 'domain.set'
     addDomain      : 'domain.add'
     unsetDomain    : 'domain.unset'
