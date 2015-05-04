@@ -123,7 +123,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     if not container?
       router = kd.getSingleton 'router'
       router.handleRoute "/IDE/#{machine.slug}"
-      msg = "Unable to create snapshot, IDE Could not be found. Please retry"
+      msg = "Error, unable to create snapshot. Please try again."
       @showNotification msg, 'error'
       return kd.error "Unable to create snapshot, IDE Could not be found"
 
