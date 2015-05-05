@@ -168,6 +168,7 @@ Configuration = (options={}) ->
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
     disabledFeatures        : disabledFeatures
+    janitor                 : { port: "6700" }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -660,6 +661,16 @@ Configuration = (options={}) ->
         command         :
           run           : "#{GOBIN}/team -c #{socialapi.configFilePath}"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c #{socialapi.configFilePath}"
+
+    janitor             :
+      group             : "environment"
+      instances         : 1
+      ports             :
+        incoming        : "#{socialapi.janitor.port}"
+      supervisord       :
+        command         : "#{GOBIN}/janitor -c #{socialapi.configFilePath}"
+      healthCheckURL    : "http://localhost:#{socialapi.janitor.port}/healthCheck"
+      versionURL        : "http://localhost:#{socialapi.janitor.port}/version"
 
     integration         :
       group             : "socialapi"

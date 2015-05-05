@@ -57,6 +57,8 @@ type (
 		Geoipdbpath string
 
 		DisabledFeatures DisabledFeatures
+
+		Janitor Janitor
 	}
 
 	// Email holds Email Workers' config
@@ -162,5 +164,9 @@ type (
 	DisabledFeatures struct {
 		Moderation bool
 		BotChannel bool
+	}
+
+	Janitor struct {
+		Port string
 	}
 )
