@@ -101,7 +101,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
           {{> labelView}}
           <span class="meta">
             [<span class="storage-size">size: #{data.storageSize}GB</span>,
-            <span class="created-at">created at:
+            <span class="created-at">created:
               #{SnapshotListItem.prettyCreatedAt data.createdAt}</span>]
           </span>
           <div class="buttons">
