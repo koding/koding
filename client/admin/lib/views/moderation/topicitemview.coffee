@@ -85,6 +85,9 @@ module.exports = class TopicItemView extends KDListItemView
 
     @createSimilarChannelsListController()
     @settings.addSubView @similarChannelsListController.getView()
+    
+    @createLeafChannelsListController()
+    @settings.addSubView @leafChannelsListController.getView()
 
   searchSimilarChannels: ->
 
