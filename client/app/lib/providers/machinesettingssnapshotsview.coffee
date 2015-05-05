@@ -42,6 +42,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * The various snapshot total limits.
   ###
   @snapshotsLimits:
+    default      : 5
     free         : 0
     hobbyist     : 1
     developer    : 3
@@ -213,6 +214,9 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###*
    * Fetch and cache the user's total snapshot limit.
    *
+   * If the user's planTitle is unrecognized, clientside will default to
+   * `snapshotsLimits['default']`, and log a warning.
+   *
    * @param {Function(err:Error, totalLimit:Number)} callback
   ###
   snapshotsLimit: (callback = kd.noop) ->
@@ -222,8 +226,13 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     paymentController.subscriptions (err, subscription) =>
       return callback err  if err
 
-      {planTitle} = subscription
-      @__snapshotsLimit = MachineSettingsSnapshotsView.snapshotsLimits[planTitle]
+      { snapshotsLimits } = MachineSettingsSnapshotsView
+      { planTitle }       = subscription
+      @__snapshotsLimit   = snapshotsLimits[planTitle]
+      unless @__snapshotsLimit?
+        kd.warn "snapshotsLimit check: Plan title '#{planTitle}'
+          unrecognized, using default."
+        @__snapshotsLimit = snapshotsLimits['default']
       callback null, @__snapshotsLimit
 
 
