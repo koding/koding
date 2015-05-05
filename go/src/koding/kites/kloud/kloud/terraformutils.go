@@ -198,36 +198,76 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 		return nil, errors.New("public keys are not available")
 	}
 
-	region, err := regionFromHCL(hclContent)
-	if err != nil {
-		return nil, err
-	}
-
+	// for now we only support "aws", the logic below should be refactored once
+	// we support multiple providers
+	var accessKey, secretKey string
 	for _, c := range creds.Creds {
 		if c.Provider != "aws" {
 			continue
 		}
 
-		// inject our own public/private keys into the machine
-		amazonClient, err := amazon.New(
-			map[string]interface{}{
-				"key_pair":   keys.KeyName,
-				"publicKey":  keys.PublicKey,
-				"privateKey": keys.PrivateKey,
-			},
-			ec2.New(
-				aws.Auth{AccessKey: c.Data["access_key"], SecretKey: c.Data["secret_key"]},
-				aws.Regions[region],
-			))
-		if err != nil {
-			return nil, fmt.Errorf("kloud aws client err: %s", err)
+		accessKey = c.Data["access_key"]
+		secretKey = c.Data["secret_key"]
+	}
+
+	region, err := regionFromHCL(hclContent)
+	if err != nil {
+		return nil, err
+	}
+
+	// inject our own public/private keys into the machine
+	amazonClient, err := amazon.New(
+		map[string]interface{}{
+			"key_pair":   keys.KeyName,
+			"publicKey":  keys.PublicKey,
+			"privateKey": keys.PrivateKey,
+		},
+		ec2.New(
+			aws.Auth{AccessKey: accessKey, SecretKey: secretKey},
+			aws.Regions[region],
+		))
+	if err != nil {
+		return nil, fmt.Errorf("kloud aws client err: %s", err)
+	}
+
+	subnets, err := amazonClient.ListSubnets()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(subnets.Subnets) == 0 {
+		return nil, errors.New("no subnets are available")
+	}
+
+	var subnetId string
+	var vpcId string
+	for _, subnet := range subnets.Subnets {
+		if subnet.AvailableIpAddressCount == 0 {
+			continue
 		}
 
-		// this will either create the "kloud-deployment" key or it will just
-		// return with a nil error (means success)
-		if _, err = amazonClient.DeployKey(); err != nil {
-			return nil, err
-		}
+		subnetId = subnet.SubnetId
+		vpcId = subnet.VpcId
+	}
+
+	if subnetId == "" {
+		return nil, errors.New("subnetId is empty")
+	}
+
+	var groupName = "Koding-Kloud-SG"
+	group, err := amazonClient.CreateOrGetSecurityGroup(groupName, vpcId)
+	if err != nil {
+		return nil, err
+	}
+
+	sess.Log.Debug("first group = %+v\n", group)
+	sess.Log.Debug("vpcId = %+v\n", vpcId)
+	sess.Log.Debug("subnetId = %+v\n", subnetId)
+
+	// this will either create the "kloud-deployment" key or it will just
+	// return with a nil error (means success)
+	if _, err = amazonClient.DeployKey(); err != nil {
+		return nil, err
 	}
 
 	var data struct {
@@ -270,6 +310,36 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 		kiteIds[resourceName] = kiteId
 		instance["user_data"] = string(userdata)
 		instance["key_name"] = keys.KeyName
+		instance["security_groups"] = []string{group.Id}
+
+		// user has provided a custom subnet id, if this is the case, fetch the
+		// securitygroup from it.
+		if instance["subnet_id"] != "" {
+			subnetId := instance["subnet_id"]
+			var subnet ec2.Subnet
+			found := false
+			for _, s := range subnets.Subnets {
+				if s.SubnetId == subnetId {
+					found = true
+					subnet = s
+				}
+			}
+
+			if !found {
+				return nil, fmt.Errorf("no subnet with id '%s' found", subnetId)
+			}
+
+			group, err := amazonClient.CreateOrGetSecurityGroup(groupName, subnet.VpcId)
+			if err != nil {
+				return nil, err
+			}
+
+			sess.Log.Debug("second group = %+v\n", group)
+			instance["security_groups"] = []string{group.Id}
+		} else {
+			instance["subnet_id"] = subnetId
+		}
+
 		data.Resource.Aws_Instance[resourceName] = instance
 	}
 
