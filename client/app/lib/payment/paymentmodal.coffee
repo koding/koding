@@ -81,7 +81,7 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
   handlePaypalNotAllowed: ->
 
-    @setTitle 'Not allowed'
+    @setTitle 'Action not allowed'
     @form.showPaypalNotAllowedStage()
 
 

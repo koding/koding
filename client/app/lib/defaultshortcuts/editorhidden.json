@@ -47,10 +47,10 @@
       "name": "gotopagedown",
       "binding": [
         [
-          "page down"
+          "pagedown"
         ],
         [
-          "page down"
+          "pagedown"
         ]
       ]
     },
@@ -58,10 +58,10 @@
       "name": "gotopageup",
       "binding": [
         [
-          "page up"
+          "pageup"
         ],
         [
-          "page up"
+          "pageup"
         ]
       ]
     },
