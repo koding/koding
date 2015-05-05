@@ -97,6 +97,6 @@ module.exports =
       .setValue               saveAsInputSelector, newName
       .click                  saveButtonSelector
       .waitForElementVisible  "#{paneSelector} div[title='#{newName}']", 20000 # Assertion
-      .waitForElementVisible  fileNameSelector, 20000
-      .assert.containsText    fileNameSelector, newName # Assertion
+      .waitForElementVisible  filesTabSelector, 20000
+      .assert.containsText    filesTabSelector, newName # Assertion
       .end()
