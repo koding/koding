@@ -63,7 +63,7 @@ func NewChannelParticipant() *ChannelParticipant {
 }
 
 // Create creates a participant in the db as active
-// multiple call of this function will result
+// multiple call of this function will result same
 func (c *ChannelParticipant) Create() error {
 	err := c.FetchParticipant()
 	if err != nil && err != bongo.RecordNotFound {

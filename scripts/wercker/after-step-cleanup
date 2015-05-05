@@ -9,6 +9,8 @@ if [ "$WERCKER_RESULT" = "failed" ]; then
 fi
 
 INSTANCE_ID=$(echo $INSTANCE_DATA | awk '{print $1}')
-scripts/wercker/terminate-test-instance $INSTANCE_ID
+
+cd $(dirname $0)
+../test-instance/terminate $INSTANCE_ID
 
 exit 0

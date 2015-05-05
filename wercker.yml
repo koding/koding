@@ -52,8 +52,8 @@ build:
     - script:
         name: launch test instance
         code: |
-          INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
-          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
+          INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
+          scripts/test-instance/launch $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
           cat INSTANCE_DATA
     - script:
         name: configure build
@@ -146,8 +146,8 @@ build:
           HOST=$(cat INSTANCE_DATA | awk '{print $2}')
           if [ -z "$HOST" ]; then exit 1; fi
           echo $HOST > $INSTANCE_IP
-          scripts/wercker/check-connectivity $HOST 8090 1m 10
-          scripts/wercker/check-connectivity $HOST 4444 1m 10
+          scripts/test-instance/check-connectivity $HOST 8090 1m 10
+          scripts/test-instance/check-connectivity $HOST 4444 1m 10
     - script:
         name: testing client started
         code: |
