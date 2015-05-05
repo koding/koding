@@ -655,7 +655,7 @@ resource "aws_instance" "example" {
 		Machines:    []bson.ObjectId{machineId},
 	}
 
-	if err := provider.DB.Run("jComputeStack", func(c *mgo.Collection) error {
+	if err := provider.DB.Run("jComputeStacks", func(c *mgo.Collection) error {
 		return c.Insert(&computeStack)
 	}); err != nil {
 		return nil, err
@@ -1034,7 +1034,7 @@ func kodingProvider() *koding.Provider {
 }
 
 func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
-	debugEnabled := false
+	debugEnabled := true
 	kloudLogger := common.NewLogger("kloud", debugEnabled)
 	sess := &session.Session{
 		DB:         p.DB,
@@ -1042,6 +1042,7 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		AWSClients: p.EC2Clients,
+		Userdata:   p.Userdata,
 		Log:        kloudLogger,
 	}
 

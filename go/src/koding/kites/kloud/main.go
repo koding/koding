@@ -229,6 +229,7 @@ func newKite(conf *Config) *kite.Kite {
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		AWSClients: ec2clients,
+		Userdata:   userdata,
 		Log:        kloudLogger,
 	}
 
