@@ -44,11 +44,7 @@ func (t *Terraformer) Close() {
 	t.Client.Close()
 }
 
-func (t *Terraformer) Plan(context string) (*terraform.Plan, error) {
-	req := terraformer.TerraformRequest{
-		Content: context,
-	}
-
+func (t *Terraformer) Plan(req *terraformer.TerraformRequest) (*terraform.Plan, error) {
 	resp, err := t.Client.Tell("plan", req)
 	if err != nil {
 		return nil, err
@@ -62,11 +58,7 @@ func (t *Terraformer) Plan(context string) (*terraform.Plan, error) {
 	return plan, nil
 }
 
-func (t *Terraformer) Apply(context string) (*terraform.State, error) {
-	req := terraformer.TerraformRequest{
-		Content: context,
-	}
-
+func (t *Terraformer) Apply(req *terraformer.TerraformRequest) (*terraform.State, error) {
 	resp, err := t.Client.Tell("apply", req)
 	if err != nil {
 		return nil, err
