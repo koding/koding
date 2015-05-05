@@ -8,6 +8,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const GroupsCollectionName = "jGroups"
+
 func GetGroupById(id string) (*models.Group, error) {
 	group := new(models.Group)
 
@@ -15,7 +17,7 @@ func GetGroupById(id string) (*models.Group, error) {
 		return c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&group)
 	}
 
-	return group, Mongo.Run("jGroups", query)
+	return group, Mongo.Run(GroupsCollectionName, query)
 }
 
 func GetGroup(slugName string) (*models.Group, error) {
@@ -25,7 +27,7 @@ func GetGroup(slugName string) (*models.Group, error) {
 		return c.Find(Selector{"slug": slugName}).One(&group)
 	}
 
-	return group, Mongo.Run("jGroups", query)
+	return group, Mongo.Run(GroupsCollectionName, query)
 }
 
 func GetGroupOwner(group *models.Group) (*models.Account, error) {
@@ -56,12 +58,12 @@ func CheckGroupExistence(groupname string) (bool, error) {
 		return nil
 	}
 
-	return count > 0, Mongo.Run("jGroups", query)
+	return count > 0, Mongo.Run(GroupsCollectionName, query)
 }
 
 func UpdateGroup(g *models.Group) error {
 	query := updateByIdQuery(g.Id.Hex(), g)
-	return Mongo.Run("jGroups", query)
+	return Mongo.Run(GroupsCollectionName, query)
 }
 
 func UpdateGroupPartial(selector, options Selector) error {
@@ -69,5 +71,14 @@ func UpdateGroupPartial(selector, options Selector) error {
 		return c.Update(selector, options)
 	}
 
-	return Mongo.Run("jGroups", query)
+	return Mongo.Run(GroupsCollectionName, query)
+}
+
+func CreateGroup(m *models.Group) error {
+
+	query := func(c *mgo.Collection) error {
+		return c.Insert(m)
+	}
+
+	return Mongo.Run(GroupsCollectionName, query)
 }

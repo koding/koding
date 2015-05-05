@@ -70,10 +70,12 @@ Configuration = (options={}) ->
 
   segment                 = 'kb2hfdgf20'
 
-  # if you want to disable a feature add here with "true" value do not forget
-  # to add corresponding go struct properties "true" value is used because of
-  # Go's default value for boolean properties is false, so all the features are
-  # enabled as default
+
+  # if you want to disable a feature add here with "true" value do not forget to
+  # add corresponding go struct properties
+  # "true" value is used because of Go's default value for boolean properties is
+  # false, so all the features are enabled as default, you dont have to define
+  # features everywhere
   disabledFeatures =
     moderation : yes
     teams      : no
@@ -267,6 +269,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
       nginx             :
         locations       : [ location: "~^/IDE/.*" ]
+        disableLocation : !!disabledFeatures.teams
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
 

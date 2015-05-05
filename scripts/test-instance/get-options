@@ -4,8 +4,10 @@ cd $(dirname $0)
 
 OPTIONS=''
 
+REVISION=$(git rev-parse HEAD)
+
 HEADS=$(git branch -r -v | \
-           grep ${WERCKER_GIT_COMMIT:0:7} | \
+           grep ${REVISION:0:7} | \
            awk '{print $1}')
 
 for HEAD in $HEADS; do
@@ -18,7 +20,7 @@ if [ -n "$PR_HEAD" ]; then
   PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
   OPTIONS="--pull-request '+refs/pull/$PR_NR/head' $OPTIONS"
 else
-  OPTIONS="--commit $WERCKER_GIT_COMMIT $OPTIONS"
+  OPTIONS="--commit $REVISION $OPTIONS"
 fi
 
 echo $OPTIONS

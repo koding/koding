@@ -1,14 +1,16 @@
-kd = require 'kd'
-KDObject = kd.Object
+kd            = require 'kd'
+KDObject      = kd.Object
+
+globals       = require 'globals'
+Machine       = require './machine'
 KodingKontrol = require '../kite/kodingkontrol'
-Machine = require './machine'
-globals = require 'globals'
+
 
 module.exports = class ComputeEventListener extends KDObject
 
   {Stopped, Running, Terminated, Snapshotting} = Machine.State
 
-  constructor:(options = {})->
+  constructor: (options = {}) ->
 
     super
       interval : options.interval ? 4000
@@ -20,7 +22,7 @@ module.exports = class ComputeEventListener extends KDObject
     @timer           = null
 
 
-  start:->
+  start: ->
 
     return  if @running
     @running = yes
@@ -29,14 +31,14 @@ module.exports = class ComputeEventListener extends KDObject
     @timer = kd.utils.repeat @getOption('interval'), @bound 'tick'
 
 
-  stop:->
+  stop: ->
 
     return  unless @running
     @running = no
     kd.utils.killWait @timer
 
 
-  uniqueAdd = (list, type, eventId)->
+  uniqueAdd = (list, type, eventId) ->
 
     for item in list
       return no  if item.type is type and item.eventId is eventId
@@ -45,7 +47,7 @@ module.exports = class ComputeEventListener extends KDObject
     return yes
 
 
-  addListener:(type, eventId)->
+  addListener: (type, eventId) ->
 
     {computeController} = kd.singletons
 
@@ -55,7 +57,7 @@ module.exports = class ComputeEventListener extends KDObject
       computeController.stateChecker.ignore eventId
 
 
-  triggerState:(machine, event)->
+  triggerState: (machine, event) ->
 
     return  unless machine?
     return  if machine.provider is 'managed' and \
@@ -76,7 +78,7 @@ module.exports = class ComputeEventListener extends KDObject
       computeController.invalidateCache machine._id
 
 
-  revertToPreviousState:(machine)->
+  revertToPreviousState: (machine) ->
 
     status   = @machineStatuses[machine.uid]
     reverted = status isnt machine.status.state
@@ -108,7 +110,7 @@ module.exports = class ComputeEventListener extends KDObject
       private      : Snapshotting
 
 
-  tick: (force)->
+  tick: (force) ->
 
     return  unless @listeners.length
     return  if not force and @tickInProgress
@@ -118,10 +120,10 @@ module.exports = class ComputeEventListener extends KDObject
 
     computeController.getKloud().event @listeners
 
-    .then (responses)=>
+    .then (responses) =>
 
       activeListeners = []
-      responses.forEach (res)=>
+      responses.forEach (res) =>
 
         if res.err? and not res.event?
           kd.warn "Error on '#{res.event_id}':", res.err
@@ -158,7 +160,7 @@ module.exports = class ComputeEventListener extends KDObject
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err)=>
+    .catch (err) =>
 
       @tick yes  if err.name is "TimeoutError"
 
@@ -166,7 +168,7 @@ module.exports = class ComputeEventListener extends KDObject
       @stop()
 
 
-  followUpcomingEvents: (machine, followOthers = no)->
+  followUpcomingEvents: (machine, followOthers = no) ->
 
     StateEventMap =
 
