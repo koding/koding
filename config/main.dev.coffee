@@ -11,7 +11,7 @@ Configuration = (options={}) ->
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "lvh.me"
   protocol            = options.protocol       or "http:"
-  publicHostname      = options.publicHostname or "http://#{options.hostname}"
+  publicHostname      = options.publicHostname or "#{protocol}//#{hostname}"
   region              = options.region         or "dev"
   configName          = options.configName     or "dev"
   environment         = options.environment    or "dev"
