@@ -315,8 +315,12 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 
 		// user has provided a custom subnet id, if this is the case, fetch the
 		// securitygroup from it.
-		if instance["subnet_id"] != "" {
-			subnetId := instance["subnet_id"]
+		if instance["subnet_id"] != nil {
+			subnetId, ok := instance["subnet_id"].(string)
+			if !ok {
+				return nil, fmt.Errorf("subnet Id should be a string, got: %v", instance["subnet_id"])
+			}
+
 			var subnet ec2.Subnet
 			found := false
 			for _, s := range subnets.Subnets {
