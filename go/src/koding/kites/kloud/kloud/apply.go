@@ -25,6 +25,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/protocol"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/nu7hatch/gouuid"
@@ -150,10 +151,6 @@ func apply(ctx context.Context, username, stackId string) error {
 		return err
 	}
 
-	for p, c := range creds.Creds {
-		fmt.Printf("p, c = %+v, %s\n", p, c)
-	}
-
 	sess.Log.Debug("Connection to Terraformer")
 	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
@@ -276,6 +273,7 @@ func apply(ctx context.Context, username, stackId string) error {
 		return err
 	}
 	output.AppendRegion(region)
+	output.AppendQueryString(protocol.Kite{ID: kiteId}.String())
 
 	ev.Push(&eventer.Event{
 		Message:    "Updating existing machines",
@@ -395,6 +393,7 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 				bson.M{"$set": bson.M{
 					"provider":          tf.Provider,
 					"meta.region":       tf.Region,
+					"queryString":       tf.QueryString,
 					"ipAddress":         tf.Attributes["public_ip"],
 					"meta.instanceId":   tf.Attributes["id"],
 					"meta.instanceType": tf.Attributes["instance_type"],
