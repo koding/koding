@@ -138,6 +138,9 @@ class Haydar extends events.EventEmitter
         if not files.length
           return console.log 'could not find ' + opts.manifests
 
+        if opts.excludeTestrunner
+          files = (file for file in files when not /testrunner/.test file)
+
         pending = files.length
 
         @_time chalk.blue 'manifests'
