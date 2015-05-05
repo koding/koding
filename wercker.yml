@@ -142,12 +142,7 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
     - script:
         name: check connectivity
-        code: |
-          HOST=$(cat INSTANCE_DATA | awk '{print $2}')
-          if [ -z "$HOST" ]; then exit 1; fi
-          echo $HOST > $INSTANCE_IP
-          scripts/test-instance/check-connectivity $HOST 8090 1m 10
-          scripts/test-instance/check-connectivity $HOST 4444 1m 10
+        code: scripts/wercker/check-connectivity
     - script:
         name: testing client started
         code: |
