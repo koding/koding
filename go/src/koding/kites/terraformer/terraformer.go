@@ -117,7 +117,7 @@ func (t *Terraformer) Close() error {
 	return err
 }
 
-// Wait wait for Terraformer to exit
+// Wait waits for Terraformer to exit
 func (t *Terraformer) Wait() error {
 	<-t.closeChan // wait for exit
 	return nil
