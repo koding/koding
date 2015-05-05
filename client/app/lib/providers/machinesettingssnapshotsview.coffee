@@ -232,7 +232,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       unless @__snapshotsLimit?
         kd.warn "snapshotsLimit check: Plan title '#{planTitle}'
           unrecognized, using default."
-        @__snapshotsLimit =  snapshotsLimits['default']
+        @__snapshotsLimit = snapshotsLimits['default']
       callback null, @__snapshotsLimit
 
 
