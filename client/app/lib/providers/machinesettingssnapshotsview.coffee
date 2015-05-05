@@ -227,8 +227,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       return callback err  if err
 
       { snapshotsLimits } = MachineSettingsSnapshotsView
-      {planTitle} = subscription
-      @__snapshotsLimit = snapshotsLimits[planTitle]
+      { planTitle }       = subscription
+      @__snapshotsLimit   = snapshotsLimits[planTitle]
       unless @__snapshotsLimit?
         kd.warn "snapshotsLimit check: Plan title '#{planTitle}'
           unrecognized, using default."
