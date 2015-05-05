@@ -72,7 +72,10 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
-	args.TerraformContext = appendVariables(args.TerraformContext, creds)
+	args.TerraformContext, err = appendVariables(args.TerraformContext, creds)
+	if err != nil {
+		return nil, err
+	}
 
 	plan, err := tfKite.Plan(&tf.TerraformRequest{
 		Content:   args.TerraformContext,

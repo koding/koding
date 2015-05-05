@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/generic"
 	"koding/kites/kloud/terraformer"
+	"koding/kites/kloud/userdata"
 	tf "koding/kites/terraformer"
 	"strconv"
 	"strings"
@@ -22,6 +25,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/ec2"
+	"github.com/nu7hatch/gouuid"
 )
 
 // Stack is struct that contains all necessary information Apply needs to
@@ -57,6 +63,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 	// create context with the given request
 	ctx := request.NewContext(context.Background(), r)
+	ctx = publickeys.NewContext(ctx, k.PublicKeys)
 	ctx = k.ContextCreator(ctx)
 
 	// create eventer and also add it to the context
@@ -143,6 +150,10 @@ func apply(ctx context.Context, username, stackId string) error {
 		return err
 	}
 
+	for p, c := range creds.Creds {
+		fmt.Printf("p, c = %+v, %s\n", p, c)
+	}
+
 	sess.Log.Debug("Connection to Terraformer")
 	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
@@ -150,9 +161,69 @@ func apply(ctx context.Context, username, stackId string) error {
 	}
 	defer tfKite.Close()
 
-	stack.Template = appendVariables(stack.Template, creds)
-	sess.Log.Debug("Calling terraform.apply method with context:")
-	sess.Log.Debug(stack.Template)
+	kiteUUID, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
+	kiteId := kiteUUID.String()
+
+	keys, ok := publickeys.FromContext(ctx)
+	if !ok {
+		return errors.New("public keys are not available")
+	}
+
+	region, err := regionFromHCL(stack.Template)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range creds.Creds {
+		if c.Provider != "aws" {
+			continue
+		}
+
+		// inject our own public/private keys into the machine
+		amazonClient, err := amazon.New(
+			map[string]interface{}{
+				"key_pair":   keys.KeyName,
+				"publicKey":  keys.PublicKey,
+				"privateKey": keys.PrivateKey,
+			},
+			ec2.New(
+				aws.Auth{AccessKey: c.Data["access_key"], SecretKey: c.Data["secret_key"]},
+				aws.Regions[region],
+			))
+		if err != nil {
+			return fmt.Errorf("kloud aws client err: %s", err)
+		}
+
+		// this will either create the "kloud-deployment" key or it will just
+		// return with a nil error (means success)
+		if _, err = amazonClient.DeployKey(); err != nil {
+			return err
+		}
+	}
+
+	stack.Template, err = appendVariables(stack.Template, creds)
+	if err != nil {
+		return err
+	}
+
+	userdata, err := sess.Userdata.Create(&userdata.CloudInitConfig{
+		Username: username,
+		Groups:   []string{"sudo"},
+		Hostname: username, // no typo here. hostname = username
+		KiteId:   kiteId,
+	})
+	if err != nil {
+		return err
+	}
+
+	stack.Template, err = injectUserdataAndKey(stack.Template, string(userdata), keys.KeyName)
+	if err != nil {
+		return err
+	}
 
 	done := make(chan struct{})
 
@@ -180,6 +251,8 @@ func apply(ctx context.Context, username, stackId string) error {
 		}
 	}()
 
+	sess.Log.Debug("Calling terraform.apply method with context:")
+	sess.Log.Debug(stack.Template)
 	state, err := tfKite.Apply(&tf.TerraformRequest{
 		Content:   stack.Template,
 		ContentID: username + "-" + sha1sum(stack.Template),
@@ -197,11 +270,6 @@ func apply(ctx context.Context, username, stackId string) error {
 		Percentage: 70,
 		Status:     machinestate.Building,
 	})
-
-	region, err := regionFromHCL(stack.Template)
-	if err != nil {
-		return err
-	}
 
 	output, err := machinesFromState(state)
 	if err != nil {
@@ -332,6 +400,9 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 					"meta.instanceType": tf.Attributes["instance_type"],
 					"meta.source_ami":   tf.Attributes["ami"],
 					"meta.storage_size": size,
+					"status.state":      machinestate.Running.String(),
+					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     "Created with kloud.apply",
 				}},
 			)
 		}); err != nil {
