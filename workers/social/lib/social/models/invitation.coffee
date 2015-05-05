@@ -23,7 +23,10 @@ module.exports = class JInvitation extends jraphical.Module
       'send invitations' : ['moderator', 'admin']
     indexes         :
       code          : 'unique'
-      # TODO create a compound index on groupName and
+      # email         : 'ascending'
+      # groupName     : 'ascending'
+      #
+      # TODO(cihagir) create a compound unique index on groupName and email
     sharedMethods   :
 
       instance:
@@ -77,11 +80,6 @@ module.exports = class JInvitation extends jraphical.Module
         type        : Date
         default     : -> new Date
 
-  # remove deleted invitation from database
-  remove$: permit 'send invitations',
-    success: (client, callback) ->
-      @remove callback
-
   accept$: secure (client, callback) ->
     { delegate } = client.connection
     @accept delegate, callback
@@ -90,6 +88,10 @@ module.exports = class JInvitation extends jraphical.Module
     operation = $set : { status: 'accepted' }
     @update operation, callback
 
+  # remove deletes an invitation from database
+  remove$: permit 'send invitations',
+    success: (client, callback) ->
+      @remove callback
 
   # some selects result set for invitations, it adds group name automatically
   @some$:  permit 'send invitations',
@@ -109,6 +111,8 @@ module.exports = class JInvitation extends jraphical.Module
       console.log selector, options
       JInvitation.some selector, options, callback
 
+  # search searches database with given query string, adds `starting
+  # with regex` around query param
   @search$:  permit 'send invitations',
     success: (client, query, options, callback) ->
       selector = { $or : [ {'name' : ///^#{query}/// }, {'email' : ///^#{query}/// } ]}
