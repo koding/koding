@@ -16,6 +16,7 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/runner"
+	"github.com/nu7hatch/gouuid"
 	"github.com/rcrowley/go-tigertonic/mocking"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -103,6 +104,18 @@ func TestWebhookListen(t *testing.T) {
 				newRequest("hey", channel.Id, "koding"),
 			)
 			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, ErrTokenNotValid.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+
+			tk, err := uuid.NewV4()
+			So(err, ShouldBeNil)
+			token = tk.String()
+			s, _, _, err = h.Push(
+				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.Header(nil),
+				newRequest("hey", channel.Id, "koding"),
+			)
+			So(err, ShouldNotBeNil)
 			So(s, ShouldEqual, http.StatusNotFound)
 
 			token = ""
@@ -117,7 +130,9 @@ func TestWebhookListen(t *testing.T) {
 
 		Convey("users should not be able to send any message when their request does not include body or channel name", func() {
 
-			token := "123123"
+			tk, err := uuid.NewV4()
+			So(err, ShouldBeNil)
+			token := tk.String()
 			s, _, _, err := h.Push(
 				mocking.URL(m, "POST", "/webhook/push/"+token),
 				mocking.Header(nil),

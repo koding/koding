@@ -1,6 +1,10 @@
 package api
 
-import "socialapi/workers/integration/webhook"
+import (
+	"socialapi/workers/integration/webhook"
+
+	"github.com/nu7hatch/gouuid"
+)
 
 // PushRequest is used as input data for /push endpoint
 type PushRequest struct {
@@ -13,6 +17,10 @@ type PushRequest struct {
 func (r *PushRequest) validate() error {
 	if r.Token == "" {
 		return ErrTokenNotSet
+	}
+
+	if _, err := uuid.ParseHex(r.Token); err != nil {
+		return ErrTokenNotValid
 	}
 
 	if r.Body == "" {

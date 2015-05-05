@@ -7,6 +7,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"github.com/nu7hatch/gouuid"
 )
 
 var (
@@ -63,7 +64,11 @@ func (i *ChannelIntegration) Create() error {
 		return err
 	}
 
-	i.Token = models.RandomName()
+	token, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	i.Token = token.String()
 
 	return bongo.B.Create(i)
 }
