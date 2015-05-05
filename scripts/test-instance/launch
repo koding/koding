@@ -40,7 +40,7 @@ userData =
     - #{git_fetch}
     - #{git_checkout}
     - git submodule update --recursive
-    - /opt/koding/scripts/wercker/init-test-instance
+    - /opt/koding/scripts/test-instance/init
     - echo $(git rev-parse HEAD) > REVISION
   """
 
