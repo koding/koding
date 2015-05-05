@@ -55,8 +55,7 @@ func RemoveAccountByUsername(username string) error {
 	selector := bson.M{"profile": bson.M{"nickname": username}}
 
 	query := func(c *mgo.Collection) error {
-		err := c.Remove(selector)
-		return err
+		return c.Remove(selector)
 	}
 
 	return Mongo.Run(AccountsColl, query)

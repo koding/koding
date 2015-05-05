@@ -174,8 +174,7 @@ func GetUserByAccountId(id string) (*models.User, error) {
 
 func UpdateUser(selector, update bson.M) error {
 	query := func(c *mgo.Collection) error {
-		err := c.Update(selector, bson.M{"$set": update})
-		return err
+		return c.Update(selector, bson.M{"$set": update})
 	}
 
 	return Mongo.Run(UserColl, query)
