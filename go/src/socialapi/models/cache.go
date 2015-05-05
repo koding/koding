@@ -26,12 +26,16 @@ func init() {
 		Session: &SessionCache{
 			session: cache.NewLRU(cacheSize),
 		},
+		Channel: &ChannelCache{
+			id: cache.NewLRU(cacheSize),
+		},
 	}
 }
 
 type StaticCache struct {
 	Account *AccountCache
 	Session *SessionCache
+	Channel *ChannelCache
 }
 
 //////////////// Account Cache ////////////////////
@@ -139,6 +143,43 @@ func (s *SessionCache) ById(id string) (*mongomodels.Session, error) {
 
 func (s *SessionCache) SetToCache(ses *mongomodels.Session) error {
 	if err := s.session.Set(ses.ClientId, ses); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type ChannelCache struct {
+	id cache.Cache
+}
+
+func (c *ChannelCache) ById(id int64) (*Channel, error) {
+	data, err := c.id.Get(strconv.FormatInt(id, 10))
+	if err != nil && err != cache.ErrNotFound {
+		return nil, err
+	}
+
+	if err == nil {
+		ch, ok := data.(*Channel)
+		if ok {
+			return ch, nil
+		}
+	}
+
+	ch := NewChannel()
+	if err := ch.ById(id); err != nil {
+		return nil, err
+	}
+
+	if err := c.SetToCache(ch); err != nil {
+		return nil, err
+	}
+
+	return ch, nil
+}
+
+func (c *ChannelCache) SetToCache(ch *Channel) error {
+	if err := c.id.Set(strconv.FormatInt(ch.Id, 10), ch); err != nil {
 		return err
 	}
 

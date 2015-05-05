@@ -211,6 +211,11 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 		}
 	}
 
+	// do not add users to the linked channels
+	if c.TypeConstant == Channel_TYPE_LINKED_TOPIC {
+		return nil, ErrChannelIsLinked
+	}
+
 	cp := NewChannelParticipant()
 	cp.ChannelId = c.Id
 	cp.AccountId = participantId
@@ -886,7 +891,7 @@ func (c *Channel) FetchPublicChannel(groupName string) error {
 	if err == bongo.RecordNotFound {
 		return ErrGroupNotFound
 	}
-	
+
 	return err
 }
 
