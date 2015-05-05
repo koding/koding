@@ -6,11 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/userdata"
 	"strings"
+	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite/protocol"
@@ -280,4 +284,44 @@ func varsFromCredentials(creds *terraformCredentials) map[string]string {
 
 func sha1sum(s string) string {
 	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
+}
+
+func checkKlients(ctx context.Context, kiteIds map[string]string) error {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return errors.New("session context is not passed")
+	}
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex // protects multierror
+	var multiErrors error
+
+	for l, k := range kiteIds {
+		wg.Add(1)
+		go func(label, kiteId string) {
+			defer wg.Done()
+
+			queryString := protocol.Kite{ID: kiteId}.String()
+			klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
+			if err != nil {
+				mu.Lock()
+				multiErrors = multierror.Append(multiErrors,
+					fmt.Errorf("Couldn't connect to '%s:%s'", label, kiteId))
+				mu.Unlock()
+				return
+			}
+			defer klientRef.Close()
+
+			if err := klientRef.Ping(); err != nil {
+				mu.Lock()
+				multiErrors = multierror.Append(multiErrors,
+					fmt.Errorf("Couldn't send ping to '%s:%s'", label, kiteId))
+				mu.Unlock()
+			}
+		}(l, k)
+	}
+
+	wg.Wait()
+
+	return multiErrors
 }

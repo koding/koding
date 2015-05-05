@@ -280,7 +280,7 @@ func apply(ctx context.Context, username, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	return nil
+	return checkKlients(ctx, buildData.KiteIds)
 }
 
 func fetchStack(stackId string) (*Stack, error) {
