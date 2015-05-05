@@ -182,7 +182,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
 
     # Stack build events
-    computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
+    if @stack
+      computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
 
     computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
@@ -582,7 +583,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     target     = @machine
 
-    if @state is NotInitialized and @machine.jMachine.generatedFrom?.templateId?
+    if @stack and @state is NotInitialized and \
+       @machine.jMachine.generatedFrom?.templateId?
       action   = 'buildStack'
       target   = @stack
 
