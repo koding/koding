@@ -58,7 +58,7 @@ func (a *Amazon) SecurityGroupFromVPC(vpcId, tag string) (ec2.SecurityGroupInfo,
 		return ec2.SecurityGroupInfo{}, err
 	}
 
-	if len(resp.Groups) != 1 {
+	if len(resp.Groups) == 0 {
 		return ec2.SecurityGroupInfo{}, fmt.Errorf("no security groups for VPC id %s available", vpcId)
 	}
 

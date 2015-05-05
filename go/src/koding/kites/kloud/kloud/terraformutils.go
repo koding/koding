@@ -255,6 +255,7 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 	}
 
 	var groupName = "Koding-Kloud-SG"
+	sess.Log.Debug("Fetching or creating SG: %s, %s", groupName, vpcId)
 	group, err := amazonClient.CreateOrGetSecurityGroup(groupName, vpcId)
 	if err != nil {
 		return nil, err
