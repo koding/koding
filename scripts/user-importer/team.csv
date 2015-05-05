@@ -24,3 +24,5 @@
 "onur",           "onur@koding.com",           "onur",           "Onur",           "Gunduz",         "koding"
 "guestuser",      "guestuser@koding.com",      "guestuser",      "Guest",          "User",           "koding"
 "bot",            "bot@koding.com",            "kodingbot",      "Bot",            "Koding",         "koding"
+"kodingtester",   "tester@koding.com",         "kodingtester",   "Koding",         "Tester",         "koding"
+"qatester",       "qatester@koding.com",       "qatester",       "QA",             "Tester",         "koding"
