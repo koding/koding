@@ -1,22 +1,25 @@
-$ = require 'jquery'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDHitEnterInputView = kd.HitEnterInputView
-KDButtonView = kd.ButtonView
-KDLoaderView = kd.LoaderView
-KDProgressBarView = kd.ProgressBarView
-KDNotificationView = kd.NotificationView
-Encoder = require 'htmlencode'
-EnvironmentsModalView = require './environmentsmodalview'
-Machine = require './machine'
-whoami = require '../util/whoami'
-ComputeController = require './computecontroller'
-remote = require('../remote').getInstance()
-showError = require '../util/showError'
-ComputeHelpers = require './computehelpers'
-sendDataDogEvent = require '../util/sendDataDogEvent'
-HelpSupportModal = '../commonviews/helpsupportmodal'
-trackEvent = require 'app/util/trackEvent'
+$                       = require 'jquery'
+Encoder                 = require 'htmlencode'
+
+kd                      = require 'kd'
+KDButtonView            = kd.ButtonView
+KDLoaderView            = kd.LoaderView
+KDCustomHTMLView        = kd.CustomHTMLView
+KDProgressBarView       = kd.ProgressBarView
+KDNotificationView      = kd.NotificationView
+KDHitEnterInputView     = kd.HitEnterInputView
+
+remote                  = require('../remote').getInstance()
+Machine                 = require './machine'
+ComputeHelpers          = require './computehelpers'
+HelpSupportModal        = '../commonviews/helpsupportmodal'
+ComputeController       = require './computecontroller'
+EnvironmentsModalView   = require './environmentsmodalview'
+
+whoami                  = require '../util/whoami'
+showError               = require '../util/showError'
+trackEvent              = require 'app/util/trackEvent'
+sendDataDogEvent        = require '../util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -47,11 +50,12 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     {@state}     = @machine.status
     @isManaged   = @machine.provider is 'managed'
 
-
     @showBusy()
     @show()
 
     {computeController} = kd.singletons
+
+    @stack = computeController.findStackFromMachineId @machine._id
 
     computeController.ready => whoami().isEmailVerified (err, verified) =>
 
@@ -176,6 +180,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "start-#{@machineId}", @bound 'updateStatus'
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
+
+    # Stack build events
+    if @stack
+      computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
 
     computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
@@ -573,8 +581,15 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       label    : 'turnedOnVM'
       action   : 'clicks'
 
+    target     = @machine
+
+    if @stack and @state is NotInitialized and \
+       @machine.jMachine.generatedFrom?.templateId?
+      action   = 'buildStack'
+      target   = @stack
+
     computeController = kd.getSingleton 'computeController'
-    computeController.off  "error-#{@machineId}"
+    computeController.off  "error-#{target._id}"
 
     @emit 'MachineTurnOnStarted'
 
@@ -582,17 +597,17 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     nextState    = 'Starting'
 
     if @state in [ NotInitialized, Terminated ]
-      methodName = 'build'
+      methodName = action ? 'build'
       nextState  = 'Building'
 
-    computeController.once "error-#{@machineId}", ({err})=>
+    computeController.once "error-#{target._id}", ({err})=>
 
       unless err?.code is ComputeController.Error.NotVerified
         @hasError = yes
 
       @buildViews State: @machine.status.state
 
-    kd.singletons.computeController[methodName] @machine
+    kd.singletons.computeController[methodName] target
 
     @state = nextState
     @buildViews()
