@@ -13,45 +13,26 @@ remote             = require('app/remote').getInstance()
 showError          = require 'app/util/showError'
 Encoder            = require 'htmlencode'
 
-createSection = ({name, title, description, expanded}) ->
 
-  expanded ?= no
+createSection = (options = {}) ->
+
+  { name, title, description } = options
 
   section = new KDCustomHTMLView
     tagName  : 'section'
-    cssClass : if expanded then 'AppModal-section' else 'AppModal-section is-collapsed'
-
-  section.addSubView new KDCustomHTMLView
-    tagName  : 'header'
-    cssClass : 'AppModal-sectionHeader'
-    partial  : title
+    cssClass : kd.utils.curry 'AppModal-section', name
 
   section.addSubView desc = new KDCustomHTMLView
     tagName  : 'p'
     cssClass : 'AppModal-sectionDescription'
     partial  : description
 
-  desc.addSubView new KDButtonView
-    cssClass     : "AppModal-sectionToggle solid small #{if expanded then 'gray' else 'green'}"
-    title        : if expanded then 'collapse' else 'expand'
-    callback     : ->
-      if section.hasClass 'is-collapsed'
-        section.unsetClass 'is-collapsed'
-        @unsetClass 'green'
-        @setClass 'gray'
-        @setTitle 'collapse'
-      else
-        section.setClass 'is-collapsed'
-        @setClass 'green'
-        @unsetClass 'gray'
-        @setTitle 'expand'
-
   return section
 
 
 addInput = (form, options) ->
 
-  { name, label, description, itemClass } = options
+  { name, label, description, itemClass, nextElement } = options
 
   itemClass  or= KDInputView
   form.inputs ?= {}
@@ -68,6 +49,8 @@ addInput = (form, options) ->
   field.addSubView form.inputs[name] = input = new itemClass options
   field.addSubView new KDCustomHTMLView tagName : 'p', partial : description  if description
 
+  field.addSubView nextElement  if nextElement and nextElement instanceof KDView
+
   return input
 
 addButton = (form, options) ->
@@ -82,8 +65,6 @@ addButton = (form, options) ->
   }
 
 
-
-
 module.exports = class GroupGeneralSettingsView extends KDView
 
   constructor: (options = {}, data) ->
@@ -94,22 +75,17 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
     @forms = {}
 
-    @createNameURLForm()
-    @createChannelsForm()
+    @createGeneralSettingsForm()
     @createIconForm()
     @createDeletionForm()
 
 
-  createNameURLForm: ->
+  createGeneralSettingsForm: ->
 
     group = @getData()
     url   = if group.slug is 'koding' then '' else "#{group.slug}."
 
-    @addSubView section = createSection
-      name        : 'name-url'
-      title       : 'CHANGE TEAM NAME & URL'
-      description : "Your team name is <b>#{group.title}</b> and your URL is <b>https://#{url}koding.com</b>."
-      expanded    : yes
+    @addSubView section = createSection name: 'general-settings'
 
     section.addSubView form = new KDFormView #callback : @bound 'saveSettings'
 
@@ -117,38 +93,27 @@ module.exports = class GroupGeneralSettingsView extends KDView
       label        : 'Name'
       description  : 'Your team name is displayed in menus and emails. It usually is (or includes) the name of your company.'
       name         : 'title'
-      defaultValue : Encoder.htmlDecode group.title ? ""
+      defaultValue : Encoder.htmlDecode group.title ? ''
       placeholder  : 'Please enter a title here'
 
     addInput form,
       label        : 'URL'
       description  : 'Your team URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number). We don\'t recommend changing this.'
       name         : 'url'
-      defaultValue : Encoder.htmlDecode group.title ? ""
+      defaultValue : Encoder.htmlDecode group.title ? ''
       placeholder  : 'Please enter a title here'
 
-    addButton form,
-      title    : 'Save Name & URL'
-      callback : -> console.log 'lolooloo'
-
-
-  createChannelsForm: ->
-
-    @addSubView section = createSection
-      name        : 'channels'
-      title       : 'DEFAULT CHANNELS'
-      description : 'Your new members will automatically join to <b>#general</b> channel. Here you can specify more channels for new team members to join automatically.'
-
-    section.addSubView form = new KDFormView
-
     addInput form,
-      label        : 'Channels'
-      description  : 'Please add channel names separated by commas.'
+      label        : 'Default Channels'
+      description  : 'Your new members will automatically join to <b>#general</b> channel. Here you can specify more channels for new team members to join automatically.'
       name         : 'channels'
       placeholder  : 'product, design, ux, random etc'
+      nextElement  : new KDCustomHTMLView
+        tagName    : 'span'
+        partial    : 'Please add channel names separated by commas.'
 
     addButton form,
-      title    : 'Save Default Channels'
+      title    : 'Save Changes'
       callback : -> console.log 'lolooloo'
 
 
@@ -159,7 +124,6 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
     @addSubView section = createSection
       name        : 'deletion'
-      title       : 'DELETE TEAM'
       description : 'If Koding is no use to your team anymore, you can delete your team page here.'
 
     section.addSubView form = new KDFormView
