@@ -2,6 +2,7 @@ package api
 
 import (
 	"socialapi/workers/integration/webhook"
+	"strings"
 
 	"github.com/nu7hatch/gouuid"
 )
@@ -19,7 +20,8 @@ func (r *PushRequest) validate() error {
 		return ErrTokenNotSet
 	}
 
-	if _, err := uuid.ParseHex(r.Token); err != nil {
+	token := strings.ToLower(r.Token)
+	if _, err := uuid.ParseHex(token); err != nil {
 		return ErrTokenNotValid
 	}
 

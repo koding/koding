@@ -11,6 +11,7 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/services"
+	"strings"
 	"testing"
 	"time"
 
@@ -164,6 +165,17 @@ func TestWebhookListen(t *testing.T) {
 
 				token := channelIntegration.Token
 				s, _, _, err := h.Push(
+					mocking.URL(m, "POST", "/webhook/push/"+token),
+					mocking.Header(nil),
+					newRequest("hey", channel.Id, "koding"),
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				token = strings.ToUpper(channelIntegration.Token)
+
+				s, _, _, err = h.Push(
 					mocking.URL(m, "POST", "/webhook/push/"+token),
 					mocking.Header(nil),
 					newRequest("hey", channel.Id, "koding"),
