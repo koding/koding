@@ -13,7 +13,6 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/generic"
 	"koding/kites/kloud/terraformer"
-	"koding/kites/kloud/userdata"
 	tf "koding/kites/terraformer"
 	"strconv"
 	"strings"
@@ -25,10 +24,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
-	"github.com/koding/kite/protocol"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
-	"github.com/nu7hatch/gouuid"
 )
 
 // Stack is struct that contains all necessary information Apply needs to
@@ -158,13 +155,6 @@ func apply(ctx context.Context, username, stackId string) error {
 	}
 	defer tfKite.Close()
 
-	kiteUUID, err := uuid.NewV4()
-	if err != nil {
-		return err
-	}
-
-	kiteId := kiteUUID.String()
-
 	keys, ok := publickeys.FromContext(ctx)
 	if !ok {
 		return errors.New("public keys are not available")
@@ -207,20 +197,11 @@ func apply(ctx context.Context, username, stackId string) error {
 		return err
 	}
 
-	userdata, err := sess.Userdata.Create(&userdata.CloudInitConfig{
-		Username: username,
-		Groups:   []string{"sudo"},
-		Hostname: username, // no typo here. hostname = username
-		KiteId:   kiteId,
-	})
+	buildData, err := injectUserdataAndKey(ctx, stack.Template, username, keys.KeyName)
 	if err != nil {
 		return err
 	}
-
-	stack.Template, err = injectUserdataAndKey(stack.Template, string(userdata), keys.KeyName)
-	if err != nil {
-		return err
-	}
+	stack.Template = buildData.Template
 
 	done := make(chan struct{})
 
@@ -273,11 +254,11 @@ func apply(ctx context.Context, username, stackId string) error {
 		return err
 	}
 	output.AppendRegion(region)
-	output.AppendQueryString(protocol.Kite{ID: kiteId}.String())
+	output.AppendQueryString(buildData.KiteIds)
 
 	ev.Push(&eventer.Event{
 		Message:    "Updating existing machines",
-		Percentage: 90,
+		Percentage: 80,
 		Status:     machinestate.Building,
 	})
 
@@ -292,6 +273,12 @@ func apply(ctx context.Context, username, stackId string) error {
 	}
 
 	fmt.Printf(string(d))
+
+	ev.Push(&eventer.Event{
+		Message:    "Checking klient connections",
+		Percentage: 90,
+		Status:     machinestate.Building,
+	})
 
 	return nil
 }

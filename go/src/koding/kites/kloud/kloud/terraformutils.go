@@ -5,10 +5,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/userdata"
 	"strings"
+
+	"golang.org/x/net/context"
 
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/koding/kite/protocol"
+	"github.com/nu7hatch/gouuid"
 )
 
 type TerraformMachine struct {
@@ -23,6 +29,11 @@ type Machines struct {
 	Machines []TerraformMachine `json:"machines"`
 }
 
+type buildData struct {
+	Template string
+	KiteIds  map[string]string
+}
+
 func (m *Machines) AppendRegion(region string) {
 	for i, machine := range m.Machines {
 		machine.Region = region
@@ -30,9 +41,10 @@ func (m *Machines) AppendRegion(region string) {
 	}
 }
 
-func (m *Machines) AppendQueryString(queryString string) {
+func (m *Machines) AppendQueryString(queryStrings map[string]string) {
 	for i, machine := range m.Machines {
-		machine.QueryString = queryString
+		queryString := queryStrings[machine.Label]
+		machine.QueryString = protocol.Kite{ID: queryString}.String()
 		m.Machines[i] = machine
 	}
 }
@@ -166,7 +178,12 @@ func regionFromHCL(hclContent string) (string, error) {
 	return data.Provider.Aws.Region, nil
 }
 
-func injectUserdataAndKey(hclContent, userdata, keyName string) (string, error) {
+func injectUserdataAndKey(ctx context.Context, hclContent, username, keyName string) (*buildData, error) {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
 	var data struct {
 		Resource struct {
 			Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
@@ -176,14 +193,35 @@ func injectUserdataAndKey(hclContent, userdata, keyName string) (string, error) 
 	}
 
 	if err := hcl.Decode(&data, hclContent); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if len(data.Resource.Aws_Instance) == 0 {
-		return "", fmt.Errorf("instance is empty: %v", data.Resource.Aws_Instance)
+		return nil, fmt.Errorf("instance is empty: %v", data.Resource.Aws_Instance)
 	}
 
+	kiteIds := make(map[string]string)
+
 	for resourceName, instance := range data.Resource.Aws_Instance {
+		// create a new kite id for every new aws resource
+		kiteUUID, err := uuid.NewV4()
+		if err != nil {
+			return nil, err
+		}
+
+		kiteId := kiteUUID.String()
+
+		userdata, err := sess.Userdata.Create(&userdata.CloudInitConfig{
+			Username: username,
+			Groups:   []string{"sudo"},
+			Hostname: username, // no typo here. hostname = username
+			KiteId:   kiteId,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		kiteIds[resourceName] = kiteId
 		instance["user_data"] = userdata
 		instance["key_name"] = keyName
 		data.Resource.Aws_Instance[resourceName] = instance
@@ -191,10 +229,15 @@ func injectUserdataAndKey(hclContent, userdata, keyName string) (string, error) 
 
 	out, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(out), nil
+	b := &buildData{
+		Template: string(out),
+		KiteIds:  kiteIds,
+	}
+
+	return b, nil
 }
 
 // appendVariables appends the given key/value credentials to the hclFile (terraform) file
