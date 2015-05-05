@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/userdata"
@@ -18,6 +20,8 @@ import (
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite/protocol"
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/ec2"
 	"github.com/nu7hatch/gouuid"
 )
 
@@ -35,6 +39,7 @@ type Machines struct {
 
 type buildData struct {
 	Template string
+	Region   string
 	KiteIds  map[string]string
 }
 
@@ -182,10 +187,47 @@ func regionFromHCL(hclContent string) (string, error) {
 	return data.Provider.Aws.Region, nil
 }
 
-func injectUserdataAndKey(ctx context.Context, hclContent, username, keyName string) (*buildData, error) {
+func injectKodingData(ctx context.Context, hclContent, username string, creds *terraformCredentials) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
+	}
+
+	keys, ok := publickeys.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("public keys are not available")
+	}
+
+	region, err := regionFromHCL(hclContent)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range creds.Creds {
+		if c.Provider != "aws" {
+			continue
+		}
+
+		// inject our own public/private keys into the machine
+		amazonClient, err := amazon.New(
+			map[string]interface{}{
+				"key_pair":   keys.KeyName,
+				"publicKey":  keys.PublicKey,
+				"privateKey": keys.PrivateKey,
+			},
+			ec2.New(
+				aws.Auth{AccessKey: c.Data["access_key"], SecretKey: c.Data["secret_key"]},
+				aws.Regions[region],
+			))
+		if err != nil {
+			return nil, fmt.Errorf("kloud aws client err: %s", err)
+		}
+
+		// this will either create the "kloud-deployment" key or it will just
+		// return with a nil error (means success)
+		if _, err = amazonClient.DeployKey(); err != nil {
+			return nil, err
+		}
 	}
 
 	var data struct {
@@ -226,8 +268,8 @@ func injectUserdataAndKey(ctx context.Context, hclContent, username, keyName str
 		}
 
 		kiteIds[resourceName] = kiteId
-		instance["user_data"] = userdata
-		instance["key_name"] = keyName
+		instance["user_data"] = string(userdata)
+		instance["key_name"] = keys.KeyName
 		data.Resource.Aws_Instance[resourceName] = instance
 	}
 
@@ -239,6 +281,7 @@ func injectUserdataAndKey(ctx context.Context, hclContent, username, keyName str
 	b := &buildData{
 		Template: string(out),
 		KiteIds:  kiteIds,
+		Region:   region,
 	}
 
 	return b, nil

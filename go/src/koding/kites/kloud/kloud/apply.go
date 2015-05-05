@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -24,8 +23,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
 )
 
 // Stack is struct that contains all necessary information Apply needs to
@@ -155,49 +152,12 @@ func apply(ctx context.Context, username, stackId string) error {
 	}
 	defer tfKite.Close()
 
-	keys, ok := publickeys.FromContext(ctx)
-	if !ok {
-		return errors.New("public keys are not available")
-	}
-
-	region, err := regionFromHCL(stack.Template)
-	if err != nil {
-		return err
-	}
-
-	for _, c := range creds.Creds {
-		if c.Provider != "aws" {
-			continue
-		}
-
-		// inject our own public/private keys into the machine
-		amazonClient, err := amazon.New(
-			map[string]interface{}{
-				"key_pair":   keys.KeyName,
-				"publicKey":  keys.PublicKey,
-				"privateKey": keys.PrivateKey,
-			},
-			ec2.New(
-				aws.Auth{AccessKey: c.Data["access_key"], SecretKey: c.Data["secret_key"]},
-				aws.Regions[region],
-			))
-		if err != nil {
-			return fmt.Errorf("kloud aws client err: %s", err)
-		}
-
-		// this will either create the "kloud-deployment" key or it will just
-		// return with a nil error (means success)
-		if _, err = amazonClient.DeployKey(); err != nil {
-			return err
-		}
-	}
-
 	stack.Template, err = appendVariables(stack.Template, creds)
 	if err != nil {
 		return err
 	}
 
-	buildData, err := injectUserdataAndKey(ctx, stack.Template, username, keys.KeyName)
+	buildData, err := injectKodingData(ctx, stack.Template, username, creds)
 	if err != nil {
 		return err
 	}
@@ -253,7 +213,7 @@ func apply(ctx context.Context, username, stackId string) error {
 	if err != nil {
 		return err
 	}
-	output.AppendRegion(region)
+	output.AppendRegion(buildData.Region)
 	output.AppendQueryString(buildData.KiteIds)
 
 	ev.Push(&eventer.Event{
