@@ -243,8 +243,8 @@ module.exports = class PaymentForm extends JView
       when DOWNGRADE       then 'downgrades'
 
     @existingCreditCardMessage.updatePartial "
-      We are sorry #{word} are disabled for Paypal.
-      Please contact <a href='mailto:billing@koding.com'>billing@koding.com</a>
+      Sorry, #{word} are disabled for accounts using Paypal.
+      Please contact <a href='mailto:billing@koding.com'>billing@koding.com</a>.
     "
     @existingCreditCardMessage.show()
 

@@ -136,6 +136,10 @@ module.exports = class JMachine extends Module
         inProgress      : Boolean
         assignedAt      : Date
 
+      generatedFrom     :
+        templateId      : ObjectId
+        revision        : String
+
 
   # Helpers
   # -------

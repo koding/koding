@@ -8,7 +8,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-const ComputeStackColl = "jComputeStack"
+const ComputeStackColl = "jComputeStacks"
 
 func GetComputeStack(id string) (*models.ComputeStack, error) {
 	if !bson.IsObjectIdHex(id) {

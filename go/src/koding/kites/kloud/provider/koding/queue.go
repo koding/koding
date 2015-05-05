@@ -102,9 +102,14 @@ func (p *Provider) CheckUsage(m *Machine) error {
 		p.Unlock(m.Id.Hex())
 	}()
 
+	// mark it as stopped, so client side shouldn't ask for any eventer
+	if err := m.markAsStopped(); err != nil {
+		return err
+	}
+
 	p.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
 	// Hasta la vista, baby!
-	return m.Stop(ctx)
+	return m.stop(ctx)
 }
 
 // FetchOne() fetches a single machine document from mongodb that meets the criterias:
