@@ -99,11 +99,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       pistachio       : """
         <div>
           {{> labelView}}
-          <span class="meta">
-            [<span class="storage-size">size: #{data.storageSize}GB</span>,
-            <span class="created-at">created:
-              #{SnapshotListItem.prettyCreatedAt data.createdAt}</span>]
-          </span>
+          <span class="meta">size: #{data.storageSize}GB, created: #{SnapshotListItem.prettyCreatedAt data.createdAt}</span>
           <div class="buttons">
             {{> infoRenameBtn}}
             {{> infoDeleteBtn}}
