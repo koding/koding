@@ -12,10 +12,11 @@ import (
 )
 
 type TerraformMachine struct {
-	Provider   string            `json:"provider"`
-	Label      string            `json:"label"`
-	Region     string            `json:"region"`
-	Attributes map[string]string `json:"attributes"`
+	Provider    string            `json:"provider"`
+	Label       string            `json:"label"`
+	Region      string            `json:"region"`
+	QueryString string            `json:"queryString,omitempty"`
+	Attributes  map[string]string `json:"attributes"`
 }
 
 type Machines struct {
@@ -25,6 +26,13 @@ type Machines struct {
 func (m *Machines) AppendRegion(region string) {
 	for i, machine := range m.Machines {
 		machine.Region = region
+		m.Machines[i] = machine
+	}
+}
+
+func (m *Machines) AppendQueryString(queryString string) {
+	for i, machine := range m.Machines {
+		machine.QueryString = queryString
 		m.Machines[i] = machine
 	}
 }
