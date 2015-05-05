@@ -1,9 +1,10 @@
-{argv}    = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-jraphical = require 'jraphical'
-crypto    = require 'crypto'
-Bongo     = require "bongo"
-Email     = require './email'
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+jraphical   = require 'jraphical'
+crypto      = require 'crypto'
+Bongo       = require "bongo"
+Email       = require './email'
+KodingError = require '../error'
 
 { protocol, hostname } = KONFIG
 { secure, signature, dash } = Bongo
@@ -115,7 +116,13 @@ module.exports = class JInvitation extends jraphical.Module
   # with regex` around query param
   @search$:  permit 'send invitations',
     success: (client, query, options, callback) ->
-      selector = { $or : [ {'name' : ///^#{query}/// }, {'email' : ///^#{query}/// } ]}
+      return callback new KodingError "query is not set"  if query is ""
+
+      selector = { $or : [
+          {'name'  : ///^#{query}/// }
+          {'email' : ///^#{query}/// }
+        ]
+      }
 
       JInvitation.some$ client, selector, options, callback
 
