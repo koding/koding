@@ -226,7 +226,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     paymentController.subscriptions (err, subscription) =>
       return callback err  if err
 
-      snapshotsLimits = MachineSettingsSnapshotsView.snapshotsLimits
+      { snapshotsLimits } = MachineSettingsSnapshotsView
       {planTitle} = subscription
       @__snapshotsLimit = snapshotsLimits[planTitle]
       unless @__snapshotsLimit?
