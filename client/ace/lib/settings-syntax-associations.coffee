@@ -33,6 +33,7 @@
     makefile    : ["MAKEFILE"     , "makefile"]
     markdown    : ["Markdown"     , "md|markdown"]
     ocaml       : ["OCaml"        , "ml|mli"]
+    pascal      : ["Pascal"       , "pas|pp"]
     perl        : ["Perl"         , "pl|pm"]
     pgsql       : ["pgSQL"        , "pgsql"]
     php         : ["PHP"          , "php|phtml"]

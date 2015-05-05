@@ -1115,8 +1115,15 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
-        # rest are 3rd party api calls, not important to block register
+        # don't block register
 
+        {username, email} = user
+        subject           = Email.types.WELCOME
+        Email.queue username, { to : email, subject }, {}, ->
+
+        queue.next()
+
+      ->
         SiftScience = require "../siftscience"
         SiftScience.createAccount client, referrer, ->
 
@@ -1307,13 +1314,13 @@ module.exports = class JUser extends jraphical.Module
       if err then callback err
       else account.fetchHomepageView options, callback
 
+
   confirmEmail: (callback)->
     @update {$set: status: 'confirmed'}, (err, res)=>
       return callback err if err
       JUser.emit "EmailConfirmed", @
 
-      subject = Email.types.WELCOME
-      Email.queue @username, { to : @email, subject }, {}, callback
+      callback null
 
 
   block:(blockedUntil, callback)->
