@@ -2,23 +2,26 @@
 
 ### Listing
 
-// status constant can be `accepted`
-// accepted should be used on second tab
-selector = { status: "pending" }
+status constant can be `accepted`
 
-// pagination can be utilized with skip and limit, 25 is the max limit
-// default values
-//      skip  : 0
-//      limit : 25
-//      sort  : createdAt : -1
-options  = { skip: 4, limit: 43, sort: createdAt: -1}
+`selector = { status: "pending" }`
+
+pagination can be utilized with skip and limit
+
+default values
+    * skip  : 0
+    * limit : 25
+    * sort  : createdAt : -1
+
+`options  = { skip: 4, limit: 43, sort: createdAt: -1}`
 
 `_kd.remote.api.JInvitation.some(selector, options, callback)`
 
 ### Searching
 
-queryString = "cihangir" # email or firstname
-options     = {} # options are same with JInvitation.some function
+* queryString = "cihangir" # email or firstname
+
+* options     = {} # options are same with JInvitation.some function
 
 `_kd.remote.api.JInvitation.search(queryString, {}, callback)`
 
@@ -28,7 +31,7 @@ All JInvitation instances have a function with following signature `instance.rem
 
 ### Resend Invitation
 
-All JInvitation instances have `code` property, one can call
+All JInvitation instances have `code` property, one can call sendInvitationByCode with code
     `_kd.remote.api.JInvitation.sendInvitationByCode("7445aa508a1b8deaa97a13ce8ad00b4f9148d6e4", callback)`
 to re-send that email again
 
@@ -42,7 +45,6 @@ data = {
 }
 ```
 
-firstName and lastName are optional
-invitation email will be sent automatically
+firstName and lastName are optional, invitation email will be sent automatically
 
 `_kd.remote.api.JInvitation.create(data, callback)`
