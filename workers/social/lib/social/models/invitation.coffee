@@ -63,6 +63,9 @@ module.exports = class JInvitation extends jraphical.Module
       email         :
         type        : String
         required    : yes
+      hash          :
+        type        : String
+        required    : yes
       firstName     :
         type        : String
       lastName      :
@@ -130,7 +133,7 @@ module.exports = class JInvitation extends jraphical.Module
   # triggers sendInvitationEmail
   @create: permit 'send invitations',
     success: (client, options, callback) ->
-
+      JUser               = require './user'
       { delegate }        = client.connection
       { invitations }     = options
       groupName           = client.context.group or 'koding'
@@ -139,12 +142,14 @@ module.exports = class JInvitation extends jraphical.Module
       queue = invitations.map (invitation) -> ->
         { email, firstName, lastName } = invitation
 
+        hash = JUser.getHash email
         code = generateInvitationCode email, groupName
 
         data = {
           code
           email
           groupName
+          hash
         }
         # firstName and lastName are optional
         data.firstName = firstName  if firstName
@@ -157,8 +162,6 @@ module.exports = class JInvitation extends jraphical.Module
           JInvitation.sendInvitationEmail client, invite, -> queue.fin()
 
       dash queue, callback
-
-
 
   # byCode fetches an invitation by its code
   @byCode: (code, callback) ->
