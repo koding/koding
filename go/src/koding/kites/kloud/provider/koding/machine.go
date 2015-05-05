@@ -153,6 +153,28 @@ func (m *Machine) markAsNotInitialized() error {
 	return nil
 }
 
+func (m *Machine) markAsStopped() error {
+	m.Log.Debug("Marking instance as stopped")
+	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"ipAddress":         "",
+				"status.state":      machinestate.Stopped.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     "Machine is stopped",
+			}},
+		)
+	}); err != nil {
+		return err
+	}
+
+	// so any State() method returns the correct status
+	m.Status.State = machinestate.Stopped.String()
+	m.IpAddress = ""
+	return nil
+}
+
 func (m *Machine) isKlientReady() bool {
 	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
 	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*5)
