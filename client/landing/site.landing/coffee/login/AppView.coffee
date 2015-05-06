@@ -562,13 +562,13 @@ module.exports = class LoginView extends JView
       error       : (xhr) =>
         {responseText} = xhr
         if /suspended/i.test responseText
-        then @handleBanned()
+        then @handleBanned responseText
         else new KDNotificationView title : responseText
 
         @loginForm.button.hideLoader()
 
 
-  handleBanned: ->
+  handleBanned: (responseText)->
     new KDModalView
       title        : "You've been banned!"
       content      : responseText
