@@ -98,7 +98,7 @@ module.exports = class JInvitation extends jraphical.Module
       @remove callback
 
   # some selects result set for invitations, it adds group name automatically
-  @some$:  permit 'send invitations',
+  @some$: permit 'send invitations',
     success: (client, selector, options, callback) ->
       groupName = client.context.group or 'koding'
 
@@ -117,13 +117,14 @@ module.exports = class JInvitation extends jraphical.Module
 
   # search searches database with given query string, adds `starting
   # with regex` around query param
-  @search$:  permit 'send invitations',
+  @search$: permit 'send invitations',
     success: (client, query, options, callback) ->
       return callback new KodingError "query is not set"  if query is ""
 
+      $query = ///^#{query}///
       selector = { $or : [
-          {'name'  : ///^#{query}/// }
-          {'email' : ///^#{query}/// }
+          { 'name'  : $query }
+          { 'email' : $query }
         ]
       }
 
@@ -172,7 +173,7 @@ module.exports = class JInvitation extends jraphical.Module
   @sendInvitationByCode: permit 'send invitations',
     success: (client, code, callback) ->
 
-      JInvitation.byCode code, (err, invitation)->
+      JInvitation.byCode code, (err, invitation) ->
         return callback err  if err
 
         JInvitation.sendInvitationEmail client, invitation, callback
