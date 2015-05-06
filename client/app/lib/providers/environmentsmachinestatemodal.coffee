@@ -17,6 +17,7 @@ ComputeController       = require './computecontroller'
 EnvironmentsModalView   = require './environmentsmodalview'
 
 whoami                  = require '../util/whoami'
+isKoding                = require 'app/util/isKoding'
 showError               = require '../util/showError'
 trackEvent              = require 'app/util/trackEvent'
 sendDataDogEvent        = require '../util/sendDataDogEvent'
@@ -54,8 +55,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @show()
 
     {computeController} = kd.singletons
-
-    @stack = computeController.findStackFromMachineId @machine._id
 
     computeController.ready => whoami().isEmailVerified (err, verified) =>
 
@@ -182,8 +181,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
 
     # Stack build events
-    if @stack
-      computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
+    if stack = computeController.findStackFromMachineId @machine._id
+      computeController.on "apply-#{stack._id}", @bound 'updateStatus'
 
     computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
@@ -576,19 +575,22 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   turnOnMachine: ->
 
+    computeController = kd.getSingleton 'computeController'
+
     trackEvent 'Turn on machine, click',
       category : 'userInteraction'
       label    : 'turnedOnVM'
       action   : 'clicks'
 
     target     = @machine
+    stack      = computeController.findStackFromMachineId @machine._id
 
-    if @stack and @state is NotInitialized and \
-       @machine.jMachine.generatedFrom?.templateId?
-      action   = 'buildStack'
-      target   = @stack
+    unless isKoding()
+      if stack and @state is NotInitialized and \
+         @machine.jMachine.generatedFrom?.templateId?
+        action   = 'buildStack'
+        target   = stack
 
-    computeController = kd.getSingleton 'computeController'
     computeController.off  "error-#{target._id}"
 
     @emit 'MachineTurnOnStarted'
