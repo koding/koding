@@ -37,10 +37,10 @@ module.exports = class StackView extends KDView
     # @rules.on "itemAdded", @lazyBound "updateView", yes
 
     # Domains Container
-    @domains = new EnvironmentDomainContainer {}, @stack
-    @scene.addContainer @domains
-    @domains.on 'itemAdded',   @lazyBound 'updateView', yes
-    @domains.on 'itemRemoved', @lazyBound 'updateView', yes
+    # @domains = new EnvironmentDomainContainer {}, @stack
+    # @scene.addContainer @domains
+    # @domains.on 'itemAdded',   @lazyBound 'updateView', yes
+    # @domains.on 'itemRemoved', @lazyBound 'updateView', yes
 
     # VMs / Machines Container
     @machines = new EnvironmentMachineContainer {}, @stack
@@ -64,9 +64,9 @@ module.exports = class StackView extends KDView
     #   @rules.addItem rule        for rule in @stack.rules
 
     # Add domains
-    if @stack.domains?
-      @domains.removeAllItems()
-      @domains.addDomain domain  for domain in @stack.domains
+    # if @stack.domains?
+    #   @domains.removeAllItems()
+    #   @domains.addDomain domain  for domain in @stack.domains
 
     # Add machines
     if @stack.machines?
