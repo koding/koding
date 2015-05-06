@@ -23,6 +23,7 @@ scripts/install-npm.sh -u
 scripts/install-npm.sh -d client -u
 
 TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" make -C client/test build
+
 ./run services
 ./run install
 ./run migrate up
