@@ -1,29 +1,36 @@
 KodingSwitch = require 'app/commonviews/kodingswitch'
-$ = require 'jquery'
+$            = require 'jquery'
 
 
 module.exports = class PermissionSwitch extends KodingSwitch
 
-  constructor: (options={}, data)->
-    super options, data
 
-  setDomElement:(cssClass)->
-    @domElement = $ "<div class='switcher'> <div class='kdinput koding-on-off off #{cssClass}'><a href='#' class='knob' title='turn on'></a></div></div>"
+  setDomElement: (cssClass) ->
 
-  setOff :->
-    kdSwitch = @domElement.children(".koding-on-off")
+    @domElement = $ """
+      <div class='switcher'>
+        <div class='kdinput koding-on-off off #{cssClass}'>
+          <a href='#' class='knob' title='turn on'></a>
+        </div>
+      </div>
+    """
 
-    kdSwitch.removeClass "on"
-    kdSwitch.addClass "off"
+
+  setOff: ->
+
+    kdSwitch = @domElement.children '.koding-on-off'
+
+    kdSwitch.removeClass 'on'
+    kdSwitch.addClass    'off'
 
     super
 
-  setOn :->
-    kdSwitch = @domElement.children(".koding-on-off")
 
-    kdSwitch.removeClass "off"
-    kdSwitch.addClass "on"
+  setOn: ->
+
+    kdSwitch = @domElement.children '.koding-on-off'
+
+    kdSwitch.removeClass 'off'
+    kdSwitch.addClass    'on'
 
     super
-
-
