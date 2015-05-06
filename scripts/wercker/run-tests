@@ -1,0 +1,131 @@
+#!/usr/bin/env coffee
+
+fs = require 'fs'
+path = require 'path'
+child_process = require 'child_process'
+
+async = require 'async'
+
+unless filename = process.argv[2]
+  console.error 'error: data file is not specified'
+  process.exit 1
+
+unless fs.existsSync filename
+  filename = path.join process.cwd(), path.normalize filename
+
+unless fs.existsSync filename
+  console.error 'error: data file is not found'
+  process.exit 1
+
+parallelSets = require '../test-instance/parallel-sets'
+stopwatch = {}
+
+instances = []
+
+fs.readFileSync filename
+  .toString()
+  .split "\n"
+  .forEach (line) ->
+    return  if line.length is 0
+    [instanceId, publicIpAddress] = line.split " "
+    instances.push {instanceId, publicIpAddress}
+
+
+limit = instances.length
+
+if limit is 0
+  console.error 'error: no test instance is found'
+  process.exit 1
+
+start = Date.now()
+
+logs = []
+
+
+log = (message) ->
+
+  fs.appendFileSync 'TEST_SUITE_TIMELINE', "#{message}\n"
+
+
+logWithtime = (message) ->
+
+  time = (Date.now() - start) / 1000
+  log "#{time}\t#{message}"
+
+
+runTestScript = path.join __dirname, '../test-instance/run-test'
+
+
+runTest = ({instance, test}, callback) ->
+
+  args = [instance.publicIpAddress, test]
+
+  child_process.execFile runTestScript, args, (error, stdout, stderr) ->
+
+    if error
+      console.error "error: #{JSON.stringify error}"
+      console.error JSON.stringify stderr
+      callback code: error.code, message: stdout
+      return
+
+    callback()
+
+
+startTest = (setId, instance, test, next) ->
+
+  begin = Date.now() - start
+
+  lap = {test, begin}
+  stopwatch[setId].push lap
+
+  runTest {instance, test}, do (lap) ->
+    return (error) ->
+
+      lap.end = Date.now() - start
+
+      if error
+        console.error "Failed at Set:#{setId} #{test}"
+
+      next error
+
+
+finishSet = (id, instance, callback, error) ->
+
+  console.log "Finished Set: #{id}"
+
+  logWithtime "Set:#{id} on #{instance.instanceId} #{instance.publicIpAddress}"
+
+  for lap in stopwatch[id]
+    {test, begin, end} = lap
+    duration = (end - begin) / 1000
+    log "#{duration}\t#{test}"
+
+  log ""
+
+  callback error
+
+
+iterator = (id, callback) ->
+
+  instance = instances[id]
+
+  stopwatch[id] ?= []
+
+  console.log "Set:#{id} will run on #{instance.instanceId} #{instance.publicIpAddress}"
+
+  iteratorArgs = []
+
+  testIterator = startTest.bind null, id, instance
+  setCompleter = finishSet.bind null, id, instance, callback
+
+  async.eachSeries parallelSets[id], testIterator, setCompleter
+
+
+async.eachLimit Object.keys(parallelSets), limit, iterator, (error) ->
+
+  if error
+    process.stdout.write error.message
+    process.exit error.code
+    return
+
+  process.exit()
