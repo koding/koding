@@ -9,8 +9,8 @@ module.exports =
   startConversation: (browser) ->
 
     messageUser =
-      userName  : 'devrim'
-      fullName  : 'Devrim Yasar'
+      userName  : 'kodingtester'
+      fullName  : 'Koding Tester'
 
     helpers.beginTest(browser)
 
@@ -21,8 +21,8 @@ module.exports =
   refreshPageAndSeeTheConversationInSidebar: (browser) ->
 
     messageUser =
-      userName  : 'sinan'
-      fullName  : 'Sinan Yasar'
+      userName  : 'qatester'
+      fullName  : 'QA Tester'
 
     helpers.beginTest(browser)
 
