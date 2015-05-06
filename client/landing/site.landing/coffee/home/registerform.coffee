@@ -54,13 +54,19 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
     @oauthData = oauthData
     { input }  = @email
 
+    { username, firstName, lastName } = oauthData
+
     input.setValue oauthData.email
     @email.placeholder.setClass 'out'
 
     @emailIsAvailable = yes
     @once 'gravatarInfoFetched', (gravatar) =>
       # oath username has more priority over gravatar username
-      gravatar.preferredUsername = @oauthData.username  if @oauthData.username
+      gravatar.preferredUsername = username  if username
+      gravatar.name =
+        givenName  : firstName
+        familyName : lastName
+
       input.validate()
 
     @fetchGravatarInfo input.getValue()
