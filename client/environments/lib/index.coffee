@@ -1,6 +1,7 @@
 kd = require 'kd'
 EnvironmentsMainScene = require './views/environmentsmainscene'
 AppController = require 'app/appcontroller'
+require('./routehandler')()
 
 
 module.exports = class EnvironmentsAppController extends AppController
