@@ -8,6 +8,8 @@ export HOME=/root/
 export DISPLAY=:99
 export REPOSITORY_PATH='/opt/koding'
 
+export CI="true"
+export WERCKER="true"
 
 service nginx stop
 
