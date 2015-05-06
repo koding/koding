@@ -117,6 +117,14 @@ func UpdateEmailFrequency(username string, e models.EmailFrequency) error {
 	return Mongo.Run(UserColl, query)
 }
 
+func UpdateUser(selector Selector, updateQuery Selector) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(selector, updateQuery)
+	}
+
+	return Mongo.Run(UserColl, query)
+}
+
 // FetchUserByEmail fetches user from db according to given email
 func FetchUserByEmail(email string) (*models.User, error) {
 	user := &models.User{}
