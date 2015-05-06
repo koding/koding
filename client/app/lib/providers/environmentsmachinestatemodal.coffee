@@ -17,6 +17,7 @@ ComputeController       = require './computecontroller'
 EnvironmentsModalView   = require './environmentsmodalview'
 
 whoami                  = require '../util/whoami'
+isKoding                = require 'app/util/isKoding'
 showError               = require '../util/showError'
 trackEvent              = require 'app/util/trackEvent'
 sendDataDogEvent        = require '../util/sendDataDogEvent'
@@ -584,10 +585,11 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     target     = @machine
     stack      = computeController.findStackFromMachineId @machine._id
 
-    if stack and @state is NotInitialized and \
-       @machine.jMachine.generatedFrom?.templateId?
-      action   = 'buildStack'
-      target   = stack
+    unless isKoding()
+      if stack and @state is NotInitialized and \
+         @machine.jMachine.generatedFrom?.templateId?
+        action   = 'buildStack'
+        target   = stack
 
     computeController.off  "error-#{target._id}"
 
