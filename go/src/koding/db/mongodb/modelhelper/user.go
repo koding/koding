@@ -52,6 +52,17 @@ func GetUser(username string) (*models.User, error) {
 	return user, nil
 }
 
+func GetUsersById(ids ...bson.ObjectId) ([]*models.User, error) {
+	var users []*models.User
+	if err := Mongo.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&users)
+	}); err != nil {
+		return nil, fmt.Errorf("jUsers lookup error: %v", err)
+	}
+
+	return users, nil
+}
+
 func GetUserById(id string) (*models.User, error) {
 	user := new(models.User)
 	err := Mongo.One(UserColl, id, user)

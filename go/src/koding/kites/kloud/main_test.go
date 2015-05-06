@@ -99,6 +99,8 @@ type args struct {
 
 type singleUser struct {
 	MachineId           string
+	MachineLabel        string
+	StackId             string
 	PrivateKey          string
 	PublicKey           string
 	AccountId           bson.ObjectId
@@ -169,7 +171,7 @@ func TestTerraformPlan(t *testing.T) {
 
 	remote := userData.Remote
 
-	args := &kloud.TerraformKloudRequest{
+	args := &kloud.TerraformPlanRequest{
 		TerraformContext: `
 provider "aws" {
     access_key = "${var.access_key}"
@@ -185,9 +187,7 @@ resource "aws_instance" "example" {
         Name = "KloudTerraform"
     }
 }`,
-		PublicKeys: map[string]string{
-			"aws": userData.CredentialPublicKey,
-		},
+		PublicKeys: []string{userData.CredentialPublicKey},
 	}
 
 	resp, err := remote.Tell("plan", args)
@@ -195,13 +195,13 @@ resource "aws_instance" "example" {
 		t.Fatal(err)
 	}
 
-	var result *kloud.PlanOutput
+	var result *kloud.Machines
 	if err := resp.Unmarshal(&result); err != nil {
 		t.Fatal(err)
 	}
 
 	for _, machine := range result.Machines {
-		if machine.Label != "example" {
+		if machine.Label != userData.MachineLabel {
 			t.Errorf("plan label: want: example got: %s\n", machine.Label)
 		}
 
@@ -222,27 +222,8 @@ func TestTerraformApply(t *testing.T) {
 	}
 
 	remote := userData.Remote
-
-	args := &kloud.TerraformKloudRequest{
-		MachineIds: []string{userData.MachineId},
-		TerraformContext: `
-provider "aws" {
-    access_key = "${var.access_key}"
-    secret_key = "${var.secret_key}"
-    region = "us-east-1"
-}
-
-resource "aws_instance" "example" {
-    ami = "ami-d05e75b8"
-    instance_type = "t2.micro"
-    subnet_id = "subnet-b47692ed"
-    tags {
-        Name = "KloudTerraform"
-    }
-}`,
-		PublicKeys: map[string]string{
-			"aws": userData.CredentialPublicKey,
-		},
+	args := &kloud.TerraformApplyRequest{
+		StackId: userData.StackId,
 	}
 
 	resp, err := remote.Tell("apply", args)
@@ -250,12 +231,22 @@ resource "aws_instance" "example" {
 		t.Fatal(err)
 	}
 
-	var result *kloud.PlanOutput
-	if err := resp.Unmarshal(&result); err != nil {
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("result = %+v\n", result)
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestBuild(t *testing.T) {
@@ -605,7 +596,7 @@ func createUser(username string) (*singleUser, error) {
 	machineId := bson.NewObjectId()
 	machine := &koding.Machine{
 		Id:         machineId,
-		Label:      "",
+		Label:      "example",
 		Domain:     username + ".dev.koding.io",
 		Credential: username,
 		Provider:   "koding",
@@ -625,6 +616,47 @@ func createUser(username string) (*singleUser, error) {
 
 	if err := provider.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Insert(&machine)
+	}); err != nil {
+		return nil, err
+	}
+
+	// jComputeStack and jStackTemplates
+	stackTemplateId := bson.NewObjectId()
+	stackTemplate := &models.StackTemplate{
+		Id:          stackTemplateId,
+		Credentials: []string{credPublicKey},
+	}
+	stackTemplate.Template.Content = `
+provider "aws" {
+    access_key = "${var.access_key}"
+    secret_key = "${var.secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+    ami = "ami-d05e75b8"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-b47692ed"
+    tags {
+        Name = "KloudTerraform"
+    }
+}`
+
+	if err := provider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
+		return c.Insert(&stackTemplate)
+	}); err != nil {
+		return nil, err
+	}
+
+	computeStackId := bson.NewObjectId()
+	computeStack := &models.ComputeStack{
+		Id:          computeStackId,
+		BaseStackId: stackTemplateId,
+		Machines:    []bson.ObjectId{machineId},
+	}
+
+	if err := provider.DB.Run("jComputeStacks", func(c *mgo.Collection) error {
+		return c.Insert(&computeStack)
 	}); err != nil {
 		return nil, err
 	}
@@ -655,6 +687,8 @@ func createUser(username string) (*singleUser, error) {
 
 	return &singleUser{
 		MachineId:           machineId.Hex(),
+		MachineLabel:        machine.Label,
+		StackId:             computeStackId.Hex(),
 		PrivateKey:          privateKey,
 		PublicKey:           publicKey,
 		AccountId:           accountId,
@@ -940,7 +974,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 			return e.Error
 		}
 
-		// fmt.Printf("e = %+v\n", e)
+		fmt.Printf("e = %+v\n", e)
 
 		event := e.Event
 		if event.Error != "" {
@@ -1000,14 +1034,16 @@ func kodingProvider() *koding.Provider {
 }
 
 func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
-	debugEnabled := false
-
+	debugEnabled := true
+	kloudLogger := common.NewLogger("kloud", debugEnabled)
 	sess := &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		AWSClients: p.EC2Clients,
+		Userdata:   p.Userdata,
+		Log:        kloudLogger,
 	}
 
 	kld := kloud.New()
@@ -1015,7 +1051,7 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 		return session.NewContext(ctx, sess)
 	}
 	kld.PublicKeys = publickeys.NewKeys()
-	kld.Log = common.NewLogger("kloud", debugEnabled)
+	kld.Log = kloudLogger
 	kld.DomainStorage = p.DNSStorage
 	kld.Domainer = p.DNSClient
 	kld.Locker = p

@@ -8,7 +8,7 @@ yargs = require 'yargs'
 
   .help 'help'
   .version require('../package.json').version + '\n', 'version'
-  
+
   .alias 'help', 'h'
   .alias 'version', 'V'
   .alias 'verbose', 'v'
@@ -39,6 +39,10 @@ yargs = require 'yargs'
 
   .describe 'config-file', 'specify the client config file that was generated with \'./configure\''
   .string 'config-file'
+
+  .describe 'exclude-testrunner', 'disable test runner from the build'
+  .boolean 'exclude-testrunner'
+  .default 'exclude-testrunner', false
 
   .describe 'watch-js', 'enable watch mode for scripts'
   .boolean 'watch-js'

@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/team"
@@ -21,11 +22,15 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
+	// init mongo connection
 	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
 	r.SetContext(team.NewController(r.Log, appConfig))
-	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*team.Controller).ParticipantCreated)
-	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*team.Controller).ParticipantUpdated)
+	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*team.Controller).HandleParticipant)
+	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*team.Controller).HandleParticipant)
+	r.Register(models.ChannelParticipant{}).OnDelete().Handle((*team.Controller).HandleParticipant)
 	r.Listen()
 	r.Wait()
 }

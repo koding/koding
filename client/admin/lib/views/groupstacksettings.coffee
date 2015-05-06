@@ -11,15 +11,18 @@ module.exports = class GroupStackSettings extends kd.View
   # This will be used if stack template is not defined yet
   defaultTemplate = """
     provider "aws" {
-        access_key = "${var.access_key}"
-        secret_key = "${var.secret_key}"
-        region = "us-east-1"
+      access_key = "${var.access_key}"
+      secret_key = "${var.secret_key}"
+      region = "us-east-1"
     }
 
     resource "aws_instance" "example" {
-        count = 2
-        ami = "ami-25773a24"
-        instance_type = "t1.micro"
+        ami = "ami-d05e75b8"
+        instance_type = "t2.micro"
+        subnet_id = "subnet-b47692ed"
+        tags {
+            Name = "KloudTerraform"
+        }
     }
   """
 
@@ -105,6 +108,17 @@ module.exports = class GroupStackSettings extends kd.View
 
         {credentials, stackTemplate} = data
 
+        if not credentials or credentials.length is 0
+          @addSubView new kd.CustomHTMLView
+            partial  : "You don't have any credentials, please add
+                       one Amazon credential first."
+          @addSubView new kd.ButtonView
+            title    : 'Credentials'
+            callback : ->
+              kd.singletons.router.handleRoute '/Account/Credentials'
+
+          return
+
         @createEditorPane stackTemplate?.template?.content or defaultTemplate
         @createCredentialsBox credentials
 
@@ -120,7 +134,7 @@ module.exports = class GroupStackSettings extends kd.View
   setStack: (stackTemplate) ->
 
     terraformContext = @editorPane.getValue()
-    publicKeys = aws : @credentialBox.getValue()
+    publicKeys = [@credentialBox.getValue()]
 
     console.log {terraformContext, publicKeys}
 
@@ -128,7 +142,7 @@ module.exports = class GroupStackSettings extends kd.View
 
     computeController.getKloud()
 
-      .checkPlan {terraformContext, publicKeys}
+      .checkTemplate {terraformContext, publicKeys}
 
       .then (response) =>
 
@@ -163,7 +177,7 @@ module.exports = class GroupStackSettings extends kd.View
 
     { JCredential, JStackTemplate } = remote.api
 
-    credentials = [publicKeys.aws] # TODO Make it work with other providers ~ GG
+    credentials = publicKeys
 
     if stackTemplate
       stackTemplate.update {machines, template, credentials}, (err) =>

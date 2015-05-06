@@ -222,12 +222,15 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	// KLOUD DISPATCHER ///
+	kloudLogger := common.NewLogger("kloud", conf.DebugMode)
 	sess := &session.Session{
 		DB:         db,
 		Kite:       k,
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		AWSClients: ec2clients,
+		Userdata:   userdata,
+		Log:        kloudLogger,
 	}
 
 	stats := common.MustInitMetrics(Name)
@@ -241,7 +244,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.DomainStorage = dnsStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
-	kld.Log = common.NewLogger(Name, conf.DebugMode)
+	kld.Log = kloudLogger
 
 	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {

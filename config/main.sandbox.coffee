@@ -10,7 +10,7 @@ Configuration = (options={}) ->
   publicPort     = options.publicPort          = "80"
   hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
   protocol       = options.protocol            or "https:"
-  publicHostname = options.publicHostname      = "https://#{options.hostname}"
+  publicHostname = options.publicHostname      = "#{protocol}//#{hostname}"
   region         = options.region              = "aws"
   configName     = options.configName          = "sandbox"
   environment    = options.environment         = "sandbox"
