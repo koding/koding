@@ -17,7 +17,9 @@ cd $REPOSITORY_PATH
 
 export CONFIG_DEBUGMODE="true"
 
-npm --unsafe-perm install
+scripts/wercker/install-node-modules koding
+scripts/install-npm.sh -u
+
 ./configure --host $HOST:8090
 
 scripts/install-npm.sh -d client -u
