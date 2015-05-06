@@ -89,13 +89,13 @@ module.exports = class MainControllerLoggedOut extends KDController
       error       : ({responseText}) =>
 
         if /suspended/i.test responseText
-        then handleBanned()
+        then handleBanned responseText
         else new KDNotificationView title : responseText
 
         @emit 'LoginFailed'
 
 
-  handleBanned = ->
+  handleBanned = (responseText) ->
     new KDModalView
       title        : "You've been banned!"
       content      : responseText
