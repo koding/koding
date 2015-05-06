@@ -262,10 +262,9 @@ build:
     - script:
         name: cleanup
         code: |
-          export INSTANCE_DATA=$(cat INSTANCE_DATA)
           export CLIENT_TEST=$(cat CLIENT_TEST)
-          scripts/wercker/after-step-cleanup
-          rm INSTANCE_DATA CLIENT_TEST
+          scripts/wercker/after-step-cleanup INSTANCE_DATA
+          rm -f INSTANCE_DATA CLIENT_TEST
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
