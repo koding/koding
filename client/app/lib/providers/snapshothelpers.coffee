@@ -31,9 +31,17 @@ fetchNewestSnapshot = (machineId, callback = kd.noop) ->
  * @returns {EnvironmentsProgressModal}
 ###
 showSnapshottingModal = (machine, container) ->
+
   modal = new EnvironmentsProgressModal
-    container: container
-    actionLabel: 'Creating a snapshot'
+    container          : container
+    actionLabel        : 'Creating a snapshot'
+    customErrorMessage : """
+      <span>
+        Snapshot creation failed. please <span
+        class="contact-support">contact support</span> for further
+        assistance.
+      </span>
+    """
     machine
   modal.show()
 

@@ -131,7 +131,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     @createSnapshot label, (err, snapshot) =>
       @off 'SnapshotProgress', modal.bound 'updatePercentage'
       if err
-        kd.warn err
+        kd.error err
+        modal.updatePercentage 0
         return modal.showError()
 
       modal.destroy()
