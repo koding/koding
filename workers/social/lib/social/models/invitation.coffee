@@ -1,9 +1,10 @@
-{argv}    = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-jraphical = require 'jraphical'
-crypto    = require 'crypto'
-Bongo     = require "bongo"
-Email     = require './email'
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+jraphical   = require 'jraphical'
+crypto      = require 'crypto'
+Bongo       = require "bongo"
+Email       = require './email'
+KodingError = require '../error'
 
 { protocol, hostname } = KONFIG
 { secure, signature, dash } = Bongo
@@ -23,18 +24,34 @@ module.exports = class JInvitation extends jraphical.Module
       'send invitations' : ['moderator', 'admin']
     indexes         :
       code          : 'unique'
-      # TODO create a compound index on groupName and
+      # email         : 'ascending'
+      # groupName     : 'ascending'
+      #
+      # TODO(cihagir) create a compound unique index on groupName and email
     sharedMethods   :
 
       instance:
-        remove:
+        remove:[
           (signature Function)
-
+          (signature Object, Function)
+        ]
       static:
+        some:[
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
+        ]
+        search:[
+          (signature String, Object, Function)
+          (signature Object, String, Object, Function)
+        ]
         create:
           (signature Object, Function)
         byCode:
           (signature String, Function)
+        sendInvitationByCode:[
+          (signature String, Function)
+          (signature Object, String, Function)
+        ]
 
     sharedEvents    :
       static        : []
@@ -44,6 +61,9 @@ module.exports = class JInvitation extends jraphical.Module
         type        : String
         required    : yes
       email         :
+        type        : String
+        required    : yes
+      hash          :
         type        : String
         required    : yes
       firstName     :
@@ -64,10 +84,6 @@ module.exports = class JInvitation extends jraphical.Module
         type        : Date
         default     : -> new Date
 
-  remove$: permit 'send invitations',
-    success: (client, callback) ->
-      @remove callback
-
   accept$: secure (client, callback) ->
     { delegate } = client.connection
     @accept delegate, callback
@@ -76,51 +92,107 @@ module.exports = class JInvitation extends jraphical.Module
     operation = $set : { status: 'accepted' }
     @update operation, callback
 
+  # remove deletes an invitation from database
+  remove$: permit 'send invitations',
+    success: (client, callback) ->
+      @remove callback
+
+  # some selects result set for invitations, it adds group name automatically
+  @some$: permit 'send invitations',
+    success: (client, selector, options, callback) ->
+      groupName = client.context.group or 'koding'
+
+      selector or= {}
+      selector.groupName = groupName # override group name in any case
+      selector.status  or= "pending"
+
+      { limit }       = options
+      options.sort  or= createdAt : -1
+      options.limit or= 25
+      options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
+      options.skip    = 0
+
+      console.log selector, options
+      JInvitation.some selector, options, callback
+
+  # search searches database with given query string, adds `starting
+  # with regex` around query param
+  @search$: permit 'send invitations',
+    success: (client, query, options, callback) ->
+      return callback new KodingError "query is not set"  if query is ""
+
+      $query = ///^#{query}///
+      selector = { $or : [
+          { 'name'  : $query }
+          { 'email' : $query }
+        ]
+      }
+
+      JInvitation.some$ client, selector, options, callback
+
+  # create creates JInvitation documents for all given invitations and
+  # triggers sendInvitationEmail
+  @create: permit 'send invitations',
+    success: (client, options, callback) ->
+      JUser               = require './user'
+      { delegate }        = client.connection
+      { invitations }     = options
+      groupName           = client.context.group or 'koding'
+      name                = getName delegate
+
+      queue = invitations.map (invitation) -> ->
+        { email, firstName, lastName } = invitation
+
+        hash = JUser.getHash email
+        code = generateInvitationCode email, groupName
+
+        data = {
+          code
+          email
+          groupName
+          hash
+        }
+        # firstName and lastName are optional
+        data.firstName = firstName  if firstName
+        data.lastName  = lastName  if lastName
+
+        invite = new JInvitation data
+        invite.save (err) ->
+          return callback err   if err
+
+          JInvitation.sendInvitationEmail client, invite, -> queue.fin()
+
+      dash queue, callback
+
+  # byCode fetches an invitation by its code
   @byCode: (code, callback) ->
     @one {code}, callback
 
-  # TODO - generate a better invitation code
-  @generateInvitationCode = (email, group) ->
-    code = crypto.createHmac 'sha1', 'kodingsecret'
-    code.update email
-    code.update group
-    code.digest 'hex'
+  # sendInvitationByCode sends email according to data stored in
+  # JInvitation selected by given code
+  @sendInvitationByCode: permit 'send invitations',
+    success: (client, code, callback) ->
 
-  @create: secure (client, options, callback) ->
+      JInvitation.byCode code, (err, invitation) ->
+        return callback err  if err
 
-    { groupName, delegate } = client.connection
-    { invitations }         = options
-    groupName             or= 'koding'
-    name                    = getName delegate
+        JInvitation.sendInvitationEmail client, invitation, callback
 
-    queue = invitations.map (invitation) => =>
-      { email, firstName, lastName } = invitation
+  # sendInvitationEmail sends email according to given JInvitation
+  @sendInvitationEmail: (client, invitation, callback) ->
+    invitee      = getName client.connection.delegate
 
-      code = @generateInvitationCode email, groupName
+    options =
+      to      : invitation.email,
+      subject : Email.types.INVITE
 
-      invite = new JInvitation {
-        code
-        email
-        groupName
-        firstName
-        lastName
-      }
+    properties =
+      groupName: invitation.groupName
+      invitee  : invitee
+      link     : "#{protocol}//#{invitation.groupName}.#{hostname}/Invitation/#{encodeURIComponent invitation.code}"
 
-      invite.save (err) ->
-        return callback err   if err
+    Email.queue invitation.email, options, properties, callback
 
-        options =
-          to      : email,
-          subject : Email.types.INVITE
-
-        properties =
-          groupName: groupName
-          invitee  : name
-          link     : "#{protocol}//#{groupName}.#{hostname}/Invitation/#{encodeURIComponent code}"
-
-        Email.queue email, options, properties, -> queue.fin()
-
-    dash queue, callback
 
   getName = (delegate) ->
     { nickname, firstName, lastName } = delegate.profile.nickname
@@ -134,3 +206,10 @@ module.exports = class JInvitation extends jraphical.Module
       name = "#{name} #{lastName}"
 
     return name
+
+  # TODO - generate a better invitation code
+  generateInvitationCode = (email, group) ->
+    code = crypto.createHmac 'sha1', 'kodingsecret'
+    code.update email
+    code.update group
+    code.digest 'hex'
