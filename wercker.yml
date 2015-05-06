@@ -142,7 +142,7 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
     - script:
         name: check connectivity
-        code: scripts/wercker/check-connectivity
+        code: scripts/wercker/check-connectivity $(pwd)/INSTANCE_DATA
     - script:
         name: testing client started
         code: |
