@@ -3,6 +3,9 @@
 #   KD.singletons.oauthController.authCompleted null, "github"
 module.exports = class OAuthController extends KDController
 
+  constructor :-> @setupOauthListeners()
+
+
   getUrl: (provider, callback)->
 
     $.ajax
@@ -14,26 +17,12 @@ module.exports = class OAuthController extends KDController
       error       : (err)-> callback err
 
 
-  openPopup: (provider)->
-
-    @setupOauthListeners()
+  redirectToOauth: (provider)->
 
     @getUrl provider, (err, url)->
       return notify err  if err
 
-      name       = "Login"
-      size       = "height=643,width=1143"
-      newWindow  = window.open url, name, size
-
-      unless newWindow
-        notify {message : "Please disable your popup blocker and try again."}
-        return
-
-      newWindow.onunload =->
-        {mainController} = KD.singletons
-        mainController.emit "ForeignAuthPopupClosed", provider
-
-      newWindow.focus()
+      window.location.replace url
 
 
   # This is called from the popup to indicate the process is complete.
@@ -45,8 +34,8 @@ module.exports = class OAuthController extends KDController
       mainController.emit "ForeignAuthPopupClosed", provider
       mainController.emit "ForeignAuthCompleted", provider
 
-      @emit "ForeignAuthPopupClosed", provider
-      @emit "ForeignAuthCompleted", provider
+      # @emit "ForeignAuthPopupClosed", provider
+      # @emit "ForeignAuthCompleted", provider
 
 
   handleExistingUser: -> location.replace "/"
@@ -60,7 +49,11 @@ module.exports = class OAuthController extends KDController
       params = {isUserLoggedIn, provider}
 
       @doOAuth params, (err, resp)=>
-        return KDNotificationView msg: err  if err
+
+        console.log ">>>>> doOAuth", params
+
+        if err
+          return new KDNotificationView title: "OAuth integration failed"
 
         {isNewUser, userInfo} = resp
 
@@ -75,7 +68,7 @@ module.exports = class OAuthController extends KDController
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : (resp)-> callback null, resp
-      error       : (err)-> callback err
+      error       : ({responseText})-> callback responseText
 
 
   handleNewUser: (userInfo)->

@@ -11,5 +11,14 @@ module.exports = class HomeAppController extends KDViewController
 
     options.view = new HomeView
       cssClass   : 'content-page home'
+    options.appInfo =
+      name       : "Home"
 
     super options, data
+
+
+  handleQuery: ({ query }) ->
+
+    { provider } = query
+    if provider
+      KD.singletons.oauthController.authCompleted(null, provider)

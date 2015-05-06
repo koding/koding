@@ -30,9 +30,9 @@ module.exports = class MainControllerLoggedOut extends KDController
 
     KD.registerSingleton 'mainController',            this
     KD.registerSingleton 'router',           router = new KodingRouter
-    KD.registerSingleton 'oauthController',           new OAuthController
     KD.registerSingleton 'mainView',             mv = new MainView
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
+    KD.registerSingleton 'oauthController',           new OAuthController
 
     @mainViewController = mvc
     mv.appendToDomBody()
