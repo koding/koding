@@ -55,7 +55,7 @@ addInput = (form, options) ->
 
 addButton = (form, options) ->
 
-  {title, callback} = options
+  { title, callback } = options
 
   form.addSubView new KDButtonView {
     title
@@ -109,6 +109,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
       name         : 'channels'
       placeholder  : 'product, design, ux, random etc'
       nextElement  : new KDCustomHTMLView
+        cssClass   : 'warning-text'
         tagName    : 'span'
         partial    : 'Please add channel names separated by commas.'
 
@@ -131,7 +132,6 @@ module.exports = class GroupGeneralSettingsView extends KDView
     addInput form,
       itemClass    : KDButtonView
       cssClass     : 'solid medium red'
-      label        : 'Delete your team'
       description  : 'Note: Don\'t delete your team if you just want to change your team\'s name or URL. You also might want to export your data before deleting your team.'
       title        : 'DELETE TEAM'
 
