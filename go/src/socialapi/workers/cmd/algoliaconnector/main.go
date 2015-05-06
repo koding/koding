@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 
@@ -24,6 +25,10 @@ func main() {
 	}
 
 	appConfig := config.MustRead(r.Conf.Path)
+
+	// init mongo connection
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
 
 	algolia := algoliasearch.NewClient(appConfig.Algolia.AppId, appConfig.Algolia.ApiSecretKey)
 
