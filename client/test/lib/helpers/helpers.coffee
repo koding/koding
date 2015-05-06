@@ -113,17 +113,6 @@ module.exports =
     @doLogin(browser, user)
 
 
-  assertMainHeader: (browser, assertLoginLink = yes) ->
-
-    logoSelector = '[testpath=main-header] a.koding-header-logo'
-    loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
-
-    browser.waitForElementVisible logoSelector, 25000
-
-    if assertLoginLink
-      browser.waitForElementVisible loginLinkSelector, 25000
-
-
   postActivity: (browser, shouldBeginTest = yes) ->
 
     if shouldBeginTest
@@ -455,4 +444,5 @@ module.exports =
   getUrl: ->
 
     return 'http://lvh.me:8090'
+    # return 'http://52.6.253.30:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
