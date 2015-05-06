@@ -636,7 +636,6 @@ provider "aws" {
 resource "aws_instance" "example" {
     ami = "ami-d05e75b8"
     instance_type = "t2.micro"
-    subnet_id = "subnet-b47692ed"
     tags {
         Name = "KloudTerraform"
     }
