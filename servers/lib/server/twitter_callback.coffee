@@ -59,10 +59,15 @@ module.exports = (req, res)->
               renderOauthPopup res, {error:"twitter err: parsing json", provider}
               return
 
+            [firstName, restOfNames...] = response.name.split ' '
+            lastName = restOfNames.join ' '
+
             twitter                   = foreignAuth[provider]
             twitter.token             = oauthAccessToken
             twitter.accessTokenSecret = oauthAccessTokenSecret
             twitter.foreignId         = response.id
+            twitter.firstName         = firstName
+            twitter.lastName          = lastName
             twitter.profile           = response
 
             saveOauthToSession twitter, clientId, provider, (err)->

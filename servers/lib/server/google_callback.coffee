@@ -32,20 +32,22 @@ module.exports = (req, res) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
-      console.log ">>>>>>", rawResp
-
       try
-        {id, email} = JSON.parse rawResp
+        response = JSON.parse rawResp
+        {id, email, given_name, family_name} = response
       catch e
         renderOauthPopup res, {error:"Error getting id", provider}
 
       if id
-        googleResp                 = {}
-        googleResp["token"]        = access_token
-        googleResp["foreignId"]    = id
-        googleResp["refreshToken"] = refresh_token
-        googleResp["expires"]      = new Date().getTime()+3600
-        googleResp["email"]        = email
+        googleResp              = {}
+        googleResp.token        = access_token
+        googleResp.foreignId    = id
+        googleResp.refreshToken = refresh_token
+        googleResp.expires      = new Date().getTime()+3600
+        googleResp.email        = email
+        googleResp.firstName    = given_name
+        googleResp.lastName     = family_name
+        googleResp.profile      = response
 
         saveOauthToSession googleResp, clientId, provider, (err)->
           if err

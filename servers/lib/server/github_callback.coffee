@@ -44,17 +44,18 @@ module.exports = (req, res) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
-      userInfo                 = JSON.parse rawResp
+      userInfo = JSON.parse rawResp
       {login, id, email, name} = userInfo
+
       if name
         [firstName, restOfNames...] = name.split ' '
         lastName = restOfNames.join ' '
 
       resp = {firstName, lastName, email}
-      resp["foreignId"] = String(id)
-      resp["token"]     = access_token
-      resp["username"]  = login
-      resp["profile"]   = userInfo
+      resp.foreignId = String(id)
+      resp.token     = access_token
+      resp.username  = login
+      resp.profile   = lastName
 
       headers["Accept"] = "application/vnd.github.v3.full+json"
 
