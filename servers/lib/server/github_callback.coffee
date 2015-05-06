@@ -1,5 +1,5 @@
 {
-  renderOauthPopup
+  redirectOauth
   saveOauthToSession
 }        = require './helpers'
 
@@ -7,9 +7,9 @@
 http     = require "https"
 provider = "github"
 
-saveOauthAndRenderPopup = (resp, res, clientId)->
-  saveOauthToSession resp, clientId, provider, ->
-    renderOauthPopup res, {error:null, provider}
+saveOauthAndRedirect = (resp, res, clientId)->
+  saveOauthToSession resp, clientId, provider, (err)->
+    redirectOauth res, provider, err
 
 module.exports = (req, res) ->
   {code}        = req.query
@@ -17,7 +17,7 @@ module.exports = (req, res) ->
   access_token  = null
 
   unless code
-    renderOauthPopup res, {error:"No code", provider}
+    redirectOauth res, provider, "No code"
     return
 
   headers =
@@ -51,11 +51,15 @@ module.exports = (req, res) ->
         [firstName, restOfNames...] = name.split ' '
         lastName = restOfNames.join ' '
 
-      resp = {firstName, lastName, email}
-      resp.foreignId = String(id)
-      resp.token     = access_token
-      resp.username  = login
-      resp.profile   = lastName
+      resp = {
+        firstName
+        lastName
+        email
+        foreignId : String(id)
+        token     : access_token
+        username  : login
+        profile   : lastName
+      }
 
       headers["Accept"] = "application/vnd.github.v3.full+json"
 
@@ -70,7 +74,7 @@ module.exports = (req, res) ->
         r = http.request options, (newResp)-> fetchUserEmail newResp, resp
         r.end()
       else
-        saveOauthAndRenderPopup resp, res, clientId
+        saveOauthAndRedirect resp, res, clientId
 
   fetchUserEmail = (userEmailResp, originalResp)->
     rawResp = ""
@@ -80,7 +84,7 @@ module.exports = (req, res) ->
       for email in emails when email.verified and email.primary
         originalResp.email = email.email
 
-      saveOauthAndRenderPopup originalResp, res, clientId
+      saveOauthAndRedirect originalResp, res, clientId
 
   path = "/login/oauth/access_token?"
   path += "client_id=#{github.clientId}&"

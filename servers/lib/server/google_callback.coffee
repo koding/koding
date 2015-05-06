@@ -1,5 +1,5 @@
 {
-  renderOauthPopup
+  redirectOauth
   saveOauthToSession
 }                  = require './helpers'
 {google}           = KONFIG
@@ -24,7 +24,7 @@ module.exports = (req, res) ->
   }            = google
 
   unless code
-    renderOauthPopup res, {error:"No code in query", provider}
+    redirectOauth res, provider, "No code in query"
     return
 
   # Get user info with access token
@@ -36,60 +36,26 @@ module.exports = (req, res) ->
         response = JSON.parse rawResp
         {id, email, given_name, family_name} = response
       catch e
-        renderOauthPopup res, {error:"Error getting id", provider}
+        redirectOauth res, provider, "Error getting id"
 
       if id
-        googleResp              = {}
-        googleResp.token        = access_token
-        googleResp.foreignId    = id
-        googleResp.refreshToken = refresh_token
-        googleResp.expires      = new Date().getTime()+3600
-        googleResp.email        = email
-        googleResp.firstName    = given_name
-        googleResp.lastName     = family_name
-        googleResp.profile      = response
+        googleResp = {
+          email
+          token        : access_token
+          foreignId    : id
+          refreshToken : refresh_token
+          expires      : new Date().getTime()+3600
+          firstName    : given_name
+          lastName     : family_name
+          profile      : response
+        }
 
         saveOauthToSession googleResp, clientId, provider, (err)->
           if err
-            renderOauthPopup res, {error:"Error saving oauth info", provider}
+            redirectOauth res, provider, "Error saving oauth info"
             return
 
-          renderOauthPopup res, {error:null, provider}
-
-  #         path  = "/m8/feeds/contacts/default/full?"
-  #         path += "access_token=#{access_token}&"
-  #         # path += "updated-min=2010-01-01T00:00:00" # just a random date to get latest contacts
-
-  #         options =
-  #           host   : "www.google.com"
-  #           path   : path
-  #           method : "GET"
-  #         r = http.request options, fetchUserContacts
-  #         r.end()
-  #     else
-  #       renderOauthPopup res, {error:"Error getting id", provider}
-
-  # # Get user contacts with access token
-  # fetchUserContacts = (contactsResp)->
-  #   rawResp = ""
-  #   contactsResp.on "data", (chunk) -> rawResp += chunk
-  #   contactsResp.on "end", ->
-  #     try
-  #       parseString rawResp, (err, result) ->
-  #         if err
-  #           renderOauthPopup res, {error:"Error parsing contacts info", provider}
-  #           return
-
-  #         for i in result.feed.entry
-  #           title = i.title[0]["_"]
-  #           for e in i["gd:email"]
-  #             email = e["$"].address
-  #             JReferrableEmail.create clientId, {email, title}, (err)->
-  #               console.error "saving JReferrableEmail", err  if err
-  #     catch e
-  #       console.error "google callback error parsing emails", e
-
-  #     renderOauthPopup res, {error:null, provider}
+          redirectOauth res, provider, null
 
   authorizeUser = (authUserResp)->
     rawResp = ""
@@ -99,7 +65,7 @@ module.exports = (req, res) ->
       try
         tokenInfo = JSON.parse rawResp
       catch e
-        renderOauthPopup res, {error:"Error getting access token", provider}
+        redirectOauth res, provider, "Error getting access token"
 
       {access_token, refresh_token} = tokenInfo
       if access_token
@@ -110,7 +76,7 @@ module.exports = (req, res) ->
         r = http.request options, fetchUserInfo
         r.end()
       else
-        renderOauthPopup res, {error:"No access token", provider}
+        redirectOauth res, provider, "No access token"
 
   postData   = querystring.stringify {
     code,

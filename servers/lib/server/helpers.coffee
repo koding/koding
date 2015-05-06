@@ -152,11 +152,8 @@ saveOauthToSession = (oauthInfo, clientId, provider, callback)->
 
   JSession.update {clientId}, $set:query, callback
 
-renderOauthPopup = (res, locals)->
-  templateFn       = require "./templates/oauth_popup.coffee"
-  renderedTemplate = templateFn locals
-
-  serve renderedTemplate, res
+redirectOauth = (res, provider, err)->
+  res.redirect("/?provider=#{provider}&error=#{err}")
 
 getAlias = do->
   caseSensitiveAliases = ['auth']
@@ -202,7 +199,7 @@ module.exports = {
   getAlias
   addReferralCode
   saveOauthToSession
-  renderOauthPopup
+  redirectOauth
   handleClientIdNotFound
   getClientId
   isInAppRoute

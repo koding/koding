@@ -5,7 +5,7 @@ koding               = require './bongo'
 {OAuth}              = require "oauth"
 
 {
-  renderOauthPopup
+  redirectOauth
   saveOauthToSession
 }                    = require './helpers'
 
@@ -28,7 +28,7 @@ module.exports = (req, res)->
 
   JSession.one {clientId}, (err, session)->
     if err or not session
-      renderOauthPopup res, {error:err, provider}
+      redirectOauth res, provider, err
       return
 
     {foreignAuth}        = session
@@ -46,7 +46,7 @@ module.exports = (req, res)->
     client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,\
       (err, accessToken, accessTokenSecret) ->
         if err
-          renderOauthPopup res, {error:err, provider}
+          redirectOauth res, provider, err
           return
 
         client.get 'https://www.odesk.com/api/auth/v1/info',
@@ -54,7 +54,7 @@ module.exports = (req, res)->
             try
               response = JSON.parse data
             catch e
-              renderOauthPopup res, {error:"Error parsing user info", provider}
+              redirectOauth res, provider, "Error parsing user info"
 
             odesk                   = session.foreignAuth.odesk
             odesk.token             = accessToken
@@ -65,7 +65,7 @@ module.exports = (req, res)->
 
             saveOauthToSession odesk, clientId, provider, (err)->
               if err
-                renderOauthPopup res, {error:err, provider}
+                redirectOauth res, provider, err
                 return
 
-              renderOauthPopup res, {error:null, provider}
+              redirectOauth res, provider, null
