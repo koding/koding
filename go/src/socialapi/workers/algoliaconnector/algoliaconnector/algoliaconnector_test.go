@@ -19,29 +19,6 @@ import (
 
 const TestTimeout = 6 * time.Minute
 
-// makeSureSynonyms checks if the given index's synonyms request returns the
-// desired err, it will re-try every 100ms until deadline of 15 seconds reached.
-// Algolia doesnt index the records right away, so try to go to a desired state
-func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, error) bool) error {
-	deadLine := time.After(TestTimeout)
-	tick := time.Tick(time.Millisecond * 100)
-	for {
-		select {
-		case <-tick:
-			synonyms, err := handler.getSynonyms(indexName)
-			if err != nil {
-				return err
-			}
-
-			if f(synonyms, err) {
-				return nil
-			}
-		case <-deadLine:
-			return errDeadline
-		}
-	}
-}
-
 func TestIndexSettings(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
@@ -228,6 +205,29 @@ func getTestHandler() (*runner.Runner, *Controller) {
 	// create message handler
 	return r, New(r.Log, algolia, ".test")
 
+}
+
+// makeSureSynonyms checks if the given index's synonyms request returns the
+// desired err, it will re-try every 100ms until deadline of 15 seconds reached.
+// Algolia doesnt index the records right away, so try to go to a desired state
+func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, error) bool) error {
+	deadLine := time.After(TestTimeout)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			synonyms, err := handler.getSynonyms(indexName)
+			if err != nil {
+				return err
+			}
+
+			if f(synonyms, err) {
+				return nil
+			}
+		case <-deadLine:
+			return errDeadline
+		}
+	}
 }
 
 func createAccount() (*models.Account, error) {
