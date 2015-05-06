@@ -643,10 +643,13 @@ Admin main styles
 
 
   .AppModal-section.deletion
+  .AppModal-section.avatar-upload
 
     margin-top              30px
     padding-top             30px
     border-top              1px solid #ECECEC
+
+  .AppModal-section.deletion
 
     .AppModal-sectionDescription
       margin-bottom         14px
@@ -658,3 +661,27 @@ Admin main styles
       p
         margin-left         26px
         width               500px
+
+  .AppModal-section.avatar-upload
+
+    .avatar
+      size                  106px, 110px
+      background            url('https://avatars3.githubusercontent.com/u/9647378?v=3&s=70') 17px 20px no-repeat #303030
+      rounded               7px
+      border                1px inset #979797
+      margin-right          35px
+      display               inline-block
+      borderBox()
+
+    .kdbutton
+      width                 120px
+
+      &.upload
+        margin-top          17px
+
+      &.gravatar
+        margin              57px 0 0 -119px
+        bg                  color, #B8B8B8
+
+        span
+          color             #FFF

@@ -118,7 +118,22 @@ module.exports = class GroupGeneralSettingsView extends KDView
       callback : -> console.log 'lolooloo'
 
 
-  createIconForm: -> return  'TBDL'
+  createIconForm: ->
+
+    @addSubView section = createSection
+      name : 'avatar-upload'
+
+
+    section.addSubView new KDCustomHTMLView
+      cssClass : 'avatar'
+
+    section.addSubView new KDButtonView
+      cssClass : 'compact solid green upload'
+      title    : 'UPLOAD IMAGE'
+
+    section.addSubView new KDButtonView
+      cssClass : 'compact grey solid gravatar'
+      title    : 'USE GRAVATAR'
 
 
   createDeletionForm: ->
