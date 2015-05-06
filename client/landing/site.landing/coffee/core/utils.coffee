@@ -430,6 +430,12 @@ utils.extend utils,
     localStorage.teamData = JSON.stringify team
 
 
+  clearTeamData: ->
+
+    localStorage.teamData = null
+    KD.team               = null
+
+
   getTeamData: ->
 
     return KD.team  if KD.team
@@ -468,7 +474,7 @@ utils.extend utils,
       type      : 'POST'
       xhrFields : withCredentials : yes
       success   : ->
-        localStorage.team = null
+        KD.utils.clearTeamData()
         location.href = formData.redirect
       error     : ({responseText}) =>
         new KDNotificationView title : responseText
