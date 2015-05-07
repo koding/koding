@@ -22,18 +22,33 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
     super options, data
 
     @linked    = no
+    @fetched   = no
     {provider} = @getData()
     @setClass provider
 
     @switch = new KodingSwitch
       callback: (state)=>
-        @switch.setOff no
-        if state then @link() else @unlink()
+        if state
+          @link()
+          @switch.setOn no
+        else
+          @unlink()
+          @switch.setOff no
+
+    {provider} = @getData()
 
     mainController = kd.getSingleton "mainController"
     mainController.on "ForeignAuthSuccess.#{provider}", =>
-      @linked = yes
-      @switch.setOn no
+      @whenOauthInfoFetched =>
+        @linked = yes
+        @switch.setOn no
+
+
+  whenOauthInfoFetched: (callback) ->
+
+    if @fetched then callback()
+    else @once "OauthInfoFetched", callback
+
 
   link:->
 
@@ -57,9 +72,15 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
 
     JView::viewAppended.call this
     {provider} = @getData()
+
     whoami().fetchOAuthInfo (err, foreignAuth)=>
+
       @linked = foreignAuth?[provider]?
       @switch.setDefaultValue @linked
+
+      @fetched = yes
+      @emit "OauthInfoFetched"
+
 
   pistachio:->
 

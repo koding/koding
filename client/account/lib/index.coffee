@@ -86,15 +86,24 @@ module.exports = class AccountAppController extends AppController
 
   openSection: (section, query) ->
 
-    {provider, error} = query
-    if section is "Externals" and provider
-      error = null  if error is "null"
-      kd.singletons.oauthController.authCompleted error, provider
+    if section is "Oauth" and provider
+      @handleOauthRedirect query
+      return
 
     for item in @navController.getListItems() when section is item.getData().slug
       @tabView.addPane @createTab item.getData()
       @navController.selectItem item
       break
+
+
+  handleOauthRedirect: ({error, provider}) ->
+
+    error = null  if error is "null"
+    kd.singletons.oauthController.authCompleted error, provider
+
+    kd.singletons.router.handleRoute "/Account/Externals",
+      shouldPushState : yes
+      replaceState    : yes
 
 
   loadView: (modal) ->
