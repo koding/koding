@@ -705,22 +705,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     options = _.assign {}, defaults, options
 
-    # first create publisher with defaults.
-    helper.createPublisher @view.getContainer(), options, (err, publisher) =>
-      return callbacks.error err  if err
-
-      publisher.on
-        accessAllowed      : => @emit 'CameraAccessAllowed'
-        accessDenied       : => @emit 'CameraAccessDenied'
-        accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
-        accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
-
-      publisher.on 'streamDestroyed', => @unregisterPublisher()
-
-      @session.publish publisher, (err) =>
-        if err
-        then callbacks.error err
-        else callbacks.success publisher
+    @_createPublisher options, (err, publisher) =>
+      if err
+      then callbacks.error err
+      else callbacks.success publisher
 
 
   ###*
