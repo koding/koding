@@ -126,6 +126,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
         @clearEventTimer()
         @buildViews()
 
+    @createStatusOutput event
+
 
   switchToIDEIfNeeded: (status = @state)->
 
@@ -395,6 +397,22 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @destroy()
 
     @createError()
+
+    @createStatusOutput response
+
+
+  createStatusOutput: (response) ->
+
+    message = response?.message
+
+    if @logView
+      @logView.updatePartial message
+    else
+      @addSubView @logView = new KDCustomHTMLView
+        cssClass : 'stdout'
+        partial  : message
+
+    @logView[if message then 'setClass' else 'unsetClass'] 'in'
 
 
 
