@@ -103,6 +103,31 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * If it's already being published just sets state's audio to given state.
+   * If not enables the video and then sets the state.
+   *
+   * @param {boolean} audioState
+  ###
+  requestAudioStateChange: (audioState) ->
+
+    options = _.assign getCameraOptionFromState(@state.video),
+      publishAudio : audioState
+
+    oldAudioState = @state.audio
+
+    if @state.publishing
+
+      return  if audioState is oldAudioState
+
+      @setAudioState audioState
+
+    else
+      @enableVideo options,
+        error   : (err) -> console.error err
+        success : @lazyBound 'setAudioState', audioState
+
+
+  ###*
    * Registers callbacks for service events.
    *
    * @param {OT.Session} session
