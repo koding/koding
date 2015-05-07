@@ -339,8 +339,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @handlePublishSuccess publisher
       callbacks.success? publisher
 
-    defaults = { publishAudio: @isMySession(), publishVideo: @isMySession() }
-    options  = _.assign {}, defaults, options
     @startPublishing options,
       success : success
       error   : callbacks.error
