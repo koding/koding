@@ -3,10 +3,12 @@ package kloud
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
+
+	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
 
@@ -70,8 +72,8 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		// k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
-		// k.Log.Debug(finalBootstrap)
+		k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
+		k.Log.Debug(finalBootstrap)
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
@@ -96,19 +98,28 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			}
 		}
 
+		k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.PublicKey, state.RootModule().Outputs)
 		var awsOutput *AwsBootstrapOutput
-
-		fmt.Printf("state.RootModule().Outputs = %+v\n", state.RootModule().Outputs)
 		if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
 			return nil, err
 		}
 
-		d, err := json.MarshalIndent(awsOutput, "", " ")
-		if err != nil {
+		k.Log.Debug("[%s] Aws Output: %+v", cred.PublicKey, awsOutput)
+
+		if err := modelhelper.UpdateCredentialData(cred.PublicKey, bson.M{
+			"$set": bson.M{
+				"meta.acl":        awsOutput.ACL,
+				"meta.cidr_block": awsOutput.CidrBlock,
+				"meta.igw":        awsOutput.IGW,
+				"meta.key_pair":   awsOutput.KeyPair,
+				"meta.rtb":        awsOutput.RTB,
+				"meta.sg":         awsOutput.SG,
+				"meta.subnet":     awsOutput.Subnet,
+				"meta.vpc":        awsOutput.VPC,
+			},
+		}); err != nil {
 			return nil, err
 		}
-
-		fmt.Println(string(d))
 	}
 
 	return true, nil
