@@ -1,5 +1,7 @@
-JView         = require './../core/jview'
-FooterView    = require './../home/footerview'
+JView          = require './../core/jview'
+FooterView     = require './../home/footerview'
+MainHeaderView = require './../core/mainheaderview'
+
 module.exports = class AboutView extends JView
 
   constructor:->
@@ -8,10 +10,13 @@ module.exports = class AboutView extends JView
 
     @once 'viewAppended', -> window.scrollTo 0, 0
 
+    @header = new MainHeaderView
     @footer = new FooterView
+
 
   pistachio : ->
     """
+    {{> @header}}
     <section class='introduction'>
       <h2>About Koding</h2>
       <p class='main-description'>
