@@ -176,19 +176,17 @@ func TestTerraformBootstrap(t *testing.T) {
 		PublicKeys: []string{userData.CredentialPublicKey},
 	}
 
-	resp, err := remote.Tell("bootstrap", args)
+	_, err := remote.Tell("bootstrap", args)
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Printf("resp = %+v\n", resp)
 
+	// now destroy them all
 	args.Destroy = true
-	resp, err = remote.Tell("bootstrap", args)
+	_, err = remote.Tell("bootstrap", args)
 	if err != nil {
 		t.Error(err)
 	}
-
-	fmt.Printf("resp = %+v\n", resp)
 }
 
 func TestTerraformPlan(t *testing.T) {

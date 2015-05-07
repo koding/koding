@@ -32,6 +32,8 @@ type TerraformBootstrapRequest struct {
 	// PublicKeys contains publicKeys to be used with terraform
 	PublicKeys []string `json:"publicKeys"`
 
+	// Destroy destroys the bootstrap resource associated with the given public
+	// keys
 	Destroy bool
 }
 
