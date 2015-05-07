@@ -68,6 +68,13 @@ class Publisher extends BaseVideoParticipant
     @type = 'publisher'
 
 
+  setVideoData: (videoData) ->
+
+    helper.unsubscribeFromAudioChanges @videoData
+    @videoData = videoData
+    @subscribeToAudioChanges()
+
+
 ###*
  * Transformation from OpenTok Subscriber -> Koding ChatVideoSubscriber
  *
