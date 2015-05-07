@@ -1,15 +1,20 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDContextMenu = kd.ContextMenu
-KDView = kd.View
-EnvironmentDomainContainer = require './scene/environmentdomaincontainer'
+
+jsyaml                      = require 'js-yaml'
+
+kd                          = require 'kd'
+KDView                      = kd.View
+KDButtonView                = kd.ButtonView
+KDContextMenu               = kd.ContextMenu
+
+EnvironmentScene            = require './scene/environmentscene'
+EnvironmentDomainContainer  = require './scene/environmentdomaincontainer'
 EnvironmentMachineContainer = require './scene/environmentmachinecontainer'
-EnvironmentScene = require './scene/environmentscene'
-showError = require 'app/util/showError'
-getGroup = require 'app/util/getGroup'
-VmDangerModalView = require 'finder/filetree/modals/vmdangermodalview'
-jsyaml = require 'js-yaml'
-# EditorModal = require 'app/commonviews/editormodal'
+
+getGroup                    = require 'app/util/getGroup'
+showError                   = require 'app/util/showError'
+
+VmDangerModalView           = require 'finder/filetree/modals/vmdangermodalview'
+# EditorModal               = require 'app/commonviews/editormodal'
 
 
 module.exports = class StackView extends KDView
@@ -37,10 +42,10 @@ module.exports = class StackView extends KDView
     # @rules.on "itemAdded", @lazyBound "updateView", yes
 
     # Domains Container
-    @domains = new EnvironmentDomainContainer {}, @stack
-    @scene.addContainer @domains
-    @domains.on 'itemAdded',   @lazyBound 'updateView', yes
-    @domains.on 'itemRemoved', @lazyBound 'updateView', yes
+    # @domains = new EnvironmentDomainContainer {}, @stack
+    # @scene.addContainer @domains
+    # @domains.on 'itemAdded',   @lazyBound 'updateView', yes
+    # @domains.on 'itemRemoved', @lazyBound 'updateView', yes
 
     # VMs / Machines Container
     @machines = new EnvironmentMachineContainer {}, @stack
@@ -64,14 +69,18 @@ module.exports = class StackView extends KDView
     #   @rules.addItem rule        for rule in @stack.rules
 
     # Add domains
-    if @stack.domains?
-      @domains.removeAllItems()
-      @domains.addDomain domain  for domain in @stack.domains
+    # if @stack.domains?
+    #   @domains.removeAllItems()
+    #   @domains.addDomain domain  for domain in @stack.domains
 
     # Add machines
     if @stack.machines?
       @machines.removeAllItems()
-      @machines.addItem machine  for machine in @stack.machines
+
+      {computeController} = kd.singletons
+      @stack.machines.forEach (machineId)=>
+        machine = computeController.findMachineFromMachineId machineId
+        @machines.addItem machine  if machine
 
     # Add extras
     # if @stack.extras?

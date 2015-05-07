@@ -1,6 +1,10 @@
 {
   "name": "environments",
   "main": "./lib/index.coffee",
+  "routes": {
+    "/:name?/Environments": "home",
+    "/:name?/Environments/:section": "section"
+  },
   "sprites": [
     "./lib/sprites"
   ],
