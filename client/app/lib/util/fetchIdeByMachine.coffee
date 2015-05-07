@@ -5,7 +5,9 @@ IDEAppController = require '../../../ide/lib'
 
 ###*
  * fetch an IDEAppController based on the machine. If the IDE is not
- * already loaded, the 
+ * already loaded, the route is directed to the IDE to cause it to load.
+ * Once everything is ready, and the IDE is tested to prove that to be
+ * owned by the requested Machine, callback.
  *
  * @param {Machine} machine - The machine of the IDE you want.
  * @param {Function(err:Error, ide:IDEAppController)} callback
@@ -23,12 +25,13 @@ module.exports = fetchIdeByMachine = (machine, callback) ->
 
   # The IDE is not loaded, so we need to load it. Currently,
   # it seems that loading it via a route is the most reliable method.
-  #
   # To do this, we're subscribing to appManager to listen for when the
-  # app is shown. It should be loaded by then.
+  # app is created.
   #
   # Note that it might be possible to have a sort of race condition here,
-  # where a user changes AppIsBeingShown right when this subscribes.
+  # where a user changes apps and AppCreated is emitted right when this
+  # subscribes. Ie, the event emitted is not the event we triggered.
+  #
   # As a fallback, we may want to subscribe to this event, and only listen
   # for a maximum of X times, until the proper controller is found.
   appManager.once 'AppCreated', (controller) ->
