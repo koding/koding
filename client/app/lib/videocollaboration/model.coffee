@@ -335,6 +335,32 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Create the publisher with given options, and call given function.
+   *
+   * @param {object} options
+   * @param {function} callback
+  ###
+  _createPublisher: (options = {}, callback) ->
+
+    helper.createPublisher @view.getContainer(), options, (err, publisher) =>
+      return callback err  if err
+
+      publisher.on
+        accessAllowed      : => @emit 'CameraAccessAllowed'
+        accessDenied       : => @emit 'CameraAccessDenied'
+        accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
+        accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
+
+      # for some reason session's publish method's completion handler isn't
+      # working consistent. However `accessAllowed` events are being dispatched
+      # properly everytime a publisher is being published to session. Instead
+      # of the completion handler of `session.publish` we are using this event.
+      publisher.on 'accessAllowed', -> callback null, publisher
+
+      @session.publish publisher
+
+
+  ###*
    * Unregister publisher and stream.
   ###
   unregisterPublisher: ->
