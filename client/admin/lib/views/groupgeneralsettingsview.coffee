@@ -166,14 +166,26 @@ module.exports = class GroupGeneralSettingsView extends KDView
       title        : 'DELETE TEAM'
 
 
+  getChannelsArray: ->
+
+    return @generalSettingsForm.getFormData().channels # get input value
+      .split ','                                       # split from comma
+      .map    (i) -> return i.trim()                   # trim spaces
+      .filter (i) -> return i                          # filter empty values
+
+
   update: ->
 
     formData     = @generalSettingsForm.getFormData()
     jGroup       = @getData()
+    newChannels  = @getChannelsArray()
     dataToUpdate = {}
 
-    if formData.title isnt jGroup.title
+    unless formData.title is jGroup.title
       dataToUpdate.title = formData.title
+
+    unless _.isEqual newChannels, jGroup.defaultChannels
+      dataToUpdate.defaultChannels = newChannels
 
     return if _.isEmpty dataToUpdate
 
