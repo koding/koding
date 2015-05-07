@@ -3,6 +3,7 @@ package kloud
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
@@ -69,6 +70,11 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	defer tfKite.Close()
 
 	for _, cred := range creds.Creds {
+		// We are going to support more providers in the future, for now only allow aws
+		if cred.Provider != "aws" {
+			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
+		}
+
 		finalBootstrap, err := appendAWSVariable(awsBootstrap, cred.Data["access_key"], cred.Data["secret_key"])
 		if err != nil {
 			return nil, err
