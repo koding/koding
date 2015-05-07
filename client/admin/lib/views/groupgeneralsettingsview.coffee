@@ -77,7 +77,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
     @createGeneralSettingsForm()
     @createIconForm()
-    @createDeletionForm()
+    # @createDeletionForm()
 
 
   createGeneralSettingsForm: ->
