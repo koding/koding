@@ -76,7 +76,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
     @forms = {}
 
     @createGeneralSettingsForm()
-    @createIconForm()
+    @createAvatarUploadForm()
     # @createDeletionForm()
 
 
@@ -118,7 +118,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
       callback : -> console.log 'lolooloo'
 
 
-  createIconForm: ->
+  createAvatarUploadForm: ->
 
     @addSubView section = createSection
       name : 'avatar-upload'
