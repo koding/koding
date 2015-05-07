@@ -5,7 +5,7 @@ SnapshotListItem          = require './snapshotlistitem'
 snapshotHelpers           = require './snapshothelpers'
 ComputeErrorUsageModal    = require './computeerrorusagemodal'
 MachineSettingsCommonView = require './machinesettingscommonview'
-getIdeByMachine           = require '../util/getIdeByMachine'
+fetchIdeByMachine         = require '../util/fetchIdeByMachine'
 
 
 module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
@@ -114,34 +114,36 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
         'Name length must be larger than zero'
 
     # Get the IDE view.
-    ideController = getIdeByMachine machine
-    container     = ideController?.getView()
-
-    unless container?
-      router = kd.getSingleton 'router'
-      router.handleRoute "/IDE/#{machine.slug}"
-      msg = "Error, unable to create snapshot. Please try again."
-      @showNotification msg, 'error'
-      return kd.error "Unable to create snapshot, IDE Could not be found"
-
-    @emit 'ModalDestroyRequested'
-    modal = snapshotHelpers.showSnapshottingModal machine, container
-
-    @on 'SnapshotProgress', modal.bound 'updatePercentage'
-    @createSnapshot label, (err, snapshot) =>
-      @off 'SnapshotProgress', modal.bound 'updatePercentage'
+    fetchIdeByMachine machine, (err, ideController) =>
       if err
-        kd.error err
-        modal.updatePercentage 0
-        return modal.showError()
+        @showNotification "Error, unable to create snapshot.", 'error'
+        kd.error "Unable to create snapshot, IDE Could not be found", err
+        return
 
-      modal.destroy()
-      # Importing this here, because the order of imports means that
-      # MachineSettingsSnapshotsView gets created before MachineSettingsModal.
-      # Ie, we can't import it at the beginning of this file.
-      MachineSettingsModal = require './machinesettingsmodal'
-      settingsModal        = new MachineSettingsModal {}, machine
-      settingsModal.tabView.showPaneByName 'Snapshots'
+      container = ideController?.getView()
+
+      unless container?
+        @showNotification "Error, unable to create snapshot.", 'error'
+        return kd.error "Unable to create snapshot, IDE View could not be found"
+
+      @emit 'ModalDestroyRequested'
+      modal = snapshotHelpers.showSnapshottingModal machine, container
+
+      @on 'SnapshotProgress', modal.bound 'updatePercentage'
+      @createSnapshot label, (err, snapshot) =>
+        @off 'SnapshotProgress', modal.bound 'updatePercentage'
+        if err
+          kd.warn err
+          modal.updatePercentage 0
+          return modal.showError()
+
+        modal.destroy()
+        # Importing this here, because the order of imports means that
+        # MachineSettingsSnapshotsView gets created before MachineSettingsModal.
+        # Ie, we can't import it at the beginning of this file.
+        MachineSettingsModal = require './machinesettingsmodal'
+        settingsModal        = new MachineSettingsModal {}, machine
+        settingsModal.tabView.showPaneByName 'Snapshots'
 
 
   ###*
