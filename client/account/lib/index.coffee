@@ -84,7 +84,12 @@ module.exports = class AccountAppController extends AppController
 
     @mainView.destroy()
 
-  openSection: (section) ->
+  openSection: (section, query) ->
+
+    {provider, error} = query
+    if section is "Externals" and provider
+      error = null  if error is "null"
+      kd.singletons.oauthController.authCompleted error, provider
 
     for item in @navController.getListItems() when section is item.getData().slug
       @tabView.addPane @createTab item.getData()

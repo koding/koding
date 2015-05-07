@@ -38,7 +38,7 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
   link:->
 
     {provider} = @getData()
-    kd.singletons.oauthController.openPopup provider
+    kd.singletons.oauthController.redirectToOauthUrl provider
 
 
   unlink:->
