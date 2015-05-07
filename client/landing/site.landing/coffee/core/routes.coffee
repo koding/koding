@@ -13,7 +13,7 @@ do ->
 
     return router.openSection 'Home'  if groupName is 'koding'
 
-    unless group
+    if not group or KD.config.environment is 'production'
       location.replace 'http://' + location.host.replace("#{groupName}.", '') + "/Teams?group=#{groupName}"
     else
       router.openSection 'Team', null, null, (app) -> app.jumpTo 'login'
