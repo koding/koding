@@ -100,6 +100,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
       label        : 'URL'
       description  : 'Your team URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number). We don\'t recommend changing this.'
       name         : 'url'
+      disabled     : yes
       defaultValue : Encoder.htmlDecode group.slug ? ''
       placeholder  : 'Please enter a title here'
 
