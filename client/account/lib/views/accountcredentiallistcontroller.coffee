@@ -88,11 +88,12 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       fields            :
         username        :
           label         : "User"
-          type          : "hidden"
-          nextElement   :
-            userWrapper :
-              itemClass : KDView
-              cssClass  : "completed-items"
+          placeholder   : "Enter group slug or username"
+          # type          : "hidden"
+          # nextElement   :
+          #   userWrapper :
+          #     itemClass : KDView
+          #     cssClass  : "completed-items"
         owner           :
           label         : "Give ownership"
           itemClass     : KodingSwitch
@@ -138,33 +139,33 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
             @loadItems()
 
 
-    {fields, inputs, buttons} = view.form
+    # {fields, inputs, buttons} = view.form
 
-    @userController       = new KDAutoCompleteController
-      form                : view.form
-      name                : "username"
-      itemClass           : MemberAutoCompleteItemView
-      itemDataPath        : "profile.nickname"
-      outputWrapper       : fields.userWrapper
-      selectedItemClass   : MemberAutoCompletedItemView
-      listWrapperCssClass : "users"
-      submitValuesAsText  : yes
-      dataSource          : (args, callback) =>
-        {inputValue} = args
-        if /^@/.test inputValue
-          query = 'profile.nickname': inputValue.replace /^@/, ''
-          remote.api.JAccount.one query, (err, account) =>
-            if not account
-              @userController.showNoDataFound()
-            else
-              callback [account]
-        else
-          remote.api.JAccount.byRelevance inputValue, {}, (err, accounts) ->
-            callback accounts
+    # @userController       = new KDAutoCompleteController
+    #   form                : view.form
+    #   name                : "username"
+    #   itemClass           : MemberAutoCompleteItemView
+    #   itemDataPath        : "profile.nickname"
+    #   outputWrapper       : fields.userWrapper
+    #   selectedItemClass   : MemberAutoCompletedItemView
+    #   listWrapperCssClass : "users"
+    #   submitValuesAsText  : yes
+    #   dataSource          : (args, callback) =>
+    #     {inputValue} = args
+    #     if /^@/.test inputValue
+    #       query = 'profile.nickname': inputValue.replace /^@/, ''
+    #       remote.api.JAccount.one query, (err, account) =>
+    #         if not account
+    #           @userController.showNoDataFound()
+    #         else
+    #           callback [account]
+    #     else
+    #       remote.api.JAccount.byRelevance inputValue, {}, (err, accounts) ->
+    #         callback accounts
 
-    fields.username.addSubView userRequestLineEdit = @userController.getView()
-    @userController.on "ItemListChanged", (count) ->
-      userRequestLineEdit[if count is 0 then 'show' else 'hide']()
+    # fields.username.addSubView userRequestLineEdit = @userController.getView()
+    # @userController.on "ItemListChanged", (count) ->
+    #   userRequestLineEdit[if count is 0 then 'show' else 'hide']()
 
     view.addSubView view.form
 
