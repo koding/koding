@@ -1,4 +1,5 @@
 helpers           = require './helpers.js'
+panelSelector     = '.pane-wrapper .kdsplitview-panel.panel-1'
 tabHandleSelector = "#{panelSelector} .application-tab-handle-holder"
 
 module.exports =
@@ -30,7 +31,7 @@ module.exports =
       .waitForElementVisible  '.kdlistview-contextmenu', 20000 # Assertion
 
 
-  createAndSaveNewFile: (browser) ->
+  createAndSaveNewFile: (browser, text) ->
 
     saveSelector        = '.kdlistview-contextmenu li.save'
     saveAsModalSelector = '.save-as-dialog'
@@ -40,6 +41,10 @@ module.exports =
     saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons span.button-title"
 
     @openNewFile(browser)
+
+    if text
+      @setTextToEditor browser, text
+
     @openContextMenu(browser)
 
     browser
@@ -53,6 +58,9 @@ module.exports =
       .waitForElementVisible  "#{tabHandleSelector} div[title='#{newName}']", 20000 # Assertion
       .waitForElementVisible  filesTabSelector, 20000
       .assert.containsText    filesTabSelector, newName # Assertion
+
+    if text
+      browser.assert.containsText panelSelector, text
 
     return newName
 
