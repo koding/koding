@@ -16,7 +16,7 @@ module.exports = class TopicItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type or= 'member'
+    options.type or= 'topic'
     options.noItemFoundWidget   or= new KDCustomHTMLView
     options.listViewItemClass   or= TopicLeafItemView
     options.listViewItemOptions or= {}
@@ -26,15 +26,13 @@ module.exports = class TopicItemView extends KDListItemView
     
     @typeLabel = new KDCustomHTMLView
       cssClass : 'role'
-      partial  : "Type <span class='settings-icon'></span>"
+      partial  : "Moderate <span class='settings-icon'></span>"
       click    : =>
         @settings.toggleClass  'hidden'
         @typeLabel.toggleClass 'active'
     
-    @createSettingsView()
-    @createLeafChannelsListController()
-    @createLeafItemViews (data)
-
+    @createSettingsView(data)
+  
   createLeafItemViews: (data) ->
     options = rootId  :  data.id
           
@@ -42,38 +40,47 @@ module.exports = class TopicItemView extends KDListItemView
       console.log arguments
       if err
         console.log "no leaf channel found for #{data.id}, #{data.name}"
-        return
       @listLeafChannels channels
       
   listLeafChannels: (channels) ->
-
-    unless channels.length
-      return @leafChannelsListController.lazyLoader?.hide()
+    
+    @leafChannelsListController.hideLazyLoader()
+    return  unless channels?.length
 
     @skip += channels.length
 
     for channel in channels
       @leafChannelsListController.addItem channel
 
-    @leafChannelsListController.lazyLoader?.hide()
+    @leafChannelsListController.hideLazyLoader()
 
-  createSettingsView: ->
+  createSettingsView:(data) ->
 
     @settings  = new KDCustomHTMLView
       cssClass : 'settings hidden'
 
-    @settings.addSubView linkButton = new KDButtonView
-      cssClass : 'solid compact outline'
-      title    : 'LINK CHANNEL'
-
-    @settings.addSubView removeButton = new KDButtonView
-      cssClass : 'solid compact outline'
-      title    : 'REMOVE LINK'
-
     @settings.addSubView deleteButton = new KDButtonView
       cssClass : 'solid compact outline'
       title    : 'DELETE CHANNEL'
-      
+
+    @settings.addSubView new KDCustomHTMLView
+      cssClass: 'solid compact'
+      partial : '<span class="label">Leaf Channels</span>'
+
+    @createLeafChannelsListController()
+    @settings.addSubView @leafChannelsListController.getView()
+    @createLeafItemViews @getData()
+    
+    console.log @createLeafItemViews @getData
+    @settings.addSubView removeButton = new KDButtonView
+      cssClass : 'solid compact outline'
+      title    : 'REMOVE LINK'
+     
+    @settings.addSubView new KDCustomHTMLView
+      cssClass: 'solid compact'
+      partial : '<span class="label">Similar Channels</span>'
+
+
     @settings.addSubView @searchContainer = new KDCustomHTMLView
       cssClass: 'search'
       partial : '<span class="label">Find similar channels</span>'
@@ -82,20 +89,23 @@ module.exports = class TopicItemView extends KDListItemView
       type        : 'text'
       placeholder : @getData().name
       callback    : @bound 'searchSimilarChannels'
-
+    
     @createSimilarChannelsListController()
     @settings.addSubView @similarChannelsListController.getView()
-    
-    @createLeafChannelsListController()
-    @settings.addSubView @leafChannelsListController.getView()
+    @fetchSimilarChannels(@getData().name)
 
+    @settings.addSubView linkButton = new KDButtonView
+      cssClass : 'solid compact outline'
+      title    : 'LINK CHANNEL'
+  
+  
   searchSimilarChannels: ->
 
     @skip  = 0
     query = @searchInput.getValue()
 
     @similarChannelsListController.removeAllItems()
-    @similarChannelsListController.lazyLoader.show()
+    @similarChannelsListController.showLazyLoader()
     @fetchSimilarChannels query
 
 
@@ -108,8 +118,9 @@ module.exports = class TopicItemView extends KDListItemView
       skip   : @skip
       
     kd.singletons.socialapi.channel.searchTopics options , (err, channels) =>
+      @similarChannelsListController.hideLazyLoader()
+        
       if err
-        @similarChannelsListController.lazyLoader?.hide()
         return kd.warn err
       
       @listSimilarChannels channels
@@ -119,14 +130,14 @@ module.exports = class TopicItemView extends KDListItemView
   listSimilarChannels: (channels) ->
 
     unless channels.length
-      return @similarChannelsListController.lazyLoader?.hide()
+      return @similarChannelsListController.hideLazyLoader()
 
     @skip += channels.length
 
     for channel in channels
       @similarChannelsListController.addItem channel
 
-    @similarChannelsListController.lazyLoader?.hide()
+    @similarChannelsListController.hideLazyLoader()
     @searchContainer.show()
 
 
@@ -137,6 +148,7 @@ module.exports = class TopicItemView extends KDListItemView
       viewOptions         :
         wrapper           : yes
         itemClass         : TopicLeafItemView
+        cssClass          : 'leaf-channel-list'
         itemOptions       : {}
       noItemFoundWidget   : new KDCustomHTMLView
       startWithLazyLoader : yes
@@ -154,6 +166,7 @@ module.exports = class TopicItemView extends KDListItemView
       viewOptions         :
         wrapper           : yes
         itemClass         : SimilarItemView
+        cssClass          : 'similar-item-list'
         itemOptions       : {}
       noItemFoundWidget   : new KDCustomHTMLView
       startWithLazyLoader : yes
@@ -170,10 +183,9 @@ module.exports = class TopicItemView extends KDListItemView
     
     return """
       <div class="details">
-        <p class="nickname">#{data.name}</p>
+        <p class="topicname">#{data.name}</p>
       </div>
       {{> @typeLabel}}
       <div class='clear'></div>
       {{> @settings}}
-      {{> @leafChannelsListController.getView()}}
     """
