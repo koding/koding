@@ -461,6 +461,23 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Unpublishes current publisher from session, after that is destroyed, it
+   * calls the callback. Tokbox, for some reason, requires a little time to be
+   * passed doing something publisher related after current publisher is
+   * destroyed. Magic number handles that. This method is necessary to work
+   * with new publishers after destroying a publisher.
+   *
+   * @param {function} callback
+  ###
+  _unpublishFromSession: (callback) ->
+
+    @publisher.videoData.once 'streamDestroyed', ->
+      kd.utils.wait constants.NUMBER_THAT_MAKES_TOKBOX_WORK, callback
+
+    @session.unpublish @publisher.videoData
+
+
+  ###*
    * Unregister publisher and stream.
   ###
   unregisterPublisher: ->
