@@ -98,7 +98,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
     addInput form,
       label        : 'URL'
-      description  : 'Your team URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number). We don\'t recommend changing this.'
+      description  : 'Changing your team URL is currently not supported, if, for any reason, you must change this please send us an email at support@koding.com.'
       name         : 'url'
       disabled     : yes
       defaultValue : Encoder.htmlDecode group.slug ? ''
