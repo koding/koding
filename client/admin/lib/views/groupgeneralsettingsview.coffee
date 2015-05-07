@@ -1,3 +1,4 @@
+_                  = require 'lodash'
 kd                 = require 'kd'
 KDView             = kd.View
 KDFormView         = kd.FormView
@@ -87,7 +88,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
     @addSubView section = createSection name: 'general-settings'
 
-    section.addSubView form = new KDFormView #callback : @bound 'saveSettings'
+    section.addSubView form = @generalSettingsForm = new KDFormView
 
     addInput form,
       label        : 'Name'
@@ -116,7 +117,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
     addButton form,
       title    : 'Save Changes'
-      callback : -> console.log 'lolooloo'
+      callback : @bound 'update'
 
 
   createAvatarUploadForm: ->
@@ -145,3 +146,24 @@ module.exports = class GroupGeneralSettingsView extends KDView
       cssClass     : 'solid medium red'
       description  : 'Note: Don\'t delete your team if you just want to change your team\'s name or URL. You also might want to export your data before deleting your team.'
       title        : 'DELETE TEAM'
+
+
+  update: ->
+
+    formData     = @generalSettingsForm.getFormData()
+    jGroup       = @getData()
+    dataToUpdate = {}
+
+    if formData.title isnt jGroup.title
+      dataToUpdate.title = formData.title
+
+    return if _.isEmpty dataToUpdate
+
+    jGroup.modify dataToUpdate, (err, result) =>
+      message  = 'Group settings has been successfully updated.'
+
+      if err
+        message  = 'Couldn\'t update group settings. Please try again'
+        kd.warn err
+
+      new KDNotificationView title: message, duration: 5000
