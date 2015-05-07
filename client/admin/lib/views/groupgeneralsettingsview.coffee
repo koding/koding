@@ -125,13 +125,24 @@ module.exports = class GroupGeneralSettingsView extends KDView
     @addSubView section = createSection
       name : 'avatar-upload'
 
-    section.addSubView new KDCustomHTMLView
+    section.addSubView @avatar = new KDCustomHTMLView
       cssClass : 'avatar'
 
     section.addSubView new KDButtonView
       cssClass : 'compact solid green upload'
       title    : 'UPLOAD IMAGE'
 
+    @setAvatar()
+
+
+  setAvatar: ->
+
+    avatarEl = @avatar.getElement()
+    jGroup   = @getData()
+    logo     = jGroup.customize?.logo
+
+    if logo
+      avatarEl.style.backgroundImage = "url(#{logo})"
 
   createDeletionForm: ->
 
