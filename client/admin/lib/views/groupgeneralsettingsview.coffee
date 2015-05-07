@@ -13,6 +13,7 @@ GroupLogoSettings  = require '../grouplogosettings'
 remote             = require('app/remote').getInstance()
 showError          = require 'app/util/showError'
 Encoder            = require 'htmlencode'
+geoPattern         = require 'geopattern'
 
 
 createSection = (options = {}) ->
@@ -143,6 +144,12 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
     if logo
       avatarEl.style.backgroundImage = "url(#{logo})"
+    else
+      pattern = geoPattern.generate jGroup.title
+
+      avatarEl.style.backgroundImage = pattern.toDataUrl()
+      avatarEl.style.borderColor     = pattern.color
+
 
   createDeletionForm: ->
 
