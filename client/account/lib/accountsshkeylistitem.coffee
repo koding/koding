@@ -105,6 +105,8 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
   deleteItem:->
 
     @getDelegate().emit "RemoveItem", this
+    new KDNotificationView
+      title : "Please delete that key from your authorized_keys file also."
 
 
   saveItem:->
