@@ -103,6 +103,27 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Convinience method for requesting camera and microphone access
+   * sequentially for host. Accepts an option callback to be called after both
+   * devices are activated.
+   *
+   * @param {function=} callback
+  ###
+  requestVideoPublishForHost: (callback) ->
+
+    # these next 2 calls both requires this model to be in the publishing
+    # state to make operations, IF the state is NOT publishing at the moment.
+    # However, if we call then syncronously the calls will be sequential and
+    # both method will try to open the camera. That's why we are using
+    # `requestVideoStateChange` method's callback to make sure that audio
+    # request change will not trigger any other publisher creation process.
+    # The same exact call is happening at first reload if video is active.
+    @requestVideoStateChange on, =>
+      @requestAudioStateChange on
+      callback?()
+
+
+  ###*
    * Because we are alternating 2 different types of publishers that are
    * `video-disabled` and `video-enabled` this method will handle that logic.
    * Publishing mechanism is being controlled by here.
