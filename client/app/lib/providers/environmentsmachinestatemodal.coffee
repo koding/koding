@@ -404,6 +404,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
   createStatusOutput: (response) ->
 
     message = response?.message
+    message = message.capitalize()  if typeof message is 'string'
 
     if @logView
       @logView.updatePartial message
