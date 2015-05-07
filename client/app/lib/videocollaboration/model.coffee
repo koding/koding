@@ -95,11 +95,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
     if helper.isVideoActive @channel
       @setActive()
 
-      if @isMySession()
-        @enableVideo {},
-          success: =>
-            @setVideoState yes
-            @setAudioState yes
+      return  unless @isMySession()
+
+      @requestVideoPublishForHost()
 
 
   ###*
@@ -240,11 +238,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
       @setActive()
 
-      if @isMySession()
-        @enableVideo {},
-          success: =>
-            @setVideoState yes
-            @setAudioState yes
+      return  unless @isMySession()
+
+      @requestVideoPublishForHost()
+
 
     # this event only comes to the user who has been muted, so need to make a
     # filtering here.
