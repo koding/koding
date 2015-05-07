@@ -126,6 +126,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
         @clearEventTimer()
         @buildViews()
 
+    @createStatusOutput event
+
 
   switchToIDEIfNeeded: (status = @state)->
 
@@ -384,17 +386,34 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @triggerEventTimer percentage
     else if @state is Terminated
       @label.destroy?()
-
       @createStateLabel "
         The VM <strong>#{@machineName or ''}</strong> was
         successfully deleted. Please select a new VM to operate on from
         the VMs list or create a new one.
       "
+      @createStateButton()
     else if @state is Running
       @prepareIDE()
       @destroy()
 
     @createError()
+
+    @createStatusOutput response
+
+
+  createStatusOutput: (response) ->
+
+    message = response?.message
+    message = message.capitalize()  if typeof message is 'string'
+
+    if @logView
+      @logView.updatePartial message
+    else
+      @addSubView @logView = new KDCustomHTMLView
+        cssClass : 'stdout'
+        partial  : message
+
+    @logView[if message then 'setClass' else 'unsetClass'] 'in'
 
 
 
@@ -433,7 +452,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   createStateButton: ->
 
-    if @state is 'NotFound'
+    if @state in [Terminated, 'NotFound']
       title    = 'Create a new VM'
       callback = 'requestNewMachine'
     else if @isManaged
