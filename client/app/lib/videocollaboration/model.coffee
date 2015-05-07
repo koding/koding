@@ -630,10 +630,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setAudioState: (state) ->
 
-    @ensurePublishing {}, =>
-      @publisher.videoData.publishAudio state
-      @setState { audio: state }
-      @emit 'AudioPublishStateChanged', state
+    @publisher.videoData.publishAudio state
+    @setState { audio: state }
+    @emit 'AudioPublishStateChanged', state
 
 
   ###*
@@ -643,10 +642,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setVideoState: (state) ->
 
-    @ensurePublishing {}, =>
-      @publisher.videoData.publishVideo state
-      @setState { video: state }
-      @emit 'VideoPublishStateChanged', state
+    @setState { video: state }
+    @emit 'VideoPublishStateChanged', state
 
 
   ensurePublishing: (options, callback) ->
