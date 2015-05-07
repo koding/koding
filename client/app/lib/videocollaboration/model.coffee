@@ -159,7 +159,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   onConnectionCreated: (event) ->
 
-
     { connection } = event
 
     # We don't want to deal with own user's events, we basically want to
@@ -480,7 +479,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     return  unless participant = @getParticipant nickname
 
     @_service.sendMuteSignal @channel, participant, (err) ->
-      return console.log err  if err
+      return console.error err  if err
 
 
   ###*
