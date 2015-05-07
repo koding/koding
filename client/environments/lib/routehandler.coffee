@@ -1,11 +1,18 @@
 kd             = require 'kd'
+globals        = require 'globals'
 
 lazyrouter     = require 'app/lazyrouter'
+checkFlag      = require 'app/util/checkFlag'
 registerRoutes = require 'app/util/registerRoutes'
 
 
-handleSection = (callback)->
+handleSection = (callback) ->
   kd.getSingleton('groupsController').ready ->
+
+    if globals.config.environment isnt 'dev' or not checkFlag 'super-admin'
+      kd.getSingleton('router').handleRoute '/'
+      return
+
     kd.singleton('appManager').open 'Environments', callback
 
 handle = ({params:{section}}) ->
