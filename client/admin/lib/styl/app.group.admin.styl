@@ -623,6 +623,86 @@ Admin main styles
     padding-top             15px
 
 
+// Topic tab styling
+.AppModal--admin .topic-moderation
+
+  .search
+    margin                  25px 0
+
+    .label
+      font-size             14px
+      color                 #727272
+      line-height           40px
+      margin-right          15px
+
+    .kdselectbox
+      size                  180px, 40px
+      margin-right          15px
+      border-color          #DBDBDB
+      borderBox()
+
+      .title
+        line-height         40px
+        font-size           14px
+        color               #727272
+
+      .arrows
+        top                 13px
+
+    .kdinput
+      size                  230px, 40px
+      border-color          #DBDBDB
+
+  .kdlistitemview-topic
+    padding                 5px 0
+    border-top              1px solid #DEDEDE
+    font-size               14px
+    color                   #4c4c4c
+
+
+  a
+    color                   #4c4c4c
+    height                  40px
+    noTextDeco()
+
+  .details
+    fl()
+    size                    250px, 40px
+    line-height             40px
+
+
+  .topicname
+    font-size               20px
+    color                   #434343
+    font-weight             400
+
+  .role
+    abs()
+    right                   0
+    line-height             40px
+    height                  40px
+    font-size               14px
+    font-weight             bold
+    color                   #434343
+    vendor                  user-select, none
+    pointer()
+
+  .role.active .settings-icon
+    vendor                  transform, rotate(270deg)
+    width                   10px
+    margin-left             6px
+
+  .clear
+    clear                   both
+
+  .settings-icon
+    display                 inline-block
+    r-sprite                'app', 'sidebar-toggle'
+    vendor                  transform, rotate(180deg)
+    margin-left             10px
+
+  .settings
+    padding-top             15px
 
 
 
