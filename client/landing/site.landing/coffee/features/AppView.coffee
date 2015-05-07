@@ -1,15 +1,18 @@
 CustomLinkView = require './../core/customlinkview'
 FooterView     = require './../home/footerview'
+MainHeaderView = require './../core/mainheaderview'
 
 module.exports = class FeaturesView extends KDView
 
-  IMAGEPATH     = '/a/site.landing/images/features'
-
+  IMAGEPATH      = '/a/site.landing/images/features'
+  TABS           = require './tabs'
+  BOTTOMFEATURES = require './bottomfeatures'
 
   constructor:(options = {}, data)->
 
     super options, data
 
+    @addSubView @header = new MainHeaderView
     @setPartial @partial()
 
     @handles = {}
