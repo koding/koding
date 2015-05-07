@@ -386,12 +386,12 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @triggerEventTimer percentage
     else if @state is Terminated
       @label.destroy?()
-
       @createStateLabel "
         The VM <strong>#{@machineName or ''}</strong> was
         successfully deleted. Please select a new VM to operate on from
         the VMs list or create a new one.
       "
+      @createStateButton()
     else if @state is Running
       @prepareIDE()
       @destroy()
@@ -451,7 +451,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   createStateButton: ->
 
-    if @state is 'NotFound'
+    if @state in [Terminated, 'NotFound']
       title    = 'Create a new VM'
       callback = 'requestNewMachine'
     else if @isManaged
