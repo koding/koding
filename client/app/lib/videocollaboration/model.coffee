@@ -103,6 +103,60 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Because we are alternating 2 different types of publishers that are
+   * `video-disabled` and `video-enabled` this method will handle that logic.
+   * Publishing mechanism is being controlled by here.
+   *
+   * This method's responsibilities are somehow mixed:
+   *
+   *   - It just enables (starts publishing) the video chat and calls the optional callback.
+   *   - If it's already being published,
+   *     - it first unpublishes the current publisher.
+   *     - then creates a new publisher that is either `video-enabled` or `video-enabled`
+   *       publishes that to the session.
+   *     - updates the publisher's video data.
+   *     - then updates the video state of the model.
+   *
+   * TODO: this method needs some after thinking. ~Umut
+   *
+   * @param {boolean} videoState
+   * @param {function=} callback - this will be callled after video state update is done.
+  ###
+  requestVideoStateChange: (videoState, callback) ->
+
+    # this options are required for publishing functions.
+    options = getCameraOptionFromState videoState
+
+    oldVideoState = @state.video
+
+    if @state.publishing
+      # if we are trying to change video state to same state, just return
+      return  if videoState is oldVideoState
+
+      # this method will just unpublish from the session, will not make any
+      # other update, or any mutation to recent state of model.
+      @_unpublishFromSession =>
+        @_createPublisher options, (err, videoData) =>
+          # first update KodingPublisher's video data
+          @publisher.setVideoData videoData
+          # set video state to given state so that other views can react to it.
+          @setVideoState videoState
+
+          callback?()
+
+    else
+      # no need to unpublish, and at this state, we want all the other handlers
+      # to work with `startPublishing` and so on. When the success callback is
+      # called, the publisher will be ready with the necessary video data, so
+      # no need to update its videoData here like we did before.
+      @enableVideo options,
+        error   : (err) -> console.error err
+        success : =>
+          @setVideoState videoState
+          callback?()
+
+
+  ###*
    * If it's already being published just sets state's audio to given state.
    * If not enables the video and then sets the state.
    *
