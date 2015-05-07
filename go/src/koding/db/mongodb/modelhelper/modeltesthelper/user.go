@@ -13,18 +13,23 @@ func CreateUser(username string) (*models.User, *models.Account, error) {
 		ObjectId: bson.NewObjectId(), Name: username,
 	}
 
+	account, err := CreateUserWithQuery(user)
+	return user, account, err
+}
+
+func CreateUserWithQuery(user *models.User) (*models.Account, error) {
 	userQuery := func(c *mgo.Collection) error {
 		return c.Insert(user)
 	}
 
 	err := modelhelper.Mongo.Run(modelhelper.UserColl, userQuery)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	account := &models.Account{
 		Id:      bson.NewObjectId(),
-		Profile: models.AccountProfile{Nickname: username},
+		Profile: models.AccountProfile{Nickname: user.Name},
 	}
 
 	accQuery := func(c *mgo.Collection) error {
@@ -33,10 +38,10 @@ func CreateUser(username string) (*models.User, *models.Account, error) {
 
 	err = modelhelper.Mongo.Run(modelhelper.AccountsColl, accQuery)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return user, account, nil
+	return account, nil
 }
 
 func DeleteUser(userId bson.ObjectId) error {
@@ -96,5 +101,5 @@ func DeleteUsersAndMachines(username string) error {
 		return err
 	}
 
-	return modelhelper.Mongo.Run(modelhelper.MachineColl, deleteQuery)
+	return modelhelper.Mongo.Run(modelhelper.MachinesColl, deleteQuery)
 }

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	terraformFileExt      = ".tf"
+	terraformFileExt      = ".tf.json"
 	terraformPlanFileExt  = ".out"
 	terraformStateFileExt = ".tfstate"
 	mainFileName          = "main"
