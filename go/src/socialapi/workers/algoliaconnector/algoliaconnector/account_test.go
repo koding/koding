@@ -57,8 +57,8 @@ func TestAccountUpdated(t *testing.T) {
 		So(acc, ShouldNotBeNil)
 		So(err, ShouldBeNil)
 
-		Convey("it should save the document to algolia", func() {
-			err := handler.AccountCreated(acc)
+		Convey("it should save the document to algolia if not created before", func() {
+			err := handler.AccountUpdated(acc)
 			So(err, ShouldBeNil)
 
 			Convey("it should have email in it", func() {

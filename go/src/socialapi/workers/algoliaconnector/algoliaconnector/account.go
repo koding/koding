@@ -40,6 +40,17 @@ func (f *Controller) AccountUpdated(data *models.Account) error {
 		return nil
 	}
 
+	record, err := f.get(IndexAccounts, data.OldId)
+	if err != nil &&
+		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
+		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
+		return err
+	}
+
+	if record == nil {
+		return f.AccountCreated(data)
+	}
+
 	return f.partialUpdate(IndexAccounts, map[string]interface{}{
 		"objectID": data.OldId,
 		"nick":     data.Nick,
@@ -143,7 +154,7 @@ func makeSureAccount(handler *Controller, id string, f func(map[string]interface
 	for {
 		select {
 		case <-tick:
-			record, err := handler.get("accounts", id)
+			record, err := handler.get(IndexAccounts, id)
 			if f(record, err) {
 				return nil
 			}
