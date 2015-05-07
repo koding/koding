@@ -3,18 +3,34 @@ package kloud
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
 
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
+	"github.com/mitchellh/mapstructure"
 )
+
+type AwsBootstrapOutput struct {
+	ACL       string `json:"acl" mapstructure:"acl"`
+	CidrBlock string `json:"cidr_block" mapstructure:"cidr_block"`
+	IGW       string `json:"igw" mapstructure:"igw"`
+	KeyPair   string `json:"key_pair" mapstructure:"key_pair"`
+	RTB       string `json:"rtb" mapstructure:"rtb"`
+	SG        string `json:"sg" mapstructure:"sg"`
+	Subnet    string `json:"subnet" mapstructure:"subnet"`
+	VPC       string `json:"vpc" mapstructure:"vpc"`
+}
 
 type TerraformBootstrapRequest struct {
 	// PublicKeys contains publicKeys to be used with terraform
 	PublicKeys []string `json:"publicKeys"`
+
+	Destroy bool
 }
 
 func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
@@ -54,25 +70,48 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
-		k.Log.Debug(finalBootstrap)
+		// k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
+		// k.Log.Debug(finalBootstrap)
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
+		var state *terraform.State
+		if args.Destroy {
+			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
+			state, err = tfKite.Destroy(&tf.TerraformRequest{
+				Content:   finalBootstrap,
+				ContentID: groupName + "-" + cred.PublicKey,
+			})
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
+			state, err = tfKite.Apply(&tf.TerraformRequest{
+				Content:   finalBootstrap,
+				ContentID: groupName + "-" + cred.PublicKey,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
 
-		plan, err := tfKite.Plan(&tf.TerraformRequest{
-			Content:   finalBootstrap,
-			ContentID: groupName + "-" + cred.PublicKey,
-		})
+		var awsOutput *AwsBootstrapOutput
+
+		fmt.Printf("state.RootModule().Outputs = %+v\n", state.RootModule().Outputs)
+		if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
+			return nil, err
+		}
+
+		d, err := json.MarshalIndent(awsOutput, "", " ")
 		if err != nil {
 			return nil, err
 		}
 
-		k.Log.Debug("[%s] Plan output:", cred.PublicKey)
-		k.Log.Debug("%v", plan)
+		fmt.Println(string(d))
 	}
 
-	return nil, errors.New("not implemented yet")
+	return true, nil
 }
 
 func appendAWSVariable(content, accessKey, secretKey string) (string, error) {

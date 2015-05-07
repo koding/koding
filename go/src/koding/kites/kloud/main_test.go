@@ -178,7 +178,14 @@ func TestTerraformBootstrap(t *testing.T) {
 
 	resp, err := remote.Tell("bootstrap", args)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
+	}
+	fmt.Printf("resp = %+v\n", resp)
+
+	args.Destroy = true
+	resp, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
 	}
 
 	fmt.Printf("resp = %+v\n", resp)
