@@ -146,6 +146,8 @@ func init() {
 	kld := kloudWithKodingProvider(provider)
 	kloudKite.HandleFunc("plan", kld.Plan)
 	kloudKite.HandleFunc("apply", kld.Apply)
+	kloudKite.HandleFunc("bootstrap", kld.Bootstrap)
+
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("stop", kld.Stop)
@@ -159,6 +161,27 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
+}
+
+func TestTerraformBootstrap(t *testing.T) {
+	username := "testuser11"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformBootstrapRequest{
+		PublicKeys: []string{userData.CredentialPublicKey},
+	}
+
+	resp, err := remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("resp = %+v\n", resp)
 }
 
 func TestTerraformPlan(t *testing.T) {

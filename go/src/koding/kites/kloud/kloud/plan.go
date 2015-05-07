@@ -30,8 +30,9 @@ type terraformCredentials struct {
 }
 
 type terraformCredential struct {
-	Provider string
-	Data     map[string]string `mapstructure:"data"`
+	Provider  string
+	PublicKey string
+	Data      map[string]string `mapstructure:"data"`
 }
 
 func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
@@ -53,7 +54,6 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	ctx := k.ContextCreator(context.Background())
-
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -171,7 +171,8 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys []string) (*ter
 		}
 
 		cred := &terraformCredential{
-			Provider: provider,
+			Provider:  provider,
+			PublicKey: data.PublicKey,
 		}
 
 		if err := mapstructure.Decode(data.Meta, &cred.Data); err != nil {

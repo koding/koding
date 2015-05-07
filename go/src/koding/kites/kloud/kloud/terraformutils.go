@@ -364,7 +364,6 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 
 // appendVariables appends the given key/value credentials to the hclFile (terraform) file
 func appendVariables(hclFile string, creds *terraformCredentials) (string, error) {
-
 	found := false
 	for _, cred := range creds.Creds {
 		// we only support aws for now
