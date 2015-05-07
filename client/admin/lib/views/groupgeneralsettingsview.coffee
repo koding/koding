@@ -111,6 +111,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
       description  : 'Your new members will automatically join to <b>#general</b> channel. Here you can specify more channels for new team members to join automatically.'
       name         : 'channels'
       placeholder  : 'product, design, ux, random etc'
+      defaultValue : Encoder.htmlDecode group.defaultChannels.join(', ') ? ''
       nextElement  : new KDCustomHTMLView
         cssClass   : 'warning-text'
         tagName    : 'span'
