@@ -153,7 +153,7 @@ saveOauthToSession = (oauthInfo, clientId, provider, callback)->
   JSession.update {clientId}, $set:query, callback
 
 redirectOauth = (res, provider, err)->
-  res.redirect("/Account/Externals/?provider=#{provider}&error=#{err}")
+  res.redirect("/Account/Oauth?provider=#{provider}&error=#{err}")
 
 getAlias = do->
   caseSensitiveAliases = ['auth']
