@@ -55,3 +55,8 @@ module.exports =
       .assert.containsText    filesTabSelector, newName # Assertion
 
     return newName
+
+
+  setTextToEditor: (browser, text) ->
+
+    browser.execute "_kd.singletons.appManager.frontApp.activeTabView.activePane.view.setContent('#{text}')"
