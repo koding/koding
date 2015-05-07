@@ -146,7 +146,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
     if logo
       avatarEl.style.backgroundImage = "url(#{logo})"
     else
-      pattern = geoPattern.generate jGroup.title
+      pattern = geoPattern.generate jGroup.title, generator: 'plusSigns'
 
       avatarEl.style.backgroundImage = pattern.toDataUrl()
       avatarEl.style.borderColor     = pattern.color
