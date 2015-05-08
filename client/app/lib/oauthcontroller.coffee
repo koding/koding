@@ -19,8 +19,6 @@ module.exports = class OAuthController extends KDController
 
   authCompleted: (err, provider)->
 
-    console.log ">>> authCompleted", {err, provider}
-
     return notify err  if err
 
     isUserLoggedIn = isLoggedIn()
@@ -28,8 +26,6 @@ module.exports = class OAuthController extends KDController
 
     mainController = kd.getSingleton "mainController"
     mainController.handleOauthAuth params, (err, resp)=>
-
-      console.log ">>>>>> handleOauthAuth response", {err, resp}
 
       return notify err  if err
       mainController.emit "ForeignAuthSuccess.#{provider}"

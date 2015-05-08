@@ -86,7 +86,7 @@ module.exports = class AccountAppController extends AppController
 
   openSection: (section, query) ->
 
-    if section is "Oauth" and provider
+    if section is "Oauth" and query.provider?
       @handleOauthRedirect query
       return
 
