@@ -83,6 +83,10 @@ module.exports = class JCredential extends jraphical.Module
 
       meta            : require 'bongo/bundles/meta'
 
+      verified        :
+        type          : Boolean
+        default       : -> no
+
     relationships     :
 
       data            :
