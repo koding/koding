@@ -55,28 +55,32 @@ generateFakeClient = (options, callback) ->
 
   return callback null, fakeClient  unless clientId
 
-  bongo.models.JSession.fetchSession clientId, (err, response)->
+  { JSession, JAccount } = bongo.models
+
+  JSession.fetchSession clientId, (err, response)->
 
     return handleError err, callback  if err
 
     if not response or not response.session
       return handleError new Error "Session is not set", callback
 
-    {session} = response
-    {username, groupName} = session
+    { session } = response
+    { username, groupName } = session
 
-    prepareFakeClient fakeClient, {groupName, session, username}
-
-    return callback null, fakeClient, session
-
+    JAccount.one { "profile.nickname": username }, (err, account) ->
+      # we can ignore err here
+      prepareFakeClient fakeClient, {groupName, session, username, account}
+      return callback null, fakeClient, session
 
 prepareFakeClient = (fakeClient, options) ->
-  {groupName, session, username} = options
+  {groupName, session, username, account} = options
 
   {JAccount}      = bongo.models
-  account         = new JAccount
-  account.profile = nickname: username
-  account.type    = 'unregistered'
+
+  unless account
+    account         = new JAccount
+    account.profile = nickname: username
+    account.type    = 'unregistered'
 
   fakeClient.sessionToken = session.clientId
 
