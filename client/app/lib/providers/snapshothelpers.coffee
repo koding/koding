@@ -36,10 +36,11 @@ showSnapshottingModal = (machine, container) ->
     container          : container
     actionLabel        : 'Creating a snapshot'
     customErrorMessage : """
+      <p>Snapshot creation failed.</p>
       <span>
-        Snapshot creation failed. please <span
-        class="contact-support">contact support</span> for further
-        assistance.
+        Please <span class="close">close this message</span> or
+        <span class="contact-support">contact support</span> for
+        further assistance.
       </span>
     """
     machine
