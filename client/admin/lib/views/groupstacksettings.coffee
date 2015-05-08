@@ -10,20 +10,23 @@ module.exports = class GroupStackSettings extends kd.View
 
   # This will be used if stack template is not defined yet
   defaultTemplate = """
-    provider "aws" {
-      access_key = "${var.access_key}"
-      secret_key = "${var.secret_key}"
-      region = "us-east-1"
-    }
-
-    resource "aws_instance" "example" {
-        ami = "ami-d05e75b8"
-        instance_type = "t2.micro"
-        subnet_id = "subnet-b47692ed"
-        tags {
-            Name = "KloudTerraform"
+  {
+    "provider": {
+      "aws": {
+        "access_key": "${var.access_key}",
+        "secret_key": "${var.secret_key}",
+        "region": "ap-northeast-1"
+      }
+    },
+    "resource": {
+      "aws_instance": {
+        "example": {
+          "instance_type": "t2.micro",
+          "ami": "ami-936d9d93"
         }
+      }
     }
+  }
   """
 
   constructor: (options = {}, data) ->
@@ -38,7 +41,7 @@ module.exports = class GroupStackSettings extends kd.View
   createEditorPane: (content) ->
 
     content = Encoder.htmlDecode content
-    file    = FSHelper.createFileInstance path: 'localfile:/stack.yml'
+    file    = FSHelper.createFileInstance path: 'localfile:/stack.json'
 
     @addSubView editorContainer = new kd.View
     editorContainer.setCss height: '240px'
