@@ -15,7 +15,6 @@ ReferrerModal         = require './views/referrermodal'
 whoami                = require 'app/util/whoami'
 checkFlag             = require 'app/util/checkFlag'
 showError             = require 'app/util/showError'
-oauthEnabled          = require 'app/util/oauthEnabled'
 AppController         = require 'app/appcontroller'
 Encoder               = require 'htmlencode'
 require('./routehandler')()
@@ -54,8 +53,7 @@ module.exports = class AccountAppController extends AppController
       ]
 
 
-  if oauthEnabled() is yes
-    NAV_ITEMS.personal.items.push { slug : 'Externals',   title : "Linked accounts", listType: "linkedAccounts" }
+  NAV_ITEMS.personal.items.push { slug : 'Externals',   title : "Linked accounts", listType: "linkedAccounts" }
 
   constructor: (options = {}, data) ->
 
