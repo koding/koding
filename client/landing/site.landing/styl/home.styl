@@ -458,20 +458,21 @@ body.home
     vendor                transform, none
     padding               0
     text-align            center
-    vendor                transition, top .3s ease
+    vendor                transition, top .3s ease\, background-color .177s ease
     shadow                0 0px 10px rgba(0,0,0,.2)
 
     .hamburger-menu
-      display             block
-      abs                 0px 0 0 0px
-      size                61px, 61px
-      background          none
-      border              none
-      shadow              none
-      text-align          center
-      line-height         61px
-      padding             0
-      vendor              transition, background .3s .3s ease
+      display               block
+      abs                   0px 0 0 0px
+      size                  61px, 61px
+      background            none
+      border                none
+      shadow                none
+      text-align            center
+      line-height           61px
+      padding               0
+      cursor                pointer
+      vendor                transition, background .177s ease
 
       .icon
         width             14px
@@ -500,7 +501,6 @@ body.home
 
       &.active
         background        #232323
-        vendor            pointer-events, none
 
 
     .koding-header-logo
@@ -509,16 +509,18 @@ body.home
       margin              0
       vertical-align      middle
 
-    nav
+    nav.full-menu
       display             none
 
   .mobile-menu
     &.active
-      padding-top         10px
-      height              130px
+      padding-top           10px
+      height                130px
+      margin-top            -130px
 
-    &.active ~ .main-header
-      top                 130px
+  .main-header.mobile-menu-active
+    top                     130px
+    background-color        rgba(35, 35, 35, .6)
 
   body.home
     .main-header .hamburger-menu .icon
