@@ -29,7 +29,10 @@ module.exports = class DeleteAccountView extends JView
               return
           @toggleClass 'escape'
           times++
-      callback   : -> new DeleteModalView
+      callback   : ->
+        @disable()
+        deleteModalView = new DeleteModalView
+        deleteModalView.on 'KDModalViewDestroyed', @bound 'enable'
 
   pistachio:->
     """
