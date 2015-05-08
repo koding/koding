@@ -3,7 +3,11 @@
 #   KD.singletons.oauthController.authCompleted null, "github"
 module.exports = class OAuthController extends KDController
 
-  constructor :-> @setupOauthListeners()
+  constructor: (options = {}) ->
+
+    super options
+
+    @setupOauthListeners()
 
 
   getUrl: (provider, callback)->
