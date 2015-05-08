@@ -32,6 +32,8 @@ module.exports = class GroupStackSettings extends kd.View
 
     super options, data
 
+    @_credentials = {}
+
 
   createEditorPane: (content) ->
 
@@ -48,9 +50,9 @@ module.exports = class GroupStackSettings extends kd.View
     @editorPane.setCss background: 'black'
 
 
-  createCredentialsBox: (credentials) ->
+  createCredentialsBox: ->
 
-    creds = ({title: c.title, value: c.publicKey} for c in credentials)
+    creds = ({title: c.title, value: c.publicKey} for c in @_credentials)
 
     @addSubView new kd.LabelView
       title: "Select credential to use:"
@@ -88,8 +90,10 @@ module.exports = class GroupStackSettings extends kd.View
 
           return
 
+        @_credentials = credentials
+
         @createEditorPane stackTemplate?.template?.content or defaultTemplate
-        @createCredentialsBox credentials
+        @createCredentialsBox()
 
         @addSubView @saveButton = new kd.ButtonView
           title    : 'Set as default stack'
