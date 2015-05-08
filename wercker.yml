@@ -158,6 +158,10 @@ build:
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh register'
     - script:
+        name: run client unit tests
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh unittests'
+    - script:
         name: run login test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh login'
