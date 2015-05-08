@@ -9,9 +9,6 @@ module.exports = class Aws extends ProviderInterface
 
     { credential, instanceType, region, ami, storage } = options
 
-    # @fetchCredentialData credential, (err, cred)->
-    #   return callback err  if err?
-
     storage ?= 8
     if isNaN storage
       return callback new KodingError \
