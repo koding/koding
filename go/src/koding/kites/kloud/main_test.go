@@ -147,6 +147,7 @@ func init() {
 	kloudKite.HandleFunc("plan", kld.Plan)
 	kloudKite.HandleFunc("apply", kld.Apply)
 	kloudKite.HandleFunc("bootstrap", kld.Bootstrap)
+	kloudKite.HandleFunc("authenticate", kld.Authenticate)
 
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
@@ -163,6 +164,25 @@ func init() {
 	<-kloudKite.ServerReadyNotify()
 }
 
+func TestTerraformAuthenticate(t *testing.T) {
+	username := "testuser12"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.AuthenticateRequest{
+		PublicKeys: []string{userData.CredentialPublicKey},
+	}
+
+	_, err = remote.Tell("authenticate", args)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestTerraformBootstrap(t *testing.T) {
 	username := "testuser11"
 	userData, err := createUser(username)
@@ -176,7 +196,7 @@ func TestTerraformBootstrap(t *testing.T) {
 		PublicKeys: []string{userData.CredentialPublicKey},
 	}
 
-	_, err := remote.Tell("bootstrap", args)
+	_, err = remote.Tell("bootstrap", args)
 	if err != nil {
 		t.Error(err)
 	}
@@ -706,8 +726,6 @@ resource "aws_instance" "example" {
 
 	// Get the caller
 	remote := kites[0]
-	fmt.Printf("remote = %+v\n", remote)
-	fmt.Printf("remote.Username = %+v\n", remote.Username)
 	if err := remote.Dial(); err != nil {
 		log.Fatal(err)
 	}
