@@ -176,7 +176,7 @@ func TestTerraformBootstrap(t *testing.T) {
 		PublicKeys: []string{userData.CredentialPublicKey},
 	}
 
-	_, err := remote.Tell("bootstrap", args)
+	_, err = remote.Tell("bootstrap", args)
 	if err != nil {
 		t.Error(err)
 	}
