@@ -26,6 +26,7 @@ func main() {
 
 	exporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
 	constructor := emailsender.New(exporter, r.Log)
+	r.ShutdownHandler = constructor.Close
 
 	r.SetContext(constructor)
 
