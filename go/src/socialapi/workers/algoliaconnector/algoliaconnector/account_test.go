@@ -66,10 +66,10 @@ func TestAccountUpdated(t *testing.T) {
 				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
 
 				// update user's email
-				selector := modelhelper.Selector{"username": acc.Nick}
-				updateQuery := modelhelper.Selector{"$set": bson.M{
+				selector := bson.M{"username": acc.Nick}
+				updateQuery := bson.M{
 					"email": models.RandomName() + "@bar.com",
-				}}
+				}
 				err = modelhelper.UpdateUser(selector, updateQuery)
 				So(err, ShouldBeNil)
 
