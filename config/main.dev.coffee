@@ -80,6 +80,7 @@ Configuration = (options={}) ->
   disabledFeatures =
     moderation : yes
     teams      : no
+    botchannel : yes
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -248,6 +249,7 @@ Configuration = (options={}) ->
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
     tokbox               : { apiKey: tokbox.apiKey }
+    disabledFeatures     : disabledFeatures
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`

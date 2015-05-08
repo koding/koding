@@ -61,7 +61,8 @@ Configuration = (options={}) ->
 
   disabledFeatures =
     moderation : yes
-    teams : yes
+    teams      : yes
+    botchannel : yes
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
