@@ -381,7 +381,7 @@ module.exports = class JUser extends jraphical.Module
                 callback null, { session, account }
 
 
-  getHash = (value)->
+  @getHash = getHash = (value) ->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
 
   @whoami = secure ({connection:{delegate}}, callback)-> callback null, delegate

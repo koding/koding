@@ -46,7 +46,7 @@ func main() {
 
 		for _, topic := range topics {
 			r.Log.Info(fmt.Sprintf("currently migrating: '%v'", topic.Name))
-			handler.TopicSaved(&topic)
+			handler.ChannelCreated(&topic)
 		}
 
 		if len(topics) < 100 {

@@ -118,13 +118,11 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
 
     name = _getCheckboxName module, permission, current
 
-    widthForRows = (global.innerWidth - 754)/roleCount
-    cascadeData[current]= {
+    cascadeData[current] = {
       name
       cssClass
       itemClass    : PermissionSwitch
       defaultValue : isChecked ? no
-      widthForRows
     }
 
     if current in ['admin','owner']

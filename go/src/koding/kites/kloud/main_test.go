@@ -146,6 +146,8 @@ func init() {
 	kld := kloudWithKodingProvider(provider)
 	kloudKite.HandleFunc("plan", kld.Plan)
 	kloudKite.HandleFunc("apply", kld.Apply)
+	kloudKite.HandleFunc("bootstrap", kld.Bootstrap)
+
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("stop", kld.Stop)
@@ -159,6 +161,32 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
+}
+
+func TestTerraformBootstrap(t *testing.T) {
+	username := "testuser11"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformBootstrapRequest{
+		PublicKeys: []string{userData.CredentialPublicKey},
+	}
+
+	_, err := remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// now destroy them all
+	args.Destroy = true
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestTerraformPlan(t *testing.T) {
@@ -636,7 +664,6 @@ provider "aws" {
 resource "aws_instance" "example" {
     ami = "ami-d05e75b8"
     instance_type = "t2.micro"
-    subnet_id = "subnet-b47692ed"
     tags {
         Name = "KloudTerraform"
     }

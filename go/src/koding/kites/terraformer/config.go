@@ -5,10 +5,10 @@ type Config struct {
 	// Port
 	Port int `required:"true"`
 
-	// Region
+	// Region for terraformer kite
 	Region string `required:"true"`
 
-	// Environment
+	// Environment for terraformer kite
 	Environment string `required:"true"`
 
 	Debug bool // Enable debug mode
@@ -17,6 +17,7 @@ type Config struct {
 	// AWS secret and key
 	AWS AWS
 
+	// LocalStorePath stores base path for local store
 	LocalStorePath string `required:"true"`
 }
 

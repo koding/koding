@@ -17,6 +17,7 @@ ComputeController       = require './computecontroller'
 EnvironmentsModalView   = require './environmentsmodalview'
 
 whoami                  = require '../util/whoami'
+isKoding                = require 'app/util/isKoding'
 showError               = require '../util/showError'
 trackEvent              = require 'app/util/trackEvent'
 sendDataDogEvent        = require '../util/sendDataDogEvent'
@@ -54,8 +55,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @show()
 
     {computeController} = kd.singletons
-
-    @stack = computeController.findStackFromMachineId @machine._id
 
     computeController.ready => whoami().isEmailVerified (err, verified) =>
 
@@ -127,6 +126,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
         @clearEventTimer()
         @buildViews()
 
+    @createStatusOutput event
+
 
   switchToIDEIfNeeded: (status = @state)->
 
@@ -182,8 +183,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
 
     # Stack build events
-    if @stack
-      computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
+    if stack = computeController.findStackFromMachineId @machine._id
+      computeController.on "apply-#{stack._id}", @bound 'updateStatus'
 
     computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
@@ -385,17 +386,34 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @triggerEventTimer percentage
     else if @state is Terminated
       @label.destroy?()
-
       @createStateLabel "
         The VM <strong>#{@machineName or ''}</strong> was
         successfully deleted. Please select a new VM to operate on from
         the VMs list or create a new one.
       "
+      @createStateButton()
     else if @state is Running
       @prepareIDE()
       @destroy()
 
     @createError()
+
+    @createStatusOutput response
+
+
+  createStatusOutput: (response) ->
+
+    message = response?.message
+    message = message.capitalize()  if typeof message is 'string'
+
+    if @logView
+      @logView.updatePartial message
+    else
+      @addSubView @logView = new KDCustomHTMLView
+        cssClass : 'stdout'
+        partial  : message
+
+    @logView[if message then 'setClass' else 'unsetClass'] 'in'
 
 
 
@@ -434,7 +452,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   createStateButton: ->
 
-    if @state is 'NotFound'
+    if @state in [Terminated, 'NotFound']
       title    = 'Create a new VM'
       callback = 'requestNewMachine'
     else if @isManaged
@@ -576,19 +594,22 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   turnOnMachine: ->
 
+    computeController = kd.getSingleton 'computeController'
+
     trackEvent 'Turn on machine, click',
       category : 'userInteraction'
       label    : 'turnedOnVM'
       action   : 'clicks'
 
     target     = @machine
+    stack      = computeController.findStackFromMachineId @machine._id
 
-    if @stack and @state is NotInitialized and \
-       @machine.jMachine.generatedFrom?.templateId?
-      action   = 'buildStack'
-      target   = @stack
+    unless isKoding()
+      if stack and @state is NotInitialized and \
+         @machine.jMachine.generatedFrom?.templateId?
+        action   = 'buildStack'
+        target   = stack
 
-    computeController = kd.getSingleton 'computeController'
     computeController.off  "error-#{target._id}"
 
     @emit 'MachineTurnOnStarted'

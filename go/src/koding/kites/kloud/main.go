@@ -251,7 +251,7 @@ func newKite(conf *Config) *kite.Kite {
 		panic(err)
 	}
 
-	err = kld.AddProvider("amazon", awsProvider)
+	err = kld.AddProvider("aws", awsProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -259,6 +259,9 @@ func newKite(conf *Config) *kite.Kite {
 	// Machine handling methods
 	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("apply", kld.Apply)
+	k.HandleFunc("authenticate", kld.Authenticate)
+	k.HandleFunc("bootstrap", kld.Bootstrap)
+
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("stop", kld.Stop)

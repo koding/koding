@@ -32,7 +32,7 @@ func DeleteMachine(id bson.ObjectId) error {
 		return c.Remove(bson.M{"_id": id})
 	}
 
-	return modelhelper.Mongo.Run(modelhelper.MachineColl, deleteQuery)
+	return modelhelper.Mongo.Run(modelhelper.MachinesColl, deleteQuery)
 }
 
 func CreateMachineForUser(userId bson.ObjectId) (*models.Machine, error) {
@@ -52,7 +52,7 @@ func ShareMachineWithUser(machineId, userId bson.ObjectId, p bool) error {
 		return c.Update(selector, updateQuery)
 	}
 
-	return modelhelper.Mongo.Run(modelhelper.MachineColl, query)
+	return modelhelper.Mongo.Run(modelhelper.MachinesColl, query)
 }
 
 func createMachine(machineUser models.MachineUser) (*models.Machine, error) {
@@ -66,7 +66,7 @@ func createMachine(machineUser models.MachineUser) (*models.Machine, error) {
 		return c.Insert(machine)
 	}
 
-	err := modelhelper.Mongo.Run(modelhelper.MachineColl, insertQuery)
+	err := modelhelper.Mongo.Run(modelhelper.MachinesColl, insertQuery)
 	if err != nil {
 		return nil, err
 	}

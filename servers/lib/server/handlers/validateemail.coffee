@@ -3,9 +3,8 @@ koding          = require './../bongo'
 
 module.exports = (req, res) ->
 
-  { JUser }    = koding.models
-  { email }    = req.params
-  { password } = req.body
+  { JUser }           = koding.models
+  { password, email } = req.body
 
   return res.status(400).send 'Bad request'  unless email?
 
@@ -20,7 +19,7 @@ module.exports = (req, res) ->
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
       if err and isEmail
-        JUser.emailAvailable email, (err_, response) =>
+        JUser.emailAvailable email, (err_, response) ->
           return res.status(400).send 'Bad request'  if err_
 
           return if response

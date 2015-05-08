@@ -141,7 +141,7 @@ func (a *Amazon) SecurityGroup(name string) (ec2.SecurityGroup, error) {
 		return ec2.SecurityGroup{}, err
 	}
 
-	if len(resp.Groups) != 1 {
+	if len(resp.Groups) == 0 {
 		return ec2.SecurityGroup{}, fmt.Errorf("the security group name '%s' does not exist", name)
 	}
 
