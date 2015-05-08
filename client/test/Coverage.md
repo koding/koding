@@ -56,9 +56,9 @@
 
 - collaboration
   - collaboration
-    - startSession
-    - endSessionFromStatusBar
-    - endSessionFromChat
+    - startSession (disabled)
+    - endSessionFromStatusBar (disabled)
+    - endSessionFromChat (disabled)
 
 
 - environments
@@ -151,8 +151,8 @@
 
 - messages
   - privatemessage
-    - startConversation
-    - refreshAndSeeConversationOnSidebar
+    - startConversation (disabled)
+    - refreshAndSeeConversationOnSidebar (disabled)
     - leaveConversation (in progress)
     - setConversationPurpose (in progress)
     - startConversationWithMultiplePeople (in progress)
