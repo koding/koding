@@ -5,6 +5,8 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/koding/logging"
@@ -80,7 +82,7 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 						"email",
 						"_tags",
 					},
-					UnretrievableAttributes: []string{"email"},
+					UnretrievableAttributes: []string{"email", "nick"},
 				},
 			},
 			IndexMessages: &IndexSetItem{
@@ -120,16 +122,25 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func (f *Controller) Init() error {
+	var wg sync.WaitGroup
 	for name, index := range *(f.indexes) {
-		if err := f.makeSureStringSliceSettings(name, UnretrievableAttributes, index.Settings.UnretrievableAttributes); err != nil {
-			return err
-		}
+		wg.Add(1)
 
-		if err := f.makeSureStringSliceSettings(name, AttributesToIndex, index.Settings.AttributesToIndex); err != nil {
-			return err
-		}
+		go func(name string, index *IndexSetItem) {
+			if err := f.makeSureStringSliceSettings(name, UnretrievableAttributes, index.Settings.UnretrievableAttributes); err != nil {
+				f.log.Error("indexName: %s, settings name: %s, Err: %s", name, UnretrievableAttributes, err.Error())
+			}
+
+			if err := f.makeSureStringSliceSettings(name, AttributesToIndex, index.Settings.AttributesToIndex); err != nil {
+				f.log.Error("indexName: %s, settings name: %s, Err: %s", name, AttributesToIndex, err.Error())
+			}
+			wg.Done()
+		}(name, index)
 	}
 
+	wg.Wait()
+
+	f.log.Info("Init done!")
 	return nil
 }
 
@@ -179,14 +190,33 @@ func (f *Controller) makeSureStringSliceSettings(indexName string, settingName s
 	}
 
 	if !isSame {
+		f.log.Info(
+			"Previous (%+v) and Current (%+v) Setings of %s are not same for index %s, updating..",
+			indexSettingsIntSlices,
+			newSettings,
+			settingName,
+			indexName,
+		)
 		settings[settingName] = newSettings
 		task, err := indexSet.Index.SetSettings(settings)
 		if err != nil {
 			return err
 		}
 
-		// make sure setting is propogated
-		_, err = indexSet.Index.WaitTask(task)
+		done := make(chan struct{})
+		go func() {
+			// make sure setting is propogated
+			_, err = indexSet.Index.WaitTask(task)
+			close(done)
+		}()
+
+		select {
+		case <-done:
+			return err
+		case <-time.After(time.Second * 30):
+			f.log.Error("couldnt update index settings on 30 second")
+			return err
+		}
 	}
 
 	return err

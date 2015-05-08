@@ -34,6 +34,10 @@ func main() {
 
 	// create message handler
 	handler := algoliaconnector.New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
+	if err := handler.Init(); err != nil {
+		r.Log.Error("Err while init: %s", err.Error())
+	}
+
 	r.SetContext(handler)
 	r.Register(models.Channel{}).OnCreate().Handle((*algoliaconnector.Controller).ChannelCreated)
 	r.Register(models.Channel{}).OnUpdate().Handle((*algoliaconnector.Controller).ChannelUpdated)
