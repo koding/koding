@@ -16,16 +16,18 @@ module.exports = class MainHeaderView extends KDView
     @addSubView @mobileMenu = new TopNavigation cssClass : 'mobile-menu'
 
     { navItems } = @getOptions()
-    @addSubView new TopNavigation { navItems }
+    @addSubView new TopNavigation { navItems, cssClass : 'full-menu' }
 
     @addSubView @hamburgerMenu = new KDButtonView
       cssClass  : 'hamburger-menu'
       iconOnly  : yes
       callback  : =>
+        @toggleClass 'mobile-menu-active'
         @hamburgerMenu.toggleClass 'active'
         @mobileMenu.toggleClass 'active'
 
         @once 'click', =>
+          @toggleClass 'mobile-menu-active'
           @hamburgerMenu.toggleClass 'active'
           @mobileMenu.toggleClass 'active'
 
