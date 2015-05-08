@@ -2,10 +2,14 @@ ProviderInterface = require './providerinterface'
 
 module.exports = class Aws extends ProviderInterface
 
-  @ping = (client, options, callback)->
-    callback null, "AWS RULEZ #{ client.r.account.profile.nickname }!"
+  @providerSlug  = 'aws'
 
-  @create = (client, options, callback)->
+
+  @ping = (client, options, callback) ->
+    callback null, "#{ @providerSlug } rulez #{ client.r.account.profile.nickname }!"
+
+
+  @create = (client, options, callback) ->
 
     { credential, instanceType, region, ami, storage } = options
 
@@ -15,7 +19,7 @@ module.exports = class Aws extends ProviderInterface
       'Requested storage size is not valid.', 'WrongParameter'
 
     meta =
-      type          : 'aws'
+      type          : @providerSlug
       region        : region ? "us-east-1"
       instance_type : instanceType ? "t2.micro"
       storage_size  : storage
@@ -26,7 +30,7 @@ module.exports = class Aws extends ProviderInterface
     callback null, { meta, credential }
 
 
-  @fetchAvailable = (client, options, callback)->
+  @fetchAvailable = (client, options, callback) ->
 
     callback null, [
       {
