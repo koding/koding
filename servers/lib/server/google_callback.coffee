@@ -4,15 +4,10 @@
 }                  = require './helpers'
 {google}           = KONFIG
 http               = require "https"
-{parseString}      = require 'xml2js'
 querystring        = require 'querystring'
-{flatten}          = require "underscore"
-koding             = require './bongo'
 provider           = "google"
 
 module.exports = (req, res) ->
-  {JReferrableEmail} = koding.models
-
   access_token  = null
   refresh_token = null
   {code}        = req.query
