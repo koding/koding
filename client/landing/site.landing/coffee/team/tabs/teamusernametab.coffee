@@ -1,6 +1,6 @@
-JView                   = require './../core/jview'
-MainHeaderView          = require './../core/mainheaderview'
-TeamUsernameTabForm     = require './teamusernametabform'
+JView                   = require './../../core/jview'
+MainHeaderView          = require './../../core/mainheaderview'
+TeamUsernameTabForm     = require './../forms/teamusernametabform'
 
 module.exports = class TeamUsernameTab extends KDTabPaneView
 

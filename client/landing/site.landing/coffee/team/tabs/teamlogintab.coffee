@@ -1,7 +1,7 @@
-JView           = require './../core/jview'
-CustomLinkView  = require './../core/customlinkview'
-MainHeaderView  = require './../core/mainheaderview'
-LoginInlineForm = require './../login/loginform'
+JView           = require './../../core/jview'
+CustomLinkView  = require './../../core/customlinkview'
+MainHeaderView  = require './../../core/mainheaderview'
+LoginInlineForm = require './../../login/loginform'
 
 module.exports = class TeamLoginTab extends KDTabPaneView
 

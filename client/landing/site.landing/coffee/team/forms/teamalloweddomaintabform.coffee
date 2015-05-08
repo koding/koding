@@ -1,4 +1,4 @@
-JView             = require './../core/jview'
+JView             = require './../../core/jview'
 mailServices      = [
   'gmail.com', 'hotmail.com', 'outlook.com', 'icloud.com'
   'yahoo.com', 'gmx.de', 'yandex.ru', 'yandex.com'

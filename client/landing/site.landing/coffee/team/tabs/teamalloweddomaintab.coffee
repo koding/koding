@@ -1,6 +1,6 @@
-JView                   = require './../core/jview'
-MainHeaderView          = require './../core/mainheaderview'
-TeamAllowedDomainTabForm = require './teamalloweddomaintabform'
+JView                   = require './../../core/jview'
+MainHeaderView          = require './../../core/mainheaderview'
+TeamAllowedDomainTabForm = require './../forms/teamalloweddomaintabform'
 
 module.exports = class TeamAllowedDomainTab extends KDTabPaneView
 

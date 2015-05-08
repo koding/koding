@@ -1,4 +1,4 @@
-JView             = require './../core/jview'
+JView = require './../../core/jview'
 
 module.exports = class TeamUsernameTabForm extends KDFormView
 

@@ -1,5 +1,5 @@
-JView             = require './../core/jview'
-MainHeaderView    = require './../core/mainheaderview'
+JView          = require './../../core/jview'
+MainHeaderView = require './../../core/mainheaderview'
 
 module.exports = class TeamDomainTab extends KDFormView
 

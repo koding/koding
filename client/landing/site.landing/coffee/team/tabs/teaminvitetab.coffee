@@ -1,6 +1,6 @@
-JView             = require './../core/jview'
-MainHeaderView    = require './../core/mainheaderview'
-TeamInviteTabForm = require './teaminvitetabform'
+JView             = require './../../core/jview'
+MainHeaderView    = require './../../core/mainheaderview'
+TeamInviteTabForm = require './../forms/teaminvitetabform'
 
 module.exports = class TeamInviteTab extends KDTabPaneView
 
