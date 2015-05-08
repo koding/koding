@@ -1,5 +1,5 @@
 kd = require 'kd'
-fetchAccount = require 'app/util/fetchaccount'
+fetchAccount = require 'app/util/fetchAccount'
 
 module.exports = (options, callback) ->
 

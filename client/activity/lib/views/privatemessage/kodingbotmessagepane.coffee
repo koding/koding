@@ -1,4 +1,4 @@
-fetchChannelMessages = require 'activity/util/fetchchannelmessages'
+fetchChannelMessages = require 'activity/util/fetchChannelMessages'
 PrivateMessagePane   = require './privatemessagepane'
 kd = require 'kd'
 

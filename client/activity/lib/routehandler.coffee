@@ -1,7 +1,7 @@
 kd = require 'kd'
 registerRoutes = require 'app/util/registerRoutes'
 lazyrouter = require 'app/lazyrouter'
-isBotChannel = require 'activity/util/isbotchannel'
+isBotChannel = require 'activity/util/isBotChannel'
 
 activityPane = (callback) ->
   {appManager} = kd.singletons
