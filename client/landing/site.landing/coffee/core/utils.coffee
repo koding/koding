@@ -486,3 +486,11 @@ utils.extend utils,
         new KDNotificationView title : responseText
 
 
+  fetchTeamMembers: (teamName, callback) ->
+
+    $.ajax
+      url       : "/-/teams/#{teamName}/members"
+      data      : { limit : 5 }
+      type      : 'POST'
+      success   : ({members}) -> callback null, members
+      error     : ({responseText}) -> callback msg : responseText
