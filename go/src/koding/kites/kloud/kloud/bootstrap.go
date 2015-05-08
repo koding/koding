@@ -13,7 +13,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/mitchellh/mapstructure"
 )
@@ -80,15 +80,16 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
-		k.Log.Debug(finalBootstrap)
+		// k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
+		// k.Log.Debug(finalBootstrap)
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
-		var state *terraform.State
+		awsOutput := &AwsBootstrapOutput{}
+
 		if args.Destroy {
 			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
-			state, err = tfKite.Destroy(&tf.TerraformRequest{
+			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: groupName + "-" + cred.PublicKey,
 			})
@@ -96,20 +97,27 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				return nil, err
 			}
 		} else {
-			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
-			state, err = tfKite.Apply(&tf.TerraformRequest{
-				Content:   finalBootstrap,
-				ContentID: groupName + "-" + cred.PublicKey,
-			})
-			if err != nil {
+			if err := mapstructure.Decode(cred.Data, &awsOutput); err != nil {
 				return nil, err
 			}
-		}
 
-		k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.PublicKey, state.RootModule().Outputs)
-		var awsOutput *AwsBootstrapOutput
-		if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
-			return nil, err
+			if structs.HasZero(awsOutput) {
+				k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
+				state, err := tfKite.Apply(&tf.TerraformRequest{
+					Content:   finalBootstrap,
+					ContentID: groupName + "-" + cred.PublicKey,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.PublicKey, state.RootModule().Outputs)
+				if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
+					return nil, err
+				}
+			} else {
+				k.Log.Info("[%s] Resources exists, do not create anything new", cred.PublicKey)
+			}
 		}
 
 		k.Log.Debug("[%s] Aws Output: %+v", cred.PublicKey, awsOutput)

@@ -181,6 +181,12 @@ func TestTerraformBootstrap(t *testing.T) {
 		t.Error(err)
 	}
 
+	// should be return true always if resource exists
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
+
 	// now destroy them all
 	args.Destroy = true
 	_, err = remote.Tell("bootstrap", args)
