@@ -59,8 +59,7 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 
 		// We do request to fetch and describe all supported regions. This
 		// doesn't create any resources but validates the request itself before
-		// we can make a request. Also because of having dryrun enabled, we'll
-		// get no response (less network io). An error means no validation.
+		// we can make a request. An error means no validation.
 		_, err := svc.DescribeRegions(&ec2.DescribeRegionsInput{})
 		if err != nil {
 			return nil, err // not authenticated
