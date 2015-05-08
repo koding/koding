@@ -125,21 +125,27 @@ module.exports = class LoginView extends JView
       cssClass : 'invite-recovery-notification-bar hidden'
       partial  : '...'
 
+    {oauthController} = KD.singletons
+
     @githubIcon = new KDCustomHTMLView
       tagName   : 'span'
       cssClass  : 'gh icon'
+      click     : -> oauthController.redirectToOauth 'github'
 
     @gplusIcon = new KDCustomHTMLView
       tagName   : 'span'
       cssClass  : 'go icon'
+      click     : -> oauthController.redirectToOauth 'google'
 
     @facebookIcon = new KDCustomHTMLView
       tagName   : 'span'
       cssClass  : 'fb icon'
+      click     : -> oauthController.redirectToOauth 'facebook'
 
     @twitterIcon = new KDCustomHTMLView
       tagName   : 'span'
       cssClass  : 'tw icon'
+      click     : -> oauthController.redirectToOauth 'twitter'
 
     KD.singletons.router.on 'RouteInfoHandled', =>
       @signupModal?.destroy()
