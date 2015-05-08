@@ -59,23 +59,19 @@ body.home
         &:hover
           r-sprite        home 'go-home-white'
 
-      a.gh
-        &:hover + .buttons-extra
-          opacity         1
-          visibility      visible
-          vendor          transition, .5s
-          right           -112px
+      &:hover .buttons-extra
+        opacity         1
+        right           -112px
 
       .buttons-extra
         opacity           0
-        visibility        hidden
         abs               -8px -75px 0 0
         z-index           -1
         padding           8px 8px 12px 8px
         width             auto
         rounded           8px
         bg                color rgba(0,0,0,.1)
-        vendor            transition, .5s
+        vendor            transition, right .177s .177s ease\, opacity .177s .177s ease
         &:before
           content         ''
           abs             0px 0 0 -20px
@@ -84,8 +80,7 @@ body.home
         &:hover
           opacity         1
           visibility      visible
-          vendor          transition, .5s
-          right           -155px
+          right           -112px
         a
           margin          3px 5px 0 5px
 
