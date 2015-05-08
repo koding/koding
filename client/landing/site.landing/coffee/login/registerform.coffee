@@ -59,7 +59,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     @button?.destroy()
     @button = new KDButtonView
-      title         : buttonTitle or 'Create account'
+      title         : buttonTitle or 'CREATE ACCOUNT'
       type          : 'button'
       style         : 'solid green medium'
       attributes    :
