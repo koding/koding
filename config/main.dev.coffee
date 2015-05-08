@@ -526,7 +526,7 @@ Configuration = (options={}) ->
 
         echo '#---> BUILDING CLIENT <---#'
         scripts/install-npm.sh -d client -u
-        make -C #{projectRoot}/client dist
+        make -C #{projectRoot}/client unit-tests
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
