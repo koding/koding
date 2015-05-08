@@ -57,6 +57,7 @@ module.exports = ->
             global       : emailFrequency?.global
           foreignAuth    : providers      if Object.keys(providers).length > 0
           sshKeysCount   : sshKeys.length if sshKeys?.length > 0
+          userAgent      : navigator.userAgent
 
         analytics?.identify nickname, args
 
