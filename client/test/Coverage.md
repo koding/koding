@@ -51,6 +51,7 @@
     - sendHastagActivity
     - followTopic
     - unfollowTopic
+    - changeMostLikedMostRecentTab
 
 
 - collaboration
@@ -58,7 +59,6 @@
     - startSession
     - endSessionFromStatusBar
     - endSessionFromChat
-
 
 
 - environments
@@ -94,7 +94,6 @@
     - duplicateFile
 
   - general
-    - runCommandOnTerminal
     - collapse
     - makeTopFolder
     - openEditorSettings
@@ -104,13 +103,19 @@
     - splitPanesVertically
     - splitPanesHorizontally
     - undoSplitPanes
-    - undoSplitPanesNotShowOnList
+    - undoSplitPanesNotShowOnScreen
     - openDrawingBoard
+
+  - search
+    - findInFiles
+    - jumpToFile
+    - createAndSaveNewFile
 
   - terminal
     - terminateAll
     - createNewTerminalSession
     - terminateSession
+    - runCommandOnTerminal
     - openOldTerminalSession (deprecated)
 
   - workspace
@@ -122,8 +127,8 @@
 
 - register
   - register
-    - registerUserWithGravatarEmail
-    - registerUserWithoutGravatarEmail
+    - registerWithGravatarEmail
+    - registerWithoutGravatarEmail
     - registerWithInvalidUsername
     - registerWithInvalidEmail
     - registerWithInvalidPassword
@@ -147,7 +152,7 @@
 - messages
   - privatemessage
     - startConversation
-    - refreshAndSeeConversationOnSidebar (in progress)
+    - refreshAndSeeConversationOnSidebar
     - leaveConversation (in progress)
     - setConversationPurpose (in progress)
     - startConversationWithMultiplePeople (in progress)
