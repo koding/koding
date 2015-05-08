@@ -309,6 +309,11 @@ module.exports = class JGroup extends Module
       # channels
       # those should be social api channel ids
       defaultChannels : [ String ]
+      # allowed domains are used for company domains, if a new register tries to
+      # join to a group/team we will check if they have a valid invitation code,
+      # then we will check if the domain they are trying to register is an
+      # allowed global domain
+      allowedDomains  : [ String ]
       # tmp: the data stored here should be processed while
       # we create the group - SY
       # cc/ @cihangir
