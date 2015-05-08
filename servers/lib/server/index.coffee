@@ -56,6 +56,7 @@ app.use require './setsession'
 # routes ordered as before no particular structure
 
 # temp endpoints @cihangir will reorganize these - SY
+app.post '/-/teams/validate-token'                  , require './handlers/checktoken'
 app.post '/-/teams/create'                       , require './handlers/createteam'
 # fetches last members of team
 app.all  '/-/teams/:name/members'                , require './handlers/getteammembers'
