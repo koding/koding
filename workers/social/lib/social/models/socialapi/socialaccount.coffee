@@ -16,22 +16,39 @@ module.exports = class SocialAccount extends Base
   @update = (args...)-> bareRequest 'updateAccount', args...
 
   do ->
-
     JAccount = require '../account'
-    JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
+    JUser    = require '../user'
+
+    updateSocialAccount = (username)->
+
+      JAccount.one "profile.nickname" : username, (err, account)->
+        return console.error err if err?
+        return console.error {message: "account is not valid"} unless account?
+
+        SocialAccount.update {
+          id   : account.socialApiId
+          nick : username
+        }, (err)->
+          if err?
+            console.error "err while updating account in social api", err
+
+
+    JAccount.on 'UsernameChanged', (data)->
+      { oldUsername, username, isRegistration } = data
 
       unless oldUsername and username
         return console.error "username: #{username} or oldUsername is not set: #{oldUsername}"
 
+      updateSocialAccount username  unless isRegistration
 
-      unless isRegistration
-        JAccount.one "profile.nickname" : username, (err, account)->
-          return console.error err if err?
-          return console.error {message: "account is not valid"} unless account?
+    # we are updating account when we update email because we dont store email
+    # in postgres and social parts fetch email from mongo, we are just
+    # triggering account update on postgres, so other services can get that
+    # event and operate accordingly 
+    JUser.on 'EmailChanged', (data)->
+      { username } = data
 
-          SocialAccount.update {
-            id   : account.socialApiId
-            nick : username
-          }, (err)->
-            if err?
-              console.error "err while changing the nickname in social api", err
+      unless username
+        return console.error "username: #{username} is not set"
+
+      updateSocialAccount username

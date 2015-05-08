@@ -5,7 +5,7 @@ import "errors"
 var ErrDataNotValid = errors.New("Algolia error: invalid data")
 
 func (f *Controller) insert(indexName string, record map[string]interface{}) error {
-	index, err := f.indexes.Get(indexName)
+	index, err := f.indexes.GetIndex(indexName)
 	if err != nil {
 		return err
 	}
@@ -15,7 +15,7 @@ func (f *Controller) insert(indexName string, record map[string]interface{}) err
 
 // Delete removes a record from the given indexName
 func (f *Controller) delete(indexName string, objectID string) error {
-	index, err := f.indexes.Get(indexName)
+	index, err := f.indexes.GetIndex(indexName)
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func (f *Controller) delete(indexName string, objectID string) error {
 }
 
 func (f *Controller) get(indexName string, objectId string) (map[string]interface{}, error) {
-	index, err := f.indexes.Get(indexName)
+	index, err := f.indexes.GetIndex(indexName)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (f *Controller) get(indexName string, objectId string) (map[string]interfac
 }
 
 func (f *Controller) partialUpdate(indexName string, record map[string]interface{}) error {
-	index, err := f.indexes.Get(indexName)
+	index, err := f.indexes.GetIndex(indexName)
 	if err != nil {
 		return err
 	}
