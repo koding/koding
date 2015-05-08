@@ -124,7 +124,6 @@ module.exports = class GroupStackSettings extends kd.View
       } else null
 
 
-
   fetchData: (callback) ->
 
     { groupsController }            = kd.singletons

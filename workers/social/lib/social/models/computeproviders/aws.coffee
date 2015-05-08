@@ -4,7 +4,7 @@ module.exports = class Aws extends ProviderInterface
 
   @providerSlug  = 'aws'
 
-  @bootstrapKeys = ['key_pair', 'rtp', 'acl']
+  @bootstrapKeys = ['key_pair', 'rtb', 'acl']
 
 
   @ping = (client, options, callback) ->
