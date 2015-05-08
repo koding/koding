@@ -60,15 +60,10 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		// We do request to fetch and describe all supported regions. This
 		// doesn't create any resources but validates the request itself before
 		// we can make a request. Also because of having dryrun enabled, we'll
-		// get no response (less network io). An erroro of tpe `DryRunOperation`
-		// means a successfull request.
-		_, err := svc.DescribeRegions(&ec2.DescribeRegionsInput{DryRun: aws.Boolean(true)})
+		// get no response (less network io). An error means no validation.
+		_, err := svc.DescribeRegions(&ec2.DescribeRegionsInput{})
 		if err != nil {
-			if awsError := aws.Error(err); awsError != nil {
-				if awsError.Code != "DryRunOperation" {
-					return nil, err // not authenticated
-				}
-			}
+			return nil, err // not authenticated
 		}
 	}
 
