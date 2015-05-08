@@ -13,7 +13,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/mitchellh/mapstructure"
 )
@@ -80,40 +79,45 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
-		k.Log.Debug(finalBootstrap)
+		// k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
+		// k.Log.Debug(finalBootstrap)
+
+		// Important so bootstraping is distributed amongs multiple users. If I
+		// use these keys to bootstrap, any other user should be not create
+		// again, instead they should be fetch and use the existing bootstrap
+		// data.
+		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"])
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
-		var state *terraform.State
+		awsOutput := &AwsBootstrapOutput{}
+
 		if args.Destroy {
 			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
-			state, err = tfKite.Destroy(&tf.TerraformRequest{
+			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: groupName + "-" + cred.PublicKey,
+				ContentID: groupName + "-" + contentId,
 			})
 			if err != nil {
 				return nil, err
 			}
 		} else {
 			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
-			state, err = tfKite.Apply(&tf.TerraformRequest{
+			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: groupName + "-" + cred.PublicKey,
+				ContentID: groupName + "-" + contentId,
 			})
 			if err != nil {
 				return nil, err
 			}
-		}
 
-		k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.PublicKey, state.RootModule().Outputs)
-		var awsOutput *AwsBootstrapOutput
-		if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
-			return nil, err
+			k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.PublicKey, state.RootModule().Outputs)
+			if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
+				return nil, err
+			}
 		}
 
 		k.Log.Debug("[%s] Aws Output: %+v", cred.PublicKey, awsOutput)
-
 		if err := modelhelper.UpdateCredentialData(cred.PublicKey, bson.M{
 			"$set": bson.M{
 				"meta.acl":        awsOutput.ACL,
@@ -135,21 +139,25 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 
 func appendAWSVariable(content, accessKey, secretKey string) (string, error) {
 	var data struct {
-		Output   map[string]map[string]interface{} `json:"output"`
-		Resource map[string]map[string]interface{} `json:"resource"`
-		Provider map[string]map[string]interface{} `json:"provider"`
-		Variable map[string]map[string]interface{} `json:"variable"`
+		Output   map[string]map[string]interface{} `json:"output,omitempty"`
+		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
+		Provider map[string]map[string]interface{} `json:"provider,omitempty"`
+		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
 	}
 
 	if err := json.Unmarshal([]byte(content), &data); err != nil {
 		return "", err
 	}
 
-	data.Variable["aws_access_key"] = map[string]interface{}{
+	if data.Variable == nil {
+		data.Variable = make(map[string]map[string]interface{})
+	}
+
+	data.Variable["access_key"] = map[string]interface{}{
 		"default": accessKey,
 	}
 
-	data.Variable["aws_secret_key"] = map[string]interface{}{
+	data.Variable["secret_key"] = map[string]interface{}{
 		"default": secretKey,
 	}
 
@@ -164,8 +172,8 @@ func appendAWSVariable(content, accessKey, secretKey string) (string, error) {
 var awsBootstrap = `{
     "provider": {
         "aws": {
-            "access_key": "${var.aws_access_key}",
-            "secret_key": "${var.aws_secret_key}",
+            "access_key": "${var.access_key}",
+            "secret_key": "${var.secret_key}",
             "region": "${var.aws_region}"
         }
     },

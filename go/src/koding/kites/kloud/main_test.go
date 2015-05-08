@@ -147,6 +147,7 @@ func init() {
 	kloudKite.HandleFunc("plan", kld.Plan)
 	kloudKite.HandleFunc("apply", kld.Apply)
 	kloudKite.HandleFunc("bootstrap", kld.Bootstrap)
+	kloudKite.HandleFunc("authenticate", kld.Authenticate)
 
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
@@ -163,6 +164,25 @@ func init() {
 	<-kloudKite.ServerReadyNotify()
 }
 
+func TestTerraformAuthenticate(t *testing.T) {
+	username := "testuser12"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.AuthenticateRequest{
+		PublicKeys: []string{userData.CredentialPublicKey},
+	}
+
+	_, err = remote.Tell("authenticate", args)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestTerraformBootstrap(t *testing.T) {
 	username := "testuser11"
 	userData, err := createUser(username)
@@ -176,7 +196,13 @@ func TestTerraformBootstrap(t *testing.T) {
 		PublicKeys: []string{userData.CredentialPublicKey},
 	}
 
-	_, err := remote.Tell("bootstrap", args)
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// should be return true always if resource exists
+	_, err = remote.Tell("bootstrap", args)
 	if err != nil {
 		t.Error(err)
 	}
@@ -200,19 +226,21 @@ func TestTerraformPlan(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformPlanRequest{
-		TerraformContext: `
-provider "aws" {
-    access_key = "${var.access_key}"
-    secret_key = "${var.secret_key}"
-    region = "us-east-1"
-}
-
-resource "aws_instance" "example" {
-    ami = "ami-d05e75b8"
-    instance_type = "t2.micro"
-    subnet_id = "subnet-b47692ed"
-    tags {
-        Name = "KloudTerraform"
+		TerraformContext: `{
+    "provider": {
+        "aws": {
+            "access_key": "${var.access_key}",
+            "secret_key": "${var.secret_key}",
+            "region": "ap-northeast-1"
+        }
+    },
+    "resource": {
+        "aws_instance": {
+            "example": {
+                "instance_type": "t2.micro",
+                "ami": "ami-936d9d93"
+            }
+        }
     }
 }`,
 		PublicKeys: []string{userData.CredentialPublicKey},
@@ -257,6 +285,61 @@ func TestTerraformApply(t *testing.T) {
 	resp, err := remote.Tell("apply", args)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestTerraformStack(t *testing.T) {
+	t.Parallel()
+	username := "testuser13"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformBootstrapRequest{
+		PublicKeys: []string{userData.CredentialPublicKey},
+	}
+
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer func() {
+		// now destroy them all
+		args.Destroy = true
+		_, err = remote.Tell("bootstrap", args)
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+
+	applyArgs := &kloud.TerraformApplyRequest{
+		StackId: userData.StackId,
+	}
+
+	resp, err := remote.Tell("apply", applyArgs)
+	if err != nil {
+		t.Error(err)
 	}
 
 	var result kloud.ControlResult
@@ -654,18 +737,21 @@ func createUser(username string) (*singleUser, error) {
 		Id:          stackTemplateId,
 		Credentials: []string{credPublicKey},
 	}
-	stackTemplate.Template.Content = `
-provider "aws" {
-    access_key = "${var.access_key}"
-    secret_key = "${var.secret_key}"
-    region = "us-east-1"
-}
-
-resource "aws_instance" "example" {
-    ami = "ami-d05e75b8"
-    instance_type = "t2.micro"
-    tags {
-        Name = "KloudTerraform"
+	stackTemplate.Template.Content = `{
+    "provider": {
+        "aws": {
+            "access_key": "${var.access_key}",
+            "secret_key": "${var.secret_key}",
+            "region": "ap-northeast-1"
+        }
+    },
+    "resource": {
+        "aws_instance": {
+            "example": {
+                "instance_type": "t2.micro",
+                "ami": "ami-936d9d93"
+            }
+        }
     }
 }`
 
@@ -706,8 +792,6 @@ resource "aws_instance" "example" {
 
 	// Get the caller
 	remote := kites[0]
-	fmt.Printf("remote = %+v\n", remote)
-	fmt.Printf("remote.Username = %+v\n", remote.Username)
 	if err := remote.Dial(); err != nil {
 		log.Fatal(err)
 	}
