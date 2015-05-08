@@ -99,11 +99,33 @@ module.exports = class GroupStackSettings extends kd.View
           title    : 'Set as default stack'
           loader   : yes
           callback : =>
-            @setStack stackTemplate
+
+            @checkCredential (err) =>
+
+              if err
+                @showError err
+                @saveButton.hideLoader()
+              else
+                @setStack stackTemplate
 
         @createOutputView()
 
-  fetchData: (callback)->
+
+  checkCredential: (callback) ->
+
+    selected   = @credentialBox.getValue()
+    credential = cred for cred in @_credentials when cred.publicKey is selected
+
+    credential.isBootstrapped (err, state) ->
+      return callback err  if err
+
+      callback if not state then {
+        message: 'Credential is not bootstrapped yet.'
+      } else null
+
+
+
+  fetchData: (callback) ->
 
     { groupsController }            = kd.singletons
     { JCredential, JStackTemplate } = remote.api
