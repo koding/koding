@@ -26,17 +26,25 @@ do ->
     else
       return router.openSection 'Team', null, null, (app) -> app.jumpTo 'login'
 
-  handleInvitation = ({params : token}) ->
 
+  handleTeamRoute = (section, {params, query}) ->
+
+    # if group is koding or if the route doesnt have a subdomain route to root.
     return handleRoot()  if KD.config.groupName is KODING
-    return handleRoot()  unless token
 
-
+    { router } = KD.singletons
+    return router.openSection 'Team', null, null, (app) -> app.jumpTo section, params, query
 
 
   KD.registerRoutes 'Core',
-    '/'                   : handleRoot
-    ''                    : handleRoot
-    '/Invitation/:token?' : handleInvitation
+    '/'                    : handleRoot
+    ''                     : handleRoot
+    # the routes below are subdomain routes
+    # e.g. team.koding.com/Invitation
+    '/Invitation/:token?'  : handleTeamRoute.bind this, 'invitation'
+    '/Welcome'             : handleTeamRoute.bind this, 'welcome'
+    '/Register'            : handleTeamRoute.bind this, 'register'
+    '/Authenticate/:step?' : handleTeamRoute.bind this, 'stacks'
+    '/Congratz'            : handleTeamRoute.bind this, 'congratz'
 
 
