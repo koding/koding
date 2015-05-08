@@ -332,3 +332,149 @@ utils.extend utils,
   getReferrer: ->
     match = location.pathname.match /\/R\/(.*)/
     return referrer  if match and referrer = match[1]
+
+
+  getGroupNameFromLocation: ->
+
+    { hostname } = location
+    mainDomains = ['dev.koding.com', 'sandbox.koding.com', 'latest.koding.com', 'prod.koding.com']
+    groupName = if hostname in mainDomains then 'koding'
+    else if hostname.indexOf('.dev.koding.com') isnt -1
+    then hostname.replace('.dev.koding.com', '').split('.').last
+    else if hostname.indexOf('.koding.com') isnt -1
+    then hostname.replace('.koding.com', '').split('.').last
+    else 'koding'
+
+    return groupName
+
+
+  checkIfGroupExists: (groupName, callback) ->
+
+    $.ajax
+      url     : "/-/teams/#{groupName}"
+      type    : 'post'
+      success : (group) -> callback null, group
+      error   : (err) -> callback err
+
+
+  getEmailValidator: (options = {}) ->
+
+    { container, password } = options
+
+    container   : container
+    event       : 'submit'
+    messages    :
+      required  : 'Please enter your email address.'
+      email     : 'That doesn\'t seem like a valid email address.'
+    rules       :
+      required  : yes
+      email     : yes
+      available : (input, event) ->
+
+        return  if event?.which is 9
+
+        { required, email, minLength } = input.validationResults
+
+        return  if required or minLength
+
+        input.setValidationResult 'available', null
+        email = input.getValue()
+        if password
+          passInput = password.input
+          passValue = passInput.getValue()
+        container.emit 'EmailIsNotAvailable'
+
+        return  unless input.valid
+
+        $.ajax
+          url         : "/-/validate/email"
+          type        : 'POST'
+          data        :
+            password  : passValue
+            email     : email
+          xhrFields   : withCredentials : yes
+          success     : (res) ->
+
+            return location.replace '/'  if res is 'User is logged in!'
+
+            container.emit 'EmailIsAvailable'
+            input.setValidationResult 'available', null
+
+            container.emit 'EmailValidationPassed'  if res is yes
+
+          error       : ({responseJSON}) ->
+            container.emit 'EmailIsNotAvailable'
+            input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
+
+  checkedPasswords: {}
+  checkPasswordStrength: KD.utils.debounce 300, (password, callback) ->
+
+    return callback msg : 'No password specified!'  unless password
+    return callback null, res                       if res = KD.utils.checkedPasswords[password]
+
+    $.ajax
+      url         : "/-/password-strength"
+      type        : 'POST'
+      data        : { password }
+      success     : (res) ->
+        KD.utils.checkedPasswords[res.password] = res
+        callback null, res
+      error       : ({responseJSON}) -> callback msg : responseJSON
+
+
+  storeNewTeamData: (formName, formData) ->
+
+    KD.team              ?= {}
+    { team }              = KD
+    team[formName]        = formData
+    localStorage.teamData = JSON.stringify team
+
+
+  clearTeamData: ->
+
+    localStorage.teamData = null
+    KD.team               = null
+
+
+  getTeamData: ->
+
+    return KD.team  if KD.team
+
+    return {}  unless data = localStorage.teamData
+
+    try
+      team    = JSON.parse data
+      KD.team = team
+
+    return team  if team
+    return {}
+
+
+  createTeam: ->
+
+    teamData = KD.utils.getTeamData()
+    formData = {}
+
+    for key, value of teamData
+      for k, v of value
+        if k.search('invitee') >= 0
+          formData['invitees'] ?= v
+          formData['invitees'] += ",#{v}"
+        else
+          formData[k] = v
+
+    # manually add legacy fields - SY
+    formData.agree           = 'on'
+    formData.passwordConfirm = formData.password
+    formData.redirect        = "#{location.protocol}//#{formData.slug}.#{location.host}?username=#{formData.username}"
+
+    $.ajax
+      url       : "/-/teams/create"
+      data      : formData
+      type      : 'POST'
+      xhrFields : withCredentials : yes
+      success   : ->
+        KD.utils.clearTeamData()
+        location.href = formData.redirect
+      error     : ({responseText}) =>
+        new KDNotificationView title : responseText

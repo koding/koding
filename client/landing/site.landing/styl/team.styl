@@ -1,0 +1,332 @@
+@import "lib/core.fonts"
+@import "lib/core.fn"
+
+@css {
+/*
+Team stylesheet
+team.styl
+*/
+}
+
+.main-header.team
+  padding                   0 22px
+  max-width                 none
+  top                       32px
+  fix()
+
+.content-area-pane.team
+  font-family               adelleSans
+  bg                        color #111
+
+  &:before
+    content                 ''
+    bg                      image, url('/a/site.landing/images/unsplash/4.jpg')
+    size                    100% 100%
+    top                     0
+    left                    0
+    bg                      size cover
+    // opacity                 0.001
+    z-index                 0
+    vendor                  transition, opacity .3s ease
+    fix()
+
+  &:after
+    size                    100% 100%
+    z-index                 1
+    top                     0
+    left                    0
+    bg                      color, rgba(0,0,0,.6)
+    fix()
+
+.content-page.Team
+  overflow                  auto
+  z-index                   2
+  color                     white
+
+  section
+    width                   60%
+    max-width               600px
+    color                   rgba(255, 255, 255, .8)
+    margin                  0 auto 100px
+    padding                 20px 0
+    font-size               14px
+    line-height             20px
+    text-align              center
+    borderBox()
+
+    p
+      margin-bottom         10px
+
+    a
+      color                 #27ae60
+      font-weight           600
+
+  footer
+    bottom                  22px
+    left                    9px
+    z-index                 2
+    fix()
+    a
+      color                 rgba(255, 255, 255, .5)
+      margin-left           13px
+      font-size             12px
+
+  // GENERIC SIGNUPFORM CUSTOMIZATIONS
+
+  .kdtabpaneview .SignupForm
+    margin-bottom           100px
+
+    .login-input-view
+      margin                0 0 26px
+      rel()
+      &.tr
+        bg                  color transparent
+
+      input.kdinput
+        text-align          left
+        bg                  color transparent
+        borderBox()
+
+      > span
+        bg                  color #EAEAEA
+        line-height         44px
+        z-index             4
+
+    .SignupForm-button
+      margin-top            52px
+      width                 90px
+      float                 right
+
+    .SignupForm-linkButton.skip
+      abs                   0 150px 40px 0
+
+  // LOGIN TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.login .SignupForm
+    margin-bottom           0
+
+    .login-input-view
+
+      input.kdinput
+        text-align          center
+
+  // DOMAIN TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.domain .SignupForm
+
+    .login-input-view
+
+      input.kdinput
+        padding-right       149px
+        text-align          right
+
+      span
+        abs                 1px 1px 0 0
+        size                130px 42px
+        border-left         1px solid #DBDBDB
+
+  // ALLOWED DOMAIN TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.alloweddomain .SignupForm
+
+    > h5
+      width                 100%
+
+    .login-input-view
+
+      &:first-child
+        text-align          left
+
+      input.kdinput.checkbox
+        margin-right        12px
+
+      input.kdinput
+        padding-left        61px
+        text-align          left
+
+      span
+        abs                 1px 0 0 1px
+        size                42px 42px
+        border-right        1px solid #DBDBDB
+        text-align          center
+
+  // INVITE TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.invite .SignupForm
+
+    .login-input-view
+        margin-bottom       5px
+
+    p.dim
+      abs                   0 0 26px 44px
+      width                 calc(100% - 300px)
+      text-align            left
+
+
+    .SignupForm-button.add
+      float                 none
+      margin                15px 0 0
+      display               block
+      width                 auto
+
+  // USERNAME TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.username .SignupForm
+
+    .login-input-view
+      margin-bottom         5px
+
+      input.kdinput
+        padding-left        115px
+        text-align          left
+
+      > span
+        abs                 1px 0 0 1px
+        size                99px 42px
+        border-right        1px solid #DBDBDB
+
+      .PasswordStrength
+        width               calc(100% - 100px)
+        abs                 0 0 0px 100px
+        z-index             4
+
+    p.dim
+      margin                25px auto
+
+    .SignupForm-button
+      float                 none
+      width                 100%
+      text-transform        none
+
+
+
+
+.SignupForm
+  width                     60%
+  padding                   31px 44px
+  max-width                 553px
+  margin                    110px auto 0
+  bg                        color #FAFAFA
+  top                       0px
+  color                     #434343
+  z-index                   3
+  rounded                   3px
+  text-align                center
+  shadow                    inset 0 -102px 0 #EFEFEF
+  borderBox()
+  rel()
+
+  .login-input-view
+    bg                      color white
+    font-family             adelleSans
+
+  .login-input-view input.kdinput
+    rounded                 1px
+    border-color            #DBDBDB
+    font-family             adelleSans
+    font-size               14px
+    padding                 12px 14px 8px
+
+  > form
+    margin                  30px auto 0
+
+  .SignupForm-button
+    margin-top              62px
+
+
+  > figure
+    margin                  0 auto 20px
+    size                    64px 64px
+    bg                      color #ddd
+    bg                      image url('http://lorempixel.com/64/64/animals/')
+    rounded                 3px
+
+
+  > h4
+    color                   #00B153
+    font-family             adelle
+    font-size               26px
+    line-height             50px
+
+  > h5
+    font-family             adelleSans
+    font-size               20px
+    line-height             27px
+    width                   361px
+    margin                  0 auto
+
+  p
+    width                   361px
+    margin                  0 auto
+    line-height             23px
+
+  .dim
+    color                   #9E9E9E
+
+.SignupForm-button
+  font-family               adelleSans
+  rounded                   3px
+  size                      100% 40px
+  border                    none
+  font-size                 14px
+  line-height               40px
+  text-transform            uppercase
+  &.compact
+    height                  24px
+    font-size               10px
+    line-height             16px
+    padding                 4px 7px 0
+
+.SignupForm-button--green
+  color                     white
+  bg                        color #00B057
+
+.SignupForm-button--gray
+  color                     white
+  bg                        color #BDC3C7
+
+.SignupForm-linkButton
+  color                     #929292
+  font-size                 14px
+
+.PasswordStrength
+  height                    5px
+  line-height               5px
+  vertical-align            top
+  border                    1px solid #dbdbdb
+  opacity                   .5
+  borderBox()
+  rel()
+  span
+    size                    0% 100%
+    bg                      color #EAEAEA
+    display                 inline-block
+    vendor                  transition, all .177s ease
+    abs                     0px 0 0 0px
+
+  &.bad
+  &.weak
+  &.moderate
+  &.good
+  &.excellent
+    opacity                 1
+
+  &.bad span
+    width                   20%
+    bg                      color #FF6B5D
+
+  &.weak span
+    width                   40%
+    bg                      color #FF6B5D
+
+  &.moderate span
+    width                   60%
+    bg                      color #FBB62B
+
+  &.good span
+    width                   80%
+    bg                      color #00B057
+
+  &.excellent span
+    width                   100%
+    bg                      color #00B057

@@ -1,26 +1,22 @@
 console.time 'Koding.com loaded'
+
 require './core/utils'
 require './core/KD.extend.coffee'
 
 # register appclasses
-About    = require './about/AppController'
-Home     = require './home/AppController'
-Login    = require './login/AppController'
-Features = require './features/AppController'
-Legal    = require './legal/AppController'
-Pricing  = require './pricing/AppController'
+require './about/AppController'
+require './home/AppController'
+require './login/AppController'
+require './features/AppController'
+require './legal/AppController'
+require './pricing/AppController'
+require './team/AppController'
+require './teams/AppController'
 
 # bootstrap app
 MainController = require './core/maincontrollerloggedout'
 
 do ->
-
-  setConfig = ->
-
-    KD.config or= {}
-
-    KD.config.environment = if location.hostname is 'koding.com'\
-                            then 'production' else 'development'
 
   registerRoutes = ->
 
@@ -29,12 +25,20 @@ do ->
     require './pricing/routes.coffee'
     require './legal/routes.coffee'
     require './features/routes.coffee'
+    require './teams/routes.coffee'
+    require './team/routes.coffee'
+
+  setGroup = (err, group) ->
+    registerRoutes()
+    KD.config.group = group  if group
+    # BIG BANG
+    new MainController group
 
 
+  KD.config             or= {}
+  KD.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
+  KD.config.groupName     = groupName = KD.utils.getGroupNameFromLocation()
 
-
-  setConfig()
-  registerRoutes()
-
-  # BIG BANG
-  new MainController
+  if groupName is 'koding'
+  then setGroup()
+  else KD.utils.checkIfGroupExists groupName, setGroup

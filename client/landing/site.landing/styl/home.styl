@@ -10,7 +10,7 @@ home.styl
 body.home
   -webkit-font-smoothing  antialiased
 
-  #main-header nav
+  .main-header nav
     a.signup
       hidden()
 
@@ -19,109 +19,6 @@ body.home
 
   #main-panel-wrapper
     background            #f0f0f0
-
-  .login-form.register
-    margin                0 auto 50px auto
-    max-width             600px
-    padding               8px
-    rounded               8px
-    bg                    color rgba(0,0,0,.1)
-    z-index               10
-    rel()
-
-    &.noanim .login-input-view .placeholder-helper
-      vendor              transition, none!important
-      position            absolute
-
-    section
-
-      a.octo
-        size              32px 32px
-        r-sprite          home 'octo-home'
-        margin            3px 0 0 57px
-        opacity           .7
-        fl()
-        &:hover
-          r-sprite        home 'octo-home-white'
-        span.title
-          hidden()
-
-      > div
-        width             calc(50% - 104px)
-        padding-right     10px
-        rel()
-        borderBox()
-
-        &:before
-          content         ''
-          z-index         10
-          abs             12px 0 0 18px
-
-        &:last-child
-          padding-right   0
-
-        &.email:before
-          r-sprite        home 'input-email'
-
-        &.username:before
-          r-sprite        home 'input-username'
-
-        &.password:before
-          r-sprite        features 'ide-permissions'
-          opacity         0.15
-
-        &.submit
-          width           108px
-
-        &.submit:after
-          content         'OR'
-          font-size       12px
-          text-transform  uppercase
-          color           rgba(0,0,0,.5)
-          font-size       12px
-          font-weight     700
-          padding         0 15px 0 9px
-          opacity         .99
-          border-right    1px solid rgba(0,0,0,.1)
-          abs             5px 0 0 100%
-
-
-        .kdbutton.solid.medium
-          bg                color #F6E556
-          width             100%
-          rounded           4px
-          padding           0
-          span.button-title
-            text-transform  uppercase
-            color           #39473E
-            font-size       12px
-            font-weight     700
-            opacity         .99
-
-        .login-input-view
-          rounded         4px
-          bg              color white
-          margin-bottom   0
-          input
-            rounded       4px
-            margin        0
-            font-size     14px
-            font-weight   400
-            font-family   openSansFamily
-            text-align    left
-            padding       8px 14px 8px 43px
-          .placeholder-helper
-            text-align    left
-            top           4px
-            padding       0 15px 0 44px
-            borderBox()
-            &.out
-              top         -32px
-              color       white
-              &.puff
-                opacity   1
-
-
 
   //Introduction section
 
@@ -553,7 +450,7 @@ body.home
 // Smartphones
 
 @media only screen and (min-width : 320px) and (max-width : 767px)
-  #main-header
+  .main-header
     height                61px
     line-height           61px
     top                   0
@@ -606,7 +503,7 @@ body.home
         vendor            pointer-events, none
 
 
-    #koding-logo
+    .koding-header-logo
       display             inline-block
       float               none
       margin              0
@@ -620,11 +517,11 @@ body.home
       padding-top         10px
       height              130px
 
-    &.active ~ #main-header
+    &.active ~ .main-header
       top                 130px
 
   body.home
-    #main-header .hamburger-menu .icon
+    .main-header .hamburger-menu .icon
       background          #fff
 
     .content-page.home

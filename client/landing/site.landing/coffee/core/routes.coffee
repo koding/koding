@@ -6,11 +6,17 @@ do ->
 
   handleRoot = ->
     # don't load the root content when we're just consuming a hash fragment
-    unless location.hash.length
+    return if location.hash.length
 
-      {router} = KD.singletons
+    { router }           = KD.singletons
+    { groupName, group } = KD.config
 
-      router.openSection 'Home'
+    return router.openSection 'Home'  if groupName is 'koding'
+
+    if not group or KD.config.environment is 'production'
+      location.replace 'http://' + location.host.replace("#{groupName}.", '') + "/Teams?group=#{groupName}"
+    else
+      router.openSection 'Team', null, null, (app) -> app.jumpTo 'login'
 
 
   KD.registerRoutes 'Core',

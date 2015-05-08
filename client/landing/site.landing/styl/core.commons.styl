@@ -8,7 +8,7 @@ resurrection.commons.styl
 }
 
 html.app
-  #main-header
+  .main-header
     nav
       margin            -37px 18px 0 0
 
@@ -28,7 +28,7 @@ body
     overflow        hidden
 
   &.logged-in
-    #main-header
+    .main-header
       nav
         hidden()
 
@@ -88,22 +88,21 @@ button
   overflow            visible
   height              auto
 
-#main-header
-  margin                0
-  size                  100%,55px
-  z-index               1000
-  overflow              visible
-  max-width             1290px
-  shadow                none
-  padding               0 45px
-  abs                   48px 0 0 50%
-  vendor                transform, translateX(-50%)
-  z-index               15
+.main-header
+  margin                    0
+  size                      100% 55px
+  z-index                   1000
+  overflow                  visible
+  max-width                 1290px
+  shadow                    none
+  padding                   0 45px
+  abs                       48px 0 0 50%
+  vendor                    transform, translateX(-50%)
+  z-index                   15
   borderBox()
 
-
   .inner-container
-    bg                  color, transparent
+    bg                      color, transparent
 
   .logotype
     font-size               24px
@@ -117,28 +116,28 @@ button
     visible()
     fl()
 
-  #koding-logo
-    margin              0 14px 0 0
-    size                auto auto
-    bg                  color transparent
-    position            static
+  .koding-header-logo
+    margin                  0 14px 0 0
+    size                    auto auto
+    bg                      color transparent
+    position                static
     fl()
 
     cite
-      r-sprite          app 'logo-full-white'
-      margin            0
-      display           block
+      r-sprite              app 'logo-full-white'
+      margin                0
+      display               block
 
   nav
-    line-height         18px
+    line-height             18px
     fr()
 
     a
-      font-size         14px
-      margin-left       12px
-      font-family       openSansFamily
-      color             white
-      padding-bottom    1px
+      font-size             14px
+      margin-left           12px
+      font-family           openSansFamily
+      color                 white
+      padding-bottom        1px
       noTextDeco()
 
       &.active
@@ -166,7 +165,7 @@ button
 
 
 
-#koding-logo
+.koding-header-logo
   size              57px 55px
   bg                color, logoBg
   z-index           11
@@ -585,4 +584,110 @@ footer.main-footer
 
       &:after
         r-sprite        home 'social-fb'
+
+
+.SignupForm--middle
+  font-family               openSansFamily
+  font-size                 22px
+  line-height               32px
+  margin                    0 auto 50px auto
+  max-width                 600px
+  padding                   8px
+  rounded                   8px
+  bg                        color rgba(0,0,0,.1)
+  z-index                   10
+  rel()
+
+  &.noanim .login-input-view .placeholder-helper
+    vendor              transition, none!important
+    position            absolute
+
+  section
+
+    a.octo
+      size              32px 32px
+      r-sprite          home 'octo-home'
+      margin            3px 0 0 57px
+      opacity           .7
+      fl()
+      &:hover
+        r-sprite        home 'octo-home-white'
+      span.title
+        hidden()
+
+    > div
+      width             calc(50% - 104px)
+      padding-right     10px
+      rel()
+      borderBox()
+
+      &:before
+        content         ''
+        z-index         10
+        abs             12px 0 0 18px
+
+      &:last-child
+        padding-right   0
+
+      &.email:before
+        r-sprite        home 'input-email'
+
+      &.username:before
+        r-sprite        home 'input-username'
+
+      &.password:before
+        r-sprite        features 'ide-permissions'
+        opacity         0.15
+
+      &.submit
+        width               108px
+        rounded             3px
+
+      &.submit:after
+        content             'OR'
+        font-size           12px
+        text-transform      uppercase
+        color               rgba(0,0,0,.5)
+        font-size           12px
+        font-weight         700
+        padding             0 15px 0 9px
+        opacity             .99
+        border-right        1px solid rgba(0,0,0,.1)
+        abs                 5px 0 0 100%
+
+
+      .kdbutton.solid.medium
+        bg                  color #F6E556
+        width               100%
+        rounded             4px
+        padding             0
+        span.button-title
+          text-transform    uppercase
+          color             #39473E
+          font-size         12px
+          font-weight       700
+          opacity           .99
+
+      .login-input-view
+        rounded             4px
+        bg                  color white
+        margin-bottom       0
+        input.kdinput
+          rounded           4px
+          margin            0
+          font-size         14px
+          font-weight       400
+          font-family       openSansFamily
+          text-align        left
+          padding           8px 14px 8px 43px
+        .placeholder-helper
+          text-align        left
+          top               4px
+          padding           0 15px 0 44px
+          borderBox()
+          &.out
+            top         -32px
+            color       white
+            &.puff
+              opacity   1
 

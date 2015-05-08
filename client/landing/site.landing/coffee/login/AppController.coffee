@@ -1,4 +1,4 @@
-LoginView     = require './AppView'
+LoginView = require './AppView'
 
 module.exports = class LoginAppsController extends KDViewController
 

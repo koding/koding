@@ -2,6 +2,7 @@ JView            = require '../core/jview'
 FooterView       = require '../home/footerview'
 CustomLinkView   = require '../core/customlinkview'
 PricingPlansView = require './plans'
+MainHeaderView   = require '../core/mainheaderview'
 
 module.exports = class PricingAppView extends JView
 
@@ -35,6 +36,8 @@ module.exports = class PricingAppView extends JView
 
 
   initViews: ->
+
+    @mainHeader = new MainHeaderView
 
     @header = new KDCustomHTMLView
       partial   : "Our pricing, your terms"
@@ -164,6 +167,7 @@ module.exports = class PricingAppView extends JView
 
   pistachio: ->
     """
+      {{> @mainHeader}}
       {{> @header}}
       {{> @headerDescription}}
       {{> @intervalToggle}}

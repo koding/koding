@@ -3,16 +3,20 @@ CustomLinkView = require './customlinkview'
 module.exports = class TopNavigation extends KDCustomHTMLView
 
   menu = [
-    { title : 'Koding University', href : 'http://learn.koding.com', name : 'about'}
-    # { title : 'Teams',    href : '/Teams',    name : 'teams'}
-    { title : 'Features', href : '/Features', name : 'features'}
-    { title : 'SIGN IN',  href : '/Login',    name : 'buttonized white login', attributes: testpath: 'login-link'}
-    { title : 'SIGN UP',  href : '/Register', name : 'buttonized green signup', attributes: testpath: 'signup-link'}
+    { title : 'Koding University', href : 'http://learn.koding.com',  name : 'about' }
+    { title : 'Features',          href : '/Features',                name : 'features' }
+    { title : 'SIGN IN',           href : '/Login',                   name : 'buttonized white login',  attributes : testpath : 'login-link' }
+    { title : 'SIGN UP',           href : '/Register',                name : 'buttonized green signup', attributes : testpath : 'signup-link' }
   ]
+
+  if KD.config.environment isnt 'production'
+    item = { title : 'Teams', href : '/Teams', name : 'teams' }
+    menu.splice 1, 0, item
 
   constructor: (options = {}, data) ->
 
-    options.tagName or= 'nav'
+    options.tagName  or= 'nav'
+    options.navItems or= menu
 
     super options, data
 
@@ -24,7 +28,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
   viewAppended: ->
 
-    @createItem options  for options in menu
+    @createItem options  for options in @getOptions().navItems
 
 
   createItem: (options) ->

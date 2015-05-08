@@ -10,32 +10,31 @@ app.login-signup.styl
 body.login
 
   #kdmaincontainer
-    min-height        400px
+    min-height              400px
 
-  #main-tab-view
-    height            100%
 
-  #kdmaincontainer.blur
-    vendor                filter, blur(5px)
+#kdmaincontainer #main-tab-view
+  height                    100%
 
-  #main-header
-    hidden()
+#kdmaincontainer.blur
+  vendor                    filter, blur(5px)
 
-  .login-form
+.login-form
 
-    button
-      display             block
-      width               100% !important
-      rounded             27px !important
+  .kdbutton.solid
+    display               block
+    width                 100%
+    rounded               27px
 
-  .accept-tos
-    margin-top            10px
-    font-size             12px
 
-    a
-      font-size           12px    !important
-      color               #6e7879 !important
-      text-decoration     underline
+.accept-tos
+  margin-top              10px
+  font-size               12px
+
+  a
+    font-size             12px    !important
+    color                 #6e7879 !important
+    text-decoration       underline
 
 
 img.off-screen-login-image
