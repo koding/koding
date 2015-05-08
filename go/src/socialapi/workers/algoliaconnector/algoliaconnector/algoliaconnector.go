@@ -82,7 +82,7 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 						"email",
 						"_tags",
 					},
-					UnretrievableAttributes: []string{"email", "nick"},
+					UnretrievableAttributes: []string{"email"},
 				},
 			},
 			IndexMessages: &IndexSetItem{
