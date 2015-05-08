@@ -1,4 +1,5 @@
 kd                     = require 'kd'
+globals                = require 'globals'
 JView                  = require '../../jview'
 KDView                 = kd.View
 SidebarMoreLink        = require './sidebarmorelink'
@@ -89,13 +90,11 @@ module.exports = class ActivitySideView extends JView
 
   init: ->
 
-    # TODO: until KodingBot is in the prefetched data, just reload automatically
-    # so that sidebar won't use the prefetched data.
-
     {dataPath} = @getOptions()
     items = kd.singletons.socialapi.getPrefetchedData dataPath
 
-    if dataPath is 'privateMessages'
+    { botchannel: isBotChannelDisabled } = globals.config.disabledFeatures
+    if not isBotChannelDisabled and dataPath is 'privateMessages'
       bot =  kd.singletons.socialapi.getPrefetchedData "bot"
       items.unshift bot  if bot
 

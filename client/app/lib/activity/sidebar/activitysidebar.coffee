@@ -204,8 +204,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         when 'topic'          then 2
         when 'group'          then 2
         when 'announcement'   then 2
-        when 'privatemessage' then 1
         else 0
+
+      { botchannel: isBotChannelDisabled } = globals.config.disabledFeatures
+      if not isBotChannelDisabled and data.typeConstant is 'privatemessage'
+        index = 1
 
       if isChannelCollaborative data
         @setWorkspaceUnreadCount data, unreadCount
