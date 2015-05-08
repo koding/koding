@@ -365,6 +365,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @state = response.State
 
     @container.destroySubViews()
+    @container.unsetClass 'marketing-message'
     @progressBar = null
 
     if @state is 'NotFound'
@@ -384,6 +385,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       percentage = response?.percentage
       @createProgressBar percentage
       @triggerEventTimer percentage
+      @createMarketingMessage()  if @state is Starting
     else if @state is Terminated
       @label.destroy?()
       @createStateLabel "
@@ -699,3 +701,23 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
         .subscribe "token", "free", "month", { email }, (err, resp)->
           return callback err  if err?
           callback null
+
+
+  createMarketingMessage: ->
+
+    return  if @container.hasClass 'marketing-message'
+
+    { marketingController } = kd.singletons
+    snippetUrl = marketingController.getNextSnippet()
+
+    return  unless snippetUrl
+
+    iframe       = new KDCustomHTMLView
+      tagName    : 'iframe'
+      cssClass   : "marketing-message-frame"
+      attributes :
+        src      : snippetUrl
+
+
+    @container.addSubView iframe
+    @container.setClass   'marketing-message'
