@@ -190,15 +190,12 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 		return nil, errors.New("session context is not passed")
 	}
 
-	fmt.Printf("hclContent = %+v\n", hclContent)
-
 	var awsOutput *AwsBootstrapOutput
 	for _, cred := range creds.Creds {
 		if cred.Provider != "aws" {
 			continue
 		}
 
-		fmt.Printf("cred.Data = %+v\n", cred.Data)
 		if err := mapstructure.Decode(cred.Data, &awsOutput); err != nil {
 			return nil, err
 		}

@@ -183,7 +183,7 @@ func apply(ctx context.Context, username, stackId string) error {
 				}
 
 				ev.Push(&eventer.Event{
-					Message:    "Building machines",
+					Message:    "Building stack",
 					Percentage: start,
 					Status:     machinestate.Building,
 				})
@@ -206,7 +206,7 @@ func apply(ctx context.Context, username, stackId string) error {
 	close(done)
 
 	ev.Push(&eventer.Event{
-		Message:    "Creating artficat",
+		Message:    "Creating artifact",
 		Percentage: 70,
 		Status:     machinestate.Building,
 	})
