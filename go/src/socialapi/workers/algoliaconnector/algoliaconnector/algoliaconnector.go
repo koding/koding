@@ -199,13 +199,13 @@ func (f *Controller) makeSureStringSliceSettings(indexName string, settingName s
 			indexName,
 		)
 		settings[settingName] = newSettings
-		return f.updateIndexSetting(settings, indexSet)
+		return f.makeSureIndexSettings(settings, indexSet)
 	}
 
 	return err
 }
 
-func (f *Controller) updateIndexSetting(settings map[string]interface{}, indexSet *IndexSetItem) error {
+func (f *Controller) makeSureIndexSettings(settings map[string]interface{}, indexSet *IndexSetItem) error {
 	task, err := indexSet.Index.SetSettings(settings)
 	if err != nil {
 		return err
