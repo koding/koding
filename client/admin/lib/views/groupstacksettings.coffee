@@ -165,13 +165,15 @@ module.exports = class GroupStackSettings extends kd.View
 
   showError: (err) ->
 
+    console.warn "ERROR:", err
+
+    err = err.message  if err.message?
+
     @outputView.updatePartial applyMarkdown """
-      Failed to parse template:
+      An error occured:
 
       ```json\n#{err}\n```
     """
-
-    console.warn "ERROR:", err
 
 
   updateStackTemplate: (data)->
