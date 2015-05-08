@@ -56,7 +56,7 @@ all: testapi
 develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
 	notificationdev trollmodeldev pinnedpostdev algoliaconnectordev \
 	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
-	teamdev
+	teamdev eventsenderdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -175,6 +175,10 @@ webhookdev:
 	@echo "$(OK_COLOR)==> Running Webhook Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/webhook -watch socialapi/workers/integration/webhook -c $(CONFIG) $(DBG) $(METRICS)
 
+eventsenderdev:
+	@echo "$(OK_COLOR)==> Running Event Sender Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/eventsender -watch socialapi/workers/integration/eventsender -c $(CONFIG) $(DBG) $(METRICS)
+
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
@@ -229,6 +233,12 @@ testwebhook:
 	@`which go` test -c workers/integration/webhook/tests/*.go
 	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./tests.test
+
+testeventsender:
+	@echo "$(OK_COLOR)--> eventsender tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/eventsender/*.go
+	@./eventsender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./eventsender.test
 
 testpermission:
 	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
