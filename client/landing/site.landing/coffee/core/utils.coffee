@@ -471,4 +471,19 @@ utils.extend utils,
         KD.utils.clearTeamData()
         location.href = formData.redirect
       error     : ({responseText}) =>
+        new KDNotificationView title : responseText  routeIfInvitationTokenIsValid: (token) ->
+
+
+  routeIfInvitationTokenIsValid: (token) ->
+
+    $.ajax
+      url       : "/-/teams/validate-token"
+      data      : { token }
+      type      : 'POST'
+      success   : ({email}) ->
+        KD.utils.storeNewTeamData 'invitation', { token, email }
+        KD.singletons.router.handleRoute '/Welcome'
+      error     : ({responseText}) ->
         new KDNotificationView title : responseText
+
+
