@@ -73,3 +73,11 @@ module.exports = class AccountCredentialList extends KDListView
           title    : credential.title
           subtitle : credential.provider
           content  : "<pre>#{cred}</pre>"
+
+  checkIsBootstrapped: (item) ->
+
+    credential = item.getData()
+    credential.isBootstrapped (err, data) ->
+
+      return if kd.warn err  if err
+      kd.info 'Bootstrapped?', data
