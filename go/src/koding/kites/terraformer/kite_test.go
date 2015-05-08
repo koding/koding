@@ -72,7 +72,7 @@ func TestApplyAndDestroy(t *testing.T) {
 		tfr.Dial()
 
 		req := TerraformRequest{
-			Content:   SampleTF,
+			Content:   SampleTFJSON,
 			Variables: variables,
 			ContentID: "test_file",
 		}
@@ -138,7 +138,7 @@ func TestPlanWithMultiReq(t *testing.T) {
 		for i := 0; i < callCount; i++ {
 			go func(seq int) {
 				req := TerraformRequest{
-					Content:   SampleTF,
+					Content:   SampleTFJSON,
 					Variables: variables,
 					ContentID: fmt.Sprintf("test_file_%d", seq),
 				}
@@ -190,7 +190,7 @@ func TestPlanWithLockedResource(t *testing.T) {
 		for i := 0; i < callCount; i++ {
 			go func(seq int) {
 				req := TerraformRequest{
-					Content:   SampleTF,
+					Content:   SampleTFJSON,
 					Variables: variables,
 					ContentID: "test_file_locked",
 				}

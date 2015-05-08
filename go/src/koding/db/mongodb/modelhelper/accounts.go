@@ -51,6 +51,27 @@ func RemoveAccount(id bson.ObjectId) error {
 	return RemoveDocument(AccountsColl, id)
 }
 
+func RemoveAccountByUsername(username string) error {
+	selector := bson.M{"profile": bson.M{"nickname": username}}
+
+	query := func(c *mgo.Collection) error {
+		return c.Remove(selector)
+	}
+
+	return Mongo.Run(AccountsColl, query)
+}
+
+func RemoveAllAccountByUsername(username string) error {
+	selector := bson.M{"profile": bson.M{"nickname": username}}
+
+	query := func(c *mgo.Collection) error {
+		_, err := c.RemoveAll(selector)
+		return err
+	}
+
+	return Mongo.Run(AccountsColl, query)
+}
+
 func CreateAccount(a *models.Account) error {
 	query := insertQuery(a)
 	return Mongo.Run(AccountsColl, query)

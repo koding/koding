@@ -5,7 +5,7 @@ Crawler                = require './../../crawler'
 
 module.exports = (req, res, next, options)->
 
-  { JName, JGroup }           = koding.models
+  { JName, JGroup }           = bongoModels = koding.models
   { params }                  = req
   { name, section, slug }     = params
   { path, loggedIn, account } = options

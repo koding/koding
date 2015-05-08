@@ -42,7 +42,7 @@ func GetClients() []models.ServerInfo {
 		for iter.Next(&info) {
 			infos = append(infos, info)
 		}
-		return nil
+		return iter.Close()
 	}
 
 	Mongo.Run("jKontrolClients", query)

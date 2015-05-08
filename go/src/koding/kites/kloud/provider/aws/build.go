@@ -262,7 +262,6 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 
 	subnets, err := m.Session.AWSClient.ListSubnets()
 	if err != nil {
-
 		return nil, err
 	}
 
