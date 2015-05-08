@@ -1,10 +1,11 @@
-Encoder             = require 'htmlencode'
+Encoder                   = require 'htmlencode'
 
-kd                  = require 'kd'
-remote              = require('app/remote').getInstance()
+kd                        = require 'kd'
+remote                    = require('app/remote').getInstance()
 
-JView               = require '../jview'
-nicetime            = require '../util/nicetime'
+{handleNewMachineRequest} = require './computehelpers'
+JView                     = require '../jview'
+nicetime                  = require '../util/nicetime'
 
 
 
@@ -80,6 +81,11 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       cssClass : 'delete'
       callback : @bound 'confirmDeleteSnapshot'
 
+    @infoNewVmBtn = new kd.ButtonView
+      iconOnly : true
+      cssClass : 'new-vm'
+      callback : @bound 'vmFromSnapshot'
+
     @addSubView @editView = new JView
       cssClass        : 'edit hidden'
       pistachioParams : { @editInput, @editRenameBtn, @editCancelBtn }
@@ -95,7 +101,8 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     @addSubView @infoView = new JView
       cssClass        : 'info'
-      pistachioParams : { @labelView, @infoRenameBtn, @infoDeleteBtn }
+      pistachioParams : { @labelView, @infoRenameBtn, @infoDeleteBtn,
+        @infoNewVmBtn }
       pistachio       : """
         <div>
           {{> labelView}}
@@ -103,6 +110,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
           <div class="buttons">
             {{> infoRenameBtn}}
             {{> infoDeleteBtn}}
+            {{> infoNewVmBtn}}
           </div>
         </div>
         """
@@ -143,6 +151,17 @@ module.exports = class SnapshotListItem extends kd.ListItemView
         listView.removeItem this
         listView.emit 'DeleteSnapshot', this
       .catch (err) -> kd.warn err
+
+
+  ###*
+   * Notify the delegate (listView) to create a vm from this item's
+   * snapshot.
+   *
+   * @emits ListView~NewVmFromSnapshot
+  ###
+  vmFromSnapshot: ->
+    listView = @getDelegate()
+    listView.emit 'NewVmFromSnapshot', @getData()
 
 
   partial: ->

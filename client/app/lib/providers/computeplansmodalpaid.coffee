@@ -13,6 +13,11 @@ remote                  = require('../remote').getInstance()
 
 module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
+  ###*
+   * @param {Object} options
+   * @param {String} options.snapshotId - The snapshot to automatically
+   *  select in the snapshot list.
+  ###
   constructor:(options = {}, data)->
 
     options.cssClass = 'paid-plan'
@@ -120,7 +125,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
   ###
   populateSnapshotsSelector: ->
 
-    {JSnapshot} = remote.api
+    { snapshotId } = @getOptions()
+    { JSnapshot }  = remote.api
+
     JSnapshot.some {}, {}, (err, snapshots) =>
       return kd.warn err  if err
       # If no snapshots were returned, the user has no snapshots, and
@@ -133,7 +140,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
           value: snapshot.snapshotId
 
       @snapshotsSelector.setSelectOptions formatted
-      @snapshotsSelector.setValue null # Default to None
+      # Set the selected option to the Modal's option.snapshotId,
+      # defaulting to the None item (null value)
+      @snapshotsSelector.setValue snapshotId ? null
       @snapshotsContainer.show()
 
 
