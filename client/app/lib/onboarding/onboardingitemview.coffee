@@ -1,13 +1,12 @@
-htmlencode = require 'htmlencode'
-$ = require 'jquery'
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDSpotlightView = kd.SpotlightView
-KDView = kd.View
+htmlencode            = require 'htmlencode'
+$                     = require 'jquery'
+kd                    = require 'kd'
+KDView                = kd.View
+KDButtonView          = kd.ButtonView
+KDCustomHTMLView      = kd.CustomHTMLView
+KDSpotlightView       = kd.SpotlightView
 OnboardingContextMenu = require '../onboardingcontextmenu'
-OnboardingMetrics = require './onboardingmetrics'
-
+OnboardingMetrics     = require './onboardingmetrics'
 
 module.exports = class OnboardingItemView extends KDView
 
