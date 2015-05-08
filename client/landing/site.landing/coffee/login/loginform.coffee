@@ -38,7 +38,7 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
             required  : "Please enter your password."
 
     @button = new KDButtonView
-      title       : 'Sign in'
+      title       : 'SIGN IN'
       style       : 'solid medium green'
       attributes  :
         testpath  : 'login-button'

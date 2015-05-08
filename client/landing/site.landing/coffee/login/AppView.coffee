@@ -90,20 +90,9 @@ module.exports = class LoginView extends JView
       click       : (event)->
         return  unless $(event.target).is 'a.register'
 
-    if KD.utils.oauthEnabled() is yes
-      @github = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "github-login"
-        partial     : "Sign in using <strong>GitHub</strong>"
-        click       : -> KD.singletons.oauthController.openPopup "github"
-
-    else
-      @github = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "github-login"
-        partial     : "<a href='http://koding.com'>Learn more</a>"
-
-    @github.setPartial "<span class='button-arrow'></span>"
+    @signupLink = new KDCustomHTMLView
+      cssClass  : 'signup-link'
+      partial   : @generateFormHeaderPartial()
 
     @loginForm = new LoginInlineForm
       cssClass : 'login-form'
@@ -135,6 +124,22 @@ module.exports = class LoginView extends JView
       domId    : 'invite-recovery-notification-bar'
       cssClass : 'invite-recovery-notification-bar hidden'
       partial  : '...'
+
+    @githubIcon = new KDCustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'gh icon'
+
+    @gplusIcon = new KDCustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'go icon'
+
+    @facebookIcon = new KDCustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'fb icon'
+
+    @twitterIcon = new KDCustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'tw icon'
 
     KD.singletons.router.on 'RouteInfoHandled', =>
       @signupModal?.destroy()
@@ -168,27 +173,38 @@ module.exports = class LoginView extends JView
     <div class='tint'></div>
     {{> @logo }}
     <div class="flex-wrapper">
-      {{> @formHeader}}
-      <div class="login-form-holder lf">
-        {{> @loginForm}}
+      <div class="form-area">
+        {{> @formHeader}}
+        <div class="login-form-holder lf">
+          {{> @loginForm}}
+        </div>
+        <div class="login-form-holder rf">
+          {{> @registerForm}}
+        </div>
+        <div class="login-form-holder rdf">
+          {{> @redeemForm}}
+        </div>
+        <div class="login-form-holder rcf">
+          {{> @recoverForm}}
+        </div>
+        <div class="login-form-holder rsf">
+          {{> @resetForm}}
+        </div>
+        <div class="login-form-holder resend-confirmation-form">
+          {{> @resendForm}}
+        </div>
       </div>
-      <div class="login-form-holder rf">
-        {{> @registerForm}}
-      </div>
-      <div class="login-form-holder rdf">
-        {{> @redeemForm}}
-      </div>
-      <div class="login-form-holder rcf">
-        {{> @recoverForm}}
-      </div>
-      <div class="login-form-holder rsf">
-        {{> @resetForm}}
-      </div>
-      <div class="login-form-holder resend-confirmation-form">
-        {{> @resendForm}}
+      <div class="inline-footer">
+        <div class="oauth-container">
+          <span class='text'>Or login using </span>
+          {{> @githubIcon}}
+          {{> @gplusIcon}}
+          {{> @facebookIcon}}
+          {{> @twitterIcon}}
+        </div>
       </div>
       <div class="login-footer">
-        {{> @github}} {{> @goToRecoverLink}}
+        {{> @signupLink}} <b>&middot;</b> {{> @goToRecoverLink}}
       </div>
     </div>
     <footer>
@@ -607,7 +623,6 @@ module.exports = class LoginView extends JView
     @$('.flex-wrapper').removeClass 'three one'
 
     @formHeader.hide()
-    @github.show()
     @goToRecoverLink.show()
 
     switch name
@@ -617,12 +632,9 @@ module.exports = class LoginView extends JView
         @$('.flex-wrapper').addClass 'one'
         @redeemForm.inviteCode.input.setFocus()
       when "login"
-        @formHeader.show()
-        @formHeader.updatePartial @generateFormHeaderPartial()
         @loginForm.username.input.setFocus()
       when "recover"
         @$('.flex-wrapper').addClass 'one'
-        @github.hide()
         @goToRecoverLink.hide()
         @recoverForm.usernameOrEmail.input.setFocus()
       when "resendEmail"
@@ -632,7 +644,6 @@ module.exports = class LoginView extends JView
         @formHeader.show()
         @formHeader.updatePartial "Set your new password below"
         @goToRecoverLink.hide()
-        @github.hide()
 
 
   generateFormHeaderPartial: (data = {}) ->
