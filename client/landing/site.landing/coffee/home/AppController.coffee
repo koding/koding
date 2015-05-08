@@ -21,4 +21,4 @@ module.exports = class HomeAppController extends KDViewController
 
     { provider } = query
     if provider
-      KD.singletons.oauthController.authCompleted(null, provider)
+      KD.singletons.oauthController.authCompleted null, provider
