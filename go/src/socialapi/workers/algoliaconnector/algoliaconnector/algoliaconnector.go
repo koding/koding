@@ -26,6 +26,8 @@ const (
 var (
 	ErrAlgoliaObjectIdNotFoundMsg = "ObjectID does not exist"
 	ErrAlgoliaIndexNotExistMsg    = "Index messages.test does not exist"
+
+	ErrTimeoutForSettings = errors.New("settings timed out")
 )
 
 type Settings struct {
@@ -106,6 +108,27 @@ func (i *IndexSet) Get(name string) (*IndexSetItem, error) {
 	}
 
 	return indexItem, nil
+}
+
+func (i *IndexSetItem) MakeSureSettings(newSettings map[string]interface{}) error {
+	task, err := i.Index.SetSettings(newSettings)
+	if err != nil {
+		return err
+	}
+
+	done := make(chan struct{})
+	go func() {
+		// make sure setting is propogated
+		_, err = i.Index.WaitTask(task)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		return err
+	case <-time.After(time.Second * 30):
+		return ErrTimeoutForSettings
+	}
 }
 
 func (i *IndexSet) GetIndex(name string) (*algoliasearch.Index, error) {
@@ -190,19 +213,20 @@ func (f *Controller) makeSureStringSliceSettings(indexName string, settingName s
 		isSame = false
 	}
 
-	if !isSame {
-		f.log.Info(
-			"Previous (%+v) and Current (%+v) Setings of %s are not same for index %s, updating..",
-			indexSettingsIntSlices,
-			newSettings,
-			settingName,
-			indexName,
-		)
-		settings[settingName] = newSettings
-		return f.makeSureIndexSettings(settings, indexSet)
+	if isSame {
+		return nil
 	}
 
-	return err
+	f.log.Info(
+		"Previous (%+v) and Current (%+v) Setings of %s are not same for index %s, updating..",
+		indexSettingsIntSlices,
+		newSettings,
+		settingName,
+		indexName,
+	)
+
+	settings[settingName] = newSettings
+	return indexSet.MakeSureSettings(settings)
 }
 
 func (f *Controller) makeSureIndexSettings(settings map[string]interface{}, indexSet *IndexSetItem) error {

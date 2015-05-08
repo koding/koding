@@ -35,6 +35,7 @@ func main() {
 	// create message handler
 	handler := algoliaconnector.New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
 	if err := handler.Init(); err != nil {
+		//  this is not a blocker for algoliaconnector worker, we can continue working
 		r.Log.Error("Err while init: %s", err.Error())
 	}
 
