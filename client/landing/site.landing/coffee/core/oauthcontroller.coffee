@@ -50,8 +50,6 @@ module.exports = class OAuthController extends KDController
 
       @doOAuth params, (err, resp)=>
 
-        console.log ">>>>> doOAuth", params
-
         if err
           return new KDNotificationView title: "OAuth integration failed"
 
