@@ -35,7 +35,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
         mainController.login formData
 
     @loginForm.button.unsetClass 'solid medium green'
-    @loginForm.button.setClass 'SignupForm-button SignupForm-button--green'
+    @loginForm.button.setClass 'TeamsModal-button TeamsModal-button--green'
 
     if location.search isnt '' and location.search.search('username=') > 0
       username = location.search.split('username=').last.replace(/\&.+/, '')
@@ -54,7 +54,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
 
     """
     {{> @header }}
-    <div class="SignupForm">
+    <div class="TeamsModal">
       {{> @logo}}
       <h4>Sign in to #{KD.config.group.title}</h4>
       {{> @loginForm}}

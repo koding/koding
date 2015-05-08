@@ -25,7 +25,7 @@ module.exports = class TeamDomainTab extends KDFormView
 
     @button = new KDButtonView
       title      : 'NEXT'
-      style      : 'SignupForm-button SignupForm-button--green'
+      style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath  : 'domain-button'
       type       : 'submit'
 
