@@ -51,6 +51,8 @@ module.exports = class JCredential extends jraphical.Module
           (signature Function)
         update        :
           (signature Object, Function)
+        isBootstrapped:
+          (signature Function)
 
     sharedEvents      :
       static          : [ ]
@@ -348,3 +350,30 @@ module.exports = class JCredential extends jraphical.Module
 
         else
           callback null
+
+
+  isBootstrapped: permit
+
+    advanced: [
+      { permission: 'update credential', validateWith: Validators.own }
+    ]
+
+    success: (client, callback) ->
+
+      provider = PROVIDERS[@provider]
+
+      unless provider
+        callback new KodingError 'Provider is not supported'
+        return
+
+      { bootstrapKeys } = provider
+
+      @fetchData (err, data) ->
+        return callback err  if err
+        return callback new KodingError 'Failed to fetch data'  unless data
+
+        verifiedCount = 0
+        bootstrapKeys.forEach (key) ->
+          verifiedCount++  if data['meta']?[key]?
+
+        callback null, bootstrapKeys.length is verifiedCount
