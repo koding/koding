@@ -55,9 +55,9 @@ module.exports = class TeamLoginTab extends KDTabPaneView
 
     """
     {{> @header }}
-    <div class="TeamsModal">
+    <div class="TeamsModal TeamsModal--login">
       {{> @logo}}
-      <h4>Sign in to #{KD.config.group.title}</h4>
+      <h4><span>Sign in to</span> #{KD.config.group.title}</h4>
       {{> @form}}
     </div>
     <section>
