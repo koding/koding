@@ -1,5 +1,6 @@
-kd = require 'kd'
-helper = require './helper'
+kd        = require 'kd'
+helper    = require './helper'
+constants = require './constants'
 
 module.exports = class VideoCollaborationViewModel extends kd.Object
 
@@ -165,7 +166,7 @@ fixParticipantVideo = (participant) ->
     element.style.height = '265px'
     element.style.width  = '355px'
 
-  kd.utils.wait 173, ->
+  kd.utils.wait constants.NUMBER_THAT_MAKES_TOKBOX_WORK, ->
     element = participant.videoData.videoElement()
     fixSize element
 
