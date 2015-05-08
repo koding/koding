@@ -7,6 +7,7 @@ module.exports = class JCredential extends jraphical.Module
   JUser              = require '../user'
   JGroup             = require '../group'
   JCredentialData    = require './credentialdata'
+  { PROVIDERS }      = require './computeutils'
 
   KodingError        = require '../../error'
 
@@ -105,6 +106,10 @@ module.exports = class JCredential extends jraphical.Module
       {delegate} = client.connection
       {provider, title, meta} = data
       originId = delegate.getId()
+
+      if not PROVIDERS[provider]?
+        callback new KodingError 'Provider is not supported'
+        return
 
       credData = new JCredentialData { meta, originId }
       credData.save (err)->
