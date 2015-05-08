@@ -3,10 +3,18 @@ koding                                  = require './../bongo'
 
 module.exports = (req, res, next) ->
 
-  { body }   = req
-  { JGroup } = koding.models
-  { token }  = body
+  { body }                = req
+  { JInvitation, JGroup } = koding.models
+  { token }               = body
+
+  return res.status(400).send "token is required"  unless token
 
   console.log token
 
-  res.status(200).send email : 'invitee@foo.com'
+  JInvitation.byCode token, (err, data) ->
+    if err
+      console.error "err while fetching token"
+      return res.status(500).send "internal server error"
+
+    return res.status(404).send "invitation not found"  unless data
+    return res.status(200).send data
