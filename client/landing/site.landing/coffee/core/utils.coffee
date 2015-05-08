@@ -103,12 +103,6 @@ utils.extend utils,
         delete window.localStorage[kite]
 
 
-  # Chrome apps open links in a new browser window. OAuth authentication
-  # relies on `window.opener` to be present to communicate back to the
-  # parent window, which isn't available in a chrome app. Therefore, we
-  # disable/change oauth behavior based on this flag: SA.
-  oauthEnabled: -> window.name isnt "chromeapp"
-
   md5: do ->
     md5cycle = (x, k) ->
       a = x[0]
