@@ -62,7 +62,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     </div>
     <section>
       <p>
-      To be able to login to #{KD.config.groupName}.koding.com, you need to be invited by team administrators.
+      To be able to login to <a href="/">#{KD.config.groupName}.koding.com</a>, you need to be invited by team administrators.
       </p>
       <p>
       Trying to create a team? <a href="/Teams">Sign up on the home page</a> to get started.
