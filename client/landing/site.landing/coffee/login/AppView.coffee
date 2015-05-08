@@ -202,7 +202,7 @@ module.exports = class LoginView extends JView
       </div>
       <div class="inline-footer">
         <div class="oauth-container">
-          <span class='text'>Or login using </span>
+          <span class='text'>Or login using: </span>
           {{> @githubIcon}}
           {{> @gplusIcon}}
           {{> @facebookIcon}}
@@ -634,22 +634,31 @@ module.exports = class LoginView extends JView
     switch name
       when "register"
         @registerForm.email.input.setFocus()
+        @$('.login-footer').hide()
       when "redeem"
         @$('.flex-wrapper').addClass 'one'
         @redeemForm.inviteCode.input.setFocus()
+        @$('.inline-footer').hide()
+        @$('.login-footer').hide()
       when "login"
         @loginForm.username.input.setFocus()
       when "recover"
         @$('.flex-wrapper').addClass 'one'
         @goToRecoverLink.hide()
         @recoverForm.usernameOrEmail.input.setFocus()
+        @$('.inline-footer').hide()
+        @$('.login-footer').hide()
       when "resendEmail"
         @$('.flex-wrapper').addClass 'one'
         @resendForm.usernameOrEmail.input.setFocus()
+        @$('.inline-footer').hide()
+        @$('.login-footer').hide()
       when "reset"
         @formHeader.show()
         @formHeader.updatePartial "Set your new password below"
         @goToRecoverLink.hide()
+        @$('.inline-footer').hide()
+        @$('.login-footer').hide()
 
 
   generateFormHeaderPartial: (data = {}) ->

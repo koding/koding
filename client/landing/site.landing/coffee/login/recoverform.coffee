@@ -19,14 +19,14 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
             required  : "Please enter your email."
 
     @button = new KDButtonView
-      title       : "Recover password"
+      title       : "RECOVER PASSWORD"
       style       : "solid medium green"
       type        : 'submit'
       loader      : yes
 
-    
+
   reset: ->
-      
+
       super
       @button.hideLoader()
 
