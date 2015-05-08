@@ -103,3 +103,25 @@ module.exports = class AccountCredentialList extends KDListView
       .catch (err) ->
 
         console.warn "Bootstrap failed:", err
+
+
+  verify: (item) ->
+
+    credential = item.getData()
+    publicKeys = [credential.publicKey]
+
+    console.log { publicKeys }
+
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+
+      .checkCredential { publicKeys }
+
+      .then (response) ->
+
+        console.log "Verify result:", response
+
+      .catch (err) ->
+
+        console.warn "Verify failed:", err

@@ -46,15 +46,19 @@ module.exports = class AccountCredentialListItem extends KDListItemView
       # iconOnly : yes
       cssClass : "bootstrapped"
       title    : "is Bootstrapped?"
-      disabled : !owner
       callback : delegate.lazyBound 'checkIsBootstrapped', this
 
     @bootstrapButton = new KDButtonView
       # iconOnly : yes
       cssClass : "bootstrap"
       title    : "bootstrap"
-      disabled : !owner
       callback : delegate.lazyBound 'bootstrap', this
+
+    @verifyButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "verify"
+      title    : "verify"
+      callback : delegate.lazyBound 'verify', this
 
 
   pistachio:->
@@ -66,5 +70,6 @@ module.exports = class AccountCredentialListItem extends KDListItemView
       {{> @showCredentialButton}}{{> @deleteButton}}
       {{> @shareButton}}{{> @participantsButton}}
       {{> @isBootstrappedButton}}{{> @bootstrapButton}}
+      {{> @verifyButton}}
     </div>
     """
