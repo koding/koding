@@ -201,7 +201,7 @@ func TestIndexSettingsDefaults(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("given some handler", t, func() {
-		err := handler.makeSureSettings()
+		err := handler.Init()
 		So(err, ShouldBeNil)
 
 		Convey("account email should not be retrievable", func() {

@@ -92,10 +92,6 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 		},
 		kodingChannelId: channelId,
 	}
-	err = controller.makeSureSettings()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 
 	return controller
 }
@@ -123,7 +119,7 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func (f *Controller) makeSureSettings() error {
+func (f *Controller) Init() error {
 	for name, index := range *(f.indexes) {
 		if err := f.makeSureStringSliceSettings(name, UnretrievableAttributes, index.Settings.UnretrievableAttributes); err != nil {
 			return err
