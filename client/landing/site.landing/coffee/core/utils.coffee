@@ -466,12 +466,11 @@ utils.extend utils,
       url       : "/-/teams/create"
       data      : formData
       type      : 'POST'
-      xhrFields : withCredentials : yes
       success   : ->
         KD.utils.clearTeamData()
         location.href = formData.redirect
-      error     : ({responseText}) =>
-        new KDNotificationView title : responseText  routeIfInvitationTokenIsValid: (token) ->
+      error     : ({responseText}) ->
+        new KDNotificationView title : responseText
 
 
   routeIfInvitationTokenIsValid: (token) ->
