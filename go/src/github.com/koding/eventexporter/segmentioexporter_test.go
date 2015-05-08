@@ -1,6 +1,7 @@
 package eventexporter
 
 import (
+	"os"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -38,6 +39,25 @@ func TestSegmentIOExporter(t *testing.T) {
 			event := &Event{Name: "test", Properties: props, User: user}
 
 			_, err := buildTrack(event)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Then it should successfully send event to Segment.io", func() {
+			key := os.Getenv("SEGMENTIO_KEY")
+			if key == "" {
+				key = "SSh8BWE0aEhZaKnhknBgkPlORpxy7zoV"
+			}
+			size := 1
+			s := NewSegmentIOExporter(key, size)
+			defer func() {
+				err := s.Close()
+				So(err, ShouldBeNil)
+			}()
+
+			props := map[string]interface{}{"key": "a"}
+			user := &User{Username: "indianajones", Email: "senthil@koding.com"}
+			event := &Event{Name: "test", Properties: props, User: user}
+			err := s.Send(event)
 			So(err, ShouldBeNil)
 		})
 	})

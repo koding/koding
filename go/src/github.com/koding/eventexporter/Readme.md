@@ -4,31 +4,34 @@ eventexporter is a library to export events to 3rd party services.
 
 ## Usage
 
-    key := "segment api token"
-    size := "size of events to accumulate before flushing"
+```go
+key := "segment api token"
+size := "size of events to accumulate before flushing"
 
-    event := &eventexporter.Event{
-      Name: "test event",
-      User: &eventexporter.User{
-        Username:"indianajones", Email: "indiana@gmail.com"
-      },
-      Body: &eventexporter.Body{Content: "Hello world"},
-      Properties: map[string]interface{}{"occupation" : "explorer" },
-    }
+event := &eventexporter.Event{
+  Name: "test event",
+  User: &eventexporter.User{
+    Username:"indianajones", Email: "indiana@gmail.com"
+  },
+  Body: &eventexporter.Body{Content: "Hello world"},
+  Properties: map[string]interface{}{"occupation" : "explorer" },
+}
 
-    client := eventexporter.NewSegementIOExporter(key, size)
-    client.Send(event)
+client := eventexporter.NewSegementIOExporter(key, size)
+client.Send(event)
+```
 
-FakeExporter is a implementation of Exporter to be used in tests.
+FakeExporter is an implementation of Exporter to be used in tests.
 
-    import (
-      "github.com/koding/eventexporter"
-      "github.com/koding/eventexporter/eventexportertest"
-    )
+```go
+import (
+  "github.com/koding/eventexporter"
+)
 
-    event := &eventexporter.Event{Name: "test event"}
+event := &eventexporter.Event{Name: "test event"}
 
-    client := eventexportertest.NewFakeExporter()
-    client.Send(event)
+client := eventexporter.NewFakeExporter()
+client.Send(event)
 
-    fmt.Println(client.Events)
+fmt.Println(client.Events)
+```
