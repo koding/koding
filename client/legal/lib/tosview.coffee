@@ -67,7 +67,7 @@ module.exports = class TosView extends JView
         THE KODING SERVICE.
       </p>
 
-      <ul class='ul1'>
+      <ol class='ul1 numbered-list'>
         <li class='li2'>
           <b>Intellectual Property:</b> The Site and its original
           content, features and functionality are owned by Koding, Inc. and are
@@ -106,7 +106,7 @@ module.exports = class TosView extends JView
 
           <b>Fees and Payment:</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               <b>Paid Services.</b> Some portions of the Koding
               Service may have fees associated with them (each, a 'Paid Service').
@@ -144,7 +144,7 @@ module.exports = class TosView extends JView
             <li class='li2'>
               For purchases of subscriptions to Paid Services:
 
-              <ul class='ul1'>
+              <ol class='ul1 numbered-list'>
                 <li class='li2'>
                   Your '<b>Subscription Billing Date</b>' is the
                   date when you purchase your first subscription to a Paid Service.
@@ -173,7 +173,7 @@ module.exports = class TosView extends JView
                   month, if the last day of the calendar month occurs before the
                   Subscription Billing Date for that month).
                 </li>
-              </ul>
+              </ol>
 
             </li>
 
@@ -230,7 +230,7 @@ module.exports = class TosView extends JView
               obligated to collect such taxes, Koding will charge your Payment
               Method or otherwise add the applicable to your billing account.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -261,7 +261,7 @@ module.exports = class TosView extends JView
 
           <b>Permission to Use Koding Service:</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               Koding, Inc. grants you a non-exclusive,
               non-transferable, limited license to use the Site in accordance with
@@ -302,7 +302,7 @@ module.exports = class TosView extends JView
               and directly contacting your Internet Service Provider (ISP)
               regarding such unauthorized use.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -310,7 +310,7 @@ module.exports = class TosView extends JView
 
           <b>License from You</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               Koding claims no ownership or control over any
               Content or Application. You retain copyright and any other rights you
@@ -360,7 +360,7 @@ module.exports = class TosView extends JView
               (including links to your website) for the purpose of advertising or
               publicizing your use of the Koding Services.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -368,7 +368,7 @@ module.exports = class TosView extends JView
 
           <b>Marketplace Apps and Add-ons</b>:
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               Koding may make available through the Koding
               Marketplace additional features, functionality, and services offered
@@ -406,7 +406,7 @@ module.exports = class TosView extends JView
               personal to you, and is not sublicensable to your End Users. You may
               not provide or resell Add-ons to others.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -423,7 +423,7 @@ module.exports = class TosView extends JView
           <b>Prohibited Conduct:</b> YOU AGREE NOT TO COMMIT ANY ACT OF THE
           FOLLOWING PROHIBITED CONDUCT:
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               use the Koding Service for any purpose other than to
               disseminate or receive original or appropriately licensed content and
@@ -515,7 +515,7 @@ module.exports = class TosView extends JView
               functionality of the Koding Service to display authorized content on
               your or other third party sites.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -523,7 +523,7 @@ module.exports = class TosView extends JView
 
           <b>Content on the Koding Services and Take Down Obligations</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               You understand that all information (such as data
               files, written text, computer software, music, audio files or other
@@ -571,7 +571,7 @@ module.exports = class TosView extends JView
               You further acknowledge that you are solely responsible for securing
               and backing up your Applications and any Content.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -579,7 +579,7 @@ module.exports = class TosView extends JView
 
           <b>Third Party Software; Integrated Services and Linked Sites:</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               Third party software may be required to use some
               portions of the Service (e.g. Ubuntu Linux). You are solely
@@ -613,7 +613,7 @@ module.exports = class TosView extends JView
               materials, products, and services on or available through them, is
               solely at your own risk.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -621,7 +621,7 @@ module.exports = class TosView extends JView
 
           <b>Termination; Violations:</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               You agree that Koding, in its sole discretion, and
               without penalty, may terminate or suspend any account hosted by, or
@@ -672,7 +672,7 @@ module.exports = class TosView extends JView
               refund of the purchase price paid for any terminated Paid
               Service.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -680,7 +680,7 @@ module.exports = class TosView extends JView
 
           <b>Privacy; Consent to Electronic Communications:</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               Your privacy is important to Koding. <a href=
               '/Legal/Privacy' target='_blank'>Koding's Privacy Policy</a> Notice is
@@ -716,7 +716,7 @@ module.exports = class TosView extends JView
               that the information will be available to your application and to the
               Koding Service.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -791,7 +791,7 @@ module.exports = class TosView extends JView
 
           <b>Limitation of Liability and Damages:</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               UNDER NO CIRCUMSTANCES, INCLUDING NEGLIGENCE, WILL
               KODING OR ITS AFFILIATES, CONTRACTORS, EMPLOYEES, AGENTS, OR
@@ -850,7 +850,7 @@ module.exports = class TosView extends JView
               PERMITTED UNDER THE LAWS OF THE JURISDICTION WHERE YOU ARE
               LOCATED.
             </li>
-          </ul>
+          </ol>
 
           </li>
 
@@ -876,7 +876,7 @@ module.exports = class TosView extends JView
 
           <b>Arbitration Agreement; Governing Law:&nbsp;</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               <span class='s1'>Generally</span>. In the interest of
               resolving disputes between you and Koding in the most expedient and
@@ -1011,7 +1011,7 @@ module.exports = class TosView extends JView
               Koding agree to the personal and exclusive jurisdiction in the state
               and federal courts in San Francisco, California.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -1022,7 +1022,7 @@ module.exports = class TosView extends JView
           in the United States, the following modifications of these Terms apply
           solely to that official use:
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               <span class='s1'>Indemnification</span>. The terms of
               Section 15 will apply to you only to the extent expressly permitted
@@ -1040,7 +1040,7 @@ module.exports = class TosView extends JView
               Section 19(i) will apply only to the extent expressly permitted by
               your jurisdiction’s laws.
             </li>
-          </ul>
+          </ol>
 
         </li>
 
@@ -1048,7 +1048,7 @@ module.exports = class TosView extends JView
 
           <b>Miscellaneous:&nbsp;</b>
 
-          <ul class='ul1'>
+          <ol class='ul1 lettered-list'>
             <li class='li2'>
               Koding may provide you with notices, including those
               regarding changes to these Terms, by email, regular mail or postings
@@ -1090,10 +1090,10 @@ module.exports = class TosView extends JView
               COMMENCE WITHIN ONE (1) YEAR AFTER THE CAUSE OF ACTION ACCRUES.
               OTHERWISE, SUCH CAUSE OF ACTION IS PERMANENTLY BARRED.</b>
             </li>
-          </ul>
+          </ol>
 
           </li>
-      </ul>
+      </ol>
 
       <p class='p2'>
         Parts of this document are an adaptation of the Google App
