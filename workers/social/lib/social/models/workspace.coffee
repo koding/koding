@@ -40,7 +40,7 @@ module.exports = class JWorkspace extends Module
       instance          :
         delete          : signature Function
     sharedEvents        :
-      static            : []
+      static            : ['messageBusEvent']
       instance          : ['updateInstance']
 
 
@@ -83,6 +83,13 @@ module.exports = class JWorkspace extends Module
           return
 
         delegate.emit 'NewWorkspaceCreated', workspace
+        message =
+          accountId: delegate.socialApiId
+          name: name
+          slug: slug
+
+        @emit 'messageBusEvent', {type: "social.workspace_created", message: message}
+
         return callback null, workspace
 
     if data.isDefault
@@ -208,7 +215,7 @@ module.exports = class JWorkspace extends Module
           return callback err  if err
 
           {nickname}     = account.profile
-          
+
           data           =
             name         : 'My Workspace'
             isDefault    : yes
