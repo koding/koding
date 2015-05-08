@@ -26,8 +26,17 @@ do ->
     else
       return router.openSection 'Team', null, null, (app) -> app.jumpTo 'login'
 
+  handleInvitation = ({params : token}) ->
+
+    return handleRoot()  if KD.config.groupName is KODING
+    return handleRoot()  unless token
+
+
 
 
   KD.registerRoutes 'Core',
     '/'                   : handleRoot
     ''                    : handleRoot
+    '/Invitation/:token?' : handleInvitation
+
+
