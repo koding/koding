@@ -80,8 +80,8 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
-		k.Log.Debug(finalBootstrap)
+		// k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
+		// k.Log.Debug(finalBootstrap)
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
@@ -135,21 +135,25 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 
 func appendAWSVariable(content, accessKey, secretKey string) (string, error) {
 	var data struct {
-		Output   map[string]map[string]interface{} `json:"output"`
-		Resource map[string]map[string]interface{} `json:"resource"`
-		Provider map[string]map[string]interface{} `json:"provider"`
-		Variable map[string]map[string]interface{} `json:"variable"`
+		Output   map[string]map[string]interface{} `json:"output,omitempty"`
+		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
+		Provider map[string]map[string]interface{} `json:"provider,omitempty"`
+		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
 	}
 
 	if err := json.Unmarshal([]byte(content), &data); err != nil {
 		return "", err
 	}
 
-	data.Variable["aws_access_key"] = map[string]interface{}{
+	if data.Variable == nil {
+		data.Variable = make(map[string]map[string]interface{})
+	}
+
+	data.Variable["access_key"] = map[string]interface{}{
 		"default": accessKey,
 	}
 
-	data.Variable["aws_secret_key"] = map[string]interface{}{
+	data.Variable["secret_key"] = map[string]interface{}{
 		"default": secretKey,
 	}
 
@@ -164,8 +168,8 @@ func appendAWSVariable(content, accessKey, secretKey string) (string, error) {
 var awsBootstrap = `{
     "provider": {
         "aws": {
-            "access_key": "${var.aws_access_key}",
-            "secret_key": "${var.aws_secret_key}",
+            "access_key": "${var.access_key}",
+            "secret_key": "${var.secret_key}",
             "region": "${var.aws_region}"
         }
     },
