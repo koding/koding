@@ -3,7 +3,10 @@ package kloud
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
+
+	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
 
@@ -42,6 +45,8 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	result := make(map[string]bool, 0)
+
 	for _, cred := range creds.Creds {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
@@ -60,11 +65,20 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		// We do request to fetch and describe all supported regions. This
 		// doesn't create any resources but validates the request itself before
 		// we can make a request. An error means no validation.
+		verified := true
 		_, err := svc.DescribeRegions(&ec2.DescribeRegionsInput{})
 		if err != nil {
-			return nil, err // not authenticated
+			verified = false
 		}
+
+		if err := modelhelper.UpdateCredential(cred.PublicKey, bson.M{
+			"$set": bson.M{"verified": verified},
+		}); err != nil {
+			return nil, err
+		}
+
+		result[cred.PublicKey] = verified
 	}
 
-	return true, nil
+	return result, nil
 }
