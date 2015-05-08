@@ -29,7 +29,10 @@ func NewIterable(input *ServiceInput) (Iterable, error) {
 }
 
 func (i Iterable) PrepareMessage(input *ServiceInput) string {
-	return fmt.Sprintf("You received %s event in our %s campaign", i.EventName, i.CampaignId)
+	value := input.Key("message")
+	message, _ := value.(string)
+
+	return message
 }
 
 func (i Iterable) Validate(input *ServiceInput) []error {
