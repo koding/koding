@@ -81,3 +81,25 @@ module.exports = class AccountCredentialList extends KDListView
 
       return if kd.warn err  if err
       kd.info 'Bootstrapped?', data
+
+
+  bootstrap: (item) ->
+
+    credential = item.getData()
+    publicKeys = [credential.publicKey]
+
+    console.log { publicKeys }
+
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+
+      .bootstrap { publicKeys }
+
+      .then (response) ->
+
+        console.log "Bootstrap result:", response
+
+      .catch (err) ->
+
+        console.warn "Bootstrap failed:", err
