@@ -1,10 +1,11 @@
-TeamLoginTab         = require './teamlogintab'
-TeamDomainTab        = require './teamdomaintab'
-TeamAllowedDomainTab = require './teamalloweddomaintab'
-TeamInviteTab        = require './teaminvitetab'
-TeamUsernameTab      = require './teamusernametab'
-
 module.exports = class TeamView extends KDView
+
+  TABS =
+    login         : require './teamlogintab'
+    domain        : require './teamdomaintab'
+    alloweddomain : require './teamalloweddomaintab'
+    invite        : require './teaminvitetab'
+    username      : require './teamusernametab'
 
   constructor:(options = {}, data)->
 
@@ -15,12 +16,10 @@ module.exports = class TeamView extends KDView
       hideHandleContainer : yes
 
 
-  createLoginTab: -> @tabView.addPane new TeamLoginTab
 
-  createDomainTab: -> @tabView.addPane new TeamDomainTab
+  showTab: (step, query) ->
 
-  createAllowedDomainTab: -> @tabView.addPane new TeamAllowedDomainTab
 
-  createInviteTab: -> @tabView.addPane new TeamInviteTab
-
-  createUsernameTab: -> @tabView.addPane new TeamUsernameTab
+    if tab = @tabView.getPaneByName step
+    then @tabView.showTab tab
+    else @tabView.addPane new TABS[step] { query }
