@@ -1,11 +1,12 @@
 
-jraphical       = require 'jraphical'
-JCredentialData = require './credentialdata'
-JName           = require '../name'
-JUser           = require '../user'
-JGroup          = require '../group'
+jraphical      = require 'jraphical'
 
 module.exports = class JCredential extends jraphical.Module
+
+  JName              = require '../name'
+  JUser              = require '../user'
+  JGroup             = require '../group'
+  JCredentialData    = require './credentialdata'
 
   KodingError        = require '../../error'
 
