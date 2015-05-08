@@ -1,19 +1,19 @@
 _                  = require 'lodash'
 kd                 = require 'kd'
-KDView             = kd.View
-KDFormView         = kd.FormView
-KDInputView        = kd.InputView
-KDCustomHTMLView   = kd.CustomHTMLView
-KDToggleButton     = kd.ToggleButton
-KDButtonView       = kd.ButtonView
-KDModalView        = kd.ModalView
-KDNotificationView = kd.NotificationView
-KDSelectBox        = kd.SelectBox
-GroupLogoSettings  = require '../grouplogosettings'
 remote             = require('app/remote').getInstance()
-showError          = require 'app/util/showError'
+KDView             = kd.View
 Encoder            = require 'htmlencode'
+showError          = require 'app/util/showError'
 geoPattern         = require 'geopattern'
+KDFormView         = kd.FormView
+KDModalView        = kd.ModalView
+KDSelectBox        = kd.SelectBox
+KDInputView        = kd.InputView
+KDButtonView       = kd.ButtonView
+KDToggleButton     = kd.ToggleButton
+KDCustomHTMLView   = kd.CustomHTMLView
+GroupLogoSettings  = require '../grouplogosettings'
+KDNotificationView = kd.NotificationView
 
 
 module.exports = class GroupGeneralSettingsView extends KDView
