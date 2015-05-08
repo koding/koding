@@ -117,15 +117,15 @@ module.exports = class SearchController extends KDObject
 
   searchAccounts: (seed, options = {}) ->
 
-    opt =
+    opts =
       hitsPerPage                  : 10
       restrictSearchableAttributes : [ "nick" ]
 
-    opt = kd.utils.extend opt, options
+    opts = kd.utils.extend opt, options
 
     seed = seed.replace /[^-\w]/g, ''
 
-    @search 'accounts', seed, opt
+    @search 'accounts', seed, opts
       .then (data) ->
         throw new Error "No data!" if data.length is 0
         return data
