@@ -1,6 +1,9 @@
 @import "lib/core.fonts"
 @import "lib/core.fn"
 
+modalBackground             = #FAFAFA
+greenLink                   = #27ae60
+
 @css {
 /*
 Team stylesheet
@@ -58,8 +61,8 @@ team.styl
       margin-bottom         10px
 
     a
-      color                 #27ae60
-      font-weight           600
+      color                 greenLink
+      noTextDeco()
 
   footer
     bottom                  22px
@@ -104,11 +107,22 @@ team.styl
 
   .kdtabpaneview.login .TeamsModal
     margin-bottom           0
+    shadow                  none
+
+    > form
+      margin-top            10px
 
     .login-input-view
+      margin                0 0 19px
 
       input.kdinput
         text-align          center
+
+    .TeamsModal-button
+      margin-top            19px
+      margin-bottom         19px
+      float                 none
+      width                 100%
 
   // DOMAIN TAB STYLE CUSTOMIZATIONS
 
@@ -206,7 +220,7 @@ team.styl
   padding                   31px 44px
   max-width                 553px
   margin                    110px auto 0
-  bg                        color #FAFAFA
+  bg                        color modalBackground
   top                       0px
   color                     #434343
   z-index                   3
@@ -233,20 +247,14 @@ team.styl
   .TeamsModal-button
     margin-top              62px
 
-
-  > figure
-    margin                  0 auto 20px
-    size                    64px 64px
-    bg                      color #ddd
-    bg                      image url('http://lorempixel.com/64/64/animals/')
-    rounded                 3px
-
-
   > h4
     color                   #00B153
     font-family             adelle
     font-size               26px
     line-height             50px
+    span
+      font-family           adelleSans
+      color                 #7F7F7F
 
   > h5
     font-family             adelleSans
@@ -262,6 +270,17 @@ team.styl
 
   .dim
     color                   #9E9E9E
+
+  &.TeamsModal--login
+    width                   425px
+
+    > figure
+      margin                -67px auto 20px
+      size                  64px 64px
+      bg                    color #ddd
+      bg                    image url('http://lorempixel.com/64/64/animals/')
+      rounded               13px
+      border                3px solid modalBackground
 
 .TeamsModal-button
   font-family               adelleSans
