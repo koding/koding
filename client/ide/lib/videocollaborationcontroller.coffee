@@ -72,8 +72,8 @@ module.exports = VideoCollaborationController =
   toggleVideoControl: (type, activeState) ->
 
     switch type
-      when 'audio' then @videoModel.setAudioState activeState
-      when 'video' then @videoModel.setVideoState activeState
+      when 'audio' then @videoModel.requestAudioStateChange activeState
+      when 'video' then @videoModel.requestVideoStateChange activeState
       when 'end'   then @endVideoCollaboration()
 
 
