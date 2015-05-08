@@ -115,11 +115,17 @@ module.exports = class SearchController extends KDObject
     remote.api.JAccount.one query
       .then (it) -> [it]
 
-  searchAccounts: (seed) ->
+  searchAccounts: (seed, options = {}) ->
+
+    opt =
+      hitsPerPage                  : 10
+      restrictSearchableAttributes : [ "nick" ]
+
+    opt = kd.utils.extend opt, options
 
     seed = seed.replace /[^-\w]/g, ''
 
-    @search 'accounts', seed, hitsPerPage : 10
+    @search 'accounts', seed, opt
       .then (data) ->
         throw new Error "No data!" if data.length is 0
         return data
