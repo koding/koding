@@ -41,6 +41,10 @@ module.exports = class SocialAccount extends Base
 
       updateSocialAccount username  unless isRegistration
 
+    # we are updating account when we update email because we dont store email
+    # in postgres and social parts fetch email from mongo, we are just
+    # triggering account update on postgres, so other services can get that
+    # event and operate accordingly 
     JUser.on 'EmailChanged', (data)->
       { username } = data
 

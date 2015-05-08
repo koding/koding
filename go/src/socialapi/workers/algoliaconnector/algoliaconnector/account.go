@@ -53,8 +53,6 @@ func (f *Controller) AccountUpdated(data *models.Account) error {
 		return f.AccountCreated(data)
 	}
 
-	// algolia partial update works like this, if item exists updates it, if
-	// they cant find any document with objectID, they create it
 	return f.partialUpdate(IndexAccounts, map[string]interface{}{
 		"objectID": data.OldId,
 		"nick":     data.Nick,
