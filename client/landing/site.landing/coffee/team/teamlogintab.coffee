@@ -27,20 +27,21 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     # set this once uploader ready - SY
     # @logo.setCss 'background-image', KD.config.group.backgroundImage
 
-    @loginForm = new LoginInlineForm
+    # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
+    @form = new LoginInlineForm
       cssClass : 'login-form clearfix'
       testPath : 'login-form'
       callback : (formData) =>
-        mainController.on 'LoginFailed', => @loginForm.button.hideLoader()
+        mainController.on 'LoginFailed', => @form.button.hideLoader()
         mainController.login formData
 
-    @loginForm.button.unsetClass 'solid medium green'
-    @loginForm.button.setClass 'TeamsModal-button TeamsModal-button--green'
+    @form.button.unsetClass 'solid medium green'
+    @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
 
     if location.search isnt '' and location.search.search('username=') > 0
       username = location.search.split('username=').last.replace(/\&.+/, '')
-      @loginForm.username.input.setValue username
-      @loginForm.username.inputReceivedKeyup()
+      @form.username.input.setValue username
+      @form.username.inputReceivedKeyup()
 
 
 
@@ -57,7 +58,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     <div class="TeamsModal">
       {{> @logo}}
       <h4>Sign in to #{KD.config.group.title}</h4>
-      {{> @loginForm}}
+      {{> @form}}
     </div>
     <section>
       <p>

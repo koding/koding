@@ -15,6 +15,8 @@ module.exports = class TeamView extends KDView
       tagName             : 'main'
       hideHandleContainer : yes
 
+    # focus to the first element of the form if there is any form
+    @tabView.on 'PaneDidShow', (pane) -> pane.form?.focusFirstElement()
 
 
   showTab: (step, query) ->
