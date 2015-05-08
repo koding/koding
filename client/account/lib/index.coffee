@@ -32,6 +32,7 @@ module.exports = class AccountAppController extends AppController
       items  : [
         { slug : 'Profile',   title : "User profile",        listType: "username" }
         { slug : 'Email',     title : "Email notifications", listType: "emailNotifications" }
+        { slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" }
       ]
     billing :
       title : "Billing"
@@ -53,7 +54,6 @@ module.exports = class AccountAppController extends AppController
       ]
 
 
-  NAV_ITEMS.personal.items.push { slug : 'Externals',   title : "Linked accounts", listType: "linkedAccounts" }
 
   constructor: (options = {}, data) ->
 
@@ -94,7 +94,9 @@ module.exports = class AccountAppController extends AppController
       break
 
 
-  handleOauthRedirect: ({error, provider}) ->
+  handleOauthRedirect: (options) ->
+
+    { error, provider } = options
 
     error = null  if error is "null"
     kd.singletons.oauthController.authCompleted error, provider
