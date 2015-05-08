@@ -121,7 +121,7 @@ module.exports = class SearchController extends KDObject
       hitsPerPage                  : 10
       restrictSearchableAttributes : [ "nick" ]
 
-    opts = kd.utils.extend opt, options
+    opts = kd.utils.extend opts, options
 
     seed = seed.replace /[^-\w]/g, ''
 
