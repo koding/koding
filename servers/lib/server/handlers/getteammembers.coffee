@@ -12,7 +12,6 @@ module.exports = (req, res, next) ->
   isLoggedIn req, res, (err, loggedIn, account) ->
 
     return res.status(500).send 'an error occured'  if err
-    return res.status(403).send 'not authorized'    unless loggedIn
 
     JGroup.one slug : name, (err, group) ->
 
