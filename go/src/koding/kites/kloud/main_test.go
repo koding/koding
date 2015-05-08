@@ -313,7 +313,7 @@ func TestTerraformStack(t *testing.T) {
 
 	resp, err := remote.Tell("apply", applyArgs)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	var result kloud.ControlResult
