@@ -27,12 +27,6 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       alt      : 'Sign up with Facebook'
       click    : -> oauthController.redirectToOauth 'facebook'
 
-    @twitter = new CustomLinkView
-      cssClass : 'tw'
-      title    : 'Sign up with Twitter'
-      alt      : 'Sign up with Twitter'
-      click    : -> oauthController.redirectToOauth 'twitter'
-
     @email.setOption 'stickyTooltip', yes
     @password.setOption 'stickyTooltip', yes
 
@@ -104,7 +98,6 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       <div class='buttons-extra'>
         {{> @google}}
         {{> @facebook}}
-        {{> @twitter}}
       </div>
     </section>
     """
