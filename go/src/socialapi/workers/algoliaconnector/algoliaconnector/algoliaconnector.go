@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"errors"
 	"fmt"
 	"socialapi/models"
 	"socialapi/request"
@@ -198,26 +199,29 @@ func (f *Controller) makeSureStringSliceSettings(indexName string, settingName s
 			indexName,
 		)
 		settings[settingName] = newSettings
-		task, err := indexSet.Index.SetSettings(settings)
-		if err != nil {
-			return err
-		}
-
-		done := make(chan struct{})
-		go func() {
-			// make sure setting is propogated
-			_, err = indexSet.Index.WaitTask(task)
-			close(done)
-		}()
-
-		select {
-		case <-done:
-			return err
-		case <-time.After(time.Second * 30):
-			f.log.Error("couldnt update index settings on 30 second")
-			return err
-		}
+		return f.updateIndexSetting(settings, indexSet)
 	}
 
 	return err
+}
+
+func (f *Controller) updateIndexSetting(settings map[string]interface{}, indexSet *IndexSetItem) error {
+	task, err := indexSet.Index.SetSettings(settings)
+	if err != nil {
+		return err
+	}
+
+	done := make(chan struct{})
+	go func() {
+		// make sure setting is propogated
+		_, err = indexSet.Index.WaitTask(task)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		return err
+	case <-time.After(time.Second * 30):
+		return errors.New("couldnt update index settings in 30 second")
+	}
 }
