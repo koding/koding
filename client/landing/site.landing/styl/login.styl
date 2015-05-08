@@ -87,13 +87,12 @@ img.off-screen-login-image
 
   .flex-wrapper
     z-index             1
-    size                320px auto
+    size                425px auto
     margin              -205px auto 0 auto
     top                 50%
     rounded             4px
-    bg                  color #F4F4F4
-    padding             37px
-    shadow              0 10px 16px rgba(0, 0, 0, .27)
+    bg                  color #fafafa
+    font-family         adelleSans
     borderBox()
     rel()
     // &.one
@@ -101,9 +100,42 @@ img.off-screen-login-image
     // &.three
     //   height            427px
 
+    .kdbutton
+      border-radius     3px
+      bg                color, #1aaf5d !important
+
+    .kdinput
+      border-radius     3px !important
+
+    .form-area
+      padding           40px
+
+    .inline-footer
+      bg                color, #f1f2f2
+      padding           10px 20px
+      border-radius     0 0 4px 4px
+
+      .oauth-container
+        padding         10px 20px
+
+      .text
+        vertical-align  top
+        line-height     30px
+        color           #7d7d7d
+      .icon
+        display         inline-block
+        margin-left     10px
+      .gh
+        r-sprite        home, 'ext-github'
+      .go
+        r-sprite        home, 'ext-gplus'
+      .fb
+        r-sprite        home, 'ext-facebook'
+      .tw
+        r-sprite        home, 'ext-twitter'
+
   a
-    noTextDeco()
-    color               white
+    color               #1aaf5d
     font-size           14px
 
   footer
@@ -260,7 +292,12 @@ img.off-screen-login-image
     width               100%
     abs                 100% 0 0 0px
     padding             24px 14px 0
+    font-size           14px
+    color               #cfcfcf
     borderBox()
+
+    b
+      font-weight         bold
 
     a
       font-size           14px
@@ -271,11 +308,14 @@ img.off-screen-login-image
       strong
         font-weight       500
 
-    .github-login
+    .signup-link
       fl()
 
+    .signup-link a
+      color               #1aaf5d
+      text-decoration     underline
+
     .forgot-link
-      color               #cfcfcf
       fr()
 
 .login-form-holder
