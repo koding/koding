@@ -157,6 +157,10 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
     - script:
+        name: test suite timeline breakdown
+        code: |
+          cat TEST_SUITE_TIMELINE || :
+    - script:
         name: setup nvm
         code: |
           source $HOME/.nvm/nvm.sh
