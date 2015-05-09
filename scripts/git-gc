@@ -1,0 +1,24 @@
+#!/bin/bash
+
+ROOT_DIR=$(cd $(dirname $0)/../ ; pwd)
+
+function run_git_gc
+{
+  GIT_DIR=$ROOT_DIR/.git
+  if [ -n "$1" ]; then
+    GIT_DIR=$ROOT_DIR/$1/.git
+  fi
+
+  echo "Running git-gc in $GIT_DIR"
+
+  git --git-dir $GIT_DIR gc
+
+  echo -e ""
+}
+
+run_git_gc
+run_git_gc client/ide
+run_git_gc client/finder
+run_git_gc client/landing
+
+exit 0
