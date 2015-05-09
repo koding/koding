@@ -22,7 +22,9 @@ func TestPopularTopic(t *testing.T) {
 	}
 	r := runner.New("rest-tests")
 	err := r.Init()
-	So(err, ShouldBeNil)
+	if err != nil {
+		panic(err)
+	}
 	defer r.Close()
 
 	appConfig := config.MustRead(r.Conf.Path)
@@ -31,8 +33,6 @@ func TestPopularTopic(t *testing.T) {
 
 	account := models.NewAccount()
 	account.OldId = AccountOldId.Hex()
-	var err error
-	account, err = rest.CreateAccount(account)
 	if err != nil {
 		t.Fatalf("err %s", err.Error())
 	}

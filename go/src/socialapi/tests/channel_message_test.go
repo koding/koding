@@ -32,7 +32,8 @@ func TestChannelMessage(t *testing.T) {
 
 		account := models.NewAccount()
 		account.OldId = AccountOldId.Hex()
-		account, err := rest.CreateAccount(account)
+		account, err = rest.CreateAccount(account)
+
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
 

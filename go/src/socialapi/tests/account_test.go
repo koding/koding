@@ -61,15 +61,18 @@ func TestAccountCreation(t *testing.T) {
 }
 
 func TestCheckOwnership(t *testing.T) {
-	Convey("accounts can own things", t, func() {
-		r := runner.New("rest-tests")
-		err := r.Init()
-		So(err, ShouldBeNil)
-		defer r.Close()
+	r := runner.New("rest-tests")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
 
-		appConfig := config.MustRead(r.Conf.Path)
-		modelhelper.Initialize(appConfig.Mongo)
-		defer modelhelper.Close()
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	Convey("accounts can own things", t, func() {
 
 		bob := models.NewAccount()
 		bob.Nick = "bob"
@@ -108,7 +111,7 @@ func TestCheckOwnership(t *testing.T) {
 			So(isOwner, ShouldBeFalse)
 		})
 
-		bobsChannel, err := rest.CreateChannel(bob.Id, bobsses.ClientId)
+		bobsChannel, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_TOPIC, bobsses.ClientId)
 		So(err, ShouldBeNil)
 
 		Convey("it should say when an account owns a channel", func() {
@@ -126,8 +129,18 @@ func TestCheckOwnership(t *testing.T) {
 }
 
 func TestAccountFetchProfile(t *testing.T) {
-	Convey("while fetching account activities in profile page", t, func() {
+	r := runner.New("rest-tests")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
 
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	Convey("while fetching account activities in profile page", t, func() {
 		// create account
 		acc1 := models.NewAccount()
 		acc1.OldId = bson.NewObjectId().Hex()
@@ -160,6 +173,17 @@ func TestAccountFetchProfile(t *testing.T) {
 }
 
 func TestAccountProfilePostCount(t *testing.T) {
+	r := runner.New("rest-tests")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
 	Convey("While fetching account activity count in profile page", t, func() {
 		// create account
 		acc1 := models.NewAccount()
