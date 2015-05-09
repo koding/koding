@@ -38,8 +38,9 @@ func TestPopularTopic(t *testing.T) {
 	}
 
 	ses, err := models.FetchOrCreateSession(account.Nick)
-	So(err, ShouldBeNil)
-	So(ses, ShouldNotBeNil)
+	if err != nil {
+		panic(err)
+	}
 
 	rand.Seed(time.Now().UnixNano())
 	groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
