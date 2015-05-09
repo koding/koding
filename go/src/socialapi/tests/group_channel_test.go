@@ -6,9 +6,7 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
 	"testing"
-	"time"
 
 	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
@@ -29,13 +27,12 @@ func TestGroupChannel(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("while  testing pinned activity channel", t, func() {
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		groupName := models.RandomGroupName()
 
 		account, err := models.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
 
-		ses, err := models.FetchOrCreateSession(account.Nick)
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
@@ -120,7 +117,7 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			ses, err := models.FetchOrCreateSession(anotherAccount.Nick)
+			ses, err := models.FetchOrCreateSession(anotherAccount.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 

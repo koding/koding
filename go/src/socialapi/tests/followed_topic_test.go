@@ -33,7 +33,7 @@ func TestFollowedTopics(t *testing.T) {
 			So(account, ShouldNotBeNil)
 			So(account.Id, ShouldNotEqual, 0)
 
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 

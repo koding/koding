@@ -2,13 +2,10 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
 	"testing"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/runner"
@@ -35,12 +32,11 @@ func TestChannelCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			groupName := models.RandomGroupName()
+
+			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
-
-			rand.Seed(time.Now().UnixNano())
-			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
 			groupChannel, err := rest.CreateChannelByGroupNameAndType(
 				account.Id,
@@ -57,7 +53,11 @@ func TestChannelCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
-			noses, err := models.FetchOrCreateSession(nonOwnerAccount.Nick)
+			noses, err := models.FetchOrCreateSession(
+				nonOwnerAccount.Nick,
+				groupName,
+			)
+
 			So(err, ShouldBeNil)
 			So(noses, ShouldNotBeNil)
 

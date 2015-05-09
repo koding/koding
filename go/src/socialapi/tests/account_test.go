@@ -2,13 +2,10 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
 	"testing"
-	"time"
 
 	"labix.org/v2/mgo/bson"
 
@@ -73,6 +70,7 @@ func TestCheckOwnership(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("accounts can own things", t, func() {
+		groupName := models.RandomGroupName()
 
 		bob := models.NewAccount()
 		bob.Nick = "bob"
@@ -80,7 +78,7 @@ func TestCheckOwnership(t *testing.T) {
 		bobsAccount, err := rest.CreateAccount(bob)
 		So(err, ShouldBeNil)
 
-		bobsses, err := models.FetchOrCreateSession(bob.Nick)
+		bobsses, err := models.FetchOrCreateSession(bob.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(bobsses, ShouldNotBeNil)
 
@@ -89,9 +87,6 @@ func TestCheckOwnership(t *testing.T) {
 		ted.OldId = bson.NewObjectId().Hex()
 		tedsAccount, err := rest.CreateAccount(ted)
 		So(err, ShouldBeNil)
-
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
 		bobsGroup, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_GROUP, bobsses.ClientId)
 		So(err, ShouldBeNil)
@@ -140,6 +135,8 @@ func TestAccountFetchProfile(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
+	groupName := models.RandomGroupName()
+
 	Convey("while fetching account activities in profile page", t, func() {
 		// create account
 		acc1 := models.NewAccount()
@@ -148,12 +145,12 @@ func TestAccountFetchProfile(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc1, ShouldNotBeNil)
 
-		ses, err := models.FetchOrCreateSession(acc1.Nick)
+		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
 		// create channel
-		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP, ses.ClientId)
+		channel, err := rest.CreateChannelByGroupNameAndType(acc1.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
 		So(err, ShouldBeNil)
 		So(channel, ShouldNotBeNil)
 
@@ -184,6 +181,8 @@ func TestAccountProfilePostCount(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
+	groupName := models.RandomGroupName()
+
 	Convey("While fetching account activity count in profile page", t, func() {
 		// create account
 		acc1 := models.NewAccount()
@@ -192,12 +191,12 @@ func TestAccountProfilePostCount(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc1, ShouldNotBeNil)
 
-		ses, err := models.FetchOrCreateSession(acc1.Nick)
+		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
 		// create channel
-		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP, ses.ClientId)
+		channel, err := rest.CreateChannelByGroupNameAndType(acc1.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
 		So(err, ShouldBeNil)
 		So(channel, ShouldNotBeNil)
 

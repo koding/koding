@@ -26,15 +26,22 @@ func TestChannelHistory(t *testing.T) {
 
 	Convey("While testing history of a channel", t, func() {
 		Convey("We should be able to create it(channel) first", func() {
+			groupName := models.RandomGroupName()
+
 			account, err := models.CreateAccountInBothDbsWithNick("sinan")
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
-			channel, err := rest.CreateChannel(account.Id, ses.ClientId)
+			channel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_TOPIC,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(channel, ShouldNotBeNil)
 
@@ -96,11 +103,6 @@ func TestChannelHistory(t *testing.T) {
 						})
 
 						Convey("We should be not able to fetch the history if the clientId is not set", func() {
-
-							ses, err := models.FetchOrCreateSession(account.Nick)
-							So(err, ShouldBeNil)
-							So(ses, ShouldNotBeNil)
-
 							history, err := rest.GetHistory(
 								channel.Id,
 								&request.Query{
@@ -113,10 +115,6 @@ func TestChannelHistory(t *testing.T) {
 						})
 
 						Convey("We should be not able to fetch the history if the clientId doesnt exist", func() {
-
-							ses, err := models.FetchOrCreateSession(account.Nick)
-							So(err, ShouldBeNil)
-							So(ses, ShouldNotBeNil)
 
 							history, err := rest.GetHistory(
 								channel.Id,

@@ -31,7 +31,7 @@ func TestInteractionLikedMessages(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
 
-		ses, err := models.FetchOrCreateSession(account.Nick)
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 

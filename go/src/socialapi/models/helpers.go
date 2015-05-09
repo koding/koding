@@ -204,13 +204,13 @@ func createMessageWithTest() *ChannelMessage {
 	return cm
 }
 
-func FetchOrCreateSession(nick string) (*kodingmodels.Session, error) {
-	session, err := modelhelper.GetOneSessionForAccount(nick)
+func FetchOrCreateSession(nick, groupName string) (*kodingmodels.Session, error) {
+	session, err := modelhelper.GetOneSessionForAccount(nick, groupName)
 	if err == nil {
 		return session, nil
 	}
 
-	return modelhelper.CreateSessionForAccount(nick)
+	return modelhelper.CreateSessionForAccount(nick, groupName)
 }
 
 func CreateAccountInBothDbs() (*Account, error) {

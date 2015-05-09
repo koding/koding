@@ -2,12 +2,10 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"os"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
 	"testing"
 	"time"
 
@@ -37,13 +35,12 @@ func TestPopularTopic(t *testing.T) {
 		t.Fatalf("err %s", err.Error())
 	}
 
-	ses, err := models.FetchOrCreateSession(account.Nick)
+	groupName := models.RandomGroupName()
+
+	ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 	if err != nil {
 		panic(err)
 	}
-
-	rand.Seed(time.Now().UnixNano())
-	groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
 	// Since the wercker tests are failing it is skipped for temporarily
 	Convey("order should be preserved", t, func() {

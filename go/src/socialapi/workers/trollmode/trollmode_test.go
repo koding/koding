@@ -4,20 +4,17 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math"
-	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
 	"socialapi/workers/common/response"
 	"socialapi/workers/common/tests"
-	"strconv"
 	"testing"
-	"time"
-
-	"github.com/koding/runner"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -57,12 +54,14 @@ func TestMarkedAsTroll(t *testing.T) {
 
 	Convey("given a controller", t, func() {
 
+		groupName := models.RandomGroupName()
+
 		// cretae admin user
 		adminUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(adminUser, err)
 
 		// fetch admin's session
-		ses, err := models.FetchOrCreateSession(adminUser.Nick)
+		ses, err := models.FetchOrCreateSession(adminUser.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
@@ -79,9 +78,6 @@ func TestMarkedAsTroll(t *testing.T) {
 		normalUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(normalUser, err)
 
-		// create groupName
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 		groupChannel, err := rest.CreateChannelByGroupNameAndType(
 			adminUser.Id,
 			groupName,
@@ -448,6 +444,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// channel
 		Convey("when a troll creates a private channel, normal user should not be able to see it", func() {
+
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
 			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
@@ -467,7 +464,7 @@ func TestMarkedAsTroll(t *testing.T) {
 				}
 			}
 
-			ses, err := models.FetchOrCreateSession("sinan")
+			ses, err := models.FetchOrCreateSession("sinan", groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -510,7 +507,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			// make sure we found sinan in participant list
 			So(sinan, ShouldBeGreaterThan, 0)
 
-			ses, err := models.FetchOrCreateSession("sinan")
+			ses, err := models.FetchOrCreateSession("sinan", groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -586,7 +583,10 @@ func TestMarkedAsTroll(t *testing.T) {
 			post, err := rest.CreatePost(privatemessageChannelId, trollUser.Id)
 			tests.ResultedWithNoErrorCheck(post, err)
 
-			ses, err := models.FetchOrCreateSession(normalUser.Nick)
+			ses, err := models.FetchOrCreateSession(
+				normalUser.Nick,
+				groupName,
+			)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -615,7 +615,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			post, err := rest.CreatePost(privatemessageChannelId, normalUser.Id)
 			tests.ResultedWithNoErrorCheck(post, err)
 
-			ses, err := models.FetchOrCreateSession(trollUser.Nick)
+			ses, err := models.FetchOrCreateSession(trollUser.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -847,7 +847,6 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(channelContainers, ShouldNotBeNil)
-
 			found := false
 			for _, container := range channelContainers {
 				So(container.Channel, ShouldNotBeNil)

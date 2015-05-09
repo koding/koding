@@ -2,15 +2,12 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"net/http"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
-	"strconv"
 	"testing"
-	"time"
 
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
@@ -27,8 +24,7 @@ func TestChannelMessage(t *testing.T) {
 		modelhelper.Initialize(appConfig.Mongo)
 		defer modelhelper.Close()
 
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		groupName := models.RandomGroupName()
 
 		account := models.NewAccount()
 		account.OldId = AccountOldId.Hex()
@@ -37,7 +33,7 @@ func TestChannelMessage(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
 
-		ses, err := models.FetchOrCreateSession(account.Nick)
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 

@@ -8,7 +8,6 @@ import (
 	"socialapi/rest"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
@@ -25,8 +24,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 		modelhelper.Initialize(appConfig.Mongo)
 		defer modelhelper.Close()
 
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		groupName := models.RandomGroupName()
 
 		account := models.NewAccount()
 		account.OldId = AccountOldId.Hex()
@@ -35,7 +33,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 		So(account, ShouldNotBeNil)
 		So(account.Id, ShouldNotEqual, 0)
 
-		ses, err := models.FetchOrCreateSession(account.Nick)
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
