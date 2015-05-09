@@ -1,18 +1,30 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
 	"strconv"
 	"testing"
 
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestFollowedTopics(t *testing.T) {
 	Convey("While testing followed topics", t, func() {
 		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		r := runner.New("rest-tests")
+		err := r.Init()
+		So(err, ShouldBeNil)
+		defer r.Close()
+
+		appConfig := config.MustRead(r.Conf.Path)
+		modelhelper.Initialize(appConfig.Mongo)
+		defer modelhelper.Close()
+
 		Convey("First Create User", func() {
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()

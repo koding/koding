@@ -1,14 +1,17 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"os"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -17,6 +20,14 @@ func TestPopularTopic(t *testing.T) {
 	if env == "wercker" {
 		return
 	}
+	r := runner.New("rest-tests")
+	err := r.Init()
+	So(err, ShouldBeNil)
+	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
 
 	account := models.NewAccount()
 	account.OldId = AccountOldId.Hex()

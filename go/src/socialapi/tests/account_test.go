@@ -1,7 +1,9 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
 	"strconv"
@@ -10,6 +12,7 @@ import (
 
 	"labix.org/v2/mgo/bson"
 
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -59,6 +62,15 @@ func TestAccountCreation(t *testing.T) {
 
 func TestCheckOwnership(t *testing.T) {
 	Convey("accounts can own things", t, func() {
+		r := runner.New("rest-tests")
+		err := r.Init()
+		So(err, ShouldBeNil)
+		defer r.Close()
+
+		appConfig := config.MustRead(r.Conf.Path)
+		modelhelper.Initialize(appConfig.Mongo)
+		defer modelhelper.Close()
+
 		bob := models.NewAccount()
 		bob.Nick = "bob"
 		bob.OldId = bson.NewObjectId().Hex()
