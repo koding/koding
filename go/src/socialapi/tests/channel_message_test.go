@@ -28,9 +28,6 @@ func TestChannelMessage(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
-		c, err := rest.CreateChannel(account.Id, ses.ClientId)
-		So(err, ShouldBeNil)
-
 		nonOwnerAccount := models.NewAccount()
 		nonOwnerAccount.OldId = AccountOldId2.Hex()
 		nonOwnerAccount, err = rest.CreateAccount(nonOwnerAccount)
