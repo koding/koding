@@ -50,7 +50,7 @@ func TestCollaborationSesionEnd(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(owner, ShouldNotBeNil)
 
-		groupName := models.RandomGroupName()
+		groupName := apimodels.RandomGroupName()
 
 		ownerSession, err := apimodels.FetchOrCreateSession(owner.Nick, groupName)
 		So(err, ShouldBeNil)
