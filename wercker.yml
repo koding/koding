@@ -49,23 +49,23 @@ build:
     - script:
         name: create data files
         code: touch INSTANCE_DATA CLIENT_TEST
-    - script:
-        name: launch test instance
-        code: |
-          INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
-          scripts/test-instance/launch $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
-          cat INSTANCE_DATA
+    #- script:
+        #name: launch test instance
+        #code: |
+          #INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
+          #scripts/test-instance/launch $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
+          #cat INSTANCE_DATA
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
         name: client node modules
         code: scripts/install-npm.sh -d client -u -p
-    - script:
-        name: build client
-        code: |
-          make -C client dist
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
+    #- script:
+        #name: build client
+        #code: |
+          #make -C client dist
+          #scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
         code: go/build.sh
