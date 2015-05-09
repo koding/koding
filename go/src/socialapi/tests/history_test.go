@@ -39,7 +39,7 @@ func TestChannelHistory(t *testing.T) {
 			channel, err := rest.CreateChannelByGroupNameAndType(
 				account.Id,
 				groupName,
-				models.Channel_TYPE_TOPIC,
+				models.Channel_TYPE_DEFAULT,
 				ses.ClientId,
 			)
 			So(err, ShouldBeNil)

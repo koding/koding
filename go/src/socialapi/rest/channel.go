@@ -52,12 +52,13 @@ func CountHistory(channelId int64) (*models.CountResponse, error) {
 	return &count, nil
 }
 
-func FetchChannels(accountId int64) ([]*models.Channel, error) {
-	return FetchChannelsByGroupName(accountId, "koding")
-}
+func FetchChannelsByQuery(accountId int64, q *request.Query) ([]*models.Channel, error) {
+	v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
 
-func FetchChannelsByGroupName(accountId int64, groupName string) ([]*models.Channel, error) {
-	url := fmt.Sprintf("/account/%d/channels?groupName=%s", accountId, groupName)
+	url := fmt.Sprintf("/account/%d/channels?%s", accountId, v.Encode())
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err

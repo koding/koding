@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
 	"testing"
 
@@ -75,8 +76,10 @@ func TestGroupChannel(t *testing.T) {
 				ses.ClientId,
 			)
 			So(err, ShouldBeNil)
-
-			channels, err := rest.FetchChannelsByGroupName(account.Id, groupName)
+			channels, err := rest.FetchChannelsByQuery(account.Id, &request.Query{
+				GroupName: groupName,
+				Type:      models.Channel_TYPE_GROUP,
+			})
 			So(err, ShouldBeNil)
 			So(len(channels), ShouldEqual, 2)
 			So(channels[0].TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)

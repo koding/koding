@@ -29,13 +29,12 @@ func TestPopularTopic(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	account := models.NewAccount()
-	account.OldId = AccountOldId.Hex()
-	if err != nil {
-		t.Fatalf("err %s", err.Error())
-	}
-
 	groupName := models.RandomGroupName()
+
+	account, err := models.CreateAccountInBothDbs()
+	if err != nil {
+		panic(err)
+	}
 
 	ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 	if err != nil {
