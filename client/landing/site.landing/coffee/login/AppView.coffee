@@ -202,7 +202,7 @@ module.exports = class LoginView extends JView
       </div>
       <div class="inline-footer">
         <div class="oauth-container">
-          <span class='text'>Or login using: </span>
+          <span class='text'></span>
           {{> @githubIcon}}
           {{> @gplusIcon}}
           {{> @facebookIcon}}

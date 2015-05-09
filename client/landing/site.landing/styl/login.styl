@@ -118,7 +118,7 @@ img.off-screen-login-image
       .oauth-container
         padding         10px 20px
 
-      .text
+      .text:after
         vertical-align  top
         line-height     30px
         color           #7d7d7d
@@ -209,6 +209,8 @@ img.off-screen-login-image
     .recLink
     .login-options-holder.log
       visible()
+    .oauth-container span.text:after
+      content "Or login with:"
 
   &.register
     .rf
@@ -219,6 +221,10 @@ img.off-screen-login-image
       height                auto
       &.taller
         height              470px
+    .oauth-container span.text:after
+      content "Or register with:"
+    .oauth-container span.tw
+      hidden()
 
   &.finishRegistration
     .frf
