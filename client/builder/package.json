@@ -14,7 +14,7 @@
     "coffeeify": "^1.0.0",
     "defined": "0.0.0",
     "exorcist": "^0.1.6",
-    "gloh": "^0.1.2",
+    "@koding/gloh": "^0.1.2",
     "gulp-concat": "^2.5.2",
     "gulp-stylus": "^2.0.1",
     "gulp.spritesmith": "^2.5.1",
