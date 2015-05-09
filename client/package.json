@@ -15,7 +15,7 @@
     "glob": "5.0.3",
     "highlight.js": "8.4.0",
     "htmlencode": "0.0.4",
-    "inherits-underscore": "0.2.0",
+    "@koding/inherits-underscore": "0.2.0",
     "immutable": "3.7.2",
     "is-my-json-valid": "2.10.0",
     "jquery": "2.1.3",
