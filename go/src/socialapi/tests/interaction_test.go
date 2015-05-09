@@ -35,7 +35,12 @@ func TestInteractionLikedMessages(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
-		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+		groupChannel, err := rest.CreateChannelByGroupNameAndType(
+			account.Id,
+			groupName,
+			models.Channel_TYPE_GROUP,
+			ses.ClientId,
+		)
 		So(err, ShouldBeNil)
 		So(groupChannel, ShouldNotBeNil)
 

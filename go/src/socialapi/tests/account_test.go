@@ -65,6 +65,10 @@ func TestCheckOwnership(t *testing.T) {
 		bobsAccount, err := rest.CreateAccount(bob)
 		So(err, ShouldBeNil)
 
+		bobsses, err := models.FetchOrCreateSession(bob.Nick)
+		So(err, ShouldBeNil)
+		So(bobsses, ShouldNotBeNil)
+
 		ted := models.NewAccount()
 		ted.Nick = "ted"
 		ted.OldId = bson.NewObjectId().Hex()
@@ -74,7 +78,7 @@ func TestCheckOwnership(t *testing.T) {
 		rand.Seed(time.Now().UnixNano())
 		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-		bobsGroup, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_GROUP)
+		bobsGroup, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_GROUP, bobsses.ClientId)
 		So(err, ShouldBeNil)
 
 		bobsPost, err := rest.CreatePost(bobsGroup.Id, bobsAccount.Id)
@@ -92,7 +96,7 @@ func TestCheckOwnership(t *testing.T) {
 			So(isOwner, ShouldBeFalse)
 		})
 
-		bobsChannel, err := rest.CreateChannel(bob.Id)
+		bobsChannel, err := rest.CreateChannel(bob.Id, bobsses.ClientId)
 		So(err, ShouldBeNil)
 
 		Convey("it should say when an account owns a channel", func() {
@@ -119,8 +123,12 @@ func TestAccountFetchProfile(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc1, ShouldNotBeNil)
 
+		ses, err := models.FetchOrCreateSession(acc1.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
 		// create channel
-		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP)
+		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP, ses.ClientId)
 		So(err, ShouldBeNil)
 		So(channel, ShouldNotBeNil)
 
@@ -148,8 +156,12 @@ func TestAccountProfilePostCount(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc1, ShouldNotBeNil)
 
+		ses, err := models.FetchOrCreateSession(acc1.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
 		// create channel
-		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP)
+		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP, ses.ClientId)
 		So(err, ShouldBeNil)
 		So(channel, ShouldNotBeNil)
 

@@ -35,7 +35,12 @@ func TestSaveDailyDigestNotification(t *testing.T) {
 		acc2, err := models.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
 
-		channel, err := rest.CreateChannel(acc1.Id)
+		// fetch admin's session
+		ses, err := models.FetchOrCreateSession(account.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		channel, err := rest.CreateChannel(acc1.Id, ses.ClientId)
 		So(err, ShouldBeNil)
 
 		cp := rest.NewCreatePost(channel.Id, acc1.Id, acc2.Id)

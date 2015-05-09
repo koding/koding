@@ -31,13 +31,13 @@ func TestChannelHistory(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel, err = rest.CreateChannel(account.Id)
-			So(err, ShouldBeNil)
-			So(channel, ShouldNotBeNil)
-
 			ses, err := models.FetchOrCreateSession(account.Nick)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
+
+			channel, err := rest.CreateChannel(account.Id, ses.ClientId)
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
 
 			Convey("While posting a new message to it", func() {
 				var channelParticipant *models.ChannelParticipant
@@ -70,7 +70,12 @@ func TestChannelHistory(t *testing.T) {
 							So(len(history.MessageList), ShouldEqual, 10)
 
 							SkipConvey("After linking to another channel", func() {
-								c2, err := rest.CreateChannelByGroupNameAndType(account.Id, channel.GroupName, models.Channel_TYPE_TOPIC)
+								c2, err := rest.CreateChannelByGroupNameAndType(
+									account.Id,
+									channel.GroupName,
+									models.Channel_TYPE_TOPIC,
+									ses.ClientId,
+								)
 								So(err, ShouldBeNil)
 								So(c2, ShouldNotBeNil)
 

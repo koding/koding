@@ -371,26 +371,6 @@ func addRepliesToMessage(channelId, accountId, messageId int64) {
 	So(mr.Create(), ShouldBeNil)
 }
 
-// func createMessageWithTest() *ChannelMessage {
-// 	cm := NewChannelMessage()
-// 	// init account
-// 	account, err := createAccount()
-// 	So(err, ShouldBeNil)
-// 	So(account, ShouldNotBeNil)
-// 	So(account.Id, ShouldNotEqual, 0)
-// 	// init channel
-// 	channel, err := createChannel(account.Id)
-// 	So(err, ShouldBeNil)
-// 	So(channel, ShouldNotBeNil)
-// 	// set account id
-// 	cm.AccountId = account.Id
-// 	// set channel id
-// 	cm.InitialChannelId = channel.Id
-// 	// set body
-// 	cm.Body = "5five"
-// 	return cm
-// }
-
 func createAccount() (*models.Account, error) {
 	// create and account instance
 	account := models.NewAccount()

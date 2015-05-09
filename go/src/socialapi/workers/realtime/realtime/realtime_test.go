@@ -30,10 +30,20 @@ func TestAddRemoveChannelParticipant(t *testing.T) {
 		account, err := rest.CreateAccount(account)
 		So(err, ShouldBeNil)
 
+		// fetch admin's session
+		ses, err := models.FetchOrCreateSession(account.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
 		Convey("When user follows/unfollows a topic, they must be notified", func() {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			topicChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_TOPIC)
+			topicChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_TOPIC,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(topicChannel, ShouldNotBeNil)
 			pe.Id = topicChannel.Id
@@ -56,7 +66,12 @@ func TestAddRemoveChannelParticipant(t *testing.T) {
 		Convey("When user joins a topic, only participant user must be notified", func() {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			privateChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_PRIVATE_MESSAGE)
+			privateChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_PRIVATE_MESSAGE,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(privateChannel, ShouldNotBeNil)
 			pe.Id = privateChannel.Id
@@ -74,7 +89,12 @@ func TestAddRemoveChannelParticipant(t *testing.T) {
 		Convey("When user leaves a topic, all participants musts be notified", func() {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			privateChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_PRIVATE_MESSAGE)
+			privateChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_PRIVATE_MESSAGE,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(privateChannel, ShouldNotBeNil)
 			pe.Id = privateChannel.Id

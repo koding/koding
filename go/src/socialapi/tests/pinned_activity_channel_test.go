@@ -23,13 +23,22 @@ func TestPinnedActivityChannel(t *testing.T) {
 		So(account, ShouldNotBeNil)
 		So(account.Id, ShouldNotEqual, 0)
 
+		ses, err := models.FetchOrCreateSession(account.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
 		nonOwnerAccount := models.NewAccount()
 		nonOwnerAccount.OldId = AccountOldId.Hex()
 		nonOwnerAccount, err = rest.CreateAccount(nonOwnerAccount)
 		So(err, ShouldBeNil)
 		So(nonOwnerAccount, ShouldNotBeNil)
 
-		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+		groupChannel, err := rest.CreateChannelByGroupNameAndType(
+			account.Id,
+			groupName,
+			models.Channel_TYPE_GROUP,
+			ses.ClientId,
+		)
 		So(err, ShouldBeNil)
 		So(groupChannel, ShouldNotBeNil)
 
@@ -112,7 +121,12 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(pinnedChannel, ShouldNotBeNil)
 
-			groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_DEFAULT)
+			groupChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_DEFAULT,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(groupChannel, ShouldNotBeNil)
 

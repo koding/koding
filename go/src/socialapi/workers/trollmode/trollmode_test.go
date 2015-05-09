@@ -61,6 +61,11 @@ func TestMarkedAsTroll(t *testing.T) {
 		adminUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(adminUser, err)
 
+		// fetch admin's session
+		ses, err := models.FetchOrCreateSession(adminUser.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
 		// create troll user
 		trollUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(trollUser, err)
@@ -81,6 +86,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			adminUser.Id,
 			groupName,
 			models.Channel_TYPE_GROUP,
+			ses.ClientId,
 		)
 		tests.ResultedWithNoErrorCheck(groupChannel, err)
 

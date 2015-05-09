@@ -24,13 +24,20 @@ func TestChannelMessage(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
 
+		ses, err := models.FetchOrCreateSession(account.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		c, err := rest.CreateChannel(account.Id, ses.ClientId)
+		So(err, ShouldBeNil)
+
 		nonOwnerAccount := models.NewAccount()
 		nonOwnerAccount.OldId = AccountOldId2.Hex()
 		nonOwnerAccount, err = rest.CreateAccount(nonOwnerAccount)
 		So(err, ShouldBeNil)
 		So(nonOwnerAccount, ShouldNotBeNil)
 
-		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
 		So(err, ShouldBeNil)
 		So(groupChannel, ShouldNotBeNil)
 
@@ -59,7 +66,7 @@ func TestChannelMessage(t *testing.T) {
 		})
 
 		Convey("topic messages initialChannelId must be set as owner group channel id", func() {
-			topicChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, "koding", models.Channel_TYPE_TOPIC)
+			topicChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, "koding", models.Channel_TYPE_TOPIC, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(topicChannel, ShouldNotBeNil)
 

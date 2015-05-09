@@ -106,15 +106,15 @@ func DeleteChannel(creatorId, channelId int64) error {
 	return nil
 }
 
-func CreateChannel(creatorId int64) (*models.Channel, error) {
-	return CreateChannelWithType(creatorId, models.Channel_TYPE_DEFAULT)
+func CreateChannel(creatorId int64, token string) (*models.Channel, error) {
+	return CreateChannelWithType(creatorId, models.Channel_TYPE_DEFAULT, token)
 }
 
-func CreateChannelWithType(creatorId int64, typeConstant string) (*models.Channel, error) {
+func CreateChannelWithType(creatorId int64, typeConstant, token string) (*models.Channel, error) {
 	c := buildChannelWithRandomGroup(creatorId)
 	c.TypeConstant = typeConstant
 
-	return CreateChannelByGroupNameAndType(creatorId, c.GroupName, typeConstant)
+	return CreateChannelByGroupNameAndType(creatorId, c.GroupName, typeConstant, token)
 }
 
 func CreatePublicChannel(creatorId int64, groupName string) (*models.Channel, error) {
@@ -141,18 +141,25 @@ func buildChannelWithRandomGroup(creatorId int64) *models.Channel {
 	return c
 }
 
-func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant string) (*models.Channel, error) {
+func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant, token string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.GroupName = groupName
 	c.CreatorId = creatorId
 	c.TypeConstant = typeConstant
 	c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
 	c.Name = c.Name + strconv.Itoa(rand.Intn(100000000))
-	cm, err := sendModel("POST", "/channel", c)
+	res, err := marshallAndSendRequestWithAuth("POST", "/channel", c, token)
 	if err != nil {
 		return nil, err
 	}
-	return cm.(*models.Channel), nil
+
+	cc := models.NewChannelContainer()
+	err = json.Unmarshal(res, cc)
+	if err != nil {
+		return nil, err
+	}
+
+	return cc.Channel, nil
 }
 
 func UpdateChannel(cm *models.Channel, token string) (*models.Channel, error) {

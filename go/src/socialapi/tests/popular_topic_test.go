@@ -26,6 +26,10 @@ func TestPopularTopic(t *testing.T) {
 		t.Fatalf("err %s", err.Error())
 	}
 
+	ses, err := models.FetchOrCreateSession(account.Nick)
+	So(err, ShouldBeNil)
+	So(ses, ShouldNotBeNil)
+
 	rand.Seed(time.Now().UnixNano())
 	groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
@@ -33,7 +37,12 @@ func TestPopularTopic(t *testing.T) {
 	Convey("order should be preserved", t, func() {
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
-		channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+		channel1, err := rest.CreateChannelByGroupNameAndType(
+			account.Id,
+			groupName,
+			models.Channel_TYPE_GROUP,
+			ses.ClientId,
+		)
 		So(err, ShouldBeNil)
 		So(channel1, ShouldNotBeNil)
 

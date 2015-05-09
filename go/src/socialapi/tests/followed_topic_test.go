@@ -21,17 +21,31 @@ func TestFollowedTopics(t *testing.T) {
 			So(account, ShouldNotBeNil)
 			So(account.Id, ShouldNotEqual, 0)
 
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			nonOwnerAccount := models.NewAccount()
 			nonOwnerAccount.OldId = AccountOldId.Hex()
 			nonOwnerAccount, err = rest.CreateAccount(nonOwnerAccount)
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
-			topicChannel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_TOPIC)
+			topicChannel1, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_TOPIC,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(topicChannel1, ShouldNotBeNil)
 
-			topicChannel2, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_TOPIC)
+			topicChannel2, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_TOPIC,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(topicChannel2, ShouldNotBeNil)
 
