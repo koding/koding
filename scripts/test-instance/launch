@@ -52,7 +52,7 @@ userData =
 
 params =
   ImageId          : (require './instance-ami.coffee').current
-  InstanceType     : 'c3.xlarge'
+  InstanceType     : 'm3.large'
   MinCount         : argv.count
   MaxCount         : argv.count
   SubnetId         : 'subnet-b47692ed'
