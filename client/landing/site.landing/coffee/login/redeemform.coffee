@@ -18,7 +18,7 @@ module.exports = class RedeemInlineForm extends LoginViewInlineForm
             required  : "Please enter your invite code."
 
     @button = new KDButtonView
-      title       : "Redeem"
+      title       : "REDEEM"
       style       : "solid medium green"
       type        : 'submit'
       loader      : yes

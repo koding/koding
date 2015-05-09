@@ -9,7 +9,7 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
     @usernameOrEmail = new LoginInputView
       inputOptions    :
         name          : "email"
-        placeholder   : "email"
+        placeholder   : "Email address"
         testPath      : "recover-password-input"
         validate      :
           container   : this
@@ -19,14 +19,14 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
             required  : "Please enter your email."
 
     @button = new KDButtonView
-      title       : "Recover password"
+      title       : "RECOVER PASSWORD"
       style       : "solid medium green"
       type        : 'submit'
       loader      : yes
 
-    
+
   reset: ->
-      
+
       super
       @button.hideLoader()
 

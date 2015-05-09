@@ -7,12 +7,25 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
     super
 
+    { oauthController } = KD.singletons
+
     @github = new CustomLinkView
-      cssClass : 'octo'
+      cssClass : 'gh'
       title    : 'Sign up with GitHub'
       alt      : 'Sign up with GitHub'
-      click    : ->
-        KD.singletons.oauthController.openPopup "github"
+      click    : -> oauthController.redirectToOauth 'github'
+
+    @google = new CustomLinkView
+      cssClass : 'go'
+      title    : 'Sign up with Google'
+      alt      : 'Sign up with Google'
+      click    : -> oauthController.redirectToOauth 'google'
+
+    @facebook = new CustomLinkView
+      cssClass : 'fb'
+      title    : 'Sign up with Facebook'
+      alt      : 'Sign up with Facebook'
+      click    : -> oauthController.redirectToOauth 'facebook'
 
     @email.setOption 'stickyTooltip', yes
     @password.setOption 'stickyTooltip', yes
@@ -35,13 +48,19 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
     @oauthData = oauthData
     { input }  = @email
 
+    { username, firstName, lastName } = oauthData
+
     input.setValue oauthData.email
     @email.placeholder.setClass 'out'
 
-    @emailIsAvailable = no
+    @emailIsAvailable = yes
     @once 'gravatarInfoFetched', (gravatar) =>
       # oath username has more priority over gravatar username
-      gravatar.preferredUsername = @oauthData.username  if @oauthData.username
+      gravatar.preferredUsername = username  if username
+      gravatar.name =
+        givenName  : firstName
+        familyName : lastName
+
       input.validate()
 
     @fetchGravatarInfo input.getValue()
@@ -76,5 +95,9 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       <div class='fl password'>{{> @password}}</div>
       <div class='fl submit'>{{> @button}}</div>
       {{> @github}}
+      <div class='buttons-extra'>
+        {{> @google}}
+        {{> @facebook}}
+      </div>
     </section>
     """

@@ -90,20 +90,9 @@ module.exports = class LoginView extends JView
       click       : (event)->
         return  unless $(event.target).is 'a.register'
 
-    if KD.utils.oauthEnabled() is yes
-      @github = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "github-login"
-        partial     : "Sign in using <strong>GitHub</strong>"
-        click       : -> KD.singletons.oauthController.openPopup "github"
-
-    else
-      @github = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "github-login"
-        partial     : "<a href='http://koding.com'>Learn more</a>"
-
-    @github.setPartial "<span class='button-arrow'></span>"
+    @signupLink = new KDCustomHTMLView
+      cssClass  : 'signup-link'
+      partial   : @generateFormHeaderPartial()
 
     @loginForm = new LoginInlineForm
       cssClass : 'login-form'
@@ -135,6 +124,28 @@ module.exports = class LoginView extends JView
       domId    : 'invite-recovery-notification-bar'
       cssClass : 'invite-recovery-notification-bar hidden'
       partial  : '...'
+
+    {oauthController} = KD.singletons
+
+    @githubIcon = new KDCustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'gh icon'
+      click     : -> oauthController.redirectToOauth 'github'
+
+    @gplusIcon = new KDCustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'go icon'
+      click     : -> oauthController.redirectToOauth 'google'
+
+    @facebookIcon = new KDCustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'fb icon'
+      click     : -> oauthController.redirectToOauth 'facebook'
+
+    @twitterIcon = new KDCustomHTMLView
+      tagName   : 'span'
+      cssClass  : 'tw icon'
+      click     : -> oauthController.redirectToOauth 'twitter'
 
     KD.singletons.router.on 'RouteInfoHandled', =>
       @signupModal?.destroy()
@@ -168,27 +179,38 @@ module.exports = class LoginView extends JView
     <div class='tint'></div>
     {{> @logo }}
     <div class="flex-wrapper">
-      {{> @formHeader}}
-      <div class="login-form-holder lf">
-        {{> @loginForm}}
+      <div class="form-area">
+        {{> @formHeader}}
+        <div class="login-form-holder lf">
+          {{> @loginForm}}
+        </div>
+        <div class="login-form-holder rf">
+          {{> @registerForm}}
+        </div>
+        <div class="login-form-holder rdf">
+          {{> @redeemForm}}
+        </div>
+        <div class="login-form-holder rcf">
+          {{> @recoverForm}}
+        </div>
+        <div class="login-form-holder rsf">
+          {{> @resetForm}}
+        </div>
+        <div class="login-form-holder resend-confirmation-form">
+          {{> @resendForm}}
+        </div>
       </div>
-      <div class="login-form-holder rf">
-        {{> @registerForm}}
-      </div>
-      <div class="login-form-holder rdf">
-        {{> @redeemForm}}
-      </div>
-      <div class="login-form-holder rcf">
-        {{> @recoverForm}}
-      </div>
-      <div class="login-form-holder rsf">
-        {{> @resetForm}}
-      </div>
-      <div class="login-form-holder resend-confirmation-form">
-        {{> @resendForm}}
+      <div class="inline-footer">
+        <div class="oauth-container">
+          <span class='text'></span>
+          {{> @githubIcon}}
+          {{> @gplusIcon}}
+          {{> @facebookIcon}}
+          {{> @twitterIcon}}
+        </div>
       </div>
       <div class="login-footer">
-        {{> @github}} {{> @goToRecoverLink}}
+        {{> @signupLink}} <b>&middot;</b> {{> @goToRecoverLink}}
       </div>
     </div>
     <footer>
@@ -347,6 +369,7 @@ module.exports = class LoginView extends JView
                 title                 : 'LET\'S GO'
                 style                 : 'solid green medium'
                 type                  : 'submit'
+
     @signupModal.setOption 'userData', formData
 
     usernameView = @signupModal.modalTabs.forms.extraInformation.inputs.username
@@ -529,7 +552,11 @@ module.exports = class LoginView extends JView
   doLogin: (formData) ->
 
     { mainController } = KD.singletons
-    mainController.on 'LoginFailed', => @loginForm.button.hideLoader()
+    mainController.on 'LoginFailed', =>
+      @loginForm.button.hideLoader()
+      @$('.flex-wrapper').removeClass 'shake'
+      KD.utils.defer => @$('.flex-wrapper').addClass 'animate shake'
+
     mainController.login formData
 
 
@@ -606,32 +633,36 @@ module.exports = class LoginView extends JView
     @$('.flex-wrapper').removeClass 'three one'
 
     @formHeader.hide()
-    @github.show()
     @goToRecoverLink.show()
 
     switch name
       when "register"
         @registerForm.email.input.setFocus()
+        @$('.login-footer').hide()
       when "redeem"
         @$('.flex-wrapper').addClass 'one'
         @redeemForm.inviteCode.input.setFocus()
+        @$('.inline-footer').hide()
+        @$('.login-footer').hide()
       when "login"
-        @formHeader.show()
-        @formHeader.updatePartial @generateFormHeaderPartial()
         @loginForm.username.input.setFocus()
       when "recover"
         @$('.flex-wrapper').addClass 'one'
-        @github.hide()
         @goToRecoverLink.hide()
         @recoverForm.usernameOrEmail.input.setFocus()
+        @$('.inline-footer').hide()
+        @$('.login-footer').hide()
       when "resendEmail"
         @$('.flex-wrapper').addClass 'one'
         @resendForm.usernameOrEmail.input.setFocus()
+        @$('.inline-footer').hide()
+        @$('.login-footer').hide()
       when "reset"
         @formHeader.show()
         @formHeader.updatePartial "Set your new password below"
         @goToRecoverLink.hide()
-        @github.hide()
+        @$('.inline-footer').hide()
+        @$('.login-footer').hide()
 
 
   generateFormHeaderPartial: (data = {}) ->

@@ -81,19 +81,12 @@ module.exports = class LoginView extends JView
       click       : (event)->
         return  unless $(event.target).is 'a.register'
 
-
-    if KD.utils.oauthEnabled() is yes
-      @github          = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "github-login"
-        partial     : "Sign in using <strong>GitHub</strong>"
-        click       : ->
-          KD.singletons.oauthController.openPopup "github"
-    else
-      @github = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "github-login"
-        partial     : "<a href='http://koding.com'>Learn more</a>"
+    @github = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "github-login"
+      partial     : "Sign in using <strong>GitHub</strong>"
+      click       : ->
+        KD.singletons.oauthController.openPopup "github"
 
     @github.setPartial "<span class='button-arrow'></span>"
 
