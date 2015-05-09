@@ -2,10 +2,13 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/runner"
@@ -36,6 +39,18 @@ func TestChannelCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
+			rand.Seed(time.Now().UnixNano())
+			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
+			groupChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
+			So(err, ShouldBeNil)
+			So(groupChannel, ShouldNotBeNil)
+
 			nonOwnerAccount := models.NewAccount()
 			nonOwnerAccount.OldId = AccountOldId2.Hex()
 			nonOwnerAccount, err = rest.CreateAccount(nonOwnerAccount)
@@ -49,7 +64,7 @@ func TestChannelCreation(t *testing.T) {
 			Convey("we should be able to create it", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
 					account1.Id,
-					"testgroup",
+					groupName,
 					models.Channel_TYPE_PRIVATE_MESSAGE,
 					ses.ClientId,
 				)
@@ -128,7 +143,7 @@ func TestChannelCreation(t *testing.T) {
 			Convey("normal user shouldnt be able to add new participants to pinned activity channel", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
 					account1.Id,
-					"testgroup",
+					groupName,
 					models.Channel_TYPE_PINNED_ACTIVITY,
 					ses.ClientId,
 				)
@@ -145,7 +160,7 @@ func TestChannelCreation(t *testing.T) {
 			Convey("owner should be able list participants", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
 					account1.Id,
-					"testgroup",
+					groupName,
 					models.Channel_TYPE_DEFAULT,
 					ses.ClientId,
 				)
@@ -185,7 +200,7 @@ func TestChannelCreation(t *testing.T) {
 			Convey("normal user should be able to list participants", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
 					account1.Id,
-					"testgroup",
+					groupName,
 					models.Channel_TYPE_DEFAULT,
 					ses.ClientId,
 				)
