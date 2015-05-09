@@ -68,7 +68,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     @labelView = new kd.View
       tagName  : 'span'
-      cssClass : 'label'
+      cssClass : 'label column'
       click    : @bound 'toggleEditable'
 
     @infoRenameBtn = new kd.ButtonView
@@ -90,12 +90,10 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       cssClass        : 'edit hidden'
       pistachioParams : { @editInput, @editRenameBtn, @editCancelBtn }
       pistachio       : """
-        <div>
-          {{> editInput}}
-          <div class="buttons">
-            {{> editCancelBtn}}
-            {{> editRenameBtn}}
-          </div>
+        {{> editInput}}
+        <div class="buttons">
+          {{> editCancelBtn}}
+          {{> editRenameBtn}}
         </div>
         """
 
@@ -104,14 +102,13 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       pistachioParams : { @labelView, @infoRenameBtn, @infoDeleteBtn,
         @infoNewVmBtn }
       pistachio       : """
-        <div>
-          {{> labelView}}
-          <span class="meta">size: #{data.storageSize}GB, created: #{SnapshotListItem.prettyCreatedAt data.createdAt}</span>
-          <div class="buttons">
-            {{> infoRenameBtn}}
-            {{> infoDeleteBtn}}
-            {{> infoNewVmBtn}}
-          </div>
+        {{> labelView}}
+        <span class="meta column">#{SnapshotListItem.prettyCreatedAt data.createdAt}</span>
+        <span class="meta column">#{data.storageSize}GB</span>
+        <div class="buttons">
+          {{> infoRenameBtn}}
+          {{> infoDeleteBtn}}
+          {{> infoNewVmBtn}}
         </div>
         """
 

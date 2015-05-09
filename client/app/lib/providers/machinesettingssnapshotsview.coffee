@@ -4,6 +4,7 @@ Encoder                     = require 'htmlencode'
 { handleNewMachineRequest } = require './computehelpers'
 snapshotHelpers             = require './snapshothelpers'
 fetchIdeByMachine           = require '../util/fetchIdeByMachine'
+JView                       = require '../jview'
 ComputeErrorUsageModal      = require './computeerrorusagemodal'
 MachineSettingsCommonView   = require './machinesettingscommonview'
 SnapshotListItem            = require './snapshotlistitem'
@@ -54,6 +55,35 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     hobbyist     : 1
     developer    : 3
     professional : 5
+
+
+  ###*
+   * Create the header views. Called via MachineSettingsCommonView
+  ###
+  createHeader: ->
+
+    { headerTitle, headerAddButtonTitle
+      addButtonCssClass, loaderOnHeaderButton } = @getOptions()
+
+    @headerAddNewButton = new kd.ButtonView
+      title    : headerAddButtonTitle
+      cssClass : "solid green compact add-button #{addButtonCssClass}"
+      loader   : loaderOnHeaderButton
+      callback : @bound 'showAddView'
+
+    @addSubView new JView
+      tagName         : 'h4'
+      cssClass        : 'kdview kdheaderview'
+      pistachioParams : { @headerAddNewButton }
+      pistachio       : """
+        <span class="column">Name</span>
+        <span class="column">Created at</span>
+        <span class="column">Size</span>
+        {{> headerAddNewButton}}
+        """
+
+    @addSubView @notificationView = new kd.CustomHTMLView
+      cssClass : 'notification hidden'
 
 
   ###*
