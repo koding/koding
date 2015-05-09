@@ -67,8 +67,12 @@ func Create(u *url.URL, h http.Header, req *models.Channel, context *models.Cont
 		}
 	}
 
-	q := request.GetQuery(u)
-	return handleChannelResponse(*req, q)
+	cc := models.NewChannelContainer()
+	if err := cc.PopulateWith(*req, context.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(cc)
 }
 
 // List lists only topic channels
