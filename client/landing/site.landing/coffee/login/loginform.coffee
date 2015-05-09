@@ -11,7 +11,7 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : 'username'
         forceCase     : 'lowercase'
-        placeholder   : 'username or email'
+        placeholder   : 'Username or Email'
         testPath      : 'login-form-username'
         attributes    :
           testpath    : 'login-form-username'
@@ -26,7 +26,7 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : 'password'
         type          : 'password'
-        placeholder   : 'password'
+        placeholder   : 'Password'
         testPath      : 'login-form-password'
         attributes    :
           testpath    : 'login-form-password'

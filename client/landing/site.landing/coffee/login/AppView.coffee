@@ -552,7 +552,11 @@ module.exports = class LoginView extends JView
   doLogin: (formData) ->
 
     { mainController } = KD.singletons
-    mainController.on 'LoginFailed', => @loginForm.button.hideLoader()
+    mainController.on 'LoginFailed', =>
+      @loginForm.button.hideLoader()
+      @$('.flex-wrapper').removeClass 'shake'
+      KD.utils.defer => @$('.flex-wrapper').addClass 'animate shake'
+
     mainController.login formData
 
 
