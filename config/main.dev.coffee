@@ -1049,7 +1049,7 @@ Configuration = (options={}) ->
       function importusers () {
 
         cd #{projectRoot}
-        node #{projectRoot}/scripts/user-importer
+        node #{projectRoot}/scripts/user-importer -c dev
 
         migrateusers
 
