@@ -14,6 +14,7 @@ PASS_THROUGH = (..., callback)-> callback null
 module.exports = class ProviderInterface
 
   @providerSlug   = 'baseprovider'
+  @bootstrapKeys  = []
 
   @ping           = NOT_IMPLEMENTED
 

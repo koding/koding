@@ -247,7 +247,12 @@ module.exports = class ComputeProvider extends Base
 
           queue.push ->
 
-            machineInfo.stack = stack
+            machineInfo.stack         = stack
+
+            # We are passing the provided credential for the template
+            # Provider implementation can override this value like we
+            # did in Koding Provider ~ GG
+            machineInfo.credential    = template.credentials?.first
             machineInfo.generatedFrom =
               templateId : template._id
               revision   : stackRevision
