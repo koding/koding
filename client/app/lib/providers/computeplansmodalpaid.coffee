@@ -71,7 +71,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     @snapshotsContainer.addSubView @snapshotsSelector = new KDSelectBox
       name          : 'snapshots'
-      selectOptions : [ title: 'None', value: null ]
+      selectOptions : [ title: 'None', value: "" ]
       callback      : =>
         # Update the usage text with the value of the slider
         #
@@ -159,8 +159,8 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
       @snapshotsSelector.setSelectOptions formatted
       # Set the selected option to the Modal's option.snapshotId,
-      # defaulting to the None item (null value)
-      @snapshotsSelector.setValue defaultSnapshotId ? null
+      # defaulting to the None item ("" value)
+      @snapshotsSelector.setValue defaultSnapshotId ? ""
       @snapshotsContainer.show()
 
       # Update the usage text with the value of the slider
@@ -247,10 +247,10 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     { computeController } = kd.singletons
 
-    stack = computeController.stacks.first._id
-    storage = @storageSlider.handles.first.value
-    region = @regionSelector.getValue()
-    snapshotId = @snapshotsSelector.getValue()
+    stack      = computeController.stacks.first._id
+    storage    = @storageSlider.handles.first.value
+    region     = @regionSelector.getValue()
+    snapshotId = @snapshotsSelector.getValue() ? null
 
     computeController.create {
       provider : "koding", stack, storage, region, snapshotId
