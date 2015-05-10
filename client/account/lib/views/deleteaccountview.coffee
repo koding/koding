@@ -15,20 +15,6 @@ module.exports = class DeleteAccountView extends JView
     @button = new KDButtonView
       title      : "Delete Account"
       cssClass   : "delete-account solid red fr small"
-      bind       : "mouseenter"
-      mouseenter : do ->
-        times = 0
-        ->
-          switch times
-            when 0 then @setTitle "Are you sure?!"
-            when 1 then @setTitle "OK, go ahead :)"
-            else
-              kd.utils.wait 5000, =>
-                times = 0
-                @setTitle "Delete Account"
-              return
-          @toggleClass 'escape'
-          times++
       callback   : ->
         @disable()
         deleteModalView = new DeleteModalView
