@@ -133,8 +133,8 @@ module.exports = class NotificationListItemView extends KDListItemView
         @participants = new options.linkGroupClass {group: actors}
         @avatar       = new options.avatarClass
           size     :
-            width  : 24
-            height : 24
+            width  : 30
+            height : 30
           origin   : @actors[0]
         resolve()
 
