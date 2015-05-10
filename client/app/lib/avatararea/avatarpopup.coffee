@@ -39,18 +39,12 @@ module.exports = class AvatarPopup extends KDView
 
 
   _windowDidResize:->
-    if @listController
-      {scrollView}             = @listController
-      windowHeight             = $(global).height()
-      avatarTopOffset          = @$().offset().top
-      avatarBottomOffset       = 65
-      avatarTopOffsetThreshold = 50
 
-      return  if avatarTopOffset > avatarTopOffsetThreshold
+    return  unless @listController
 
-      scrollView.$().css
-        maxHeight : windowHeight - avatarBottomOffset - avatarTopOffsetThreshold
+    { scrollView }  = @listController
+    windowHeight    = window.innerHeight
+    offset          = 65 + 50 # bottom offset + min top offset
+    maxHeight       = windowHeight - offset
 
-  accountChanged:->
-    @notLoggedInWarning.hide()
-    @avatarPopupContent.show()
+    scrollView.setCss { maxHeight }
