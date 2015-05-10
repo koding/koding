@@ -42,7 +42,7 @@ func CreateTypedChannelWithTest(accountId int64, typeConstant string) *Channel {
 	// create and account instance
 	channel := NewChannel()
 	channel.Name = RandomName()
-	// there is a check for group channels for unsuring that there will be only
+	// there is a check for group channels for ensuring that there will be only
 	// one group channel at a time, override that
 	channel.GroupName = RandomName()
 	channel.TypeConstant = typeConstant
