@@ -179,10 +179,8 @@ module.exports = class NotificationListItemView extends KDListItemView
 
   pistachio: ->
     """
-    <div class='avatar-wrapper fl'>
-      {{> @avatar}}
-    </div>
-    <div class='right-overflow fl'>
+    <div class='avatar-wrapper fl'>{{> @avatar}}</div>
+    <div class='right-overflow'>
       {{> @participants}}
       {{  @getActionPhrase #(dummy)}}
       {{> @activityPlot}}
