@@ -7,74 +7,81 @@ resurrection.account.dropdown.styl
 */
 }
 .avatararea-popup
-  font-family             adelleFamily
-  bottom                  65px
-  bg                      color, #F3F3F3
-  z-index                 100
-  display                 none
-  rounded                 3px
-  box-shadow              0 12px 19px rgba(0,0,0,0.5)
+  font-family               adelleFamily
+  bottom                    65px
+  bg                        color, #F3F3F3
+  z-index                   100
+  display                   none
+  rounded                   3px
+  box-shadow                0 12px 19px rgba(0,0,0,0.5)
   borderBox()
   fix()
 
   &.active
-    display               block
+    display                 block
 
   .content
-    width                 auto
-    color                 #A0A0A0
+    width                   auto
+    color                   #A0A0A0
+    overflow                hidden
+    rounded                 3px
 
     > a
-      size                auto, 31px
-      line-height         30px
-      rounded             3px
-      display             block
-      color               #a0a0a0
-      font-size           14px
-      font-weight         400
-      opacity             .99
-      text-indent         9px
+      size                  auto, 31px
+      line-height           30px
+      rounded               2px
+      display               block
+      color                 #5C5C5C
+      font-size             14px
+      font-weight           400
+      opacity               .99
+      text-indent           9px
       noTextDeco()
 
       &:hover
-        color             #444444
-        bg                color, #E7E7E7
+        color               #1C1C1C
+        bg                  color #E7E7E7
 
       &.support
-        border-bottom     1px solid #E7E7E7
+        border-bottom       1px solid #E7E7E7
+        rounded             2px 2px 0 0
+        &:hover
+          border-bottom     1px solid transparent
+          rounded           2px
+
+  &.account
+    size                    190px, auto
+    left                    105px
+
+    .content
+      padding               10px
+
+    &:after
+      left                  72px
+
 
 .avatararea-popup:after
-  content                 ''
-  display                 block
-  width                   0
-  height                  0
-  border-left             6px solid transparent
-  border-right            6px solid transparent
-  border-top              7px solid #f3f3f3
-  position                absolute
-  bottom                  -7px
-
-.group-switcher
-  size                    190px, auto
-  left                    105px
-
-  .content
-    padding               10px
-
-  &:after
-    left                  72px
+  content                   ''
+  display                   block
+  width                     0
+  height                    0
+  border-left               6px solid transparent
+  border-right              6px solid transparent
+  border-top                7px solid #f3f3f3
+  position                  absolute
+  bottom                    -7px
 
 .popup-notifications
-  size                    auto, auto
-  left                    210px
+  size                      405px auto
+  left                      210px
 
   &:after
-    left                  19px
+    left                    19px
 
   .avatararea-popup-list
     > a
-      padding             14px
-      border-bottom       1px solid #E7E7E7
+      padding               14px
+      border-bottom         1px solid #E7E7E7
       borderBox()
 
       &:last-child
@@ -82,48 +89,47 @@ resurrection.account.dropdown.styl
 
 
 .notification-list
+
   .no-item-found
-    font-size     12px
+    font-size     14px
     text-align    center
-    padding       10px
+    padding       22px 30px
     borderBox()
 
   .lazy-loader
     display       none
 
 .notification-list .kdlistitemview
-  display         block
-  min-height      35px
-  font-size       12px
-  cursor          pointer
-  line-height     12px
-  color           #525252
+  display                   block
+  min-height                35px
+  font-size                 13px
+  cursor                    pointer
+  line-height               17px
+  color                     #1C1C1C
+  noTextDeco()
 
   &:hover
-    bg            color, #E7E7E7
+    bg                      color #F0F0F0
 
   .right-overflow
-    width         250px
-    line-height   1.2em
+    line-height             17px
+    width                   auto
 
   .avatar-wrapper
-    margin-right  10px
+    margin-right            10px
+    margin-top              1px
 
   .link-group
-    display       inline
+    display                 inline
 
   a.profile
-    color         #1aaf5d
-    font-weight   400
+    color                   #1aaf5d
+    font-weight             400
     noTextDeco()
 
   time
-    color         #adaeb1
-    font-size     10px
-    font-weight   600
-    opacity       .99
+    color                   #8B8B8B
+    font-size               12px
+    opacity                 .99
+    white-space             nowrap
 
-.go-back-survey
-  a
-    color #3aaaab
-    noTextDeco()
