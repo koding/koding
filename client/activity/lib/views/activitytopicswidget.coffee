@@ -6,7 +6,9 @@ SidebarTopicItem = require 'app/activity/sidebar/sidebartopicitem'
 
 
 module.exports = class ActivityTopicsWidget extends KDCustomHTMLView
+  
   constructor: (options = {}) ->
+    
     options.cssClass    = 'popular-topics-widget activity-widget'
     super options
 
@@ -35,9 +37,40 @@ module.exports = class ActivityTopicsWidget extends KDCustomHTMLView
       limit: 5
     , @bound 'createTopicsList'
 
+    { notificationController } = kd.singletons
+    
+    notificationController
+      .on 'AddedToChannel',     @bound 'addedToChannel'
+      .on 'RemovedFromChannel', @bound 'removedFromChannel'
+
+
   createTopicsList : (err, data) ->
+    
     @listController.instantiateListItems data
     @listController.hideLazyLoader()
+
+
+  addedToChannel : (update) ->
+    
+    { id } = update.channel
+    
+    @updateChannelFollowButtonState id, on
+
+
+  removedFromChannel : (update) ->
+    
+    { id } = update.channel
+    
+    @updateChannelFollowButtonState id, off
+    
+    
+  updateChannelFollowButtonState : (id, followingState) ->
+    
+    return  unless channelItem = @listController.itemsIndexed[id]
+    
+    channelItem.followButton.setFollowingState followingState
+
+  
 
 
 
