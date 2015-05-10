@@ -38,11 +38,11 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
 
     popup = @getDelegate()
 
-    if popup.hasClass "active"
+    if popup.hasClass 'active'
       popup.hide()
     else
       popup.show()
-      popup.once "ReceivedClickElsewhere", (event) =>
+      popup.once 'ReceivedClickElsewhere', (event) =>
         skipNextClick = @isInside event.target
         popup.hide()
 
