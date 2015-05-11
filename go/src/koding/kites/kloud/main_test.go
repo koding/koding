@@ -88,6 +88,26 @@ var (
 	provider  *koding.Provider
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
+
+	machineCount      = 2
+	terraformTemplate = `{
+    "provider": {
+        "aws": {
+            "access_key": "${var.access_key}",
+            "secret_key": "${var.secret_key}",
+            "region": "ap-northeast-1"
+        }
+    },
+    "resource": {
+        "aws_instance": {
+            "example": {
+				"count": %d,
+                "instance_type": "t2.micro",
+                "ami": "ami-936d9d93"
+            }
+        }
+    }
+}`
 )
 
 type args struct {
@@ -226,25 +246,8 @@ func TestTerraformPlan(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformPlanRequest{
-		TerraformContext: `{
-    "provider": {
-        "aws": {
-            "access_key": "${var.access_key}",
-            "secret_key": "${var.secret_key}",
-            "region": "ap-northeast-1"
-        }
-    },
-    "resource": {
-        "aws_instance": {
-            "example": {
-				"count": 2,
-                "instance_type": "t2.micro",
-                "ami": "ami-936d9d93"
-            }
-        }
-    }
-}`,
-		PublicKeys: []string{userData.CredentialPublicKey},
+		TerraformContext: fmt.Sprintf(terraformTemplate, machineCount),
+		PublicKeys:       []string{userData.CredentialPublicKey},
 	}
 
 	resp, err := remote.Tell("plan", args)
@@ -714,11 +717,10 @@ func createUser(username string) (*singleUser, error) {
 		{Id: userId, Sudo: true, Owner: true},
 	}
 
-	machineCount := 2
 	machineLabels := make([]string, machineCount)
 	machineIds := make([]bson.ObjectId, machineCount)
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < machineCount; i++ {
 		machineId := bson.NewObjectId()
 		machine := &koding.Machine{
 			Id:         machineId,
@@ -757,24 +759,7 @@ func createUser(username string) (*singleUser, error) {
 		Id:          stackTemplateId,
 		Credentials: []string{credPublicKey},
 	}
-	stackTemplate.Template.Content = `{
-    "provider": {
-        "aws": {
-            "access_key": "${var.access_key}",
-            "secret_key": "${var.secret_key}",
-            "region": "ap-northeast-1"
-        }
-    },
-    "resource": {
-        "aws_instance": {
-            "example": {
-				"count": 2,
-                "instance_type": "t2.micro",
-                "ami": "ami-936d9d93"
-            }
-        }
-    }
-}`
+	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount)
 
 	if err := provider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
 		return c.Insert(&stackTemplate)
