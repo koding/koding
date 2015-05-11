@@ -208,8 +208,11 @@ func TestChannelParticipantOperations(t *testing.T) {
 				participant, err = rest.CreateAccount(participant)
 				So(err, ShouldBeNil)
 				So(participant, ShouldNotBeNil)
+				groupName := models.RandomGroupName()
+				ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+				So(err, ShouldBeNil)
 
-				ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, models.RandomName(), models.Channel_TYPE_BOT)
+				ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_BOT, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(ch, ShouldNotBeNil)
 
