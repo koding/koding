@@ -25,6 +25,14 @@ module.exports = class SidebarTopicItem extends SidebarItem
     then new KDCustomHTMLView tagName : 'span'
     else new TopicFollowButton {}, @getData()
 
+
+  setFollowingState : (followingState) ->
+
+    return  unless @followButton instanceof TopicFollowButton
+
+    @followButton.setFollowingState followingState
+
+
   # this is a fix that we did to not keeping
   # a state of the latest visited /Public route
   # since all the previous routes are kept in router.
