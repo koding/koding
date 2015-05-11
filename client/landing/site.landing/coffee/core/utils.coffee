@@ -484,6 +484,7 @@ utils.extend utils,
         KD.singletons.router.handleRoute '/Welcome'
       error     : ({responseText}) ->
         new KDNotificationView title : responseText
+        KD.singletons.router.handleRoute '/'
 
 
   fetchTeamMembers: (teamName, callback) ->
