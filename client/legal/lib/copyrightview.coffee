@@ -10,7 +10,7 @@ module.exports = class CopyrightView extends JView
   pistachio : ->
     """
     <div class='tos'>
-      <p class='last-modified'>(last modified on May 17th, 2014)</p>
+      <p class='last-modified'>(last modified on May 5th, 2015)</p>
 
       <p class='p3'>
         If you believe that material available on the Koding Service
