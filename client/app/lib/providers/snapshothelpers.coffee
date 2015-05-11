@@ -1,7 +1,8 @@
-kd                        = require 'kd'
-remote                    = require('app/remote').getInstance()
+kd                          = require 'kd'
+remote                      = require('app/remote').getInstance()
 
-EnvironmentsProgressModal = require './environmentsprogressmodal'
+EnvironmentsProgressModal   = require './environmentsprogressmodal'
+{ handleNewMachineRequest } = require './computehelpers'
 
 
 ###*
@@ -20,6 +21,30 @@ fetchNewestSnapshot = (machineId, callback = kd.noop) ->
         return callback new Error 'Cannot find most recent snapshot'
       [snapshot] = snapshots
       callback null, snapshot
+
+
+###*
+ * Create a new vm from the given snapshotId.
+###
+newVmFromSnapshot = (machine, snapshotId, callback = kd.noop) ->
+
+  computeController = kd.getSingleton 'computeController'
+  paymentController = kd.getSingleton 'paymentController'
+
+  paymentController.subscriptions (err, subscription) =>
+    return kd.error  if err
+    { planTitle } = subscription
+
+    # If the plan is hobbyist, we want to reinit with the
+    # snapshotId, not create a new machine.
+    if planTitle is 'hobbyist'
+      computeController.reinit machine, snapshotId
+      callback()
+    else
+      handleNewMachineRequest
+        provider   : 'koding'
+        snapshotId : snapshotId
+        callback
 
 
 ###*
@@ -49,6 +74,7 @@ showSnapshottingModal = (machine, container) ->
 
 module.exports = {
   fetchNewestSnapshot
+  newVmFromSnapshot
   showSnapshottingModal
 }
 

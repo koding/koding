@@ -1,7 +1,6 @@
 kd                          = require 'kd'
 remote                      = require('app/remote').getInstance()
 Encoder                     = require 'htmlencode'
-{ handleNewMachineRequest } = require './computehelpers'
 snapshotHelpers             = require './snapshothelpers'
 fetchIdeByMachine           = require '../util/fetchIdeByMachine'
 JView                       = require '../jview'
@@ -31,11 +30,11 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     @listController.getListView().on 'DeleteSnapshot', =>
       @listController.showNoItemWidget()
 
-    @listController.getListView().on 'NewVmFromSnapshot', (snapshot = {}) =>
-      handleNewMachineRequest
-        provider: 'koding'
-        snapshotId: snapshot.snapshotId
-        => @emit 'ModalDestroyRequested'
+    @listController.getListView().on 'NewVmFromSnapshot', (snapshot) =>
+      { snapshotId } = snapshot
+      machine        = @getData()
+      snapshotHelpers.newVmFromSnapshot machine, snapshotId, =>
+        @emit 'ModalDestroyRequested'
 
 
   ###*
