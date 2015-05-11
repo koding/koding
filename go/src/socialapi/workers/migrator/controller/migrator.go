@@ -78,6 +78,8 @@ func (mwc *Controller) Start() {
 
 	mwc.CreateIntegrations()
 
+	mwc.CreateBotUser()
+
 	mwc.log.Notice("Migration finished")
 
 	mwc.ready <- true
@@ -136,5 +138,13 @@ func (mwc *Controller) CreateIntegrations() {
 	if err := ci.Create(); err != nil {
 		mwc.log.Error("Could not create channel integration: %s", err)
 		return
+	}
+}
+
+func (mwc *Controller) CreateBotUser() {
+	mwc.log.Notice("Creating bot user")
+	_, err := models.CreateAccountInBothDbsWithNick("bot")
+	if err != nil {
+		mwc.log.Error("Could not create bot account")
 	}
 }
