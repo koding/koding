@@ -4,7 +4,7 @@ IDEAppController = require '../../../ide/lib'
 
 
 ###*
- * fetch an IDEAppController based on the machine. If the IDE is not
+ * open an IDEAppController based on the machine. If the IDE is not
  * already loaded, the route is directed to the IDE to cause it to load.
  * Once everything is ready, and the IDE is tested to prove that to be
  * owned by the requested Machine, callback.
@@ -12,16 +12,18 @@ IDEAppController = require '../../../ide/lib'
  * @param {Machine} machine - The machine of the IDE you want.
  * @param {Function(err:Error, ide:IDEAppController)} callback
 ###
-module.exports = fetchIdeByMachine = (machine, callback) ->
-
-  # First, try to get the already loaded IDE. If it exists, we
-  # don't need to redirect the user.
-  ideController = getIdeByMachine machine
-  return callback null, ideController  if ideController
+module.exports = openIdeByMachine = (machine, callback) ->
 
   router     = kd.getSingleton 'router'
   appManager = kd.getSingleton 'appManager'
   machineId  = machine._id
+
+  # First, try to get the already loaded IDE. If it exists, we
+  # don't need to redirect the user.
+  ideController = getIdeByMachine machine
+  if ideController
+    router.handleRoute "/IDE/#{machine.slug}"
+    return callback null, ideController
 
   # The IDE is not loaded, so we need to load it. Currently,
   # it seems that loading it via a route is the most reliable method.

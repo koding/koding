@@ -2,7 +2,7 @@ kd                          = require 'kd'
 remote                      = require('app/remote').getInstance()
 Encoder                     = require 'htmlencode'
 snapshotHelpers             = require './snapshothelpers'
-fetchIdeByMachine           = require '../util/fetchIdeByMachine'
+openIdeByMachine           = require '../util/openIdeByMachine'
 JView                       = require '../jview'
 ComputeErrorUsageModal      = require './computeerrorusagemodal'
 MachineSettingsCommonView   = require './machinesettingscommonview'
@@ -167,7 +167,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
         'Name length must be larger than zero'
 
     # Get the IDE view.
-    fetchIdeByMachine machine, (err, ideController) =>
+    openIdeByMachine machine, (err, ideController) =>
       if err
         @showNotification "Error, unable to create snapshot.", 'error'
         kd.error "Unable to create snapshot, IDE Could not be found", err
