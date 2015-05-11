@@ -58,6 +58,23 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
 
   ###*
+   * Overridden from MachineSettingsCommonView to add the learn-more view
+   * at the bottom of the view.
+  ###
+  createElements: ->
+
+    @createHeader()
+    @createAddView()
+    @createListView()
+    @addSubView new kd.CustomHTMLView
+      cssClass : 'learn-more'
+      partial  : """
+        <a target="_blank" href="http://learn.koding.com">Learn more about
+        Snapshots</a>
+      """
+
+
+  ###*
    * Create the header views. Called via MachineSettingsCommonView
   ###
   createHeader: ->
