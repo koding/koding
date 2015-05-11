@@ -8,7 +8,7 @@ module.exports = class UserPolicyView extends JView
   pistachio : ->
     """
     <div class='tos'>
-      <p class='last-modified'>(last modified on May 17th, 2014)</p>
+      <p class='last-modified'>(last modified on May 5th, 2015)</p>
 
       <p class='p3'>
         If you believe that material available on the Koding Service
@@ -27,7 +27,7 @@ module.exports = class UserPolicyView extends JView
         appropriate action:
       </p>
 
-      <ul class='ul1'>
+      <ul class='ul1 numbered-list'>
         <li class='li3'>
           An electronic or physical signature of a person authorized to act on
           behalf of the copyright owner;
@@ -68,7 +68,7 @@ module.exports = class UserPolicyView extends JView
         legal counsel or see 17 U.S.C. Section 512(g)(3) to confirm these requirements):
       </p>
 
-      <ul class='ul1'>
+      <ul class='ul1 numbered-list'>
         <li class='li3'>
           A physical or electronic signature of the user.
         </li>
