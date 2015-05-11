@@ -81,3 +81,34 @@ module.exports =
     ideHelpers.createAndSaveNewFile(browser)
 
     browser.end()
+
+
+  openAnExistingFileAndSave: (browser) ->
+
+    activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active'
+
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    text     = helpers.getFakeText()
+    fileName = ideHelpers.createAndSaveNewFile(browser, text)
+
+    ideHelpers.closeFile(browser, fileName)
+    ideHelpers.openAnExistingFile(browser, user, fileName, text)
+
+    text = helpers.getFakeText()
+
+    ideHelpers.setTextToEditor(browser, text)
+
+    browser
+      .assert.containsText    activeEditorSelector, text # Assertion
+
+    ideHelpers.saveFile(browser)
+    ideHelpers.closeFile(browser, fileName)
+    ideHelpers.openAnExistingFile(browser, user, fileName, text)
+
+    browser
+      .assert.containsText    activeEditorSelector, text # Assertion
+
+    browser.end()
