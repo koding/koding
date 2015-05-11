@@ -24,7 +24,7 @@ PANE_CONFIG = [
   { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
   { title: 'Domains',       viewClass: MachineSettingsDomainsView   }
   { title: 'VM Sharing',    viewClass: MachineSettingsVMSharingView }
-  #{ title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
+  { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
   { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
   { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
 ]
