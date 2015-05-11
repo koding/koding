@@ -30,6 +30,19 @@ func TestChannelCreated(t *testing.T) {
 		Convey("it should save the document to algolia", func() {
 			err := handler.ChannelCreated(mockTopic)
 			So(err, ShouldBeNil)
+
+			err = makeSureChannel(handler, mockTopic.Id, func(record map[string]interface{}, err error) bool {
+				if IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) {
+					return false
+				}
+
+				return true
+			})
+			So(err, ShouldBeNil)
+			rec, err := handler.get(IndexTopics, strconv.FormatInt(mockTopic.Id, 10))
+			So(err, ShouldBeNil)
+			So(rec["_tags"], ShouldNotBeNil)
+			So(len(rec["_tags"].([]interface{})), ShouldBeGreaterThan, 0)
 		})
 	})
 }
