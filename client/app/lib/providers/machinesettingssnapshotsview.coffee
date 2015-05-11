@@ -16,11 +16,11 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     options.cssClass             = kd.utils.curry options.cssClass, 'snapshots'
     options.headerTitle          = 'Snapshots'
     options.addButtonTitle       = 'ADD SNAPSHOT'
-    options.headerAddButtonTitle = 'ADD NEW SNAPSHOT'
+    options.headerAddButtonTitle = 'ADD SNAPSHOT'
     options.listViewItemClass    = SnapshotListItem
     options.noItemFoundWidget    = new kd.CustomHTMLView
       cssClass : 'no-item'
-      partial  : 'You do not have any snapshots created'
+      partial  : 'You do not have any Snapshots.'
 
     # Trigger the snapshotsLimits fetch, so that we can cache it ahead of time.
     @snapshotsLimit()
@@ -68,7 +68,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     @addSubView new kd.CustomHTMLView
       cssClass : 'learn-more'
       partial  : """
-        <a target="_blank" href="http://learn.koding.com">Learn more about
+        <a target="_blank" href="http://learn.koding.com/guides/vm-snapshot">Learn more about
         Snapshots</a>
       """
 
