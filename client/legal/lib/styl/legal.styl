@@ -10,11 +10,27 @@ imagePath = '/a/site.landing/images/'
 body.legal
   -webkit-font-smoothing antialiased
 
+  ul
+    list-style-type           circle
+
+  ol, ul
+    margin-left               10px
+
   .numbered-list
-    list-style-type         decimal
+    list-style-type           decimal
+
+  .roman-numbered-list
+    list-style-type           lower-roman
 
   .lettered-list
-    list-style-type         lower-alpha
+    list-style-type           lower-alpha
+
+  li
+    margin-bottom             24px
+    margin-left               15px
+
+  .narrow-list li
+    margin-bottom             2px
 
   #main-panel-wrapper
     bg                        color #f9f9f9
@@ -64,8 +80,8 @@ body.legal
       font-size               38px
       font-weight             600
 
-
     section.content
+
       nav.handles
         max-width             1200px
         margin                50px auto 0
@@ -100,13 +116,6 @@ body.legal
         .last-modified
           opacity             .5
           font-weight         600
-
-        ul
-          list-style-type     circle
-
-        li
-          margin-bottom       24px
-          margin-left         15px
 
         a
           color               inherit
