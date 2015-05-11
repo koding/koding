@@ -8,7 +8,7 @@ module.exports = class UserPolicyView extends JView
   pistachio : ->
     """
     <div class='tos'>
-      <p class='last-modified'>(last modified on July 21th, 2014)</p>
+      <p class='last-modified'>(last modified on May 5th, 2015)</p>
 
       <p>
         Your use of Koding (the &ldquo;Service&rdquo;) is subject to the following
@@ -28,7 +28,7 @@ module.exports = class UserPolicyView extends JView
         types of content:
       </p>
 
-      <ul>
+      <ul class='numbered-list'>
         <li>
           Content that infringes a third party&rsquo;s rights (e.g., copyright)
           according to applicable law;
@@ -121,12 +121,12 @@ module.exports = class UserPolicyView extends JView
         End Users, to:
       </p>
 
-      <ul>
+      <ul class='numbered-list'>
         <li>
           Generate or facilitate unsolicited commercial email (&ldquo;spam&rdquo;).
           Such activity includes, but is not limited to:
 
-          <ul>
+          <ul class='lettered-list'>
             <li>
               sending email in violation of the CAN-SPAM Act or any other
               applicable anti-spam law
@@ -253,9 +253,11 @@ module.exports = class UserPolicyView extends JView
         accounts that generate sustained high levels of load or use provided
         resources in a way that deteriorates the experience for other users.
 
-        <li>Disk: 3GB per VM (or what your paid account comes with)</li>
-        <li>Ram: 1GB per VM</li>
-        <li>Network output: 7GB/week (free accounts), 14GB/week (paid accounts)</li>
+        <ul class='narrow-list'>
+          <li>Disk: 3GB per VM (or what your paid account comes with)</li>
+          <li>Ram: 1GB per VM</li>
+          <li>Network output: 7GB/week (free accounts), 14GB/week (paid accounts)</li>
+        </ul>
       </p>
 
       Koding reserves the right to suspend or terminate accounts found in violation of these items with or without prior notice given and without liability.
