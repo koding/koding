@@ -1,8 +1,11 @@
 package kloud
 
 import (
+	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/machinestate"
 	"strings"
 
@@ -184,14 +187,50 @@ func (k *Kloud) CreateSnapshot(r *kite.Request) (reqResp interface{}, reqErr err
 }
 
 func (k *Kloud) DeleteSnapshot(r *kite.Request) (interface{}, error) {
-	snapshotFunc := func(ctx context.Context, machine interface{}) error {
-		s, ok := machine.(Snapshotter)
-		if !ok {
-			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
-		}
-
-		return s.DeleteSnapshot(ctx)
+	var args struct {
+		SnapshotId string
 	}
 
-	return k.coreMethods(r, snapshotFunc)
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return nil, err
+	}
+
+	if args.SnapshotId == "" {
+		return nil, NewError(ErrSnapshotIdMissing)
+	}
+
+	account, err := modelhelper.GetAccount(r.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	snapshot, err := modelhelper.GetSnapshot(args.SnapshotId)
+	if err != nil {
+		return nil, err
+	}
+
+	if account.Id != snapshot.OriginId {
+		return nil, fmt.Errorf("User '%s' is not authenticated to remove the snapshot", r.Username)
+	}
+
+	ctx := k.ContextCreator(context.Background())
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	svc, err := sess.AWSClients.Region(snapshot.Region)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := svc.DeleteSnapshots([]string{args.SnapshotId}); err != nil {
+		return nil, err
+	}
+
+	if err := modelhelper.DeleteSnapshot(args.SnapshotId); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
