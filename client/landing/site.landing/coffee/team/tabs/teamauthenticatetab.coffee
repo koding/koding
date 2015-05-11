@@ -27,7 +27,7 @@ module.exports = class TeamAuthenticateTab extends KDTabPaneView
 
     """
     {{> @header }}
-    <div class="TeamsModal">
+    <div class="TeamsModal onboarding">
       <h4></h4>
     </div>
     """

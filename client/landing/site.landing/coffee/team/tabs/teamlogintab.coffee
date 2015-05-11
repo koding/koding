@@ -43,13 +43,12 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       @form.username.input.setValue username
       @form.username.inputReceivedKeyup()
 
-
-
     @invitationLink = new CustomLinkView
       cssClass    : 'invitation-link'
       title       : 'Ask for an invite'
       testPath    : 'landing-recover-password'
       href        : '/Recover'
+
 
   pistachio: ->
 
