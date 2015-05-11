@@ -89,6 +89,31 @@ func getAccount(r *http.Request) *models.Account {
 	return acc
 }
 
+func getGroupName(r *http.Request) string {
+	const groupName = "koding"
+
+	cookie, err := r.Cookie("clientId")
+	if err != nil {
+		return groupName
+	}
+
+	// if cookie doenst exists return empty account
+	if cookie.Value == "" {
+		return groupName
+	}
+
+	session, err := models.Cache.Session.ById(cookie.Value)
+	if err != nil {
+		return groupName
+	}
+
+	if session.GroupName == "" {
+		return groupName
+	}
+
+	return session.GroupName
+}
+
 const timedOutMsg = `{"description":"request timed out","error":"koding.RequestTimedoutError"}`
 const timeoutDuration = time.Second * 30
 
@@ -141,7 +166,7 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 			//
 
 			context := &models.Context{
-				GroupName: "koding",
+				GroupName: getGroupName(r),
 				Client: &models.Client{
 					Account: getAccount(r),
 					IP:      net.ParseIP(utils.GetIpAddress(r)),

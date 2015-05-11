@@ -299,7 +299,7 @@ func TestCollaborationChannels(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(cc, ShouldNotBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -373,7 +373,7 @@ func TestCollaborationChannels(t *testing.T) {
 			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
 			So(err, ShouldBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -410,7 +410,7 @@ func TestCollaborationChannels(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(cc, ShouldNotBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 

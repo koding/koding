@@ -710,6 +710,11 @@ module.exports = class SocialApiController extends KDController
       validateOptionsWith: ["channelId"]
       successFn          : removeChannel
 
+    create               : channelRequesterFn
+      fnName             : 'create'
+      validateOptionsWith: ["name"]
+      mapperFn           : mapChannel
+
     revive               : mapChannel
 
   moderation:

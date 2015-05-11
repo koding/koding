@@ -1,10 +1,10 @@
 package realtime
 
 import (
-	"math/rand"
+	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
 	"testing"
 
 	"github.com/koding/runner"
@@ -21,19 +21,33 @@ func TestAddRemoveChannelParticipant(t *testing.T) {
 	}
 	defer r.Close()
 
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
 	controller := &Controller{}
 	Convey("While testing add/remove channel participants", t, func() {
 		pe := &models.ParticipantEvent{}
+
+		groupName := models.RandomGroupName()
 
 		account := models.NewAccount()
 		account.OldId = bson.NewObjectId().Hex()
 		account, err := rest.CreateAccount(account)
 		So(err, ShouldBeNil)
 
-		Convey("When user follows/unfollows a topic, they must be notified", func() {
-			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		// fetch admin's session
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
 
-			topicChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_TOPIC)
+		Convey("When user follows/unfollows a topic, they must be notified", func() {
+			topicChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_TOPIC,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(topicChannel, ShouldNotBeNil)
 			pe.Id = topicChannel.Id
@@ -54,9 +68,12 @@ func TestAddRemoveChannelParticipant(t *testing.T) {
 		})
 
 		Convey("When user joins a topic, only participant user must be notified", func() {
-			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
-
-			privateChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_PRIVATE_MESSAGE)
+			privateChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_PRIVATE_MESSAGE,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(privateChannel, ShouldNotBeNil)
 			pe.Id = privateChannel.Id
@@ -72,9 +89,12 @@ func TestAddRemoveChannelParticipant(t *testing.T) {
 		})
 
 		Convey("When user leaves a topic, all participants musts be notified", func() {
-			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
-
-			privateChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_PRIVATE_MESSAGE)
+			privateChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_PRIVATE_MESSAGE,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(privateChannel, ShouldNotBeNil)
 			pe.Id = privateChannel.Id

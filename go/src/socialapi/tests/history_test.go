@@ -25,19 +25,25 @@ func TestChannelHistory(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("While testing history of a channel", t, func() {
-		var channel *models.Channel
 		Convey("We should be able to create it(channel) first", func() {
+			groupName := models.RandomGroupName()
+
 			account, err := models.CreateAccountInBothDbsWithNick("sinan")
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel, err = rest.CreateChannel(account.Id)
-			So(err, ShouldBeNil)
-			So(channel, ShouldNotBeNil)
-
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
+
+			channel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_DEFAULT,
+				ses.ClientId,
+			)
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
 
 			Convey("While posting a new message to it", func() {
 				var channelParticipant *models.ChannelParticipant
@@ -70,7 +76,12 @@ func TestChannelHistory(t *testing.T) {
 							So(len(history.MessageList), ShouldEqual, 10)
 
 							SkipConvey("After linking to another channel", func() {
-								c2, err := rest.CreateChannelByGroupNameAndType(account.Id, channel.GroupName, models.Channel_TYPE_TOPIC)
+								c2, err := rest.CreateChannelByGroupNameAndType(
+									account.Id,
+									channel.GroupName,
+									models.Channel_TYPE_TOPIC,
+									ses.ClientId,
+								)
 								So(err, ShouldBeNil)
 								So(c2, ShouldNotBeNil)
 
@@ -92,11 +103,6 @@ func TestChannelHistory(t *testing.T) {
 						})
 
 						Convey("We should be not able to fetch the history if the clientId is not set", func() {
-
-							ses, err := models.FetchOrCreateSession(account.Nick)
-							So(err, ShouldBeNil)
-							So(ses, ShouldNotBeNil)
-
 							history, err := rest.GetHistory(
 								channel.Id,
 								&request.Query{
@@ -109,10 +115,6 @@ func TestChannelHistory(t *testing.T) {
 						})
 
 						Convey("We should be not able to fetch the history if the clientId doesnt exist", func() {
-
-							ses, err := models.FetchOrCreateSession(account.Nick)
-							So(err, ShouldBeNil)
-							So(ses, ShouldNotBeNil)
 
 							history, err := rest.GetHistory(
 								channel.Id,

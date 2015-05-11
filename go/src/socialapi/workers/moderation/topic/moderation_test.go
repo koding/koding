@@ -77,7 +77,7 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process 0 participated channels with messages", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -117,7 +117,7 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process participated channels with no messages", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -157,7 +157,7 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process participated channels with messages", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
@@ -194,7 +194,7 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process messages that are in multiple channels - when origin is linked channel", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -269,7 +269,7 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process messages that are initiated in leaf channels", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -331,7 +331,7 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure message order still same", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 
 			rootChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leafChannel := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -366,7 +366,7 @@ func TestProcess(t *testing.T) {
 			//
 			// fetch the history
 			//
-			ses, err := models.FetchOrCreateSession(acc1.Nick)
+			ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -393,7 +393,7 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure messages got deleted if delete option is passed", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 
 			rootChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leafChannel := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -428,7 +428,7 @@ func TestProcess(t *testing.T) {
 			//
 			// fetch the history
 			//
-			ses, err := models.FetchOrCreateSession(acc1.Nick)
+			ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -461,7 +461,7 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure messages dont have hashtag in them when we merge to group channel", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 
 			rootChannel := models.CreateTypedGroupedChannelWithTest(
 				acc1.Id,
@@ -501,7 +501,7 @@ func TestProcess(t *testing.T) {
 			//
 			// fetch the history
 			//
-			ses, err := models.FetchOrCreateSession(acc1.Nick)
+			ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 

@@ -1,27 +1,41 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
 	"strconv"
 	"testing"
-	"time"
 
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestPinnedActivityChannel(t *testing.T) {
 	SkipConvey("while  testing pinned activity channel", t, func() {
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		r := runner.New("rest-tests")
+		err := r.Init()
+		So(err, ShouldBeNil)
+		defer r.Close()
+
+		appConfig := config.MustRead(r.Conf.Path)
+		modelhelper.Initialize(appConfig.Mongo)
+		defer modelhelper.Close()
+
+		groupName := models.RandomGroupName()
 
 		account := models.NewAccount()
 		account.OldId = AccountOldId.Hex()
-		account, err := rest.CreateAccount(account)
+		account, err = rest.CreateAccount(account)
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
 		So(account.Id, ShouldNotEqual, 0)
+
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
 
 		nonOwnerAccount := models.NewAccount()
 		nonOwnerAccount.OldId = AccountOldId.Hex()
@@ -29,7 +43,12 @@ func TestPinnedActivityChannel(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(nonOwnerAccount, ShouldNotBeNil)
 
-		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+		groupChannel, err := rest.CreateChannelByGroupNameAndType(
+			account.Id,
+			groupName,
+			models.Channel_TYPE_GROUP,
+			ses.ClientId,
+		)
 		So(err, ShouldBeNil)
 		So(groupChannel, ShouldNotBeNil)
 
@@ -112,7 +131,12 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(pinnedChannel, ShouldNotBeNil)
 
-			groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_DEFAULT)
+			groupChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_DEFAULT,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(groupChannel, ShouldNotBeNil)
 

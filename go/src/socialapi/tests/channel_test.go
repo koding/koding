@@ -32,9 +32,20 @@ func TestChannelCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			groupName := models.RandomGroupName()
+
+			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
+
+			groupChannel, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
+			So(err, ShouldBeNil)
+			So(groupChannel, ShouldNotBeNil)
 
 			nonOwnerAccount := models.NewAccount()
 			nonOwnerAccount.OldId = AccountOldId2.Hex()
@@ -42,12 +53,21 @@ func TestChannelCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
-			noses, err := models.FetchOrCreateSession(nonOwnerAccount.Nick)
+			noses, err := models.FetchOrCreateSession(
+				nonOwnerAccount.Nick,
+				groupName,
+			)
+
 			So(err, ShouldBeNil)
 			So(noses, ShouldNotBeNil)
 
 			Convey("we should be able to create it", func() {
-				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_PRIVATE_MESSAGE)
+				channel1, err := rest.CreateChannelByGroupNameAndType(
+					account1.Id,
+					groupName,
+					models.Channel_TYPE_PRIVATE_MESSAGE,
+					ses.ClientId,
+				)
 				So(err, ShouldBeNil)
 				So(channel1, ShouldNotBeNil)
 
@@ -121,7 +141,12 @@ func TestChannelCreation(t *testing.T) {
 			})
 
 			Convey("normal user shouldnt be able to add new participants to pinned activity channel", func() {
-				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_PINNED_ACTIVITY)
+				channel1, err := rest.CreateChannelByGroupNameAndType(
+					account1.Id,
+					groupName,
+					models.Channel_TYPE_PINNED_ACTIVITY,
+					ses.ClientId,
+				)
 				So(err, ShouldBeNil)
 				So(channel1, ShouldNotBeNil)
 
@@ -133,7 +158,12 @@ func TestChannelCreation(t *testing.T) {
 			})
 
 			Convey("owner should be able list participants", func() {
-				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_DEFAULT)
+				channel1, err := rest.CreateChannelByGroupNameAndType(
+					account1.Id,
+					groupName,
+					models.Channel_TYPE_DEFAULT,
+					ses.ClientId,
+				)
 				So(err, ShouldBeNil)
 				So(channel1, ShouldNotBeNil)
 
@@ -168,7 +198,12 @@ func TestChannelCreation(t *testing.T) {
 			})
 
 			Convey("normal user should be able to list participants", func() {
-				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_DEFAULT)
+				channel1, err := rest.CreateChannelByGroupNameAndType(
+					account1.Id,
+					groupName,
+					models.Channel_TYPE_DEFAULT,
+					ses.ClientId,
+				)
 				So(err, ShouldBeNil)
 				So(channel1, ShouldNotBeNil)
 

@@ -25,7 +25,7 @@ func createTestAccount(t *testing.T) *models.Account {
 func createTestGroupChannel(t *testing.T, a *models.Account) *models.Channel {
 
 	testGroupChannel := models.NewChannel()
-	name := "integration_test_" + models.RandomName()
+	name := "integration_test_" + models.RandomGroupName()
 	testGroupChannel.CreatorId = a.Id
 	testGroupChannel.Name = name
 	testGroupChannel.TypeConstant = models.Channel_TYPE_GROUP
@@ -39,8 +39,8 @@ func createTestGroupChannel(t *testing.T, a *models.Account) *models.Channel {
 
 func CreateTestIntegration(t *testing.T) *Integration {
 	i := NewIntegration()
-	i.Title = "test_" + models.RandomName()
-	i.Name = "test_" + models.RandomName()
+	i.Title = "test_" + models.RandomGroupName()
+	i.Name = i.Title
 
 	err := i.Create()
 	if err != nil {
