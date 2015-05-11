@@ -24,6 +24,7 @@ func TestChannelCreated(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+
 	Convey("given some fake non-topic channel", t, func() {
 		mockTopic := models.NewChannel()
 		mockTopic.TypeConstant = models.Channel_TYPE_PRIVATE_MESSAGE
