@@ -88,7 +88,7 @@ func TestFetchBotChannel(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc, ShouldNotBeNil)
 
-		groupName := "group-" + models.RandomName()
+		groupName := models.RandomGroupName()
 		Convey("we should be able to create bot channel for each user", func() {
 			// make sure the bot channel for the user does not exist
 			channel, err := bot.fetchBotChannel(acc, groupName)

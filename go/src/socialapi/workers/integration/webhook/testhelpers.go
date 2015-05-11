@@ -39,7 +39,7 @@ func createTestGroupChannel(t *testing.T, a *models.Account) *models.Channel {
 
 func CreateTestIntegration(t *testing.T) *Integration {
 	i := NewIntegration()
-	i.Title = "test_" + models.RandomGroupName()
+	i.Title = models.RandomGroupName()
 	i.Name = i.Title
 
 	err := i.Create()
@@ -88,7 +88,7 @@ func CreateTestChannelIntegration(t *testing.T) *ChannelIntegration {
 	i := NewChannelIntegration()
 	i.CreatorId = account.Id
 	i.ChannelId = channel.Id
-	i.GroupName = models.RandomName()
+	i.GroupName = models.RandomGroupName()
 	i.IntegrationId = integration.Id
 	err := i.Create()
 	if err != nil {
