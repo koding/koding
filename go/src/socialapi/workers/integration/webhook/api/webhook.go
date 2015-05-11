@@ -140,11 +140,6 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 
 	r.Username = c.Client.Account.Nick
 	r.GroupName = c.GroupName
-	// TODO after group name session implementation
-	// we should no longer need this
-	if r.GroupName == "" {
-		r.GroupName = "koding"
-	}
 	if err := r.validate(); err != nil {
 		return response.NewBadRequest(err)
 	}

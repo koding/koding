@@ -47,9 +47,6 @@ func (i Iterable) PrepareEndpoint(token string) string {
 func (i Iterable) Output(input *ServiceInput) *ServiceOutput {
 	val := input.Key("groupName")
 	groupName, _ := val.(string)
-	if groupName == "" {
-		groupName = "koding"
-	}
 
 	return &ServiceOutput{
 		Email:     i.Email,
