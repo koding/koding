@@ -8,7 +8,7 @@ koding               = require './bongo'
 {OAuth}              = require "oauth"
 
 {
-  renderOauthPopup
+  redirectOauth
   saveOauthToSession
 }                    = require './helpers'
 
@@ -31,7 +31,7 @@ module.exports = (req, res)->
 
   JSession.one {clientId}, (err, session)->
     if err or not session
-      renderOauthPopup res, {error:err, provider}
+      redirectOauth res, provider, err
       return
 
     {username}           = session.data
@@ -44,30 +44,35 @@ module.exports = (req, res)->
     client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,
       (err, oauthAccessToken, oauthAccessTokenSecret, results)->
         if err
-          renderOauthPopup res, {error:err, provider}
+          redirectOauth res, provider, err
           return
 
         client.get 'https://api.twitter.com/1.1/account/verify_credentials.json',
           oauthAccessToken, oauthAccessTokenSecret, (error, data)->
             if err
-              renderOauthPopup res, {error:err, provider}
+              redirectOauth res, provider, err
               return
 
             try
               response = JSON.parse data
             catch e
-              renderOauthPopup res, {error:"twitter err: parsing json", provider}
+              redirectOauth res, provider, "twitter: parsing json"
               return
+
+            [firstName, restOfNames...] = response.name.split ' '
+            lastName = restOfNames.join ' '
 
             twitter                   = foreignAuth[provider]
             twitter.token             = oauthAccessToken
             twitter.accessTokenSecret = oauthAccessTokenSecret
             twitter.foreignId         = response.id
+            twitter.firstName         = firstName
+            twitter.lastName          = lastName
             twitter.profile           = response
 
             saveOauthToSession twitter, clientId, provider, (err)->
               if err
-                renderOauthPopup res, {error:err, provider}
+                redirectOauth res, provider, err
                 return
 
-              renderOauthPopup res, {error:null, provider}
+              redirectOauth res, provider, null

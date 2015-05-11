@@ -1,5 +1,5 @@
 {
-  renderOauthPopup
+  redirectOauth
   saveOauthToSession
 }          = require './helpers'
 {facebook} = KONFIG
@@ -13,14 +13,15 @@ module.exports = (req, res) ->
   {code}       = req.query
 
   unless code
-    renderOauthPopup res, {error:"No code", provider}
+    redirectOauth res, provider, "No code"
     return
 
   url  = "https://graph.facebook.com/oauth/access_token?"
   url += "client_id=#{facebook.clientId}&"
   url += "redirect_uri=#{facebook.redirectUri}&"
   url += "client_secret=#{facebook.clientSecret}&"
-  url += "code=#{code}"
+  url += "code=#{code}&"
+  url += "scope=email"
 
   # Get access token with code
   http.get url, (httpResp)->
@@ -37,24 +38,32 @@ module.exports = (req, res) ->
         r.end()
       else
         console.log "facebook err, no access token", rawResp
-        renderOauthPopup res, {error:"No access token", provider}
+        redirectOauth res, provider, "No access token"
 
   # Get user info with access token
   fetchUserInfo = (userInfoResp) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
-      userInfo                  = JSON.parse rawResp
-      {id, username}            = userInfo
-      facebookResp              = {username}
-      facebookResp["token"]     = access_token
-      facebookResp["foreignId"] = id
-      facebookResp["profile"]   = userInfo
+      userInfo = JSON.parse rawResp
+
+      [firstName, restOfNames...] = userInfo.name.split ' '
+      lastName = restOfNames.join ' '
+
+      {username, email} = userInfo
+      facebookResp = {
+        username
+        email
+        firstName
+        lastName
+        token     : access_token
+        foreignId : userInfo.id
+      }
 
       saveOauthToSession facebookResp, clientId, provider, (err)->
         if err
           console.log "facebook err, saving to session", err
-          renderOauthPopup res, {error:err, provider}
+          redirectOauth res, provider, err
           return
 
-        renderOauthPopup res, {error:null, provider}
+        redirectOauth res, provider, null
