@@ -76,7 +76,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
   createAvatarUploadForm: ->
 
-    @addSubView section = @createSection
+    @addSubView @uploadSection = section = @createSection
       name : 'avatar-upload'
 
     section.addSubView @avatar = new KDCustomHTMLView
@@ -86,6 +86,12 @@ module.exports = class GroupGeneralSettingsView extends KDView
       cssClass : 'compact solid green upload'
       title    : 'UPLOAD IMAGE'
       loader   : yes
+
+    section.addSubView @removeLogoButton = new KDButtonView
+      cssClass : 'compact solid black remove'
+      title    : 'REMOVE LOGO'
+      loader   : yes
+      callback : @bound 'removeLogo'
 
     section.addSubView @uploadInput = new KDInputView
       type       : 'file'
@@ -128,23 +134,37 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
       return showError err   if err
 
-      group.modify { 'customize.logo': url }, =>
-        @showAvatar url
+      group.modify { 'customize.logo': url }, => @showLogo url
 
 
-  showAvatar: (url) ->
+  showLogo: (url) ->
+
+    @avatar.getElement().style.backgroundImage = "url(#{url})"
+    @uploadSection.setClass 'with-logo'
+
+
+  showPattern: ->
 
     avatarEl = @avatar.getElement()
-    jGroup   = @getData()
-    url    or= jGroup.customize?.logo
+    pattern  = geoPattern.generate @getData().slug, generator: 'plusSigns'
 
-    if url
-      avatarEl.style.backgroundImage = "url(#{url})"
-    else
-      pattern = geoPattern.generate jGroup.title, generator: 'plusSigns'
+    avatarEl.style.backgroundImage = pattern.toDataUrl()
+    avatarEl.style.borderColor     = pattern.color
+    @uploadSection.unsetClass 'with-logo'
 
-      avatarEl.style.backgroundImage = pattern.toDataUrl()
-      avatarEl.style.borderColor     = pattern.color
+
+  showAvatar: ->
+
+    logo = @getData().customize?.logo
+
+    if logo then @showLogo logo else @showPattern()
+
+
+  removeLogo: ->
+
+    @getData().modify { 'customize.logo': '' }, =>
+      @showPattern()
+      @removeLogoButton.hideLoader()
 
 
   createDeletionForm: ->
