@@ -41,12 +41,17 @@ module.exports = class TopicItemView extends KDListItemView
       if err
         console.log "no leaf channel found for #{data.id}, #{data.name}"
       @listLeafChannels channels
+      if channels.length > 0
+        @removeButton.show()
+        @removeLabel.show()
+      
       
   listLeafChannels: (channels) ->
     
     @leafChannelsListController.hideLazyLoader()
     return  unless channels?.length
 
+    
     @skip += channels.length
 
     for channel in channels
@@ -63,18 +68,24 @@ module.exports = class TopicItemView extends KDListItemView
       cssClass : 'solid compact outline'
       title    : 'DELETE CHANNEL'
 
-    @settings.addSubView new KDCustomHTMLView
-      cssClass: 'solid compact'
+    @settings.addSubView @removeLabel = new KDCustomHTMLView
+      cssClass: 'solid compact hidden'
       partial : '<span class="label">Leaf Channels</span>'
 
     @createLeafChannelsListController()
     @settings.addSubView @leafChannelsListController.getView()
     @createLeafItemViews @getData()
     
-    console.log @createLeafItemViews @getData
-    @settings.addSubView removeButton = new KDButtonView
-      cssClass : 'solid compact outline'
+    @settings.addSubView @removeButton = new KDButtonView
+      cssClass : 'solid compact outline hidden'
       title    : 'REMOVE LINK'
+      callback : =>
+        listItems = @leafChannelsListController.getListItems()
+        console.log item for item in listItems
+        #listItems?.forEach (item)->
+          #console.log item
+        #console.log listItems
+      
      
     @settings.addSubView new KDCustomHTMLView
       cssClass: 'solid compact'
@@ -97,7 +108,10 @@ module.exports = class TopicItemView extends KDListItemView
     @settings.addSubView linkButton = new KDButtonView
       cssClass : 'solid compact outline'
       title    : 'LINK CHANNEL'
-  
+      callback : =>
+        listItems = @similarChannelsListController.getListItems()
+        console.log item.switcher.getValue() for item in listItems
+        
   
   searchSimilarChannels: ->
 
