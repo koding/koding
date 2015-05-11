@@ -1,6 +1,6 @@
-JView              = require './../../core/jview'
-MainHeaderView     = require './../../core/mainheaderview'
-# TeamRegisterTabForm = require './../forms/teaminvitetabform'
+JView               = require './../../core/jview'
+MainHeaderView      = require './../../core/mainheaderview'
+TeamUsernameTabForm = require './../forms/teamusernametabform'
 
 module.exports = class TeamRegisterTab extends KDTabPaneView
 
@@ -18,16 +18,18 @@ module.exports = class TeamRegisterTab extends KDTabPaneView
       cssClass : 'team'
       navItems : []
 
-    # @form = new KDFormView
-    #   callback: (formData) ->
-    #     KD.utils.storeNewTeamData 'invitees', formData
-    #     KD.singletons.router.handleRoute '/Team/username'
+    @form = new TeamUsernameTabForm
+      callback : (formData) ->
+        KD.utils.storeNewTeamData 'username', formData
+        KD.utils.createTeam (err, res) -> console.log err, res
+
 
   pistachio: ->
 
     """
     {{> @header }}
-    <div class="TeamsModal">
-      <h4></h4>
+    <div class="TeamsModal TeamsModal--groupCreation">
+      <h4>Choose a Username</h4>
+      {{> @form}}
     </div>
     """
