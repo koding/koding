@@ -28,7 +28,7 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
     """
     {{> @header }}
-    <div class="TeamsModal">
+    <div class="TeamsModal TeamsModal--groupCreation">
       <h4>Team URL</h4>
       <h5>Pick something short, memorable for your team's web address.</h5>
       {{> @form}}

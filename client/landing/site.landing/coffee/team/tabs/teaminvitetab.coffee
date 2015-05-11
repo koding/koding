@@ -27,7 +27,7 @@ module.exports = class TeamInviteTab extends KDTabPaneView
 
     """
     {{> @header }}
-    <div class="TeamsModal">
+    <div class="TeamsModal TeamsModal--groupCreation">
       <h4>Invite Colleagues</h4>
       {{> @form}}
     </div>

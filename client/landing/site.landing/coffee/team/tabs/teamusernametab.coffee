@@ -28,7 +28,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
     """
     {{> @header }}
-    <div class="TeamsModal">
+    <div class="TeamsModal TeamsModal--groupCreation">
       <h4>Choose a Username</h4>
       {{> @form}}
     </div>
