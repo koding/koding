@@ -6,7 +6,7 @@ SidebarMoreLink        = require './sidebarmorelink'
 KDCustomHTMLView       = kd.CustomHTMLView
 KDListViewController   = kd.ListViewController
 isChannelCollaborative = require '../../util/isChannelCollaborative'
-
+isFeatureEnabled       = require 'app/util/isFeatureEnabled'
 
 module.exports = class ActivitySideView extends JView
 
@@ -93,8 +93,7 @@ module.exports = class ActivitySideView extends JView
     {dataPath} = @getOptions()
     items = kd.singletons.socialapi.getPrefetchedData dataPath
 
-    { botchannel: isBotChannelDisabled } = globals.config.disabledFeatures
-    if not isBotChannelDisabled and dataPath is 'privateMessages'
+    if isFeatureEnabled('botchannel') and dataPath is 'privateMessages'
       bot =  kd.singletons.socialapi.getPrefetchedData "bot"
       items.unshift bot  if bot
 

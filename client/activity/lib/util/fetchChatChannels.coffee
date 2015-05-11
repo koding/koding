@@ -1,6 +1,7 @@
-kd      = require 'kd'
-globals = require 'globals'
-fetchAccount = require 'app/util/fetchAccount'
+kd               = require 'kd'
+globals          = require 'globals'
+fetchAccount     = require 'app/util/fetchAccount'
+isFeatureEnabled = require 'app/util/isFeatureEnabled'
 
 module.exports = (options, callback) ->
 
@@ -9,9 +10,7 @@ module.exports = (options, callback) ->
   message.fetchPrivateMessages options, (err, pmChannels) ->
     return callback err  if err
 
-    { botchannel: isBotChannelDisabled } = globals.config.disabledFeatures
-
-    return callback null, pmChannels  if isBotChannelDisabled
+    return callback null, pmChannels  unless isFeatureEnabled 'botchannel'
 
     # fetch bot channel.
     account.fetchBotChannel (err, botChannel) ->

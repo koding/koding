@@ -27,7 +27,7 @@ isChannelCollaborative    = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList    = require './sidebarownmachineslist'
 environmentDataProvider   = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList = require './sidebarsharedmachineslist'
-
+isFeatureEnabled          = require 'app/util/isFeatureEnabled'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -206,8 +206,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         when 'announcement'   then 2
         else 0
 
-      { botchannel: isBotChannelDisabled } = globals.config.disabledFeatures
-      if not isBotChannelDisabled and data.typeConstant is 'privatemessage'
+      if isFeatureEnabled('botchannel') and data.typeConstant is 'privatemessage'
         index = 1
 
       if isChannelCollaborative data
