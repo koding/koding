@@ -3,6 +3,8 @@ kd                 = require 'kd'
 remote             = require('app/remote').getInstance()
 KDView             = kd.View
 Encoder            = require 'htmlencode'
+s3upload           = require 'app/util/s3upload'
+showError          = require 'app/util/showError'
 showError          = require 'app/util/showError'
 geoPattern         = require 'geopattern'
 KDFormView         = kd.FormView
@@ -14,7 +16,6 @@ KDToggleButton     = kd.ToggleButton
 KDCustomHTMLView   = kd.CustomHTMLView
 GroupLogoSettings  = require '../grouplogosettings'
 KDNotificationView = kd.NotificationView
-
 
 module.exports = class GroupGeneralSettingsView extends KDView
 
@@ -81,21 +82,64 @@ module.exports = class GroupGeneralSettingsView extends KDView
     section.addSubView @avatar = new KDCustomHTMLView
       cssClass : 'avatar'
 
-    section.addSubView new KDButtonView
+    section.addSubView @uploadButton = new KDButtonView
       cssClass : 'compact solid green upload'
       title    : 'UPLOAD IMAGE'
+      loader   : yes
 
-    @setAvatar()
+    section.addSubView @uploadInput = new KDInputView
+      type       : 'file'
+      cssClass   : 'upload-input'
+      attributes : accept : 'image/*'
+      change     : @bound 'handleUpload'
+
+    @showAvatar()
 
 
-  setAvatar: ->
+  handleUpload: ->
+
+    @uploadButton.showLoader()
+
+    [file] = @uploadInput.getElement().files
+
+    return @uploadButton.hideLoader()  unless file
+
+    reader        = new FileReader
+    reader.onload = (event) =>
+      options     =
+        mimeType  : file.type
+        content   : file
+
+      @uploadAvatar options, => @uploadAvatarBtn.hideLoader()
+
+    reader.readAsDataURL file
+
+
+  uploadAvatar: (fileOptions, callback) ->
+
+    { mimeType, content } = fileOptions
+    group   = kd.singletons.groupsController.getCurrentGroup()
+    name    = "#{group.slug}-logo-#{Date.now()}.png"
+    timeout = 3e4
+
+    s3upload { name, content, mimeType, timeout }, (err, url) =>
+
+      @uploadButton.hideLoader()
+
+      return showError err   if err
+
+      group.modify { 'customize.logo': url }, =>
+        @showAvatar url
+
+
+  showAvatar: (url) ->
 
     avatarEl = @avatar.getElement()
     jGroup   = @getData()
-    logo     = jGroup.customize?.logo
+    url    or= jGroup.customize?.logo
 
-    if logo is 12
-      avatarEl.style.backgroundImage = "url(#{logo})"
+    if url
+      avatarEl.style.backgroundImage = "url(#{url})"
     else
       pattern = geoPattern.generate jGroup.title, generator: 'plusSigns'
 
