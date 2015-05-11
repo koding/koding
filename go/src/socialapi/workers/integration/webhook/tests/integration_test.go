@@ -19,6 +19,7 @@ func newPrepareRequest(email string) *services.ServiceInput {
 	return &services.ServiceInput{
 		"email":     email,
 		"eventName": "emailOpen",
+		"message":   "testing it",
 		"dataFields": map[string]interface{}{
 			"templateId": float64(15120),
 			"device":     "Gmail",

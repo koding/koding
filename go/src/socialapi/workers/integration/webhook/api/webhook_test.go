@@ -309,6 +309,9 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 			So(err.Error(), ShouldEqual, ErrUsernameNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
 
+			_, err = models.CreateAccountInBothDbsWithNick("canthefason")
+			So(err, ShouldBeNil)
+
 			nick = "canthefason"
 			s, _, _, err = h.FetchBotChannel(
 				mocking.URL(m, "GET", "/botchannel"),
