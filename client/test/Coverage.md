@@ -42,7 +42,7 @@
   - likeunlike
     - likePost
     - likeComment
-    - unlikPost
+    - unlikePost
     - unlikeComment
 
   - others
@@ -94,7 +94,7 @@
     - duplicateFile
 
   - general
-    - collapse
+    - expandCollapseFiletree
     - makeTopFolder
     - openEditorSettings
     - enterFullScreen

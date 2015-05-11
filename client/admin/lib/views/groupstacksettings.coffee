@@ -10,20 +10,23 @@ module.exports = class GroupStackSettings extends kd.View
 
   # This will be used if stack template is not defined yet
   defaultTemplate = """
-    provider "aws" {
-      access_key = "${var.access_key}"
-      secret_key = "${var.secret_key}"
-      region = "us-east-1"
-    }
-
-    resource "aws_instance" "example" {
-        ami = "ami-d05e75b8"
-        instance_type = "t2.micro"
-        subnet_id = "subnet-b47692ed"
-        tags {
-            Name = "KloudTerraform"
+  {
+    "provider": {
+      "aws": {
+        "access_key": "${var.access_key}",
+        "secret_key": "${var.secret_key}",
+        "region": "ap-northeast-1"
+      }
+    },
+    "resource": {
+      "aws_instance": {
+        "example": {
+          "instance_type": "t2.micro",
+          "ami": "ami-936d9d93"
         }
+      }
     }
+  }
   """
 
   constructor: (options = {}, data) ->
@@ -32,42 +35,13 @@ module.exports = class GroupStackSettings extends kd.View
 
     super options, data
 
-
-  fetchData: (callback)->
-
-    { groupsController }            = kd.singletons
-    { JCredential, JStackTemplate } = remote.api
-
-    JCredential.some {}, { limit: 30 }, (err, credentials) ->
-
-      return callback {message: 'Failed to fetch credentials:', err}  if err
-
-      currentGroup = groupsController.getCurrentGroup()
-
-      if not currentGroup.stackTemplates?.length > 0
-        callback null, {credentials}
-        return
-
-      {stackTemplates} = currentGroup
-      stackTemplateId  = stackTemplates.first # TODO support multiple templates
-
-      JStackTemplate.some
-        _id   : stackTemplateId
-      , limit : 1
-      , (err, stackTemplates)->
-
-          if err
-            console.warn 'Failed to fetch stack template:', err
-            callback null, {credentials}
-          else
-            stackTemplate = stackTemplates.first
-            callback null, {credentials, stackTemplate}
+    @_credentials = {}
 
 
   createEditorPane: (content) ->
 
     content = Encoder.htmlDecode content
-    file    = FSHelper.createFileInstance path: 'localfile:/stack.yml'
+    file    = FSHelper.createFileInstance path: 'localfile:/stack.json'
 
     @addSubView editorContainer = new kd.View
     editorContainer.setCss height: '240px'
@@ -79,9 +53,9 @@ module.exports = class GroupStackSettings extends kd.View
     @editorPane.setCss background: 'black'
 
 
-  createCredentialsBox: (credentials) ->
+  createCredentialsBox: ->
 
-    creds = ({title: c.title, value: c.publicKey} for c in credentials)
+    creds = ({title: c.title, value: c.publicKey} for c in @_credentials)
 
     @addSubView new kd.LabelView
       title: "Select credential to use:"
@@ -119,16 +93,69 @@ module.exports = class GroupStackSettings extends kd.View
 
           return
 
+        @_credentials = credentials
+
         @createEditorPane stackTemplate?.template?.content or defaultTemplate
-        @createCredentialsBox credentials
+        @createCredentialsBox()
 
         @addSubView @saveButton = new kd.ButtonView
           title    : 'Set as default stack'
           loader   : yes
           callback : =>
-            @setStack stackTemplate
+
+            @checkCredential (err) =>
+
+              if err
+                @showError err
+                @saveButton.hideLoader()
+              else
+                @setStack stackTemplate
 
         @createOutputView()
+
+
+  checkCredential: (callback) ->
+
+    selected   = @credentialBox.getValue()
+    credential = cred for cred in @_credentials when cred.publicKey is selected
+
+    credential.isBootstrapped (err, state) ->
+      return callback err  if err
+
+      callback if not state then {
+        message: 'Credential is not bootstrapped yet.'
+      } else null
+
+
+  fetchData: (callback) ->
+
+    { groupsController }            = kd.singletons
+    { JCredential, JStackTemplate } = remote.api
+
+    JCredential.some {}, { limit: 30 }, (err, credentials) ->
+
+      return callback {message: 'Failed to fetch credentials:', err}  if err
+
+      currentGroup = groupsController.getCurrentGroup()
+
+      if not currentGroup.stackTemplates?.length > 0
+        callback null, {credentials}
+        return
+
+      {stackTemplates} = currentGroup
+      stackTemplateId  = stackTemplates.first # TODO support multiple templates
+
+      JStackTemplate.some
+        _id   : stackTemplateId
+      , limit : 1
+      , (err, stackTemplates)->
+
+          if err
+            console.warn 'Failed to fetch stack template:', err
+            callback null, {credentials}
+          else
+            stackTemplate = stackTemplates.first
+            callback null, {credentials, stackTemplate}
 
 
   setStack: (stackTemplate) ->
@@ -162,13 +189,15 @@ module.exports = class GroupStackSettings extends kd.View
 
   showError: (err) ->
 
+    console.warn "ERROR:", err
+
+    err = err.message  if err.message?
+
     @outputView.updatePartial applyMarkdown """
-      Failed to parse template:
+      An error occured:
 
       ```json\n#{err}\n```
     """
-
-    console.warn "ERROR:", err
 
 
   updateStackTemplate: (data)->

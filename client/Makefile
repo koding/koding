@@ -30,6 +30,8 @@ all: landing development
 
 dist: landing minify-with-external-sourcemaps
 
+unit-tests: landing minify-with-unit-tests
+
 vanilla:
 	$(BUILDER) $(BUILDER_ARGS)
 
@@ -47,6 +49,9 @@ minify-with-external-sourcemaps:
 		$(BUILDER_EXT_SOURCEMAPS_FLAGS) \
 		$(BUILDER_EXCLUDE_TESTRUNNER_FLAG) \
 		$(BUILDER_ARGS)
+
+minify-with-unit-tests:
+	$(BUILDER) -v $(BUILDER_MINIFY_FLAGS) $(BUILDER_EXT_SOURCEMAPS_FLAGS) $(BUILDER_ARGS)
 
 minify:
 	$(BUILDER) $(BUILDER_MINIFY_FLAGS) $(BUILDER_ARGS) $(BUILDER_EXCLUDE_TESTRUNNER_FLAG)

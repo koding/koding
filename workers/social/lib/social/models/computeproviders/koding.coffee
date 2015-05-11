@@ -17,7 +17,7 @@ module.exports = class Koding extends ProviderInterface
   @ping = (client, options, callback)->
 
     {nickname} = client.r.account.profile
-    callback null, "#{@providerSlug} is the best #{ nickname }!"
+    callback null, "#{ @providerSlug } is the best #{ nickname }!"
 
 
   ###*

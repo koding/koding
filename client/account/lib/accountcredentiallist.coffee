@@ -73,3 +73,55 @@ module.exports = class AccountCredentialList extends KDListView
           title    : credential.title
           subtitle : credential.provider
           content  : "<pre>#{cred}</pre>"
+
+  checkIsBootstrapped: (item) ->
+
+    credential = item.getData()
+    credential.isBootstrapped (err, data) ->
+
+      return if kd.warn err  if err
+      kd.info 'Bootstrapped?', data
+
+
+  bootstrap: (item) ->
+
+    credential = item.getData()
+    publicKeys = [credential.publicKey]
+
+    console.log { publicKeys }
+
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+
+      .bootstrap { publicKeys }
+
+      .then (response) ->
+
+        console.log "Bootstrap result:", response
+
+      .catch (err) ->
+
+        console.warn "Bootstrap failed:", err
+
+
+  verify: (item) ->
+
+    credential = item.getData()
+    publicKeys = [credential.publicKey]
+
+    console.log { publicKeys }
+
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+
+      .checkCredential { publicKeys }
+
+      .then (response) ->
+
+        console.log "Verify result:", response
+
+      .catch (err) ->
+
+        console.warn "Verify failed:", err

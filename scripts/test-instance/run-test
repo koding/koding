@@ -1,0 +1,28 @@
+#!/bin/bash
+
+:<<EOF
+This script executes client/test/run.sh script over ssh.
+
+First option passed to this script is HOST to run test suite. Rest of
+the command line options are passed to test suite runner script on
+HOST.
+
+EOF
+
+set -o errexit
+
+if [ -z "$KODING_DEPLOYMENT_KEY" ]; then
+  echo 'error: KODING_DEPLOYMENT_KEY variable is not set'
+  exit 1
+fi
+
+HOST=$1
+
+shift # Remove HOST option from positional parameter array.
+
+OPTIONS=$*
+
+ssh -o 'StrictHostKeyChecking no' \
+    -i $KODING_DEPLOYMENT_KEY \
+    ubuntu@$HOST \
+    "sudo /opt/koding/client/test/run.sh $OPTIONS"
