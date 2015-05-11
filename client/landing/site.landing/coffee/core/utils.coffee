@@ -489,8 +489,8 @@ utils.extend utils,
   fetchTeamMembers: (teamName, callback) ->
 
     $.ajax
-      url       : "/-/teams/#{teamName}/members"
-      data      : { limit : 5 }
+      url       : "/-/teams/#{teamName}/members?limit=4"
+      # data      : { limit : 5 }
       type      : 'POST'
-      success   : ({members}) -> callback null, members
+      success   : (members) -> callback null, members
       error     : ({responseText}) -> callback msg : responseText
