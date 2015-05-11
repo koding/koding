@@ -133,7 +133,19 @@ func TestPopularPost(t *testing.T) {
 		account, err := createAccount()
 		So(err, ShouldBeNil)
 
-		c, err := rest.CreateChannel(account.Id)
+		groupName := models.RandomGroupName()
+
+		// fetch admin's session
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		c, err := rest.CreateChannelByGroupNameAndType(
+			account.Id,
+			groupName,
+			models.Channel_TYPE_DEFAULT,
+			ses.ClientId,
+		)
 		So(err, ShouldBeNil)
 
 		cm, err := rest.CreatePost(c.Id, account.Id)
@@ -195,7 +207,19 @@ func TestPopularPost(t *testing.T) {
 		account, err := createAccount()
 		So(err, ShouldBeNil)
 
-		c, err := rest.CreateChannel(account.Id)
+		groupName := models.RandomGroupName()
+
+		// fetch admin's session
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		c, err := rest.CreateChannelByGroupNameAndType(
+			account.Id,
+			groupName,
+			models.Channel_TYPE_DEFAULT,
+			ses.ClientId,
+		)
 		So(err, ShouldBeNil)
 
 		// initialize key

@@ -1,28 +1,41 @@
 package main
 
 import (
-	"math/rand"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
-	"strconv"
 	"testing"
-	"time"
 
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestChannelMessage(t *testing.T) {
 	Convey("While testing channel messages given a channel", t, func() {
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		r := runner.New("rest-tests")
+		err := r.Init()
+		So(err, ShouldBeNil)
+		defer r.Close()
+
+		appConfig := config.MustRead(r.Conf.Path)
+		modelhelper.Initialize(appConfig.Mongo)
+		defer modelhelper.Close()
+
+		groupName := models.RandomGroupName()
 
 		account := models.NewAccount()
 		account.OldId = AccountOldId.Hex()
-		account, err := rest.CreateAccount(account)
+		account, err = rest.CreateAccount(account)
+
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
+
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
 
 		nonOwnerAccount := models.NewAccount()
 		nonOwnerAccount.OldId = AccountOldId2.Hex()
@@ -30,7 +43,7 @@ func TestChannelMessage(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(nonOwnerAccount, ShouldNotBeNil)
 
-		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
 		So(err, ShouldBeNil)
 		So(groupChannel, ShouldNotBeNil)
 
@@ -59,7 +72,7 @@ func TestChannelMessage(t *testing.T) {
 		})
 
 		Convey("topic messages initialChannelId must be set as owner group channel id", func() {
-			topicChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, "koding", models.Channel_TYPE_TOPIC)
+			topicChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, "koding", models.Channel_TYPE_TOPIC, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(topicChannel, ShouldNotBeNil)
 

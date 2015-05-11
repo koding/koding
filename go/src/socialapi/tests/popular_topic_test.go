@@ -1,14 +1,15 @@
 package main
 
 import (
-	"math/rand"
+	"koding/db/mongodb/modelhelper"
 	"os"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
 	"testing"
 	"time"
 
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -17,23 +18,39 @@ func TestPopularTopic(t *testing.T) {
 	if env == "wercker" {
 		return
 	}
-
-	account := models.NewAccount()
-	account.OldId = AccountOldId.Hex()
-	var err error
-	account, err = rest.CreateAccount(account)
+	r := runner.New("rest-tests")
+	err := r.Init()
 	if err != nil {
-		t.Fatalf("err %s", err.Error())
+		panic(err)
+	}
+	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	groupName := models.RandomGroupName()
+
+	account, err := models.CreateAccountInBothDbs()
+	if err != nil {
+		panic(err)
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+	ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+	if err != nil {
+		panic(err)
+	}
 
 	// Since the wercker tests are failing it is skipped for temporarily
 	Convey("order should be preserved", t, func() {
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
-		channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+		channel1, err := rest.CreateChannelByGroupNameAndType(
+			account.Id,
+			groupName,
+			models.Channel_TYPE_GROUP,
+			ses.ClientId,
+		)
 		So(err, ShouldBeNil)
 		So(channel1, ShouldNotBeNil)
 

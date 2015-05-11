@@ -7,7 +7,6 @@ import (
 	"socialapi/models"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/koding/runner"
 
@@ -36,8 +35,7 @@ func TestExtractedTopicCanBeWrittenToDatabase(t *testing.T) {
 
 	defer r.Close()
 
-	rand.Seed(time.Now().UnixNano())
-	groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+	groupName := models.RandomGroupName()
 
 	a, err := createAccount()
 	Convey("while extracting topics", t, func() {

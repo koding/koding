@@ -68,7 +68,7 @@ func TestAccountUpdated(t *testing.T) {
 				// update user's email
 				selector := bson.M{"username": acc.Nick}
 				updateQuery := bson.M{
-					"email": models.RandomName() + "@bar.com",
+					"email": models.RandomGroupName() + "@bar.com",
 				}
 				err = modelhelper.UpdateUser(selector, updateQuery)
 				So(err, ShouldBeNil)

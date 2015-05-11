@@ -23,7 +23,7 @@ func TestIntegrationCreate(t *testing.T) {
 			So(err, ShouldEqual, ErrTitleNotSet)
 
 			i.TypeConstant = ""
-			i.Title = models.RandomName()
+			i.Title = models.RandomGroupName()
 
 			err = i.Create()
 			So(err, ShouldBeNil)

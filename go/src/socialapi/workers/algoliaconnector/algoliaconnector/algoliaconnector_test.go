@@ -28,7 +28,8 @@ func TestIndexSettings(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("given some handler", t, func() {
-		groupName := models.RandomName()
+
+		groupName := models.RandomGroupName()
 
 		Convey("we should be able to get the synonyms", func() {
 			oldsynonymns, err := handler.getSynonyms(IndexMessages)
