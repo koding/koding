@@ -197,12 +197,6 @@ On both master and newkoding
   model: JInvitation
   migration: n/a
 
-  model: JInvitationRequests
-  migration:
-    set "group" field to "koding"
-    set "status" field to "pending", unless it holds another value
-    set "invitationType" field to "invitation", unless it holds another value
-
   model: JLimit
   migration: n/a
 
