@@ -44,7 +44,7 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 
 	if err := req.Create(); err != nil {
 		return response.NewBadRequest(err)
-	} 
+	}
 
 	if _, err := req.AddParticipant(req.CreatorId); err != nil {
 		// channel create works as idempotent, that channel might have been created before
@@ -60,7 +60,11 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
 	q := request.GetQuery(u)
-	q.Type = models.Channel_TYPE_TOPIC
+	// only list topic or linked topic channels
+	if q.Type != models.Channel_TYPE_LINKED_TOPIC {
+		q.Type = models.Channel_TYPE_TOPIC
+	}
+
 	// TODO refactor this function just to return channel ids
 	// we cache wisely
 	channelList, err := c.List(q)
@@ -88,8 +92,9 @@ func handleChannelListResponse(channelList []models.Channel, q *request.Query) (
 // but only returns topic channels
 func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
-	q.Type = models.Channel_TYPE_TOPIC
-
+	if q.Type != models.Channel_TYPE_LINKED_TOPIC {
+		q.Type = models.Channel_TYPE_TOPIC
+	}
 	channelList, err := models.NewChannel().Search(q)
 	if err != nil {
 		return response.NewBadRequest(err)
