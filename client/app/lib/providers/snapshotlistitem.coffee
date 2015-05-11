@@ -75,16 +75,22 @@ module.exports = class SnapshotListItem extends kd.ListItemView
       iconOnly : true
       cssClass : 'rename'
       callback : @bound 'toggleEditable'
+      tooltip  :
+        title  : 'Rename Snapshot'
 
     @infoDeleteBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'delete'
       callback : @bound 'confirmDeleteSnapshot'
+      tooltip  :
+        title  : 'Delete Snapshot'
 
     @infoNewVmBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'new-vm'
       callback : @bound 'vmFromSnapshot'
+      tooltip  :
+        title  : 'Create VM from Snapshot'
 
     @addSubView @editView = new JView
       cssClass        : 'edit hidden'
