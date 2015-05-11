@@ -61,7 +61,7 @@ do ->
     # e.g. team.koding.com/Invitation
     '/Invitation/:token'   : handleInvitation
     '/Welcome'             : handleTeamOnboardingRoute.bind this, 'welcome'
-    '/Register'            : handleTeamOnboardingRoute.bind this, 'register'
+    '/Join'                : handleTeamOnboardingRoute.bind this, 'join'
     '/Authenticate/:step?' : handleTeamOnboardingRoute.bind this, 'stacks'
     '/Congratz'            : handleTeamOnboardingRoute.bind this, 'congratz'
 
