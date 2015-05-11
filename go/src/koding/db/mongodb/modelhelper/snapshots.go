@@ -1,7 +1,6 @@
 package modelhelper
 
 import (
-	"fmt"
 	"koding/db/models"
 
 	"labix.org/v2/mgo"
@@ -10,14 +9,10 @@ import (
 
 const SnapshotCol = "jSnapshots"
 
-func GetSnapshot(id string) (*models.Snapshot, error) {
-	if !bson.IsObjectIdHex(id) {
-		return nil, fmt.Errorf("Not valid ObjectIdHex: '%s'", id)
-	}
-
+func GetSnapshot(snapshotId string) (*models.Snapshot, error) {
 	snapshot := new(models.Snapshot)
 	query := func(c *mgo.Collection) error {
-		return c.FindId(bson.ObjectIdHex(id)).One(&snapshot)
+		return c.Find(bson.M{"snapshotId": snapshotId}).One(&snapshot)
 	}
 
 	if err := Mongo.Run(SnapshotCol, query); err != nil {
