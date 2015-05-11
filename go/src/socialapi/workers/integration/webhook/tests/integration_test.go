@@ -15,11 +15,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newPrepareRequest(email string) *services.ServiceInput {
+func newPrepareRequest(email string, groupName string) *services.ServiceInput {
 	return &services.ServiceInput{
 		"email":     email,
 		"eventName": "emailOpen",
 		"message":   "testing it",
+		"groupName": groupName,
 		"dataFields": map[string]interface{}{
 			"templateId": float64(15120),
 			"device":     "Gmail",
@@ -75,7 +76,7 @@ func TestWebhook(t *testing.T) {
 		err = rest.DoPushRequest(newPushRequest(channel.Id, channelIntegration.GroupName), channelIntegration.Token)
 		So(err, ShouldBeNil)
 
-		ses, err := models.FetchOrCreateSession(account.Nick)
+		ses, err := models.FetchOrCreateSession(account.Nick, channelIntegration.GroupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
@@ -93,11 +94,12 @@ func TestWebhook(t *testing.T) {
 	Convey("We should be able to successfully fetch bot channel of the user", t, func() {
 		account, err := models.CreateAccountInBothDbsWithNick("sinan")
 		So(err, ShouldBeNil)
-		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, models.RandomName())
+		groupName := models.RandomGroupName()
+		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, groupName)
 		_, err = channel.AddParticipant(account.Id)
 		So(err, ShouldBeNil)
 
-		ses, err := models.FetchOrCreateSession(account.Nick)
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
@@ -112,13 +114,18 @@ func TestWebhook(t *testing.T) {
 		account, err := models.CreateAccountInBothDbsWithNick(models.RandomName())
 		So(err, ShouldBeNil)
 
-		err = rest.DoPrepareRequest(newPrepareRequest("xxx@koding.com"), channelIntegration.Token)
+		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, channelIntegration.GroupName)
+		_, err = channel.AddParticipant(account.Id)
+
+		pr := newPrepareRequest("xxx@koding.com", channelIntegration.GroupName)
+		err = rest.DoPrepareRequest(pr, channelIntegration.Token)
 		So(err, ShouldNotBeNil)
 
-		err = rest.DoPrepareRequest(newPrepareRequest(account.Nick+"@koding.com"), channelIntegration.Token)
+		pr = newPrepareRequest(account.Nick+"@koding.com", channelIntegration.GroupName)
+		err = rest.DoPrepareRequest(pr, channelIntegration.Token)
 		So(err, ShouldBeNil)
 
-		ses, err := models.FetchOrCreateSession(account.Nick)
+		ses, err := models.FetchOrCreateSession(account.Nick, channelIntegration.GroupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
@@ -134,6 +141,7 @@ func TestWebhook(t *testing.T) {
 
 		So(err, ShouldBeNil)
 		So(len(resp.MessageList), ShouldEqual, 1)
+		So(resp.MessageList[0].Message.Body, ShouldEqual, "testing it")
 	})
 
 }
