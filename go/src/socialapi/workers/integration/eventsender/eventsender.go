@@ -32,16 +32,19 @@ const (
 
 var (
 	ErrUserNotFound  = errors.New("user not found")
+	ErrDisabled      = errors.New("feature disabled")
 	sendMessageEvent = fmt.Sprintf("sendmessage %s", sendMessageVersion)
 	startCollEvent   = fmt.Sprintf("startcollaboration %s", startCollVersion)
 	createWSEvent    = fmt.Sprintf("createworkspace %s", createWSVersion)
 )
 
 type Controller struct {
-	log       logging.Logger
-	exporter  eventexporter.Exporter
-	userCache cache.Cache
-	env       string
+	log          logging.Logger
+	exporter     eventexporter.Exporter
+	userCache    cache.Cache
+	accountCache cache.Cache
+	env          string
+	isDisabled   bool
 }
 
 type WorkspaceData struct {
@@ -52,10 +55,12 @@ func New(conf *config.Config, log logging.Logger) *Controller {
 	exporter := eventexporter.NewSegmentIOExporter(conf.Segment, QueueLength)
 
 	return &Controller{
-		log:       log,
-		exporter:  exporter,
-		userCache: cache.NewLRU(cacheSize),
-		env:       conf.Environment,
+		log:          log,
+		exporter:     exporter,
+		userCache:    cache.NewLRU(cacheSize),
+		accountCache: cache.NewLRU(cacheSize),
+		env:          conf.Environment,
+		isDisabled:   conf.DisabledFeatures.BotChannel,
 	}
 }
 
@@ -72,6 +77,10 @@ func (c *Controller) MessageCreated(cm *models.ChannelMessage) error {
 	}
 
 	event, err := c.prepareEvent(sendMessageEvent, cm.AccountId)
+	if err == ErrDisabled {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
@@ -88,6 +97,10 @@ func (c *Controller) ChannelCreated(ch *models.Channel) error {
 	}
 
 	event, err := c.prepareEvent(startCollEvent, ch.CreatorId)
+	if err == ErrDisabled {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
@@ -99,7 +112,12 @@ func (c *Controller) ChannelCreated(ch *models.Channel) error {
 }
 
 func (c *Controller) WorkspaceCreated(w *WorkspaceData) error {
+
 	event, err := c.prepareEvent(createWSEvent, w.AccountId)
+	if err == ErrDisabled {
+		return err
+	}
+
 	if err != nil {
 		return err
 	}
@@ -119,6 +137,16 @@ func (c *Controller) prepareEvent(eventName string, accountId int64) (*eventexpo
 	user, err := c.EmailById(accountId)
 	if err != nil {
 		return nil, err
+	}
+
+	if c.isDisabled {
+		isSuperAdmin, err := c.IsSuperAdmin(user.Name)
+		if err != nil {
+			return nil, err
+		}
+		if !isSuperAdmin {
+			return nil, ErrDisabled
+		}
 	}
 
 	u := &eventexporter.User{
@@ -169,4 +197,34 @@ func (c *Controller) EmailById(id int64) (*mongomodels.User, error) {
 	}
 
 	return user, nil
+}
+
+// TODO This is a temporary method used until we permanently enable bot channel
+func (c *Controller) IsSuperAdmin(nick string) (bool, error) {
+	data, err := c.accountCache.Get(nick)
+	if err == nil {
+		isSuperAdmin, ok := data.(bool)
+		if ok {
+			return isSuperAdmin, nil
+		}
+	}
+
+	if err != cache.ErrNotFound {
+		return false, err
+	}
+
+	account, err := modelhelper.GetAccount(nick)
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	if err := c.accountCache.Set(nick, account.HasFlag("super-admin")); err != nil {
+		return false, err
+	}
+
+	return account.HasFlag("super-admin"), nil
 }
