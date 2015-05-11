@@ -114,12 +114,12 @@ build:
           src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
           bin/migrate -url "postgres://$WERCKER_POSTGRESQL_HOST:$WERCKER_POSTGRESQL_PORT/$WERCKER_POSTGRESQL_DATABASE?user=$WERCKER_POSTGRESQL_USERNAME&password=$WERCKER_POSTGRESQL_PASSWORD" -path "src/socialapi/db/sql/migrations" up
     - script:
-        name: prepare mongodb documents
+        name: migrate users
         code: |
-          ./run runuserimporter
-          echo "updating jAccount documents"
-          mongo $WERCKER_MONGODB_HOST:$WERCKER_MONGODB_PORT --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true});'
-          echo "running account migrator"
+          #./run runuserimporter
+          #echo "updating jAccount documents"
+          #mongo $WERCKER_MONGODB_HOST:$WERCKER_MONGODB_PORT --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true});'
+          #echo "running account migrator"
           go run ./go/src/socialapi/workers/cmd/migrator/main.go -c ./go/src/socialapi/config/test.toml
     - script:
         name: test social api
