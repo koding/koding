@@ -255,12 +255,12 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 		return container, nil
 	}
 
-	oldId, err := FetchAccountOldIdByIdFromCache(c.AccountId)
+	acc, err := Cache.Account.ById(c.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
-	container.AccountOldId = oldId
+	container.AccountOldId = acc.OldId
 
 	return container, nil
 }

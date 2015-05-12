@@ -4,7 +4,6 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/helpers"
-	"socialapi/models"
 	"strconv"
 )
 
@@ -55,9 +54,8 @@ func (mwc *Controller) migrateAllAccounts() {
 			return nil
 		}
 
-		id, err := models.AccountIdByOldId(
+		id, err := mwc.AccountIdByOldId(
 			oldAccount.Id.Hex(),
-			oldAccount.Profile.Nickname,
 		)
 		if err != nil {
 			mwc.handleAccountError(oldAccount, err)

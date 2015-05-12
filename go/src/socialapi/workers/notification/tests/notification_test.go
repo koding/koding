@@ -467,26 +467,26 @@ func TestNotificationCreation(t *testing.T) {
 			})
 		})
 
-		// Convey("I should be able to receive notifications when a user mentions me in their post", func() {
-		// 	body := fmt.Sprintf("@%s hello", ownerAccount.OldId)
-		// 	cm, err := createPost(testGroupChannel, firstUser, body)
-		// 	So(err, ShouldBeNil)
-		// 	So(cm, ShouldNotBeNil)
+		Convey("I should be able to receive notifications when a user mentions me in their post", func() {
+			body := fmt.Sprintf("@%s hello", ownerAccount.OldId)
+			cm, err := createPost(testGroupChannel, firstUser, body)
+			So(err, ShouldBeNil)
+			So(cm, ShouldNotBeNil)
 
-		// 	err = controller.HandleMessage(cm)
-		// 	So(err, ShouldBeNil)
+			err = controller.HandleMessage(cm)
+			So(err, ShouldBeNil)
 
-		// 	nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
-		// 	So(err, ShouldBeNil)
-		// 	So(nl, ShouldNotBeNil)
+			nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
+			So(err, ShouldBeNil)
+			So(nl, ShouldNotBeNil)
 
-		// 	So(nl.Notifications, ShouldNotBeEmpty)
-		// 	So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_MENTION)
-		// 	So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
-		// 	So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-		// 	So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+			So(nl.Notifications, ShouldNotBeEmpty)
+			So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_MENTION)
+			So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
+			So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+			So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
 
-		// })
+		})
 
 		// TODO complete this test
 		SkipConvey("I should be able to receive to receive notification when a user mentions me in their comment", func() {

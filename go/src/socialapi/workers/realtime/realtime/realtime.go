@@ -151,7 +151,7 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 
 	// channel must be notified with newly added/removed participants
 	for _, participant := range pe.Participants {
-		accountOldId, err := models.FetchAccountOldIdByIdFromCache(participant.AccountId)
+		acc, err := models.Cache.Account.ById(participant.AccountId)
 		if err != nil {
 			f.log.Error("Could update fetch participant old id: %s", err)
 			continue
@@ -159,7 +159,7 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 
 		pc := &ParticipantContent{
 			AccountId:    participant.AccountId,
-			AccountOldId: accountOldId,
+			AccountOldId: acc.OldId,
 			ChannelId:    pe.Id,
 		}
 
@@ -271,7 +271,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 	}
 
 	// fetchs oldId from cache
-	oldId, err := models.FetchAccountOldIdByIdFromCache(i.AccountId)
+	acc, err := models.Cache.Account.ById(i.AccountId)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 	res := &InteractionEvent{
 		MessageId:    i.MessageId,
 		AccountId:    i.AccountId,
-		AccountOldId: oldId,
+		AccountOldId: acc.OldId,
 		TypeConstant: i.TypeConstant,
 		Count:        count,
 	}
