@@ -18,6 +18,19 @@ app.settings.styl
 
 // Account AppModal Styles
 .AppModal--account
+
+  .kdmodal-content
+    height                  570px
+    overflow                hidden !important
+    > .kdcustomscrollview
+      width                 530px
+      float                 right
+      .kdscrolltrack.vertical
+        width               7px
+        background          transparent
+        .kdscrollthumb
+          border-radius     6px
+
   .AppModal-navItem:before
     content                 ''
     display                 inline-block
@@ -92,17 +105,17 @@ app.settings.styl
       r-sprite              'account' 'shortcuts-active'
 
   .AppModal-content
-    min-height               570px
+    min-height              540px
 
   .AppModal-form
-    padding-top              20px
+    padding-top             20px
 
     .formline
-      margin-bottom          15px
+      margin-bottom         15px
 
       .AppModal-sectionHeader
-        margin-bottom        0px
-        padding-top          20px
+        margin-bottom       0px
+        padding-top         20px
 
 .AppModal--account-avatarArea
   overflow                  hidden

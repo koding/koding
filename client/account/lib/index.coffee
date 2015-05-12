@@ -8,6 +8,7 @@ KDNotificationView    = kd.NotificationView
 KDTabPaneView         = kd.TabPaneView
 KDTabView             = kd.TabView
 KDView                = kd.View
+KDCustomScrollView    = kd.CustomScrollView
 remote                = require('app/remote').getInstance()
 AccountListWrapper    = require './accountlistwrapper'
 AccountNavigationItem = require './accountnavigationitem'
@@ -123,11 +124,15 @@ module.exports = class AccountAppController extends AppController
 
     aside.addSubView navView = @navController.getView()
 
-    modal.addSubView appContent = new KDCustomHTMLView
+    scrollView = new KDCustomScrollView
+
+    scrollView.wrapper.addSubView appContent = new KDCustomHTMLView
       cssClass            : 'AppModal-content'
 
     appContent.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
+
+    modal.addSubView scrollView
 
     items = []
     for own sectionKey, section of NAV_ITEMS

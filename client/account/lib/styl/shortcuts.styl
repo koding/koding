@@ -61,10 +61,13 @@
     margin-top              6px
     font-size               14px
     color                   rgb(120, 120, 120)
+    height                  auto
 
   .kdtabpaneview
     height                  400px
-    overflow                auto
+    overflow                hidden
+      main.kdscrollview
+        width               508px
 
     div.row
       width                 100% !important
@@ -175,3 +178,9 @@
 
         b
           color             #01B05A !important
+
+  .kdcustomscrollview
+    .kdscrolltrack.vertical
+      .kdscrollthumb
+        background          rgba(0, 0, 0, 0.2)
+        margin              0 !important
