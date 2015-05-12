@@ -22,18 +22,9 @@ func TestChannelCreated(t *testing.T) {
 		Convey("it should save the document to algolia", func() {
 			err := handler.ChannelCreated(mockTopic)
 			So(err, ShouldBeNil)
-		})
-	})
-
-	Convey("given some fake non-topic channel", t, func() {
-		mockTopic := models.NewChannel()
-		mockTopic.TypeConstant = models.Channel_TYPE_PRIVATE_MESSAGE
-		Convey("it should save the document to algolia", func() {
-			err := handler.ChannelCreated(mockTopic)
-			So(err, ShouldBeNil)
 
 			err = makeSureChannel(handler, mockTopic.Id, func(record map[string]interface{}, err error) bool {
-				if IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) {
+				if err != nil {
 					return false
 				}
 
@@ -44,6 +35,15 @@ func TestChannelCreated(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(rec["_tags"], ShouldNotBeNil)
 			So(len(rec["_tags"].([]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
+
+	Convey("given some fake non-topic channel", t, func() {
+		mockTopic := models.NewChannel()
+		mockTopic.TypeConstant = models.Channel_TYPE_PRIVATE_MESSAGE
+		Convey("it should save the document to algolia", func() {
+			err := handler.ChannelCreated(mockTopic)
+			So(err, ShouldBeNil)
 		})
 	})
 }
