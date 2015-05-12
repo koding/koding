@@ -98,7 +98,7 @@ func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
 		return 0, err
 	}
 
-	if err := models.Cache.Account.SetToCache(acc); err != nil {
+	if err := models.Cache.Account.SetToCache(a); err != nil {
 		return 0, err
 	}
 
