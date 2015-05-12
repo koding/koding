@@ -78,14 +78,19 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		// k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
-		// k.Log.Debug(finalBootstrap)
+		region, err := cred.region()
+		if err != nil {
+			return nil, err
+		}
+
+		k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
+		k.Log.Debug(finalBootstrap)
 
 		// Important so bootstraping is distributed amongs multiple users. If I
 		// use these keys to bootstrap, any other user should be not create
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
-		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"] + cred.Data["region"])
+		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"] + region)
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
@@ -141,7 +146,7 @@ var awsBootstrap = `{
         "aws": {
             "access_key": "${var.access_key}",
             "secret_key": "${var.secret_key}",
-            "region": "${var.aws_region}"
+            "region": "${var.region}"
         }
     },
     "output": {
@@ -189,7 +194,7 @@ var awsBootstrap = `{
         },
         "aws_subnet": {
             "main_koding_subnet": {
-                "availability_zone": "${lookup(var.aws_availability_zones, var.aws_region)}",
+                "availability_zone": "${lookup(var.aws_availability_zones, var.region)}",
                 "cidr_block": "${var.cidr_block}",
                 "map_public_ip_on_launch": true,
                 "tags": {
