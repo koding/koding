@@ -449,7 +449,7 @@ module.exports = class ComputeController extends KDController
       destroy machine
 
 
-  reinit: (machine)->
+  reinit: (machine, snapshotId)->
 
     return if methodNotSupportedBy machine
 
@@ -461,7 +461,7 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      call = @getKloud().reinit { machineId: machine._id }
+      call = @getKloud().reinit { machineId: machine._id, snapshotId }
 
       .then (res)=>
 

@@ -37,19 +37,18 @@ func main() {
 
 	mc := mux.NewConfig(Name, r.Conf.Host, r.Conf.Port)
 	mc.Debug = r.Conf.Debug
-	m := mux.New(mc, r.Log)
-	m.Metrics = r.Metrics
+	m := mux.New(mc, r.Log, r.Metrics)
 
-	handlers.AddHandlers(m, r.Metrics)
-	permissionapi.AddHandlers(m, r.Metrics)
-	topicmoderationapi.AddHandlers(m, r.Metrics)
-	collaboration.AddHandlers(m, r.Metrics)
-	paymentapi.AddHandlers(m, r.Metrics)
-	notificationapi.AddHandlers(m, r.Metrics)
-	trollmodeapi.AddHandlers(m, r.Metrics)
-	sitemapapi.AddHandlers(m, r.Metrics)
-	mailapi.AddHandlers(m, r.Metrics)
-	algoliaapi.AddHandlers(m, r.Metrics, r.Log)
+	handlers.AddHandlers(m)
+	permissionapi.AddHandlers(m)
+	topicmoderationapi.AddHandlers(m)
+	collaboration.AddHandlers(m)
+	paymentapi.AddHandlers(m)
+	notificationapi.AddHandlers(m)
+	trollmodeapi.AddHandlers(m)
+	sitemapapi.AddHandlers(m)
+	mailapi.AddHandlers(m)
+	algoliaapi.AddHandlers(m, r.Log)
 
 	// init redis
 	redisConn := runner.MustInitRedisConn(r.Conf)

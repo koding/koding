@@ -1028,7 +1028,11 @@ module.exports = class JAccount extends jraphical.Module
       else
         callback err, storage
 
-  fetchAppStorage$: secure (client, options, callback)->
+  fetchAppStorage$: secure (client, options, callback) ->
+
+    unless client?.connection?.delegate
+      return callback "Not a valid session"
+
     unless @equals client.connection.delegate
       return callback "Attempt to access unauthorized application storage"
 
