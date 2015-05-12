@@ -24,7 +24,16 @@ fetchNewestSnapshot = (machineId, callback = kd.noop) ->
 
 
 ###*
- * Create a new vm from the given snapshotId.
+ * Create a new vm from the given snapshotId, going directly to reinit
+ * for hobbyist's, and showing the new machine modal for all other
+ * users.
+ *
+ * @param {Machine} machine - The machine to reinit a snapshot onto, in
+ *  the event that it's needed (hobbyists).
+ * @param {String} snapshotId - The snapshotId to create the machine from
+ * @param {Function()} callback - Called once the process has begin, *not*
+ *  when the process is entirely done. (Eg, after plan confirmations have
+ *  taken place, etc).
 ###
 newVmFromSnapshot = (machine, snapshotId, callback = kd.noop) ->
 
