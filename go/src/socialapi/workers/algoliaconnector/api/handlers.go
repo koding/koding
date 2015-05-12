@@ -7,7 +7,6 @@ import (
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/koding/logging"
-	"github.com/koding/metrics"
 )
 
 type Handler struct {
@@ -25,7 +24,7 @@ func NewHandler(c *algoliasearch.Client, l logging.Logger, apiKey string) *Handl
 
 }
 
-func AddHandlers(m *mux.Mux, metric *metrics.Metrics, l logging.Logger) {
+func AddHandlers(m *mux.Mux, l logging.Logger) {
 	algoliaConf := config.MustGet().Algolia
 	c := algoliasearch.NewClient(algoliaConf.AppId, algoliaConf.ApiSecretKey)
 
@@ -35,7 +34,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics, l logging.Logger) {
 			Handler:  h.GenerateKey,
 			Type:     handler.GetRequest,
 			Endpoint: "/search-key",
-			Metrics:  metric,
 		})
 
 }
