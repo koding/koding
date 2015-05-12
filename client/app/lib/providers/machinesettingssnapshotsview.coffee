@@ -16,7 +16,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     options.cssClass             = kd.utils.curry options.cssClass, 'snapshots'
     options.headerTitle          = 'Snapshots'
     options.addButtonTitle       = 'ADD SNAPSHOT'
-    options.headerAddButtonTitle = 'ADD SNAPSHOT'
+    options.headerAddButtonTitle = 'ADD NEW SNAPSHOT'
     options.listViewItemClass    = SnapshotListItem
     options.noItemFoundWidget    = new kd.CustomHTMLView
       cssClass : 'no-item'
@@ -83,7 +83,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
 
     @headerAddNewButton = new kd.ButtonView
       title    : headerAddButtonTitle
-      cssClass : "solid green compact add-button #{addButtonCssClass}"
+      cssClass : "solid green small add-button #{addButtonCssClass}"
       loader   : loaderOnHeaderButton
       callback : @bound 'showAddView'
 
@@ -145,7 +145,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       click    : @bound 'hideAddView'
 
     wrapper.addSubView @addNewButton = new kd.ButtonView
-      cssClass : 'solid green compact add'
+      cssClass : 'solid green small add'
       loader   : yes
       title    : @getOptions().addButtonTitle
       callback : @bound 'handleAddNew'
