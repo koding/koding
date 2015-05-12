@@ -15,7 +15,12 @@ createInstance = ->
     apiDescriptor  : globals.REMOTE_API
     resourceName   : globals.config.resourceName ? 'koding-social'
     getSessionToken: getSessionToken
-    getUserArea    : -> kd.getSingleton('groupsController').getUserArea()
+
+    getUserArea    : ->
+
+      {groupsController} = kd.singletons
+      groupsController?.getUserArea()
+
     fetchName      : do ->
       cache = {}
       (nameStr, callback)->
