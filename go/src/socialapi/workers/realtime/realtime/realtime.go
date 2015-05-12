@@ -116,7 +116,7 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 	}
 
 	// fetch the channel that user is updated
-	c, err := models.ChannelById(cp.ChannelId)
+	c, err := models.Cache.Channel.ById(cp.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 // or follow/unfollow a topic.
 // this is used for updating sidebar.
 func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, eventName string) {
-	c, err := models.ChannelById(pe.Id)
+	c, err := models.Cache.Channel.ById(pe.Id)
 	if err != nil {
 		f.log.Error("Could not notify participant %d: %s", pe.Id, err)
 		return
@@ -401,7 +401,7 @@ func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 
 // send message to the channel
 func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
-	c, err := models.ChannelById(cml.ChannelId)
+	c, err := models.Cache.Channel.ById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -447,7 +447,7 @@ func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) e
 
 	// find the user's pinned post channel
 	// we need it for finding the account id
-	c, err := models.ChannelById(cml.ChannelId)
+	c, err := models.Cache.Channel.ById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -556,7 +556,7 @@ func (f *Controller) PinnedChannelListUpdated(pclue *models.PinnedChannelListUpd
 
 // todo - refactor this part
 func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
-	c, err := models.ChannelById(cml.ChannelId)
+	c, err := models.Cache.Channel.ById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -643,7 +643,7 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models
 // message is sent as a json message
 // this function is not idempotent
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
-	ch, err := models.ChannelById(channelId)
+	ch, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return err
 	}

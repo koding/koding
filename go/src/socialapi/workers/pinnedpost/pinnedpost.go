@@ -71,7 +71,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
 	// fetch the parent channel for group name
 	// get it from cache
-	channel, err := models.ChannelById(channelId)
+	channel, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return err
 	}

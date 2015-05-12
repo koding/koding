@@ -60,7 +60,7 @@ func (f *Controller) handleInteraction(inc float64, i *models.Interaction) error
 		return err
 	}
 
-	c, err := models.ChannelById(cm.InitialChannelId)
+	c, err := models.Cache.Channel.ById(cm.InitialChannelId)
 	if err != nil {
 		return err
 	}

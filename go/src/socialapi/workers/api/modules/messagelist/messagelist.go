@@ -21,7 +21,7 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 	// for now set account id here - minumun code change
 	query.AccountId = context.Client.Account.Id
 
-	c, err := models.ChannelById(channelId)
+	c, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

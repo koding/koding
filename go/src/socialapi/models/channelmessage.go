@@ -643,7 +643,7 @@ func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) 
 // initial channel is topic, it fetches the group channel, otherwise
 // it just fetches the initial channel as parent.
 func (cm *ChannelMessage) FetchParentChannel() (*Channel, error) {
-	c, err := ChannelById(cm.InitialChannelId)
+	c, err := Cache.Channel.ById(cm.InitialChannelId)
 	if err != nil {
 		return nil, err
 	}

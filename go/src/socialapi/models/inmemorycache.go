@@ -26,25 +26,6 @@ func init() {
 
 /////////// Channel
 
-// todo fix!!
-// this will fail when a channel marked as troll
-func ChannelById(id int64) (*Channel, error) {
-	if channel, ok := channelCache[id]; ok {
-		return channel, nil
-	}
-
-	// todo add caching here
-	c := NewChannel()
-	if err := c.ById(id); err != nil {
-		return nil, err
-	}
-
-	// add channel to cache
-	channelCache[c.Id] = c
-
-	return c, nil
-}
-
 func ChannelsByIds(ids []int64) ([]*Channel, error) {
 	channels := make([]*Channel, len(ids))
 	if len(channels) == 0 {
@@ -52,7 +33,7 @@ func ChannelsByIds(ids []int64) ([]*Channel, error) {
 	}
 
 	for i, id := range ids {
-		channel, err := ChannelById(id)
+		channel, err := Cache.Channel.ById(id)
 		if err != nil {
 			return channels, err
 		}
@@ -163,7 +144,7 @@ func SecretNamesByChannelId(channelId int64) ([]string, error) {
 		}
 	}
 
-	c, err := ChannelById(channelId)
+	c, err := Cache.Channel.ById(channelId)
 	if err != nil {
 		return nil, err
 	}
