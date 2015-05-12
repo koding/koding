@@ -28,9 +28,9 @@ appendScripts = (callback) ->
     identifier : 'socket-io'
     url        : 'https://cdn.socket.io/socket.io-1.2.0.js'
 
-  addToHead 'style', cssOptions, ->
-    addToHead 'script', mochaOptions, ->
-      addToHead 'script', socketIoOptions, callback
+  addToHead 'style', cssOptions, kd.noop
+  addToHead 'script', mochaOptions, ->
+    addToHead 'script', socketIoOptions, callback
 
 
 runTests = ->
