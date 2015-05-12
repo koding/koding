@@ -3,18 +3,15 @@ package api
 import (
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
-
-	"github.com/koding/metrics"
 )
 
-func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
+func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  Mark,
 			Name:     "trollmode-mark",
 			Type:     handler.PostRequest,
 			Endpoint: "/trollmode/{accountId}",
-			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -23,6 +20,5 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Name:     "trollmode-unmark",
 			Type:     handler.DeleteRequest,
 			Endpoint: "/trollmode/{accountId}",
-			Metrics:  metric,
 		})
 }

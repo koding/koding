@@ -477,9 +477,9 @@ func TestNotificationCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
+
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
-
 			So(nl.Notifications, ShouldNotBeEmpty)
 			So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_MENTION)
 			So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
@@ -521,9 +521,6 @@ func TestNotificationCreation(t *testing.T) {
 				cm, err := createPost(testGroupChannel2, firstUser, body)
 				So(err, ShouldBeNil)
 				So(cm, ShouldNotBeNil)
-
-				err = controller.HandleMessage(cm)
-				So(err, ShouldBeNil)
 
 				nl, err = fetchNotification(ownerAccount.Id, testGroupChannel2)
 				So(err, ShouldBeNil)

@@ -1,11 +1,8 @@
 package emailmodels
 
 import (
-	"bytes"
 	"net/url"
 	"socialapi/config"
-	"socialapi/workers/email/templates"
-	"text/template"
 )
 
 type LayoutContent struct {
@@ -39,15 +36,4 @@ func NewLayoutContent(u *UserContact, contentType, body string) *LayoutContent {
 		RecipientEmail: url.QueryEscape(u.Email),
 		Hostname:       config.MustGet().Protocol + "//" + config.MustGet().Hostname,
 	}
-}
-
-func (lc *LayoutContent) Render() (string, error) {
-	mt := template.Must(template.New("main").Parse(templates.Layout))
-
-	var doc bytes.Buffer
-	if err := mt.Execute(&doc, lc); err != nil {
-		return "", err
-	}
-
-	return doc.String(), nil
 }
