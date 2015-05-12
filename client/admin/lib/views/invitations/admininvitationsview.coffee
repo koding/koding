@@ -1,7 +1,9 @@
-kd                    = require 'kd'
-KDView                = kd.View
-KDTabView             = kd.TabView
-KDTabPaneView         = kd.TabPaneView
+kd                      = require 'kd'
+KDView                  = kd.View
+KDTabView               = kd.TabView
+KDTabPaneView           = kd.TabPaneView
+PendingInvitationsView  = require './pendinginvitationsview'
+AcceptedInvitationsView = require './acceptedinvitationsview'
 
 
 module.exports = class AdminInvitationsView extends KDView
@@ -21,7 +23,10 @@ module.exports = class AdminInvitationsView extends KDView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 210
 
-    @tabView.addPane new KDTabPaneView name: 'Pending Invitations'
-    @tabView.addPane new KDTabPaneView name: 'Accepted Invitations'
+    @tabView.addPane pending  = new KDTabPaneView name: 'Pending Invitations'
+    @tabView.addPane accepted = new KDTabPaneView name: 'Accepted Invitations'
 
     @tabView.showPaneByIndex 0
+
+    pending.addSubView  new PendingInvitationsView  {}, @getData()
+    accepted.addSubView new AcceptedInvitationsView {}, @getData()
