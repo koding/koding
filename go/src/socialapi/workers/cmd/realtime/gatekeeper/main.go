@@ -26,8 +26,7 @@ func main() {
 	defer pubnub.Close()
 
 	mc := mux.NewConfig(Name, appConfig.GateKeeper.Host, appConfig.GateKeeper.Port)
-	m := mux.New(mc, r.Log)
-	m.Metrics = r.Metrics
+	m := mux.New(mc, r.Log, r.Metrics)
 
 	h := api.NewHandler(pubnub, r.Log)
 

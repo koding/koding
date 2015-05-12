@@ -55,14 +55,12 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
     # Snapshots
     createSnapshot  : 'createSnapshot'
-    deleteSnapshot  : 'deleteSnapshot'
 
     # Stack, Teams, Credentials related methods
     bootstrap       : 'bootstrap'
     buildStack      : 'apply'
     checkTemplate   : 'plan'
     checkCredential : 'authenticate'
-
 
 
   constructor: (options) ->
@@ -72,6 +70,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     @needsRequest   = kd.utils.dict()
 
     @_reconnectedOnce = no
+
 
   # first info request sends message to kite requesting info
   # subsequent info requests while the first request is pending
@@ -182,3 +181,34 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
         kd.warn '[kloud:info] failed, sending current state back:', { currentState, err }
         @resolveRequestingInfos machineId, State: currentState
+
+
+  ###*
+   * Delete the given snapshot.
+   *
+   * Note that we're using a custom method here (rather than @createMethod)
+   * to default the provider to Koding, as is needed for Machine's that
+   * no longer exist. They don't have a provider, because they don't exist.
+   *
+   * @param {Object} payload
+   * @param {String} payload.machineId - The machine that created the snapshot
+   * @param {String} payload.snapshotId - The snapshotId to delete.
+  ###
+  deleteSnapshot: (payload) ->
+
+    if payload?.machineId?
+
+      provider = getProvider payload.machineId
+      provider = 'koding'  unless provider
+
+      if provider not in SUPPORTED_PROVIDERS
+        # machine provider is not supported by kloud #{payload.machineId}
+        return Promise.reject
+          name    : 'NotSupported'
+          message : 'Operation is not supported for this VM'
+
+      payload.provider = provider
+
+    @tell 'deleteSnapshot', payload
+
+

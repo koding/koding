@@ -3,11 +3,9 @@ package api
 import (
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
-
-	"github.com/koding/metrics"
 )
 
-func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
+func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
 	// Subscriptions
 	//----------------------------------------------------------
@@ -19,7 +17,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/payments/subscribe",
 			CollectMetrics: true,
-			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -28,7 +25,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Name:     "payment-subscriptions",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/subscriptions",
-			Metrics:  metric,
 		})
 
 	//----------------------------------------------------------
@@ -41,7 +37,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Name:     "payment-getcustomer",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/customers",
-			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -50,7 +45,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Name:     "payment-deletecustomer",
 			Type:     handler.DeleteRequest,
 			Endpoint: "/payments/customers/{accountId}",
-			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -59,7 +53,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Name:     "payment-expirecustomer",
 			Type:     handler.PostRequest,
 			Endpoint: "/payments/customers/{accountId}/expire",
-			Metrics:  metric,
 		})
 
 	//----------------------------------------------------------
@@ -72,7 +65,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Name:     "payment-invoices",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/invoices/{accountId}",
-			Metrics:  metric,
 		})
 
 	//----------------------------------------------------------
@@ -86,7 +78,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Type:           handler.GetRequest,
 			Endpoint:       "/payments/creditcard/{accountId}",
 			CollectMetrics: true,
-			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -96,7 +87,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/payments/creditcard/update",
 			CollectMetrics: true,
-			Metrics:        metric,
 		})
 
 	//----------------------------------------------------------
@@ -110,7 +100,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/payments/paypal/return",
 			CollectMetrics: true,
-			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -120,7 +109,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/payments/paypal/cancel",
 			CollectMetrics: true,
-			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -130,6 +118,5 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Type:           handler.GetRequest,
 			Endpoint:       "/payments/paypal/token",
 			CollectMetrics: true,
-			Metrics:        metric,
 		})
 }

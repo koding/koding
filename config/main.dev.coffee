@@ -173,7 +173,7 @@ Configuration = (options={}) ->
     github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
     odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "475071279247628"                              , clientSecret  : "65cc36108bb1ac71920dbd4d561aca27"           , redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"}
-    google                         : {client_id     : "1058622748167.apps.googleusercontent.com"     , client_secret : "vlF2m9wue6JEvsrcAaQ-y9wq"                   , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback"}
+    google                         : {client_id     : "569190240880-o8loc6it0r1pl89i5slmm7sjar3lmgfb.apps.googleusercontent.com"                                    , client_secret : "BStkPGPO5k9GWFQcKKxBBLVq"                                            , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback" }
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "f4xbuwft59ui"                                 , client_secret : "fBWSPkARTnxdfomg"                           , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
@@ -923,8 +923,43 @@ Configuration = (options={}) ->
           command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
         fi
 
+        check_node_version
+        check_npm_version
         check_go_version
         check_gulp_version
+      }
+
+      function check_node_version () {
+        VERSION=$(node --version | sed -e 's/^v//')
+
+        while IFS=".", read MAJOR MINOR REVISION; do
+          MISMATCH=1
+          if [[ $MAJOR -eq 0 && $MINOR -eq 10 ]]; then
+            MISMATCH=
+          fi
+        done < <(echo $VERSION)
+
+        if [[ -n "$MISMATCH" ]]; then
+          echo "error: node version is $VERSION, it must be 0.10.x"
+          exit 1
+        fi
+      }
+
+      function check_npm_version () {
+        VERSION=$(npm --version)
+
+        while IFS=".", read MAJOR MINOR REVISION; do
+          if [[ $MAJOR -lt 2 ]]; then
+            MISMATCH=1
+          elif [[ $MAJOR -eq 2 && $MINOR -lt 9 ]]; then
+            MISMATCH=1
+          fi
+        done < <(echo $VERSION)
+
+        if [[ -n "$MISMATCH" ]]; then
+          echo "error: npm version is $VERSION, it must be 2.9.x or greater"
+          exit 1
+        fi
       }
 
       function check_gulp_version () {

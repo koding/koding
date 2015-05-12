@@ -55,6 +55,8 @@ module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
           kd.utils.stopDOMEvent event
           new HelpSupportModal
           @destroy()
+        else if 'close' in event.target.classList
+          @destroy()
 
     #close = new kd.ButtonView
     #  title    : 'Close'

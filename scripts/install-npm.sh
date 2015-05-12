@@ -18,7 +18,7 @@ install()
 
 NPM_ARGS=
 
-while getopts ":d:usp" OPTION; do
+while getopts ":d:us" OPTION; do
   case $OPTION in
     d) WORKING_DIR=$OPTARG ;;
     u) NPM_ARGS+=" --unsafe-perm" ;;

@@ -1,7 +1,7 @@
 globals = require 'globals'
 kd = require 'kd'
 kookies = require 'kookies'
-Bongo = require 'bongo-client'
+Bongo = require '@koding/bongo-client'
 broker = require 'broker-client'
 sinkrow = require 'sinkrow'
 

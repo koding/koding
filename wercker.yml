@@ -35,7 +35,9 @@ build:
           nvm use 0.10.33
     - script:
         name: koding node modules
-        code: scripts/wercker/install-node-modules koding
+        code: |
+          scripts/wercker/install-node-modules koding
+          npm install
     - script:
         name: notify cebeci
         code: |
@@ -60,7 +62,7 @@ build:
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
         name: client node modules
-        code: scripts/install-npm.sh -d client -u -p
+        code: scripts/install-npm.sh -d client -u
     - script:
         name: build client
         code: |
