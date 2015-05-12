@@ -201,7 +201,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
     return if _.isEmpty dataToUpdate
 
-    jGroup.modify dataToUpdate, (err, result) =>
+    jGroup.modify dataToUpdate, (err, result) ->
       message  = 'Group settings has been successfully updated.'
 
       if err
