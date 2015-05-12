@@ -284,7 +284,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		Count:        count,
 	}
 
-	m, err := models.ChannelMessageById(i.MessageId)
+	m, err := models.Cache.Message.ById(i.MessageId)
 	if err != nil {
 		return err
 	}
@@ -307,14 +307,14 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 }
 
 func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
-	parent, err := models.ChannelMessageById(mr.MessageId)
+	parent, err := models.Cache.Message.ById(mr.MessageId)
 	if err != nil {
 		return err
 	}
 
 	// if reply is created now, it wont be in the cache
 	// but fetch it from db and add to cache, we may use it later
-	reply, err := models.ChannelMessageById(mr.ReplyId)
+	reply, err := models.Cache.Message.ById(mr.ReplyId)
 	if err != nil {
 		return err
 	}
@@ -335,14 +335,14 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 }
 
 func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply, eventType channelUpdatedEventType) error {
-	parent, err := models.ChannelMessageById(mr.MessageId)
+	parent, err := models.Cache.Message.ById(mr.MessageId)
 	if err != nil {
 		return err
 	}
 
 	// if reply is created now, it wont be in the cache
 	// but fetch it from db and add to cache, we may use it later
-	reply, err := models.ChannelMessageById(mr.ReplyId)
+	reply, err := models.Cache.Message.ById(mr.ReplyId)
 	if err != nil {
 		return err
 	}
@@ -387,7 +387,7 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 
 func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyRemoved)
-	m, err := models.ChannelMessageById(mr.MessageId)
+	m, err := models.Cache.Message.ById(mr.MessageId)
 	if err != nil {
 		return err
 	}
@@ -407,7 +407,7 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 	}
 
 	// populate cache
-	cm, err := models.ChannelMessageById(cml.MessageId)
+	cm, err := models.Cache.Message.ById(cml.MessageId)
 	if err != nil {
 		return err
 	}
@@ -458,7 +458,7 @@ func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) e
 	}
 
 	// get the glanced message
-	cm, err := models.ChannelMessageById(cml.MessageId)
+	cm, err := models.Cache.Message.ById(cml.MessageId)
 	if err != nil {
 		return err
 	}

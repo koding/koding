@@ -29,6 +29,9 @@ func init() {
 		Channel: &ChannelCache{
 			id: cache.NewLRU(cacheSize),
 		},
+		Message: &MessageCache{
+			id: cache.NewLRU(cacheSize),
+		},
 	}
 }
 
@@ -36,6 +39,7 @@ type StaticCache struct {
 	Account *AccountCache
 	Session *SessionCache
 	Channel *ChannelCache
+	Message *MessageCache
 }
 
 //////////////// Account Cache ////////////////////
@@ -180,6 +184,44 @@ func (c *ChannelCache) ById(id int64) (*Channel, error) {
 
 func (c *ChannelCache) SetToCache(ch *Channel) error {
 	if err := c.id.Set(strconv.FormatInt(ch.Id, 10), ch); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//////////////// Message Cache ////////////////////
+type MessageCache struct {
+	id cache.Cache
+}
+
+func (m *MessageCache) ById(id int64) (*ChannelMessage, error) {
+	data, err := m.id.Get(strconv.FormatInt(id, 10))
+	if err != nil && err != cache.ErrNotFound {
+		return nil, err
+	}
+
+	if err == nil {
+		acc, ok := data.(*ChannelMessage)
+		if ok {
+			return acc, nil
+		}
+	}
+
+	message := NewChannelMessage()
+	if err := message.ById(id); err != nil {
+		return nil, err
+	}
+
+	if err := m.SetToCache(message); err != nil {
+		return nil, err
+	}
+
+	return message, nil
+}
+
+func (m *MessageCache) SetToCache(cm *ChannelMessage) error {
+	if err := m.id.Set(strconv.FormatInt(cm.Id, 10), cm); err != nil {
 		return err
 	}
 

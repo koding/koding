@@ -10,39 +10,18 @@ import (
 )
 
 var (
-	channelCache        map[int64]*Channel
-	channelMessageCache map[int64]*ChannelMessage
-	accountCache        map[int64]*Account
-	oldAccountCache     map[string]int64
-	secretNamesCache    cache.Cache
+	channelCache     map[int64]*Channel
+	accountCache     map[int64]*Account
+	oldAccountCache  map[string]int64
+	secretNamesCache cache.Cache
 )
 
 func init() {
 	// those are not thread safe!!!!
 	channelCache = make(map[int64]*Channel)
-	channelMessageCache = make(map[int64]*ChannelMessage)
 	accountCache = make(map[int64]*Account)
 	oldAccountCache = make(map[string]int64)
 	secretNamesCache = cache.NewMemoryWithTTL(time.Second * 10)
-}
-
-/////////// ChannelMessage
-
-func ChannelMessageById(id int64) (*ChannelMessage, error) {
-	if channelMessage, ok := channelMessageCache[id]; ok {
-		return channelMessage, nil
-	}
-
-	// todo add caching here
-	c := NewChannelMessage()
-	if err := c.ById(id); err != nil {
-		return nil, err
-	}
-
-	// add channel to cache
-	channelMessageCache[c.Id] = c
-
-	return c, nil
 }
 
 /////////// Channel

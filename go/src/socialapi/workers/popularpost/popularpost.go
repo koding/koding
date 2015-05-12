@@ -55,7 +55,7 @@ func (f *Controller) InteractionDeleted(i *models.Interaction) error {
 }
 
 func (f *Controller) handleInteraction(inc float64, i *models.Interaction) error {
-	cm, err := models.ChannelMessageById(i.MessageId)
+	cm, err := models.Cache.Message.ById(i.MessageId)
 	if err != nil {
 		return err
 	}

@@ -161,7 +161,7 @@ func (m *Mail) persistReply(accountId int64) error {
 		return err
 	}
 	messageId := mId
-	cm, err := socialapimodels.ChannelMessageById(messageId)
+	cm, err := socialapimodels.Cache.Message.ById(messageId)
 	if err != nil {
 		return err
 	}
