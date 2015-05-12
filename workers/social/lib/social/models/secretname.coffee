@@ -4,6 +4,9 @@ module.exports = class JSecretName extends Model
 
   @set
     softDelete    : no
+    sharedEvents  :
+      instance    : []
+      static      : []
 
   # TODO: the below should be made a bit more secure:
   @setSchema
