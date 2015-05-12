@@ -2,6 +2,7 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"koding/vmwatcher/secretkey"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -19,7 +20,6 @@ type Vmwatcher struct {
 	Redis           string `required:"true"`
 	AwsKey          string `required:"true"`
 	AwsSecret       string `required:"true"`
-	KloudSecretKey  string `required:"true"`
 	KloudAddr       string `required:"true"`
 	Port            string `required:"true"`
 	Debug           bool
@@ -45,9 +45,7 @@ var (
 	AWS_KEY    = conf.AwsKey
 	AWS_SECRET = conf.AwsSecret
 
-	// This secret key is here because this worker will be bypassed from the
-	// token authentication in kloud.
-	KloudSecretKey = conf.KloudSecretKey
+	KloudSecretKey = secretkey.KloudSecretKey
 	KloudAddr      = conf.KloudAddr
 
 	controller *VmController
@@ -128,7 +126,7 @@ func initializeKlient(c *VmController) {
 	// create a new connection to the cloud
 	kiteClient := k.NewClient(KloudAddr)
 	kiteClient.Auth = &kite.Auth{
-		Type: "kloudctl",
+		Type: WorkerName,
 		Key:  KloudSecretKey,
 	}
 	kiteClient.Reconnect = true

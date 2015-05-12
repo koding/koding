@@ -29,7 +29,11 @@ import (
 
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
+
+	janitor "koding/janitor/secretkey"
 	"koding/kites/kloud/kloudctl/command"
+	vmwatcher "koding/vmwatcher/secretkey"
+	paymentwebhook "socialapi/workers/payment/paymentwebhook/secretkey"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -307,12 +311,22 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
-	// This is a custom authenticator just for kloudctl
-	k.Authenticators["kloudctl"] = func(r *kite.Request) error {
-		if r.Auth.Key != command.KloudSecretKey {
-			return errors.New("wrong secret key passed, you are not authenticated")
-		}
-		return nil
+	authenticators := map[string]string{
+		"kloudctl":       command.KloudSecretKey,
+		"janitor":        janitor.KloudSecretKey,
+		"vmwatcher":      vmwatcher.KloudSecretKey,
+		"paymentwebhook": paymentwebhook.KloudSecretKey,
+	}
+
+	for w, s := range authenticators {
+		func(worker, secretKey string) {
+			k.Authenticators[worker] = func(r *kite.Request) error {
+				if r.Auth.Key != secretKey {
+					return errors.New("wrong secret key passed, you are not authenticated")
+				}
+				return nil
+			}
+		}(w, s)
 	}
 
 	return k
