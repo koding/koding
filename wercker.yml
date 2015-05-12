@@ -35,7 +35,9 @@ build:
           nvm use 0.10.33
     - script:
         name: koding node modules
-        code: scripts/wercker/install-node-modules koding
+        code: |
+          scripts/wercker/install-node-modules koding
+          npm install
     - script:
         name: notify cebeci
         code: |
