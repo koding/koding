@@ -1,6 +1,6 @@
 kd                    = require 'kd'
 KDView                = kd.View
-TeamMembersCommonView = require './teammemberscommonview.coffee'
+TeamMembersCommonView = require './teammemberscommonview'
 
 
 module.exports = class TeamMembersView extends TeamMembersCommonView
