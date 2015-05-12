@@ -1324,6 +1324,14 @@ module.exports = class JUser extends jraphical.Module
 
 
   confirmEmail: (callback)->
+
+    status = @getAt 'status'
+
+    # for some reason status is sometimes 'undefined', so check for that
+    if status? and status isnt 'unconfirmed'
+      console.log "ALERT: #{@getAt 'username'} is trying to confirm '#{status}' email"
+      return callback null
+
     @update {$set: status: 'confirmed'}, (err, res)=>
       return callback err if err
       JUser.emit "EmailConfirmed", @
