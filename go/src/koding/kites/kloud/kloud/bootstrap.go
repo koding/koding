@@ -74,7 +74,8 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		finalBootstrap, err := appendAWSVariable(awsBootstrap, cred.Data["access_key"], cred.Data["secret_key"])
+		finalBootstrap, err := appendAWSVariable(awsBootstrap,
+			cred.Data["access_key"], cred.Data["secret_key"], cred.Data["region"])
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +87,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		// use these keys to bootstrap, any other user should be not create
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
-		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"])
+		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"] + cred.Data["region"])
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
@@ -137,7 +138,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func appendAWSVariable(content, accessKey, secretKey string) (string, error) {
+func appendAWSVariable(content, accessKey, secretKey, region string) (string, error) {
 	var data struct {
 		Output   map[string]map[string]interface{} `json:"output,omitempty"`
 		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
@@ -159,6 +160,10 @@ func appendAWSVariable(content, accessKey, secretKey string) (string, error) {
 
 	data.Variable["secret_key"] = map[string]interface{}{
 		"default": secretKey,
+	}
+
+	data.Variable["region"] = map[string]interface{}{
+		"default": region,
 	}
 
 	out, err := json.MarshalIndent(data, "", "  ")
@@ -279,10 +284,6 @@ var awsBootstrap = `{
         }
     },
     "variable": {
-        "aws_region": {
-            "description": "Region name in which resources will be created",
-            "default": "ap-northeast-1"
-        },
         "cidr_block": {
             "default": "10.0.0.0/16"
         },

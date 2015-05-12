@@ -64,6 +64,14 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	// currently there is no multi provider support for terraform. Until it's
+	// been released with 0.5,  we're going to retrieve it from the "provider"
+	// block: https://github.com/hashicorp/terraform/pull/1281
+	region, err := regionFromTemplate(args.TerraformContext)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO(arslan): make one single persistent connection if needed, for now
 	// this is ok.
 	tfKite, err := terraformer.Connect(sess.Kite)
@@ -73,7 +81,22 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	defer tfKite.Close()
 
 	for _, cred := range creds.Creds {
-		args.TerraformContext, err = appendAWSVariable(args.TerraformContext, cred.Data["access_key"], cred.Data["secret_key"])
+		// first check if we have a region (we should!). We are going to
+		// compare with the provider block's region. Don't allow if they are
+		// different.
+		credRegion := cred.Data["region"]
+		if credRegion == "" {
+			return nil, fmt.Errorf("region for publicKey '%s' is not set", cred.PublicKey)
+		}
+
+		if !isVariable(region) && region != credRegion {
+			return nil, fmt.Errorf("region in the provider block doesn't match the region in credential data. Provider block: '%s'. Credential data: '%s'", region, credRegion)
+		} else {
+			region = credRegion
+		}
+
+		args.TerraformContext, err = appendAWSVariable(args.TerraformContext,
+			cred.Data["access_key"], cred.Data["secret_key"], cred.Data["region"])
 		if err != nil {
 			return nil, err
 		}
@@ -84,14 +107,6 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		ContentID: r.Username + "-" + sha1sum(args.TerraformContext),
 		Variables: nil,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	// currently there is no multi provider support for terraform. Until it's
-	// been released with 0.5,  we're going to retrieve it from the "provider"
-	// block: https://github.com/hashicorp/terraform/pull/1281
-	region, err := regionFromHCL(args.TerraformContext)
 	if err != nil {
 		return nil, err
 	}

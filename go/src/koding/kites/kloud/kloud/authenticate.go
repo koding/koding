@@ -50,12 +50,15 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 	for _, cred := range creds.Creds {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
-			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
+			return nil, fmt.Errorf("bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
 		accessKey := cred.Data["access_key"]
 		secretKey := cred.Data["secret_key"]
-		authRegion := "us-east-1"
+		authRegion := cred.Data["region"]
+		if authRegion == "" {
+			return nil, fmt.Errorf("region for publicKey '%s' is not set", cred.PublicKey)
+		}
 
 		svc := ec2.New(&aws.Config{
 			Credentials: aws.Creds(accessKey, secretKey, ""),
