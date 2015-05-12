@@ -616,7 +616,7 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 		TypeConstant: nc.TypeConstant,
 	}
 
-	actor, err := models.FetchAccountFromCache(activity.ActorId)
+	actor, err := models.Cache.Account.ById(activity.ActorId)
 	if err != nil {
 		return err
 	}
@@ -654,7 +654,7 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 func (f *Controller) sendNotification(
 	accountId int64, groupName string, eventName string, data interface{},
 ) error {
-	account, err := models.FetchAccountFromCache(accountId)
+	account, err := models.Cache.Account.ById(accountId)
 	if err != nil {
 		return err
 	}

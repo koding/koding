@@ -587,7 +587,7 @@ func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
 		return c, err
 	}
 
-	a, err := FetchAccountFromCache(addedBy)
+	a, err := Cache.Account.ById(addedBy)
 	if err != nil {
 		return c, err
 	}
@@ -620,7 +620,7 @@ func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) 
 			return c, err
 		}
 
-		a, err := FetchAccountFromCache(accountId)
+		a, err := Cache.Account.ById(accountId)
 		if err != nil {
 			return c, err
 		}

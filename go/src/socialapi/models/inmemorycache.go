@@ -58,14 +58,6 @@ func FetchAccountOldIdByIdFromCache(id int64) (string, error) {
 	return account.OldId, nil
 }
 
-func FetchAccountFromCache(id int64) (*Account, error) {
-	if a, ok := accountCache[id]; ok && a != nil {
-		return a, nil
-	}
-
-	return ResetAccountCache(id)
-}
-
 func ResetAccountCache(id int64) (*Account, error) {
 	account, err := FetchAccountById(id)
 	if err != nil {
