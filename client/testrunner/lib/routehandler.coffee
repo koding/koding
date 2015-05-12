@@ -1,7 +1,6 @@
-lazyrouter           = require 'app/lazyrouter'
-kd                   = require 'kd'
-KodingAppsController = require 'app/kodingappscontroller'
-
+lazyrouter            = require 'app/lazyrouter'
+kd                    = require 'kd'
+KodingAppsController  = require 'app/kodingappscontroller'
 RunnerSocketConnector = require './runnersocketconnector'
 
 addToHead = KodingAppsController.appendHeadElement.bind KodingAppsController
@@ -40,8 +39,7 @@ runTests = ->
   mochaContainer.id = 'mocha'
   document.body.appendChild mochaContainer
 
-  appendScripts =>
-
+  appendScripts ->
     window.socket = io "http://localhost:#{SOCKET_PORT}"
     runMocha mochaContainer, socket
 
