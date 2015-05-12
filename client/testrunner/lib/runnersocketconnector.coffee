@@ -1,4 +1,5 @@
-forwardEvents = require './util/forwardevents'
+forwardEvents        = require './util/forwardevents'
+BufferedEventEmitter = require './util/bufferedeventemitter'
 
 module.exports = class RunnerSocketConnector
 
@@ -6,6 +7,8 @@ module.exports = class RunnerSocketConnector
 
     @_runner = runner
     @_socket = socket
+
+    @_bufferedEmitter = new BufferedEventEmitter
 
     @connectRunnerToSocket()
 
@@ -17,7 +20,13 @@ module.exports = class RunnerSocketConnector
 
   forwardToSocket: (name, reducer) ->
 
-    forwardEvents @_runner, @_socket, name, reducer
+    forwardEvents @_runner, @_bufferedEmitter, name, reducer
+
+    # forward reduced events from buffer to socket without reducing again.
+    forwardEvents @_bufferedEmitter, @_socket, name
+
+
+  sendResult: -> @_socket.emit 'result', @_bufferedEmitter.toJSON()
 
 
   connectRunnerToSocket: ->
