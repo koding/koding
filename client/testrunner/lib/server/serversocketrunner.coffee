@@ -1,4 +1,5 @@
 { EventEmitter } = require 'events'
+forwardEvents = require '../util/forwardevents'
 
 module.exports = class ServerSocketRunner extends EventEmitter
 
@@ -7,36 +8,29 @@ module.exports = class ServerSocketRunner extends EventEmitter
     @socket = socket
     @bindSocketEvents()
 
+
+  forwardFromSocket: (events, reducer) ->
+
+    forwardEvents @socket, this, events, reducer
+
+
   bindSocketEvents: ->
 
-    @socket.on 'start', =>
-      @emit 'start'
+    @forwardFromSocket ['start', 'end', 'suite end']
 
-    @socket.on 'suite', (title) =>
-      @emit 'suite', { title }
+    # for 'suite', and 'test end' events
+    # reporter waits for an object with a title property
+    @forwardFromSocket ['suite', 'test end'], (title) -> { title }
 
-    @socket.on 'test end', (title) =>
-      @emit 'test end', { title }
-
-    @socket.on 'pass', (jsonified) =>
-      test = JSON.parse jsonified
+    @forwardFromSocket 'pass', (payload) ->
+      test = JSON.parse payload
       test.slow = -> test.slowResult
-      @emit 'pass', test
+      return test
 
-    @socket.on 'end', =>
-      @emit 'end'
-
-    @socket.on 'suite end', =>
-      @emit 'suite end'
-
-    @socket.on 'fail', (payload) =>
-
+    @forwardFromSocket 'fail', (payload) ->
       { title, err, fullTitleResult } = JSON.parse payload
-
-      test = { title }
+      test = { title, err }
       test.fullTitle = -> fullTitleResult
-      test.err = err
-
-      @emit 'fail', test, err
+      return [test, err]
 
 
