@@ -152,9 +152,11 @@ func apply(ctx context.Context, username, stackId string) error {
 	}
 	defer tfKite.Close()
 
-	stack.Template, err = appendVariables(stack.Template, creds)
-	if err != nil {
-		return err
+	for _, cred := range creds.Creds {
+		stack.Template, err = appendAWSVariable(stack.Template, cred.Data["access_key"], cred.Data["secret_key"])
+		if err != nil {
+			return err
+		}
 	}
 
 	buildData, err := injectKodingData(ctx, stack.Template, username, creds)
@@ -181,7 +183,7 @@ func apply(ctx context.Context, username, stackId string) error {
 				}
 
 				ev.Push(&eventer.Event{
-					Message:    "Building machines",
+					Message:    "Building stack",
 					Percentage: start,
 					Status:     machinestate.Building,
 				})
@@ -204,7 +206,7 @@ func apply(ctx context.Context, username, stackId string) error {
 	close(done)
 
 	ev.Push(&eventer.Event{
-		Message:    "Creating artficat",
+		Message:    "Creating artifact",
 		Percentage: 70,
 		Status:     machinestate.Building,
 	})

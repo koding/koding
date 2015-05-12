@@ -19,19 +19,6 @@ const (
 	snapshotCollection = "jSnapshots"
 )
 
-// DomainDocument defines a single MongoDB document in the jSnapshots collection
-type SnapshotDocument struct {
-	Id          bson.ObjectId `bson:"_id" json:"-"`
-	OriginId    bson.ObjectId `bson:"originId"`
-	MachineId   bson.ObjectId `bson:"machineId"`
-	SnapshotId  string        `bson:"snapshotId"`
-	StorageSize string        `bson:"storageSize"`
-	Region      string        `bson:"region"`
-	Label       string        `bson:"label"`
-	CreatedAt   time.Time     `bson:"createdAt"`
-	username    string        `bson:"-"`
-}
-
 func (m *Machine) DeleteSnapshot(ctx context.Context) error {
 	req, ok := request.FromContext(ctx)
 	if !ok {
@@ -109,8 +96,8 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 	}
 	m.Log.Debug("Snapshot created successfully: %+v", snapshot)
 
-	snapshotData := &SnapshotDocument{
-		username:    m.Username,
+	snapshotData := &models.Snapshot{
+		Username:    m.Username,
 		Region:      a.Client.Region.Name,
 		SnapshotId:  snapshot.Id,
 		MachineId:   m.Id,
@@ -147,12 +134,12 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 	})
 }
 
-func (m *Machine) addSnapshotData(doc *SnapshotDocument) error {
+func (m *Machine) addSnapshotData(doc *models.Snapshot) error {
 	var account *models.Account
 	if err := m.Session.DB.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": doc.username}).One(&account)
+		return c.Find(bson.M{"profile.nickname": doc.Username}).One(&account)
 	}); err != nil {
-		m.Log.Error("Could not fetch account %v: err: %v", doc.username, err)
+		m.Log.Error("Could not fetch account %v: err: %v", doc.Username, err)
 		return errors.New("could not fetch account from DB")
 	}
 

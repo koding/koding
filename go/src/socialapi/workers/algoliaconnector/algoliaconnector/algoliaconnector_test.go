@@ -28,7 +28,8 @@ func TestIndexSettings(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("given some handler", t, func() {
-		groupName := models.RandomName()
+
+		groupName := models.RandomGroupName()
 
 		Convey("we should be able to get the synonyms", func() {
 			oldsynonymns, err := handler.getSynonyms(IndexMessages)
@@ -188,6 +189,41 @@ func TestIndexSettings(t *testing.T) {
 					})
 				})
 			})
+		})
+	})
+}
+
+func TestIndexSettingsDefaults(t *testing.T) {
+	runner, handler := getTestHandler()
+	defer runner.Close()
+
+	appConfig := config.MustRead(runner.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	Convey("given some handler", t, func() {
+		err := handler.Init()
+		So(err, ShouldBeNil)
+
+		Convey("account email should not be retrievable", func() {
+			indexSet, err := handler.indexes.Get(IndexAccounts)
+			So(err, ShouldBeNil)
+
+			settingsinter, err := indexSet.Index.GetSettings()
+			So(err, ShouldBeNil)
+
+			settings, ok := settingsinter.(map[string]interface{})[UnretrievableAttributes]
+			So(ok, ShouldBeTrue)
+
+			found := false
+			for _, item := range settings.([]interface{}) {
+				if item.(string) == "email" {
+					found = true
+				}
+
+			}
+
+			So(found, ShouldBeTrue)
 		})
 	})
 }

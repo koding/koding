@@ -76,7 +76,7 @@ func TestMessageSaved(t *testing.T) {
 			groupChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, "koding")
 
 			// just a random topic name
-			topicName := models.RandomName()
+			topicName := models.RandomGroupName()
 			c := models.NewChannelMessage()
 			c.InitialChannelId = groupChannel.Id
 			c.AccountId = account.Id
@@ -111,7 +111,7 @@ func TestMessageSaved(t *testing.T) {
 			groupChannel := models.CreateTypedPublicChannelWithTest(account.Id, models.Channel_TYPE_GROUP)
 
 			// just a random topic name
-			topicName := models.RandomName()
+			topicName := models.RandomGroupName()
 			c := models.NewChannelMessage()
 			c.InitialChannelId = groupChannel.Id
 			c.AccountId = account.Id

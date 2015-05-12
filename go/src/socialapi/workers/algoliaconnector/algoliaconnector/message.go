@@ -42,7 +42,7 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 }
 
 func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) error {
-	index, err := f.indexes.Get(IndexMessages)
+	index, err := f.indexes.GetIndex(IndexMessages)
 	if err != nil {
 		return err
 	}

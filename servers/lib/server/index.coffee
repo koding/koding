@@ -57,6 +57,7 @@ app.use require './setsession'
 
 # temp endpoints @cihangir will reorganize these - SY
 app.post '/-/teams/create'                       , require './handlers/createteam'
+# fetches last members of team
 app.all  '/-/teams/:name/members'                , require './handlers/getteammembers'
 app.all  '/-/teams/:name'                        , require './handlers/getteam'
 # temp endpoints ends

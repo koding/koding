@@ -38,7 +38,8 @@ func TestSendMessage(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		rand.Seed(time.Now().UTC().UnixNano())
-		groupName := models.RandomName()
+
+		groupName := models.RandomGroupName()
 
 		channel := models.CreateTypedGroupedChannelWithTest(bot.account.Id, models.Channel_TYPE_TOPIC, groupName)
 

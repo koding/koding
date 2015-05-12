@@ -223,75 +223,7 @@ module.exports = class MainView extends KDView
 
     @accountArea.destroySubViews()
 
-    # KD.utils.defer => @accountMenu.accountChanged whoami()
-
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, whoami()
-    # @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
-    #   domId      : 'fatih-launcher'
-    #   cssClass   : 'search acc-dropdown-icon'
-    #   tagName    : 'a'
-    #   attributes :
-    #     title    : 'Search'
-    #     href     : '#'
-    #   click      : (event)=>
-    #     kd.utils.stopDOMEvent event
-    #     # log 'run fatih'
-
-    #     @accountArea.setClass "search-open"
-    #     @searchInput.setFocus()
-
-    #     kd.getSingleton("windowController").addLayer @searchInput
-
-    #     @searchInput.once "ReceivedClickElsewhere", =>
-    #       @accountArea.unsetClass "search-open"
-
-    #   partial    : "<span class='icon'></span>"
-
-    # @accountArea.addSubView @searchForm = new KDCustomHTMLView
-    #   cssClass   : "search-form-container"
-
-    # handleRoute = (searchRoute, text)->
-    #   if group = kd.getSingleton("groupsController").getCurrentGroup()
-    #     groupSlug = if group.slug is "koding" then "" else "/#{group.slug}"
-    #   else
-    #     groupSlug = ""
-
-    #   toBeReplaced =  if text is "" then "?q=:text:" else ":text:"
-
-    #   # inject search text
-    #   searchRoute = searchRoute.replace toBeReplaced, text
-    #   # add group slug
-    #   searchRoute = "#{groupSlug}#{searchRoute}"
-
-    #   kd.getSingleton("router").handleRoute searchRoute
-
-    # search = (text) ->
-    #   currentApp  = kd.getSingleton("appManager").getFrontApp()
-    #   if currentApp and searchRoute = currentApp.options.searchRoute
-    #     return handleRoute searchRoute, text
-    #   else
-    #     return handleRoute "/Activity?q=:text:", text
-
-    # @searchForm.addSubView @searchInput = new KDInputView
-    #   placeholder  : "Search here..."
-    #   keyup      : (event)=>
-    #     text = @searchInput.getValue()
-    #     # if user deleted everything in textbox
-    #     # clear the search result
-    #     if text is "" and @searchInput.searched
-    #       search("")
-    #       @searchInput.searched = false
-
-    #     # 13 is ENTER
-    #     if event.keyCode is 13
-    #       search text
-    #       @searchInput.searched = true
-
-    #     # 27 is ESC
-    #     if event.keyCode is 27
-    #       @accountArea.unsetClass "search-open"
-    #       @searchInput.setValue ""
-    #       @searchInput.searched = false
 
 
   createMainTabView:->

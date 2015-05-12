@@ -32,23 +32,37 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
       @tell rpcMethod, payload
 
+
   @createApiMapping
-    stop           : 'stop'
-    start          : 'start'
-    build          : 'build'
-    event          : 'event'
-    reinit         : 'reinit'
-    resize         : 'resize'
-    restart        : 'restart'
-    destroy        : 'destroy'
-    checkTemplate  : 'plan'
-    buildStack     : 'apply'
-    setDomain      : 'domain.set'
-    addDomain      : 'domain.add'
-    unsetDomain    : 'domain.unset'
-    removeDomain   : 'domain.remove'
-    createSnapshot : 'createSnapshot'
-    deleteSnapshot : 'deleteSnapshot'
+
+    # Eventer
+    event           : 'event'
+
+    # Machine related actions, these requires valid machineId
+    stop            : 'stop'
+    start           : 'start'
+    build           : 'build'
+    reinit          : 'reinit'
+    resize          : 'resize'
+    restart         : 'restart'
+    destroy         : 'destroy'
+
+    # Domain managament
+    setDomain       : 'domain.set'
+    addDomain       : 'domain.add'
+    unsetDomain     : 'domain.unset'
+    removeDomain    : 'domain.remove'
+
+    # Snapshots
+    createSnapshot  : 'createSnapshot'
+    deleteSnapshot  : 'deleteSnapshot'
+
+    # Stack, Teams, Credentials related methods
+    bootstrap       : 'bootstrap'
+    buildStack      : 'apply'
+    checkTemplate   : 'plan'
+    checkCredential : 'authenticate'
+
 
 
   constructor: (options) ->

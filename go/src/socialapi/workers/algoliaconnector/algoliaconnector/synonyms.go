@@ -96,7 +96,7 @@ func (f *Controller) addSynonym(indexName string, synonyms ...string) error {
 	settings := make(map[string]interface{})
 	settings["synonyms"] = append(synonymsSlice, synonyms)
 
-	index, err := f.indexes.Get(indexName)
+	index, err := f.indexes.GetIndex(indexName)
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (f *Controller) addSynonym(indexName string, synonyms ...string) error {
 }
 
 func (f *Controller) getSynonyms(indexName string) ([][]string, error) {
-	index, err := f.indexes.Get(indexName)
+	index, err := f.indexes.GetIndex(indexName)
 	if err != nil {
 		return nil, err
 	}

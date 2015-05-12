@@ -11,8 +11,8 @@ handleSection = (path, callback) ->
     router.handleRoute '/IDE'
   else appManager.open 'Account', callback
 
-handle = ({params:{section}}, path) ->
-  handleSection path, (app) -> app.openSection section
+handle = (args, path) ->
+  handleSection path, (app) -> app.openSection args.params.section, args.query
 
 module.exports = -> lazyrouter.bind 'account', (type, info, state, path, ctx) ->
 
