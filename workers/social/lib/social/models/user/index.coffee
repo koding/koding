@@ -146,6 +146,7 @@ module.exports = class JUser extends jraphical.Module
       lastLoginDate :
         type        : Date
         default     : -> new Date
+      inactive      : Object
       emailFrequency: Object
       onlineStatus  :
         actual      :
@@ -710,7 +711,7 @@ module.exports = class JUser extends jraphical.Module
               foreignAuth = extend foreignAuth, session.foreignAuth
               options.foreignAuth = foreignAuth
 
-            user.update { $set: options }, (err) ->
+            user.update { $set: options, $unset: { inactive: 1 } }, (err) ->
               return callback err  if err
 
               # This should be called after login and this
@@ -1463,7 +1464,7 @@ module.exports = class JUser extends jraphical.Module
           account.save (err)=>
             return callback err  if err
 
-            {firstName} = account.profile
+              {firstName} = account.profile
 
             # send EmailChanged event
             @constructor.emit 'EmailChanged', {
