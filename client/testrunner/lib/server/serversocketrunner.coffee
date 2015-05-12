@@ -5,16 +5,23 @@ module.exports = class ServerSocketRunner extends EventEmitter
 
   constructor: (socket) ->
 
+    super
+
     @socket = socket
+    @fakeSocket = new EventEmitter
     @bindSocketEvents()
 
 
   forwardFromSocket: (events, reducer) ->
 
-    forwardEvents @socket, this, events, reducer
+    forwardEvents @fakeSocket, this, events, reducer
 
 
   bindSocketEvents: ->
+
+    @socket.on 'result', (payload) =>
+      events = JSON.parse payload
+      events.map (e) => @fakeSocket.emit e...
 
     @forwardFromSocket ['start', 'end', 'suite end']
 
