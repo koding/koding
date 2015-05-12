@@ -19,7 +19,7 @@ module.exports = openIdeByMachine = (machine, callback) ->
   machineId  = machine._id
 
   # First, try to get the already loaded IDE. If it exists, we
-  # don't need to redirect the user.
+  # don't need to listen for the app creation events below.
   ideController = getIdeByMachine machine
   if ideController
     router.handleRoute "/IDE/#{machine.slug}"
@@ -44,14 +44,6 @@ module.exports = openIdeByMachine = (machine, callback) ->
     # When the app is first created, it has no mounted machine. We
     # need the mounted machine, to compare with the `machine` given to
     # fetchIdeByMachine.
-    #
-    # TODO: Find a way to check if the controller is already, ready.
-    # Otherwise we risk waiting for a ready event, on something that's
-    # already ready.
-    #
-    # TODO: A timeout is also needed. If for whatever reason `ready`
-    # will not be fired, the timeout will ensure that the callback
-    # doesn't hang in nomans land.
     controller.once 'ready', ->
       unless controller.mountedMachine?._id is machineId
         return callback new Error 'IDEApp being shown does not belong to
