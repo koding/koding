@@ -99,7 +99,10 @@ module.exports = class GroupGeneralSettingsView extends KDView
       attributes : accept : 'image/*'
       change     : @bound 'handleUpload'
 
-    @showAvatar()
+
+    logo = @getData().customize?.logo
+
+    if logo then @showLogo logo else @showPattern()
 
 
   handleUpload: ->
@@ -151,13 +154,6 @@ module.exports = class GroupGeneralSettingsView extends KDView
     avatarEl.style.backgroundImage = pattern.toDataUrl()
     avatarEl.style.borderColor     = pattern.color
     @uploadSection.unsetClass 'with-logo'
-
-
-  showAvatar: ->
-
-    logo = @getData().customize?.logo
-
-    if logo then @showLogo logo else @showPattern()
 
 
   removeLogo: ->
