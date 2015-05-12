@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 
@@ -25,10 +26,19 @@ func main() {
 
 	appConfig := config.MustRead(r.Conf.Path)
 
+	// init mongo connection
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
 	algolia := algoliasearch.NewClient(appConfig.Algolia.AppId, appConfig.Algolia.ApiSecretKey)
 
 	// create message handler
 	handler := algoliaconnector.New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
+	if err := handler.Init(); err != nil {
+		//  this is not a blocker for algoliaconnector worker, we can continue working
+		r.Log.Error("Err while init: %s", err.Error())
+	}
+
 	r.SetContext(handler)
 	r.Register(models.Channel{}).OnCreate().Handle((*algoliaconnector.Controller).ChannelCreated)
 	r.Register(models.Channel{}).OnUpdate().Handle((*algoliaconnector.Controller).ChannelUpdated)

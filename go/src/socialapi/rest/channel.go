@@ -52,12 +52,13 @@ func CountHistory(channelId int64) (*models.CountResponse, error) {
 	return &count, nil
 }
 
-func FetchChannels(accountId int64) ([]*models.Channel, error) {
-	return FetchChannelsByGroupName(accountId, "koding")
-}
+func FetchChannelsByQuery(accountId int64, q *request.Query) ([]*models.Channel, error) {
+	v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
 
-func FetchChannelsByGroupName(accountId int64, groupName string) ([]*models.Channel, error) {
-	url := fmt.Sprintf("/account/%d/channels?groupName=%s", accountId, groupName)
+	url := fmt.Sprintf("/account/%d/channels?%s", accountId, v.Encode())
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -106,32 +107,6 @@ func DeleteChannel(creatorId, channelId int64) error {
 	return nil
 }
 
-func CreateChannel(creatorId int64) (*models.Channel, error) {
-	return CreateChannelWithType(creatorId, models.Channel_TYPE_DEFAULT)
-}
-
-func CreateChannelWithType(creatorId int64, typeConstant string) (*models.Channel, error) {
-	c := buildChannelWithRandomGroup(creatorId)
-	c.TypeConstant = typeConstant
-
-	return CreateChannelByGroupNameAndType(creatorId, c.GroupName, typeConstant)
-}
-
-func CreatePublicChannel(creatorId int64, groupName string) (*models.Channel, error) {
-	c := models.NewChannel()
-	c.GroupName = groupName
-	c.CreatorId = creatorId
-	c.TypeConstant = models.Channel_TYPE_GROUP
-	c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
-	c.Name = "public"
-	cm, err := sendModel("POST", "/channel", c)
-	if err != nil {
-		return nil, err
-	}
-
-	return cm.(*models.Channel), nil
-}
-
 // buildChannelWithRandomGroup creates a channel with group name "koding[randonnumber]"
 func buildChannelWithRandomGroup(creatorId int64) *models.Channel {
 	c := models.NewChannel()
@@ -141,18 +116,25 @@ func buildChannelWithRandomGroup(creatorId int64) *models.Channel {
 	return c
 }
 
-func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant string) (*models.Channel, error) {
+func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant, token string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.GroupName = groupName
 	c.CreatorId = creatorId
 	c.TypeConstant = typeConstant
 	c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
 	c.Name = c.Name + strconv.Itoa(rand.Intn(100000000))
-	cm, err := sendModel("POST", "/channel", c)
+	res, err := marshallAndSendRequestWithAuth("POST", "/channel", c, token)
 	if err != nil {
 		return nil, err
 	}
-	return cm.(*models.Channel), nil
+
+	cc := models.NewChannelContainer()
+	err = json.Unmarshal(res, cc)
+	if err != nil {
+		return nil, err
+	}
+
+	return cc.Channel, nil
 }
 
 func UpdateChannel(cm *models.Channel, token string) (*models.Channel, error) {

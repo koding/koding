@@ -2,21 +2,62 @@ package algoliaconnector
 
 import (
 	"errors"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"strconv"
 	"time"
+
+	"labix.org/v2/mgo"
 )
 
 func (f *Controller) AccountCreated(data *models.Account) error {
+	user, err := modelhelper.GetUser(data.Nick)
+	if err != nil && err != mgo.ErrNotFound {
+		return err
+	}
+
+	if err == mgo.ErrNotFound {
+		f.log.Error("user %+v is not found in mongodb", data)
+		return nil
+	}
+
 	return f.insert(IndexAccounts, map[string]interface{}{
 		"objectID": data.OldId,
 		"nick":     data.Nick,
+		"email":    user.Email,
 		"_tags":    []string{f.kodingChannelId},
 	})
 }
 
 func (f *Controller) AccountUpdated(data *models.Account) error {
-	return nil
+	user, err := modelhelper.GetUser(data.Nick)
+	if err != nil && err != mgo.ErrNotFound {
+		return err
+	}
+
+	if err == mgo.ErrNotFound {
+		f.log.Error("user %+v is not found in mongodb", data)
+		return nil
+	}
+
+	record, err := f.get(IndexAccounts, data.OldId)
+	if err != nil &&
+		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
+		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
+		return err
+	}
+
+	// algolia partial update works like this, if item exists updates it, if
+	// they cant find any document with objectID, they create it
+	if record == nil {
+		return f.AccountCreated(data)
+	}
+
+	return f.partialUpdate(IndexAccounts, map[string]interface{}{
+		"objectID": data.OldId,
+		"nick":     data.Nick,
+		"email":    user.Email,
+	})
 }
 
 // ParticipantUpdated operates with the participant deleted/created events, adds
@@ -115,7 +156,7 @@ func makeSureAccount(handler *Controller, id string, f func(map[string]interface
 	for {
 		select {
 		case <-tick:
-			record, err := handler.get("accounts", id)
+			record, err := handler.get(IndexAccounts, id)
 			if f(record, err) {
 				return nil
 			}

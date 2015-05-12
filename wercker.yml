@@ -35,7 +35,9 @@ build:
           nvm use 0.10.33
     - script:
         name: koding node modules
-        code: scripts/wercker/install-node-modules koding
+        code: |
+          scripts/wercker/install-node-modules koding
+          npm install
     - script:
         name: notify cebeci
         code: |
@@ -53,14 +55,14 @@ build:
         name: launch test instance
         code: |
           INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
-          scripts/test-instance/launch $INSTANCE_OPTIONS | tail -n1 > INSTANCE_DATA
+          scripts/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
           cat INSTANCE_DATA
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
         name: client node modules
-        code: scripts/install-npm.sh -d client -u -p
+        code: scripts/install-npm.sh -d client -u
     - script:
         name: build client
         code: |
@@ -142,114 +144,24 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
     - script:
         name: check connectivity
-        code: |
-          HOST=$(cat INSTANCE_DATA | awk '{print $2}')
-          if [ -z "$HOST" ]; then exit 1; fi
-          echo $HOST > $INSTANCE_IP
-          scripts/test-instance/check-connectivity $HOST 8090 1m 10
-          scripts/test-instance/check-connectivity $HOST 4444 1m 10
+        code: scripts/wercker/check-connectivity $(pwd)/INSTANCE_DATA
     - script:
         name: testing client started
         code: |
           echo started > CLIENT_TEST
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     - script:
-        name: run register test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh register'
-    - script:
-        name: run login test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh login'
-    - script:
-        name: run logout test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh logout'
-    - script:
-        name: run activity post test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh activity post'
-    - script:
-        name: run activity post with test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh activity postwith'
-    - script:
-        name: run activity edit delete test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh activity editdelete'
-    - script:
-        name: run activity like unlike suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh activity likeunlike'
-    - script:
-        name: run activity others test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh activity others'
-    - script:
-        name: run private message test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh messages privatemessage'
-    - script:
-        name: run account page test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh account accountpage'
-    - script:
-        name: run account settings test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh account accountsettings'
-    - script:
-        name: run pricing test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh pricing payment'
-    - script:
-        name: run ide file test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide file'
-    - script:
-        name: run ide search test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide search'
-    - script:
-        name: run ide terminal sessions test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide terminal'
-    - script:
-        name: run ide general test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide general'
-    - script:
-        name: run ide layout test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide layout'
-    - script:
-        name: run ide workspace test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh ide workspace'
-    # - script:
-    #     name: run collaboration test suite
-    #     code: |
-    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh collaboration collaboration'
-    - script:
-        name: run static page loggedout test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh staticpages loggedout'
-    - script:
-        name: run environments vm test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh environments vm'
-    - script:
-        name: run environments domain test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh environments domain'
-    - script:
-        name: run environments paidaccount test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/client/test/run.sh environments paidaccount'
+        name: run test suites
+        code: scripts/wercker/run-tests $(pwd)/INSTANCE_DATA
     - script:
         name: testing client finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
+    - script:
+        name: test suite timeline breakdown
+        code: |
+          cat TEST_SUITE_TIMELINE || :
     - script:
         name: setup nvm
         code: |
@@ -258,10 +170,9 @@ build:
     - script:
         name: cleanup
         code: |
-          export INSTANCE_DATA=$(cat INSTANCE_DATA)
           export CLIENT_TEST=$(cat CLIENT_TEST)
-          scripts/wercker/after-step-cleanup
-          rm INSTANCE_DATA CLIENT_TEST
+          scripts/wercker/after-step-cleanup INSTANCE_DATA
+          rm -f INSTANCE_DATA CLIENT_TEST
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN

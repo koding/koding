@@ -24,6 +24,8 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
+	groupName := models.RandomGroupName()
+
 	Convey("while testing get account", t, func() {
 		Convey("if cookie is not set, should return nil", func() {
 			a := getAccount(&http.Request{})
@@ -51,7 +53,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 		})
 
 		Convey("if session doesnt have username, should return nil", func() {
-			ses, err := modelhelper.CreateSessionForAccount("")
+			ses, err := modelhelper.CreateSessionForAccount("", groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -77,7 +79,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(acc, ShouldNotBeNil)
 
-			ses, err := modelhelper.CreateSessionForAccount(acc.Nick)
+			ses, err := modelhelper.CreateSessionForAccount(acc.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 

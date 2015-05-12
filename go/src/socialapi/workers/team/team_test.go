@@ -48,7 +48,7 @@ func TestTeam(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc2, ShouldNotBeNil)
 
-		groupName := models.RandomName()
+		groupName := models.RandomGroupName()
 
 		groupChannel := models.CreateTypedGroupedChannelWithTest(admin.Id, models.Channel_TYPE_GROUP, groupName)
 		So(groupChannel, ShouldNotBeNil)
@@ -95,7 +95,7 @@ func TestTeam(t *testing.T) {
 		})
 
 		Convey("should success if group is not in mongo", func() {
-			groupName := models.RandomName()
+			groupName := models.RandomGroupName()
 
 			groupChan := models.CreateTypedGroupedChannelWithTest(admin.Id, models.Channel_TYPE_GROUP, groupName)
 			So(groupChan, ShouldNotBeNil)

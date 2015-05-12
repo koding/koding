@@ -39,7 +39,7 @@ func TestModeration(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc2, ShouldNotBeNil)
 
-		groupName := models.RandomName()
+		groupName := models.RandomGroupName()
 
 		// create root channel with second acc
 		root := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -54,7 +54,7 @@ func TestModeration(t *testing.T) {
 		So(leaf2, ShouldNotBeNil)
 
 		// fetch admin's session
-		ses, err := models.FetchOrCreateSession(admin.Nick)
+		ses, err := models.FetchOrCreateSession(admin.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 

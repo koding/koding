@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/userdata"
@@ -16,12 +14,11 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/fatih/structs"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite/protocol"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/mitchellh/mapstructure"
 	"github.com/nu7hatch/gouuid"
 )
 
@@ -176,7 +173,7 @@ func regionFromHCL(hclContent string) (string, error) {
 		}
 	}
 
-	if err := hcl.Decode(&data, hclContent); err != nil {
+	if err := json.Unmarshal([]byte(hclContent), &data); err != nil {
 		return "", err
 	}
 
@@ -193,93 +190,36 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 		return nil, errors.New("session context is not passed")
 	}
 
-	keys, ok := publickeys.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("public keys are not available")
-	}
-
-	// for now we only support "aws", the logic below should be refactored once
-	// we support multiple providers
-	var accessKey, secretKey string
-	for _, c := range creds.Creds {
-		if c.Provider != "aws" {
+	var awsOutput *AwsBootstrapOutput
+	for _, cred := range creds.Creds {
+		if cred.Provider != "aws" {
 			continue
 		}
 
-		accessKey = c.Data["access_key"]
-		secretKey = c.Data["secret_key"]
-	}
-
-	region, err := regionFromHCL(hclContent)
-	if err != nil {
-		return nil, err
-	}
-
-	// inject our own public/private keys into the machine
-	amazonClient, err := amazon.New(
-		map[string]interface{}{
-			"key_pair":   keys.KeyName,
-			"publicKey":  keys.PublicKey,
-			"privateKey": keys.PrivateKey,
-		},
-		ec2.New(
-			aws.Auth{AccessKey: accessKey, SecretKey: secretKey},
-			aws.Regions[region],
-		))
-	if err != nil {
-		return nil, fmt.Errorf("kloud aws client err: %s", err)
-	}
-
-	subnets, err := amazonClient.ListSubnets()
-	if err != nil {
-		return nil, err
-	}
-
-	if len(subnets.Subnets) == 0 {
-		return nil, errors.New("no subnets are available")
-	}
-
-	var subnetId string
-	var vpcId string
-	for _, subnet := range subnets.Subnets {
-		if subnet.AvailableIpAddressCount == 0 {
-			continue
+		if err := mapstructure.Decode(cred.Data, &awsOutput); err != nil {
+			return nil, err
 		}
-
-		subnetId = subnet.SubnetId
-		vpcId = subnet.VpcId
 	}
 
-	if subnetId == "" {
-		return nil, errors.New("subnetId is empty")
-	}
-
-	var groupName = "Koding-Kloud-SG"
-	sess.Log.Debug("Fetching or creating SG: %s, %s", groupName, vpcId)
-	group, err := amazonClient.CreateOrGetSecurityGroup(groupName, vpcId)
-	if err != nil {
-		return nil, err
-	}
-
-	sess.Log.Debug("first group = %+v\n", group)
-	sess.Log.Debug("vpcId = %+v\n", vpcId)
-	sess.Log.Debug("subnetId = %+v\n", subnetId)
-
-	// this will either create the "kloud-deployment" key or it will just
-	// return with a nil error (means success)
-	if _, err = amazonClient.DeployKey(); err != nil {
-		return nil, err
+	if structs.HasZero(awsOutput) {
+		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
 	}
 
 	var data struct {
 		Resource struct {
 			Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
 		} `json:"resource"`
-		Provider map[string]map[string]interface{} `json:"provider"`
-		Variable map[string]map[string]interface{} `json:"variable"`
+		Provider struct {
+			Aws struct {
+				Region    string `json:"region"`
+				AccessKey string `json:"access_key"`
+				SecretKey string `json:"secret_key"`
+			} `json:"aws"`
+		} `json:"provider"`
+		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
 	}
 
-	if err := hcl.Decode(&data, hclContent); err != nil {
+	if err := json.Unmarshal([]byte(hclContent), &data); err != nil {
 		return nil, err
 	}
 
@@ -310,39 +250,12 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 
 		kiteIds[resourceName] = kiteId
 		instance["user_data"] = string(userdata)
-		instance["key_name"] = keys.KeyName
-		instance["security_groups"] = []string{group.Id}
+		instance["key_name"] = awsOutput.KeyPair
 
-		// user has provided a custom subnet id, if this is the case, fetch the
-		// securitygroup from it.
-		if instance["subnet_id"] != nil {
-			subnetId, ok := instance["subnet_id"].(string)
-			if !ok {
-				return nil, fmt.Errorf("subnet Id should be a string, got: %v", instance["subnet_id"])
-			}
-
-			var subnet ec2.Subnet
-			found := false
-			for _, s := range subnets.Subnets {
-				if s.SubnetId == subnetId {
-					found = true
-					subnet = s
-				}
-			}
-
-			if !found {
-				return nil, fmt.Errorf("no subnet with id '%s' found", subnetId)
-			}
-
-			group, err := amazonClient.CreateOrGetSecurityGroup(groupName, subnet.VpcId)
-			if err != nil {
-				return nil, err
-			}
-
-			sess.Log.Debug("second group = %+v\n", group)
-			instance["security_groups"] = []string{group.Id}
-		} else {
-			instance["subnet_id"] = subnetId
+		// only ovveride if the user doesn't provider it's own subnet_id
+		if instance["subnet_id"] == nil {
+			instance["subnet_id"] = awsOutput.Subnet
+			instance["security_groups"] = []string{awsOutput.SG}
 		}
 
 		data.Resource.Aws_Instance[resourceName] = instance
@@ -356,37 +269,10 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 	b := &buildData{
 		Template: string(out),
 		KiteIds:  kiteIds,
-		Region:   region,
+		Region:   data.Provider.Aws.Region,
 	}
 
 	return b, nil
-}
-
-// appendVariables appends the given key/value credentials to the hclFile (terraform) file
-func appendVariables(hclFile string, creds *terraformCredentials) (string, error) {
-	found := false
-	for _, cred := range creds.Creds {
-		// we only support aws for now
-		if cred.Provider != "aws" {
-			continue
-		}
-
-		found = true
-		for k, v := range cred.Data {
-			hclFile += "\n"
-			varTemplate := `
-variable "%s" {
-	default = "%s"
-}`
-			hclFile += fmt.Sprintf(varTemplate, k, v)
-		}
-	}
-
-	if !found {
-		return "", fmt.Errorf("no creds found for: %v", creds)
-	}
-
-	return hclFile, nil
 }
 
 func varsFromCredentials(creds *terraformCredentials) map[string]string {

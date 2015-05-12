@@ -12,7 +12,7 @@ expectValidationError = (browser) ->
 module.exports =
 
 
-  registerUserWithGravatarEmail: (browser) ->
+  registerWithGravatarEmail: (browser) ->
 
     user =
       email    : 'kodingtestuser@gmail.com'
@@ -36,7 +36,7 @@ module.exports =
           browser.end()
 
 
-  registerUserWithoutGravatarEmail: (browser) ->
+  registerWithoutGravatarEmail: (browser) ->
 
     helpers.doRegister(browser)
     browser.end()

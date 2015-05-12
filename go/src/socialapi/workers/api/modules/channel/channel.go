@@ -29,13 +29,27 @@ func validateChannelRequest(c *models.Channel) error {
 	return nil
 }
 
-func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	if req.GroupName == "" {
-		req.GroupName = models.Channel_KODING_NAME
+func Create(u *url.URL, h http.Header, req *models.Channel, context *models.Context) (int, http.Header, interface{}, error) {
+	// only logged in users can create a channel
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
+	// get group name from context
+	req.GroupName = context.GroupName
+	req.CreatorId = context.Client.Account.Id
+
 	if req.PrivacyConstant == "" {
-		req.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
+		req.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
+
+		// if group is koding, then make it public, because it was public before
+		if req.GroupName == models.Channel_KODING_NAME {
+			req.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
+		}
+	}
+
+	if req.TypeConstant == "" {
+		req.TypeConstant = models.Channel_TYPE_TOPIC
 	}
 
 	if err := validateChannelRequest(req); err != nil {
@@ -44,7 +58,7 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 
 	if err := req.Create(); err != nil {
 		return response.NewBadRequest(err)
-	} 
+	}
 
 	if _, err := req.AddParticipant(req.CreatorId); err != nil {
 		// channel create works as idempotent, that channel might have been created before
@@ -53,7 +67,12 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		}
 	}
 
-	return response.NewOK(req)
+	cc := models.NewChannelContainer()
+	if err := cc.PopulateWith(*req, context.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(cc)
 }
 
 // List lists only topic channels

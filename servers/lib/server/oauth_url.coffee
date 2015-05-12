@@ -15,11 +15,6 @@ module.exports = (req, res)->
   unless provider
     return res.status(400).send({"message" : "provider is required"})
 
-  if provider isnt "github"
-    return res.status(400).send({
-      "message" : "only 'github' is supported via xhr"
-    })
-
   koding.fetchClient clientId, context, (client) ->
     if client.message
       return res.status(500).send client.message

@@ -5,10 +5,9 @@ import (
 	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
-	"strconv"
 	"testing"
-	"time"
 
 	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
@@ -29,21 +28,31 @@ func TestGroupChannel(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("while  testing pinned activity channel", t, func() {
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		groupName := models.RandomGroupName()
+
+		account, err := models.CreateAccountInBothDbs()
+		So(err, ShouldBeNil)
+
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
 		Convey("channel should be there", func() {
-
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err := rest.CreateAccount(account)
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
-			channel2, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			channel2, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(channel2, ShouldNotBeNil)
 		})
@@ -52,13 +61,25 @@ func TestGroupChannel(t *testing.T) {
 			account, err := models.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 
-			_, err = rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			_, err = rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 
-			_, err = rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_ANNOUNCEMENT)
+			_, err = rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_ANNOUNCEMENT,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
-
-			channels, err := rest.FetchChannelsByGroupName(account.Id, groupName)
+			channels, err := rest.FetchChannelsByQuery(account.Id, &request.Query{
+				GroupName: groupName,
+				Type:      models.Channel_TYPE_GROUP,
+			})
 			So(err, ShouldBeNil)
 			So(len(channels), ShouldEqual, 2)
 			So(channels[0].TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)
@@ -67,17 +88,12 @@ func TestGroupChannel(t *testing.T) {
 		})
 
 		Convey("owner should be able to update it", func() {
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err := rest.CreateAccount(account)
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-
-			ses, err := models.FetchOrCreateSession(account.Nick)
-			So(err, ShouldBeNil)
-			So(ses, ShouldNotBeNil)
-
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 			// fetching channel returns creator id
@@ -88,13 +104,12 @@ func TestGroupChannel(t *testing.T) {
 		Convey("owner should only be able to update name and purpose of the channel", nil)
 
 		Convey("normal user should not be able to update it", func() {
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err := rest.CreateAccount(account)
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
@@ -105,7 +120,7 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			ses, err := models.FetchOrCreateSession(anotherAccount.Nick)
+			ses, err := models.FetchOrCreateSession(anotherAccount.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -114,13 +129,12 @@ func TestGroupChannel(t *testing.T) {
 		})
 
 		Convey("owner cant delete it", func() {
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err := rest.CreateAccount(account)
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
@@ -129,13 +143,12 @@ func TestGroupChannel(t *testing.T) {
 		})
 
 		Convey("normal user cant delete it", func() {
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err := rest.CreateAccount(account)
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(
+				account.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 

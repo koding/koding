@@ -1,15 +1,15 @@
 package main
 
 import (
-	"math/rand"
+	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
 	"testing"
-	"time"
 
 	"labix.org/v2/mgo/bson"
 
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -58,12 +58,29 @@ func TestAccountCreation(t *testing.T) {
 }
 
 func TestCheckOwnership(t *testing.T) {
+	r := runner.New("rest-tests")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
 	Convey("accounts can own things", t, func() {
+		groupName := models.RandomGroupName()
+
 		bob := models.NewAccount()
 		bob.Nick = "bob"
 		bob.OldId = bson.NewObjectId().Hex()
 		bobsAccount, err := rest.CreateAccount(bob)
 		So(err, ShouldBeNil)
+
+		bobsses, err := models.FetchOrCreateSession(bob.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(bobsses, ShouldNotBeNil)
 
 		ted := models.NewAccount()
 		ted.Nick = "ted"
@@ -71,10 +88,7 @@ func TestCheckOwnership(t *testing.T) {
 		tedsAccount, err := rest.CreateAccount(ted)
 		So(err, ShouldBeNil)
 
-		rand.Seed(time.Now().UnixNano())
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
-
-		bobsGroup, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_GROUP)
+		bobsGroup, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_GROUP, bobsses.ClientId)
 		So(err, ShouldBeNil)
 
 		bobsPost, err := rest.CreatePost(bobsGroup.Id, bobsAccount.Id)
@@ -92,7 +106,7 @@ func TestCheckOwnership(t *testing.T) {
 			So(isOwner, ShouldBeFalse)
 		})
 
-		bobsChannel, err := rest.CreateChannel(bob.Id)
+		bobsChannel, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_TOPIC, bobsses.ClientId)
 		So(err, ShouldBeNil)
 
 		Convey("it should say when an account owns a channel", func() {
@@ -110,8 +124,20 @@ func TestCheckOwnership(t *testing.T) {
 }
 
 func TestAccountFetchProfile(t *testing.T) {
-	Convey("while fetching account activities in profile page", t, func() {
+	r := runner.New("rest-tests")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
 
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	groupName := models.RandomGroupName()
+
+	Convey("while fetching account activities in profile page", t, func() {
 		// create account
 		acc1 := models.NewAccount()
 		acc1.OldId = bson.NewObjectId().Hex()
@@ -119,8 +145,12 @@ func TestAccountFetchProfile(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc1, ShouldNotBeNil)
 
+		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
 		// create channel
-		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP)
+		channel, err := rest.CreateChannelByGroupNameAndType(acc1.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
 		So(err, ShouldBeNil)
 		So(channel, ShouldNotBeNil)
 
@@ -140,6 +170,19 @@ func TestAccountFetchProfile(t *testing.T) {
 }
 
 func TestAccountProfilePostCount(t *testing.T) {
+	r := runner.New("rest-tests")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	groupName := models.RandomGroupName()
+
 	Convey("While fetching account activity count in profile page", t, func() {
 		// create account
 		acc1 := models.NewAccount()
@@ -148,8 +191,12 @@ func TestAccountProfilePostCount(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc1, ShouldNotBeNil)
 
+		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
 		// create channel
-		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP)
+		channel, err := rest.CreateChannelByGroupNameAndType(acc1.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
 		So(err, ShouldBeNil)
 		So(channel, ShouldNotBeNil)
 
