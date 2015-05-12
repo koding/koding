@@ -898,8 +898,25 @@ Configuration = (options={}) ->
           command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
         fi
 
+        check_node_version
         check_go_version
         check_gulp_version
+      }
+
+      function check_node_version () {
+        VERSION=$(node --version | sed -e 's/^v//')
+
+        while IFS=".", read MAJOR MINOR REVISION; do
+          MISMATCH=1
+          if [[ $MAJOR -eq 0 && $MINOR -eq 10 ]]; then
+            MISMATCH=
+          fi
+        done < <(echo $VERSION)
+
+        if [[ -n "$MISMATCH" ]]; then
+          echo "error: node version is $VERSION, it must be 0.10.x"
+          exit 1
+        fi
       }
 
       function check_gulp_version () {
