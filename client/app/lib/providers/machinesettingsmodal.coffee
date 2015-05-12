@@ -23,8 +23,8 @@ PANE_CONFIG = [
   { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
   { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
   { title: 'Domains',       viewClass: MachineSettingsDomainsView   }
-  { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
   { title: 'VM Sharing',    viewClass: MachineSettingsVMSharingView }
+  { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
   { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
   { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
 ]
@@ -37,7 +37,7 @@ module.exports = class MachineSettingsModal extends KDModalView
     options.cssClass  = 'machine-settings-modal AppModal'
     options.title     = 'VM Settings'
     options.width     = 805
-    options.height    = 400
+    options.height    = 445
     options.overlay  ?= yes
 
     super options, data
@@ -70,7 +70,7 @@ module.exports = class MachineSettingsModal extends KDModalView
   createPanes: ->
 
     isMachineRunning = @getData().status.state is Machine.State.Running
-    disabledTabs     = [ 'Disk Usage', 'Domains', 'VM Sharing' ]
+    disabledTabs     = [ 'Disk Usage', 'Domains', 'VM Sharing', 'Snapshots' ]
 
     for item in PANE_CONFIG when item.title and item.viewClass
 

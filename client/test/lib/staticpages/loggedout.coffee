@@ -16,18 +16,21 @@ module.exports =
 
   homePage: (browser) ->
 
-    browser.url(rootPath).maximizeWindow()
-    helpers.assertMainHeader(browser)
+    logoSelector      = '[testpath=main-header] a.koding-header-logo'
+    loginLinkSelector = 'nav:not(.mobile-menu) [testpath=login-link]'
 
     browser
-      .waitForElementVisible   '.login-form.register', 25000
+      .url(rootPath)
+      .maximizeWindow()
+      .waitForElementVisible logoSelector, 25000
+      .waitForElementVisible loginLinkSelector, 25000
+      .waitForElementVisible '.login-form.register', 25000
       .end()
 
 
   legalPage: (browser) ->
 
     browser.url(legalPageUrl).maximizeWindow()
-    helpers.assertMainHeader(browser, no)
 
     browser
       .waitForElementVisible  '.content-page.legal', 25000
@@ -37,7 +40,6 @@ module.exports =
   pricingPage: (browser) ->
 
     browser.url(pricingPageUrl).maximizeWindow()
-    helpers.assertMainHeader(browser)
 
     browser
       .waitForElementVisible  '.content-page.pricing', 25000
@@ -48,7 +50,6 @@ module.exports =
   aboutPage: (browser) ->
 
     browser.url(aboutPageUrl).maximizeWindow()
-    helpers.assertMainHeader(browser, no)
 
     browser
       .waitForElementVisible  '.content-page.about', 25000
@@ -59,7 +60,6 @@ module.exports =
   featuresPage: (browser) ->
 
     browser.url(featuresPageUrl).maximizeWindow()
-    helpers.assertMainHeader(browser, no)
 
     browser
       .waitForElementVisible  '.content-page.features', 25000

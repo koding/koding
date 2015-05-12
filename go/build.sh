@@ -64,6 +64,9 @@ services=(
   socialapi/workers/cmd/email/privatemessageemailsender
   socialapi/workers/cmd/email/emailsender
   socialapi/workers/cmd/team
+  socialapi/workers/cmd/integration/webhook
+  socialapi/workers/algoliaconnector/tagmigrator
+  socialapi/workers/algoliaconnector/contentmigrator
 )
 
 
@@ -73,17 +76,33 @@ cd $GOPATH
 mkdir -p build/broker
 cp bin/broker build/broker/broker
 
+# build terraform services
+terraformservices=(
+  github.com/hashicorp/terraform/builtin/bins/provider-aws
+  github.com/hashicorp/terraform/builtin/bins/provider-terraform
 
-#
-# terraform related build operations
-# TODO ~ this should be done in a more elegant way
-#
-# tldflags="-X main.GitCommit ${version:0:8}"
+  github.com/hashicorp/terraform/builtin/bins/provisioner-file
+  github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
+  github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
 
-# `which go` build -o bin/terraform-provider-aws -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provider-aws
-# `which go` build -o bin/terraform-provider-terraform -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provider-terraform
+)
 
-# `which go` build -o bin/terraform-provisioner-file -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-file
-# `which go` build -o bin/terraform-provisioner-local-exec -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
-# `which go` build -o bin/terraform-provisioner-remote-exec -v -ldflags "$tldflags" github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
+tldflags="-X main.GitCommit ${version:0:8}"
+`which go` install -v -ldflags "$tldflags"  "${terraformservices[@]}"
 
+for i in "${terraformservices[@]}"
+do
+  # split each entry from `/` to an array of strings from a string
+  IFS='/ ' read -a paths <<< "$i"
+
+  # if GOBIN is not set, generate it from GOPATH
+  if [[ -z "$GOBIN" ]]; then
+    GOBIN=$GOPATH/bin
+  fi
+
+  FILE=${paths[${#paths[@]}-1]} # only use the last folder name
+
+  # rename files with terraform prefix
+  # cp instead of mv because build tool will always try to build again and again
+  cp $GOBIN/$FILE $GOBIN/terraform-$FILE
+done

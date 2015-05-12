@@ -12,7 +12,6 @@ import (
 	"koding/tools/utils"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/metrics"
 	"socialapi/workers/common/response"
 	"strconv"
 	"strings"
@@ -35,9 +34,7 @@ const (
 
 var (
 	// TODO allowed origins must be configurable
-	cors     = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
-	conf     *config.Config
-	trackers *metrics.Trackers
+	cors = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
 )
 
 type Request struct {
@@ -92,6 +89,31 @@ func getAccount(r *http.Request) *models.Account {
 	return acc
 }
 
+func getGroupName(r *http.Request) string {
+	const groupName = "koding"
+
+	cookie, err := r.Cookie("clientId")
+	if err != nil {
+		return groupName
+	}
+
+	// if cookie doenst exists return empty account
+	if cookie.Value == "" {
+		return groupName
+	}
+
+	session, err := models.Cache.Session.ById(cookie.Value)
+	if err != nil {
+		return groupName
+	}
+
+	if session.GroupName == "" {
+		return groupName
+	}
+
+	return session.GroupName
+}
+
 const timedOutMsg = `{"description":"request timed out","error":"koding.RequestTimedoutError"}`
 const timeoutDuration = time.Second * 30
 
@@ -144,7 +166,7 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 			//
 
 			context := &models.Context{
-				GroupName: "koding",
+				GroupName: getGroupName(r),
 				Client: &models.Client{
 					Account: getAccount(r),
 					IP:      net.ParseIP(utils.GetIpAddress(r)),
@@ -236,6 +258,7 @@ func prepareQueryString(endpoint string, params map[string]string) string {
 
 func prepareHeaders(req *http.Request, headers map[string]string) *http.Request {
 	newReq := new(http.Request)
+	newReq = newReq
 	*newReq = *req
 	for k, v := range headers {
 		newReq.Header.Set(k, v)

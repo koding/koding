@@ -4,109 +4,62 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
-	"path"
 
 	"github.com/hashicorp/terraform/command"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 // Apply applies the incoming terraform content to the remote system
-func (c *Context) Apply(content io.Reader, destroy bool) (*terraform.State, error) {
-	cmd := command.ApplyCommand{
-		ShutdownCh: makeShutdownCh(), // TODO(fatih): this prevents us to kill terraformer with a SIGINT
+func (c *KodingContext) Apply(content io.Reader, destroy bool) (*terraform.State, error) {
+	cmd := &command.ApplyCommand{
+		ShutdownCh: c.ShutdownChan,
 		Meta: command.Meta{
 			ContextOpts: c.TerraformContextOpts(),
 			Ui:          c.ui,
 		},
 	}
+	cmd.Destroy = destroy
 
-	// copy all contents from remote to local for operating
-	if err := c.RemoteStorage.Clone(c.ContentID, c.LocalStorage); err != nil {
-		return nil, err
-	}
-
-	basePath, err := c.LocalStorage.BasePath()
+	paths, err := c.run(cmd, content, destroy, c.populateApplyArgs)
 	if err != nil {
 		return nil, err
 	}
 
-	outputDir := path.Join(basePath, c.ContentID)
-	mainFileRelativePath := path.Join(c.ContentID, mainFileName+terraformFileExt)
-	stateFilePath := path.Join(outputDir, stateFileName+terraformStateFileExt)
-
-	// override the current main file
-	if err := c.LocalStorage.Write(mainFileRelativePath, content); err != nil {
-		return nil, err
-	}
-
-	// TODO: doesn't work because Module is not initializde and it panics.
-	// Module is initialized inside cmd.Run, but then it will override
-	// anything we set here. Seems the only way to pass the variable is to
-	// pass with the file it self - arslan
-	//
-	// variables := []*config.Variable{}
-	// for k, v := range c.Variables {
-	//  variables = append(variables, &config.Variable{
-	//      Name:    k,
-	//      Default: v,
-	//  })
-	// }
-	// cmd.ContextOpts.Module.Config().Variables = variables
-
-	cmd.Destroy = destroy
-
-	args := []string{
-		"-no-color", // dont write with color
-		"-state", stateFilePath,
-		"-state-out", stateFilePath,
-		"-input=false", // do not ask for any input
-		outputDir,
-	}
-
-	if destroy {
-		args = append([]string{"-force"}, args...)
-	}
-
-	exitCode := cmd.Run(args)
-
-	fmt.Printf("Debug output: %+v\n", c.Buffer.String())
-
-	if exitCode != 0 {
-		return nil, fmt.Errorf(
-			"apply failed with code: %d, output: %s",
-			exitCode,
-			c.Buffer.String(),
-		)
-	}
-
-	stateFile, err := os.Open(stateFilePath)
+	stateFile, err := os.Open(paths.statePath)
 	if err != nil {
 		return nil, err
 	}
 	defer stateFile.Close()
 
-	// copy all contents from local to remote for later operating
-	if err := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage); err != nil {
-		return nil, err
-	}
-
 	return terraform.ReadState(stateFile)
 }
 
-// makeShutdownCh creates an interrupt listener and returns a channel.
-// A message will be sent on the channel for every interrupt received.
-func makeShutdownCh() <-chan struct{} {
-	resultCh := make(chan struct{})
+func (c *KodingContext) populateApplyArgs(paths *paths, destroy bool) []string {
+	// generate base args
+	args := []string{
+		"-no-color", // dont write with color
+		"-state", paths.statePath,
+		"-state-out", paths.statePath,
+		"-input=false", // do not ask for any input
+		paths.contentPath,
+	}
 
-	signalCh := make(chan os.Signal, 4)
-	signal.Notify(signalCh, os.Interrupt)
-	go func() {
-		for {
-			<-signalCh
-			resultCh <- struct{}{}
-		}
-	}()
+	var vars []string
+	for key, val := range c.Variables {
+		// Set a variable in the Terraform configuration. This flag can be set
+		// multiple times.
+		vars = append(vars, "-var", fmt.Sprintf("%s=%s", key, val))
+	}
 
-	return resultCh
+	// prepend vars if there are
+	args = append(vars, args...)
+
+	// if this is a destroy operation, terraform destroy accepts force param not
+	// not ask for input for destroy confirmation.
+	if destroy {
+		args = append([]string{"-force"}, args...)
+	}
+
+	return args
+
 }

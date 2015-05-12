@@ -80,7 +80,7 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-    { provider, stack, label, provisioners, users } = options
+    { provider, stack, label, provisioners, users, generatedFrom } = options
     { r: { group, user, account } } = client
 
     provider.create client, options, (err, machineData)->
@@ -93,7 +93,7 @@ module.exports = class ComputeProvider extends Base
 
       JMachine.create {
         provider : provider.slug
-        label, meta, group, user
+        label, meta, group, user, generatedFrom
         users, credential, provisioners
       }, (err, machine)->
 
@@ -133,6 +133,9 @@ module.exports = class ComputeProvider extends Base
       # Reset it here if someone tries to put users
       # from client side request
       options.users = []
+
+      # Remove generatedFrom option if provided
+      delete options.generatedFrom
 
       @create client, options, callback
 
@@ -212,13 +215,15 @@ module.exports = class ComputeProvider extends Base
 
       { account, user, group, template } = res
 
+      stackRevision = template.template?.sum or ''
+
       JComputeStack = require '../stack'
       JComputeStack.create {
-        title       : template.title
-        config      : template.config
-        baseStackId : template._id
-        groupSlug   : group.slug
-        account
+        title         : template.title
+        config        : template.config
+        baseStackId   : template._id
+        groupSlug     : group.slug
+        account, stackRevision
       }, (err, stack)->
 
         return callback err  if err
@@ -242,7 +247,15 @@ module.exports = class ComputeProvider extends Base
 
           queue.push ->
 
-            machineInfo.stack = stack
+            machineInfo.stack         = stack
+
+            # We are passing the provided credential for the template
+            # Provider implementation can override this value like we
+            # did in Koding Provider ~ GG
+            machineInfo.credential    = template.credentials?.first
+            machineInfo.generatedFrom =
+              templateId : template._id
+              revision   : stackRevision
 
             create = (machineInfo) ->
               ComputeProvider.create client, machineInfo, (err, machine)->

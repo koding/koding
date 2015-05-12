@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -e
+
+HOST=$(ec2metadata | grep public-hostname | FS=':' awk '{print $2}')
+
+export HOME=/root/
+export DISPLAY=:99
+export REPOSITORY_PATH='/opt/koding'
+
+function npm_install ()
+{
+  PROJECT_NAME=$1
+  DIRECTORY=$2
+
+  if [ -n "$DIRECTORY" ]; then
+    cd $REPOSITORY_PATH/$DIRECTORY
+  fi
+
+  rm -rf node_modules
+  git clone git@github.com:koding/$PROJECT_NAME-node_modules-wercker.git node_modules
+}
+
+service nginx stop
+
+cd $REPOSITORY_PATH
+
+npm --unsafe-perm install
+./configure --host $HOST:8090
+sh -c "scripts/install-npm.sh -d client -u"
+TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" make -C client/test build
+./run services
+./run install
+./run migrate up
+./run resetdb --yes
+./run importusers
+./run backend &
+disown $!
+
+sleep 60
+
+Xvfb $DISPLAY -shmem -screen 0 1440x1200x16 &
+sleep 15
+
+x11vnc -passwd secret -display $DISPLAY -N -forever &
+sleep 10
+
+su nightwatch -c 'start-selenium &'
+
+exit 0

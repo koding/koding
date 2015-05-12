@@ -1,18 +1,17 @@
-Encoder                   = require 'htmlencode'
-
-kd                        = require 'kd'
-remote                    = require('app/remote').getInstance()
-
-ComputeErrorUsageModal    = require './computeerrorusagemodal'
-MachineSettingsCommonView = require './machinesettingscommonview'
-SnapshotListItem          = require './snapshotlistitem'
-snapshotHelpers           = require './snapshothelpers'
-
+kd                          = require 'kd'
+remote                      = require('app/remote').getInstance()
+Encoder                     = require 'htmlencode'
+snapshotHelpers             = require './snapshothelpers'
+openIdeByMachine            = require '../util/openIdeByMachine'
+JView                       = require '../jview'
+ComputeErrorUsageModal      = require './computeerrorusagemodal'
+MachineSettingsCommonView   = require './machinesettingscommonview'
+SnapshotListItem            = require './snapshotlistitem'
 
 
 module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommonView
 
-  constructor:(options = {}, data) ->
+  constructor: (options = {}, data) ->
 
     options.cssClass             = kd.utils.curry options.cssClass, 'snapshots'
     options.headerTitle          = 'Snapshots'
@@ -21,16 +20,21 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     options.listViewItemClass    = SnapshotListItem
     options.noItemFoundWidget    = new kd.CustomHTMLView
       cssClass : 'no-item'
-      partial  : 'You do not have any snapshots created'
+      partial  : 'You do not have any Snapshots.'
 
-    # Trigger the snapshotsLimits fetch, so that we can cache it ahead
-    # of time.
+    # Trigger the snapshotsLimits fetch, so that we can cache it ahead of time.
     @snapshotsLimit()
 
     super options, data
 
     @listController.getListView().on 'DeleteSnapshot', =>
       @listController.showNoItemWidget()
+
+    @listController.getListView().on 'NewVmFromSnapshot', (snapshot) =>
+      { snapshotId } = snapshot
+      machine        = @getData()
+      snapshotHelpers.newVmFromSnapshot machine, snapshotId, =>
+        @emit 'ModalDestroyRequested'
 
 
   ###*
@@ -45,10 +49,57 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
    * The various snapshot total limits.
   ###
   @snapshotsLimits:
+    default      : 5
     free         : 0
     hobbyist     : 1
     developer    : 3
     professional : 5
+
+
+  ###*
+   * Overridden from MachineSettingsCommonView to add the learn-more view
+   * at the bottom of the view.
+  ###
+  createElements: ->
+
+    @createHeader()
+    @createAddView()
+    @createListView()
+    @addSubView new kd.CustomHTMLView
+      cssClass : 'learn-more'
+      partial  : """
+        <a target="_blank" href="http://learn.koding.com/guides/vm-snapshot">Learn more about
+        Snapshots</a>
+      """
+
+
+  ###*
+   * Create the header views. Called via MachineSettingsCommonView
+  ###
+  createHeader: ->
+
+    { headerTitle, headerAddButtonTitle
+      addButtonCssClass, loaderOnHeaderButton } = @getOptions()
+
+    @headerAddNewButton = new kd.ButtonView
+      title    : headerAddButtonTitle
+      cssClass : "solid green small add-button #{addButtonCssClass}"
+      loader   : loaderOnHeaderButton
+      callback : @bound 'showAddView'
+
+    @addSubView new JView
+      tagName         : 'h4'
+      cssClass        : 'kdview kdheaderview'
+      pistachioParams : { @headerAddNewButton }
+      pistachio       : """
+        <span class="column label">Name</span>
+        <span class="column created-at">Created at</span>
+        <span class="column size">Size</span>
+        {{> headerAddNewButton}}
+        """
+
+    @addSubView @notificationView = new kd.CustomHTMLView
+      cssClass : 'notification hidden'
 
 
   ###*
@@ -94,7 +145,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       click    : @bound 'hideAddView'
 
     wrapper.addSubView @addNewButton = new kd.ButtonView
-      cssClass : 'solid green compact add'
+      cssClass : 'solid green small add'
       loader   : yes
       title    : @getOptions().addButtonTitle
       callback : @bound 'handleAddNew'
@@ -108,21 +159,44 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###
   handleAddNew: ->
 
-    machineId = @getData()._id
-    label = @addInputView.getValue()
+    machine   = @getData()
+    machineId = machine._id
+    label     = @addInputView.getValue()
     if not label? or label is ''
       return MachineSettingsSnapshotsView.notify \
         'Name length must be larger than zero'
 
-    # Explicitly showing the loader because the hitEnterTextView does
-    # not trigger the button loader when entered.
-    @addNewButton.showLoader()
-    @createSnapshot label, (err, snapshot) =>
-      @hideAddView()
-      @addInputView.setValue ''
-      @addNewButton.hideLoader()
-      return kd.warn err  if err
-      @listController.addItem snapshot
+    # Get the IDE view.
+    openIdeByMachine machine, (err, ideController) =>
+      if err
+        @showNotification "Error, unable to create snapshot.", 'error'
+        kd.error "Unable to create snapshot, IDE Could not be found", err
+        return
+
+      container = ideController?.getView()
+
+      unless container?
+        @showNotification "Error, unable to create snapshot.", 'error'
+        return kd.error "Unable to create snapshot, IDE View could not be found"
+
+      @emit 'ModalDestroyRequested'
+      modal = snapshotHelpers.showSnapshottingModal machine, container
+
+      @on 'SnapshotProgress', modal.bound 'updatePercentage'
+      @createSnapshot label, (err, snapshot) =>
+        @off 'SnapshotProgress', modal.bound 'updatePercentage'
+        if err
+          kd.warn err
+          modal.updatePercentage 0
+          return modal.showError()
+
+        modal.destroy()
+        # Importing this here, because the order of imports means that
+        # MachineSettingsSnapshotsView gets created before MachineSettingsModal.
+        # Ie, we can't import it at the beginning of this file.
+        MachineSettingsModal = require './machinesettingsmodal'
+        settingsModal        = new MachineSettingsModal {}, machine
+        settingsModal.tabView.showPaneByName 'Snapshots'
 
 
   ###*
@@ -196,6 +270,9 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
   ###*
    * Fetch and cache the user's total snapshot limit.
    *
+   * If the user's planTitle is unrecognized, clientside will default to
+   * `snapshotsLimits['default']`, and log a warning.
+   *
    * @param {Function(err:Error, totalLimit:Number)} callback
   ###
   snapshotsLimit: (callback = kd.noop) ->
@@ -205,8 +282,13 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     paymentController.subscriptions (err, subscription) =>
       return callback err  if err
 
-      {planTitle} = subscription
-      @__snapshotsLimit = MachineSettingsSnapshotsView.snapshotsLimits[planTitle]
+      { snapshotsLimits } = MachineSettingsSnapshotsView
+      { planTitle }       = subscription
+      @__snapshotsLimit   = snapshotsLimits[planTitle]
+      unless @__snapshotsLimit?
+        kd.warn "snapshotsLimit check: Plan title '#{planTitle}'
+          unrecognized, using default."
+        @__snapshotsLimit = snapshotsLimits['default']
       callback null, @__snapshotsLimit
 
 

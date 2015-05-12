@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/kontrol"
 	"golang.org/x/net/context"
 
 	"koding/kites/kloud/klient"
@@ -35,7 +36,11 @@ func (p *Provider) RunChecker(interval time.Duration) {
 
 			if err := p.CheckUsage(machine); err != nil {
 				// only log if it's something else
-				if err != kite.ErrNoKitesAvailable {
+				switch err {
+				case kite.ErrNoKitesAvailable,
+					kontrol.ErrQueryFieldsEmpty,
+					klient.ErrDialingFailed:
+				default:
 					p.Log.Error("[%s] check usage of klient kite [%s] err: %v",
 						machine.Id.Hex(), machine.IpAddress, err)
 				}
@@ -102,9 +107,14 @@ func (p *Provider) CheckUsage(m *Machine) error {
 		p.Unlock(m.Id.Hex())
 	}()
 
+	// mark it as stopped, so client side shouldn't ask for any eventer
+	if err := m.markAsStopped(); err != nil {
+		return err
+	}
+
 	p.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
 	// Hasta la vista, baby!
-	return m.Stop(ctx)
+	return m.stop(ctx)
 }
 
 // FetchOne() fetches a single machine document from mongodb that meets the criterias:

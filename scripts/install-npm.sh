@@ -13,20 +13,12 @@ install()
     WORKING_DIR=$(basename $(pwd))
   fi
 
-  echo -e "\033[0;32m${WORKING_DIR}\033[0m: verifying npm dependencies"
-  npm ls > /dev/null 2>&1
-
-  if [ $? -eq 0 ]; then
-    exit 0
-  fi
-
-  echo -e "\033[0;33m${WORKING_DIR}\033[0m: installing npm dependencies"
   npm install $NPM_ARGS
 }
 
 NPM_ARGS=
 
-while getopts ":d:usp" OPTION; do
+while getopts ":d:us" OPTION; do
   case $OPTION in
     d) WORKING_DIR=$OPTARG ;;
     u) NPM_ARGS+=" --unsafe-perm" ;;

@@ -25,8 +25,9 @@ module.exports = class OAuth extends bongo.Base
         {client_id, redirect_uri} = KONFIG.google
 
         url  = "https://accounts.google.com/o/oauth2/auth?"
-        url += "scope=https://www.google.com/m8/feeds/ "
-        url += "https://www.googleapis.com/auth/userinfo.profile&"
+        url += "scope=https://www.google.com/m8/feeds "
+        url += "https://www.googleapis.com/auth/userinfo.profile "
+        url += "https://www.googleapis.com/auth/userinfo.email&"
         url += "redirect_uri=#{redirect_uri}&"
         url += "response_type=code&"
         url += "client_id=#{client_id}&"

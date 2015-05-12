@@ -13,8 +13,8 @@ AccountListWrapper    = require './accountlistwrapper'
 AccountNavigationItem = require './accountnavigationitem'
 ReferrerModal         = require './views/referrermodal'
 whoami                = require 'app/util/whoami'
+checkFlag             = require 'app/util/checkFlag'
 showError             = require 'app/util/showError'
-oauthEnabled          = require 'app/util/oauthEnabled'
 AppController         = require 'app/appcontroller'
 Encoder               = require 'htmlencode'
 require('./routehandler')()
@@ -32,6 +32,7 @@ module.exports = class AccountAppController extends AppController
       items  : [
         { slug : 'Profile',   title : "User profile",        listType: "username" }
         { slug : 'Email',     title : "Email notifications", listType: "emailNotifications" }
+        { slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" }
       ]
     billing :
       title : "Billing"
@@ -45,7 +46,6 @@ module.exports = class AccountAppController extends AppController
         # { slug : 'Keys',        title : "Koding Keys",        listHeader: "Your Koding Keys",       listType: "kodingKeys" }
         { slug : 'Referral',    title : "Referral System",    listHeader: "Your Referral Options",  listType: "referralSystem" }
         { slug : 'Shortcuts', title : 'Shortcuts',           listType: 'shortcuts' }
-        # { slug : 'Credentials', title : "Credentials",        listHeader: "Your Credentials",       listType: "credentials" }
       ]
     danger  :
       title : "Danger"
@@ -54,8 +54,6 @@ module.exports = class AccountAppController extends AppController
       ]
 
 
-  if oauthEnabled() is yes
-    NAV_ITEMS.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })
 
   constructor: (options = {}, data) ->
 
@@ -84,12 +82,28 @@ module.exports = class AccountAppController extends AppController
 
     @mainView.destroy()
 
-  openSection: (section) ->
+  openSection: (section, query) ->
+
+    if section is "Oauth" and query.provider?
+      @handleOauthRedirect query
+      return
 
     for item in @navController.getListItems() when section is item.getData().slug
       @tabView.addPane @createTab item.getData()
       @navController.selectItem item
       break
+
+
+  handleOauthRedirect: (options) ->
+
+    { error, provider } = options
+
+    error = null  if error is "null"
+    kd.singletons.oauthController.authCompleted error, provider
+
+    kd.singletons.router.handleRoute "/Account/Externals",
+      shouldPushState : yes
+      replaceState    : yes
 
 
   loadView: (modal) ->
@@ -118,6 +132,10 @@ module.exports = class AccountAppController extends AppController
     items = []
     for own sectionKey, section of NAV_ITEMS
       items = items.concat section.items
+
+    # Temporary solution to hide this from other users ~ GG
+    if checkFlag 'super-admin'
+      items.push { slug : 'Credentials', title : "Credentials", listHeader: "Your Credentials", listType: "credentials" }
 
     @navController.instantiateListItems items
 

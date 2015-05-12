@@ -3,10 +3,15 @@
 package terraformer
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/terraformer/kodingcontext"
 	"koding/kites/terraformer/storage"
+	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 
 	"koding/kites/common"
 
@@ -35,11 +40,16 @@ type Terraformer struct {
 	// Enable debug mode
 	Debug bool
 
-	// Context holds the initial context, all usages should clone it
-	Context *kodingcontext.Context
+	// Context holds the initial context, all usages should get from it
+	Context kodingcontext.Context
 
 	// Store app runtime config
 	Config *Config
+
+	closeChan chan struct{} // To signal when terraformer is closing
+
+	closing bool
+	rwmu    sync.RWMutex
 }
 
 // TerraformRequest is a helper struct for terraformer kite requests
@@ -66,104 +76,125 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 		return nil, err
 	}
 
-	return &Terraformer{
-		Log:     log,
-		Metrics: common.MustInitMetrics(Name),
-		Debug:   conf.Debug,
-		Context: c,
-		Config:  conf,
-	}, nil
+	t := &Terraformer{
+		Log:       log,
+		Metrics:   common.MustInitMetrics(Name),
+		Debug:     conf.Debug,
+		Context:   c,
+		Config:    conf,
+		closeChan: make(chan struct{}),
+	}
+
+	t.handleSignals()
+
+	return t, nil
 }
 
 // Close closes the embeded properties of terraformer
 func (t *Terraformer) Close() error {
-	if t.Context == nil {
-		return nil
+	t.rwmu.Lock()
+	if t.closing {
+		defer t.rwmu.Unlock()
+		return errors.New("already closing")
+	}
+	// mark terraformer as closing and stop accepting new requests
+	t.closing = true
+	t.rwmu.Unlock()
+
+	var err error
+	if t.Context != nil {
+		err = t.Context.Shutdown()
+		if err != nil {
+			t.Log.Critical("err while shutting down context %s", err.Error())
+		}
 	}
 
-	return t.Context.Close()
+	close(t.closeChan)
+
+	// clean up global vars
+	kodingcontext.Close()
+
+	return err
 }
 
-// Kite creates a new Terraformer Kite communication layer
-func (t *Terraformer) Kite() (*kite.Kite, error) {
-	return t.newKite(t.Config)
+// Wait waits for Terraformer to exit
+func (t *Terraformer) Wait() error {
+	<-t.closeChan // wait for exit
+	return nil
+}
+
+func (t *Terraformer) handleSignals() {
+	go func() {
+		signalCh := make(chan os.Signal, 1)
+		signal.Notify(signalCh)
+
+		s := <-signalCh
+		signal.Stop(signalCh)
+		switch s {
+		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
+			t.Log.Info("%s signal recieved, closing terraformer", s)
+			t.Close()
+		}
+	}()
 }
 
 // Plan provides a kite call for plan operation
 func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
-	c := t.Context.Clone()
-	defer c.Close()
-
-	plan, err := t.plan(c, r, false)
-	if err != nil {
+	args := TerraformRequest{}
+	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
 
-	return plan, nil
+	c, err := t.Context.Get(args.ContentID)
+	if err != nil {
+		return nil, err
+	}
+	defer c.Close()
+
+	// set variables if sent
+	c.Variables = args.Variables
+
+	destroy := false
+	return c.Plan(strings.NewReader(args.Content), destroy)
 }
 
 // Apply provides a kite call for apply operation
 func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
-	c := t.Context.Clone()
-	defer c.Close()
-
-	state, err := t.apply(c, r, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return state, nil
+	destroy := false
+	return t.apply(r, destroy)
 }
 
 // Destroy provides a kite call for destroy operation
 func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
-	c := t.Context.Clone()
-	defer c.Close()
+	destroy := true
+	return t.apply(r, destroy)
+}
 
-	plan, err := t.apply(c, r, true)
+func (t *Terraformer) apply(r *kite.Request, destroy bool) (*terraform.State, error) {
+	args := TerraformRequest{}
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return nil, err
+	}
+
+	c, err := t.Context.Get(args.ContentID)
 	if err != nil {
 		return nil, err
 	}
+	defer c.Close()
 
-	return plan, nil
+	// set variables if sent
+	c.Variables = args.Variables
+
+	return c.Apply(strings.NewReader(args.Content), destroy)
 }
 
-// func (t *Terraformer) context(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.Context, error) {
-// 	// get the plan
-// 	plan, err := t.plan(c, r, destroy)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (t *Terraformer) handleState(r *kite.Request) (interface{}, error) {
+	t.rwmu.RLock()
+	defer t.rwmu.RUnlock()
 
-// 	// create terraform context options from plan
-// 	copts := c.TerraformContextOptsWithPlan(plan)
-
-// 	// create terraform context with its options
-// 	return terraform.NewContext(copts), nil
-// }
-
-func (t *Terraformer) plan(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.Plan, error) {
-	args := TerraformRequest{}
-	if err := r.Args.One().Unmarshal(&args); err != nil {
-		return nil, err
+	if t.closing {
+		return false, errors.New("terraformer is closing")
 	}
 
-	c.Variables = args.Variables
-	c.ContentID = args.ContentID
-
-	content := strings.NewReader(args.Content)
-	return c.Plan(content, destroy)
-}
-
-func (t *Terraformer) apply(c *kodingcontext.Context, r *kite.Request, destroy bool) (*terraform.State, error) {
-	args := TerraformRequest{}
-	if err := r.Args.One().Unmarshal(&args); err != nil {
-		return nil, err
-	}
-
-	c.Variables = args.Variables
-	c.ContentID = args.ContentID
-
-	content := strings.NewReader(args.Content)
-	return c.Apply(content, destroy)
+	return true, nil
 }

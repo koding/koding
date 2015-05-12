@@ -1,13 +1,13 @@
-htmlencode = require 'htmlencode'
-$ = require 'jquery'
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDSpotlightView = kd.SpotlightView
-KDView = kd.View
+htmlencode            = require 'htmlencode'
+$                     = require 'jquery'
+kd                    = require 'kd'
+KDView                = kd.View
+KDButtonView          = kd.ButtonView
+KDCustomHTMLView      = kd.CustomHTMLView
+KDSpotlightView       = kd.SpotlightView
 OnboardingContextMenu = require '../onboardingcontextmenu'
-OnboardingMetrics = require './onboardingmetrics'
-
+OnboardingMetrics     = require './onboardingmetrics'
+applyMarkdown         = require 'app/util/applyMarkdown'
 
 module.exports = class OnboardingItemView extends KDView
 
@@ -92,13 +92,11 @@ module.exports = class OnboardingItemView extends KDView
   createContentView: ->
 
     {title, content} = @getData()
-    title          = new KDCustomHTMLView { tagName  : 'h3', partial  : title   }
-    content        = new KDCustomHTMLView { tagName  : 'p' , partial  : content }
-    buttonsWrapper = new KDCustomHTMLView { cssClass : 'buttons'                }
-    view           = new KDCustomHTMLView { cssClass : 'onboarding-item'        }
-    closeButton    = new KDCustomHTMLView
-      cssClass     : 'close-icon'
-      click        : @bound 'cancel'
+    title            = new KDCustomHTMLView { tagName  : 'h3', partial  : applyMarkdown title     }
+    content          = new KDCustomHTMLView { tagName  : 'p' , partial  : applyMarkdown content   }
+    buttonsWrapper   = new KDCustomHTMLView { cssClass : 'buttons'                                }
+    view             = new KDCustomHTMLView { cssClass : 'onboarding-item has-markdown'           }
+    closeButton      = new KDCustomHTMLView { cssClass : 'close-icon', click    : @bound 'cancel' }
 
     if @hasPrev
       prevButton   = new KDButtonView

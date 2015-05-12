@@ -1,19 +1,19 @@
 #!/bin/bash
 
-HOST=$1
-PORT=$2
-INTERVAL=$3
-TRY_COUNT=$4
-COUNTER=1
+set -o errexit
 
-until nc $HOST $PORT < /dev/null; do
-    sleep $INTERVAL
-    echo -n '.'
-    COUNTER=$((COUNTER + 1))
-    if [ $COUNTER -eq $TRY_COUNT ]; then
-        echo 'X'
-        exit 1
-    fi
+INSTANCE_DATA_FILE=$1
+
+SCRIPTS=$(dirname $0)/..
+
+HOSTS=$(cat $INSTANCE_DATA_FILE | awk '{print $2}')
+
+for HOST in $HOSTS; do
+  # nginx web server is running on port 8090
+  $SCRIPTS/test-instance/check-connectivity $HOST 8090 1m 20
+
+  # selenium-server is running on port 4444
+  $SCRIPTS/test-instance/check-connectivity $HOST 4444 1m 20
 done
 
-echo 'O'
+exit 0

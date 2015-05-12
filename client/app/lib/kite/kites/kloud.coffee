@@ -7,7 +7,7 @@ globals = require 'globals'
 
 module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
-  SUPPORTED_PROVIDERS = ['koding', 'amazon']
+  SUPPORTED_PROVIDERS = ['koding', 'aws']
 
   getProvider = (machineId)->
     kd.singletons.computeController.machinesById[machineId]?.provider
@@ -32,21 +32,35 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
       @tell rpcMethod, payload
 
+
   @createApiMapping
-    stop           : 'stop'
-    start          : 'start'
-    build          : 'build'
-    event          : 'event'
-    reinit         : 'reinit'
-    resize         : 'resize'
-    restart        : 'restart'
-    destroy        : 'destroy'
-    setDomain      : 'domain.set'
-    addDomain      : 'domain.add'
-    unsetDomain    : 'domain.unset'
-    removeDomain   : 'domain.remove'
-    createSnapshot : 'createSnapshot'
-    deleteSnapshot : 'deleteSnapshot'
+
+    # Eventer
+    event           : 'event'
+
+    # Machine related actions, these requires valid machineId
+    stop            : 'stop'
+    start           : 'start'
+    build           : 'build'
+    reinit          : 'reinit'
+    resize          : 'resize'
+    restart         : 'restart'
+    destroy         : 'destroy'
+
+    # Domain managament
+    setDomain       : 'domain.set'
+    addDomain       : 'domain.add'
+    unsetDomain     : 'domain.unset'
+    removeDomain    : 'domain.remove'
+
+    # Snapshots
+    createSnapshot  : 'createSnapshot'
+
+    # Stack, Teams, Credentials related methods
+    bootstrap       : 'bootstrap'
+    buildStack      : 'apply'
+    checkTemplate   : 'plan'
+    checkCredential : 'authenticate'
 
 
   constructor: (options) ->
@@ -56,6 +70,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     @needsRequest   = kd.utils.dict()
 
     @_reconnectedOnce = no
+
 
   # first info request sends message to kite requesting info
   # subsequent info requests while the first request is pending
@@ -166,3 +181,34 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
         kd.warn '[kloud:info] failed, sending current state back:', { currentState, err }
         @resolveRequestingInfos machineId, State: currentState
+
+
+  ###*
+   * Delete the given snapshot.
+   *
+   * Note that we're using a custom method here (rather than @createMethod)
+   * to default the provider to Koding, as is needed for Machine's that
+   * no longer exist. They don't have a provider, because they don't exist.
+   *
+   * @param {Object} payload
+   * @param {String} payload.machineId - The machine that created the snapshot
+   * @param {String} payload.snapshotId - The snapshotId to delete.
+  ###
+  deleteSnapshot: (payload) ->
+
+    if payload?.machineId?
+
+      provider = getProvider payload.machineId
+      provider = 'koding'  unless provider
+
+      if provider not in SUPPORTED_PROVIDERS
+        # machine provider is not supported by kloud #{payload.machineId}
+        return Promise.reject
+          name    : 'NotSupported'
+          message : 'Operation is not supported for this VM'
+
+      payload.provider = provider
+
+    @tell 'deleteSnapshot', payload
+
+

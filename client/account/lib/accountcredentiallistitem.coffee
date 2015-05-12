@@ -1,7 +1,7 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+kd             = require 'kd'
+KDButtonView   = kd.ButtonView
 KDListItemView = kd.ListItemView
-JView = require 'app/jview'
+JView          = require 'app/jview'
 
 
 module.exports = class AccountCredentialListItem extends KDListItemView
@@ -16,27 +16,50 @@ module.exports = class AccountCredentialListItem extends KDListItemView
     { owner } = @getData()
 
     @deleteButton = new KDButtonView
-      iconOnly : yes
+      # iconOnly : yes
       cssClass : "delete"
-      callback : => delegate.deleteItem this
+      title    : "delete"
+      callback : delegate.lazyBound 'deleteItem', this
 
     @shareButton = new KDButtonView
-      iconOnly : yes
+      # iconOnly : yes
       cssClass : "share"
+      title    : "share"
       disabled : !owner
-      callback : => delegate.shareItem this
+      callback : delegate.lazyBound 'shareItem', this
 
     @showCredentialButton = new KDButtonView
-      iconOnly : yes
+      # iconOnly : yes
       cssClass : "show"
+      title    : "show"
       disabled : !owner
-      callback : => delegate.showItemContent this
+      callback : delegate.lazyBound 'showItemContent', this
 
     @participantsButton = new KDButtonView
-      iconOnly : yes
+      # iconOnly : yes
       cssClass : "participants"
+      title    : "participants"
       disabled : !owner
-      callback : => delegate.showItemParticipants this
+      callback : delegate.lazyBound 'showItemParticipants', this
+
+    @isBootstrappedButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "bootstrapped"
+      title    : "is Bootstrapped?"
+      callback : delegate.lazyBound 'checkIsBootstrapped', this
+
+    @bootstrapButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "bootstrap"
+      title    : "bootstrap"
+      callback : delegate.lazyBound 'bootstrap', this
+
+    @verifyButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "verify"
+      title    : "verify"
+      callback : delegate.lazyBound 'verify', this
+
 
   pistachio:->
     """
@@ -46,6 +69,7 @@ module.exports = class AccountCredentialListItem extends KDListItemView
     <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}
       {{> @shareButton}}{{> @participantsButton}}
+      {{> @isBootstrappedButton}}{{> @bootstrapButton}}
+      {{> @verifyButton}}
     </div>
     """
-

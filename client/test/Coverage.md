@@ -42,7 +42,7 @@
   - likeunlike
     - likePost
     - likeComment
-    - unlikPost
+    - unlikePost
     - unlikeComment
 
   - others
@@ -51,14 +51,14 @@
     - sendHastagActivity
     - followTopic
     - unfollowTopic
+    - changeMostLikedMostRecentTab
 
 
 - collaboration
   - collaboration
-    - startSession
-    - endSessionFromStatusBar
-    - endSessionFromChat
-
+    - startSession (disabled)
+    - endSessionFromStatusBar (disabled)
+    - endSessionFromChat (disabled)
 
 
 - environments
@@ -94,8 +94,7 @@
     - duplicateFile
 
   - general
-    - runCommandOnTerminal
-    - collapse
+    - expandCollapseFiletree
     - makeTopFolder
     - openEditorSettings
     - enterFullScreen
@@ -104,13 +103,19 @@
     - splitPanesVertically
     - splitPanesHorizontally
     - undoSplitPanes
-    - undoSplitPanesNotShowOnList
+    - undoSplitPanesNotShowOnScreen
     - openDrawingBoard
+
+  - search
+    - findInFiles
+    - jumpToFile
+    - createAndSaveNewFile
 
   - terminal
     - terminateAll
     - createNewTerminalSession
     - terminateSession
+    - runCommandOnTerminal
     - openOldTerminalSession (deprecated)
 
   - workspace
@@ -122,8 +127,8 @@
 
 - register
   - register
-    - registerUserWithGravatarEmail
-    - registerUserWithoutGravatarEmail
+    - registerWithGravatarEmail
+    - registerWithoutGravatarEmail
     - registerWithInvalidUsername
     - registerWithInvalidEmail
     - registerWithInvalidPassword
@@ -146,8 +151,8 @@
 
 - messages
   - privatemessage
-    - startConversation
-    - refreshAndSeeConversationOnSidebar (in progress)
+    - startConversation (disabled)
+    - refreshAndSeeConversationOnSidebar (disabled)
     - leaveConversation (in progress)
     - setConversationPurpose (in progress)
     - startConversationWithMultiplePeople (in progress)

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+INSTANCE_DATA_FILE=$1
+
 if [ "$WERCKER_RESULT" = "failed" ]; then
   if [ "$CLIENT_TEST" = "started" ]; then
     if [ -z "$TERMINATE_FAILED_TEST_INSTANCE" ]; then
@@ -8,7 +10,11 @@ if [ "$WERCKER_RESULT" = "failed" ]; then
   fi
 fi
 
-INSTANCE_ID=$(echo $INSTANCE_DATA | awk '{print $1}')
-scripts/wercker/terminate-test-instance $INSTANCE_ID
+SCRIPTS=$(dirname $0)/..
 
-exit 0
+INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')
+
+# `terminate` script does accept a single instance id.  `xargs -n 1`
+# passes instance ids to `terminate` script one by one.
+
+echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/terminate

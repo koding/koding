@@ -54,6 +54,7 @@ module.exports = class ComputeController extends KDController
             @lastKnownUserPlan = null
             @fetchUserPlan()
 
+        # TODO Find a better way to trigger stack create ~ GG
         if @stacks.length is 0 then do @createDefaultStack
 
         @storage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
@@ -79,6 +80,7 @@ module.exports = class ComputeController extends KDController
     @stacks       = []
     @machines     = []
     @machinesById = {}
+    @stacksById   = {}
     @plans        = null
     @_trials      = {}
 
@@ -105,7 +107,7 @@ module.exports = class ComputeController extends KDController
 
     retryIfNeeded = kd.utils.throttle 500, (task, machine)=>
 
-      return  if task is 'info'
+      return  if task in ['info', 'buildStack']
 
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
@@ -185,12 +187,21 @@ module.exports = class ComputeController extends KDController
             queue = []
             return
 
+          @stacksById   = {}
+          for stack in stacks
+            @stacksById[stack._id] = stack
+
           @machinesById = {}
 
           machines = []
           for machine in _machines
             machines.push machine = new Machine { machine }
             @machinesById[machine._id] = machine
+
+          unless kd.singletons.groupsController.getGroupSlug() is 'koding'
+            stacks.forEach (stack)->
+              stack.checkRevision (err, res)->
+                console.info "Revision info for stack #{stack.title}", res
 
           @stacks   = stacks
           @machines = machines
@@ -245,6 +256,12 @@ module.exports = class ComputeController extends KDController
   findMachineFromMachineId: (machineId)->
     return @machinesById[machineId]
 
+  findStackFromStackId: (stackId)->
+    return @stacksById[stackId]
+
+  findStackFromMachineId: (machineId)->
+    for stack in @stacks
+      return stack  if machineId in stack.machines
 
   findMachineFromQueryString: (queryString)->
 
@@ -432,7 +449,7 @@ module.exports = class ComputeController extends KDController
       destroy machine
 
 
-  reinit: (machine)->
+  reinit: (machine, snapshotId)->
 
     return if methodNotSupportedBy machine
 
@@ -444,7 +461,7 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      call = @getKloud().reinit { machineId: machine._id }
+      call = @getKloud().reinit { machineId: machine._id, snapshotId }
 
       .then (res)=>
 
@@ -521,6 +538,32 @@ module.exports = class ComputeController extends KDController
     .catch (err)=>
 
       (@errorHandler call, 'build', machine) err
+
+
+  buildStack: (stack) ->
+
+    stack.machines.forEach (machineId) =>
+      return  unless machine = @findMachineFromMachineId machineId
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Building
+        percentage  : 0
+
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+    call = @getKloud().buildStack { stackId: stack._id }
+
+    .then (res) =>
+
+      kd.log "build stack res:", res
+      @eventListener.addListener 'apply', stack._id
+
+    .timeout globals.COMPUTECONTROLLER_TIMEOUT
+
+    .catch (err) =>
+
+      (@errorHandler call, 'buildStack', stack) err
+
 
 
   start: (machine)->

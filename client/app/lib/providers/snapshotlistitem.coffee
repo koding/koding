@@ -1,16 +1,19 @@
-Encoder             = require 'htmlencode'
+Encoder                   = require 'htmlencode'
 
-kd                  = require 'kd'
-remote              = require('app/remote').getInstance()
+kd                        = require 'kd'
+remote                    = require('app/remote').getInstance()
 
-JView               = require '../jview'
-nicetime            = require '../util/nicetime'
+{handleNewMachineRequest} = require './computehelpers'
+JView                     = require '../jview'
+nicetime                  = require '../util/nicetime'
 
 
 
 module.exports = class SnapshotListItem extends kd.ListItemView
 
   constructor: (options = {}, data) ->
+
+    options.type = 'snapshot'
 
     options.cssClass = kd.utils.curry options.cssClass, 'snapshot'
 
@@ -65,46 +68,53 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     @labelView = new kd.View
       tagName  : 'span'
-      cssClass : 'label'
+      cssClass : 'label column'
       click    : @bound 'toggleEditable'
 
     @infoRenameBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'rename'
       callback : @bound 'toggleEditable'
+      tooltip  :
+        title  : 'Rename Snapshot'
 
     @infoDeleteBtn = new kd.ButtonView
       iconOnly : true
       cssClass : 'delete'
       callback : @bound 'confirmDeleteSnapshot'
+      tooltip  :
+        title  : 'Delete Snapshot'
+
+    @infoNewVmBtn = new kd.ButtonView
+      iconOnly : true
+      cssClass : 'new-vm'
+      callback : @bound 'vmFromSnapshot'
+      tooltip  :
+        title  : 'Create VM from Snapshot'
 
     @addSubView @editView = new JView
       cssClass        : 'edit hidden'
       pistachioParams : { @editInput, @editRenameBtn, @editCancelBtn }
       pistachio       : """
-        <div>
-          {{> editInput}}
-          <div class="buttons">
-            {{> editCancelBtn}}
-            {{> editRenameBtn}}
-          </div>
+        {{> editInput}}
+        <div class="buttons">
+          {{> editCancelBtn}}
+          {{> editRenameBtn}}
         </div>
         """
 
     @addSubView @infoView = new JView
       cssClass        : 'info'
-      pistachioParams : { @labelView, @infoRenameBtn, @infoDeleteBtn }
+      pistachioParams : { @labelView, @infoRenameBtn, @infoDeleteBtn,
+        @infoNewVmBtn }
       pistachio       : """
-        <div>
-          {{> labelView}}
-          <span class="storage-size">(#{data.storageSize}GB)</span>
-          <span class="created-at">
-            #{SnapshotListItem.prettyCreatedAt data.createdAt}
-          </span>
-          <div class="buttons">
-            {{> infoRenameBtn}}
-            {{> infoDeleteBtn}}
-          </div>
+        {{> labelView}}
+        <span class="column created-at">#{SnapshotListItem.prettyCreatedAt data.createdAt}</span>
+        <span class="column size">#{data.storageSize}GB</span>
+        <div class="buttons">
+          {{> infoRenameBtn}}
+          {{> infoDeleteBtn}}
+          {{> infoNewVmBtn}}
         </div>
         """
 
@@ -144,6 +154,18 @@ module.exports = class SnapshotListItem extends kd.ListItemView
         listView.removeItem this
         listView.emit 'DeleteSnapshot', this
       .catch (err) -> kd.warn err
+
+
+  ###*
+   * Notify the delegate (listView) to create a vm from this item's
+   * snapshot.
+   *
+   * @emits ListView~NewVmFromSnapshot
+  ###
+  vmFromSnapshot: ->
+
+    listView = @getDelegate()
+    listView.emit 'NewVmFromSnapshot', @getData()
 
 
   partial: ->

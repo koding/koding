@@ -95,11 +95,109 @@ module.exports = class VideoCollaborationModel extends kd.Object
     if helper.isVideoActive @channel
       @setActive()
 
-      if @isMySession()
-        @enableVideo {},
-          success: =>
-            @setVideoState yes
-            @setAudioState yes
+      return  unless @isMySession()
+
+      @requestVideoPublishForHost()
+
+
+  ###*
+   * Convinience method for requesting camera and microphone access
+   * sequentially for host. Accepts an option callback to be called after both
+   * devices are activated.
+   *
+   * @param {function=} callback
+  ###
+  requestVideoPublishForHost: (callback) ->
+
+    # these next 2 calls both requires this model to be in the publishing
+    # state to make operations, IF the state is NOT publishing at the moment.
+    # However, if we call then syncronously the calls will be sequential and
+    # both method will try to open the camera. That's why we are using
+    # `requestVideoStateChange` method's callback to make sure that audio
+    # request change will not trigger any other publisher creation process.
+    # The same exact call is happening at first reload if video is active.
+    @requestVideoStateChange on, =>
+      @requestAudioStateChange on
+      callback?()
+
+
+  ###*
+   * Because we are alternating 2 different types of publishers that are
+   * `video-disabled` and `video-enabled` this method will handle that logic.
+   * Publishing mechanism is being controlled by here.
+   *
+   * This method's responsibilities are somehow mixed:
+   *
+   *   - It just enables (starts publishing) the video chat and calls the optional callback.
+   *   - If it's already being published,
+   *     - it first unpublishes the current publisher.
+   *     - then creates a new publisher that is either `video-enabled` or `video-enabled`
+   *       publishes that to the session.
+   *     - updates the publisher's video data.
+   *     - then updates the video state of the model.
+   *
+   * TODO: this method needs some after thinking. ~Umut
+   *
+   * @param {boolean} videoState
+   * @param {function=} callback - this will be callled after video state update is done.
+  ###
+  requestVideoStateChange: (videoState, callback) ->
+
+    # this options are required for publishing functions.
+    options = getCameraOptionFromState videoState
+
+    oldVideoState = @state.video
+
+    if @state.publishing
+      # if we are trying to change video state to same state, just return
+      return  if videoState is oldVideoState
+
+      # this method will just unpublish from the session, will not make any
+      # other update, or any mutation to recent state of model.
+      @_unpublishFromSession =>
+        @_createPublisher options, (err, videoData) =>
+          # first update KodingPublisher's video data
+          @publisher.setVideoData videoData
+          # set video state to given state so that other views can react to it.
+          @setVideoState videoState
+
+          callback?()
+
+    else
+      # no need to unpublish, and at this state, we want all the other handlers
+      # to work with `startPublishing` and so on. When the success callback is
+      # called, the publisher will be ready with the necessary video data, so
+      # no need to update its videoData here like we did before.
+      @enableVideo options,
+        error   : (err) -> console.error err
+        success : =>
+          @setVideoState videoState
+          callback?()
+
+
+  ###*
+   * If it's already being published just sets state's audio to given state.
+   * If not enables the video and then sets the state.
+   *
+   * @param {boolean} audioState
+  ###
+  requestAudioStateChange: (audioState) ->
+
+    options = _.assign getCameraOptionFromState(@state.video),
+      publishAudio : audioState
+
+    oldAudioState = @state.audio
+
+    if @state.publishing
+
+      return  if audioState is oldAudioState
+
+      @setAudioState audioState
+
+    else
+      @enableVideo options,
+        error   : (err) -> console.error err
+        success : @lazyBound 'setAudioState', audioState
 
 
   ###*
@@ -140,11 +238,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
       @setActive()
 
-      if @isMySession()
-        @enableVideo {},
-          success: =>
-            @setVideoState yes
-            @setAudioState yes
+      return  unless @isMySession()
+
+      @requestVideoPublishForHost()
+
 
     # this event only comes to the user who has been muted, so need to make a
     # filtering here.
@@ -158,7 +255,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @emits VideoCollaborationModel~ParticipantConnected
   ###
   onConnectionCreated: (event) ->
-
 
     { connection } = event
 
@@ -240,8 +336,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @handlePublishSuccess publisher
       callbacks.success? publisher
 
-    defaults = { publishAudio: @isMySession(), publishVideo: @isMySession() }
-    options  = _.assign {}, defaults, options
     @startPublishing options,
       success : success
       error   : callbacks.error
@@ -333,6 +427,49 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit 'ParticipantStoppedTalking', getNick()
 
     return publisher
+
+
+  ###*
+   * Create the publisher with given options, and call given function.
+   *
+   * @param {object} options
+   * @param {function} callback
+  ###
+  _createPublisher: (options = {}, callback) ->
+
+    helper.createPublisher @view.getContainer(), options, (err, publisher) =>
+      return callback err  if err
+
+      publisher.on
+        accessAllowed      : => @emit 'CameraAccessAllowed'
+        accessDenied       : => @emit 'CameraAccessDenied'
+        accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
+        accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
+
+      # for some reason session's publish method's completion handler isn't
+      # working consistent. However `accessAllowed` events are being dispatched
+      # properly everytime a publisher is being published to session. Instead
+      # of the completion handler of `session.publish` we are using this event.
+      publisher.on 'accessAllowed', -> callback null, publisher
+
+      @session.publish publisher
+
+
+  ###*
+   * Unpublishes current publisher from session, after that is destroyed, it
+   * calls the callback. Tokbox, for some reason, requires a little time to be
+   * passed doing something publisher related after current publisher is
+   * destroyed. Magic number handles that. This method is necessary to work
+   * with new publishers after destroying a publisher.
+   *
+   * @param {function} callback
+  ###
+  _unpublishFromSession: (callback) ->
+
+    @publisher.videoData.once 'streamDestroyed', ->
+      kd.utils.wait constants.NUMBER_THAT_MAKES_TOKBOX_WORK, callback
+
+    @session.unpublish @publisher.videoData
 
 
   ###*
@@ -480,7 +617,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     return  unless participant = @getParticipant nickname
 
     @_service.sendMuteSignal @channel, participant, (err) ->
-      return console.log err  if err
+      return console.error err  if err
 
 
   ###*
@@ -490,10 +627,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setAudioState: (state) ->
 
-    @ensurePublishing {}, =>
-      @publisher.videoData.publishAudio state
-      @setState { audio: state }
-      @emit 'AudioPublishStateChanged', state
+    @publisher.videoData.publishAudio state
+    @setState { audio: state }
+    @emit 'AudioPublishStateChanged', state
 
 
   ###*
@@ -503,10 +639,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setVideoState: (state) ->
 
-    @ensurePublishing {}, =>
-      @publisher.videoData.publishVideo state
-      @setState { video: state }
-      @emit 'VideoPublishStateChanged', state
+    @setState { video: state }
+    @emit 'VideoPublishStateChanged', state
 
 
   ensurePublishing: (options, callback) ->
@@ -563,22 +697,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     options = _.assign {}, defaults, options
 
-    # first create publisher with defaults.
-    helper.createPublisher @view.getContainer(), options, (err, publisher) =>
-      return callbacks.error err  if err
-
-      publisher.on
-        accessAllowed      : => @emit 'CameraAccessAllowed'
-        accessDenied       : => @emit 'CameraAccessDenied'
-        accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
-        accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
-
-      publisher.on 'streamDestroyed', => @unregisterPublisher()
-
-      @session.publish publisher, (err) =>
-        if err
-        then callbacks.error err
-        else callbacks.success publisher
+    @_createPublisher options, (err, publisher) =>
+      if err
+      then callbacks.error err
+      else callbacks.success publisher
 
 
   ###*
@@ -728,5 +850,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
     if participant and not isDefaultSubscriber participant
     then callback participant.videoData.stream.hasAudio
     else callback no
+
+
+getCameraOptionFromState = (state) ->
+
+  if state then { publishVideo: yes } else { videoSource: null }
 
 

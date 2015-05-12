@@ -1,6 +1,7 @@
 package collaboration
 
 import (
+	"bytes"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
@@ -10,6 +11,8 @@ import (
 	"socialapi/workers/collaboration/models"
 	"testing"
 	"time"
+
+	"code.google.com/p/google-api-go-client/drive/v2"
 
 	"github.com/koding/runner"
 
@@ -42,7 +45,9 @@ func TestCollaborationDriveService(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(owner, ShouldNotBeNil)
 
-		ownerSession, err := apimodels.FetchOrCreateSession(owner.Nick)
+		groupName := apimodels.RandomGroupName()
+
+		ownerSession, err := apimodels.FetchOrCreateSession(owner.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ownerSession, ShouldNotBeNil)
 
@@ -81,4 +86,22 @@ func TestCollaborationDriveService(t *testing.T) {
 			})
 		})
 	})
+}
+
+func createTestFile(c *Controller) (*drive.File, error) {
+	svc, err := CreateService(&c.conf.GoogleapiServiceAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	// Define the metadata for the file we are going to create.
+	f := &drive.File{
+		Title:       "My Document",
+		Description: "My test document",
+	}
+
+	m := bytes.NewReader([]byte(`selamlar nasilsin?`))
+
+	// Make the API request to upload metadata and file data.
+	return svc.Files.Insert(f).Media(m).Do()
 }

@@ -64,7 +64,7 @@ func (th *testHelper) prepareTestData() {
 
 	if testGroupChannel == nil {
 		testGroupChannel = socialapimodels.NewChannel()
-		name := "notification_test_" + socialapimodels.RandomName()
+		name := "notification_test_" + socialapimodels.RandomGroupName()
 		testGroupChannel.CreatorId = ownerAccount.Id
 		testGroupChannel.Name = name
 		err := testGroupChannel.Create()
@@ -75,7 +75,7 @@ func (th *testHelper) prepareTestData() {
 
 	if testGroupChannel2 == nil {
 		testGroupChannel2 = socialapimodels.NewChannel()
-		name := "notification_test_" + socialapimodels.RandomName()
+		name := "notification_test_" + socialapimodels.RandomGroupName()
 		testGroupChannel2.CreatorId = ownerAccount.Id
 		testGroupChannel2.Name = name
 		err := testGroupChannel2.Create()

@@ -17,7 +17,7 @@ module.exports = class Koding extends ProviderInterface
   @ping = (client, options, callback)->
 
     {nickname} = client.r.account.profile
-    callback null, "#{@providerSlug} is the best #{ nickname }!"
+    callback null, "#{ @providerSlug } is the best #{ nickname }!"
 
 
   ###*
@@ -59,7 +59,7 @@ module.exports = class Koding extends ProviderInterface
           region ?= (Regions.findRegion userIp, SUPPORTED_REGIONS).regions[0]
 
           meta =
-            type          : 'amazon'
+            type          : 'aws'
             region        : region ? SUPPORTED_REGIONS[0]
             source_ami    : '' # Kloud is updating this field after a successfull build
             instance_type : 't2.micro'

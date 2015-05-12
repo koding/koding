@@ -1,10 +1,11 @@
-EnvironmentContainer = require './environmentcontainer'
+ComputeHelpers         = require 'app/providers/computehelpers'
+EnvironmentContainer   = require './environmentcontainer'
 EnvironmentMachineItem = require './environmentmachineitem'
-ComputeController = require 'app/providers/computecontroller'
-ComputeController_UI = require 'app/providers/computecontroller.ui'
+
+
 module.exports = class EnvironmentMachineContainer extends EnvironmentContainer
 
-  constructor:(options={}, data)->
+  constructor: (options={}, data) ->
 
     options      =
       title      : 'virtual machines'
@@ -15,4 +16,4 @@ module.exports = class EnvironmentMachineContainer extends EnvironmentContainer
     super options, data
 
     @on 'PlusButtonClicked', =>
-      ComputeController_UI.showProvidersModal @getData()
+      ComputeHelpers.handleNewMachineRequest stack: @getData()

@@ -128,19 +128,19 @@ module.exports = class EnvironmentScene extends KDDiaScene
   updateConnections:->
     @reset no
 
-    machineDias  = @boxes.machines.dias
-    domainDias   = @boxes.domains.dias
-    domainsByDia = {}
+    # machineDias  = @boxes.machines.dias
+    # domainDias   = @boxes.domains.dias
+    # domainsByDia = {}
     # rulesById    = {}
 
-    domainsByDia[domain.data.title] = domain for key, domain of domainDias
+    # domainsByDia[domain.data.title] = domain for key, domain of domainDias
     # rulesById[rule.data._id] = rule for key, rule of @boxes.rules.dias
 
-    for _mkey, machine of machineDias
-      for _dkey, domain of domainDias
-        machines = domain.getData().machines
-        if machines and machine.getData()._id in machines
-          @connect {dia : domain , joint : 'right'}, {dia : machine, joint : 'left' }, yes
+    # for _mkey, machine of machineDias
+    #   for _dkey, domain of domainDias
+    #     machines = domain.getData().machines
+    #     if machines and machine.getData()._id in machines
+    #       @connect {dia : domain , joint : 'right'}, {dia : machine, joint : 'left' }, yes
 
     # for restriction in EnvironmentRuleContainer.restrictions?
     #   domainDia = domainsByDia[restriction.domainName]
@@ -224,4 +224,3 @@ module.exports = class EnvironmentScene extends KDDiaScene
   # resetLayout:->
   #   box.resetPosition()  for _key, box of @boxes
   #   @slider.setValue 1
-

@@ -61,7 +61,7 @@ func (i *TeamIntegration) Create() error {
 		return err
 	}
 
-	i.Token = models.RandomName()
+	i.Token = models.RandomGroupName()
 
 	return bongo.B.Create(i)
 }

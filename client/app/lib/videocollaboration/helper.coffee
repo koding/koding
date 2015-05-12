@@ -254,6 +254,14 @@ subscribeToAudioChanges = (participant, callbacks) ->
 
 
 ###*
+ *
+ *
+ * @param {ParticipantType.Participant} participant
+###
+unsubscribeFromAudioChanges = (participant) -> participant.off 'audioLevelUpdated'
+
+
+###*
  * get user's gravatar, return the default avatar if user doesn't have an avatar.
  *
  * @param {JAccount} account
@@ -391,6 +399,7 @@ module.exports = {
   subscribeToStream
   createPublisher
   subscribeToAudioChanges
+  unsubscribeFromAudioChanges
   enableVideo
   disableVideo
   isVideoActive

@@ -228,6 +228,7 @@ Admin main styles
           .switcher
             text-align          center
             float               left
+            width               145px
 
             .koding-on-off
               display           inline-block
@@ -508,7 +509,8 @@ Admin main styles
 
       &.active
         box-shadow          inset 0 -3px 0 #01b05a
-        color               #575757
+        color               #575757 !important
+        bg                  color, transparent !important
 
 
 // outline button styling
@@ -528,6 +530,9 @@ Admin main styles
 
       span
         color               #e14a35
+
+      &:hover span
+        color               #FFF
 
 
 // members tab styling
@@ -705,7 +710,87 @@ Admin main styles
     padding-top             15px
 
 
+.AppModal--admin .general-settings-view
 
+  fieldset
+    margin-top              0
 
+  .warning-text
+    position                relative
+    font-size               12px
+    color                   #afafaf
+    top                     -24px
 
+  .kdinput[disabled]
+    opacity                 .5
 
+  .kdinput.file
+    z-index                 1
+    top                     110px
+    left                    142px
+    line-height             30px
+    size                    118px, 30px
+    opacity                 0
+    pointer()
+    abs()
+
+  .AppModal-section.deletion
+  .AppModal-section.avatar-upload
+
+    margin-top              30px
+    padding-top             30px
+    border-top              1px solid #ECECEC
+
+  .AppModal-section.deletion
+
+    .AppModal-sectionDescription
+      margin-bottom         14px
+
+    fieldset
+      button
+        fl()
+
+      p
+        margin-left         26px
+        width               500px
+
+  .AppModal-section.avatar-upload
+
+    .remove
+      hidden()
+
+    &.with-logo
+
+      .avatar
+        border-color        transparent !important // override computed
+
+      .upload
+        margin-top          40px !important
+
+      .remove
+        visible()
+        display             inline-block
+        margin              80px 0 0 -120px
+
+      .upload-input
+        top                 70px
+
+      .avatar
+        bg                  size, 106px 110px
+
+    .avatar
+      size                  106px, 110px
+      rounded               7px
+      border                1px inset transparent
+      margin-right          35px
+      display               inline-block
+      borderBox()
+
+    .kdbutton
+      width                 120px
+
+      &.upload
+        margin-top          80px
+
+      canvas
+        margin-top        7px

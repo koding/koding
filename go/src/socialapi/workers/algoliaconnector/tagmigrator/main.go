@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/algolia/algoliasearch-client-go/algoliasearch"
-
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/algoliaconnector/algoliaconnector"
 
+	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/koding/runner"
 )
 
@@ -22,12 +22,15 @@ func main() {
 	}
 	defer r.Close()
 
+	appConfig := config.MustRead(r.Conf.Path)
+
 	algolia := algoliasearch.NewClient(
-		r.Conf.Algolia.AppId,
-		r.Conf.Algolia.ApiSecretKey)
+		appConfig.Algolia.AppId,
+		appConfig.Algolia.ApiSecretKey,
+	)
 
 	// create message handler
-	handler := algoliaconnector.New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
+	handler := algoliaconnector.New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
 
 	for b := 0; ; b++ {
 		topics, err := (&models.Channel{}).List(&request.Query{
@@ -43,7 +46,7 @@ func main() {
 
 		for _, topic := range topics {
 			r.Log.Info(fmt.Sprintf("currently migrating: '%v'", topic.Name))
-			handler.TopicSaved(&topic)
+			handler.ChannelCreated(&topic)
 		}
 
 		if len(topics) < 100 {

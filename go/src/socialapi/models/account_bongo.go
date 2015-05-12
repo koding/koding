@@ -41,6 +41,7 @@ func (a *Account) createToken() error {
 
 func (a *Account) AfterUpdate() {
 	SetAccountToCache(a)
+	bongo.B.AfterUpdate(a)
 }
 
 func (a *Account) AfterCreate() {

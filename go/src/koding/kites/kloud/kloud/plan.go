@@ -7,37 +7,22 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
-	"strings"
+	tf "koding/kites/terraformer"
 
 	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
 
-	"github.com/hashicorp/hcl"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/mitchellh/mapstructure"
 )
 
-type PlanMachine struct {
-	Provider   string            `json:"provider"`
-	Label      string            `json:"label"`
-	Region     string            `json:"region"`
-	Attributes map[string]string `json:"attributes"`
-}
-
-type PlanOutput struct {
-	Machines []PlanMachine `json:"machines"`
-}
-
-type TerraformKloudRequest struct {
-	MachineIds []string `json:"machineIds"`
-
+type TerraformPlanRequest struct {
 	// Terraform template file
 	TerraformContext string `json:"terraformContext"`
 
-	// PublicKeys contains provider to publicKeys mapping
-	PublicKeys map[string]string `json:"publicKeys"`
+	// PublicKeys contains publicKeys to be used with terraform
+	PublicKeys []string `json:"publicKeys"`
 }
 
 type terraformCredentials struct {
@@ -45,8 +30,9 @@ type terraformCredentials struct {
 }
 
 type terraformCredential struct {
-	Provider string
-	Data     map[string]string `mapstructure:"data"`
+	Provider  string
+	PublicKey string
+	Data      map[string]string `mapstructure:"data"`
 }
 
 func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
@@ -54,7 +40,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args *TerraformKloudRequest
+	var args *TerraformPlanRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
@@ -68,7 +54,6 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	ctx := k.ContextCreator(context.Background())
-
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -87,9 +72,18 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
-	args.TerraformContext = appendVariables(args.TerraformContext, creds)
+	for _, cred := range creds.Creds {
+		args.TerraformContext, err = appendAWSVariable(args.TerraformContext, cred.Data["access_key"], cred.Data["secret_key"])
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	plan, err := tfKite.Plan(args.TerraformContext)
+	plan, err := tfKite.Plan(&tf.TerraformRequest{
+		Content:   args.TerraformContext,
+		ContentID: r.Username + "-" + sha1sum(args.TerraformContext),
+		Variables: nil,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -97,57 +91,22 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	// currently there is no multi provider support for terraform. Until it's
 	// been released with 0.5,  we're going to retrieve it from the "provider"
 	// block: https://github.com/hashicorp/terraform/pull/1281
-	out, err := hcl.Parse(args.TerraformContext)
+	region, err := regionFromHCL(args.TerraformContext)
 	if err != nil {
 		return nil, err
 	}
 
-	rg := out.Get("provider", true).Get("aws", true).Get("region", true)
-	if rg == nil {
-		return nil, fmt.Errorf("out shouldn't produce a nil r: %v", out)
-	}
-
-	region, ok := rg.Value.(string)
-	if !ok {
-		return nil, fmt.Errorf("region is not of type string: %v", region)
-	}
-
-	output, err := machineFromPlan(plan)
+	machines, err := machinesFromPlan(plan)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, machine := range output.Machines {
-		machine.Region = region
-		output.Machines[i] = machine
-	}
+	machines.AppendRegion(region)
 
-	return output, nil
+	return machines, nil
 }
 
-// appendVariables appends the given key/value credentials to the hclFile (terraform) file
-func appendVariables(hclFile string, creds *terraformCredentials) string {
-	// TODO: use hcl encoder, this is just for testing
-	for _, cred := range creds.Creds {
-		// we only support aws for now
-		if cred.Provider != "aws" {
-			continue
-		}
-
-		for k, v := range cred.Data {
-			hclFile += "\n"
-			varTemplate := `
-variable "%s" {
-	default = "%s"
-}`
-			hclFile += fmt.Sprintf(varTemplate, k, v)
-		}
-	}
-
-	return hclFile
-}
-
-func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]string) (*terraformCredentials, error) {
+func fetchCredentials(username string, db *mongodb.MongoDB, keys []string) (*terraformCredentials, error) {
 	// 1- fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
@@ -155,12 +114,7 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 	}
 
 	// 2- fetch credential from publickey via args
-	publicKeys := make([]string, 0)
-	for _, publicKey := range keys {
-		publicKeys = append(publicKeys, publicKey)
-	}
-
-	credentials, err := modelhelper.GetCredentialsFromPublicKeys(publicKeys...)
+	credentials, err := modelhelper.GetCredentialsFromPublicKeys(keys...)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +173,8 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 		}
 
 		cred := &terraformCredential{
-			Provider: provider,
+			Provider:  provider,
+			PublicKey: data.PublicKey,
 		}
 
 		if err := mapstructure.Decode(data.Meta, &cred.Data); err != nil {
@@ -229,56 +184,4 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys map[string]stri
 
 	}
 	return creds, nil
-}
-
-func machineFromPlan(plan *terraform.Plan) (*PlanOutput, error) {
-	out := &PlanOutput{
-		Machines: make([]PlanMachine, 0),
-	}
-
-	attrs := make(map[string]string, 0)
-
-	if plan.Diff == nil {
-		return nil, errors.New("plan diff is empty")
-	}
-
-	if plan.Diff.Modules == nil {
-		return nil, errors.New("plan diff module is empty")
-	}
-
-	for _, d := range plan.Diff.Modules {
-		if d.Resources == nil {
-			continue
-		}
-
-		for providerResource, r := range d.Resources {
-			if r.Attributes == nil {
-				continue
-			}
-
-			for name, a := range r.Attributes {
-				attrs[name] = a.New
-			}
-
-			// providerResource is in the form of "aws_instance.foo.bar"
-			splitted := strings.Split(providerResource, "_")
-			if len(splitted) < 2 {
-				return nil, fmt.Errorf("provider resource is unknown: %v", splitted)
-			}
-
-			// splitted[1]: instance.foo.bar
-			resourceSplitted := strings.SplitN(splitted[1], ".", 2)
-
-			providerName := splitted[0]          // aws
-			resourceLabel := resourceSplitted[1] // foo.bar
-
-			out.Machines = append(out.Machines, PlanMachine{
-				Provider:   providerName,
-				Label:      resourceLabel,
-				Attributes: attrs,
-			})
-		}
-	}
-
-	return out, nil
 }

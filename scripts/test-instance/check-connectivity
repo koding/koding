@@ -1,0 +1,19 @@
+#!/bin/bash
+
+HOST=$1
+PORT=$2
+INTERVAL=$3
+TRY_COUNT=$4
+COUNTER=1
+
+until nc $HOST $PORT < /dev/null; do
+    sleep $INTERVAL
+    echo -n '.'
+    COUNTER=$((COUNTER + 1))
+    if [ $COUNTER -eq $TRY_COUNT ]; then
+        echo 'X'
+        exit 1
+    fi
+done
+
+echo 'O'

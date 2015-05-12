@@ -35,3 +35,15 @@ func GetCredentialDatasFromPublicKeys(publicKey ...string) ([]*models.Credential
 
 	return credentialData, nil
 }
+
+func UpdateCredentialData(publicKey string, data bson.M) error {
+	return Mongo.Run(CredentialDatasColl, func(c *mgo.Collection) error {
+		return c.Update(bson.M{"publicKey": publicKey}, data)
+	})
+}
+
+func UpdateCredential(publicKey string, data bson.M) error {
+	return Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
+		return c.Update(bson.M{"publicKey": publicKey}, data)
+	})
+}

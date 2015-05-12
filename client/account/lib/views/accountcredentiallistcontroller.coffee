@@ -1,26 +1,32 @@
-kd                        = require 'kd'
-KDButtonView              = kd.ButtonView
-KDContextMenu             = kd.ContextMenu
-KDFormViewWithFields      = kd.FormViewWithFields
-KDNotificationView        = kd.NotificationView
-AccountListViewController = require '../controllers/accountlistviewcontroller'
-remote                    = require('app/remote').getInstance()
-showError                 = require 'app/util/showError'
-KodingSwitch              = require 'app/commonviews/kodingswitch'
-ComputeController         = require 'app/providers/computecontroller'
-ComputeController_UI      = require 'app/providers/computecontroller.ui'
+kd                          = require 'kd'
+KDView                      = kd.View
+KDButtonView                = kd.ButtonView
+KDContextMenu               = kd.ContextMenu
+KDNotificationView          = kd.NotificationView
+KDFormViewWithFields        = kd.FormViewWithFields
+KDAutoCompleteController    = kd.AutoCompleteController
+
+KodingSwitch                = require 'app/commonviews/kodingswitch'
+ComputeController           = require 'app/providers/computecontroller'
+ComputeController_UI        = require 'app/providers/computecontroller.ui'
+AccountListViewController   = require '../controllers/accountlistviewcontroller'
+MemberAutoCompleteItemView  = require 'app/commonviews/memberautocompleteitemview'
+MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemview'
+
+remote                      = require('app/remote').getInstance()
+showError                   = require 'app/util/showError'
 
 
 module.exports = class AccountCredentialListController extends AccountListViewController
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.noItemFoundText = "You have no credentials."
     super options, data
 
     @loadItems()
 
-  loadItems:->
+  loadItems: ->
 
     @removeAllItems()
     @showLazyLoader()
@@ -36,7 +42,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
       @instantiateListItems credentials
 
-  loadView:->
+  loadView: ->
 
     super
 
@@ -47,7 +53,10 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     Providers = ComputeController.providers
 
-    Object.keys(Providers).forEach (provider)=>
+    Object.keys(Providers).forEach (provider) =>
+
+      return  if Object.keys(Providers[provider].credentialFields).length is 0
+
       providerList[Providers[provider].title] =
         callback : =>
           @_addButtonMenu.destroy()
@@ -61,11 +70,13 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
         @_addButtonMenu = new KDContextMenu
           delegate    : addButton
           y           : addButton.getY() + 35
-          x           : addButton.getX() + addButton.getWidth() / 2
-          width       : 200
+          x           : addButton.getX() + addButton.getWidth() / 2 - 120
+          width       : 240
         , providerList
 
-  showShareCredentialFormFor: (credential)->
+        @_addButtonMenu.setCss 'z-index': 10002
+
+  showShareCredentialFormFor: (credential) ->
 
     view = @getView().parent
     view.form?.destroy()
@@ -77,6 +88,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       fields            :
         username        :
           label         : "User"
+          placeholder   : "Enter group slug or username"
           # type          : "hidden"
           # nextElement   :
           #   userWrapper :
@@ -104,9 +116,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
             view.unsetClass 'share-open'
 
 
-      callback          : (data)=>
-
-        kd.log "Here we go", data
+      callback          : (data) =>
 
         { username, owner } = data
         target = username#s.first
@@ -118,7 +128,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
         { Save } = view.form.buttons
         Save.showLoader()
 
-        credential.shareWith { target, owner }, (err)=>
+        credential.shareWith { target, owner }, (err) =>
 
           Save.hideLoader()
           view.emit 'sharingFormDestroyed'
@@ -129,7 +139,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
             @loadItems()
 
 
-    {fields, inputs, buttons} = view.form
+    # {fields, inputs, buttons} = view.form
 
     # @userController       = new KDAutoCompleteController
     #   form                : view.form
@@ -140,27 +150,27 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     #   selectedItemClass   : MemberAutoCompletedItemView
     #   listWrapperCssClass : "users"
     #   submitValuesAsText  : yes
-    #   dataSource          : (args, callback)=>
+    #   dataSource          : (args, callback) =>
     #     {inputValue} = args
     #     if /^@/.test inputValue
     #       query = 'profile.nickname': inputValue.replace /^@/, ''
-    #       remote.api.JAccount.one query, (err, account)=>
+    #       remote.api.JAccount.one query, (err, account) =>
     #         if not account
     #           @userController.showNoDataFound()
     #         else
     #           callback [account]
     #     else
-    #       remote.api.JAccount.byRelevance inputValue, {}, (err, accounts)->
+    #       remote.api.JAccount.byRelevance inputValue, {}, (err, accounts) ->
     #         callback accounts
 
     # fields.username.addSubView userRequestLineEdit = @userController.getView()
-    # @userController.on "ItemListChanged", (count)->
+    # @userController.on "ItemListChanged", (count) ->
     #   userRequestLineEdit[if count is 0 then 'show' else 'hide']()
 
     view.addSubView view.form
 
 
-  showAddCredentialFormFor: (provider)->
+  showAddCredentialFormFor: (provider) ->
 
     view = @getView().parent
     view.form?.destroy()
@@ -173,7 +183,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       view.form.destroy()
 
 
-    view.form.on "CredentialAdded", (credential)=>
+    view.form.on "CredentialAdded", (credential) =>
       view.unsetClass "form-open"
       credential.owner = yes
       view.form.destroy()

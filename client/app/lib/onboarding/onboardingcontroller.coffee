@@ -1,4 +1,3 @@
-kookies = require 'kookies'
 remote = require('../remote').getInstance()
 isLoggedIn = require '../util/isLoggedIn'
 $ = require 'jquery'
@@ -49,9 +48,8 @@ module.exports = class OnboardingController extends KDController
     query             = partialType : 'ONBOARDING'
 
     if @isPreviewMode()
-      query['isPreview'] = yes
-    else
-      query['isActive']  = yes
+    then query.isPreview = yes
+    else query.isActive  = yes
 
     remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
       return kd.warn err  if err
@@ -91,7 +89,7 @@ module.exports = class OnboardingController extends KDController
    * and user was registered after onboarding had been published
    * Also, it can be shown if it was requested to show it again
    * If controller is not ready yet, onboarding request is added to pending queue
-   * 
+   *
    * @param {string} groupName - name of onboarding group
    * @param {number} delay     - time to wait before running onboarding, by default it's 2s
   ###
@@ -150,7 +148,7 @@ module.exports = class OnboardingController extends KDController
   ###*
    * Method is executed once onboarding is ended
    * It saves a value in DB that shows that onboarding was shown for the user
-   * 
+   *
    * @param {string} slug - onboarding slug
   ###
   handleOnboardingEnded: (slug) ->
@@ -161,7 +159,7 @@ module.exports = class OnboardingController extends KDController
 
   ###*
    * Creates onboarding slug in correct format
-   * 
+   *
    * @param {string} groupName - name of onboarding group
   ###
   createSlug: (groupName) ->

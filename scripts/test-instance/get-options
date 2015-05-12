@@ -1,0 +1,34 @@
+#!/bin/bash
+
+cd $(dirname $0)
+
+OPTIONS=''
+
+REVISION=$(git rev-parse HEAD)
+
+HEADS=$(git branch -r -v | \
+           grep ${REVISION:0:7} | \
+           awk '{print $1}')
+
+for HEAD in $HEADS; do
+  if [ -n "$(echo $HEAD | grep '/pull/')" ]; then
+    PR_HEAD=$HEAD
+  fi
+done
+
+if [ -n "$PR_HEAD" ]; then
+  PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
+  OPTIONS="--pull-request '+refs/pull/$PR_NR/head' $OPTIONS"
+else
+  OPTIONS="--commit $REVISION $OPTIONS"
+fi
+
+COUNT=$(coffee -e 'console.log require("./parallel-sets").length')
+
+if [ -n "$COUNT" ]; then
+  OPTIONS="--count $COUNT $OPTIONS"
+fi
+
+echo $OPTIONS
+
+exit 0

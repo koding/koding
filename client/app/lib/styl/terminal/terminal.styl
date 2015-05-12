@@ -301,6 +301,11 @@ div.kdmodal.terminal
   background        rgba(0,0,0,.9)
   border-radius     2px
 
+  .kdcustomscrollview
+    padding         0 !important
+    .kdview.kdscrolltrack
+      hidden()
+
   .kdmodal-inner
     margin          5px
     background      none
@@ -312,9 +317,10 @@ div.kdmodal.terminal
   .kdmodal-content
     margin      0 !important
     height      400px
+    overflow    hidden
 
-  .kdview.webterm
-    min-height  400px
+  .webterm
+    height  400px !important
 
   .kdmodal-title
     span.title

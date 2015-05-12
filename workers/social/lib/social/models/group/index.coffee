@@ -303,8 +303,21 @@ module.exports = class JGroup extends Module
         plan        : String
         paymentQuota: Number
       disabledFeatures: Object
-
-      stackTemplates: [ ObjectId ]
+      stackTemplates  : [ ObjectId ]
+      # DefaultChannels holds the default channels for a group, when a user joins
+      # to this group, participants will be automatically added to regarding
+      # channels
+      # those should be social api channel ids
+      defaultChannels : [ String ]
+      # allowed domains are used for company domains, if a new register tries to
+      # join to a group/team we will check if they have a valid invitation code,
+      # then we will check if the domain they are trying to register is an
+      # allowed global domain
+      allowedDomains  : [ String ]
+      # tmp: the data stored here should be processed while
+      # we create the group - SY
+      # cc/ @cihangir
+      initalData    : Object
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'

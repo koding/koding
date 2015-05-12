@@ -1,22 +1,26 @@
-$ = require 'jquery'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDHitEnterInputView = kd.HitEnterInputView
-KDButtonView = kd.ButtonView
-KDLoaderView = kd.LoaderView
-KDProgressBarView = kd.ProgressBarView
-KDNotificationView = kd.NotificationView
-Encoder = require 'htmlencode'
-EnvironmentsModalView = require './environmentsmodalview'
-Machine = require './machine'
-whoami = require '../util/whoami'
-ComputeController = require './computecontroller'
-remote = require('../remote').getInstance()
-showError = require '../util/showError'
-ComputeHelpers = require './computehelpers'
-sendDataDogEvent = require '../util/sendDataDogEvent'
-HelpSupportModal = '../commonviews/helpsupportmodal'
-trackEvent = require 'app/util/trackEvent'
+$                       = require 'jquery'
+Encoder                 = require 'htmlencode'
+
+kd                      = require 'kd'
+KDButtonView            = kd.ButtonView
+KDLoaderView            = kd.LoaderView
+KDCustomHTMLView        = kd.CustomHTMLView
+KDProgressBarView       = kd.ProgressBarView
+KDNotificationView      = kd.NotificationView
+KDHitEnterInputView     = kd.HitEnterInputView
+
+remote                  = require('../remote').getInstance()
+Machine                 = require './machine'
+ComputeHelpers          = require './computehelpers'
+HelpSupportModal        = '../commonviews/helpsupportmodal'
+ComputeController       = require './computecontroller'
+EnvironmentsModalView   = require './environmentsmodalview'
+
+whoami                  = require '../util/whoami'
+isKoding                = require 'app/util/isKoding'
+showError               = require '../util/showError'
+trackEvent              = require 'app/util/trackEvent'
+sendDataDogEvent        = require '../util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -46,7 +50,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @machineId   = jMachine._id
     {@state}     = @machine.status
     @isManaged   = @machine.provider is 'managed'
-
 
     @showBusy()
     @show()
@@ -123,6 +126,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
         @clearEventTimer()
         @buildViews()
 
+    @createStatusOutput event
+
 
   switchToIDEIfNeeded: (status = @state)->
 
@@ -176,6 +181,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "start-#{@machineId}", @bound 'updateStatus'
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
+
+    # Stack build events
+    if stack = computeController.findStackFromMachineId @machine._id
+      computeController.on "apply-#{stack._id}", @bound 'updateStatus'
 
     computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
@@ -377,21 +386,48 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @triggerEventTimer percentage
     else if @state is Terminated
       @label.destroy?()
-
       @createStateLabel "
         The VM <strong>#{@machineName or ''}</strong> was
         successfully deleted. Please select a new VM to operate on from
         the VMs list or create a new one.
       "
+      @createStateButton()
     else if @state is Running
       @prepareIDE()
       @destroy()
 
     @createError()
 
+    @createStatusOutput response
 
 
-  getStateLabel:->
+  statusMessagesMap  =
+    'start started'  : 'Starting VM'
+    'stop started'   : 'Stopping VM'
+    'stop finished'  : 'VM is stopped'
+    'start finished' : 'VM is ready'
+
+  createStatusOutput: (response) ->
+
+    message = response?.message
+
+    if typeof message is 'string'
+      message = statusMessagesMap[message] or message
+      message = message.replace 'machine', 'VM'
+      message = message.capitalize()
+
+    if @logView
+      @logView.updatePartial message
+    else
+      @addSubView @logView = new KDCustomHTMLView
+        cssClass : 'stdout'
+        partial  : message
+
+    @logView[if message then 'setClass' else 'unsetClass'] 'in'
+
+
+
+  getStateLabel: ->
 
     stateTexts       =
       Stopped        : if @isManaged then 'is not reachable.' else 'is turned off.'
@@ -426,7 +462,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   createStateButton: ->
 
-    if @state is 'NotFound'
+    if @state in [Terminated, 'NotFound']
       title    = 'Create a new VM'
       callback = 'requestNewMachine'
     else if @isManaged
@@ -568,13 +604,23 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   turnOnMachine: ->
 
+    computeController = kd.getSingleton 'computeController'
+
     trackEvent 'Turn on machine, click',
       category : 'userInteraction'
       label    : 'turnedOnVM'
       action   : 'clicks'
 
-    computeController = kd.getSingleton 'computeController'
-    computeController.off  "error-#{@machineId}"
+    target     = @machine
+    stack      = computeController.findStackFromMachineId @machine._id
+
+    unless isKoding()
+      if stack and @state is NotInitialized and \
+         @machine.jMachine.generatedFrom?.templateId?
+        action   = 'buildStack'
+        target   = stack
+
+    computeController.off  "error-#{target._id}"
 
     @emit 'MachineTurnOnStarted'
 
@@ -582,17 +628,17 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     nextState    = 'Starting'
 
     if @state in [ NotInitialized, Terminated ]
-      methodName = 'build'
+      methodName = action ? 'build'
       nextState  = 'Building'
 
-    computeController.once "error-#{@machineId}", ({err})=>
+    computeController.once "error-#{target._id}", ({err})=>
 
       unless err?.code is ComputeController.Error.NotVerified
         @hasError = yes
 
       @buildViews State: @machine.status.state
 
-    kd.singletons.computeController[methodName] @machine
+    kd.singletons.computeController[methodName] target
 
     @state = nextState
     @buildViews()

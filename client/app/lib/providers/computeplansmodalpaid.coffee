@@ -13,6 +13,11 @@ remote                  = require('../remote').getInstance()
 
 module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
+  ###*
+   * @param {Object} options
+   * @param {String} options.snapshotId - The snapshot to automatically
+   *  select in the snapshot list.
+  ###
   constructor:(options = {}, data)->
 
     options.cssClass = 'paid-plan'
@@ -66,7 +71,14 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     @snapshotsContainer.addSubView @snapshotsSelector = new KDSelectBox
       name          : 'snapshots'
-      selectOptions : [ title: 'None', value: null ]
+      selectOptions : [ title: 'None', value: "" ]
+      callback      : =>
+        # Update the usage text with the value of the slider
+        #
+        # Note that @getValues() just returns the value *option* of the
+        # handles, so we're getting the value directly.
+        @updateSnapshotUsageText @storageSlider.handles.first.value
+        @updateCreateVMBtnEnabled @storageSlider.handles.first.value
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
@@ -81,7 +93,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       minValue : 3
       handles  : [5]
 
-    storageContainer.addSubView @usageTextView = new KDView
+    storageContainer.addSubView @usageTextView         = new KDView
+    storageContainer.addSubView @snapshotUsageTextView = new KDView
+      cssClass : 'warn hidden'
 
     content.addSubView @createVMButton = new KDButtonView
       title    : "Create your VM"
@@ -101,14 +115,18 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
             label    : 'upgradeAccountOverlay'
             origin   : 'paidModal'
 
-    @updateUsageText 5, usage, limits
+    @populateSnapshotsSelector()
+
+    @updateStorageUsageText 5, usage, limits
+    @updateSnapshotUsageText 5
+    @updateCreateVMBtnEnabled 5
     @storageSlider.on "ValueIsChanging", (val)=>
-      @updateUsageText val, usage, limits
+      @updateStorageUsageText val, usage, limits
+      @updateSnapshotUsageText val
+      @updateCreateVMBtnEnabled val
 
     @updateRegionText()
     @regionSelector.on "change", @bound 'updateRegionText'
-
-    @populateSnapshotsSelector()
 
     @setPositions()
 
@@ -120,7 +138,12 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
   ###
   populateSnapshotsSelector: ->
 
-    {JSnapshot} = remote.api
+    { JSnapshot }     = remote.api
+    defaultSnapshotId = @getOptions().snapshotId
+
+    # A cache of loaded snapshots, by snapshotId
+    @snapshots = {}
+
     JSnapshot.some {}, {}, (err, snapshots) =>
       return kd.warn err  if err
       # If no snapshots were returned, the user has no snapshots, and
@@ -128,13 +151,24 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       return  if not snapshots? or snapshots.length is 0
       formatted = []
       for snapshot in snapshots
+        { snapshotId }         = snapshot
+        @snapshots[snapshotId] = snapshot
         formatted.push
           title: "#{snapshot.label} (#{snapshot.storageSize}GB)"
-          value: snapshot.snapshotId
+          value: snapshotId
 
       @snapshotsSelector.setSelectOptions formatted
-      @snapshotsSelector.setValue null # Default to None
+      # Set the selected option to the Modal's option.snapshotId,
+      # defaulting to the None item ("" value)
+      @snapshotsSelector.setValue defaultSnapshotId ? ""
       @snapshotsContainer.show()
+
+      # Update the usage text with the value of the slider
+      #
+      # Note that @getValues() just returns the value *option* of the
+      # handles, so we're getting the value directly.
+      @updateSnapshotUsageText @storageSlider.handles.first.value
+      @updateCreateVMBtnEnabled @storageSlider.handles.first.value
 
 
   updateRegionText: ->
@@ -143,16 +177,67 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     @regionTextView.updatePartial "Current region is <strong>#{region}</strong>"
 
-  updateUsageText: (val, usage, limits)->
+
+
+  ###*
+   *
+   * @param {Number} sliderValue
+  ###
+  updateCreateVMBtnEnabled: (sliderValue) ->
+
+    { usage, limits } = @getOptions()
+
+    # The user can't create anymore VMs
+    return @createVMButton.disable()  if usage.total >= limits.total
+
+    newUsage = usage.storage + sliderValue
+
+    # The user is trying to create a VM bigger than they have resources
+    # for
+    return @createVMButton.disable()  if newUsage > limits.storage
+
+    snapshotId = @snapshotsSelector.getValue()
+    if snapshotId
+      snapshot = @snapshots[snapshotId]
+      # The user is trying to create a VM from a snapshot, bigger
+      # than the sliderValue's storage
+      return @createVMButton.disable()  if sliderValue < snapshot.storageSize
+
+    # Finally, no checks have failed. Show the create button.
+    @createVMButton.enable()
+
+
+  ###*
+   * Update the snapshot usage text.
+   *
+   * @param {Number} sliderValue
+  ###
+  updateSnapshotUsageText: (sliderValue) ->
+
+    snapshotId = @snapshotsSelector.getValue()
+
+    unless snapshotId
+      return @snapshotUsageTextView.hide()
+
+    snapshot = @snapshots[snapshotId]
+
+    if sliderValue < snapshot.storageSize
+      @snapshotUsageTextView.show()
+      @snapshotUsageTextView.updatePartial """
+          Snapshot '#{snapshot.label}' requires <strong>
+          #{snapshot.storageSize}GB</strong> of storage
+      """
+    else
+      @snapshotUsageTextView.hide()
+
+
+  updateStorageUsageText: (val, usage, limits)->
 
     newUsage = usage.storage + val
 
     if newUsage > limits.storage
-      @usageTextView.setClass 'warn'
-      @createVMButton.disable()
-    else
-      @usageTextView.unsetClass 'warn'
-      @createVMButton.enable()  unless usage.total >= limits.total
+    then @usageTextView.setClass 'warn'
+    else @usageTextView.unsetClass 'warn'
 
     @usageTextView.updatePartial """
       You will be using <strong>#{newUsage}GB/#{limits.storage}GB</strong> storage
@@ -162,10 +247,10 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     { computeController } = kd.singletons
 
-    stack = computeController.stacks.first._id
-    storage = @storageSlider.handles.first.value
-    region = @regionSelector.getValue()
-    snapshotId = @snapshotsSelector.getValue()
+    stack      = computeController.stacks.first._id
+    storage    = @storageSlider.handles.first.value
+    region     = @regionSelector.getValue()
+    snapshotId = @snapshotsSelector.getValue() ? null
 
     computeController.create {
       provider : "koding", stack, storage, region, snapshotId

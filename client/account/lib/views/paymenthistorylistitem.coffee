@@ -20,7 +20,7 @@ module.exports = class PaymentHistoryListItem extends KDListItemView
     """
       <div class='#{status} status-icon'><span></span></div>
       <div class='billing-info'>
-        <span class='amount'>#{data.amount / 100}</span>
+        <span class='amount'>$#{data.amount / 100} on</span>
         <span class='invoice-date'>#{dateFormat(data.periodEnd, 'mmm dd, yyyy')}</span>
       </div>
     """

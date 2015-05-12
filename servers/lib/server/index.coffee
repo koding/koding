@@ -54,6 +54,14 @@ app.use require './setsession'
 
 # ORDER IS IMPORTANT
 # routes ordered as before no particular structure
+
+# temp endpoints @cihangir will reorganize these - SY
+app.post '/-/teams/create'                       , require './handlers/createteam'
+# fetches last members of team
+app.all  '/-/teams/:name/members'                , require './handlers/getteammembers'
+app.all  '/-/teams/:name'                        , require './handlers/getteam'
+# temp endpoints ends
+
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.post '/-/video-chat/session'                 , require './handlers/videosession'
 app.post '/-/video-chat/token'                   , require './handlers/videotoken'
@@ -61,9 +69,14 @@ app.get  '/-/subscription/check/:kiteToken?/:user?/:groupId?' , require './handl
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
 app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
-app.post '/:name?/Validate'                      , require './handlers/validate'
+# should deprecate those /Validates, they don't look like api endpoints
 app.post '/:name?/Validate/Username/:username?'  , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'        , require './handlers/validateemail'
+app.post '/:name?/Validate'                      , require './handlers/validate'
+app.post '/-/password-strength'                  , require './handlers/passwordstrength'
+app.post '/-/validate/username'                  , require './handlers/validateusername'
+app.post '/-/validate/email'                     , require './handlers/validateemail'
+app.post '/-/validate'                           , require './handlers/validate'
 app.get  '/Verify/:token'                        , require './handlers/verifytoken'
 app.post '/:name?/Register'                      , require './handlers/register'
 app.post '/:name?/Login'                         , require './handlers/login'
@@ -100,7 +113,9 @@ app.get  '/-/payments/customers'                 , require './customers'
 app.post '/-/payments/paypal/webhook'            , require './paypal_webhook'
 app.post '/-/emails/subscribe'                   , (req, res) -> res.status(501).send 'ok'
 app.post '/Hackathon/Apply'                      , require './handlers/hackathonapply'
+# should deprecate those /Validates, they don't look like api endpoints
 app.post '/Gravatar'                             , require './handlers/gravatar'
+app.post '/-/gravatar'                           , require './handlers/gravatar'
 app.get  '/Hackathon/:section?'                  , require './handlers/hackathon'
 app.get  '/:name?/Develop/?*'                    , (req, res) -> res.redirect 301, '/'
 app.all  '/:name/:section?/:slug?'               , require './handlers/main.coffee'

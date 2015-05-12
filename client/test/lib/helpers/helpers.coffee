@@ -40,7 +40,7 @@ module.exports =
 
     browser
       .waitForElementVisible  '[testpath=main-header]', 50000
-      .click                  '#main-header [testpath=login-link]'
+      .click                  'nav:not(.mobile-menu) [testpath=login-link]'
       .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
@@ -54,9 +54,9 @@ module.exports =
 
     browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
       if result.status is 0
-        console.log "Successfully logged in with username: #{user.username} and password: #{user.password}"
+        console.log "✔  Successfully logged in with username: #{user.username} and password: #{user.password}"
       else
-        console.log 'User is not registered yet. Registering...'
+        console.log '✔  User is not registered yet. Registering...'
         @doRegister browser, user
 
 
@@ -111,17 +111,6 @@ module.exports =
     @doLogout(browser)
 
     @doLogin(browser, user)
-
-
-  assertMainHeader: (browser, assertLoginLink = yes) ->
-
-    logoSelector = '[testpath=main-header] a#koding-logo'
-    loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
-
-    browser.waitForElementVisible logoSelector, 25000
-
-    if assertLoginLink
-      browser.waitForElementVisible loginLinkSelector, 25000
 
 
   postActivity: (browser, shouldBeginTest = yes) ->
@@ -455,4 +444,5 @@ module.exports =
   getUrl: ->
 
     return 'http://lvh.me:8090'
+    # return 'http://52.6.253.30:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
