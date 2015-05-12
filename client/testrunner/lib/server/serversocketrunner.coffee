@@ -20,7 +20,7 @@ module.exports = class ServerSocketRunner extends EventEmitter
 
     # for 'suite', and 'test end' events
     # reporter waits for an object with a title property
-    @forwardFromSocket ['suite', 'test end'], (title) -> { title }
+    @forwardFromSocket ['suite', 'pending', 'test end'], (title) -> { title }
 
     @forwardFromSocket 'pass', (payload) ->
       test = JSON.parse payload
