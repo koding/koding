@@ -899,6 +899,7 @@ Configuration = (options={}) ->
         fi
 
         check_node_version
+        check_npm_version
         check_go_version
         check_gulp_version
       }
@@ -915,6 +916,23 @@ Configuration = (options={}) ->
 
         if [[ -n "$MISMATCH" ]]; then
           echo "error: node version is $VERSION, it must be 0.10.x"
+          exit 1
+        fi
+      }
+
+      function check_npm_version () {
+        VERSION=$(npm --version)
+
+        while IFS=".", read MAJOR MINOR REVISION; do
+          if [[ $MAJOR -lt 2 ]]; then
+            MISMATCH=1
+          elif [[ $MAJOR -eq 2 && $MINOR -lt 9 ]]; then
+            MISMATCH=1
+          fi
+        done < <(echo $VERSION)
+
+        if [[ -n "$MISMATCH" ]]; then
+          echo "error: npm version is $VERSION, it must be 2.9.x or greater"
           exit 1
         fi
       }
