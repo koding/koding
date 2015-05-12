@@ -153,8 +153,7 @@ func apply(ctx context.Context, username, stackId string) error {
 	defer tfKite.Close()
 
 	for _, cred := range creds.Creds {
-		stack.Template, err = appendAWSVariable(stack.Template,
-			cred.Data["access_key"], cred.Data["secret_key"], cred.Data["region"])
+		stack.Template, err = cred.appendAWSVariable(stack.Template)
 		if err != nil {
 			return err
 		}

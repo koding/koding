@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
@@ -74,8 +73,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		finalBootstrap, err := appendAWSVariable(awsBootstrap,
-			cred.Data["access_key"], cred.Data["secret_key"], cred.Data["region"])
+		finalBootstrap, err := cred.appendAWSVariable(awsBootstrap)
 		if err != nil {
 			return nil, err
 		}
@@ -136,42 +134,6 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	}
 
 	return true, nil
-}
-
-func appendAWSVariable(content, accessKey, secretKey, region string) (string, error) {
-	var data struct {
-		Output   map[string]map[string]interface{} `json:"output,omitempty"`
-		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
-		Provider map[string]map[string]interface{} `json:"provider,omitempty"`
-		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
-	}
-
-	if err := json.Unmarshal([]byte(content), &data); err != nil {
-		return "", err
-	}
-
-	if data.Variable == nil {
-		data.Variable = make(map[string]map[string]interface{})
-	}
-
-	data.Variable["access_key"] = map[string]interface{}{
-		"default": accessKey,
-	}
-
-	data.Variable["secret_key"] = map[string]interface{}{
-		"default": secretKey,
-	}
-
-	data.Variable["region"] = map[string]interface{}{
-		"default": region,
-	}
-
-	out, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(out), nil
 }
 
 var awsBootstrap = `{

@@ -164,26 +164,6 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
-func regionFromTemplate(content string) (string, error) {
-	var data struct {
-		Provider struct {
-			Aws struct {
-				Region string
-			}
-		}
-	}
-
-	if err := json.Unmarshal([]byte(content), &data); err != nil {
-		return "", err
-	}
-
-	if data.Provider.Aws.Region == "" {
-		return "", fmt.Errorf("HCL content doesn't contain region information: %s", content)
-	}
-
-	return data.Provider.Aws.Region, nil
-}
-
 func injectKodingData(ctx context.Context, content, username string, creds *terraformCredentials) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {

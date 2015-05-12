@@ -55,9 +55,9 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 
 		accessKey := cred.Data["access_key"]
 		secretKey := cred.Data["secret_key"]
-		authRegion := cred.Data["region"]
-		if authRegion == "" {
-			return nil, fmt.Errorf("region for publicKey '%s' is not set", cred.PublicKey)
+		authRegion, err := cred.region()
+		if err != nil {
+			return nil, err
 		}
 
 		svc := ec2.New(&aws.Config{
@@ -69,8 +69,7 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		// doesn't create any resources but validates the request itself before
 		// we can make a request. An error means no validation.
 		verified := true
-		_, err := svc.DescribeRegions(&ec2.DescribeRegionsInput{})
-		if err != nil {
+		if _, err = svc.DescribeRegions(&ec2.DescribeRegionsInput{}); err != nil {
 			verified = false
 		}
 
