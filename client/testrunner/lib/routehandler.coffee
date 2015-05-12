@@ -54,12 +54,15 @@ runMocha = (mochaContainer, socket) ->
 
   connector = new RunnerSocketConnector runner, socket
 
+  runner.on 'end', ->
+    connector.sendResult()
+    handleRunnerEnd mochaContainer, runner
+
   # the reporters relying on the 'start' event of mocha runner. but runner
   # instance is being created before the connector itself. we are simulating
   # the start event so that the reporters and other stuff can work as expected.
   connector.simulateRunnerStartEvent()
 
-  runner.on 'end', -> handleRunnerEnd mochaContainer, runner
 
   # server sends reload requests to re-run tests. simply refresh.
   socket.on 'reload', -> wait 50, -> window.location.reload()
