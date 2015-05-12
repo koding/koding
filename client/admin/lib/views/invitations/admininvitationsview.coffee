@@ -19,14 +19,16 @@ module.exports = class AdminInvitationsView extends KDView
 
   createTabView: ->
 
-    @addSubView @tabView   = new KDTabView
+    data = @getData()
+
+    @addSubView tabView   = new KDTabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 210
 
-    @tabView.addPane pending  = new KDTabPaneView name: 'Pending Invitations'
-    @tabView.addPane accepted = new KDTabPaneView name: 'Accepted Invitations'
+    tabView.addPane pending  = new KDTabPaneView name: 'Pending Invitations'
+    tabView.addPane accepted = new KDTabPaneView name: 'Accepted Invitations'
 
-    @tabView.showPaneByIndex 0
+    pending.addSubView  new PendingInvitationsView  {}, data
+    accepted.addSubView new AcceptedInvitationsView {}, data
 
-    pending.addSubView  new PendingInvitationsView  {}, @getData()
-    accepted.addSubView new AcceptedInvitationsView {}, @getData()
+    tabView.showPaneByIndex 0
