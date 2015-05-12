@@ -27,8 +27,7 @@ func main() {
 	iConfig := appConfig.Integration
 
 	mc := mux.NewConfig(Name, iConfig.Host, iConfig.Port)
-	m := mux.New(mc, r.Log)
-	m.Metrics = r.Metrics
+	m := mux.New(mc, r.Log, r.Metrics)
 
 	h, err := api.NewHandler(r.Log)
 	if err != nil {
