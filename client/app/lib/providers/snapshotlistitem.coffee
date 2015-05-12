@@ -163,6 +163,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
    * @emits ListView~NewVmFromSnapshot
   ###
   vmFromSnapshot: ->
+
     listView = @getDelegate()
     listView.emit 'NewVmFromSnapshot', @getData()
 
