@@ -562,6 +562,11 @@ Configuration = (options={}) ->
           proxyPass     : "http://integration/$1$is_args$args"
         ]
 
+    eventsender         :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/eventsender -c #{socialapi.configFilePath}"
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
