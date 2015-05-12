@@ -92,9 +92,9 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       cssClass        : 'kdview kdheaderview'
       pistachioParams : { @headerAddNewButton }
       pistachio       : """
-        <span class="column">Name</span>
-        <span class="column">Created at</span>
-        <span class="column">Size</span>
+        <span class="column label">Name</span>
+        <span class="column created-at">Created at</span>
+        <span class="column size">Size</span>
         {{> headerAddNewButton}}
         """
 
