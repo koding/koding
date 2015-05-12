@@ -3,11 +3,9 @@ package api
 import (
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
-
-	"github.com/koding/metrics"
 )
 
-func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
+func AddHandlers(m *mux.Mux) {
 	// list notifications
 	m.AddHandler(
 		handler.Request{
@@ -15,7 +13,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Name:     "notification-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/notification/{accountId}",
-			Metrics:  metric,
 		})
 
 	// glance notifications
@@ -25,7 +22,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Name:           "notification-glance",
 			Type:           handler.PostRequest,
 			Endpoint:       "/notification/glance",
-			Metrics:        metric,
 			CollectMetrics: true,
 		})
 

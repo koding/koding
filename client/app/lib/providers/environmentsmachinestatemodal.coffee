@@ -401,10 +401,20 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @createStatusOutput response
 
 
+  statusMessagesMap  =
+    'start started'  : 'Starting VM'
+    'stop started'   : 'Stopping VM'
+    'stop finished'  : 'VM is stopped'
+    'start finished' : 'VM is ready'
+
   createStatusOutput: (response) ->
 
     message = response?.message
-    message = message.capitalize()  if typeof message is 'string'
+
+    if typeof message is 'string'
+      message = statusMessagesMap[message] or message
+      message = message.replace 'machine', 'VM'
+      message = message.capitalize()
 
     if @logView
       @logView.updatePartial message
@@ -417,7 +427,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
 
 
-  getStateLabel:->
+  getStateLabel: ->
 
     stateTexts       =
       Stopped        : if @isManaged then 'is not reachable.' else 'is turned off.'

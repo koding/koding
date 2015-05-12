@@ -121,17 +121,6 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 	return cs, nil
 }
 
-func (cs *ChannelSummary) Render() (string, error) {
-	ct := template.Must(template.New("channel").Parse(templates.Channel))
-
-	var buf bytes.Buffer
-	if err := ct.ExecuteTemplate(&buf, "channel", cs); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
-}
-
 func (cs *ChannelSummary) RenderImage() (string, error) {
 	if len(cs.Participants) < 1 {
 		return "", nil
@@ -333,4 +322,12 @@ func fetchParticipantCount(ch *models.Channel) (int, error) {
 	}
 
 	return count - 1, nil
+}
+
+func getPluralSuffix(count int) string {
+	if count > 1 {
+		return "s"
+	}
+
+	return ""
 }

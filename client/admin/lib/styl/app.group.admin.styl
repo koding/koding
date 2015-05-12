@@ -641,6 +641,18 @@ Admin main styles
     color                   #afafaf
     top                     -24px
 
+  .kdinput[disabled]
+    opacity                 .5
+
+  .kdinput.file
+    z-index                 1
+    top                     110px
+    left                    142px
+    line-height             30px
+    size                    118px, 30px
+    opacity                 0
+    pointer()
+    abs()
 
   .AppModal-section.deletion
   .AppModal-section.avatar-upload
@@ -664,11 +676,32 @@ Admin main styles
 
   .AppModal-section.avatar-upload
 
+    .remove
+      hidden()
+
+    &.with-logo
+
+      .avatar
+        border-color        transparent !important // override computed
+
+      .upload
+        margin-top          40px !important
+
+      .remove
+        visible()
+        display             inline-block
+        margin              80px 0 0 -120px
+
+      .upload-input
+        top                 70px
+
+      .avatar
+        bg                  size, 106px 110px
+
     .avatar
       size                  106px, 110px
-      background            url('https://avatars3.githubusercontent.com/u/9647378?v=3&s=70') 17px 20px no-repeat #303030
       rounded               7px
-      border                1px inset #979797
+      border                1px inset transparent
       margin-right          35px
       display               inline-block
       borderBox()
@@ -677,11 +710,7 @@ Admin main styles
       width                 120px
 
       &.upload
-        margin-top          17px
+        margin-top          80px
 
-      &.gravatar
-        margin              57px 0 0 -119px
-        bg                  color, #B8B8B8
-
-        span
-          color             #FFF
+      canvas
+        margin-top        7px

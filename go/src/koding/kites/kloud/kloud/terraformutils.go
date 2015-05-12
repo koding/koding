@@ -164,27 +164,7 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
-func regionFromHCL(hclContent string) (string, error) {
-	var data struct {
-		Provider struct {
-			Aws struct {
-				Region string
-			}
-		}
-	}
-
-	if err := json.Unmarshal([]byte(hclContent), &data); err != nil {
-		return "", err
-	}
-
-	if data.Provider.Aws.Region == "" {
-		return "", fmt.Errorf("HCL content doesn't contain region information: %s", hclContent)
-	}
-
-	return data.Provider.Aws.Region, nil
-}
-
-func injectKodingData(ctx context.Context, hclContent, username string, creds *terraformCredentials) (*buildData, error) {
+func injectKodingData(ctx context.Context, content, username string, creds *terraformCredentials) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -219,7 +199,7 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
 	}
 
-	if err := json.Unmarshal([]byte(hclContent), &data); err != nil {
+	if err := json.Unmarshal([]byte(content), &data); err != nil {
 		return nil, err
 	}
 
@@ -256,6 +236,11 @@ func injectKodingData(ctx context.Context, hclContent, username string, creds *t
 		if instance["subnet_id"] == nil {
 			instance["subnet_id"] = awsOutput.Subnet
 			instance["security_groups"] = []string{awsOutput.SG}
+		}
+
+		// means there will be several instances, we need to create a userdata
+		// with count interpolation
+		if instance["count"] == nil {
 		}
 
 		data.Resource.Aws_Instance[resourceName] = instance
@@ -327,4 +312,10 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	wg.Wait()
 
 	return multiErrors
+}
+
+// isVariable checkes whether the given string is a template variable, such as:
+// "${var.region}"
+func isVariable(v string) bool {
+	return v[0] == '$'
 }

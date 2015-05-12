@@ -1501,6 +1501,7 @@ paymentGrayLighter  = #f8f8f8
       p, span
         font-size       12px
         line-height     17px
+      span.close
       span.contact-support
         text-decoration  underline
         cursor           pointer
@@ -1820,9 +1821,11 @@ paymentGrayLighter  = #f8f8f8
   .AppModal-navItem.general
     &:before
       r-sprite              'app', 'ms-general'
+      margin-bottom         2px
 
     &.active:before
       r-sprite              'app', 'ms-general-active'
+      margin-bottom         2px
 
   .AppModal-navItem.advanced
     &:before
@@ -1862,9 +1865,11 @@ paymentGrayLighter  = #f8f8f8
   .AppModal-navItem.vm-sharing
     &:before
       r-sprite              'app', 'ms-shared-vms'
+      margin-bottom         2px
 
     &.active:before
       r-sprite              'app', 'ms-shared-vm-active'
+      margin-bottom         2px
 
   .AppModal-navItem.snapshots
     &:before
@@ -2259,6 +2264,30 @@ paymentGrayLighter  = #f8f8f8
   .kdlistitemview-snapshot
     overflow                hidden
 
+  .column
+    display                 inline-block
+    width                   120px
+    margin                  0
+    ellipsis()
+
+  .column.created-at
+    width                   140px
+
+  .learn-more
+    margin-top              30px
+    color                   #52a840
+    font-size               14px
+
+    &:before
+      display               inline-block
+      margin-right          10px
+      content               ''
+      rel()
+      top                   3px
+      r-sprite              'ide', 'help'
+
+  .learn-more a
+    color                   inherit
 
 .machine-settings-modal .snapshots .add-view
   height                    45px
@@ -2306,8 +2335,11 @@ paymentGrayLighter  = #f8f8f8
   .rename .icon
     r-sprite                'account', 'ssh-edit'
 
-  .meta
-    margin-left             4px
+  .new-vm .icon
+    r-sprite                'app', 'ms-specs'
+
+  .created-at
+  .size
     color                   #8b8b8b
 
 
