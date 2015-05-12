@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -o errexit
+
+INSTANCE_DATA_FILE=$1
+
+SCRIPTS=$(dirname $0)/..
+
+HOSTS=$(cat $INSTANCE_DATA_FILE | awk '{print $2}')
+
+for HOST in $HOSTS; do
+  # nginx web server is running on port 8090
+  $SCRIPTS/test-instance/check-connectivity $HOST 8090 1m 20
+
+  # selenium-server is running on port 4444
+  $SCRIPTS/test-instance/check-connectivity $HOST 4444 1m 20
+done
+
+exit 0

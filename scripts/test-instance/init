@@ -27,7 +27,7 @@ cd $REPOSITORY_PATH
 
 npm --unsafe-perm install
 ./configure --host $HOST:8090
-sh -c "scripts/install-npm.sh -d client -u -p"
+sh -c "scripts/install-npm.sh -d client -u"
 TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" make -C client/test build
 ./run services
 ./run install

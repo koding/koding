@@ -72,8 +72,18 @@ func (t *Terraformer) Apply(req *terraformer.TerraformRequest) (*terraform.State
 	return state, nil
 }
 
-func (t *Terraformer) Destroy() error {
-	return nil
+func (t *Terraformer) Destroy(req *terraformer.TerraformRequest) (*terraform.State, error) {
+	resp, err := t.Client.Tell("destroy", req)
+	if err != nil {
+		return nil, err
+	}
+
+	var state *terraform.State
+	if err := resp.Unmarshal(&state); err != nil {
+		return nil, err
+	}
+
+	return state, nil
 }
 
 // Ping checks if the given terraformer response with "pong" to the "ping" we send.

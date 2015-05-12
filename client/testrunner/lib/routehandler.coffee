@@ -29,6 +29,11 @@ runTests = ->
     addToHead 'script', jsOptions, ->
       mocha.ui('bdd')
       mochaTests = require './require-tests'
-      mocha.run()
+      runner = mocha.run()
 
+      runner.on 'end', ->
+        el           = document.createElement 'div'
+        el.id        = 'tests-completed'
+        el.innerHTML = 'All tests finished'
 
+        mochaContainer.appendChild el

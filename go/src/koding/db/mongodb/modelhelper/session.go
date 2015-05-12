@@ -3,6 +3,7 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
+	"time"
 
 	"github.com/nu7hatch/gouuid"
 
@@ -78,16 +79,20 @@ func CreateSession(s *models.Session) error {
 	return Mongo.Run("jSessions", insertQuery(s))
 }
 
-func CreateSessionForAccount(username string) (*models.Session, error) {
+func CreateSessionForAccount(username, groupName string) (*models.Session, error) {
 	uuid1, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
 
 	session := &models.Session{
-		Id:       bson.NewObjectId(),
-		ClientId: uuid1.String(),
-		Username: username,
+		Id:           bson.NewObjectId(),
+		ClientId:     uuid1.String(),
+		ClientIP:     "127.0.0.1",
+		Username:     username,
+		GroupName:    groupName,
+		SessionBegan: time.Now().UTC(),
+		LastAccess:   time.Now().UTC(),
 	}
 
 	if err := CreateSession(session); err != nil {
@@ -97,11 +102,14 @@ func CreateSessionForAccount(username string) (*models.Session, error) {
 	return session, nil
 }
 
-func GetOneSessionForAccount(username string) (*models.Session, error) {
+func GetOneSessionForAccount(username, groupName string) (*models.Session, error) {
 	session := &models.Session{}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"username": username}).One(&session)
+		return c.Find(bson.M{
+			"username":  username,
+			"groupName": groupName,
+		}).One(&session)
 	}
 
 	err := Mongo.Run("jSessions", query)

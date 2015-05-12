@@ -1,12 +1,12 @@
 package algoliaconnector
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"socialapi/models"
 	"socialapi/request"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
@@ -18,58 +18,35 @@ const (
 	IndexMessages = "messages"
 	IndexTopics   = "topics"
 	IndexAccounts = "accounts"
+
+	UnretrievableAttributes = "unretrievableAttributes"
+	AttributesToIndex       = "attributesToIndex"
 )
 
 var (
 	ErrAlgoliaObjectIdNotFoundMsg = "ObjectID does not exist"
 	ErrAlgoliaIndexNotExistMsg    = "Index messages.test does not exist"
+
+	ErrTimeoutForSettings = errors.New("settings timed out")
 )
 
-type IndexSet map[string]*algoliasearch.Index
+type Settings struct {
+	AttributesToIndex       []string
+	UnretrievableAttributes []string
+}
+
+type IndexSetItem struct {
+	Index    *algoliasearch.Index
+	Settings *Settings
+}
+
+type IndexSet map[string]*IndexSetItem
 
 type Controller struct {
 	log             logging.Logger
 	client          *algoliasearch.Client
 	indexes         *IndexSet
 	kodingChannelId string
-}
-
-// IsAlgoliaError checks if the given algolia error string and given messages
-// are same according their data structure
-func IsAlgoliaError(err error, message string) bool {
-	if err == nil {
-		return false
-	}
-
-	v := &algoliaErrorRes{}
-
-	if err := json.Unmarshal([]byte(err.Error()), v); err != nil {
-		return false
-	}
-
-	if v.Message == message {
-		return true
-	}
-
-	return false
-}
-
-type algoliaErrorRes struct {
-	Message string `json:"message"`
-	// Status  int    `json:"status"`
-}
-
-func (i *IndexSet) Get(name string) (*algoliasearch.Index, error) {
-	index, ok := (*i)[name]
-	if !ok {
-		return nil, fmt.Errorf("Unknown index: '%s'", name)
-	}
-	return index, nil
-}
-
-func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	c.log.Error(err.Error())
-	return false
 }
 
 func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *Controller {
@@ -89,293 +66,117 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 		channelId = strconv.FormatInt(channel.Id, 10)
 	}
 
-	return &Controller{
+	controller := &Controller{
 		log:    log,
 		client: client,
 		indexes: &IndexSet{
-			IndexTopics:   client.InitIndex(IndexTopics + indexSuffix),
-			IndexAccounts: client.InitIndex(IndexAccounts + indexSuffix),
-			IndexMessages: client.InitIndex(IndexMessages + indexSuffix),
+			IndexTopics: &IndexSetItem{
+				Index: client.InitIndex(IndexTopics + indexSuffix),
+				Settings: &Settings{
+					// empty slice means all properties will be searchable
+					AttributesToIndex: []string{},
+				},
+			},
+			IndexAccounts: &IndexSetItem{
+				Index: client.InitIndex(IndexAccounts + indexSuffix),
+				Settings: &Settings{
+					AttributesToIndex: []string{
+						"nick",
+						"email",
+						"_tags",
+					},
+					UnretrievableAttributes: []string{"email"},
+				},
+			},
+			IndexMessages: &IndexSetItem{
+				Index: client.InitIndex(IndexMessages + indexSuffix),
+				Settings: &Settings{
+					AttributesToIndex: []string{},
+				},
+			},
 		},
 		kodingChannelId: channelId,
 	}
+
+	return controller
 }
 
-func (f *Controller) TopicSaved(data *models.Channel) error {
-	if data.TypeConstant != models.Channel_TYPE_TOPIC {
-		return nil
+func (i *IndexSet) Get(name string) (*IndexSetItem, error) {
+	indexItem, ok := (*i)[name]
+	if !ok {
+		return nil, fmt.Errorf("Unknown indexItem: '%s'", name)
 	}
-	return f.insert(IndexTopics, map[string]interface{}{
-		"objectID": strconv.FormatInt(data.Id, 10),
-		"name":     data.Name,
-		"purpose":  data.Purpose,
-	})
+
+	return indexItem, nil
 }
 
-// TopicUpdated handles the channel update events, for now only handles the
-// channels that are topic channels, we can link channels together in any point
-// of time, after linking, leaf channel is removed from search engine. But it is
-// still searchable via its root channel, because we are adding it as synonym to
-// the root of it
-func (f *Controller) TopicUpdated(data *models.Channel) error {
-	if data.TypeConstant != models.Channel_TYPE_LINKED_TOPIC {
-		f.log.Debug("unsuported channel for topic update type: %s id: %d", data.TypeConstant, data.Id)
-		return nil
-	}
-
-	return f.delete(IndexTopics, strconv.FormatInt(data.Id, 10))
-}
-
-func (f *Controller) AccountSaved(data *models.Account) error {
-	return f.insert(IndexAccounts, map[string]interface{}{
-		"objectID": data.OldId,
-		"nick":     data.Nick,
-		"_tags":    []string{f.kodingChannelId},
-	})
-}
-
-func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error {
-	message := models.NewChannelMessage()
-
-	if err := message.ById(listing.MessageId); err != nil {
-		return err
-	}
-
-	// no need to index join/leave messages
-	if message.TypeConstant != models.ChannelMessage_TYPE_POST &&
-		message.TypeConstant != models.ChannelMessage_TYPE_REPLY {
-		return nil
-	}
-
-	objectId := strconv.FormatInt(message.Id, 10)
-	channelId := strconv.FormatInt(listing.ChannelId, 10)
-
-	record, err := f.get(IndexMessages, objectId)
-	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
-		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
-		return err
-	}
-
-	if record == nil {
-		return f.insert(IndexMessages, map[string]interface{}{
-			"objectID": objectId,
-			"body":     message.Body,
-			"_tags":    []string{channelId},
-		})
-	}
-
-	return f.partialUpdate(IndexMessages, map[string]interface{}{
-		"objectID": objectId,
-		"_tags":    appendTag(record, channelId),
-	})
-}
-
-func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) error {
-	index, err := f.indexes.Get(IndexMessages)
+func (i *IndexSetItem) MakeSureSettings(newSettings map[string]interface{}) error {
+	task, err := i.Index.SetSettings(newSettings)
 	if err != nil {
 		return err
 	}
 
-	objectId := strconv.FormatInt(listing.MessageId, 10)
+	done := make(chan struct{})
+	go func() {
+		// make sure setting is propogated
+		_, err = i.Index.WaitTask(task)
+		close(done)
+	}()
 
-	record, err := f.get(IndexMessages, objectId)
-	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
-		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
+	select {
+	case <-done:
 		return err
+	case <-time.After(time.Second * 30):
+		return ErrTimeoutForSettings
 	}
-
-	if tags, ok := record["_tags"]; ok {
-		if t, ok := tags.([]interface{}); ok && len(t) == 1 {
-			if _, err = index.DeleteObject(objectId); err != nil {
-				return err
-			}
-			return nil
-		}
-	}
-
-	return f.partialUpdate(IndexMessages, map[string]interface{}{
-		"objectID": objectId,
-		"_tags":    removeMessageTag(record, strconv.FormatInt(listing.ChannelId, 10)),
-	})
 }
 
-func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
-	return f.partialUpdate(IndexMessages, map[string]interface{}{
-		"objectID": strconv.FormatInt(message.Id, 10),
-		"body":     message.Body,
-	})
+func (i *IndexSet) GetIndex(name string) (*algoliasearch.Index, error) {
+	indexItem, ok := (*i)[name]
+	if !ok {
+		return nil, fmt.Errorf("Unknown indexItem: '%s'", name)
+	}
+
+	return indexItem.Index, nil
 }
 
-const accountIndexName = "accounts"
-
-// ParticipantUpdated operates with the participant deleted/created events, adds
-// to algolia if the state is active, else removes from algolia
-func (f *Controller) ParticipantUpdated(p *models.ChannelParticipant) error {
-	// if status of the participant is active, then add user
-	if p.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
-		return f.handleParticipantOperation(p, appendTag)
-	}
-
-	return f.handleParticipantOperation(p, removeTag)
+func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	c.log.Error(err.Error())
+	return false
 }
 
-// ParticipantCreated operates with the participant createad event, adds new
-// tag to the algolia document
-func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
-	err := f.handleParticipantOperation(p, appendTag)
-	if err != nil {
-		f.log.Error("err while handling participant created event: %s", err.Error())
-	}
+func (f *Controller) Init() error {
+	var wg sync.WaitGroup
+	for name, index := range *(f.indexes) {
+		wg.Add(1)
 
-	return err
-}
-
-func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant, tagOperator func(record map[string]interface{}, channelId string) []interface{}) error {
-	if p.ChannelId == 0 {
-		return nil
-	}
-
-	if p.AccountId == 0 {
-		return nil
-	}
-
-	a := models.NewAccount()
-	if err := a.ById(p.AccountId); err != nil {
-		f.log.Error("err while fetching account: %s", err.Error())
-		return nil
-	}
-
-	if a.Id == 0 {
-		f.log.Critical("account found but id is 0 %+v", a)
-		return nil
-	}
-
-	record, err := f.get(accountIndexName, a.OldId)
-	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
-		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
-		return err
-	}
-
-	if record == nil {
-		// first create the account
-		if err := f.AccountSaved(a); err != nil {
-			return err
-		}
-
-		// make sure account is there, before start processing it
-		err := makeSureAccount(f, a.OldId, func(record map[string]interface{}, err error) bool {
-			if err != nil {
-				return false
+		go func(name string, index *IndexSetItem) {
+			if err := f.makeSureStringSliceSettings(name, UnretrievableAttributes, index.Settings.UnretrievableAttributes); err != nil {
+				f.log.Error("indexName: %s, settings name: %s, Err: %s", name, UnretrievableAttributes, err.Error())
 			}
 
-			if record == nil {
-				return false
+			if err := f.makeSureStringSliceSettings(name, AttributesToIndex, index.Settings.AttributesToIndex); err != nil {
+				f.log.Error("indexName: %s, settings name: %s, Err: %s", name, AttributesToIndex, err.Error())
 			}
-
-			return true
-		})
-		if err != nil {
-			return err
-		}
+			wg.Done()
+		}(name, index)
 	}
 
-	record, err = f.get(accountIndexName, a.OldId)
-	if err != nil {
-		return err
-	}
+	wg.Wait()
 
-	channelId := strconv.FormatInt(p.ChannelId, 10)
-
-	return f.partialUpdate(accountIndexName, map[string]interface{}{
-		"objectID": a.OldId,
-		"_tags":    tagOperator(record, channelId),
-	})
+	f.log.Info("Init done!")
+	return nil
 }
 
-var errDeadline = errors.New("deadline reached")
-
-// makeSureAccount checks if the given id's get request returns the desired
-// err, it will re-try every 100ms until deadline of 2 minutes reached. Algolia
-// doesnt index the records right away, so try to go to a desired state
-func makeSureAccount(handler *Controller, id string, f func(map[string]interface{}, error) bool) error {
-	deadLine := time.After(time.Minute * 2)
-	tick := time.Tick(time.Millisecond * 100)
-	for {
-		select {
-		case <-tick:
-			record, err := handler.get("accounts", id)
-			if f(record, err) {
-				return nil
-			}
-		case <-deadLine:
-			return errDeadline
-		}
-	}
-}
-
-func (f *Controller) CreateSynonym(cl *models.ChannelLink) error {
-	if err := f.validateSynonymRequest(cl); err != nil {
-		f.log.Error("CreateSynonym validateSynonymRequest err: %s", err.Error())
-		return nil
-	}
-
-	// check channel types
-	rootChannel, err := models.ChannelById(cl.RootId)
+func (f *Controller) makeSureStringSliceSettings(indexName string, settingName string, newSettings []string) error {
+	indexSet, err := f.indexes.Get(indexName)
 	if err != nil {
 		return err
 	}
 
-	leafChannels, err := rootChannel.FetchLeaves()
+	settingsinter, err := indexSet.Index.GetSettings()
 	if err != nil {
 		return err
-	}
-
-	leafNames := make([]string, len(leafChannels)+1) // +1 for root channel
-	// add root channel to the first part
-	leafNames[0] = rootChannel.Name
-
-	for i, leafChannel := range leafChannels {
-		leafNames[i+1] = leafChannel.Name
-	}
-
-	if err := f.addSynonym(IndexMessages, leafNames...); err != nil {
-		return err
-	}
-
-	return f.addSynonym(IndexTopics, leafNames...)
-}
-
-// addSynonym adds given synonym pairs to the given index. do not worry about
-// duplicate synonyms, algolia handles them perfectly
-func (f *Controller) addSynonym(indexName string, synonyms ...string) error {
-	// TODO - this get & use pattern is very prone to race conditions
-	synonymsSlice, err := f.getSynonyms(indexName)
-
-	// append it to the previous ones, if there is any
-	settings := make(map[string]interface{})
-	settings["synonyms"] = append(synonymsSlice, synonyms)
-
-	index, err := f.indexes.Get(indexName)
-	if err != nil {
-		return err
-	}
-
-	_, err = index.SetSettings(settings)
-	return err
-}
-
-func (f *Controller) getSynonyms(indexName string) ([][]string, error) {
-	index, err := f.indexes.Get(indexName)
-	if err != nil {
-		return nil, err
-	}
-
-	settingsinter, err := index.GetSettings()
-	if err != nil {
-		return nil, err
 	}
 
 	settings, ok := settingsinter.(map[string]interface{})
@@ -383,86 +184,68 @@ func (f *Controller) getSynonyms(indexName string) ([][]string, error) {
 		settings = make(map[string]interface{})
 	}
 
-	// define the initial synonymns
-	synonyms := make([][]string, 0)
-
-	synonymsSettings, ok := settings["synonyms"]
+	indexSettings, ok := settings[settingName]
 	if !ok {
-		return synonyms, nil
+		indexSettings = make([]interface{}, 0)
 	}
 
-	// just for converting []interface{[]interface} to [][]string
-
-	// infact it is [][]string
-	synonymIntSlices, ok := synonymsSettings.([]interface{})
+	indexSettingsIntSlices, ok := indexSettings.([]interface{})
 	if !ok {
-		return synonyms, nil
+		indexSettingsIntSlices = make([]interface{}, 0)
 	}
 
-	for _, synonymIntSlice := range synonymIntSlices {
-
-		synonymInt, ok := synonymIntSlice.([]interface{})
-		if !ok {
-			return synonyms, nil
+	isSame := true
+	for _, attributeToIndex := range newSettings {
+		contains := false
+		for _, currentAttribute := range indexSettingsIntSlices {
+			if attributeToIndex == currentAttribute.(string) {
+				contains = true
+			}
 		}
 
-		pair := make([]string, 0)
-		for _, tag := range synonymInt {
-			pair = append(pair, tag.(string))
+		if !contains {
+			isSame = false
+			break //  exit with the first condition
 		}
-
-		synonyms = append(synonyms, pair)
 	}
 
-	// if we have previous ones, use it
-	return synonyms, nil
-}
-
-func (f *Controller) validateSynonymRequest(cl *models.ChannelLink) error {
-	// check required variables
-	if cl == nil {
-		return errors.New("channel link is not set (nil)")
+	if len(indexSettingsIntSlices) != len(newSettings) {
+		isSame = false
 	}
 
-	if cl.Id == 0 {
-		return errors.New("id is not set")
+	if isSame {
+		return nil
 	}
 
-	if cl.RootId == 0 {
-		return errors.New("root id is not set")
-	}
-
-	if cl.LeafId == 0 {
-		return errors.New("leaf id is not set")
-	}
-
-	// check channel types
-	rootChannel, err := models.ChannelById(cl.RootId)
-	if err != nil {
-		return err
-	}
-
-	if !isValidChannelType(rootChannel) {
-		return errors.New("root is not valid type for synonym")
-	}
-
-	leafChannel, err := models.ChannelById(cl.LeafId)
-	if err != nil {
-		return err
-	}
-
-	if !isValidChannelType(leafChannel) {
-		return errors.New("leaf is not valid type for synonym")
-	}
-
-	return nil
-}
-
-func isValidChannelType(c *models.Channel) bool {
-	return models.IsIn(
-		c.TypeConstant,
-		// type constant should be one of followings
-		models.Channel_TYPE_TOPIC,
-		models.Channel_TYPE_LINKED_TOPIC,
+	f.log.Info(
+		"Previous (%+v) and Current (%+v) Setings of %s are not same for index %s, updating..",
+		indexSettingsIntSlices,
+		newSettings,
+		settingName,
+		indexName,
 	)
+
+	settings[settingName] = newSettings
+	return indexSet.MakeSureSettings(settings)
+}
+
+func (f *Controller) makeSureIndexSettings(settings map[string]interface{}, indexSet *IndexSetItem) error {
+	task, err := indexSet.Index.SetSettings(settings)
+	if err != nil {
+		return err
+	}
+
+	done := make(chan struct{})
+	go func() {
+		// make sure setting is propogated
+		_, err = indexSet.Index.WaitTask(task)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		return err
+	case <-time.After(time.Second * 30):
+		return errors.New("couldnt update index settings in 30 second")
+	}
 }

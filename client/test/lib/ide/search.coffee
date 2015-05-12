@@ -71,3 +71,13 @@ module.exports =
       .waitForElementVisible   '.ws-tabview .kdtabview .pythonpy.active', 20000 # Assertion
       .waitForElementVisible   paneSelector, 20000 # Assertion
       .end()
+
+
+  createAndSaveNewFile: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    ideHelpers.createAndSaveNewFile(browser)
+
+    browser.end()

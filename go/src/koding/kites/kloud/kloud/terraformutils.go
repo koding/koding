@@ -5,10 +5,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/klient"
+	"koding/kites/kloud/userdata"
 	"strings"
+	"sync"
+	"time"
 
-	"github.com/hashicorp/hcl"
+	"golang.org/x/net/context"
+
+	"github.com/fatih/structs"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/koding/kite/protocol"
+	"github.com/mitchellh/mapstructure"
+	"github.com/nu7hatch/gouuid"
 )
 
 type TerraformMachine struct {
@@ -23,6 +34,12 @@ type Machines struct {
 	Machines []TerraformMachine `json:"machines"`
 }
 
+type buildData struct {
+	Template string
+	Region   string
+	KiteIds  map[string]string
+}
+
 func (m *Machines) AppendRegion(region string) {
 	for i, machine := range m.Machines {
 		machine.Region = region
@@ -30,9 +47,10 @@ func (m *Machines) AppendRegion(region string) {
 	}
 }
 
-func (m *Machines) AppendQueryString(queryString string) {
+func (m *Machines) AppendQueryString(queryStrings map[string]string) {
 	for i, machine := range m.Machines {
-		machine.QueryString = queryString
+		queryString := queryStrings[machine.Label]
+		machine.QueryString = protocol.Kite{ID: queryString}.String()
 		m.Machines[i] = machine
 	}
 }
@@ -155,7 +173,7 @@ func regionFromHCL(hclContent string) (string, error) {
 		}
 	}
 
-	if err := hcl.Decode(&data, hclContent); err != nil {
+	if err := json.Unmarshal([]byte(hclContent), &data); err != nil {
 		return "", err
 	}
 
@@ -166,63 +184,95 @@ func regionFromHCL(hclContent string) (string, error) {
 	return data.Provider.Aws.Region, nil
 }
 
-func injectUserdataAndKey(hclContent, userdata, keyName string) (string, error) {
+func injectKodingData(ctx context.Context, hclContent, username string, creds *terraformCredentials) (*buildData, error) {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	var awsOutput *AwsBootstrapOutput
+	for _, cred := range creds.Creds {
+		if cred.Provider != "aws" {
+			continue
+		}
+
+		if err := mapstructure.Decode(cred.Data, &awsOutput); err != nil {
+			return nil, err
+		}
+	}
+
+	if structs.HasZero(awsOutput) {
+		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
+	}
+
 	var data struct {
 		Resource struct {
 			Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
 		} `json:"resource"`
-		Provider map[string]map[string]interface{} `json:"provider"`
-		Variable map[string]map[string]interface{} `json:"variable"`
+		Provider struct {
+			Aws struct {
+				Region    string `json:"region"`
+				AccessKey string `json:"access_key"`
+				SecretKey string `json:"secret_key"`
+			} `json:"aws"`
+		} `json:"provider"`
+		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
 	}
 
-	if err := hcl.Decode(&data, hclContent); err != nil {
-		return "", err
+	if err := json.Unmarshal([]byte(hclContent), &data); err != nil {
+		return nil, err
 	}
 
 	if len(data.Resource.Aws_Instance) == 0 {
-		return "", fmt.Errorf("instance is empty: %v", data.Resource.Aws_Instance)
+		return nil, fmt.Errorf("instance is empty: %v", data.Resource.Aws_Instance)
 	}
 
+	kiteIds := make(map[string]string)
+
 	for resourceName, instance := range data.Resource.Aws_Instance {
-		instance["user_data"] = userdata
-		instance["key_name"] = keyName
+		// create a new kite id for every new aws resource
+		kiteUUID, err := uuid.NewV4()
+		if err != nil {
+			return nil, err
+		}
+
+		kiteId := kiteUUID.String()
+
+		userdata, err := sess.Userdata.Create(&userdata.CloudInitConfig{
+			Username: username,
+			Groups:   []string{"sudo"},
+			Hostname: username, // no typo here. hostname = username
+			KiteId:   kiteId,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		kiteIds[resourceName] = kiteId
+		instance["user_data"] = string(userdata)
+		instance["key_name"] = awsOutput.KeyPair
+
+		// only ovveride if the user doesn't provider it's own subnet_id
+		if instance["subnet_id"] == nil {
+			instance["subnet_id"] = awsOutput.Subnet
+			instance["security_groups"] = []string{awsOutput.SG}
+		}
+
 		data.Resource.Aws_Instance[resourceName] = instance
 	}
 
 	out, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(out), nil
-}
-
-// appendVariables appends the given key/value credentials to the hclFile (terraform) file
-func appendVariables(hclFile string, creds *terraformCredentials) (string, error) {
-
-	found := false
-	for _, cred := range creds.Creds {
-		// we only support aws for now
-		if cred.Provider != "aws" {
-			continue
-		}
-
-		found = true
-		for k, v := range cred.Data {
-			hclFile += "\n"
-			varTemplate := `
-variable "%s" {
-	default = "%s"
-}`
-			hclFile += fmt.Sprintf(varTemplate, k, v)
-		}
+	b := &buildData{
+		Template: string(out),
+		KiteIds:  kiteIds,
+		Region:   data.Provider.Aws.Region,
 	}
 
-	if !found {
-		return "", fmt.Errorf("no creds found for: %v", creds)
-	}
-
-	return hclFile, nil
+	return b, nil
 }
 
 func varsFromCredentials(creds *terraformCredentials) map[string]string {
@@ -237,4 +287,44 @@ func varsFromCredentials(creds *terraformCredentials) map[string]string {
 
 func sha1sum(s string) string {
 	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
+}
+
+func checkKlients(ctx context.Context, kiteIds map[string]string) error {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return errors.New("session context is not passed")
+	}
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex // protects multierror
+	var multiErrors error
+
+	for l, k := range kiteIds {
+		wg.Add(1)
+		go func(label, kiteId string) {
+			defer wg.Done()
+
+			queryString := protocol.Kite{ID: kiteId}.String()
+			klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
+			if err != nil {
+				mu.Lock()
+				multiErrors = multierror.Append(multiErrors,
+					fmt.Errorf("Couldn't connect to '%s:%s'", label, kiteId))
+				mu.Unlock()
+				return
+			}
+			defer klientRef.Close()
+
+			if err := klientRef.Ping(); err != nil {
+				mu.Lock()
+				multiErrors = multierror.Append(multiErrors,
+					fmt.Errorf("Couldn't send ping to '%s:%s'", label, kiteId))
+				mu.Unlock()
+			}
+		}(l, k)
+	}
+
+	wg.Wait()
+
+	return multiErrors
 }

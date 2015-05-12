@@ -1,10 +1,10 @@
 #!/usr/bin/env coffee
 
-fs            = require 'fs'
-{exec}        = require 'child_process'
-argv          = require('minimist')(process.argv.slice(2))
-{Deploy, AWS} = require '../../install/deploy.coffee'
-ec2           = new AWS.EC2()
+fs   = require 'fs'
+argv = require('minimist')(process.argv.slice(2))
+
+AWS = require './aws'
+EC2 = new AWS.EC2()
 
 keys              =
   authorized_keys : new Buffer(fs.readFileSync './install/keys/prod.ssh/authorized_keys' , 'utf8').toString 'base64'
@@ -20,6 +20,12 @@ else if argv.commit
   git_checkout = "git checkout -fq #{argv.commit}"
 else
   console.error 'error: Please specify a remote branch or a commit'
+  process.exit 1
+
+argv.count ?= 1
+
+if typeof argv.count isnt 'number'
+  console.error 'error: Non-number value is given as instance count'
   process.exit 1
 
 userData =
@@ -44,34 +50,66 @@ userData =
     - echo $(git rev-parse HEAD) > REVISION
   """
 
-options              =
-  params             :
-    ImageId          : (require './instance-ami.coffee').current
-    InstanceType     : 'c3.xlarge'
-    MinCount         : 1
-    MaxCount         : 1
-    SubnetId         : 'subnet-b47692ed'
-    SecurityGroupIds : ['sg-64126d01', 'sg-7da5a718']
-    KeyName          : 'koding-prod-deployment'
-    UserData         : new Buffer(userData).toString 'base64'
-  instanceName       : 'wercker-test-instance'
-  configName         : 'dev'
-  environment        : 'test'
+params =
+  ImageId          : (require './instance-ami.coffee').current
+  InstanceType     : 'm3.large'
+  MinCount         : argv.count
+  MaxCount         : argv.count
+  SubnetId         : 'subnet-b47692ed'
+  SecurityGroupIds : ['sg-64126d01', 'sg-7da5a718']
+  KeyName          : 'koding-prod-deployment'
+  UserData         : new Buffer(userData).toString 'base64'
 
-Deploy.createInstances options, (err, res) ->
-  instanceId = res.Instances[0].InstanceId
+InstanceIds = []
+RunningInstances = []
 
-  interval = setInterval ->
-    ec2.describeInstances InstanceIds: [instanceId], (err, response) ->
-      return unless response
-      return unless response.Reservations
-      return unless reservation = response.Reservations[0]
-      return unless reservation.Instances
-      return unless instance = response.Reservations[0].Instances[0]
-      return unless instance.State.Name is 'running'
+monitorInterval = null
 
-      clearInterval interval
 
-      {PublicIpAddress, PublicDnsName} = instance
-      console.log "#{instanceId}\t#{PublicIpAddress}\t#{PublicDnsName}"
-  , 5000
+EC2.runInstances params, (err, data) ->
+
+  if err
+    console.error JSON.stringify err
+    process.exit 1
+    return
+
+  data.Instances.forEach ({InstanceId}) -> InstanceIds.push InstanceId
+  monitorInterval = setInterval monitor, 5000
+
+
+monitor = ->
+
+  EC2.describeInstances {InstanceIds}, (err, data) ->
+    return console.error JSON.stringify err  if err
+    data.Reservations.forEach checkInstances
+
+
+checkInstances = ({Instances}) ->
+
+  Instances.forEach checkInstanceState
+  if RunningInstances.length is InstanceIds.length
+    exit()
+
+
+checkInstanceState = (Instance) ->
+
+  for RunningInstance in RunningInstances \
+    when Instance.InstanceId is RunningInstance.InstanceId
+      return
+
+  if Instance.State.Name is 'running'
+    RunningInstances.push Instance  if Instance
+
+
+exit = ->
+
+  clearInterval monitorInterval
+  printInstanceInfo()
+  process.exit()
+
+
+printInstanceInfo = ->
+
+  RunningInstances.forEach (Instance) ->
+    {InstanceId, PublicIpAddress} = Instance
+    console.log InstanceId, PublicIpAddress

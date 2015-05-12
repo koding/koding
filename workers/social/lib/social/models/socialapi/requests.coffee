@@ -384,6 +384,10 @@ updateChannel = (data, callback) ->
   url = "/channel/#{data.id}/update"
   post url, data, callback
 
+createChannel = (data, callback) ->
+  url = "/channel"
+  post url, data, callback
+
 deleteChannel = (data, callback) ->
   url = "/channel/#{data.channelId}/delete"
   post url, data, callback
@@ -406,7 +410,7 @@ post = (url, data, callback)->
 
     {reqOptions, data} = setCookieIfRequired reqOptions, data
     {reqOptions, data} = setHeaderIfRequired reqOptions, data
-    
+
     reqOptions.body = data
 
     request reqOptions, wrapCallback callback
@@ -526,6 +530,7 @@ module.exports = {
   getSiteMap
   deleteChannel
   updateChannel
+  createChannel
   checkOwnership
   expireSubscription
   post

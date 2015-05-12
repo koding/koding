@@ -59,7 +59,8 @@ func TestWebhookListen(t *testing.T) {
 
 	Convey("while testing incoming webhook", t, func() {
 
-		groupName := models.RandomName()
+		groupName := models.RandomGroupName()
+
 		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
 
 		Convey("users should not be able to send any message when they don't have valid token", func() {

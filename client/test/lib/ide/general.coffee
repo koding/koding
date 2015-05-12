@@ -5,7 +5,7 @@ assert  = require 'assert'
 module.exports =
 
 
-  collapse: (browser) ->
+  expandCollapseFiletree: (browser) ->
 
     user = helpers.beginTest(browser)
 

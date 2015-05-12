@@ -72,9 +72,9 @@ module.exports =
 
     browser
       .waitForElementVisible  '[testpath=main-header]', 50000
-      .click                  '#main-header [testpath=login-link]'
+      .click                  'nav:not(.mobile-menu) [testpath=login-link]'
       .waitForElementVisible  '[testpath=login-container]', 50000
-      .click                  '[testpath=login-container] a.register'
+      .click                  '.login-footer .signup-link a.register'
       .setValue               '.main-part [testpath=register-form-email]', user.email
       .setValue               '.main-part input[name=password]', user.password
       .click                  '.main-part [testpath=signup-button]'

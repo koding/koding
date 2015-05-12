@@ -88,6 +88,26 @@ var (
 	provider  *koding.Provider
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
+
+	machineCount      = 2
+	terraformTemplate = `{
+    "provider": {
+        "aws": {
+            "access_key": "${var.access_key}",
+            "secret_key": "${var.secret_key}",
+            "region": "ap-northeast-1"
+        }
+    },
+    "resource": {
+        "aws_instance": {
+            "example": {
+				"count": %d,
+                "instance_type": "t2.micro",
+                "ami": "ami-936d9d93"
+            }
+        }
+    }
+}`
 )
 
 type args struct {
@@ -98,8 +118,8 @@ type args struct {
 }
 
 type singleUser struct {
-	MachineId           string
-	MachineLabel        string
+	MachineIds          []bson.ObjectId
+	MachineLabels       []string
 	StackId             string
 	PrivateKey          string
 	PublicKey           string
@@ -146,6 +166,9 @@ func init() {
 	kld := kloudWithKodingProvider(provider)
 	kloudKite.HandleFunc("plan", kld.Plan)
 	kloudKite.HandleFunc("apply", kld.Apply)
+	kloudKite.HandleFunc("bootstrap", kld.Bootstrap)
+	kloudKite.HandleFunc("authenticate", kld.Authenticate)
+
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("stop", kld.Stop)
@@ -161,6 +184,57 @@ func init() {
 	<-kloudKite.ServerReadyNotify()
 }
 
+func TestTerraformAuthenticate(t *testing.T) {
+	username := "testuser12"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.AuthenticateRequest{
+		PublicKeys: []string{userData.CredentialPublicKey},
+	}
+
+	_, err = remote.Tell("authenticate", args)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestTerraformBootstrap(t *testing.T) {
+	username := "testuser11"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformBootstrapRequest{
+		PublicKeys: []string{userData.CredentialPublicKey},
+	}
+
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// should be return true always if resource exists
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// now destroy them all
+	args.Destroy = true
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestTerraformPlan(t *testing.T) {
 	t.Parallel()
 	username := "testuser0"
@@ -172,22 +246,8 @@ func TestTerraformPlan(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformPlanRequest{
-		TerraformContext: `
-provider "aws" {
-    access_key = "${var.access_key}"
-    secret_key = "${var.secret_key}"
-    region = "us-east-1"
-}
-
-resource "aws_instance" "example" {
-    ami = "ami-d05e75b8"
-    instance_type = "t2.micro"
-    subnet_id = "subnet-b47692ed"
-    tags {
-        Name = "KloudTerraform"
-    }
-}`,
-		PublicKeys: []string{userData.CredentialPublicKey},
+		TerraformContext: fmt.Sprintf(terraformTemplate, machineCount),
+		PublicKeys:       []string{userData.CredentialPublicKey},
 	}
 
 	resp, err := remote.Tell("plan", args)
@@ -200,13 +260,22 @@ resource "aws_instance" "example" {
 		t.Fatal(err)
 	}
 
+	inLabels := func(label string) bool {
+		for _, l := range userData.MachineLabels {
+			if l == label {
+				return true
+			}
+		}
+		return false
+	}
+
 	for _, machine := range result.Machines {
-		if machine.Label != userData.MachineLabel {
-			t.Errorf("plan label: want: example got: %s\n", machine.Label)
+		if !inLabels(machine.Label) {
+			t.Errorf("plan label: have: %+v got: %s\n", userData.MachineLabels, machine.Label)
 		}
 
-		if machine.Region != "us-east-1" {
-			t.Errorf("plan region: want: example got: %s\n", machine.Label)
+		if machine.Region != "ap-northeast-1" {
+			t.Errorf("plan region: want: ap-northeast-1 got: %s\n", machine.Region)
 		}
 	}
 
@@ -249,6 +318,61 @@ func TestTerraformApply(t *testing.T) {
 	}
 }
 
+func TestTerraformStack(t *testing.T) {
+	t.Parallel()
+	username := "testuser13"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformBootstrapRequest{
+		PublicKeys: []string{userData.CredentialPublicKey},
+	}
+
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer func() {
+		// now destroy them all
+		args.Destroy = true
+		_, err = remote.Tell("bootstrap", args)
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+
+	applyArgs := &kloud.TerraformApplyRequest{
+		StackId: userData.StackId,
+	}
+
+	resp, err := remote.Tell("apply", applyArgs)
+	if err != nil {
+		t.Error(err)
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestBuild(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
@@ -257,22 +381,22 @@ func TestBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId, userData.Remote); err != nil {
+	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	// now try to ssh into the machine with temporary private key we created in
 	// the beginning
-	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
+	if err := checkSSHKey(userData.MachineIds[0].Hex(), userData.PrivateKey); err != nil {
 		t.Error(err)
 	}
 
 	// invalid calls after build
-	if err := build(userData.MachineId, userData.Remote); err == nil {
+	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
 
-	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -328,25 +452,25 @@ func TestStop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId, userData.Remote); err != nil {
+	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Stopping machine")
-	if err := stop(userData.MachineId, userData.Remote); err != nil {
+	if err := stop(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	// the following calls should give an error, if not there is a problem
-	if err := build(userData.MachineId, userData.Remote); err == nil {
+	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
 		t.Error("`build` method can not be called on `stopped` machines.")
 	}
 
-	if err := stop(userData.MachineId, userData.Remote); err == nil {
+	if err := stop(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
 		t.Error("`stop` method can not be called on `stopped` machines.")
 	}
 
-	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -359,25 +483,25 @@ func TestStart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId, userData.Remote); err != nil {
+	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Stopping machine to start machine again")
-	if err := stop(userData.MachineId, userData.Remote); err != nil {
+	if err := stop(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Starting machine")
-	if err := start(userData.MachineId, userData.Remote); err != nil {
+	if err := start(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
 	}
 
-	if err := start(userData.MachineId, userData.Remote); err == nil {
+	if err := start(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
 		t.Error("`start` method can not be called on `started` machines.")
 	}
 
-	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -390,23 +514,23 @@ func TestSnapshot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId, userData.Remote); err != nil {
+	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Creating snapshot")
-	if err := createSnapshot(userData.MachineId, userData.Remote); err != nil {
+	if err := createSnapshot(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 
 	log.Println("Retrieving snapshot id")
-	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
+	snapshotId, err := getSnapshotId(userData.MachineIds[0].Hex(), userData.AccountId)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Deleting snapshot")
-	if err := deleteSnapshot(userData.MachineId, snapshotId, userData.Remote); err != nil {
+	if err := deleteSnapshot(userData.MachineIds[0].Hex(), snapshotId, userData.Remote); err != nil {
 		t.Error(err)
 	}
 
@@ -418,12 +542,12 @@ func TestSnapshot(t *testing.T) {
 
 	// also check AWS, be sure it's been deleted
 	log.Println("Checking snapshot data in AWS")
-	err = checkSnapshotAWS(userData.MachineId, snapshotId)
+	err = checkSnapshotAWS(userData.MachineIds[0].Hex(), snapshotId)
 	if err != nil && !isSnapshotNotFoundError(err) {
 		t.Error(err)
 	}
 
-	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -436,13 +560,13 @@ func TestResize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId, userData.Remote); err != nil {
+	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	defer func() {
 		log.Println("Destroying machine")
-		if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 			t.Error(err)
 		}
 	}()
@@ -451,7 +575,7 @@ func TestResize(t *testing.T) {
 		log.Printf("Resizing machine to %dGB\n", storageWant)
 		err = provider.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
-				bson.ObjectIdHex(userData.MachineId),
+				bson.ObjectIdHex(userData.MachineIds[0].Hex()),
 				bson.M{
 					"$set": bson.M{
 						"meta.storage_size": storageWant,
@@ -463,11 +587,11 @@ func TestResize(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := resize(userData.MachineId, userData.Remote); err != nil {
+		if err := resize(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 			t.Error(err)
 		}
 
-		storageGot, err := getAmazonStorageSize(userData.MachineId)
+		storageGot, err := getAmazonStorageSize(userData.MachineIds[0].Hex())
 		if err != nil {
 			t.Error(err)
 		}
@@ -593,31 +717,40 @@ func createUser(username string) (*singleUser, error) {
 		{Id: userId, Sudo: true, Owner: true},
 	}
 
-	machineId := bson.NewObjectId()
-	machine := &koding.Machine{
-		Id:         machineId,
-		Label:      "example",
-		Domain:     username + ".dev.koding.io",
-		Credential: username,
-		Provider:   "koding",
-		CreatedAt:  time.Now().UTC(),
-		Users:      users,
-		Groups:     make([]models.Permissions, 0),
-	}
+	machineLabels := make([]string, machineCount)
+	machineIds := make([]bson.ObjectId, machineCount)
 
-	machine.Meta.Region = "eu-west-1"
-	machine.Meta.InstanceType = "t2.micro"
-	machine.Meta.StorageSize = 3
-	machine.Meta.AlwaysOn = false
-	machine.Assignee.InProgress = false
-	machine.Assignee.AssignedAt = time.Now().UTC()
-	machine.Status.State = machinestate.NotInitialized.String()
-	machine.Status.ModifiedAt = time.Now().UTC()
+	for i := 0; i < machineCount; i++ {
+		machineId := bson.NewObjectId()
+		machine := &koding.Machine{
+			Id:         machineId,
+			Label:      "example." + strconv.Itoa(i),
+			Domain:     username + ".dev.koding.io",
+			Credential: username,
+			Provider:   "koding",
+			CreatedAt:  time.Now().UTC(),
+			Users:      users,
+			Groups:     make([]models.Permissions, 0),
+		}
 
-	if err := provider.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Insert(&machine)
-	}); err != nil {
-		return nil, err
+		machine.Meta.Region = "ap-northeast-1"
+		machine.Meta.InstanceType = "t2.micro"
+		machine.Meta.StorageSize = 3
+		machine.Meta.AlwaysOn = false
+		machine.Assignee.InProgress = false
+		machine.Assignee.AssignedAt = time.Now().UTC()
+		machine.Status.State = machinestate.NotInitialized.String()
+		machine.Status.ModifiedAt = time.Now().UTC()
+
+		machineLabels[i] = machine.Label
+		machineIds[i] = machine.Id
+
+		if err := provider.DB.Run("jMachines", func(c *mgo.Collection) error {
+			return c.Insert(&machine)
+		}); err != nil {
+			return nil, err
+		}
+
 	}
 
 	// jComputeStack and jStackTemplates
@@ -626,21 +759,7 @@ func createUser(username string) (*singleUser, error) {
 		Id:          stackTemplateId,
 		Credentials: []string{credPublicKey},
 	}
-	stackTemplate.Template.Content = `
-provider "aws" {
-    access_key = "${var.access_key}"
-    secret_key = "${var.secret_key}"
-    region = "us-east-1"
-}
-
-resource "aws_instance" "example" {
-    ami = "ami-d05e75b8"
-    instance_type = "t2.micro"
-    subnet_id = "subnet-b47692ed"
-    tags {
-        Name = "KloudTerraform"
-    }
-}`
+	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount)
 
 	if err := provider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
 		return c.Insert(&stackTemplate)
@@ -652,7 +771,7 @@ resource "aws_instance" "example" {
 	computeStack := &models.ComputeStack{
 		Id:          computeStackId,
 		BaseStackId: stackTemplateId,
-		Machines:    []bson.ObjectId{machineId},
+		Machines:    machineIds,
 	}
 
 	if err := provider.DB.Run("jComputeStacks", func(c *mgo.Collection) error {
@@ -679,15 +798,13 @@ resource "aws_instance" "example" {
 
 	// Get the caller
 	remote := kites[0]
-	fmt.Printf("remote = %+v\n", remote)
-	fmt.Printf("remote.Username = %+v\n", remote.Username)
 	if err := remote.Dial(); err != nil {
 		log.Fatal(err)
 	}
 
 	return &singleUser{
-		MachineId:           machineId.Hex(),
-		MachineLabel:        machine.Label,
+		MachineIds:          machineIds,
+		MachineLabels:       machineLabels,
 		StackId:             computeStackId.Hex(),
 		PrivateKey:          privateKey,
 		PublicKey:           publicKey,

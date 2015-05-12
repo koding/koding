@@ -28,7 +28,7 @@ func (mwc *Controller) migrateAllAccountsToAlgolia() {
 	migrateAccount := func(account interface{}) error {
 		oldAccount := account.(*mongomodels.Account)
 
-		return handler.AccountSaved(&models.Account{
+		return handler.AccountCreated(&models.Account{
 			OldId: oldAccount.Id.Hex(),
 			Nick:  oldAccount.Profile.Nickname,
 		})

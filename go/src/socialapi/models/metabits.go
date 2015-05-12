@@ -5,7 +5,7 @@ const (
 	NeedsModeration
 	Bot
 
-	// all other bits will up be here
+	// all other bits will be up here
 
 	// safe should be the last one assigned as 0
 	Safe MetaBits = 0

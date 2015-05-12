@@ -1,12 +1,13 @@
-helpers      = require './helpers.js'
-paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+helpers           = require './helpers.js'
+panelSelector     = '.pane-wrapper .kdsplitview-panel.panel-1'
+tabHandleSelector = "#{panelSelector} .application-tab-handle-holder"
 
 module.exports =
 
   openNewFile: (browser) ->
 
     activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
-    plusSelector         = paneSelector + ' .visible-tab-handle.plus'
+    plusSelector         = tabHandleSelector + ' .visible-tab-handle.plus'
 
     browser
       .waitForElementVisible  plusSelector, 20000
@@ -18,13 +19,52 @@ module.exports =
 
   openContextMenu: (browser) ->
 
-    fileSelector = ' .untitledtxt.active'
+    fileSelector    = "#{tabHandleSelector} .untitledtxt.active"
+    optionsSelector = "#{fileSelector} span.options"
 
     browser
-      .waitForElementVisible  paneSelector + fileSelector, 20000
-      .moveToElement          paneSelector + fileSelector, 60, 17
-      .moveToElement          paneSelector + fileSelector + ' span.options', 8, 8
-      .waitForElementVisible  paneSelector + fileSelector + ' span.options', 20000
-      .click                  paneSelector + fileSelector + ' span.options'
+      .waitForElementVisible  fileSelector, 20000
+      .moveToElement          fileSelector, 60, 17
+      .moveToElement          optionsSelector, 8, 8
+      .waitForElementVisible  optionsSelector, 20000
+      .click                  optionsSelector
       .waitForElementVisible  '.kdlistview-contextmenu', 20000 # Assertion
 
+
+  createAndSaveNewFile: (browser, text) ->
+
+    saveSelector        = '.kdlistview-contextmenu li.save'
+    saveAsModalSelector = '.save-as-dialog'
+    saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
+    newName             = helpers.getFakeText().split(' ')[0] + '.txt'
+    filesTabSelector    = '.ide-files-tab .file-container'
+    saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons span.button-title"
+
+    @openNewFile(browser)
+
+    if text
+      @setTextToEditor browser, text
+
+    @openContextMenu(browser)
+
+    browser
+      .waitForElementVisible  saveSelector, 20000
+      .click                  saveSelector
+      .waitForElementVisible  saveAsModalSelector, 20000
+      .waitForElementVisible  saveAsInputSelector, 20000
+      .clearValue             saveAsInputSelector
+      .setValue               saveAsInputSelector, newName
+      .click                  saveButtonSelector
+      .waitForElementVisible  "#{tabHandleSelector} div[title='#{newName}']", 20000 # Assertion
+      .waitForElementVisible  filesTabSelector, 20000
+      .assert.containsText    filesTabSelector, newName # Assertion
+
+    if text
+      browser.assert.containsText panelSelector, text
+
+    return newName
+
+
+  setTextToEditor: (browser, text) ->
+
+    browser.execute "_kd.singletons.appManager.frontApp.activeTabView.activePane.view.setContent('#{text}')"

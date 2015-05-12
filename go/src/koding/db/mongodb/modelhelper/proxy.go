@@ -55,7 +55,7 @@ func GetProxies() []models.Proxy {
 			proxies = append(proxies, proxy)
 		}
 
-		return nil
+		return iter.Close()
 	}
 
 	Mongo.Run("jProxies", query)
