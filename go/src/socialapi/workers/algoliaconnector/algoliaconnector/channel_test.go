@@ -16,9 +16,29 @@ func TestChannelCreated(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
 
+	appConfig := config.MustRead(runner.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
 	Convey("given some fake topic channel", t, func() {
-		mockTopic := models.NewChannel()
-		mockTopic.TypeConstant = models.Channel_TYPE_TOPIC
+		groupName := models.RandomGroupName()
+		acc1, err := models.CreateAccountInBothDbs()
+		So(err, ShouldBeNil)
+
+		// we need group channel,because we are injecting it's id into channel
+		// as tag
+		models.CreateTypedGroupedChannelWithTest(
+			acc1.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
+		mockTopic := models.CreateTypedGroupedChannelWithTest(
+			acc1.Id,
+			models.Channel_TYPE_TOPIC,
+			groupName,
+		)
+
 		Convey("it should save the document to algolia", func() {
 			err := handler.ChannelCreated(mockTopic)
 			So(err, ShouldBeNil)
