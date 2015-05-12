@@ -767,28 +767,29 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 	}
 
 	// anyone can read group activity
-	if c.IsPubliclyAccessibleInGroup() {
-		// special cases for koding group, no need to check with db
-		if c.GroupName == Channel_KODING_NAME {
-			return true, nil
-		}
-
-		// if we get this far, users trying to access to a channel where:
-		// * they are in a group different from koding
-		// ** trying to follow/read a topic content
-		groupChan := NewChannel()
-		if err := groupChan.FetchPublicChannel(c.GroupName); err != nil {
-			return false, err
-		}
-
-		if c.TypeConstant != Channel_TYPE_GROUP { // do not cause an infite loop
-			// if one can open group channel, can read publicly accessible channels
-			return groupChan.CanOpen(accountId)
-		}
-
+	if !c.IsPubliclyAccessibleInGroup() {
+		return false, nil
 	}
 
-	return false, nil
+	// special cases for koding group, no need to check with db
+	if c.GroupName == Channel_KODING_NAME {
+		return true, nil
+	}
+
+	if c.TypeConstant == Channel_TYPE_GROUP { // do not cause an infite loop
+		return false, nil
+	}
+
+	// if we get this far, users trying to access to a channel where:
+	// * they are in a group different from koding
+	// ** trying to follow/read a topic content
+	groupChan := NewChannel()
+	if err := groupChan.FetchPublicChannel(c.GroupName); err != nil {
+		return false, err
+	}
+
+	// if one can open group channel, can read publicly accessible channels
+	return groupChan.CanOpen(accountId)
 }
 
 // IsPubliclyAccessibleInGroup checks if current channel is a publicly
