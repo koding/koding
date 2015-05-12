@@ -1,3 +1,5 @@
+forwardEvents = require './util/forwardevents'
+
 module.exports = class RunnerSocketConnector
 
   constructor: (runner, socket) ->
@@ -13,39 +15,25 @@ module.exports = class RunnerSocketConnector
     @_runner.$events.start.forEach (handler) -> handler?()
 
 
+  forwardToSocket: (name, reducer) ->
+
+    forwardEvents @_runner, @_socket, name, reducer
+
+
   connectRunnerToSocket: ->
 
-    @_runner.on 'start', =>
-      @emitToSocket 'start'
+    @forwardToSocket ['start', 'end', 'suite end']
 
-    @_runner.on 'suite', (suite) =>
-      @emitToSocket 'suite', suite.title
+    @forwardToSocket ['suite', 'pending', 'test end'], (test) -> test.title
 
-    @_runner.on 'suite end', =>
-      @emitToSocket 'suite end'
-
-    @_runner.on 'pending', (test) =>
-      @emitToSocket 'pending', test.title
-
-    @_runner.on 'test end', (test) =>
-      @emitToSocket 'test end', test.title
-
-    @_runner.on 'end', =>
-      @emitToSocket 'end'
-
-    @_runner.on 'pass', (test) =>
+    @forwardToSocket 'pass', (test) ->
       { speed, title, duration } = test
       slowResult = test.slow()
-      payload = JSON.stringify { speed, title, duration, slowResult }
-      @emitToSocket 'pass', payload
+      return JSON.stringify { speed, title, duration, slowResult }
 
-    @_runner.on 'fail', (test, err) =>
+    @forwardToSocket 'fail', (test, err) ->
       { title } = test
       fullTitleResult = test.fullTitle()
-      payload = JSON.stringify { title, err, fullTitleResult }
-      @emitToSocket 'fail', payload
-
-
-  emitToSocket: (args...) -> @_socket.emit args...
+      return JSON.stringify { title, err, fullTitleResult }
 
 
