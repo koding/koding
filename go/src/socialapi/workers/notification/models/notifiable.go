@@ -51,10 +51,15 @@ func reverse(ids []int64) []int64 {
 }
 
 func filterActors(naList []NotificationActivity, listerId int64) []int64 {
+	actorMap := make(map[int64]struct{})
+	actorMap[listerId] = struct{}{}
+
 	actors := make([]int64, 0)
 	for _, na := range naList {
-		if !na.Obsolete && na.ActorId != listerId {
+		_, exist := actorMap[na.ActorId]
+		if !na.Obsolete && !exist {
 			actors = append(actors, na.ActorId)
+			actorMap[na.ActorId] = struct{}{}
 		}
 	}
 
