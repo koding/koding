@@ -8,11 +8,10 @@ import (
 func (h *Handler) AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
-			Handler:        h.Push,
-			Name:           "webhook-push",
-			Type:           handler.PostRequest,
-			Endpoint:       "/webhook/push/{token}",
-			CollectMetrics: true,
+			Handler:  h.Push,
+			Name:     "webhook-push",
+			Type:     handler.PostRequest,
+			Endpoint: "/webhook/push/{token}",
 		},
 	)
 }

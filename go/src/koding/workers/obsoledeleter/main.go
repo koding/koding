@@ -182,7 +182,6 @@ var ToBeDeletedNames = []string{
 	"JConversationSlice",
 	"JDiscussion",
 	"JDomainStat",
-	"JInvitationRequest",
 	"JInvitation",
 	"JMails",
 	"JMarkdownDoc",

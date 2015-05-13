@@ -112,12 +112,12 @@ func (cc *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
 			return nil
 		}
 
-		oldId, err := FetchAccountOldIdByIdFromCache(c.Message.AccountId)
+		acc, err := Cache.Account.ById(c.Message.AccountId)
 		if err != nil {
 			return err
 		}
 
-		c.AccountOldId = oldId
+		c.AccountOldId = acc.OldId
 
 		return nil
 	})

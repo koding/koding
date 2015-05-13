@@ -12,10 +12,18 @@ func (f *Controller) ChannelCreated(data *models.Channel) error {
 		return nil
 	}
 
+	// add public group channel id into tags for security
+	publicChannel := models.NewChannel()
+	err := publicChannel.FetchPublicChannel(data.GroupName)
+	if err != nil {
+		return err
+	}
+
 	return f.insert(IndexTopics, map[string]interface{}{
 		"objectID": strconv.FormatInt(data.Id, 10),
 		"name":     data.Name,
 		"purpose":  data.Purpose,
+		"_tags":    []string{strconv.FormatInt(publicChannel.Id, 10)},
 	})
 }
 

@@ -23,9 +23,9 @@ type Mail struct {
 	// adress which user sent the message
 	OriginalRecipient string
 
-	// MailboxHash holds the data according to OriginalRecipient
-	// As an example if Original Recipient is mehmetali+channel@inbound.koding.com
-	// then MailboxHash would be "channel".
+	// MailboxHash holds the data according to OriginalRecipient As an example
+	// if Original Recipient is mehmetali+channel@inbound.koding.com then
+	// MailboxHash would be "channel".
 	MailboxHash string
 
 	// TextBody is the body of the message
@@ -77,17 +77,16 @@ func (m *Mail) Validate() error {
 // getIdsFromMailboxHash returns the id inside of the MailboxHash
 //
 func (m *Mail) getIdsFromMailboxHash() (int64, error) {
-	// Split method get the MailboxHash field
-	// MailboxHash seems like "channelid.5678",
-	// or MailboxHash seems like "messageid.1234"
+	// Split method get the MailboxHash field MailboxHash seems like
+	// "channelid.5678", or MailboxHash seems like "messageid.1234"
 	s := strings.Split(m.MailboxHash, ".")
 	if len(s) < 1 {
 		return 0, errLengthIsNotEnough
 	}
 
-	// ParseInt get the 1. index (2.parameter) of "s" value
-	// As explained above, we got 1. index that "5678" as string
-	// and then, we convert string to int64
+	// ParseInt get the 1. index (2.parameter) of "s" value As explained above,
+	// we got 1. index that "5678" as string and then, we convert string to
+	// int64
 	id, err := strconv.ParseInt(s[1], 10, 64)
 	if err != nil {
 		return 0, err
@@ -96,10 +95,10 @@ func (m *Mail) getIdsFromMailboxHash() (int64, error) {
 	return id, nil
 }
 
-// channelPermission returns nil if the account can open the channel,
-// otherwise (if account cannot open), returns error
+// channelPermission returns nil if the account can open the channel, otherwise
+// (if account cannot open), returns error
 func channelPermission(channelId int64, accountId int64) (*socialapimodels.Channel, error) {
-	c, err := socialapimodels.ChannelById(channelId)
+	c, err := socialapimodels.Cache.Channel.ById(channelId)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +161,7 @@ func (m *Mail) persistReply(accountId int64) error {
 		return err
 	}
 	messageId := mId
-	cm, err := socialapimodels.ChannelMessageById(messageId)
+	cm, err := socialapimodels.Cache.Message.ById(messageId)
 	if err != nil {
 		return err
 	}
@@ -197,8 +196,8 @@ func (m *Mail) persistReply(accountId int64) error {
 	return nil
 }
 
-// getSocialIdFromEmail fetchs the SocialApiId in mongodb
-// At this time, we got the account id while getting SocialApiId
+// getSocialIdFromEmail fetchs the SocialApiId in mongodb At this time, we got
+// the account id while getting SocialApiId
 func (m *Mail) getSocialIdFromEmail() (int64, error) {
 
 	acc, err := GetAccount(m.From)

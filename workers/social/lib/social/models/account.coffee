@@ -316,10 +316,6 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JInvitation'
 
-      invitationRequest :
-        as          : 'owner'
-        targetType  : 'JInvitationRequest'
-
       paymentMethod :
         as          : 'payment method'
         targetType  : 'JPaymentMethod'
