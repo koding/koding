@@ -55,7 +55,7 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Handler:  GetRoot,
 			Name:     models.ModerationChannelGetRoot,
 			Type:     handler.GetRequest,
-			Endpoint: "/moderation/channel/{leafId}/root",
+			Endpoint: "/moderation/channel/root/{leafId}",
 			Metrics:  metric,
 		},
 	)
