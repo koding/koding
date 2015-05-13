@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
@@ -74,19 +73,24 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		finalBootstrap, err := appendAWSVariable(awsBootstrap, cred.Data["access_key"], cred.Data["secret_key"])
+		finalBootstrap, err := cred.appendAWSVariable(awsBootstrap)
 		if err != nil {
 			return nil, err
 		}
 
-		// k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
-		// k.Log.Debug(finalBootstrap)
+		region, err := cred.region()
+		if err != nil {
+			return nil, err
+		}
+
+		k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
+		k.Log.Debug(finalBootstrap)
 
 		// Important so bootstraping is distributed amongs multiple users. If I
 		// use these keys to bootstrap, any other user should be not create
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
-		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"])
+		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"] + region)
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
@@ -137,44 +141,12 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func appendAWSVariable(content, accessKey, secretKey string) (string, error) {
-	var data struct {
-		Output   map[string]map[string]interface{} `json:"output,omitempty"`
-		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
-		Provider map[string]map[string]interface{} `json:"provider,omitempty"`
-		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
-	}
-
-	if err := json.Unmarshal([]byte(content), &data); err != nil {
-		return "", err
-	}
-
-	if data.Variable == nil {
-		data.Variable = make(map[string]map[string]interface{})
-	}
-
-	data.Variable["access_key"] = map[string]interface{}{
-		"default": accessKey,
-	}
-
-	data.Variable["secret_key"] = map[string]interface{}{
-		"default": secretKey,
-	}
-
-	out, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(out), nil
-}
-
 var awsBootstrap = `{
     "provider": {
         "aws": {
             "access_key": "${var.access_key}",
             "secret_key": "${var.secret_key}",
-            "region": "${var.aws_region}"
+            "region": "${var.region}"
         }
     },
     "output": {
@@ -222,7 +194,7 @@ var awsBootstrap = `{
         },
         "aws_subnet": {
             "main_koding_subnet": {
-                "availability_zone": "${lookup(var.aws_availability_zones, var.aws_region)}",
+                "availability_zone": "${lookup(var.aws_availability_zones, var.region)}",
                 "cidr_block": "${var.cidr_block}",
                 "map_public_ip_on_launch": true,
                 "tags": {
@@ -279,10 +251,6 @@ var awsBootstrap = `{
         }
     },
     "variable": {
-        "aws_region": {
-            "description": "Region name in which resources will be created",
-            "default": "ap-northeast-1"
-        },
         "cidr_block": {
             "default": "10.0.0.0/16"
         },

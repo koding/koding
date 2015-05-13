@@ -37,10 +37,11 @@ type Mux struct {
 	log    logging.Logger
 }
 
-func New(mc *Config, log logging.Logger) *Mux {
+func New(mc *Config, log logging.Logger, metrics *metrics.Metrics) *Mux {
 	m := &Mux{
-		mux:   tigertonic.NewTrieServeMux(),
-		nsMux: tigertonic.NewTrieServeMux(),
+		mux:     tigertonic.NewTrieServeMux(),
+		nsMux:   tigertonic.NewTrieServeMux(),
+		Metrics: metrics,
 	}
 
 	// add namespace support into
@@ -58,7 +59,9 @@ func New(mc *Config, log logging.Logger) *Mux {
 }
 
 func (m *Mux) AddHandler(request handler.Request) {
-	request.Metrics = m.Metrics
+	if request.Metrics == nil {
+		request.Metrics = m.Metrics
+	}
 	hHandler := handler.Wrapper(request)
 	hHandler = handler.BuildHandlerWithContext(hHandler)
 
@@ -66,7 +69,9 @@ func (m *Mux) AddHandler(request handler.Request) {
 }
 
 func (m *Mux) AddSessionlessHandler(request handler.Request) {
-	request.Metrics = m.Metrics
+	if request.Metrics == nil {
+		request.Metrics = m.Metrics
+	}
 	hHandler := handler.Wrapper(request)
 
 	m.mux.Handle(request.Type, request.Endpoint, hHandler)

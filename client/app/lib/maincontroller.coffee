@@ -350,10 +350,27 @@ class MainController extends KDController
         duration      : 0
         click         : -> global.location.reload yes
 
+    useChrome = ->
+
+      notification = new KDNotificationView
+        title         : "Please use Google Chrome"
+        type          : "tray"
+        closeManually : no
+        content       : """Since Safari 8.0.5 update we are having difficulties connecting to our backend.
+                           <br>Please use another browser until we fix the ongoing issue."""
+        duration      : 0
+
     checkConnectionState = ->
       unless connectedState.connected
         logToExternalWithTime "Connect to backend"
-        fail()
+
+        {userAgent} = global.navigator
+        isSafari    = /Safari/.test userAgent
+        notChrome   = not /Chrome/.test userAgent
+
+        if isSafari and notChrome
+        then useChrome()
+        else fail()
 
     return ->
       kd.utils.wait @getOptions().failWait, checkConnectionState

@@ -1,4 +1,4 @@
-inherits_ = require 'inherits-underscore'
+inherits_ = require '@koding/inherits-underscore'
 _         = require 'lodash'
 
 module.exports =

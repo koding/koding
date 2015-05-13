@@ -95,7 +95,7 @@ var (
         "aws": {
             "access_key": "${var.access_key}",
             "secret_key": "${var.secret_key}",
-            "region": "ap-northeast-1"
+            "region": "${var.region}"
         }
     },
     "resource": {
@@ -687,6 +687,7 @@ func createUser(username string) (*singleUser, error) {
 		Meta: bson.M{
 			"access_key": "AKIAJTDKW5IFUUIWVNAA",
 			"secret_key": "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",
+			"region":     "ap-northeast-1",
 		},
 	}
 
@@ -1221,7 +1222,7 @@ func getAmazonStorageSize(machineId string) (int, error) {
 }
 
 func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
-	var snapshot *koding.SnapshotDocument
+	var snapshot *models.Snapshot
 	if err := provider.DB.Run("jSnapshots", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"originId": accountId, "machineId": bson.ObjectIdHex(machineId)}).One(&snapshot)
 	}); err != nil {

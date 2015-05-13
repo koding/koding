@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/mongodb"
@@ -33,6 +34,80 @@ type terraformCredential struct {
 	Provider  string
 	PublicKey string
 	Data      map[string]string `mapstructure:"data"`
+}
+
+// region returns the region from the credential data
+func (t *terraformCredential) region() (string, error) {
+	// for now we support only aws
+	if t.Provider != "aws" {
+		return "", fmt.Errorf("provider '%s' is not supported", t.Provider)
+	}
+
+	region := t.Data["region"]
+	if region == "" {
+		return "", fmt.Errorf("region for publicKey '%s' is not set", t.PublicKey)
+	}
+
+	return region, nil
+}
+
+// appendAWSVariable appends the credentials aws data to the given template and
+// returns it back.
+func (t *terraformCredential) appendAWSVariable(template string) (string, error) {
+	var data struct {
+		Output   map[string]map[string]interface{} `json:"output,omitempty"`
+		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
+		Provider struct {
+			Aws struct {
+				Region    string `json:"region"`
+				AccessKey string `json:"access_key"`
+				SecretKey string `json:"secret_key"`
+			} `json:"aws"`
+		} `json:"provider"`
+		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
+	}
+
+	if err := json.Unmarshal([]byte(template), &data); err != nil {
+		return "", err
+	}
+
+	credRegion := t.Data["region"]
+	if credRegion == "" {
+		return "", fmt.Errorf("region for publicKey '%s' is not set", t.PublicKey)
+	}
+
+	// if region is not added, add it via credRegion
+	region := data.Provider.Aws.Region
+	if region == "" {
+		data.Provider.Aws.Region = credRegion
+	} else if !isVariable(region) && region != credRegion {
+		// compare with the provider block's region. Don't allow if they are
+		// different.
+		return "", fmt.Errorf("region in the provider block doesn't match the region in credential data. Provider block: '%s'. Credential data: '%s'", region, credRegion)
+	}
+
+	if data.Variable == nil {
+		data.Variable = make(map[string]map[string]interface{})
+	}
+
+	data.Variable["access_key"] = map[string]interface{}{
+		"default": t.Data["access_key"],
+	}
+
+	data.Variable["secret_key"] = map[string]interface{}{
+		"default": t.Data["secret_key"],
+	}
+
+	data.Variable["region"] = map[string]interface{}{
+		"default": credRegion,
+	}
+
+	out, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(out), nil
 }
 
 func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
@@ -72,8 +147,14 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
+	var region string
 	for _, cred := range creds.Creds {
-		args.TerraformContext, err = appendAWSVariable(args.TerraformContext, cred.Data["access_key"], cred.Data["secret_key"])
+		region, err = cred.region()
+		if err != nil {
+			return nil, err
+		}
+
+		args.TerraformContext, err = cred.appendAWSVariable(args.TerraformContext)
 		if err != nil {
 			return nil, err
 		}
@@ -88,19 +169,10 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	// currently there is no multi provider support for terraform. Until it's
-	// been released with 0.5,  we're going to retrieve it from the "provider"
-	// block: https://github.com/hashicorp/terraform/pull/1281
-	region, err := regionFromHCL(args.TerraformContext)
-	if err != nil {
-		return nil, err
-	}
-
 	machines, err := machinesFromPlan(plan)
 	if err != nil {
 		return nil, err
 	}
-
 	machines.AppendRegion(region)
 
 	return machines, nil
