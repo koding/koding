@@ -40,6 +40,10 @@ type Stack struct {
 
 type TerraformApplyRequest struct {
 	StackId string `json:"stackId"`
+
+	// Destroy, if enabled, destroys the terraform tempalte associated with the
+	// given StackId.
+	Destroy bool
 }
 
 func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
@@ -80,7 +84,18 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		k.Log.Info("[%s] ======> %s started <======", args.StackId, strings.ToUpper(r.Method))
 		start := time.Now()
 
-		if err := apply(ctx, r.Username, args.StackId); err != nil {
+		var err error
+		if args.Destroy {
+			finalEvent.Status = machinestate.Terminated
+			err = destroy(ctx, r.Username, args.StackId)
+		} else {
+			err = apply(ctx, r.Username, args.StackId)
+			if err != nil {
+				finalEvent.Status = machinestate.NotInitialized
+			}
+		}
+
+		if err != nil {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
 			k.Log.Error("[%s] %s error: %s", args.StackId, r.Method, err)
@@ -90,8 +105,6 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			if eventerErr, ok := err.(*EventerError); ok {
 				finalEvent.Error = eventerErr.Error()
 			}
-
-			finalEvent.Status = machinestate.NotInitialized
 		}
 
 		k.Log.Info("[%s] ======> %s finished (time: %s) <======",
@@ -103,6 +116,74 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	return ControlResult{
 		EventId: eventId,
 	}, nil
+}
+
+func destroy(ctx context.Context, username, stackId string) error {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return errors.New("session context is not passed")
+	}
+
+	ev, ok := eventer.FromContext(ctx)
+	if !ok {
+		return errors.New("eventer context is not passed")
+	}
+
+	ev.Push(&eventer.Event{
+		Message:    "Fetching and validating machines",
+		Percentage: 20,
+		Status:     machinestate.Building,
+	})
+
+	stack, err := fetchStack(stackId)
+	if err != nil {
+		return err
+	}
+
+	sess.Log.Debug("Validating '%d' machines from user '%s'", len(stack.Machines), username)
+	if _, err := fetchMachines(ctx, stack.Machines...); err != nil {
+		return err
+	}
+
+	ev.Push(&eventer.Event{
+		Message:    "Fetching and validating credentials",
+		Percentage: 30,
+		Status:     machinestate.Building,
+	})
+
+	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
+	creds, err := fetchCredentials(username, sess.DB, stack.PublicKeys)
+	if err != nil {
+		return err
+	}
+
+	sess.Log.Debug("Connection to Terraformer")
+	tfKite, err := terraformer.Connect(sess.Kite)
+	if err != nil {
+		return err
+	}
+	defer tfKite.Close()
+
+	for _, cred := range creds.Creds {
+		stack.Template, err = cred.appendAWSVariable(stack.Template)
+		if err != nil {
+			return err
+		}
+	}
+
+	sess.Log.Debug("Calling terraform.destroy method with context:")
+	sess.Log.Debug(stack.Template)
+	state, err := tfKite.Destroy(&tf.TerraformRequest{
+		Content:   stack.Template,
+		ContentID: username + "-" + sha1sum(stack.Template),
+		Variables: nil,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("state = %+v\n", state)
+	return nil
 }
 
 func apply(ctx context.Context, username, stackId string) error {
