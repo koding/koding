@@ -1,9 +1,23 @@
 request = require 'request'
 
 
+###*
+ * Method returns regexp to find a tag with given name
+ *
+ * @param  {string} tagName
+ * @return {RegExp}
+###
 getTagRegexp = (tagName) -> new RegExp "(<#{tagName}(\s[^>]*)*>)", 'i'
 
 
+###*
+ * Method inserts child tag into a tag with given name
+ *
+ * @param  {string} body    - html content where change is needed
+ * @param  {string} child   - child tag with its inner content
+ * @param  {string} tagName - name of parent tag
+ * @return {string}         - html content with performed insertion
+###
 insertChildIntoTag = (body, child, tagName) ->
 
   regexp = getTagRegexp tagName
@@ -14,6 +28,13 @@ insertChildIntoTag = (body, child, tagName) ->
       str + child
 
 
+###*
+ * Method adds <base> tag with given url into html content
+ *
+ * @param  {string} body - html content where change is needed
+ * @param  {string} url  - base url
+ * @return {string}      - html content with added <base> tag
+###
 addBaseTag = (body, url) ->
 
   hasHead = getTagRegexp('head').test body
@@ -21,6 +42,13 @@ addBaseTag = (body, url) ->
   body    = insertChildIntoTag body, "<base href='#{url}'></base>", 'head'
 
 
+###*
+ * Method performs a request for marketing snippet page and snippets config
+ * which are located on content-rotator github repo and returns their content
+ * in the response.
+ * For snippet page it also inserts <base> tag in html content to specify that
+ * relative urls of static resources should point to github repo
+###
 module.exports = (req, res) ->
 
   { name } = req.params

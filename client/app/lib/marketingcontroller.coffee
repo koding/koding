@@ -4,6 +4,11 @@ KDController = kd.Controller
 kookies      = require 'kookies'
 checkFlag    = require 'app/util/checkFlag'
 
+###*
+ * A controller for managing marketing snippets. It loads snippets config
+ * and has methods to get snippet randomly and by given name.
+ * By default snippets are available for super admin
+###
 module.exports = class MarketingController extends KDController
 
   cookieName = 'koding_marketing_snippets'
@@ -23,6 +28,13 @@ module.exports = class MarketingController extends KDController
         kd.warn 'MarketingController: Couldn\'t load config. Snippets are not available'
 
 
+  ###*
+   * Method is called when config data is received from the server.
+   * It saves snippets data from config and tries to get already shown
+   * snippets from the cookie
+   *
+   * @param {object} response - config data
+  ###
   configLoaded: (response) ->
 
     unless response.snippets
@@ -40,6 +52,17 @@ module.exports = class MarketingController extends KDController
     @emit 'ready'
 
 
+  ###*
+   * Method returns url of randomly selected snippet. It works only if snippets config
+   * was loaded successfully and current user is super admin.
+   * Snippet selection is based on snippet weights specified in config. If weight is 0, snippet can't
+   * be selected. Snippet with greater weight will be selected more often than the one with smaller
+   * weight.
+   * Number of times snippet was selected is saved to cookie. So if user reloads the page,
+   * historical data will be taken into account when calculating snippet weights
+   *
+   * @return {string} - url of selected snippet
+  ###
   getNextSnippet: ->
 
     return  unless @snippets and @isEnabled()
@@ -72,13 +95,32 @@ module.exports = class MarketingController extends KDController
     return @buildSnippetUrl snippet
 
 
+  ###*
+   * Method emits event to tell that snippet needs to be shown with specified url.
+   * It doesn't have a check that current user is admin and usually it's called
+   * from console to debug snippets on UI
+   *
+   * @param {string} snippet - name of snippet
+   * @emits SnippetNeedsToBeShown
+  ###
   show: (snippet) ->
 
     return kd.log "MarketingController: couldn't show unknown snippet '#{snippet}'"  unless @snippets[snippet]
     @emit 'SnippetNeedsToBeShown', @buildSnippetUrl snippet
 
 
+  ###*
+   * Method builds snippet url using url template and snippet name
+   *
+   * @param {string} snippet - name of snippet
+   * @return {string} - snippet url
+  ###
   buildSnippetUrl: (snippet) -> "/-/content-rotator/snippets/#{snippet}"
 
 
+  ###*
+   * Method checks if marketing functionality is available for current user
+   *
+   * @return {bool}
+  ###
   isEnabled: -> checkFlag 'super-admin'
