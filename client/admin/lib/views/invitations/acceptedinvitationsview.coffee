@@ -1,11 +1,13 @@
-kd                    = require 'kd'
-KDView                = kd.View
-TeamMembersCommonView = require '../members/teammemberscommonview'
+kd                     = require 'kd'
+KDView                 = kd.View
+PendingInvitationsView = require './pendinginvitationsview'
 
 
-module.exports = class AcceptedInvitationsView extends TeamMembersCommonView
+module.exports = class AcceptedInvitationsView extends PendingInvitationsView
 
   constructor: (options = {}, data) ->
+
+    options.statusType = 'accepted'
 
     super options, data
 
