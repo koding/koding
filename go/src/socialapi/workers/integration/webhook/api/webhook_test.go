@@ -398,3 +398,38 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 
 	})
 }
+
+func TestWebhookIntegration(t *testing.T) {
+
+	Convey("while checking integrations", t, func() {
+		Convey("we should be able check integration existence", func() {
+			integrationName := ""
+			s, _, _, err := h.CheckIntegration(
+				mocking.URL(m, "GET", "/webhook/integration/"+integrationName),
+				mocking.Header(nil),
+				nil,
+			)
+			So(err.Error(), ShouldEqual, ErrNameNotSet.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+
+			integrationName = "huhu"
+			s, _, _, err = h.CheckIntegration(
+				mocking.URL(m, "GET", "/webhook/integration/"+integrationName),
+				mocking.Header(nil),
+				nil,
+			)
+			So(err.Error(), ShouldEqual, webhook.ErrIntegrationNotFound.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+
+			i := webhook.CreateIntegration(t, models.RandomName())
+			integrationName = i.Name
+			s, _, _, err = h.CheckIntegration(
+				mocking.URL(m, "GET", "/webhook/integration/"+integrationName),
+				mocking.Header(nil),
+				nil,
+			)
+			So(err, ShouldBeNil)
+			So(s, ShouldEqual, http.StatusOK)
+		})
+	})
+}

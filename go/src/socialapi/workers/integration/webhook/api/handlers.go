@@ -35,6 +35,13 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Type:           handler.GetRequest,
 			Endpoint:       "/botchannel",
 			CollectMetrics: true,
+	m.AddSessionlessHandler(
+		handler.Request{
+			Handler:  h.CheckIntegration,
+			Name:     "webhook-check-integration",
+			Type:     handler.GetRequest,
+			Endpoint: "/webhook/integration/{name}",
 		},
 	)
+
 }

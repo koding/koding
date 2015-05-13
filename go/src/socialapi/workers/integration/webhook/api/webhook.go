@@ -15,6 +15,7 @@ import (
 
 	"labix.org/v2/mgo"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 )
 
@@ -163,6 +164,27 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 	cc.ParticipantsPreview = append([]string{h.bot.Account().OldId}, cc.ParticipantsPreview...)
 
 	return response.NewOK(response.NewSuccessResponse(cc))
+}
+
+func (h *Handler) CheckIntegration(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+
+	name := u.Query().Get("name")
+	if name == "" {
+		return response.NewBadRequest(webhook.ErrNameNotSet)
+	}
+
+	_, err := webhook.Cache.Integration.ByName(name)
+	if err == bongo.RecordNotFound {
+		return response.NewNotFound()
+	}
+
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	res := response.NewSuccessResponse(nil)
+
+	return response.NewOK(res)
 }
 
 func (h *Handler) fetchChannelId(so *services.ServiceOutput) (int64, error) {
