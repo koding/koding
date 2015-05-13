@@ -2,6 +2,7 @@ $            = require 'jquery'
 kd           = require 'kd'
 KDController = kd.Controller
 kookies      = require 'kookies'
+checkFlag    = require 'app/util/checkFlag'
 
 module.exports = class MarketingController extends KDController
 
@@ -11,7 +12,6 @@ module.exports = class MarketingController extends KDController
 
     super options, data
 
-    @config          = null
     @snippets        = null
     @shownSnippets   = {}
 
@@ -42,7 +42,7 @@ module.exports = class MarketingController extends KDController
 
   getNextSnippet: ->
 
-    return  unless @snippets
+    return  unless @snippets and @isEnabled()
 
     ranges = null
     sum    = 0
@@ -69,4 +69,16 @@ module.exports = class MarketingController extends KDController
     @shownSnippets[snippet] = (@shownSnippets[snippet] ? 0) + 1
     kookies.set cookieName, JSON.stringify @shownSnippets
 
-    return "/-/content-rotator/snippets/#{snippet}"
+    return @buildSnippetUrl snippet
+
+
+  show: (snippet) ->
+
+    return kd.log "MarketingController: couldn't show unknown snippet '#{snippet}'"  unless @snippets[snippet]
+    @emit 'SnippetNeedsToBeShown', @buildSnippetUrl snippet
+
+
+  buildSnippetUrl: (snippet) -> "/-/content-rotator/snippets/#{snippet}"
+
+
+  isEnabled: -> checkFlag 'super-admin'
