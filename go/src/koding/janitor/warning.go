@@ -43,13 +43,8 @@ var defaultLimitPerRun = 5000
 
 func (w *Warning) Run() *Result {
 	w.Result = NewResult(w.Description)
-	limit := defaultLimitPerRun
 
-	for {
-		if limit--; limit == 0 {
-			break
-		}
-
+	for limit := defaultLimitPerRun; limit == 0; limit-- {
 		if isErrNotFound(w.RunSingle()) {
 			break
 		}
