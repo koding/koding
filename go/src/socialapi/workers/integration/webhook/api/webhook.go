@@ -162,12 +162,7 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 
 	cc.ParticipantsPreview = append([]string{h.bot.Account().OldId}, cc.ParticipantsPreview...)
 
-	data := NewBotChannelResponse()
-	data.ChannelContainer = cc
-
-	res := response.NewSuccessResponse(data)
-
-	return response.NewOK(res)
+	return response.NewOK(response.NewSuccessResponse(cc))
 }
 
 func (h *Handler) fetchChannelId(so *services.ServiceOutput) (int64, error) {
