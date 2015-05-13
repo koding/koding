@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	socialapimodels "socialapi/models"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/response"
 	"socialapi/workers/realtime/models"
@@ -103,9 +104,9 @@ func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*mo
 		Type:     "GET",
 		Endpoint: "/api/social/channel/checkparticipation",
 		Params: map[string]string{
-			"name":  cr.Name,
-			"group": cr.Group,
-			"type":  cr.Type,
+			"name":      cr.Name,
+			"groupName": cr.Group,
+			"type":      cr.Type,
 		},
 		Cookie: cookie,
 	}
