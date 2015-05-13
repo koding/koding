@@ -27,7 +27,12 @@ func NewHandler(p *models.PubNub, l logging.Logger) *Handler {
 
 // SubscribeChannel checks users channel accessability and regarding to that
 // grants channel access for them
-func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.Channel, context *socialapimodels.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(socialapimodels.ErrNotLoggedIn)
+	}
+
+	req.Group = context.GroupName // override group name
 	res, err := checkParticipation(u, header, req)
 	if err != nil {
 		return response.NewAccessDenied(err)
@@ -49,13 +54,12 @@ func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.C
 
 // SubscribeNotification grants notification channel access for user. User information is
 // fetched from session
-func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *models.Account) (int, http.Header, interface{}, error) {
-
-	// fetch account information from session
-	account, err := getAccountInfo(u, header)
-	if err != nil {
-		return response.NewBadRequest(err)
+func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *models.Account, context *socialapimodels.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(socialapimodels.ErrNotLoggedIn)
 	}
+
+	account := context.Client.Account
 
 	// authenticate user to their notification channel
 	a := new(models.Authenticate)
@@ -71,15 +75,12 @@ func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *mo
 	return responseWithCookie(temp, account.Token)
 }
 
-func (h *Handler) GetToken(u *url.URL, header http.Header, req *models.Account) (int, http.Header, interface{}, error) {
-
-	// fetch account information from session
-	account, err := getAccountInfo(u, header)
-	if err != nil {
-		return response.NewBadRequest(err)
+func (h *Handler) GetToken(u *url.URL, header http.Header, req *models.Account, context *socialapimodels.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(socialapimodels.ErrNotLoggedIn)
 	}
 
-	return responseWithCookie(req, account.Token)
+	return responseWithCookie(req, context.Client.Account.Token)
 }
 
 func responseWithCookie(req interface{}, token string) (int, http.Header, interface{}, error) {
