@@ -468,7 +468,7 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
-        -> group.createSocialApiChannels (err)->
+        -> group.createSocialApiChannels client, (err)->
             if err then console.error err
             console.log 'created socialApiId ids'
             queue.next()
@@ -1328,7 +1328,7 @@ module.exports = class JGroup extends Module
         @fetchDefaultPermissionSet callback
 
 
-  createSocialApiChannels: (callback) ->
+  createSocialApiChannels: (client, callback) ->
 
     if @socialApiChannelId and @socialApiAnnouncementChannelId
       return callback null, {@socialApiChannelId, @socialApiAnnouncementChannelId}
@@ -1346,10 +1346,10 @@ module.exports = class JGroup extends Module
           creatorId: socialApiId
           privacyConstant: privacy
 
-        @createGroupChannel options, (err, groupChannelId) =>
+        @createGroupChannel client, options, (err, groupChannelId) =>
           return callback err if err?
 
-          @createAnnouncementChannel options, (err, announcementChannelId) =>
+          @createAnnouncementChannel client, options, (err, announcementChannelId) =>
             return callback err if err?
 
             return callback null, {
@@ -1360,21 +1360,22 @@ module.exports = class JGroup extends Module
             }
 
 
-  createGroupChannel:(options, callback)->
+  createGroupChannel:(client, options, callback)->
     options.name = "public"
     options.varName = "socialApiChannelId"
     options.typeConstant = "group"
 
-    return @createSocialAPIChannel options, callback
+    return @createSocialAPIChannel client, options, callback
 
-  createAnnouncementChannel:(options, callback)->
+  createAnnouncementChannel:(client, options, callback)->
     options.name = if @slug is "koding" then "changelog" else @slug
     options.varName = "socialApiAnnouncementChannelId"
     options.typeConstant = "announcement"
 
-    return @createSocialAPIChannel options, callback
+    return @createSocialAPIChannel client, options, callback
 
-  createSocialAPIChannel:(options, callback)->
+
+  createSocialAPIChannel:(client, options, callback)->
     {varName, name, typeConstant, creatorId, privacyConstant} = options
 
     return callback null, @[varName]  if @[varName]
@@ -1386,12 +1387,12 @@ module.exports = class JGroup extends Module
       typeConstant    : typeConstant
       privacyConstant : privacyConstant
 
-    {createChannel} = require '../socialapi/requests'
-    createChannel defaultChannel, (err, channel)=>
+    {doRequest} = require '../socialapi/helper'
+    doRequest "createChannel", client, defaultChannel, (err, channel)=>
       return callback err if err
 
       op = $set:{}
-      op.$set[varName] = channel.id
+      op.$set[varName] = channel.channel.id
 
       @update op, (err)->
         return callback err if err
