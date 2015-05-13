@@ -2,7 +2,7 @@ kd               = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDListItemView   = kd.ListItemView
 
-groupifyLink     = require '../../util/groupifyLink'
+groupifyLink     = require 'app/util/groupifyLink'
 
 
 module.exports = class SidebarItem extends KDListItemView
