@@ -1,6 +1,7 @@
 kd                      = require 'kd'
 KDView                  = kd.View
 KDTabView               = kd.TabView
+KDButtonView            = kd.ButtonView
 KDTabPaneView           = kd.TabPaneView
 InviteSomeoneView       = require './invitesomeoneview'
 PendingInvitationsView  = require './pendinginvitationsview'
@@ -36,3 +37,12 @@ module.exports = class AdminInvitationsView extends KDView
     invite.addSubView   inviteView = new InviteSomeoneView {}, data
 
     tabView.showPaneByIndex 0
+
+  createInviteButton: ->
+
+    @addSubView @inviteButton = new KDButtonView
+      title    : 'INVITE SOMEONE'
+      cssClass : 'solid compact green invite'
+      callback : =>
+        @tabView.showPaneByName 'Invite'
+        @inviteButton.hide()
