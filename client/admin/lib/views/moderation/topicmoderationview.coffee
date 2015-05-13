@@ -13,7 +13,7 @@ module.exports = class TopicModerationView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'member-related'
+    options.cssClass = 'topic-related'
 
     super options, data
 
