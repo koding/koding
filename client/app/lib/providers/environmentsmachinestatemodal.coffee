@@ -718,10 +718,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     @marketingSnippet?.destroy()
     @marketingSnippet = new KDCustomHTMLView
-      tagName    : 'iframe'
-      cssClass   : "marketing-message-frame"
-      attributes :
-        src      : snippetUrl
+      cssClass : "marketing-message-snippet"
+      partial  : "<iframe src='#{snippetUrl}'></iframe>"
 
     @container.addSubView @marketingSnippet
     @container.setClass 'marketing-message'
