@@ -52,9 +52,13 @@ func CreateTestIntegration(t *testing.T) *Integration {
 
 func CreateIterableIntegration(t *testing.T) *Integration {
 
+	return CreateIntegration(t, "iterable")
+}
+
+func CreateIntegration(t *testing.T, name string) *Integration {
 	i := NewIntegration()
-	i.Title = "iterable"
-	i.Name = "iterable"
+	i.Title = name
+	i.Name = name
 
 	selector := map[string]interface{}{
 		"name": i.Name,
