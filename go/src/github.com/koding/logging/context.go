@@ -1,5 +1,7 @@
 package logging
 
+import "fmt"
+
 type context struct {
 	prefix string
 	logger
@@ -51,14 +53,34 @@ func (c *context) Debug(format string, args ...interface{}) {
 	c.logger.Debug(c.prefixFormat()+format, args...)
 }
 
-func (c *context) New(prefix string) Logger {
-	d := &context{
-		prefix: c.prefix + "[" + prefix + "]",
-	}
-	d.logger = c.logger
-	return d
+// New creates a new Logger from current context
+func (c *context) New(prefixes ...interface{}) Logger {
+	return newContext(c.logger, c.prefix, prefixes...)
 }
 
 func (c *context) prefixFormat() string {
 	return c.prefix + " "
+}
+
+func newContext(logger logger, initial string, prefixes ...interface{}) *context {
+	resultPrefix := "" // resultPrefix holds prefix after initialization
+	connector := ""    // connector holds the connector string
+
+	for _, prefix := range prefixes {
+		resultPrefix += fmt.Sprintf("%s%+v", connector, prefix)
+		switch connector {
+		case "=": // if previous is `=` replace with ][
+			connector = "]["
+		case "][": // if previous is `][` replace with =
+			connector = "="
+		default:
+			connector = "=" // if its first iteration, assing =
+		}
+	}
+
+	return &context{
+		prefix: initial + "[" + resultPrefix + "]",
+		logger: logger,
+	}
+
 }
