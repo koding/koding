@@ -724,7 +724,7 @@ module.exports = class SocialApiController extends KDController
 
     fetchRoot   : (options, callback) ->
       doXhrRequest {
-        endPoint : "/api/social/moderation/channel/#{options.leafId}/root?#{serialize(options)}"
+        endPoint : "/api/social/moderation/channel/root/#{options.leafId}?#{serialize(options)}"
         type     : 'GET'
       }, (err, result)->
         return callback err if err
