@@ -20,9 +20,9 @@ module.exports = class TopicCommonView extends KDView
     options.itemLimit            ?= 10
 
     super options, data
-    console.log options
 
-    @skip = 0
+    @skip        = 0
+    @searchSkip  = 0
 
     @createSearchView()
     @createListController()
@@ -31,8 +31,8 @@ module.exports = class TopicCommonView extends KDView
 
   createSearchView: ->
     @addSubView @searchContainer = new KDCustomHTMLView
-      cssClass: 'search'
-      partial : '<span class="label">Search</span>'
+      cssClass : 'search'
+      partial  : '<span class="label">Search</span>'
 
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
       type        : 'text'
@@ -64,17 +64,14 @@ module.exports = class TopicCommonView extends KDView
   fetchChannels: ->
     
     return if @isFetching
-    console.log @getOptions()
     @isFetching = yes
 
     options  =
       limit                 : @getOptions().itemLimit
-      sort                  : { timestamp: -1 }
       skip                  : @skip
       showModerationNeeded  : true
       type                  : @getOptions().typeConstant or= "topic"
       
-    console.log options
     kd.singletons.socialapi.channel.list options , (err, channels) =>
       @isFetching = no
       if err
@@ -87,27 +84,24 @@ module.exports = class TopicCommonView extends KDView
   searchChannels:(query = "") ->
     
     return if @isFetching
-
     @isFetching = yes
 
     options  =
-      name   : query
-      limit  : @getOptions().itemLimit
-      skip   : @skip
+      name                  : query
+      limit                 : @getOptions().itemLimit
+      skip                  : @searchSkip
       showModerationNeeded  : true
       type                  : @getOptions().typeConstant or= "topic"
-    console.log options
+
     kd.singletons.socialapi.channel.searchTopics options , (err, channels) =>
       @isFetching = no
-      console.log arguments
+      
       if err
         @listController.lazyLoader?.hide()
         return kd.warn err
       
-
       @listChannels channels
       
-
 
   listChannels: (channels) ->
 
@@ -131,4 +125,3 @@ module.exports = class TopicCommonView extends KDView
     @listController.removeAllItems()
     @listController.lazyLoader.show()
     @searchChannels @query
-    console.log @query
