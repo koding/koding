@@ -951,10 +951,6 @@ class IDEAppController extends AppController
 
   handleIDEBecameReady: (machine) ->
 
-    unless @fakeViewsDestroyed
-      @removeFakeViews()
-      @fakeViewsDestroyed = yes
-
     {finderController} = @finderPane
     if @workspaceData
       finderController.updateMachineRoot @mountedMachine.uid, @workspaceData.rootPath
@@ -964,6 +960,10 @@ class IDEAppController extends AppController
     machine.getBaseKite().fetchTerminalSessions()
 
     @fetchSnapshot (snapshot) =>
+
+      unless @fakeViewsDestroyed
+        @removeFakeViews()
+        @fakeViewsDestroyed = yes
 
       if snapshot
         @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
