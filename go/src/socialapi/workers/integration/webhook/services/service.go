@@ -21,7 +21,7 @@ type Service interface {
 type ServiceInput map[string]interface{}
 
 func (si ServiceInput) Key(key string) interface{} {
-	val, ok := map[string]interface{}(si)[key]
+	val, ok := si[key]
 	if !ok {
 		return nil
 	}
