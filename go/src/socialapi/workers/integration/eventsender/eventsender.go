@@ -86,12 +86,12 @@ func (c *Controller) MessageCreated(cm *models.ChannelMessage) error {
 		return err
 	}
 
-	c, err := cm.FetchParentChannel()
+	groupChannel, err := cm.FetchParentChannel()
 	if err != nil {
 		return err
 	}
 
-	event.Properties["groupName"] = c.GroupName
+	event.Properties["groupName"] = groupChannel.GroupName
 	event.Properties["message"] = SendMessageBody
 
 	return c.exporter.Send(event)
@@ -121,7 +121,7 @@ func (c *Controller) WorkspaceCreated(w *WorkspaceData) error {
 
 	event, err := c.prepareEvent(createWSEvent, w.AccountId)
 	if err == ErrDisabled {
-		return err
+		return nil
 	}
 
 	if err != nil {

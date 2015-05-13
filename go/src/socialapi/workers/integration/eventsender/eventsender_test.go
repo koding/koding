@@ -39,9 +39,14 @@ func TestEventSenderHandler(t *testing.T) {
 
 	Convey("We should be able to send events to Segment.io for user messages", t, func() {
 		Convey("We should be able to send events for user messages", func() {
+			groupName := models.RandomGroupName()
+			groupChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
 			cm := models.NewChannelMessage()
 			cm.Body = "hey"
 			cm.AccountId = acc.Id
+			cm.InitialChannelId = groupChannel.Id
+
 			err = c.MessageCreated(cm)
 			So(err, ShouldBeNil)
 			//session, err := models.FetchOrCreateSession(acc.Nick)
