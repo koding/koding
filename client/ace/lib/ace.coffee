@@ -1,6 +1,6 @@
 $                    = require 'jquery'
 _                    = require 'lodash'
-getscript            = require 'getscript'
+getscript            = require '@koding/getscript'
 kd                   = require 'kd'
 KDButtonView         = kd.ButtonView
 KDModalViewWithForms = kd.ModalViewWithForms

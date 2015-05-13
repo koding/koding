@@ -898,8 +898,43 @@ Configuration = (options={}) ->
           command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
         fi
 
+        check_node_version
+        check_npm_version
         check_go_version
         check_gulp_version
+      }
+
+      function check_node_version () {
+        VERSION=$(node --version | sed -e 's/^v//')
+
+        while IFS=".", read MAJOR MINOR REVISION; do
+          MISMATCH=1
+          if [[ $MAJOR -eq 0 && $MINOR -eq 10 ]]; then
+            MISMATCH=
+          fi
+        done < <(echo $VERSION)
+
+        if [[ -n "$MISMATCH" ]]; then
+          echo "error: node version is $VERSION, it must be 0.10.x"
+          exit 1
+        fi
+      }
+
+      function check_npm_version () {
+        VERSION=$(npm --version)
+
+        while IFS=".", read MAJOR MINOR REVISION; do
+          if [[ $MAJOR -lt 2 ]]; then
+            MISMATCH=1
+          elif [[ $MAJOR -eq 2 && $MINOR -lt 9 ]]; then
+            MISMATCH=1
+          fi
+        done < <(echo $VERSION)
+
+        if [[ -n "$MISMATCH" ]]; then
+          echo "error: npm version is $VERSION, it must be 2.9.x or greater"
+          exit 1
+        fi
       }
 
       function check_gulp_version () {
