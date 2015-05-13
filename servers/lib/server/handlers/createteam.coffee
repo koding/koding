@@ -8,7 +8,7 @@ module.exports = (req, res, next) ->
   { companyName, slug, redirect } = body
 
   redirect ?= '/'
-  context   = { group: 'koding' }
+  context   = { group: slug }
   clientId  = getClientId req, res
 
   # tmp: copy/paste from ./register.coffee - SY
@@ -45,7 +45,9 @@ module.exports = (req, res, next) ->
 
       # res.cookie 'clientId', result.newToken, path : '/'
 
-      owner = result.account
+      # set session token for later usage down the line
+      client.sessionToken = result.newToken
+      owner               = result.account
 
       JGroup.create client,
         title           : companyName
