@@ -55,7 +55,7 @@ func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.C
 
 // SubscribeNotification grants notification channel access for user. User information is
 // fetched from session
-func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *models.Account, context *socialapimodels.Context) (int, http.Header, interface{}, error) {
+func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *socialapimodels.Account, context *socialapimodels.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(socialapimodels.ErrNotLoggedIn)
 	}
@@ -68,7 +68,7 @@ func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *mo
 	a.Account = account
 
 	// TODO need async requests. Re-try in case of an error
-	err = h.pubnub.Authenticate(a)
+	err := h.pubnub.Authenticate(a)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -76,7 +76,7 @@ func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *mo
 	return responseWithCookie(temp, account.Token)
 }
 
-func (h *Handler) GetToken(u *url.URL, header http.Header, req *models.Account, context *socialapimodels.Context) (int, http.Header, interface{}, error) {
+func (h *Handler) GetToken(u *url.URL, header http.Header, req *socialapimodels.Account, context *socialapimodels.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(socialapimodels.ErrNotLoggedIn)
 	}
