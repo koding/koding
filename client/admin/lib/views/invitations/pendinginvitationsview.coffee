@@ -9,7 +9,8 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
   constructor: (options = {}, data) ->
 
-    options.listViewItemClass = InvitedItemView
+    options.listViewItemClass   = InvitedItemView
+    options.statusType        or= 'pending'
 
     super options, data
 
@@ -18,9 +19,10 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     return if @isFetching
 
-    @isFetching = yes
+    @isFetching    = yes
+    { statusType } = @getOptions()
 
-    selector = status: 'pending'
+    selector = status: statusType
     options  = { @skip }
 
     remote.api.JInvitation.some selector, options, (err, invitations) =>
