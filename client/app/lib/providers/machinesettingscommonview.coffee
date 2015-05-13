@@ -46,7 +46,7 @@ module.exports = class MachineSettingsCommonView extends KDView
 
     header.addSubView @headerAddNewButton = new KDButtonView
       title    : headerAddButtonTitle
-      cssClass : "solid green compact add-button #{addButtonCssClass}"
+      cssClass : "solid green small add-button #{addButtonCssClass}"
       loader   : loaderOnHeaderButton
       callback : @bound 'showAddView'
 
@@ -77,7 +77,7 @@ module.exports = class MachineSettingsCommonView extends KDView
     wrapper = new KDCustomHTMLView cssClass: 'buttons'
 
     wrapper.addSubView @addNewButton = new KDButtonView
-      cssClass : 'solid green compact add'
+      cssClass : 'solid green small add'
       loader   : yes
       title    : @getOptions().addButtonTitle
       callback : @bound 'handleAddNew'
