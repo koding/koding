@@ -39,7 +39,7 @@ type Warning struct {
 	Result *Result
 }
 
-var defaultLimitPerRun = 100
+var defaultLimitPerRun = 5000
 
 func (w *Warning) Run() *Result {
 	w.Result = NewResult(w.Description)
