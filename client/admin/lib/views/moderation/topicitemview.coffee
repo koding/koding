@@ -8,7 +8,7 @@ KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
 
 TopicLeafItemView    = require './topicleafitemview'
-SimilarItemView      = require './similaritemview'
+SelectableItemView      = require './selectableitemview'
 
 module.exports = class TopicItemView extends KDListItemView
 
@@ -24,13 +24,16 @@ module.exports = class TopicItemView extends KDListItemView
     
     super options, data
     
-    @typeLabel = new KDCustomHTMLView
-      cssClass : 'role'
+    @moderationLabel = new KDCustomHTMLView
+      cssClass : 'moderateRole'
       partial  : "Moderate <span class='settings-icon'></span>"
       click    : =>
         @settings.toggleClass  'hidden'
-        @typeLabel.toggleClass 'active'
+        @moderationLabel.toggleClass 'active'
     
+    @typeLabel = new KDCustomHTMLView
+      cssClass : 'type-label'
+      
     @createSettingsView(data)
   
   createLeafItemViews: (data) ->
@@ -63,10 +66,44 @@ module.exports = class TopicItemView extends KDListItemView
 
     @settings  = new KDCustomHTMLView
       cssClass : 'settings hidden'
-
-    @settings.addSubView deleteButton = new KDButtonView
-      cssClass : 'solid compact outline'
-      title    : 'DELETE CHANNEL'
+    
+    if data.typeConstant is "topic"
+      @settings.addSubView deleteButton = new KDButtonView
+        cssClass : 'solid compact outline'
+        title    : 'DELETE CHANNEL'
+        callback :=>
+          options = 
+            rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+            leafId  : data.id
+          console.log data.id
+          kd.singletons.socialapi.moderation.blacklist options, (err, data) =>
+            console.log arguments
+            if err
+              console.log "no leaf channel found for #{data.id}, #{data.name}"
+    else
+      options = 
+        rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+        leafId  : data.id
+      console.log data.id
+      kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
+        console.log 123, arguments
+        if err 
+          return console.log "err while fething root", err
+        
+        if rootChannel
+          text = "Blacklisted"
+          if kd.singletons.groupsController.getCurrentGroup().socialApiChannelId isnt rootChannel.id 
+            text = "linked to #{rootChannel.name}"
+          
+        @typeLabel.setPartial "#{text}"
+        
+        @settings.addSubView whitelistButton = new KDButtonView
+          cssClass : 'solid compact outline'
+          title    : 'WHITELIST CHANNEL'
+          callback : => console.log data
+            
+        
+          
 
     @settings.addSubView @removeLabel = new KDCustomHTMLView
       cssClass: 'solid compact hidden'
@@ -81,11 +118,17 @@ module.exports = class TopicItemView extends KDListItemView
       title    : 'REMOVE LINK'
       callback : =>
         listItems = @leafChannelsListController.getListItems()
-        console.log item for item in listItems
-        #listItems?.forEach (item)->
-          #console.log item
-        #console.log listItems
-      
+        for item in listItems when item.switcher.getValue() is true
+          options = 
+            rootId  :  data.id
+            leafId  : item.getData().id
+          console.log data.id
+          console.log item.getData().id
+          kd.singletons.socialapi.moderation.unlink options, (err, @item) =>
+            console.log arguments
+            if err
+              console.log "no leaf channel found for #{data.id}, #{data.name}"
+              
      
     @settings.addSubView new KDCustomHTMLView
       cssClass: 'solid compact'
@@ -110,7 +153,19 @@ module.exports = class TopicItemView extends KDListItemView
       title    : 'LINK CHANNEL'
       callback : =>
         listItems = @similarChannelsListController.getListItems()
-        console.log item.switcher.getValue() for item in listItems
+        for item in listItems when item.switcher.getValue() is true
+          options = 
+            rootId  :  data.id
+            leafId  : item.getData().id
+          console.log data.id
+          console.log item.getData().id
+          kd.singletons.socialapi.moderation.link options, (err, @item) =>
+            console.log arguments
+            if err
+              console.log "no leaf channel found for #{data.id}, #{data.name}"
+        
+        #if item.switcher.getValue() is true for item in listItems
+        #console.log "biseyler" for item in listItems when item.switcher.getValue() is true
         
   
   searchSimilarChannels: ->
@@ -147,8 +202,12 @@ module.exports = class TopicItemView extends KDListItemView
       return @similarChannelsListController.hideLazyLoader()
 
     @skip += channels.length
+    
 
     for channel in channels
+      if @getData().getId() is channel.getId()
+        @skip--
+        continue
       @similarChannelsListController.addItem channel
 
     @similarChannelsListController.hideLazyLoader()
@@ -161,7 +220,7 @@ module.exports = class TopicItemView extends KDListItemView
     @leafChannelsListController       = new KDListViewController
       viewOptions         :
         wrapper           : yes
-        itemClass         : TopicLeafItemView
+        itemClass         : SelectableItemView
         cssClass          : 'leaf-channel-list'
         itemOptions       : {}
       noItemFoundWidget   : new KDCustomHTMLView
@@ -179,7 +238,7 @@ module.exports = class TopicItemView extends KDListItemView
     @similarChannelsListController       = new KDListViewController
       viewOptions         :
         wrapper           : yes
-        itemClass         : SimilarItemView
+        itemClass         : SelectableItemView
         cssClass          : 'similar-item-list'
         itemOptions       : {}
       noItemFoundWidget   : new KDCustomHTMLView
@@ -192,14 +251,15 @@ module.exports = class TopicItemView extends KDListItemView
     #@listController.on 'LazyLoadThresholdReached', @bound 'fetchChannels'
 
   pistachio: ->
-    data     = @getData()
-    type     = 'Type'
+    data          = @getData()
+    moderateRole  = 'Topic'
     
     return """
       <div class="details">
         <p class="topicname">#{data.name}</p>
       </div>
       {{> @typeLabel}}
+      {{> @moderationLabel}}
       <div class='clear'></div>
       {{> @settings}}
     """
