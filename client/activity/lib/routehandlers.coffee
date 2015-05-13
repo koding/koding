@@ -114,3 +114,5 @@ handleChannel = (type, slug, callback) ->
   callback    ?= (app) -> app.getView().open type, slug
   {appManager, mainController} = kd.singletons
   mainController.ready -> appManager.open 'Activity', callback
+
+
