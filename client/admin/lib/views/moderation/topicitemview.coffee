@@ -100,7 +100,16 @@ module.exports = class TopicItemView extends KDListItemView
         @settings.addSubView whitelistButton = new KDButtonView
           cssClass : 'solid compact outline'
           title    : 'WHITELIST CHANNEL'
-          callback : => console.log data
+          callback : => 
+            options = 
+              rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+              leafId  : data.id
+            console.log options.rootId
+            console.log data.id
+            kd.singletons.socialapi.moderation.unlink options, (err, data) =>
+              console.log arguments
+              if err
+                console.log "no leaf channel found for #{data.id}, #{data.name}"
             
         
           
