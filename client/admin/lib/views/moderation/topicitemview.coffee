@@ -22,6 +22,9 @@ module.exports = class TopicItemView extends KDListItemView
     options.listViewItemOptions or= {}
     options.itemLimit            ?= 10
     
+    @leafSkip = 0
+    @similarSkip = 0
+    
     super options, data
     
     @moderationLabel = new KDCustomHTMLView
@@ -40,7 +43,6 @@ module.exports = class TopicItemView extends KDListItemView
     options = rootId  :  data.id
           
     kd.singletons.socialapi.moderation.list options, (err, channels) =>
-      console.log arguments
       if err
         console.log "no leaf channel found for #{data.id}, #{data.name}"
       @listLeafChannels channels
@@ -55,7 +57,7 @@ module.exports = class TopicItemView extends KDListItemView
     return  unless channels?.length
 
     
-    @skip += channels.length
+    @leafSkip += channels.length
 
     for channel in channels
       @leafChannelsListController.addItem channel
@@ -75,18 +77,16 @@ module.exports = class TopicItemView extends KDListItemView
           options = 
             rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
             leafId  : data.id
-          console.log data.id
+          
           kd.singletons.socialapi.moderation.blacklist options, (err, data) =>
-            console.log arguments
             if err
               console.log "no leaf channel found for #{data.id}, #{data.name}"
     else
       options = 
         rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
         leafId  : data.id
-      console.log data.id
+      
       kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
-        console.log 123, arguments
         if err 
           return console.log "err while fething root", err
         
@@ -104,12 +104,11 @@ module.exports = class TopicItemView extends KDListItemView
             options = 
               rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
               leafId  : data.id
-            console.log options.rootId
-            console.log data.id
+
             kd.singletons.socialapi.moderation.unlink options, (err, data) =>
-              console.log arguments
+            
               if err
-                console.log "no leaf channel found for #{data.id}, #{data.name}"
+                console.log "no leaf channel found for #{options.rootId}, #{data}"
             
         
           
@@ -127,17 +126,17 @@ module.exports = class TopicItemView extends KDListItemView
       title    : 'REMOVE LINK'
       callback : =>
         listItems = @leafChannelsListController.getListItems()
-        for item in listItems when item.switcher.getValue() is true
+        listItems.forEach (item)=> 
+          return  if item.switcher.getValue() is false
           options = 
             rootId  :  data.id
             leafId  : item.getData().id
-          console.log data.id
-          console.log item.getData().id
+
           kd.singletons.socialapi.moderation.unlink options, (err, @item) =>
-            console.log arguments
+          
             if err
-              console.log "no leaf channel found for #{data.id}, #{data.name}"
-              
+              return console.log "no leaf channel found for #{data.id}, #{data.name}"
+            item.hide()
      
     @settings.addSubView new KDCustomHTMLView
       cssClass: 'solid compact'
@@ -162,24 +161,22 @@ module.exports = class TopicItemView extends KDListItemView
       title    : 'LINK CHANNEL'
       callback : =>
         listItems = @similarChannelsListController.getListItems()
-        for item in listItems when item.switcher.getValue() is true
+        listItems.forEach (item)=> 
+          return  if item.switcher.getValue() is false
           options = 
-            rootId  :  data.id
+            rootId  : data.id
             leafId  : item.getData().id
-          console.log data.id
-          console.log item.getData().id
+     
           kd.singletons.socialapi.moderation.link options, (err, @item) =>
-            console.log arguments
+          
             if err
               console.log "no leaf channel found for #{data.id}, #{data.name}"
-        
-        #if item.switcher.getValue() is true for item in listItems
-        #console.log "biseyler" for item in listItems when item.switcher.getValue() is true
+            item.hide()
         
   
   searchSimilarChannels: ->
 
-    @skip  = 0
+    @similarSkip  = 0
     query = @searchInput.getValue()
 
     @similarChannelsListController.removeAllItems()
@@ -193,7 +190,7 @@ module.exports = class TopicItemView extends KDListItemView
       name   : query
       limit  : @getOptions().itemLimit
       sort   : { timestamp: -1 }
-      skip   : @skip
+      skip   : @similarSkip
       
     kd.singletons.socialapi.channel.searchTopics options , (err, channels) =>
       @similarChannelsListController.hideLazyLoader()
@@ -210,12 +207,12 @@ module.exports = class TopicItemView extends KDListItemView
     unless channels.length
       return @similarChannelsListController.hideLazyLoader()
 
-    @skip += channels.length
+    @similarSkip += channels.length
     
 
     for channel in channels
       if @getData().getId() is channel.getId()
-        @skip--
+        @similarSkip--
         continue
       @similarChannelsListController.addItem channel
 
