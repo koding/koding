@@ -1331,7 +1331,10 @@ module.exports = class JGroup extends Module
   createSocialApiChannels: (client, callback) ->
 
     if @socialApiChannelId and @socialApiAnnouncementChannelId
-      return callback null, {@socialApiChannelId, @socialApiAnnouncementChannelId}
+      return callback null, {
+        @socialApiChannelId,
+        @socialApiAnnouncementChannelId
+      }
 
     @fetchOwner (err, owner)=>
       return callback err if err?
@@ -1343,8 +1346,8 @@ module.exports = class JGroup extends Module
         privacy = if @slug is "koding" then "public" else "private"
 
         options =
-          creatorId: socialApiId
-          privacyConstant: privacy
+          creatorId       : socialApiId
+          privacyConstant : privacy
 
         @createGroupChannel client, options, (err, groupChannelId) =>
           return callback err if err?
@@ -1354,9 +1357,9 @@ module.exports = class JGroup extends Module
 
             return callback null, {
               # channel id for #public - used as group channel
-              socialApiChannelId: groupChannelId,
+              socialApiChannelId             : groupChannelId,
               # channel id for #koding - used for announcements
-              socialApiAnnouncementChannelId:announcementChannelId
+              socialApiAnnouncementChannelId : announcementChannelId
             }
 
 
