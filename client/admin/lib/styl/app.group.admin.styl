@@ -716,6 +716,69 @@ Admin main styles
 .AppModal--admin .invitations
 
   .kdlistitemview-member
+    height                  40px
+
+  .kdbutton
+    &.invite
+      abs()
+      top                   15px
+      right                 0
+
+    &.add-more
+      height                24px
+      bg                    color, #BDC3C7
+
+      span
+        line-height         24px
+        font-size           10px
+        color               #FFF
+
+
+  .information
+    font-size               14px
+    color                   #3E3E3E
+    margin                  20px 0 40px 0
+
+    p
+      margin-bottom         15px
+
+  .invite-inputs
+    margin-bottom           10px
+
+    .kdinput
+      size                  160px, 40px
+      margin-right          10px
+
+    .email
+      width                 240px
+
+    &:hover
+      .cancel
+        display             inline !important
+
+    .icon
+      abs()
+      margin-top            12px
+
+      &.cancel
+        r-sprite            'app', 'red-close'
+        display             none
+        pointer()
+
+      &.success
+        r-sprite            'activity', 'following-check'
+        margin-top          15px
+
+
+    .kdloader
+      abs()
+      size                  16px, 16px
+      padding               0
+      margin-top            12px
+      hidden()
+
+
+  .kdlistitemview-member
     .details
       width                 520px
       line-height           40px
