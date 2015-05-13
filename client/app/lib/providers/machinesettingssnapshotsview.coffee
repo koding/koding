@@ -183,7 +183,12 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       modal = snapshotHelpers.showSnapshottingModal machine, container
 
       @on 'SnapshotProgress', modal.bound 'updatePercentage'
-      @createSnapshot label, (err, snapshot) =>
+      # Deferring here helps ensure that the IDE has made the proper
+      # calls that it needs, before we change the machine's state to
+      # Snapshotting.
+      #
+      # FIXME:
+      kd.utils.defer => @createSnapshot label, (err, snapshot) =>
         @off 'SnapshotProgress', modal.bound 'updatePercentage'
         if err
           kd.warn err

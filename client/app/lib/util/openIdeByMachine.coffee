@@ -49,7 +49,12 @@ module.exports = openIdeByMachine = (machine, callback) ->
         return callback new Error 'IDEApp being shown does not belong to
           requested machine'
 
-      return callback null, controller
+      # Remove the defer, once either MachineStateModal supports
+      # Snapshotting, or when the IDE properly emits a 'ready' event
+      # once it's *actually* fully ready.
+      #
+      # FIXME:
+      return kd.utils.defer -> callback null, controller
 
   # And now that we have subscribed to the event, fire the route.
   router.handleRoute "/IDE/#{machine.slug}"

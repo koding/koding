@@ -44,13 +44,7 @@ func (m *Mailer) SendMail(contentType, body, subject string) error {
 		return err
 	}
 
-	content, err := m.prepareContentWithLayout(contentType)
-	if err != nil {
-		return err
-	}
-
 	fullname := fmt.Sprintf("%s %s", m.UserContact.FirstName, m.UserContact.LastName)
-	m.Mail.HTML = content
 	m.Mail.To = m.UserContact.Email
 	m.Mail.ToName = fullname
 
@@ -63,13 +57,6 @@ func (m *Mailer) SendMail(contentType, body, subject string) error {
 
 	return nil
 
-}
-
-func (m *Mailer) prepareContentWithLayout(contentType string) (string, error) {
-	lc := NewLayoutContent(m.UserContact, contentType, m.Mail.Text)
-	lc.Information = m.Information
-
-	return lc.Render()
 }
 
 func (m *Mailer) validateMailer() error {

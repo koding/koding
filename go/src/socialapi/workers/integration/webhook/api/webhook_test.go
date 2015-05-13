@@ -39,7 +39,7 @@ func TestWebhookListen(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 
 	mc := mux.NewConfig("testing", "", "")
-	m := mux.New(mc, r.Log)
+	m := mux.New(mc, r.Log, nil)
 
 	h, err := NewHandler(r.Log)
 	if err != nil {
