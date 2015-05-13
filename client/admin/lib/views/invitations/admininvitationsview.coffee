@@ -38,6 +38,10 @@ module.exports = class AdminInvitationsView extends KDView
 
     tabView.showPaneByIndex 0
 
+    inviteView.on 'InvitationViewCancelled', =>
+      tabView.showPaneByIndex tabView.lastOpenPaneIndex
+      @inviteButton.show()
+
   createInviteButton: ->
 
     @addSubView @inviteButton = new KDButtonView
