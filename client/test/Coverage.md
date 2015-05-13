@@ -71,9 +71,9 @@
   - paidaccount
     - seeUpgradeModalForNotPaidUser
     - makeAlwaysOnForNotPaidUser
-    - addVM (disabled)
-    - turnOnNewPaidVM (disabled)
-    - makePaidVMAlwaysOn (disabled)
+    - addVM
+    - turnOnNewPaidVM
+    - makePaidVMAlwaysOn
 
   - vm
     - turnOffVm
