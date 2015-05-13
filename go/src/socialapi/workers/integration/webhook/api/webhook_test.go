@@ -72,7 +72,7 @@ func init() {
 	mc := mux.NewConfig("testing", "", "")
 	m = mux.New(mc, r.Log, nil)
 
-	h, err = NewHandler(r.Log)
+	h, err = NewHandler(appConfig, r.Log)
 	if err != nil {
 		panic(err)
 	}

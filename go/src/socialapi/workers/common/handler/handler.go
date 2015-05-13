@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"koding/tools/utils"
-	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/response"
 	"strconv"
@@ -311,8 +310,4 @@ func ParseCookiesToMap(cookie string) map[string]*http.Cookie {
 	}
 
 	return cookies
-}
-
-func RootPath() string {
-	return config.MustGet().CustomDomain.Local
 }

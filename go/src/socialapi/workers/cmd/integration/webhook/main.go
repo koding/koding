@@ -29,7 +29,7 @@ func main() {
 	mc := mux.NewConfig(Name, iConfig.Host, iConfig.Port)
 	m := mux.New(mc, r.Log, r.Metrics)
 
-	h, err := api.NewHandler(r.Log)
+	h, err := api.NewHandler(appConfig, r.Log)
 	if err != nil {
 		r.Log.Fatal("Could not initialize webhook worker: %s", err)
 	}

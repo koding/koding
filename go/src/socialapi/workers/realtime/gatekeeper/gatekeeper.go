@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"socialapi/config"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/response"
 	"socialapi/workers/realtime/models"
@@ -26,12 +27,13 @@ type Handler struct {
 	accountEndpoint            string
 }
 
-func NewHandler(p *models.PubNub, l logging.Logger) *Handler {
+func NewHandler(p *models.PubNub, conf *config.Config, l logging.Logger) *Handler {
+	rootPath := conf.CustomDomain.Local
 	return &Handler{
 		pubnub: p,
 		logger: l,
-		checkParticipationEndpoint: fmt.Sprintf("%s%s", handler.RootPath(), CheckParticipationPath),
-		accountEndpoint:            fmt.Sprintf("%s%s", handler.RootPath(), AccountPath),
+		checkParticipationEndpoint: fmt.Sprintf("%s%s", rootPath, CheckParticipationPath),
+		accountEndpoint:            fmt.Sprintf("%s%s", rootPath, AccountPath),
 	}
 }
 

@@ -28,7 +28,7 @@ func main() {
 	mc := mux.NewConfig(Name, appConfig.GateKeeper.Host, appConfig.GateKeeper.Port)
 	m := mux.New(mc, r.Log, r.Metrics)
 
-	h := api.NewHandler(pubnub, r.Log)
+	h := api.NewHandler(pubnub, appConfig, r.Log)
 
 	h.AddHandlers(m)
 

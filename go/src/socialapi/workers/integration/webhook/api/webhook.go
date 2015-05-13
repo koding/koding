@@ -5,6 +5,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/handler"
@@ -26,13 +27,13 @@ type Handler struct {
 	RootPath string
 }
 
-func NewHandler(l logging.Logger) (*Handler, error) {
+func NewHandler(conf *config.Config, l logging.Logger) (*Handler, error) {
 	bot, err := webhook.NewBot()
 	if err != nil {
 		return nil, err
 	}
 
-	rootPath := fmt.Sprintf("%s%s", handler.RootPath(), RevProxyPath)
+	rootPath := fmt.Sprintf("%s%s", conf.CustomDomain.Local, RevProxyPath)
 
 	return &Handler{
 		log:      l,
