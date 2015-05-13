@@ -81,14 +81,15 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			Percentage: 100,
 		}
 
-		k.Log.Info("[%s] ======> %s started <======", args.StackId, strings.ToUpper(r.Method))
 		start := time.Now()
 
 		var err error
 		if args.Destroy {
+			k.Log.Info("[%s] ======> %s (destroy) started <======", args.StackId, strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
 			err = destroy(ctx, r.Username, args.StackId)
 		} else {
+			k.Log.Info("[%s] ======> %s started <======", args.StackId, strings.ToUpper(r.Method))
 			err = apply(ctx, r.Username, args.StackId)
 			if err != nil {
 				finalEvent.Status = machinestate.NotInitialized
