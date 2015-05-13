@@ -44,13 +44,13 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint: "/moderation/channel/blacklist",
 		},
 	)
+	
 	m.AddHandler(
 		handler.Request{
 			Handler:  GetRoot,
 			Name:     models.ModerationChannelGetRoot,
 			Type:     handler.GetRequest,
 			Endpoint: "/moderation/channel/root/{leafId}",
-			Metrics:  metric,
 		},
 	)
 }
