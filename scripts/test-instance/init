@@ -25,6 +25,8 @@ service nginx stop
 
 cd $REPOSITORY_PATH
 
+export CONFIG_DEBUGMODE="true"
+
 npm --unsafe-perm install
 ./configure --host $HOST:8090
 sh -c "scripts/install-npm.sh -d client -u"
