@@ -576,6 +576,11 @@ module.exports = class SocialApiController extends KDController
     fetchPrivateMessages : messageRequesterFn
       fnName             : 'fetchPrivateMessages'
       mapperFn           : mapPrivateMessages
+    
+    create               : channelRequesterFn
+      fnName             : 'create'
+      validateOptionsWith: ["name"]
+      mapperFn           : mapChannel
 
     revive               : mapActivity
 
