@@ -81,6 +81,31 @@ func Blacklist(u *url.URL, h http.Header, req *models.ChannelLink, context *mode
 	return response.HandleResultAndError(req, req.Blacklist())
 }
 
+// GetRoot gets the root id of the channels
+func GetRoot(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	// only admin users can request
+	if !context.IsAdmin() {
+		return response.NewAccessDenied(errors.New("not admin"))
+	}
+
+	req := &models.ChannelLink{}
+	if err := prepareRequest(u, req); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	root, err := req.FetchRoot()
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cc := models.NewChannelContainer()
+	if err := cc.PopulateWith(*root, context.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(cc)
+}
+
 // prepareRequest read the parameters from url and sets them into struct
 func prepareRequest(u *url.URL, req *models.ChannelLink) error {
 	rootId, err := request.GetURIInt64(u, "rootId")
