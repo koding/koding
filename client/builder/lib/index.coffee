@@ -450,7 +450,7 @@ class Haydar extends events.EventEmitter
 
         onRaw = (e, file) ->
           return  unless file
-          if e is 'modified' or e is 'deleted'
+          if e in ['change','modified','deleted']
             console.log "updated #{dir}"
             start = Date.now()
             styl manifest, globs
