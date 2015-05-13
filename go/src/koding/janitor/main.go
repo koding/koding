@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	WorkerName    = "Janitor"
+	WorkerName    = "janitor"
 	WorkerVersion = "0.0.1"
 
 	Log logging.Logger
