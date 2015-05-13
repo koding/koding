@@ -130,32 +130,3 @@ func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*mo
 
 	return &cpr, nil
 }
-
-func getAccountInfo(u *url.URL, header http.Header) (*models.Account, error) {
-	cookie := header.Get("Cookie")
-	request := &handler.Request{
-		Type:     "GET",
-		Endpoint: "/api/social/account",
-		Cookie:   cookie,
-	}
-
-	// TODO update this requester
-	resp, err := handler.MakeRequest(request)
-	if err != nil {
-		return nil, err
-	}
-
-	// Need a better response
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf(resp.Status)
-	}
-
-	var a models.Account
-	err = json.NewDecoder(resp.Body).Decode(&a)
-	resp.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return &a, nil
-}
