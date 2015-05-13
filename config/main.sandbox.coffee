@@ -455,8 +455,6 @@ Configuration = (options={}) ->
     janitor             :
       group             : "environment"
       instances         : 1
-      ports             :
-        incoming        : "#{socialapi.janitor.port}"
       supervisord       :
         command         : "#{GOBIN}/janitor"
       healthCheckURL    : "http://localhost:#{socialapi.janitor.port}/healthCheck"
