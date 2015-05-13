@@ -74,6 +74,7 @@ var DeleteBlockedUserVM = &Warning{
 
 	Select: []bson.M{
 		bson.M{"lastLoginDate": moreThanDaysQuery(14)},
+		bson.M{"inactive.warning": bson.M{"$exists": false}},
 		bson.M{"status": "blocked"},
 	},
 
