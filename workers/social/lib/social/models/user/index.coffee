@@ -883,7 +883,7 @@ module.exports = class JUser extends jraphical.Module
       callback null
 
   @changeUsernameByAccount = (options, callback)->
-    { account, username, clientId, isRegistration } = options
+    { account, username, clientId, isRegistration, groupName } = options
     account.changeUsername { username, isRegistration }, (err) =>
       return callback err   if err?
       return callback null  unless clientId?
@@ -893,7 +893,7 @@ module.exports = class JUser extends jraphical.Module
           return callback createKodingError "Could not update your session"
 
         if session?
-          session.update { $set: { clientId: newToken, username }}, (err) ->
+          session.update { $set: { clientId: newToken, username, groupName }}, (err) ->
             return callback err  if err?
             callback null, newToken
         else
@@ -1027,7 +1027,14 @@ module.exports = class JUser extends jraphical.Module
 
       =>
         if aNewRegister and username?
-          options = { account, username, clientId, isRegistration: yes }
+          options = {
+            account        : account
+            username       : username
+            clientId       : clientId
+            isRegistration : yes
+            groupName      : client.context.group
+          }
+
           @changeUsernameByAccount options, (err, newToken_) =>
             return callback err  if err
             newToken = newToken_
@@ -1047,9 +1054,10 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        # why do we need to create a separate client?
         _client =
           connection : delegate : account
-          context    : group    : 'koding'
+          context    : group    : client.context.group
 
         ComputeProvider.createGroupStack _client, (err)->
           if err?
