@@ -49,6 +49,7 @@ type Controller struct {
 
 type WorkspaceData struct {
 	AccountId int64
+	GroupName string
 }
 
 func New(conf *config.Config, log logging.Logger) *Controller {
@@ -85,7 +86,12 @@ func (c *Controller) MessageCreated(cm *models.ChannelMessage) error {
 		return err
 	}
 
-	event.Properties["groupName"] = "koding"
+	c, err := cm.FetchParentChannel()
+	if err != nil {
+		return err
+	}
+
+	event.Properties["groupName"] = c.GroupName
 	event.Properties["message"] = SendMessageBody
 
 	return c.exporter.Send(event)
@@ -105,7 +111,7 @@ func (c *Controller) ChannelCreated(ch *models.Channel) error {
 		return err
 	}
 
-	event.Properties["groupName"] = "koding"
+	event.Properties["groupName"] = ch.GroupName
 	event.Properties["message"] = StartCollBody
 
 	return c.exporter.Send(event)
@@ -122,7 +128,7 @@ func (c *Controller) WorkspaceCreated(w *WorkspaceData) error {
 		return err
 	}
 
-	event.Properties["groupName"] = "koding"
+	event.Properties["groupName"] = w.GroupName
 	event.Properties["message"] = CreateWSBody
 
 	return c.exporter.Send(event)

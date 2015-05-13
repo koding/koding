@@ -86,7 +86,7 @@ module.exports = class JWorkspace extends Module
         message =
           accountId: delegate.socialApiId
           name: name
-          slug: slug
+          groupName: slug
 
         @emit 'messageBusEvent', {type: "social.workspace_created", message: message}
 
