@@ -5,14 +5,11 @@ KDView        = kd.View
 globals       = require 'globals'
 
 
-module.exports = class AdminAppView extends kd.ModalView
 
-  constructor:(options={}, data)->
+module.exports = class AdminAppView extends kd.View
 
-    options.title    = 'Team Dashboard'
-    options.cssClass = 'AppModal AppModal--admin'
-    options.width    = 1000
-    options.height   = 600
+  constructor: (options = {}, data) ->
+
     options.testPath = 'groups-admin'
     data           or= kd.singletons.groupsController.getCurrentGroup()
 

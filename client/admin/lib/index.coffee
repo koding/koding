@@ -23,7 +23,13 @@ module.exports = class AdminAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    options.view = new AdminAppView
+    options.view = new kd.ModalView
+      title      : 'Team Dashboard'
+      cssClass   : 'AppModal AppModal--admin'
+      width      : 1000
+      height     : 600
+      overlay    : yes
+
     data       or= kd.singletons.groupsController.getCurrentGroup()
 
     super options, data
