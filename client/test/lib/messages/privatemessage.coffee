@@ -18,6 +18,18 @@ module.exports =
     browser.end()
 
 
+  startConversationWithPurpose: (browser) ->
+
+    messageUser =
+      userName  : 'testuser1'
+      fullName  : 'Test1 User1'
+
+    helpers.beginTest(browser)
+
+    messagesHelpers.startConversation(browser, messageUser, 'Hello World!', 'My Purpose')
+    browser.end()
+
+
   refreshPageAndSeeTheConversationInSidebar: (browser) ->
 
     messageUser =
@@ -58,4 +70,5 @@ module.exports =
         messagesHelpers.leaveConversation(browser, messageUser)
 
     browser.end()
+
 
