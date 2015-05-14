@@ -1,6 +1,6 @@
 kookies            = require 'kookies'
-getGroup           = require './util/getGroup'
-whoami             = require './util/whoami'
+getGroup           = require 'app/util/getGroup'
+whoami             = require 'app/util/whoami'
 envDataProvider    = require 'app/userenvironmentdataprovider'
 kd                 = require 'kd'
 KDModalView        = kd.ModalView
@@ -53,8 +53,8 @@ module.exports = class NotificationController extends KDObject
         # event: "ChannelUpdateHappened"
 
         # filter notifications according to group slug
-        currentGroup = kd.singletons.groupsController.getCurrentGroup()
-        return  unless notification?.context is currentGroup.slug
+
+        return  unless notification?.context is getGroup().slug
 
         @emit 'NotificationHasArrived', notification
 
