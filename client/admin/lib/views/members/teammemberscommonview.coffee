@@ -15,6 +15,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     options.noItemFoundWidget      or= new KDCustomHTMLView
     options.listViewItemClass      or= MemberItemView
+    options.cssClass                 = 'members-commonview'
     options.listViewItemOptions    or= {}
     options.searchInputPlaceholder or= 'Find by name/username'
     options.itemLimit               ?= 10
