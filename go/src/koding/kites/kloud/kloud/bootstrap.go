@@ -128,7 +128,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				"meta.acl":        awsOutput.ACL,
 				"meta.cidr_block": awsOutput.CidrBlock,
 				"meta.igw":        awsOutput.IGW,
-				"meta.key_pair":   awsOutput.KeyPair + "-" + r.Username,
+				"meta.key_pair":   awsOutput.KeyPair,
 				"meta.rtb":        awsOutput.RTB,
 				"meta.sg":         awsOutput.SG,
 				"meta.subnet":     awsOutput.Subnet,

@@ -298,7 +298,7 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 			if err := klientRef.Ping(); err != nil {
 				mu.Lock()
 				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't send ping to '%s:%s'", label, kiteId))
+					fmt.Errorf("Couldn't send ping to '%s:%s': %s", label, kiteId, err))
 				mu.Unlock()
 			}
 		}(l, k)

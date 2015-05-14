@@ -68,10 +68,20 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	// create eventer and also add it to the context
 	eventId := r.Method + "-" + args.StackId
 	ev := k.NewEventer(eventId)
-	ev.Push(&eventer.Event{
-		Message: r.Method + " started",
-		Status:  machinestate.Building,
-	})
+
+	if args.Destroy {
+		ev.Push(&eventer.Event{
+			Message: r.Method + " started",
+			Status:  machinestate.Terminating,
+		})
+
+	} else {
+		ev.Push(&eventer.Event{
+			Message: r.Method + " started",
+			Status:  machinestate.Building,
+		})
+	}
+
 	ctx = eventer.NewContext(ctx, ev)
 
 	go func() {
@@ -174,7 +184,7 @@ func destroy(ctx context.Context, username, stackId string) error {
 
 	sess.Log.Debug("Calling terraform.destroy method with context:")
 	sess.Log.Debug(stack.Template)
-	state, err := tfKite.Destroy(&tf.TerraformRequest{
+	_, err = tfKite.Destroy(&tf.TerraformRequest{
 		Content:   stack.Template,
 		ContentID: username + "-" + stackId,
 		Variables: nil,
@@ -183,7 +193,8 @@ func destroy(ctx context.Context, username, stackId string) error {
 		return err
 	}
 
-	fmt.Printf("state = %+v\n", state)
+	panic("remove stack adn jMachines from db")
+
 	return nil
 }
 

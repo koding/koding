@@ -89,7 +89,7 @@ var (
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
 
-	machineCount      = 2
+	machineCount      = 1
 	terraformTemplate = `{
     "provider": {
         "aws": {
@@ -282,7 +282,7 @@ func TestTerraformPlan(t *testing.T) {
 	fmt.Printf("result = %+v\n", result)
 }
 
-func TestTerraformApply(t *testing.T) {
+func TestTerraformApplyAndDestroy(t *testing.T) {
 	t.Parallel()
 	username := "testuser10"
 	userData, err := createUser(username)
@@ -369,6 +369,32 @@ func TestTerraformStack(t *testing.T) {
 	})
 
 	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
+		t.Error(err)
+	}
+
+	destroyArgs := &kloud.TerraformApplyRequest{
+		StackId: userData.StackId,
+		Destroy: true,
+	}
+
+	resp, err = remote.Tell("apply", destroyArgs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	eArgs = kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Terminated, remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -722,10 +748,15 @@ func createUser(username string) (*singleUser, error) {
 	machineIds := make([]bson.ObjectId, machineCount)
 
 	for i := 0; i < machineCount; i++ {
+		label := "example." + strconv.Itoa(i)
+		if machineCount == 1 {
+			label = "example"
+		}
+
 		machineId := bson.NewObjectId()
 		machine := &koding.Machine{
 			Id:         machineId,
-			Label:      "example." + strconv.Itoa(i),
+			Label:      label,
 			Domain:     username + ".dev.koding.io",
 			Credential: username,
 			Provider:   "koding",
@@ -751,7 +782,6 @@ func createUser(username string) (*singleUser, error) {
 		}); err != nil {
 			return nil, err
 		}
-
 	}
 
 	// jComputeStack and jStackTemplates
