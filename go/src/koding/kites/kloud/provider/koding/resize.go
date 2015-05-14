@@ -85,8 +85,9 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 
 	// reset to current size in DB if something goes wrong, so the user can
 	// again apply resize if wished
+	revertSize := true
 	defer func() {
-		if resErr != nil {
+		if revertSize && resErr != nil {
 			if err := m.updateStorageSize(currentSize); err != nil {
 				m.Log.Error(err.Error())
 			}
@@ -199,6 +200,9 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	if err := a.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
 		return err
 	}
+
+	// everything is setup, don't revert size anymore if something goes wrong
+	revertSize = false
 
 	m.push("Starting instance", 80, machinestate.Pending)
 	// start the stopped instance now as we attached the new volume
