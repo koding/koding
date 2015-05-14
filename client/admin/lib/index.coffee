@@ -56,6 +56,15 @@ module.exports = class AdminAppController extends AppController
     super options, data
 
 
-  loadSection: ({title}) ->
-    view = @getView()
-    view.ready -> view.tabs.showPaneByName title
+  openSection: (section, query) ->
+
+    @mainView.ready =>
+      unless @mainView.tabs.showPaneByName section
+        kd.singletons.router.handleRoute "/Admin/Settings"
+
+
+  loadView: (modal) ->
+
+    modal.addSubView @mainView = new AdminAppView
+      tabData: NAV_ITEMS
+    , @getData()
