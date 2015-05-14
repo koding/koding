@@ -89,7 +89,7 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 // NotifyUser sends user notifications to related channel
 func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	if nm.Account.Nick == "" {
-		c.logger.Error("Nickname is not set")
+		c.logger.Error("Nick is not set")
 		return nil
 	}
 
