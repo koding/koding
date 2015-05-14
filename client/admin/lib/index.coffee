@@ -1,5 +1,4 @@
 kd                        = require 'kd'
-Encoder                   = require 'htmlencode'
 AdminAppView              = require './adminappview'
 AppController             = require 'app/appcontroller'
 AdminMembersView          = require './views/members/adminmembersview'
@@ -44,7 +43,6 @@ module.exports = class AdminAppController extends AppController
         viewOptions  :
           viewClass  : AdminMembersView
           lazy       : yes
-          callback   : @bound 'membersViewAdded'
       ,
         name         : 'Invitations'
         viewOptions  :
@@ -97,29 +95,6 @@ module.exports = class AdminAppController extends AppController
 
   fetchTabData: (callback) -> kd.utils.defer => callback @tabData
 
-  membersViewAdded: (pane, view) ->
-    group = view.getData()
-    # pane.on 'PaneDidShow', ->
-    #   view.refresh()  if pane.tabHandle.isDirty
-    #   pane.tabHandle.markDirty no
-    group.on 'MemberAdded', ->
-      kd.log 'MemberAdded'
-      # {tabHandle} = pane
-      # tabHandle.markDirty()
-
   loadSection: ({title}) ->
     view = @getView()
     view.ready -> view.tabs.showPaneByName title
-
-  loadView: (mainView, firstRun = yes, loadFeed = no)->
-    return unless firstRun
-    @on "SearchFilterChanged", (value) =>
-      return if value is @_searchValue
-      @_searchValue = Encoder.XSSEncode value
-      @getOptions().view.search @_searchValue
-      @loadView mainView, no, yes
-
-  handleQuery:(query={})->
-    @getOptions().view.ready =>
-      {q} = query
-      @emit "SearchFilterChanged", q or ""
