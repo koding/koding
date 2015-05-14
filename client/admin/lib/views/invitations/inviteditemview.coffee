@@ -12,14 +12,26 @@ module.exports = class InvitedItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type or= 'member'
+    options.type     or= 'member'
+    options.cssClass   = options.statusType
 
     super options, data
 
-    { hash, createdAt } = data
+    @createViews()
 
-    size             = 40
-    defaultAvatarUri = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+
+  showSettings: ->
+
+    @settings.toggleClass 'hidden'
+    @toggleClass 'settings-visible'
+
+
+  createViews: ->
+
+    { hash, createdAt } = data
+    { statusType }      = options
+    size                = 40
+    defaultAvatarUri    = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
 
     @avatar      = new KDCustomHTMLView
       tagName    : 'img'
@@ -27,7 +39,28 @@ module.exports = class InvitedItemView extends KDListItemView
       attributes :
         src      : "//gravatar.com/avatar/#{hash}?s=#{size}&d=#{defaultAvatarUri}"
 
-    @timeAgoView = new KDTimeAgoView {}, createdAt
+    @timeAgoView  = new KDTimeAgoView { click: @bound 'showSettings' }, createdAt
+
+    if statusType is 'pending'
+      @settingsIcon = new KDCustomHTMLView
+        tagName     : 'span'
+        cssClass    : 'settings-icon'
+        click       : @bound 'showSettings'
+    else
+      @settingsIcon = new KDCustomHTMLView
+
+    @settings  = new KDCustomHTMLView
+      cssClass : 'settings hidden'
+
+    if statusType is 'pending'
+
+      @settings.addSubView new KDButtonView
+        cssClass : 'solid compact outline'
+        title    : 'REVOKE INVITATION'
+
+      @settings.addSubView new KDButtonView
+        cssClass : 'solid compact outline'
+        title    : 'RESEND INVITATION'
 
 
   pistachio: ->
@@ -44,4 +77,7 @@ module.exports = class InvitedItemView extends KDListItemView
         <p class="fullname">#{markup or emailMarkup}</p>
       </div>
       {{> @timeAgoView}}
+      {{> @settingsIcon}}
+      <div class="clear"></div>
+      {{> @settings}}
     """
