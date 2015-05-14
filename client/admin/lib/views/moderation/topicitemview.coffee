@@ -4,11 +4,11 @@ KDButtonView           = kd.ButtonView
 KDListItemView         = kd.ListItemView
 KDCustomHTMLView       = kd.CustomHTMLView
 KDCheckBox             = kd.CheckBox
-KDListViewController = kd.ListViewController
-KDHitEnterInputView  = kd.HitEnterInputView
+KDListViewController   = kd.ListViewController
+KDHitEnterInputView    = kd.HitEnterInputView
 
-TopicLeafItemView    = require './topicleafitemview'
-SelectableItemView      = require './selectableitemview'
+TopicLeafItemView      = require './topicleafitemview'
+SelectableItemView     = require './selectableitemview'
 
 module.exports = class TopicItemView extends KDListItemView
 
@@ -16,16 +16,22 @@ module.exports = class TopicItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type or= 'topic'
+    options.type                or= 'topic'
     options.noItemFoundWidget   or= new KDCustomHTMLView
     options.listViewItemClass   or= TopicLeafItemView
     options.listViewItemOptions or= {}
     options.itemLimit            ?= 10
     
-    @leafSkip = 0
+    @leafSkip    = 0
     @similarSkip = 0
     
     super options, data
+    
+    @createLabels(data)
+    @createSettingsView(data)
+ 
+ 
+  createLabels:(data)->
     
     @moderationLabel = new KDCustomHTMLView
       cssClass : 'moderateRole'
@@ -36,9 +42,129 @@ module.exports = class TopicItemView extends KDListItemView
     
     @typeLabel = new KDCustomHTMLView
       cssClass : 'type-label'
+
+
+  createSettingsView:(data) ->
+
+    @settings  = new KDCustomHTMLView
+      cssClass : 'settings hidden'
+    
+    if data.typeConstant is "topic" then @createAllTopicView(data) else @createDeletedTopicView(data)
+    
+    @createLeafChannelSetting(data)
+            
+    @createSimilarChannelSetting(data) 
+
+  createAllTopicView : (data) ->
+      @settings.addSubView deleteButton = new KDButtonView
+        cssClass : 'solid compact outline'
+        title    : 'DELETE CHANNEL'
+        callback :=>
+          options = 
+            rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+            leafId  : data.id
+          
+          kd.singletons.socialapi.moderation.blacklist options, (err, data) =>
+            if err
+              console.log "no leaf channel found for #{data.id}, #{data.name}"
+              
+  createDeletedTopicView: (data) ->
+      options = 
+        rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+        leafId  : data.id
       
-    @createSettingsView(data)
+      kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
+       
+        if err 
+          return console.log "err while fething root", err
+        
+        if rootChannel
+          text = "Blacklisted"
+          if kd.singletons.groupsController.getCurrentGroup().socialApiChannelId isnt rootChannel.id 
+            text = "linked to #{rootChannel.name}"
+          
+        @typeLabel.setPartial "#{text}"
+        
+        @settings.addSubView whitelistButton = new KDButtonView
+          cssClass : 'solid compact outline'
+          title    : 'WHITELIST CHANNEL'
+          callback : => 
+            options = 
+              rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
+              leafId  : data.id
+
+            kd.singletons.socialapi.moderation.unlink options, (err, data) =>
+            
+              if err
+                console.log "no leaf channel found for #{options.rootId}, #{data}"
+                
+         
+  createLeafChannelSetting: (data)->
+    @settings.addSubView @removeLabel = new KDCustomHTMLView
+      cssClass: 'solid compact hidden'
+      partial : '<span class="label">Leaf Channels</span>'
+
+    @createLeafChannelsListController()
+    @settings.addSubView @leafChannelsListController.getView()
+    @createLeafItemViews @getData()
+
+    @settings.addSubView @removeButton = new KDButtonView
+      cssClass : 'solid compact outline hidden'
+      title    : 'REMOVE LINK'
+      callback : =>
+        listItems = @leafChannelsListController.getListItems()
+        listItems.forEach (item)=> 
+          return  if item.switcher.getValue() is false
+          options = 
+            rootId  :  data.id
+            leafId  : item.getData().id
+
+          kd.singletons.socialapi.moderation.unlink options, (err, @item) =>
+          
+            if err
+              return console.log "no leaf channel found for #{data.id}, #{data.name}"
+            @leafChannelsListController.removeItem item
+    
   
+  createSimilarChannelSetting:(data)->
+         
+    @settings.addSubView new KDCustomHTMLView
+      cssClass: 'solid compact'
+      partial : '<span class="label">Similar Channels</span>'
+
+
+    @settings.addSubView @searchContainer = new KDCustomHTMLView
+      cssClass: 'search'
+      partial : '<span class="label">Find similar channels</span>'
+
+    @searchContainer.addSubView @searchInput = new KDHitEnterInputView
+      type        : 'text'
+      placeholder : @getData().name
+      callback    : @bound 'searchSimilarChannels'
+    
+    @createSimilarChannelsListController()
+    @settings.addSubView @similarChannelsListController.getView()
+    @fetchSimilarChannels(@getData().name)
+    
+    @settings.addSubView linkButton = new KDButtonView
+      cssClass : 'solid compact outline'
+      title    : 'LINK CHANNEL'
+      callback : =>
+        listItems = @similarChannelsListController.getListItems()
+        listItems.forEach (item)=> 
+          return  if item.switcher.getValue() is false
+          options = 
+            rootId  : data.id
+            leafId  : item.getData().id
+     
+          kd.singletons.socialapi.moderation.link options, (err, @item) =>
+          
+            if err
+              console.log "no leaf channel found for #{data.id}, #{data.name}"
+            @similarChannelsListController.removeItem item
+            @listLeafChannels [item.getData()]
+
+
   createLeafItemViews: (data) ->
     options = rootId  :  data.id
           
@@ -66,122 +192,7 @@ module.exports = class TopicItemView extends KDListItemView
     if @leafChannelsListController.getItemCount() > 0
       @removeButton.show()
 
-  createSettingsView:(data) ->
-
-    @settings  = new KDCustomHTMLView
-      cssClass : 'settings hidden'
-    
-    if data.typeConstant is "topic"
-      @settings.addSubView deleteButton = new KDButtonView
-        cssClass : 'solid compact outline'
-        title    : 'DELETE CHANNEL'
-        callback :=>
-          options = 
-            rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
-            leafId  : data.id
-          
-          kd.singletons.socialapi.moderation.blacklist options, (err, data) =>
-            if err
-              console.log "no leaf channel found for #{data.id}, #{data.name}"
-
-    else
-      options = 
-        rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
-        leafId  : data.id
-      
-      kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
-        if err 
-          return console.log "err while fething root", err
-        
-        if rootChannel
-          text = "Blacklisted"
-          if kd.singletons.groupsController.getCurrentGroup().socialApiChannelId isnt rootChannel.id 
-            text = "linked to #{rootChannel.name}"
-          
-        @typeLabel.setPartial "#{text}"
-        
-        @settings.addSubView whitelistButton = new KDButtonView
-          cssClass : 'solid compact outline'
-          title    : 'WHITELIST CHANNEL'
-          callback : => 
-            options = 
-              rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
-              leafId  : data.id
-
-            kd.singletons.socialapi.moderation.unlink options, (err, data) =>
             
-              if err
-                console.log "no leaf channel found for #{options.rootId}, #{data}"
-            
-        
-          
-
-    @settings.addSubView @removeLabel = new KDCustomHTMLView
-      cssClass: 'solid compact hidden'
-      partial : '<span class="label">Leaf Channels</span>'
-
-    @createLeafChannelsListController()
-    @settings.addSubView @leafChannelsListController.getView()
-    @createLeafItemViews @getData()
-    
-    @settings.addSubView @removeButton = new KDButtonView
-      cssClass : 'solid compact outline hidden'
-      title    : 'REMOVE LINK'
-      callback : =>
-        listItems = @leafChannelsListController.getListItems()
-        listItems.forEach (item)=> 
-          return  if item.switcher.getValue() is false
-          options = 
-            rootId  :  data.id
-            leafId  : item.getData().id
-
-          kd.singletons.socialapi.moderation.unlink options, (err, @item) =>
-          
-            if err
-              return console.log "no leaf channel found for #{data.id}, #{data.name}"
-            item.hide()
-            
-     
-    @settings.addSubView new KDCustomHTMLView
-      cssClass: 'solid compact'
-      partial : '<span class="label">Similar Channels</span>'
-
-
-    @settings.addSubView @searchContainer = new KDCustomHTMLView
-      cssClass: 'search'
-      partial : '<span class="label">Find similar channels</span>'
-
-    @searchContainer.addSubView @searchInput = new KDHitEnterInputView
-      type        : 'text'
-      placeholder : @getData().name
-      callback    : @bound 'searchSimilarChannels'
-    
-    @createSimilarChannelsListController()
-    @settings.addSubView @similarChannelsListController.getView()
-    @fetchSimilarChannels(@getData().name)
-
-    @settings.addSubView linkButton = new KDButtonView
-      cssClass : 'solid compact outline'
-      title    : 'LINK CHANNEL'
-      callback : =>
-        listItems = @similarChannelsListController.getListItems()
-        listItems.forEach (item)=> 
-          return  if item.switcher.getValue() is false
-          options = 
-            rootId  : data.id
-            leafId  : item.getData().id
-     
-          kd.singletons.socialapi.moderation.link options, (err, @item) =>
-          
-            if err
-              console.log "no leaf channel found for #{data.id}, #{data.name}"
-            @similarChannelsListController.removeItem item
-            @listLeafChannels [item.getData()]
-            # @leafChannelsListController.addItem item.getData()
-            # if @leafChannelsListController.getItemCount() is 0 
-              
-        
-  
   searchSimilarChannels: ->
 
     @similarSkip  = 0
@@ -243,8 +254,6 @@ module.exports = class TopicItemView extends KDListItemView
       lazyLoaderOptions   :
         spinnerOptions    :
           size            : width: 28
-
-    #@listController.on 'LazyLoadThresholdReached', @bound 'fetchChannels'
     
     
   createSimilarChannelsListController: ->
@@ -262,7 +271,6 @@ module.exports = class TopicItemView extends KDListItemView
         spinnerOptions    :
           size            : width: 28
 
-    #@listController.on 'LazyLoadThresholdReached', @bound 'fetchChannels'
 
   pistachio: ->
     data          = @getData()
