@@ -7,7 +7,7 @@ module.exports = class AcceptedInvitationsView extends PendingInvitationsView
 
   constructor: (options = {}, data) ->
 
-    options.statusType = 'accepted'
+    options.statusType          = 'accepted'
+    options.listViewItemOptions = statusType: 'accepted'
 
     super options, data
-

@@ -9,8 +9,9 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
   constructor: (options = {}, data) ->
 
-    options.listViewItemClass   = InvitedItemView
-    options.statusType        or= 'pending'
+    options.listViewItemClass     = InvitedItemView
+    options.listViewItemOptions or= statusType: 'pending'
+    options.statusType          or= 'pending'
 
     super options, data
 
