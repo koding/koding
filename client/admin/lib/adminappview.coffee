@@ -29,7 +29,7 @@ module.exports = class AdminAppView extends kd.View
     @setListeners()
 
 
-  setListeners:->
+  setListeners: ->
 
     @on 'groupSettingsUpdated', (group)->
       @setData group
@@ -54,20 +54,34 @@ module.exports = class AdminAppView extends kd.View
 
   createTabs: ->
 
-    data = @getData()
+    data         = @getData()
+    {tabData}    = @getOptions()
+    currentGroup = kd.singletons.groupsController.getCurrentGroup()
 
-    kd.singletons.appManager.tell 'Admin', 'fetchTabData', (tabData) =>
+    items = []
 
-      for {name, hiddenHandle, viewOptions, kodingOnly}, i in tabData
+    for own sectionKey, section of tabData
 
-        viewOptions.data    = data
-        viewOptions.options = delegate : this  if name is 'Settings'
-        hiddenHandle        = hiddenHandle? and data.privacy is 'public'
-        pane                = new KDTabPaneView {name, viewOptions}
+      if sectionKey is 'koding' and currentGroup.slug isnt 'koding'
+        continue
 
-        @tabs.addPane pane, i is 0
+      items = items.concat section.items
 
-      @emit 'ready'
+
+    items.forEach (item, i) =>
+
+      { viewClass, slug, title } = item
+
+      pane = new KDTabPaneView name: slug
+      pane.addSubView new viewClass
+        cssClass : slug
+        delegate : this
+      , data
+
+      @tabs.addPane pane, i is 0
+
+    @emit 'ready'
+
 
 
   search: (searchValue)->
