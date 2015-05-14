@@ -61,6 +61,7 @@ module.exports = class TeamMembersCommonView extends KDView
         itemClass         : listViewItemClass
         itemOptions       : listViewItemOptions
       noItemFoundWidget   : noItemFoundWidget
+      useCustomScrollView : yes
       startWithLazyLoader : yes
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :

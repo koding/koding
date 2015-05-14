@@ -14,16 +14,15 @@ Admin main styles
 
 .AppModal--admin
 
-  #main-tab-view
-    overflow                visible
-    overflow                hidden!important
+  .kdcustomscrollview
+    styleScrollBars         rgba(0, 0, 0, .15)
 
   .kdmodal-content
     size                    100% 100%
 
   .AppModal-content
-    height                  500px
-    overflow                auto!important
+    height                  515px
+
 
   .group-logo
     figure
@@ -476,12 +475,18 @@ Admin main styles
 // Admin modal specific styling
 .AppModal--admin
 
-  .kdmodal-content
+  &.kdmodal .kdmodal-inner .kdmodal-content
+    overflow                hidden
+
+    // not necessary anymore - SY
     max-height              515px !important // to override computed height
 
 
 // common tab styling
 .AppModal--admin
+
+  .AppModal-content.kdtabview
+    overflow                hidden
 
   .kdtabhandlecontainer
     background              none
@@ -512,7 +517,6 @@ Admin main styles
         color               #575757 !important
         bg                  color, transparent !important
 
-
 // outline button styling
 .AppModal--admin
 
@@ -541,6 +545,9 @@ Admin main styles
 
 // members tab styling
 .AppModal--admin .member-related
+
+  .kdtabpaneview
+    kalc                    height, (100% \- 153px)
 
   .search
     margin                  25px 0
