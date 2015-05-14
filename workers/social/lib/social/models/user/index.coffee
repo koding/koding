@@ -905,6 +905,20 @@ module.exports = class JUser extends jraphical.Module
       return callback message: "Guests group not found!"  unless guestsGroup?
       guestsGroup.removeMember account, callback
 
+  createGroupStack = (account, groupName, callback)->
+    _client =
+      connection : delegate : account
+      context    : group    : groupName
+
+    ComputeProvider.createGroupStack _client, (err)->
+      if err?
+        console.warn "Failed to create group stack for #{account.profile.nickname}:", err
+
+      # We are not returning error here on purpose, even stack template
+      # not created for a user we don't want to break registration process
+      # at all ~ GG
+      callback()
+
   @convert = secure (client, userFormData, callback) ->
 
     { connection, sessionToken : clientId, clientIP } = client
@@ -1054,20 +1068,14 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        # why do we need to create a separate client?
-        _client =
-          connection : delegate : account
-          context    : group    : client.context.group
+        # create default stack for koding group, when a user joins
+        createGroupStack account, "koding", queue.next
+      ->
+        # handle stack creation for teams
+        # if a user joins directly from a group, create their stack
+        return queue.next() if "koding" is client.context.group
 
-        ComputeProvider.createGroupStack _client, (err)->
-          if err?
-            console.warn "Failed to create group stack for #{username}:", err
-
-          # We are not returning error here on purpose, even stack template
-          # not created for a user we don't want to break registration process
-          # at all ~ GG
-          queue.next()
-
+        createGroupStack account, client.context.group, queue.next
       ->
         account.update $set: type: 'registered', (err) ->
           return callback err  if err?
