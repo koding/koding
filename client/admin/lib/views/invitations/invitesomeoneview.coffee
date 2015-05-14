@@ -55,6 +55,33 @@ module.exports = class InviteSomeoneView extends KDView
       cssClass : 'solid medium green invite-members'
       callback : @bound 'inviteMembers'
 
+
+  inviteMembers: ->
+
+    invites = []
+
+    for view in @inputViews
+      return unless view.email.validate()
+
+      invites.push view.serialize()
+
+
+    remote.api.JInvitation.create invitations: invites, (err) =>
+      if err
+        return new KDNotificationView
+          title    : 'Failed to send some invites, please try again.'
+          duration : 5000
+
+      for view in @inputViews by -1
+        if view.getOptions().cancellable then view.destroy()
+        else
+          input.setValue ''  for input in view.inputs
+
+      new KDNotificationView
+        title    : 'All invites sent.'
+        duration : 5000
+
+
   createInformationView: ->
 
     @addSubView new KDCustomHTMLView
