@@ -44,6 +44,8 @@ module.exports = class InvitationInputView extends KDView
         cssClass : 'cancel icon'
         click    : => @destroy()
 
+    @inputs = [ @email, @firstName, @lastName ]
+
 
   serialize: ->
 
