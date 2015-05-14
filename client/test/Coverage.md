@@ -153,9 +153,9 @@
 
 - messages
   - privatemessage
-    - startConversation (disabled)
-    - refreshAndSeeConversationOnSidebar (disabled)
-    - leaveConversation (in progress)
+    - startConversation
+    - refreshAndSeeConversationOnSidebar
+    - leaveConversation
     - setConversationPurpose (in progress)
     - startConversationWithMultiplePeople (in progress)
 
