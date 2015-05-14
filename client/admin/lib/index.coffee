@@ -68,3 +68,10 @@ module.exports = class AdminAppController extends AppController
     modal.addSubView @mainView = new AdminAppView
       tabData: NAV_ITEMS
     , @getData()
+
+    modal.once 'KDObjectWillBeDestroyed', ->
+      { router } = kd.singletons
+      previousRoutes = router.visitedRoutes.filter (route) -> not /^\/Admin.*/.test(route)
+      if previousRoutes.length > 0
+      then router.handleRoute previousRoutes.last
+      else router.handleRoute router.getDefaultRoute()
