@@ -13,10 +13,11 @@ module.exports = class TeamMembersCommonView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.noItemFoundWidget   or= new KDCustomHTMLView
-    options.listViewItemClass   or= MemberItemView
-    options.listViewItemOptions or= {}
-    options.itemLimit            ?= 10
+    options.noItemFoundWidget      or= new KDCustomHTMLView
+    options.listViewItemClass      or= MemberItemView
+    options.listViewItemOptions    or= {}
+    options.searchInputPlaceholder or= 'Find by name/username'
+    options.itemLimit               ?= 10
 
     super options, data
 
@@ -43,7 +44,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
       type        : 'text'
-      placeholder : 'Find by name/username'
+      placeholder : @getOptions().searchInputPlaceholder
       callback    : @bound 'search'
 
 
