@@ -8,18 +8,8 @@ export HOME=/root/
 export DISPLAY=:99
 export REPOSITORY_PATH='/opt/koding'
 
-function npm_install ()
-{
-  PROJECT_NAME=$1
-  DIRECTORY=$2
-
-  if [ -n "$DIRECTORY" ]; then
-    cd $REPOSITORY_PATH/$DIRECTORY
-  fi
-
-  rm -rf node_modules
-  git clone git@github.com:koding/$PROJECT_NAME-node_modules-wercker.git node_modules
-}
+export CI="true"
+export WERCKER="true"
 
 service nginx stop
 
@@ -28,15 +18,22 @@ cd $REPOSITORY_PATH
 export CONFIG_DEBUGMODE="true"
 export NIGHTWATCH_OPTIONS="--verbose"
 
-npm --unsafe-perm install
+scripts/wercker/install-node-modules koding
+scripts/install-npm.sh -u
+
 ./configure --host $HOST:8090
-sh -c "scripts/install-npm.sh -d client -u"
-TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" make -C client/test build
+
+scripts/install-npm.sh -d client -u
+
+export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
+make -C client/test build
+
 ./run services
 ./run install
 ./run migrate up
 ./run resetdb --yes
 ./run importusers
+
 ./run backend &
 disown $!
 
