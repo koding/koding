@@ -1,38 +1,33 @@
-kd            = require 'kd'
-KDTabPaneView = kd.TabPaneView
-KDTabView     = kd.TabView
-KDView        = kd.View
-globals       = require 'globals'
+kd                   = require 'kd'
+KDView               = kd.View
+KDTabPaneView        = kd.TabPaneView
+
+globals              = require 'globals'
+AdminMainTabPaneView = require './views/adminmaintabpaneview'
 
 
-module.exports = class AdminAppView extends kd.ModalView
+module.exports = class AdminAppView extends kd.View
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
 
-    options.title    = 'Team Dashboard'
-    options.cssClass = 'AppModal AppModal--admin'
-    options.width    = 1000
-    options.height   = 600
     options.testPath = 'groups-admin'
     data           or= kd.singletons.groupsController.getCurrentGroup()
 
     super options, data
 
-    @addSubView @nav  = new kd.TabHandleContainer cssClass : 'AppModal-nav'
-    @addSubView @tabs = new KDTabView
-      cssClass             : 'AppModal--admin-tabs AppModal-content'
-      detachPanes          : yes
-      maxHandleWidth       : Infinity
-      minHandleWidth       : 0
-      hideHandleCloseIcons : yes
-      tabHandleContainer   : @nav
+    @addSubView @nav  = new kd.TabHandleContainer
+      cssClass: 'AppModal-nav'
+
+    @addSubView @tabs = new AdminMainTabPaneView
+      tabHandleContainer: @nav
     , data
+
     @nav.unsetClass 'kdtabhandlecontainer'
 
     @setListeners()
 
 
-  setListeners:->
+  setListeners: ->
 
     @on 'groupSettingsUpdated', (group)->
       @setData group
@@ -57,31 +52,41 @@ module.exports = class AdminAppView extends kd.ModalView
 
   createTabs: ->
 
-    data = @getData()
+    data         = @getData()
+    {tabData}    = @getOptions()
+    currentGroup = kd.singletons.groupsController.getCurrentGroup()
 
-    kd.singletons.appManager.tell 'Admin', 'fetchTabData', (tabData) =>
+    items = []
 
-      for {name, hiddenHandle, viewOptions, kodingOnly}, i in tabData
+    for own sectionKey, section of tabData
 
-        viewOptions.data    = data
-        viewOptions.options = delegate : this  if name is 'Settings'
-        hiddenHandle        = hiddenHandle? and data.privacy is 'public'
-        pane                = new KDTabPaneView {name, viewOptions}
+      if sectionKey is 'koding' and currentGroup.slug isnt 'koding'
+        continue
 
-        @tabs.addPane pane, i is 0
-
-      @emit 'ready'
+      items = items.concat section.items
 
 
-  search: (searchValue)->
+    items.forEach (item, i) =>
+
+      { viewClass, slug, title } = item
+
+      pane = new KDTabPaneView name: slug
+      pane.addSubView new viewClass
+        cssClass : slug
+        delegate : this
+      , data
+
+      @tabs.addPane pane, i is 0
+
+    @emit 'ready'
+
+
+  search: (searchValue) ->
+
     if @tabs.getActivePane().name is 'Invitations'
       pane = @tabs.getActivePane()
     else
-      pane = @tabs.getPaneByName "Members"
+      pane = @tabs.getPaneByName 'Members'
       @tabs.showPane pane
-    {mainView} = pane
-    return unless mainView
-    mainView.emit 'SearchInputChanged', searchValue
 
-
-
+    pane?.mainView?.emit 'SearchInputChanged', searchValue
