@@ -1,9 +1,9 @@
-kd            = require 'kd'
-KDTabPaneView = kd.TabPaneView
-KDTabView     = kd.TabView
-KDView        = kd.View
-globals       = require 'globals'
+kd                   = require 'kd'
+KDView               = kd.View
+KDTabPaneView        = kd.TabPaneView
 
+globals              = require 'globals'
+AdminMainTabPaneView = require './views/adminmaintabpaneview'
 
 
 module.exports = class AdminAppView extends kd.View
@@ -15,15 +15,13 @@ module.exports = class AdminAppView extends kd.View
 
     super options, data
 
-    @addSubView @nav  = new kd.TabHandleContainer cssClass : 'AppModal-nav'
-    @addSubView @tabs = new KDTabView
-      cssClass             : 'AppModal--admin-tabs AppModal-content'
-      detachPanes          : yes
-      maxHandleWidth       : Infinity
-      minHandleWidth       : 0
-      hideHandleCloseIcons : yes
-      tabHandleContainer   : @nav
+    @addSubView @nav  = new kd.TabHandleContainer
+      cssClass: 'AppModal-nav'
+
+    @addSubView @tabs = new AdminMainTabPaneView
+      tabHandleContainer: @nav
     , data
+
     @nav.unsetClass 'kdtabhandlecontainer'
 
     @setListeners()
