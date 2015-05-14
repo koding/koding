@@ -55,67 +55,6 @@ module.exports = class AdminAppController extends AppController
 
     super options, data
 
-    @tabData = [
-        name         : 'Settings'
-        viewOptions  :
-          viewClass  : GroupGeneralSettingsView
-          lazy       : yes
-      ,
-        name         : 'Members'
-        viewOptions  :
-          viewClass  : AdminMembersView
-          lazy       : yes
-      ,
-        name         : 'Invitations'
-        viewOptions  :
-          viewClass  : GroupsInvitationView
-          lazy       : yes
-      ,
-        name         : 'Permissions'
-        viewOptions  :
-          viewClass  : GroupPermissionsView
-          lazy       : yes
-      ,
-        name         : 'Stacks'
-        viewOptions  :
-          viewClass  : GroupStackSettings
-          lazy       : yes
-      ,
-        name         : 'Membership policy'
-        viewOptions  :
-          viewClass  : kd.View
-          lazy       : yes
-          callback   : ->
-    ]
-
-    if data.slug is "koding"
-      @tabData.push
-          name         : 'Blocked users'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : GroupsBlockedUserView
-            lazy       : yes
-        ,
-          name         : 'Widgets'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : CustomViewsManager
-            lazy       : yes
-        ,
-          name         : 'Onboarding'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : OnboardingAdminView
-            lazy       : yes
-        ,
-          name         : 'Administration'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : AdministrationView
-            lazy       : yes
-
-
-  fetchTabData: (callback) -> kd.utils.defer => callback @tabData
 
   loadSection: ({title}) ->
     view = @getView()
