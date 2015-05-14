@@ -152,7 +152,8 @@ func destroy(ctx context.Context, username, stackId string) error {
 	}
 
 	sess.Log.Debug("Validating '%d' machines from user '%s'", len(stack.Machines), username)
-	if _, err := fetchMachines(ctx, stack.Machines...); err != nil {
+	machines, err := fetchMachines(ctx, stack.Machines...)
+	if err != nil {
 		return err
 	}
 
@@ -193,9 +194,19 @@ func destroy(ctx context.Context, username, stackId string) error {
 		return err
 	}
 
-	panic("remove stack adn jMachines from db")
+	for _, m := range machines {
+		if err := sess.DNSClient.Delete(m.Domain); err != nil {
+			// if it's already deleted, for example because of a STOP, than we just
+			// log it here instead of returning the error
+			sess.Log.Error("deleting domain during destroying err: %s", err.Error())
+		}
 
-	return nil
+		if err := modelhelper.DeleteMachine(m.Id); err != nil {
+			return err
+		}
+	}
+
+	return modelhelper.DeleteComputeStack(stackId)
 }
 
 func apply(ctx context.Context, username, stackId string) error {
