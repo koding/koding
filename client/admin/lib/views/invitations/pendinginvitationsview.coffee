@@ -9,9 +9,10 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
   constructor: (options = {}, data) ->
 
-    options.listViewItemClass     = InvitedItemView
-    options.listViewItemOptions or= statusType: 'pending'
-    options.statusType          or= 'pending'
+    options.listViewItemClass        = InvitedItemView
+    options.searchInputPlaceholder   = 'Find by email or first name'
+    options.listViewItemOptions    or= statusType: 'pending'
+    options.statusType             or= 'pending'
 
     super options, data
 
@@ -22,11 +23,16 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     @isFetching    = yes
     { statusType } = @getOptions()
+    query          = @searchInput.getValue()
+    options        = { @skip }
+    method         = 'some'
+    selector       = status: statusType
 
-    selector = status: statusType
-    options  = { @skip }
+    if query
+      method = 'search'
+      selector.query = query
 
-    remote.api.JInvitation.some selector, options, (err, invitations) =>
+    remote.api.JInvitation[method] selector, options, (err, invitations) =>
 
       if err
         @listController.lazyLoader.hide()
