@@ -1,5 +1,6 @@
 kd                 = require 'kd'
 JView              = require 'app/jview'
+remote             = require('app/remote').getInstance()
 KDButtonView       = kd.ButtonView
 KDTimeAgoView      = kd.TimeAgoView
 KDListItemView     = kd.ListItemView
@@ -42,6 +43,23 @@ module.exports = class InvitedItemView extends KDListItemView
         duration : 5000
 
 
+  resend: ->
+
+    return  unless @getOptions().statusType is 'pending'
+
+    @resendButton.showLoader()
+
+    remote.api.JInvitation.sendInvitationByCode @getData().code, (err) =>
+      @resendButton.hideLoader()
+      title    = 'Invitation is resent.'
+      duration = 5000
+
+      if err
+        title  = 'Unable to resend the invitation. Please try again.'
+
+      return new KDNotificationView { title, duration }
+
+
   createViews: ->
 
     { hash, createdAt } = @getData()
@@ -76,9 +94,11 @@ module.exports = class InvitedItemView extends KDListItemView
         loader   : color : '#4a4e52'
         callback : @bound 'revoke'
 
-      @settings.addSubView new KDButtonView
+      @settings.addSubView @resendButton = new KDButtonView
         cssClass : 'solid compact outline'
         title    : 'RESEND INVITATION'
+        loader   : color : '#4a4e52'
+        callback : @bound 'resend'
 
 
   pistachio: ->
