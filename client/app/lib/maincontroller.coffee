@@ -44,7 +44,7 @@ WelcomeModal             = require './welcomemodal'
 WidgetController         = require './widgetcontroller'
 PageTitleController      = require './pagetitlecontroller'
 ShortcutsController      = require './shortcutscontroller'
-MarketingController      = require './marketingcontroller'
+MarketingController      = require './marketing/marketingcontroller'
 
 module.exports =
 

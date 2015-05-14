@@ -15,6 +15,8 @@ ComputeHelpers          = require './computehelpers'
 HelpSupportModal        = '../commonviews/helpsupportmodal'
 ComputeController       = require './computecontroller'
 EnvironmentsModalView   = require './environmentsmodalview'
+MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
+MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 
 whoami                  = require '../util/whoami'
 isKoding                = require 'app/util/isKoding'
@@ -69,7 +71,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
           then @buildExpiredView subscription
           else @buildInitial()
 
-    marketingController.on 'SnippetNeedsToBeShown', @bound 'showMarketingSnippetByUrl'
+    marketingController.on 'SnippetNeedsToBeShown', @bound 'showMarketingSnippet'
 
 
   triggerEventTimer: (percentage)->
@@ -387,7 +389,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       percentage = response?.percentage
       @createProgressBar percentage
       @triggerEventTimer percentage
-      @showNextMarketingSnippet()  if @state in [ Starting, Building ]
+      @showRandomMarketingSnippet()  if @state in [ Starting, Building ]
     else if @state is Terminated
       @label.destroy?()
       @createStateLabel "
@@ -705,21 +707,18 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
           callback null
 
 
-  showNextMarketingSnippet: ->
+  showRandomMarketingSnippet: ->
 
     { marketingController } = kd.singletons
-    snippetUrl = marketingController.getNextSnippet()
-    @showMarketingSnippetByUrl snippetUrl
+    marketingController.getRandomSnippet @bound 'showMarketingSnippet'
 
 
-  showMarketingSnippetByUrl: (snippetUrl) ->
+  showMarketingSnippet: (snippet) ->
 
-    return  unless snippetUrl
+    return  unless snippet
 
     @marketingSnippet?.destroy()
-    @marketingSnippet = new KDCustomHTMLView
-      cssClass : "marketing-message-snippet"
-      partial  : "<iframe src='#{snippetUrl}'></iframe>"
+    @marketingSnippet = new MarketingSnippetView snippet
 
     @container.addSubView @marketingSnippet
     @container.setClass 'marketing-message'
