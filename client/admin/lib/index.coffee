@@ -31,7 +31,7 @@ module.exports = class AdminAppController extends AppController
       # { slug : 'Policies',       title : 'Membership Policy', viewClass : kd.View }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : GroupsInvitationView }
         { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView }
-        { slug : 'Moderation',     title : 'Topic Modetaion',   viewClass : TopicModerationView}
+        { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView}
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings }
       ]
     koding     :
