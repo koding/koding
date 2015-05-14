@@ -83,6 +83,16 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 		return err
 	}
 
+	// reset to current size in DB if something goes wrong, so the user can
+	// again apply resize if wished
+	defer func() {
+		if resErr != nil {
+			if err := m.updateStorageSize(currentSize); err != nil {
+				m.Log.Error(err.Error())
+			}
+		}
+	}()
+
 	desiredSize := a.Builder.StorageSize
 
 	m.Log.Debug("DesiredSize: %d, Currentsize %d", desiredSize, currentSize)
