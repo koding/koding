@@ -43,3 +43,13 @@ module.exports = class InvitationInputView extends KDView
         tagName  : 'span'
         cssClass : 'cancel icon'
         click    : => @destroy()
+
+
+  serialize: ->
+
+    return {
+      email     : @email.getValue()
+      firstName : @firstName.getValue()
+      lastName  : @lastName.getValue()
+    }
+
