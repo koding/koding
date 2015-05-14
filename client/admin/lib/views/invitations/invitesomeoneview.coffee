@@ -1,8 +1,10 @@
-kd                      = require 'kd'
-KDView                  = kd.View
-KDButtonView            = kd.ButtonView
-KDCustomHTMLView        = kd.CustomHTMLView
-InvitationInputView     = require './invitationinputview'
+kd                  = require 'kd'
+remote              = require('app/remote').getInstance()
+KDView              = kd.View
+KDButtonView        = kd.ButtonView
+KDCustomHTMLView    = kd.CustomHTMLView
+KDNotificationView  = kd.NotificationView
+InvitationInputView = require './invitationinputview'
 
 
 module.exports = class InviteSomeoneView extends KDView
@@ -19,6 +21,7 @@ module.exports = class InviteSomeoneView extends KDView
     @addSubView @inputWrapper = new KDCustomHTMLView cssClass: 'input-wrapper'
     @createInvitationView no
     @createAddMoreButton()
+    @createMainButtons()
 
 
   createInvitationView: (cancellable) ->
@@ -39,6 +42,18 @@ module.exports = class InviteSomeoneView extends KDView
       title    : 'ADD INVITATION'
       callback : @bound 'createInvitationView'
 
+
+  createMainButtons: ->
+
+    @addSubView new KDButtonView
+      title    : 'CANCEL'
+      cssClass : 'solid medium cancel'
+      callback : => @emit 'InvitationViewCancelled'
+
+    @addSubView new KDButtonView
+      title    : 'INVITE MEMBERS'
+      cssClass : 'solid medium green invite-members'
+      callback : @bound 'inviteMembers'
 
   createInformationView: ->
 
