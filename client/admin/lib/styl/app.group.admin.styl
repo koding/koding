@@ -609,10 +609,12 @@ Admin main styles
     vendor                  user-select, none
     pointer()
 
-  .role.active .settings-icon
-    vendor                  transform, rotate(270deg)
-    width                   10px
-    margin-left             6px
+  .role.active
+  .settings-visible
+    .settings-icon
+      vendor                transform, rotate(270deg)
+      width                 10px
+      margin-left           6px
 
   .clear
     clear                   both
@@ -718,6 +720,9 @@ Admin main styles
   .kdlistitemview-member
     height                  40px
 
+    &.settings-visible
+      height                85px
+
   .kdbutton
     &.invite
       abs()
@@ -772,6 +777,10 @@ Admin main styles
 
 
   .kdlistitemview-member
+    &.accepted
+      time
+        right               0
+
     .details
       width                 520px
       line-height           40px
@@ -781,9 +790,18 @@ Admin main styles
 
     time
       display               block
-      right                 0
+      right                 15px
       line-height           40px
       text-align            right
-      size                  180px, 40px
+      size                  auto, 40px
+      vendor                user-select, none
       pointer()
       abs()
+
+
+    .settings-icon
+      abs()
+      top                   30px
+      right                 0
+      margin-left           0
+      pointer()
