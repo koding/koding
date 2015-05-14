@@ -279,7 +279,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
     nodeData = nodeView.getData()
     oldPath = nodeData.path
     nodeView.showRenameView (newValue)=>
-      return if newValue is nodeData.name
+      return  if newValue is nodeData.name
+      return  unless FSHelper.isValidFileName newValue
 
       nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
