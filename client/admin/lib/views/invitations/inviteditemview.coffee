@@ -24,13 +24,15 @@ module.exports = class InvitedItemView extends KDListItemView
 
   showSettings: ->
 
+    return  unless @isPendingView()
+
     @settings.toggleClass 'hidden'
     @toggleClass 'settings-visible'
 
 
   revoke: ->
 
-    return  unless @getOptions().statusType is 'pending'
+    return  unless @isPendingView()
 
     @revokeButton.showLoader()
 
@@ -45,7 +47,7 @@ module.exports = class InvitedItemView extends KDListItemView
 
   resend: ->
 
-    return  unless @getOptions().statusType is 'pending'
+    return  unless @isPendingView()
 
     @resendButton.showLoader()
 
@@ -58,6 +60,11 @@ module.exports = class InvitedItemView extends KDListItemView
         title  = 'Unable to resend the invitation. Please try again.'
 
       return new KDNotificationView { title, duration }
+
+
+  isPendingView: ->
+
+    return  @getOptions().statusType is 'pending'
 
 
   createViews: ->
