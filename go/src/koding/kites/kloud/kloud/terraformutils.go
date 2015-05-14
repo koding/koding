@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -268,10 +267,6 @@ func varsFromCredentials(creds *terraformCredentials) map[string]string {
 		}
 	}
 	return vars
-}
-
-func sha1sum(s string) string {
-	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
 }
 
 func checkKlients(ctx context.Context, kiteIds map[string]string) error {

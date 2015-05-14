@@ -176,7 +176,7 @@ func destroy(ctx context.Context, username, stackId string) error {
 	sess.Log.Debug(stack.Template)
 	state, err := tfKite.Destroy(&tf.TerraformRequest{
 		Content:   stack.Template,
-		ContentID: username + "-" + sha1sum(stack.Template),
+		ContentID: username + "-" + stackId,
 		Variables: nil,
 	})
 	if err != nil {
@@ -277,7 +277,7 @@ func apply(ctx context.Context, username, stackId string) error {
 	sess.Log.Debug(stack.Template)
 	state, err := tfKite.Apply(&tf.TerraformRequest{
 		Content:   stack.Template,
-		ContentID: username + "-" + sha1sum(stack.Template),
+		ContentID: username + "-" + stackId,
 		Variables: nil,
 	})
 	if err != nil {

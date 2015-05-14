@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
@@ -78,7 +79,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		region, err := cred.region()
+		finalBootstrap, err = appendKeyName(finalBootstrap, "kloud-deployment")
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +91,6 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		// use these keys to bootstrap, any other user should be not create
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
-		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"] + region)
 
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
@@ -100,7 +100,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: groupName + "-" + contentId,
+				ContentID: groupName + "-" + cred.PublicKey,
 			})
 			if err != nil {
 				return nil, err
@@ -109,7 +109,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: groupName + "-" + contentId,
+				ContentID: groupName + "-" + cred.PublicKey,
 			})
 			if err != nil {
 				return nil, err
@@ -139,6 +139,30 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	}
 
 	return true, nil
+}
+
+func appendKeyName(template, keyName string) (string, error) {
+	var data struct {
+		Output   map[string]map[string]interface{} `json:"output,omitempty"`
+		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
+		Provider map[string]map[string]interface{} `json:"provider,omitempty"`
+		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
+	}
+
+	if err := json.Unmarshal([]byte(template), &data); err != nil {
+		return "", err
+	}
+
+	data.Variable["key_name"] = map[string]interface{}{
+		"default": keyName,
+	}
+
+	out, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(out), nil
 }
 
 var awsBootstrap = `{
@@ -245,7 +269,7 @@ var awsBootstrap = `{
         },
         "aws_key_pair": {
             "koding_key_pair": {
-                "key_name": "kloud-deployment",
+                "key_name": "${var.key_name}",
                 "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com"
             }
         }

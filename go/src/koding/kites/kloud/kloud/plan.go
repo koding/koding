@@ -160,9 +160,11 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		}
 	}
 
+	panic("imlement contnedi1")
+
 	plan, err := tfKite.Plan(&tf.TerraformRequest{
 		Content:   args.TerraformContext,
-		ContentID: r.Username + "-" + sha1sum(args.TerraformContext),
+		ContentID: r.Username + "-" + "!234",
 		Variables: nil,
 	})
 	if err != nil {
