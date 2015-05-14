@@ -19,11 +19,7 @@ import (
 )
 
 type TerraformPlanRequest struct {
-	// Terraform template file
-	TerraformContext string `json:"terraformContext"`
-
-	// PublicKeys contains publicKeys to be used with terraform
-	PublicKeys []string `json:"publicKeys"`
+	StackTemplateId string `json:"stackTemplateId"`
 }
 
 type terraformCredentials struct {
@@ -120,12 +116,8 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if args.TerraformContext == "" {
-		return nil, NewError(ErrTerraformContextIsMissing)
-	}
-
-	if len(args.PublicKeys) == 0 {
-		return nil, errors.New("publicKeys are not passed")
+	if args.StackTemplateId == "" {
+		return nil, errors.New("stackIdTemplate is not passed")
 	}
 
 	ctx := k.ContextCreator(context.Background())
@@ -134,7 +126,12 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, sess.DB, args.PublicKeys)
+	stackTemplate, err := modelhelper.GetStackTemplate(args.StackTemplateId)
+	if err != nil {
+		return nil, err
+	}
+
+	creds, err := fetchCredentials(r.Username, sess.DB, stackTemplate.Credentials)
 	if err != nil {
 		return nil, err
 	}
@@ -154,17 +151,15 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		args.TerraformContext, err = cred.appendAWSVariable(args.TerraformContext)
+		stackTemplate.Template.Content, err = cred.appendAWSVariable(stackTemplate.Template.Content)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	panic("imlement contnedi1")
-
 	plan, err := tfKite.Plan(&tf.TerraformRequest{
-		Content:   args.TerraformContext,
-		ContentID: r.Username + "-" + "!234",
+		Content:   stackTemplate.Template.Content,
+		ContentID: r.Username + "-" + args.StackTemplateId,
 		Variables: nil,
 	})
 	if err != nil {
