@@ -38,14 +38,6 @@ module.exports = class InvitationInputView extends KDView
       cssClass    : 'lastname'
       placeholder : 'last name (optional)'
 
-    @addSubView @loader = new KDLoaderView
-      size : width : 16
-      showLoader   : yes
-
-    @addSubView @success = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'icon success hidden'
-
     if cancellable
       @addSubView @cancel = new KDCustomHTMLView
         tagName  : 'span'
