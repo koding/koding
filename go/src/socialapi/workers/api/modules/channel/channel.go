@@ -272,7 +272,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel, c *models.Context) (
 		return response.NewBadRequest(err)
 	}
 
-	existingOne, err := models.ChannelById(id)
+	existingOne, err := models.Cache.Channel.ById(id)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

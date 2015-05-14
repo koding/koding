@@ -45,29 +45,29 @@ func TestPopularTopic(t *testing.T) {
 	Convey("order should be preserved", t, func() {
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
-		channel1, err := rest.CreateChannelByGroupNameAndType(
+		groupChannel, err := rest.CreateChannelByGroupNameAndType(
 			account.Id,
 			groupName,
 			models.Channel_TYPE_GROUP,
 			ses.ClientId,
 		)
 		So(err, ShouldBeNil)
-		So(channel1, ShouldNotBeNil)
+		So(groupChannel, ShouldNotBeNil)
 
 		for i := 0; i < 5; i++ {
-			post, err := rest.CreatePostWithBody(channel1.Id, account.Id, "create a message #5times")
+			post, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #5times")
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 		}
 
 		for i := 0; i < 4; i++ {
-			post, err := rest.CreatePostWithBody(channel1.Id, account.Id, "create a message #4times")
+			post, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #4times")
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 		}
 
 		for i := 0; i < 3; i++ {
-			post, err := rest.CreatePostWithBody(channel1.Id, account.Id, "create a message #3times")
+			post, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #3times")
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 		}

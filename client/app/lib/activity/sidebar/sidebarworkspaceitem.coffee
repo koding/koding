@@ -67,15 +67,27 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
       @emit 'WorkspaceDeleted', wsId
 
 
+  moveSettingsIconLeft : ->
+
+    @settingsIcon.setClass 'move-left'
+
+
+  resetSettingsIconPosition : ->
+
+    @settingsIcon.unsetClass 'move-left'
+
+
   setUnreadCount: (count = 0) ->
 
     @unreadCount = count
 
     if count > 0
+      @moveSettingsIconLeft()
       @unreadIndicator.updatePartial count
       @unreadIndicator.show()
       @setClass 'unread'
     else
+      @resetSettingsIconPosition()
       @unreadIndicator.hide()
       @unsetClass 'unread'
 

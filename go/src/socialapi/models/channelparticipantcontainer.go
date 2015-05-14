@@ -10,14 +10,14 @@ type ChannelParticipantContainer struct {
 }
 
 func NewChannelParticipantContainer(cp ChannelParticipant) (*ChannelParticipantContainer, error) {
-	oldId, err := FetchAccountOldIdByIdFromCache(cp.AccountId)
+	acc, err := Cache.Account.ById(cp.AccountId)
 	if err != nil {
 		return &ChannelParticipantContainer{}, err
 	}
 
 	return &ChannelParticipantContainer{
 		AccountId:    cp.AccountId,
-		AccountOldId: oldId,
+		AccountOldId: acc.OldId,
 		CreatedAt:    cp.CreatedAt,
 		UpdatedAt:    cp.UpdatedAt,
 	}, nil

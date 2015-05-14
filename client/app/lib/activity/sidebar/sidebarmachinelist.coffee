@@ -1,8 +1,9 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-CustomLinkView = require 'app/customlinkview'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+
+MoreVMsModal      = require 'app/activity/sidebar/morevmsmodal'
+CustomLinkView    = require 'app/customlinkview'
 SidebarMachineBox = require 'app/activity/sidebar/sidebarmachinebox'
-MoreVMsModal = require 'app/activity/sidebar/morevmsmodal'
 
 
 module.exports = class SidebarMachineList extends KDCustomHTMLView
@@ -31,7 +32,7 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
       partial  : title
-      click    : => new MoreVMsModal {}, @getMachines()
+      click    : @bound 'headerClickHandler'
 
     if hasPlusIcon
       @header.addSubView new CustomLinkView
@@ -39,6 +40,10 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
         title    : ' '
 
     @addSubView @header
+
+
+  headerClickHandler: ->
+    new MoreVMsModal {}, @getMachines()
 
 
   addMachineBoxes: (boxes) ->

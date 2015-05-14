@@ -198,13 +198,10 @@ module.exports = class ComputeController extends KDController
             machines.push machine = new Machine { machine }
             @machinesById[machine._id] = machine
 
-          unless kd.singletons.groupsController.getGroupSlug() is 'koding'
-            stacks.forEach (stack)->
-              stack.checkRevision (err, res)->
-                console.info "Revision info for stack #{stack.title}", res
-
           @stacks   = stacks
           @machines = machines
+
+          @checkStackRevisions()
 
           @stateChecker?.machines = machines
           @stateChecker?.start()
@@ -741,3 +738,13 @@ module.exports = class ComputeController extends KDController
 
     KiteCache.unset machine.queryString
     delete kontrol.kites?.klient?[machine.uid]
+
+
+  checkStackRevisions: ->
+    return  if kd.singletons.groupsController.getGroupSlug() is 'koding'
+
+    @stacks.forEach (stack) =>
+      stack.checkRevision (error, status) =>
+        stack._revisionStatus = { error, status }
+        console.info "Revision info for stack #{stack.title}", status
+        @emit 'StackRevisionChecked', stack

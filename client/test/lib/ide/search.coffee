@@ -73,7 +73,7 @@ module.exports =
       .end()
 
 
-  createAndSaveNewFile: (browser) ->
+  saveUntitledFile: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)

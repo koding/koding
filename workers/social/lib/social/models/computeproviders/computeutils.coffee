@@ -310,12 +310,11 @@ fetchUsage = (client, options, callback)->
 
   JMachine = require './machine'
 
-  { r: { group, user } } = client
-  { provider }           = options
+  { r: { user } } = client
+  { provider }    = options
 
   selector        = { provider }
   selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
-  selector.groups = $elemMatch: id: group.getId()
 
   JMachine.some selector, limit: 30, (err, machines)->
 

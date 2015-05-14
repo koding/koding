@@ -33,6 +33,9 @@ func main() {
 	// create context
 	context := popularpost.New(r.Log, redisConn)
 
+	// this is here because at the end of each week if no one likes a message,
+	// we wont be able to show any popular posts, calling CreateSevenDayBucket
+	// will create bucket in redis and will populate posts
 	go func() {
 		for {
 			endOfDay := now.EndOfDay().UTC()
