@@ -10,7 +10,7 @@ module.exports =
     formSelector       = '.new-message-form.with-fields .formline.recipient'
     textareaSelector   = '.reply-input-widget.private [testpath=ActivityInputView]'
     itemSelector       = '.kdlistitemview-dropdown-member span.profile'
-    messageSelector    = "[testpath=main-sidebar] .profile[href='/#{user.userName}']"
+    messageSelector    = ".activity-sidebar .messages .sidebar-message-text [href='/kodingtester']"
     message          or= 'Hello World!'
 
     browser.element 'css selector', messageSelector, (result) =>
@@ -39,3 +39,22 @@ module.exports =
           .assert.containsText     '.message-pane.privatemessage', message # Assertion
           .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
           .assert.containsText     '.activity-sidebar .messages', user.fullName # Assertion
+
+
+  leaveConversation: (browser, user, message) ->
+
+    buttonSelector          = '.privatemessage .chat-heads span.chevron'
+    listWrapperSelector     = '.context-list-wrapper li.leave-conversation'
+    sidebarMessageSelector  = '.activity-sidebar .messages'
+
+    browser
+      .waitForElementVisible  '.privatemessage .chat-heads', 20000
+      .waitForElementVisible  buttonSelector, 20000
+      .click                  buttonSelector
+      .waitForElementVisible  listWrapperSelector, 20000
+      .click                  listWrapperSelector
+      .waitForElementVisible  '.kdmodal-inner', 20000
+      .click                  '.kdmodal-inner .kdmodal-buttons button.red'
+      .waitForElementVisible  sidebarMessageSelector, 20000, ->
+        text = browser.getText sidebarMessageSelector
+        assert.notEqual text, user.fullName # Assertion
