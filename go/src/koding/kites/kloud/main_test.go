@@ -121,6 +121,7 @@ type singleUser struct {
 	MachineIds          []bson.ObjectId
 	MachineLabels       []string
 	StackId             string
+	StackTemplateId     string
 	PrivateKey          string
 	PublicKey           string
 	AccountId           bson.ObjectId
@@ -246,8 +247,7 @@ func TestTerraformPlan(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformPlanRequest{
-		TerraformContext: fmt.Sprintf(terraformTemplate, machineCount),
-		PublicKeys:       []string{userData.CredentialPublicKey},
+		StackTemplateId: userData.StackTemplateId,
 	}
 
 	resp, err := remote.Tell("plan", args)
@@ -807,6 +807,7 @@ func createUser(username string) (*singleUser, error) {
 		MachineIds:          machineIds,
 		MachineLabels:       machineLabels,
 		StackId:             computeStackId.Hex(),
+		StackTemplateId:     stackTemplate.Id.Hex(),
 		PrivateKey:          privateKey,
 		PublicKey:           publicKey,
 		AccountId:           accountId,
