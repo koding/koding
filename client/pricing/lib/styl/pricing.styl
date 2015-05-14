@@ -181,7 +181,7 @@ body.pricing
   section.plans
     margin              0 auto
     max-width           882px
-    padding             0 45px
+    padding             0 41px
     width               auto
     height              auto
     borderBox()
@@ -224,6 +224,9 @@ body.pricing
           color         #fff
           margin-top    23px
           margin-bottom 40px
+
+          &.loading
+            bg            color #F8AC1D
 
       &.free
         .plan-price cite:before
@@ -362,3 +365,5 @@ body.pricing
         rounded         3px
         vendor          transition, background .2s ease
 
+        &.loading
+          bg              color #37B542

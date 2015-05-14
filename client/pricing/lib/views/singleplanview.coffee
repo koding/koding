@@ -80,6 +80,7 @@ module.exports = class SinglePlanView extends KDView
       style     : 'plan-buy-button'
       title     : 'SELECT'
       state     : { title, monthPrice, yearPrice }
+      loader    : yes
       callback  : @bound 'select'
 
 
@@ -95,6 +96,7 @@ module.exports = class SinglePlanView extends KDView
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
       reducedMonth, discount, planInterval
+      @buyButton
     }
 
     trackEvent 'Plan select, click', {

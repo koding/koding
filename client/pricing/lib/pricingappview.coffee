@@ -255,7 +255,9 @@ module.exports = class PricingAppView extends KDView
 
       @workflowController = new PaymentWorkflow { @state, delegate: this }
 
-      @workflowController.on 'WorkflowStarted', -> inProcess = no
+      @workflowController.on 'WorkflowStarted', (state) ->
+        options.buyButton.hideLoader()
+        inProcess = no
 
       @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
