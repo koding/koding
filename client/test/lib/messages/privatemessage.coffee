@@ -35,3 +35,27 @@ module.exports =
         .waitForElementVisible  '.activity-sidebar .messages', 20000
         .assert.containsText    '.activity-sidebar .messages', messageUser.fullName  # Assertion
         .end()
+
+
+  leaveConversation: (browser) ->
+
+    messageUser =
+      userName  : 'kodingtester'
+      fullName  : 'Koding Tester'
+
+    user                            =  helpers.beginTest(browser)
+    sidebarMessageUserNameSelector  = ".activity-sidebar .messages .sidebar-message-text [href='/kodingtester']"
+
+    browser.element 'css selector', sidebarMessageUserNameSelector, (result) =>
+      if result.status is 0
+        browser
+          .waitForElementVisible  sidebarMessageUserNameSelector, 20000
+          .click                  sidebarMessageUserNameSelector
+
+        messagesHelpers.leaveConversation(browser, messageUser)
+      else
+        messagesHelpers.startConversation(browser, messageUser)
+        messagesHelpers.leaveConversation(browser, messageUser)
+
+    browser.end()
+
