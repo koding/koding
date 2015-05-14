@@ -1,9 +1,10 @@
-kd                = require 'kd'
-JView             = require 'app/jview'
-KDButtonView      = kd.ButtonView
-KDTimeAgoView     = kd.TimeAgoView
-KDListItemView    = kd.ListItemView
-KDCustomHTMLView  = kd.CustomHTMLView
+kd                 = require 'kd'
+JView              = require 'app/jview'
+KDButtonView       = kd.ButtonView
+KDTimeAgoView      = kd.TimeAgoView
+KDListItemView     = kd.ListItemView
+KDCustomHTMLView   = kd.CustomHTMLView
+KDNotificationView = kd.NotificationView
 
 
 module.exports = class InvitedItemView extends KDListItemView
@@ -26,10 +27,25 @@ module.exports = class InvitedItemView extends KDListItemView
     @toggleClass 'settings-visible'
 
 
+  revoke: ->
+
+    return  unless @getOptions().statusType is 'pending'
+
+    @revokeButton.showLoader()
+
+    @getData().remove (err) =>
+      return @destroy()  unless err
+
+      @revokeButton.hideLoader()
+      new KDNotificationView
+        title    : 'Unable to revoke invitation. Please try again.'
+        duration : 5000
+
+
   createViews: ->
 
-    { hash, createdAt } = data
-    { statusType }      = options
+    { hash, createdAt } = @getData()
+    { statusType }      = @getOptions()
     size                = 40
     defaultAvatarUri    = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
 
@@ -54,9 +70,11 @@ module.exports = class InvitedItemView extends KDListItemView
 
     if statusType is 'pending'
 
-      @settings.addSubView new KDButtonView
+      @settings.addSubView @revokeButton = new KDButtonView
         cssClass : 'solid compact outline'
         title    : 'REVOKE INVITATION'
+        loader   : color : '#4a4e52'
+        callback : @bound 'revoke'
 
       @settings.addSubView new KDButtonView
         cssClass : 'solid compact outline'
