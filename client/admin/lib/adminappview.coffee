@@ -83,16 +83,12 @@ module.exports = class AdminAppView extends kd.View
     @emit 'ready'
 
 
+  search: (searchValue) ->
 
-  search: (searchValue)->
     if @tabs.getActivePane().name is 'Invitations'
       pane = @tabs.getActivePane()
     else
-      pane = @tabs.getPaneByName "Members"
+      pane = @tabs.getPaneByName 'Members'
       @tabs.showPane pane
-    {mainView} = pane
-    return unless mainView
-    mainView.emit 'SearchInputChanged', searchValue
 
-
-
+    pane?.mainView?.emit 'SearchInputChanged', searchValue
