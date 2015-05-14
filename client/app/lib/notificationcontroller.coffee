@@ -46,6 +46,15 @@ module.exports = class NotificationController extends KDObject
       return kd.warn 'notification subscription error', err  if err
 
       @notificationChannel.on 'message', (notification)=>
+        # sample notification content
+        #
+        # contents: {Object}
+        # context: <groupName>
+        # event: "ChannelUpdateHappened"
+
+        # filter notifications according to group slug
+        currentGroup = kd.singletons.groupsController.getCurrentGroup()
+        return  unless notification?.context is currentGroup.slug
 
         @emit 'NotificationHasArrived', notification
 
