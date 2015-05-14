@@ -82,9 +82,7 @@ prepareFakeClient = (fakeClient, options) ->
     account.profile = nickname: username
     account.type    = 'unregistered'
 
-  fakeClient.sessionToken = session.clientId
-
-  fakeClient.sessionToken = sessionToken if sessionToken
+  fakeClient.sessionToken = sessionToken ? session.clientId
 
   # set username into context
   fakeClient.context or= {}
