@@ -79,7 +79,8 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		finalBootstrap, err = appendKeyName(finalBootstrap, "kloud-deployment")
+		keyName := "kloud-deployment" + r.Username
+		finalBootstrap, err = appendKeyName(finalBootstrap, keyName)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +128,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				"meta.acl":        awsOutput.ACL,
 				"meta.cidr_block": awsOutput.CidrBlock,
 				"meta.igw":        awsOutput.IGW,
-				"meta.key_pair":   awsOutput.KeyPair,
+				"meta.key_pair":   awsOutput.KeyPair + r.Username,
 				"meta.rtb":        awsOutput.RTB,
 				"meta.sg":         awsOutput.SG,
 				"meta.subnet":     awsOutput.Subnet,
