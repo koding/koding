@@ -26,6 +26,7 @@ service nginx stop
 cd $REPOSITORY_PATH
 
 export CONFIG_DEBUGMODE="true"
+export NIGHTWATCH_OPTIONS="--verbose"
 
 npm --unsafe-perm install
 ./configure --host $HOST:8090
