@@ -72,14 +72,8 @@ module.exports = class TopicCommonView extends KDView
       showModerationNeeded  : true
       type                  : @getOptions().typeConstant or= "topic"
       
-    kd.singletons.socialapi.channel.list options , (err, channels) =>
-      @isFetching = no
-      if err
-        @listController.lazyLoader?.hide()
-        return kd.warn err
+    kd.singletons.socialapi.channel.list options, @bound 'listChannels'
     
-      @listChannels channels
-      
 
   searchChannels:(query = "") ->
     
@@ -93,18 +87,16 @@ module.exports = class TopicCommonView extends KDView
       showModerationNeeded  : true
       type                  : @getOptions().typeConstant or= "topic"
 
-    kd.singletons.socialapi.channel.searchTopics options , (err, channels) =>
-      @isFetching = no
-      
-      if err
-        @listController.lazyLoader?.hide()
-        return kd.warn err
-      
-      @listChannels channels
+    kd.singletons.socialapi.channel.searchTopics options, @bound 'listChannels'
       
 
-  listChannels: (channels) ->
-
+  listChannels:  (err, channels) ->
+    @isFetching = no
+    
+    if err
+      @listController.lazyLoader?.hide()
+      return kd.warn err
+    
     unless channels.length
       return @listController.lazyLoader?.hide()
 
