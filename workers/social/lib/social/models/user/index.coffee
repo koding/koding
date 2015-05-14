@@ -1066,16 +1066,21 @@ module.exports = class JUser extends jraphical.Module
         @addToGroups account, invite, user.email, (err) =>
           error = err
           queue.next()
-
       ->
-        # create default stack for koding group, when a user joins
-        createGroupStack account, "koding", queue.next
-      ->
-        # handle stack creation for teams
-        # if a user joins directly from a group, create their stack
-        return queue.next() if "koding" is client.context.group
+        # create default stack for koding group, when a user joins this is only
+        # required for koding group, not neeed for other teams
+        _client =
+          connection : delegate : account
+          context    : group    : 'koding'
 
-        createGroupStack account, client.context.group, queue.next
+        ComputeProvider.createGroupStack _client, (err)->
+          if err?
+            console.warn "Failed to create group stack for #{account.profile.nickname}:", err
+
+          # We are not returning error here on purpose, even stack template
+          # not created for a user we don't want to break registration process
+          # at all ~ GG
+          queue.next()
       ->
         account.update $set: type: 'registered', (err) ->
           return callback err  if err?
