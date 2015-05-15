@@ -63,12 +63,22 @@ func (f *Controller) AccountUpdated(data *models.Account) error {
 // ParticipantUpdated operates with the participant deleted/created events, adds
 // to algolia if the state is active, else removes from algolia
 func (f *Controller) ParticipantUpdated(p *models.ChannelParticipant) error {
-	// if status of the participant is active, then add user
-	if p.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
-		return f.handleParticipantOperation(p)
+	// This code is commented out and stays here just for future referance,
+	// channel participant table is the only one that we are not soft deleting
+	// records, and marking status as left, we dont have a notion
+	// channel_participant_delete, handle accordingly
+
+	// // if status of the participant is active, then add user
+	// if p.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
+	// 	return f.handleParticipantOperation(p)
+	// }
+
+	err := f.handleParticipantOperation(p)
+	if err != nil {
+		f.log.Error("err while handling participant updated event: %s", err.Error())
 	}
 
-	return f.handleParticipantOperation(p)
+	return err
 }
 
 // ParticipantCreated operates with the participant createad event, adds new tag
