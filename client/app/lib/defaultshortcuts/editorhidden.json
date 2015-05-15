@@ -86,6 +86,7 @@
           "end"
         ],
         [
+          "command+right",
           "end"
         ]
       ]
