@@ -9,8 +9,9 @@ MarketingSnippetType = require './marketingsnippettype'
 
 ###*
  * A controller for managing marketing snippets.
- * By default snippets are available for super admin
- * but it's also possible to show snippet by command from console
+ * Snippets are available for super admin only
+ *
+ * @class
 ###
 module.exports = class MarketingController extends KDController
 
@@ -22,6 +23,17 @@ module.exports = class MarketingController extends KDController
 
     @snippets      = null
     @shownSnippets = {}
+
+    @loadConfig()
+
+
+  ###*
+    Method loads snippets config from the server.
+    It works if current user is super admin
+  ###
+  loadConfig: ->
+
+    return  unless @isEnabled()
 
     $.ajax
       url      : @buildUrl 'config.json'
@@ -67,7 +79,7 @@ module.exports = class MarketingController extends KDController
   ###
   getRandomSnippet: (callback) ->
 
-    return  unless @snippets and @isEnabled()
+    return  unless @snippets? and @isEnabled()
 
     ranges = null
     sum    = 0
@@ -106,7 +118,7 @@ module.exports = class MarketingController extends KDController
   ###
   getSnippet: (name, callback) ->
 
-    return  unless @snippets[name]
+    return  unless @snippets?[name]
 
     { type, file } = @snippets[name]
 
@@ -128,16 +140,16 @@ module.exports = class MarketingController extends KDController
 
 
   ###*
-   * Method loads snippet data and when it's ready emits event to tell that snippet needs to be shown with specified data.
-   * It doesn't have a check that current user is admin and usually it's called
-   * from console to debug snippets on UI
+   * Method loads snippet data and when it's ready emits event to tell that snippet needs to be shown
    *
    * @param {string} name - name of snippet
    * @emits SnippetNeedsToBeShown
   ###
   show: (name) ->
 
+    return kd.log "MarketingController: snippets are not available"  unless @snippets? and @isEnabled()
     return kd.log "MarketingController: couldn't show unknown snippet '#{name}'"  unless @snippets[name]
+
     @getSnippet name, (snippet) => @emit 'SnippetNeedsToBeShown', snippet
 
 
