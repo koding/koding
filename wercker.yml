@@ -122,7 +122,7 @@ build:
     - script:
         name: test janitor
         code: |
-          cd go/src/koding/janitor
+          cd go/src/koding/workers/janitor
           ./test.sh
     - script: # todo generalize this part when we have more tests
         name: test koding mongo models
