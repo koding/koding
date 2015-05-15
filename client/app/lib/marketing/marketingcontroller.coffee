@@ -24,7 +24,7 @@ module.exports = class MarketingController extends KDController
     @shownSnippets = {}
 
     $.ajax
-      url      : @buildHandlerUrl 'config.json'
+      url      : @buildUrl 'config.json'
       dataType : "json"
       success  : @bound 'configLoaded'
       error    : ->
@@ -110,7 +110,7 @@ module.exports = class MarketingController extends KDController
 
     { type, file } = @snippets[name]
 
-    url     = @buildHandlerUrl "#{name}/#{file ? ''}"
+    url     = @buildUrl "snippets/#{name}/#{file ? ''}"
     snippet = { name, type, url }
 
     switch type
@@ -142,11 +142,11 @@ module.exports = class MarketingController extends KDController
 
 
   ###*
-   * Method builds url to server handler which requests resources from snippets github repo
+   * Method builds url to get any snippet resource by specified path
    *
    * @param {string} path - path to requested resource
   ###
-  buildHandlerUrl: (path) -> "/-/content-rotator/snippets/#{path}"
+  buildUrl: (path) -> "/-/content-rotator/#{path}"
 
 
   ###*
