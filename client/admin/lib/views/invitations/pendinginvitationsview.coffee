@@ -56,3 +56,10 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
     sort[sortType] = sortDirections[sortType]
 
     return sort
+
+
+  refresh: ->
+
+    @listController.removeAllItems()
+    @listController.lazyLoader.show()
+    @fetchMembers()
