@@ -2,8 +2,6 @@
 
 cd $(dirname $0)
 
-MAX_TRY_COUNT=3
-
 NIGHTWATCH_BIN="../node_modules/.bin/nightwatch"
 NIGHTWATCH_OPTIONS="$NIGHTWATCH_OPTIONS --config ../.nightwatch.json"
 NIGHTWATCH_CMD="$NIGHTWATCH_BIN $NIGHTWATCH_OPTIONS"
@@ -24,17 +22,7 @@ run() {
             echo "skipping $i"
           else
             echo "running $i test suite"
-            command="$NIGHTWATCH_CMD --group $i"
-
-            counter=0
-            until $command
-            do
-              counter=$((counter + 1))
-              if [ $counter -eq $MAX_TRY_COUNT ]
-              then
-                exit 1
-              fi
-            done
+            $NIGHTWATCH_CMD --group $i
           fi
       fi
     done
@@ -42,20 +30,10 @@ run() {
     echo "running single test suite: $SUITE $SUBSUITE"
 
     if [ -z "$SUBSUITE" ]; then
-      command="$NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE"
+      $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE
     else
-      command="$NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js"
+      $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js
     fi
-
-    counter=0
-    until $command
-    do
-      counter=$((counter + 1))
-      if [ $counter -eq $MAX_TRY_COUNT ]
-      then
-        exit 1
-      fi
-    done
   fi
 }
 
