@@ -45,7 +45,7 @@ module.exports = class MarketingController extends KDController
 
   ###*
    * Method is called when config data is received from the server.
-   * It saves snippets data from config and tries to get already shown
+   * It saves snippets data and tries to get already shown
    * snippets from the cookie
    *
    * @param {object} response - config data
@@ -67,8 +67,8 @@ module.exports = class MarketingController extends KDController
 
 
   ###*
-   * Method selects random snippet, loads its data and passes it in callback. It works only if snippets config
-   * was loaded successfully and current user is super admin.
+   * Method selects random snippet, loads its data and passes it to callback.
+   * It works only if snippets config was loaded successfully.
    * Snippet selection is based on snippet weights specified in config. If weight is 0, snippet can't
    * be selected. Snippet with greater weight will be selected more often than the one with smaller
    * weight.
@@ -111,7 +111,7 @@ module.exports = class MarketingController extends KDController
 
   ###*
    * Method selects snippet by name, loads its data from the server if needed and passes snippet data to callback
-   * Building snippet data depends on snippet type
+   * Its logic depends on snippet type
    *
    * @param {string} name - name of snippet
    * @param {function} callback - a function which is called when snippet data is ready to use
@@ -154,7 +154,7 @@ module.exports = class MarketingController extends KDController
 
 
   ###*
-   * Method builds url to get any snippet resource by specified path
+   * Method builds url to get a snippet resource by specified path
    *
    * @param {string} path - path to requested resource
   ###

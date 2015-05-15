@@ -3,6 +3,12 @@ KDCustomHTMLView = kd.CustomHTMLView
 MarketingSnippetType = require './marketingsnippettype'
 applyMarkdown = require 'app/util/applyMarkdown'
 
+###*
+ * A view for rendering marketing snippets.
+ * Rendering result depends on snippet type
+ *
+ * @class
+###
 module.exports = class MarketingSnippetView extends KDCustomHTMLView
 
   constructor: (options = {}) ->
