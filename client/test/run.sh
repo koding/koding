@@ -3,7 +3,11 @@
 cd $(dirname $0)
 
 MAX_TRY_COUNT=3
-NIGHTWATCH_BIN="../node_modules/.bin/nightwatch --config ../.nightwatch.json"
+
+NIGHTWATCH_BIN="../node_modules/.bin/nightwatch"
+NIGHTWATCH_OPTIONS="$NIGHTWATCH_OPTIONS --config ../.nightwatch.json"
+NIGHTWATCH_CMD="$NIGHTWATCH_BIN $NIGHTWATCH_OPTIONS"
+
 BUILD_DIR=build/lib
 
 REVISION=$(node -e "process.stdout.write(require('../.config.json').rev)")
@@ -20,7 +24,7 @@ run() {
             echo "skipping $i"
           else
             echo "running $i test suite"
-            command="$NIGHTWATCH_BIN --group $i"
+            command="$NIGHTWATCH_CMD --group $i"
 
             counter=0
             until $command
@@ -38,9 +42,9 @@ run() {
     echo "running single test suite: $SUITE $SUBSUITE"
 
     if [ -z "$SUBSUITE" ]; then
-      command="$NIGHTWATCH_BIN --group ./$BUILD_DIR/$SUITE"
+      command="$NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE"
     else
-      command="$NIGHTWATCH_BIN --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js"
+      command="$NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js"
     fi
 
     counter=0
