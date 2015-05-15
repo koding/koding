@@ -1,20 +1,21 @@
-Promise = require 'bluebird'
-$ = require 'jquery'
-kd = require 'kd'
-JTreeViewController = kd.JTreeViewController
-KDCustomHTMLView = kd.CustomHTMLView
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
-globals = require 'globals'
-logToExternal = require 'app/util/logToExternal'
-logToExternalWithTime = require 'app/util/logToExternalWithTime'
-whoami = require 'app/util/whoami'
-KodingAppsController = require 'app/kodingappscontroller'
-FSHelper = require 'app/util/fs/fshelper'
-getPublicURLOfPath = require 'app/util/getPublicURLOfPath'
-CloneRepoModal = require 'app/commonviews/clonerepomodal'
-NFinderDeleteDialog = require '../itemsubviews/nfinderdeletedialog'
-DropboxDownloadItemView = require 'app/commonviews/dropboxdownloaditemview'
+Promise                   = require 'bluebird'
+$                         = require 'jquery'
+kd                        = require 'kd'
+JTreeViewController       = kd.JTreeViewController
+KDCustomHTMLView          = kd.CustomHTMLView
+KDModalView               = kd.ModalView
+KDNotificationView        = kd.NotificationView
+globals                   = require 'globals'
+logToExternal             = require 'app/util/logToExternal'
+logToExternalWithTime     = require 'app/util/logToExternalWithTime'
+whoami                    = require 'app/util/whoami'
+KodingAppsController      = require 'app/kodingappscontroller'
+FSHelper                  = require 'app/util/fs/fshelper'
+getPublicURLOfPath        = require 'app/util/getPublicURLOfPath'
+CloneRepoModal            = require 'app/commonviews/clonerepomodal'
+NFinderDeleteDialog       = require '../itemsubviews/nfinderdeletedialog'
+DropboxDownloadItemView   = require 'app/commonviews/dropboxdownloaditemview'
+Encoder                   = require 'htmlencode'
 
 
 module.exports = class NFinderTreeController extends JTreeViewController
@@ -279,6 +280,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
     nodeData = nodeView.getData()
     oldPath = nodeData.path
     nodeView.showRenameView (newValue)=>
+      newValue = Encoder.XSSEncode newValue
       return  if newValue is nodeData.name
       return  unless FSHelper.isValidFileName newValue
 
