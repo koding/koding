@@ -338,7 +338,7 @@ func TestProcess(t *testing.T) {
 			// add participants with tests
 			models.AddParticipants(leafChannel.Id, acc1.Id, acc2.Id)
 
-			leafChannel, err := models.ChannelById(leafChannel.Id)
+			leafChannel, err := models.Cache.Channel.ById(leafChannel.Id)
 			So(err, ShouldBeNil)
 
 			otherChannel := models.CreateChannelWithTest(acc1.Id)
@@ -483,7 +483,7 @@ func TestProcess(t *testing.T) {
 
 			models.AddParticipants(rootChannel.Id, acc1.Id, acc2.Id)
 			models.AddParticipants(leafChannel.Id, acc1.Id, acc2.Id)
-			leafChannel, err := models.ChannelById(leafChannel.Id)
+			leafChannel, err := models.Cache.Channel.ById(leafChannel.Id)
 			So(err, ShouldBeNil)
 
 			body := "hey yo! #" + leafChannel.Name

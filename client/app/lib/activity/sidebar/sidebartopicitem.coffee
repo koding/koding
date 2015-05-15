@@ -9,6 +9,10 @@ module.exports = class SidebarTopicItem extends SidebarItem
 
   JView.mixin @prototype
 
+  @TYPECONSTANT_GROUP =
+    CustomView   : ['group', 'announcement']
+    FollowButton : ['topic']
+
   constructor: (options = {}, data) ->
 
     {name, typeConstant, participantCount} = data
@@ -21,9 +25,20 @@ module.exports = class SidebarTopicItem extends SidebarItem
 
     super options, data
 
-    @followButton = if typeConstant in ['group', 'announcement']
-    then new KDCustomHTMLView tagName : 'span'
-    else new TopicFollowButton {}, @getData()
+    @followButton = switch
+      when typeConstant in SidebarTopicItem.TYPECONSTANT_GROUP.CustomView
+        new KDCustomHTMLView tagName : 'span'
+      else
+        new TopicFollowButton {}, @getData()
+
+
+  setFollowingState : (followingState) ->
+
+    { typeConstant } = @data
+    return  unless typeConstant in SidebarTopicItem.TYPECONSTANT_GROUP.FollowButton
+
+    @followButton.setFollowingState followingState
+
 
   # this is a fix that we did to not keeping
   # a state of the latest visited /Public route

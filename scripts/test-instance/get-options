@@ -18,7 +18,7 @@ done
 
 if [ -n "$PR_HEAD" ]; then
   PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
-  OPTIONS="--pull-request '+refs/pull/$PR_NR/head' $OPTIONS"
+  OPTIONS="--pull-request $PR_NR $OPTIONS"
 else
   OPTIONS="--commit $REVISION $OPTIONS"
 fi

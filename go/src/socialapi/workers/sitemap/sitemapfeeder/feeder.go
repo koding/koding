@@ -91,7 +91,7 @@ func (f *Controller) ChannelMessageListDeleted(c *socialmodels.ChannelMessageLis
 }
 
 func (f *Controller) queueChannelMessageList(c *socialmodels.ChannelMessageList, status string) error {
-	ch, err := socialmodels.ChannelById(c.ChannelId)
+	ch, err := socialmodels.Cache.Channel.ById(c.ChannelId)
 	if err != nil {
 		return nil
 	}
@@ -117,7 +117,7 @@ func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
 		return ErrIgnore
 	}
 
-	ch, err := socialmodels.ChannelById(cm.InitialChannelId)
+	ch, err := socialmodels.Cache.Channel.ById(cm.InitialChannelId)
 	if err != nil {
 		return err
 	}

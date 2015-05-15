@@ -395,6 +395,8 @@ module.exports =
 
   fillPaymentForm: (browser, planType = 'developer') ->
 
+    user          = utils.getUser()
+    name          = user.username
     paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
     cardNumber    = '4111 1111 1111 1111'
     cvc           = '123'
@@ -418,6 +420,7 @@ module.exports =
       .setValue                'input[name=cardYear]', year
       .waitForElementVisible   paymentModal + ' .cardname', 20000
       .click                   'input[name=cardName]'
+      .setValue                'input[name=cardName]', name
       .click                   '.year-price-msg'
       .waitForElementVisible   'button.submit-btn', 20000
       .click                   'button.submit-btn'
