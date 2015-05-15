@@ -15,6 +15,8 @@ func getFetcher() *S3Fetcher {
 	}
 }
 
+var testScriptFolder = "test-scripts"
+
 func TestFetcher(t *testing.T) {
 	Convey("Given commmand to upload scripts", t, func() {
 		fetcher := getFetcher()
@@ -27,9 +29,9 @@ func TestFetcher(t *testing.T) {
 		})
 
 		Convey("Then it should tar folder", func() {
-			tarFile := DEFAULT_SCRIPTS_FOLDER + ".tar"
+			tarFile := testScriptFolder + ".tar"
 
-			err := tarFolder(DEFAULT_SCRIPTS_FOLDER, tarFile)
+			err := tarFolder(testScriptFolder, tarFile)
 			So(err, ShouldBeNil)
 
 			err = exists(tarFile)
@@ -37,7 +39,7 @@ func TestFetcher(t *testing.T) {
 		})
 
 		Convey("Then it should upload folder", func() {
-			err := fetcher.Upload(DEFAULT_SCRIPTS_FOLDER)
+			err := fetcher.Upload(testScriptFolder)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -62,7 +64,7 @@ func TestFetcher(t *testing.T) {
 
 		Convey("Then it should download scripts folder", func() {
 			fetcher.BucketName = "gather-vm-metrics"
-			fetcher.ScriptsFile = "scripts.tar"
+			fetcher.ScriptsFile = "test-scripts.tar"
 
 			folderName, err := ioutil.TempDir("", "")
 			So(err, ShouldBeNil)
@@ -70,7 +72,7 @@ func TestFetcher(t *testing.T) {
 			err = fetcher.Download(folderName)
 			So(err, ShouldBeNil)
 
-			err = exists(folderName + "/scripts.tar")
+			err = exists(folderName + "/test-scripts.tar")
 			So(err, ShouldBeNil)
 		})
 	})
