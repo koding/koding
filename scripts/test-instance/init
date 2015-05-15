@@ -11,12 +11,12 @@ export REPOSITORY_PATH='/opt/koding'
 export CI="true"
 export WERCKER="true"
 
+export CONFIG_DEBUGMODE="true"
+export NIGHTWATCH_OPTIONS="--verbose"
+
 service nginx stop
 
 cd $REPOSITORY_PATH
-
-export CONFIG_DEBUGMODE="true"
-export NIGHTWATCH_OPTIONS="--verbose"
 
 scripts/wercker/install-node-modules koding
 scripts/install-npm.sh -u
