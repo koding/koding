@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -o errexit
 
 HOST=$(ec2metadata | grep public-hostname | FS=':' awk '{print $2}')
 
