@@ -131,7 +131,8 @@ func TestModeration(t *testing.T) {
 			So(res, ShouldNotBeNil)
 
 			rootChnl, err := rest.GetRoot(leaf.Id, request.NewQuery(), ses.ClientId)
-			So(err, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			So(rootChnl, ShouldNotBeNil)
 			So(rootChnl.Id, ShouldEqual,root.Id)
 		})
 	})
