@@ -1,10 +1,10 @@
-kd = require 'kd'
-JView = require 'app/jview'
-KDListItemView = kd.ListItemView
-KDCheckBox = kd.CheckBox
-KDLabelView = kd.LabelView
+kd              = require 'kd'
+JView           = require 'app/jview'
+KDListItemView  = kd.ListItemView
+KDCheckBox      = kd.CheckBox
+KDLabelView     = kd.LabelView
 
-module.exports = class SimilarItemView extends KDListItemView
+module.exports = class SelectableItemView extends KDListItemView
 
   JView.mixin @prototype
 
