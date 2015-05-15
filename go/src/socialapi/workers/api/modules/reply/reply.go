@@ -24,7 +24,7 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 	}
 
 	// fetch parent
-	parent, err := models.ChannelMessageById(parentId)
+	parent, err := models.Cache.Message.ById(parentId)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

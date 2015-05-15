@@ -141,7 +141,7 @@ func (p *PrivateChannelRequest) Send() (*ChannelContainer, error) {
 	}
 
 	// check channel existence
-	c, err := ChannelById(p.ChannelId)
+	c, err := Cache.Channel.ById(p.ChannelId)
 	if err != nil {
 		return nil, err
 	}

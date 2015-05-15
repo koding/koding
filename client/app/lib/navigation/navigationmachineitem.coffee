@@ -95,6 +95,16 @@ module.exports = class NavigationMachineItem extends JView
     @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
 
 
+  moveSettingsIconLeft : ->
+
+    @settingsIcon.setClass 'move-left'
+
+
+  resetSettingsIconPosition : ->
+
+    @settingsIcon.unsetClass 'move-left'
+
+
   settingsEnabled: ->
 
     { status: { state } } = @machine

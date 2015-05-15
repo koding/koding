@@ -3,7 +3,8 @@ logging
 
 Simple logging package in Go.
 
-[![GoDoc](https://godoc.org/github.com/koding/logging?status.png)](https://godoc.org/github.com/koding/logging)
+[![GoDoc](https://godoc.org/github.com/koding/logging?status.svg)](https://godoc.org/github.com/koding/logging)
+[![Build Status](https://travis-ci.org/koding/logging.svg)](https://travis-ci.org/koding/logging)
 
 
 Install
