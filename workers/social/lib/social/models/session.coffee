@@ -94,6 +94,23 @@ module.exports = class JSession extends Model
       else
         @createSession callback
 
+  # fetchSessionByData tries to fetch a session for given data, if
+  # doesnt exist creates a new one with given data
+  #
+  # Please use this function with care, check if the given parameters have an
+  # index in mongo
+  #
+  # i dont like this function name but following the same principle with
+  # fetchSession ~ CS
+  @fetchSessionByData = (data, callback)->
+    @one data, (err, session)=>
+      if err
+        callback err
+      else if session?
+        callback null, { session }
+      else
+        @createNewSession data, callback
+
 
   @updateClientIP = (clientId, ipAddress, callback)->
 
