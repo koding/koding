@@ -95,11 +95,11 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 		var err error
 		if args.Destroy {
-			k.Log.Info("[%s] ======> %s (destroy) started <======", args.StackId, strings.ToUpper(r.Method))
+			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
 			err = destroy(ctx, r.Username, args.StackId)
 		} else {
-			k.Log.Info("[%s] ======> %s started <======", args.StackId, strings.ToUpper(r.Method))
+			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
 			err = apply(ctx, r.Username, args.StackId)
 			if err != nil {
 				finalEvent.Status = machinestate.NotInitialized
@@ -109,7 +109,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		if err != nil {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
-			k.Log.Error("[%s] %s error: %s", args.StackId, r.Method, err)
+			k.Log.New(args.StackId).Error("%s error: %s", r.Method, err)
 			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
 			// however, eventerErr is an error we want to pass explicitly to
 			// the client side
@@ -118,8 +118,8 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			}
 		}
 
-		k.Log.Info("[%s] ======> %s finished (time: %s) <======",
-			args.StackId, strings.ToUpper(r.Method), time.Since(start))
+		k.Log.New(args.StackId).Info("======> %s finished (time: %s) <======",
+			strings.ToUpper(r.Method), time.Since(start))
 
 		ev.Push(finalEvent)
 	}()
