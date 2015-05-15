@@ -501,7 +501,6 @@ module.exports = class JUser extends jraphical.Module
 
         # if everything is fine, just continue
         queue.next()
-        console.log 1
 
     , ->
       # fetch account of the user, we will use it later
@@ -509,7 +508,6 @@ module.exports = class JUser extends jraphical.Module
         return callback { message: "couldn't find account!" }  if err
         account = account_
         queue.next()
-        console.log 2
 
     , =>
       # temp - sy
@@ -538,8 +536,6 @@ module.exports = class JUser extends jraphical.Module
         @addToGroup account, groupName, null, null, (err)=>
           return callback err  if err
           queue.next()
-          console.log 3
-
 
     , =>
       # check for membership
@@ -551,7 +547,6 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err
           return callback { message: "not a member - cannot login"}  unless isMember
           queue.next()
-          console.log 4
 
     , ->
       # we are sure that user can access to the group, set group name into
@@ -559,7 +554,7 @@ module.exports = class JUser extends jraphical.Module
       session.update { $set : {groupName} }, (err) ->
         return callback err  if err
         queue.next()
-        console.log 5
+
     , =>
       # continue login
       afterLogin user, clientId, session, (err, response) ->
