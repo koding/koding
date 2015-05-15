@@ -32,9 +32,9 @@ module.exports = class AdminInvitationsView extends KDView
     tabView.addPane accepted = new KDTabPaneView name: 'Accepted Invitations'
     tabView.addPane invite   = new KDTabPaneView name: 'Invite', hiddenHandle: yes
 
-    pending.addSubView  new PendingInvitationsView  {}, data
-    accepted.addSubView new AcceptedInvitationsView {}, data
-    invite.addSubView   inviteView = new InviteSomeoneView {}, data
+    pending.addSubView  pendingView  = new PendingInvitationsView  {}, data
+    accepted.addSubView acceptedView = new AcceptedInvitationsView {}, data
+    invite.addSubView   inviteView   = new InviteSomeoneView {}, data
 
     tabView.showPaneByIndex 0
 
@@ -42,8 +42,8 @@ module.exports = class AdminInvitationsView extends KDView
       tabView.showPaneByIndex tabView.lastOpenPaneIndex
       @inviteButton.show()
 
-    tabView.on 'PaneDidShow', =>
-      @inviteButton.show()
+    tabView.on 'PaneDidShow', => @inviteButton.show()
+    inviteView.on 'NewInvitationsAdded', => pendingView.refresh()
 
 
   createInviteButton: ->
