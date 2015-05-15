@@ -6,6 +6,8 @@ child_process = require 'child_process'
 
 async = require 'async'
 
+RETRY_COUNT = 3
+
 unless filename = process.argv[2]
   console.error 'error: data file is not specified'
   process.exit 1
@@ -56,52 +58,53 @@ logWithtime = (message) ->
 runTestScript = path.join __dirname, '../test-instance/run-test'
 
 
-exec = (args, callback) ->
+runTest = (job, next) ->
 
-  child_process.execFile runTestScript, args, (error, stdout, stderr) ->
-
-    if error
-      console.error "error: #{JSON.stringify error}"
-      console.error JSON.stringify stderr
-      callback code: error.code, message: stdout
-      return
-
-    callback()
-
-
-runTest = ({instance, test}, callback) ->
+  {instance, test} = job
 
   args = [instance.publicIpAddress, test]
 
-  exec args, callback
+  child_process.execFile runTestScript, args, (error, stdout, stderr) ->
+
+    job.lap ?= 0
+    job.end = Date.now() - start
+
+    if error and ++job.lap is RETRY_COUNT
+      error.job    = job
+      error.stdout = stdout
+      error.stderr = stderr
+      next error
+    else if error
+      runTest job, next
+    else
+      next()
 
 
 startTest = (setId, instance, test, next) ->
 
   begin = Date.now() - start
-
-  lap = {test, begin}
-  stopwatch[setId].push lap
-
-  runTest {instance, test}, do (lap) ->
-    return (error) ->
-
-      lap.end = Date.now() - start
-
-      if error
-        console.error "Failed at Set:#{setId} #{test}"
-
-      next error
+  stopwatch[setId].push job = {test, instance, begin}
+  runTest job, next
 
 
 finishSet = (id, instance, callback, error) ->
 
-  console.log "Finished Set: #{id}"
+  if error
+    {job, code, signal, stdout, stderr} = error
+    {test, lap} = job
+    console.log ""
+    console.log "Set:#{id} is failed at #{test} (#{lap})"
+    console.log "Exit code: #{code} signal: #{signal}"
+    console.log ""
+    console.log "Stderr\n#{stderr}"
+    console.log "Stdout\n#{stdout}"
+  else
+    console.log "Finished Set:#{id}"
 
   logWithtime "Set:#{id} on #{instance.instanceId} #{instance.publicIpAddress}"
 
-  for lap in stopwatch[id]
-    {test, begin, end} = lap
+  for job in stopwatch[id]
+    {test, begin, end} = job
     duration = (end - begin) / 1000
     log "#{duration}\t#{test}"
 
