@@ -93,6 +93,10 @@ module.exports = class SinglePlanView extends KDView
 
     planTitle = title.toLowerCase()
 
+    { appManager } = kd.singletons
+    pricingView = appManager.get('Pricing').getView()
+    pricingView.once 'WorkflowStarted', @buyButton.bound 'hideLoader'
+
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
       reducedMonth, discount, planInterval
