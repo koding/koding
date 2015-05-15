@@ -61,3 +61,24 @@ func BlackList(rootId, leafId int64, token string) error {
 
 	return nil
 }
+
+func GetRoot(leafId int64, q *request.Query, token string) (*models.Channel,error) {
+  v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("/moderation/channel/root/%d%s", leafId, v.Encode())
+	res, err := sendRequestWithAuth("GET", url, nil, token)
+	if err != nil {
+		return nil, err
+	}
+
+	var root *models.Channel
+	err = json.Unmarshal(res, &root)
+	if err != nil {
+		return nil, err
+	}
+  
+	return root, nil
+}
