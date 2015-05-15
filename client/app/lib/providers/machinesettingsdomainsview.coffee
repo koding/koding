@@ -117,6 +117,10 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
         @addInputView.makeEnabled()
         @addNewButton.hideLoader()
 
+  hideAddView: ->
+      super
+      @notificationView.hide()
+
 
   removeDomain: (domainItem) ->
 

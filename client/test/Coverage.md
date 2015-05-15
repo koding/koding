@@ -92,6 +92,7 @@
     - deleteFolder
     - renameFile
     - duplicateFile
+    - saveFile
 
   - general
     - expandCollapseFiletree
@@ -110,6 +111,7 @@
     - findInFiles
     - jumpToFile
     - createAndSaveNewFile
+    - openAnExistingFileAndSave
 
   - terminal
     - terminateAll

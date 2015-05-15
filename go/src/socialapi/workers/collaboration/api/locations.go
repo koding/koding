@@ -33,9 +33,10 @@ func AddHandlers(m *mux.Mux) {
 						}
 					}
 
+					// allow 10 ping request per second
 					t := ratelimit.NewBucket(
-						time.Second*10, // add one token item per 10sec interval
-						10,             // max token count
+						time.Second*1, // add one token item per 1sec interval
+						10,            // max token count
 					)
 					tokenCache.Set(key, t)
 					return t

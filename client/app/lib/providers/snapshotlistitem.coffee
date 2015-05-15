@@ -56,7 +56,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
 
     @editRenameBtn = new kd.ButtonView
       title    : 'rename'
-      cssClass : 'solid green compact rename'
+      cssClass : 'solid green small rename'
       callback : @bound 'renameSnapshot'
 
     @editCancelBtn = new kd.View

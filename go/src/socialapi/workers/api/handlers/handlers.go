@@ -33,23 +33,21 @@ func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
 	m.AddHandler(
 		handler.Request{
-			Handler:        message.Update,
-			Name:           models.REQUEST_NAME_MESSAGE_UPDATE,
-			Type:           handler.PostRequest,
-			Endpoint:       "/message/{id}",
-			CollectMetrics: true,
-			Securer:        models.MessageSecurer,
+			Handler:  message.Update,
+			Name:     models.REQUEST_NAME_MESSAGE_UPDATE,
+			Type:     handler.PostRequest,
+			Endpoint: "/message/{id}",
+			Securer:  models.MessageSecurer,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        message.Delete,
-			Name:           models.REQUEST_NAME_MESSAGE_DELETE,
-			Type:           handler.DeleteRequest,
-			Endpoint:       "/message/{id}",
-			CollectMetrics: true,
-			Securer:        models.MessageDeleteSecurer,
+			Handler:  message.Delete,
+			Name:     models.REQUEST_NAME_MESSAGE_DELETE,
+			Type:     handler.DeleteRequest,
+			Endpoint: "/message/{id}",
+			Securer:  models.MessageDeleteSecurer,
 		},
 	)
 
@@ -94,12 +92,11 @@ func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
 	m.AddHandler(
 		handler.Request{
-			Handler:        reply.Create,
-			Name:           "reply-create",
-			Type:           handler.PostRequest,
-			Endpoint:       "/message/{id}/reply",
-			CollectMetrics: true,
-			Securer:        models.MessageSecurer,
+			Handler:  reply.Create,
+			Name:     "reply-create",
+			Type:     handler.PostRequest,
+			Endpoint: "/message/{id}/reply",
+			Securer:  models.MessageSecurer,
 		},
 	)
 
@@ -119,23 +116,21 @@ func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
 	m.AddHandler(
 		handler.Request{
-			Handler:        interaction.Add,
-			Name:           "interactions-add",
-			Type:           handler.PostRequest,
-			Endpoint:       "/message/{id}/interaction/{type}/add",
-			CollectMetrics: true,
-			Securer:        models.InteractionSecurer,
+			Handler:  interaction.Add,
+			Name:     "interactions-add",
+			Type:     handler.PostRequest,
+			Endpoint: "/message/{id}/interaction/{type}/add",
+			Securer:  models.InteractionSecurer,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        interaction.Delete,
-			Name:           "interactions-delete",
-			Type:           handler.PostRequest,
-			Endpoint:       "/message/{id}/interaction/{type}/delete",
-			CollectMetrics: true,
-			Securer:        models.InteractionSecurer,
+			Handler:  interaction.Delete,
+			Name:     "interactions-delete",
+			Type:     handler.PostRequest,
+			Endpoint: "/message/{id}/interaction/{type}/delete",
+			Securer:  models.InteractionSecurer,
 		},
 	)
 
@@ -165,12 +160,11 @@ func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
 	m.AddHandler(
 		handler.Request{
-			Handler:        channel.Create,
-			Name:           "channel-create",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel",
-			CollectMetrics: true,
-			Securer:        models.ChannelSecurer,
+			Handler:  channel.Create,
+			Name:     "channel-create",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel",
+			Securer:  models.ChannelSecurer,
 		},
 	)
 
@@ -222,23 +216,21 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        channel.Update,
-			Name:           "channel-update",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/update",
-			CollectMetrics: true,
-			Securer:        models.ChannelSecurer,
+			Handler:  channel.Update,
+			Name:     "channel-update",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/update",
+			Securer:  models.ChannelSecurer,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        channel.Delete,
-			Name:           "channel-delete",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/delete",
-			CollectMetrics: true,
-			Securer:        models.ChannelSecurer,
+			Handler:  channel.Delete,
+			Name:     "channel-delete",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/delete",
+			Securer:  models.ChannelSecurer,
 		},
 	)
 
@@ -257,12 +249,11 @@ func AddHandlers(m *mux.Mux) {
 	// add a new messages to the channel
 	m.AddHandler(
 		handler.Request{
-			Handler:        message.Create,
-			Name:           "channel-message-create",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/message",
-			CollectMetrics: true,
-			Securer:        models.MessageSecurer,
+			Handler:  message.Create,
+			Name:     "channel-message-create",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/message",
+			Securer:  models.MessageSecurer,
 		},
 	)
 
@@ -279,54 +270,49 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        participant.AddMulti,
-			Name:           "participant-multi-add",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/participants/add",
-			CollectMetrics: true,
-			Securer:        models.ParticipantMultiSecurer,
+			Handler:  participant.AddMulti,
+			Name:     "participant-multi-add",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/participants/add",
+			Securer:  models.ParticipantMultiSecurer,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        participant.RemoveMulti,
-			Name:           "participant-multi-remove",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/participants/remove",
-			CollectMetrics: true,
-			Securer:        models.ParticipantMultiSecurer,
+			Handler:  participant.RemoveMulti,
+			Name:     "participant-multi-remove",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/participants/remove",
+			Securer:  models.ParticipantMultiSecurer,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        participant.BlockMulti,
-			Name:           "participant-multi-block",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/participants/block",
-			CollectMetrics: true,
+			Handler:  participant.BlockMulti,
+			Name:     "participant-multi-block",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/participants/block",
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        participant.UnblockMulti,
-			Name:           "participant-multi-unblock",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/participants/unblock",
-			CollectMetrics: true,
+			Handler:  participant.UnblockMulti,
+			Name:     "participant-multi-unblock",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/participants/unblock",
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        participant.UpdatePresence,
-			Name:           "participant-presence-update",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/participant/{accountId}/presence",
-			CollectMetrics: true,
-			Securer:        models.ParticipantSecurer,
+			Handler:  participant.UpdatePresence,
+			Name:     "participant-presence-update",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/participant/{accountId}/presence",
+			Securer:  models.ParticipantSecurer,
 		},
 	)
 
@@ -357,12 +343,11 @@ func AddHandlers(m *mux.Mux) {
 	// register an account
 	m.AddHandler(
 		handler.Request{
-			Handler:        account.Register,
-			Name:           "account-create",
-			Type:           handler.PostRequest,
-			Endpoint:       "/account",
-			CollectMetrics: true,
-			Securer:        models.AccountReadSecurer,
+			Handler:  account.Register,
+			Name:     "account-create",
+			Type:     handler.PostRequest,
+			Endpoint: "/account",
+			Securer:  models.AccountReadSecurer,
 		},
 	)
 
@@ -420,24 +405,22 @@ func AddHandlers(m *mux.Mux) {
 	// follow the account
 	m.AddHandler(
 		handler.Request{
-			Handler:        account.Follow,
-			Name:           "account-follow",
-			Type:           handler.PostRequest,
-			Endpoint:       "/account/{id}/follow",
-			CollectMetrics: true,
-			Securer:        models.AccountSecurer,
+			Handler:  account.Follow,
+			Name:     "account-follow",
+			Type:     handler.PostRequest,
+			Endpoint: "/account/{id}/follow",
+			Securer:  models.AccountSecurer,
 		},
 	)
 
 	// un-follow the account
 	m.AddHandler(
 		handler.Request{
-			Handler:        account.Unfollow,
-			Name:           "account-unfollow",
-			Type:           handler.PostRequest,
-			Endpoint:       "/account/{id}/unfollow",
-			CollectMetrics: true,
-			Securer:        models.AccountSecurer,
+			Handler:  account.Unfollow,
+			Name:     "account-unfollow",
+			Type:     handler.PostRequest,
+			Endpoint: "/account/{id}/unfollow",
+			Securer:  models.AccountSecurer,
 		},
 	)
 
@@ -458,7 +441,8 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-info",
 			Type:     handler.GetRequest,
 			Endpoint: "/account",
-		})
+		},
+	)
 
 	// fetch profile feed
 	// m.AddHandler("GET", "/account/{id}/profile/feed"
@@ -495,35 +479,33 @@ func AddHandlers(m *mux.Mux) {
 	// pin a new status update
 	m.AddHandler(
 		handler.Request{
-			Handler:        activity.PinMessage,
-			Name:           "activity-add-pinned-message",
-			Type:           handler.PostRequest,
-			Endpoint:       "/activity/pin/add",
-			CollectMetrics: true,
-			Securer:        models.PinnedActivitySecurer,
+			Handler:  activity.PinMessage,
+			Name:     "activity-add-pinned-message",
+			Type:     handler.PostRequest,
+			Endpoint: "/activity/pin/add",
+
+			Securer: models.PinnedActivitySecurer,
 		},
 	)
 	// unpin a status update
 	m.AddHandler(
 		handler.Request{
-			Handler:        activity.UnpinMessage,
-			Name:           "activity-remove-pinned-message",
-			Type:           handler.PostRequest,
-			Endpoint:       "/activity/pin/remove",
-			CollectMetrics: true,
-			Securer:        models.PinnedActivitySecurer,
+			Handler:  activity.UnpinMessage,
+			Name:     "activity-remove-pinned-message",
+			Type:     handler.PostRequest,
+			Endpoint: "/activity/pin/remove",
+			Securer:  models.PinnedActivitySecurer,
 		},
 	)
 
 	// @todo add tests
 	m.AddHandler(
 		handler.Request{
-			Handler:        activity.Glance,
-			Name:           "activity-pinned-message-glance",
-			Type:           handler.PostRequest,
-			Endpoint:       "/activity/pin/glance",
-			CollectMetrics: true,
-			Securer:        models.PinnedActivitySecurer,
+			Handler:  activity.Glance,
+			Name:     "activity-pinned-message-glance",
+			Type:     handler.PostRequest,
+			Endpoint: "/activity/pin/glance",
+			Securer:  models.PinnedActivitySecurer,
 		},
 	)
 
@@ -554,23 +536,21 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        privatechannel.Init,
-			Name:           "privatechannel-init",
-			Type:           handler.PostRequest,
-			Endpoint:       "/privatechannel/init",
-			CollectMetrics: true,
-			Securer:        models.PrivateMessageSecurer,
+			Handler:  privatechannel.Init,
+			Name:     "privatechannel-init",
+			Type:     handler.PostRequest,
+			Endpoint: "/privatechannel/init",
+			Securer:  models.PrivateMessageSecurer,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        privatechannel.Send,
-			Name:           "privatechannel-send",
-			Type:           handler.PostRequest,
-			Endpoint:       "/privatechannel/send",
-			CollectMetrics: true,
-			Securer:        models.PrivateMessageSecurer,
+			Handler:  privatechannel.Send,
+			Name:     "privatechannel-send",
+			Type:     handler.PostRequest,
+			Endpoint: "/privatechannel/send",
+			Securer:  models.PrivateMessageSecurer,
 		},
 	)
 

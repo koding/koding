@@ -28,7 +28,7 @@ func New(log logging.Logger) *Controller {
 
 // MessageReplyCreated handles the created replies
 func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) error {
-	parent, err := models.ChannelMessageById(messageReply.MessageId)
+	parent, err := models.Cache.Message.ById(messageReply.MessageId)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 		return nil
 	}
 
-	reply, err := models.ChannelMessageById(messageReply.ReplyId)
+	reply, err := models.Cache.Message.ById(messageReply.ReplyId)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
 	// fetch the parent channel for group name
 	// get it from cache
-	channel, err := models.ChannelById(channelId)
+	channel, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return err
 	}

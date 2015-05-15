@@ -171,14 +171,18 @@ module.exports = class SidebarMachineBox extends KDView
 
     @listWrapper.hide()
     @workspacesLabel.hide()
-    @unreadIndicator.show()  if @unreadCount > 0
     @isListCollapsed = yes
+
+    if @unreadCount > 0
+      @machineItem.moveSettingsIconLeft()
+      @unreadIndicator.show()
 
 
   expandList: ->
 
     return  unless @isMachineRunning()
 
+    @machineItem.resetSettingsIconPosition()
     @listWrapper.show()
     @workspacesLabel.show()
     @unreadIndicator.hide()

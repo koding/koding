@@ -23,7 +23,7 @@ func setDefaults(log logging.Logger) {
 	log.Debug("mongo group found")
 
 	setPublicChannel(log, group)
-	setSetChangeLogChannel(log, group)
+	setChangeLogChannel(log, group)
 	log.Info("socialApi defaults are created")
 }
 
@@ -73,7 +73,7 @@ func setPublicChannel(log logging.Logger, group *kodingmodels.Group) {
 	}
 }
 
-func setSetChangeLogChannel(log logging.Logger, group *kodingmodels.Group) {
+func setChangeLogChannel(log logging.Logger, group *kodingmodels.Group) {
 
 	c := models.NewChannel()
 	selector := map[string]interface{}{

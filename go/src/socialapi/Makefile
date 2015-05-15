@@ -61,12 +61,10 @@ minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
 paymentwebhookdev:
-	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running Payment Webhook Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) -kite-init=true $(DBG) $(METRICS)
 
 apidev:
-	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS)
 
@@ -372,11 +370,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	@`which go` test config/*.go $(DBG)
 
 	@echo "$(OK_COLOR)--> all api tests... $(NO_COLOR)"
-
-	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
-	@`which go` test -c workers/common/metrics/*.go
-	@./metrics.test
-	@rm ./metrics.test
 
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 

@@ -373,7 +373,7 @@ func TestChannelCanOpen(t *testing.T) {
 			So(canOpen, ShouldBeFalse)
 		})
 
-		Convey("uninitialized account can open group channel", func() {
+		Convey("uninitialized account can open koding's group channel", func() {
 			c := NewChannel()
 			c.Id = 123
 			c.CreatorId = 312
@@ -384,7 +384,7 @@ func TestChannelCanOpen(t *testing.T) {
 			So(canOpen, ShouldBeTrue)
 		})
 
-		Convey("uninitialized account can open announcement channel", func() {
+		Convey("uninitialized account can open koding's announcement channel", func() {
 			c := NewChannel()
 			c.Id = 123
 			c.CreatorId = 312
@@ -465,7 +465,7 @@ func TestChannelCanOpen(t *testing.T) {
 		//
 		// NON participant tests
 		//
-		Convey("everyone can open group channel", func() {
+		Convey("everyone can open koding group channel", func() {
 			c := createNewChannelWithTest()
 			// set required constant to open chanel
 			c.TypeConstant = Channel_TYPE_GROUP
@@ -478,7 +478,7 @@ func TestChannelCanOpen(t *testing.T) {
 			So(canOpen, ShouldBeTrue)
 		})
 
-		Convey("everyone can open topic channel", func() {
+		Convey("everyone can open koding's topic channel", func() {
 			c := createNewChannelWithTest()
 			c.TypeConstant = Channel_TYPE_TOPIC
 			c.GroupName = Channel_KODING_NAME
@@ -512,6 +512,90 @@ func TestChannelCanOpen(t *testing.T) {
 			canOpen, err := c.CanOpen(account.Id)
 			So(err, ShouldBeNil)
 			So(canOpen, ShouldBeFalse)
+		})
+	})
+}
+
+func TestChannelCanOpenNonKoding(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while testing channel permissions for non koding groups", t, func() {
+		Convey("uninitialized account can open other group channel", func() {
+			c := NewChannel()
+			c.Id = 123
+			c.CreatorId = 312
+			c.TypeConstant = Channel_TYPE_GROUP
+			c.GroupName = RandomGroupName()
+
+			canOpen, _ := c.CanOpen(0)
+			So(canOpen, ShouldBeFalse)
+		})
+
+		Convey("uninitialized account can not open other group's announcement channel", func() {
+			c := NewChannel()
+			c.Id = 123
+			c.CreatorId = 312
+			c.TypeConstant = Channel_TYPE_ANNOUNCEMENT
+			c.GroupName = RandomGroupName()
+
+			canOpen, _ := c.CanOpen(0)
+			So(canOpen, ShouldBeFalse)
+		})
+
+		Convey("non participants can not open other group's group channel", func() {
+			// create a new account
+			owner := CreateAccountWithTest()
+			account := CreateAccountWithTest()
+
+			// create group channel
+			c := NewChannel()
+			c.CreatorId = owner.Id
+			c.TypeConstant = Channel_TYPE_GROUP
+			c.GroupName = RandomGroupName()
+			So(c.Create(), ShouldBeNil)
+
+			canOpen, _ := c.CanOpen(account.Id)
+			So(canOpen, ShouldBeFalse)
+		})
+
+		Convey("non participants can not open other group's topic channel", func() {
+			// create a new account
+			owner := CreateAccountWithTest()
+			account := CreateAccountWithTest()
+
+			// create group channel
+			c := NewChannel()
+			c.CreatorId = owner.Id
+			c.TypeConstant = Channel_TYPE_TOPIC
+			c.GroupName = RandomGroupName()
+			So(c.Create(), ShouldBeNil)
+
+			canOpen, _ := c.CanOpen(account.Id)
+			So(canOpen, ShouldBeFalse)
+		})
+
+		Convey("group members can open group channel", func() {
+			// create a new account
+			owner := CreateAccountWithTest()
+			account := CreateAccountWithTest()
+
+			// create group channel
+			c := NewChannel()
+			c.CreatorId = owner.Id
+			c.TypeConstant = Channel_TYPE_GROUP
+			c.GroupName = RandomGroupName()
+			So(c.Create(), ShouldBeNil)
+
+			// add new participant
+			_, err := c.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
+
+			canOpen, _ := c.CanOpen(account.Id)
+			So(canOpen, ShouldBeTrue)
 		})
 	})
 }
