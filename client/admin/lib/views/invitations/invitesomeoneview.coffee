@@ -81,6 +81,8 @@ module.exports = class InviteSomeoneView extends KDView
         title    : 'All invites sent.'
         duration : 5000
 
+      @emit 'NewInvitationsAdded'
+
 
   createInformationView: ->
 
