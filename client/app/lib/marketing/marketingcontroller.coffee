@@ -5,6 +5,7 @@ kookies              = require 'kookies'
 checkFlag            = require 'app/util/checkFlag'
 
 MarketingSnippetType = require './marketingsnippettype'
+MarketingConstants   = require './marketingconstants'
 
 
 ###*
@@ -14,8 +15,6 @@ MarketingSnippetType = require './marketingsnippettype'
  * @class
 ###
 module.exports = class MarketingController extends KDController
-
-  cookieName = 'koding_marketing_snippets'
 
   constructor: (options = {}, data) ->
 
@@ -57,7 +56,7 @@ module.exports = class MarketingController extends KDController
 
     @snippets = response.snippets
 
-    if cookieValue = kookies.get cookieName
+    if cookieValue = kookies.get MarketingConstants.SNIPPETS_COOKIE_NAME
       try
         @shownSnippets = JSON.parse cookieValue
       catch e
@@ -90,10 +89,11 @@ module.exports = class MarketingController extends KDController
 
       ranges       = {}  unless ranges
       realWeight   = weight - shownTimes
-      ranges[name] =
-        minValue : sum + 1
-        maxValue : sum += realWeight
-      	 
+      minValue     = sum + 1
+      maxValue     = sum + realWeight
+      ranges[name] = { minValue, maxValue }
+      sum          = maxValue
+
     unless ranges
       @shownSnippets = {}
       return @getNextSnippet()
@@ -105,7 +105,7 @@ module.exports = class MarketingController extends KDController
     snippetName = name for name, range of ranges when range.minValue <= randomValue <= range.maxValue
 
     @shownSnippets[snippetName] = (@shownSnippets[snippetName] ? 0) + 1
-    kookies.set cookieName, JSON.stringify @shownSnippets
+    kookies.set MarketingConstants.SNIPPETS_COOKIE_NAME, JSON.stringify @shownSnippets
 
     @getSnippet snippetName, callback
 
@@ -129,14 +129,13 @@ module.exports = class MarketingController extends KDController
       when MarketingSnippetType.html
         callback snippet
       when MarketingSnippetType.markdown
-        $.ajax {
-          url
+        $.ajax
+          url     : url
           success : (content) ->
             snippet.content = content
             callback snippet
           error   : ->
             kd.warn "MarketingController: Couldn\'t load snippet #{name}"
-        }
 
 
   ###*
