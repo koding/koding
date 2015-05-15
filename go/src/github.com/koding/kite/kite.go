@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/nu7hatch/gouuid"
@@ -67,7 +68,7 @@ type Kite struct {
 	MethodHandling MethodHandling
 
 	// HTTP muxer
-	httpHandler *http.ServeMux
+	muxer *mux.Router
 
 	// kontrolclient is used to register to kontrol and query third party kites
 	// from kontrol
@@ -134,7 +135,7 @@ func New(name, version string) *Kite {
 		Id:                 kiteID.String(),
 		readyC:             make(chan bool),
 		closeC:             make(chan bool),
-		httpHandler:        http.NewServeMux(),
+		muxer:              mux.NewRouter(),
 	}
 
 	// This is the same as sockjs.DefaultOptions except we changed the
@@ -147,8 +148,9 @@ func New(name, version string) *Kite {
 		DisconnectDelay: 5 * time.Second,
 		ResponseLimit:   128 * 1024,
 	}
-	// All websocket communication is done through this endpoint.
-	k.HandleHTTP("/", sockjs.NewHandler("/kite", sockjsOpts, k.sockjsHandler))
+
+	// All sockjs communication is done through this endpoint..
+	k.muxer.PathPrefix("/kite").Handler(sockjs.NewHandler("/kite", sockjsOpts, k.sockjsHandler))
 
 	// Add useful debug logs
 	k.OnConnect(func(c *Client) { k.Log.Debug("New session: %s", c.session.ID()) })
@@ -189,19 +191,19 @@ func (k *Kite) TrustKontrolKey(issuer, key string) {
 // HandleHTTP registers the HTTP handler for the given pattern into the
 // underlying HTTP muxer.
 func (k *Kite) HandleHTTP(pattern string, handler http.Handler) {
-	k.httpHandler.Handle(pattern, handler)
+	k.muxer.Handle(pattern, handler)
 }
 
 // HandleHTTPFunc registers the HTTP handler for the given pattern into the
 // underlying HTTP muxer.
 func (k *Kite) HandleHTTPFunc(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-	k.httpHandler.HandleFunc(pattern, handler)
+	k.muxer.HandleFunc(pattern, handler)
 }
 
 // ServeHTTP helps Kite to satisfy the http.Handler interface. So kite can be
 // used as a standard http server.
 func (k *Kite) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	k.httpHandler.ServeHTTP(w, req)
+	k.muxer.ServeHTTP(w, req)
 }
 
 func (k *Kite) sockjsHandler(session sockjs.Session) {
