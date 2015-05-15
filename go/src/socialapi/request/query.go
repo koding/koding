@@ -1,7 +1,6 @@
 package request
 
 import (
-	"fmt"
 	"math"
 	"net/url"
 	"path"
@@ -119,7 +118,6 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		q.ShowExempt = isExempt
 	}
 
-	fmt.Println(urlQuery.Get("sort"))
 	if showModerationNeeded := urlQuery.Get("showModerationNeeded"); showModerationNeeded != "" {
 		i, _ := strconv.ParseBool(showModerationNeeded)
 		q.ShowModerationNeeded = i

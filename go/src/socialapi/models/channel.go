@@ -504,7 +504,6 @@ func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int6
 }
 
 func (c *Channel) Search(q *request.Query) ([]Channel, error) {
-	fmt.Println(q)
 	if q.GroupName == "" {
 		return nil, ErrGroupNameIsNotSet
 	}
@@ -599,8 +598,6 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	}
 
 	var channels []Channel
-
-	fmt.Println(q.ShowModerationNeeded)
 
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
