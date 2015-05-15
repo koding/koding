@@ -18,7 +18,7 @@ module.exports = class GroupsController extends KDController
 
     @isReady = no
 
-    kd.utils.defer @bound 'init'
+    @init()
 
   init:->
     mainController    = kd.getSingleton 'mainController'
