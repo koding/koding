@@ -73,6 +73,7 @@
           "home"
         ],
         [
+          "command+left",
           "home"
         ]
       ]
