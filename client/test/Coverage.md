@@ -156,8 +156,8 @@
     - startConversation
     - refreshAndSeeConversationOnSidebar
     - leaveConversation
-    - setConversationPurpose (in progress)
-    - startConversationWithMultiplePeople (in progress)
+    - setConversationPurpose
+    - startConversationWithMultiplePeople
 
 
 - pricing

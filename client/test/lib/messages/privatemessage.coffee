@@ -70,3 +70,16 @@ module.exports =
     browser.end()
 
 
+  startConversationWithMultiplePeople: (browser) ->
+
+    users = [
+      { userName: 'testuser2', fullName: 'Test2 User2' }
+      { userName: 'testuser3', fullName: 'Test3 User3' }
+      { userName: 'testuser4', fullName: 'Test4 User4' }
+    ]
+
+    helpers.beginTest(browser)
+
+    messagesHelpers.startConversation(browser, users)
+    browser.end()
+
