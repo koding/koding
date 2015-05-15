@@ -516,8 +516,7 @@ module.exports = class JUser extends jraphical.Module
       # add loggedin user to the group
       #
       # TODO(cihangir) remove this before releasing feature
-      user?.fetchAccount 'koding', (err, account) =>
-        @addToGroup account, groupName, null, null, queue.next
+      @addToGroup account, groupName, null, null, queue.next
 
     , =>
       # check if user can access to group
