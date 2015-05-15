@@ -63,7 +63,6 @@ module.exports = class SocialAccount extends Base
 
     participantHandler = (funcName, data)->
       { group, member } = data
-      console.log "adding #{member.profile.nickname} to #{group.slug}"
       group.fetchAdmin (err, admin)=>
         return console.error "err while fetching admin", err  if err
         return console.error "couldnt find admin"  unless admin
@@ -87,17 +86,16 @@ module.exports = class SocialAccount extends Base
             { socialApiChannelId, socialApiAnnouncementChannelId } = socialApiChannels
 
             # ensure member has socialapi id
-            member.createSocialApiId (err, socialapiId)->
+            member.createSocialApiId (err, socialApiId)->
               return console.error "couldnt create socialapi id", err  if err
 
               # add account into public channel
               options      =
                 channelId  : socialApiChannelId
-                accountIds : [socialapiId]
+                accountIds : [socialApiId]
 
               SocialChannel[funcName] client, options, (err, participants) ->
                 return console.error "couldnt add user into group socialapi chan", err, options  if err
-                console.log "added participant", participants
 
                 # only add koding's members to announcement channel
                 return if group.slug isnt "koding"
@@ -105,9 +103,9 @@ module.exports = class SocialAccount extends Base
                 # add account into announcement channel
                 options      =
                   channelId  : socialApiChannelId
-                  accountIds : [socialApiAnnouncementChannelId]
+                  accountIds : [socialApiId]
 
-                SocialChannel.addParticipants client, options, (err) ->
+                SocialChannel[funcName] client, options, (err) ->
                   return console.error "couldnt add user into group socialapi chan", err, options  if err
 
 
