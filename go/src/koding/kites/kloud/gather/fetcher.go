@@ -35,6 +35,7 @@ func (s *S3Fetcher) Bucket() *s3.Bucket {
 	return s3.New(auth, aws.USEast).Bucket(s.BucketName)
 }
 
+// Download downloads scripts from S3 bucket into specified folder.
 func (s *S3Fetcher) Download(folderName string) error {
 	// prefix, delim, marker, max
 	l, err := s.Bucket().List(s.ScriptsFile, "", "", 1)
@@ -65,11 +66,8 @@ func (s *S3Fetcher) Download(folderName string) error {
 	return err
 }
 
+// Upload tars folder and uploads to s3 bucket.
 func (s *S3Fetcher) Upload(folderName string) error {
-	if err := exists(folderName); err != nil {
-		return err
-	}
-
 	tarFile := folderName + ".tar"
 	if err := tarFolder(folderName, tarFile); err != nil {
 		return err
@@ -95,11 +93,14 @@ func (s *S3Fetcher) Upload(folderName string) error {
 //----------------------------------------------------------
 
 func tarFolder(folderName, outputFileName string) error {
+	if err := exists(folderName); err != nil {
+		return err
+	}
+
 	_, err := exec.Command("tar", "-cvf", outputFileName, folderName).Output()
 	return err
 }
 
-// exists checks if folder or file exists
 func exists(name string) error {
 	var err error
 	if _, err = os.Stat(name); os.IsNotExist(err) {
