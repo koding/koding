@@ -10,6 +10,7 @@ KDHitEnterInputView    = kd.HitEnterInputView
 TopicLeafItemView      = require './topicleafitemview'
 SelectableItemView     = require './selectableitemview'
 
+
 module.exports = class TopicItemView extends KDListItemView
 
   JView.mixin @prototype
@@ -27,11 +28,11 @@ module.exports = class TopicItemView extends KDListItemView
     
     super options, data
     
-    @createLabels(data)
-    @createSettingsView(data)
+    @createLabels data
+    @createSettingsView data
  
  
-  createLabels:(data)->
+  createLabels: (data)->
     
     @moderationLabel = new KDCustomHTMLView
       cssClass : 'moderateRole'
@@ -49,11 +50,11 @@ module.exports = class TopicItemView extends KDListItemView
     @settings  = new KDCustomHTMLView
       cssClass : 'settings hidden'
     
-    if data.typeConstant is "topic" then @createAllTopicView(data) else @createDeletedTopicView(data)
+    if data.typeConstant is "topic" then @createAllTopicView data else @createDeletedTopicView data
     
-    @createLeafChannelSetting(data)
+    @createLeafChannelSetting data
             
-    @createSimilarChannelSetting(data) 
+    @createSimilarChannelSetting data
 
   createAllTopicView : (data) ->
       @settings.addSubView deleteButton = new KDButtonView
@@ -66,7 +67,7 @@ module.exports = class TopicItemView extends KDListItemView
           
           kd.singletons.socialapi.moderation.blacklist options, (err, data) =>
             if err
-              console.log "no leaf channel found for #{data.id}, #{data.name}"
+              return kd.warn err
               
   createDeletedTopicView: (data) ->
       options = 
@@ -76,7 +77,7 @@ module.exports = class TopicItemView extends KDListItemView
       kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
        
         if err 
-          return console.log "err while fething root", err
+          return kd.warn err
         
         if rootChannel
           text = "Blacklisted"
@@ -96,7 +97,7 @@ module.exports = class TopicItemView extends KDListItemView
             kd.singletons.socialapi.moderation.unlink options, (err, data) =>
             
               if err
-                console.log "no leaf channel found for #{options.rootId}, #{data}"
+                return kd.warn err
                 
          
   createLeafChannelSetting: (data)->
@@ -122,7 +123,7 @@ module.exports = class TopicItemView extends KDListItemView
           kd.singletons.socialapi.moderation.unlink options, (err, @item) =>
           
             if err
-              return console.log "no leaf channel found for #{data.id}, #{data.name}"
+              return kd.warn err
             @leafChannelsListController.removeItem item
     
   
@@ -160,7 +161,7 @@ module.exports = class TopicItemView extends KDListItemView
           kd.singletons.socialapi.moderation.link options, (err, @item) =>
           
             if err
-              console.log "no leaf channel found for #{data.id}, #{data.name}"
+              return kd.warn err
             @similarChannelsListController.removeItem item
             @listLeafChannels [item.getData()]
 
@@ -170,7 +171,7 @@ module.exports = class TopicItemView extends KDListItemView
           
     kd.singletons.socialapi.moderation.list options, (err, channels) =>
       if err
-        console.log "no leaf channel found for #{data.id}, #{data.name}"
+        return kd.warn err
       @listLeafChannels channels
       if channels.length > 0
         @removeButton.show()
@@ -248,7 +249,7 @@ module.exports = class TopicItemView extends KDListItemView
         itemClass         : SelectableItemView
         cssClass          : 'leaf-channel-list'
         itemOptions       : {}
-      noItemFoundWidget   : new KDCustomHTMLView  { partial: "doesnt have linked channel" }
+      noItemFoundWidget   : new KDCustomHTMLView  { partial: "Doesn't have linked channel" }
       startWithLazyLoader : yes
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
@@ -264,7 +265,7 @@ module.exports = class TopicItemView extends KDListItemView
         itemClass         : SelectableItemView
         cssClass          : 'similar-item-list'
         itemOptions       : {}
-      noItemFoundWidget   : new KDCustomHTMLView { partial: "doesnt have similar channel" }
+      noItemFoundWidget   : new KDCustomHTMLView { partial: "Doesn't have similar channel" }
       startWithLazyLoader : yes
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
