@@ -57,9 +57,15 @@ module.exports = class AdminAppController extends AppController
 
   openSection: (section, query) ->
 
+    targetPane = null
+
     @mainView.ready =>
-      unless @mainView.tabs.showPaneByName section
-        kd.singletons.router.handleRoute "/Admin/Settings"
+      @mainView.tabs.panes.forEach (pane) =>
+        if pane.getOption('slug') is section
+          targetPane = pane
+
+      if   targetPane then @mainView.tabs.showPane targetPane
+      else kd.singletons.router.handleRoute '/Admin/Settings'
 
 
   loadView: (modal) ->
