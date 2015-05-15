@@ -27,7 +27,7 @@ services=(
   koding/go-webserver
   koding/workers/cmd/tunnelproxymanager
   koding/vmwatcher
-  koding/janitor
+  koding/workers/janitor
 
   github.com/koding/kite/kitectl
   github.com/canthefason/go-watcher

@@ -30,9 +30,9 @@ import (
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 
-	janitor "koding/janitor/secretkey"
 	"koding/kites/kloud/kloudctl/command"
 	vmwatcher "koding/vmwatcher/secretkey"
+	janitor "koding/workers/janitor/secretkey"
 	paymentwebhook "socialapi/workers/payment/paymentwebhook/secretkey"
 
 	"github.com/koding/kite"

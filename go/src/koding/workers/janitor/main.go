@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
-	"koding/janitor/secretkey"
+	"koding/workers/janitor/secretkey"
 	"log"
 	"net"
 	"net/http"
