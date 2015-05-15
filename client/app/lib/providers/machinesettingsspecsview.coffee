@@ -47,7 +47,7 @@ module.exports = class MachineSettingsSpecsView extends KDView
 
     wrapper.addSubView new KDButtonView
       title    : 'UPGRADE YOUR VM NOW'
-      cssClass : 'solid green compact more'
+      cssClass : 'solid green small more'
       callback : =>
         kd.singletons.router.handleRoute '/Pricing'
         @emit 'ModalDestroyRequested'

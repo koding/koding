@@ -22,7 +22,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewBadRequest(errors.New("channel id is not set"))
 	}
 
-	c, err := models.ChannelById(query.Id)
+	c, err := models.Cache.Channel.ById(query.Id)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -301,7 +301,7 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 		return errors.New("0 participant is given for participant operation")
 	}
 
-	c, err := models.ChannelById(channelId)
+	c, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return err
 	}

@@ -12,9 +12,8 @@ import (
 // CreateLink creates a new link between two channels, root and leaf id should
 // be given in the request
 func CreateLink(u *url.URL, h http.Header, req *models.ChannelLink, context *models.Context) (int, http.Header, interface{}, error) {
-	// only admin users can request
-	if !context.IsAdmin() {
-		return response.NewAccessDenied(errors.New("not admin"))
+	if err := validateContext(context); err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	rootId, err := request.GetURIInt64(u, "rootId") // get root id from query
@@ -29,9 +28,8 @@ func CreateLink(u *url.URL, h http.Header, req *models.ChannelLink, context *mod
 
 // GetLinks returns the leaves of a root channel
 func GetLinks(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	// only admin users can request
-	if !context.IsAdmin() {
-		return response.NewAccessDenied(errors.New("not admin"))
+	if err := validateContext(context); err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	q := request.GetQuery(u)
@@ -57,9 +55,8 @@ func GetLinks(u *url.URL, h http.Header, _ interface{}, context *models.Context)
 
 // DeleteLink removes the connection between two channels
 func DeleteLink(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	// only admin users can request
-	if !context.IsAdmin() {
-		return response.NewAccessDenied(errors.New("not admin"))
+	if err := validateContext(context); err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	req := &models.ChannelLink{}
@@ -73,9 +70,8 @@ func DeleteLink(u *url.URL, h http.Header, _ interface{}, context *models.Contex
 // Blacklist remove the channel content from system completely, it shouldnt have
 // any leaf channels in order to be blacklisted
 func Blacklist(u *url.URL, h http.Header, req *models.ChannelLink, context *models.Context) (int, http.Header, interface{}, error) {
-	// only admin users can request
-	if !context.IsAdmin() {
-		return response.NewAccessDenied(errors.New("not admin"))
+	if err := validateContext(context); err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(req, req.Blacklist())
@@ -95,6 +91,20 @@ func prepareRequest(u *url.URL, req *models.ChannelLink) error {
 
 	req.RootId = rootId
 	req.LeafId = leafId
+
+	return nil
+}
+
+func validateContext(context *models.Context) error {
+	// only admin users can request
+	if !context.IsAdmin() {
+		return errors.New("not admin")
+	}
+
+	// only koding group can moderate content for now
+	if context.GroupName != models.Channel_KODING_NAME {
+		return errors.New("moderation only works for koding")
+	}
 
 	return nil
 }

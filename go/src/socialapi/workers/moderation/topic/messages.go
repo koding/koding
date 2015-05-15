@@ -21,13 +21,13 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 
 	var errors []error
 
-	rootChannel, err := models.ChannelById(cl.RootId)
+	rootChannel, err := models.Cache.Channel.ById(cl.RootId)
 	if err != nil {
 		c.log.Critical("requested root channel doesnt exist. ChannelId: %d", cl.RootId)
 		return nil
 	}
 
-	leafChannel, err := models.ChannelById(cl.LeafId)
+	leafChannel, err := models.Cache.Channel.ById(cl.LeafId)
 	if err != nil {
 		c.log.Critical("requested leaf channel doesnt exist. ChannelId: %d", cl.LeafId)
 		return nil

@@ -63,7 +63,7 @@ module.exports =
       .end()
 
 
-  createFolderMachineHeader: (browser) ->
+  createFolderFromMachineHeader: (browser) ->
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -157,5 +157,16 @@ module.exports =
 
     helpers.deleteFile(browser, fileSelector)
     helpers.deleteFile(browser, newFile)
+
+    browser.end()
+
+
+  createFileAndOpen: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    fileName = helpers.createFile(browser, user)
+    ideHelpers.openFile(browser, user, fileName)
 
     browser.end()

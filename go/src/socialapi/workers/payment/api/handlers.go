@@ -12,12 +12,12 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        Subscribe,
-			Name:           "payment-subsrcibe",
-			Type:           handler.PostRequest,
-			Endpoint:       "/payments/subscribe",
-			CollectMetrics: true,
-		})
+			Handler:  Subscribe,
+			Name:     "payment-subsrcibe",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/subscribe",
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -25,7 +25,8 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "payment-subscriptions",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/subscriptions",
-		})
+		},
+	)
 
 	//----------------------------------------------------------
 	// Customers
@@ -37,7 +38,8 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "payment-getcustomer",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/customers",
-		})
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -45,7 +47,8 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "payment-deletecustomer",
 			Type:     handler.DeleteRequest,
 			Endpoint: "/payments/customers/{accountId}",
-		})
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -53,7 +56,8 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "payment-expirecustomer",
 			Type:     handler.PostRequest,
 			Endpoint: "/payments/customers/{accountId}/expire",
-		})
+		},
+	)
 
 	//----------------------------------------------------------
 	// Invoices
@@ -65,7 +69,8 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "payment-invoices",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/invoices/{accountId}",
-		})
+		},
+	)
 
 	//----------------------------------------------------------
 	// CreditCard
@@ -73,21 +78,21 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        CreditCardRequest,
-			Name:           "payment-creditcard",
-			Type:           handler.GetRequest,
-			Endpoint:       "/payments/creditcard/{accountId}",
-			CollectMetrics: true,
-		})
+			Handler:  CreditCardRequest,
+			Name:     "payment-creditcard",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/creditcard/{accountId}",
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        UpdateCreditCardRequest,
-			Name:           "payment-updatecreditcard",
-			Type:           handler.PostRequest,
-			Endpoint:       "/payments/creditcard/update",
-			CollectMetrics: true,
-		})
+			Handler:  UpdateCreditCardRequest,
+			Name:     "payment-updatecreditcard",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/creditcard/update",
+		},
+	)
 
 	//----------------------------------------------------------
 	// Paypal
@@ -95,28 +100,28 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        PaypalSuccess,
-			Name:           "payment-paypalsuccess",
-			Type:           handler.PostRequest,
-			Endpoint:       "/payments/paypal/return",
-			CollectMetrics: true,
-		})
+			Handler:  PaypalSuccess,
+			Name:     "payment-paypalsuccess",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/paypal/return",
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        PaypalCancel,
-			Name:           "payment-paypalcancel",
-			Type:           handler.PostRequest,
-			Endpoint:       "/payments/paypal/cancel",
-			CollectMetrics: true,
-		})
+			Handler:  PaypalCancel,
+			Name:     "payment-paypalcancel",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/paypal/cancel",
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        PaypalGetToken,
-			Name:           "payment-paypalgettoken",
-			Type:           handler.GetRequest,
-			Endpoint:       "/payments/paypal/token",
-			CollectMetrics: true,
-		})
+			Handler:  PaypalGetToken,
+			Name:     "payment-paypalgettoken",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/paypal/token",
+		},
+	)
 }
