@@ -13,7 +13,10 @@ import (
 )
 
 type (
+	// Color represents log level colors
 	Color int
+
+	// Level represent severity of logs
 	Level int
 )
 
@@ -39,6 +42,7 @@ const (
 	DEBUG
 )
 
+// LevelNames provides mapping for log levels
 var LevelNames = map[Level]string{
 	CRITICAL: "CRITICAL",
 	ERROR:    "ERROR",
@@ -48,6 +52,7 @@ var LevelNames = map[Level]string{
 	DEBUG:    "DEBUG",
 }
 
+// LevelColors provides mapping for log colors
 var LevelColors = map[Level]Color{
 	CRITICAL: MAGENTA,
 	ERROR:    RED,
@@ -58,12 +63,23 @@ var LevelColors = map[Level]Color{
 }
 
 var (
-	DefaultLogger    Logger    = NewLogger(procName())
-	DefaultLevel     Level     = INFO
-	DefaultHandler   Handler   = StderrHandler
+	// DefaultLogger holds default logger
+	DefaultLogger Logger = NewLogger(procName())
+
+	// DefaultLevel holds default value for loggers
+	DefaultLevel Level = INFO
+
+	// DefaultHandler holds default handler for loggers
+	DefaultHandler Handler = StderrHandler
+
+	// DefaultFormatter holds default formatter for loggers
 	DefaultFormatter Formatter = &defaultFormatter{}
-	StdoutHandler              = NewWriterHandler(os.Stdout)
-	StderrHandler              = NewWriterHandler(os.Stderr)
+
+	// StdoutHandler holds a handler with outputting to stdout
+	StdoutHandler = NewWriterHandler(os.Stdout)
+
+	// StderrHandler holds a handler with outputting to stderr
+	StderrHandler = NewWriterHandler(os.Stderr)
 )
 
 // Logger is the interface for outputing log messages in different levels.
@@ -82,8 +98,8 @@ type Logger interface {
 	// the Logger. Default value is zero.
 	SetCallDepth(int)
 
-	// New creates a new inerhited context logger with the given prefix.
-	New(prefix string) Logger
+	// New creates a new inerhited context logger with given prefixes.
+	New(prefixes ...interface{}) Logger
 
 	// Fatal is equivalent to l.Critical followed by a call to os.Exit(1).
 	Fatal(format string, args ...interface{})
@@ -177,13 +193,9 @@ func NewLogger(name string) Logger {
 	}
 }
 
-// New creates a new inerhited logger with the given prefix
-func (l *logger) New(prefix string) Logger {
-	c := &context{
-		prefix: "[" + prefix + "]",
-	}
-	c.logger = *l
-	return c
+// New creates a new inerhited logger with the given prefixes
+func (l *logger) New(prefixes ...interface{}) Logger {
+	return newContext(*l, "", prefixes...)
 }
 
 func (l *logger) SetLevel(level Level) {
@@ -334,11 +346,13 @@ func Debug(format string, args ...interface{}) {
 //             //
 /////////////////
 
+// BaseHandler provides basic functionality for handler
 type BaseHandler struct {
 	Level     Level
 	Formatter Formatter
 }
 
+// NewBaseHandler creates a newBaseHandler with default values
 func NewBaseHandler() *BaseHandler {
 	return &BaseHandler{
 		Level:     DefaultLevel,
@@ -346,14 +360,17 @@ func NewBaseHandler() *BaseHandler {
 	}
 }
 
+// SetLevel sets logging level for handler
 func (h *BaseHandler) SetLevel(l Level) {
 	h.Level = l
 }
 
+// SetFormatter sets logging formatter for handler
 func (h *BaseHandler) SetFormatter(f Formatter) {
 	h.Formatter = f
 }
 
+// FilterAndFormat filters any record according to loggging level
 func (h *BaseHandler) FilterAndFormat(rec *Record) string {
 	if h.Level >= rec.Level {
 		return h.Formatter.Format(rec)
@@ -374,6 +391,7 @@ type WriterHandler struct {
 	Colorize bool
 }
 
+// NewWriterHandler creates a new writer handler with given io.Writer
 func NewWriterHandler(w io.Writer) *WriterHandler {
 	return &WriterHandler{
 		BaseHandler: NewBaseHandler(),
@@ -381,6 +399,7 @@ func NewWriterHandler(w io.Writer) *WriterHandler {
 	}
 }
 
+// Handle writes any given Record to the Writer.
 func (b *WriterHandler) Handle(rec *Record) {
 	message := b.BaseHandler.FilterAndFormat(rec)
 	if message == "" {
@@ -395,6 +414,7 @@ func (b *WriterHandler) Handle(rec *Record) {
 	}
 }
 
+// Close closes WriterHandler
 func (b *WriterHandler) Close() {}
 
 //////////////////
@@ -408,22 +428,26 @@ type MultiHandler struct {
 	handlers []Handler
 }
 
+// NewMultiHandler creates a new handler with given handlers
 func NewMultiHandler(handlers ...Handler) *MultiHandler {
 	return &MultiHandler{handlers: handlers}
 }
 
+// SetFormatter sets formatter for all handlers
 func (b *MultiHandler) SetFormatter(f Formatter) {
 	for _, h := range b.handlers {
 		h.SetFormatter(f)
 	}
 }
 
+// SetLevel sets level for all handlers
 func (b *MultiHandler) SetLevel(l Level) {
 	for _, h := range b.handlers {
 		h.SetLevel(l)
 	}
 }
 
+// Handle handles given record with all handlers concurrently
 func (b *MultiHandler) Handle(rec *Record) {
 	wg := sync.WaitGroup{}
 	wg.Add(len(b.handlers))
@@ -436,6 +460,7 @@ func (b *MultiHandler) Handle(rec *Record) {
 	wg.Wait()
 }
 
+// Close closes all handlers concurrently
 func (b *MultiHandler) Close() {
 	wg := sync.WaitGroup{}
 	wg.Add(len(b.handlers))

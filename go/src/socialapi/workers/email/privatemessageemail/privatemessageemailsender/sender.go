@@ -292,7 +292,7 @@ func (c *Controller) parseValues(field, value interface{}) (*models.Channel, tim
 		return nil, time.Time{}, err
 	}
 
-	ch, err := models.ChannelById(id)
+	ch, err := models.Cache.Channel.ById(id)
 	if err != nil {
 		return nil, time.Time{}, err
 	}

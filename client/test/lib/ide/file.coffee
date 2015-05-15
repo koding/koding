@@ -161,7 +161,7 @@ module.exports =
     browser.end()
 
 
-  saveFile: (browser) ->
+  createFileAndOpen: (browser) ->
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)

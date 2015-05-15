@@ -56,7 +56,7 @@ func (f *Controller) validateSynonymRequest(cl *models.ChannelLink) error {
 	}
 
 	// check channel types
-	rootChannel, err := models.ChannelById(cl.RootId)
+	rootChannel, err := models.Cache.Channel.ById(cl.RootId)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (f *Controller) validateSynonymRequest(cl *models.ChannelLink) error {
 		return errors.New("root is not valid type for synonym")
 	}
 
-	leafChannel, err := models.ChannelById(cl.LeafId)
+	leafChannel, err := models.Cache.Channel.ById(cl.LeafId)
 	if err != nil {
 		return err
 	}

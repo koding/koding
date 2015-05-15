@@ -1,9 +1,12 @@
 kd                        = require 'kd'
-checkFlag                 = require 'app/util/checkFlag'
 KDModalView               = kd.ModalView
 KDButtonView              = kd.ButtonView
+KDCustomHTMLView          = kd.CustomHTMLView
+
+checkFlag                 = require 'app/util/checkFlag'
+{handleNewMachineRequest} = require 'app/providers/computehelpers'
+
 ModalMachineItem          = require './modalmachineitem'
-{handleNewMachineRequest} = require '../../providers/computehelpers'
 
 
 module.exports = class MoreVMsModal extends KDModalView
@@ -17,9 +20,22 @@ module.exports = class MoreVMsModal extends KDModalView
 
     super options, data
 
+    @createStackStatusMessage()
     @createAddKodingVMButton()
     @createAddYourVMButton()
     @listMachines()
+
+
+  createStackStatusMessage: ->
+
+    {stackStatus} = @getOptions()
+    return  if not stackStatus or stackStatus.code is 0
+
+    @addSubView new KDCustomHTMLView
+      cssClass : 'changed-stack'
+      partial  : "Current stack template is changed,
+                  you need to reinitialize current
+                  stack to get latest changes."
 
 
   createAddKodingVMButton: ->

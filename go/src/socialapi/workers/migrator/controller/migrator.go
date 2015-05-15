@@ -81,20 +81,26 @@ func (mwc *Controller) Start() {
 }
 
 func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
-	id := models.FetchAccountIdByOldId(oldId)
-	if id != 0 {
-		return id, nil
+	acc, err := models.Cache.Account.ByOldId(oldId)
+	if err == nil {
+		return acc.Id, nil
 	}
 
-	acc, err := modelhelper.GetAccountById(oldId)
+	acc1, err := modelhelper.GetAccountById(oldId)
 	if err != nil {
 		return 0, fmt.Errorf("Participant account %s cannot be fetched: %s", oldId, err)
 	}
 
-	id, err = models.AccountIdByOldId(oldId, acc.Profile.Nickname)
-	if err != nil {
-		mwc.log.Warning("Could not update cache for %s: %s", oldId, err)
+	a := models.NewAccount()
+	a.OldId = oldId
+	a.Nick = acc1.Profile.Nickname
+	if err := a.FetchOrCreate(); err != nil {
+		return 0, err
 	}
 
-	return id, nil
+	if err := models.Cache.Account.SetToCache(a); err != nil {
+		return 0, err
+	}
+
+	return a.Id, nil
 }

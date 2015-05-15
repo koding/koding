@@ -13,16 +13,16 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "notification-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/notification/{accountId}",
-		})
+		},
+	)
 
 	// glance notifications
 	m.AddHandler(
 		handler.Request{
-			Handler:        Glance,
-			Name:           "notification-glance",
-			Type:           handler.PostRequest,
-			Endpoint:       "/notification/glance",
-			CollectMetrics: true,
-		})
-
+			Handler:  Glance,
+			Name:     "notification-glance",
+			Type:     handler.PostRequest,
+			Endpoint: "/notification/glance",
+		},
+	)
 }

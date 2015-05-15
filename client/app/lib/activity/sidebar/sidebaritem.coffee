@@ -1,7 +1,10 @@
-groupifyLink = require '../../util/groupifyLink'
-kd = require 'kd'
+kd               = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-KDListItemView = kd.ListItemView
+KDListItemView   = kd.ListItemView
+
+groupifyLink     = require 'app/util/groupifyLink'
+
+
 module.exports = class SidebarItem extends KDListItemView
 
   constructor: (options = {}, data) ->
@@ -48,5 +51,3 @@ module.exports = class SidebarItem extends KDListItemView
       @unreadCount.updatePartial unreadCount
       @unreadCount.show()
       @setClass 'unread'
-
-
