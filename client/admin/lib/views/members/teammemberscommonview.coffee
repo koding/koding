@@ -96,7 +96,8 @@ module.exports = class TeamMembersCommonView extends KDView
   listMembers: (members) ->
 
     unless members.length
-      return @listController.lazyLoader.hide()
+      @listController.lazyLoader.hide()
+      return @listController.noItemView.show()
 
     @skip += members.length
 
@@ -112,6 +113,7 @@ module.exports = class TeamMembersCommonView extends KDView
     @skip  = 0
     @query = @searchInput.getValue()
 
+    @listController.noItemView.hide()
     @listController.removeAllItems()
     @listController.lazyLoader.show()
     @fetchMembers()
