@@ -419,7 +419,6 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 
 // Tests are done.
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
-
 	if accountId == 0 {
 		return false, nil
 	}

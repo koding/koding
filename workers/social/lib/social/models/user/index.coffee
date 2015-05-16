@@ -883,7 +883,7 @@ module.exports = class JUser extends jraphical.Module
       callback null
 
   @changeUsernameByAccount = (options, callback)->
-    { account, username, clientId, isRegistration } = options
+    { account, username, clientId, isRegistration, groupName } = options
     account.changeUsername { username, isRegistration }, (err) =>
       return callback err   if err?
       return callback null  unless clientId?
@@ -893,7 +893,7 @@ module.exports = class JUser extends jraphical.Module
           return callback createKodingError "Could not update your session"
 
         if session?
-          session.update { $set: { clientId: newToken, username }}, (err) ->
+          session.update { $set: { clientId: newToken, username, groupName }}, (err) ->
             return callback err  if err?
             callback null, newToken
         else
@@ -904,6 +904,20 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err?
       return callback message: "Guests group not found!"  unless guestsGroup?
       guestsGroup.removeMember account, callback
+
+  createGroupStack = (account, groupName, callback)->
+    _client =
+      connection : delegate : account
+      context    : group    : groupName
+
+    ComputeProvider.createGroupStack _client, (err)->
+      if err?
+        console.warn "Failed to create group stack for #{account.profile.nickname}:", err
+
+      # We are not returning error here on purpose, even stack template
+      # not created for a user we don't want to break registration process
+      # at all ~ GG
+      callback()
 
   @convert = secure (client, userFormData, callback) ->
 
@@ -1027,7 +1041,14 @@ module.exports = class JUser extends jraphical.Module
 
       =>
         if aNewRegister and username?
-          options = { account, username, clientId, isRegistration: yes }
+          options = {
+            account        : account
+            username       : username
+            clientId       : clientId
+            isRegistration : yes
+            groupName      : client.context.group
+          }
+
           @changeUsernameByAccount options, (err, newToken_) =>
             return callback err  if err
             newToken = newToken_
@@ -1045,21 +1066,21 @@ module.exports = class JUser extends jraphical.Module
         @addToGroups account, invite, user.email, (err) =>
           error = err
           queue.next()
-
       ->
+        # create default stack for koding group, when a user joins this is only
+        # required for koding group, not neeed for other teams
         _client =
           connection : delegate : account
           context    : group    : 'koding'
 
         ComputeProvider.createGroupStack _client, (err)->
           if err?
-            console.warn "Failed to create group stack for #{username}:", err
+            console.warn "Failed to create group stack for #{account.profile.nickname}:", err
 
           # We are not returning error here on purpose, even stack template
           # not created for a user we don't want to break registration process
           # at all ~ GG
           queue.next()
-
       ->
         account.update $set: type: 'registered', (err) ->
           return callback err  if err?

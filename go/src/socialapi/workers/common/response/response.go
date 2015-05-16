@@ -21,7 +21,7 @@ var (
 // http response properties
 func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	l := runner.MustGetLogger()
-	l.SetCallDepth(1) // get previous error line
+	l.SetCallDepth(2) // get previous error line
 
 	return NewBadRequestWithLogger(l, err)
 }

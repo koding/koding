@@ -72,11 +72,11 @@ module.exports = class JSession extends Model
         else callback null, { session, account }
 
 
-  @createNewSession = (username, callback) ->
+  @createNewSession = (data, callback) ->
 
-    clientId = createId()
+    data.clientId = createId()
 
-    session = new JSession { clientId, username }
+    session = new JSession data
     session.save (err) ->
       return callback err  if err
       return callback null, session

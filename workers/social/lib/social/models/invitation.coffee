@@ -5,6 +5,7 @@ crypto      = require 'crypto'
 Bongo       = require "bongo"
 Email       = require './email'
 KodingError = require '../error'
+{ extend }  = require 'underscore'
 
 { protocol, hostname } = KONFIG
 { secure, signature, dash } = Bongo
@@ -41,8 +42,8 @@ module.exports = class JInvitation extends jraphical.Module
           (signature Object, Object, Object, Function)
         ]
         search:[
-          (signature String, Object, Function)
-          (signature Object, String, Object, Function)
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
         ]
         create:
           (signature Object, Function)
@@ -118,11 +119,16 @@ module.exports = class JInvitation extends jraphical.Module
   # search searches database with given query string, adds `starting
   # with regex` around query param
   @search$: permit 'send invitations',
-    success: (client, query, options, callback) ->
+    success: (client, selector, options, callback) ->
       return callback new KodingError "query is not set"  if query is ""
-
+      # get query from selector and delete it, we need modification for search
+      # string
+      { query } = selector
       $query = ///^#{query}///
-      selector = { $or : [
+      delete selector.query
+
+
+      selector = extend selector, { $or : [
           { 'name'  : $query }
           { 'email' : $query }
         ]

@@ -875,7 +875,6 @@ func (c *Channel) getAccountId() (int64, error) {
 	}
 
 	return cn.CreatorId, nil
-
 }
 
 // FetchParticipant simply fetch the participants from the channel

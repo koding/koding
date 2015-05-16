@@ -41,11 +41,11 @@ module.exports = class AdminAppView extends kd.View
 
   viewAppended: ->
 
-    group = kd.getSingleton("groupsController").getCurrentGroup()
+    group = kd.getSingleton('groupsController').getCurrentGroup()
     group?.canEditGroup (err, success) =>
       if err or not success
         {entryPoint} = globals.config
-        kd.singletons.router.handleRoute "/Activity", { entryPoint }
+        kd.singletons.router.handleRoute '/Activity', { entryPoint }
       else
         @createTabs()
 
@@ -66,16 +66,25 @@ module.exports = class AdminAppView extends kd.View
       items = items.concat section.items
 
 
-    items.forEach (item, i) =>
+    @tabs.on 'PaneDidShow', (pane) ->
+      return  if pane._isViewAdded
 
-      { viewClass, slug, title } = item
+      slug = pane.getOption 'slug'
 
-      pane = new KDTabPaneView name: slug
+      for item in items when item.slug is slug
+        {viewClass} = item
+
+      pane._isViewAdded = yes
       pane.addSubView new viewClass
         cssClass : slug
         delegate : this
       , data
 
+    items.forEach (item, i) =>
+
+      { slug, title } = item
+
+      pane = new KDTabPaneView { slug, name: title }
       @tabs.addPane pane, i is 0
 
     @emit 'ready'

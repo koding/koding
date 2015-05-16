@@ -26,6 +26,7 @@ module.exports = class GroupsController extends KDController
     {entryPoint}      = globals.config
     @groups           = {}
     @currentGroupData = new GroupData
+    @currentGroupData.setGroup globals.currentGroup
 
     mainController.ready =>
       { slug } = entryPoint  if entryPoint?.type is 'group'
