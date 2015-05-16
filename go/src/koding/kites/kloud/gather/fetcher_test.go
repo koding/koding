@@ -34,8 +34,9 @@ func TestFetcher(t *testing.T) {
 			err := tarFolder(testScriptFolder, tarFile)
 			So(err, ShouldBeNil)
 
-			err = exists(tarFile)
+			isExists, err := exists(tarFile)
 			So(err, ShouldBeNil)
+			So(isExists, ShouldBeTrue)
 		})
 
 		Convey("Then it should upload folder", func() {
@@ -72,8 +73,9 @@ func TestFetcher(t *testing.T) {
 			err = fetcher.Download(folderName)
 			So(err, ShouldBeNil)
 
-			err = exists(folderName + "/test-scripts.tar")
+			isExists, err := exists(folderName + "/test-scripts.tar")
 			So(err, ShouldBeNil)
+			So(isExists, ShouldBeTrue)
 		})
 	})
 }

@@ -93,19 +93,24 @@ func (s *S3Fetcher) Upload(folderName string) error {
 //----------------------------------------------------------
 
 func tarFolder(folderName, outputFileName string) error {
-	if err := exists(folderName); err != nil {
+	isExist, err := exists(folderName)
+	if err != nil {
 		return err
 	}
 
-	_, err := exec.Command("tar", "-cvf", outputFileName, folderName).Output()
-	return err
-}
-
-func exists(name string) error {
-	var err error
-	if _, err = os.Stat(name); os.IsNotExist(err) {
+	if !isExist {
 		return ErrFolderNotFound
 	}
 
+	_, err = exec.Command("tar", "-cvf", outputFileName, folderName).Output()
 	return err
+}
+
+func exists(name string) (bool, error) {
+	var err error
+	if _, err = os.Stat(name); os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return true, err
 }
