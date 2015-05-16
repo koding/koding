@@ -761,8 +761,8 @@ module.exports = CollaborationController =
     socialHelpers.destroyChannel @socialChannel, (err) =>
       throwError err  if err
 
-      envHelpers.detachSocialChannel @workspaceData, (err) =>
-        throwError err  if err
+    envHelpers.detachSocialChannel @workspaceData, (err) =>
+      throwError err  if err
 
     @unsetSocialChannel()
     callback()
