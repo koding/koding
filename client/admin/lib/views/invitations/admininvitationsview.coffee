@@ -43,7 +43,7 @@ module.exports = class AdminInvitationsView extends KDView
       @inviteButton.show()
 
     tabView.on 'PaneDidShow', => @inviteButton.show()
-    inviteView.on 'NewInvitationsAdded', => pendingView.refresh()
+    inviteView.on 'NewInvitationsAdded', -> pendingView.refresh()
 
 
   createInviteButton: ->
