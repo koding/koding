@@ -118,7 +118,6 @@ module.exports = class TeamMembersCommonView extends KDView
 
   refresh: ->
 
-
     @listController.removeAllItems()
     @listController.lazyLoader.show()
     @fetchMembers()
