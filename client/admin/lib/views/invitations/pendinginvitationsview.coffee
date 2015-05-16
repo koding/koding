@@ -2,6 +2,7 @@ kd                    = require 'kd'
 KDView                = kd.View
 remote                = require('app/remote').getInstance()
 InvitedItemView       = require './inviteditemview'
+KDCustomHTMLView      = kd.CustomHTMLView
 TeamMembersCommonView = require '../members/teammemberscommonview'
 
 
@@ -13,6 +14,9 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
     options.searchInputPlaceholder   = 'Find by email or first name'
     options.listViewItemOptions    or= statusType: 'pending'
     options.statusType             or= 'pending'
+    options.noItemFoundWidget      or= new KDCustomHTMLView
+      partial  : 'There is no pending invitation.'
+      cssClass : 'hidden no-item-view'
     options.sortOptions            or= [
       { title: 'Send date',  value: 'createdAt' } # sort by -1
       { title: 'Email',      value: 'email'     } # sort by  1
