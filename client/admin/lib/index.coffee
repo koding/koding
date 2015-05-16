@@ -60,7 +60,7 @@ module.exports = class AdminAppController extends AppController
     targetPane = null
 
     @mainView.ready =>
-      @mainView.tabs.panes.forEach (pane) =>
+      @mainView.tabs.panes.forEach (pane) ->
         if pane.getOption('slug') is section
           targetPane = pane
 
