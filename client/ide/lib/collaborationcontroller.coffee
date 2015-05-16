@@ -59,7 +59,9 @@ module.exports = CollaborationController =
     return @socialChannel?.id or @channelId or @workspaceData.channelId
 
 
-  unsetSocialChannel: -> @channelId = @socialChannel = null
+  unsetSocialChannel: ->
+
+    @channelId = @socialChannel = @workspaceData.channelId = null
 
 
   deletePrivateMessage: (callback = kd.noop) ->
@@ -759,8 +761,8 @@ module.exports = CollaborationController =
     socialHelpers.destroyChannel @socialChannel, (err) =>
       throwError err  if err
 
-      envHelpers.detachSocialChannel @workspaceData, (err) =>
-        throwError err  if err
+    envHelpers.detachSocialChannel @workspaceData, (err) =>
+      throwError err  if err
 
     @unsetSocialChannel()
     callback()
