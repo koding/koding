@@ -1,7 +1,7 @@
 {argv}      = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
-crypto      = require 'crypto'
+shortid     = require('shortid');
 Bongo       = require "bongo"
 Email       = require './email'
 KodingError = require '../error'
@@ -150,7 +150,9 @@ module.exports = class JInvitation extends jraphical.Module
         { email, firstName, lastName } = invitation
 
         hash = JUser.getHash email
-        code = generateInvitationCode email, groupName
+
+        # eg: VJPj9gUQ
+        code = shortid.generate()
 
         data = {
           code
@@ -212,10 +214,3 @@ module.exports = class JInvitation extends jraphical.Module
       name = "#{name} #{lastName}"
 
     return name
-
-  # TODO - generate a better invitation code
-  generateInvitationCode = (email, group) ->
-    code = crypto.createHmac 'sha1', 'kodingsecret'
-    code.update email
-    code.update group
-    code.digest 'hex'

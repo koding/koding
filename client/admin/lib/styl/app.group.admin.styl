@@ -14,16 +14,15 @@ Admin main styles
 
 .AppModal--admin
 
-  #main-tab-view
-    overflow                visible
-    overflow                hidden!important
+  .kdcustomscrollview
+    styleScrollBars         rgba(0, 0, 0, .15)
 
   .kdmodal-content
     size                    100% 100%
 
   .AppModal-content
-    height                  500px
-    overflow                auto!important
+    height                  515px
+
 
   .group-logo
     figure
@@ -64,42 +63,42 @@ Admin main styles
 
   form
     .formline
-      padding            0 17px 0 0
-      margin             0 0 16px
+      padding               0 17px 0 0
+      margin                0 0 16px
       borderBox()
 
       .input-wrapper
-        margin           0
+        margin              0
 
       &.button-field
-        clear            both
-        border           none
-        margin-top       6px
+        clear               both
+        border              none
+        margin-top          6px
 
   .kdlabel
-    font-size            14px
-    color                #8D8D8D
-    float                none
-    line-height          19px
-    margin               0 0 7px
-    font-weight          200
+    font-size               14px
+    color                   #8D8D8D
+    float                   none
+    line-height             19px
+    margin                  0 0 7px
+    font-weight             200
 
   .kdinput.text
-    rounded              3px
-    background           #fff
-    border               1px solid #C9C9C9
-    padding              8px 13px 10px
-    font-size            14px
-    line-height          19px
-    color                #4C4C4C
-    font-weight          600
-    opacity              .99
-    margin               0
+    rounded                 3px
+    background              #fff
+    border                  1px solid #C9C9C9
+    padding                 8px 13px 10px
+    font-size               14px
+    line-height             19px
+    color                   #4C4C4C
+    font-weight             600
+    opacity                 .99
+    margin                  0
 
   .lazy-loader
   .kdloader
-    text-align          center
-    padding             40px 0
+    text-align              center
+    padding                 20px 0
 
   .loading-text
     text-align          center
@@ -476,12 +475,18 @@ Admin main styles
 // Admin modal specific styling
 .AppModal--admin
 
-  .kdmodal-content
+  &.kdmodal .kdmodal-inner .kdmodal-content
+    overflow                hidden
+
+    // not necessary anymore - SY
     max-height              515px !important // to override computed height
 
 
 // common tab styling
 .AppModal--admin
+
+  .AppModal-content.kdtabview
+    overflow                hidden
 
   .kdtabhandlecontainer
     background              none
@@ -512,7 +517,6 @@ Admin main styles
         color               #575757 !important
         bg                  color, transparent !important
 
-
 // outline button styling
 .AppModal--admin
 
@@ -541,6 +545,15 @@ Admin main styles
 
 // members tab styling
 .AppModal--admin .member-related
+
+  .kdtabpaneview
+    kalc                    height, (100% \- 62px)
+
+  .listview-wrapper
+    kalc                    height, (100% \- 91px)
+
+  .members-commonview
+    overflow                hidden
 
   .search
     margin                  25px 0
