@@ -1,12 +1,17 @@
-TeamLoginTab         = require './teamlogintab'
-TeamDomainTab        = require './teamdomaintab'
-TeamAllowedDomainTab = require './teamalloweddomaintab'
-TeamInviteTab        = require './teaminvitetab'
-TeamUsernameTab      = require './teamusernametab'
-
 module.exports = class TeamView extends KDView
 
-  constructor:(options = {}, data)->
+  TABS =
+    login         : require './tabs/teamlogintab'
+    domain        : require './tabs/teamdomaintab'
+    alloweddomain : require './tabs/teamalloweddomaintab'
+    invite        : require './tabs/teaminvitetab'
+    username      : require './tabs/teamusernametab'
+    welcome       : require './tabs/teamwelcometab'
+    join          : require './tabs/teamregistertab'
+    congratz      : require './tabs/teamcongratztab'
+    authenticate  : require './tabs/teamauthenticatetab'
+
+  constructor: (options = {}, data) ->
 
     super options, data
 
@@ -14,13 +19,14 @@ module.exports = class TeamView extends KDView
       tagName             : 'main'
       hideHandleContainer : yes
 
+    # focus to the first element of the form if there is any form
+    @tabView.on 'PaneDidShow', (pane) -> pane.form?.focusFirstElement()
 
-  createLoginTab: -> @tabView.addPane new TeamLoginTab
 
-  createDomainTab: -> @tabView.addPane new TeamDomainTab
+  showTab: (step, query) ->
 
-  createAllowedDomainTab: -> @tabView.addPane new TeamAllowedDomainTab
+    return KD.singletons.router.handleRoute '/Teams'  unless TABS[step]
 
-  createInviteTab: -> @tabView.addPane new TeamInviteTab
-
-  createUsernameTab: -> @tabView.addPane new TeamUsernameTab
+    if tab = @tabView.getPaneByName step
+    then @tabView.showTab tab
+    else @tabView.addPane new TABS[step] { query }

@@ -1,6 +1,6 @@
-JView                   = require './../core/jview'
-MainHeaderView          = require './../core/mainheaderview'
-TeamUsernameTabForm     = require './teamusernametabform'
+JView                   = require './../../core/jview'
+MainHeaderView          = require './../../core/mainheaderview'
+TeamUsernameTabForm     = require './../forms/teamusernametabform'
 
 module.exports = class TeamUsernameTab extends KDTabPaneView
 
@@ -28,7 +28,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
     """
     {{> @header }}
-    <div class="SignupForm">
+    <div class="TeamsModal TeamsModal--groupCreation">
       <h4>Choose a Username</h4>
       {{> @form}}
     </div>

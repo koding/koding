@@ -1,5 +1,5 @@
-JView             = require './../core/jview'
-CustomLinkView    = require './../core/customlinkview'
+JView          = require './../../core/jview'
+CustomLinkView = require './../../core/customlinkview'
 
 module.exports = class TeamInviteTabForm extends KDFormView
 
@@ -34,17 +34,17 @@ module.exports = class TeamInviteTabForm extends KDFormView
 
     @add = new KDButtonView
       title    : 'ADD INVITATION'
-      style    : 'SignupForm-button compact SignupForm-button--gray add'
+      style    : 'TeamsModal-button compact TeamsModal-button--gray add'
       callback : @bound 'addInvitee'
 
     @skip = new CustomLinkView
       title    : 'Skip this step'
-      cssClass : 'SignupForm-linkButton skip'
+      cssClass : 'TeamsModal-linkButton skip'
       href     : '/Team/username'
 
     @button = new KDButtonView
       title      : 'NEXT'
-      style      : 'SignupForm-button SignupForm-button--green'
+      style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'invite-button'
       type       : 'submit'
 

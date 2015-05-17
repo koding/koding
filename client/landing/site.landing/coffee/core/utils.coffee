@@ -466,9 +466,32 @@ utils.extend utils,
       url       : "/-/teams/create"
       data      : formData
       type      : 'POST'
-      xhrFields : withCredentials : yes
       success   : ->
         KD.utils.clearTeamData()
         location.href = formData.redirect
-      error     : ({responseText}) =>
+      error     : ({responseText}) ->
         new KDNotificationView title : responseText
+
+
+  routeIfInvitationTokenIsValid: (token) ->
+
+    $.ajax
+      url       : "/-/teams/validate-token"
+      data      : { token }
+      type      : 'POST'
+      success   : ({email}) ->
+        KD.utils.storeNewTeamData 'invitation', { token, email }
+        KD.singletons.router.handleRoute '/Welcome'
+      error     : ({responseText}) ->
+        new KDNotificationView title : responseText
+        KD.singletons.router.handleRoute '/'
+
+
+  fetchTeamMembers: (teamName, callback) ->
+
+    $.ajax
+      url       : "/-/teams/#{teamName}/members?limit=4"
+      # data      : { limit : 5 }
+      type      : 'POST'
+      success   : (members) -> callback null, members
+      error     : ({responseText}) -> callback msg : responseText

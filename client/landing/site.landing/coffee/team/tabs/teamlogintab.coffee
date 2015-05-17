@@ -1,7 +1,7 @@
-JView           = require './../core/jview'
-CustomLinkView  = require './../core/customlinkview'
-MainHeaderView  = require './../core/mainheaderview'
-LoginInlineForm = require './../login/loginform'
+JView           = require './../../core/jview'
+CustomLinkView  = require './../../core/customlinkview'
+MainHeaderView  = require './../../core/mainheaderview'
+LoginInlineForm = require './../../login/loginform'
 
 module.exports = class TeamLoginTab extends KDTabPaneView
 
@@ -27,22 +27,21 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     # set this once uploader ready - SY
     # @logo.setCss 'background-image', KD.config.group.backgroundImage
 
-    @loginForm = new LoginInlineForm
+    # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
+    @form = new LoginInlineForm
       cssClass : 'login-form clearfix'
       testPath : 'login-form'
       callback : (formData) =>
-        mainController.on 'LoginFailed', => @loginForm.button.hideLoader()
+        mainController.on 'LoginFailed', => @form.button.hideLoader()
         mainController.login formData
 
-    @loginForm.button.unsetClass 'solid medium green'
-    @loginForm.button.setClass 'SignupForm-button SignupForm-button--green'
+    @form.button.unsetClass 'solid medium green'
+    @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
 
     if location.search isnt '' and location.search.search('username=') > 0
       username = location.search.split('username=').last.replace(/\&.+/, '')
-      @loginForm.username.input.setValue username
-      @loginForm.username.inputReceivedKeyup()
-
-
+      @form.username.input.setValue username
+      @form.username.inputReceivedKeyup()
 
     @invitationLink = new CustomLinkView
       cssClass    : 'invitation-link'
@@ -50,18 +49,19 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       testPath    : 'landing-recover-password'
       href        : '/Recover'
 
+
   pistachio: ->
 
     """
     {{> @header }}
-    <div class="SignupForm">
+    <div class="TeamsModal TeamsModal--login">
       {{> @logo}}
-      <h4>Sign in to #{KD.config.group.title}</h4>
-      {{> @loginForm}}
+      <h4><span>Sign in to</span> #{KD.config.group.title}</h4>
+      {{> @form}}
     </div>
     <section>
       <p>
-      To be able to login to #{KD.config.groupName}.koding.com, you need to be invited by team administrators.
+      To be able to login to <a href="/">#{KD.config.groupName}.koding.com</a>, you need to be invited by team administrators.
       </p>
       <p>
       Trying to create a team? <a href="/Teams">Sign up on the home page</a> to get started.
