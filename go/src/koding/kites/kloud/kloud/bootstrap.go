@@ -93,12 +93,6 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
 
-		// Important so bootstraping is distributed amongs multiple users. If I
-		// use these keys to bootstrap, any other user should be not create
-		// again, instead they should be fetch and use the existing bootstrap
-		// data.
-		contentId := sha1sum(cred.Data["access_key"] + cred.Data["secret_key"])
-
 		// TODO(arslan): change this once we have group context name
 		groupName := "koding"
 		awsOutput := &AwsBootstrapOutput{}
