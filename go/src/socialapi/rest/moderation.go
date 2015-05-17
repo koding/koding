@@ -63,8 +63,8 @@ func BlackList(rootId, leafId int64, token string) error {
 }
 
 // GetRoot gets the root channel of the channel
-func GetRoot(leafId int64, q *request.Query, token string) (*models.Channel,error) {
-  v, err := query.Values(q)
+func GetRoot(leafId int64, q *request.Query, token string) (*models.Channel, error) {
+	v, err := query.Values(q)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func GetRoot(leafId int64, q *request.Query, token string) (*models.Channel,erro
 	if err != nil {
 		return nil, err
 	}
-	
+
 	cc := models.NewChannelContainer()
 	err = json.Unmarshal(res, cc)
 	if err != nil {

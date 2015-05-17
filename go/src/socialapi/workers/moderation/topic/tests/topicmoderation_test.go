@@ -125,7 +125,7 @@ func TestModeration(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 		
-		Convey("We should not be able to get the root channel of the leaf channel", func() {
+		Convey("We should be able to get the root channel of the leaf channel", func() {
 			res, err := rest.CreateLink(root.Id, leaf.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(res, ShouldNotBeNil)
