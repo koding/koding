@@ -8,7 +8,7 @@ module.exports = class CustomViews
 
   @views      =
     view      : (options, data) ->
-      new kd.View options, data
+      new kd.CustomHTMLView options, data
     text      : (text, cssClass) =>
       @views.view partial: text, cssClass: "text #{cssClass ? ''}"
     container : (options, cssClass) =>
@@ -23,7 +23,7 @@ module.exports = class CustomViews
     link      : (options) ->
       new (require 'app/customlinkview') options
 
-  @addTo   = (parent, views)->
+  @addTo   = (parent, views) ->
 
     map    = {}
     length = 0
