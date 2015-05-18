@@ -17,41 +17,44 @@ type registerResult struct {
 }
 
 type config struct {
-	Port int
+	Port            int
+	BaseVirtualHost string `required:"true"`
 }
 
 var (
-	baseVirtualHost = "localhost"
-	server          = tunnel.NewServer()
+	server = tunnel.NewServer()
 )
 
 func main() {
 	conf := new(config)
-	multiconfig.New().MustLoad(conf)
+	m := multiconfig.New()
+	m.MustLoad(conf)
 
-	k := kite.New("tunnerlserver", "0.0.1")
+	k := kite.New("tunnelserver", "0.0.1")
 	k.Config.DisableAuthentication = true
 	k.Config.Port = conf.Port
 
-	k.HandleFunc("register", Register)
-	k.HandleHTTP("/", server)
+	k.Handle("register", Register(conf.BaseVirtualHost))
+	k.HandleHTTP("/{rest:.*}", server)
 
 	k.Run()
 }
 
-func Register(r *kite.Request) (interface{}, error) {
-	log.Printf("registering user '%s'\n", r.Username)
+func Register(baseVirtualHost string) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		log.Printf("registering user '%s'\n", r.Username)
 
-	virtualHost := fmt.Sprintf("%s.%s", r.Username, baseVirtualHost)
-	identifier := randomID(32)
+		virtualHost := fmt.Sprintf("%s.%s", r.Username, baseVirtualHost)
+		identifier := randomID(32)
 
-	server.AddHost(virtualHost, identifier)
-	log.Printf("tunnel added: %s\n", virtualHost)
+		server.AddHost(virtualHost, identifier)
+		log.Printf("tunnel added: %s\n", virtualHost)
 
-	return registerResult{
-		VirtualHost: virtualHost,
-		Identifier:  identifier,
-	}, nil
+		return registerResult{
+			VirtualHost: virtualHost,
+			Identifier:  identifier,
+		}, nil
+	}
 }
 
 // randomID generates a random string of the given length

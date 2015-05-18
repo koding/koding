@@ -15,8 +15,6 @@ type registerResult struct {
 	Identifier  string
 }
 
-const serverAddr = "newkontrol.sj.koding.com:80"
-
 type config struct {
 	ServerAddr string `default:"127.0.0.1:4444"`
 	LocalAddr  string `default:"127.0.0.1:3000"`
