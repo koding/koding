@@ -39,8 +39,8 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
 
     if location.search isnt '' and location.search.search('username=') > 0
-      username = location.search.split('username=').last.replace(/\&.+/, '')
-      @form.username.input.setValue username
+      username = location.search.split('username=').last.replace(/\&.+/, '') # trim the rest params if any
+      @form.username.input.setValue decodeURIComponent username  # decode in case it is an email
       @form.username.inputReceivedKeyup()
 
     @invitationLink = new CustomLinkView
