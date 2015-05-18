@@ -18,9 +18,6 @@ module.exports = class GroupsController extends KDController
 
     @isReady = no
 
-    kd.utils.defer @bound 'init'
-
-  init:->
     mainController    = kd.getSingleton 'mainController'
     router            = kd.getSingleton 'router'
     {entryPoint}      = globals.config
