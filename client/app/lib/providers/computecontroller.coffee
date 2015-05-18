@@ -346,15 +346,15 @@ module.exports = class ComputeController extends KDController
   #
 
   create: (options, callback)->
-    remote.api.ComputeProvider.create options, (err, machine)=>
+    remote.api.ComputeProvider.create options, (err, machine) =>
       return callback err  if err?
       @reset yes, -> callback null, machine
 
 
   createDefaultStack: ->
     return  unless isLoggedIn()
-    remote.api.ComputeProvider.createGroupStack (err, res)=>
-      return  if showError err
+    remote.api.ComputeProvider.createGroupStack (err, res) =>
+      return kd.warn err  if err
       @reset yes
 
 
