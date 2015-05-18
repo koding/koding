@@ -33,19 +33,9 @@ func (r *PushRequest) validate() error {
 		return ErrChannelNotSet
 	}
 
-	if r.GroupName == "" {
-		return ErrGroupNotSet
-	}
-
 	return nil
 }
 
 func (r *PushRequest) verify() (*webhook.ChannelIntegration, error) {
-	ti := webhook.NewChannelIntegration()
-	err := ti.ByToken(r.Token)
-	if err != nil {
-		return nil, err
-	}
-
-	return ti, nil
+	return webhook.Cache.ChannelIntegration.ByToken(r.Token)
 }
