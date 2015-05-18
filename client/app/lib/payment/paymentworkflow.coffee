@@ -69,7 +69,7 @@ module.exports = class PaymentWorkflow extends KDController
           when DOWNGRADE                then @startDowngradeFlow()
           when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
 
-        @emit PaymentConstants.events.WORK_FLOW_STARTED
+        @emit PaymentConstants.events.WORKFLOW_STARTED
 
 
   showError: (err) ->
