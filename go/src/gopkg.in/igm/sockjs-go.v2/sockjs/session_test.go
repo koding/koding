@@ -6,11 +6,13 @@ import (
 	"sync"
 	"testing"
 	"time"
+	"net/http"
+	"strings"
 )
 
 func newTestSession() *session {
 	// session with long expiration and heartbeats with ID
-	return newSession("sessionId", 1000*time.Second, 1000*time.Second)
+	return newSession(nil, "sessionId", 1000*time.Second, 1000*time.Second)
 }
 
 func TestSession_Create(t *testing.T) {
@@ -25,6 +27,18 @@ func TestSession_Create(t *testing.T) {
 	}
 	if session.state != sessionOpening {
 		t.Errorf("Session in wrong state %v, should be %v", session.state, sessionOpening)
+	}
+}
+
+func TestSession_Request(t *testing.T) {
+	req, _ := http.NewRequest("POST", "/server/session/jsonp_send", strings.NewReader("[\"message\"]"))
+	sess := newSession(req, "session", time.Second, time.Second)
+
+	if sess.Request() == nil {
+		t.Error("Session initial request should have been saved.")
+	}
+	if sess.Request().URL.String() != req.URL.String() {
+		t.Errorf("Expected stored session request URL to equal %s, got %s", req.URL.String(), sess.Request().URL.String())
 	}
 }
 
@@ -75,7 +89,7 @@ func TestSession_AttachReceiver(t *testing.T) {
 }
 
 func TestSession_Timeout(t *testing.T) {
-	sess := newSession("id", 10*time.Millisecond, 10*time.Second)
+	sess := newSession(nil, "id", 10*time.Millisecond, 10*time.Second)
 	select {
 	case <-sess.closeCh:
 	case <-time.After(20 * time.Millisecond):
@@ -94,7 +108,7 @@ func TestSession_TimeoutOfClosedSession(t *testing.T) {
 			t.Errorf("Unexcpected error '%v'", r)
 		}
 	}()
-	sess := newSession("id", 1*time.Millisecond, time.Second)
+	sess := newSession(nil, "id", 1*time.Millisecond, time.Second)
 	sess.closing()
 	time.Sleep(1 * time.Millisecond)
 	sess.closing()
@@ -106,7 +120,7 @@ func TestSession_AttachReceiverAndCheckHeartbeats(t *testing.T) {
 			t.Errorf("Unexcpected error '%v'", r)
 		}
 	}()
-	session := newSession("id", time.Second, 10*time.Millisecond) // 10ms heartbeats
+	session := newSession(nil, "id", time.Second, 10*time.Millisecond) // 10ms heartbeats
 	recv := newTestReceiver()
 	defer close(recv.doneCh)
 	session.attachReceiver(recv)
@@ -211,7 +225,7 @@ func TestSession_Closing(t *testing.T) {
 }
 
 // Session as Session Tests
-func TestSession_AsSession(t *testing.T) { var _ Session = newSession("id", 0, 0) }
+func TestSession_AsSession(t *testing.T) { var _ Session = newSession(nil, "id", 0, 0) }
 
 func TestSession_SessionRecv(t *testing.T) {
 	s := newTestSession()
