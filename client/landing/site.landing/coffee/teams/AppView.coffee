@@ -23,8 +23,15 @@ module.exports = class TeamsView extends JView
     @form = new TeamTeamsModal
       cssClass : 'TeamsModal--middle login-form'
       callback : (formData) ->
-        KD.utils.storeNewTeamData 'signup', formData
-        KD.singletons.router.handleRoute '/Team/domain'
+        go = ->
+          KD.utils.storeNewTeamData 'signup', formData
+          KD.singletons.router.handleRoute '/Team/domain'
+
+        { email } = formData
+        KD.utils.validateEmail { email },
+          success : -> formData.alreadyMember = no; go()
+          error   : -> formData.alreadyMember = yes; go()
+
 
     @footer = new FooterView
 
