@@ -41,6 +41,9 @@ type (
 		// Holds host and port information for integration worker
 		Integration Integration
 
+		// Holds host and port information for webhook middleware
+		WebhookMiddleware WebhookMiddleware
+
 		Kloud Kloud
 
 		PaymentWebhook PaymentWebhook
@@ -118,6 +121,11 @@ type (
 	Integration struct {
 		Host string `env:"key=KONFIG_SOCIALAPI_INTEGRATION_HOST"`
 		Port string `env:"key=KONFIG_SOCIALAPI_INTEGRATION_PORT"`
+	}
+
+	WebhookMiddleware struct {
+		Host string `env:"key=KONFIG_SOCIALAPI_WEBHOOKMIDDLEWARE_HOST"`
+		Port string `env:"key=KONFIG_SOCIALAPI_WEBHOOKMIDDLEWARE_PORT"`
 	}
 
 	Pubnub struct {

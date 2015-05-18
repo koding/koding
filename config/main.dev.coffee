@@ -57,6 +57,7 @@ Configuration = (options={}) ->
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                  , pubnub: pubnub                                }
   integration         = { host:     "localhost"                                   , port:               "7300"                                  }
+  webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
   paymentwebhook      = { port   : "6600",     debug    : false }
   tokbox              = { apiKey : '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
@@ -106,6 +107,7 @@ Configuration = (options={}) ->
     paypal                  : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
     gatekeeper              : gatekeeper
     integration             : integration
+    webhookMiddleware       : webhookMiddleware
     customDomain            : customDomain
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
@@ -476,6 +478,20 @@ Configuration = (options={}) ->
         locations       : [
           location      : "~ /api/integration/(.*)"
           proxyPass     : "http://integration/$1$is_args$args"
+        ]
+
+    webhookmiddleware   :
+      group             : "socialapi"
+      ports             :
+        incoming        : "#{webhookMiddleware.port}"
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make middlewaredev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+      healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
+      versionURL        : "#{customDomain.local}/api/webhook/version"
+      nginx             :
+        locations       : [
+          location      : "~ /api/webhook/(.*)"
+          proxyPass     : "http://webhook/$1$is_args$args"
         ]
 
 

@@ -169,9 +169,15 @@ teamdev:
 	@echo "$(OK_COLOR)==> Running Team Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c $(CONFIG) $(DBG) $(METRICS)
 
+integrationdev: webhookdev middlewaredev
+
 webhookdev:
 	@echo "$(OK_COLOR)==> Running Webhook Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/webhook -watch socialapi/workers/integration/webhook -c $(CONFIG) $(DBG) $(METRICS)
+
+middlewaredev:
+	@echo "$(OK_COLOR)==> Running Webhook Middleware Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/webhookmiddleware -watch github.com/koding/integration -c $(CONFIG) $(DBG) $(METRICS)
 
 eventsenderdev:
 	@echo "$(OK_COLOR)==> Running Event Sender Worker $(NO_COLOR)"
@@ -214,18 +220,18 @@ build:
 	../../build.sh
 
 testwebhook:
-	@echo "$(OK_COLOR)--> webhook model tests... $(NO_COLOR)"
-	@`which go` test -c workers/integration/webhook/*.go
-	@./webhook.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm  ./webhook.test
+	#@echo "$(OK_COLOR)--> webhook model tests... $(NO_COLOR)"
+	#@`which go` test -c workers/integration/webhook/*.go
+	#@./webhook.test $(DBG) $(METRICS) -c $(CONFIG)
+	#@rm  ./webhook.test
 
-	@echo "$(OK_COLOR)--> webhook api tests... $(NO_COLOR)"
-	@`which go` test -c workers/integration/webhook/api/*.go
-	@./api.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm  ./api.test
+	#@echo "$(OK_COLOR)--> webhook api tests... $(NO_COLOR)"
+	#@`which go` test -c workers/integration/webhook/api/*.go
+	#@./api.test $(DBG) $(METRICS) -c $(CONFIG)
+	#@rm  ./api.test
 
-	@echo "$(ok_color)--> webhook service tests... $(no_color)"
-	@`which go` test workers/integration/webhook/services/*.go
+	#@echo "$(ok_color)--> webhook service tests... $(no_color)"
+	#@`which go` test workers/integration/webhook/services/*.go
 
 	@echo "$(OK_COLOR)--> webhook integration tests... $(NO_COLOR)"
 	@`which go` test -c workers/integration/webhook/tests/*.go
