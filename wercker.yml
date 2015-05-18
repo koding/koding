@@ -136,7 +136,7 @@ build:
     - script:
         name: test socialworker
         code: |
-          cd ./workers/social/lib/social/tests
+          cd ./workers/social
           ./tests.sh
     - script:
         name: testing backend finished
