@@ -257,12 +257,12 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 		return container, nil
 	}
 
-	oldId, err := FetchAccountOldIdByIdFromCache(c.AccountId)
+	acc, err := Cache.Account.ById(c.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
-	container.AccountOldId = oldId
+	container.AccountOldId = acc.OldId
 
 	return container, nil
 }
@@ -449,7 +449,6 @@ func (c *ChannelMessage) isInChannel(query *request.Query, channelName string) (
 // dependencies of a given message. This includes interactions, optionally
 // replies, and channel message lists.
 func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error {
-
 	// fetch interactions
 	i := NewInteraction()
 	i.MessageId = c.Id
@@ -500,7 +499,6 @@ func (c *ChannelMessage) AddReply(reply *ChannelMessage) (*MessageReply, error) 
 	}
 
 	return mr, nil
-
 }
 
 //  DeleteReplies deletes all the replies of a given ChannelMessage, one level deep
@@ -589,7 +587,7 @@ func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
 		return c, err
 	}
 
-	a, err := FetchAccountFromCache(addedBy)
+	a, err := Cache.Account.ById(addedBy)
 	if err != nil {
 		return c, err
 	}
@@ -622,7 +620,7 @@ func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) 
 			return c, err
 		}
 
-		a, err := FetchAccountFromCache(accountId)
+		a, err := Cache.Account.ById(accountId)
 		if err != nil {
 			return c, err
 		}
@@ -645,7 +643,7 @@ func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) 
 // initial channel is topic, it fetches the group channel, otherwise
 // it just fetches the initial channel as parent.
 func (cm *ChannelMessage) FetchParentChannel() (*Channel, error) {
-	c, err := ChannelById(cm.InitialChannelId)
+	c, err := Cache.Channel.ById(cm.InitialChannelId)
 	if err != nil {
 		return nil, err
 	}

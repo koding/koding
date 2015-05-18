@@ -7,6 +7,7 @@ import (
 	"socialapi/config"
 
 	"github.com/koding/bongo"
+	"github.com/koding/logging"
 	"github.com/koding/runner"
 )
 
@@ -19,12 +20,22 @@ var (
 // NewBadRequest is creating a new http response with predifined
 // http response properties
 func NewBadRequest(err error) (int, http.Header, interface{}, error) {
+	l := runner.MustGetLogger()
+	l.SetCallDepth(2) // get previous error line
+
+	return NewBadRequestWithLogger(l, err)
+}
+
+// NewBadRequestWithLogger is creating a new http response with predifined http
+// response properties, it uses a special logger for outputting callstack
+// properly
+func NewBadRequestWithLogger(l logging.Logger, err error) (int, http.Header, interface{}, error) {
 	if err == nil {
 		err = errors.New("request is not valid")
 	}
 
 	// make sure errors are outputted
-	runner.MustGetLogger().Error("Bad Request: %s", err)
+	l.Error("Bad Request: %s", err)
 
 	// do not expose errors to the client
 	env := config.MustGet().Environment
@@ -39,10 +50,12 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 
 // NewAccessDenied sends access denied response back to client
 //
-// here not to leak info about the resource
-// do send NotFound err
+// here not to leak info about the resource do send NotFound err
 func NewAccessDenied(err error) (int, http.Header, interface{}, error) {
-	runner.MustGetLogger().Error("Access Denied Err: %s", err.Error())
+	l := runner.MustGetLogger()
+	l.SetCallDepth(1) // get previous error line
+	l.Error("Access Denied Err: %s", err.Error())
+
 	return NewNotFound()
 }
 
@@ -54,8 +67,11 @@ func HandleResultAndError(res interface{}, err error) (int, http.Header, interfa
 		return NewNotFound()
 	}
 
+	l := runner.MustGetLogger()
+	l.SetCallDepth(2) // get 2 previous call stack
+
 	if err != nil {
-		return NewBadRequest(err)
+		return NewBadRequestWithLogger(l, err)
 	}
 
 	return NewOK(res)

@@ -22,7 +22,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewBadRequest(errors.New("channel id is not set"))
 	}
 
-	c, err := models.ChannelById(query.Id)
+	c, err := models.Cache.Channel.ById(query.Id)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -308,7 +308,7 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 		return errors.New("0 participant is given for participant operation")
 	}
 
-	c, err := models.ChannelById(channelId)
+	c, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return err
 	}
@@ -322,9 +322,10 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 		return errors.New("can not open channel")
 	}
 
-	if c.TypeConstant == models.Channel_TYPE_GROUP {
-		return errors.New("can not add/remove participants for group channel")
-	}
+	// admins can add users into group channels
+	// if c.TypeConstant == models.Channel_TYPE_GROUP {
+	// 	return errors.New("can not add/remove participants for group channel")
+	// }
 
 	if c.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
 		return errors.New("can not add/remove participants for pinned activity channel")

@@ -191,6 +191,18 @@ func (a *Account) ByNick(nick string) error {
 	return a.One(bongo.NewQS(selector))
 }
 
+func (a *Account) ByOldId(oldId string) error {
+	if oldId == "" {
+		return ErrOldIdIsNotSet
+	}
+
+	selector := map[string]interface{}{
+		"old_id": oldId,
+	}
+
+	return a.One(bongo.NewQS(selector))
+}
+
 // Tests are done.
 func (a *Account) MarkAsTroll() error {
 	if a.Id == 0 {
@@ -273,7 +285,6 @@ func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 }
 
 func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
-
 	followerIds, err := a.FetchFollowerIds(q)
 	if err != nil {
 		return nil, err

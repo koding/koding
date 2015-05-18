@@ -135,7 +135,7 @@ sidebarTextShadow()
         z-index         1000
 
 .activity-sidebar
-  font-family         adelleFamily
+  font-family         adelleSans
   padding             1px 20px
   borderBox()
 
@@ -233,7 +233,7 @@ sidebarTextShadow()
         line-height       23px
         opacity           1
         color             sidebarGray
-        max-width         155px
+        max-width         136px
         ellipsis()
         borderBox()
         noTextDeco()
@@ -242,7 +242,7 @@ sidebarTextShadow()
       // copy paste - SY
       // temp fix
       cite.count
-        size            20px 20px
+        size            24px 20px
         line-height     20px
         color           #fff
         abs             2px 0px 0 0
@@ -380,6 +380,10 @@ sidebarTextShadow()
     right             6px
     top               5px
     opacity           0
+
+  .vm > span.move-left
+  .ws-settings-icon.move-left
+    right            28px !important
 
   .add-workspace-view
     .cancel
@@ -709,7 +713,7 @@ sidebarTextShadow()
 
   .avatar-area
     bg                color, #262626
-    font-family       adelleFamily
+    font-family       adelleSans
     padding           10px
     size              100% 100%
     borderBox()
@@ -750,38 +754,41 @@ sidebarTextShadow()
 
 
 h3.sidebar-title
-  position        relative
-  font-weight     400
-  size            auto 1em
-  line-height     16px
-  font-size       12px
-  color           sidebarSectionHeaderColor
-  text-transform  uppercase
-  word-spacing    .2em
-  letter-spacing  .05em
-  padding         14px 0 12px
+  position                  relative
+  font-weight               400
+  size                      auto 1em
+  line-height               16px
+  font-size                 12px
+  color                     sidebarSectionHeaderColor
+  text-transform            uppercase
+  word-spacing              .2em
+  letter-spacing            .05em
+  padding                   14px 0 12px
   sidebarTextShadow()
   pointer()
 
   &:hover
-    color           #fff
+    color                   #fff
 
   a
-    font-size       10px
-    font-weight     600
-    color           #7F7F80
-    margin          0 5px 0 0
-    opacity         0
-    vendor          transition, opacity .1s .1s ease
+    font-size               10px
+    font-weight             600
+    color                   #7F7F80
+    margin                  0 5px 0 0
+    opacity                 0
+    vendor                  transition, opacity .1s .1s ease
     fr()
 
     &.add-icon
     &.buy-vm
-      margin        -2px 2px 0 0
-      r-sprite      app , 'plus-16'
+      margin                -2px 2px 0 0
+      r-sprite              app , 'plus-16'
 
     &.buy-vm
-      margin-top    2px
+      margin-top            2px
+
+  cite.count
+    top                     11px
 
 
 .messages.empty h3.sidebar-title a.add-icon

@@ -97,7 +97,7 @@ func fetchInitialChannelId(u *url.URL, context *models.Context) (int64, error) {
 		return 0, err
 	}
 
-	c, err := models.ChannelById(channelId)
+	c, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return 0, err
 	}
@@ -131,7 +131,7 @@ func fetchPublicChannelId(groupName string) (int64, error) {
 }
 
 func checkThrottle(channelId, requesterId int64) error {
-	c, err := models.ChannelById(channelId)
+	c, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return err
 	}

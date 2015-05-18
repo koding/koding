@@ -48,7 +48,7 @@ func (f *Controller) MessageDeleted(data *models.ChannelMessageList) error {
 }
 
 func (f *Controller) handleMessageEvents(data *models.ChannelMessageList, increment int) error {
-	c, err := models.ChannelById(data.ChannelId)
+	c, err := models.Cache.Channel.ById(data.ChannelId)
 	if err != nil {
 		return err
 	}

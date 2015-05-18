@@ -55,18 +55,18 @@ func (f *Controller) InteractionDeleted(i *models.Interaction) error {
 }
 
 func (f *Controller) handleInteraction(inc float64, i *models.Interaction) error {
-	cm, err := models.ChannelMessageById(i.MessageId)
+	cm, err := models.Cache.Message.ById(i.MessageId)
 	if err != nil {
 		return err
 	}
 
-	c, err := models.ChannelById(cm.InitialChannelId)
+	c, err := models.Cache.Channel.ById(cm.InitialChannelId)
 	if err != nil {
 		return err
 	}
 
 	if !isEligibleForPopularPost(c, cm) {
-		f.log.Error(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
+		f.log.Debug(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
 		return nil
 	}
 

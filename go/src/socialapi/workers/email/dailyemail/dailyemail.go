@@ -29,16 +29,15 @@ const (
 	Information = "Here is what happened on Koding.com today!"
 )
 
+var (
+	ErrObsoleteActivity = errors.New("obsolete activity")
+	cronJob             *cron.Cron
+)
+
 type Controller struct {
 	log    logging.Logger
 	config *config.Config
 }
-
-var ObsoleteActivity = errors.New("obsolete activity")
-
-var (
-	cronJob *cron.Cron
-)
 
 func New(log logging.Logger, conf *config.Config) (*Controller, error) {
 
@@ -115,7 +114,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 	for _, activityId := range activityIds {
 		container, err := buildContainerForDailyMail(accountId, activityId)
 		if err != nil {
-			if err != ObsoleteActivity && err != bongo.RecordNotFound {
+			if err != ErrObsoleteActivity && err != bongo.RecordNotFound {
 				n.log.Error("error occurred while sending activity: %s ", err)
 			}
 
@@ -221,7 +220,7 @@ func buildContainerForDailyMail(accountId, activityId int64) (*models.MailerCont
 	}
 
 	if a.Obsolete && nc.TypeConstant != notificationmodels.NotificationContent_TYPE_COMMENT {
-		return nil, ObsoleteActivity
+		return nil, ErrObsoleteActivity
 	}
 
 	mc := models.NewMailerContainer()

@@ -39,7 +39,7 @@ func TestModeration(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc2, ShouldNotBeNil)
 
-		groupName := models.RandomGroupName()
+		groupName := "koding"
 
 		// create root channel with second acc
 		root := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)

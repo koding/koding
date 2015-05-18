@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"socialapi/config"
+	socialapimodels "socialapi/models"
 )
 
 type Channel struct {
@@ -52,16 +53,18 @@ func (pmc *PrivateMessageChannel) GrantAccess(p *PubNub, a *Authenticate) error 
 ////////// NotificationChannel //////////
 
 type NotificationChannel struct {
-	Account *Account
+	Account *socialapimodels.Account
 }
 
-func NewNotificationChannel(a *Account) *NotificationChannel {
-	return &NotificationChannel{a}
+func NewNotificationChannel(a *socialapimodels.Account) *NotificationChannel {
+	return &NotificationChannel{
+		Account: a,
+	}
 }
 
 func (nc *NotificationChannel) PrepareName() string {
 	env := config.MustGet().Environment
-	return fmt.Sprintf("notification-%s-%s", env, nc.Account.Nickname)
+	return fmt.Sprintf("notification-%s-%s", env, nc.Account.Nick)
 }
 
 func (nc *NotificationChannel) GrantAccess(p *PubNub, a *Authenticate) error {

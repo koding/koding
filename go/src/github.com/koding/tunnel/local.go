@@ -1,8 +1,9 @@
 package tunnel
 
 import (
-	"koding/tunnel/conn"
 	"time"
+
+	"github.com/koding/tunnel/conn"
 )
 
 // local defines a local connection from client

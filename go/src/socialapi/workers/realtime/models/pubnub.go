@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"socialapi/config"
+	socialapimodels "socialapi/models"
 	"strconv"
 	"sync"
 	"time"
@@ -82,7 +83,10 @@ func (p *PubNub) grantServerAccess(c ChannelInterface) error {
 	}
 
 	a := &Authenticate{
-		Account: &Account{Id: ServerId, Token: p.token},
+		Account: &socialapimodels.Account{
+			Id:    ServerId,
+			Token: p.token,
+		},
 		Channel: c,
 	}
 
@@ -189,7 +193,7 @@ func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
 	}
 
 	a := &Authenticate{}
-	a.Account = &Account{Token: ""}
+	a.Account = &socialapimodels.Account{Token: ""}
 
 	if err := p.GrantAccess(a, c); err != nil {
 		return err

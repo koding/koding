@@ -61,12 +61,10 @@ minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
 paymentwebhookdev:
-	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running Payment Webhook Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) -kite-init=true $(DBG) $(METRICS)
 
 apidev:
-	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS)
 
@@ -385,20 +383,27 @@ testintegration:
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
 
+testrealtime:
+	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
+	@`which go` test -c workers/realtime/realtime/*.go
+	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./realtime.test
+
+	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
+	@`which go` test -c workers/realtime/models/*.go
+	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./models.test
+
+
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
-	testpayment testteam testintegration testwebhook
+	testpayment testteam testintegration testrealtime testwebhook
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
 
 	@echo "$(OK_COLOR)--> all api tests... $(NO_COLOR)"
-
-	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
-	@`which go` test -c workers/common/metrics/*.go
-	@./metrics.test
-	@rm ./metrics.test
 
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 
@@ -408,17 +413,10 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./permission.test
 
-
-
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
 	@`which go` test -c workers/common/handler/*.go
 	@./handler.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./handler.test
-
-	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
-	@`which go` test -c workers/realtime/realtime/*.go
-	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./realtime.test
 
 	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
 	@`which go` test -c workers/sitemap/sitemapgenerator/*.go
@@ -427,11 +425,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 
 	@echo "$(OK_COLOR)--> sitemap model tests... $(NO_COLOR)"
 	@`which go` test workers/sitemap/models/*.go
-
-	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
-	@`which go` test -c workers/realtime/models/*.go
-	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./models.test
 
 doc:
 	@for package in $(PACKAGES); \

@@ -13,7 +13,7 @@ keys              =
   id_rsa_pub      : new Buffer(fs.readFileSync './install/keys/prod.ssh/id_rsa.pub'      , 'utf8').toString 'base64'
 
 if argv['pull-request']
-  git_fetch    = "git fetch origin #{argv['pull-request']}"
+  git_fetch    = "git fetch origin +refs/pull/#{argv['pull-request']}/head"
   git_checkout = 'git checkout FETCH_HEAD'
 else if argv.commit
   git_fetch    = 'git fetch origin'
@@ -43,6 +43,8 @@ userData =
     - echo #{keys.id_rsa_pub}      | base64 --decode > /root/.ssh/id_rsa.pub
     - chmod 0600 /root/.ssh/id_rsa
     - cd /opt/koding
+    - echo 'Checking connectivity to GitHub over ssh'
+    - scripts/test-instance/check-connectivity github.com 22 1m 3
     - #{git_fetch}
     - #{git_checkout}
     - git submodule update --recursive
@@ -74,7 +76,24 @@ EC2.runInstances params, (err, data) ->
     return
 
   data.Instances.forEach ({InstanceId}) -> InstanceIds.push InstanceId
+  tag()
   monitorInterval = setInterval monitor, 5000
+
+
+tag = ->
+
+  refspec = switch
+    when argv['pull-request']
+      "pr-#{argv['pull-request']}"
+    when argv['commit']
+      "rv-#{argv['commit'].substring 0, 7}"
+
+  Resources = InstanceIds
+  Key   = 'Name'
+  Value = "test-#{refspec}"
+  Tags  = [{Key, Value}]
+
+  EC2.createTags {Resources, Tags}, ->
 
 
 monitor = ->

@@ -671,53 +671,63 @@ button.app-settings-menu
 
   &.managed
     .add-big-btn
-      width          45%
-      margin         0 10px 20px
+      width                 45%
+      margin                0 10px 20px
+
+  .changed-stack
+    font-size               12px
+    padding                 4px 8px
+    box-sizing              border-box
+    border                  1px solid #eee
+    margin                  0 0 20px
+    border-radius           4px
+    background              lightyellow
+    color                   #666
 
   .kdlistitemview.sidebar-item
-    display          block
-    width            auto
-    height           35px
-    line-height      35px
-    padding-left     46px
-    color            #5E5E5E
-    font-size        14px
+    display                 block
+    width                   auto
+    height                  35px
+    line-height             35px
+    padding-left            46px
+    color                   #5E5E5E
+    font-size               14px
 
     a
-      font-size      14px
-      color          #5e5e5e
+      font-size             14px
+      color                 #5e5e5e
       noTextDeco()
 
     & ~ .kdlistitemview.sidebar-item
-      margin-top     8px
+      margin-top            8px
 
     &:before
-      display        block
-      text-align     center
-      abs            0px 0 0 0px
-      size           35px, 35px
-      line-height    35px
-      background     #52A840
-      rounded        5px
-      color          #fff
-      font-size      14px
+      display               block
+      text-align            center
+      abs                   0px 0 0 0px
+      size                  35px, 35px
+      line-height           35px
+      background            #52A840
+      rounded               5px
+      color                 #fff
+      font-size             14px
 
     .kdbutton.clean-gray
-      font-size      0
-      background     none
-      border         none
-      shadow         none
-      outline        none
-      padding        0
-      r-sprite       'app', '16-cog'
-      margin-top     8px
+      font-size             0
+      background            none
+      border                none
+      shadow                none
+      outline               none
+      padding               0
+      r-sprite              'app', '16-cog'
+      margin-top            8px
       fr()
 
 .more-vms .kdlistitemview.machine:before
-  content              'K'
+  content                   'K'
 
 .more-workspaces .kdlistitemview.workspace:before
-  content              'W'
+  content                   'W'
 
 
 /* editor-advanced-settings-menu-button
@@ -937,7 +947,7 @@ button.app-settings-menu
   shadow                0 12px 19px rgba(0,0,0,.50)
   border                1px solid #979797
   position              fixed !important
-  font-family           adelleFamily
+  font-family           adelleSans
 
   .kdmodal-inner
     background          #fafafa
@@ -2128,6 +2138,9 @@ footer.main-footer
   &.kdmodal
     border                  none
 
+  .kdmodal-title span.title
+    font-family             adelleSerif
+
   .notification
     padding                 10px 20px
     color                   #393939
@@ -2345,4 +2358,3 @@ footer.main-footer
 
 .AppModal-sectionToggle
   abs                       -4px 0px 0 0
-

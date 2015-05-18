@@ -45,9 +45,9 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 		return nil
 	}
 
-	c, err := models.ChannelById(data.InitialChannelId)
+	c, err := models.Cache.Channel.ById(data.InitialChannelId)
 	if err != nil {
-		f.log.Error("Error on models.ChannelById", data.InitialChannelId, err)
+		f.log.Error("Error on models.Cache.Channel.ById", data.InitialChannelId, err)
 		return err
 	}
 
@@ -171,7 +171,7 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 
 	// add messages
 	if len(res["added"]) > 0 {
-		initialChannel, err := models.ChannelById(data.InitialChannelId)
+		initialChannel, err := models.Cache.Channel.ById(data.InitialChannelId)
 		if err != nil {
 			return err
 		}

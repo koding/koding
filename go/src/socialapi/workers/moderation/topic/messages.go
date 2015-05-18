@@ -18,16 +18,13 @@ import (
 // channel, it has InitialChannelId, we should replace it with the parent's
 // channel id
 func (c *Controller) moveMessages(cl *models.ChannelLink) error {
-
-	var errors []error
-
-	rootChannel, err := models.ChannelById(cl.RootId)
+	rootChannel, err := models.Cache.Channel.ById(cl.RootId)
 	if err != nil {
 		c.log.Critical("requested root channel doesnt exist. ChannelId: %d", cl.RootId)
 		return nil
 	}
 
-	leafChannel, err := models.ChannelById(cl.LeafId)
+	leafChannel, err := models.Cache.Channel.ById(cl.LeafId)
 	if err != nil {
 		c.log.Critical("requested leaf channel doesnt exist. ChannelId: %d", cl.LeafId)
 		return nil
@@ -44,8 +41,8 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 	}
 
 	m := models.ChannelMessageList{}
+	var errors []error
 	for {
-
 		var messageLists []models.ChannelMessageList
 
 		// fetch all records, even deleted ones, because we are not gonna need

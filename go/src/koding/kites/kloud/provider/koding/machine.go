@@ -175,6 +175,15 @@ func (m *Machine) markAsStopped() error {
 	return nil
 }
 
+func (m *Machine) updateStorageSize(size int) error {
+	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{"meta.storage_size": size}},
+		)
+	})
+}
+
 func (m *Machine) isKlientReady() bool {
 	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
 	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*5)

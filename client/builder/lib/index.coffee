@@ -28,6 +28,8 @@ concat        = require 'gulp-concat'
 throttle      = require 'throttleit'
 child_process = require 'child_process'
 collapse      = require 'bundle-collapser/plugin'
+convert       = require 'convert-source-map'
+
 
 JS_OUTFILE                  = 'bundle.js'
 THIRDPARTY_OUTDIR           = 'thirdparty'
@@ -313,7 +315,9 @@ class Haydar extends events.EventEmitter
 
           if opts.extractJsSourcemaps
             s = fs.createWriteStream outfile
-            asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(s)
+            asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(
+              asStream(convert.removeMapFileComments(src.toString()))
+            ).pipe(s)
 
             s.once 'finish', ->
               secs = ((Date.now() - start)/1000).toFixed 2

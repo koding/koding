@@ -767,26 +767,55 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return true, nil
 	}
 
-	// special cases for koding group
-	if c.GroupName == Channel_KODING_NAME {
-		// anyone can read group activity
-		if c.TypeConstant == Channel_TYPE_GROUP {
-			return true, nil
-		}
-
-		// anyone can read announcement activity
-		if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
-			return true, nil
-		}
-
-		// anyone can read topic feed
-		// this is here for non-participated topic channels
-		if c.TypeConstant == Channel_TYPE_TOPIC {
-			return true, nil
-		}
+	// anyone can read group activity
+	if !c.IsPubliclyAccessibleInGroup() {
+		return false, nil
 	}
 
-	return false, nil
+	// special cases for koding group, no need to check with db
+	if c.GroupName == Channel_KODING_NAME {
+		return true, nil
+	}
+
+	if c.TypeConstant == Channel_TYPE_GROUP { // do not cause an infite loop
+		return false, nil
+	}
+
+	// if we get this far, users trying to access to a channel where:
+	// * they are in a group different from koding
+	// ** trying to follow/read a topic content
+	groupChan := NewChannel()
+	if err := groupChan.FetchPublicChannel(c.GroupName); err != nil {
+		return false, err
+	}
+
+	// if one can open group channel, can read publicly accessible channels
+	return groupChan.CanOpen(accountId)
+}
+
+// IsPubliclyAccessibleInGroup checks if current channel is a publicly
+// accessible channel within a group
+//
+// Do not mess here, it is highly discauraged to touch this function if you dont
+// know what you are doing
+func (c *Channel) IsPubliclyAccessibleInGroup() bool {
+	// anyone can read group activity
+	if c.TypeConstant == Channel_TYPE_GROUP {
+		return true
+	}
+
+	// anyone can read announcement activity
+	if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
+		return true
+	}
+
+	// anyone can read topic feed
+	// this is here for non-participated topic channels
+	if c.TypeConstant == Channel_TYPE_TOPIC {
+		return true
+	}
+
+	return false
 }
 
 func (c *Channel) MarkIfExempt() error {
@@ -844,7 +873,6 @@ func (c *Channel) getAccountId() (int64, error) {
 	}
 
 	return cn.CreatorId, nil
-
 }
 
 // FetchParticipant simply fetch the participants from the channel

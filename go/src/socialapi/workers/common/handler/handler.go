@@ -287,27 +287,3 @@ func parseCookiesToArray(cookie string) []*http.Cookie {
 
 	return cookies
 }
-
-func ParseCookiesToMap(cookie string) map[string]*http.Cookie {
-	pairs := strings.Split(cookie, "; ")
-	cookies := make(map[string]*http.Cookie, 0)
-
-	if len(pairs) == 0 {
-		return cookies
-	}
-
-	for _, val := range pairs {
-		cp := strings.Split(val, "=")
-		if len(cp) != 2 {
-			continue
-		}
-
-		c := new(http.Cookie)
-		c.Name = cp[0]
-		c.Value = cp[1]
-
-		cookies[cp[0]] = c
-	}
-
-	return cookies
-}

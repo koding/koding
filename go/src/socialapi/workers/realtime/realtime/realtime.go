@@ -116,7 +116,7 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 	}
 
 	// fetch the channel that user is updated
-	c, err := models.ChannelById(cp.ChannelId)
+	c, err := models.Cache.Channel.ById(cp.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 
 	// channel must be notified with newly added/removed participants
 	for _, participant := range pe.Participants {
-		accountOldId, err := models.FetchAccountOldIdByIdFromCache(participant.AccountId)
+		acc, err := models.Cache.Account.ById(participant.AccountId)
 		if err != nil {
 			f.log.Error("Could update fetch participant old id: %s", err)
 			continue
@@ -159,7 +159,7 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 
 		pc := &ParticipantContent{
 			AccountId:    participant.AccountId,
-			AccountOldId: accountOldId,
+			AccountOldId: acc.OldId,
 			ChannelId:    pe.Id,
 		}
 
@@ -176,7 +176,7 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 // or follow/unfollow a topic.
 // this is used for updating sidebar.
 func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, eventName string) {
-	c, err := models.ChannelById(pe.Id)
+	c, err := models.Cache.Channel.ById(pe.Id)
 	if err != nil {
 		f.log.Error("Could not notify participant %d: %s", pe.Id, err)
 		return
@@ -271,7 +271,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 	}
 
 	// fetchs oldId from cache
-	oldId, err := models.FetchAccountOldIdByIdFromCache(i.AccountId)
+	acc, err := models.Cache.Account.ById(i.AccountId)
 	if err != nil {
 		return err
 	}
@@ -279,12 +279,12 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 	res := &InteractionEvent{
 		MessageId:    i.MessageId,
 		AccountId:    i.AccountId,
-		AccountOldId: oldId,
+		AccountOldId: acc.OldId,
 		TypeConstant: i.TypeConstant,
 		Count:        count,
 	}
 
-	m, err := models.ChannelMessageById(i.MessageId)
+	m, err := models.Cache.Message.ById(i.MessageId)
 	if err != nil {
 		return err
 	}
@@ -307,14 +307,14 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 }
 
 func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
-	parent, err := models.ChannelMessageById(mr.MessageId)
+	parent, err := models.Cache.Message.ById(mr.MessageId)
 	if err != nil {
 		return err
 	}
 
 	// if reply is created now, it wont be in the cache
 	// but fetch it from db and add to cache, we may use it later
-	reply, err := models.ChannelMessageById(mr.ReplyId)
+	reply, err := models.Cache.Message.ById(mr.ReplyId)
 	if err != nil {
 		return err
 	}
@@ -335,14 +335,14 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 }
 
 func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply, eventType channelUpdatedEventType) error {
-	parent, err := models.ChannelMessageById(mr.MessageId)
+	parent, err := models.Cache.Message.ById(mr.MessageId)
 	if err != nil {
 		return err
 	}
 
 	// if reply is created now, it wont be in the cache
 	// but fetch it from db and add to cache, we may use it later
-	reply, err := models.ChannelMessageById(mr.ReplyId)
+	reply, err := models.Cache.Message.ById(mr.ReplyId)
 	if err != nil {
 		return err
 	}
@@ -387,7 +387,7 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 
 func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyRemoved)
-	m, err := models.ChannelMessageById(mr.MessageId)
+	m, err := models.Cache.Message.ById(mr.MessageId)
 	if err != nil {
 		return err
 	}
@@ -401,13 +401,13 @@ func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 
 // send message to the channel
 func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
-	c, err := models.ChannelById(cml.ChannelId)
+	c, err := models.Cache.Channel.ById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
 
 	// populate cache
-	cm, err := models.ChannelMessageById(cml.MessageId)
+	cm, err := models.Cache.Message.ById(cml.MessageId)
 	if err != nil {
 		return err
 	}
@@ -447,7 +447,7 @@ func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) e
 
 	// find the user's pinned post channel
 	// we need it for finding the account id
-	c, err := models.ChannelById(cml.ChannelId)
+	c, err := models.Cache.Channel.ById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -458,7 +458,7 @@ func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) e
 	}
 
 	// get the glanced message
-	cm, err := models.ChannelMessageById(cml.MessageId)
+	cm, err := models.Cache.Message.ById(cml.MessageId)
 	if err != nil {
 		return err
 	}
@@ -556,7 +556,7 @@ func (f *Controller) PinnedChannelListUpdated(pclue *models.PinnedChannelListUpd
 
 // todo - refactor this part
 func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
-	c, err := models.ChannelById(cml.ChannelId)
+	c, err := models.Cache.Channel.ById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -616,13 +616,19 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 		TypeConstant: nc.TypeConstant,
 	}
 
-	actor, err := models.FetchAccountFromCache(activity.ActorId)
+	actor, err := models.Cache.Account.ById(activity.ActorId)
 	if err != nil {
 		return err
 	}
 	content.ActorId = actor.OldId
 
-	return f.sendNotification(notification.AccountId, "koding", NotificationEventName, content)
+	c, err := models.Cache.Channel.ById(notification.ContextChannelId)
+	if err != nil {
+		f.log.New("channelId", notification.ContextChannelId).Error("Couldnt fetch from cache")
+		return nil
+	}
+
+	return f.sendNotification(notification.AccountId, c.GroupName, NotificationEventName, content)
 }
 
 func (f *Controller) sendInstanceEvent(cm *models.ChannelMessage, body interface{}, eventName string) error {
@@ -643,7 +649,7 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models
 // message is sent as a json message
 // this function is not idempotent
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
-	ch, err := models.ChannelById(channelId)
+	ch, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return err
 	}
@@ -654,7 +660,7 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 func (f *Controller) sendNotification(
 	accountId int64, groupName string, eventName string, data interface{},
 ) error {
-	account, err := models.FetchAccountFromCache(accountId)
+	account, err := models.Cache.Account.ById(accountId)
 	if err != nil {
 		return err
 	}
