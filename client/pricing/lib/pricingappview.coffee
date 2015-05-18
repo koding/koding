@@ -199,7 +199,7 @@ module.exports = class PricingAppView extends KDView
 
         @workflowController = new PaymentWorkflow { state: options, delegate: this }
 
-        @workflowController.on @workflowStarted, =>
+        @workflowController.on PaymentConstants.events.WORK_FLOW_STARTED, =>
           @workflowController.failedAttemptLimitReached no
 
         return
@@ -255,8 +255,8 @@ module.exports = class PricingAppView extends KDView
 
       @workflowController = new PaymentWorkflow { @state, delegate: this }
 
-      @workflowController.on @workflowStarted, (state) =>
-        @emit @workflowStarted
+      @workflowController.on PaymentConstants.events.WORK_FLOW_STARTED, (state) =>
+        @emit PaymentConstants.events.WORK_FLOW_STARTED
         inProcess = no
 
       @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
@@ -289,6 +289,3 @@ module.exports = class PricingAppView extends KDView
       {{> @footer}}
       {{> @kodingFooter}}
     """
-
-
-  workflowStarted: 'WorkflowStarted'

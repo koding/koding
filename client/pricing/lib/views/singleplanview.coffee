@@ -1,9 +1,10 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDHeaderView = kd.HeaderView
-KDView = kd.View
-trackEvent = require 'app/util/trackEvent'
+kd                    = require 'kd'
+KDButtonView          = kd.ButtonView
+KDCustomHTMLView      = kd.CustomHTMLView
+KDHeaderView          = kd.HeaderView
+KDView                = kd.View
+trackEvent            = require 'app/util/trackEvent'
+PaymentConstants      = require 'app/payment/paymentconstants'
 
 
 module.exports = class SinglePlanView extends KDView
@@ -95,7 +96,7 @@ module.exports = class SinglePlanView extends KDView
 
     { appManager } = kd.singletons
     pricingView = appManager.get('Pricing').getView()
-    pricingView.once 'WorkflowStarted', @buyButton.bound 'hideLoader'
+    pricingView.once PaymentConstants.events.WORK_FLOW_STARTED, @buyButton.bound 'hideLoader'
 
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
