@@ -3,7 +3,6 @@ package tunnel
 import (
 	"errors"
 	"fmt"
-	"github.com/fatih/pool"
 	"io"
 	"log"
 	"net"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fatih/pool"
 )
 
 // Server satisfies the http.Handler interface. It is responsible of tracking

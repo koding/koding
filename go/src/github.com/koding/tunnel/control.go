@@ -46,7 +46,7 @@ func newControlDial(addr, identifier string) *control {
 	c := &control{}
 	cn, err := conn.Dial(addr, true)
 	if err != nil {
-		log.Fatalln("newControlConn", err)
+		log.Fatalln("newControlConn: ", err)
 	}
 
 	c.Conn = cn
@@ -54,7 +54,7 @@ func newControlDial(addr, identifier string) *control {
 	request := func() {
 		err := c.connect(identifier)
 		if err != nil {
-			log.Fatalln("newControlConn", err)
+			log.Fatalln("newControlConn: ", err)
 		}
 	}
 
@@ -84,7 +84,7 @@ func (c *control) connect(identifier string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 && resp.Status != Connected {
-		return fmt.Errorf("proxy server: %s", resp.Status)
+		return fmt.Errorf("proxy server (%s): %s", remoteAddr, resp.Status)
 	}
 
 	return nil
