@@ -852,3 +852,45 @@ Admin main styles
   .main-loader
     top                     45%
 
+  .steps-view
+    display                 flex
+    display                 -webkit-flex
+
+    cite.vline
+      size                  100%, 1px
+      border-top            1px solid #BDBDBD
+      left                  0
+      top                   20px
+      abs()
+
+    div
+      width                 300px
+      margin                auto
+      text-align            center
+
+      .step
+        size                40px, 40px
+        left                -20px
+
+        color               white
+        font-size           20px
+        text-align          center
+        border-radius       40px
+        background-color    #BDBDBD
+
+        padding-top         9px
+        margin-left         50%
+
+        borderBox()
+        rel()
+
+      .title
+        width               auto
+        margin-top          5px
+        color               #BDBDBD
+
+      &.selected
+        .step
+          background        #02A74D
+        .title
+          color             #02A74D

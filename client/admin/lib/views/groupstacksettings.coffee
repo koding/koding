@@ -49,7 +49,10 @@ module.exports     = class GroupStackSettings extends kd.View
     @fetchData (err, data) =>
 
       if err? or not data
-        @replaceViews noStackFoundView: null
+        @replaceViews noStackFoundView: =>
+          @replaceViews wizardView: null
+      else
+        @replaceViews wizardView: data
 
 
   createEditorPane: (content) ->
