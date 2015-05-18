@@ -389,7 +389,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       percentage = response?.percentage
       @createProgressBar percentage
       @triggerEventTimer percentage
-      @showRandomMarketingSnippet()  if @state in [ Starting, Building ]
+      @showRandomMarketingSnippet()  if @state is Starting
     else if @state is Terminated
       @label.destroy?()
       @createStateLabel "
