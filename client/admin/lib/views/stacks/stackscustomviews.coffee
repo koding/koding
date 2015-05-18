@@ -49,6 +49,27 @@ module.exports = class StacksCustomViews extends CustomViews
       @views.text 'Coming soon'
 
 
+    stepSelectProvider: (options) =>
+
+      {callback, cancelCallback} = options
+      container = @views.container 'step-provider'
+
+      views     = @addTo container,
+        stepsHeaderView : 1
+        text            : "You need to select a provider first"
+        providersView   :
+          providers     : Object.keys globals.config.providers
+        navButton_cancel:
+          callback      : cancelCallback
+        navButton_next  :
+          disabled      : yes
+          callback      : ->
+            callback provider: views.providersView.selectedProvider
+
+      views.providersView.on 'ItemSelected', views.navButton_next.bound 'enable'
+
+      return container
+
     providersView: (options) =>
 
       {providers} = options
