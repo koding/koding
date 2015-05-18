@@ -92,7 +92,7 @@ func (c *Client) decoder() {
 // proxy joins (proxies) the remote tcp connection with the local one.
 // the data between the two connections are copied vice versa.
 func (c *Client) proxy(serverMsg *ServerMsg) {
-	log.Printf("starting a proxy from %s to localhost%s\n", serverMsg.Host, c.localAddr)
+	log.Printf("starting proxying from '%s' to local server: '%s'\n", serverMsg.Host, c.localAddr)
 	remote, err := newTunnelDial(c.serverAddr, serverMsg)
 	if err != nil {
 		log.Println(err)
