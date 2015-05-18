@@ -36,9 +36,10 @@ getUniqueLabel = (label, labels = []) ->
   # If label is already unique, return it.
   return label  if labels.indexOf(label) is -1
 
-  index = 1
-  index++ while labels.indexOf("#{label} #{index}") isnt -1
-  return "#{label} #{index}"
+  count = 1
+  while labels.indexOf("#{label} #{count}") isnt -1
+    count++
+  return "#{label} #{count}"
 
 
 
