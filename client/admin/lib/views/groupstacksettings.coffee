@@ -44,15 +44,22 @@ module.exports     = class GroupStackSettings extends kd.View
 
   viewAppended: ->
 
+    @initiateInitialView()
+
+
+  initiateInitialView: ->
+
     @replaceViewsWith loader: 'main-loader'
 
     @fetchData (err, data) =>
 
-      if err? or not data
-        @replaceViews noStackFoundView: =>
-          @replaceViews wizardView: null
+      { credentials, stackTemplate } = data
+
+      if err? or not stackTemplate
+        @replaceViewsWith noStackFoundView: @bound 'initiateNewStackWizard'
       else
-        @replaceViews wizardView: data
+        @replaceViewsWith stacksView: data
+
 
   initiateNewStackWizard: ->
 

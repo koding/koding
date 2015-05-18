@@ -38,8 +38,6 @@ module.exports = class StacksCustomViews extends CustomViews
       new kd.ButtonView options
 
 
-    wizardView: (data) =>
-      @views.stepsView 1
     navButton: (options, name) =>
       options.cssClass = kd.utils.curry 'solid compact nav', name
       options.title = name.capitalize()
