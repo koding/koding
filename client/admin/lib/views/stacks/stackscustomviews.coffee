@@ -84,6 +84,24 @@ module.exports = class StacksCustomViews extends CustomViews
 
       return form
 
+
+    stepSetupCredentials: (options) =>
+
+      {data, callback, cancelCallback} = options
+      {provider} = data
+
+      container = @views.container 'step-creds'
+      @addTo container,
+        stepsHeaderView : 2
+        credentialForm  : provider
+        navButton_prev  :
+          callback      : cancelCallback
+        navButton_next  :
+          callback      : ->
+            callback {provider}
+
+      return container
+
     providersView: (options) =>
 
       {providers} = options
