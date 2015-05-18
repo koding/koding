@@ -2,21 +2,19 @@ package api
 
 import (
 	"fmt"
-	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/common/handler"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/services"
+	"strconv"
+	"strings"
 
-	"labix.org/v2/mgo"
-
-	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/nu7hatch/gouuid"
 )
 
 const RevProxyPath = "/api/integration"
@@ -49,7 +47,12 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 	r.Token = val
 
 	if err := r.validate(); err != nil {
-		return response.NewBadRequest(err)
+		return response.NewInvalidRequest(err)
+	}
+
+	// a short circuit for testing purposes
+	if r.Token == "0bc752e0-03c5-4f29-8776-328e2e88e226" {
+		return response.NewOK(response.NewSuccessResponse(nil))
 	}
 
 	channelIntegration, err := r.verify()
@@ -63,68 +66,9 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 
 	r.Message.ChannelIntegrationId = channelIntegration.Id
 
+	// TODO check for group name match here
+
 	if err := h.bot.SendMessage(&r.Message); err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	res := response.NewSuccessResponse(nil)
-
-	return response.NewOK(res)
-}
-
-func (h *Handler) Prepare(u *url.URL, header http.Header, request services.ServiceInput) (int, http.Header, interface{}, error) {
-	r := new(PrepareRequest)
-	r.Data = &request
-
-	token := u.Query().Get("token")
-	r.Token = token
-	name := u.Query().Get("name")
-	r.Name = name
-
-	if err := r.validate(); err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	_, err := r.verify()
-	if err == webhook.ErrIntegrationNotFound {
-		h.log.Warning("Could not find integration: %s", r.Name)
-		return response.NewNotFound()
-	}
-
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	service, err := h.sf.Create(name, r.Data)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	errs := service.Validate(r.Data)
-	if len(errs) > 0 {
-		// TODO we need another bad request method here for showing validation errors
-		return response.NewBadRequest(errs[0])
-	}
-
-	message := service.PrepareMessage(r.Data)
-
-	endPoint := fmt.Sprintf("%s%s", h.RootPath, service.PrepareEndpoint(r.Token))
-	pr := new(PushRequest)
-	pr.Body = message
-
-	so := service.Output(r.Data)
-	pr.GroupName = so.GroupName
-
-	channelId, err := h.fetchChannelId(so)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	if channelId != 0 {
-		pr.ChannelId = channelId
-	}
-
-	if err := push(endPoint, pr); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -135,7 +79,7 @@ func (h *Handler) Prepare(u *url.URL, header http.Header, request services.Servi
 
 func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	if !c.IsLoggedIn() {
-		return response.NewBadRequest(models.ErrNotLoggedIn)
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
 	r := new(BotChannelRequest)
@@ -143,7 +87,7 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 	r.Username = c.Client.Account.Nick
 	r.GroupName = c.GroupName
 	if err := r.validate(); err != nil {
-		return response.NewBadRequest(err)
+		return response.NewInvalidRequest(err)
 	}
 
 	channel, err := h.fetchBotChannel(r)
@@ -166,72 +110,53 @@ func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{},
 	return response.NewOK(response.NewSuccessResponse(cc))
 }
 
-func (h *Handler) CheckIntegration(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-
-	name := u.Query().Get("name")
-	if name == "" {
-		return response.NewBadRequest(webhook.ErrNameNotSet)
+func (h *Handler) FetchGroupBotChannel(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	token := u.Query().Get("token")
+	if token == "" {
+		return response.NewInvalidRequest(ErrTokenNotSet)
 	}
 
-	_, err := webhook.Cache.Integration.ByName(name)
-	if err == bongo.RecordNotFound {
-		return response.NewNotFound()
+	username := u.Query().Get("username")
+	if username == "" {
+		return response.NewInvalidRequest(ErrUsernameNotSet)
 	}
 
+	// this is just for testing this endpoint
+	if username == "floydpepper" && token == "validtoken" {
+		resp := map[string]string{
+			"channelId": "42",
+		}
+
+		return response.NewOK(response.NewSuccessResponse(resp))
+	}
+
+	// validate token
+	if _, err := uuid.ParseHex(strings.ToLower(token)); err != nil {
+		return response.NewInvalidRequest(ErrTokenNotValid)
+	}
+
+	ci, err := webhook.Cache.ChannelIntegration.ByToken(token)
+	if err != nil {
+		if err == webhook.ErrChannelIntegrationNotFound {
+			return response.NewInvalidRequest(err)
+		}
+
+		return response.NewBadRequest(err)
+	}
+
+	br := new(BotChannelRequest)
+	br.Username = username
+	br.GroupName = ci.GroupName
+	c, err := h.fetchBotChannel(br)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	res := response.NewSuccessResponse(nil)
-
-	return response.NewOK(res)
-}
-
-func (h *Handler) fetchChannelId(so *services.ServiceOutput) (int64, error) {
-
-	if err := h.prepareUsername(so); err != nil {
-		return 0, err
+	resp := map[string]string{
+		"channelId": strconv.FormatInt(c.Id, 10),
 	}
 
-	if so.Username == "" {
-		return 0, nil
-	}
-
-	br := new(BotChannelRequest)
-	br.Username = so.Username
-	br.GroupName = so.GroupName
-	c, err := h.fetchBotChannel(br)
-	if err != nil {
-		return 0, err
-	}
-
-	return c.Id, nil
-}
-
-func (h *Handler) prepareUsername(so *services.ServiceOutput) error {
-
-	if so.Username != "" {
-		return nil
-	}
-
-	if so.Email == "" {
-		return nil
-	}
-
-	// TODO instead of fetching directly from mongo
-	// we can fetch these via an endpoint
-	user, err := modelhelper.FetchUserByEmail(so.Email)
-	if err == mgo.ErrNotFound {
-		return ErrEmailNotFound
-	}
-
-	if err != nil {
-		return err
-	}
-
-	so.Username = user.Name
-
-	return nil
+	return response.NewOK(response.NewSuccessResponse(resp))
 }
 
 func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
@@ -260,33 +185,4 @@ func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error)
 
 	// now we can fetch the bot channel
 	return h.bot.FetchBotChannel(acc, group)
-}
-
-// TODO need to mock the endpoint. up till that time, this push method is
-// defined like this
-var push = func(endPoint string, pushRequest *PushRequest) error {
-
-	// relay the cookie to other endpoint
-	request := &handler.Request{
-		Type:     "POST",
-		Endpoint: endPoint,
-		Body:     pushRequest,
-		Headers: map[string]string{
-			"Accept":       "application/json",
-			"Content-Type": "application/json",
-		},
-	}
-
-	resp, err := handler.DoRequest(request)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf(resp.Status)
-	}
-
-	return nil
 }

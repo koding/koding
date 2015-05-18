@@ -10,12 +10,15 @@ import (
 	"strconv"
 )
 
-const IntegrationEndPoint = "http://localhost:7300"
+const (
+	IntegrationEndPoint = "http://localhost:7300"
+	MiddlewareEndPoint  = "http://localhost:7350"
+)
 
 var ErrTypecastError = errors.New("typecast error")
 
 func DoPrepareRequest(data *services.ServiceInput, token string) error {
-	url := fmt.Sprintf("%s/webhook/iterable/%s", IntegrationEndPoint, token)
+	url := fmt.Sprintf("%s/push/iterable/%s", MiddlewareEndPoint, token)
 	_, err := sendModel("POST", url, data)
 	if err != nil {
 		return err
@@ -26,7 +29,7 @@ func DoPrepareRequest(data *services.ServiceInput, token string) error {
 
 func DoPushRequest(data *api.PushRequest, token string) error {
 
-	url := fmt.Sprintf("%s/webhook/push/%s", IntegrationEndPoint, token)
+	url := fmt.Sprintf("%s/push/%s", IntegrationEndPoint, token)
 	_, err := sendModel("POST", url, data)
 
 	return err

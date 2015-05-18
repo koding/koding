@@ -11,7 +11,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:  h.Push,
 			Name:     "webhook-push",
 			Type:     handler.PostRequest,
-			Endpoint: "/webhook/push/{token}",
+			Endpoint: "/push/{token}",
 		},
 	)
 
@@ -19,27 +19,19 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        h.Prepare,
-			Name:           "webhook-prepare",
-			Type:           handler.PostRequest,
-			Endpoint:       "/webhook/{name}/{token}",
-			CollectMetrics: true,
+			Handler:  h.FetchBotChannel,
+			Name:     "webhook-bot-channel",
+			Type:     handler.GetRequest,
+			Endpoint: "/botchannel",
 		},
 	)
 
-	m.AddHandler(
-		handler.Request{
-			Handler:        h.FetchBotChannel,
-			Name:           "webhook-bot-channel",
-			Type:           handler.GetRequest,
-			Endpoint:       "/botchannel",
-			CollectMetrics: true,
 	m.AddSessionlessHandler(
 		handler.Request{
-			Handler:  h.CheckIntegration,
-			Name:     "webhook-check-integration",
+			Handler:  h.FetchGroupBotChannel,
+			Name:     "webhook-group-bot-channel",
 			Type:     handler.GetRequest,
-			Endpoint: "/webhook/integration/{name}",
+			Endpoint: "/botchannel/{token}/user/{username}",
 		},
 	)
 
