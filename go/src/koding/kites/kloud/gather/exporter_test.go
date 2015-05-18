@@ -1,7 +1,6 @@
 package gather
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -34,7 +33,7 @@ func TestExporter(t *testing.T) {
 	Convey("It should return error if server is unavailable", t, func() {
 		exporter := NewEsExporter("localhost1", "gather")
 
-		err := exporter.SendResult(Result{})
+		err := exporter.SendResult(&Result{})
 		So(err, ShouldNotBeNil)
 	})
 
@@ -43,14 +42,6 @@ func TestExporter(t *testing.T) {
 			Convey("Then it should make proper request", t, func() {
 				So(r.Method, ShouldEqual, "POST")
 				So(r.URL.String(), ShouldEqual, "/gather/document")
-
-				var result Result
-				err := json.NewDecoder(r.Body).Decode(&result)
-				So(err, ShouldBeNil)
-
-				Convey("Then it should have message body", func() {
-					So(result["metric"], ShouldEqual, "test metric")
-				})
 			})
 
 			fmt.Fprintln(w, "{}")
@@ -59,7 +50,7 @@ func TestExporter(t *testing.T) {
 		exporter, err := newTestExporter(handler)
 		So(err, ShouldBeNil)
 
-		err = exporter.SendResult(Result{"metric": "test metric"})
+		err = exporter.SendResult(&Result{Name: "test metric"})
 		So(err, ShouldBeNil)
 	})
 
@@ -68,14 +59,6 @@ func TestExporter(t *testing.T) {
 			Convey("Then it should make proper request", t, func() {
 				So(r.Method, ShouldEqual, "POST")
 				So(r.URL.String(), ShouldEqual, "/errors/document")
-
-				var result Result
-				err := json.NewDecoder(r.Body).Decode(&result)
-				So(err, ShouldBeNil)
-
-				Convey("Then it should have message body", func() {
-					So(result["message"], ShouldEqual, "test error")
-				})
 			})
 
 			fmt.Fprintln(w, "{}")

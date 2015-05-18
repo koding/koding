@@ -1,1 +1,2 @@
-ls
+#!/usr/bin/env bash
+echo '{"category":"test", "name":"test script", "type":"bool", "exists":true}'

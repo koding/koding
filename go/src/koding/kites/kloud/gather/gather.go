@@ -89,7 +89,7 @@ func (c *Gather) DownloadScripts(folderName string) error {
 	return c.Fetcher.Download(folderName)
 }
 
-func (c *Gather) Export(result Result, err error) error {
+func (c *Gather) Export(result *Result, err error) error {
 	if err != nil {
 		return c.Exporter.SendError(err)
 	}
