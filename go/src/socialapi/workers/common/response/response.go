@@ -48,6 +48,21 @@ func NewBadRequestWithLogger(l logging.Logger, err error) (int, http.Header, int
 	return http.StatusBadRequest, nil, nil, BadRequest{err}
 }
 
+// NewInvalidRequest sends bad request response back to client.
+// Unlike NewBadRequest method, errors are exposed to users.
+// For this reason it is used for returning input validation errors
+func NewInvalidRequest(err error) (int, http.Header, interface{}, error) {
+
+	if err == nil {
+		err = errors.New("request is not valid")
+	}
+
+	// make sure errors are outputted
+	runner.MustGetLogger().Error("Invalid Request: %s", err)
+
+	return http.StatusBadRequest, nil, nil, BadRequest{err}
+}
+
 // NewAccessDenied sends access denied response back to client
 //
 // here not to leak info about the resource do send NotFound err
