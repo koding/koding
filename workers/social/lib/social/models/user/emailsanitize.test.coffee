@@ -1,5 +1,5 @@
 {expect}      = require "chai"
-emailSanitize = require "../models/user/emailsanitize"
+emailSanitize = require "./emailsanitize"
 
 describe 'Gmail Validation', ->
   it 'downcases', ->
