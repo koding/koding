@@ -131,6 +131,7 @@ build:
           tail -n 100 /var/log/koding/social-populartopic.log
           tail -n 100 /var/log/koding/social-pinnedpost.log
           tail -n 100 /var/log/koding/social-webhook.log
+          tail -n 100 /var/log/koding/social-webhookmiddleware.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
     - script: # todo generalize this part when we have more tests
@@ -200,6 +201,7 @@ build:
           tail -n 100 /var/log/koding/social-populartopic.log || :
           tail -n 100 /var/log/koding/social-pinnedpost.log || :
           tail -n 100 /var/log/koding/social-webhook.log || :
+          tail -n 100 /var/log/koding/social-webhookmiddleware.log || :
 deploy:
   steps:
     - script:
