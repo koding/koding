@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/mitchellh/goamz/aws"
@@ -86,31 +85,4 @@ func (s *S3Fetcher) Upload(folderName string) error {
 	return s.Bucket().PutReader(
 		tarFile, bufio.NewReader(file), fileInfo.Size(), CONTENT_TYPE_TAR, s3.Private,
 	)
-}
-
-//----------------------------------------------------------
-// Helpers
-//----------------------------------------------------------
-
-func tarFolder(folderName, outputFileName string) error {
-	isExist, err := exists(folderName)
-	if err != nil {
-		return err
-	}
-
-	if !isExist {
-		return ErrFolderNotFound
-	}
-
-	_, err = exec.Command("tar", "-cvf", outputFileName, folderName).Output()
-	return err
-}
-
-func exists(name string) (bool, error) {
-	var err error
-	if _, err = os.Stat(name); os.IsNotExist(err) {
-		return false, nil
-	}
-
-	return true, err
 }
