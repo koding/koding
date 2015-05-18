@@ -1,6 +1,7 @@
 kd                   = require 'kd'
 globals              = require 'globals'
 CustomViews          = require 'app/commonviews/customviews'
+ComputeController_UI = require 'app/providers/computecontroller.ui'
 
 
 module.exports = class StacksCustomViews extends CustomViews
@@ -69,6 +70,19 @@ module.exports = class StacksCustomViews extends CustomViews
       views.providersView.on 'ItemSelected', views.navButton_next.bound 'enable'
 
       return container
+
+
+    credentialForm: (provider) =>
+
+      form = ComputeController_UI.generateAddCredentialFormFor provider
+      form.on "Cancel", ->
+        console.log 'Form Cancelled'
+
+      form.on "CredentialAdded", (credential) =>
+        # credential.owner = yes
+        console.log 'Credential added', credential
+
+      return form
 
     providersView: (options) =>
 
