@@ -24,6 +24,25 @@ fetchNewestSnapshot = (machineId, callback = kd.noop) ->
 
 
 ###*
+ * Based on the given list of labels, return a unique label. If the
+ * label is not unique, it is returned in the format of "label index".
+ *
+ * @params {String} label - The source label.
+ * @params {String[]} labels - The labels to avoid.
+ * @returns {String} label - A formatted label, not in the labels list.
+###
+getUniqueLabel = (label, labels = []) ->
+
+  # If label is already unique, return it.
+  return label  if labels.indexOf(label) is -1
+
+  index = 1
+  index++ while labels.indexOf("#{label} #{index}") isnt -1
+  return "#{label} #{index}"
+
+
+
+###*
  * Create a new vm from the given snapshotId, going directly to reinit
  * for hobbyist's, and showing the new machine modal for all other
  * users.
@@ -83,6 +102,7 @@ showSnapshottingModal = (machine, container) ->
 
 module.exports = {
   fetchNewestSnapshot
+  getUniqueLabel
   newVmFromSnapshot
   showSnapshottingModal
 }

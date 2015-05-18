@@ -166,6 +166,10 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       return MachineSettingsSnapshotsView.notify \
         'Name length must be larger than zero'
 
+    # Get the unique label, based on our currently loaded Snapshots
+    labels = (i.getData().label for i in @listController.getItemsOrdered())
+    label  = snapshotHelpers.getUniqueLabel label, labels
+
     # Get the IDE view.
     openIdeByMachine machine, (err, ideController) =>
       if err
