@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func getTestFetcher() *S3Fetcher {
+func newTestFetcher() *S3Fetcher {
 	return &S3Fetcher{
 		AccessKey:   "AKIAJFKDHRJ7Q5G4MOUQ",
 		SecretKey:   "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",
@@ -20,7 +20,7 @@ var testScriptFolder = "test-scripts"
 
 func TestFetcher(t *testing.T) {
 	Convey("Given commmand to upload scripts", t, func() {
-		fetcher := getTestFetcher()
+		fetcher := newTestFetcher()
 
 		Convey("When scripts folder doesn't exist", func() {
 			Convey("Then it should return error", func() {
@@ -49,7 +49,7 @@ func TestFetcher(t *testing.T) {
 	Convey("Given commmand to download scripts", t, func() {
 		Convey("When scripts bucket doesn't exist", func() {
 			Convey("Then it should return error", func() {
-				fetcher := getTestFetcher()
+				fetcher := newTestFetcher()
 				fetcher.BucketName = ""
 
 				err := fetcher.Download("")
@@ -59,7 +59,7 @@ func TestFetcher(t *testing.T) {
 
 		Convey("When scripts folder doesn't exist", func() {
 			Convey("Then it should return error", func() {
-				fetcher := getTestFetcher()
+				fetcher := newTestFetcher()
 				fetcher.ScriptsFile = "non-existent.tar"
 
 				err := fetcher.Download("")
@@ -68,7 +68,7 @@ func TestFetcher(t *testing.T) {
 		})
 
 		Convey("Then it should download scripts folder", func() {
-			fetcher := getTestFetcher()
+			fetcher := newTestFetcher()
 
 			folderName, err := ioutil.TempDir("", "")
 			So(err, ShouldBeNil)

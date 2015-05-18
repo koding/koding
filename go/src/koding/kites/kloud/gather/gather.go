@@ -14,8 +14,10 @@ type Gather struct {
 	Fetcher    Fetcher
 }
 
-func New(fetcher Fetcher) *Gather {
-	return &Gather{Fetcher: fetcher, DestFolder: "/tmp/" + randSeq(10)}
+func New(fetcher Fetcher, exporter Exporter) *Gather {
+	return &Gather{
+		Fetcher: fetcher, Exporter: exporter, DestFolder: "/tmp/" + randSeq(10),
+	}
 }
 
 func (c *Gather) RunAllScripts() error {

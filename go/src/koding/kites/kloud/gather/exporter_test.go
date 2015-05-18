@@ -12,7 +12,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newTestExporter(hFn func(w http.ResponseWriter, r *http.Request)) (Exporter, error) {
+func newTestExporter() (Exporter, error) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "{}")
+	})
+
+	return newTestExporterHandler(handler)
+}
+
+func newTestExporterHandler(hFn func(w http.ResponseWriter, r *http.Request)) (Exporter, error) {
 	ts := httptest.NewServer(http.HandlerFunc(hFn))
 
 	parsedUrl, err := url.Parse(ts.URL)
@@ -47,7 +55,7 @@ func TestExporter(t *testing.T) {
 			fmt.Fprintln(w, "{}")
 		}
 
-		exporter, err := newTestExporter(handler)
+		exporter, err := newTestExporterHandler(handler)
 		So(err, ShouldBeNil)
 
 		err = exporter.SendResult(&Result{Name: "test metric"})
@@ -64,7 +72,7 @@ func TestExporter(t *testing.T) {
 			fmt.Fprintln(w, "{}")
 		})
 
-		exporter, err := newTestExporter(handler)
+		exporter, err := newTestExporterHandler(handler)
 		So(err, ShouldBeNil)
 
 		err = exporter.SendError(errors.New("test error"))
