@@ -18,6 +18,7 @@ const (
 
 type Fetcher interface {
 	Download(string) error
+	GetScriptsFile() string
 }
 
 type S3Fetcher struct {
@@ -32,6 +33,10 @@ func (s *S3Fetcher) Bucket() *s3.Bucket {
 	}
 
 	return s3.New(auth, aws.USEast).Bucket(s.BucketName)
+}
+
+func (s *S3Fetcher) GetScriptsFile() string {
+	return s.ScriptsFile
 }
 
 // Download downloads scripts from S3 bucket into specified folder.

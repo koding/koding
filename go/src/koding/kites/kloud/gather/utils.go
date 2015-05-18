@@ -15,7 +15,21 @@ func tarFolder(folderName, outputFileName string) error {
 		return ErrFolderNotFound
 	}
 
-	_, err = exec.Command("tar", "-cvf", outputFileName, folderName).Output()
+	_, err = exec.Command("tar", "-cf", outputFileName, folderName).Output()
+	return err
+}
+
+func untarFile(fileName, outputFolder string) error {
+	isExist, err := exists(fileName)
+	if err != nil {
+		return err
+	}
+
+	if !isExist {
+		return ErrFolderNotFound
+	}
+
+	_, err = exec.Command("tar", "-xf", fileName, "-C", outputFolder).Output()
 	return err
 }
 

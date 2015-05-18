@@ -2,6 +2,7 @@ package gather
 
 type Script struct {
 	Name string
+	Path string
 }
 
 func (s *Script) Run() (Result, error) {
