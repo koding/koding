@@ -32,3 +32,48 @@ module.exports = class StacksCustomViews extends CustomViews
 
     button: (options) ->
       new kd.ButtonView options
+
+
+    wizardView: (data) =>
+      @views.stepsView 1
+
+
+    step: (options) =>
+
+      {title, step, selected} = options
+
+      container = @views.container "#{if selected then 'selected' else ''}"
+
+      @addTo container,
+        text_step  : step
+        text_title : title
+
+      return container
+
+
+    stepsView: (options) =>
+
+      if typeof options is 'number'
+        steps = [
+          { title : 'Select Repo' }
+          { title : 'Locate File' }
+          { title : 'File' }
+          { title : 'Test Integrations' }
+        ]
+        selected  = options
+      else
+        { steps } = options
+
+      container = @views.container 'steps-view'
+
+      @addTo container, view :
+        cssClass : 'vline'
+        tagName  : 'cite'
+
+      steps.forEach (step, index) =>
+        step.step = index + 1
+        if selected? and selected is step.step
+          step.selected = yes
+        @addTo container, { step }
+
+      return container
