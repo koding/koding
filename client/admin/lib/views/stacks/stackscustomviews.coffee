@@ -38,7 +38,9 @@ module.exports = class StacksCustomViews extends CustomViews
       @views.stepsView 1
 
 
-    step: (options) =>
+
+
+    stepsHeader: (options) =>
 
       {title, step, selected} = options
 
@@ -51,14 +53,14 @@ module.exports = class StacksCustomViews extends CustomViews
       return container
 
 
-    stepsView: (options) =>
+    stepsHeaderView: (options) =>
 
       if typeof options is 'number'
         steps = [
-          { title : 'Select Repo' }
-          { title : 'Locate File' }
-          { title : 'File' }
-          { title : 'Test Integrations' }
+          { title : 'Select Provider' }
+          { title : 'Setup Credentials' }
+          { title : 'Define your Stack' }
+          { title : 'Test & Save' }
         ]
         selected  = options
       else
@@ -74,6 +76,6 @@ module.exports = class StacksCustomViews extends CustomViews
         step.step = index + 1
         if selected? and selected is step.step
           step.selected = yes
-        @addTo container, { step }
+        @addTo container, stepsHeader: step
 
       return container
