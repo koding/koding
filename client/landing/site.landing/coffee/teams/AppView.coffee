@@ -19,6 +19,7 @@ module.exports = class TeamsView extends JView
         { title : 'Success Stories', href : '/Features',                name : 'success' }
         { title : 'SIGN IN',         href : '/Team/Login',              name : 'buttonized white login',  attributes : testpath : 'login-link' }
       ]
+
     @form = new TeamTeamsModal
       cssClass : 'TeamsModal--middle login-form'
       callback : (formData) ->
