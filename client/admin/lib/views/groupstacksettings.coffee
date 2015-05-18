@@ -44,7 +44,7 @@ module.exports     = class GroupStackSettings extends kd.View
 
   viewAppended: ->
 
-    @addTo this, loader: 'main-loader'
+    @replaceViewsWith loader: 'main-loader'
 
     @fetchData (err, data) =>
 

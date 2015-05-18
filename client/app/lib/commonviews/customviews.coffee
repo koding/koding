@@ -2,7 +2,7 @@ kd = require 'kd'
 
 module.exports = class CustomViews
 
-  MIXINS = ['views', 'addTo', 'addCustomViews', 'replaceViews']
+  MIXINS = ['views', 'addTo', 'addCustomViews', 'replaceViewsWith']
   @mixin = (target) ->
     target[mixin] = this[mixin] for mixin in MIXINS
 
@@ -49,6 +49,6 @@ module.exports = class CustomViews
   @addCustomViews = (views) ->
     @addTo this, views
 
-  @replaceViews = (views) ->
+  @replaceViewsWith = (views) ->
     @destroySubViews()
     @addTo this, views
