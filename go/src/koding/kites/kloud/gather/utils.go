@@ -41,7 +41,3 @@ func exists(name string) (bool, error) {
 
 	return true, err
 }
-
-func createFolder(folderName string) error {
-	return os.Mkdir(folderName, 0777)
-}

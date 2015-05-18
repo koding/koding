@@ -19,6 +19,8 @@ func New(fetcher Fetcher) *Gather {
 }
 
 func (c *Gather) RunAllScripts() error {
+	defer c.Cleanup()
+
 	scripts, err := c.GetScripts()
 	if err != nil {
 		return err
@@ -77,7 +79,7 @@ func (c *Gather) CreateDestFolder() error {
 	}
 
 	if !folderExists {
-		err = createFolder(c.DestFolder)
+		err = os.Mkdir(c.DestFolder, 0777)
 	}
 
 	return err
@@ -95,8 +97,8 @@ func (c *Gather) Export(result Result, err error) error {
 	return c.Exporter.SendResult(result)
 }
 
-func (c *Gather) Cleanup() {
-	c.DestFolder = ""
+func (c *Gather) Cleanup() error {
+	return os.RemoveAll(c.DestFolder)
 }
 
 //----------------------------------------------------------
