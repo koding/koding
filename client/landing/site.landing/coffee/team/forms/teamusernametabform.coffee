@@ -20,8 +20,9 @@ module.exports = class TeamUsernameTabForm extends KDFormView
       name         : 'newsletter'
       label        : @label
 
-    team     = KD.utils.getTeamData()
-    username = email.split('@').first  if email = team.signup?.email
+    team        = KD.utils.getTeamData()
+    emailPrefix = email.split('@').first  if email = team.signup?.email
+    username    = emailPrefix  if emailPrefix.length > 3
 
     @username = new KDInputView
       placeholder  : 'username'
@@ -38,7 +39,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
     @password = new KDInputView
       type          : 'password'
       name          : 'password'
-      placeholder   : '*********'
+      placeholder   : 'password'
       validate      :
         event       : 'blur'
         container   : this
