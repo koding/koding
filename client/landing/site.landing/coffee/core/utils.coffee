@@ -380,14 +380,8 @@ utils.extend utils,
 
         return  unless input.valid
 
-        $.ajax
-          url         : "/-/validate/email"
-          type        : 'POST'
-          data        :
-            password  : passValue
-            email     : email
-          xhrFields   : withCredentials : yes
-          success     : (res) ->
+        KD.utils.validateEmail { password : passValue, email },
+          success : (res) ->
 
             return location.replace '/'  if res is 'User is logged in!'
 
@@ -396,7 +390,7 @@ utils.extend utils,
 
             container.emit 'EmailValidationPassed'  if res is yes
 
-          error       : ({responseJSON}) ->
+          error : ({responseJSON}) ->
             container.emit 'EmailIsNotAvailable'
             input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
 
@@ -495,3 +489,14 @@ utils.extend utils,
       type      : 'POST'
       success   : (members) -> callback null, members
       error     : ({responseText}) -> callback msg : responseText
+
+
+  validateEmail: (data, callbacks) ->
+
+    $.ajax
+      url         : "/-/validate/email"
+      type        : 'POST'
+      data        : data
+      xhrFields   : withCredentials : yes
+      success     : callbacks.success
+      error       : callbacks.error
