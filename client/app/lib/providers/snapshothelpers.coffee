@@ -28,7 +28,7 @@ fetchNewestSnapshot = (machineId, callback = kd.noop) ->
  * label is not unique, it is returned in the format of "label index".
  *
  * @params {String} label - The source label.
- * @params {String[]} labels - The labels to avoid.
+ * @params {Array.<String>} labels - The labels to avoid.
  * @returns {String} label - A formatted label, not in the labels list.
 ###
 getUniqueLabel = (label, labels = []) ->
