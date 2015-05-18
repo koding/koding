@@ -72,6 +72,10 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
+// MessageCreated sends an event to Iterable, when a new post is created.
+// In 'send message' workflow, we are intercepting these events. Depending on
+// this, when it is user's first message, Iterable is calling our webhook for
+// creating bot messages
 func (c *Controller) MessageCreated(cm *models.ChannelMessage) error {
 	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
 		return nil
@@ -97,6 +101,10 @@ func (c *Controller) MessageCreated(cm *models.ChannelMessage) error {
 	return c.exporter.Send(event)
 }
 
+// ChannelCreated sends an event to Iterable, when a new collaboration channel
+// is created. In 'start collaboration' workflow, we are intercepting these events.
+// Depending on this, when it is user's first collaboration channel,
+// Iterable is calling our webhook for creating bot messages
 func (c *Controller) ChannelCreated(ch *models.Channel) error {
 	if ch.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return nil
@@ -117,6 +125,10 @@ func (c *Controller) ChannelCreated(ch *models.Channel) error {
 	return c.exporter.Send(event)
 }
 
+// WorkspaceCreated sends an event to Iterable, when a new workspace
+// is created. In 'create workspace' workflow, we are intercepting these events.
+// Depending on this, when it is user's first workspace,
+// Iterable is calling our webhook for creating bot messages
 func (c *Controller) WorkspaceCreated(w *WorkspaceData) error {
 
 	event, err := c.prepareEvent(createWSEvent, w.AccountId)
