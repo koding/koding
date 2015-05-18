@@ -10,7 +10,7 @@ const (
 	ES_TIME_FORMAT   = time.RFC3339
 	ES_TIMESTAMP_KEY = "@timestamp"
 
-	ES_METRIC_INDEX = "metrics"
+	ES_METRIC_INDEX = "gather"
 	ES_ERROR_INDEX  = "errors"
 
 	DEFAULT_ES_PORT = "9200"
@@ -56,12 +56,11 @@ func (es *EsExporter) SendError(err error) error {
 		return ErrErrorIsEmpty
 	}
 
-	// data := Result{
-	//   ES_TIMESTAMP_KEY: time.Now().Format(ES_TIME_FORMAT),
-	//   "error":          err.Error(),
-	// }
+	data := Result{
+		ES_TIMESTAMP_KEY: time.Now().Format(ES_TIME_FORMAT),
+		"message":        err.Error(),
+	}
 
-	// _, err := es.Client.Index(ES_ERROR_INDEX, ES_ERROR_DOC, "", nil, data)
-	// return err
-	return nil
+	_, err = es.Client.Index(ES_ERROR_INDEX, DEFAULT_ES_TYPE, "", nil, data)
+	return err
 }
