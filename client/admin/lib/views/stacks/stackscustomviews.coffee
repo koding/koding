@@ -1,5 +1,6 @@
-kd             = require 'kd'
-CustomViews    = require 'app/commonviews/customviews'
+kd                   = require 'kd'
+globals              = require 'globals'
+CustomViews          = require 'app/commonviews/customviews'
 
 
 module.exports = class StacksCustomViews extends CustomViews
@@ -47,6 +48,31 @@ module.exports = class StacksCustomViews extends CustomViews
     stacksView: (data) =>
       @views.text 'Coming soon'
 
+
+    providersView: (options) =>
+
+      {providers} = options
+
+      container = @views.container 'providers'
+
+      providers.forEach (provider) =>
+
+        return if provider in ['custom', 'managed']
+
+        name = globals.config.providers[provider]?.name or provider
+
+        @addTo container,
+          button     :
+            title    : name
+            cssClass : provider
+            disabled : provider isnt 'aws'
+            callback : ->
+              container.selectedProvider = provider
+              container.emit 'ItemSelected'
+              container.on 'ItemSelected', this.lazyBound 'unsetClass', 'selected'
+              @setClass 'selected'
+
+      return container
 
 
     stepsHeader: (options) =>
