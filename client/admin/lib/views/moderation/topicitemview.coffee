@@ -35,7 +35,7 @@ module.exports = class TopicItemView extends KDListItemView
   createLabels: (data)->
     
     @moderationLabel = new KDCustomHTMLView
-      cssClass : 'moderateRole'
+      cssClass : 'moderate-role'
       partial  : "Moderate <span class='settings-icon'></span>"
       click    : =>
         @settings.toggleClass  'hidden'
@@ -45,7 +45,7 @@ module.exports = class TopicItemView extends KDListItemView
       cssClass : 'type-label'
 
 
-  createSettingsView:(data) ->
+  createSettingsView : (data) ->
 
     @settings  = new KDCustomHTMLView
       cssClass : 'settings hidden'
@@ -55,6 +55,7 @@ module.exports = class TopicItemView extends KDListItemView
     @createLeafChannelSetting data
             
     @createSimilarChannelSetting data
+
 
   createAllTopicView : (data) ->
       @settings.addSubView deleteButton = new KDButtonView
@@ -89,18 +90,17 @@ module.exports = class TopicItemView extends KDListItemView
         @settings.addSubView whitelistButton = new KDButtonView
           cssClass : 'solid compact outline'
           title    : 'WHITELIST CHANNEL'
-          callback : => 
+          callback : -> 
             options = 
               rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
               leafId  : data.id
 
-            kd.singletons.socialapi.moderation.unlink options, (err, data) =>
-            
-              if err
-                return kd.warn err
+            kd.singletons.socialapi.moderation.unlink options, (err, data) ->
+              return kd.warn err if err
                 
          
-  createLeafChannelSetting: (data)->
+  createLeafChannelSetting: (data) ->
+    
     @settings.addSubView @removeLabel = new KDCustomHTMLView
       cssClass: 'solid compact hidden'
       partial : '<span class="label">Leaf Channels</span>'
@@ -117,17 +117,17 @@ module.exports = class TopicItemView extends KDListItemView
         listItems.forEach (item)=> 
           return  if item.switcher.getValue() is false
           options = 
-            rootId  :  data.id
+            rootId  : data.id
             leafId  : item.getData().id
 
-          kd.singletons.socialapi.moderation.unlink options, (err, @item) =>
+          kd.singletons.socialapi.moderation.unlink options, (err, item) =>
           
             if err
               return kd.warn err
             @leafChannelsListController.removeItem item
     
   
-  createSimilarChannelSetting:(data)->
+  createSimilarChannelSetting: (data) ->
          
     @settings.addSubView new KDCustomHTMLView
       cssClass: 'solid compact'
@@ -152,16 +152,14 @@ module.exports = class TopicItemView extends KDListItemView
       title    : 'LINK CHANNEL'
       callback : =>
         listItems = @similarChannelsListController.getListItems()
-        listItems.forEach (item)=> 
+        listItems.forEach (item) => 
           return  if item.switcher.getValue() is false
           options = 
             rootId  : data.id
             leafId  : item.getData().id
      
-          kd.singletons.socialapi.moderation.link options, (err, @item) =>
-          
-            if err
-              return kd.warn err
+          kd.singletons.socialapi.moderation.link options, (err, item) =>
+            return kd.warn err if err
             @similarChannelsListController.removeItem item
             @listLeafChannels [item.getData()]
 
@@ -170,8 +168,7 @@ module.exports = class TopicItemView extends KDListItemView
     options = rootId  :  data.id
           
     kd.singletons.socialapi.moderation.list options, (err, channels) =>
-      if err
-        return kd.warn err
+      return kd.warn err if err
       @listLeafChannels channels
       if channels.length > 0
         @removeButton.show()
@@ -214,12 +211,11 @@ module.exports = class TopicItemView extends KDListItemView
       
     kd.singletons.socialapi.channel.searchTopics options , (err, channels) =>
       @similarChannelsListController.hideLazyLoader()
-        
-      if err
-        return kd.warn err
+      
+      return kd.warn err if err
       
       @listSimilarChannels channels
-      
+
 
 
   listSimilarChannels: (channels) ->
@@ -243,7 +239,7 @@ module.exports = class TopicItemView extends KDListItemView
 
   createLeafChannelsListController: ->
 
-    @leafChannelsListController       = new KDListViewController
+    @leafChannelsListController = new KDListViewController
       viewOptions         :
         wrapper           : yes
         itemClass         : SelectableItemView
@@ -259,7 +255,7 @@ module.exports = class TopicItemView extends KDListItemView
     
   createSimilarChannelsListController: ->
 
-    @similarChannelsListController       = new KDListViewController
+    @similarChannelsListController = new KDListViewController
       viewOptions         :
         wrapper           : yes
         itemClass         : SelectableItemView
