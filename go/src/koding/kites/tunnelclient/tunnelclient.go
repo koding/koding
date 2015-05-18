@@ -2,12 +2,13 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
-	"github.com/op/go-logging"
-	"koding/kite"
-	"koding/kite/protocol"
-	"koding/tunnel"
+
+	"github.com/coreos/go-log/log"
+	"github.com/koding/kite"
+	"github.com/koding/kite/protocol"
+	"github.com/koding/multiconfig"
+	"github.com/koding/tunnel"
 )
 
 type registerResult struct {
@@ -15,37 +16,29 @@ type registerResult struct {
 	Identifier  string
 }
 
-var (
-	log  *logging.Logger
-	port = flag.String("port", "5000", "port to bind to local server")
-)
-
 const serverAddr = "newkontrol.sj.koding.com:80"
 
+type config struct {
+	Port string
+}
+
 func main() {
-	flag.Parse()
+	conf := new(config)
+	multiconfig.New().MustLoad(conf)
 
-	options := &kite.Options{
-		Kitename:    "tunnelclient",
-		Version:     "0.0.3",
-		Region:      "localhost",
-		Environment: "development",
-		KontrolAddr: "newkontrol.sj.koding.com:4000",
-	}
-
-	k := kite.New(options)
-	log = k.Log
-	k.Start()
+	k := kite.New("tunnelclient", "0.0.1")
+	go k.Run()
+	<-k.ServerReadyNotify()
 
 	tunnelserver, err := getTunnelServer(k)
 	if err != nil {
-		log.Error(err.Error())
+		k.Log.Error(err.Error())
 		return
 	}
 
 	err = tunnelserver.Dial()
 	if err != nil {
-		log.Error("cannot connect to tunnelserver")
+		k.Log.Error("cannot connect to tunnelserver")
 		return
 	}
 
@@ -57,12 +50,12 @@ func main() {
 
 	log.Notice("started. your public host is:  '%s'", result.VirtualHost)
 
-	client := tunnel.NewClient(serverAddr, ":"+*port)
+	client := tunnel.NewClient(serverAddr, ":"+conf.Port)
 	client.Start(result.Identifier)
 }
 
-func callRegister(tunnelserver *kite.RemoteKite) (*registerResult, error) {
-	response, err := tunnelserver.Call("register", nil)
+func callRegister(tunnelserver *kite.Client) (*registerResult, error) {
+	response, err := tunnelserver.Tell("register", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -76,14 +69,14 @@ func callRegister(tunnelserver *kite.RemoteKite) (*registerResult, error) {
 	return result, nil
 }
 
-func getTunnelServer(k *kite.Kite) (*kite.RemoteKite, error) {
-	query := protocol.KontrolQuery{
+func getTunnelServer(k *kite.Kite) (*kite.Client, error) {
+	query := &protocol.KontrolQuery{
 		Username:    "arslan",
 		Environment: "development",
 		Name:        "tunnelserver",
 	}
 
-	kites, err := k.Kontrol.GetKites(query, nil)
+	kites, err := k.GetKites(query)
 	if err != nil {
 		return nil, err
 	}
