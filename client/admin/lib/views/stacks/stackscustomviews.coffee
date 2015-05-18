@@ -18,6 +18,7 @@ module.exports = class StacksCustomViews extends CustomViews
                         Learn more about stacks"
         button       :
           title      : 'Add New Stack'
+          cssClass   : 'solid medium green'
           callback   : callback
 
       return container
@@ -31,12 +32,20 @@ module.exports = class StacksCustomViews extends CustomViews
 
 
     button: (options) ->
+      options.cssClass ?= ''
       new kd.ButtonView options
 
 
     wizardView: (data) =>
       @views.stepsView 1
+    navButton: (options, name) =>
+      options.cssClass = kd.utils.curry 'solid compact nav', name
+      options.title = name.capitalize()
+      @views.button options
 
+
+    stacksView: (data) =>
+      @views.text 'Coming soon'
 
 
 
