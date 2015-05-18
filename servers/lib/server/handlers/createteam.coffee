@@ -19,6 +19,8 @@ module.exports = (req, res, next) ->
     domains
     # newsletter holds announcements config.
     newsletter
+    # is group creator already a member 
+    alreadyMember
   } = body
 
   redirect ?= '/'
@@ -45,7 +47,7 @@ module.exports = (req, res, next) ->
     # subscribe to koding marketing mailings or not
     body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
 
-    JUser.convert client, body, (err, result) ->
+    createGroup = (err, result) ->
 
       if err?
 
@@ -95,6 +97,11 @@ module.exports = (req, res, next) ->
           return res.status(200).end() if req.xhr
           # handle the request with an HTTP redirect:
           res.redirect 301, redirect
+
+    if alreadyMember
+    then JUser.login client.sessionToken, req.body, createGroup
+    else JUser.convert client, req.body, createGroup
+
 
 
 # convertToArray converts given comma separated string value into cleaned,
