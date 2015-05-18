@@ -163,12 +163,14 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     machineId = machine._id
     label     = @addInputView.getValue()
     if not label? or label is ''
+      @addNewButton.hideLoader()
       return MachineSettingsSnapshotsView.notify \
         'Name length must be larger than zero'
 
     # Get the IDE view.
     openIdeByMachine machine, (err, ideController) =>
       if err
+        @addNewButton.hideLoader()
         @showNotification "Error, unable to create snapshot.", 'error'
         kd.error "Unable to create snapshot, IDE Could not be found", err
         return
@@ -176,6 +178,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       container = ideController?.getView()
 
       unless container?
+        @addNewButton.hideLoader()
         @showNotification "Error, unable to create snapshot.", 'error'
         return kd.error "Unable to create snapshot, IDE View could not be found"
 
