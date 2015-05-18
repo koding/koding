@@ -43,8 +43,6 @@ func main() {
 
 	h.AddHandlers(m)
 
-	go r.Listen()
-
 	m.Listen()
 	defer m.Close()
 

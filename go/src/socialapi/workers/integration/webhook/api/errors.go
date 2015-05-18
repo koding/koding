@@ -7,7 +7,7 @@ var (
 	ErrChannelNotSet           = errors.New("channel is not set")
 	ErrTokenNotSet             = errors.New("token is not set")
 	ErrGroupNotSet             = errors.New("group name is not set")
-	ErrTokenNotValid           = errors.New("token is not valid")
+	ErrTokenNotValid           = errors.New("invalid token")
 	ErrNameNotSet              = errors.New("name is not set")
 	ErrNameNotValid            = errors.New("name is not valid")
 	ErrUsernameNotSet          = errors.New("username is not set")
