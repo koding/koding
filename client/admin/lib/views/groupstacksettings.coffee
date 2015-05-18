@@ -54,6 +54,27 @@ module.exports     = class GroupStackSettings extends kd.View
       else
         @replaceViews wizardView: data
 
+  initiateNewStackWizard: ->
+
+    NEW_STACK_STEPS = [
+      'stepSelectProvider'
+      'stepSetupCredentials'
+      'stepDefineStack'
+      'stepTestAndSave'
+    ]
+
+    steps = []
+
+    NEW_STACK_STEPS.forEach (step, index) =>
+      steps.push (data) =>
+        @replaceViewsWith "#{step}": {
+          callback: steps[index+1] or -> console.log 'LAST ONE'
+          cancelCallback: steps[index-1] or @bound 'initiateInitialView'
+          data
+        }
+
+    steps.first()
+
 
   createEditorPane: (content) ->
 
