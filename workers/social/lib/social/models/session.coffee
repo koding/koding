@@ -72,16 +72,20 @@ module.exports = class JSession extends Model
         else callback null, { session, account }
 
 
-  @createNewSession = (username, callback) ->
+  @createNewSession = (data, callback) ->
 
-    clientId = createId()
+    data.clientId = createId()
 
-    session = new JSession { clientId, username }
+    session = new JSession data
     session.save (err) ->
       return callback err  if err
       return callback null, session
 
-
+  # fetchSession tries to fetch session with given clientId, if client id is not
+  # set, it tries to create a new session, if session doesnt exist in db with
+  # given clientId, it creates a new one
+  #
+  # ps: i didnt write this function, just documenting it ~ CS
   @fetchSession = (clientId, callback)->
 
     return @createSession callback  unless clientId
@@ -93,6 +97,20 @@ module.exports = class JSession extends Model
         callback null, { session }
       else
         @createSession callback
+
+  # fetchSessionByData tries to fetch a session for given data, if
+  # doesnt exist creates a new one with given data
+  #
+  # Please use this function with care, check if the given parameters have an
+  # index in mongo
+  #
+  # i dont like this function name but following the same principle with
+  # fetchSession ~ CS
+  @fetchSessionByData = (data, callback)->
+    @one data, (err, session)=>
+      return callback err  if err
+      return callback null, { session }  if session?
+      @createNewSession data, callback
 
 
   @updateClientIP = (clientId, ipAddress, callback)->

@@ -1,6 +1,6 @@
 kookies            = require 'kookies'
-getGroup           = require './util/getGroup'
-whoami             = require './util/whoami'
+getGroup           = require 'app/util/getGroup'
+whoami             = require 'app/util/whoami'
 envDataProvider    = require 'app/userenvironmentdataprovider'
 kd                 = require 'kd'
 KDModalView        = kd.ModalView
@@ -46,6 +46,15 @@ module.exports = class NotificationController extends KDObject
       return kd.warn 'notification subscription error', err  if err
 
       @notificationChannel.on 'message', (notification)=>
+        # sample notification content
+        #
+        # contents: {Object}
+        # context: <groupName>
+        # event: "ChannelUpdateHappened"
+
+        # filter notifications according to group slug
+
+        return  unless notification?.context is getGroup().slug
 
         @emit 'NotificationHasArrived', notification
 

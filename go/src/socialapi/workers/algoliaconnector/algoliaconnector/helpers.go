@@ -55,31 +55,6 @@ func (f *Controller) partialUpdate(indexName string, record map[string]interface
 	return nil
 }
 
-func removeTag(record map[string]interface{}, channelId string) []interface{} {
-	if record == nil {
-		return []interface{}{}
-	}
-
-	tagsDoc, ok := record["_tags"]
-	if !ok {
-		return []interface{}{}
-	}
-
-	tags, tagsOk := tagsDoc.([]interface{})
-	if !tagsOk {
-		return []interface{}{}
-	}
-
-	newTags := make([]interface{}, 0)
-	for _, ele := range tags {
-		if ele != channelId {
-			newTags = append(newTags, ele)
-		}
-	}
-
-	return newTags
-}
-
 func appendTag(record map[string]interface{}, channelId string) []interface{} {
 	if record == nil {
 		return []interface{}{channelId}

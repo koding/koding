@@ -19,11 +19,11 @@ default values
 
 ### Searching
 
-* queryString = "cihangir" # email or firstname
+* query = { query: "cihangir", status: "accepted "} # query searches in email or firstname
 
-* options     = {} # options are same with JInvitation.some function
+* options = {} # options are same with JInvitation.some function
 
-`_kd.remote.api.JInvitation.search(queryString, {}, callback)`
+`_kd.remote.api.JInvitation.search(query, options, callback)`
 
 ### Revoke invitation
 

@@ -1,4 +1,4 @@
-globals = require 'globals'
+kd = require 'kd'
 
 module.exports = ->
-  globals.currentGroup
+  kd.singletons.groupsController.getCurrentGroup()

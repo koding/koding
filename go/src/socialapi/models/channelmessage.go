@@ -447,7 +447,6 @@ func (c *ChannelMessage) isInChannel(query *request.Query, channelName string) (
 // dependencies of a given message. This includes interactions, optionally
 // replies, and channel message lists.
 func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error {
-
 	// fetch interactions
 	i := NewInteraction()
 	i.MessageId = c.Id
@@ -498,7 +497,6 @@ func (c *ChannelMessage) AddReply(reply *ChannelMessage) (*MessageReply, error) 
 	}
 
 	return mr, nil
-
 }
 
 //  DeleteReplies deletes all the replies of a given ChannelMessage, one level deep

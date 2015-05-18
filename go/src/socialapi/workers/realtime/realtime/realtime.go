@@ -622,7 +622,13 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 	}
 	content.ActorId = actor.OldId
 
-	return f.sendNotification(notification.AccountId, "koding", NotificationEventName, content)
+	c, err := models.Cache.Channel.ById(notification.ContextChannelId)
+	if err != nil {
+		f.log.New("channelId", notification.ContextChannelId).Error("Couldnt fetch from cache")
+		return nil
+	}
+
+	return f.sendNotification(notification.AccountId, c.GroupName, NotificationEventName, content)
 }
 
 func (f *Controller) sendInstanceEvent(cm *models.ChannelMessage, body interface{}, eventName string) error {

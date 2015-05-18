@@ -2,6 +2,7 @@ _                  = require 'lodash'
 kd                 = require 'kd'
 remote             = require('app/remote').getInstance()
 KDView             = kd.View
+KDCustomScrollView = kd.CustomScrollView
 Encoder            = require 'htmlencode'
 s3upload           = require 'app/util/s3upload'
 showError          = require 'app/util/showError'
@@ -17,7 +18,7 @@ KDCustomHTMLView   = kd.CustomHTMLView
 GroupLogoSettings  = require '../grouplogosettings'
 KDNotificationView = kd.NotificationView
 
-module.exports = class GroupGeneralSettingsView extends KDView
+module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
   constructor: (options = {}, data) ->
 
@@ -37,7 +38,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
     group = @getData()
     url   = if group.slug is 'koding' then '' else "#{group.slug}."
 
-    @addSubView section = @createSection name: 'general-settings'
+    @wrapper.addSubView section = @createSection name: 'general-settings'
 
     section.addSubView form = @generalSettingsForm = new KDFormView
 
@@ -76,7 +77,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
   createAvatarUploadForm: ->
 
-    @addSubView @uploadSection = section = @createSection
+    @wrapper.addSubView @uploadSection = section = @createSection
       name : 'avatar-upload'
 
     section.addSubView @avatar = new KDCustomHTMLView
@@ -165,7 +166,7 @@ module.exports = class GroupGeneralSettingsView extends KDView
 
   createDeletionForm: ->
 
-    @addSubView section = @createSection
+    @wrapper.addSubView section = @createSection
       name        : 'deletion'
       description : 'If Koding is no use to your team anymore, you can delete your team page here.'
 
