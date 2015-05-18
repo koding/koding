@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"io"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -31,6 +32,7 @@ var (
 type session struct {
 	sync.Mutex
 	id    string
+	req   *http.Request
 	state sessionState
 	// protocol dependent receiver (xhr, eventsource, ...)
 	recv receiver
@@ -69,10 +71,11 @@ type receiver interface {
 }
 
 // Session is a central component that handles receiving and sending frames. It maintains internal state
-func newSession(sessionID string, sessionTimeoutInterval, heartbeatInterval time.Duration) *session {
+func newSession(req *http.Request, sessionID string, sessionTimeoutInterval, heartbeatInterval time.Duration) *session {
 	r, w := io.Pipe()
 	s := &session{
 		id:                     sessionID,
+		req:                    req,
 		msgReader:              r,
 		msgWriter:              w,
 		msgEncoder:             gob.NewEncoder(w),
@@ -215,3 +218,7 @@ func (s *session) Send(msg string) error {
 }
 
 func (s *session) ID() string { return s.id }
+
+func (s *session) Request() *http.Request {
+	return s.req
+}

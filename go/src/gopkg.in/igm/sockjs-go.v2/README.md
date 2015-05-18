@@ -10,10 +10,10 @@ channel between the browser and the web server, with WebSockets or without.
 This necessitates the use of a server, which this is one version of, for GO.
 
 
-SockJS-Go server
+SockJS-Go server library
 =
 
-SockJS-Go is a [SockJS](https://github.com/sockjs/sockjs-client) server written in Go.
+SockJS-Go is a [SockJS](https://github.com/sockjs/sockjs-client) server library written in Go.
 
 To use current stable version **v2**
 
