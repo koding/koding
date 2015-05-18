@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"log"
 
-	"github.com/coreos/go-log/log"
 	"github.com/koding/kite"
 	"github.com/koding/multiconfig"
 	"github.com/koding/tunnel"
@@ -21,7 +21,7 @@ type config struct {
 }
 
 var (
-	baseVirtualHost = "test.arslan.kd.io"
+	baseVirtualHost = "localhost"
 	server          = tunnel.NewServer()
 )
 
@@ -30,6 +30,7 @@ func main() {
 	multiconfig.New().MustLoad(conf)
 
 	k := kite.New("tunnerlserver", "0.0.1")
+	k.Config.DisableAuthentication = true
 	k.Config.Port = conf.Port
 
 	k.HandleFunc("register", Register)
@@ -39,13 +40,13 @@ func main() {
 }
 
 func Register(r *kite.Request) (interface{}, error) {
-	log.Info("user %s registerd", r.Username)
+	log.Printf("registering user '%s'\n", r.Username)
 
 	virtualHost := fmt.Sprintf("%s.%s", r.Username, baseVirtualHost)
 	identifier := randomID(32)
 
 	server.AddHost(virtualHost, identifier)
-	log.Info("tunnel added: %s", virtualHost)
+	log.Printf("tunnel added: %s\n", virtualHost)
 
 	return registerResult{
 		VirtualHost: virtualHost,

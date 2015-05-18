@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/coreos/go-log/log"
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/multiconfig"
@@ -19,7 +18,8 @@ type registerResult struct {
 const serverAddr = "newkontrol.sj.koding.com:80"
 
 type config struct {
-	Port string
+	ServerAddr string `default:"127.0.0.1:4444"`
+	LocalAddr  string `default:"127.0.0.1:3000"`
 }
 
 func main() {
@@ -30,15 +30,9 @@ func main() {
 	go k.Run()
 	<-k.ServerReadyNotify()
 
-	tunnelserver, err := getTunnelServer(k)
-	if err != nil {
+	tunnelserver := k.NewClient("http://" + conf.ServerAddr + "/kite")
+	if err := tunnelserver.Dial(); err != nil {
 		k.Log.Error(err.Error())
-		return
-	}
-
-	err = tunnelserver.Dial()
-	if err != nil {
-		k.Log.Error("cannot connect to tunnelserver")
 		return
 	}
 
@@ -48,9 +42,8 @@ func main() {
 		return
 	}
 
-	log.Notice("started. your public host is:  '%s'", result.VirtualHost)
-
-	client := tunnel.NewClient(serverAddr, ":"+conf.Port)
+	k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
+	client := tunnel.NewClient(conf.ServerAddr, conf.LocalAddr)
 	client.Start(result.Identifier)
 }
 
