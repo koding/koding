@@ -102,6 +102,39 @@ module.exports = class StacksCustomViews extends CustomViews
 
       return container
 
+
+    stepDefineStack: (options) =>
+
+      console.log options
+      {callback, cancelCallback, data} = options
+      {provider} = data
+      container = @views.container 'step-creds'
+
+      views     = @addTo container,
+        stepsHeaderView : 3
+        navButton_prev  :
+          callback      : ->
+            cancelCallback {provider}
+        navButton_next  : {callback}
+
+      return container
+
+
+    stepTestAndSave: (options) =>
+
+      console.log options
+      {callback, cancelCallback} = options
+      container = @views.container 'step-creds'
+
+      views     = @addTo container,
+        stepsHeaderView : 4
+        navButton_prev  :
+          callback      : cancelCallback
+        navButton_next  : {callback}
+
+      return container
+
+
     providersView: (options) =>
 
       {providers} = options
