@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"koding/tunnel/conn"
 	"net"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/koding/tunnel/conn"
 )
 
 // tunnel is implementing the net.Conn interface and defines a tcp connection

@@ -14,16 +14,15 @@ Admin main styles
 
 .AppModal--admin
 
-  #main-tab-view
-    overflow                visible
-    overflow                hidden!important
+  .kdcustomscrollview
+    styleScrollBars         rgba(0, 0, 0, .15)
 
   .kdmodal-content
     size                    100% 100%
 
   .AppModal-content
-    height                  500px
-    overflow                auto!important
+    height                  515px
+
 
   .group-logo
     figure
@@ -64,42 +63,42 @@ Admin main styles
 
   form
     .formline
-      padding            0 17px 0 0
-      margin             0 0 16px
+      padding               0 17px 0 0
+      margin                0 0 16px
       borderBox()
 
       .input-wrapper
-        margin           0
+        margin              0
 
       &.button-field
-        clear            both
-        border           none
-        margin-top       6px
+        clear               both
+        border              none
+        margin-top          6px
 
   .kdlabel
-    font-size            14px
-    color                #8D8D8D
-    float                none
-    line-height          19px
-    margin               0 0 7px
-    font-weight          200
+    font-size               14px
+    color                   #8D8D8D
+    float                   none
+    line-height             19px
+    margin                  0 0 7px
+    font-weight             200
 
   .kdinput.text
-    rounded              3px
-    background           #fff
-    border               1px solid #C9C9C9
-    padding              8px 13px 10px
-    font-size            14px
-    line-height          19px
-    color                #4C4C4C
-    font-weight          600
-    opacity              .99
-    margin               0
+    rounded                 3px
+    background              #fff
+    border                  1px solid #C9C9C9
+    padding                 8px 13px 10px
+    font-size               14px
+    line-height             19px
+    color                   #4C4C4C
+    font-weight             600
+    opacity                 .99
+    margin                  0
 
   .lazy-loader
   .kdloader
-    text-align          center
-    padding             40px 0
+    text-align              center
+    padding                 20px 0
 
   .loading-text
     text-align          center
@@ -476,12 +475,18 @@ Admin main styles
 // Admin modal specific styling
 .AppModal--admin
 
-  .kdmodal-content
+  &.kdmodal .kdmodal-inner .kdmodal-content
+    overflow                hidden
+
+    // not necessary anymore - SY
     max-height              515px !important // to override computed height
 
 
 // common tab styling
 .AppModal--admin
+
+  .AppModal-content.kdtabview
+    overflow                hidden
 
   .kdtabhandlecontainer
     background              none
@@ -512,7 +517,6 @@ Admin main styles
         color               #575757 !important
         bg                  color, transparent !important
 
-
 // outline button styling
 .AppModal--admin
 
@@ -520,6 +524,10 @@ Admin main styles
     background              none
     border                  2px solid #4a4e52
     margin-right            15px
+
+    &:active
+      span
+        color               #4a4e52
 
     span
       color                 #4a4e52
@@ -536,7 +544,16 @@ Admin main styles
 
 
 // members tab styling
-.AppModal--admin .members
+.AppModal--admin .member-related
+
+  .kdtabpaneview
+    kalc                    height, (100% \- 62px)
+
+  .listview-wrapper
+    kalc                    height, (100% \- 91px)
+
+  .members-commonview
+    overflow                hidden
 
   .search
     margin                  25px 0
@@ -605,15 +622,16 @@ Admin main styles
     line-height             40px
     height                  40px
     font-size               14px
-    font-weight             bold
     color                   #434343
     vendor                  user-select, none
     pointer()
 
-  .role.active .settings-icon
-    vendor                  transform, rotate(270deg)
-    width                   10px
-    margin-left             6px
+  .role.active
+  .settings-visible
+    .settings-icon
+      vendor                transform, rotate(270deg)
+      width                 10px
+      margin-left           6px
 
   .clear
     clear                   both
@@ -626,8 +644,6 @@ Admin main styles
 
   .settings
     padding-top             15px
-
-
 
 
 .AppModal--admin .general-settings-view
@@ -714,3 +730,111 @@ Admin main styles
 
       canvas
         margin-top        7px
+
+
+.AppModal--admin
+
+  .no-item-view
+    text-align              center;
+    margin-top              70px
+    font-size               15px
+    color                   #a1a1a1
+
+  .kdbutton.compact
+    .kdloader canvas
+      margin-top            5px
+
+
+.AppModal--admin .invitations
+
+  .kdlistitemview-member
+    height                  40px
+
+    &.settings-visible
+      height                85px
+
+  .kdbutton
+    &.invite
+      abs()
+      top                   15px
+      right                 0
+
+    &.add-more
+      height                24px
+      bg                    color, #BDC3C7
+      display               block
+      margin-bottom         50px
+
+      span
+        line-height         24px
+        font-size           10px
+        color               #FFF
+
+    &.cancel
+      margin                0 10px 0 440px // hmm
+
+
+  .information
+    font-size               14px
+    color                   #3E3E3E
+    margin                  20px 0 40px 0
+
+    p
+      margin-bottom         15px
+
+  .invite-inputs
+    margin-bottom           10px
+
+    .kdinput
+      size                  160px, 40px
+      margin-right          10px
+
+    .user-email
+      width                 240px
+
+    &:hover
+      .cancel
+        display             inline !important
+
+    .icon
+      abs()
+      margin-top            12px
+
+      &.cancel
+        r-sprite            'app', 'red-close'
+        display             none
+        pointer()
+
+
+  .kdlistitemview-member
+    &.accepted
+      time
+        right               0
+
+    &.pending
+      time
+        pointer()
+
+    .details
+      width                 520px
+      line-height           40px
+
+      span
+        color               #8d8d8d
+
+    time
+      display               block
+      right                 15px
+      line-height           40px
+      text-align            right
+      size                  auto, 40px
+      vendor                user-select, none
+      abs()
+
+
+    .settings-icon
+      abs()
+      top                   30px
+      right                 0
+      margin-left           0
+      pointer()
