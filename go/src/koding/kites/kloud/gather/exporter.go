@@ -37,11 +37,7 @@ func NewEsExporter(host, index string) *EsExporter {
 	esClient.Port = DEFAULT_ES_PORT
 	esClient.Protocol = DEFAULT_ES_PROT
 
-	return &EsExporter{
-		Index:  index,
-		Type:   DEFAULT_ES_TYPE,
-		Client: esClient,
-	}
+	return &EsExporter{Index: index, Type: DEFAULT_ES_TYPE, Client: esClient}
 }
 
 func (es *EsExporter) SendResult(data Result) error {
