@@ -74,7 +74,7 @@ func main() {
 
 	m.Listen()
 	// shutdown server
-	defer m.Close()
+	r.ShutdownHandler = m.Close
 
 	r.Listen()
 	r.Wait()
