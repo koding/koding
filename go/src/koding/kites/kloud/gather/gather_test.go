@@ -1,7 +1,6 @@
 package gather
 
 import (
-	"fmt"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -15,6 +14,8 @@ func TestGather(t *testing.T) {
 		err := g.CreateDestFolder()
 		So(err, ShouldBeNil)
 
+		defer g.Cleanup()
+
 		folderExists, err := exists(g.DestFolder)
 		So(err, ShouldBeNil)
 
@@ -27,6 +28,8 @@ func TestGather(t *testing.T) {
 		g := New(fetcher)
 		_, err := g.GetScripts()
 		So(err, ShouldBeNil)
+
+		defer g.Cleanup()
 
 		folderExists, err := exists(g.DestFolder + "/" + fetcher.ScriptsFile)
 		So(err, ShouldBeNil)
@@ -47,8 +50,6 @@ func TestGather(t *testing.T) {
 		Convey("It should cleanup scripts folder", func() {
 			err := g.Cleanup()
 			So(err, ShouldBeNil)
-
-			fmt.Println(g.DestFolder)
 
 			folderExists, err := exists(g.DestFolder)
 			So(err, ShouldBeNil)
