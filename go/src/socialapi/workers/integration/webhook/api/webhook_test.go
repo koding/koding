@@ -10,7 +10,6 @@ import (
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
-	"socialapi/workers/integration/webhook/services"
 	"strings"
 	"testing"
 	"time"
@@ -101,7 +100,7 @@ func TestWebhookListen(t *testing.T) {
 		Convey("users should not be able to send any message when they don't have valid token", func() {
 			token := "123123"
 			s, _, _, err := h.Push(
-				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.URL(m, "POST", "/push/"+token),
 				mocking.Header(nil),
 				newRequest("hey", channel.Id, "koding"),
 			)
@@ -113,7 +112,7 @@ func TestWebhookListen(t *testing.T) {
 			So(err, ShouldBeNil)
 			token = tk.String()
 			s, _, _, err = h.Push(
-				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.URL(m, "POST", "/push/"+token),
 				mocking.Header(nil),
 				newRequest("hey", channel.Id, "koding"),
 			)
@@ -122,7 +121,7 @@ func TestWebhookListen(t *testing.T) {
 
 			token = ""
 			s, _, _, err = h.Push(
-				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.URL(m, "POST", "/push/"+token),
 				mocking.Header(nil),
 				newRequest("hey", channel.Id, "koding"),
 			)
@@ -136,7 +135,7 @@ func TestWebhookListen(t *testing.T) {
 			So(err, ShouldBeNil)
 			token := tk.String()
 			s, _, _, err := h.Push(
-				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.URL(m, "POST", "/push/"+token),
 				mocking.Header(nil),
 				newRequest("", channel.Id, "koding"),
 			)
@@ -144,20 +143,13 @@ func TestWebhookListen(t *testing.T) {
 			So(s, ShouldEqual, http.StatusBadRequest)
 
 			s, _, _, err = h.Push(
-				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.URL(m, "POST", "/push/"+token),
 				mocking.Header(nil),
 				newRequest("hey", 0, "koding"),
 			)
 			So(err.Error(), ShouldEqual, ErrChannelNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
 
-			s, _, _, err = h.Push(
-				mocking.URL(m, "POST", "/webhook/push/"+token),
-				mocking.Header(nil),
-				newRequest("hey", channel.Id, ""),
-			)
-			So(err.Error(), ShouldEqual, ErrGroupNotSet.Error())
-			So(s, ShouldEqual, http.StatusBadRequest)
 		})
 
 		Convey("users should be able to send message when token is valid", func() {
@@ -166,7 +158,7 @@ func TestWebhookListen(t *testing.T) {
 
 				token := channelIntegration.Token
 				s, _, _, err := h.Push(
-					mocking.URL(m, "POST", "/webhook/push/"+token),
+					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
 					newRequest("hey", channel.Id, "koding"),
 				)
@@ -177,7 +169,7 @@ func TestWebhookListen(t *testing.T) {
 				token = strings.ToUpper(channelIntegration.Token)
 
 				s, _, _, err = h.Push(
-					mocking.URL(m, "POST", "/webhook/push/"+token),
+					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
 					newRequest("hey", channel.Id, "koding"),
 				)
@@ -185,111 +177,6 @@ func TestWebhookListen(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(s, ShouldEqual, http.StatusOK)
 			})
-		})
-
-	})
-}
-
-func TestWebhookPrepare(t *testing.T) {
-
-	webhook.CreateIterableIntegration(t)
-
-	Convey("while testing incoming webhook", t, func() {
-
-		Convey("users should not be able to send any message when they don't have valid token", func() {
-			token := ""
-			integrationName := "testing"
-			s, _, _, err := h.Prepare(
-				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
-				mocking.Header(nil),
-				services.ServiceInput{},
-			)
-			So(err.Error(), ShouldEqual, ErrTokenNotSet.Error())
-			So(s, ShouldEqual, http.StatusBadRequest)
-
-			token = "123123123"
-			integrationName = ""
-			s, _, _, err = h.Prepare(
-				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
-				mocking.Header(nil),
-				services.ServiceInput{},
-			)
-			So(err.Error(), ShouldEqual, ErrNameNotSet.Error())
-			So(s, ShouldEqual, http.StatusBadRequest)
-		})
-
-		Convey("users should not be able to send any message when integration service name is wrong", func() {
-
-			token := "123123123"
-			integrationName := "testing"
-			s, _, _, err := h.Prepare(
-				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
-				mocking.Header(nil),
-				services.ServiceInput{},
-			)
-			So(err, ShouldNotBeNil)
-			So(s, ShouldEqual, http.StatusNotFound)
-
-		})
-
-		Convey("users should be able to send bot messages when they have valid token", func() {
-			// assume that token is valid
-			tempPush := push
-			token := "123123"
-			push = func(endPoint string, request *PushRequest) error {
-				return nil
-			}
-			s, _, _, err := h.Prepare(
-				mocking.URL(m, "POST", "/webhook/iterable/"+token),
-				mocking.Header(nil),
-				services.ServiceInput{},
-			)
-			push = tempPush
-			So(err, ShouldBeNil)
-			So(s, ShouldEqual, http.StatusOK)
-		})
-	})
-}
-
-func TestPrepareUsername(t *testing.T) {
-	Convey("while testing prepareUsername", t, func() {
-		Convey("it should not modify username when it already exists", func() {
-
-			so := &services.ServiceOutput{}
-			so.Username = "canthefason"
-			err := h.prepareUsername(so)
-			So(err, ShouldBeNil)
-			So(so.Username, ShouldEqual, "canthefason")
-
-			so = &services.ServiceOutput{}
-			so.Username = "canthefason"
-			so.Email = "ctf@koding.com"
-			err = h.prepareUsername(so)
-			So(err, ShouldBeNil)
-			So(so.Username, ShouldEqual, "canthefason")
-		})
-
-		Convey("it should prepare username when it is not set depending on email", func() {
-
-			_, err := models.CreateAccountInBothDbsWithNick("electricmayhem")
-			So(err, ShouldBeNil)
-
-			so := &services.ServiceOutput{}
-			so.Username = ""
-			err = h.prepareUsername(so)
-			So(err, ShouldBeNil)
-			So(so.Username, ShouldEqual, "")
-
-			so.Email = "electricmayhem@koding.com"
-			err = h.prepareUsername(so)
-			So(err, ShouldBeNil)
-			So(so.Username, ShouldEqual, "electricmayhem")
-
-			so.Email = "asdfasdfasdf@koding.com"
-			so.Username = ""
-			err = h.prepareUsername(so)
-			So(err, ShouldEqual, ErrEmailNotFound)
-
 		})
 
 	})
@@ -399,37 +286,59 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 	})
 }
 
-func TestWebhookIntegration(t *testing.T) {
-
-	Convey("while checking integrations", t, func() {
-		Convey("we should be able check integration existence", func() {
-			integrationName := ""
-			s, _, _, err := h.CheckIntegration(
-				mocking.URL(m, "GET", "/webhook/integration/"+integrationName),
+func TestWebhookGroupBotChannel(t *testing.T) {
+	channelIntegration := webhook.CreateTestChannelIntegration(t)
+	Convey("while checking group bot channels", t, func() {
+		Convey("we should be able to validate request", func() {
+			token := ""
+			username := ""
+			s, _, _, err := h.FetchGroupBotChannel(
+				mocking.URL(m, "GET", "/botchannel/"+token+"/user/"+username),
 				mocking.Header(nil),
 				nil,
 			)
-			So(err.Error(), ShouldEqual, ErrNameNotSet.Error())
+			So(err.Error(), ShouldEqual, ErrTokenNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
 
-			integrationName = "huhu"
-			s, _, _, err = h.CheckIntegration(
-				mocking.URL(m, "GET", "/webhook/integration/"+integrationName),
+			token = "123123"
+			s, _, _, err = h.FetchGroupBotChannel(
+				mocking.URL(m, "GET", "/botchannel/"+token+"/user/"+username),
 				mocking.Header(nil),
 				nil,
 			)
-			So(err.Error(), ShouldEqual, webhook.ErrIntegrationNotFound.Error())
+			So(err.Error(), ShouldEqual, ErrUsernameNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
+		})
 
-			i := webhook.CreateIntegration(t, models.RandomName())
-			integrationName = i.Name
-			s, _, _, err = h.CheckIntegration(
-				mocking.URL(m, "GET", "/webhook/integration/"+integrationName),
+		Convey("we should be able to fetch bot channel for valid request", func() {
+
+			creator, err := models.CreateAccountInBothDbsWithNick("canthefason")
+			So(err, ShouldBeNil)
+
+			account, err := models.CreateAccountInBothDbsWithNick("sinan")
+			So(err, ShouldBeNil)
+
+			groupChannel := models.CreateTypedGroupedChannelWithTest(creator.Id, models.Channel_TYPE_GROUP, channelIntegration.GroupName)
+			_, err = groupChannel.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
+
+			token := channelIntegration.Token
+			username := account.Nick
+			s, _, resp, err := h.FetchGroupBotChannel(
+				mocking.URL(m, "GET", "/botchannel/"+token+"/user/"+username),
 				mocking.Header(nil),
 				nil,
 			)
 			So(err, ShouldBeNil)
 			So(s, ShouldEqual, http.StatusOK)
+
+			sr, srOK := resp.(*response.SuccessResponse)
+			So(srOK, ShouldBeTrue)
+			cast, castOK := sr.Data.(map[string]string)
+			So(castOK, ShouldBeTrue)
+			val, ok := cast["channelId"]
+			So(ok, ShouldBeTrue)
+			So(val, ShouldNotEqual, "")
 		})
 	})
 }

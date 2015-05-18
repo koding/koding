@@ -15,9 +15,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newPrepareRequest(email string, groupName string) *services.ServiceInput {
+func newMiddlewareRequest(username, groupName string) *services.ServiceInput {
 	return &services.ServiceInput{
-		"email":     email,
+		"username":  username,
 		"eventName": "emailOpen",
 		"message":   "testing it",
 		"groupName": groupName,
@@ -117,11 +117,11 @@ func TestWebhook(t *testing.T) {
 		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, channelIntegration.GroupName)
 		_, err = channel.AddParticipant(account.Id)
 
-		pr := newPrepareRequest("xxx@koding.com", channelIntegration.GroupName)
+		pr := newMiddlewareRequest("xxx", channelIntegration.GroupName)
 		err = rest.DoPrepareRequest(pr, channelIntegration.Token)
 		So(err, ShouldNotBeNil)
 
-		pr = newPrepareRequest(account.Nick+"@koding.com", channelIntegration.GroupName)
+		pr = newMiddlewareRequest(account.Nick, channelIntegration.GroupName)
 		err = rest.DoPrepareRequest(pr, channelIntegration.Token)
 		So(err, ShouldBeNil)
 
