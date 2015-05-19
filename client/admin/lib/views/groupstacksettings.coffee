@@ -1,12 +1,17 @@
-kd             = require 'kd'
+kd                 = require 'kd'
+FSHelper           = require 'app/util/fs/fshelper'
+applyMarkdown      = require 'app/util/applyMarkdown'
+IDEEditorPane      = require 'ide/workspace/panes/ideeditorpane'
+Encoder            = require 'htmlencode'
 
-remote         = require('app/remote').getInstance()
-FSHelper       = require 'app/util/fs/fshelper'
-applyMarkdown  = require 'app/util/applyMarkdown'
-IDEEditorPane  = require 'ide/workspace/panes/ideeditorpane'
-Encoder        = require 'htmlencode'
+remote             = require('app/remote').getInstance()
 
-module.exports = class GroupStackSettings extends kd.View
+StacksCustomViews  = require './stacks/stackscustomviews'
+
+
+module.exports     = class GroupStackSettings extends kd.View
+
+  StacksCustomViews.mixin @prototype
 
   # This will be used if stack template is not defined yet
   defaultTemplate = """
@@ -31,11 +36,51 @@ module.exports = class GroupStackSettings extends kd.View
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'group-stack-settings'
-
+    options.cssClass = 'stacks'
     super options, data
 
     @_credentials = {}
+
+
+  viewAppended: ->
+
+    @initiateInitialView()
+
+
+  initiateInitialView: ->
+
+    @replaceViewsWith loader: 'main-loader'
+
+    @fetchData (err, data) =>
+
+      { credentials, stackTemplate } = data
+
+      if err? or not stackTemplate
+        @replaceViewsWith noStackFoundView: @bound 'initiateNewStackWizard'
+      else
+        @replaceViewsWith stacksView: data
+
+
+  initiateNewStackWizard: ->
+
+    NEW_STACK_STEPS = [
+      'stepSelectProvider'
+      'stepSetupCredentials'
+      'stepDefineStack'
+      'stepTestAndSave'
+    ]
+
+    steps = []
+
+    NEW_STACK_STEPS.forEach (step, index) =>
+      steps.push (data) =>
+        @replaceViewsWith "#{step}": {
+          callback: steps[index+1] or -> console.log 'LAST ONE'
+          cancelCallback: steps[index-1] or @bound 'initiateInitialView'
+          data
+        }
+
+    steps.first()
 
 
   createEditorPane: (content) ->
@@ -64,54 +109,13 @@ module.exports = class GroupStackSettings extends kd.View
       name          : "credential"
       selectOptions : creds
 
+
   createOutputView: ->
 
     @outputView = new kd.View
     @outputView.setCss height: 'auto'
 
     @addSubView @outputView
-
-
-  viewAppended: ->
-
-    kd.singletons.appManager.require 'IDE', =>
-
-      @fetchData (err, data) =>
-
-        return console.warn err  if err
-
-        {credentials, stackTemplate} = data
-
-        if not credentials or credentials.length is 0
-          @addSubView new kd.CustomHTMLView
-            partial  : "You don't have any credentials, please add
-                       one Amazon credential first."
-          @addSubView new kd.ButtonView
-            title    : 'Credentials'
-            callback : ->
-              kd.singletons.router.handleRoute '/Account/Credentials'
-
-          return
-
-        @_credentials = credentials
-
-        @createEditorPane stackTemplate?.template?.content or defaultTemplate
-        @createCredentialsBox()
-
-        @addSubView @saveButton = new kd.ButtonView
-          title    : 'Set as default stack'
-          loader   : yes
-          callback : =>
-
-            @checkCredential (err) =>
-
-              if err
-                @showError err
-                @saveButton.hideLoader()
-              else
-                @setStack stackTemplate
-
-        @createOutputView()
 
 
   checkCredential: (callback) ->
@@ -148,7 +152,7 @@ module.exports = class GroupStackSettings extends kd.View
       JStackTemplate.some
         _id   : stackTemplateId
       , limit : 1
-      , (err, stackTemplates)->
+      , (err, stackTemplates) ->
 
           if err
             console.warn 'Failed to fetch stack template:', err

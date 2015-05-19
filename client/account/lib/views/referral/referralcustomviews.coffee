@@ -1,7 +1,7 @@
 kd             = require 'kd'
 nick           = require 'app/util/nick'
 getReferralUrl = require 'app/util/getReferralUrl'
-CustomViews    = require './customviews'
+CustomViews    = require 'app/commonviews/customviews'
 getSocialLinks = require './getSocialLinks'
 
 

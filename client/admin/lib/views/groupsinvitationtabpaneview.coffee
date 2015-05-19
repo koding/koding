@@ -68,7 +68,8 @@ module.exports = class GroupsInvitationTabPaneView extends KDView
 
     @getData().fetchInvitationsByStatus options, (err, results)=>
       @controller.hideLazyLoader()
-      results = results.filter (res)-> res isnt null
+      results ?= []
+      results  = results.filter (res)-> res isnt null
       if err or results.length is 0
         kd.warn err  if err
         return @controller.emit 'noItemsFound'
@@ -76,4 +77,3 @@ module.exports = class GroupsInvitationTabPaneView extends KDView
       @timestamp = results.last[@options.timestampField]
       @controller.instantiateListItems results
       @emit 'teasersLoaded'  if results.length is @requestLimit
-
