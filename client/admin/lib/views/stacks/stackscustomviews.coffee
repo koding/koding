@@ -92,8 +92,19 @@ module.exports = class StacksCustomViews extends CustomViews
       {provider} = data
 
       container = @views.container 'step-creds'
-      @addTo container,
+      views     = @addTo container,
         stepsHeaderView : 2
+        button_addNew   :
+          title         : 'Add New Credential'
+          callback      : ->
+
+            {controller} = views.credentialList
+            view = controller.getView()
+            view.hide()
+
+            form = controller.showAddCredentialFormFor provider
+            form.on ['Cancel','CredentialAdded'], view.bound 'show'
+
         credentialList  : provider
         navButton_prev  :
           callback      : cancelCallback
