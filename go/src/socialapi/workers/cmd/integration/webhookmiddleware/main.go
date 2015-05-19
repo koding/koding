@@ -30,7 +30,7 @@ func main() {
 	h := integration.NewHandler(r.Log, path)
 
 	if r.Conf.Environment == "dev" || r.Conf.Environment == "test" {
-		path =
+		h.RootPath =
 			fmt.Sprintf("http://%s:%s", appConfig.Integration.Host,
 				appConfig.Integration.Port)
 	}
