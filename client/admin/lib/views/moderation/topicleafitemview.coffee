@@ -9,17 +9,12 @@ module.exports = class TopicLeafItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor: (options = {}, data) ->
-
-    
-    super options, data
-
   pistachio: ->
     data     = @getData()
     
     return """
       <div class="details">
-        <p class="nickname">#(name)</p>
+        <p class="nickname">{{#(name)}}</p>
       </div>
       <div class='clear'></div>
 

@@ -120,10 +120,8 @@ module.exports = class TopicItemView extends KDListItemView
             rootId  : data.id
             leafId  : item.getData().id
 
-          kd.singletons.socialapi.moderation.unlink options, (err, item) =>
-          
-            if err
-              return kd.warn err
+          kd.singletons.socialapi.moderation.unlink options, (err) =>
+            return kd.warn err if err
             @leafChannelsListController.removeItem item
     
   
@@ -158,7 +156,7 @@ module.exports = class TopicItemView extends KDListItemView
             rootId  : data.id
             leafId  : item.getData().id
      
-          kd.singletons.socialapi.moderation.link options, (err, item) =>
+          kd.singletons.socialapi.moderation.link options, (err) =>
             return kd.warn err if err
             @similarChannelsListController.removeItem item
             @listLeafChannels [item.getData()]
@@ -274,7 +272,7 @@ module.exports = class TopicItemView extends KDListItemView
     
     return """
       <div class="details">
-        <p class="topicname">#(name)</p>
+        <p class="topicname">{{#(name)}}</p>
       </div>
       {{> @typeLabel}}
       {{> @moderationLabel}}
