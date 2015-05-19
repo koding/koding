@@ -141,11 +141,11 @@ createVideoControl = (type, active) ->
 
   title = switch type
     when 'video'
-      activeTooltipText = 'Turn-off Camera'
-      deactiveTooltipText = 'Turn-on Camera'
+      activeTooltipText = 'Turn camera off'
+      deactiveTooltipText = 'Turn camera on'
     when 'audio'
-      activeTooltipText = 'Mute'
-      deactiveTooltipText = 'Unmute'
+      activeTooltipText = 'Mute microphone'
+      deactiveTooltipText = 'Unmute microphone'
     when 'end'
       activeTooltipText = 'End session'
       deactiveTooltipText = 'End session'
