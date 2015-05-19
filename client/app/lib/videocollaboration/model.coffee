@@ -420,7 +420,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
     publisher.on 'TalkingDidStart', =>
       return  unless @state.audio
       @emit 'ParticipantStartedTalking', getNick()
-      @changeActiveParticipant getNick()  unless @state.selectedParticipant
 
     publisher.on 'TalkingDidStop', =>
       return  unless @state.active
