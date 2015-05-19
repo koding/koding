@@ -40,7 +40,7 @@ ensureGroupChannel = (client, callback)->
   fetchGroup client, (err, group)->
     return callback err  if err
     return callback { message: "Group not found" } unless group
-    group.createSocialApiChannels (err, result)->
+    group.createSocialApiChannels client, (err, result)->
       return callback err  if err
       callback null, result.socialApiChannelId
 

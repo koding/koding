@@ -26,3 +26,11 @@ func GetComputeStack(id string) (*models.ComputeStack, error) {
 
 	return computeStack, nil
 }
+
+func DeleteComputeStack(id string) error {
+	query := func(c *mgo.Collection) error {
+		return c.RemoveId(bson.ObjectIdHex(id))
+	}
+
+	return Mongo.Run(ComputeStackColl, query)
+}

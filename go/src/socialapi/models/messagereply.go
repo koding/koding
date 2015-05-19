@@ -108,8 +108,6 @@ func (m *MessageReply) ListAll() ([]ChannelMessage, error) {
 }
 
 func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, error) {
-	var replies []int64
-
 	if m.MessageId == 0 {
 		return nil, ErrMessageIdIsNotSet
 	}
@@ -130,6 +128,7 @@ func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, er
 		bongoQuery = bongoQuery.Where("created_at < ?", query.From)
 	}
 
+	var replies []int64
 	if err := bongo.CheckErr(
 		bongoQuery.Pluck(q.Pluck, &replies),
 	); err != nil {
@@ -156,13 +155,13 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, showExemp
 
 	query := "message_id = ? and created_at > ?"
 
-	var metaBits MetaBits
 	if !showExempt {
 		query += " and meta_bits = ?"
 	} else {
 		query += " and meta_bits >= ?"
 	}
 
+	var metaBits MetaBits
 	return bongo.B.Count(
 		m,
 		query,

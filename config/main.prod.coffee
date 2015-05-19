@@ -175,6 +175,7 @@ Configuration = (options={}) ->
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
+    contentRotatorUrl              : 'http://koding.github.io'
 
     collaboration :
       timeout     : 1 * 60 * 1000

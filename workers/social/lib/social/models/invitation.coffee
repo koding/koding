@@ -1,10 +1,11 @@
 {argv}      = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
-crypto      = require 'crypto'
+shortid     = require('shortid');
 Bongo       = require "bongo"
 Email       = require './email'
 KodingError = require '../error'
+{ extend }  = require 'underscore'
 
 { protocol, hostname } = KONFIG
 { secure, signature, dash } = Bongo
@@ -41,8 +42,8 @@ module.exports = class JInvitation extends jraphical.Module
           (signature Object, Object, Object, Function)
         ]
         search:[
-          (signature String, Object, Function)
-          (signature Object, String, Object, Function)
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
         ]
         create:
           (signature Object, Function)
@@ -118,11 +119,16 @@ module.exports = class JInvitation extends jraphical.Module
   # search searches database with given query string, adds `starting
   # with regex` around query param
   @search$: permit 'send invitations',
-    success: (client, query, options, callback) ->
+    success: (client, selector, options, callback) ->
       return callback new KodingError "query is not set"  if query is ""
-
+      # get query from selector and delete it, we need modification for search
+      # string
+      { query } = selector
       $query = ///^#{query}///
-      selector = { $or : [
+      delete selector.query
+
+
+      selector = extend selector, { $or : [
           { 'name'  : $query }
           { 'email' : $query }
         ]
@@ -144,7 +150,9 @@ module.exports = class JInvitation extends jraphical.Module
         { email, firstName, lastName } = invitation
 
         hash = JUser.getHash email
-        code = generateInvitationCode email, groupName
+
+        # eg: VJPj9gUQ
+        code = shortid.generate()
 
         data = {
           code
@@ -206,10 +214,3 @@ module.exports = class JInvitation extends jraphical.Module
       name = "#{name} #{lastName}"
 
     return name
-
-  # TODO - generate a better invitation code
-  generateInvitationCode = (email, group) ->
-    code = crypto.createHmac 'sha1', 'kodingsecret'
-    code.update email
-    code.update group
-    code.digest 'hex'

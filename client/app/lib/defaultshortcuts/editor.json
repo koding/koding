@@ -688,7 +688,7 @@
     "description": "Swap Characters",
     "binding": [
       [
-        "ctrl+t"
+        "ctrl+alt+shift+t"
       ],
       [
         "ctrl+t"
