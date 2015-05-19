@@ -27,9 +27,22 @@ module.exports = globals.config.providers =
         label              : "Secret Key"
         placeholder        : "aws secret key"
         type               : "password"
-      regions              :
-        label              : "Regions"
-        placeholder        : "use ',' for multiple regions"
+      region               :
+        label              : 'Region'
+        type               : 'selection'
+        placeholder        : 'Region'
+        defaultValue       : 'us-east-1'
+        values             : [
+          { title: 'US East (N. Virginia) (us-east-1)',         value: 'us-east-1' }
+          { title: 'US West (Oregon) (us-west-2)',              value: 'us-west-2' }
+          { title: 'US West (N. California) (us-west-1)',       value: 'us-west-1' }
+          { title: 'EU (Ireland) (eu-west-1)',                  value: 'eu-west-1' }
+          { title: 'EU (Frankfurt) (eu-central-1)',             value: 'eu-central-1' }
+          { title: 'Asia Pacific (Singapore) (ap-southeast-1)', value: 'ap-southeast-1' }
+          { title: 'Asia Pacific (Sydney) (ap-southeast-2)',    value: 'ap-southeast-2' }
+          { title: 'Asia Pacific (Tokyo) (ap-northeast-1)',     value: 'ap-northeast-1' }
+          { title: 'South America (Sao Paulo) (sa-east-1)',     value: 'sa-east-1' }
+        ]
 
   koding                   :
     name                   : "Koding"
