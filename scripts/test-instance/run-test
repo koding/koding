@@ -29,4 +29,6 @@ ssh -o 'StrictHostKeyChecking no' \
 
 PID=$!
 
+trap 'kill -TERM $PID' TERM
+
 wait $PID # Wait until child process is exited
