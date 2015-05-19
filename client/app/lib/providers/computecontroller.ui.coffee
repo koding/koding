@@ -52,11 +52,21 @@ module.exports = class ComputeController_UI
     unless credentialFields.length
       return
 
-    credentialFields.forEach (field)->
-      fields[field] = _.clone Providers[provider].credentialFields[field]
-      fields[field].required = yes
+    selectOptions = []
 
-    return form = new KDFormViewWithFields
+    credentialFields.forEach (field) ->
+
+      _field = fields[field] = _.clone Providers[provider].credentialFields[field]
+      _field.required = yes
+
+      if _field.type is 'selection'
+        {values}             = _field
+        _field.itemClass     = kd.SelectBox
+        _field.defaultValue ?= values.first.value
+        selectOptions.push { field, values }
+
+
+    form = new KDFormViewWithFields
       cssClass     : "form-view"
       fields       : fields
       buttons      :
@@ -89,6 +99,12 @@ module.exports = class ComputeController_UI
 
           unless showError err
             @emit "CredentialAdded", credential
+
+    selectOptions.forEach (select) ->
+      { field, values } = select
+      form.inputs[field].setSelectOptions values
+
+    return form
 
 
   @generateCreateInstanceForm: ->
