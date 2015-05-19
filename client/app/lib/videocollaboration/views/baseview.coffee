@@ -154,8 +154,8 @@ createVideoControl = (type, active) ->
       activeTooltipText = 'Mute speaker'
       deactiveTooltipText = 'Unmute speaker'
     when 'end'
-      activeTooltipText = 'End session'
-      deactiveTooltipText = 'End session'
+      activeTooltipText = 'End video session'
+      deactiveTooltipText = 'End video session'
 
   new VideoControlView { cssClass, active, activeTooltipText, deactiveTooltipText }
 
