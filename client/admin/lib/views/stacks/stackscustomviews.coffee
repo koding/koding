@@ -73,19 +73,6 @@ module.exports = class StacksCustomViews extends CustomViews
       return container
 
 
-    credentialForm: (provider) =>
-
-      form = ComputeController_UI.generateAddCredentialFormFor provider
-      form.on "Cancel", ->
-        console.log 'Form Cancelled'
-
-      form.on "CredentialAdded", (credential) =>
-        # credential.owner = yes
-        console.log 'Credential added', credential
-
-      return form
-
-
     credentialList: (provider) =>
 
       listView   = new AccountCredentialList
@@ -107,7 +94,7 @@ module.exports = class StacksCustomViews extends CustomViews
       container = @views.container 'step-creds'
       @addTo container,
         stepsHeaderView : 2
-        credentialForm  : provider
+        credentialList  : provider
         navButton_prev  :
           callback      : cancelCallback
         navButton_next  :
