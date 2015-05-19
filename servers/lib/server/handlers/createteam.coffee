@@ -11,7 +11,8 @@ createInvitations = (client, invitees, callback)->
   return callback null  if inviteEmails.length is 0 # return early
 
   # data = { invitations:[ {email:"cihangir+test26@koding.com"} ] }
-  invitations = uniq inviteEmails           # remove duplicates
+  invitations =
+    uniq inviteEmails                       # remove duplicates
     .filter (email) -> email isnt ""        # clear emtpty ones
     .map (email) -> { email: email.trim() } # clear empty spaces
 
@@ -21,8 +22,8 @@ createInvitations = (client, invitees, callback)->
 
 module.exports = (req, res, next) ->
 
-  { body }              = req
-  { JUser, JGroup, JInvitation }  = koding.models
+  { body }                       = req
+  { JUser, JGroup, JInvitation } = koding.models
   { # companyName, team name, basically a title, can be changed
     companyName
     # slug is team slug, unique name. Can not be changed
@@ -58,7 +59,7 @@ module.exports = (req, res, next) ->
 
     body.emailFrequency or= {}
     # subscribe to koding marketing mailings or not
-    body.emailFrequency.marketing = !!newsletter
+    body.emailFrequency.marketing = !!newsletter # convert string boolean to boolean
 
     JUser.convert client, body, (err, result) ->
 
@@ -85,7 +86,8 @@ module.exports = (req, res, next) ->
 
       # clear domains
       allowedDomains = domains?.split(",") or []
-      allowedDomains = uniq allowedDomains # remove duplicates
+      allowedDomains =
+        uniq allowedDomains                # remove duplicates
         .filter (domain) -> domain isnt "" # clear emtpty ones
         .map (domain) -> domain.trim()     # clear empty spaces
 
