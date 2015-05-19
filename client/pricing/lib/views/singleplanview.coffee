@@ -101,7 +101,6 @@ module.exports = class SinglePlanView extends KDView
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
       reducedMonth, discount, planInterval
-      @buyButton
     }
 
     trackEvent 'Plan select, click', {
