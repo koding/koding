@@ -735,7 +735,7 @@ Admin main styles
 .AppModal--admin
 
   .no-item-view
-    text-align              center;
+    text-align              center
     margin-top              70px
     font-size               15px
     color                   #a1a1a1
@@ -838,3 +838,138 @@ Admin main styles
       right                 0
       margin-left           0
       pointer()
+
+
+// stack settings styling
+.AppModal--admin .stacks
+
+  .text
+    font-size               14px
+
+    &.header
+      color                 #02A74D
+      font-size             17px
+      // font-family           adelle
+
+      margin-bottom         10px
+
+  .kdloader
+    padding                 0
+
+  .main-loader
+    top                     45%
+
+  button.solid.compact.nav
+    right                   30px
+    bottom                  20px
+    abs()
+
+    &.prev
+      right                 120px
+
+    &.cancel
+      left                  0
+
+  .providers
+    display                 flex
+    display                 -webkit-flex
+    flex-flow               row wrap
+    -webkit-flex-flow       row wrap
+    margin                  20px 0 30px
+
+    button
+      size                  200px, 100px
+      border                3px solid #ccc
+      border-radius         4px
+      background            none
+      margin                20px
+      text-shadow           none !important
+      font-size             12px
+      background-repeat     no-repeat !important
+
+      .button-title
+        display             none
+
+      &.selected
+        border-color        green
+
+      &[disabled]
+        background          #EEE
+        opacity             .5
+        vendor              filter, grayscale(100%)
+
+      &.aws
+        background          url("/a/images/vendors/amazon.png")
+        background-size     auto 40px
+        background-position 38px 22px
+
+      &.koding
+        background          url("/a/images/vendors/koding.png")
+        background-size     auto 40px
+        background-position 26px
+
+      &.digitalocean
+        background          url("/a/images/vendors/digitalocean.png")
+        background-size     180px
+        background-position 7px 33px
+
+      &.rackspace
+        background          url("/a/images/vendors/rackspace.png")
+        background-size     180px
+        background-position 8px 25px
+
+      &.engineyard
+        background          url("/a/images/vendors/engineyard.png")
+        background-size     auto 40px
+        background-position 25px 28px
+
+      &.google
+        background          url("/a/images/vendors/google.png")
+        background-size     200px
+        background-position 0 23px
+
+
+  .steps-view
+    display                 flex
+    display                 -webkit-flex
+    margin-bottom           30px
+
+    cite.vline
+      size                  100%, 1px
+      border-top            1px solid #BDBDBD
+      left                  0
+      top                   20px
+      abs()
+
+    div
+      width                 300px
+      margin                auto
+      text-align            center
+
+      .step
+        size                40px, 40px
+        left                -20px
+
+        color               white
+        font-size           20px
+        font-family         adelle
+        text-align          center
+        border-radius       40px
+        background-color    #BDBDBD
+
+        padding-top         8px
+        margin-left         50%
+
+        borderBox()
+        rel()
+
+      .title
+        width               auto
+        margin-top          5px
+        color               #BDBDBD
+
+      &.selected
+        .step
+          background        #02A74D
+        .title
+          color             #02A74D

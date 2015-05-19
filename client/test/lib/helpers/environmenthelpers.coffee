@@ -107,5 +107,5 @@ module.exports =
       .waitForElementVisible    '.env-modal.paid-plan', 25000
       .click                    '.env-modal.paid-plan button'
       .waitForElementNotVisible '.env-modal.paid-plan', 250000
-      .waitForElementVisible    'a[title="koding-vm-1"]', 25000
+      .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 25000
       .end()
