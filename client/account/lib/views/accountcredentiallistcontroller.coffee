@@ -52,10 +52,15 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     view = @getView()
     view.on "ShowShareCredentialFormFor", @bound "showShareCredentialFormFor"
 
-    providerList = { }
+    {provider} = @getOptions()
+    @createAddCredentialMenu()  if not provider?
 
+
+  createAddCredentialMenu: ->
 
     Providers    = globals.config.providers
+    providerList = { }
+
     Object.keys(Providers).forEach (provider) =>
 
       return  if Object.keys(Providers[provider].credentialFields).length is 0
@@ -65,7 +70,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
           @_addButtonMenu.destroy()
           @showAddCredentialFormFor provider
 
-    view.parent.prepend addButton = new KDButtonView
+    @getView().parent.prepend addButton = new KDButtonView
       cssClass  : 'add-big-btn'
       title     : 'Add new credential'
       icon      : yes
@@ -78,6 +83,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
         , providerList
 
         @_addButtonMenu.setCss 'z-index': 10002
+
 
   showShareCredentialFormFor: (credential) ->
 
