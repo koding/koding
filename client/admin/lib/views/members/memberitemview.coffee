@@ -6,6 +6,15 @@ KDListItemView         = kd.ListItemView
 KDCustomHTMLView       = kd.CustomHTMLView
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 
+# a user be a Member, Admin and Owner at the same time but in the UI we should
+# show the role name which has the most permissions.
+defaultRoles =
+  guest      : nicename : 'Guest',     priority : 0
+  member     : nicename : 'Member',    priority : 1
+  moderator  : nicename : 'Moderator', priority : 2
+  admin      : nicename : 'Admin',     priority : 3
+  owner      : nicename : 'Owner',     priority : 4
+
 
 module.exports = class MemberItemView extends KDListItemView
 
@@ -23,7 +32,7 @@ module.exports = class MemberItemView extends KDListItemView
 
     @roleLabel = new KDCustomHTMLView
       cssClass : 'role'
-      partial  : "Member <span class='settings-icon'></span>"
+      partial  : "#{@getUserRole()} <span class='settings-icon'></span>"
       click    : =>
         @settings.toggleClass  'hidden'
         @roleLabel.toggleClass 'active'
@@ -31,7 +40,22 @@ module.exports = class MemberItemView extends KDListItemView
     @createSettingsView()
 
 
+  getUserRole: ->
+
+    currentRole = defaultRoles.member
+    userRoles   = @getData().roles
+
+    # find the most prioritized role
+    for userRole in userRoles when role = defaultRoles[userRole]
+      if role.priority > currentRole.priority
+        currentRole = role
+
+    return currentRole.nicename
+
+
   createSettingsView: ->
+
+    userRoles = @getData().roles
 
     @settings  = new KDCustomHTMLView
       cssClass : 'settings hidden'
