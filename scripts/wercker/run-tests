@@ -6,6 +6,8 @@ child_process = require 'child_process'
 
 async = require 'async'
 
+monitor = require './monitor-test'
+
 RETRY_COUNT = 3
 
 unless filename = process.argv[2]
@@ -64,7 +66,7 @@ runTest = (job, next) ->
 
   args = [instance.publicIpAddress, test]
 
-  child_process.execFile runTestScript, args, (error, stdout, stderr) ->
+  child = child_process.execFile runTestScript, args, (error, stdout, stderr) ->
 
     job.lap ?= 0
     job.end = Date.now() - start
@@ -78,6 +80,8 @@ runTest = (job, next) ->
       runTest job, next
     else
       next()
+
+  monitor child
 
 
 startTest = (setId, instance, test, next) ->
