@@ -162,12 +162,12 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepsHeader: (options) =>
 
-      {title, step, selected} = options
+      {title, index, selected} = options
 
       container = @views.container "#{if selected then 'selected' else ''}"
 
       @addTo container,
-        text_step  : step
+        text_step  : index
         text_title : title
 
       return container
@@ -193,8 +193,8 @@ module.exports = class StacksCustomViews extends CustomViews
         tagName  : 'cite'
 
       steps.forEach (step, index) =>
-        step.step = index + 1
-        if selected? and selected is step.step
+        step.index = index + 1
+        if selected? and selected is step.index
           step.selected = yes
         @addTo container, stepsHeader: step
 
