@@ -59,7 +59,7 @@ module.exports = (req, res, next) ->
 
     body.emailFrequency or= {}
     # subscribe to koding marketing mailings or not
-    body.emailFrequency.marketing = !!newsletter # convert string boolean to boolean
+    body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
 
     JUser.convert client, body, (err, result) ->
 
