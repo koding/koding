@@ -1,8 +1,10 @@
-_                    = require 'lodash'
-kd                   = require 'kd'
-globals              = require 'globals'
-CustomViews          = require 'app/commonviews/customviews'
-ComputeController_UI = require 'app/providers/computecontroller.ui'
+_                               = require 'lodash'
+kd                              = require 'kd'
+globals                         = require 'globals'
+CustomViews                     = require 'app/commonviews/customviews'
+ComputeController_UI            = require 'app/providers/computecontroller.ui'
+AccountCredentialList           = require 'account/accountcredentiallist'
+AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
 
 module.exports = class StacksCustomViews extends CustomViews
@@ -82,6 +84,19 @@ module.exports = class StacksCustomViews extends CustomViews
         console.log 'Credential added', credential
 
       return form
+
+
+    credentialList: (provider) =>
+
+      listView   = new AccountCredentialList
+      controller = new AccountCredentialListController
+        view       : listView
+        wrapper    : no
+        scrollView : no
+        provider   : provider
+
+      __view = controller.getView()
+      return { __view, controller }
 
 
     stepSetupCredentials: (options) =>
