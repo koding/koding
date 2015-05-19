@@ -71,6 +71,15 @@ module.exports =
     browser.end()
 
 
+  saveFileToFolder: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    folderData = helpers.createFolder(browser, user)
+
+    helpers.createFile(browser, user, 'li.new-file', folderData.name)
+
+
   createFolderFromContextMenu: (browser) ->
 
     user = helpers.beginTest(browser)
