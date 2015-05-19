@@ -80,19 +80,47 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @isFetching = yes
 
-    selector = @query or ''
+    group    = @getData()
     options  =
       limit  : @getOptions().itemLimit
-      sort   : { timestamp: -1 }
+      # sort   : timestamp: -1 # timestamp is at relationship collection
       skip   : @skip
 
-    @getData().searchMembers selector, options, (err, members) =>
-      if err
-        @listController.lazyLoader.hide()
-        return kd.warn err
+    # fetch members as jAccount
+    group.fetchMembers {}, options, (err, members) =>
 
-      @listMembers members
-      @isFetching = no
+      return @handleError err  if err
+
+      # collect account ids to fetch user roles
+      ids = members.map (member) -> return member.getId()
+
+      group.fetchUserRoles ids, (err, roles) =>
+        return @handleError err  if err
+
+        # create account id and roles map
+        userRoles = {}
+
+        # roles array is a flat array which means when you query for an account
+        # the response would be 3 items array which contains different roles for
+        # the same user. create an array by user and collect all roles belong
+        # to that user.
+        for role in roles
+          list = userRoles[role.targetId] or= []
+          list.push role.as
+
+        # save user role array into jAccount as jAccount.role
+        for member in members
+          roles = userRoles[member.getId()]
+          member.roles = roles  if roles
+
+        @listMembers members
+        @isFetching = no
+
+
+  handleError: (err) ->
+
+    @listController.lazyLoader.hide()
+    kd.warn err
 
 
   listMembers: (members) ->
