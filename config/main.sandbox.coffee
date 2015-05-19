@@ -574,7 +574,7 @@ Configuration = (options={}) ->
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
-      export HOME=/home/user-ec2
+      export HOME=/home/ec2-user
       export KONFIG_JSON='#{KONFIG.JSON}'
       """
 
