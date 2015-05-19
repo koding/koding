@@ -595,6 +595,17 @@ module.exports = class JGroup extends Module
           group.addRole role, queue.fin.bind queue
         dash queue, callback
 
+  # isInAllowedDomain checks if given email's domain is in allowed domains
+  isInAllowedDomain: (email, callback) ->
+    
+    return no  unless @allowedDomains?.length > 0
+
+    # even if incoming email doesnt have a @ in it, whole string will be taken
+    # into consideration as domain name
+    domain = email.substring email.indexOf("@")+1 # get the part after @
+
+    return domain in @allowedDomains
+
   updatePermissions: permit 'grant permissions',
     success:(client, permissions, callback=->)->
       @fetchPermissionSet (err, permissionSet)=>

@@ -1,7 +1,4 @@
-Bongo          = require "bongo"
-
-{Base} = Bongo
-
+{Base} = require "bongo"
 
 # this file named as socialaccount while it is under social folder, because i
 # dont want it to be listed first item while searching for account.coffe in
@@ -90,9 +87,11 @@ module.exports = class SocialAccount extends Base
               return console.error "couldnt create socialapi id", err  if err
 
               # add account into public channel
-              options      =
-                channelId  : socialApiChannelId
-                accountIds : [socialApiId]
+              options = [{
+                channelId: socialApiChannelId
+                accountId: socialApiId
+              }]
+              options.channelId = socialApiChannelId
 
               SocialChannel[funcName] client, options, (err, participants) ->
                 return console.error "couldnt add user into group socialapi chan", err, options  if err
@@ -101,9 +100,11 @@ module.exports = class SocialAccount extends Base
                 return if group.slug isnt "koding"
 
                 # add account into announcement channel
-                options      =
-                  channelId  : socialApiChannelId
-                  accountIds : [socialApiId]
+                options = [{
+                  channelId: socialApiAnnouncementChannelId
+                  accountId: socialApiId
+                }]
+                options.channelId = socialApiAnnouncementChannelId
 
                 SocialChannel[funcName] client, options, (err) ->
                   return console.error "couldnt add user into group socialapi chan", err, options  if err

@@ -1,28 +1,27 @@
-jraphical = require 'jraphical'
-Regions   = require 'koding-regions'
-{argv}    = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-Flaggable = require '../../traits/flaggable'
-
+jraphical   = require 'jraphical'
+Regions     = require 'koding-regions'
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+Flaggable   = require '../../traits/flaggable'
+{ extend }  = require 'underscore'
 KodingError = require '../../error'
 
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
 
-  JAccount        = require '../account'
-  JSession        = require '../session'
-  JInvitation     = require '../invitation'
-  JName           = require '../name'
-  JGroup          = require '../group'
-  JLog            = require '../log'
-  JPaymentPlan    = require '../payment/plan'
+  JAccount             = require '../account'
+  JSession             = require '../session'
+  JInvitation          = require '../invitation'
+  JName                = require '../name'
+  JGroup               = require '../group'
+  JLog                 = require '../log'
+  JPaymentPlan         = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
-  ComputeProvider = require '../computeproviders/computeprovider'
-  Email           = require '../email'
+  ComputeProvider      = require '../computeproviders/computeprovider'
+  Email                = require '../email'
 
   { v4: createId } = require 'node-uuid'
-
-  {Relationship} = jraphical
+  {Relationship}   = jraphical
 
   createKodingError =(err)->
     if 'string' is typeof err
@@ -510,13 +509,6 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
     , =>
-      # temp - sy
-      # add loggedin user to the group
-      #
-      # TODO(cihangir) remove this before releasing feature
-      @addToGroup account, groupName, null, null, queue.next
-
-    , =>
       # check if user can access to group
       #
       # there can be two cases here
@@ -539,15 +531,22 @@ module.exports = class JUser extends jraphical.Module
 
     , =>
       # check for membership
-      JGroup.one { slug: groupName }, (err, group)->
+      JGroup.one { slug: groupName }, (err, group)=>
         if not group or err
           return callback { message: "group doesnt exist"}
 
-        group.isMember account, (err , isMember)->
+        group.isMember account, (err , isMember)=>
           return callback err  if err
-          return callback { message: "not a member - cannot login"}  unless isMember
-          queue.next()
+          return queue.next()  if isMember # if user is already member, we can continue
 
+          # check if user's email domain is in allowed domains
+          isAllowed = group.isInAllowedDomain user.email
+          return callback { message: "Your email domain is not in allowed \
+            domains for this group and you are not a member" }  unless isAllowed
+
+          # if member is not in group, but his/her email domain is in allowed
+          # domains, add them to team
+          return @addToGroup account, groupName, null, null, queue.next
     , ->
       # we are sure that user can access to the group, set group name into
       # cookie while logging in
@@ -771,7 +770,26 @@ module.exports = class JUser extends jraphical.Module
   @createUser = (userInfo, callback)->
 
     { username, email, password, passwordStatus,
-      firstName, lastName, foreignAuth, silence } = userInfo
+      firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
+
+    emailFrequencyDefaults = {
+      global         : on
+      daily          : on
+      privateMessage : on
+      followActions  : off
+      comment        : on
+      likeActivities : off
+      groupInvite    : on
+      groupRequest   : on
+      groupApproved  : on
+      groupJoined    : on
+      groupLeft      : off
+      mention        : on
+      marketing      : on
+    }
+
+    # _.defaults doesnt handle undefined, extend handles correctly
+    emailFrequency = extend emailFrequencyDefaults, emailFrequency
 
     slug =
       slug            : username
@@ -790,21 +808,7 @@ module.exports = class JUser extends jraphical.Module
         salt
         password         : hashPassword password, salt
         passwordStatus   : passwordStatus or 'valid'
-        emailFrequency   : {
-          global         : on
-          daily          : on
-          privateMessage : on
-          followActions  : off
-          comment        : on
-          likeActivities : off
-          groupInvite    : on
-          groupRequest   : on
-          groupApproved  : on
-          groupJoined    : on
-          groupLeft      : off
-          mention        : on
-          marketing      : on
-        }
+        emailFrequency   : emailFrequency
       }
 
       user.foreignAuth = foreignAuth  if foreignAuth
@@ -970,7 +974,8 @@ module.exports = class JUser extends jraphical.Module
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName, agree,
-      inviteCode, referrer, password, passwordConfirm } = userFormData
+      inviteCode, referrer, password, passwordConfirm,
+      emailFrequency } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -1032,7 +1037,8 @@ module.exports = class JUser extends jraphical.Module
       =>
         if aNewRegister
 
-          userInfo = { username, firstName, lastName, email, password }
+          userInfo = { username, firstName, lastName,
+            email, password, emailFrequency }
 
           @createUser userInfo, (err, _user, _account)=>
             return callback err  if err
