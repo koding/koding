@@ -95,6 +95,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     if helper.isVideoActive @channel
       @setActive()
+      @changeActiveParticipant getNick()
 
       return  unless @isMySession()
 
@@ -132,7 +133,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    *   - It just enables (starts publishing) the video chat and calls the optional callback.
    *   - If it's already being published,
    *     - it first unpublishes the current publisher.
-   *     - then creates a new publisher that is either `video-enabled` or `video-enabled`
+   *     - then creates a new publisher that is either `video-enabled` or `video-disabled`
    *       publishes that to the session.
    *     - updates the publisher's video data.
    *     - then updates the video state of the model.
