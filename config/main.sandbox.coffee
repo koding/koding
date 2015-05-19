@@ -565,7 +565,7 @@ Configuration = (options={}) ->
           proxyPass     : "http://integration/$1$is_args$args"
         ]
 
-    webhookmiddleware   :
+    webhook             :
       group             : "socialapi"
       ports             :
         incoming        : "#{webhookMiddleware.port}"
