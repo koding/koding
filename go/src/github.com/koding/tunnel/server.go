@@ -150,6 +150,7 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	}()
 
 	// create initial five tunnel connections to speed up initial http requests
+	// TODO(arslan): remove this once we move to multiplexing
 	go func() {
 		<-ready // wait until control is ready
 		s.createPool(host)
@@ -226,11 +227,24 @@ func (s *Server) tunnelFromSessions(host string) (*tunnel, error) {
 	s.sessionsMu.Lock()
 	defer s.sessionsMu.RLock()
 
-	session, ok := s.sessions[host]
+	var session *yamux.Session
+	var ok bool
+	session, ok = s.sessions[host]
 	if !ok {
-		return nil, fmt.Errorf("no session exists for %s", host)
+		tunn, err := s.requestTunnel("http", host)
+		if err != nil {
+			return nil, err
+		}
+
+		session, err := yamux.Server(tunn, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		s.sessions[host] = session
 	}
 
+	// every request is a new stream
 	conn, err := session.Accept()
 	if err != nil {
 		return nil, err
