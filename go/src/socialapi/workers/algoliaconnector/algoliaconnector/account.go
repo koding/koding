@@ -63,18 +63,28 @@ func (f *Controller) AccountUpdated(data *models.Account) error {
 // ParticipantUpdated operates with the participant deleted/created events, adds
 // to algolia if the state is active, else removes from algolia
 func (f *Controller) ParticipantUpdated(p *models.ChannelParticipant) error {
-	// if status of the participant is active, then add user
-	if p.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
-		return f.handleParticipantOperation(p, appendTag)
+	// This code is commented out and stays here just for future referance,
+	// channel participant table is the only one that we are not soft deleting
+	// records, and marking status as left, we dont have a notion
+	// channel_participant_delete, handle accordingly
+
+	// // if status of the participant is active, then add user
+	// if p.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
+	// 	return f.handleParticipantOperation(p)
+	// }
+
+	err := f.handleParticipantOperation(p)
+	if err != nil {
+		f.log.Error("err while handling participant updated event: %s", err.Error())
 	}
 
-	return f.handleParticipantOperation(p, removeTag)
+	return err
 }
 
 // ParticipantCreated operates with the participant createad event, adds new tag
 // to the algolia document
 func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
-	err := f.handleParticipantOperation(p, appendTag)
+	err := f.handleParticipantOperation(p)
 	if err != nil {
 		f.log.Error("err while handling participant created event: %s", err.Error())
 	}
@@ -82,7 +92,7 @@ func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 	return err
 }
 
-func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant, tagOperator func(record map[string]interface{}, channelId string) []interface{}) error {
+func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant) error {
 	if p.ChannelId == 0 {
 		return nil
 	}
@@ -137,11 +147,23 @@ func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant, ta
 		return err
 	}
 
-	channelId := strconv.FormatInt(p.ChannelId, 10)
+	cp := models.NewChannelParticipant()
+	ids, err := cp.FetchAllParticipatedChannelIds(a.Id)
+	if err != nil {
+		return err
+	}
+
+	// fetch all channels of account, there is a race condition when a user
+	// joins to multiple channels, due to algolia's eventual consistency,
+	// obtained tags are not up-to-date
+	var channelIds []string
+	for _, id := range ids {
+		channelIds = append(channelIds, strconv.FormatInt(id, 10))
+	}
 
 	return f.partialUpdate(IndexAccounts, map[string]interface{}{
 		"objectID": a.OldId,
-		"_tags":    tagOperator(record, channelId),
+		"_tags":    channelIds,
 	})
 }
 

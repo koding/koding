@@ -104,8 +104,6 @@ func (n *Notification) List(q *request.Query) (*NotificationResponse, error) {
 }
 
 func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error) {
-	var notifications []Notification
-
 	if q.GroupChannelId == 0 {
 		return nil, ErrGroupChannelIdNotSet
 	}
@@ -114,6 +112,7 @@ func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error
 		return nil, ErrAccountIdNotSet
 	}
 
+	var notifications []Notification
 	err := bongo.B.DB.Table(n.BongoName()).
 		Where(
 		"NOT (activated_at IS NULL OR activated_at <= '0001-01-02')"+
