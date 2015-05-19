@@ -531,15 +531,22 @@ module.exports = class JUser extends jraphical.Module
 
     , =>
       # check for membership
-      JGroup.one { slug: groupName }, (err, group)->
+      JGroup.one { slug: groupName }, (err, group)=>
         if not group or err
           return callback { message: "group doesnt exist"}
 
-        group.isMember account, (err , isMember)->
+        group.isMember account, (err , isMember)=>
           return callback err  if err
-          return callback { message: "not a member - cannot login"}  unless isMember
-          queue.next()
+          return queue.next()  if isMember # if user is already member, we can continue
 
+          # check if user's email domain is in allowed domains
+          isAllowed = group.isInAllowedDomain user.email
+          return callback { message: "Your email domain is not in allowed \
+            domains for this group and you are not a member" }  unless isAllowed
+
+          # if member is not in group, but his/her email domain is in allowed
+          # domains, add them to team
+          return @addToGroup account, groupName, null, null, queue.next
     , ->
       # we are sure that user can access to the group, set group name into
       # cookie while logging in
