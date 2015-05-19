@@ -2,7 +2,7 @@ kd                    = require 'kd'
 SidebarMoreLink       = require './sidebarmorelink'
 
 
-module.exports = class SidebarMoreLink extends SidebarMoreLink
+module.exports = class ChannelSidebarMoreLink extends SidebarMoreLink
 
   constructor: (options = {}, data) ->
 
