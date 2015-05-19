@@ -5,11 +5,12 @@ kd = require 'kd'
 
 module.exports = class KodingBotMessagePane extends PrivateMessagePane
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}) ->
 
+    botChannel = kd.singletons.socialapi.getPrefetchedData 'bot'
     options.cssClass = kd.utils.curry 'privatemessage', options.cssClass
 
-    super options, data
+    super options, botChannel
 
     @listController.getListView().setClass 'kdlistview-privatemessage'
     @actionsMenu?.destroy()
