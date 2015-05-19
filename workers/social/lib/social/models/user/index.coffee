@@ -509,13 +509,6 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
     , =>
-      # temp - sy
-      # add loggedin user to the group
-      #
-      # TODO(cihangir) remove this before releasing feature
-      @addToGroup account, groupName, null, null, queue.next
-
-    , =>
       # check if user can access to group
       #
       # there can be two cases here
