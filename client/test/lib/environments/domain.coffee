@@ -11,6 +11,8 @@ module.exports =
 
   # openVmDomain: (browser) ->
 
+  #   ## This test is disabled because DNS propagation takes time and we are running test before DNS propagation complete.
+
   #   modalSelector = '.activity-modal.vm-settings'
   #   linkSelector  = modalSelector + ' .assigned-url .custom-link-view'
 
