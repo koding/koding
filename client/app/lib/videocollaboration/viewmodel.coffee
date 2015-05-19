@@ -21,6 +21,7 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
 
     @model.on 'VideoPublishStateChanged', viewControlBinder 'controlVideo'
     @model.on 'AudioPublishStateChanged', viewControlBinder 'controlAudio'
+    @model.on 'SpeakerStateChanged',      viewControlBinder 'controlSpeaker'
 
 
   ###*

@@ -14,6 +14,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   defaultState:
     audio               : off
     video               : off
+    speaker             : on
     publishing          : off
     active              : no
     connected           : no
@@ -198,6 +199,17 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @enableVideo options,
         error   : (err) -> console.error err
         success : @lazyBound 'setAudioState', audioState
+
+
+  ###*
+   * Action to mute/unmute speakers.
+   *
+   * @param {boolean} speakerState
+  ###
+  requestSpeakerStateChange: (speakerState) ->
+    return  if speakerState is @state.speaker
+
+    @setSpeakerState speakerState
 
 
   ###*
@@ -641,6 +653,24 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @setState { video: state }
     @emit 'VideoPublishStateChanged', state
+
+
+  ###*
+   * Set speaker state to given state. If `off` set all subscribers' audio
+   * volume to 0, if `on` set all to 100.
+   *
+   * @param {boolean} state
+  ###
+  setSpeakerState: (state) ->
+
+    volume = if state then 100 else 0
+
+    Object.keys(@subscribers).forEach (key) =>
+      subscriber = @subscribers[key].videoData
+      subscriber.setAudioVolume volume
+
+    @setState { speaker: state }
+    @emit 'SpeakerStateChanged', state
 
 
   ensurePublishing: (options, callback) ->
