@@ -57,7 +57,7 @@ params =
   InstanceType     : 'm3.large'
   MinCount         : argv.count
   MaxCount         : argv.count
-  SubnetId         : 'subnet-b47692ed'
+  SubnetId         : 'subnet-9025aabb'
   SecurityGroupIds : ['sg-64126d01', 'sg-7da5a718']
   KeyName          : 'koding-prod-deployment'
   UserData         : new Buffer(userData).toString 'base64'
