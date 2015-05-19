@@ -1,10 +1,10 @@
-isChannelCollaborative = require '../../util/isChannelCollaborative'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDListViewController = kd.ListViewController
-KDView = kd.View
-JView = require '../../jview'
-SidebarMoreLink = require './sidebarmorelink'
+isChannelCollaborative      = require '../../util/isChannelCollaborative'
+kd                          = require 'kd'
+KDCustomHTMLView            = kd.CustomHTMLView
+KDListViewController        = kd.ListViewController
+KDView                      = kd.View
+JView                       = require '../../jview'
+SidebarMoreLink             = require './sidebarmorelink'
 
 
 module.exports = class ActivitySideView extends JView
@@ -80,11 +80,17 @@ module.exports = class ActivitySideView extends JView
 
     {countSource, limit} = @getOptions()
     countSource = kd.utils.debounce 300, countSource  if countSource
-    @moreLink = new SidebarMoreLink {href: searchLink, countSource, limit}
+
+    @moreLink = @createMoreLink()
     @moreLink.hide()
 
-    @listController.getListView().on 'ItemWasAdded', =>
-      @moreLink.updateCount @listController.getItemCount()
+    listView = @listController.getListView()
+    listView.on 'ItemWasAdded', @bound 'updateCount'
+    listView.on 'ItemWasRemoved', @bound 'updateCount'
+
+
+  updateCount: ->
+    @moreLink.updateCount @listController.getItemCount()
 
 
   init: ->
@@ -140,4 +146,10 @@ module.exports = class ActivitySideView extends JView
     {{> @moreLink}}
     """
 
+
+  createMoreLink: ->
+
+    { searchLink, countSource, limit } = @getOptions()
+
+    return new SidebarMoreLink {href: searchLink, countSource, limit}
 

@@ -1,8 +1,8 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-JView = require '../../jview'
-SidebarItem = require './sidebaritem'
-TopicFollowButton = require '../../commonviews/topicfollowbutton'
+kd                  = require 'kd'
+KDCustomHTMLView    = kd.CustomHTMLView
+JView               = require '../../jview'
+SidebarItem         = require './sidebaritem'
+TopicFollowButton   = require '../../commonviews/topicfollowbutton'
 
 
 module.exports = class SidebarTopicItem extends SidebarItem
