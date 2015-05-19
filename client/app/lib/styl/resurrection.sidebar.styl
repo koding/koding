@@ -140,11 +140,11 @@ sidebarTextShadow()
   borderBox()
 
   cite.count
-    size            24px 20px
-    line-height     20px
+    size            24px 16px
+    line-height     16px
     color           #fff
-    abs             3px 0px 0 0
-    font-size       10px
+    abs             0px 0px 0 0
+    font-size       9px
     font-weight     700
     background      sidebarCountBg
     rounded         3px
@@ -447,8 +447,9 @@ sidebarTextShadow()
 
   .kdlistitemview-sidebar-item
 
-    size              auto 23px
-    padding           2px 15px
+    size              auto 21px
+    padding           0px 15px
+    margin-bottom     8px
     rounded           4px
     font-size         14px
     font-weight       400
@@ -533,19 +534,19 @@ sidebarTextShadow()
   .messages
 
     h3.sidebar-title
-      padding-bottom    7px
+      padding-bottom    16px
+      padding-top       17px
 
     .nothing
       hidden()
 
     .kdlistitemview-sidebar-item
-      height        28px
+      height        16px
       min-height    0
-      margin        0
       borderBox()
 
       cite.count
-        abs         6px 0px 0 0
+        abs         0px 0px 0 0
 
       > .user-numbers
         padding     0 0 0 36px
@@ -589,8 +590,7 @@ sidebarTextShadow()
         > .profile
           display     block
           float       none
-          margin-top  3px
-          line-height 23px
+          line-height 16px
           width       170px
           margin-left 4px
           borderBox()
@@ -602,7 +602,7 @@ sidebarTextShadow()
           size          10px, 10px
           bg            color, #6d6d6d
           border-radius 100%
-          abs           7px 0 0 -14px
+          abs           3px 0 0 -14px
 
       .avatarview
         size            24px 24px
@@ -763,7 +763,7 @@ h3.sidebar-title
   text-transform            uppercase
   word-spacing              .2em
   letter-spacing            .05em
-  padding                   14px 0 12px
+  padding                   14px 0 16px
   sidebarTextShadow()
   pointer()
 
@@ -978,10 +978,6 @@ h3.sidebar-title
         abs()
       &:hover > span
         opacity     1
-      &.terminated
-      &.notinitialized
-        figure
-          opacity   .5
       &.running > figure
         border-color   #24B463
         // bg          color, #8CEE71
