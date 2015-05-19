@@ -44,6 +44,7 @@ WelcomeModal             = require './welcomemodal'
 WidgetController         = require './widgetcontroller'
 PageTitleController      = require './pagetitlecontroller'
 ShortcutsController      = require './shortcutscontroller'
+MarketingController      = require './marketing/marketingcontroller'
 
 module.exports =
 
@@ -139,6 +140,7 @@ class MainController extends KDController
     kd.registerSingleton 'realtime',                  new RealtimeController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
     kd.registerSingleton 'shortcuts',     shortcuts = new ShortcutsController
+    kd.registerSingleton 'marketingController',       new MarketingController
 
     shortcuts.addEventListeners()
 

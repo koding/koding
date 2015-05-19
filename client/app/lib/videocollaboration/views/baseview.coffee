@@ -68,6 +68,10 @@ module.exports = class ChatVideoView extends kd.View
     @controlVideo.on 'ActiveStateChangeRequested', @handleStateChangeRequest 'video'
     @controls.addSubView @controlVideo
 
+    @controlSpeaker = createVideoControl 'speaker', yes
+    @controlSpeaker.on 'ActiveStateChangeRequested', @handleStateChangeRequest 'speaker'
+    @controls.addSubView @controlSpeaker
+
     if isMyChannel @getData()
       @controlEnd = createVideoControl 'end', no
       @controlEnd.on 'ActiveStateChangeRequested', @handleStateChangeRequest 'end'
@@ -141,11 +145,14 @@ createVideoControl = (type, active) ->
 
   title = switch type
     when 'video'
-      activeTooltipText = 'Turn-off Camera'
-      deactiveTooltipText = 'Turn-on Camera'
+      activeTooltipText = 'Turn camera off'
+      deactiveTooltipText = 'Turn camera on'
     when 'audio'
-      activeTooltipText = 'Mute'
-      deactiveTooltipText = 'Unmute'
+      activeTooltipText = 'Mute microphone'
+      deactiveTooltipText = 'Unmute microphone'
+    when 'speaker'
+      activeTooltipText = 'Mute speaker'
+      deactiveTooltipText = 'Unmute speaker'
     when 'end'
       activeTooltipText = 'End session'
       deactiveTooltipText = 'End session'

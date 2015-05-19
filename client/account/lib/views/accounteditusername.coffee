@@ -184,6 +184,7 @@ module.exports = class AccountEditUsername extends JView
           "shareLocation"    : formData.shareLocation
         }, (err)->
           return notify err.message  if err
+          me.shareLocation = formData.shareLocation
           queue.next()
       =>
         # secondly change user email address

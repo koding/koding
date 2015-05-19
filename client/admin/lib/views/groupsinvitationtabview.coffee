@@ -32,7 +32,7 @@ module.exports = class GroupsInvitationTabView extends KDTabView
     @approvalEnabled = @getDelegate().policy?.approvalEnabled
     @showResolved    = no
 
-    @on 'PaneAdded', (pane)=> pane.options.view.updatePendingCount pane
+    # @on 'PaneAdded', (pane)=> pane.options.view.updatePendingCount pane
 
     @createTabs()
     @addHeaderButtons()
@@ -116,5 +116,3 @@ module.exports = class GroupsInvitationTabView extends KDTabView
 
   _windowDidResize:->
     # @setHeight @parent.getHeight() - @getTabHandleContainer().getHeight()
-
-
