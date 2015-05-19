@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook/api"
-	"socialapi/workers/integration/webhook/services"
 	"strconv"
+
+	"github.com/koding/integration/services"
 )
 
 const (

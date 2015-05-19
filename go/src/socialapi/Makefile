@@ -220,18 +220,15 @@ build:
 	../../build.sh
 
 testwebhook:
-	#@echo "$(OK_COLOR)--> webhook model tests... $(NO_COLOR)"
-	#@`which go` test -c workers/integration/webhook/*.go
-	#@./webhook.test $(DBG) $(METRICS) -c $(CONFIG)
-	#@rm  ./webhook.test
+	@echo "$(OK_COLOR)--> webhook model tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/webhook/*.go
+	@./webhook.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./webhook.test
 
-	#@echo "$(OK_COLOR)--> webhook api tests... $(NO_COLOR)"
-	#@`which go` test -c workers/integration/webhook/api/*.go
-	#@./api.test $(DBG) $(METRICS) -c $(CONFIG)
-	#@rm  ./api.test
-
-	#@echo "$(ok_color)--> webhook service tests... $(no_color)"
-	#@`which go` test workers/integration/webhook/services/*.go
+	@echo "$(OK_COLOR)--> webhook api tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/webhook/api/*.go
+	@./api.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./api.test
 
 	@echo "$(OK_COLOR)--> webhook integration tests... $(NO_COLOR)"
 	@`which go` test -c workers/integration/webhook/tests/*.go

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/config"
@@ -9,7 +8,6 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
-	"socialapi/workers/integration/webhook/services"
 	"strconv"
 	"strings"
 
@@ -20,10 +18,8 @@ import (
 const RevProxyPath = "/api/integration"
 
 type Handler struct {
-	log      logging.Logger
-	bot      *webhook.Bot
-	sf       *services.ServiceFactory
-	RootPath string
+	log logging.Logger
+	bot *webhook.Bot
 }
 
 func NewHandler(conf *config.Config, l logging.Logger) (*Handler, error) {
@@ -32,13 +28,9 @@ func NewHandler(conf *config.Config, l logging.Logger) (*Handler, error) {
 		return nil, err
 	}
 
-	rootPath := fmt.Sprintf("%s%s", conf.CustomDomain.Local, RevProxyPath)
-
 	return &Handler{
-		log:      l,
-		bot:      bot,
-		sf:       services.NewServiceFactory(),
-		RootPath: rootPath,
+		log: l,
+		bot: bot,
 	}, nil
 }
 

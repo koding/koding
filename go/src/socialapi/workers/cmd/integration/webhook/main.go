@@ -35,12 +35,6 @@ func main() {
 		r.Log.Fatal("Could not initialize webhook worker: %s", err)
 	}
 
-	if r.Conf.Environment == "dev" || r.Conf.Environment == "test" {
-		h.RootPath =
-			fmt.Sprintf("http://%s:%s", appConfig.Integration.Host,
-				appConfig.Integration.Port)
-	}
-
 	h.AddHandlers(m)
 
 	m.Listen()

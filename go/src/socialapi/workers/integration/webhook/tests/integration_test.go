@@ -8,9 +8,9 @@ import (
 	"socialapi/rest"
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/api"
-	"socialapi/workers/integration/webhook/services"
 	"testing"
 
+	"github.com/koding/integration/services"
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -21,14 +21,6 @@ func newMiddlewareRequest(username, groupName string) *services.ServiceInput {
 		"eventName": "emailOpen",
 		"message":   "testing it",
 		"groupName": groupName,
-		"dataFields": map[string]interface{}{
-			"templateId": float64(15120),
-			"device":     "Gmail",
-			"createdAt":  "2015-04-24 21:35:02 +00:00",
-			"campaignId": float64(5654),
-			"userAgent":  "Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)",
-			"ip":         "66.249.93.139",
-		},
 	}
 }
 
