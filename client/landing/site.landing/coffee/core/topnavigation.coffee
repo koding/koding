@@ -9,9 +9,9 @@ module.exports = class TopNavigation extends KDCustomHTMLView
     { title : 'SIGN UP',           href : '/Register',                name : 'buttonized green signup', attributes : testpath : 'signup-link' }
   ]
 
-  if KD.config.environment isnt 'production'
-    item = { title : 'Teams', href : '/Teams', name : 'teams' }
-    menu.splice 1, 0, item
+  # if KD.config.environment isnt 'production'
+  #   item = { title : 'Teams', href : '/Teams', name : 'teams' }
+  #   menu.splice 1, 0, item
 
   constructor: (options = {}, data) ->
 
