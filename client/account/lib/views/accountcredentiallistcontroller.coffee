@@ -19,12 +19,14 @@ showError                   = require 'app/util/showError'
 
 module.exports = class AccountCredentialListController extends AccountListViewController
 
+
   constructor: (options = {}, data) ->
 
-    options.noItemFoundText = "You have no credentials."
+    options.noItemFoundText ?= "You have no credentials."
     super options, data
 
     @loadItems()
+
 
   loadItems: ->
 
@@ -33,7 +35,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     { JCredential } = remote.api
 
-    JCredential.some {}, { limit: 30 }, (err, credentials)=>
+    JCredential.some {}, { limit: 30 }, (err, credentials) =>
 
       @hideLazyLoader()
 
@@ -41,6 +43,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
         KodingError : "Failed to fetch credentials, try again later."
 
       @instantiateListItems credentials
+
 
   loadView: ->
 
