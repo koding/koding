@@ -2,6 +2,7 @@ _                               = require 'lodash'
 kd                              = require 'kd'
 globals                         = require 'globals'
 CustomViews                     = require 'app/commonviews/customviews'
+CredentialListItem              = require './credentiallistitem'
 ComputeController_UI            = require 'app/providers/computecontroller.ui'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
@@ -76,6 +77,7 @@ module.exports = class StacksCustomViews extends CustomViews
     credentialList: (provider) =>
 
       listView   = new AccountCredentialList
+        itemClass  : CredentialListItem
       controller = new AccountCredentialListController
         view       : listView
         wrapper    : no
