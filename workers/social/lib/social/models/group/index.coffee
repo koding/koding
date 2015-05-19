@@ -596,7 +596,8 @@ module.exports = class JGroup extends Module
         dash queue, callback
 
   # isInAllowedDomain checks if given email's domain is in allowed domains
-  isInAllowedDomain:(email, callback)->
+  isInAllowedDomain: (email, callback) ->
+    
     return no  unless @allowedDomains?.length > 0
 
     # even if incoming email doesnt have a @ in it, whole string will be taken
