@@ -1,28 +1,27 @@
-jraphical = require 'jraphical'
-Regions   = require 'koding-regions'
-{argv}    = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-Flaggable = require '../../traits/flaggable'
-
+jraphical   = require 'jraphical'
+Regions     = require 'koding-regions'
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+Flaggable   = require '../../traits/flaggable'
+{ extend }  = require 'underscore'
 KodingError = require '../../error'
 
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
 
-  JAccount        = require '../account'
-  JSession        = require '../session'
-  JInvitation     = require '../invitation'
-  JName           = require '../name'
-  JGroup          = require '../group'
-  JLog            = require '../log'
-  JPaymentPlan    = require '../payment/plan'
+  JAccount             = require '../account'
+  JSession             = require '../session'
+  JInvitation          = require '../invitation'
+  JName                = require '../name'
+  JGroup               = require '../group'
+  JLog                 = require '../log'
+  JPaymentPlan         = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
-  ComputeProvider = require '../computeproviders/computeprovider'
-  Email           = require '../email'
+  ComputeProvider      = require '../computeproviders/computeprovider'
+  Email                = require '../email'
 
   { v4: createId } = require 'node-uuid'
-
-  {Relationship} = jraphical
+  {Relationship}   = jraphical
 
   createKodingError =(err)->
     if 'string' is typeof err
@@ -771,7 +770,26 @@ module.exports = class JUser extends jraphical.Module
   @createUser = (userInfo, callback)->
 
     { username, email, password, passwordStatus,
-      firstName, lastName, foreignAuth, silence } = userInfo
+      firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
+
+    emailFrequencyDefaults = {
+      global         : on
+      daily          : on
+      privateMessage : on
+      followActions  : off
+      comment        : on
+      likeActivities : off
+      groupInvite    : on
+      groupRequest   : on
+      groupApproved  : on
+      groupJoined    : on
+      groupLeft      : off
+      mention        : on
+      marketing      : on
+    }
+
+    # _.defaults doesnt handle undefined, extend handles correctly
+    emailFrequency = extend emailFrequencyDefaults, emailFrequency
 
     slug =
       slug            : username
@@ -790,21 +808,7 @@ module.exports = class JUser extends jraphical.Module
         salt
         password         : hashPassword password, salt
         passwordStatus   : passwordStatus or 'valid'
-        emailFrequency   : {
-          global         : on
-          daily          : on
-          privateMessage : on
-          followActions  : off
-          comment        : on
-          likeActivities : off
-          groupInvite    : on
-          groupRequest   : on
-          groupApproved  : on
-          groupJoined    : on
-          groupLeft      : off
-          mention        : on
-          marketing      : on
-        }
+        emailFrequency   : emailFrequency
       }
 
       user.foreignAuth = foreignAuth  if foreignAuth
@@ -970,7 +974,8 @@ module.exports = class JUser extends jraphical.Module
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName, agree,
-      inviteCode, referrer, password, passwordConfirm } = userFormData
+      inviteCode, referrer, password, passwordConfirm,
+      emailFrequency } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -1032,7 +1037,8 @@ module.exports = class JUser extends jraphical.Module
       =>
         if aNewRegister
 
-          userInfo = { username, firstName, lastName, email, password }
+          userInfo = { username, firstName, lastName,
+            email, password, emailFrequency }
 
           @createUser userInfo, (err, _user, _account)=>
             return callback err  if err
