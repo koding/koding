@@ -2,6 +2,8 @@ helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 
+vmSelector = '.sidebar-machine-box.koding-vm-1'
+
 
 module.exports =
 
@@ -27,7 +29,6 @@ module.exports =
   makeAlwaysOnForNotPaidUser: (browser) ->
 
     toggleSelector = '.machine-settings-modal .alwayson'
-    vmSelector     = '.sidebar-machine-box.koding-vm-1'
 
     helpers.beginTest(browser)
 
@@ -49,7 +50,6 @@ module.exports =
   addVM: (browser) ->
 
     freeModalSelector = '.computeplan-modal.free-plan'
-    vmSelector        = '.sidebar-machine-box.koding-vm-1'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -82,18 +82,21 @@ module.exports =
   turnOnNewPaidVM: (browser) ->
 
     vmName     = 'koding-vm-1'
-    vmSelector = '.sidebar-machine-box.koding-vm-1'
 
     helpers.beginTest(browser)
 
-    browser
-      .waitForElementVisible vmSelector, 25000
-      .pause                 10000 # required, wait for IDE open.
-      .click                 vmSelector
+    browser.element 'css selector', "#{vmSelector} .running", (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        browser
+          .waitForElementVisible vmSelector, 25000
+          .pause                 10000 # required, wait for IDE open.
+          .click                 vmSelector
 
-    helpers.waitForVMRunning(browser, vmName)
+        helpers.waitForVMRunning(browser, vmName)
 
-    browser.end()
+        browser.end()
 
 
   # this test depends addVM and turnOnNewPaidVM tests.
@@ -102,24 +105,22 @@ module.exports =
     helpers.beginTest(browser)
 
     environmentHelpers.openVmSettingsModal(browser, 'koding-vm-1')
-    environmentHelpers.clickMoreButtonInVMSettingsModal(browser)
 
-    browser.element  'css selector', '.more-form .alwayson .koding-on-off.on', (result) =>
+    browser.element  'css selector', '.AppModal-form.with-fields .alwayson .koding-on-off.on', (result) =>
       if result.status is 0
         console.log 'VM is already always on, ending test...'
         browser.end()
 
       else
         browser
-          .waitForElementVisible    '.more-form .alwayson', 20000
-          .click                    '.more-form .alwayson .koding-on-off'
+          .waitForElementVisible    '.AppModal-form.with-fields .alwayson', 20000
+          .click                    '.AppModal-form.with-fields .alwayson .koding-on-off'
           .pause                    1000
           .refresh()
           .waitForElementVisible    '[testpath=main-sidebar]', 25000, =>
 
             environmentHelpers.openVmSettingsModal(browser, 'koding-vm-1')
-            environmentHelpers.clickMoreButtonInVMSettingsModal(browser) # Assertion
 
             browser
-              .waitForElementVisible   '.more-form .alwayson .koding-on-off.on', 20000
+              .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
