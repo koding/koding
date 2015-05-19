@@ -4,22 +4,6 @@ koding                                  = require './../bongo'
 { dash }                                = Bongo
 { uniq }                                = require 'underscore'
 
-createInvitations = (client, invitees, callback)->
-  return callback null  if invitees is ""
-
-  inviteEmails = invitees.split(",") or []
-  return callback null  if inviteEmails.length is 0 # return early
-
-  # data = { invitations:[ {email:"cihangir+test26@koding.com"} ] }
-  invitations =
-    uniq inviteEmails                       # remove duplicates
-    .filter (email) -> email isnt ""        # clear emtpty ones
-    .map (email) -> { email: email.trim() } # clear empty spaces
-
-  koding.models.JInvitation.create client, { invitations }, (err)->
-    console.error "Err while creating invitations", err  if err
-    callback()
-
 module.exports = (req, res, next) ->
 
   { body }                       = req
@@ -84,20 +68,13 @@ module.exports = (req, res, next) ->
       owner                       = result.account
       client.connection.delegate  = result.account
 
-      # clear domains
-      allowedDomains = domains?.split(",") or []
-      allowedDomains =
-        uniq allowedDomains                # remove duplicates
-        .filter (domain) -> domain isnt "" # clear emtpty ones
-        .map (domain) -> domain.trim()     # clear empty spaces
-
       JGroup.create client,
         title           : companyName
         slug            : slug
         visibility      : 'hidden'
         defaultChannels : []
         initialData     : body
-        allowedDomains  : allowedDomains
+        allowedDomains  : convertToArray domains # clear & convert domains into array
       , owner, (err, group) ->
 
         console.log err, group
@@ -106,7 +83,9 @@ module.exports = (req, res, next) ->
 
         queue = [
           # add other parallel operations here
-          -> createInvitations client, invitees, queue.fin
+          -> createInvitations client, invitees, (err) ->
+              console.error "Err while creating invitations", err  if err
+              queue.fin()
         ]
         dash queue, (err)->
           # do not block group creation
@@ -116,3 +95,31 @@ module.exports = (req, res, next) ->
           return res.status(200).end() if req.xhr
           # handle the request with an HTTP redirect:
           res.redirect 301, redirect
+
+
+# convertToArray converts given comma separated string value into cleaned,
+# trimmed, lowercased, unified array of string
+convertToArray = (commaSeparatedData)->
+  return []  if commaSeparatedData is ''
+
+  data = commaSeparatedData.split(',') or []
+
+  data = data
+    .filter (s) -> s isnt ''           # clear empty ones
+    .map (s) -> s.trim().toLowerCase() # clear empty spaces
+
+  return uniq data # remove duplicates
+
+# createInvitations converts given invitee list into JInvitation and creates
+# them in db
+createInvitations = (client, invitees, callback)->
+  inviteEmails = convertToArray invitees
+
+  return callback null  if inviteEmails.length is 0 # return early
+
+  # should be in following structure
+  #   data = { invitations:[ {email:"cihangir+test26@koding.com"} ] }
+  invitations = inviteEmails.map (email) -> { email }
+
+  koding.models.JInvitation.create client, { invitations }, callback
+
