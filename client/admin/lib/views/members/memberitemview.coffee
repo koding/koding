@@ -36,19 +36,19 @@ module.exports = class MemberItemView extends KDListItemView
     @settings  = new KDCustomHTMLView
       cssClass : 'settings hidden'
 
-    @settings.addSubView adminSwitch = new KDButtonView
+    @settings.addSubView new KDButtonView
       cssClass : 'solid compact outline'
       title    : 'MAKE ADMIN'
 
-    @settings.addSubView moderatorSwitch = new KDButtonView
+    @settings.addSubView new KDButtonView
       cssClass : 'solid compact outline'
       title    : 'MAKE MODERATOR'
 
-    @settings.addSubView makeOwnerButton = new KDButtonView
+    @settings.addSubView new KDButtonView
       cssClass : 'solid compact outline'
       title    : 'MAKE OWNER'
 
-    @settings.addSubView kickButton = new KDButtonView
+    @settings.addSubView new KDButtonView
       cssClass : 'solid compact outline red'
       title    : 'KICK USER'
 

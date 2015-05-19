@@ -13,12 +13,12 @@ module.exports = class TeamMembersCommonView extends KDView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass                 = 'members-commonview'
+    options.itemLimit               ?= 10
     options.noItemFoundWidget      or= new KDCustomHTMLView
     options.listViewItemClass      or= MemberItemView
-    options.cssClass                 = 'members-commonview'
     options.listViewItemOptions    or= {}
     options.searchInputPlaceholder or= 'Find by name/username'
-    options.itemLimit               ?= 10
     options.sortOptions            or= [
       { title: 'Screen name',   value: 'fullname' }
       { title: 'Nickname',      value: 'nickname' }
@@ -103,9 +103,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip += members.length
 
-    for member in members
-      @listController.addItem member
-
+    @listController.addItem member  for member in members
     @listController.lazyLoader.hide()
     @searchContainer.show()
 
