@@ -1,3 +1,4 @@
+_                    = require 'lodash'
 kd                   = require 'kd'
 globals              = require 'globals'
 CustomViews          = require 'app/commonviews/customviews'
@@ -6,7 +7,7 @@ ComputeController_UI = require 'app/providers/computecontroller.ui'
 
 module.exports = class StacksCustomViews extends CustomViews
 
-  @views extends
+  _.assign @views,
 
     noStackFoundView: (callback) =>
 
