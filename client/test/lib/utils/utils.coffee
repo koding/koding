@@ -17,6 +17,7 @@ module.exports =
       while username.length < 8
         username = faker.Helpers.slugify(faker.Internet.userName().toLowerCase()).replace(/\./g, '').replace(/_/g, '')
 
+      username = username + Date.now()
       password = @getPassword()
 
       email = "kodingtestuser+#{username}@koding.com"
