@@ -82,18 +82,21 @@ module.exports =
   turnOnNewPaidVM: (browser) ->
 
     vmName     = 'koding-vm-1'
-    vmSelector = '.sidebar-machine-box.koding-vm-1'
 
     helpers.beginTest(browser)
 
-    browser
-      .waitForElementVisible vmSelector, 25000
-      .pause                 10000 # required, wait for IDE open.
-      .click                 vmSelector
+    browser.element 'css selector', "#{vmSelector} .running", (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        browser
+          .waitForElementVisible vmSelector, 25000
+          .pause                 10000 # required, wait for IDE open.
+          .click                 vmSelector
 
-    helpers.waitForVMRunning(browser, vmName)
+        helpers.waitForVMRunning(browser, vmName)
 
-    browser.end()
+        browser.end()
 
 
   # this test depends addVM and turnOnNewPaidVM tests.
