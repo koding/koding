@@ -16,11 +16,10 @@ module.exports = class TopicLeafItemView extends KDListItemView
 
   pistachio: ->
     data     = @getData()
-    type     = 'Type'
     
     return """
       <div class="details">
-        <p class="nickname">#{data.name}</p>
+        <p class="nickname">#(name)</p>
       </div>
       <div class='clear'></div>
 

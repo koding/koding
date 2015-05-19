@@ -270,12 +270,11 @@ module.exports = class TopicItemView extends KDListItemView
 
 
   pistachio: ->
-    data          = @getData()
-    moderateRole  = 'Topic'
+    data = @getData()
     
     return """
       <div class="details">
-        <p class="topicname">#{data.name}</p>
+        <p class="topicname">#(name)</p>
       </div>
       {{> @typeLabel}}
       {{> @moderationLabel}}
