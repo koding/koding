@@ -82,6 +82,10 @@ enabled = true
 host = "localhost"
 port = "7300"
 
+[webhookMiddleware]
+host = "localhost"
+port = "7350"
+
 [customDomain]
 public = "https://koding-siesta.ngrok.com"
 public_ = "koding-siesta.ngrok.com"
