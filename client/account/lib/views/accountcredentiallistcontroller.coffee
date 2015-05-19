@@ -7,13 +7,13 @@ KDFormViewWithFields        = kd.FormViewWithFields
 KDAutoCompleteController    = kd.AutoCompleteController
 
 KodingSwitch                = require 'app/commonviews/kodingswitch'
-ComputeController           = require 'app/providers/computecontroller'
 ComputeController_UI        = require 'app/providers/computecontroller.ui'
-AccountListViewController   = require '../controllers/accountlistviewcontroller'
+AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
 MemberAutoCompleteItemView  = require 'app/commonviews/memberautocompleteitemview'
 MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemview'
 
 remote                      = require('app/remote').getInstance()
+globals                     = require 'globals'
 showError                   = require 'app/util/showError'
 
 
@@ -51,8 +51,8 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     providerList = { }
 
-    Providers = ComputeController.providers
 
+    Providers    = globals.config.providers
     Object.keys(Providers).forEach (provider) =>
 
       return  if Object.keys(Providers[provider].credentialFields).length is 0
