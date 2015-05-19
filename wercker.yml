@@ -136,8 +136,8 @@ build:
     - script:
         name: test socialworker
         code: |
-          cd ./workers/social
-          ./tests.sh
+          echo "testing social worker"
+          ./workers/social/tests.sh
     - script:
         name: testing backend finished
         code: |
