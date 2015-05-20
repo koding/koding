@@ -91,9 +91,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @session = session
     @bindSessionEvents session
     @setState { connected: yes }
-    @emit 'SessionConnected', session
 
-    if helper.isVideoActive @channel
+    videoActive = helper.isVideoActive @channel
+
+    @emit 'SessionConnected', session, videoActive
+
+    if videoActive
       @setActive()
       @changeActiveParticipant getNick()
 
