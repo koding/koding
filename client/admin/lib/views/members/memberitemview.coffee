@@ -59,7 +59,8 @@ module.exports = class MemberItemView extends KDListItemView
 
     @createSettingsView()
 
-    @on 'UserRoleChangeRequested', @bound 'handleRoleChange'
+    @on 'UserRoleChangeRequested', (role) =>
+      if role is 'kick' then @kick() else @handleRoleChange role
 
 
   getRole: (userRoles) ->
@@ -132,6 +133,16 @@ module.exports = class MemberItemView extends KDListItemView
     message or= 'Failed to change user role. Please try again.'
     return new KDNotificationView title: message, duration: 5000
 
+
+  kick: ->
+
+    { groupsController } = kd.singletons
+    groupsController.ready =>
+      groupsController.getCurrentGroup().kickMember @getData().getId(), (err) =>
+
+        return @handleError @actionButtons.kick, 'Failed to kick user. Please try again.'  if err
+
+        @destroy()
 
 
   toggleSettings: ->
