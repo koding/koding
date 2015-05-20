@@ -54,19 +54,13 @@ module.exports = VideoCollaborationController =
     callback @videoModel.getParticipants()
 
 
-  startVideoCollaboration: ->
-
-    @videoModel.start()
+  startVideoCollaboration: -> @videoModel.start()
 
 
-  endVideoCollaboration: ->
-
-    @videoModel.end()
+  endVideoCollaboration: -> @videoModel.end()
 
 
-  muteParticipant: (nickname) ->
-
-    @videoModel.muteParticipant nickname
+  muteParticipant: (nickname) -> @videoModel.muteParticipant nickname
 
 
   toggleVideoControl: (type, activeState) ->
