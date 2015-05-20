@@ -132,7 +132,9 @@ module.exports = class AccountCredentialList extends KDListView
       .then (response) ->
 
         console.log "Verify result:", response
+        response
 
       .catch (err) ->
 
         console.warn "Verify failed:", err
+        err
