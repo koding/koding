@@ -19,16 +19,13 @@ module.exports = (req, res, next) ->
     domains
     # newsletter holds announcements config.
     newsletter
-    # is group creator already a member 
+    # is group creator already a member
     alreadyMember
   } = body
 
   redirect ?= '/'
   context   = { group: slug }
   clientId  = getClientId req, res
-
-  # tmp: copy/paste from ./register.coffee - SY
-  # cc/ @cihangir
 
   return handleClientIdNotFound res, req  unless clientId
 
@@ -43,8 +40,8 @@ module.exports = (req, res, next) ->
 
     client.clientIP = (clientIPAddress.split ',')[0]
 
-    body.emailFrequency or= {}
     # subscribe to koding marketing mailings or not
+    body.emailFrequency         or= {}
     body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
 
     createGroup = (err, result) ->
@@ -79,8 +76,6 @@ module.exports = (req, res, next) ->
         allowedDomains  : convertToArray domains # clear & convert domains into array
       , owner, (err, group) ->
 
-        console.log err, group
-
         return res.status(500).send "Couldn't create the group."  if err or not group
 
         queue = [
@@ -99,8 +94,8 @@ module.exports = (req, res, next) ->
           res.redirect 301, redirect
 
     if alreadyMember
-    then JUser.login client.sessionToken, req.body, createGroup
-    else JUser.convert client, req.body, createGroup
+    then JUser.login client.sessionToken, body, createGroup
+    else JUser.convert client, body, createGroup
 
 
 
