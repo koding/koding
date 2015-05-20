@@ -10,6 +10,25 @@ AccountCredentialListController = require 'account/views/accountcredentiallistco
 
 module.exports = class StacksCustomViews extends CustomViews
 
+
+  handleNewCredential = (views, provider) ->
+
+    {controller} = views.credentialList
+    view = controller.getView()
+    view.hide()
+
+    form = controller.showAddCredentialFormFor provider
+    form.on 'Cancel', view.bound 'show'
+
+    # After adding credential, we are sharing it with the current
+    # group, so anyone in this group can use this credential ~ GG
+    form.on 'CredentialAdded', (credential) ->
+      {slug} = kd.singletons.groupsController.getCurrentGroup()
+      credential.shareWith {target: slug}, (err) ->
+        console.warn 'Failed to share credential:', err  if err
+        view.show()
+
+
   _.assign @views,
 
     noStackFoundView: (callback) =>
@@ -93,26 +112,16 @@ module.exports = class StacksCustomViews extends CustomViews
       container = @views.container 'step-creds'
       views     = @addTo container,
         stepsHeaderView : 2
-        button_addNew   :
-          title         : 'Add New Credential'
-          callback      : ->
-
-            {controller} = views.credentialList
-            view = controller.getView()
-            view.hide()
-
-            form = controller.showAddCredentialFormFor provider
-            form.on 'Cancel', view.bound 'show'
-
-            # After adding credential, we are sharing it with the current
-            # group, so anyone in this group can use this credential ~ GG
-            form.on 'CredentialAdded', (credential) ->
-              {slug} = kd.singletons.groupsController.getCurrentGroup()
-              credential.shareWith {target: slug}, (err) ->
-                console.warn 'Failed to share credential:', err  if err
-                view.show()
-
-
+        container_top   :
+          text_creds    : "To be able to use this provider <strong>you need to
+                           select a verified credential</strong> below, if you
+                           don't have a verified credential you won't be able
+                           to setup your stack for your team."
+          button_addNew :
+            title       : 'Add New Credential'
+            cssClass    : 'solid medium green'
+            callback    : ->
+              handleNewCredential views, provider
         credentialList  : provider
         button_cancel   :
           title         : '< Select another provider'
