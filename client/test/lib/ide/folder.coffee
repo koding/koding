@@ -19,6 +19,7 @@ module.exports =
     folderData = helpers.createFolder(browser, user)
 
     helpers.createFile(browser, user, 'li.new-file', folderData.name)
+    browser.end()
 
 
    createFolderFromContextMenu: (browser) ->
