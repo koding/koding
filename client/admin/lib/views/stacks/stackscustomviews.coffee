@@ -114,11 +114,14 @@ module.exports = class StacksCustomViews extends CustomViews
 
 
         credentialList  : provider
-        navButton_prev  :
+        button_cancel   :
+          title         : '< Select another provider'
+          cssClass      : 'solid compact light-gray nav cancel'
           callback      : cancelCallback
-        navButton_next  :
-          callback      : ->
-            callback {provider}
+
+      credentialList = views.credentialList.__view
+      credentialList.on 'ItemSelected', (credential) ->
+        callback {credential, provider}
 
       return container
 
