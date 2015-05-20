@@ -506,3 +506,21 @@ utils.extend utils,
       xhrFields   : withCredentials : yes
       success     : callbacks.success
       error       : callbacks.error
+
+
+  joinTeam: ->
+
+    formData = createFormData()
+
+    # manually add legacy fields - SY
+    formData.agree           = 'on'
+    formData.passwordConfirm = formData.password
+    formData.redirect        = '/'
+
+    $.ajax
+      url       : "/-/teams/join"
+      data      : formData
+      type      : 'POST'
+      success   : -> location.href = formData.redirect
+      error     : ({responseText}) ->
+        new KDNotificationView title : responseText
