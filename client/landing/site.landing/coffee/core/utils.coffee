@@ -438,11 +438,10 @@ utils.extend utils,
     return {}
 
 
-  createTeam: ->
+  createFormData = (teamData) ->
 
     teamData = KD.utils.getTeamData()
     formData = {}
-
     for key, value of teamData
       for k, v of value
         if k.search('invitee') >= 0
@@ -450,6 +449,13 @@ utils.extend utils,
           formData['invitees'] += ",#{v}"
         else
           formData[k] = v
+
+    return formData
+
+
+  createTeam: ->
+
+    formData = createFormData()
 
     # manually add legacy fields - SY
     formData.agree           = 'on'
