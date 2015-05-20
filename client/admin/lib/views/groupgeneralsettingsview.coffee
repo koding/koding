@@ -153,7 +153,6 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     pattern  = geoPattern.generate @getData().slug, generator: 'plusSigns'
 
     avatarEl.style.backgroundImage = pattern.toDataUrl()
-    avatarEl.style.borderColor     = pattern.color
     @uploadSection.unsetClass 'with-logo'
 
 

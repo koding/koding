@@ -14,9 +14,7 @@ module.exports =
       posts    = (faker.Lorem.paragraphs() for i in [1..10])
       comments = (faker.Lorem.paragraph()  for i in [1..10])
 
-      while username.length < 8
-        username = faker.Helpers.slugify(faker.Internet.userName().toLowerCase()).replace(/\./g, '').replace(/_/g, '')
-
+      username = username.substring(0, 7) + Date.now()
       password = @getPassword()
 
       email = "kodingtestuser+#{username}@koding.com"

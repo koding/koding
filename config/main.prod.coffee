@@ -538,6 +538,15 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
+    contentrotator      :
+      nginx             :
+        locations       : [
+          {
+            location    : "/-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/$1"
+          }
+        ]
+
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------
     # reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"

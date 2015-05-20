@@ -546,6 +546,15 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
+    contentrotator      :
+      nginx             :
+        locations       : [
+          {
+            location    : "/-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/$1"
+          }
+        ]
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
