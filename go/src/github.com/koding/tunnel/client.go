@@ -80,12 +80,14 @@ func (c *Client) decoder() {
 			continue
 		}
 
-		if msg.Protocol != "http" && msg.Protocol != "websocket" {
+		switch msg.Protocol {
+		case "http", "websocket":
+			go c.proxy(msg)
+		default:
 			log.Printf("protocol is not valid %s\n", msg.Protocol)
 			continue
 		}
 
-		go c.proxy(msg)
 	}
 }
 

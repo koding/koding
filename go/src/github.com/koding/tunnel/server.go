@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/fatih/pool"
-	"github.com/hashicorp/yamux"
 )
 
 // Server satisfies the http.Handler interface. It is responsible of tracking
@@ -26,11 +25,6 @@ type Server struct {
 	// pools is containing a connection pool for each virtual host.
 	pools   map[string]*pool.Pool
 	poolsMu sync.RWMutex // protects the pools map
-
-	// sessions contains a session per virtual host. Sessions provides
-	// multiplexing over one connection
-	sessions   map[string]*yamux.Session
-	sessionsMu sync.RWMutex // protects the sessions map
 
 	// controls contains the control connection from the client to the server
 	controls *controls
@@ -46,7 +40,6 @@ func NewServer() *Server {
 	s := &Server{
 		pending:      make(map[string]chan *tunnel),
 		pools:        make(map[string]*pool.Pool),
-		sessions:     make(map[string]*yamux.Session),
 		controls:     newControls(),
 		virtualHosts: newVirtualHosts(),
 	}
@@ -219,38 +212,6 @@ func (s *Server) makeRequest(w http.ResponseWriter, r *http.Request, iteration i
 	// only put it back when the tunnel connection is still alive
 	s.putConn(host, tunn)
 	return nil
-}
-
-// tunnelFromSessions picks the tunnel from the sessions map associated with
-// the with the host.
-func (s *Server) tunnelFromSessions(host string) (*tunnel, error) {
-	s.sessionsMu.Lock()
-	defer s.sessionsMu.RLock()
-
-	var session *yamux.Session
-	var ok bool
-	session, ok = s.sessions[host]
-	if !ok {
-		tunn, err := s.requestTunnel("http", host)
-		if err != nil {
-			return nil, err
-		}
-
-		session, err := yamux.Server(tunn, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		s.sessions[host] = session
-	}
-
-	// every request is a new stream
-	conn, err := session.Accept()
-	if err != nil {
-		return nil, err
-	}
-
-	return newTunnel(conn), nil
 }
 
 // tunnelFromPool picks up the next tunnel from the connection pool. It also
