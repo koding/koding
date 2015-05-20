@@ -74,7 +74,7 @@ func (c *control) connect(identifier string) error {
 		return fmt.Errorf("CONNECT %s", err)
 	}
 
-	req.Header.Set("identifier", identifier)
+	req.Header.Set(XKTunnelIdentifier, identifier)
 	req.Write(c)
 
 	resp, err := http.ReadResponse(bufio.NewReader(c), req)

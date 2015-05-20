@@ -69,9 +69,9 @@ func checkConnect(fn func(w http.ResponseWriter, r *http.Request) error) http.Ha
 // TunnelHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
 func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) error {
-	protocol := r.Header.Get("protocol")
-	tunnelID := r.Header.Get("tunnelID")
-	identifier := r.Header.Get("identifier")
+	protocol := r.Header.Get(XKTunnelProtocol)
+	tunnelID := r.Header.Get(XKTunnelId)
+	identifier := r.Header.Get(XKTunnelIdentifier)
 	log.Printf("tunnel with protocol %s, tunnelID %s and identifier %s\n",
 		protocol, tunnelID, identifier)
 
@@ -105,7 +105,7 @@ func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) error {
 // connection starts to read and write to the control connection until the
 // connection is closed. Currently only one control connection per user is allowed.
 func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
-	identifier := r.Header.Get("identifier")
+	identifier := r.Header.Get(XKTunnelIdentifier)
 	if identifier == "" {
 		return fmt.Errorf("empty identifier is connected")
 	}
