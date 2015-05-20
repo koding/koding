@@ -11,6 +11,8 @@ module.exports =
 
   # openVmDomain: (browser) ->
 
+  #   ## This test is disabled because DNS propagation takes time and we are running test before DNS propagation complete.
+
   #   modalSelector = '.activity-modal.vm-settings'
   #   linkSelector  = modalSelector + ' .assigned-url .custom-link-view'
 
@@ -69,3 +71,28 @@ module.exports =
     browser
       .waitForElementVisible     domainItem + ' .koding-on-off.off', 20000
       .end()
+
+
+  addInvalidDomain: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    invalidDomainName    = ';invalidVmName;'
+    buttonSelector       = '.domains .kdheaderview button.add-button'
+    buttonLoaderSelector = '.add-view button.loading'
+    errorSelector        = '.kdmodal-inner .domains .notification.error'
+
+    environmentHelpers.openDomainSettings(browser)
+
+    browser
+    .waitForElementVisible    buttonSelector, 20000
+    .click                    buttonSelector
+    .waitForElementVisible    '.add-view input.hitenterview', 20000
+    .setValue                 '.add-view input.hitenterview', invalidDomainName + '\n'
+    .waitForElementVisible    buttonLoaderSelector, 10000
+    .waitForElementNotPresent buttonLoaderSelector, 20000
+    .waitForElementVisible    errorSelector, 20000 # Assertion
+    .end()
+
+

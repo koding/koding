@@ -256,16 +256,19 @@ module.exports =
       .click                   webSelector + ' + .chevron'
 
 
-  createFile: (browser, user, selector) ->
+  createFile: (browser, user, selector, folderName) ->
 
     if not selector
       selector = 'li.new-file'
 
-    @openFolderContextMenu(browser, user, 'Web')
+    if not folderName
+      folderName = 'Web'
 
-    webPath   = '/home/' + user.username + '/Web'
-    paragraph = @getFakeText()
-    filename  = paragraph.split(' ')[0] + '.txt'
+    @openFolderContextMenu(browser, user, folderName)
+
+    folderPath = "/home/#{user.username}/#{folderName}"
+    paragraph  = @getFakeText()
+    filename   = paragraph.split(' ')[0] + '.txt'
 
     browser
       .waitForElementVisible    selector, 50000
@@ -274,7 +277,7 @@ module.exports =
       .clearValue               'li.selected .rename-container .hitenterview'
       .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
       .pause                    3000 # required
-      .waitForElementPresent    "span[title='" + webPath + '/' + filename + "']", 50000 # Assertion
+      .waitForElementPresent    "span[title='" + folderPath + '/' + filename + "']", 50000 # Assertion
 
     return filename
 
