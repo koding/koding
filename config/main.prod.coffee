@@ -175,6 +175,7 @@ Configuration = (options={}) ->
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
+    contentRotatorUrl              : 'http://koding.github.io'
 
     collaboration :
       timeout     : 1 * 60 * 1000
@@ -583,7 +584,7 @@ Configuration = (options={}) ->
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
-      export HOME=/home/user-ec2
+      export HOME=/home/ec2-user
       export KONFIG_JSON='#{KONFIG.JSON}'
       """
 

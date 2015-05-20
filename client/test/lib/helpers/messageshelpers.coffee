@@ -4,17 +4,18 @@ assert  = require 'assert'
 
 module.exports =
 
-  startConversation: (browser, user, message, purpose) ->
+  startConversation: (browser, users, message, purpose) ->
 
-    elementSelector    = '.activity-sidebar .messages h3.sidebar-title'
-    purposeSelector    = '.sidebar-message-text .purpose'
-    formSelector       = '.new-message-form.with-fields .formline.recipient'
-    textareaSelector   = '.reply-input-widget.private [testpath=ActivityInputView]'
-    itemSelector       = '.private-message:not(.hidden) span.profile'
-    messageSelector    = ".activity-sidebar .messages .sidebar-message-text [href='/#{user.userName}']"
-    message          or= 'Hello World!'
-    sendMessage        = (browser, user, message, purpose) ->
-      console.log "✔  Creating a new message with user #{user.userName}..."
+    elementSelector     = '.activity-sidebar .messages h3.sidebar-title'
+    purposeSelector     = '.sidebar-message-text .purpose'
+    formSelector        = '.new-message-form.with-fields .formline.recipient'
+    textareaSelector    = '.reply-input-widget.private [testpath=ActivityInputView]'
+    itemSelector        = '.private-message:not(.hidden) span.profile'
+    sidebarTextSelector = '.activity-sidebar .messages .sidebar-message-text'
+    messageSelector     = "#{sidebarTextSelector} [href='/#{users[0].userName}']"
+    message           or= 'Hello World!'
+    sendMessage         = (browser, users, message, purpose) ->
+      console.log "✔  Creating a new message with user #{users[0].userName}..."
       browser
         .waitForElementVisible   '[testpath=main-sidebar]', 20000
         .waitForElementVisible   elementSelector, 20000
@@ -22,12 +23,15 @@ module.exports =
         .click                   elementSelector + ' a.add-icon'
         .waitForElementVisible   '.new-message-form.with-fields' , 20000
         .waitForElementVisible   formSelector, 20000
-        .click                   formSelector + ' input[type=text]'
-        .setValue                formSelector + ' input[type=text]', user.userName
-        .click                   elementSelector + ' a.add-icon'
-        .click                   formSelector + ' input[type=text]'
-        .waitForElementVisible   itemSelector, 20000
-        .click                   itemSelector
+
+        for user in users
+          browser
+            .click                   formSelector + ' input[type=text]'
+            .setValue                formSelector + ' input[type=text]', user.userName
+            .click                   elementSelector + ' a.add-icon'
+            .click                   formSelector + ' input[type=text]'
+            .waitForElementVisible   itemSelector, 20000
+            .click                   itemSelector
 
         if purpose
           browser
@@ -44,7 +48,10 @@ module.exports =
           if purpose
             browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
           else
-            browser.assert.containsText '.activity-sidebar .messages', user.fullName # Assertion
+            for user in users
+              firstName = user.fullName.split(' ')[0]
+              browser.assert.containsText   '.activity-sidebar .messages', firstName # Assertion
+              browser.waitForElementVisible "#{sidebarTextSelector} [href='/#{user.userName}']", 20000
 
 
     browser.element 'css selector', messageSelector, (result) =>
@@ -58,9 +65,9 @@ module.exports =
               console.log "✔  A message thread with the same purpose is already exists. Ending test."
               return yes
             else
-              sendMessage browser, user, message, purpose
+              sendMessage browser, users, message, purpose
         else
-          sendMessage browser, user, message
+          sendMessage browser, users, message
 
 
   leaveConversation: (browser, user, message) ->

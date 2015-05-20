@@ -2,13 +2,13 @@ kd = require 'kd'
 
 module.exports = class CustomViews
 
-  MIXINS = ['views', 'addTo', 'addCustomViews']
+  MIXINS = ['views', 'addTo', 'addCustomViews', 'replaceViewsWith']
   @mixin = (target) ->
     target[mixin] = this[mixin] for mixin in MIXINS
 
   @views      =
     view      : (options, data) ->
-      new kd.View options, data
+      new kd.CustomHTMLView options, data
     text      : (text, cssClass) =>
       @views.view partial: text, cssClass: "text #{cssClass ? ''}"
     container : (options, cssClass) =>
@@ -23,7 +23,7 @@ module.exports = class CustomViews
     link      : (options) ->
       new (require 'app/customlinkview') options
 
-  @addTo   = (parent, views)->
+  @addTo   = (parent, views) ->
 
     map    = {}
     length = 0
@@ -46,5 +46,9 @@ module.exports = class CustomViews
     return map[key]  if length is 1
     return map
 
-  @addCustomViews = (views)->
+  @addCustomViews = (views) ->
+    @addTo this, views
+
+  @replaceViewsWith = (views) ->
+    @destroySubViews()
     @addTo this, views

@@ -18,6 +18,10 @@ app.settings.styl
 
 // Account AppModal Styles
 .AppModal--account
+
+  .kdmodal-content
+    overflow                hidden !important
+
   .AppModal-navItem:before
     content                 ''
     display                 inline-block
@@ -92,17 +96,17 @@ app.settings.styl
       r-sprite              'account' 'shortcuts-active'
 
   .AppModal-content
-    min-height               570px
+    min-height              540px
 
   .AppModal-form
-    padding-top              20px
+    padding-top             20px
 
     .formline
-      margin-bottom          15px
+      margin-bottom         15px
 
       .AppModal-sectionHeader
-        margin-bottom        0px
-        padding-top          20px
+        margin-bottom       0px
+        padding-top         20px
 
 .AppModal--account-avatarArea
   overflow                  hidden
