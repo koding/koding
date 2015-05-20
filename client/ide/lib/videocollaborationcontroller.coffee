@@ -1,5 +1,6 @@
 VideoCollaborationModel = require 'app/videocollaboration/model'
 socialHelpers           = require './collaboration/helpers/social'
+isVideoFeatureEnabled   = require 'app/util/isVideoFeatureEnabled'
 
 generatePayloadFromModel = (model) ->
   return {
@@ -17,6 +18,7 @@ module.exports = VideoCollaborationController =
       view    : @chat.getVideoView()
 
     @videoModel
+      .on 'SessionConnected',              @bound 'handleVideoSessionConnected'
       .on 'CameraAccessQuestionAsked',     @bound 'handleVideoAccessQuestionAsked'
       .on 'CameraAccessQuestionAnswered',  @bound 'handleVideoAccessQuestionAnswered'
       .on 'VideoCollaborationActive',      @bound 'handleVideoActive'
@@ -33,7 +35,6 @@ module.exports = VideoCollaborationController =
         @handleVideoParticipantTalkingStateChanged participant, on
       .on 'ParticipantStoppedTalking', (participant) =>
         @handleVideoParticipantTalkingStateChanged participant, off
-
 
     participantEvents = [
       'SelectedParticipantChanged'
@@ -80,6 +81,16 @@ module.exports = VideoCollaborationController =
   hasParticipantWithAudio: (nickname, callback) ->
 
     @videoModel.hasParticipantWithAudio nickname, callback
+
+
+  handleVideoSessionConnected: (session, videoActive) ->
+
+    if isVideoFeatureEnabled()
+      if videoActive
+        @emitToViews 'VideoSessionConnected', { action: 'join' }
+      else
+        if @amIHost
+          @emitToViews 'VideoSessionConnected', { action: 'start' }
 
 
   handleVideoAccessQuestionAsked: ->
