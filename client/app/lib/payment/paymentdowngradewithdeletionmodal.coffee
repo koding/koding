@@ -1,9 +1,10 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+kd               = require 'kd'
+KDButtonView     = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
-KDLoaderView = kd.LoaderView
+KDLoaderView     = kd.LoaderView
 PaymentBaseModal = require './paymentbasemodal'
-showError = require 'app/util/showError'
+showError        = require 'app/util/showError'
+PaymentConstants = require './paymentconstants'
 
 
 module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModal
@@ -58,6 +59,19 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
       cssClass : 'submit-btn warning-btn'
       title  : 'YES, DOWNGRADE'
       callback : @lazyBound 'emit', 'PaymentDowngradeWithDeletionSubmitted'
+
+    @filterViews()
+
+
+  filterViews: ->
+
+    { state: { planTitle, currentPlan } } = @getOptions()
+
+    operation   = PaymentConstants.getOperation currentPlan, planTitle
+    isFreePlan  = planTitle is PaymentConstants.planTitle.FREE
+
+    if operation is PaymentConstants.operation.DOWNGRADE and isFreePlan
+      @subtitle.hide()
 
 
   initEvents: ->
