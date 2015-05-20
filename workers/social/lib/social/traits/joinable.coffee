@@ -33,7 +33,7 @@ module.exports = class Joinable
       else unless invite?
         callback new KodingError 'Invalid invitation code.'
       else
-        addToGroup_.call this, (err)->
+        addToGroup_.call this, client, { as }, (err) ->
           if err then callback err
           else invite.accept delegate, (err) -> callback err
 
