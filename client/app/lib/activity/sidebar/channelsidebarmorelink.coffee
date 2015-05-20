@@ -8,7 +8,7 @@ module.exports = class ChannelSidebarMoreLink extends SidebarMoreLink
 
     return  if err
 
-    { totalCount }      = res
+    { totalCount } = res
 
     if totalCount > 8
     then @show()
