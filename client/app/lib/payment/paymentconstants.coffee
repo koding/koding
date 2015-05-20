@@ -48,5 +48,5 @@ module.exports =
     ERR_USER_NOT_CONFIRMED: 'You need to confirm your email to purchase a Koding subscription.'
 
   events:
-    WORKFLOW_STARTED: 'workflowStarted'
-    WORKFLOW_COULD_NOT_START: 'workflowCouldNotStart'
+    WORKFLOW_STARTED: 'WorkflowStarted'
+    WORKFLOW_COULD_NOT_START: 'WorkflowCouldNotStart'
