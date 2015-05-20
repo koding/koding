@@ -105,7 +105,16 @@ module.exports = class StacksCustomViews extends CustomViews
             view.hide()
 
             form = controller.showAddCredentialFormFor provider
-            form.on ['Cancel','CredentialAdded'], view.bound 'show'
+            form.on 'Cancel', view.bound 'show'
+
+            # After adding credential, we are sharing it with the current
+            # group, so anyone in this group can use this credential ~ GG
+            form.on 'CredentialAdded', (credential) ->
+              {slug} = kd.singletons.groupsController.getCurrentGroup()
+              credential.shareWith {target: slug}, (err) ->
+                console.warn 'Failed to share credential:', err  if err
+                view.show()
+
 
         credentialList  : provider
         navButton_prev  :
