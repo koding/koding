@@ -76,7 +76,7 @@ module.exports = class AvatarView extends LinkView
     return no  unless profile?.hash?
 
     {width} = @getOptions().size
-    size    = width * @dpr
+    size    = Math.round width * @dpr
 
     # We have 16-512 all versions of avatar on our CDN ~ GG
     # If you need to update them; after creating a largest version of avatar

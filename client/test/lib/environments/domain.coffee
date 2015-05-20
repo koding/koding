@@ -34,10 +34,10 @@ module.exports =
   #         .end()
 
 
-  addDomain: (browser) ->
+  # addDomain: (browser) ->
 
-    environmentHelpers.addDomain(browser)
-    browser.end()
+  #   environmentHelpers.addDomain(browser)
+  #   browser.end()
 
 
   deleteDomain: (browser) ->
