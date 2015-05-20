@@ -37,12 +37,40 @@ module.exports = class CredentialListItem extends kd.ListItemView
       cssClass : 'solid compact outline'
       title    : 'VERIFY'
 
+    @messageView = new kd.CustomHTMLView
+      cssClass : 'message'
+
+    @setVerified verified
+
+
+  setVerified: (state, reason) ->
+
+    if state
+      @verifyButton.hide()
+      @useButton.show()
+    else
+      @verifyButton.show()
+      @useButton.hide()
+
+    @messageView.updatePartial if state \
+      then 'Verified Credential'
+      else 'Not verified'
+
+    @messageView.setClass if state \
+      then 'green' else 'red'
+
+    @messageView.unsetTooltip()
+    @messageView.setTooltip title: reason  if reason
+
+
 
   pistachio: ->
     """
     <div class='credential-info'>
       {h4{#(title)}} {p{#(provider)}}
+      {{> @messageView}}
     </div>
+
     <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}
       {{> @useButton}}{{> @verifyButton}}
