@@ -95,7 +95,6 @@ module.exports = class MemberItemView extends KDListItemView
 
   handleRoleChange: (newRole) ->
 
-    { groupsController } = kd.singletons
     button   = @actionButtons[newRole]
     jAccount = @getData()
 
@@ -103,28 +102,27 @@ module.exports = class MemberItemView extends KDListItemView
 
     @isInProgress = yes
 
-    groupsController.ready =>
-      group    = groupsController.getCurrentGroup()
-      newRoles = [ newRole ]
+    group    = kd.singletons.groupsController.getCurrentGroup()
+    newRoles = [ newRole ]
 
-      newRoles.push 'admin'  if newRole is 'owner'
+    newRoles.push 'admin'  if newRole is 'owner'
 
-      group.changeMemberRoles jAccount.getId(), newRoles, (err, response) =>
+    group.changeMemberRoles jAccount.getId(), newRoles, (err, response) =>
+      return @handleError button  if err
+
+      group.fetchUserRoles [ jAccount.getId() ], (err, roles) =>
+
         return @handleError button  if err
 
-        group.fetchUserRoles [ jAccount.getId() ], (err, roles) =>
+        data        = @getData()
+        data.roles  = (role.as for role in roles)
+        @memberRole = @getRole data.roles
 
-          return @handleError button  if err
+        @roleLabel.updatePartial "#{@memberRole.label} <span class='settings-icon'></span>"
+        @settings.destroySubViews()
+        @createSettingsView()
 
-          data        = @getData()
-          data.roles  = (role.as for role in roles)
-          @memberRole = @getRole data.roles
-
-          @roleLabel.updatePartial "#{@memberRole.label} <span class='settings-icon'></span>"
-          @settings.destroySubViews()
-          @createSettingsView()
-
-          @isInProgress = no
+        @isInProgress = no
 
 
   handleError: (button, message) ->
@@ -136,13 +134,11 @@ module.exports = class MemberItemView extends KDListItemView
 
   kick: ->
 
-    { groupsController } = kd.singletons
-    groupsController.ready =>
-      groupsController.getCurrentGroup().kickMember @getData().getId(), (err) =>
+    kd.singletons.groupsController.getCurrentGroup().kickMember @getData().getId(), (err) =>
 
-        return @handleError @actionButtons.kick, 'Failed to kick user. Please try again.'  if err
+      return @handleError @actionButtons.kick, 'Failed to kick user. Please try again.'  if err
 
-        @destroy()
+      @destroy()
 
 
   toggleSettings: ->
