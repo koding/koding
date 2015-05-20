@@ -36,6 +36,7 @@ func NewServer() *Server {
 		virtualHosts: newVirtualHosts(),
 	}
 
+	http.Handle(TunnelPath, checkConnect(s.tunnelHandler))
 	return s
 }
 
@@ -87,6 +88,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 
 // tunnelHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
+// TODO(arslan): close captured connection when we return with an error
 func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) error {
 	identifier := r.Header.Get(XKTunnelIdentifier)
 	log.Printf("tunnel with identifier %s\n", identifier)
@@ -118,6 +120,17 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) error {
 	s.sessions[host] = session
 	s.sessionsMu.Unlock()
 
+	stream, err := session.Accept()
+	if err != nil {
+		return err
+	}
+
+	buf := make([]byte, 4)
+	if _, err := stream.Read(buf); err != nil {
+		return err
+	}
+
+	fmt.Printf("buf = %+v\n", string(buf))
 	return nil
 }
 
@@ -159,4 +172,21 @@ func copyHeader(dst, src http.Header) {
 			dst.Add(k, v)
 		}
 	}
+}
+
+// checkConnect checks wether the incoming request is HTTP CONNECT method. If
+func checkConnect(fn func(w http.ResponseWriter, r *http.Request) error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "CONNECT" {
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			io.WriteString(w, "405 must CONNECT\n")
+			return
+		}
+
+		err := fn(w, r)
+		if err != nil {
+			http.Error(w, err.Error(), 502)
+		}
+	})
 }
