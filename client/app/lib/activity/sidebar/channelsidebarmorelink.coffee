@@ -4,11 +4,6 @@ SidebarMoreLink       = require './sidebarmorelink'
 
 module.exports = class ChannelSidebarMoreLink extends SidebarMoreLink
 
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-
   renderCount: (err, res) ->
 
     return  if err

@@ -5,11 +5,6 @@ ActivitySideView            = require './activitysideview'
 
 module.exports = class ChannelActivitySideView extends ActivitySideView
 
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-
   createMoreLink: ->
 
     { searchLink, countSource, limit } = @getOptions()
