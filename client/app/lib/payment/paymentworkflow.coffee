@@ -257,10 +257,6 @@ module.exports = class PaymentWorkflow extends KDController
 
     @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
 
-    #{ appManager } = kd.singletons
-    #pricingView = appManager.get('Pricing').getView()
-    #pricingView.emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
-
 
   blockUserForTooManyAttempts: ->
 
