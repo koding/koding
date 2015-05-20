@@ -29,9 +29,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     isHost = not @isInSession
 
-    if isVideoFeatureEnabled() and isHost
-      @createStartVideoButton()
-
     @define 'visible', => @getDelegate().visible
 
     @on 'AddedParticipant', @bound 'participantAdded'
