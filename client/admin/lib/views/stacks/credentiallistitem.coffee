@@ -33,9 +33,11 @@ module.exports = class CredentialListItem extends kd.ListItemView
     @useButton.hide()  unless verified
 
     @verifyButton = new kd.ButtonView
-      callback : delegate.lazyBound 'verify', this
       cssClass : 'solid compact outline'
       title    : 'VERIFY'
+      callback : @bound 'verifyCredential'
+
+    @verifyButton.hide()  if verified
 
     @messageView = new kd.CustomHTMLView
       cssClass : 'message'
@@ -62,6 +64,28 @@ module.exports = class CredentialListItem extends kd.ListItemView
     @messageView.unsetTooltip()
     @messageView.setTooltip title: reason  if reason
 
+
+  verifyCredential: ->
+
+    credential = @getData()
+
+    if credential.verified
+      @setVerified yes
+      return
+
+    @verifyButton.disable()
+    @messageView.unsetClass 'red green'
+    @messageView.updatePartial 'Verifying credential...'
+
+    @getDelegate()
+      .verify this
+      .then (response) =>
+        @setVerified response?[credential.publicKey]
+
+      .catch (err) =>
+        @setVerified no, err.message
+
+      .finally @verifyButton.bound 'enable'
 
 
   pistachio: ->
