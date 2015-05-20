@@ -18,15 +18,13 @@ module.exports = class PricingAppView extends KDView
 
   JView.mixin @prototype
 
-  TOO_MANY_ATTEMPT_BLOCK_DURATION = globals.config.paymentBlockDuration
-  TOO_MANY_ATTEMPT_BLOCK_KEY = 'BlockForTooManyAttempts'
-
   getInitialState : ->
 
     dayOfWeek = (new Date).getDay()
     reversePlans = dayOfWeek in [2, 4, 6, 7]
 
     return {
+      inProcess : no
       planInterval : 'year'
       promotedPlan : if reversePlans then 'developer' else 'hobbyist'
       reversePlans
@@ -189,18 +187,25 @@ module.exports = class PricingAppView extends KDView
 
   preventBlockedUser: (options, callback) ->
 
-    @appStorage.fetchValue TOO_MANY_ATTEMPT_BLOCK_KEY, (result) =>
+    @appStorage.fetchValue PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_KEY, (result) =>
 
       return callback()  unless result
 
       difference = Date.now() - result.timestamp
 
-      if difference < TOO_MANY_ATTEMPT_BLOCK_DURATION
+      if difference < PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_DURATION
 
         @workflowController = new PaymentWorkflow { state: options, delegate: this }
 
         @workflowController.on PaymentConstants.events.WORKFLOW_STARTED, =>
+          @state.inProcess = no
           @workflowController.failedAttemptLimitReached no
+
+        workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
+
+        @workflowController.on workflowCouldNotStart, =>
+          @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
+          @state.inProcess = no
 
         return
 
@@ -211,6 +216,8 @@ module.exports = class PricingAppView extends KDView
 
   removeBlockFromUser: ->
 
+    TOO_MANY_ATTEMPT_BLOCK_KEY = PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_KEY
+
     kd.utils.defer => @appStorage.unsetKey TOO_MANY_ATTEMPT_BLOCK_KEY
 
 
@@ -219,9 +226,10 @@ module.exports = class PricingAppView extends KDView
    * before filter, that filter will decide
    * if this method will be called or not.
   ###
-  planSelected: do (inProcess = no) -> (options) ->
+  planSelected: (options) ->
+    return  if @state.inProcess
 
-    return  if inProcess
+    @state.inProcess = yes
 
     @preventBlockedUser options, =>
 
@@ -229,17 +237,10 @@ module.exports = class PricingAppView extends KDView
         .router
         .handleRoute '/Login'  unless isLoggedIn()
 
-      # To prevent any other thing to happen when a plan selected
-      # (not starting the whole payment process)
-      # we are not letting the rest of the process happen.
-      return  if inProcess
-
       # wait for loading the current plan,
       # call this method until it's ready.
       unless @state.currentPlan?
         return @loadPlan => @planSelected options
-
-      inProcess = yes
 
       isCurrentPlan =
         options.planTitle     is @state.currentPlan and
@@ -248,7 +249,7 @@ module.exports = class PricingAppView extends KDView
         'expired'             isnt @state.subscriptionState
 
       if isCurrentPlan
-        inProcess = no
+        @state.inProcess = no
         return showError "That's already your current plan."
 
       @setState options
@@ -257,13 +258,11 @@ module.exports = class PricingAppView extends KDView
 
       @workflowController.on PaymentConstants.events.WORKFLOW_STARTED, (state) =>
         @emit PaymentConstants.events.WORKFLOW_STARTED
-        inProcess = no
+        @state.inProcess = no
 
-      workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
-
-      @workflowController.on workflowCouldNotStart, (state) =>
-        @emit workflowCouldNotStart
-        inProcess = no
+      @workflowController.on PaymentConstants.events.WORKFLOW_COULD_NOT_START, =>
+        @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
+        @state.inProcess = no
 
       @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
