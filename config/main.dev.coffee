@@ -461,6 +461,15 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
+    contentrotator      :
+      nginx             :
+        locations       : [
+          {
+            location    : "/-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/$1"
+          }
+        ]
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
@@ -497,6 +506,7 @@ Configuration = (options={}) ->
       workers = ""
       for key,val of KONFIG.workers
 
+        continue  unless val.supervisord
         workers += """
 
         function worker_daemon_#{key} {

@@ -104,7 +104,7 @@ createLocations = (KONFIG) ->
   workers = KONFIG.workers
 
   locations = ""
-  for name, options of workers when options.ports?
+  for name, options of workers
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
     continue if options.nginx?.disableLocation?
@@ -364,16 +364,6 @@ module.exports.create = (KONFIG, environment)->
       #{createUserMachineLocation("sandboxproxy")}
       #{createUserMachineLocation("latestproxy")}
       #{createUserMachineLocation("devproxy")}
-
-      location /-/content-rotator/ {
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-
-        rewrite /-/content-rotator/(.*) /content-rotator/$1 break;
-        proxy_pass #{KONFIG.contentRotatorUrl};
-      }
 
     # close server
     }
