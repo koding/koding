@@ -22,10 +22,12 @@ module.exports = class Joinable
         @updateCounts()
         callback null
 
-    selector = {code: inviteCode, status: 'active', group: @title}
   addToPrivateGroup_ = (client, { as, inviteCode }, callback) ->
     { delegate } = client.connection
     JInvitation  = require '../models/invitation'
+    selector     =
+      code      : inviteCode
+      groupName : @slug
 
     JInvitation.one selector, (err, invite) =>
 
