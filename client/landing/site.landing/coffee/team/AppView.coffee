@@ -7,7 +7,7 @@ module.exports = class TeamView extends KDView
     invite        : require './tabs/teaminvitetab'
     username      : require './tabs/teamusernametab'
     welcome       : require './tabs/teamwelcometab'
-    join          : require './tabs/teamregistertab'
+    join          : require './tabs/teamusernametab'
     congratz      : require './tabs/teamcongratztab'
     authenticate  : require './tabs/teamauthenticatetab'
 
