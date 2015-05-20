@@ -43,6 +43,8 @@ module.exports = class IDEChatView extends KDTabView
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
     @once 'CollaborationEnded',          @bound 'destroy'
 
+    @on 'VideoSessionConnected', @bound 'handleVideoSessionConnected'
+
     @on 'VideoCollaborationActive', @bound 'handleVideoActive'
     @on 'VideoCollaborationEnded',  @bound 'handleVideoEnded'
     @on 'VideoActiveParticipantDidChange', @bound 'handleVideoActiveParticipantChanged'
@@ -154,6 +156,11 @@ module.exports = class IDEChatView extends KDTabView
     else @unsetClass 'is-videoActive'
 
     kd.utils.defer @bound 'focus'
+
+
+  handleVideoSessionConnected: (options) ->
+
+    @chatPane.createVideoActionButton options.action
 
 
   handleVideoActive: ->
