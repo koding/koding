@@ -64,12 +64,9 @@ module.exports = class StacksCustomViews extends CustomViews
           providers     : Object.keys globals.config.providers
         navButton_cancel:
           callback      : cancelCallback
-        navButton_next  :
-          disabled      : yes
-          callback      : ->
-            callback provider: views.providersView.selectedProvider
 
-      views.providersView.on 'ItemSelected', views.navButton_next.bound 'enable'
+      views.providersView.on 'ItemSelected', (provider) ->
+        callback {provider}
 
       return container
 
@@ -176,10 +173,7 @@ module.exports = class StacksCustomViews extends CustomViews
             cssClass : provider
             disabled : provider isnt 'aws'
             callback : ->
-              container.selectedProvider = provider
-              container.emit 'ItemSelected'
-              container.on 'ItemSelected', this.lazyBound 'unsetClass', 'selected'
-              @setClass 'selected'
+              container.emit 'ItemSelected', provider
 
       return container
 
