@@ -50,7 +50,10 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     super
 
     view = @getView()
-    view.on "ShowShareCredentialFormFor", @bound "showShareCredentialFormFor"
+    view.on 'ShowShareCredentialFormFor', @bound 'showShareCredentialFormFor'
+    view.on 'ItemDeleted', (item) =>
+      @removeItem item
+      @noItemView.show()  if @listView.items.length is 0
 
     {provider} = @getOptions()
     @createAddCredentialMenu()  if not provider?

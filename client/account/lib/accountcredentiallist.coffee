@@ -26,12 +26,9 @@ module.exports = class AccountCredentialList extends KDListView
       description : "Do you want to remove ?"
       ok          :
         title     : "Yes"
-        callback  : -> credential.delete (err) ->
-
+        callback  : => credential.delete (err) =>
           modal.destroy()
-
-          unless showError err
-            item.destroy()
+          @emit 'ItemDeleted', item  unless showError err
 
 
   shareItem: (item) ->
