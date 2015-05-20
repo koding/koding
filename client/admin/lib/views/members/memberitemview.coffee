@@ -34,10 +34,8 @@ module.exports = class MemberItemView extends KDListItemView
 
     @roleLabel = new KDCustomHTMLView
       cssClass : 'role'
-      click    : =>
-        @settings.toggleClass  'hidden'
-        @roleLabel.toggleClass 'active'
       partial  : "#{@memberRole.label} <span class='settings-icon'></span>"
+      click    : @bound 'toggleSettings'
 
     @createSettingsView()
 
@@ -72,10 +70,13 @@ module.exports = class MemberItemView extends KDListItemView
     @settings.addSubView new KDButtonView
       cssClass : 'solid compact outline'
       title    : 'MAKE OWNER'
+  toggleSettings: ->
 
     @settings.addSubView new KDButtonView
       cssClass : 'solid compact outline red'
       title    : 'KICK USER'
+    @settings.toggleClass  'hidden'
+    @roleLabel.toggleClass 'active'
 
 
   pistachio: ->
