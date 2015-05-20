@@ -49,3 +49,4 @@ module.exports =
 
   events:
     WORKFLOW_STARTED: 'workflowStarted'
+    WORKFLOW_COULD_NOT_START: 'workflowCouldNotStart'

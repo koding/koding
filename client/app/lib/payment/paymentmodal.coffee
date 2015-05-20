@@ -120,6 +120,9 @@ module.exports = class PaymentModal extends PaymentBaseModal
     @once 'KDModalViewDestroyed', =>
       @emit 'PaymentWorkflowFinishedWithError', @state
 
+    { appManager } = kd.singletons
+    pricingView = appManager.get('Pricing').getView()
+    pricingView.emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
 
   handleError: (error) ->
 

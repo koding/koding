@@ -259,6 +259,12 @@ module.exports = class PricingAppView extends KDView
         @emit PaymentConstants.events.WORKFLOW_STARTED
         inProcess = no
 
+      workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
+
+      @workflowController.on workflowCouldNotStart, (state) =>
+        @emit workflowCouldNotStart
+        inProcess = no
+
       @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
         @state.currentPlan = state.planTitle
