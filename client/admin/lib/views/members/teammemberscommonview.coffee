@@ -1,12 +1,12 @@
 kd                   = require 'kd'
 KDView               = kd.View
+whoami               = require 'app/util/whoami'
 KDSelectBox          = kd.SelectBox
 KDListItemView       = kd.ListItemView
+MemberItemView       = require './memberitemview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
-
-MemberItemView = require './memberitemview'
 
 
 module.exports = class TeamMembersCommonView extends KDView
@@ -94,6 +94,9 @@ module.exports = class TeamMembersCommonView extends KDView
       # collect account ids to fetch user roles
       ids = members.map (member) -> return member.getId()
 
+      myAccountId = whoami().getId()
+      ids.push myAccountId
+
       group.fetchUserRoles ids, (err, roles) =>
         return @handleError err  if err
 
@@ -113,7 +116,7 @@ module.exports = class TeamMembersCommonView extends KDView
           roles = userRoles[member.getId()]
           member.roles = roles  if roles
 
-        @listMembers members
+        @listMembers members, userRoles[myAccountId]
         @isFetching = no
 
 
@@ -123,7 +126,7 @@ module.exports = class TeamMembersCommonView extends KDView
     kd.warn err
 
 
-  listMembers: (members) ->
+  listMembers: (members, loggedInUserRoles) ->
 
     unless members.length
       @listController.lazyLoader.hide()
@@ -131,7 +134,10 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip += members.length
 
-    @listController.addItem member  for member in members
+    for member in members
+      member.loggedInUserRoles = loggedInUserRoles # FIXME
+      @listController.addItem member
+
     @listController.lazyLoader.hide()
     @searchContainer.show()
 
