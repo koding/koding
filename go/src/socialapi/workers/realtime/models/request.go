@@ -1,5 +1,7 @@
 package models
 
+import socialapimodels "socialapi/models"
+
 // Channel request is used for channel authentication/
 type ChannelRequest struct {
 	Id    int64  `json:"id"`
@@ -20,10 +22,10 @@ type UpdateInstanceMessage struct {
 }
 
 type NotificationMessage struct {
-	Account   *Account            `json:"account"`
-	Body      NotificationContent `json:"body"`
-	EventName string              `json:"eventName"`
-	EventId   string              `json:"eventId"`
+	Account   *socialapimodels.Account `json:"account"`
+	Body      NotificationContent      `json:"body"`
+	EventName string                   `json:"eventName"`
+	EventId   string                   `json:"eventId"`
 }
 
 type Message struct {
@@ -34,7 +36,7 @@ type Message struct {
 }
 
 type Authenticate struct {
-	Account *Account
+	Account *socialapimodels.Account
 	Channel ChannelInterface
 }
 
@@ -46,15 +48,9 @@ type NotificationContent struct {
 }
 
 type CheckParticipationResponse struct {
-	Channel      *Channel `json:"channel"`
-	Account      *Account `json:"account"`
-	AccountToken string   `json:"accountToken"`
-}
-
-type Account struct {
-	Id       int64  `json:"id,string"`
-	Nickname string `json:"nick"`
-	Token    string `json:"token"`
+	Channel      *Channel                 `json:"channel"`
+	Account      *socialapimodels.Account `json:"account"`
+	AccountToken string                   `json:"accountToken"`
 }
 
 type RevokeChannelAccess struct {

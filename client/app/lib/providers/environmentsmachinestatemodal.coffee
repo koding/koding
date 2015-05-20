@@ -15,6 +15,8 @@ ComputeHelpers          = require './computehelpers'
 HelpSupportModal        = '../commonviews/helpsupportmodal'
 ComputeController       = require './computecontroller'
 EnvironmentsModalView   = require './environmentsmodalview'
+MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
+MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 
 whoami                  = require '../util/whoami'
 isKoding                = require 'app/util/isKoding'
@@ -54,7 +56,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @showBusy()
     @show()
 
-    {computeController} = kd.singletons
+    {computeController, marketingController} = kd.singletons
 
     computeController.ready => whoami().isEmailVerified (err, verified) =>
 
@@ -68,6 +70,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
           if subscription?.state is 'expired'
           then @buildExpiredView subscription
           else @buildInitial()
+
+    marketingController.on 'SnippetNeedsToBeShown', @bound 'showMarketingSnippet'
 
 
   triggerEventTimer: (percentage)->
@@ -365,6 +369,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @state = response.State
 
     @container.destroySubViews()
+    @container.unsetClass 'marketing-message'
     @progressBar = null
 
     if @state is 'NotFound'
@@ -384,6 +389,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       percentage = response?.percentage
       @createProgressBar percentage
       @triggerEventTimer percentage
+      @showRandomMarketingSnippet()  if @state is Starting
     else if @state is Terminated
       @label.destroy?()
       @createStateLabel "
@@ -699,3 +705,20 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
         .subscribe "token", "free", "month", { email }, (err, resp)->
           return callback err  if err?
           callback null
+
+
+  showRandomMarketingSnippet: ->
+
+    { marketingController } = kd.singletons
+    marketingController.getRandomSnippet @bound 'showMarketingSnippet'
+
+
+  showMarketingSnippet: (snippet) ->
+
+    return  unless snippet
+
+    @marketingSnippet?.destroy()
+    @marketingSnippet = new MarketingSnippetView snippet
+
+    @container.addSubView @marketingSnippet
+    @container.setClass 'marketing-message'

@@ -71,9 +71,9 @@
   - paidaccount
     - seeUpgradeModalForNotPaidUser
     - makeAlwaysOnForNotPaidUser
-    - addVM (disabled)
-    - turnOnNewPaidVM (disabled)
-    - makePaidVMAlwaysOn (disabled)
+    - addVM
+    - turnOnNewPaidVM
+    - makePaidVMAlwaysOn
 
   - vm
     - turnOffVm
@@ -153,11 +153,11 @@
 
 - messages
   - privatemessage
-    - startConversation (disabled)
-    - refreshAndSeeConversationOnSidebar (disabled)
-    - leaveConversation (in progress)
-    - setConversationPurpose (in progress)
-    - startConversationWithMultiplePeople (in progress)
+    - startConversation
+    - refreshAndSeeConversationOnSidebar
+    - leaveConversation
+    - setConversationPurpose
+    - startConversationWithMultiplePeople
 
 
 - pricing

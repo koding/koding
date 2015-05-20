@@ -1,15 +1,14 @@
-Bongo          = require "bongo"
-
-{Base} = Bongo
-
+{Base} = require "bongo"
 
 # this file named as socialaccount while it is under social folder, because i
 # dont want it to be listed first item while searching for account.coffe in
 # sublime ~ CS
 module.exports = class SocialAccount extends Base
-  JAccount = require '../account'
-
-  Validators = require '../group/validators'
+  JAccount      = require '../account'
+  JGroup        = require '../group'
+  JSession      = require '../session'
+  SocialChannel = require './channel'
+  Validators    = require '../group/validators'
 
   { bareRequest } = require "./helper"
 
@@ -44,7 +43,7 @@ module.exports = class SocialAccount extends Base
     # we are updating account when we update email because we dont store email
     # in postgres and social parts fetch email from mongo, we are just
     # triggering account update on postgres, so other services can get that
-    # event and operate accordingly 
+    # event and operate accordingly
     JUser.on 'EmailChanged', (data)->
       { username } = data
 
@@ -52,3 +51,62 @@ module.exports = class SocialAccount extends Base
         return console.error "username: #{username} is not set"
 
       updateSocialAccount username
+
+    JGroup.on 'MemberRemoved', (data) ->
+      participantHandler "removeParticipants", data
+
+    JGroup.on 'MemberAdded', (data) ->
+      participantHandler "addParticipants", data
+
+    participantHandler = (funcName, data)->
+      { group, member } = data
+      group.fetchAdmin (err, admin)=>
+        return console.error "err while fetching admin", err  if err
+        return console.error "couldnt find admin"  unless admin
+
+        sessionData = { username: admin.profile.nickname, groupName: group.slug }
+        JSession.fetchSessionByData sessionData, (err, session)->
+          return console.error "err while fetching session", err  if err
+          return console.error "couldnt find a session"  unless session
+
+          client = {}
+          client.sessionToken = session.clientId
+          client.context or= {}
+          client.context.group = group.slug
+          client.context.user  = admin.profile.nickname
+          client.connection or= {}
+          client.connection.delegate  = admin
+          client.connection.groupName = group.slug
+
+          group.createSocialApiChannels client, (err, socialApiChannels)->
+            return console.error "couldnt create socialapi channels", err  if err
+            { socialApiChannelId, socialApiAnnouncementChannelId } = socialApiChannels
+
+            # ensure member has socialapi id
+            member.createSocialApiId (err, socialApiId)->
+              return console.error "couldnt create socialapi id", err  if err
+
+              # add account into public channel
+              options = [{
+                channelId: socialApiChannelId
+                accountId: socialApiId
+              }]
+              options.channelId = socialApiChannelId
+
+              SocialChannel[funcName] client, options, (err, participants) ->
+                return console.error "couldnt add user into group socialapi chan", err, options  if err
+
+                # only add koding's members to announcement channel
+                return if group.slug isnt "koding"
+
+                # add account into announcement channel
+                options = [{
+                  channelId: socialApiAnnouncementChannelId
+                  accountId: socialApiId
+                }]
+                options.channelId = socialApiAnnouncementChannelId
+
+                SocialChannel[funcName] client, options, (err) ->
+                  return console.error "couldnt add user into group socialapi chan", err, options  if err
+
+

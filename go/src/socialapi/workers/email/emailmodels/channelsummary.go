@@ -127,10 +127,10 @@ func (cs *ChannelSummary) RenderImage() (string, error) {
 	}
 
 	var nickname string
-	var err error
 
 	// do not use any images for group conversations
 	if !cs.IsGroupChannel {
+		var err error
 		nickname, err = getAccountNickname(cs.Participants[0].AccountId)
 		if err != nil {
 			return "", err
@@ -144,7 +144,6 @@ func (cs *ChannelSummary) RenderImage() (string, error) {
 }
 
 func (cs *ChannelSummary) renderGravatar(nickname string) (string, error) {
-
 	account, err := modelhelper.GetAccount(nickname)
 	if err != nil {
 		return "", err

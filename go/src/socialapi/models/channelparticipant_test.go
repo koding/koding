@@ -430,6 +430,35 @@ func TestChannelParticipantMarkIfExempt(t *testing.T) {
 	})
 }
 
+func TestChannelFetchAllParticipatedChannelIds(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("fetching all channels of an account should succeed", t, func() {
+		// create account
+		acc := CreateAccountWithTest()
+		acc.IsTroll = false
+		So(acc.Update(), ShouldBeNil)
+
+		for i := 0; i < 10; i++ {
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			So(c.Create(), ShouldBeNil)
+
+			_, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+		}
+
+		cp := NewChannelParticipant()
+		ids, err := cp.FetchAllParticipatedChannelIds(acc.Id)
+		So(err, ShouldBeNil)
+		So(len(ids), ShouldEqual, 10)
+	})
+}
+
 func TestChannelParticipantisExempt(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {

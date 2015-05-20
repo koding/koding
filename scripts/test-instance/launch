@@ -43,6 +43,8 @@ userData =
     - echo #{keys.id_rsa_pub}      | base64 --decode > /root/.ssh/id_rsa.pub
     - chmod 0600 /root/.ssh/id_rsa
     - cd /opt/koding
+    - echo 'Checking connectivity to GitHub over ssh'
+    - scripts/test-instance/check-connectivity github.com 22 1m 3
     - #{git_fetch}
     - #{git_checkout}
     - git submodule update --recursive

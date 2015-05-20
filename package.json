@@ -87,6 +87,7 @@
     "request": "2.54.0",
     "sax": "0.6.1",
     "semver": "3.0.1",
+    "shortid": "2.2.2",
     "simple-recaptcha": "0.0.3",
     "source-map": "0.1.9",
     "sqwish": "0.2.0",

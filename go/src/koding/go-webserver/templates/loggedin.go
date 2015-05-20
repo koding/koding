@@ -13,6 +13,8 @@ var LoggedInHome = `
   <body class='logged-in dark ide'>
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
+    {{template "analytics" }}
+
     <script>
       var _globals = {
         config: {{.Runtime}},
@@ -38,8 +40,6 @@ var LoggedInHome = `
         h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='//use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
       })(document);
     </script>
-
-    {{template "analytics" }}
 
     {{if not .Impersonating }}
       <script type="text/javascript">

@@ -112,8 +112,7 @@ func (m *Mux) Listen() {
 	// 	stdlog.New(os.Stderr, "metrics ", stdlog.Lmicroseconds),
 	// )
 
-	var handler http.Handler
-	handler = tigertonic.WithContext(m.nsMux, models.Context{})
+	handler := http.Handler(tigertonic.WithContext(m.nsMux, models.Context{}))
 	if m.config.Debug {
 		h := tigertonic.Logged(handler, nil)
 		h.Logger = NewTigerTonicLogger(m.log)

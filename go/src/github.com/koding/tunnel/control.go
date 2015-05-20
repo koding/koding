@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"koding/tunnel/conn"
 	"log"
 	"net"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/koding/tunnel/conn"
 )
 
 type control struct {

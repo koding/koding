@@ -258,6 +258,31 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 	return participants, nil
 }
 
+// FetchAllParticipatedChannelIds fetches all active channel ids that are
+// participated by given account
+func (c *ChannelParticipant) FetchAllParticipatedChannelIds(accountId int64) ([]int64, error) {
+	if accountId == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	var channelIds []int64
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id":      accountId,
+			"status_constant": ChannelParticipant_STATUS_ACTIVE,
+		},
+		Pluck: "channel_id",
+	}
+
+	err := bongo.B.Some(c, &channelIds, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return channelIds, nil
+}
+
 func getParticipatedChannelsQuery(a *Account, q *request.Query) *gorm.DB {
 	c := NewChannelParticipant()
 
@@ -419,7 +444,6 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 
 // Tests are done.
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
-
 	if accountId == 0 {
 		return false, nil
 	}

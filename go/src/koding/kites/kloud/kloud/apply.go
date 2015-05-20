@@ -40,6 +40,10 @@ type Stack struct {
 
 type TerraformApplyRequest struct {
 	StackId string `json:"stackId"`
+
+	// Destroy, if enabled, destroys the terraform tempalte associated with the
+	// given StackId.
+	Destroy bool
 }
 
 func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
@@ -64,10 +68,20 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	// create eventer and also add it to the context
 	eventId := r.Method + "-" + args.StackId
 	ev := k.NewEventer(eventId)
-	ev.Push(&eventer.Event{
-		Message: r.Method + " started",
-		Status:  machinestate.Building,
-	})
+
+	if args.Destroy {
+		ev.Push(&eventer.Event{
+			Message: r.Method + " started",
+			Status:  machinestate.Terminating,
+		})
+
+	} else {
+		ev.Push(&eventer.Event{
+			Message: r.Method + " started",
+			Status:  machinestate.Building,
+		})
+	}
+
 	ctx = eventer.NewContext(ctx, ev)
 
 	go func() {
@@ -77,25 +91,35 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			Percentage: 100,
 		}
 
-		k.Log.Info("[%s] ======> %s started <======", args.StackId, strings.ToUpper(r.Method))
 		start := time.Now()
 
-		if err := apply(ctx, r.Username, args.StackId); err != nil {
+		var err error
+		if args.Destroy {
+			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
+			finalEvent.Status = machinestate.Terminated
+			err = destroy(ctx, r.Username, args.StackId)
+		} else {
+			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
+			err = apply(ctx, r.Username, args.StackId)
+			if err != nil {
+				finalEvent.Status = machinestate.NotInitialized
+			}
+		}
+
+		if err != nil {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
-			k.Log.Error("[%s] %s error: %s", args.StackId, r.Method, err)
+			k.Log.New(args.StackId).Error("%s error: %s", r.Method, err)
 			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
 			// however, eventerErr is an error we want to pass explicitly to
 			// the client side
 			if eventerErr, ok := err.(*EventerError); ok {
 				finalEvent.Error = eventerErr.Error()
 			}
-
-			finalEvent.Status = machinestate.NotInitialized
 		}
 
-		k.Log.Info("[%s] ======> %s finished (time: %s) <======",
-			args.StackId, strings.ToUpper(r.Method), time.Since(start))
+		k.Log.New(args.StackId).Info("======> %s finished (time: %s) <======",
+			strings.ToUpper(r.Method), time.Since(start))
 
 		ev.Push(finalEvent)
 	}()
@@ -103,6 +127,86 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	return ControlResult{
 		EventId: eventId,
 	}, nil
+}
+
+func destroy(ctx context.Context, username, stackId string) error {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return errors.New("session context is not passed")
+	}
+
+	ev, ok := eventer.FromContext(ctx)
+	if !ok {
+		return errors.New("eventer context is not passed")
+	}
+
+	ev.Push(&eventer.Event{
+		Message:    "Fetching and validating machines",
+		Percentage: 20,
+		Status:     machinestate.Building,
+	})
+
+	stack, err := fetchStack(stackId)
+	if err != nil {
+		return err
+	}
+
+	sess.Log.Debug("Validating '%d' machines from user '%s'", len(stack.Machines), username)
+	machines, err := fetchMachines(ctx, stack.Machines...)
+	if err != nil {
+		return err
+	}
+
+	ev.Push(&eventer.Event{
+		Message:    "Fetching and validating credentials",
+		Percentage: 30,
+		Status:     machinestate.Building,
+	})
+
+	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
+	creds, err := fetchCredentials(username, sess.DB, stack.PublicKeys)
+	if err != nil {
+		return err
+	}
+
+	sess.Log.Debug("Connection to Terraformer")
+	tfKite, err := terraformer.Connect(sess.Kite)
+	if err != nil {
+		return err
+	}
+	defer tfKite.Close()
+
+	for _, cred := range creds.Creds {
+		stack.Template, err = cred.appendAWSVariable(stack.Template)
+		if err != nil {
+			return err
+		}
+	}
+
+	sess.Log.Debug("Calling terraform.destroy method with context:")
+	sess.Log.Debug(stack.Template)
+	_, err = tfKite.Destroy(&tf.TerraformRequest{
+		Content:   stack.Template,
+		ContentID: username + "-" + stackId,
+		Variables: nil,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, m := range machines {
+		if err := sess.DNSClient.Delete(m.Domain); err != nil {
+			// if it's already deleted, for example because of a STOP, than we just
+			// log it here instead of returning the error
+			sess.Log.Error("deleting domain during destroying err: %s", err.Error())
+		}
+
+		if err := modelhelper.DeleteMachine(m.Id); err != nil {
+			return err
+		}
+	}
+
+	return modelhelper.DeleteComputeStack(stackId)
 }
 
 func apply(ctx context.Context, username, stackId string) error {
@@ -195,7 +299,7 @@ func apply(ctx context.Context, username, stackId string) error {
 	sess.Log.Debug(stack.Template)
 	state, err := tfKite.Apply(&tf.TerraformRequest{
 		Content:   stack.Template,
-		ContentID: username + "-" + sha1sum(stack.Template),
+		ContentID: username + "-" + stackId,
 		Variables: nil,
 	})
 	if err != nil {

@@ -73,7 +73,7 @@ generateFakeClient = (options, callback) ->
       return callback null, fakeClient, session
 
 prepareFakeClient = (fakeClient, options) ->
-  {groupName, session, username, account} = options
+  {groupName, session, username, account, sessionToken} = options
 
   {JAccount}      = bongo.models
 
@@ -82,7 +82,7 @@ prepareFakeClient = (fakeClient, options) ->
     account.profile = nickname: username
     account.type    = 'unregistered'
 
-  fakeClient.sessionToken = session.clientId
+  fakeClient.sessionToken = sessionToken ? session.clientId
 
   # set username into context
   fakeClient.context or= {}

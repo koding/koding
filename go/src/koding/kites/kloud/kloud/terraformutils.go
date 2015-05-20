@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -270,10 +269,6 @@ func varsFromCredentials(creds *terraformCredentials) map[string]string {
 	return vars
 }
 
-func sha1sum(s string) string {
-	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
-}
-
 func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -303,7 +298,7 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 			if err := klientRef.Ping(); err != nil {
 				mu.Lock()
 				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't send ping to '%s:%s'", label, kiteId))
+					fmt.Errorf("Couldn't send ping to '%s:%s': %s", label, kiteId, err))
 				mu.Unlock()
 			}
 		}(l, k)

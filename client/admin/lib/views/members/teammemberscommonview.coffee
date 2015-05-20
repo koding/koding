@@ -13,10 +13,16 @@ module.exports = class TeamMembersCommonView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.noItemFoundWidget   or= new KDCustomHTMLView
-    options.listViewItemClass   or= MemberItemView
-    options.listViewItemOptions or= {}
-    options.itemLimit            ?= 10
+    options.noItemFoundWidget      or= new KDCustomHTMLView
+    options.listViewItemClass      or= MemberItemView
+    options.cssClass                 = 'members-commonview'
+    options.listViewItemOptions    or= {}
+    options.searchInputPlaceholder or= 'Find by name/username'
+    options.itemLimit               ?= 10
+    options.sortOptions            or= [
+      { title: 'Screen name',   value: 'fullname' }
+      { title: 'Nickname',      value: 'nickname' }
+    ]
 
     super options, data
 
@@ -29,21 +35,20 @@ module.exports = class TeamMembersCommonView extends KDView
 
   createSearchView: ->
 
+    { sortOptions } = @getOptions()
+
     @addSubView @searchContainer = new KDCustomHTMLView
-      cssClass: 'search hidden'
-      partial : '<span class="label">Sort by</span>'
+      cssClass : 'search hidden'
+      partial  : '<span class="label">Sort by</span>'
 
     @searchContainer.addSubView @sortSelectBox = new KDSelectBox
-      defaultValue  : 'nickname'
-      selectOptions : [
-        { title     : 'Screen name',  value : 'fullname'  }
-        { title     : 'Nickname',     value : 'nickname'  }
-      ]
-      callback      : (value) ->
+      defaultValue  : sortOptions.first.value
+      selectOptions : sortOptions
+      callback      : @bound 'search'
 
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
       type        : 'text'
-      placeholder : 'Find by name/username'
+      placeholder : @getOptions().searchInputPlaceholder
       callback    : @bound 'search'
 
 
@@ -57,6 +62,7 @@ module.exports = class TeamMembersCommonView extends KDView
         itemClass         : listViewItemClass
         itemOptions       : listViewItemOptions
       noItemFoundWidget   : noItemFoundWidget
+      useCustomScrollView : yes
       startWithLazyLoader : yes
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
@@ -92,7 +98,8 @@ module.exports = class TeamMembersCommonView extends KDView
   listMembers: (members) ->
 
     unless members.length
-      return @listController.lazyLoader.hide()
+      @listController.lazyLoader.hide()
+      return @listController.noItemView.show()
 
     @skip += members.length
 
@@ -107,6 +114,11 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip  = 0
     @query = @searchInput.getValue()
+
+    @refresh()
+
+
+  refresh: ->
 
     @listController.removeAllItems()
     @listController.lazyLoader.show()

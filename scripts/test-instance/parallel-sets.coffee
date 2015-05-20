@@ -35,7 +35,7 @@ module.exports = [
   ]
 
   [
-    # 'messages privatemessage'
+    'messages privatemessage'
     'account accountsettings'
     'activity postwith'
   ]

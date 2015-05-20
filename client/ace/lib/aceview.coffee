@@ -1,13 +1,15 @@
-kd = require 'kd'
-KDButtonViewWithMenu = kd.ButtonViewWithMenu
-KDCustomHTMLView = kd.CustomHTMLView
-KDModalView = kd.ModalView
-JView = require 'app/jview'
-FSHelper = require 'app/util/fs/fshelper'
-Ace = require './ace'
-AceFindAndReplaceView = require './acefindandreplaceview'
-AceSettingsView = require './acesettingsview'
-showSaveDialog = require 'app/util/showSaveDialog'
+kd                        = require 'kd'
+KDButtonViewWithMenu      = kd.ButtonViewWithMenu
+KDCustomHTMLView          = kd.CustomHTMLView
+KDModalView               = kd.ModalView
+JView                     = require 'app/jview'
+FSHelper                  = require 'app/util/fs/fshelper'
+Ace                       = require './ace'
+AceFindAndReplaceView     = require './acefindandreplaceview'
+AceSettingsView           = require './acesettingsview'
+showSaveDialog            = require 'app/util/showSaveDialog'
+Encoder                   = require 'htmlencode'
+
 
 ###
   todo:
@@ -162,7 +164,7 @@ module.exports = class AceView extends JView
     showSaveDialog container, (input, finderController, dialog) =>
 
       [node] = finderController.treeController.selectedNodes
-      name   = input.getValue()
+      name   = Encoder.XSSEncode input.getValue()
 
       return @ace.notify 'Please type valid file name!'   , 'error'  unless FSHelper.isValidFileName name
       return @ace.notify 'Please select a folder to save!', 'error'  unless node

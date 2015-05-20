@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"socialapi/config"
+	"socialapi/models"
 	"testing"
 
 	"github.com/koding/runner"
@@ -21,11 +22,11 @@ func TestChannelPrepareName(t *testing.T) {
 
 	Convey("While creating PubNub channels", t, func() {
 		Convey("Notification channel name format must be as 'notification'-[env]-[nickname]", func() {
-			a := &Account{}
-			a.Nickname = "hello"
+			a := &models.Account{}
+			a.Nick = "hello"
 			nc := NewNotificationChannel(a)
 			name := nc.PrepareName()
-			expectedName := fmt.Sprintf("notification-%s-%s", appConfig.Environment, a.Nickname)
+			expectedName := fmt.Sprintf("notification-%s-%s", appConfig.Environment, a.Nick)
 			So(name, ShouldEqual, expectedName)
 		})
 		Convey("Message update and channel name format must be as 'channel'-[token]", func() {

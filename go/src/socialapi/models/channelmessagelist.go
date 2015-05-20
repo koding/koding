@@ -56,13 +56,13 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 
 	query := "channel_id = ? and added_at > ?"
 
-	var metaBits MetaBits
 	if isExempt {
 		query += " and meta_bits >= ?"
 	} else {
 		query += " and meta_bits = ?"
 	}
 
+	var metaBits MetaBits
 	return bongo.B.Count(c,
 		query,
 		cp.ChannelId,
@@ -111,8 +111,6 @@ func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageCo
 }
 
 func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageContainer, error) {
-	var messages []int64
-
 	if c.ChannelId == 0 {
 		return nil, ErrChannelIdIsNotSet
 	}
@@ -133,6 +131,7 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 		bongoQuery = bongoQuery.Where("added_at < ?", q.From)
 	}
 
+	var messages []int64
 	if err := bongo.CheckErr(
 		bongoQuery.Pluck(query.Pluck, &messages),
 	); err != nil {
@@ -327,7 +326,6 @@ func (c *ChannelMessageList) isExempt() (bool, error) {
 	cm.Id = c.MessageId
 
 	return cm.isExempt()
-
 }
 
 // Count counts messages in the channel

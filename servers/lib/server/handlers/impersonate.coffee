@@ -16,7 +16,11 @@ module.exports = (req, res) ->
       unless account.can 'administer accounts'
         return res.status(403).end()
 
-      JSession.createNewSession nickname, (err, session) ->
+      JSession.createNewSession {
+        nickname  : nickname
+        # set parent group name into kookie
+        groupName : result.groupName or "koding"
+      }, (err, session) ->
         return res.status(400).send err.message  if err
 
         JSession.remove {clientId}, (err) ->

@@ -14,8 +14,6 @@ type PaypalTime struct {
 }
 
 func (pt *PaypalTime) UnmarshalJSON(b []byte) error {
-	var err error
-
 	str := strings.Replace(fmt.Sprintf("%s", b), `"`, "", -1)
 
 	// paypal send `N/A` when time is nil
@@ -23,6 +21,7 @@ func (pt *PaypalTime) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
+	var err error
 	pt.Time, err = time.Parse(PaypalTimeLayout, str)
 
 	return err

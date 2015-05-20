@@ -154,13 +154,17 @@ module.exports = class PaymentForm extends JView
       @existingCreditCardMessage.hide()
       @form.show()
 
-      # no need to show those views when they are
-      # downgrading to free account.
-      if planTitle is FREE
-        @securityNote.hide()
-        @yearPriceMessage.hide()
-        @form.hide()
-        @submitButton.enable()
+    # no need to show those views when they are
+    # downgrading to free account.
+    if planTitle is FREE
+      @existingCreditCardMessage
+        .updatePartial 'You are downgrading to the free plan.'
+        .show()
+      @yearPriceMessage.hide()
+      @form.hide()
+      @submitButton.enable()
+      @price.hide()
+      @plan.hide()
 
     @paypalForm.destroy()  unless provider is KODING
 

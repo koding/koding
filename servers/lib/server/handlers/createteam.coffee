@@ -1,14 +1,28 @@
+Bongo                                   = require "bongo"
 koding                                  = require './../bongo'
 { getClientId, handleClientIdNotFound } = require './../helpers'
+{ dash }                                = Bongo
+{ uniq }                                = require 'underscore'
 
 module.exports = (req, res, next) ->
 
-  { body }                        = req
-  { JUser, JGroup }               = koding.models
-  { companyName, slug, redirect } = body
+  { body }                       = req
+  { JUser, JGroup, JInvitation } = koding.models
+  { # companyName, team name, basically a title, can be changed
+    companyName
+    # slug is team slug, unique name. Can not be changed
+    slug
+    redirect
+    # invitees are comma separated emails which will be invited to that team
+    invitees
+    # domains holds allowed domains for signinup without invitation, comma separated
+    domains
+    # newsletter holds announcements config.
+    newsletter
+  } = body
 
   redirect ?= '/'
-  context   = { group: 'koding' }
+  context   = { group: slug }
   clientId  = getClientId req, res
 
   # tmp: copy/paste from ./register.coffee - SY
@@ -27,7 +41,11 @@ module.exports = (req, res, next) ->
 
     client.clientIP = (clientIPAddress.split ',')[0]
 
-    JUser.convert client, req.body, (err, result) ->
+    body.emailFrequency or= {}
+    # subscribe to koding marketing mailings or not
+    body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
+
+    JUser.convert client, body, (err, result) ->
 
       if err?
 
@@ -45,7 +63,10 @@ module.exports = (req, res, next) ->
 
       # res.cookie 'clientId', result.newToken, path : '/'
 
-      owner = result.account
+      # set session token for later usage down the line
+      client.sessionToken         = result.newToken
+      owner                       = result.account
+      client.connection.delegate  = result.account
 
       JGroup.create client,
         title           : companyName
@@ -53,13 +74,52 @@ module.exports = (req, res, next) ->
         visibility      : 'hidden'
         defaultChannels : []
         initialData     : body
+        allowedDomains  : convertToArray domains # clear & convert domains into array
       , owner, (err, group) ->
 
         console.log err, group
 
         return res.status(500).send "Couldn't create the group."  if err or not group
 
-        # handle the request as an XHR response:
-        return res.status(200).end() if req.xhr
-        # handle the request with an HTTP redirect:
-        res.redirect 301, redirect
+        queue = [
+          # add other parallel operations here
+          -> createInvitations client, invitees, (err) ->
+              console.error "Err while creating invitations", err  if err
+              queue.fin()
+        ]
+        dash queue, (err)->
+          # do not block group creation
+          console.error "Error while creating group artifacts", body, err if err
+
+          # handle the request as an XHR response:
+          return res.status(200).end() if req.xhr
+          # handle the request with an HTTP redirect:
+          res.redirect 301, redirect
+
+
+# convertToArray converts given comma separated string value into cleaned,
+# trimmed, lowercased, unified array of string
+convertToArray = (commaSeparatedData)->
+  return []  if commaSeparatedData is ''
+
+  data = commaSeparatedData.split(',') or []
+
+  data = data
+    .filter (s) -> s isnt ''           # clear empty ones
+    .map (s) -> s.trim().toLowerCase() # clear empty spaces
+
+  return uniq data # remove duplicates
+
+# createInvitations converts given invitee list into JInvitation and creates
+# them in db
+createInvitations = (client, invitees, callback)->
+  inviteEmails = convertToArray invitees
+
+  return callback null  if inviteEmails.length is 0 # return early
+
+  # should be in following structure
+  #   data = { invitations:[ {email:"cihangir+test26@koding.com"} ] }
+  invitations = inviteEmails.map (email) -> { email }
+
+  koding.models.JInvitation.create client, { invitations }, callback
+

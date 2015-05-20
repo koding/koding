@@ -66,7 +66,7 @@ func (f *Controller) handleInteraction(inc float64, i *models.Interaction) error
 	}
 
 	if !isEligibleForPopularPost(c, cm) {
-		f.log.Error(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
+		f.log.Debug(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
 		return nil
 	}
 

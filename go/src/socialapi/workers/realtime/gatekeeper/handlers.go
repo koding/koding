@@ -6,9 +6,8 @@ import (
 )
 
 func (h *Handler) AddHandlers(m *mux.Mux) {
-
 	// channel subscription
-	m.AddSessionlessHandler(
+	m.AddHandler(
 		handler.Request{
 			Handler:  h.SubscribeChannel,
 			Name:     "channel-subscribe",
@@ -17,7 +16,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 		},
 	)
 
-	m.AddSessionlessHandler(
+	m.AddHandler(
 		handler.Request{
 			Handler:  h.SubscribeNotification,
 			Name:     "notification-subscribe",
@@ -26,7 +25,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 		},
 	)
 
-	m.AddSessionlessHandler(
+	m.AddHandler(
 		handler.Request{
 			Handler:  h.GetToken,
 			Name:     "get-token",

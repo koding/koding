@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/workers/common/mux"
 	api "socialapi/workers/realtime/gatekeeper"
@@ -20,6 +21,8 @@ func main() {
 	}
 
 	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
 
 	// create a realtime service provider instance.
 	pubnub := models.NewPubNub(appConfig.GateKeeper.Pubnub, r.Log)

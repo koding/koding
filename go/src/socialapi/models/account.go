@@ -285,7 +285,6 @@ func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 }
 
 func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
-
 	followerIds, err := a.FetchFollowerIds(q)
 	if err != nil {
 		return nil, err

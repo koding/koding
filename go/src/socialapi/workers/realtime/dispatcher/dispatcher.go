@@ -2,6 +2,7 @@ package dispatcher
 
 import (
 	"fmt"
+	socialapimodels "socialapi/models"
 	"socialapi/workers/realtime/models"
 	"time"
 
@@ -87,8 +88,8 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 
 // NotifyUser sends user notifications to related channel
 func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
-	if nm.Account.Nickname == "" {
-		c.logger.Error("Nickname is not set")
+	if nm.Account.Nick == "" {
+		c.logger.Error("Nick is not set")
 		return nil
 	}
 
@@ -105,7 +106,7 @@ func (c *Controller) RevokeChannelAccess(rca *models.RevokeChannelAccess) error 
 
 	for _, token := range rca.Tokens {
 		a := &models.Authenticate{
-			Account: &models.Account{Token: token},
+			Account: &socialapimodels.Account{Token: token},
 		}
 		if err := c.Pubnub.RevokeAccess(a, pmc); err != nil {
 			return err

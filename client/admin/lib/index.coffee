@@ -7,8 +7,8 @@ AdministrationView        = require './views/administrationview'
 CustomViewsManager        = require './views/customviews/customviewsmanager'
 GroupStackSettings        = require './views/groupstacksettings'
 OnboardingAdminView       = require './views/onboarding/onboardingadminview'
+AdminInvitationsView      = require './views/invitations/admininvitationsview'
 GroupPermissionsView      = require './views/grouppermissionsview'
-GroupsInvitationView      = require './views/groupsinvitationview'
 GroupsBlockedUserView     = require './views/groupsblockeduserview'
 GroupGeneralSettingsView  = require './views/groupgeneralsettingsview'
 
@@ -26,19 +26,18 @@ module.exports = class AdminAppController extends AppController
       title    : 'Team Settings'
       items    : [
         { slug : 'Settings',       title : 'Settings',          viewClass : GroupGeneralSettingsView }
-        { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView }
-      # { slug : 'Policies',       title : 'Membership Policy', viewClass : kd.View }
-        { slug : 'Invitations',    title : 'Invitations',       viewClass : GroupsInvitationView }
-        { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView }
-        { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings }
+        { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
+        { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
+        { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
+        { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
       ]
     koding     :
       title    : 'Koding Administration'
       items    : [
-        { slug : 'Blocked',        title : 'Blocked Users',     viewClass : GroupsBlockedUserView }
-        { slug : 'Widgets',        title : 'Custom Views',      viewClass : CustomViewsManager }
-        { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView }
-        { slug : 'Administration', title : 'Administration',    viewClass : AdministrationView }
+        { slug : 'Blocked',        title : 'Blocked Users',     viewClass : GroupsBlockedUserView    }
+        { slug : 'Widgets',        title : 'Custom Views',      viewClass : CustomViewsManager       }
+        { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView      }
+        { slug : 'Administration', title : 'Administration',    viewClass : AdministrationView       }
       ]
 
 
@@ -58,9 +57,15 @@ module.exports = class AdminAppController extends AppController
 
   openSection: (section, query) ->
 
+    targetPane = null
+
     @mainView.ready =>
-      unless @mainView.tabs.showPaneByName section
-        kd.singletons.router.handleRoute "/Admin/Settings"
+      @mainView.tabs.panes.forEach (pane) ->
+        if pane.getOption('slug') is section
+          targetPane = pane
+
+      if   targetPane then @mainView.tabs.showPane targetPane
+      else kd.singletons.router.handleRoute '/Admin/Settings'
 
 
   loadView: (modal) ->

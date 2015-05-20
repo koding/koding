@@ -5,13 +5,15 @@ koding                     = require './../bongo'
 module.exports = (req, res) ->
 
   { JUser } = koding.models
-  { username, password, redirect, groupName } = req.body
+  { username, password, redirect, groupName, invitationToken } = req.body
 
   clientId =  getClientId req, res
 
   return handleClientIdNotFound res, req unless clientId
 
-  JUser.login clientId, { username, password, groupName }, (err, info) ->
+  options = { username, password, groupName, invitationToken }
+
+  JUser.login clientId, options, (err, info) ->
     if err
       return res.status(403).send err.message
     else if not info
