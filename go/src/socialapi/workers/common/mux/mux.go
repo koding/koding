@@ -30,11 +30,12 @@ func NewConfig(name, host string, port string) *Config {
 type Mux struct {
 	Metrics *metrics.Metrics
 
-	mux    *tigertonic.TrieServeMux
-	nsMux  *tigertonic.TrieServeMux
-	server *tigertonic.Server
-	config *Config
-	log    logging.Logger
+	mux     *tigertonic.TrieServeMux
+	nsMux   *tigertonic.TrieServeMux
+	server  *tigertonic.Server
+	config  *Config
+	log     logging.Logger
+	closing bool
 }
 
 func New(mc *Config, log logging.Logger, metrics *metrics.Metrics) *Mux {
@@ -130,11 +131,14 @@ func (m *Mux) Handler(r *http.Request) (http.Handler, string) {
 }
 
 func (m *Mux) Close() {
+	m.closing = true
 	m.server.Close()
 }
 
 func (m *Mux) listener() {
 	if err := m.server.ListenAndServe(); err != nil {
-		panic(err)
+		if !m.closing {
+			panic(err)
+		}
 	}
 }
