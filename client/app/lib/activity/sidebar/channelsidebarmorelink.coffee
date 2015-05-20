@@ -8,10 +8,9 @@ module.exports = class ChannelSidebarMoreLink extends SidebarMoreLink
 
     return  if err
 
-    { limit }           = @getOptions()
     { totalCount }      = res
 
-    if totalCount + 2 > limit
+    if totalCount > 8
     then @show()
     else @hide()
 
