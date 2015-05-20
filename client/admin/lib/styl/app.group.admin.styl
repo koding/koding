@@ -864,6 +864,9 @@ Admin main styles
     bottom                  20px
     abs()
 
+    &[disabled]
+      opacity               .4
+
     &.prev
       right                 120px
 
@@ -927,6 +930,63 @@ Admin main styles
         background          url("/a/images/vendors/google.png")
         background-size     200px
         background-position 0 23px
+
+  .step-creds
+    .top
+      min-height            70px
+      .text.creds
+        display             inline-block
+        width               70%
+      button
+        display             inline-block
+        fr()
+
+  .credential-item
+    padding                 10px
+    background-color        #eee
+    font-size               14px
+    margin                  5px 0
+    border                  1px solid #ddd
+    borderBox()
+
+    &:hover
+      .buttons
+        opacity             1.0
+
+    .credential-info
+      .title
+        font-weight         bold
+        fl()
+
+      .provider
+        padding             0 3px
+        font-size           12px
+        margin-left         5px
+        background-color    #ddd
+        fl()
+
+      .message
+        font-size           12px
+        clear               left
+        color               #777
+        &.red
+          color             #FF6053
+        &.green
+          color             #01A84E
+
+    .buttons
+      top                   17px
+      right                 2px
+      opacity               .5
+      abs()
+
+      button
+        min-width           80px
+
+      button.solid.green
+        background-color    #01A84E
+        &[disabled]
+          opacity           .5
 
 
   .steps-view
