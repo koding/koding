@@ -1,6 +1,7 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 whoami                 = require 'app/util/whoami'
+isKoding               = require 'app/util/isKoding'
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
 KDButtonView           = kd.ButtonView
 KDListItemView         = kd.ListItemView
@@ -83,6 +84,8 @@ module.exports = class MemberItemView extends KDListItemView
     buttons = buttonSet[@loggedInUserRole.slug][@memberRole.slug]
 
     buttons.forEach (button) =>
+      return if isKoding() and button.slug is 'kick'
+
       buttonView = new KDButtonView
         cssClass : kd.utils.curry 'solid compact outline', button.extraClass
         title    : button.buttonTitle
