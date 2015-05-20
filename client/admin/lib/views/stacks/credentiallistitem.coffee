@@ -12,32 +12,30 @@ module.exports = class CredentialListItem extends kd.ListItemView
     super options, data
 
     delegate  = @getDelegate()
-    { owner, title } = @getData()
+    { owner, title, verified } = @getData()
 
     @deleteButton = new kd.ButtonView
-      # iconOnly : yes
-      cssClass : "delete"
-      title    : "delete"
+      cssClass : 'solid compact outline red'
+      title    : 'DELETE'
       callback : delegate.lazyBound 'deleteItem', this
 
     @showCredentialButton = new kd.ButtonView
-      # iconOnly : yes
-      cssClass : "show"
-      title    : "show"
-      disabled : !owner
+      cssClass : 'solid compact outline'
+      title    : 'SHOW'
       callback : delegate.lazyBound 'showItemContent', this
 
-    @bootstrapButton = new kd.ButtonView
-      # iconOnly : yes
-      cssClass : "bootstrap"
-      title    : "bootstrap"
-      callback : delegate.lazyBound 'bootstrap', this
+    @useButton = new kd.ButtonView
+      cssClass : 'solid compact outline green'
+      title    : 'SELECT'
+      callback : =>
+        delegate.emit 'ItemSelected', @getData()
+
+    @useButton.hide()  unless verified
 
     @verifyButton = new kd.ButtonView
-      # iconOnly : yes
-      cssClass : "verify"
-      title    : "verify"
       callback : delegate.lazyBound 'verify', this
+      cssClass : 'solid compact outline'
+      title    : 'VERIFY'
 
 
   pistachio: ->
@@ -47,6 +45,6 @@ module.exports = class CredentialListItem extends kd.ListItemView
     </div>
     <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}
-      {{> @bootstrapButton}}{{> @verifyButton}}
+      {{> @useButton}}{{> @verifyButton}}
     </div>
     """
