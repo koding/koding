@@ -7,15 +7,21 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
   JView.mixin @prototype
 
+  callback = (formData) ->
+    { storeNewTeamData, createTeam, joinTeam, getTeamData } = KD.utils
+    { join } = getTeamData().signup
+    storeNewTeamData 'username', formData
+    if join then joinTeam() else createTeam()
+
   constructor:(options = {}, data)->
 
     options.name = 'username'
 
     super options, data
 
-    teamData           = KD.utils.getTeamData()
-    { alreadyMember }  = teamData.signup
-    { mainController } = KD.singletons
+    teamData                = KD.utils.getTeamData()
+    { alreadyMember, join } = teamData.signup
+    { mainController }      = KD.singletons
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -31,10 +37,8 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
         tagName : 'h5'
         partial : 'please enter your Koding password'
 
-      @form = new TeamLoginAndCreateTabForm
-        callback : (formData) ->
-          KD.utils.storeNewTeamData 'username', formData
-          KD.utils.createTeam (err, res) -> console.log err, res
+      @form = new TeamLoginAndCreateTabForm { callback }
+
     else
 
       @title = new KDCustomHTMLView
@@ -45,11 +49,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
         tagName : 'h5'
         partial : '...or login with your existing Koding account.'
 
-      @form = new TeamUsernameTabForm
-        callback : (formData) ->
-          KD.utils.storeNewTeamData 'username', formData
-          KD.utils.createTeam (err, res) -> console.log err, res
-
+      @form = new TeamUsernameTabForm { callback }
 
 
   pistachio: ->
