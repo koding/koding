@@ -46,14 +46,7 @@ module.exports = (req, res, next) ->
 
     createGroup = (err, result) ->
 
-      if err?
-
-        {message} = err
-
-        if err.errors?
-          message = "#{message}: #{Object.keys err.errors}"
-
-        return res.status(400).send message
+      return res.status(400).send getErrorMessage err  if err?
 
       # don't set the cookie we don't want that
       # bc we're going to redirect the page to the
@@ -125,3 +118,10 @@ createInvitations = (client, invitees, callback)->
 
   koding.models.JInvitation.create client, { invitations }, callback
 
+
+getErrorMessage = (err) ->
+
+  { message } = err
+  message     = "#{message}: #{Object.keys err.errors}"  if err.errors?
+
+  return message
