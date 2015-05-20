@@ -1,10 +1,10 @@
-kd                  = require 'kd'
-KDButtonView        = kd.ButtonView
-KDCustomHTMLView    = kd.CustomHTMLView
-KDLoaderView        = kd.LoaderView
-PaymentBaseModal    = require './paymentbasemodal'
-showError           = require 'app/util/showError'
-PaymentConstants    = require './paymentconstants'
+kd               = require 'kd'
+KDButtonView     = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+KDLoaderView     = kd.LoaderView
+PaymentBaseModal = require './paymentbasemodal'
+showError        = require 'app/util/showError'
+PaymentConstants = require './paymentconstants'
 
 
 module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModal
