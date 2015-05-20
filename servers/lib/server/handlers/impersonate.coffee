@@ -17,7 +17,7 @@ module.exports = (req, res) ->
         return res.status(403).end()
 
       JSession.createNewSession {
-        nickname  : nickname
+        username  : nickname
         # set parent group name into kookie
         groupName : result.groupName or "koding"
       }, (err, session) ->
