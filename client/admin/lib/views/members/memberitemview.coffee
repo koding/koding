@@ -27,7 +27,7 @@ buttonSet     =
     member    : [ owner, admin, moderator, kick  ]
     moderator : [ owner, admin, member, kick     ]
     admin     : [ owner, moderator, member, kick ]
-    owner     : []
+    owner     : [ member ]
   admin       :
     member    : [ admin, moderator, kick  ]
     moderator : [ admin, member, kick     ]
