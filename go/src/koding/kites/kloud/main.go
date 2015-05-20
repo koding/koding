@@ -104,6 +104,7 @@ func main() {
 	k := newKite(conf)
 
 	if conf.DebugMode {
+		k.SetLogLevel(kite.DEBUG)
 		k.Log.Info("Debug mode enabled")
 	}
 
