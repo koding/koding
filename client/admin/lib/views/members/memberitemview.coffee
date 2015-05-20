@@ -26,31 +26,32 @@ module.exports = class MemberItemView extends KDListItemView
 
     super options, data
 
+    @memberRole       = @getRole data.roles
+
     @avatar = new AvatarView
       size  : width: 40, height : 40
     , @getData()
 
     @roleLabel = new KDCustomHTMLView
       cssClass : 'role'
-      partial  : "#{@getUserRole()} <span class='settings-icon'></span>"
       click    : =>
         @settings.toggleClass  'hidden'
         @roleLabel.toggleClass 'active'
+      partial  : "#{@memberRole.label} <span class='settings-icon'></span>"
 
     @createSettingsView()
 
 
-  getUserRole: ->
+
+  getRole: (userRoles) ->
 
     currentRole = defaultRoles.member
-    userRoles   = @getData().roles
 
     # find the most prioritized role
     for userRole in userRoles when role = defaultRoles[userRole]
-      if role.priority > currentRole.priority
-        currentRole = role
+      currentRole = role  if role.priority > currentRole.priority
 
-    return currentRole.nicename
+    return currentRole
 
 
   createSettingsView: ->
