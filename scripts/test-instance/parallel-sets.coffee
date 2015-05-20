@@ -53,6 +53,7 @@ module.exports = [
 
   [
     'ide file'
+    'ide folder'
   ]
 
   [
