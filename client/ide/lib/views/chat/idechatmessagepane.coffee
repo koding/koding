@@ -38,18 +38,26 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
 
 
-  createStartVideoButton: ->
+  createVideoActionButton: (action) ->
 
-    @addSubView @startVideoButtonContainer = new kd.CustomHTMLView
-      cssClass : 'ChatVideo-startVideoContainer'
+    @addSubView @videoActionButtonContainer = new kd.CustomHTMLView
+      cssClass : 'ChatVideo-actionButtonContainer'
 
-    @startVideoButton = new kd.ButtonView
+    switch action
+      when 'start'
+        method = 'requestStartVideo'
+        tooltipTitle = 'Start Video Chat [BETA]'
+      when 'join'
+        method = 'requestJoinVideo'
+        tooltipTitle = 'Join Video Chat [BETA]'
+
+    @videoActionButton = new kd.ButtonView
       iconOnly : yes
-      cssClass : 'ChatVideo-startButton'
-      callback : @bound 'requestStartVideo'
-      tooltip  : { title: 'Start Video Chat [BETA]', placement: 'left' }
+      cssClass : 'ChatVideo-actionButton'
+      callback : @bound method
+      tooltip  : { title: tooltipTitle, placement: 'left' }
 
-    @startVideoButtonContainer.addSubView @startVideoButton
+    @videoActionButtonContainer.addSubView @videoActionButton
 
 
   handleThresholdReached: ->
@@ -232,6 +240,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   requestStartVideo: -> @emit 'ChatVideoStartRequested'
   requestEndVideo: -> @emit 'ChatVideoEndRequested'
+  requestJoinVideo: -> @emit 'ChatVideoJoinRequested'
 
 
   createMenu: ->
