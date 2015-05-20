@@ -3,6 +3,7 @@ package gather
 import (
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func tarFolder(folderName, outputFileName string) error {
@@ -40,4 +41,12 @@ func exists(name string) (bool, error) {
 	}
 
 	return true, err
+}
+
+func isDotFile(path string) bool {
+	return strings.Contains(path, "._")
+}
+
+func isRunnable(path string) bool {
+	return strings.Contains(path, "run-")
 }

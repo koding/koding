@@ -45,6 +45,10 @@ func TestGather(t *testing.T) {
 			So(len(scripts), ShouldEqual, 1)
 			So(scripts[0].Path, ShouldEndWith, "ls")
 
+			Convey("It should extract only scripts with prefix", func() {
+				So(scripts[0].Path, ShouldNotEndWith, "not-run")
+			})
+
 			Convey("It should cleanup scripts folder", func() {
 				err := g.Cleanup()
 				So(err, ShouldBeNil)

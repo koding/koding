@@ -8,7 +8,7 @@ import (
 
 func TestScriptRun(t *testing.T) {
 	Convey("It should run script using bash", t, func() {
-		s := &Script{Path: "test-scripts/ls"}
+		s := &Script{Path: "test-scripts/run-ls"}
 
 		result, err := s.Run()
 		So(err, ShouldBeNil)

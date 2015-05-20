@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-source output.sh
+MYDIR="$(dirname "$(which "$0")")"
+source $MYDIR/output.sh
 
 value=false
 if which $2 > /dev/null; then
   value=true
 fi
 
-output $INSTALLED $1 $BOOLEAN $value
+output "$1" $BOOLEAN $value

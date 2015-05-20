@@ -1,7 +1,9 @@
 #!/bin/bash
 
+MYDIR="$(dirname "$(which "$0")")"
+
 IFS=:
-bash ./users.sh | while read user pass x x x x shell line
+bash ./$MYDIR/users.sh | while read user pass x x x x shell line
 do
   echo $user $shell
 done

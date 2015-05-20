@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
-INSTALLED="Installed"
-LINECOUNT="Linecount"
-COUNT="Count"
 
-BOOLEAN="Boolean"
-NUMBER="Number"
+BOOLEAN="boolean"
+NUMBER="number"
 
 function output {
-  echo "{'category':'$1', 'name':'$2', 'type':'$3', 'value':$4}"
+  echo "{\"name\":\"$1\", \"type\":\"$2\", \"$2\":$3}"
 }

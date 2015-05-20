@@ -58,7 +58,7 @@ func (c *Gather) ExtractScripts(tarFile string) ([]*Script, error) {
 	scripts := []*Script{}
 
 	extractIntoScript := func(path string, f os.FileInfo, err error) error {
-		if !f.IsDir() {
+		if !f.IsDir() && isRunnable(path) && !isDotFile(path) {
 			script := &Script{Path: path}
 			scripts = append(scripts, script)
 		}

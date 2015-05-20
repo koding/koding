@@ -27,10 +27,10 @@ func (s *Script) Run() (*Result, error) {
 }
 
 type Result struct {
-	Error     error
-	Category  string
-	Name      string
-	Type      string
-	Exists    bool
-	Timestamp string
+	Error     error   `json:"error",omitempty"`
+	Name      string  `json:"name"`
+	Type      string  `json:"type"`
+	Boolean   bool    `json:"boolean",omitempty`
+	Number    float64 `json:"number",omitempty`
+	Timestamp string  `json:"@timestamp"`
 }
