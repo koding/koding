@@ -44,6 +44,8 @@ module.exports = class MemberItemView extends KDListItemView
 
     super options, data
 
+    @actionButtons    = {}
+    @loggedInUserRole = @getRole data.loggedInUserRoles
     @memberRole       = @getRole data.roles
 
     @avatar = new AvatarView
@@ -57,6 +59,7 @@ module.exports = class MemberItemView extends KDListItemView
 
     @createSettingsView()
 
+    @on 'UserRoleChangeRequested', @bound 'handleRoleChange'
 
 
   getRole: (userRoles) ->
@@ -89,6 +92,45 @@ module.exports = class MemberItemView extends KDListItemView
       @settings.addSubView buttonView
 
 
+  handleRoleChange: (newRole) ->
+
+    { groupsController } = kd.singletons
+    button   = @actionButtons[newRole]
+    jAccount = @getData()
+
+    return button.hideLoader()  if @isInProgress
+
+    @isInProgress = yes
+
+    groupsController.ready =>
+      group    = groupsController.getCurrentGroup()
+      newRoles = [ newRole ]
+
+      newRoles.push 'admin'  if newRole is 'owner'
+
+      group.changeMemberRoles jAccount.getId(), newRoles, (err, response) =>
+        return @handleError button  if err
+
+        group.fetchUserRoles [ jAccount.getId() ], (err, roles) =>
+
+          return @handleError button  if err
+
+          data        = @getData()
+          data.roles  = (role.as for role in roles)
+          @memberRole = @getRole data.roles
+
+          @roleLabel.updatePartial "#{@memberRole.label} <span class='settings-icon'></span>"
+          @settings.destroySubViews()
+          @createSettingsView()
+
+          @isInProgress = no
+
+
+  handleError: (button, message) ->
+
+    button.hideLoader()
+    message or= 'Failed to change user role. Please try again.'
+    return new KDNotificationView title: message, duration: 5000
 
 
 
