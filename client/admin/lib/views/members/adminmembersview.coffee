@@ -2,7 +2,7 @@ kd                    = require 'kd'
 KDView                = kd.View
 KDTabView             = kd.TabView
 KDTabPaneView         = kd.TabPaneView
-TeamMembersView       = require './teammembersview.coffee'
+TeamMembersCommonView = require './teammemberscommonview.coffee'
 
 
 module.exports = class AdminMembersView extends KDView
@@ -26,10 +26,10 @@ module.exports = class AdminMembersView extends KDView
     tabView.addPane moderatorsPane     = new KDTabPaneView name: 'Moderators'
     tabView.addPane blockedMembersPane = new KDTabPaneView name: 'Blocked'
 
-    allMembersPane.addSubView     new TeamMembersView {}, data
-    adminsPane.addSubView         new TeamMembersView {}, data
-    moderatorsPane.addSubView     new TeamMembersView {}, data
-    blockedMembersPane.addSubView new TeamMembersView {}, data
+    allMembersPane.addSubView  new TeamMembersCommonView { fetcherMethod: 'fetchMembers'    }, data
+    adminsPane.addSubView      new TeamMembersCommonView { fetcherMethod: 'fetchAdmins'     }, data
+    moderatorsPane.addSubView  new TeamMembersCommonView { fetcherMethod: 'fetchModerators' }, data
+    # blockedMembersPane.addSubView new TeamMembersView {}, data
 
     tabView.showPaneByIndex 0
     @addSubView tabView
