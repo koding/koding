@@ -12,6 +12,30 @@ AccountCredentialListController = require 'account/views/accountcredentiallistco
 module.exports = class StacksCustomViews extends CustomViews
 
 
+  fetchAndShowCredentialData = (credential, outputView) ->
+
+    outputView.addContent 'Fetching latest data...'
+
+    credential.fetchData (err, data) ->
+      if err
+        outputView.addContent 'Failed: ', err.message
+      else
+
+        # Hide sensitive information
+        provider = globals.config.providers[credential.provider]
+        (Object.keys provider.credentialFields).forEach (field) ->
+          data.meta[field] = '******************'
+
+        try
+          cred = JSON.stringify data.meta, null, 2
+        catch e
+          outputView.addContent 'Failed to parse:', e
+          return
+
+        outputView.addContent cred
+        outputView.addContent 'You can continue to next step.'
+        outputView.emit 'BootstrappingDone'
+
   handleNewCredential = (views, provider, button) ->
 
     {controller} = views.credentialList
