@@ -14,7 +14,7 @@ type CheckerBinary struct {
 }
 
 func (s *CheckerBinary) Run() (Result, error) {
-	output, err := exec.Command(s.Path).Output()
+	output, err := exec.Command(s.Path, "xAboBy").Output()
 	if err != nil {
 		return nil, err
 	}
