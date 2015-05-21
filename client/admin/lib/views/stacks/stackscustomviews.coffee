@@ -1,6 +1,7 @@
 _                               = require 'lodash'
 kd                              = require 'kd'
 globals                         = require 'globals'
+dateFormat                      = require 'dateformat'
 CustomViews                     = require 'app/commonviews/customviews'
 CredentialListItem              = require './credentiallistitem'
 ComputeController_UI            = require 'app/providers/computecontroller.ui'
@@ -59,6 +60,20 @@ module.exports = class StacksCustomViews extends CustomViews
         cssClass, showLoader: yes,
         size: width: 40, height: 40
       }
+
+    outputView: (options) =>
+
+      options.cssClass = kd.utils.curry options.cssClass, 'output-view'
+      options.tagName  = 'pre'
+
+      container = @views.view options
+
+      container.addContent = (content...) =>
+        content = content.join ' '
+        content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}"
+        @addTo container, text: content
+
+      return container
 
 
     button: (options) ->
