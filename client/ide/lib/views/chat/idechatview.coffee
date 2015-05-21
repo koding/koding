@@ -226,8 +226,10 @@ module.exports = class IDEChatView extends KDTabView
     {appManager} = kd.singletons
 
     @chatPane
-      .on 'ChatVideoStartRequested', -> appManager.tell 'IDE', 'startVideoCollaboration'
-      .on 'ChatVideoEndRequested', -> appManager.tell 'IDE', 'endVideoCollaboration'
+      .on 'ChatVideoStartRequested' , -> appManager.tell 'IDE', 'startVideoCollaboration'
+      .on 'ChatVideoEndRequested'   , -> appManager.tell 'IDE', 'endVideoCollaboration'
+      .on 'ChatVideoJoinRequested'  , -> appManager.tell 'IDE', 'joinVideoCollaboration'
+      .on 'ChatVideoLeaveRequested' , -> appManager.tell 'IDE', 'leaveVideoCollaboration'
 
 
   showChatPane: ->

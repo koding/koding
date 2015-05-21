@@ -61,6 +61,12 @@ module.exports = VideoCollaborationController =
   endVideoCollaboration: -> @videoModel.end()
 
 
+  joinVideoCollaboration: -> @videoModel.join()
+
+
+  leaveVideoCollaboration: -> @videoModel.leave()
+
+
   muteParticipant: (nickname) -> @videoModel.muteParticipant nickname
 
 
@@ -71,6 +77,7 @@ module.exports = VideoCollaborationController =
       when 'video'   then @videoModel.requestVideoStateChange activeState
       when 'speaker' then @videoModel.requestSpeakerStateChange activeState
       when 'end'     then @endVideoCollaboration()
+      when 'leave'   then @leaveVideoCollaboration()
 
 
   switchToUserVideo: (nickname) ->

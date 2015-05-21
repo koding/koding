@@ -241,6 +241,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
   requestStartVideo: -> @emit 'ChatVideoStartRequested'
   requestEndVideo: -> @emit 'ChatVideoEndRequested'
   requestJoinVideo: -> @emit 'ChatVideoJoinRequested'
+  requestLeaveVideo: -> @emit 'ChatVideoLeaveRequested'
 
 
   createMenu: ->
