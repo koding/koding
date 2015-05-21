@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	bucketName = "gather-vm-metrics"
+	bucketName = "gather-vm-metrics-test"
 	binaryName = "check"
 	binaryTar  = "check.tar"
 )

@@ -19,7 +19,7 @@ const (
 )
 
 type Exporter interface {
-	SendResult(*Result, Options) error
+	SendResult(Result, Options) error
 	SendError(error, Options) error
 }
 
@@ -40,8 +40,8 @@ func NewEsExporter(host, index string) *EsExporter {
 	return &EsExporter{Index: index, Type: DEFAULT_ES_TYPE, Client: esClient}
 }
 
-func (es *EsExporter) SendResult(r *Result, o Options) error {
-	r.Timestamp = time.Now().Format(ES_TIME_FORMAT)
+func (es *EsExporter) SendResult(r Result, o Options) error {
+	r[ES_TIMESTAMP_KEY] = time.Now().Format(ES_TIME_FORMAT)
 	_, err := es.Client.Index(es.Index, es.Type, "", nil, r)
 
 	return err
@@ -53,8 +53,8 @@ func (es *EsExporter) SendError(err error, o Options) error {
 	}
 
 	data := Result{
-		Error:     err,
-		Timestamp: time.Now().Format(ES_TIME_FORMAT),
+		"error":          err,
+		ES_TIMESTAMP_KEY: time.Now().Format(ES_TIME_FORMAT),
 	}
 
 	_, err = es.Client.Index(ES_ERROR_INDEX, DEFAULT_ES_TYPE, "", nil, data)

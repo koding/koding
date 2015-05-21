@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"os/exec"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,17 +8,14 @@ import (
 
 func TestBinData(t *testing.T) {
 	Convey("It should access assets in bindata", t, func() {
-		common, err := Asset("scripts/common")
+		common, err := Asset("checkers/common")
 		So(err, ShouldBeNil)
 
-		zsh, err := Asset("scripts/run-zsh_config_lines.sh")
+		result, err := runScript(common, "checkers/run-poi")
 		So(err, ShouldBeNil)
 
-		bites := string(common) + string(zsh)
-
-		output, err := exec.Command("bash", "-c", bites).Output()
-		fmt.Println(string(output))
-
-		So(err, ShouldBeNil)
+		So(result.Type, ShouldEqual, "boolean")
+		So(result.Name, ShouldEqual, "postgresql installed")
+		So(result.Error, ShouldEqual, "")
 	})
 }

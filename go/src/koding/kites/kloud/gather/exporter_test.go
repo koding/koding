@@ -41,7 +41,7 @@ func TestExporter(t *testing.T) {
 	Convey("It should return error if server is unavailable", t, func() {
 		exporter := NewEsExporter("localhost1", "gather")
 
-		err := exporter.SendResult(&Result{}, nil)
+		err := exporter.SendResult(Result{}, nil)
 		So(err, ShouldNotBeNil)
 	})
 
@@ -58,7 +58,7 @@ func TestExporter(t *testing.T) {
 		exporter, err := newTestExporterHandler(handler)
 		So(err, ShouldBeNil)
 
-		err = exporter.SendResult(&Result{Name: "test metric"}, nil)
+		err = exporter.SendResult(Result{"name": "test metric"}, nil)
 		So(err, ShouldBeNil)
 	})
 

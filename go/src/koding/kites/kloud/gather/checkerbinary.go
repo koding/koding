@@ -6,22 +6,14 @@ import (
 	"os/exec"
 )
 
-type Result struct {
-	Error     error   `json:"error",omitempty"`
-	Name      string  `json:"name"`
-	Type      string  `json:"type"`
-	Boolean   bool    `json:"boolean",omitempty`
-	Number    float64 `json:"number",omitempty`
-	Timestamp string  `json:"@timestamp"`
-}
-
+type Result map[string]interface{}
 type Options map[string]interface{}
 
 type CheckerBinary struct {
 	Path string
 }
 
-func (s *CheckerBinary) Run() (*Result, error) {
+func (s *CheckerBinary) Run() (Result, error) {
 	output, err := exec.Command(s.Path).Output()
 	if err != nil {
 		return nil, err
@@ -29,7 +21,7 @@ func (s *CheckerBinary) Run() (*Result, error) {
 
 	bites := bytes.NewBuffer(output)
 
-	var result = &Result{}
+	var result = Result{}
 	if err := json.NewDecoder(bites).Decode(result); err != nil {
 		return nil, err
 	}

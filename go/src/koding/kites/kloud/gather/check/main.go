@@ -8,28 +8,27 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 type Result struct {
-	Error     string  `json:"error,omitempty"`
-	Name      string  `json:"name"`
-	Type      string  `json:"type"`
-	Number    float64 `json:"number"`
-	Timestamp string  `json:"timestamp"`
+	Error   string  `json:"error,omitempty"`
+	Name    string  `json:"name"`
+	Type    string  `json:"type"`
+	Number  float64 `json:"number,omitempty"`
+	Boolean float64 `json:"boolean,omitempty"`
 }
 
 var EarlyExit = fmt.Sprintf("klient works")
 
-func init() {
+type Results []*Result
+
+func main() {
 	if len(os.Args) < 2 || os.Args[1] != "xAboBy" {
 		fmt.Println(EarlyExit)
 		os.Exit(0)
 	}
-}
 
-func main() {
-	var results = []interface{}{}
+	var results = Results{}
 
 	commonBytes, err := Asset("checkers/common")
 	if err != nil {
@@ -47,7 +46,8 @@ func main() {
 		}
 	}
 
-	log.Println(results)
+	resultBytes, _ := json.Marshal(results)
+	fmt.Println(string(resultBytes))
 }
 
 func runnable(scriptPath string) bool {
@@ -72,10 +72,10 @@ func runScript(commonBytes []byte, scriptPath string) (*Result, error) {
 func encodeResult(resultBytes []byte) (*Result, error) {
 	outputBuffer := bytes.NewBuffer(resultBytes)
 
-	var result = &Result{Timestamp: time.Now().String()}
+	var result Result
 	if err := json.NewDecoder(outputBuffer).Decode(&result); err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return &result, nil
 }
