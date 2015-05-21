@@ -131,6 +131,10 @@ func (c *Client) proxy(port string) error {
 		return err
 	}
 
+	if port == "0" {
+		port = "80"
+	}
+
 	localAddr := "127.0.0.1:" + port
 	if c.localAddr != "" {
 		localAddr = c.localAddr
