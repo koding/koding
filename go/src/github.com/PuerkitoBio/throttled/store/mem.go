@@ -1,7 +1,6 @@
 package store
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -52,13 +51,11 @@ type counter struct {
 // Incr increments the counter for the specified key. It returns the new
 // count value and the remaining number of seconds, or an error.
 func (ms *memStore) Incr(key string, window time.Duration) (int, int, error) {
-	fmt.Println("neymis ki bu", key)
 	ms.Lock()
 	defer ms.Unlock()
 	var c *counter
 	if ms.keys != nil {
 		v, _ := ms.keys.Get(key)
-		fmt.Println("key yok dediler", v)
 		if v != nil {
 			c = v.(*counter)
 		}
