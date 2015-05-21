@@ -15,6 +15,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     options.cssClass                 = 'members-commonview'
     options.itemLimit               ?= 10
+    options.fetcherMethod          or= 'fetchMembers'
     options.noItemFoundWidget      or= new KDCustomHTMLView
     options.listViewItemClass      or= MemberItemView
     options.listViewItemOptions    or= {}
@@ -89,13 +90,14 @@ module.exports = class TeamMembersCommonView extends KDView
     @isFetching = yes
 
     group    = @getData()
+    method   = @getOption 'fetcherMethod'
     options  =
       limit  : @getOptions().itemLimit
       sort   : timestamp: -1 # timestamp is at relationship collection
       skip   : @skip
 
     # fetch members as jAccount
-    group.fetchMembers {}, options, (err, members) =>
+    group[method] {}, options, (err, members) =>
 
       return @handleError err  if err
 
