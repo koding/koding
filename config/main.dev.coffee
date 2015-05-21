@@ -342,6 +342,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.sourcemaps.port}"
+      nginx             :
+        locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
@@ -349,6 +351,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.appsproxy.port}"
+      nginx             :
+        locations       : [ { location : "/appsproxy" } ]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
 
@@ -458,6 +462,8 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
         command         : "#{GOBIN}/watcher -run koding/vmwatcher"
+      nginx             :
+        locations       : [ { location: "/vmwatcher" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 

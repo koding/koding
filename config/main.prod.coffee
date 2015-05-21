@@ -323,6 +323,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.sourcemaps.port}"
+      nginx             :
+        locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
         command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
@@ -330,6 +332,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.appsproxy.port}"
+      nginx             :
+        locations       : [ { location : "/appsproxy" } ]
       supervisord       :
         command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port}"
 
@@ -377,6 +381,8 @@ Configuration = (options={}) ->
       instances         : 1
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
+      nginx             :
+        locations       : [ { location: "/vmwatcher" } ]
       supervisord       :
         command         : "#{GOBIN}/vmwatcher"
         stopwaitsecs    : 20
