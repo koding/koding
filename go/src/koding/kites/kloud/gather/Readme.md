@@ -52,8 +52,14 @@ Even though the checkers are binary encoded and the program shared as a binary, 
 
 `./build.sh` will cross compile the `check` binary, tar it and upload it to S3. You'll need cross compilation enabled in Go (GOOS=linux GOARCH=386) and `aws` cli installed & configured using your credentials for this to work.
 
+Be warned, above command is dangerous and should be used only after testing the scripts locally.
+
 ## Interfaces
 
 There are currently two defined interfaces: `Fetcher`, for downloading scripts from an external source and `Exporter` to save the results of ran scripts.
 
 `S3Fetcher` implements `Fetcher`, fetches scripts from an authenticated s3 bucket. `EsExporter` implements `Exporter` saves results to ElasticSearch.
+
+## Tests
+
+`go test` will run the tests. There's currently no mocking for S3 operations, so tests will upload and download the check binary to a test S3 bucket.
