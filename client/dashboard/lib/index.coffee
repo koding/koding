@@ -54,7 +54,7 @@ module.exports = class DashboardAppController extends AppController
       ,
         name         : 'Membership policy'
         viewOptions  :
-          viewClass  : GroupsMembershipPolicyDetailView
+          viewClass  : GroupTopicDashboardView
           lazy       : yes
           callback   : @bound 'policyViewAdded'
       # ,

@@ -32,4 +32,5 @@ const (
 	ModerationChannelGetLink    = "moderation-channel-get-link"
 	ModerationChannelDeleteLink = "moderation-channel-delete-link"
 	ModerationChannelBlacklist  = "moderation-channel-blacklist"
+	ModerationChannelGetRoot    = "moderation-channel-get-root"
 )
