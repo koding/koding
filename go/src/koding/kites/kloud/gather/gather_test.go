@@ -72,10 +72,8 @@ func TestGather(t *testing.T) {
 				err := json.NewDecoder(r.Body).Decode(&result)
 				So(err, ShouldBeNil)
 
-				So(result.Category, ShouldEqual, "test")
 				So(result.Name, ShouldEqual, "test script")
-				So(result.Type, ShouldEqual, "bool")
-				So(result.Exists, ShouldEqual, true)
+				So(result.Type, ShouldEqual, "boolean")
 			})
 
 			fmt.Fprintln(w, "{}")

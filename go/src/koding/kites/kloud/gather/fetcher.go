@@ -13,7 +13,7 @@ import (
 const (
 	CONTENT_TYPE_TAR       = "application/tar"
 	DEFAULT_BUCKET_NAME    = "gather-vm-metrics"
-	DEFAULT_SCRIPTS_FOLDER = "scripts"
+	DEFAULT_SCRIPTS_FOLDER = "check"
 )
 
 type Fetcher interface {
