@@ -25,6 +25,9 @@ type Server struct {
 	sessions   map[string]*yamux.Session
 	sessionsMu sync.Mutex // protects the sessions map
 
+	// controls contains the control connection from the client to the server
+	controls *controls
+
 	// virtualHosts is used to map public hosts to remote clients
 	virtualHosts *virtualHosts
 }
@@ -34,6 +37,7 @@ func NewServer() *Server {
 		pending:      make(map[string]chan net.Conn),
 		sessions:     make(map[string]*yamux.Session),
 		virtualHosts: newVirtualHosts(),
+		controls:     newControls(),
 	}
 
 	http.Handle(TunnelPath, checkConnect(s.tunnelHandler))
@@ -125,13 +129,38 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	buf := make([]byte, 4)
+	buf := make([]byte, len(ctHandshakeRequest))
 	if _, err := stream.Read(buf); err != nil {
 		return err
 	}
 
-	fmt.Printf("buf = %+v\n", string(buf))
+	if string(buf) != ctHandshakeRequest {
+		return fmt.Errorf("handshake aborted. got: %s", string(buf))
+	}
+
+	if _, err := stream.Write([]byte(ctHandshakeResponse)); err != nil {
+		return err
+	}
+
+	// setup control stream and start to listen to messages
+	ct := newControl(stream)
+	s.addControl(identifier, ct)
+	go s.listenControl(ct)
+
 	return nil
+}
+
+func (s *Server) listenControl(ct *control) {
+	for {
+		var msg map[string]interface{}
+		err := ct.dec.Decode(&msg)
+		if err != nil {
+			log.Println("decode err: %s", err)
+			return
+		}
+
+		fmt.Printf("msg = %+v\n", msg)
+	}
 }
 
 func (s *Server) AddHost(host, identifier string) {
@@ -150,6 +179,18 @@ func (s *Server) GetIdentifier(host string) (string, bool) {
 func (s *Server) GetHost(identifier string) (string, bool) {
 	host, ok := s.virtualHosts.getHost(identifier)
 	return host, ok
+}
+
+func (s *Server) addControl(identifier string, conn *control) {
+	s.controls.addControl(identifier, conn)
+}
+
+func (s *Server) getControl(identifier string) (*control, bool) {
+	return s.controls.getControl(identifier)
+}
+
+func (s *Server) deleteControl(identifier string) {
+	s.controls.deleteControl(identifier)
 }
 
 func join(local, remote io.ReadWriteCloser) chan error {

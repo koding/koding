@@ -3,6 +3,7 @@ package streamtunnel
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 
@@ -76,6 +77,35 @@ func (c *Client) Start(identifier string) error {
 		return err
 	}
 
-	_, err = stream.Write([]byte("ping"))
-	return err
+	if _, err := stream.Write([]byte(ctHandshakeRequest)); err != nil {
+		return err
+	}
+
+	buf := make([]byte, len(ctHandshakeResponse))
+	if _, err := stream.Read(buf); err != nil {
+		return err
+	}
+
+	if string(buf) != ctHandshakeResponse {
+		return fmt.Errorf("handshake aborted. got: %s", string(buf))
+	}
+
+	ct := newControl(stream)
+	go c.listenControl(ct)
+
+	log.Println("start is successfull.")
+	return nil
+}
+
+func (c *Client) listenControl(ct *control) {
+	for {
+		var msg map[string]interface{}
+		err := ct.dec.Decode(&msg)
+		if err != nil {
+			log.Println("decode err: %s", err)
+			return
+		}
+
+		fmt.Printf("msg = %+v\n", msg)
+	}
 }

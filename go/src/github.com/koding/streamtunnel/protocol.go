@@ -1,8 +1,11 @@
 package streamtunnel
 
 const (
-	ControlPath = "/_controlPath_/"
-	TunnelPath  = "/_tunnelPath_/"
+	// control messages
+	ctHandshakeRequest  = "controlHandshake"
+	ctHandshakeResponse = "controlOk"
+
+	TunnelPath = "/_tunnelPath_/"
 
 	// Custom Tunnel specific header
 	XKTunnelIdentifier = "X-KTunnel-Identifier"

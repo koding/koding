@@ -1,124 +1,40 @@
 package streamtunnel
 
 import (
-	"bufio"
 	"encoding/json"
-	"fmt"
-	"log"
+	"errors"
 	"net"
-	"net/http"
 	"sync"
-	"time"
 )
 
 type control struct {
-	// underlying tcp connection
-	net.Conn
-
-	// start time of the control connection
-	start time.Time
-
-	// owner of the control connection
-	owner string
-
-	// sendChan is used to encode ServerMsg and send them over the wire in
-	// JSON format to the client that initiated the control connection.
-	sendChan chan ServerMsg
-
-	// defines when control is ready
-	ready chan bool
+	enc *json.Encoder
+	dec *json.Decoder
 }
 
-func newControl(nc net.Conn, owner string, ready chan bool) *control {
+func newControl(nc net.Conn) *control {
 	c := &control{
-		owner:    owner,
-		sendChan: make(chan ServerMsg),
-		ready:    ready,
+		enc: json.NewEncoder(nc),
+		dec: json.NewDecoder(nc),
 	}
 
-	c.Conn = nc
 	return c
 }
 
-func newControlDial(addr, identifier string) *control {
-	c := &control{}
-
-	cn, err := net.Dial("tcp", addr)
-	if err != nil {
-		log.Fatalln("newControlConn", err)
+func (c *control) send(v interface{}) error {
+	if c.enc == nil {
+		return errors.New("encoder is not initialized")
 	}
 
-	c.Conn = cn
-
-	request := func() {
-		err := c.connect(identifier)
-		if err != nil {
-			log.Fatalln("newControlConn", err)
-		}
-	}
-
-	// first call CONNECT request to establish the control connection
-	request()
-	return c
+	return c.enc.Encode(v)
 }
 
-func (c *control) connect(identifier string) error {
-	remoteAddr := fmt.Sprintf("http://%s%s", c.RemoteAddr(), ControlPath)
-	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
-	if err != nil {
-		return fmt.Errorf("CONNECT %s", err)
+func (c *control) recv(v interface{}) error {
+	if c.dec == nil {
+		return errors.New("decoder is not initialized")
 	}
 
-	req.Header.Set("identifier", identifier)
-	req.Write(c)
-
-	resp, err := http.ReadResponse(bufio.NewReader(c), req)
-	if err != nil {
-		return fmt.Errorf("read response %s", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 && resp.Status != Connected {
-		return fmt.Errorf("proxy server: %s", resp.Status)
-	}
-
-	return nil
-}
-
-func (c *control) send(msg ServerMsg) {
-	c.sendChan <- msg
-}
-
-func (c *control) run() {
-	go c.encoder()
-	c.decoder()
-}
-
-func (c *control) decoder() {
-	d := json.NewDecoder(c)
-	for {
-		var msg ClientMsg
-		err := d.Decode(&msg)
-		if err != nil {
-			log.Printf("control connection from %s is closed: decode '%s\n",
-				c.owner, err)
-			return
-		}
-	}
-}
-
-func (c *control) encoder() {
-	e := json.NewEncoder(c)
-	close(c.ready) // notify others that we are ready now
-	for msg := range c.sendChan {
-		err := e.Encode(msg)
-		if err != nil {
-			log.Printf("control connection from %s is closed: encode '%s\n",
-				c.owner, err)
-			return
-		}
-	}
-
+	return c.dec.Decode(v)
 }
 
 type controls struct {

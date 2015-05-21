@@ -35,6 +35,7 @@ func TestTunnel(t *testing.T) {
 
 	// start local server to be tunneled
 	go http.ListenAndServe(localAddr, hello())
+
 	time.Sleep(time.Second)
 
 	// make a request to tunnelserver, this should be tunneled to local server
