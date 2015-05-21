@@ -2,8 +2,9 @@ helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 
-domainItem  = '.kdlistitemview-domain:last-child'
-loader      = domainItem + '.in-progress'
+domainSelector = '.machine-settings-modal .kdlistitemview-domain'
+lastDomainItem = "#{domainSelector}:last-child"
+loader         = lastDomainItem + '.in-progress'
 
 
 module.exports =
@@ -57,11 +58,14 @@ module.exports =
 
   assignDomain: (browser) ->
 
-    domainName = environmentHelpers.addDomain(browser)
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    domainName = environmentHelpers.addDomain(browser, user)
 
     browser
-      .waitForElementVisible     domainItem, 20000
-      .click                     domainItem + ' .koding-on-off.on'
+      .waitForElementVisible     lastDomainItem, 20000
+      .click                     lastDomainItem + ' .koding-on-off.on'
       .waitForElementVisible     '.in-progress', 10000
       .waitForElementNotPresent  '.in-progress', 20000
       .refresh()
@@ -69,7 +73,7 @@ module.exports =
     environmentHelpers.openDomainSettings(browser)
 
     browser
-      .waitForElementVisible     domainItem + ' .koding-on-off.off', 20000
+      .waitForElementVisible     lastDomainItem + ' .koding-on-off.off', 20000
       .end()
 
 
