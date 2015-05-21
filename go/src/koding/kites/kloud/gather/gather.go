@@ -3,7 +3,6 @@ package gather
 import (
 	"math/rand"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -11,32 +10,34 @@ type Gather struct {
 	DestFolder string
 	Exporter   Exporter
 	Fetcher    Fetcher
+	Options    Options
 }
 
-func New(fetcher Fetcher, exporter Exporter) *Gather {
+func New(fetcher Fetcher, exporter Exporter, opts Options) *Gather {
 	return &Gather{
-		Fetcher: fetcher, Exporter: exporter, DestFolder: "/tmp/" + randSeq(10),
+		Fetcher:    fetcher,
+		Exporter:   exporter,
+		DestFolder: "/tmp/" + randSeq(10),
+		Options:    opts,
 	}
 }
 
-func (c *Gather) RunAllScripts() error {
+func (c *Gather) Run() error {
 	defer c.Cleanup()
 
-	scripts, err := c.GetScripts()
+	binary, err := c.GetCheckerBinary()
 	if err != nil {
 		return err
 	}
 
-	for _, script := range scripts {
-		if err := c.Export(script.Run()); err != nil {
-			return err
-		}
+	if err := c.Export(binary.Run()); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (c *Gather) GetScripts() ([]*Script, error) {
+func (c *Gather) GetCheckerBinary() (*CheckerBinary, error) {
 	if err := c.CreateDestFolder(); err != nil {
 		return nil, err
 	}
@@ -45,32 +46,13 @@ func (c *Gather) GetScripts() ([]*Script, error) {
 		return nil, err
 	}
 
-	tarFile := c.DestFolder + "/" + c.Fetcher.GetScriptsFile()
+	tarFile := c.DestFolder + "/" + c.Fetcher.GetFileName()
 	if err := untarFile(tarFile, c.DestFolder); err != nil {
 		return nil, err
 	}
 
-	return c.ExtractScripts(tarFile)
-}
-
-func (c *Gather) ExtractScripts(tarFile string) ([]*Script, error) {
-	scripts := []*Script{}
-
-	extractIntoScript := func(path string, f os.FileInfo, err error) error {
-		if !f.IsDir() && isRunnable(path) && !isDotFile(path) {
-			script := &Script{Path: path}
-			scripts = append(scripts, script)
-		}
-
-		return err
-	}
-
-	scriptsFolder := strings.Trim(tarFile, ".tar")
-	if err := filepath.Walk(scriptsFolder, extractIntoScript); err != nil {
-		return nil, err
-	}
-
-	return scripts, nil
+	binaryPath := strings.Trim(tarFile, TAR_SUFFIX)
+	return &CheckerBinary{Path: binaryPath}, nil
 }
 
 func (c *Gather) CreateDestFolder() error {
@@ -92,10 +74,10 @@ func (c *Gather) DownloadScripts(folderName string) error {
 
 func (c *Gather) Export(result *Result, err error) error {
 	if err != nil {
-		return c.Exporter.SendError(err)
+		return c.Exporter.SendError(err, c.Options)
 	}
 
-	return c.Exporter.SendResult(result)
+	return c.Exporter.SendResult(result, c.Options)
 }
 
 func (c *Gather) Cleanup() error {

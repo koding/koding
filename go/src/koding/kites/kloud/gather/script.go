@@ -6,11 +6,22 @@ import (
 	"os/exec"
 )
 
-type Script struct {
+type Result struct {
+	Error     error   `json:"error",omitempty"`
+	Name      string  `json:"name"`
+	Type      string  `json:"type"`
+	Boolean   bool    `json:"boolean",omitempty`
+	Number    float64 `json:"number",omitempty`
+	Timestamp string  `json:"@timestamp"`
+}
+
+type Options map[string]interface{}
+
+type CheckerBinary struct {
 	Path string
 }
 
-func (s *Script) Run() (*Result, error) {
+func (s *CheckerBinary) Run() (*Result, error) {
 	output, err := exec.Command(s.Path).Output()
 	if err != nil {
 		return nil, err
@@ -24,13 +35,4 @@ func (s *Script) Run() (*Result, error) {
 	}
 
 	return result, nil
-}
-
-type Result struct {
-	Error     error   `json:"error",omitempty"`
-	Name      string  `json:"name"`
-	Type      string  `json:"type"`
-	Boolean   bool    `json:"boolean",omitempty`
-	Number    float64 `json:"number",omitempty`
-	Timestamp string  `json:"@timestamp"`
 }

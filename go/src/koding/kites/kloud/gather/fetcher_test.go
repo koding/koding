@@ -7,16 +7,20 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var (
+	bucketName = "gather-vm-metrics"
+	binaryName = "check"
+	binaryTar  = "check.tar"
+)
+
 func newTestFetcher() *S3Fetcher {
 	return &S3Fetcher{
-		AccessKey:   "AKIAJFKDHRJ7Q5G4MOUQ",
-		SecretKey:   "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",
-		BucketName:  DEFAULT_BUCKET_NAME,
-		ScriptsFile: "test-scripts.tar",
+		AccessKey:  "AKIAJFKDHRJ7Q5G4MOUQ",
+		SecretKey:  "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",
+		BucketName: bucketName,
+		FileName:   binaryTar,
 	}
 }
-
-var testScriptFolder = "test-scripts"
 
 func TestFetcher(t *testing.T) {
 	Convey("Given commmand to upload scripts", t, func() {
@@ -30,18 +34,16 @@ func TestFetcher(t *testing.T) {
 		})
 
 		Convey("Then it should tar folder", func() {
-			tarFile := testScriptFolder + ".tar"
-
-			err := tarFolder(testScriptFolder, tarFile)
+			err := tarFolder(binaryName, binaryTar)
 			So(err, ShouldBeNil)
 
-			isExists, err := exists(tarFile)
+			isExists, err := exists(binaryTar)
 			So(err, ShouldBeNil)
 			So(isExists, ShouldBeTrue)
 		})
 
 		Convey("Then it should upload folder", func() {
-			err := fetcher.Upload(testScriptFolder)
+			err := fetcher.Upload(binaryName)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -60,7 +62,7 @@ func TestFetcher(t *testing.T) {
 		Convey("When scripts folder doesn't exist", func() {
 			Convey("Then it should return error", func() {
 				fetcher := newTestFetcher()
-				fetcher.ScriptsFile = "non-existent.tar"
+				fetcher.FileName = "non-existent.tar"
 
 				err := fetcher.Download("")
 				So(err, ShouldEqual, ErrScriptsFileNotFound)
@@ -76,7 +78,7 @@ func TestFetcher(t *testing.T) {
 			err = fetcher.Download(folderName)
 			So(err, ShouldBeNil)
 
-			isExists, err := exists(folderName + "/test-scripts.tar")
+			isExists, err := exists(folderName + "/" + binaryTar)
 			So(err, ShouldBeNil)
 			So(isExists, ShouldBeTrue)
 		})

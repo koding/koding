@@ -19,8 +19,8 @@ const (
 )
 
 type Exporter interface {
-	SendResult(*Result) error
-	SendError(error) error
+	SendResult(*Result, Options) error
+	SendError(error, Options) error
 }
 
 type EsExporter struct {
@@ -40,14 +40,14 @@ func NewEsExporter(host, index string) *EsExporter {
 	return &EsExporter{Index: index, Type: DEFAULT_ES_TYPE, Client: esClient}
 }
 
-func (es *EsExporter) SendResult(r *Result) error {
+func (es *EsExporter) SendResult(r *Result, o Options) error {
 	r.Timestamp = time.Now().Format(ES_TIME_FORMAT)
 	_, err := es.Client.Index(es.Index, es.Type, "", nil, r)
 
 	return err
 }
 
-func (es *EsExporter) SendError(err error) error {
+func (es *EsExporter) SendError(err error, o Options) error {
 	if err == nil {
 		return ErrErrorIsEmpty
 	}

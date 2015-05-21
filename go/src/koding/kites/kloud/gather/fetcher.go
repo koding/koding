@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/s3"
@@ -12,16 +13,19 @@ import (
 
 const (
 	CONTENT_TYPE_TAR = "application/tar"
+	TAR_SUFFIX       = ".tar"
 )
 
 type Fetcher interface {
 	Download(string) error
-	GetScriptsFile() string
+	GetFileName() string
 }
 
 type S3Fetcher struct {
-	AccessKey, SecretKey    string
-	BucketName, ScriptsFile string
+	AccessKey  string
+	SecretKey  string
+	BucketName string
+	FileName   string
 }
 
 func (s *S3Fetcher) Bucket() *s3.Bucket {
@@ -30,14 +34,14 @@ func (s *S3Fetcher) Bucket() *s3.Bucket {
 	return s3.New(auth, aws.USEast).Bucket(s.BucketName)
 }
 
-func (s *S3Fetcher) GetScriptsFile() string {
-	return s.ScriptsFile
+func (s *S3Fetcher) GetFileName() string {
+	return s.FileName
 }
 
 // Download downloads scripts from S3 bucket into specified folder.
 func (s *S3Fetcher) Download(folderName string) error {
 	// prefix, delim, marker, max
-	l, err := s.Bucket().List(s.ScriptsFile, "", "", 1)
+	l, err := s.Bucket().List(s.FileName, "", "", 1)
 	if err != nil {
 		return err
 	}
@@ -67,9 +71,13 @@ func (s *S3Fetcher) Download(folderName string) error {
 
 // Upload tars folder and uploads to s3 bucket.
 func (s *S3Fetcher) Upload(folderName string) error {
-	tarFile := folderName + ".tar"
-	if err := tarFolder(folderName, tarFile); err != nil {
-		return err
+	var tarFile = folderName
+
+	if !strings.Contains(folderName, TAR_SUFFIX) {
+		tarFile = folderName + TAR_SUFFIX
+		if err := tarFolder(folderName, tarFile); err != nil {
+			return err
+		}
 	}
 
 	file, err := os.Open(tarFile)
