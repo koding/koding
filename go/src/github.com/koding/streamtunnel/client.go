@@ -51,7 +51,7 @@ func (c *Client) Start(identifier string) error {
 		return err
 	}
 
-	remoteAddr := fmt.Sprintf("http://%s%s", c.nc.RemoteAddr(), TunnelPath)
+	remoteAddr := fmt.Sprintf("http://%s%s", c.nc.RemoteAddr(), ControlPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
 		return fmt.Errorf("CONNECT %s", err)

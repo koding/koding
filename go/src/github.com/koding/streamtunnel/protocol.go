@@ -7,7 +7,7 @@ const (
 	ctHandshakeRequest  = "controlHandshake"
 	ctHandshakeResponse = "controlOk"
 
-	TunnelPath = "/_tunnelPath_/"
+	ControlPath = "/_controlPath/"
 
 	// Custom Tunnel specific header
 	XKTunnelIdentifier = "X-KTunnel-Identifier"

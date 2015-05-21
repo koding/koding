@@ -41,7 +41,7 @@ func NewServer() *Server {
 		controls:     newControls(),
 	}
 
-	http.Handle(TunnelPath, checkConnect(s.TunnelHandler))
+	http.Handle(ControlPath, checkConnect(s.ControlHandler))
 	return s
 }
 
@@ -51,8 +51,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// if the user didn't add the control and tunnel handler manually, we'll
 	// going to infer and call the respective path handlers.
 	switch path.Clean(r.URL.Path) + "/" {
-	case TunnelPath:
-		checkConnect(s.TunnelHandler).ServeHTTP(w, r)
+	case ControlPath:
+		checkConnect(s.ControlHandler).ServeHTTP(w, r)
 		return
 	}
 
@@ -128,12 +128,11 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// TunnelHandler is used to capture incoming tunnel connect requests into raw
+// ControlHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
 // TODO(arslan): close captured connection when we return with an error
 // TODO(arslan): if a control connection is established already, return with an error
-// TODO(arslan): rename to ControlHandler, tunneling is handling via yamux
-func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	identifier := r.Header.Get(XKTunnelIdentifier)
 	log.Printf("tunnel with identifier %s\n", identifier)
 
