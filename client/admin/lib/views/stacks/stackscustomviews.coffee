@@ -55,7 +55,7 @@ module.exports = class StacksCustomViews extends CustomViews
       {slug} = kd.singletons.groupsController.getCurrentGroup()
       credential.shareWith {target: slug}, (err) ->
         console.warn 'Failed to share credential:', err  if err
-        button.disable()
+        button.enable()
         view.show()
 
 
@@ -110,6 +110,9 @@ module.exports = class StacksCustomViews extends CustomViews
       options.title = name.capitalize()
       @views.button options
 
+    navCancelButton: (options) =>
+      options.cssClass = 'solid compact light-gray nav cancel'
+      @views.button options
 
     stacksView: (data) =>
       @views.text 'Coming soon'
@@ -157,19 +160,18 @@ module.exports = class StacksCustomViews extends CustomViews
       views     = @addTo container,
         stepsHeaderView : 2
         container_top   :
-          text_creds    : "To be able to use this provider <strong>you need to
+          text_intro    : "To be able to use this provider <strong>you need to
                            select a verified credential</strong> below, if you
                            don't have a verified credential you won't be able
                            to setup your stack for your team."
-          button_addNew :
+          button        :
             title       : 'Add New Credential'
-            cssClass    : 'solid compact green'
+            cssClass    : 'solid compact green action'
             callback    : ->
               handleNewCredential views, provider, this
         credentialList  : provider
-        button_cancel   :
+        navCancelButton :
           title         : '< Select another provider'
-          cssClass      : 'solid compact light-gray nav cancel'
           callback      : cancelCallback
 
       credentialList = views.credentialList.__view
@@ -195,18 +197,19 @@ module.exports = class StacksCustomViews extends CustomViews
 
       return container
 
+
     stepDefineStack: (options) =>
 
       console.log options
       {callback, cancelCallback, data} = options
-      {provider} = data
+      {provider, credential} = data
       container = @views.container 'step-creds'
 
       views     = @addTo container,
         stepsHeaderView : 4
         navButton_prev  :
           callback      : ->
-            cancelCallback {provider}
+            cancelCallback {credential, provider}
         navButton_next  : {callback}
 
       return container

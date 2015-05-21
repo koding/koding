@@ -859,19 +859,22 @@ Admin main styles
 
   .main-loader
     top                     45%
+    height                  auto
+    abs()
 
   button.solid.compact.nav
-    right                   30px
-    bottom                  20px
+    right                   0
+    bottom                  0
     abs()
 
     &[disabled]
       opacity               .4
 
     &.prev
-      right                 120px
+      right                 80px
 
     &.cancel
+      right                 initial
       left                  0
 
   form
@@ -940,19 +943,18 @@ Admin main styles
         background-size     200px
         background-position 0 23px
 
-  .step-creds
-    .top
-      min-height            50px
-      .text.creds
-        display             inline-block
-        width               75%
-      button
-        display             inline-block
-        top                 6px
-        fr()
+  .top
+    display                 flex
+    display                 -webkit-flex
+    margin-bottom           10px
 
-        &[disabled]
-          opacity           .5
+    .text.intro
+      margin                auto
+
+    button.action
+      margin                auto
+      margin-top            6px
+      min-width             162px
 
   .output-view
     height                  300px
@@ -962,6 +964,12 @@ Admin main styles
     border                  1px solid #ddd
     font-family            'UbuntuMono', monospace
     overflow                auto
+
+  button
+    &[disabled]
+      opacity               .5
+
+  .step-creds
     .kdformview
       margin-top            20px
 
