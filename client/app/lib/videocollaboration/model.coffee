@@ -80,7 +80,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
       error   : (err) -> console.error err
 
 
+  ###*
+   * Custom iterator to easily iterate on subscribers.
+   *
+   * @param {function(subscriber: ParticipantType.Subscriber)} callback
+  ###
   forEachSubscriber: (callback) ->
+
     Object.keys(@subscribers).forEach (key) => callback @subscribers[key]
 
 
