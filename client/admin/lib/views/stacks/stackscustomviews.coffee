@@ -140,7 +140,7 @@ module.exports = class StacksCustomViews extends CustomViews
       return container
 
 
-    stepDefineStack: (options) =>
+    stepBootstrap: (options) =>
 
       console.log options
       {callback, cancelCallback, data} = options
@@ -156,6 +156,22 @@ module.exports = class StacksCustomViews extends CustomViews
 
       return container
 
+    stepDefineStack: (options) =>
+
+      console.log options
+      {callback, cancelCallback, data} = options
+      {provider} = data
+      container = @views.container 'step-creds'
+
+      views     = @addTo container,
+        stepsHeaderView : 4
+        navButton_prev  :
+          callback      : ->
+            cancelCallback {provider}
+        navButton_next  : {callback}
+
+      return container
+
 
     stepTestAndSave: (options) =>
 
@@ -164,7 +180,7 @@ module.exports = class StacksCustomViews extends CustomViews
       container = @views.container 'step-creds'
 
       views     = @addTo container,
-        stepsHeaderView : 4
+        stepsHeaderView : 5
         navButton_prev  :
           callback      : cancelCallback
         navButton_next  : {callback}
@@ -213,7 +229,8 @@ module.exports = class StacksCustomViews extends CustomViews
       if typeof options is 'number'
         steps = [
           { title : 'Select Provider' }
-          { title : 'Setup Credentials' }
+          { title : 'Credentials' }
+          { title : 'Bootstrap' }
           { title : 'Define your Stack' }
           { title : 'Test & Save' }
         ]
