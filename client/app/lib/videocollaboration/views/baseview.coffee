@@ -76,6 +76,10 @@ module.exports = class ChatVideoView extends kd.View
       @controlEnd = createVideoControl 'end', no
       @controlEnd.on 'ActiveStateChangeRequested', @handleStateChangeRequest 'end'
       @controls.addSubView @controlEnd
+    else
+      @controlLeave = createVideoControl 'leave', no
+      @controlLeave.on 'ActiveStateChangeRequested', @handleStateChangeRequest 'leave'
+      @controls.addSubView @controlLeave
 
     @addSubView @controls
 
@@ -154,8 +158,11 @@ createVideoControl = (type, active) ->
       activeTooltipText = 'Mute speaker'
       deactiveTooltipText = 'Unmute speaker'
     when 'end'
-      activeTooltipText = 'End session'
-      deactiveTooltipText = 'End session'
+      activeTooltipText = 'End video session'
+      deactiveTooltipText = 'End video session'
+    when 'leave'
+      activeTooltipText = 'Leave video session'
+      deactiveTooltipText = 'Leave video session'
 
   new VideoControlView { cssClass, active, activeTooltipText, deactiveTooltipText }
 

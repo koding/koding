@@ -22,6 +22,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     activeParticipant   : null
     selectedParticipant : null
     connectionCount     : 0
+    initCount           : 0
 
   # @param {SocialChannel} options.channel
   # @param {BaseChatVideoView} options.view
@@ -80,6 +81,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Custom iterator to easily iterate on subscribers.
+   *
+   * @param {function(subscriber: ParticipantType.Subscriber)} callback
+  ###
+  forEachSubscriber: (callback) ->
+
+    Object.keys(@subscribers).forEach (key) => callback @subscribers[key]
+
+
+  ###*
    * Handler for session connected.
    * Binds the session, session events and updates the state.
    *
@@ -89,12 +100,17 @@ module.exports = class VideoCollaborationModel extends kd.Object
   handleSessionConnected: (session) ->
 
     @session = session
-    @bindSessionEvents session
-    @setState { connected: yes }
-    @emit 'SessionConnected', session
+    @setState { connected: yes, initCount: @state.initCount + 1 }
 
-    if helper.isVideoActive @channel
+    @bindSessionEvents session  if @state.initCount <= 1
+
+    videoActive = helper.isVideoActive @channel
+
+    @emit 'SessionConnected', session, videoActive
+
+    if videoActive
       @setActive()
+      @changeActiveParticipant getNick()
 
       return  unless @isMySession()
 
@@ -132,7 +148,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    *   - It just enables (starts publishing) the video chat and calls the optional callback.
    *   - If it's already being published,
    *     - it first unpublishes the current publisher.
-   *     - then creates a new publisher that is either `video-enabled` or `video-enabled`
+   *     - then creates a new publisher that is either `video-enabled` or `video-disabled`
    *       publishes that to the session.
    *     - updates the publisher's video data.
    *     - then updates the video state of the model.
@@ -249,6 +265,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     session.on 'signal:start', =>
 
       @setActive()
+      @changeActiveParticipant getNick()
 
       return  unless @isMySession()
 
@@ -618,6 +635,30 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Action to join to video session again.
+  ###
+  join: -> @init()
+
+
+  ###*
+   * Action to leave from video chat for participants.
+  ###
+  leave: ->
+
+    successCb = =>
+      @handleStopSuccess()
+      @session.disconnect()
+      @session     = null
+      @publisher   = null
+      @stream      = null
+      @subscribers = {}
+
+    kd.utils.defer => @stopPublishing
+      success : successCb
+      error   : (err) -> console.error err
+
+
+  ###*
    * Action for muting a participant. Sends the signal, the rest will be
    * handled by the `signal:mute` handler.
    *
@@ -664,9 +705,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     volume = if state then 100 else 0
 
-    Object.keys(@subscribers).forEach (key) =>
-      subscriber = @subscribers[key].videoData
-      subscriber.setAudioVolume volume
+    @forEachSubscriber (s) -> s.videoData?.setAudioVolume volume
 
     @setState { speaker: state }
     @emit 'SpeakerStateChanged', state
@@ -702,6 +741,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @setState { publishing: off }
     @setEnded()
+
 
 
   ###*

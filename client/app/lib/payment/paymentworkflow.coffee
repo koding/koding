@@ -11,17 +11,17 @@
 # monthPrice : int (e.g 1900 for $19)
 # yearPrice  : int (e.g 19000 for $190)
 
-kd = require 'kd'
-KDController = kd.Controller
-PaymentDowngradeErrorModal = require './paymentdowngradeerrormodal'
-PaymentDowngradeWithDeletionModal = require './paymentdowngradewithdeletionmodal'
-PaymentConstants = require './paymentconstants'
-PaymentModal = require './paymentmodal'
-whoami = require 'app/util/whoami'
-showError = require 'app/util/showError'
-trackEvent = require 'app/util/trackEvent'
-_ = require 'lodash'
-ComputeHelpers = require 'app/providers/computehelpers'
+kd                                  = require 'kd'
+KDController                        = kd.Controller
+PaymentDowngradeErrorModal          = require './paymentdowngradeerrormodal'
+PaymentDowngradeWithDeletionModal   = require './paymentdowngradewithdeletionmodal'
+PaymentConstants                    = require './paymentconstants'
+PaymentModal                        = require './paymentmodal'
+whoami                              = require 'app/util/whoami'
+showError                           = require 'app/util/showError'
+trackEvent                          = require 'app/util/trackEvent'
+_                                   = require 'lodash'
+ComputeHelpers                      = require 'app/providers/computehelpers'
 
 
 module.exports = class PaymentWorkflow extends KDController
@@ -69,7 +69,7 @@ module.exports = class PaymentWorkflow extends KDController
           when DOWNGRADE                then @startDowngradeFlow()
           when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
 
-        @emit 'WorkflowStarted'
+        @emit PaymentConstants.events.WORKFLOW_STARTED
 
 
   showError: (err) ->
@@ -254,6 +254,8 @@ module.exports = class PaymentWorkflow extends KDController
     kd.utils.defer => @blockUserForTooManyAttempts()  if blockUser
 
     @modal.emit 'FailedAttemptLimitReached'
+
+    @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
 
 
   blockUserForTooManyAttempts: ->

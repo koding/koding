@@ -60,9 +60,9 @@ func (t *tunnel) connect(serverMsg *ServerMsg) error {
 		return fmt.Errorf("CONNECT %s", err)
 	}
 
-	req.Header.Set("protocol", serverMsg.Protocol)
-	req.Header.Set("tunnelID", serverMsg.TunnelID)
-	req.Header.Set("identififer", serverMsg.Identifier)
+	req.Header.Set(XKTunnelProtocol, serverMsg.Protocol)
+	req.Header.Set(XKTunnelId, serverMsg.TunnelID)
+	req.Header.Set(XKTunnelIdentifier, serverMsg.Identifier)
 	req.Write(t)
 
 	resp, err := http.ReadResponse(bufio.NewReader(t), req)

@@ -26,6 +26,7 @@ isChannelCollaborative    = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList    = require './sidebarownmachineslist'
 environmentDataProvider   = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList = require './sidebarsharedmachineslist'
+ChannelActivitySideView   = require './channelactivitysideview'
 isFeatureEnabled          = require 'app/util/isFeatureEnabled'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
@@ -586,7 +587,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     limit = 10
 
-    @addSubView @sections.channels = new ActivitySideView
+    @addSubView @sections.channels = new ChannelActivitySideView
       title      : 'Channels'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem

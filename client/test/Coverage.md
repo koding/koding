@@ -67,6 +67,7 @@
     - addDomain
     - deleteDomain
     - assignDomain
+    - addInvalidDomain
 
   - paidaccount
     - seeUpgradeModalForNotPaidUser
@@ -93,6 +94,7 @@
     - renameFile
     - duplicateFile
     - saveFile
+    - saveFileToFolder
 
   - general
     - expandCollapseFiletree
