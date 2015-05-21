@@ -76,10 +76,7 @@ module.exports =
     browser.waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
 
 
-  addDomain: (browser) ->
-
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  addDomain: (browser, user) ->
 
     buttonSelector     = '.domains .kdheaderview button.add-button'
     buttonLoaderSelector = '.add-view button.loading'

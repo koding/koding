@@ -35,10 +35,11 @@ module.exports =
   #         .end()
 
 
-  # addDomain: (browser) ->
+  addDomain: (browser) ->
 
-  #   environmentHelpers.addDomain(browser)
-  #   browser.end()
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
 
 
   deleteDomain: (browser) ->
