@@ -79,6 +79,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
       error   : (err) -> console.error err
 
 
+  forEachSubscriber: (callback) ->
+    Object.keys(@subscribers).forEach (key) => callback @subscribers[key]
+
+
   ###*
    * Handler for session connected.
    * Binds the session, session events and updates the state.
@@ -668,9 +672,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     volume = if state then 100 else 0
 
-    Object.keys(@subscribers).forEach (key) =>
-      subscriber = @subscribers[key].videoData
-      subscriber.setAudioVolume volume
+    @forEachSubscriber (s) -> s.videoData?.setAudioVolume volume
 
     @setState { speaker: state }
     @emit 'SpeakerStateChanged', state
@@ -706,6 +708,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @setState { publishing: off }
     @setEnded()
+
 
 
   ###*
