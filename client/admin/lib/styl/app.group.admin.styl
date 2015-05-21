@@ -523,7 +523,6 @@ Admin main styles
   .outline.kdbutton
     background              none
     border                  2px solid #4a4e52
-    margin-right            15px
 
     &:active
       span
@@ -587,6 +586,8 @@ Admin main styles
     border-top              1px solid #DEDEDE
     font-size               14px
     color                   #4c4c4c
+    button
+      margin-right          15px
 
   .avatarview
     margin                  0 12px 0 0
@@ -873,6 +874,10 @@ Admin main styles
     &.cancel
       left                  0
 
+  form
+    .formline
+      padding               0
+
   .no-stack-found
     .text
       margin-bottom         10px
@@ -937,35 +942,42 @@ Admin main styles
 
   .step-creds
     .top
-      min-height            70px
+      min-height            50px
       .text.creds
         display             inline-block
-        width               70%
+        width               75%
       button
         display             inline-block
+        top                 6px
         fr()
 
+        &[disabled]
+          opacity           .5
+
+    .kdformview
+      margin-top            20px
+
   .credential-item
-    padding                 10px
-    background-color        #eee
+    padding                 10px 0
     font-size               14px
-    margin                  5px 0
-    border                  1px solid #ddd
+    border-bottom           1px solid #ddd
     borderBox()
 
     &:hover
-      .buttons
-        opacity             1.0
+      .buttons button.secondary
+        display             inline-block
 
     .credential-info
+      padding               10px 0
+
       .title
         font-weight         bold
+        margin-left         10px
         fl()
 
       .provider
         padding             0 3px
         font-size           12px
-        margin-left         5px
         background-color    #ddd
         fl()
 
@@ -979,13 +991,14 @@ Admin main styles
           color             #01A84E
 
     .buttons
-      top                   17px
-      right                 2px
-      opacity               .5
-      abs()
+      abs                   16px 0px
+
+      button.secondary
+        display             none
 
       button
         min-width           80px
+        margin-left         15px
 
       button.solid.green
         background-color    #01A84E

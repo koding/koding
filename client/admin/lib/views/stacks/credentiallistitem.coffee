@@ -15,48 +15,29 @@ module.exports = class CredentialListItem extends kd.ListItemView
     { owner, title, verified } = @getData()
 
     @deleteButton = new kd.ButtonView
-      cssClass : 'solid compact outline red'
+      cssClass : 'solid compact outline red secondary'
       title    : 'DELETE'
       callback : delegate.lazyBound 'deleteItem', this
 
     @showCredentialButton = new kd.ButtonView
-      cssClass : 'solid compact outline'
+      cssClass : 'solid compact outline secondary'
       title    : 'SHOW'
       callback : delegate.lazyBound 'showItemContent', this
 
-    @useButton = new kd.ButtonView
-      cssClass : 'solid compact outline green'
-      title    : 'SELECT'
-      callback : =>
-        delegate.emit 'ItemSelected', @getData()
-
-    @useButton.hide()  unless verified
-
     @verifyButton = new kd.ButtonView
       cssClass : 'solid compact outline'
-      title    : 'VERIFY'
+      title    : 'USE THIS & CONTINUE'
+      loader   :
+        color  : '#666'
       callback : @bound 'verifyCredential'
 
-    @verifyButton.hide()  if verified
-
-    @messageView = new kd.CustomHTMLView
-      cssClass : 'message'
-
-    @setVerified verified
 
 
   setVerified: (state, reason) ->
 
     if state
-      @verifyButton.hide()
-      @useButton.show()
-    else
-      @verifyButton.show()
-      @useButton.hide()
-
-    @messageView.updatePartial if state \
-      then 'Verified Credential'
-      else 'Not verified'
+      @getDelegate().emit 'ItemSelected', @getData()
+      return
 
     @messageView.setClass if state \
       then 'green' else 'red'
@@ -73,7 +54,6 @@ module.exports = class CredentialListItem extends kd.ListItemView
       @setVerified yes
       return
 
-    @verifyButton.disable()
     @messageView.unsetClass 'red green'
     @messageView.updatePartial 'Verifying credential...'
 
@@ -90,13 +70,11 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   pistachio: ->
     """
-    <div class='credential-info'>
-      {div.title{#(title)}} {div.provider{#(provider)}}
       {{> @messageView}}
+    <div class='credential-info clearfix'>
+      {div.provider{#(provider)}} {div.title{#(title)}}
     </div>
-
     <div class='buttons'>
-      {{> @showCredentialButton}}{{> @deleteButton}}
-      {{> @useButton}}{{> @verifyButton}}
+      {{> @showCredentialButton}}{{> @deleteButton}}{{> @verifyButton}}
     </div>
     """
