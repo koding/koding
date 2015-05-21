@@ -3,11 +3,14 @@ package streamtunnel
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/yamux"
+	"github.com/koding/tunnel/conn"
 )
 
 // Client is responsible for creating a control connection to a tunnel server,
@@ -107,5 +110,52 @@ func (c *Client) listenControl(ct *control) {
 		}
 
 		fmt.Printf("msg = %+v\n", msg)
+
+		if err := c.proxy(); err != nil {
+			log.Println("proxy err: %s", err)
+		}
 	}
+}
+
+func (c *Client) proxy() error {
+	conn, err := c.session.Open()
+	if err != nil {
+		return err
+	}
+
+	local, err := newLocalDial(c.localAddr)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		<-join(local, conn)
+		conn.Close()
+	}()
+
+	return nil
+}
+
+func newLocalDial(addr string) (net.Conn, error) {
+	c, err := conn.Dial(addr, false)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetDeadline(time.Time{})
+	return c, nil
+}
+
+func join(local, remote io.ReadWriteCloser) chan error {
+	errc := make(chan error, 2)
+
+	copy := func(dst io.Writer, src io.Reader) {
+		_, err := io.Copy(dst, src)
+		errc <- err
+	}
+
+	go copy(local, remote)
+	go copy(remote, local)
+
+	return errc
 }

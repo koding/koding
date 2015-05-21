@@ -59,6 +59,18 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("request host is empty")
 	}
 
+	// get the identifier associated with this host
+	identifier, ok := s.GetIdentifier(host)
+	if !ok {
+		return fmt.Errorf("no virtual host available for %s", host)
+	}
+
+	// then grab the control connection that is associated with this identifier
+	control, ok := s.getControl(identifier)
+	if !ok {
+		return fmt.Errorf("no control available for %s", host)
+	}
+
 	s.sessionsMu.Lock()
 	session, ok := s.sessions[host]
 	s.sessionsMu.Unlock()
@@ -66,10 +78,18 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("no session available for '%s'", host)
 	}
 
+	// ask client to open a session to us, so we can accept it
+	control.send(ServerMsg{
+		Identifier: identifier,
+		Host:       host,
+	})
+
+	// this is blocking until client opens a session to us
 	conn, err := session.Accept()
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 
 	if err := r.Write(conn); err != nil {
 		return err
@@ -191,20 +211,6 @@ func (s *Server) getControl(identifier string) (*control, bool) {
 
 func (s *Server) deleteControl(identifier string) {
 	s.controls.deleteControl(identifier)
-}
-
-func join(local, remote io.ReadWriteCloser) chan error {
-	errc := make(chan error, 2)
-
-	copy := func(dst io.Writer, src io.Reader) {
-		_, err := io.Copy(dst, src)
-		errc <- err
-	}
-
-	go copy(local, remote)
-	go copy(remote, local)
-
-	return errc
 }
 
 func copyHeader(dst, src http.Header) {
