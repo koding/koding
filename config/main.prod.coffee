@@ -273,8 +273,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
-        websocket       : yes
-        locations       : [ location: "~^/kloud/.*" ]
+        disableLocation : yes
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
