@@ -44,7 +44,7 @@ Configuration = (options={}) ->
 
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
 
-  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipient: "foome@koding.com"                       }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipient: "#{process.env.USER}@koding.com"                       }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
@@ -342,6 +342,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.sourcemaps.port}"
+      nginx             :
+        locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
@@ -349,6 +351,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.appsproxy.port}"
+      nginx             :
+        locations       : [ { location : "/appsproxy" } ]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
 
@@ -458,8 +462,19 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
         command         : "#{GOBIN}/watcher -run koding/vmwatcher"
+      nginx             :
+        locations       : [ { location: "/vmwatcher" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
+
+    contentrotator      :
+      nginx             :
+        locations       : [
+          {
+            location    : "/-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/$1"
+          }
+        ]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
@@ -497,6 +512,7 @@ Configuration = (options={}) ->
       workers = ""
       for key,val of KONFIG.workers
 
+        continue  unless val.supervisord
         workers += """
 
         function worker_daemon_#{key} {

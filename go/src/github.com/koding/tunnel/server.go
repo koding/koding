@@ -3,14 +3,16 @@ package tunnel
 import (
 	"errors"
 	"fmt"
-	"github.com/fatih/pool"
 	"io"
 	"log"
 	"net"
 	"net/http"
+	"path"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fatih/pool"
 )
 
 // Server satisfies the http.Handler interface. It is responsible of tracking
@@ -42,8 +44,8 @@ func NewServer() *Server {
 		virtualHosts: newVirtualHosts(),
 	}
 
-	http.Handle(ControlPath, checkConnect(s.controlHandler))
-	http.Handle(TunnelPath, checkConnect(s.tunnelHandler))
+	http.Handle(ControlPath, checkConnect(s.ControlHandler))
+	http.Handle(TunnelPath, checkConnect(s.TunnelHandler))
 	return s
 }
 
@@ -64,12 +66,12 @@ func checkConnect(fn func(w http.ResponseWriter, r *http.Request) error) http.Ha
 	})
 }
 
-// tunnelHandler is used to capture incoming tunnel connect requests into raw
+// TunnelHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
-func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) error {
-	protocol := r.Header.Get("protocol")
-	tunnelID := r.Header.Get("tunnelID")
-	identifier := r.Header.Get("identifier")
+func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) error {
+	protocol := r.Header.Get(XKTunnelProtocol)
+	tunnelID := r.Header.Get(XKTunnelId)
+	identifier := r.Header.Get(XKTunnelIdentifier)
 	log.Printf("tunnel with protocol %s, tunnelID %s and identifier %s\n",
 		protocol, tunnelID, identifier)
 
@@ -98,12 +100,12 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// controlHandler is used to capture incoming control connect requests into
+// ControlHandler is used to capture incoming control connect requests into
 // raw control TCP connection. After capturing the the connection, the control
 // connection starts to read and write to the control connection until the
 // connection is closed. Currently only one control connection per user is allowed.
-func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) error {
-	identifier := r.Header.Get("identifier")
+func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
+	identifier := r.Header.Get(XKTunnelIdentifier)
 	if identifier == "" {
 		return fmt.Errorf("empty identifier is connected")
 	}
@@ -141,6 +143,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) error {
 	}()
 
 	// create initial five tunnel connections to speed up initial http requests
+	// TODO(arslan): remove this once we move to multiplexing
 	go func() {
 		<-ready // wait until control is ready
 		s.createPool(host)
@@ -154,6 +157,17 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) error {
 // ServeHTTP is a tunnel that creates an http/websocket tunnel between a
 // public connection and the client connection.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// if the user didn't add the control and tunnel handler manually, we'll
+	// going to infer and call the respective path handlers.
+	switch path.Clean(r.URL.Path) + "/" {
+	case ControlPath:
+		checkConnect(s.ControlHandler).ServeHTTP(w, r)
+		return
+	case TunnelPath:
+		checkConnect(s.TunnelHandler).ServeHTTP(w, r)
+		return
+	}
+
 	if isWebsocket(r) {
 		s.websocketHandleFunc(w, r)
 		return

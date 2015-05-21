@@ -1,13 +1,12 @@
 package api
 
 import (
-	"net/http"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 	"time"
 
-	"github.com/juju/ratelimit"
-	"github.com/koding/cache"
+	"github.com/PuerkitoBio/throttled"
+	"github.com/PuerkitoBio/throttled/store"
 )
 
 func AddHandlers(m *mux.Mux) {
@@ -17,31 +16,11 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "collaboration-ping",
 			Type:     handler.PostRequest,
 			Endpoint: "/collaboration/ping",
-			Ratelimit: func() func(r *http.Request) *ratelimit.Bucket {
-				var tokenCache = cache.NewLRU(1000)
-				return func(r *http.Request) *ratelimit.Bucket {
-					key := ""
-					cookie, err := r.Cookie("clientId")
-					if err == nil {
-						key = cookie.String()
-					}
-
-					i, _ := tokenCache.Get(key)
-					if i != nil {
-						if t, ok := i.(*ratelimit.Bucket); ok {
-							return t
-						}
-					}
-
-					// allow 10 ping request per second
-					t := ratelimit.NewBucket(
-						time.Second*1, // add one token item per 1sec interval
-						10,            // max token count
-					)
-					tokenCache.Set(key, t)
-					return t
-				}
-			}(),
+			Ratelimit: throttled.RateLimit(
+				throttled.Q{Requests: 11, Window: time.Second},
+				&throttled.VaryBy{Cookies: []string{"clientId"}},
+				store.NewMemStore(1000),
+			),
 		},
 	)
 

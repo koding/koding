@@ -328,6 +328,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.sourcemaps.port}"
+      nginx             :
+        locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
         command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
@@ -335,6 +337,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.appsproxy.port}"
+      nginx             :
+        locations       : [ { location : "/appsproxy" } ]
       supervisord       :
         command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port}"
 
@@ -384,6 +388,8 @@ Configuration = (options={}) ->
       instances         : 1
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
+      nginx             :
+        locations       : [ { location: "/vmwatcher" } ]
       supervisord       :
         command         : "#{GOBIN}/vmwatcher -c #{configName}"
         stopwaitsecs    : 20
@@ -545,6 +551,15 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
+
+    contentrotator      :
+      nginx             :
+        locations       : [
+          {
+            location    : "/-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/$1"
+          }
+        ]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
