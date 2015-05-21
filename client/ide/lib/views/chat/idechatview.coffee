@@ -43,6 +43,8 @@ module.exports = class IDEChatView extends KDTabView
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
     @once 'CollaborationEnded',          @bound 'destroy'
 
+    @on 'VideoSessionConnected', @bound 'handleVideoSessionConnected'
+
     @on 'VideoCollaborationActive', @bound 'handleVideoActive'
     @on 'VideoCollaborationEnded',  @bound 'handleVideoEnded'
     @on 'VideoActiveParticipantDidChange', @bound 'handleVideoActiveParticipantChanged'
@@ -156,6 +158,11 @@ module.exports = class IDEChatView extends KDTabView
     kd.utils.defer @bound 'focus'
 
 
+  handleVideoSessionConnected: (options) ->
+
+    @chatPane.createVideoActionButton options.action
+
+
   handleVideoActive: ->
 
     {appManager} = kd.singletons
@@ -219,8 +226,10 @@ module.exports = class IDEChatView extends KDTabView
     {appManager} = kd.singletons
 
     @chatPane
-      .on 'ChatVideoStartRequested', -> appManager.tell 'IDE', 'startVideoCollaboration'
-      .on 'ChatVideoEndRequested', -> appManager.tell 'IDE', 'endVideoCollaboration'
+      .on 'ChatVideoStartRequested' , -> appManager.tell 'IDE', 'startVideoCollaboration'
+      .on 'ChatVideoEndRequested'   , -> appManager.tell 'IDE', 'endVideoCollaboration'
+      .on 'ChatVideoJoinRequested'  , -> appManager.tell 'IDE', 'joinVideoCollaboration'
+      .on 'ChatVideoLeaveRequested' , -> appManager.tell 'IDE', 'leaveVideoCollaboration'
 
 
   showChatPane: ->
