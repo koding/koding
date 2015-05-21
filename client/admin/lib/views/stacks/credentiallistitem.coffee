@@ -31,19 +31,23 @@ module.exports = class CredentialListItem extends kd.ListItemView
         color  : '#666'
       callback : @bound 'verifyCredential'
 
+    @warningView = new kd.CustomHTMLView
+      cssClass : 'warning-message hidden'
+      partial  : "This credential couldn't verified, please check credential
+                  details or add a new credential to be able to continue
+                  to next step"
 
 
   setVerified: (state, reason) ->
 
     if state
+      @warningView.hide()
       @getDelegate().emit 'ItemSelected', @getData()
       return
 
-    @messageView.setClass if state \
-      then 'green' else 'red'
+    @warningView.show()
 
-    @messageView.unsetTooltip()
-    @messageView.setTooltip title: reason  if reason
+    console.warn 'Failed to verify:', reason  if reason
 
 
   verifyCredential: ->
@@ -54,27 +58,27 @@ module.exports = class CredentialListItem extends kd.ListItemView
       @setVerified yes
       return
 
-    @messageView.unsetClass 'red green'
-    @messageView.updatePartial 'Verifying credential...'
+    @warningView.hide()
 
     @getDelegate()
       .verify this
+      .timeout 5000
       .then (response) =>
         @setVerified response?[credential.publicKey]
 
       .catch (err) =>
         @setVerified no, err.message
 
-      .finally @verifyButton.bound 'enable'
+      .finally @verifyButton.bound 'hideLoader'
 
 
   pistachio: ->
     """
-      {{> @messageView}}
     <div class='credential-info clearfix'>
       {div.provider{#(provider)}} {div.title{#(title)}}
     </div>
     <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}{{> @verifyButton}}
     </div>
+    {{> @warningView}}
     """
