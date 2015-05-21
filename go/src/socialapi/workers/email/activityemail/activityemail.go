@@ -13,7 +13,7 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/koding/runner"
+	"github.com/koding/redis"
 	"github.com/streadway/amqp"
 )
 
@@ -27,9 +27,10 @@ const (
 )
 
 type Controller struct {
-	log     logging.Logger
-	rmqConn *amqp.Connection
-	conf    *config.Config
+	log       logging.Logger
+	rmqConn   *amqp.Connection
+	conf      *config.Config
+	redisConn *redis.RedisSession
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -39,11 +40,12 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, conf *config.Config) *Controller {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, conf *config.Config, redis *redis.RedisSession) *Controller {
 	return &Controller{
-		log:     log,
-		rmqConn: rmq.Conn(),
-		conf:    conf,
+		log:       log,
+		rmqConn:   rmq.Conn(),
+		conf:      conf,
+		redisConn: redis,
 	}
 }
 

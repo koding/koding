@@ -10,10 +10,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
-	"github.com/koding/runner"
+	"github.com/koding/redis"
 	"github.com/robfig/cron"
 )
 
@@ -35,15 +34,17 @@ var (
 )
 
 type Controller struct {
-	log    logging.Logger
-	config *config.Config
+	log       logging.Logger
+	config    *config.Config
+	redisConn *redis.RedisSession
 }
 
-func New(log logging.Logger, conf *config.Config) (*Controller, error) {
+func New(redisConn *redis.RedisSession, log logging.Logger, conf *config.Config) (*Controller, error) {
 
 	c := &Controller{
-		log:    log,
-		config: conf,
+		log:       log,
+		config:    conf,
+		redisConn: redisConn,
 	}
 
 	return c, c.initDailyEmailCron()
