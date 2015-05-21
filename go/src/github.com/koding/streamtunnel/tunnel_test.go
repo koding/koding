@@ -4,6 +4,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 )
@@ -12,7 +14,6 @@ var (
 	serverAddr = "127.0.0.1:7000"
 	localAddr  = "127.0.0.1:5000"
 	identifier = "123abc"
-	testMsg    = "hello"
 )
 
 func TestTunnel(t *testing.T) {
@@ -34,23 +35,34 @@ func TestTunnel(t *testing.T) {
 	go client.Start(identifier)
 
 	// start local server to be tunneled
-	go http.ListenAndServe(localAddr, hello())
+	go http.ListenAndServe(localAddr, echo())
 
 	time.Sleep(time.Second)
 
 	// make a request to tunnelserver, this should be tunneled to local server
-	res, err := makeRequest()
-	if err != nil {
-		t.Errorf("make request: %s", err)
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+
+		go func(i int) {
+			defer wg.Done()
+			msg := "echo" + strconv.Itoa(i)
+			res, err := makeRequest(msg)
+			if err != nil {
+				t.Errorf("make request: %s", err)
+			}
+
+			if res != msg {
+				t.Errorf("Expecting %s, got %s", msg, res)
+			}
+		}(i)
 	}
 
-	if res != testMsg {
-		t.Errorf("Expecting %s, got %s", testMsg, res)
-	}
+	wg.Wait()
 }
 
-func makeRequest() (string, error) {
-	resp, err := http.Get("http://" + serverAddr)
+func makeRequest(msg string) (string, error) {
+	resp, err := http.Get("http://" + serverAddr + "/?echo=" + msg)
 	if err != nil {
 		return "", err
 	}
@@ -64,8 +76,9 @@ func makeRequest() (string, error) {
 	return string(res), nil
 }
 
-func hello() http.Handler {
+func echo() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, testMsg)
+		msg := r.URL.Query().Get("echo")
+		io.WriteString(w, msg)
 	})
 }
