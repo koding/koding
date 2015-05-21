@@ -158,6 +158,16 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         updatePermissions:
           (signature Object, Function)
+        fetchAdmins: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchModerators: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         fetchMembers: [
           (signature Function)
           (signature Object, Function)
@@ -190,8 +200,6 @@ module.exports = class JGroup extends Module
         # addCustomRole:
         #   (signature Object, Function)
         fetchMembershipStatuses:
-          (signature Function)
-        fetchAdmin:
           (signature Function)
         isMember:
           (signature Object, Function)
@@ -716,6 +724,22 @@ module.exports = class JGroup extends Module
       # delete options.targetOptions
       options.client = client
       @fetchMembers selector, options, callback
+
+  fetchAdmins$: permit 'list members',
+    success:(client, rest...)->
+      # when max limit is over 20 it starts giving "call stack exceeded" error
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
+      # delete options.targetOptions
+      options.client = client
+      @fetchAdmins selector, options, callback
+
+  fetchModerators$: permit 'list members',
+    success:(client, rest...)->
+      # when max limit is over 20 it starts giving "call stack exceeded" error
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
+      # delete options.targetOptions
+      options.client = client
+      @fetchModerators selector, options, callback
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.
   # It is a workaround, and will be changed after elasticsearch implementation. CtF

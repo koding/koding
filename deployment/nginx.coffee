@@ -107,14 +107,9 @@ createLocations = (KONFIG) ->
   for name, options of workers
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
+    continue unless options.nginx?.locations
+
     continue if options.nginx?.disableLocation?
-
-    options.nginx = {}  unless options.nginx
-    location = {}
-
-    options.nginx.locations or= [
-      location: "/#{name}"
-    ]
 
     for location in options.nginx.locations
       location.proxyPass or= "http://#{name}"
