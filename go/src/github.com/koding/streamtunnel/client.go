@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/yamux"
-	"github.com/koding/tunnel/conn"
 )
 
 // Client is responsible for creating a control connection to a tunnel server,
@@ -96,13 +95,13 @@ func (c *Client) Start(identifier string) error {
 	ct := newControl(stream)
 	go c.listenControl(ct)
 
-	log.Println("start is successfull.")
+	log.Println("client has started successfully.")
 	return nil
 }
 
 func (c *Client) listenControl(ct *control) {
 	for {
-		var msg map[string]interface{}
+		var msg ControlMsg
 		err := ct.dec.Decode(&msg)
 		if err != nil {
 			log.Println("decode err: %s", err)
@@ -111,19 +110,26 @@ func (c *Client) listenControl(ct *control) {
 
 		fmt.Printf("msg = %+v\n", msg)
 
-		if err := c.proxy(); err != nil {
-			log.Println("proxy err: %s", err)
+		switch msg.Action {
+		case RequestClientSession:
+			go c.proxy(msg.LocalPort)
 		}
+
 	}
 }
 
-func (c *Client) proxy() error {
+func (c *Client) proxy(port string) error {
 	conn, err := c.session.Open()
 	if err != nil {
 		return err
 	}
 
-	local, err := newLocalDial(c.localAddr)
+	localAddr := "127.0.0.1:" + port
+	if c.localAddr != "" {
+		localAddr = c.localAddr
+	}
+
+	local, err := newLocalDial(localAddr)
 	if err != nil {
 		return err
 	}
@@ -137,7 +143,7 @@ func (c *Client) proxy() error {
 }
 
 func newLocalDial(addr string) (net.Conn, error) {
-	c, err := conn.Dial(addr, false)
+	c, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
 	}

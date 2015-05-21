@@ -78,11 +78,22 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("no session available for '%s'", host)
 	}
 
+	fmt.Printf("r = %+v\n", r)
+
+	// if someoone hits foo.example.com:8080, this should be proxied to
+	// localhost:8080, so send the port to the client so it knows how to proxy
+	// correctly
+	_, port, _ := net.SplitHostPort(r.Host)
+	msg := ControlMsg{
+		Action:    RequestClientSession,
+		Protocol:  HTTPTransport,
+		LocalPort: port,
+	}
+
 	// ask client to open a session to us, so we can accept it
-	control.send(ServerMsg{
-		Identifier: identifier,
-		Host:       host,
-	})
+	if err := control.send(msg); err != nil {
+		return err
+	}
 
 	// this is blocking until client opens a session to us
 	conn, err := session.Accept()

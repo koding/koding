@@ -46,7 +46,7 @@ func TestTunnel(t *testing.T) {
 
 		go func(i int) {
 			defer wg.Done()
-			msg := "echo" + strconv.Itoa(i)
+			msg := "hello" + strconv.Itoa(i)
 			res, err := makeRequest(msg)
 			if err != nil {
 				t.Errorf("make request: %s", err)

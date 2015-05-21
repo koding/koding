@@ -1,5 +1,7 @@
 package streamtunnel
 
+var Connected = "200 Connected to Tunnel"
+
 const (
 	// control messages
 	ctHandshakeRequest  = "controlHandshake"
@@ -11,15 +13,20 @@ const (
 	XKTunnelIdentifier = "X-KTunnel-Identifier"
 )
 
-var Connected = "200 Connected to Tunnel"
+type Action int
 
-type ClientMsg struct {
-	Action string `json:"action"`
-}
+const (
+	RequestClientSession Action = iota + 1
+)
 
-type ServerMsg struct {
-	Protocol   string `json:"action"`
-	TunnelID   string `json:"tunnelID"`
-	Identifier string `json:"idenfitifer"`
-	Host       string `json:"host"`
+type TransportProtocol int
+
+const (
+	HTTPTransport TransportProtocol = iota + 1
+)
+
+type ControlMsg struct {
+	Action    Action            `json:"action"`
+	Protocol  TransportProtocol `json:"transportProtocol"`
+	LocalPort string            `json:"localPort"`
 }
