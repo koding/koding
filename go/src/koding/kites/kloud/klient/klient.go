@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
@@ -125,6 +126,7 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	}
 
 	remoteKite := kites[0]
+	remoteKite.LocalKite.Config.Transport = config.XHRPolling
 	remoteKite.ReadBufferSize = 512
 	remoteKite.WriteBufferSize = 512
 	if err := remoteKite.DialTimeout(t); err != nil {
