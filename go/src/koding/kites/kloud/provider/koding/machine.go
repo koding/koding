@@ -195,10 +195,17 @@ func (m *Machine) isKlientReady() bool {
 
 	m.Log.Debug("Sending a ping message after 5 seconds")
 	time.Sleep(time.Second * 5)
-	if err := klientRef.Ping(); err != nil {
-		m.Log.Debug("Sending a ping message err: %s", err)
-		return false
+
+	for i := 0; i < 5; i++ {
+		err = klientRef.Ping()
+		if err == nil {
+			return true
+		}
+
+		m.Log.Debug("Sending a ping message err: %s. Trying again after 5 seconds", err)
+		time.Sleep(time.Second * 5)
 	}
 
-	return true
+	m.Log.Debug("Tried to send 5 times a ping, but couldn't archieve. Latest err: ", err)
+	return false
 }
