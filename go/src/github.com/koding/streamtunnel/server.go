@@ -195,7 +195,7 @@ func (s *Server) listenControl(ct *control) {
 		var msg map[string]interface{}
 		err := ct.dec.Decode(&msg)
 		if err != nil {
-			log.Println("decode err: %s", err)
+			log.Printf("decode err: %s\n", err)
 			return
 		}
 

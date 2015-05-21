@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/hashicorp/yamux"
@@ -115,7 +116,11 @@ func (c *Client) listenControl(ct *control) error {
 
 		switch msg.Action {
 		case RequestClientSession:
-			go c.proxy(msg.LocalPort)
+			go func() {
+				if err := c.proxy(msg.LocalPort); err != nil {
+					fmt.Fprintf(os.Stderr, "proxy err: '%s'\n", err)
+				}
+			}()
 		}
 	}
 }
