@@ -7,7 +7,7 @@ module.exports = class TeamView extends KDView
     invite        : require './tabs/teaminvitetab'
     username      : require './tabs/teamusernametab'
     welcome       : require './tabs/teamwelcometab'
-    join          : require './tabs/teamregistertab'
+    join          : require './tabs/teamusernametab'
     congratz      : require './tabs/teamcongratztab'
     authenticate  : require './tabs/teamauthenticatetab'
 
@@ -28,5 +28,5 @@ module.exports = class TeamView extends KDView
     return KD.singletons.router.handleRoute '/Teams'  unless TABS[step]
 
     if tab = @tabView.getPaneByName step
-    then @tabView.showTab tab
+    then @tabView.showPane tab
     else @tabView.addPane new TABS[step] { query }

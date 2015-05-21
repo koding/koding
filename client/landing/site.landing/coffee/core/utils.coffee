@@ -380,14 +380,8 @@ utils.extend utils,
 
         return  unless input.valid
 
-        $.ajax
-          url         : "/-/validate/email"
-          type        : 'POST'
-          data        :
-            password  : passValue
-            email     : email
-          xhrFields   : withCredentials : yes
-          success     : (res) ->
+        KD.utils.validateEmail { password : passValue, email },
+          success : (res) ->
 
             return location.replace '/'  if res is 'User is logged in!'
 
@@ -396,7 +390,7 @@ utils.extend utils,
 
             container.emit 'EmailValidationPassed'  if res is yes
 
-          error       : ({responseJSON}) ->
+          error : ({responseJSON}) ->
             container.emit 'EmailIsNotAvailable'
             input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
 
@@ -444,11 +438,10 @@ utils.extend utils,
     return {}
 
 
-  createTeam: ->
+  createFormData = (teamData) ->
 
     teamData = KD.utils.getTeamData()
     formData = {}
-
     for key, value of teamData
       for k, v of value
         if k.search('invitee') >= 0
@@ -456,6 +449,13 @@ utils.extend utils,
           formData['invitees'] += ",#{v}"
         else
           formData[k] = v
+
+    return formData
+
+
+  createTeam: ->
+
+    formData = createFormData()
 
     # manually add legacy fields - SY
     formData.agree           = 'on'
@@ -495,3 +495,32 @@ utils.extend utils,
       type      : 'POST'
       success   : (members) -> callback null, members
       error     : ({responseText}) -> callback msg : responseText
+
+
+  validateEmail: (data, callbacks) ->
+
+    $.ajax
+      url         : "/-/validate/email"
+      type        : 'POST'
+      data        : data
+      xhrFields   : withCredentials : yes
+      success     : callbacks.success
+      error       : callbacks.error
+
+
+  joinTeam: ->
+
+    formData = createFormData()
+
+    # manually add legacy fields - SY
+    formData.agree           = 'on'
+    formData.passwordConfirm = formData.password
+    formData.redirect        = '/'
+
+    $.ajax
+      url       : "/-/teams/join"
+      data      : formData
+      type      : 'POST'
+      success   : -> location.href = formData.redirect
+      error     : ({responseText}) ->
+        new KDNotificationView title : responseText

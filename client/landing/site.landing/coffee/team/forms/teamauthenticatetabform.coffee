@@ -1,6 +1,6 @@
 JView = require './../../core/jview'
 
-module.exports = class TeamUsernameTabForm extends KDFormView
+module.exports = class TeamAuthenticateTabForm extends KDFormView
 
   JView.mixin @prototype
 

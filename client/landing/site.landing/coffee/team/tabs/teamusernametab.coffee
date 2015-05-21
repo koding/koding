@@ -1,10 +1,17 @@
-JView                   = require './../../core/jview'
-MainHeaderView          = require './../../core/mainheaderview'
-TeamUsernameTabForm     = require './../forms/teamusernametabform'
+JView                     = require './../../core/jview'
+MainHeaderView            = require './../../core/mainheaderview'
+TeamUsernameTabForm       = require './../forms/teamusernametabform'
+TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
 
 module.exports = class TeamUsernameTab extends KDTabPaneView
 
   JView.mixin @prototype
+
+  callback = (formData) ->
+    { storeNewTeamData, createTeam, joinTeam, getTeamData } = KD.utils
+    { join } = getTeamData().signup
+    storeNewTeamData 'username', formData
+    if join then joinTeam() else createTeam()
 
   constructor:(options = {}, data)->
 
@@ -12,16 +19,37 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
     super options, data
 
-    { mainController } = KD.singletons
+    teamData                = KD.utils.getTeamData()
+    { alreadyMember, join } = teamData.signup
+    { mainController }      = KD.singletons
 
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : []
 
-    @form = new TeamUsernameTabForm
-      callback : (formData) ->
-        KD.utils.storeNewTeamData 'username', formData
-        KD.utils.createTeam (err, res) -> console.log err, res
+    if alreadyMember
+
+      @title = new KDCustomHTMLView
+        tagName : 'h4'
+        partial : 'Almost there'
+
+      @subtitle = new KDCustomHTMLView
+        tagName : 'h5'
+        partial : 'please enter your Koding password'
+
+      @form = new TeamLoginAndCreateTabForm { callback }
+
+    else
+
+      @title = new KDCustomHTMLView
+        tagName : 'h4'
+        partial : 'Choose a Username'
+
+      @subtitle = new KDCustomHTMLView
+        tagName : 'h5'
+        partial : '...or login with your existing Koding account.'
+
+      @form = new TeamUsernameTabForm { callback }
 
 
   pistachio: ->
@@ -29,7 +57,8 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     """
     {{> @header }}
     <div class="TeamsModal TeamsModal--groupCreation">
-      <h4>Choose a Username</h4>
+      {{> @title}}
+      {{> @subtitle}}
       {{> @form}}
     </div>
     """

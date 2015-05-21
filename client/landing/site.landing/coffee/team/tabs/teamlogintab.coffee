@@ -2,6 +2,7 @@ JView           = require './../../core/jview'
 CustomLinkView  = require './../../core/customlinkview'
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
+geoPattern      = require 'geopattern'
 
 module.exports = class TeamLoginTab extends KDTabPaneView
 
@@ -24,8 +25,15 @@ module.exports = class TeamLoginTab extends KDTabPaneView
 
     @logo = new KDCustomHTMLView tagName : 'figure'
 
-    # set this once uploader ready - SY
-    # @logo.setCss 'background-image', KD.config.group.backgroundImage
+    { group } = KD.config
+    if group.customize.logo
+      @logo.setCss 'background-image', "url(#{group.customize.logo})"
+      @logo.setCss 'background-size', 'cover'
+    else
+      pattern = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
+      @logo.setCss 'background-image', pattern
+      @logo.setCss 'background-size', 'inherit'
+
 
     # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
     @form = new LoginInlineForm
@@ -39,8 +47,8 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
 
     if location.search isnt '' and location.search.search('username=') > 0
-      username = location.search.split('username=').last.replace(/\&.+/, '')
-      @form.username.input.setValue username
+      username = location.search.split('username=').last.replace(/\&.+/, '') # trim the rest params if any
+      @form.username.input.setValue decodeURIComponent username  # decode in case it is an email
       @form.username.inputReceivedKeyup()
 
     @invitationLink = new CustomLinkView

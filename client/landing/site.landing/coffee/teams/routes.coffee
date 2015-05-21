@@ -2,7 +2,7 @@ do ->
 
   KD.registerRoutes 'Teams',
 
-    '/Teams': ->
+    '/Teams': ({params, query}) ->
 
       { router } = KD.singletons
       groupName  = KD.utils.getGroupNameFromLocation()
@@ -17,4 +17,4 @@ do ->
 
       return router.handleRoute '/'  if KD.config.environment is 'production'
 
-      KD.singletons.router.openSection 'Teams'
+      KD.singletons.router.openSection 'Teams', null, null, (app) -> app.handleQuery query  if query

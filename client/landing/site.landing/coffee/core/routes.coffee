@@ -19,7 +19,7 @@ do ->
 
     # if there is no such group take user to group creation with given group info
     if not group or environment is PROD
-      newUrl = "http://#{location.host.replace(groupName '.', '')}/Teams?group=#{groupName}"
+      newUrl = "http://#{location.host.replace(groupName + '.', '')}/Teams?group=#{groupName}"
       return location.replace newUrl
 
     # if there is a group then take user to group login page
