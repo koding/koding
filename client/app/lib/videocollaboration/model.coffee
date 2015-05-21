@@ -635,6 +635,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Action to join to video session again.
+  ###
+  join: -> @init()
+
+
+  ###*
    * Action for muting a participant. Sends the signal, the rest will be
    * handled by the `signal:mute` handler.
    *
