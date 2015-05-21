@@ -23,7 +23,7 @@ func New(fetcher Fetcher, exporter Exporter, opts Options) *Gather {
 }
 
 func (c *Gather) Run() error {
-	defer c.Cleanup()
+	// defer c.Cleanup()
 
 	binary, err := c.GetCheckerBinary()
 	if err != nil {
@@ -72,12 +72,12 @@ func (c *Gather) DownloadScripts(folderName string) error {
 	return c.Fetcher.Download(folderName)
 }
 
-func (c *Gather) Export(result Result, err error) error {
+func (c *Gather) Export(results []interface{}, err error) error {
 	if err != nil {
 		return c.Exporter.SendError(err, c.Options)
 	}
 
-	return c.Exporter.SendResult(result, c.Options)
+	return c.Exporter.SendResult(results, c.Options)
 }
 
 func (c *Gather) Cleanup() error {

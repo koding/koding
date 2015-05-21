@@ -6,14 +6,13 @@ import (
 	"os/exec"
 )
 
-type Result map[string]interface{}
 type Options map[string]interface{}
 
 type CheckerBinary struct {
 	Path string
 }
 
-func (s *CheckerBinary) Run() (Result, error) {
+func (s *CheckerBinary) Run() ([]interface{}, error) {
 	output, err := exec.Command(s.Path, "xAboBy").Output()
 	if err != nil {
 		return nil, err
@@ -21,10 +20,10 @@ func (s *CheckerBinary) Run() (Result, error) {
 
 	bites := bytes.NewBuffer(output)
 
-	var result = Result{}
-	if err := json.NewDecoder(bites).Decode(result); err != nil {
+	var results []interface{}
+	if err := json.NewDecoder(bites).Decode(&results); err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return results, nil
 }

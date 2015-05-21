@@ -3,7 +3,7 @@ function found() {
 
   if [ $COUNT -gt 0 ]
   then
-    output "$2" $BOOLEAN true
+    output "$2" $BOOLEAN 1
     exit
   fi
 }
