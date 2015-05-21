@@ -11,14 +11,18 @@ AccountCredentialListController = require 'account/views/accountcredentiallistco
 module.exports = class StacksCustomViews extends CustomViews
 
 
-  handleNewCredential = (views, provider) ->
+  handleNewCredential = (views, provider, button) ->
 
     {controller} = views.credentialList
     view = controller.getView()
+    button.disable()
     view.hide()
 
     form = controller.showAddCredentialFormFor provider
-    form.on 'Cancel', view.bound 'show'
+    form.on 'Cancel', view.bound   'show'
+    form.on 'Cancel', button.bound 'enable'
+
+    kd.utils.defer -> form.inputs.title?.focus()
 
     # After adding credential, we are sharing it with the current
     # group, so anyone in this group can use this credential ~ GG
@@ -26,6 +30,7 @@ module.exports = class StacksCustomViews extends CustomViews
       {slug} = kd.singletons.groupsController.getCurrentGroup()
       credential.shareWith {target: slug}, (err) ->
         console.warn 'Failed to share credential:', err  if err
+        button.disable()
         view.show()
 
 
@@ -119,9 +124,9 @@ module.exports = class StacksCustomViews extends CustomViews
                            to setup your stack for your team."
           button_addNew :
             title       : 'Add New Credential'
-            cssClass    : 'solid medium green'
+            cssClass    : 'solid compact green'
             callback    : ->
-              handleNewCredential views, provider
+              handleNewCredential views, provider, this
         credentialList  : provider
         button_cancel   :
           title         : '< Select another provider'
