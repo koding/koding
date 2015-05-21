@@ -193,7 +193,8 @@ func (m *Machine) isKlientReady() bool {
 	}
 	defer klientRef.Close()
 
-	m.Log.Debug("Sending a ping message")
+	m.Log.Debug("Sending a ping message after 5 seconds")
+	time.Sleep(time.Second * 5)
 	if err := klientRef.Ping(); err != nil {
 		m.Log.Debug("Sending a ping message err: %s", err)
 		return false
