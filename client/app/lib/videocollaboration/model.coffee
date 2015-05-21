@@ -22,6 +22,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     activeParticipant   : null
     selectedParticipant : null
     connectionCount     : 0
+    initCount           : 0
 
   # @param {SocialChannel} options.channel
   # @param {BaseChatVideoView} options.view
@@ -93,8 +94,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
   handleSessionConnected: (session) ->
 
     @session = session
-    @bindSessionEvents session
-    @setState { connected: yes }
+    @setState { connected: yes, initCount: @state.initCount + 1 }
+
+    @bindSessionEvents session  if @state.initCount <= 1
 
     videoActive = helper.isVideoActive @channel
 
