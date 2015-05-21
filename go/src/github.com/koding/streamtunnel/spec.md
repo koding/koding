@@ -77,11 +77,11 @@
    `identifier` and sends a `ControlMsg` message with the action
    `RequestClientSession`. This message is in the form of:
 
-	type ControlMsg struct {
-		Action    Action            `json:"action"`
-		Protocol  TransportProtocol `json:"transportProtocol"`
-		LocalPort string            `json:"localPort"`
-	}
+		type ControlMsg struct {
+			Action    Action            `json:"action"`
+			Protocol  TransportProtocol `json:"transportProtocol"`
+			LocalPort string            `json:"localPort"`
+		}
 
 	Here the `LocalPort` is read from the HTTP Host header. If absent a zero
     port is sent and client maps it to the local server running at port 80, unless
