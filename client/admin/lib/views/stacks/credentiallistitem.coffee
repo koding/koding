@@ -52,11 +52,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   verifyCredential: ->
 
-    credential = @getData()
-
-    if credential.verified
-      @setVerified yes
-      return
+    {publicKey} = @getData()
 
     @warningView.hide()
 
@@ -64,7 +60,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       .verify this
       .timeout 5000
       .then (response) =>
-        @setVerified response?[credential.publicKey]
+        @setVerified response?[publicKey]
 
       .catch (err) =>
         @setVerified no, err.message
