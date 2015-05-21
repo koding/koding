@@ -36,6 +36,39 @@ module.exports = class StacksCustomViews extends CustomViews
         outputView.addContent 'You can continue to next step.'
         outputView.emit 'BootstrappingDone'
 
+
+  handleBootstrap = (outputView, credential, button) ->
+    console.log {outputView, credential, button}
+
+    outputView.destroySubViews()
+    outputView.addContent 'Bootstrapping started...'
+
+    publicKeys = [credential.publicKey]
+
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+
+      .bootstrap { publicKeys }
+
+      .then (response) ->
+
+        if response
+          outputView.addContent 'Bootstrap completed successfully'
+          fetchAndShowCredentialData credential, outputView
+        else
+          outputView.addContent 'Bootstrapping completed but something went wrong.'
+
+        console.log "Bootstrap result:", response
+
+      .catch (err) ->
+
+        outputView.addContent 'Bootstrapping failed:', err.message
+        console.warn "Bootstrap failed:", err
+
+      .finally button.bound 'hideLoader'
+
+
   handleNewCredential = (views, provider, button) ->
 
     {controller} = views.credentialList
