@@ -218,15 +218,53 @@ module.exports = class StacksCustomViews extends CustomViews
 
       console.log options
       {callback, cancelCallback, data} = options
-      {provider} = data
+      {provider, credential} = data
+
       container = @views.container 'step-creds'
 
       views     = @addTo container,
         stepsHeaderView : 3
-        navButton_prev  :
-          callback      : ->
-            cancelCallback {provider}
-        navButton_next  : {callback}
+        container       :
+          loader        : 'main-loader'
+        navCancelButton :
+          title         : '< Select another credential'
+          callback      : -> cancelCallback {provider}
+
+      credential.isBootstrapped (err, state) =>
+
+        console.log ">>>", {credential, err, state}
+
+        views.container.destroySubViews()
+
+        {outputView} = @addTo views.container,
+
+          container_top :
+            text_intro  : "Bootstrapping for given credential is required.
+                           With this process we will create necessary
+                           settings on your #{provider} account.
+                           Which you can see them from provider's control
+                           panel as well."
+            button      :
+              title     : 'Bootstrap Now'
+              cssClass  : \
+                "solid compact green action #{if state then 'hidden' else ''}"
+              loader    : yes
+              callback  : ->
+                outputView.show()
+                handleBootstrap outputView, credential, this
+
+          outputView    :
+            cssClass    : 'bootstrap-output hidden'
+
+        outputView.on 'BootstrappingDone', => @addTo container,
+          navButton_next :
+            callback     : ->
+              callback {provider, credential}
+
+        if state
+          outputView.show()
+          outputView.addContent 'Bootstrapping completed for this credential'
+          fetchAndShowCredentialData credential, outputView
 
       return container
 
