@@ -83,32 +83,32 @@ module.exports =
     browser.end()
 
 
-  openAnExistingFileAndSave: (browser) ->
+  # openAnExistingFileAndSave: (browser) ->
 
-    activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active'
+  #   activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active'
 
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  #   user = helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
 
-    text     = helpers.getFakeText()
-    fileName = ideHelpers.createAndSaveNewFile(browser, text)
+  #   text     = helpers.getFakeText()
+  #   fileName = ideHelpers.createAndSaveNewFile(browser, text)
 
-    ideHelpers.closeFile(browser, fileName)
-    ideHelpers.openAnExistingFile(browser, user, fileName, text)
+  #   ideHelpers.closeFile(browser, fileName)
+  #   ideHelpers.openAnExistingFile(browser, user, fileName, text)
 
-    text = helpers.getFakeText()
+  #   text = helpers.getFakeText()
 
-    ideHelpers.setTextToEditor(browser, text)
+  #   ideHelpers.setTextToEditor(browser, text)
 
-    browser
-      .assert.containsText    activeEditorSelector, text # Assertion
+  #   browser
+  #     .assert.containsText    activeEditorSelector, text # Assertion
 
-    ideHelpers.saveFile(browser)
-    ideHelpers.closeFile(browser, fileName)
-    ideHelpers.openAnExistingFile(browser, user, fileName, text)
+  #   ideHelpers.saveFile(browser)
+  #   ideHelpers.closeFile(browser, fileName)
+  #   ideHelpers.openAnExistingFile(browser, user, fileName, text)
 
-    browser
-      .assert.containsText    activeEditorSelector, text # Assertion
+  #   browser
+  #     .assert.containsText    activeEditorSelector, text # Assertion
 
-    browser.end()
+  #   browser.end()

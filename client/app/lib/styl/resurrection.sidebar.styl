@@ -447,7 +447,7 @@ sidebarTextShadow()
 
   .kdlistitemview-sidebar-item
 
-    size              auto 21px
+    size              auto 16px
     padding           0px 15px
     margin-bottom     8px
     rounded           4px
@@ -457,7 +457,6 @@ sidebarTextShadow()
     position          relative
     display           block
     color             sidebarGray
-    overflow          hidden
     vendor            transition, margin-top .2s ease-out\,\
                                   transform .2s ease-out
 
@@ -497,17 +496,16 @@ sidebarTextShadow()
 
     .ttag
       display        block
-      line-height    19px
+      line-height    16px
       font-size      14px
       margin-left    4px
-      margin-top     2px
 
       &:before
         display      block
         content      '#'
         font-size    24px
         color        #6d6d6d
-        top          2px
+        top          -2px
         left         0
         text-shadow  none
         abs()
@@ -517,7 +515,8 @@ sidebarTextShadow()
       ellipsis()
 
     .topic-follow-btn
-      abs            3px 1px 0 0
+      size           24px 16px
+      abs            0px 1px 0 0
 
       &.following
         right        6px
@@ -535,7 +534,7 @@ sidebarTextShadow()
 
     h3.sidebar-title
       padding-bottom    16px
-      padding-top       17px
+      padding-top       18px
 
     .nothing
       hidden()
@@ -916,9 +915,10 @@ h3.sidebar-title
 
 .activity-sidebar
   a.vm
-    padding           5px 8px 5px 19px
+    padding           0px 8px 0px 19px
     display           block
-    size              218px 26px
+    size              218px 16px
+    margin-bottom     8px
     opacity           1
     color             sidebarGray
     borderBox()
@@ -946,7 +946,7 @@ h3.sidebar-title
       width         200px
       vendor        transition, width .1s ease .05s
       font-size     14px
-      line-height   18px
+      line-height   16px
       ellipsis()
 
     &.social > figure
@@ -965,14 +965,14 @@ h3.sidebar-title
         width         13px
         height        13px
         bg            color, transparent
-        abs           7px 0 0 0px
+        abs           1px 0 0 0px
         rounded       3px
         border        3px solid sidebarGray
         borderBox()
       > span
         r-sprite    app vm-settings-icon
         right       2px
-        top         5px
+        top         2px
         opacity     0
         vendor      transition, opacity .1s .1s ease
         abs()
