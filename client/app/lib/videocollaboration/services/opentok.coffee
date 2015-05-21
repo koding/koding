@@ -208,7 +208,7 @@ module.exports = class OpenTokService extends kd.Object
   destroyPublisher: (channel, publisher, callback) ->
 
     @fetchChannelSession channel, (session) ->
-      session.unpublish publisher.videoData
+      session.unpublish publisher.videoData  if publisher
       callback null
 
 
