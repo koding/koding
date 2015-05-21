@@ -352,6 +352,27 @@ module.exports.create = (KONFIG, environment)->
         proxy_next_upstream   error timeout   invalid_header http_500;
       }
 
+      # special case for kloud to proxy requests properly
+      location ~^/kloud/(.*) {
+        proxy_pass            http://kloud/$1$is_args$args;
+
+        # needed for websocket handshake
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      $connection_upgrade;
+
+        proxy_set_header      Host $host;
+        proxy_set_header      X-Real-IP $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect        off;
+
+        # Don't buffer WebSocket connections
+        proxy_buffering off;
+
+        # try again with another upstream if there is an error
+        proxy_next_upstream   error timeout   invalid_header http_500;
+      }
+
       #{createLocations(KONFIG)}
 
       #{createUserMachineLocation("userproxy")}
