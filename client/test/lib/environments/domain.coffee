@@ -56,17 +56,21 @@ module.exports =
 
   deleteDomain: (browser) ->
 
-    domainName = environmentHelpers.addDomain(browser)
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-    browser
-      .moveToElement             domainItem, 10, 10
-      .click                     domainItem + ' span.remove'
-      .waitForElementVisible     loader, 10000
-      .waitForElementNotVisible  loader, 20000
-      .getText                   domainItem, (result) =>
-        assert.notEqual          result.value, domainName # Assertion
+    environmentHelpers.openDomainSettings(browser)
 
+    browser.elements 'css selector', domainSelector, (result) =>
+      if result.value.length is 1
+        domainName = environmentHelpers.addDomain(browser, user)
+        environmentHelpers.deleteDomain(browser, user, domainName)
         browser.end()
+      else
+        browser.getText lastDomainItem, (result) =>
+          domainName = result.value
+          environmentHelpers.deleteDomain(browser, user, domainName)
+          browser.end()
 
 
   assignDomain: (browser) ->

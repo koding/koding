@@ -98,6 +98,21 @@ module.exports =
     return domainName
 
 
+  deleteDomain: (browser, user, domainName) ->
+
+    domainSelector = '.machine-settings-modal .kdlistitemview-domain'
+    lastDomainItem = "#{domainSelector}:last-child"
+    loader         = lastDomainItem + '.in-progress'
+
+    browser
+      .moveToElement             lastDomainItem, 10, 10
+      .click                     lastDomainItem + ' span.remove'
+      .waitForElementVisible     loader, 10000
+      .waitForElementNotVisible  loader, 20000
+      .getText                   domainSelector, (result) =>
+        assert.notEqual          result.value, domainName # Assertion
+
+
   clickCreateVMButton: (browser) ->
 
     browser
