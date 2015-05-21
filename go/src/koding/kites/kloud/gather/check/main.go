@@ -9,8 +9,6 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/kr/pretty"
 )
 
 type Result struct {
@@ -49,7 +47,7 @@ func main() {
 		}
 	}
 
-	pretty.Println(results)
+	log.Println(results)
 }
 
 func runnable(scriptPath string) bool {

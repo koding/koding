@@ -11,9 +11,7 @@ import (
 )
 
 const (
-	CONTENT_TYPE_TAR       = "application/tar"
-	DEFAULT_BUCKET_NAME    = "gather-vm-metrics"
-	DEFAULT_SCRIPTS_FOLDER = "check"
+	CONTENT_TYPE_TAR = "application/tar"
 )
 
 type Fetcher interface {
@@ -27,10 +25,7 @@ type S3Fetcher struct {
 }
 
 func (s *S3Fetcher) Bucket() *s3.Bucket {
-	auth := aws.Auth{
-		AccessKey: s.AccessKey,
-		SecretKey: s.SecretKey,
-	}
+	auth := aws.Auth{AccessKey: s.AccessKey, SecretKey: s.SecretKey}
 
 	return s3.New(auth, aws.USEast).Bucket(s.BucketName)
 }

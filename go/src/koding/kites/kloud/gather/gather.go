@@ -8,7 +8,6 @@ import (
 )
 
 type Gather struct {
-	BucketName string
 	DestFolder string
 	Exporter   Exporter
 	Fetcher    Fetcher
