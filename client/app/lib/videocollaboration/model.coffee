@@ -641,6 +641,24 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Action to leave from video chat for participants.
+  ###
+  leave: ->
+
+    successCb = =>
+      @handleStopSuccess()
+      @session.disconnect()
+      @session     = null
+      @publisher   = null
+      @stream      = null
+      @subscribers = {}
+
+    kd.utils.defer => @stopPublishing
+      success : successCb
+      error   : (err) -> console.error err
+
+
+  ###*
    * Action for muting a participant. Sends the signal, the rest will be
    * handled by the `signal:mute` handler.
    *
