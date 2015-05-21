@@ -8,7 +8,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/multiconfig"
-	"github.com/koding/tunnel"
+	"github.com/koding/streamtunnel"
 )
 
 type registerResult struct {
@@ -22,7 +22,7 @@ type config struct {
 }
 
 var (
-	server = tunnel.NewServer()
+	server = streamtunnel.NewServer()
 )
 
 func main() {

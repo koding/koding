@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -40,13 +41,21 @@ func NewServer() *Server {
 		controls:     newControls(),
 	}
 
-	http.Handle(TunnelPath, checkConnect(s.tunnelHandler))
+	http.Handle(TunnelPath, checkConnect(s.TunnelHandler))
 	return s
 }
 
 // ServeHTTP is a tunnel that creates an http/websocket tunnel between a
 // public connection and the client connection.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// if the user didn't add the control and tunnel handler manually, we'll
+	// going to infer and call the respective path handlers.
+	switch path.Clean(r.URL.Path) + "/" {
+	case TunnelPath:
+		checkConnect(s.TunnelHandler).ServeHTTP(w, r)
+		return
+	}
+
 	if err := s.HandleHTTP(w, r); err != nil {
 		http.Error(w, err.Error(), 502)
 		return
@@ -77,8 +86,6 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	if !ok {
 		return fmt.Errorf("no session available for '%s'", host)
 	}
-
-	fmt.Printf("r = %+v\n", r)
 
 	// if someoone hits foo.example.com:8080, this should be proxied to
 	// localhost:8080, so send the port to the client so it knows how to proxy
@@ -121,10 +128,12 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// tunnelHandler is used to capture incoming tunnel connect requests into raw
+// TunnelHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
 // TODO(arslan): close captured connection when we return with an error
-func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) error {
+// TODO(arslan): if a control connection is established already, return with an error
+// TODO(arslan): rename to ControlHandler, tunneling is handling via yamux
+func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) error {
 	identifier := r.Header.Get(XKTunnelIdentifier)
 	log.Printf("tunnel with identifier %s\n", identifier)
 

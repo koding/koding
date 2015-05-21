@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -31,7 +32,8 @@ type Client struct {
 
 // NewClient creates a new tunnel that is established between the serverAddr
 // and localAddr. It exits if it can't create a new control connection to the
-// server.
+// server. If localAddr is empty client will always try to proxy to a local
+// port.
 func NewClient(serverAddr, localAddr string) *Client {
 	client := &Client{
 		serverAddr: serverAddr,
@@ -66,7 +68,12 @@ func (c *Client) Start(identifier string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 && resp.Status != Connected {
-		return fmt.Errorf("proxy server: %s", resp.Status)
+		out, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("proxy server: %s. err: %s", resp.Status, string(out))
 	}
 
 	c.session, err = yamux.Client(c.nc, yamux.DefaultConfig())
@@ -93,28 +100,23 @@ func (c *Client) Start(identifier string) error {
 	}
 
 	ct := newControl(stream)
-	go c.listenControl(ct)
-
 	log.Println("client has started successfully.")
-	return nil
+
+	return c.listenControl(ct)
 }
 
-func (c *Client) listenControl(ct *control) {
+func (c *Client) listenControl(ct *control) error {
 	for {
 		var msg ControlMsg
 		err := ct.dec.Decode(&msg)
 		if err != nil {
-			log.Println("decode err: %s", err)
-			return
+			return fmt.Errorf("decode err: '%s'", err)
 		}
-
-		fmt.Printf("msg = %+v\n", msg)
 
 		switch msg.Action {
 		case RequestClientSession:
 			go c.proxy(msg.LocalPort)
 		}
-
 	}
 }
 

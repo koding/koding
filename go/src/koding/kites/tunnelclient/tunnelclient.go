@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/multiconfig"
-	"github.com/koding/tunnel"
+	"github.com/koding/streamtunnel"
 )
 
 type registerResult struct {
@@ -17,7 +18,7 @@ type registerResult struct {
 
 type config struct {
 	ServerAddr string `default:"127.0.0.1:4444"`
-	LocalAddr  string `default:"127.0.0.1:3000"`
+	LocalAddr  string
 }
 
 func main() {
@@ -41,8 +42,10 @@ func main() {
 	}
 
 	k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
-	client := tunnel.NewClient(conf.ServerAddr, conf.LocalAddr)
-	client.Start(result.Identifier)
+	client := streamtunnel.NewClient(conf.ServerAddr, conf.LocalAddr)
+	if err := client.Start(result.Identifier); err != nil {
+		fmt.Fprintf(os.Stderr, err.Error())
+	}
 }
 
 func callRegister(tunnelserver *kite.Client) (*registerResult, error) {
