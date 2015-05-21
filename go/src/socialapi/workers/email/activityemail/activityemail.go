@@ -170,37 +170,35 @@ func (n *Controller) checkMailSettings(uc *emailmodels.UserContact, a *notificat
 }
 
 func (n *Controller) saveDailyMail(accountId, activityId int64) {
-	if err := saveRecipient(accountId); err != nil {
+	if err := n.saveRecipient(accountId); err != nil {
 		n.log.Error("daily mail error: %s", err)
 	}
 
-	if err := saveActivity(accountId, activityId); err != nil {
+	if err := n.saveActivity(accountId, activityId); err != nil {
 		n.log.Error("daily mail error: %s", err)
 	}
 }
 
-func saveRecipient(accountId int64) error {
-	redisConn := runner.MustGetRedisConn()
+func (n *Controller) saveRecipient(accountId int64) error {
 	key := prepareRecipientsCacheKey()
-	if _, err := redisConn.AddSetMembers(key, accountId); err != nil {
+	if _, err := n.redisConn.AddSetMembers(key, accountId); err != nil {
 		return err
 	}
 
-	if err := redisConn.Expire(key, DAY); err != nil {
+	if err := n.redisConn.Expire(key, DAY); err != nil {
 		return fmt.Errorf("Could not set ttl of recipients: %s", err)
 	}
 
 	return nil
 }
 
-func saveActivity(accountId, activityId int64) error {
-	redisConn := runner.MustGetRedisConn()
+func (n *Controller) saveActivity(accountId, activityId int64) error {
 	key := prepareSetterCacheKey(accountId)
-	if _, err := redisConn.AddSetMembers(key, activityId); err != nil {
+	if _, err := n.redisConn.AddSetMembers(key, activityId); err != nil {
 		return err
 	}
 
-	if err := redisConn.Expire(key, DAY); err != nil {
+	if err := n.redisConn.Expire(key, DAY); err != nil {
 		return fmt.Errorf("Could not set ttl of activity: %s", err)
 	}
 

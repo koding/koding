@@ -66,10 +66,9 @@ func (n *Controller) Shutdown() {
 }
 
 func (n *Controller) sendDailyMails() {
-	redisConn := runner.MustGetRedisConn()
 	for {
 		key := prepareRecipientsCacheKey()
-		reply, err := redisConn.PopSetMember(key)
+		reply, err := n.redisConn.PopSetMember(key)
 		if err == redis.ErrNil {
 			n.log.Info("all daily mails are sent")
 			return
@@ -167,15 +166,14 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 }
 
 func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
-	redisConn := runner.MustGetRedisConn()
-	members, err := redisConn.GetSetMembers(prepareDailyActivitiesCacheKey(accountId))
+	members, err := n.redisConn.GetSetMembers(prepareDailyActivitiesCacheKey(accountId))
 	if err != nil {
 		return nil, err
 	}
 
 	activityIds := make([]int64, len(members))
 	for i, member := range members {
-		activityId, err := redisConn.Int64(member)
+		activityId, err := n.redisConn.Int64(member)
 		if err != nil {
 			n.log.Error("Could not get activity id: %s", err)
 			continue
@@ -184,7 +182,7 @@ func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
 		activityIds[i] = activityId
 	}
 
-	redisConn.Del(prepareDailyActivitiesCacheKey(accountId))
+	n.redisConn.Del(prepareDailyActivitiesCacheKey(accountId))
 
 	return activityIds, nil
 }
