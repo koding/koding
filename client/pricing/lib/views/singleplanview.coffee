@@ -96,8 +96,12 @@ module.exports = class SinglePlanView extends KDView
 
     { appManager } = kd.singletons
     pricingView = appManager.get('Pricing').getView()
+
     workflowStarted = PaymentConstants.events.WORKFLOW_STARTED
+    workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
+
     pricingView.once workflowStarted, @buyButton.bound 'hideLoader'
+    pricingView.once workflowCouldNotStart, @buyButton.bound 'hideLoader'
 
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice

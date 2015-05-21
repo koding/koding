@@ -255,6 +255,8 @@ module.exports = class PaymentWorkflow extends KDController
 
     @modal.emit 'FailedAttemptLimitReached'
 
+    @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
+
 
   blockUserForTooManyAttempts: ->
 

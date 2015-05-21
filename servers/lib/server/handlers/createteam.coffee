@@ -19,14 +19,13 @@ module.exports = (req, res, next) ->
     domains
     # newsletter holds announcements config.
     newsletter
+    # is group creator already a member
+    alreadyMember
   } = body
 
   redirect ?= '/'
   context   = { group: slug }
   clientId  = getClientId req, res
-
-  # tmp: copy/paste from ./register.coffee - SY
-  # cc/ @cihangir
 
   return handleClientIdNotFound res, req  unless clientId
 
@@ -41,20 +40,13 @@ module.exports = (req, res, next) ->
 
     client.clientIP = (clientIPAddress.split ',')[0]
 
-    body.emailFrequency or= {}
     # subscribe to koding marketing mailings or not
+    body.emailFrequency         or= {}
     body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
 
-    JUser.convert client, body, (err, result) ->
+    createGroup = (err, result) ->
 
-      if err?
-
-        {message} = err
-
-        if err.errors?
-          message = "#{message}: #{Object.keys err.errors}"
-
-        return res.status(400).send message
+      return res.status(400).send getErrorMessage err  if err?
 
       # don't set the cookie we don't want that
       # bc we're going to redirect the page to the
@@ -77,8 +69,6 @@ module.exports = (req, res, next) ->
         allowedDomains  : convertToArray domains # clear & convert domains into array
       , owner, (err, group) ->
 
-        console.log err, group
-
         return res.status(500).send "Couldn't create the group."  if err or not group
 
         queue = [
@@ -95,6 +85,11 @@ module.exports = (req, res, next) ->
           return res.status(200).end() if req.xhr
           # handle the request with an HTTP redirect:
           res.redirect 301, redirect
+
+    if alreadyMember
+    then JUser.login client.sessionToken, body, createGroup
+    else JUser.convert client, body, createGroup
+
 
 
 # convertToArray converts given comma separated string value into cleaned,
@@ -123,3 +118,10 @@ createInvitations = (client, invitees, callback)->
 
   koding.models.JInvitation.create client, { invitations }, callback
 
+
+getErrorMessage = (err) ->
+
+  { message } = err
+  message     = "#{message}: #{Object.keys err.errors}"  if err.errors?
+
+  return message

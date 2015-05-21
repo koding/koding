@@ -2,14 +2,17 @@ helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 
-domainItem  = '.kdlistitemview-domain:last-child'
-loader      = domainItem + '.in-progress'
+domainSelector = '.machine-settings-modal .kdlistitemview-domain'
+lastDomainItem = "#{domainSelector}:last-child"
+loader         = lastDomainItem + '.in-progress'
 
 
 module.exports =
 
 
   # openVmDomain: (browser) ->
+
+  #   ## This test is disabled because DNS propagation takes time and we are running test before DNS propagation complete.
 
   #   modalSelector = '.activity-modal.vm-settings'
   #   linkSelector  = modalSelector + ' .assigned-url .custom-link-view'
@@ -34,32 +37,52 @@ module.exports =
 
   addDomain: (browser) ->
 
-    environmentHelpers.addDomain(browser)
-    browser.end()
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    environmentHelpers.openDomainSettings(browser)
+
+    browser.elements 'css selector', domainSelector, (result) =>
+      if result.value.length > 1
+        console.log result.value
+
+        console.log '✔  Another domain is already added. Ending test...'
+        browser.end()
+      else
+        console.log '✔  Creating a new domain...'
+        environmentHelpers.addDomain(browser, user)
+        browser.end()
 
 
   deleteDomain: (browser) ->
 
-    domainName = environmentHelpers.addDomain(browser)
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-    browser
-      .moveToElement             domainItem, 10, 10
-      .click                     domainItem + ' span.remove'
-      .waitForElementVisible     loader, 10000
-      .waitForElementNotVisible  loader, 20000
-      .getText                   domainItem, (result) =>
-        assert.notEqual          result.value, domainName # Assertion
+    environmentHelpers.openDomainSettings(browser)
 
+    browser.elements 'css selector', domainSelector, (result) =>
+      if result.value.length is 1
+        domainName = environmentHelpers.addDomain(browser, user)
+        environmentHelpers.deleteDomain(browser, user, domainName)
         browser.end()
+      else
+        browser.getText lastDomainItem, (result) =>
+          domainName = result.value
+          environmentHelpers.deleteDomain(browser, user, domainName)
+          browser.end()
 
 
   assignDomain: (browser) ->
 
-    domainName = environmentHelpers.addDomain(browser)
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    domainName = environmentHelpers.addDomain(browser, user)
 
     browser
-      .waitForElementVisible     domainItem, 20000
-      .click                     domainItem + ' .koding-on-off.on'
+      .waitForElementVisible     lastDomainItem, 20000
+      .click                     lastDomainItem + ' .koding-on-off.on'
       .waitForElementVisible     '.in-progress', 10000
       .waitForElementNotPresent  '.in-progress', 20000
       .refresh()
@@ -67,5 +90,30 @@ module.exports =
     environmentHelpers.openDomainSettings(browser)
 
     browser
-      .waitForElementVisible     domainItem + ' .koding-on-off.off', 20000
+      .waitForElementVisible     lastDomainItem + ' .koding-on-off.off', 20000
       .end()
+
+
+  addInvalidDomain: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    invalidDomainName    = ';invalidVmName;'
+    buttonSelector       = '.domains .kdheaderview button.add-button'
+    buttonLoaderSelector = '.add-view button.loading'
+    errorSelector        = '.kdmodal-inner .domains .notification.error'
+
+    environmentHelpers.openDomainSettings(browser)
+
+    browser
+    .waitForElementVisible    buttonSelector, 20000
+    .click                    buttonSelector
+    .waitForElementVisible    '.add-view input.hitenterview', 20000
+    .setValue                 '.add-view input.hitenterview', invalidDomainName + '\n'
+    .waitForElementVisible    buttonLoaderSelector, 10000
+    .waitForElementNotPresent buttonLoaderSelector, 20000
+    .waitForElementVisible    errorSelector, 20000 # Assertion
+    .end()
+
+

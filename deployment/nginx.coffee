@@ -104,17 +104,12 @@ createLocations = (KONFIG) ->
   workers = KONFIG.workers
 
   locations = ""
-  for name, options of workers when options.ports?
+  for name, options of workers
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
+    continue unless options.nginx?.locations
+
     continue if options.nginx?.disableLocation?
-
-    options.nginx = {}  unless options.nginx
-    location = {}
-
-    options.nginx.locations or= [
-      location: "/#{name}"
-    ]
 
     for location in options.nginx.locations
       location.proxyPass or= "http://#{name}"
@@ -357,6 +352,27 @@ module.exports.create = (KONFIG, environment)->
         proxy_next_upstream   error timeout   invalid_header http_500;
       }
 
+      # special case for kloud to proxy requests properly
+      location ~^/kloud/(.*) {
+        proxy_pass            http://kloud/$1$is_args$args;
+
+        # needed for websocket handshake
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      $connection_upgrade;
+
+        proxy_set_header      Host $host;
+        proxy_set_header      X-Real-IP $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect        off;
+
+        # Don't buffer WebSocket connections
+        proxy_buffering off;
+
+        # try again with another upstream if there is an error
+        proxy_next_upstream   error timeout   invalid_header http_500;
+      }
+
       #{createLocations(KONFIG)}
 
       #{createUserMachineLocation("userproxy")}
@@ -364,16 +380,6 @@ module.exports.create = (KONFIG, environment)->
       #{createUserMachineLocation("sandboxproxy")}
       #{createUserMachineLocation("latestproxy")}
       #{createUserMachineLocation("devproxy")}
-
-      location /-/content-rotator/ {
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-
-        rewrite /-/content-rotator/(.*) /content-rotator/$1 break;
-        proxy_pass #{KONFIG.contentRotatorUrl};
-      }
 
     # close server
     }
