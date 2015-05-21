@@ -259,6 +259,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     session.on 'signal:start', =>
 
       @setActive()
+      @changeActiveParticipant getNick()
 
       return  unless @isMySession()
 
