@@ -38,3 +38,11 @@ run() {
 }
 
 run $1 $2
+
+CODE=$?
+
+if [ $CODE -ne 0 ]; then
+  mv users.json users-$1-$2.json
+fi
+
+exit $CODE
