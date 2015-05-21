@@ -13,4 +13,7 @@ tar -cf check.tar check
 echo "Uploading to s3..."
 aws s3 cp check.tar s3://gather-vm-metrics
 
+echo "Cleaning up..."
+rm check check.tar
+
 echo "Done"
