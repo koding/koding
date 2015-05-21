@@ -1,5 +1,6 @@
 kd                    = require 'kd'
 KDView                = kd.View
+isKoding              = require 'app/util/isKoding'
 KDTabView             = kd.TabView
 KDTabPaneView         = kd.TabPaneView
 TeamMembersCommonView = require './teammemberscommonview'
@@ -25,12 +26,14 @@ module.exports = class AdminMembersView extends KDView
     tabView.addPane allMembersPane = new KDTabPaneView name: 'All Members'
     tabView.addPane adminsPane     = new KDTabPaneView name: 'Admins'
     tabView.addPane moderatorsPane = new KDTabPaneView name: 'Moderators'
-    tabView.addPane blockedMembersPane = new KDTabPaneView name: 'Blocked'
 
     allMembersPane.addSubView  new TeamMembersCommonView { fetcherMethod: 'fetchMembers'    }, data
     adminsPane.addSubView      new TeamMembersCommonView { fetcherMethod: 'fetchAdmins'     }, data
     moderatorsPane.addSubView  new TeamMembersCommonView { fetcherMethod: 'fetchModerators' }, data
-    blockedMembersPane.addSubView new GroupsBlockedUserView {}, data
+
+    if isKoding()
+      tabView.addPane blockedMembersPane = new KDTabPaneView name: 'Blocked'
+      blockedMembersPane.addSubView new GroupsBlockedUserView {}, data
 
     tabView.showPaneByIndex 0
     @addSubView tabView
