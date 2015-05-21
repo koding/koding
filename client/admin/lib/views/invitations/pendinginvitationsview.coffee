@@ -52,6 +52,14 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
       @isFetching = no
 
 
+  search: ->
+
+    @skip  = 0
+    @query = @searchInput.getValue()
+
+    @refresh()
+
+
   getSortOptions: ->
 
     sortDirections = createdAt: -1, email: 1, firstName: 1, lastName: 1
