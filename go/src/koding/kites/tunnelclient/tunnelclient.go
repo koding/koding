@@ -25,10 +25,13 @@ func main() {
 	<-k.ServerReadyNotify()
 
 	tunnelserver := k.NewClient("http://" + conf.ServerAddr + "/kite")
-	if err := tunnelserver.Dial(); err != nil {
+	connected, err := tunnelserver.DialForever()
+	if err != nil {
 		k.Log.Error(err.Error())
 		return
 	}
+
+	<-connected
 
 	result, err := callRegister(tunnelserver)
 	if err != nil {
