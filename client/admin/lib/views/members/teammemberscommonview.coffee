@@ -1,24 +1,25 @@
 kd                   = require 'kd'
 KDView               = kd.View
+whoami               = require 'app/util/whoami'
 KDSelectBox          = kd.SelectBox
 KDListItemView       = kd.ListItemView
+MemberItemView       = require './memberitemview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
-
-MemberItemView = require './memberitemview'
 
 
 module.exports = class TeamMembersCommonView extends KDView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass                 = 'members-commonview'
+    options.itemLimit               ?= 10
+    options.fetcherMethod          or= 'fetchMembers'
     options.noItemFoundWidget      or= new KDCustomHTMLView
     options.listViewItemClass      or= MemberItemView
-    options.cssClass                 = 'members-commonview'
     options.listViewItemOptions    or= {}
     options.searchInputPlaceholder or= 'Find by name/username'
-    options.itemLimit               ?= 10
     options.sortOptions            or= [
       { title: 'Screen name',   value: 'fullname' }
       { title: 'Nickname',      value: 'nickname' }
@@ -27,6 +28,7 @@ module.exports = class TeamMembersCommonView extends KDView
     super options, data
 
     @skip = 0
+    @page = 0
 
     @createSearchView()
     @createListController()
@@ -71,7 +73,14 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @addSubView @listController.getView()
 
-    @listController.on 'LazyLoadThresholdReached', @bound 'fetchMembers'
+    @listController.on 'LazyLoadThresholdReached', =>
+      if @searchInput.getValue()
+        unless @isFetching
+          @isFetching = yes
+          @page++
+          @search()
+      else
+        @fetchMembers()
 
 
   fetchMembers: ->
@@ -80,19 +89,59 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @isFetching = yes
 
-    selector = @query or ''
+    group    = @getData()
+    method   = @getOption 'fetcherMethod'
     options  =
       limit  : @getOptions().itemLimit
-      sort   : { timestamp: -1 }
+      sort   : timestamp: -1 # timestamp is at relationship collection
       skip   : @skip
 
-    @getData().searchMembers selector, options, (err, members) =>
-      if err
-        @listController.lazyLoader.hide()
-        return kd.warn err
+    # fetch members as jAccount
+    group[method] {}, options, (err, members) =>
 
-      @listMembers members
-      @isFetching = no
+      return @handleError err  if err
+
+      @fetchUserRoles members, (members) =>
+        @listMembers members
+        @isFetching = no
+
+
+  fetchUserRoles: (members, callback) ->
+
+    # collect account ids to fetch user roles
+    ids = members.map (member) -> return member.getId()
+
+    myAccountId = whoami().getId()
+    ids.push myAccountId
+
+    @getData().fetchUserRoles ids, (err, roles) =>
+      return @handleError err  if err
+
+      # create account id and roles map
+      userRoles = {}
+
+      # roles array is a flat array which means when you query for an account
+      # the response would be 3 items array which contains different roles for
+      # the same user. create an array by user and collect all roles belong
+      # to that user.
+      for role in roles
+        list = userRoles[role.targetId] or= []
+        list.push role.as
+
+      # save user role array into jAccount as jAccount.role
+      for member in members
+        roles = userRoles[member.getId()]
+        member.roles = roles  if roles
+
+      @loggedInUserRoles = userRoles[myAccountId]
+
+      callback members
+
+
+  handleError: (err) ->
+
+    @listController.lazyLoader.hide()
+    kd.warn err
 
 
   listMembers: (members) ->
@@ -103,8 +152,10 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip += members.length
 
-    for member in members
-      @listController.addItem member
+    @fetchUserRoles members, (members) =>
+      for member in members
+        member.loggedInUserRoles = @loggedInUserRoles # FIXME
+        @listController.addItem member
 
     @listController.lazyLoader.hide()
     @searchContainer.show()
@@ -112,14 +163,36 @@ module.exports = class TeamMembersCommonView extends KDView
 
   search: ->
 
-    @skip  = 0
-    @query = @searchInput.getValue()
+    query = @searchInput.getValue()
 
-    @refresh()
+
+    if query is ''
+      @page = 0
+      @skip = 0
+      @resetListItems()
+      return @fetchMembers()
+
+    @page      = 0  if query isnt @lastQuery
+    options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
+    @lastQuery = query
+
+    kd.singletons.search.searchAccounts query, options
+      .then (accounts) =>
+        @resetListItems no  if @page is 0
+        @listMembers accounts
+        @isFetching = no
+      .catch (err) =>
+        @page = 0
+        @handleError err
+
+
+  resetListItems: (showLoader = yes) ->
+
+    @listController.removeAllItems()
+    @listController.lazyLoader.show()
 
 
   refresh: ->
 
-    @listController.removeAllItems()
-    @listController.lazyLoader.show()
+    @resetListItems()
     @fetchMembers()

@@ -1,12 +1,10 @@
 kd                   = require 'kd'
-KDView               = kd.View
 KDTabPaneView        = kd.TabPaneView
-
 globals              = require 'globals'
 AdminMainTabPaneView = require './views/adminmaintabpaneview'
 
 
-module.exports = class AdminAppView extends kd.View
+module.exports = class AdminAppView extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
@@ -40,6 +38,8 @@ module.exports = class AdminAppView extends kd.View
 
 
   viewAppended: ->
+
+    super
 
     group = kd.getSingleton('groupsController').getCurrentGroup()
     group?.canEditGroup (err, success) =>

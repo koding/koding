@@ -25,4 +25,14 @@ OPTIONS=$*
 ssh -o 'StrictHostKeyChecking no' \
     -i $KODING_DEPLOYMENT_KEY \
     ubuntu@$HOST \
-    "sudo /opt/koding/client/test/run.sh $OPTIONS"
+    "sudo /opt/koding/client/test/run.sh $OPTIONS" &
+
+PID=$!
+
+trap 'kill -TERM $PID' TERM
+
+wait $PID # Wait until child process is exited
+
+trap - TERM INT
+
+wait $PID # In case an interrupt signal is received

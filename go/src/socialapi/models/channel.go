@@ -525,7 +525,7 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 	}
 
 	// this will hide moderation needed channels
-	bongoQuery.AddScope(RemoveModerationNeededContent(c, false))
+	bongoQuery.AddScope(RemoveModerationNeededContent(c, q.ShowModerationNeeded))
 
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
@@ -604,6 +604,9 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 		Selector: map[string]interface{}{
 			"group_name": q.GroupName,
 		},
+		Sort: map[string]string{
+			"created_at": "DESC",
+		},
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
 
@@ -612,7 +615,7 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	}
 
 	// this will hide moderation needed channels
-	query.AddScope(RemoveModerationNeededContent(c, false))
+	query.AddScope(RemoveModerationNeededContent(c, q.ShowModerationNeeded))
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	err := c.Some(&channels, query)

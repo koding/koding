@@ -1,12 +1,99 @@
-kd                   = require 'kd'
-globals              = require 'globals'
-CustomViews          = require 'app/commonviews/customviews'
-ComputeController_UI = require 'app/providers/computecontroller.ui'
+_                               = require 'lodash'
+kd                              = require 'kd'
+hljs                            = require 'highlight.js'
+globals                         = require 'globals'
+dateFormat                      = require 'dateformat'
+CustomViews                     = require 'app/commonviews/customviews'
+CredentialListItem              = require './credentiallistitem'
+ComputeController_UI            = require 'app/providers/computecontroller.ui'
+AccountCredentialList           = require 'account/accountcredentiallist'
+AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
 
 module.exports = class StacksCustomViews extends CustomViews
 
-  @views extends
+
+  fetchAndShowCredentialData = (credential, outputView) ->
+
+    outputView.addContent 'Fetching latest data...'
+
+    credential.fetchData (err, data) ->
+      if err
+        outputView.addContent 'Failed: ', err.message
+      else
+
+        # Hide sensitive information
+        provider = globals.config.providers[credential.provider]
+        (Object.keys provider.credentialFields).forEach (field) ->
+          data.meta[field] = '******************'
+
+        try
+          cred = JSON.stringify data.meta, null, 2
+        catch e
+          outputView.addContent 'Failed to parse:', e
+          return
+
+        outputView.addContent cred
+        outputView.addContent 'You can continue to next step.'
+        outputView.emit 'BootstrappingDone'
+
+
+  handleBootstrap = (outputView, credential, button) ->
+    console.log {outputView, credential, button}
+
+    outputView.destroySubViews()
+    outputView.addContent 'Bootstrapping started...'
+
+    publicKeys = [credential.publicKey]
+
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+
+      .bootstrap { publicKeys }
+
+      .then (response) ->
+
+        if response
+          outputView.addContent 'Bootstrap completed successfully'
+          fetchAndShowCredentialData credential, outputView
+        else
+          outputView.addContent 'Bootstrapping completed but something went wrong.'
+
+        console.log "Bootstrap result:", response
+
+      .catch (err) ->
+
+        outputView.addContent 'Bootstrapping failed:', err.message
+        console.warn "Bootstrap failed:", err
+
+      .finally button.bound 'hideLoader'
+
+
+  handleNewCredential = (views, provider, button) ->
+
+    {controller} = views.credentialList
+    view = controller.getView()
+    button.disable()
+    view.hide()
+
+    form = controller.showAddCredentialFormFor provider
+    form.on 'Cancel', view.bound   'show'
+    form.on 'Cancel', button.bound 'enable'
+
+    kd.utils.defer -> form.inputs.title?.focus()
+
+    # After adding credential, we are sharing it with the current
+    # group, so anyone in this group can use this credential ~ GG
+    form.on 'CredentialAdded', (credential) ->
+      {slug} = kd.singletons.groupsController.getCurrentGroup()
+      credential.shareWith {target: slug}, (err) ->
+        console.warn 'Failed to share credential:', err  if err
+        button.enable()
+        view.show()
+
+
+  _.assign @views,
 
     noStackFoundView: (callback) =>
 
@@ -32,6 +119,22 @@ module.exports = class StacksCustomViews extends CustomViews
         size: width: 40, height: 40
       }
 
+    outputView: (options) =>
+
+      options.cssClass = kd.utils.curry options.cssClass, 'output-view'
+      options.tagName  = 'pre'
+      container        = @views.view options
+      code             = @views.view tagName : 'code'
+
+      container.addSubView code
+
+      container.addContent = (content...) =>
+        content = content.join ' '
+        content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
+        code.setPartial hljs.highlight('profile', content).value
+
+      return container
+
 
     button: (options) ->
       options.cssClass ?= ''
@@ -39,10 +142,13 @@ module.exports = class StacksCustomViews extends CustomViews
 
 
     navButton: (options, name) =>
-      options.cssClass = kd.utils.curry 'solid compact nav', name
+      options.cssClass = kd.utils.curry 'solid compact light-gray nav', name
       options.title = name.capitalize()
       @views.button options
 
+    navCancelButton: (options) =>
+      options.cssClass = 'solid compact light-gray nav cancel'
+      @views.button options
 
     stacksView: (data) =>
       @views.text 'Coming soon'
@@ -60,27 +166,25 @@ module.exports = class StacksCustomViews extends CustomViews
           providers     : Object.keys globals.config.providers
         navButton_cancel:
           callback      : cancelCallback
-        navButton_next  :
-          disabled      : yes
-          callback      : ->
-            callback provider: views.providersView.selectedProvider
 
-      views.providersView.on 'ItemSelected', views.navButton_next.bound 'enable'
+      views.providersView.on 'ItemSelected', (provider) ->
+        callback {provider}
 
       return container
 
 
-    credentialForm: (provider) =>
+    credentialList: (provider) =>
 
-      form = ComputeController_UI.generateAddCredentialFormFor provider
-      form.on "Cancel", ->
-        console.log 'Form Cancelled'
+      listView   = new AccountCredentialList
+        itemClass  : CredentialListItem
+      controller = new AccountCredentialListController
+        view       : listView
+        wrapper    : no
+        scrollView : no
+        provider   : provider
 
-      form.on "CredentialAdded", (credential) =>
-        # credential.owner = yes
-        console.log 'Credential added', credential
-
-      return form
+      __view = controller.getView()
+      return { __view, controller }
 
 
     stepSetupCredentials: (options) =>
@@ -89,14 +193,81 @@ module.exports = class StacksCustomViews extends CustomViews
       {provider} = data
 
       container = @views.container 'step-creds'
-      @addTo container,
+      views     = @addTo container,
         stepsHeaderView : 2
-        credentialForm  : provider
-        navButton_prev  :
+        container_top   :
+          text_intro    : "To be able to use this provider <strong>you need to
+                           select a verified credential</strong> below, if you
+                           don't have a verified credential you won't be able
+                           to setup your stack for your team."
+          button        :
+            title       : 'Add New Credential'
+            cssClass    : 'solid compact green action'
+            callback    : ->
+              handleNewCredential views, provider, this
+        credentialList  : provider
+        navCancelButton :
+          title         : '< Select another provider'
           callback      : cancelCallback
-        navButton_next  :
-          callback      : ->
-            callback {provider}
+
+      credentialList = views.credentialList.__view
+      credentialList.on 'ItemSelected', (credential) ->
+        callback {credential, provider}
+
+      return container
+
+
+    stepBootstrap: (options) =>
+
+      console.log options
+      {callback, cancelCallback, data} = options
+      {provider, credential} = data
+
+      container = @views.container 'step-creds'
+
+      container.setClass 'has-markdown'
+
+      views     = @addTo container,
+        stepsHeaderView : 3
+        container       :
+          loader        : 'main-loader'
+        navCancelButton :
+          title         : '< Select another credential'
+          callback      : -> cancelCallback {provider}
+
+      credential.isBootstrapped (err, state) =>
+
+        views.container.destroySubViews()
+
+        {outputView} = @addTo views.container,
+
+          container_top :
+            text_intro  : "Bootstrapping for given credential is required.
+                           With this process we will create necessary
+                           settings on your #{provider} account.
+                           Which you can see them from provider's control
+                           panel as well."
+            button      :
+              title     : 'Bootstrap Now'
+              cssClass  : \
+                "solid compact green action #{if state then 'hidden' else ''}"
+              loader    : yes
+              callback  : ->
+                outputView.show()
+                handleBootstrap outputView, credential, this
+
+          outputView    :
+            cssClass    : 'bootstrap-output hidden'
+
+        outputView.on 'BootstrappingDone', => @addTo container,
+          navButton_next :
+            callback     : ->
+              callback {provider, credential}
+
+        if state
+          outputView.show()
+          outputView.addContent 'Bootstrapping completed for this credential'
+          fetchAndShowCredentialData credential, outputView
 
       return container
 
@@ -105,14 +276,14 @@ module.exports = class StacksCustomViews extends CustomViews
 
       console.log options
       {callback, cancelCallback, data} = options
-      {provider} = data
+      {provider, credential} = data
       container = @views.container 'step-creds'
 
       views     = @addTo container,
-        stepsHeaderView : 3
+        stepsHeaderView : 4
         navButton_prev  :
           callback      : ->
-            cancelCallback {provider}
+            cancelCallback {credential, provider}
         navButton_next  : {callback}
 
       return container
@@ -125,7 +296,7 @@ module.exports = class StacksCustomViews extends CustomViews
       container = @views.container 'step-creds'
 
       views     = @addTo container,
-        stepsHeaderView : 4
+        stepsHeaderView : 5
         navButton_prev  :
           callback      : cancelCallback
         navButton_next  : {callback}
@@ -151,22 +322,19 @@ module.exports = class StacksCustomViews extends CustomViews
             cssClass : provider
             disabled : provider isnt 'aws'
             callback : ->
-              container.selectedProvider = provider
-              container.emit 'ItemSelected'
-              container.on 'ItemSelected', this.lazyBound 'unsetClass', 'selected'
-              @setClass 'selected'
+              container.emit 'ItemSelected', provider
 
       return container
 
 
     stepsHeader: (options) =>
 
-      {title, step, selected} = options
+      {title, index, selected} = options
 
       container = @views.container "#{if selected then 'selected' else ''}"
 
       @addTo container,
-        text_step  : step
+        text_step  : index
         text_title : title
 
       return container
@@ -177,7 +345,8 @@ module.exports = class StacksCustomViews extends CustomViews
       if typeof options is 'number'
         steps = [
           { title : 'Select Provider' }
-          { title : 'Setup Credentials' }
+          { title : 'Credentials' }
+          { title : 'Bootstrap' }
           { title : 'Define your Stack' }
           { title : 'Test & Save' }
         ]
@@ -192,8 +361,8 @@ module.exports = class StacksCustomViews extends CustomViews
         tagName  : 'cite'
 
       steps.forEach (step, index) =>
-        step.step = index + 1
-        if selected? and selected is step.step
+        step.index = index + 1
+        if selected? and selected is step.index
           step.selected = yes
         @addTo container, stepsHeader: step
 

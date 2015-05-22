@@ -5,6 +5,7 @@ AccountPopup = require './accountpopup'
 AvatarView = require '../commonviews/avatarviews/avatarview'
 JView = require '../jview'
 PopupNotifications = require '../notifications/popupnotifications'
+JCustomHTMLView = require 'app/jcustomhtmlview'
 
 
 module.exports = class AvatarArea extends KDCustomHTMLView
@@ -19,6 +20,7 @@ module.exports = class AvatarArea extends KDCustomHTMLView
 
     { mainView } = kd.singletons
     account      = @getData()
+    {profile} = @getData()
 
     @avatar = new AvatarView
       tagName    : 'div'
@@ -28,6 +30,15 @@ module.exports = class AvatarArea extends KDCustomHTMLView
       size       :
         width    : 25
         height   : 25
+    , account
+
+    @profileName = new JCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'profile'
+      attributes :
+        href     : "/#{profile.nickname}"
+        title    : 'Your profile'
+      pistachio  : '{{ #(profile.firstName) }}'
     , account
 
     @accountPopup = new AccountPopup
@@ -61,11 +72,9 @@ module.exports = class AvatarArea extends KDCustomHTMLView
 
   pistachio: ->
 
-    {profile} = @getData()
-
     """
     {{> @avatar}}
-    <a class='profile' href='/#{profile.nickname}' title='Your profile'>#{profile.firstName}</a>
+    {{> @profileName}}
     {{> @accountIcon}}
     {{> @notificationsIcon}}
     """
