@@ -118,11 +118,9 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("no control available for %s", host)
 	}
 
-	s.sessionsMu.Lock()
-	session, ok := s.sessions[host]
-	s.sessionsMu.Unlock()
-	if !ok {
-		return fmt.Errorf("no session available for '%s'", host)
+	session, err := s.getSession(host)
+	if err != nil {
+		return err
 	}
 
 	// if someoone hits foo.example.com:8080, this should be proxied to
@@ -197,9 +195,7 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	s.sessionsMu.Lock()
-	s.sessions[host] = session
-	s.sessionsMu.Unlock()
+	s.addSession(host, session)
 
 	stream, err := session.Accept()
 	if err != nil {
@@ -268,6 +264,24 @@ func (s *Server) getControl(identifier string) (*control, bool) {
 
 func (s *Server) deleteControl(identifier string) {
 	s.controls.deleteControl(identifier)
+}
+
+func (s *Server) getSession(host string) (*yamux.Session, error) {
+	s.sessionsMu.Lock()
+	session, ok := s.sessions[host]
+	s.sessionsMu.Unlock()
+
+	if !ok {
+		return nil, fmt.Errorf("no session available for '%s'", host)
+	}
+
+	return session, nil
+}
+
+func (s *Server) addSession(host string, session *yamux.Session) {
+	s.sessionsMu.Lock()
+	s.sessions[host] = session
+	s.sessionsMu.Unlock()
 }
 
 func copyHeader(dst, src http.Header) {
