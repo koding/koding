@@ -11,6 +11,7 @@ import (
 	"runtime"
 
 	"github.com/koding/logging"
+	"github.com/ooyala/go-dogstatsd"
 )
 
 var (
@@ -18,10 +19,10 @@ var (
 	flagConfig = flag.String("c", "dev", "Configuration profile from file")
 	Log        = logging.NewLogger(Name)
 
-	conf *config.Config
+	DogClient *dogstatsd.Client
 )
 
-func initialize() {
+func initializeConf() *config.Config {
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
 
 	flag.Parse()
@@ -29,19 +30,25 @@ func initialize() {
 		log.Fatal("Please define config file with -c")
 	}
 
-	conf = config.MustConfig(*flagConfig)
-	modelhelper.Initialize(conf.Mongo)
+	return config.MustConfig(*flagConfig)
 }
 
 func main() {
-	initialize()
+	conf := initializeConf()
+	modelhelper.Initialize(conf.Mongo)
+
+	var err error
+	DogClient, err = dogstatsd.New("127.0.0.1:8125")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	http.HandleFunc("/", HomeHandler)
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 
 	url := fmt.Sprintf(":%d", conf.GatherIngestor.Port)
-	Log.Info("Starting gowebserver on: %v", url)
+	Log.Info("Starting gather ingestor on: %v", url)
 
 	http.ListenAndServe(url, nil)
 }
