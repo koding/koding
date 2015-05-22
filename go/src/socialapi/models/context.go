@@ -53,7 +53,11 @@ func (c *Context) IsAdmin() bool {
 	return IsIn(c.Client.Account.Nick, superAdmins...)
 }
 
-func (c *Context) GetLogger() logging.Logger {
+func (c *Context) MustGetLogger() logging.Logger {
+	if c.log == nil {
+		panic(ErrLoggerNotExist)
+	}
+
 	return c.log
 }
 
