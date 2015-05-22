@@ -12,6 +12,33 @@ AccountCredentialListController = require 'account/views/accountcredentiallistco
 
 module.exports = class StacksCustomViews extends CustomViews
 
+  setStack = (options, callback) ->
+
+    { stackTemplate } = options
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+
+      .checkTemplate { stackTemplateId: stackTemplate._id }
+
+      .then (response) ->
+
+        console.log '>>', response
+        # machines = @parseTerraformOutput response
+        # @outputView.updatePartial applyMarkdown "
+        #   ```json\n#{JSON.stringify machines, null, 2}\n```
+        # "
+
+        # @updateStackTemplate {
+        #   template: terraformContext
+        #   stackTemplate, publicKeys, machines
+        # }
+        #
+        callback null, response
+
+      .catch   (err) ->
+        console.log 'Failed >>', err
+
 
   fetchAndShowCredentialData = (credential, outputView) ->
 
