@@ -41,11 +41,7 @@ func main() {
 	m := mux.New(mc, r.Log, r.Metrics)
 
 	// init redis
-	redisConn := r.Bongo.GetRedisConn()
-	if redisConn == nil {
-		redisConn = runner.MustInitRedisConn(r.Conf)
-		defer redisConn.Close()
-	}
+	redisConn := r.Bongo.MustGetRedisConn()
 
 	m.SetRedis(redisConn)
 
@@ -80,7 +76,7 @@ func main() {
 
 	m.Listen()
 	// shutdown server
-	r.ShutdownHandler = m.Close
+	defer m.Close()
 
 	r.Listen()
 	r.Wait()

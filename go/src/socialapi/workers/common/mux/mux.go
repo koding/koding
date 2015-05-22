@@ -31,13 +31,12 @@ func NewConfig(name, host string, port string) *Config {
 type Mux struct {
 	Metrics *metrics.Metrics
 
-	mux     *tigertonic.TrieServeMux
-	nsMux   *tigertonic.TrieServeMux
-	server  *tigertonic.Server
-	config  *Config
-	log     logging.Logger
-	closing bool
-	redis   *redis.RedisSession
+	mux    *tigertonic.TrieServeMux
+	nsMux  *tigertonic.TrieServeMux
+	server *tigertonic.Server
+	config *Config
+	log    logging.Logger
+	redis  *redis.RedisSession
 }
 
 func New(mc *Config, log logging.Logger, metrics *metrics.Metrics) *Mux {
@@ -133,7 +132,6 @@ func (m *Mux) Handler(r *http.Request) (http.Handler, string) {
 }
 
 func (m *Mux) Close() {
-	m.closing = true
 	if m.server != nil {
 		m.server.Close()
 	}
@@ -148,8 +146,6 @@ func (m *Mux) SetRedis(r *redis.RedisSession) {
 
 func (m *Mux) listener() {
 	if err := m.server.ListenAndServe(); err != nil {
-		if !m.closing {
-			panic(err)
-		}
+		panic(err)
 	}
 }

@@ -22,12 +22,7 @@ func main() {
 	appConfig := config.MustRead(r.Conf.Path)
 	modelhelper.Initialize(appConfig.Mongo)
 
-	redisConn := r.Bongo.GetRedisConn()
-	if redisConn == nil {
-		// init redis connection
-		redisConn = runner.MustInitRedisConn(r.Conf)
-		defer redisConn.Close()
-	}
+	redisConn := r.Bongo.MustGetRedisConn()
 
 	handler, err := dailyemail.New(redisConn, r.Log, appConfig)
 	if err != nil {
