@@ -101,6 +101,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	s.log.Debug("HandleHTTP request:")
 	s.log.Debug("%v", r)
+
 	host := strings.ToLower(r.Host)
 	if host == "" {
 		return errors.New("request host is empty")
@@ -118,7 +119,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("no control available for %s", host)
 	}
 
-	session, err := s.getSession(host)
+	session, err := s.getSession(identifier)
 	if err != nil {
 		return err
 	}
@@ -186,13 +187,12 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 // TODO(arslan): if a control connection is established already, return with an error
 func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	identifier := r.Header.Get(XKTunnelIdentifier)
-	host, ok := s.GetHost(identifier)
+	_, ok := s.GetHost(identifier)
 	if !ok {
 		return fmt.Errorf("no host associated for identifier %s. please use server.AddHost()", identifier)
 	}
 
 	s.log.Debug("tunnel with identifier %s", identifier)
-
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		return errors.New("webserver doesn't support hijacking")
@@ -211,7 +211,7 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	s.addSession(host, session)
+	s.addSession(identifier, session)
 
 	stream, err := session.Accept()
 	if err != nil {
@@ -239,15 +239,22 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// listenControl listens to messages coming from the client.
 func (s *Server) listenControl(ct *control) {
 	for {
 		var msg map[string]interface{}
 		err := ct.dec.Decode(&msg)
 		if err != nil {
+			ct.Close()
+			s.deleteControl(ct.identifier)
+			s.deleteSession(ct.identifier)
 			s.log.Error("decode err: %s", err)
 			return
 		}
 
+		// right now we don't do anything with the messages, but because the
+		// underlying connection needs to establihsed, we know when we have
+		// disconnection(above), so we can cleanup the connection.
 		s.log.Debug("msg: %s", msg)
 	}
 }
@@ -256,7 +263,7 @@ func (s *Server) AddHost(host, identifier string) {
 	s.virtualHosts.addHost(host, identifier)
 }
 
-func (s *Server) DeleteHost(host, identifier string) {
+func (s *Server) DeleteHost(host string) {
 	s.virtualHosts.deleteHost(host)
 }
 
@@ -282,22 +289,39 @@ func (s *Server) deleteControl(identifier string) {
 	s.controls.deleteControl(identifier)
 }
 
-func (s *Server) getSession(host string) (*yamux.Session, error) {
+func (s *Server) getSession(identifier string) (*yamux.Session, error) {
 	s.sessionsMu.Lock()
-	session, ok := s.sessions[host]
+	session, ok := s.sessions[identifier]
 	s.sessionsMu.Unlock()
 
 	if !ok {
-		return nil, fmt.Errorf("no session available for '%s'", host)
+		return nil, fmt.Errorf("no session available for identifier: '%s'", identifier)
 	}
 
 	return session, nil
 }
 
-func (s *Server) addSession(host string, session *yamux.Session) {
+func (s *Server) addSession(identifier string, session *yamux.Session) {
 	s.sessionsMu.Lock()
-	s.sessions[host] = session
+	s.sessions[identifier] = session
 	s.sessionsMu.Unlock()
+}
+
+func (s *Server) deleteSession(identifier string) {
+	s.sessionsMu.Lock()
+	session, ok := s.sessions[identifier]
+	s.sessionsMu.Unlock()
+
+	if !ok {
+		return // nothing to delete
+	}
+
+	if session != nil {
+		session.GoAway()
+		session.Close()
+	}
+
+	delete(s.sessions, identifier)
 }
 
 func copyHeader(dst, src http.Header) {

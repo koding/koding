@@ -8,14 +8,23 @@ import (
 )
 
 type control struct {
+	// enc and dec are responsible for encoding and decoding json values forth
+	// and back
 	enc *json.Encoder
 	dec *json.Decoder
+
+	// underlying connection responsible for encoder and decoder
+	nc net.Conn
+
+	// identifier associated with this control
+	identifier string
 }
 
 func newControl(nc net.Conn) *control {
 	c := &control{
 		enc: json.NewEncoder(nc),
 		dec: json.NewDecoder(nc),
+		nc:  nc,
 	}
 
 	return c
@@ -37,6 +46,14 @@ func (c *control) recv(v interface{}) error {
 	return c.dec.Decode(v)
 }
 
+func (c *control) Close() error {
+	if c.nc != nil {
+		return c.nc.Close()
+	}
+
+	return nil
+}
+
 type controls struct {
 	sync.Mutex
 	controls map[string]*control
@@ -56,6 +73,8 @@ func (c *controls) getControl(identifier string) (*control, bool) {
 }
 
 func (c *controls) addControl(identifier string, control *control) {
+	control.identifier = identifier
+
 	c.Lock()
 	c.controls[identifier] = control
 	c.Unlock()
