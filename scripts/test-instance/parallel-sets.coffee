@@ -76,6 +76,9 @@ module.exports = [
 
   [
     'environments vm'
+  ]
+
+  [
     'environments paidaccount'
   ]
 

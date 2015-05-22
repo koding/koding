@@ -13,9 +13,6 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
       overlayClick                : no
       width                       : 605
       height                      : "auto"
-      cancel                      : =>
-        callback null
-        @destroy()
       tabs                        :
         navigable                 : yes
         forms                     :
