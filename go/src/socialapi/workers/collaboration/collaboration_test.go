@@ -41,8 +41,6 @@ func TestCollaboration(t *testing.T) {
 	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	redis := runner.MustGetRedisConn()
-
 	handler := New(r.Log, redisConn, appConfig, r.Kite)
 
 	Convey("while pinging collaboration", t, func() {
@@ -88,7 +86,7 @@ func TestCollaboration(t *testing.T) {
 				req := req
 				// prepare an invalid session here
 				req.CreatedAt = time.Now().UTC()
-				err := redis.Setex(
+				err := redisConn.Setex(
 					PrepareFileKey(req.FileId),
 					collaboration.ExpireSessionKeyDuration, // expire the key after this period
 					req.CreatedAt.Add(-terminateSessionDuration),
@@ -116,7 +114,7 @@ func TestCollaboration(t *testing.T) {
 
 					req.CreatedAt = time.Now().UTC()
 					// prepare a valid key
-					err := redis.Setex(
+					err := redisConn.Setex(
 						PrepareFileKey(req.FileId),
 						terminateSessionDuration, // expire the key after this period
 						req.CreatedAt.Unix(),     // value - unix time
@@ -157,7 +155,7 @@ func TestCollaboration(t *testing.T) {
 			req.CreatedAt = time.Now().UTC()
 
 			// prepare a valid key
-			err := redis.Setex(
+			err := redisConn.Setex(
 				PrepareFileKey(req.FileId),
 				collaboration.ExpireSessionKeyDuration, // expire the key after this period
 				req.CreatedAt.Unix(),                   // value - unix time
@@ -181,7 +179,7 @@ func TestCollaboration(t *testing.T) {
 			Convey("invalid (non-timestamp) value should return errSessionInvalid", func() {
 				req := req
 				req.CreatedAt = time.Now().UTC()
-				err := redis.Setex(
+				err := redisConn.Setex(
 					PrepareFileKey(req.FileId),
 					collaboration.ExpireSessionKeyDuration, // expire the key after this period
 					"req.CreatedAt.Unix()",                 // replace timestamp with unix time
@@ -194,7 +192,7 @@ func TestCollaboration(t *testing.T) {
 			Convey("old ping time should return errSessionInvalid", func() {
 				req := req
 				req.CreatedAt = time.Now().UTC()
-				err := redis.Setex(
+				err := redisConn.Setex(
 					PrepareFileKey(req.FileId),
 					collaboration.ExpireSessionKeyDuration, // expire the key after this period
 					req.CreatedAt.Add(-terminateSessionDuration).Unix(),
@@ -206,32 +204,32 @@ func TestCollaboration(t *testing.T) {
 
 			Convey("previous ping time is in safe area", func() {
 				req := req
-				testPingTimes(req, -1, redis, handler, nil)
+				testPingTimes(req, -1, redisConn, handler, nil)
 			})
 
 			Convey("0 ping time is in safe area", func() {
 				req := req
-				testPingTimes(req, 0, redis, handler, nil)
+				testPingTimes(req, 0, redisConn, handler, nil)
 			})
 
 			Convey("2 ping time is in safe area", func() {
 				req := req
-				testPingTimes(req, 2, redis, handler, nil)
+				testPingTimes(req, 2, redisConn, handler, nil)
 			})
 
 			Convey("3 ping time is in safe area", func() {
 				req := req
-				testPingTimes(req, 3, redis, handler, nil)
+				testPingTimes(req, 3, redisConn, handler, nil)
 			})
 
 			Convey("4 ping time is not in safe area - because we already reverted the time ", func() {
 				req := req
-				testPingTimes(req, 4, redis, handler, errSessionInvalid)
+				testPingTimes(req, 4, redisConn, handler, errSessionInvalid)
 			})
 
 			Convey("5 ping time is not in safe area ", func() {
 				req := req
-				testPingTimes(req, 5, redis, handler, errSessionInvalid)
+				testPingTimes(req, 5, redisConn, handler, errSessionInvalid)
 			})
 		})
 	})
