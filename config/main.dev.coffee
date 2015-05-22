@@ -826,7 +826,7 @@ Configuration = (options={}) ->
         node scripts/create-default-workspace
 
         # Run all the worker daemons in KONFIG.workers
-        #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
+        #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers when val.supervisord).join(" ")}
 
         # Check backend option, if it's then bypass client build
         if [ "$1" == "backend" ] ; then
