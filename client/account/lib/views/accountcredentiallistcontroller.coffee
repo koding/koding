@@ -7,24 +7,26 @@ KDFormViewWithFields        = kd.FormViewWithFields
 KDAutoCompleteController    = kd.AutoCompleteController
 
 KodingSwitch                = require 'app/commonviews/kodingswitch'
-ComputeController           = require 'app/providers/computecontroller'
 ComputeController_UI        = require 'app/providers/computecontroller.ui'
-AccountListViewController   = require '../controllers/accountlistviewcontroller'
+AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
 MemberAutoCompleteItemView  = require 'app/commonviews/memberautocompleteitemview'
 MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemview'
 
 remote                      = require('app/remote').getInstance()
+globals                     = require 'globals'
 showError                   = require 'app/util/showError'
 
 
 module.exports = class AccountCredentialListController extends AccountListViewController
 
+
   constructor: (options = {}, data) ->
 
-    options.noItemFoundText = "You have no credentials."
+    options.noItemFoundText ?= "You have no credentials."
     super options, data
 
     @loadItems()
+
 
   loadItems: ->
 
@@ -33,7 +35,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     { JCredential } = remote.api
 
-    JCredential.some {}, { limit: 30 }, (err, credentials)=>
+    JCredential.some {}, { limit: 30 }, (err, credentials) =>
 
       @hideLazyLoader()
 
@@ -42,16 +44,25 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
       @instantiateListItems credentials
 
+
   loadView: ->
 
     super
 
     view = @getView()
-    view.on "ShowShareCredentialFormFor", @bound "showShareCredentialFormFor"
+    view.on 'ShowShareCredentialFormFor', @bound 'showShareCredentialFormFor'
+    view.on 'ItemDeleted', (item) =>
+      @removeItem item
+      @noItemView.show()  if @listView.items.length is 0
 
+    {provider} = @getOptions()
+    @createAddCredentialMenu()  if not provider?
+
+
+  createAddCredentialMenu: ->
+
+    Providers    = globals.config.providers
     providerList = { }
-
-    Providers = ComputeController.providers
 
     Object.keys(Providers).forEach (provider) =>
 
@@ -62,7 +73,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
           @_addButtonMenu.destroy()
           @showAddCredentialFormFor provider
 
-    view.parent.prepend addButton = new KDButtonView
+    @getView().parent.prepend addButton = new KDButtonView
       cssClass  : 'add-big-btn'
       title     : 'Add new credential'
       icon      : yes
@@ -75,6 +86,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
         , providerList
 
         @_addButtonMenu.setCss 'z-index': 10002
+
 
   showShareCredentialFormFor: (credential) ->
 

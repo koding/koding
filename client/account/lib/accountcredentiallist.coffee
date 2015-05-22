@@ -1,6 +1,7 @@
 kd                        = require 'kd'
 KDListView                = kd.ListView
 KDModalView               = kd.ModalView
+KDOverlayView             = kd.OverlayView
 KDNotificationView        = kd.NotificationView
 
 showError                 = require 'app/util/showError'
@@ -11,8 +12,8 @@ module.exports = class AccountCredentialList extends KDListView
 
   constructor: (options = {}, data) ->
 
-    options.tagName  ?= "ul"
-    options.itemClass = AccountCredentialListItem
+    options.tagName   ?= "ul"
+    options.itemClass ?= AccountCredentialListItem
 
     super options, data
 
@@ -21,17 +22,24 @@ module.exports = class AccountCredentialList extends KDListView
 
     credential = item.getData()
 
-    modal = KDModalView.confirm
-      title       : "Remove credential"
-      description : "Do you want to remove ?"
+    # Since KDModalView.confirm not passing overlay options
+    # to the base class (KDModalView) I had to do this hack
+    # Remove this when issue fixed in Framework ~ GG
+    overlay = new KDOverlayView cssClass: 'second-overlay'
+
+    modal   = KDModalView.confirm
+      title       : 'Remove credential'
+      description : 'Do you want to remove ?'
       ok          :
-        title     : "Yes"
-        callback  : -> credential.delete (err) ->
-
+        title     : 'Yes'
+        callback  :  => credential.delete (err) =>
           modal.destroy()
+          @emit 'ItemDeleted', item  unless showError err
 
-          unless showError err
-            item.destroy()
+    modal.once   'KDObjectWillBeDestroyed', overlay.bound 'destroy'
+    overlay.once 'click',                   modal.bound   'destroy'
+
+    return modal
 
 
   shareItem: (item) ->
@@ -70,9 +78,12 @@ module.exports = class AccountCredentialList extends KDListView
             title: "An error occurred"
 
         new KDModalView
-          title    : credential.title
-          subtitle : credential.provider
-          content  : "<pre>#{cred}</pre>"
+          title          : credential.title
+          overlay        : yes
+          overlayOptions :
+            cssClass     : 'second-overlay'
+          subtitle       : credential.provider
+          content        : "<pre>#{cred}</pre>"
 
   checkIsBootstrapped: (item) ->
 
@@ -121,7 +132,9 @@ module.exports = class AccountCredentialList extends KDListView
       .then (response) ->
 
         console.log "Verify result:", response
+        response
 
       .catch (err) ->
 
         console.warn "Verify failed:", err
+        err
