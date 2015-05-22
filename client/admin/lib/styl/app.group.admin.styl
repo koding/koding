@@ -1041,13 +1041,8 @@ Admin main styles
       margin-top            6px
       min-width             162px
 
-  .output-view
-    height                  300px
-    background-color        #eee
-    padding                 0 4px
-    box-sizing              border-box
-    border                  1px solid #ddd
-    font-family            'UbuntuMono', monospace
+  .output-view code
+    max-height              300px
     overflow                auto
 
   button
@@ -1057,6 +1052,10 @@ Admin main styles
   .step-creds
     .kdformview
       margin-top            20px
+      .kdlabel
+        line-height         39px
+        min-width           120px
+        fl()
 
   .credential-item
     padding                 10px 0
@@ -1066,7 +1065,8 @@ Admin main styles
 
     &:hover
       .buttons button.secondary
-        display             inline-block
+        opacity             1
+        pointer-events      auto
 
     .credential-info
       padding               10px 0
@@ -1096,7 +1096,9 @@ Admin main styles
       abs                   16px 0px
 
       button.secondary
-        display             none
+        opacity             0
+        pointer-events      none
+        vendor              transition, opacity .3s .3s ease
 
       button
         min-width           80px
