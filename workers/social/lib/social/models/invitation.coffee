@@ -187,7 +187,11 @@ module.exports = class JInvitation extends jraphical.Module
       JInvitation.byCode code, (err, invitation) ->
         return callback err  if err
 
-        JInvitation.sendInvitationEmail client, invitation, callback
+        JInvitation.sendInvitationEmail client, invitation, (err) ->
+          return callback err  if err
+
+          invitation.modifiedAt = new Date
+          invitation.update callback
 
   # sendInvitationEmail sends email according to given JInvitation
   @sendInvitationEmail: (client, invitation, callback) ->
