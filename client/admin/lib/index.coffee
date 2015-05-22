@@ -30,7 +30,6 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
         { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
-        { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView      }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
       ]
     koding     :
@@ -39,6 +38,7 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Blocked',        title : 'Blocked Users',     viewClass : GroupsBlockedUserView    }
         { slug : 'Widgets',        title : 'Custom Views',      viewClass : CustomViewsManager       }
         { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView      }
+        { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView      }
         { slug : 'Administration', title : 'Administration',    viewClass : AdministrationView       }
       ]
 
