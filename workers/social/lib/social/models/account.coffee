@@ -19,6 +19,7 @@ module.exports = class JAccount extends jraphical.Module
   JName            = require './name'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
+  JStackTemplate   = require './computeproviders/stacktemplate'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -334,7 +335,7 @@ module.exports = class JAccount extends jraphical.Module
 
       stackTemplate :
         as          : 'user'
-        targetType  : 'JStackTemplate'
+        targetType  : JStackTemplate
 
 
   constructor:->

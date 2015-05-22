@@ -1387,6 +1387,10 @@ Configuration = (options={}) ->
         sh -c scripts/validate-npm.sh
         run $1
 
+      elif [ "$1" == "socialworkertests" ]; then
+
+        sh #{projectRoot}/workers/social/tests.sh
+
       else
         echo "Unknown command: $1"
         printHelp
