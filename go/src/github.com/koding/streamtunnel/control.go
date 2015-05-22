@@ -50,22 +50,19 @@ func newControls() *controls {
 
 func (c *controls) getControl(identifier string) (*control, bool) {
 	c.Lock()
-	defer c.Unlock()
-
 	control, ok := c.controls[identifier]
+	c.Unlock()
 	return control, ok
 }
 
 func (c *controls) addControl(identifier string, control *control) {
 	c.Lock()
-	defer c.Unlock()
-
 	c.controls[identifier] = control
+	c.Unlock()
 }
 
 func (c *controls) deleteControl(identifier string) {
 	c.Lock()
-	defer c.Unlock()
-
 	delete(c.controls, identifier)
+	c.Unlock()
 }

@@ -23,24 +23,22 @@ func newVirtualHosts() *virtualHosts {
 
 func (v *virtualHosts) addHost(host, identifier string) {
 	v.Lock()
-	defer v.Unlock()
-
 	v.mapping[host] = &virtualHost{identifier: identifier}
+	v.Unlock()
 }
 
 func (v *virtualHosts) deleteHost(host string) {
 	v.Lock()
-	defer v.Unlock()
-
 	delete(v.mapping, host)
+	v.Unlock()
 }
 
 // getIdentifier returns the identifier associated with the given host
 func (v *virtualHosts) getIdentifier(host string) (string, bool) {
 	v.Lock()
-	defer v.Unlock()
-
 	ht, ok := v.mapping[host]
+	v.Unlock()
+
 	if !ok {
 		return "", false
 	}
