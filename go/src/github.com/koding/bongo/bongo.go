@@ -1,6 +1,8 @@
 package bongo
 
 import (
+	"errors"
+
 	"github.com/cenkalti/backoff"
 	"github.com/koding/broker"
 	"github.com/koding/logging"
@@ -9,7 +11,11 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var B *Bongo
+var (
+	B *Bongo
+
+	ErrRedisConnNotExist = errors.New("redis connection does not exist")
+)
 
 type Bongo struct {
 	Broker *broker.Broker
@@ -68,8 +74,11 @@ func (b *Bongo) Close() error {
 	return nil
 }
 
-func (b *Bongo) GetRedisConn() *redis.RedisSession {
-	r, _ := b.Cache.(*redis.RedisSession)
+func (b *Bongo) MustGetRedisConn() *redis.RedisSession {
+	r, ok := b.Cache.(*redis.RedisSession)
+	if !ok {
+		panic(ErrRedisConnNotExist)
+	}
 
 	return r
 }

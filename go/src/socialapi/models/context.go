@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"net"
 
 	"github.com/koding/logging"
@@ -60,7 +59,7 @@ func (c *Context) GetLogger() logging.Logger {
 
 func (c *Context) MustGetRedisConn() *redis.RedisSession {
 	if c.redis == nil {
-		panic(errors.New("redis connection is not established"))
+		panic(ErrRedisNotExist)
 	}
 
 	return c.redis
