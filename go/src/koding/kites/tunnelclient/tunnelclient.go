@@ -16,13 +16,8 @@ type registerResult struct {
 	Identifier  string
 }
 
-type config struct {
-	ServerAddr string `default:"127.0.0.1:4444"`
-	LocalAddr  string
-}
-
 func main() {
-	conf := new(config)
+	conf := new(streamtunnel.ClientConfig)
 	multiconfig.New().MustLoad(conf)
 
 	k := kite.New("tunnelclient", "0.0.1")
@@ -42,7 +37,11 @@ func main() {
 	}
 
 	k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
-	client := streamtunnel.NewClient(conf.ServerAddr, conf.LocalAddr)
+	if conf.ServerAddr == "" {
+		conf.ServerAddr = "127.0.0.1:4444"
+	}
+
+	client := streamtunnel.NewClient(conf)
 	if err := client.Start(result.Identifier); err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
 	}

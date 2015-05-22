@@ -5,15 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/hashicorp/yamux"
+	"github.com/koding/logging"
 )
 
 type Server struct {
@@ -31,14 +32,49 @@ type Server struct {
 
 	// virtualHosts is used to map public hosts to remote clients
 	virtualHosts *virtualHosts
+
+	// yamuxConfig is passed to new yamux.Session's
+	yamuxConfig *yamux.Config
+
+	log logging.Logger
 }
 
-func NewServer() *Server {
+// ServerConfig defines the configuration for the Server
+type ServerConfig struct {
+	// Debug enables debug mode, enable only if you want to debug the server
+	Debug bool
+
+	// Log defines the logger. If nil a default logging.Logger is used.
+	Log logging.Logger
+
+	// YamuxConfig defines the config which passed to every new yamux.Session. If nil
+	// yamux.DefaultConfig() is used.
+	YamuxConfig *yamux.Config
+}
+
+func NewServer(cfg *ServerConfig) *Server {
+	yamuxConfig := yamux.DefaultConfig()
+	if cfg.YamuxConfig != nil {
+		if err := yamux.VerifyConfig(cfg.YamuxConfig); err != nil {
+			fmt.Fprintf(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+		yamuxConfig = cfg.YamuxConfig
+	}
+
+	log := newLogger("streamtunnel-server", cfg.Debug)
+	if cfg.Log != nil {
+		log = cfg.Log
+	}
+
 	s := &Server{
 		pending:      make(map[string]chan net.Conn),
 		sessions:     make(map[string]*yamux.Session),
 		virtualHosts: newVirtualHosts(),
 		controls:     newControls(),
+		yamuxConfig:  yamuxConfig,
+		log:          log,
 	}
 
 	http.Handle(ControlPath, checkConnect(s.ControlHandler))
@@ -63,6 +99,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
+	s.log.Debug("HandleHTTP request:")
+	s.log.Debug("%v", r)
 	host := strings.ToLower(r.Host)
 	if host == "" {
 		return errors.New("request host is empty")
@@ -134,7 +172,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 // TODO(arslan): if a control connection is established already, return with an error
 func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	identifier := r.Header.Get(XKTunnelIdentifier)
-	log.Printf("tunnel with identifier %s\n", identifier)
+	s.log.Debug("tunnel with identifier %s", identifier)
 
 	hj, ok := w.(http.Hijacker)
 	if !ok {
@@ -154,7 +192,7 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
 	conn.SetDeadline(time.Time{})
 
-	session, err := yamux.Server(conn, yamux.DefaultConfig())
+	session, err := yamux.Server(conn, s.yamuxConfig)
 	if err != nil {
 		return err
 	}
@@ -194,11 +232,11 @@ func (s *Server) listenControl(ct *control) {
 		var msg map[string]interface{}
 		err := ct.dec.Decode(&msg)
 		if err != nil {
-			log.Printf("decode err: %s\n", err)
+			s.log.Error("decode err: %s", err)
 			return
 		}
 
-		fmt.Printf("msg = %+v\n", msg)
+		s.log.Debug("msg: %s", msg)
 	}
 }
 
@@ -255,4 +293,18 @@ func checkConnect(fn func(w http.ResponseWriter, r *http.Request) error) http.Ha
 			http.Error(w, err.Error(), 502)
 		}
 	})
+}
+
+func newLogger(name string, debug bool) logging.Logger {
+	log := logging.NewLogger(name)
+	logHandler := logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+
+	if debug {
+		log.SetLevel(logging.DEBUG)
+		logHandler.SetLevel(logging.DEBUG)
+	}
+
+	return log
 }

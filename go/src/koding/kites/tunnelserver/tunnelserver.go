@@ -19,16 +19,21 @@ type registerResult struct {
 type config struct {
 	Port            int
 	BaseVirtualHost string `required:"true"`
+	Debug           bool
 }
 
 var (
-	server = streamtunnel.NewServer()
+	server *streamtunnel.Server
 )
 
 func main() {
 	conf := new(config)
 	m := multiconfig.New()
 	m.MustLoad(conf)
+
+	server = streamtunnel.NewServer(&streamtunnel.ServerConfig{
+		Debug: conf.Debug,
+	})
 
 	k := kite.New("tunnelserver", "0.0.1")
 	k.Config.DisableAuthentication = true

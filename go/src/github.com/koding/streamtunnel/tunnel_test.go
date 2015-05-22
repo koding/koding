@@ -18,7 +18,9 @@ var (
 
 func TestTunnel(t *testing.T) {
 	// setup tunnelserver
-	server := NewServer()
+	server := NewServer(&ServerConfig{
+		Debug: true,
+	})
 	server.AddHost(serverAddr, identifier)
 	http.Handle("/", server)
 	go func() {
@@ -31,7 +33,11 @@ func TestTunnel(t *testing.T) {
 	time.Sleep(time.Second)
 
 	// setup tunnelclient
-	client := NewClient(serverAddr, localAddr)
+	client := NewClient(&ClientConfig{
+		ServerAddr: serverAddr,
+		LocalAddr:  localAddr,
+		Debug:      true,
+	})
 	go client.Start(identifier)
 
 	// start local server to be tunneled

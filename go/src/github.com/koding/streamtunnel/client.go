@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/hashicorp/yamux"
+	"github.com/koding/logging"
 )
 
 // Client is responsible for creating a control connection to a tunnel server,
@@ -29,16 +29,60 @@ type Client struct {
 	// localAddr is the address of a local server that will be tunneled to the
 	// public. Currently only one server is supported.
 	localAddr string
+
+	// yamuxConfig is passed to new yamux.Session's
+	yamuxConfig *yamux.Config
+
+	log logging.Logger
+}
+
+// ClientConfig defines the configuration for the Client
+type ClientConfig struct {
+	// ServerAddr defines the TCP address of the tunnel server to be connected
+	ServerAddr string
+
+	// LocalAddr defines the TCP address of the local server. This is optional
+	// if you want to specify a single TCP address. Otherwise the client will
+	// always proxy to 127.0.0.1:incomingPort, where incomingPort is the
+	// tunnelserver's public exposed Port
+	LocalAddr string
+
+	// Debug enables debug mode, enable only if you want to debug the server
+	Debug bool
+
+	// Log defines the logger. If nil a default logging.Logger is used.
+	Log logging.Logger
+
+	// YamuxConfig defines the config which passed to every new yamux.Session. If nil
+	// yamux.DefaultConfig() is used.
+	YamuxConfig *yamux.Config
 }
 
 // NewClient creates a new tunnel that is established between the serverAddr
 // and localAddr. It exits if it can't create a new control connection to the
 // server. If localAddr is empty client will always try to proxy to a local
 // port.
-func NewClient(serverAddr, localAddr string) *Client {
+func NewClient(cfg *ClientConfig) *Client {
+	yamuxConfig := yamux.DefaultConfig()
+	if cfg.YamuxConfig != nil {
+		if err := yamux.VerifyConfig(cfg.YamuxConfig); err != nil {
+			fmt.Fprintf(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+		yamuxConfig = cfg.YamuxConfig
+	}
+
+	log := newLogger("streamtunnel-server", cfg.Debug)
+	if cfg.Log != nil {
+		log = cfg.Log
+	}
+
 	client := &Client{
-		serverAddr: serverAddr,
-		localAddr:  localAddr,
+		serverAddr:  cfg.ServerAddr,
+		localAddr:   cfg.LocalAddr,
+		log:         log,
+		yamuxConfig: yamuxConfig,
 	}
 
 	return client
@@ -77,7 +121,7 @@ func (c *Client) Start(identifier string) error {
 		return fmt.Errorf("proxy server: %s. err: %s", resp.Status, string(out))
 	}
 
-	c.session, err = yamux.Client(c.nc, yamux.DefaultConfig())
+	c.session, err = yamux.Client(c.nc, c.yamuxConfig)
 	if err != nil {
 		return err
 	}
@@ -101,7 +145,7 @@ func (c *Client) Start(identifier string) error {
 	}
 
 	ct := newControl(stream)
-	log.Println("client has started successfully.")
+	c.log.Debug("client has started successfully.")
 
 	return c.listenControl(ct)
 }
@@ -113,6 +157,8 @@ func (c *Client) listenControl(ct *control) error {
 		if err != nil {
 			return fmt.Errorf("decode err: '%s'", err)
 		}
+
+		c.log.Debug("controlMsg: %+v", msg)
 
 		switch msg.Action {
 		case RequestClientSession:
