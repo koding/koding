@@ -25,12 +25,14 @@ func main() {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
+	redisConn := r.Bongo.MustGetRedisConn()
+
 	iConfig := appConfig.Integration
 
 	mc := mux.NewConfig(Name, iConfig.Host, iConfig.Port)
 	m := mux.New(mc, r.Log, r.Metrics)
 
-	h, err := api.NewHandler(appConfig, r.Log)
+	h, err := api.NewHandler(appConfig, redisConn, r.Log)
 	if err != nil {
 		r.Log.Fatal("Could not initialize webhook worker: %s", err)
 	}

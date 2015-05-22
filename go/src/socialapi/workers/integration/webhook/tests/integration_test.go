@@ -136,4 +136,23 @@ func TestWebhook(t *testing.T) {
 		So(resp.MessageList[0].Message.Body, ShouldEqual, "testing it")
 	})
 
+	Convey("We should not be able to send more than 100 requests per minute", t, func() {
+
+		account, err := models.CreateAccountInBothDbsWithNick("sinan")
+		So(err, ShouldBeNil)
+
+		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, channelIntegration.GroupName)
+		_, err = channel.AddParticipant(account.Id)
+		So(err, ShouldBeNil)
+
+		for i := 0; i < 99; i++ {
+			err = rest.DoPushRequest(newPushRequest(channel.Id, channelIntegration.GroupName), channelIntegration.Token)
+			So(err, ShouldBeNil)
+		}
+
+		err = rest.DoPushRequest(newPushRequest(channel.Id, channelIntegration.GroupName), channelIntegration.Token)
+		So(err, ShouldNotBeNil)
+
+	})
+
 }

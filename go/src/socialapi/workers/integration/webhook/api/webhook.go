@@ -12,25 +12,28 @@ import (
 	"strings"
 
 	"github.com/koding/logging"
+	"github.com/koding/redis"
 	"github.com/nu7hatch/gouuid"
 )
 
 const RevProxyPath = "/api/integration"
 
 type Handler struct {
-	log logging.Logger
-	bot *webhook.Bot
+	log   logging.Logger
+	bot   *webhook.Bot
+	redis *redis.RedisSession
 }
 
-func NewHandler(conf *config.Config, l logging.Logger) (*Handler, error) {
+func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger) (*Handler, error) {
 	bot, err := webhook.NewBot()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Handler{
-		log: l,
-		bot: bot,
+		log:   l,
+		bot:   bot,
+		redis: redis,
 	}, nil
 }
 
