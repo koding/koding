@@ -267,7 +267,13 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
-        disableLocation : yes
+        websocket       : yes
+        locations       : [
+          {
+            location    : "~^/kontrol/(.*)"
+            proxyPass   : "http://kontrol/$1$is_args$args"
+          }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.kontrol.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
@@ -279,7 +285,12 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
-        locations       : [ location: "~^/kloud/.*" ]
+        locations       : [
+          {
+            location    : "~^/kloud/(.*)"
+            proxyPass   : "http://kloud/$1$is_args$args"
+          }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
@@ -558,6 +569,52 @@ Configuration = (options={}) ->
           {
             location    : "/-/content-rotator/(.*)"
             proxyPass   : "#{KONFIG.contentRotatorUrl}/$1"
+          }
+        ]
+
+    userproxies      :
+      nginx             :
+        websocket       : yes
+        locations       : [
+          {
+            location    : '~ ^\\/-\\/userproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/prodproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/sandboxproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/latestproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/devproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
           }
         ]
 

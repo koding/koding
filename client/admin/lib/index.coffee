@@ -5,6 +5,7 @@ AdminAppView              = require './adminappview'
 AdminMembersView          = require './views/members/adminmembersview'
 AdministrationView        = require './views/administrationview'
 CustomViewsManager        = require './views/customviews/customviewsmanager'
+TopicModerationView       = require './views/moderation/topicmoderationview'
 GroupStackSettings        = require './views/groupstacksettings'
 OnboardingAdminView       = require './views/onboarding/onboardingadminview'
 AdminInvitationsView      = require './views/invitations/admininvitationsview'
@@ -29,6 +30,7 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
         { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
+        { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView      }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
       ]
     koding     :
@@ -80,3 +82,4 @@ module.exports = class AdminAppController extends AppController
       if previousRoutes.length > 0
       then router.handleRoute previousRoutes.last
       else router.handleRoute router.getDefaultRoute()
+

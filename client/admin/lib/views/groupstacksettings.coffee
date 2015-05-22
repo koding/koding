@@ -66,6 +66,7 @@ module.exports     = class GroupStackSettings extends kd.View
     NEW_STACK_STEPS = [
       'stepSelectProvider'
       'stepSetupCredentials'
+      'stepBootstrap'
       'stepDefineStack'
       'stepTestAndSave'
     ]

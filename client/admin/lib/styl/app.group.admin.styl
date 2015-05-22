@@ -523,7 +523,6 @@ Admin main styles
   .outline.kdbutton
     background              none
     border                  2px solid #4a4e52
-    margin-right            15px
 
     &:active
       span
@@ -587,6 +586,8 @@ Admin main styles
     border-top              1px solid #DEDEDE
     font-size               14px
     color                   #4c4c4c
+    button
+      margin-right          15px
 
   .avatarview
     margin                  0 12px 0 0
@@ -732,6 +733,95 @@ Admin main styles
         margin-top        7px
 
 
+// Topic tab styling
+.AppModal--admin .topic-moderation
+
+  .search
+    margin                  25px 0
+
+    .label
+      font-size             14px
+      color                 #727272
+      line-height           40px
+      margin-right          15px
+
+    .kdselectbox
+      size                  180px, 40px
+      margin-right          15px
+      border-color          #DBDBDB
+      borderBox()
+
+      .title
+        line-height         40px
+        font-size           14px
+        color               #727272
+
+      .arrows
+        top                 13px
+
+    .kdinput
+      size                  230px, 40px
+      border-color          #DBDBDB
+
+  .kdlistitemview-topic
+    padding                 5px 0
+    border-top              1px solid #DEDEDE
+    font-size               14px
+    color                   #4c4c4c
+
+
+  a
+    color                   #4c4c4c
+    height                  40px
+    noTextDeco()
+
+  .details
+    fl()
+    size                    250px, 40px
+    line-height             40px
+
+
+  .topicname
+    font-size               20px
+    color                   #434343
+    font-weight             400
+    
+  .type-label
+    float                   left
+    line-height             40px
+
+  .moderate-role
+    abs()
+    right                   0
+    line-height             40px
+    height                  40px
+    font-size               14px
+    font-weight             bold
+    color                   #434343
+    vendor                  user-select, none
+    pointer()
+
+  .moderate-role.active .settings-icon
+    vendor                  transform, rotate(270deg)
+    width                   10px
+    margin-left             6px
+
+  .clear
+    clear                   both
+
+  .settings-icon
+    display                 inline-block
+    r-sprite                'app', 'sidebar-toggle'
+    vendor                  transform, rotate(180deg)
+    margin-left             10px
+
+  .settings
+    padding-top             15px
+
+
+
+
+
 .AppModal--admin
 
   .no-item-view
@@ -858,17 +948,31 @@ Admin main styles
 
   .main-loader
     top                     45%
-
-  button.solid.compact.nav
-    right                   30px
-    bottom                  20px
+    height                  auto
     abs()
 
+  button.solid.compact.nav
+    right                   0
+    bottom                  0
+    abs()
+
+    &[disabled]
+      opacity               .4
+
     &.prev
-      right                 120px
+      right                 80px
 
     &.cancel
+      right                 initial
       left                  0
+
+  form
+    .formline
+      padding               0
+
+  .no-stack-found
+    .text
+      margin-bottom         10px
 
   .providers
     display                 flex
@@ -928,6 +1032,85 @@ Admin main styles
         background-size     200px
         background-position 0 23px
 
+  .top
+    display                 flex
+    display                 -webkit-flex
+    margin-bottom           10px
+
+    .text.intro
+      margin                auto
+
+    button.action
+      margin                auto
+      margin-top            6px
+      min-width             162px
+
+  .output-view
+    height                  300px
+    background-color        #eee
+    padding                 0 4px
+    box-sizing              border-box
+    border                  1px solid #ddd
+    font-family            'UbuntuMono', monospace
+    overflow                auto
+
+  button
+    &[disabled]
+      opacity               .5
+
+  .step-creds
+    .kdformview
+      margin-top            20px
+
+  .credential-item
+    padding                 10px 0
+    font-size               14px
+    border-bottom           1px solid #ddd
+    borderBox()
+
+    &:hover
+      .buttons button.secondary
+        display             inline-block
+
+    .credential-info
+      padding               10px 0
+
+      .title
+        font-weight         bold
+        margin-left         10px
+        fl()
+
+      .provider
+        padding             0 3px
+        font-size           12px
+        background-color    #ddd
+        fl()
+
+    .warning-message
+      background          #FCFCE9
+      border              1px solid #D4D4A9
+      border-radius       4px
+      padding             5px
+      font-size           12px
+      color               #888869
+      margin-top          3px
+      text-align          center
+
+    .buttons
+      abs                   16px 0px
+
+      button.secondary
+        display             none
+
+      button
+        min-width           80px
+        margin-left         15px
+
+      button.solid.green
+        background-color    #01A84E
+        &[disabled]
+          opacity           .5
+
 
   .steps-view
     display                 flex
@@ -973,3 +1156,9 @@ Admin main styles
           background        #02A74D
         .title
           color             #02A74D
+
+
+.AppModal--admin .members
+  .label
+  .kdselectbox
+    hidden()

@@ -32,7 +32,9 @@ allowInternal = """
 """
 
 createWebLocation = ({name, locationConf}) ->
-  { location, proxyPass, internalOnly, auth } = locationConf
+  { location, proxyPass, internalOnly, auth, extraParams } = locationConf
+    # 3 tabs are just for style
+  extraParamsStr = extraParams?.join("\n\t\t\t") or ""
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
@@ -47,6 +49,8 @@ createWebLocation = ({name, locationConf}) ->
 
 createWebsocketLocation = ({name, locationConf, proxyPass}) ->
   {location, proxyPass} = locationConf
+  # 3 tabs are just for style
+  extraParamsStr = locationConf.extraParams?.join("\n\t\t\t") or ""
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
@@ -66,37 +70,9 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
 
         # try again with another upstream if there is an error
         proxy_next_upstream   error timeout   invalid_header http_500;
-      }
-  \n"""
 
-createUserMachineLocation = (path) ->
-  return """\n
-      location ~ ^\\/-\\/#{path}\\/(?<ip>.+?)\\/(?<rest>.*) {
-        # define our dynamically created backend
-        set $backend $ip:56789/$rest;
+        #{extraParamsStr}
 
-        # proxy it to the backend
-        proxy_pass http://$backend;
-
-        # needed for websocket handshake
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-
-        # be a good proxy :)
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $host;
-        proxy_redirect off;
-
-        # Don't buffer WebSocket connections
-        proxy_buffering off;
-
-        # Default is 60 seconds, means nginx will close it after 60 seconds
-        # inactivity which is a bad thing for long standing connections
-        # like websocket. Make it 6 hours.
-        proxy_read_timeout 21600s;
-        proxy_send_timeout 21600s;
       }
   \n"""
 
@@ -331,34 +307,7 @@ module.exports.create = (KONFIG, environment)->
         #{if environment is "sandbox" then basicAuth else ""}
       }
 
-      # special case for kontrol to support additional paths, like /kontrol/heartbeat
-      location ~^/kontrol/(.*) {
-        proxy_pass            http://kontrol/$1$is_args$args;
-
-        # needed for websocket handshake
-        proxy_http_version    1.1;
-        proxy_set_header      Upgrade         $http_upgrade;
-        proxy_set_header      Connection      $connection_upgrade;
-
-        proxy_set_header      Host $host;
-        proxy_set_header      X-Real-IP $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_redirect        off;
-
-        # Don't buffer WebSocket connections
-        proxy_buffering off;
-
-        # try again with another upstream if there is an error
-        proxy_next_upstream   error timeout   invalid_header http_500;
-      }
-
       #{createLocations(KONFIG)}
-
-      #{createUserMachineLocation("userproxy")}
-      #{createUserMachineLocation("prodproxy")}
-      #{createUserMachineLocation("sandboxproxy")}
-      #{createUserMachineLocation("latestproxy")}
-      #{createUserMachineLocation("devproxy")}
 
     # close server
     }

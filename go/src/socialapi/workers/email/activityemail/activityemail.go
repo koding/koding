@@ -13,7 +13,7 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/koding/runner"
+	"github.com/koding/redis"
 	"github.com/streadway/amqp"
 )
 
@@ -27,9 +27,10 @@ const (
 )
 
 type Controller struct {
-	log     logging.Logger
-	rmqConn *amqp.Connection
-	conf    *config.Config
+	log       logging.Logger
+	rmqConn   *amqp.Connection
+	conf      *config.Config
+	redisConn *redis.RedisSession
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -39,11 +40,12 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, conf *config.Config) *Controller {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, conf *config.Config, redis *redis.RedisSession) *Controller {
 	return &Controller{
-		log:     log,
-		rmqConn: rmq.Conn(),
-		conf:    conf,
+		log:       log,
+		rmqConn:   rmq.Conn(),
+		conf:      conf,
+		redisConn: redis,
 	}
 }
 
@@ -168,37 +170,35 @@ func (n *Controller) checkMailSettings(uc *emailmodels.UserContact, a *notificat
 }
 
 func (n *Controller) saveDailyMail(accountId, activityId int64) {
-	if err := saveRecipient(accountId); err != nil {
+	if err := n.saveRecipient(accountId); err != nil {
 		n.log.Error("daily mail error: %s", err)
 	}
 
-	if err := saveActivity(accountId, activityId); err != nil {
+	if err := n.saveActivity(accountId, activityId); err != nil {
 		n.log.Error("daily mail error: %s", err)
 	}
 }
 
-func saveRecipient(accountId int64) error {
-	redisConn := runner.MustGetRedisConn()
+func (n *Controller) saveRecipient(accountId int64) error {
 	key := prepareRecipientsCacheKey()
-	if _, err := redisConn.AddSetMembers(key, accountId); err != nil {
+	if _, err := n.redisConn.AddSetMembers(key, accountId); err != nil {
 		return err
 	}
 
-	if err := redisConn.Expire(key, DAY); err != nil {
+	if err := n.redisConn.Expire(key, DAY); err != nil {
 		return fmt.Errorf("Could not set ttl of recipients: %s", err)
 	}
 
 	return nil
 }
 
-func saveActivity(accountId, activityId int64) error {
-	redisConn := runner.MustGetRedisConn()
+func (n *Controller) saveActivity(accountId, activityId int64) error {
 	key := prepareSetterCacheKey(accountId)
-	if _, err := redisConn.AddSetMembers(key, activityId); err != nil {
+	if _, err := n.redisConn.AddSetMembers(key, activityId); err != nil {
 		return err
 	}
 
-	if err := redisConn.Expire(key, DAY); err != nil {
+	if err := n.redisConn.Expire(key, DAY); err != nil {
 		return fmt.Errorf("Could not set ttl of activity: %s", err)
 	}
 

@@ -193,33 +193,34 @@ module.exports = class AccountEditUsername extends JView
           # but do not forget to warn users about other errors
           if err
             return queue.next() if err.message is "EmailIsSameError"
-            @emailForm.buttons.Save.hideLoader()
+            @hideSaveButtonLoader()
             return notify err.message
 
           options = {skipPasswordConfirmation, email}
-          confirmCurrentPassword options, (err) ->
+          @confirmCurrentPassword options, (err) =>
             if err
               notify err
               profileUpdated = false
               return queue.next()
             skipPasswordConfirmation = true
-            new VerifyPINModal 'Update E-Mail', (pin)->
+            modal = new VerifyPINModal 'Update E-Mail', (pin)->
               remote.api.JUser.changeEmail {email, pin}, (err)->
                 if err
                   notify err.message
                   profileUpdated = false
                 queue.next()
+            modal.once 'ModalCancelled', @bound 'hideSaveButtonLoader'
       =>
         # on third turn update password
         # check for password confirmation
         if password isnt confirmPassword
           notify "Passwords did not match"
-          @emailForm.buttons.Save.hideLoader()
+          @hideSaveButtonLoader()
           return
         #check passworg lenght
         if password isnt "" and password.length < 8
           notify "Passwords should be at least 8 characters"
-          @emailForm.buttons.Save.hideLoader()
+          @hideSaveButtonLoader()
           return
         # if password is empty than discard operation
         if password is ""
@@ -235,7 +236,7 @@ module.exports = class AccountEditUsername extends JView
             return queue.next()
 
           skipPasswordConfirmation = true  if user.passwordStatus isnt "valid"
-          confirmCurrentPassword {skipPasswordConfirmation}, (err) =>
+          @confirmCurrentPassword {skipPasswordConfirmation}, (err) =>
             if err
               notify err
               profileUpdated = false
@@ -250,18 +251,18 @@ module.exports = class AccountEditUsername extends JView
       =>
         # if everything is OK or didnt change, show profile updated modal
         notify "Your account information is updated." if profileUpdated
-        @emailForm.buttons.Save.hideLoader()
+        @hideSaveButtonLoader()
     ]
     sinkrow.daisy queue
 
 
-  confirmCurrentPassword = (opts, callback) ->
+  confirmCurrentPassword: (opts, callback) ->
 
     {skipPasswordConfirmation, email} = opts
 
     return callback null  if skipPasswordConfirmation
 
-    new VerifyPasswordModal 'Confirm', (currentPassword) ->
+    modal = new VerifyPasswordModal 'Confirm', (currentPassword) ->
       options = {password: currentPassword, email}
       remote.api.JUser.verifyPassword options, (err, confirmed) ->
 
@@ -269,6 +270,7 @@ module.exports = class AccountEditUsername extends JView
         return callback 'Current password cannot be confirmed'  unless confirmed
 
         callback null
+    modal.once 'ModalCancelled', @bound 'hideSaveButtonLoader'
 
 
   viewAppended: ->
@@ -337,6 +339,9 @@ module.exports = class AccountEditUsername extends JView
     size          :
       width       : 95
       height      : 95
+
+
+  hideSaveButtonLoader: -> @emailForm.buttons.Save.hideLoader()
 
 
   pistachio: ->

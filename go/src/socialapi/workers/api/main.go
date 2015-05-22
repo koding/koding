@@ -31,6 +31,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	defer r.Close()
 
 	// appConfig
 	c := config.MustRead(r.Conf.Path)
@@ -38,6 +39,15 @@ func main() {
 	mc := mux.NewConfig(Name, r.Conf.Host, r.Conf.Port)
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log, r.Metrics)
+
+	// init redis
+	redisConn := r.Bongo.GetRedisConn()
+	if redisConn == nil {
+		redisConn = runner.MustInitRedisConn(r.Conf)
+		defer redisConn.Close()
+	}
+
+	m.SetRedis(redisConn)
 
 	handlers.AddHandlers(m)
 	permissionapi.AddHandlers(m)
@@ -49,10 +59,6 @@ func main() {
 	sitemapapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
 	algoliaapi.AddHandlers(m, r.Log)
-
-	// init redis
-	redisConn := runner.MustInitRedisConn(r.Conf)
-	defer redisConn.Close()
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)
@@ -74,7 +80,7 @@ func main() {
 
 	m.Listen()
 	// shutdown server
-	defer m.Close()
+	r.ShutdownHandler = m.Close
 
 	r.Listen()
 	r.Wait()
