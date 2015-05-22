@@ -2,6 +2,7 @@ package streamtunnel
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -126,9 +127,22 @@ func (c *Client) Start(identifier string) error {
 		return err
 	}
 
-	stream, err := c.session.Open()
-	if err != nil {
-		return err
+	var stream net.Conn
+
+	// if we don't receive anything from the server, we'll timeout
+	select {
+	case <-async(func() {
+		// this is blocking until client opens a session to us
+		stream, err = c.session.Open()
+		if err != nil {
+			c.log.Error("session open err: %s", err)
+		}
+	}):
+	case <-time.After(time.Second * 10):
+		if stream != nil {
+			stream.Close()
+		}
+		return errors.New("timeout opening session")
 	}
 
 	if _, err := stream.Write([]byte(ctHandshakeRequest)); err != nil {
