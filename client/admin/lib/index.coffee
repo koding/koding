@@ -45,14 +45,15 @@ module.exports = class AdminAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    options.view = new kd.ModalView
+    data       or= kd.singletons.groupsController.getCurrentGroup()
+    options.view = new AdminAppView
       title      : 'Team Dashboard'
       cssClass   : 'AppModal AppModal--admin'
       width      : 1000
-      height     : 600
+      height     : '100%'
       overlay    : yes
-
-    data       or= kd.singletons.groupsController.getCurrentGroup()
+      tabData    : NAV_ITEMS
+    , data
 
     super options, data
 
@@ -71,10 +72,6 @@ module.exports = class AdminAppController extends AppController
 
 
   loadView: (modal) ->
-
-    modal.addSubView @mainView = new AdminAppView
-      tabData: NAV_ITEMS
-    , @getData()
 
     modal.once 'KDObjectWillBeDestroyed', ->
       { router } = kd.singletons
