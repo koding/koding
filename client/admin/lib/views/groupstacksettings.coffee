@@ -13,27 +13,6 @@ module.exports     = class GroupStackSettings extends kd.View
 
   StacksCustomViews.mixin @prototype
 
-  # This will be used if stack template is not defined yet
-  defaultTemplate = """
-  {
-    "provider": {
-      "aws": {
-        "access_key": "${var.access_key}",
-        "secret_key": "${var.secret_key}",
-        "region": "ap-northeast-1"
-      }
-    },
-    "resource": {
-      "aws_instance": {
-        "example": {
-          "instance_type": "t2.micro",
-          "ami": "ami-936d9d93"
-        }
-      }
-    }
-  }
-  """
-
   constructor: (options = {}, data) ->
 
     options.cssClass = 'stacks'
@@ -84,21 +63,6 @@ module.exports     = class GroupStackSettings extends kd.View
     steps.first()
 
 
-  createEditorPane: (content) ->
-
-    content = Encoder.htmlDecode content
-    file    = FSHelper.createFileInstance path: 'localfile:/stack.json'
-
-    @addSubView editorContainer = new kd.View
-    editorContainer.setCss height: '240px'
-
-    editorContainer.addSubView @editorPane = new IDEEditorPane {
-      file, content, delegate: this
-    }
-
-    @editorPane.setCss background: 'black'
-
-
   createCredentialsBox: ->
 
     creds = ({title: c.title, value: c.publicKey} for c in @_credentials)
@@ -109,27 +73,6 @@ module.exports     = class GroupStackSettings extends kd.View
     @addSubView @credentialBox = new kd.SelectBox
       name          : "credential"
       selectOptions : creds
-
-
-  createOutputView: ->
-
-    @outputView = new kd.View
-    @outputView.setCss height: 'auto'
-
-    @addSubView @outputView
-
-
-  checkCredential: (callback) ->
-
-    selected   = @credentialBox.getValue()
-    credential = cred for cred in @_credentials when cred.publicKey is selected
-
-    credential.isBootstrapped (err, state) ->
-      return callback err  if err
-
-      callback if not state then {
-        message: 'Credential is not bootstrapped yet.'
-      } else null
 
 
   fetchData: (callback) ->
@@ -190,19 +133,6 @@ module.exports     = class GroupStackSettings extends kd.View
 
       .catch   @bound 'showError'
       .finally @saveButton.bound 'hideLoader'
-
-
-  showError: (err) ->
-
-    console.warn "ERROR:", err
-
-    err = err.message  if err.message?
-
-    @outputView.updatePartial applyMarkdown """
-      An error occured:
-
-      ```json\n#{err}\n```
-    """
 
 
   updateStackTemplate: (data)->
