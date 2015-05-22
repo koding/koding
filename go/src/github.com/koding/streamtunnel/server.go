@@ -139,20 +139,16 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var conn net.Conn
-	done := make(chan struct{}, 0)
-	go func() {
+
+	// if we don't receive anything from the client, we'll timeout
+	select {
+	case <-async(func() {
 		// this is blocking until client opens a session to us
 		conn, err = session.Accept()
 		if err != nil {
 			s.log.Error("session accept err: %s", err)
-			return
 		}
-		close(done)
-	}()
-
-	// if we don't receive anything from the client, we'll timeout
-	select {
-	case <-done:
+	}):
 	case <-time.After(time.Second * 10):
 		if conn != nil {
 			conn.Close()
@@ -168,6 +164,9 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 
 	resp, err := http.ReadResponse(bufio.NewReader(conn), r)
 	if err != nil {
+		if resp.Body == nil {
+			resp.Body.Close()
+		}
 		return fmt.Errorf("read from tunnel: %s", err.Error())
 	}
 	defer resp.Body.Close()
