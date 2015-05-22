@@ -1,8 +1,9 @@
-kd                        = require 'kd'
-KDListView                = kd.ListView
-KDModalView               = kd.ModalView
-KDOverlayView             = kd.OverlayView
-KDNotificationView        = kd.NotificationView
+kd                 = require 'kd'
+hljs               = require 'highlight.js'
+KDListView         = kd.ListView
+KDModalView        = kd.ModalView
+KDOverlayView      = kd.OverlayView
+KDNotificationView = kd.NotificationView
 
 showError                 = require 'app/util/showError'
 AccountCredentialListItem = require './accountcredentiallistitem'
@@ -77,13 +78,15 @@ module.exports = class AccountCredentialList extends KDListView
           return new KDNotificationView
             title: "An error occurred"
 
+        cred = hljs.highlight('json', cred).value
+
         new KDModalView
           title          : credential.title
-          overlay        : yes
-          overlayOptions :
-            cssClass     : 'second-overlay'
           subtitle       : credential.provider
-          content        : "<pre>#{cred}</pre>"
+          cssClass       : 'has-markdown'
+          overlay        : yes
+          overlayOptions : cssClass : 'second-overlay'
+          content        : "<pre><code>#{cred}</code></pre>"
 
   checkIsBootstrapped: (item) ->
 
