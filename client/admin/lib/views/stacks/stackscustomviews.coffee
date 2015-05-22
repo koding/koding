@@ -2,6 +2,7 @@ _                               = require 'lodash'
 kd                              = require 'kd'
 hljs                            = require 'highlight.js'
 globals                         = require 'globals'
+remote                          = require('app/remote').getInstance()
 dateFormat                      = require 'dateformat'
 CustomViews                     = require 'app/commonviews/customviews'
 CredentialListItem              = require './credentiallistitem'
@@ -39,6 +40,22 @@ module.exports = class StacksCustomViews extends CustomViews
       .catch   (err) ->
         console.log 'Failed >>', err
 
+
+  updateStackTemplate = (data, callback) ->
+
+    { template, credential, title, stackTemplate } = data
+
+    { JCredential, JStackTemplate } = remote.api
+
+    credentials = [credential.publicKey]
+
+    if stackTemplate
+      stackTemplate.update {title, machines, template, credentials}, callback
+    else
+      JStackTemplate.create {
+        title : title or "Default stack template"
+        template, machines, credentials
+      }, callback
 
   fetchAndShowCredentialData = (credential, outputView) ->
 
