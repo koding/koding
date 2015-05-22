@@ -185,12 +185,18 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 
 // ControlHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
-// TODO(arslan): if a control connection is established already, return with an error
 func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) (ctErr error) {
 	identifier := r.Header.Get(XKTunnelIdentifier)
 	_, ok := s.GetHost(identifier)
 	if !ok {
 		return fmt.Errorf("no host associated for identifier %s. please use server.AddHost()", identifier)
+	}
+
+	ct, ok := s.getControl(identifier)
+	if ok {
+		ct.Close()
+		s.log.Warning("Control connection for '%s' already exists. This is a race condition and needs to be fixed on client implementation", identifier)
+		return fmt.Errorf("control conn for %s already exist. \n", identifier)
 	}
 
 	s.log.Debug("tunnel with identifier %s", identifier)
@@ -254,7 +260,7 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 	}
 
 	// setup control stream and start to listen to messages
-	ct := newControl(stream)
+	ct = newControl(stream)
 	s.addControl(identifier, ct)
 	go s.listenControl(ct)
 
