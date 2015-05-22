@@ -1,5 +1,6 @@
 _                               = require 'lodash'
 kd                              = require 'kd'
+hljs                            = require 'highlight.js'
 globals                         = require 'globals'
 dateFormat                      = require 'dateformat'
 CustomViews                     = require 'app/commonviews/customviews'
@@ -122,13 +123,15 @@ module.exports = class StacksCustomViews extends CustomViews
 
       options.cssClass = kd.utils.curry options.cssClass, 'output-view'
       options.tagName  = 'pre'
+      container        = @views.view options
+      code             = @views.view tagName : 'code'
 
-      container = @views.view options
+      container.addSubView code
 
       container.addContent = (content...) =>
         content = content.join ' '
-        content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}"
-        @addTo container, text: content
+        content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
+        code.setPartial hljs.highlight('profile', content).value
 
       return container
 
@@ -221,6 +224,8 @@ module.exports = class StacksCustomViews extends CustomViews
       {provider, credential} = data
 
       container = @views.container 'step-creds'
+
+      container.setClass 'has-markdown'
 
       views     = @addTo container,
         stepsHeaderView : 3
