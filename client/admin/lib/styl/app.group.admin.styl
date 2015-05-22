@@ -12,17 +12,19 @@ Admin main styles
   padding                   34px 34px 0 0
   overflow                  visible
 
-.AppModal--admin
+.AppModal.AppModal--admin
+  rounded                   0
 
   .kdcustomscrollview
     styleScrollBars         rgba(0, 0, 0, .15)
 
+  .kdmodal-inner
+    height                  calc(100% \- 40px)
+    rel()
+
   .kdmodal-content
-    size                    100% 100%
-
-  .AppModal-content
-    height                  515px
-
+    width                   100%
+    height                  calc(100% \- 45px)
 
   .group-logo
     figure
@@ -478,13 +480,7 @@ Admin main styles
   &.kdmodal .kdmodal-inner .kdmodal-content
     overflow                hidden
 
-    // not necessary anymore - SY
-    max-height              515px !important // to override computed height
-
-
-// common tab styling
-.AppModal--admin
-
+  // common tab styling
   .AppModal-content.kdtabview
     overflow                hidden
 
@@ -785,7 +781,7 @@ Admin main styles
     font-size               20px
     color                   #434343
     font-weight             400
-    
+
   .type-label
     float                   left
     line-height             40px
