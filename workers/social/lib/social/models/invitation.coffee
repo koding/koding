@@ -84,6 +84,9 @@ module.exports = class JInvitation extends jraphical.Module
       createdAt     :
         type        : Date
         default     : -> new Date
+      modifiedAt    :
+        type        : Date
+        default     : -> new Date
 
   accept$: secure (client, callback) ->
     { delegate } = client.connection
