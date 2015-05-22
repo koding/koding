@@ -172,7 +172,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
         else
           message = "Couldn't fetch files! Click to retry"
           logToExternalWithTime "filetree: Couldn't fetch files"
-        @notify message, 'clickable', \
+        @notify message, null, \
                 """Sorry, a problem occurred while communicating with servers,
                    please try again later.""", yes
         @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
