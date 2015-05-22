@@ -60,6 +60,9 @@ var (
 	ErrChannelIsLinked  = errors.New("channel is linked")
 	ErrGroupsAreNotSame = errors.New("groups are not same")
 	ErrLeafIsRootToo    = errors.New("leaf channel is root of another channel")
+
+	ErrLoggerNotExist = errors.New("logger does not exist")
+	ErrRedisNotExist  = errors.New("redis connection is not established")
 )
 
 type ChannelIsLeafError error
