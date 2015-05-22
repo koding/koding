@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/hashicorp/yamux"
 	"github.com/koding/logging"
 )
@@ -18,9 +19,6 @@ import (
 // Client is responsible for creating a control connection to a tunnel server,
 // creating new tunnels and proxy them to tunnel server.
 type Client struct {
-	// underlying tcp connection which is used for multiplexing
-	nc net.Conn
-
 	// underlying yamux session
 	session *yamux.Session
 
@@ -33,8 +31,13 @@ type Client struct {
 
 	// yamuxConfig is passed to new yamux.Session's
 	yamuxConfig *yamux.Config
+	log         logging.Logger
 
-	log logging.Logger
+	// redialBackoff is used to reconnect in exponential backoff intervals
+	redialBackoff backoff.BackOff
+
+	// identifier can be used to fetch identifier before a Start() is initiated.
+	FetchIdentifier func() (string, error)
 }
 
 // ClientConfig defines the configuration for the Client
@@ -79,35 +82,79 @@ func NewClient(cfg *ClientConfig) *Client {
 		log = cfg.Log
 	}
 
+	forever := backoff.NewExponentialBackOff()
+	forever.MaxElapsedTime = 365 * 24 * time.Hour // 1 year
+
 	client := &Client{
-		serverAddr:  cfg.ServerAddr,
-		localAddr:   cfg.LocalAddr,
-		log:         log,
-		yamuxConfig: yamuxConfig,
+		serverAddr:    cfg.ServerAddr,
+		localAddr:     cfg.LocalAddr,
+		log:           log,
+		yamuxConfig:   yamuxConfig,
+		redialBackoff: forever,
 	}
 
 	return client
 }
 
-func (c *Client) Start(identifier string) error {
-	var err error
-	c.nc, err = net.Dial("tcp", c.serverAddr)
+// Start starts the client and connects to the server with the identifier that
+// was fetched with client.FetchIdentifier(). It support reconnectig with
+// exponential backoff intervals.
+func (c *Client) Start() {
+	if c.FetchIdentifier == nil {
+		fmt.Fprintf(os.Stderr, "FetchIdentifier() function is not set.")
+		os.Exit(1)
+	}
+
+	c.redialBackoff.Reset()
+	for {
+		time.Sleep(c.redialBackoff.NextBackOff())
+
+		identifier, err := c.FetchIdentifier()
+		if err != nil {
+			c.log.Critical("client fetch identifier err: %s", err.Error())
+			continue
+		}
+
+		if err := c.connect(identifier); err != nil {
+			c.log.Critical("client connect err: %s", err.Error())
+		}
+	}
+}
+
+// Start starts the client and connects to the server with the given identifier
+// that It support reconnectig with exponential backoff intervals.
+func (c *Client) StartWithIdentifier(identifier string) {
+	c.redialBackoff.Reset()
+	for {
+		time.Sleep(c.redialBackoff.NextBackOff())
+		if err := c.connect(identifier); err != nil {
+			c.log.Critical("client connect err: %s", err.Error())
+		}
+	}
+}
+
+func (c *Client) connect(identifier string) error {
+	c.log.Debug("Trying to connect to '%s' with identifier '%s'", c.serverAddr, identifier)
+	conn, err := net.Dial("tcp", c.serverAddr)
 	if err != nil {
 		return err
 	}
 
-	remoteAddr := fmt.Sprintf("http://%s%s", c.nc.RemoteAddr(), ControlPath)
+	remoteAddr := fmt.Sprintf("http://%s%s", conn.RemoteAddr(), ControlPath)
+	c.log.Debug("CONNECT to '%s'", remoteAddr)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
 		return fmt.Errorf("CONNECT %s", err)
 	}
 
 	req.Header.Set(XKTunnelIdentifier, identifier)
-	if err := req.Write(c.nc); err != nil {
+	c.log.Debug("Writing request to TCP: %+v", req)
+	if err := req.Write(conn); err != nil {
 		return err
 	}
 
-	resp, err := http.ReadResponse(bufio.NewReader(c.nc), req)
+	c.log.Debug("Reading response from TCP")
+	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
 	if err != nil {
 		return fmt.Errorf("read response %s", err)
 	}
@@ -122,7 +169,7 @@ func (c *Client) Start(identifier string) error {
 		return fmt.Errorf("proxy server: %s. err: %s", resp.Status, string(out))
 	}
 
-	c.session, err = yamux.Client(c.nc, c.yamuxConfig)
+	c.session, err = yamux.Client(conn, c.yamuxConfig)
 	if err != nil {
 		return err
 	}
@@ -161,6 +208,7 @@ func (c *Client) Start(identifier string) error {
 	ct := newControl(stream)
 	c.log.Debug("client has started successfully.")
 
+	c.redialBackoff.Reset() // we successfully connected, so we can reset the backoff
 	return c.listenControl(ct)
 }
 
@@ -169,6 +217,8 @@ func (c *Client) listenControl(ct *control) error {
 		var msg ControlMsg
 		err := ct.dec.Decode(&msg)
 		if err != nil {
+			c.session.GoAway()
+			c.session.Close()
 			return fmt.Errorf("decode err: '%s'", err)
 		}
 

@@ -77,7 +77,7 @@ func NewServer(cfg *ServerConfig) *Server {
 		log:          log,
 	}
 
-	http.Handle(ControlPath, checkConnect(s.ControlHandler))
+	http.Handle(ControlPath, s.checkConnect(s.ControlHandler))
 	return s
 }
 
@@ -88,7 +88,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// going to infer and call the respective path handlers.
 	switch path.Clean(r.URL.Path) + "/" {
 	case ControlPath:
-		checkConnect(s.ControlHandler).ServeHTTP(w, r)
+		s.checkConnect(s.ControlHandler).ServeHTTP(w, r)
 		return
 	}
 
@@ -186,6 +186,11 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 // TODO(arslan): if a control connection is established already, return with an error
 func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	identifier := r.Header.Get(XKTunnelIdentifier)
+	host, ok := s.GetHost(identifier)
+	if !ok {
+		return fmt.Errorf("no host associated for identifier %s. please use server.AddHost()", identifier)
+	}
+
 	s.log.Debug("tunnel with identifier %s", identifier)
 
 	hj, ok := w.(http.Hijacker)
@@ -196,11 +201,6 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	conn, _, err := hj.Hijack()
 	if err != nil {
 		return fmt.Errorf("hijack not possible %s", err)
-	}
-
-	host, ok := s.GetHost(identifier)
-	if !ok {
-		return fmt.Errorf("no host associated for identifier %s. please use server.AddHost()", identifier)
 	}
 
 	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
@@ -309,7 +309,7 @@ func copyHeader(dst, src http.Header) {
 }
 
 // checkConnect checks wether the incoming request is HTTP CONNECT method. If
-func checkConnect(fn func(w http.ResponseWriter, r *http.Request) error) http.Handler {
+func (s *Server) checkConnect(fn func(w http.ResponseWriter, r *http.Request) error) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "CONNECT" {
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -320,6 +320,7 @@ func checkConnect(fn func(w http.ResponseWriter, r *http.Request) error) http.Ha
 
 		err := fn(w, r)
 		if err != nil {
+			s.log.Error("err", err)
 			http.Error(w, err.Error(), 502)
 		}
 	})

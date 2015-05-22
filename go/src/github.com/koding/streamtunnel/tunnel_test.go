@@ -38,7 +38,7 @@ func TestTunnel(t *testing.T) {
 		LocalAddr:  localAddr,
 		Debug:      true,
 	})
-	go client.Start(identifier)
+	go client.StartWithIdentifier(identifier)
 
 	// start local server to be tunneled
 	go http.ListenAndServe(localAddr, echo())

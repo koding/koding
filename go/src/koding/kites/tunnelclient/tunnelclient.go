@@ -2,8 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"os"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
@@ -33,21 +31,21 @@ func main() {
 
 	<-connected
 
-	result, err := callRegister(tunnelserver)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
 	if conf.ServerAddr == "" {
 		conf.ServerAddr = "127.0.0.1:4444"
 	}
 
 	client := streamtunnel.NewClient(conf)
-	if err := client.Start(result.Identifier); err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
+	client.FetchIdentifier = func() (string, error) {
+		result, err := callRegister(tunnelserver)
+		if err != nil {
+			return "", err
+		}
+
+		k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
+		return result.Identifier, nil
 	}
+	client.Start()
 }
 
 func callRegister(tunnelserver *kite.Client) (*registerResult, error) {
