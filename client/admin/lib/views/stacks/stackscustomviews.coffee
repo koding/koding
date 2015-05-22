@@ -232,8 +232,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
       credential.isBootstrapped (err, state) =>
 
-        console.log ">>>", {credential, err, state}
-
         views.container.destroySubViews()
 
         {outputView} = @addTo views.container,
