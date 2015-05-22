@@ -1,10 +1,17 @@
-_                               = require 'lodash'
 kd                              = require 'kd'
-hljs                            = require 'highlight.js'
 globals                         = require 'globals'
 remote                          = require('app/remote').getInstance()
+
+_                               = require 'lodash'
+hljs                            = require 'highlight.js'
+Encoder                         = require 'htmlencode'
 dateFormat                      = require 'dateformat'
+
+FSHelper                        = require 'app/util/fs/fshelper'
+applyMarkdown                   = require 'app/util/applyMarkdown'
+
 CustomViews                     = require 'app/commonviews/customviews'
+IDEEditorPane                   = require 'ide/workspace/panes/ideeditorpane'
 CredentialListItem              = require './credentiallistitem'
 ComputeController_UI            = require 'app/providers/computecontroller.ui'
 AccountCredentialList           = require 'account/accountcredentiallist'
@@ -223,6 +230,25 @@ module.exports = class StacksCustomViews extends CustomViews
       return container
 
 
+    editorView: (options) =>
+
+      kd.singletons.appManager.require 'IDE'
+
+      {content} = options
+
+      content   = Encoder.htmlDecode content
+      file      = FSHelper.createFileInstance path: 'localfile:/stack.json'
+
+      editorView = new IDEEditorPane {
+        cssClass: 'editor-view'
+        file, content, delegate: this
+      }
+
+      editorView.setCss background: 'black'
+
+      return editorView
+
+
     button: (options) ->
       options.cssClass ?= ''
       new kd.ButtonView options
@@ -232,6 +258,7 @@ module.exports = class StacksCustomViews extends CustomViews
       options.cssClass = kd.utils.curry 'solid compact light-gray nav', name
       options.title = name.capitalize()
       @views.button options
+
 
     navCancelButton: (options) =>
       options.cssClass = 'solid compact light-gray nav cancel'
