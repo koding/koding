@@ -125,7 +125,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 
 	// if someoone hits foo.example.com:8080, this should be proxied to
 	// localhost:8080, so send the port to the client so it knows how to proxy
-	// correctly
+	// correctly. If no port is available, it's up to client how to intepret it
 	_, port, _ := net.SplitHostPort(r.Host)
 	msg := ControlMsg{
 		Action:    RequestClientSession,
@@ -138,11 +138,28 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	// this is blocking until client opens a session to us
-	conn, err := session.Accept()
-	if err != nil {
-		return err
+	var conn net.Conn
+	done := make(chan struct{}, 0)
+	go func() {
+		// this is blocking until client opens a session to us
+		conn, err = session.Accept()
+		if err != nil {
+			s.log.Error("session accept err: %s", err)
+			return
+		}
+		close(done)
+	}()
+
+	// if we don't receive anything from the client, we'll timeout
+	select {
+	case <-done:
+	case <-time.After(time.Second * 10):
+		if conn != nil {
+			conn.Close()
+		}
+		return errors.New("timeout getting session")
 	}
+
 	defer conn.Close()
 
 	if err := r.Write(conn); err != nil {
