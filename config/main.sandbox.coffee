@@ -567,8 +567,9 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [
           {
-            location    : "/-/content-rotator/(.*)"
-            proxyPass   : "#{KONFIG.contentRotatorUrl}/$1"
+            location    : "~ /-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/content-rotator/$1"
+            extraParams : [ "resolver 8.8.8.8;" ]
           }
         ]
 
