@@ -57,6 +57,28 @@ module.exports = class StacksCustomViews extends CustomViews
         template, machines, credentials
       }, callback
 
+
+  setGroupTemplate = (stackTemplate, callback) ->
+
+    { groupsController } = kd.singletons
+
+    currentGroup = groupsController.getCurrentGroup()
+    { slug }     = currentGroup
+
+    if slug is 'koding'
+      message = 'Setting stack template for koding is disabled'
+      new kd.NotificationView title: message
+      return callback {message}
+
+    currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) ->
+      return callback err  if err
+
+      new kd.NotificationView
+        title: "Group (#{slug}) stack has been saved!"
+
+      callback()
+
+
   fetchAndShowCredentialData = (credential, outputView) ->
 
     outputView.addContent 'Fetching latest data...'
