@@ -139,31 +139,33 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	var conn net.Conn
-
-	// if we don't receive anything from the client, we'll timeout
-	select {
-	case <-async(func() {
-		// this is blocking until client opens a session to us
-		conn, err = session.Accept()
-		if err != nil {
-			s.log.Error("session accept err: %s", err)
+	var stream net.Conn
+	defer func() {
+		if stream != nil {
+			stream.Close()
 		}
-	}):
-	case <-time.After(time.Second * 10):
-		if conn != nil {
-			conn.Close()
-		}
-		return errors.New("timeout getting session")
-	}
+	}()
 
-	defer conn.Close()
-
-	if err := r.Write(conn); err != nil {
+	acceptStream := func() error {
+		stream, err = session.Accept()
 		return err
 	}
 
-	resp, err := http.ReadResponse(bufio.NewReader(conn), r)
+	// if we don't receive anything from the client, we'll timeout
+	select {
+	case err := <-async(acceptStream):
+		if err != nil {
+			return err
+		}
+	case <-time.After(time.Second * 10):
+		return errors.New("timeout getting session")
+	}
+
+	if err := r.Write(stream); err != nil {
+		return err
+	}
+
+	resp, err := http.ReadResponse(bufio.NewReader(stream), r)
 	if err != nil {
 		if resp.Body == nil {
 			resp.Body.Close()
@@ -183,9 +185,8 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 
 // ControlHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
-// TODO(arslan): close captured connection when we return with an error
 // TODO(arslan): if a control connection is established already, return with an error
-func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) (ctErr error) {
 	identifier := r.Header.Get(XKTunnelIdentifier)
 	_, ok := s.GetHost(identifier)
 	if !ok {
@@ -210,12 +211,33 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-
 	s.addSession(identifier, session)
 
-	stream, err := session.Accept()
-	if err != nil {
+	var stream net.Conn
+
+	// close and delete the session/stream if something goes wrong
+	defer func() {
+		if ctErr != nil {
+			if stream != nil {
+				stream.Close()
+			}
+			s.deleteSession(identifier)
+		}
+	}()
+
+	acceptStream := func() error {
+		stream, err = session.Accept()
 		return err
+	}
+
+	// if we don't receive anything from the client, we'll timeout
+	select {
+	case err := <-async(acceptStream):
+		if err != nil {
+			return err
+		}
+	case <-time.After(time.Second * 10):
+		return errors.New("timeout getting session")
 	}
 
 	buf := make([]byte, len(ctHandshakeRequest))
@@ -317,7 +339,7 @@ func (s *Server) deleteSession(identifier string) {
 	}
 
 	if session != nil {
-		session.GoAway()
+		session.GoAway() // don't accept any new connection
 		session.Close()
 	}
 
@@ -344,7 +366,7 @@ func (s *Server) checkConnect(fn func(w http.ResponseWriter, r *http.Request) er
 
 		err := fn(w, r)
 		if err != nil {
-			s.log.Error("err", err)
+			s.log.Error("Handler err: %v", err.Error())
 			http.Error(w, err.Error(), 502)
 		}
 	})

@@ -1,13 +1,17 @@
 package streamtunnel
 
 // async is a helper function to convert a blocking function to a function
-// returning a signal. Useful for plugging function closures into select and co
-func async(fn func()) <-chan struct{} {
-	done := make(chan struct{}, 0)
+// returning an error. Useful for plugging function closures into select and co
+func async(fn func() error) <-chan error {
+	errChan := make(chan error, 0)
 	go func() {
-		fn()
-		close(done)
+		select {
+		case errChan <- fn():
+		default:
+		}
+
+		close(errChan)
 	}()
 
-	return done
+	return errChan
 }

@@ -176,15 +176,18 @@ func (c *Client) connect(identifier string) error {
 
 	var stream net.Conn
 
-	// if we don't receive anything from the server, we'll timeout
-	select {
-	case <-async(func() {
+	openStream := func() error {
 		// this is blocking until client opens a session to us
 		stream, err = c.session.Open()
+		return err
+	}
+
+	// if we don't receive anything from the server, we'll timeout
+	select {
+	case err := <-async(openStream):
 		if err != nil {
-			c.log.Error("session open err: %s", err)
+			return err
 		}
-	}):
 	case <-time.After(time.Second * 10):
 		if stream != nil {
 			stream.Close()
