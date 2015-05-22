@@ -22,6 +22,7 @@ scripts/wercker/install-node-modules koding
 scripts/install-npm.sh -u
 
 ./configure --host $HOST:8090
+./run install
 
 scripts/install-npm.sh -d client -u
 
@@ -29,7 +30,6 @@ export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
 make -C client/test build
 
 ./run services
-./run install
 ./run migrate up
 ./run resetdb --yes
 ./run importusers
