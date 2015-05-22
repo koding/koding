@@ -173,7 +173,10 @@ type Config struct {
 		KloudSecretKey string
 		KloudAddr      string
 	}
-	Segment string
+	Segment        string
+	GatherIngestor struct {
+		Port int
+	}
 }
 
 type RuntimeOptions struct {
