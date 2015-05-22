@@ -1,11 +1,21 @@
-kd = require 'kd'
-$ = require 'jquery'
-KDModalView = kd.ModalView
-KDTabView = kd.TabView
-ApplicationTabView = require 'app/commonviews/applicationview/applicationtabview'
+kd                  = require 'kd'
+$                   = require 'jquery'
+KDModalView         = kd.ModalView
+KDTabView           = kd.TabView
+IDETabHandleView    = require './idetabhandleview'
+ApplicationTabView  = require 'app/commonviews/applicationview/applicationtabview'
 
 
 module.exports = class IDEApplicationTabView extends ApplicationTabView
+
+  constructor: (options = {}, data) ->
+
+    options.sortable        = no
+    options.droppable       = yes
+    options.tabHandleClass  = IDETabHandleView
+
+    super options, data
+
 
   handleClicked: (event, handle) ->
 

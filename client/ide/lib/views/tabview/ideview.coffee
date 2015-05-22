@@ -1,20 +1,20 @@
-kd = require 'kd'
-KDContextMenu = kd.ContextMenu
-KDCustomHTMLView = kd.CustomHTMLView
-KDSplitViewPanel = kd.SplitViewPanel
-KDTabPaneView = kd.TabPaneView
-KDView = kd.View
-nick = require 'app/util/nick'
-FSHelper = require 'app/util/fs/fshelper'
-FSFile = require 'app/util/fs/fsfile'
+kd                    = require 'kd'
+KDContextMenu         = kd.ContextMenu
+KDCustomHTMLView      = kd.CustomHTMLView
+KDSplitViewPanel      = kd.SplitViewPanel
+KDTabPaneView         = kd.TabPaneView
+KDView                = kd.View
+nick                  = require 'app/util/nick'
+FSHelper              = require 'app/util/fs/fshelper'
+FSFile                = require 'app/util/fs/fsfile'
 showErrorNotification = require 'app/util/showErrorNotification'
-IDEDrawingPane = require '../../workspace/panes/idedrawingpane'
-IDEEditorPane = require '../../workspace/panes/ideeditorpane'
-IDEPreviewPane = require '../../workspace/panes/idepreviewpane'
-IDETerminalPane = require '../../workspace/panes/ideterminalpane'
-IDEWorkspaceTabView = require '../../workspace/ideworkspacetabview'
+IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
+IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
+IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
+IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
+IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
-IDEHelpers = require '../../idehelpers'
+IDEHelpers            = require '../../idehelpers'
 
 
 module.exports = class IDEView extends IDEWorkspaceTabView
@@ -526,3 +526,17 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     .catch (err)->
       kd.warn "Failed to terminate session, possibly it's already dead.", err
+
+
+  bindEvents: ->
+    super
+
+    $elm = @getDomElement()
+
+    $elm.bind 'dragover', (event) =>
+      event.preventDefault()
+
+    { appManager } = kd.singletons
+
+    $elm.bind 'drop', (event) =>
+      appManager.tell 'IDE', 'handleTabDropped', event, @.parent

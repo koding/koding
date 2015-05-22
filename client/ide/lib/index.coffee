@@ -1459,3 +1459,29 @@ class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ (pane) =>
       @removePaneFromTabView pane  if pane.isInitial
+
+
+  saveDriftingTabView: (tabView) ->
+
+    @driftingTabView = tabView
+
+
+  handleTabDropped: (event, splitView) ->
+
+    return  unless @driftingTabView
+
+    @moveTabToPanel @driftingTabView, splitView
+
+
+  moveTabToPanel: (tabView, targetPanel) ->
+
+    return unless tabView.parent?
+
+    panel = tabView.parent.parent
+    return  unless panel instanceof KDSplitViewPanel
+
+    {pane} = tabView.removePane tabView.getActivePane(), yes, yes
+
+    targetPanel.subViews.first.tabView.addPane pane
+    @setActiveTabView targetPanel.subViews.first.tabView
+    @doResize()
