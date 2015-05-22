@@ -399,16 +399,25 @@ module.exports = class StacksCustomViews extends CustomViews
     stepDefineStack: (options) =>
 
       console.log options
-      {callback, cancelCallback, data} = options
-      {provider, credential} = data
-      container = @views.container 'step-creds'
 
+      {callback, cancelCallback, data}      = options
+      {provider, credential, stackTemplate} = data or {}
+
+      container = @views.container 'step-define-stack'
+      content   = stackTemplate?.template?.content or DEFAULT_TEMPLATE
       views     = @addTo container,
         stepsHeaderView : 4
-        navButton_prev  :
-          callback      : ->
-            cancelCallback {credential, provider}
-        navButton_next  : {callback}
+        input_title     :
+          label         : 'Stack Template Title'
+          value         : stackTemplate?.title or 'Default Template'
+        editorView      : {content}
+        navCancelButton :
+          title         : '< Boostrap Credential'
+          callback      : -> cancelCallback data
+        button_save     :
+          title         : 'Save & Test >'
+          cssClass      : 'solid compact green nav next'
+          callback      : -> callback views
 
       return container
 
