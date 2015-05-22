@@ -417,7 +417,7 @@ module.exports = class StacksCustomViews extends CustomViews
         button_save     :
           title         : 'Save & Test >'
           cssClass      : 'solid compact green nav next'
-          callback      : -> callback views
+          callback      : -> callback data
 
       return container
 
@@ -425,13 +425,13 @@ module.exports = class StacksCustomViews extends CustomViews
     stepTestAndSave: (options) =>
 
       console.log options
-      {callback, cancelCallback} = options
+      {callback, cancelCallback, data} = options
       container = @views.container 'step-creds'
 
       views     = @addTo container,
         stepsHeaderView : 5
         navButton_prev  :
-          callback      : cancelCallback
+          callback      : -> cancelCallback data
         navButton_next  : {callback}
 
       return container
