@@ -11,8 +11,6 @@ import (
 	"socialapi/workers/populartopic"
 	"strconv"
 	"time"
-
-	"github.com/koding/runner"
 )
 
 func getDateNumberAndYear(statisticName string) (int, int, error) {
@@ -34,10 +32,10 @@ func getDateNumberAndYear(statisticName string) (int, int, error) {
 	}
 }
 
-func getIds(key string, query *request.Query) ([]int64, error) {
+func getIds(key string, query *request.Query, c *models.Context) ([]int64, error) {
 	// limit-1 is important, because redis is using 0 based index
 	popularIds := make([]int64, 0)
-	listIds, err := runner.MustGetRedisConn().
+	listIds, err := c.MustGetRedisConn().
 		SortedSetReverseRange(
 		key,
 		query.Skip,
@@ -58,7 +56,7 @@ func getIds(key string, query *request.Query) ([]int64, error) {
 	return popularIds, nil
 }
 
-func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func ListTopics(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 
 	statisticName := u.Query().Get("statisticName")
@@ -75,7 +73,7 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 		dateNumber,
 	)
 
-	popularTopicIds, err := getIds(key, query)
+	popularTopicIds, err := getIds(key, query, ctx)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -135,7 +133,7 @@ func fetchMoreChannels(query *request.Query) ([]models.Channel, error) {
 	return models.NewChannel().List(q)
 }
 
-func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func ListPosts(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 	query.Type = models.ChannelMessage_TYPE_POST
 
@@ -147,7 +145,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	}
 	key := keyname.Weekly()
 
-	popularPostIds, err := getIds(key, query)
+	popularPostIds, err := getIds(key, query, ctx)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

@@ -4,6 +4,7 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/koding/broker"
 	"github.com/koding/logging"
+	"github.com/koding/redis"
 
 	"github.com/jinzhu/gorm"
 )
@@ -58,6 +59,17 @@ func (b *Bongo) Close() error {
 	}
 	b.log.Info("Bongo dis-connected %t", true)
 
+	r, ok := b.Cache.(*redis.RedisSession)
+	if ok {
+		r.Close()
+	}
+
 	// todo add gorm Close()
 	return nil
+}
+
+func (b *Bongo) GetRedisConn() *redis.RedisSession {
+	r, _ := b.Cache.(*redis.RedisSession)
+
+	return r
 }
