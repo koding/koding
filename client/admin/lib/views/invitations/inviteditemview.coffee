@@ -69,7 +69,7 @@ module.exports = class InvitedItemView extends KDListItemView
 
   createViews: ->
 
-    { hash, createdAt } = @getData()
+    { hash, createdAt, modifiedAt } = @getData()
     { statusType }      = @getOptions()
     size                = 40
     defaultAvatarUri    = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
@@ -80,7 +80,7 @@ module.exports = class InvitedItemView extends KDListItemView
       attributes :
         src      : "//gravatar.com/avatar/#{hash}?s=#{size}&d=#{defaultAvatarUri}"
 
-    @timeAgoView  = new KDTimeAgoView { click: @bound 'showSettings' }, createdAt
+    @timeAgoView  = new KDTimeAgoView { click: @bound 'showSettings' }, modifiedAt or createdAt
 
     if statusType is 'pending'
       @settingsIcon = new KDCustomHTMLView
