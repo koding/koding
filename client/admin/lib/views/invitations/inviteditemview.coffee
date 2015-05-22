@@ -59,6 +59,7 @@ module.exports = class InvitedItemView extends KDListItemView
       if err
         title  = 'Unable to resend the invitation. Please try again.'
 
+      @timeAgoView.setData new Date
       return new KDNotificationView { title, duration }
 
 
