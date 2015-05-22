@@ -264,6 +264,15 @@ module.exports = class StacksCustomViews extends CustomViews
       options.cssClass = 'solid compact light-gray nav cancel'
       @views.button options
 
+
+    input: (options, name) =>
+
+      {label, value} = options
+
+      new kd.FormViewWithFields
+        fields: input: {name, label, defaultValue: value}
+
+
     stacksView: (data) =>
       @views.text 'Coming soon'
 
@@ -322,7 +331,8 @@ module.exports = class StacksCustomViews extends CustomViews
         credentialList  : provider
         navCancelButton :
           title         : '< Select another provider'
-          callback      : cancelCallback
+          callback      : ->
+            cancelCallback data
 
       credentialList = views.credentialList.__view
       credentialList.on 'ItemSelected', (credential) ->
@@ -337,7 +347,7 @@ module.exports = class StacksCustomViews extends CustomViews
       {callback, cancelCallback, data} = options
       {provider, credential} = data
 
-      container = @views.container 'step-creds'
+      container = @views.container 'step-bootstrap'
 
       container.setClass 'has-markdown'
 
@@ -347,7 +357,7 @@ module.exports = class StacksCustomViews extends CustomViews
           loader        : 'main-loader'
         navCancelButton :
           title         : '< Select another credential'
-          callback      : -> cancelCallback {provider}
+          callback      : -> cancelCallback data
 
       credential.isBootstrapped (err, state) =>
 
