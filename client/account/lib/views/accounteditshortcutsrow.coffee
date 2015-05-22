@@ -25,7 +25,7 @@ class AccountEditShortcutsRow extends kd.View
   CANCEL_CLASS_NAME = 'cancel'
 
   # The maximum description string length.
-  DESCRIPTION_TRUNC_LEN = 50
+  DESCRIPTION_TRUNC_LEN = 100
 
   # The separator pattern to truncate to.
   DESCRIPTION_TRUNC_SEP = ' '
