@@ -39,7 +39,7 @@ func main() {
 	go r.Listen()
 
 	m.Listen()
-	r.ShutdownHandler = m.Close
+	defer m.Close()
 
 	r.Wait()
 }

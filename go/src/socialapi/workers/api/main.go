@@ -80,7 +80,7 @@ func main() {
 
 	m.Listen()
 	// shutdown server
-	r.ShutdownHandler = m.Close
+	defer m.Close()
 
 	r.Listen()
 	r.Wait()
