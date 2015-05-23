@@ -5,6 +5,7 @@ UserPolicyView = require './userpolicy'
 PrivacyView    = require './privacy'
 TosView        = require './tos'
 CopyrightView  = require './copyright'
+MainHeaderView = require '../core/mainheaderview'
 
 module.exports = class LegalView extends JView
 
@@ -30,7 +31,9 @@ module.exports = class LegalView extends JView
   constructor:->
 
     super
-
+    
+    @addSubView @mainHeader = new MainHeaderView
+ 
     @setPartial @partial()
 
     @handles = {}
