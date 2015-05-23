@@ -10,11 +10,11 @@ module.exports = class TopicSearchModal extends SidebarSearchModal
     options.cssClass          = kd.utils.curry 'topic-search sidebar-white-modal', options.cssClass
     options.title           or= 'Browse Topics on Koding'
     options.placeholder     or= 'Search all topics...'
-    options.noItemText      or= 'You don\'t follow any topics yet. You can search for some topics above e.g HTML, CSS, golang.'
+    options.noItemText      or= 'There are no topics here. You can create a new topic by making it a part of a new post. <em>eg: I love <strong>#programming</strong></em>'
     options.emptySearchText or= 'Sorry, your search did not have any results'
     options.endpoints        ?=
       fetch                   : kd.singletons.socialapi.channel.list
-      search                  : kd.singletons.socialapi.channel.searchTopics
+      search                  : kd.singletons.socialapi.channel.searchTopicyous
 
     super options, data
 
@@ -29,13 +29,6 @@ module.exports = class TopicSearchModal extends SidebarSearchModal
 
       kd.singletons.router.handleRoute item.getOption 'route'
       @destroy()
-
-    @addSubView new KDCustomHTMLView
-      cssClass   : 'tag-description'
-      partial    : "
-        You can also create a new topic by making it a part of a new post. <br>
-        <em>eg: I love <strong>#programming</strong></em>
-      "
 
 
 
