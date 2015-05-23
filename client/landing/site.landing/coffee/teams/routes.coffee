@@ -15,6 +15,6 @@ do ->
         location.assign href
         return
 
-      return router.handleRoute '/'  if KD.config.environment is 'production'
+      return router.handleRoute '/'  unless KD.config.hasTeamAccess
 
       KD.singletons.router.openSection 'Teams', null, null, (app) -> app.handleQuery query  if query

@@ -1,7 +1,6 @@
 do ->
 
   KODING = 'koding'
-  PROD   = 'production'
 
   handleRoot = (options)->
 
@@ -18,7 +17,7 @@ do ->
 
 
     # if there is no such group take user to group creation with given group info
-    if not group or environment is PROD
+    if not group or not KD.config.hasTeamAccess
       newUrl = "http://#{location.host.replace(groupName + '.', '')}/Teams?group=#{groupName}"
       return location.replace newUrl
 
