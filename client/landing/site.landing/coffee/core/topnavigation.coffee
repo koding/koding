@@ -1,4 +1,5 @@
 CustomLinkView = require './customlinkview'
+kookies        = require 'kookies'
 
 module.exports = class TopNavigation extends KDCustomHTMLView
 
@@ -9,9 +10,9 @@ module.exports = class TopNavigation extends KDCustomHTMLView
     { title : 'SIGN UP',           href : '/Register',                name : 'buttonized green signup', attributes : testpath : 'signup-link' }
   ]
 
-  # if KD.config.environment isnt 'production'
-  #   item = { title : 'Teams', href : '/Teams', name : 'teams' }
-  #   menu.splice 1, 0, item
+  if kookies.get('team-access')? # repetition bc this is execution time not runtime
+    item = { title : 'Teams', href : '/Teams', name : 'teams' }
+    menu.splice 1, 0, item
 
   constructor: (options = {}, data) ->
 

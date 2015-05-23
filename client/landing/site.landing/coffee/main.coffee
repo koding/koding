@@ -14,6 +14,7 @@ require './team/AppController'
 require './teams/AppController'
 
 # bootstrap app
+kookies        = require 'kookies'
 MainController = require './core/maincontrollerloggedout'
 
 do ->
@@ -37,6 +38,7 @@ do ->
 
   KD.config             or= {}
   KD.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
+  KD.config.hasTeamAccess = kookies.get('team-access')?
   KD.config.groupName     = groupName = KD.utils.getGroupNameFromLocation()
 
   if groupName is 'koding'
