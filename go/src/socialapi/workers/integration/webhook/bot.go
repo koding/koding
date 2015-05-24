@@ -70,11 +70,14 @@ func (b *Bot) FetchBotChannel(a *models.Account, group *models.Channel) (*models
 		return c, nil
 	}
 
-	return c, err
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
 func (b *Bot) fetchOrCreateChannel(a *models.Account, groupName string) (*models.Channel, error) {
-
 	// fetch or create channel
 	c, err := b.fetchBotChannel(a, groupName)
 	if err == bongo.RecordNotFound {
@@ -85,7 +88,7 @@ func (b *Bot) fetchOrCreateChannel(a *models.Account, groupName string) (*models
 		return nil, err
 	}
 
-	return c, err
+	return c, nil
 }
 
 func (b *Bot) fetchBotChannel(a *models.Account, groupName string) (*models.Channel, error) {
@@ -100,8 +103,11 @@ func (b *Bot) fetchBotChannel(a *models.Account, groupName string) (*models.Chan
 	// if err is nil
 	// it means we already have that channel
 	err := c.One(bongo.NewQS(selector))
+	if err != nil {
+		return nil, err
+	}
 
-	return c, err
+	return c, nil
 }
 
 func (b *Bot) createBotChannel(a *models.Account, groupName string) (*models.Channel, error) {
@@ -113,8 +119,11 @@ func (b *Bot) createBotChannel(a *models.Account, groupName string) (*models.Cha
 	c.TypeConstant = models.Channel_TYPE_BOT
 
 	err := c.Create()
+	if err != nil {
+		return nil, err
+	}
 
-	return c, err
+	return c, nil
 }
 
 func (b *Bot) Account() *models.Account {
