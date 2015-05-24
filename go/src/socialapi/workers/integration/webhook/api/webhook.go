@@ -45,11 +45,6 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 		return response.NewInvalidRequest(err)
 	}
 
-	// a short circuit for testing purposes
-	if r.Token == "0bc752e0-03c5-4f29-8776-328e2e88e226" {
-		return response.NewOK(response.NewSuccessResponse(nil))
-	}
-
 	channelIntegration, err := r.verify()
 	if err == webhook.ErrChannelIntegrationNotFound {
 		return response.NewAccessDenied(ErrTokenNotValid)
@@ -114,15 +109,6 @@ func (h *Handler) FetchGroupBotChannel(u *url.URL, header http.Header, _ interfa
 	username := u.Query().Get("username")
 	if username == "" {
 		return response.NewInvalidRequest(ErrUsernameNotSet)
-	}
-
-	// this is just for testing this endpoint
-	if username == "floydpepper" && token == "validtoken" {
-		resp := map[string]string{
-			"channelId": "42",
-		}
-
-		return response.NewOK(response.NewSuccessResponse(resp))
 	}
 
 	// validate token
