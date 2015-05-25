@@ -8,10 +8,12 @@ module.exports = class ApplicationTabView extends KDTabView
 
     options.resizeTabHandles            ?= yes
     options.lastTabHandleMargin         ?= 80
-    options.sortable                    ?= yes
     options.closeAppWhenAllTabsClosed   ?= yes
     options.enableMoveTabHandle         ?= no
     options.detachPanes                 ?= no
+    options.sortable                    ?= yes
+    options.droppable                   ?= yes
+
     options.cssClass = kd.utils.curry 'application-tabview', options.cssClass
 
     super options, data
