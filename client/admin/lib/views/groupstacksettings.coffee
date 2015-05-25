@@ -1,11 +1,5 @@
 kd                 = require 'kd'
-FSHelper           = require 'app/util/fs/fshelper'
-applyMarkdown      = require 'app/util/applyMarkdown'
-IDEEditorPane      = require 'ide/workspace/panes/ideeditorpane'
-Encoder            = require 'htmlencode'
-
 remote             = require('app/remote').getInstance()
-
 StacksCustomViews  = require './stacks/stackscustomviews'
 
 
@@ -18,26 +12,18 @@ module.exports     = class GroupStackSettings extends kd.View
     options.cssClass = 'stacks'
     super options, data
 
-    @_credentials = {}
-
 
   viewAppended: ->
-
     @initiateInitialView()
 
 
   initiateInitialView: ->
 
     @replaceViewsWith loader: 'main-loader'
-
     @fetchData (err, data) =>
-
-      { credentials, stackTemplate } = data
-
-      if err? or not stackTemplate
-        @replaceViewsWith noStackFoundView: @bound 'initiateNewStackWizard'
-      else
-        @replaceViewsWith stacksView: data
+      if err? or not data?.stackTemplate
+      then @replaceViewsWith noStackFoundView: @bound 'initiateNewStackWizard'
+      else @replaceViewsWith stacksView: data
 
 
   initiateNewStackWizard: ->
@@ -61,18 +47,6 @@ module.exports     = class GroupStackSettings extends kd.View
         }
 
     steps.first()
-
-
-  createCredentialsBox: ->
-
-    creds = ({title: c.title, value: c.publicKey} for c in @_credentials)
-
-    @addSubView new kd.LabelView
-      title: "Select credential to use:"
-
-    @addSubView @credentialBox = new kd.SelectBox
-      name          : "credential"
-      selectOptions : creds
 
 
   fetchData: (callback) ->
@@ -106,56 +80,6 @@ module.exports     = class GroupStackSettings extends kd.View
             callback null, {credentials, stackTemplate}
 
 
-  setStack: (stackTemplate) ->
-
-    terraformContext = @editorPane.getValue()
-    publicKeys = [@credentialBox.getValue()]
-
-    console.log {terraformContext, publicKeys}
-
-    { computeController } = kd.singletons
-
-    computeController.getKloud()
-
-      .checkTemplate {terraformContext, publicKeys}
-
-      .then (response) =>
-
-        machines = @parseTerraformOutput response
-        @outputView.updatePartial applyMarkdown "
-          ```json\n#{JSON.stringify machines, null, 2}\n```
-        "
-
-        @updateStackTemplate {
-          template: terraformContext
-          stackTemplate, publicKeys, machines
-        }
-
-      .catch   @bound 'showError'
-      .finally @saveButton.bound 'hideLoader'
-
-
-  updateStackTemplate: (data)->
-
-    { template, publicKeys, machines, stackTemplate } = data
-
-    { JCredential, JStackTemplate } = remote.api
-
-    credentials = publicKeys
-
-    if stackTemplate
-      stackTemplate.update {machines, template, credentials}, (err) =>
-        return @showError err  if err
-        @setGroupTemplate stackTemplate
-    else
-      JStackTemplate.create {
-        title : "Default stack template"
-        template, machines, credentials
-      }, (err, stackTemplate) =>
-        return @showError err  if err
-        @setGroupTemplate stackTemplate
-
-
   setGroupTemplate: (stackTemplate) ->
 
     { groupsController } = kd.singletons
@@ -173,44 +97,3 @@ module.exports     = class GroupStackSettings extends kd.View
       new kd.NotificationView
         title: "Group (#{slug}) stack has been saved!"
 
-
-
-  parseTerraformOutput: (response) ->
-
-    # An example of a valid stack template
-    # ------------------------------------
-    # title: "Default stack",
-    # description: "Koding's default stack template for new users",
-    # machines: [
-    #   {
-    #     "label" : "koding-vm-0",
-    #     "provider" : "koding",
-    #     "instanceType" : "t2.micro",
-    #     "provisioners" : [
-    #         "devrim/koding-base"
-    #     ],
-    #     "region" : "us-east-1",
-    #     "source_ami" : "ami-a6926dce"
-    #   }
-    # ],
-
-    out = machines: []
-
-    {machines} = response
-
-    for machine, index in machines
-
-      {label, provider, region} = machine
-      {instance_type, ami} = machine.attributes
-
-      out.machines.push {
-        label, provider, region
-        source_ami   : ami
-        instanceType : instance_type
-        provisioners : [] # TODO what are we going to do with provisioners? ~ GG
-      }
-
-    console.info "Kloud's response:", response
-    console.info "Converted stack :", out.machines
-
-    return out.machines

@@ -42,32 +42,55 @@ module.exports = class StacksCustomViews extends CustomViews
   }
   """
 
-  setStack = (options, callback) ->
+  parseTerraformOutput = (response) ->
+
+    # An example of a valid stack template
+    # ------------------------------------
+    # title: "Default stack",
+    # description: "Koding's default stack template for new users",
+    # machines: [
+    #   {
+    #     "label" : "koding-vm-0",
+    #     "provider" : "koding",
+    #     "instanceType" : "t2.micro",
+    #     "provisioners" : [
+    #         "devrim/koding-base"
+    #     ],
+    #     "region" : "us-east-1",
+    #     "source_ami" : "ami-a6926dce"
+    #   }
+    # ],
+
+    out = machines: []
+
+    {machines} = response
+
+    for machine, index in machines
+
+      {label, provider, region} = machine
+      {instance_type, ami} = machine.attributes
+
+      out.machines.push {
+        label, provider, region
+        source_ami   : ami
+        instanceType : instance_type
+        provisioners : [] # TODO what are we going to do with provisioners? ~ GG
+      }
+
+    console.info "Kloud's response:", response
+    console.info "Converted stack :", out.machines
+
+    return out.machines
+
+
+  handleCheckTemplate = (options, callback) ->
 
     { stackTemplate } = options
     { computeController } = kd.singletons
 
     computeController.getKloud()
-
       .checkTemplate { stackTemplateId: stackTemplate._id }
-
-      .then (response) ->
-
-        console.log '>>', response
-        # machines = @parseTerraformOutput response
-        # @outputView.updatePartial applyMarkdown "
-        #   ```json\n#{JSON.stringify machines, null, 2}\n```
-        # "
-
-        # @updateStackTemplate {
-        #   template: terraformContext
-        #   stackTemplate, publicKeys, machines
-        # }
-        #
-        callback null, response
-
-      .catch   (err) ->
-        console.log 'Failed >>', err
+      .nodeify callback
 
 
   updateStackTemplate = (data, callback) ->
