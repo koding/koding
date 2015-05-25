@@ -14,7 +14,7 @@ module.exports = class TopicSearchModal extends SidebarSearchModal
     options.emptySearchText or= 'Sorry, your search did not have any results'
     options.endpoints        ?=
       fetch                   : kd.singletons.socialapi.channel.list
-      search                  : kd.singletons.socialapi.channel.searchTopicyous
+      search                  : kd.singletons.socialapi.channel.searchTopics
 
     super options, data
 
