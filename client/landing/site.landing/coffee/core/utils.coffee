@@ -335,6 +335,10 @@ utils.extend utils,
     groupName = if hostname in mainDomains then 'koding'
     else if hostname.indexOf('.dev.koding.com') isnt -1
     then hostname.replace('.dev.koding.com', '').split('.').last
+    else if hostname.indexOf('.sandbox.koding.com') isnt -1
+    then hostname.replace('.sandbox.koding.com', '').split('.').last
+    else if hostname.indexOf('.latest.koding.com') isnt -1
+    then hostname.replace('.latest.koding.com', '').split('.').last
     else if hostname.indexOf('.koding.com') isnt -1
     then hostname.replace('.koding.com', '').split('.').last
     else 'koding'
