@@ -95,13 +95,15 @@ module.exports = class StacksCustomViews extends CustomViews
 
   updateStackTemplate = (data, callback) ->
 
-    { template, credential, title, stackTemplate } = data
+    { template, credential, title, stackTemplate, machines } = data
 
     title     or= 'Default stack template'
-    credentials = [credential.publicKey]
+    credentials = [credential.publicKey]  if credential
 
     if stackTemplate
-      stackTemplate.update {title, template, credentials}, (err) ->
+      dataToUpdate = if machines \
+        then {machines} else {title, template, credentials}
+      stackTemplate.update dataToUpdate, (err) ->
         callback err, stackTemplate
     else
       remote.api.JStackTemplate.create {
