@@ -8,6 +8,7 @@ Encoder                         = require 'htmlencode'
 dateFormat                      = require 'dateformat'
 
 FSHelper                        = require 'app/util/fs/fshelper'
+showError                       = require 'app/util/showError'
 applyMarkdown                   = require 'app/util/applyMarkdown'
 
 CustomViews                     = require 'app/commonviews/customviews'
@@ -416,7 +417,19 @@ module.exports = class StacksCustomViews extends CustomViews
         button_save     :
           title         : 'Save & Test >'
           cssClass      : 'solid compact green nav next'
-          callback      : -> callback data
+          callback      : ->
+
+            {title}  = views.input_title.getData()
+            template = views.editorView.getValue()
+
+            updateStackTemplate {
+              title, template, credential, stackTemplate
+            }, (err, _stackTemplate) ->
+              return  if showError err
+
+              callback {
+                stackTemplate: _stackTemplate, credential, provider
+              }
 
       return container
 
@@ -424,7 +437,9 @@ module.exports = class StacksCustomViews extends CustomViews
     stepTestAndSave: (options) =>
 
       console.log options
+
       {callback, cancelCallback, data} = options
+
       container = @views.container 'step-creds'
 
       views     = @addTo container,
