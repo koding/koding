@@ -79,7 +79,7 @@ func (b *Bot) FetchBotChannel(a *models.Account, group *models.Channel) (*models
 
 func (b *Bot) fetchOrCreateChannel(a *models.Account, groupName string) (*models.Channel, error) {
 	// fetch or create channel
-	c, err := b.fetchBotChannel(a, groupName)
+	c, err := Cache.BotChannel.ByAccountAndGroup(a, groupName)
 	if err == bongo.RecordNotFound {
 		return b.createBotChannel(a, groupName)
 	}
@@ -91,8 +91,7 @@ func (b *Bot) fetchOrCreateChannel(a *models.Account, groupName string) (*models
 	return c, nil
 }
 
-func (b *Bot) fetchBotChannel(a *models.Account, groupName string) (*models.Channel, error) {
-
+func fetchBotChannel(a *models.Account, groupName string) (*models.Channel, error) {
 	c := models.NewChannel()
 	selector := map[string]interface{}{
 		"creator_id":    a.Id,

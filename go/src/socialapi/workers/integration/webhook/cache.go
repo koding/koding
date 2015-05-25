@@ -1,6 +1,11 @@
 package webhook
 
-import "github.com/koding/cache"
+import (
+	"fmt"
+	"socialapi/models"
+
+	"github.com/koding/cache"
+)
 
 const cacheSize = 10000
 
@@ -14,12 +19,16 @@ func init() {
 		ChannelIntegration: &ChannelIntegrationCache{
 			token: cache.NewLRU(cacheSize),
 		},
+		BotChannel: &BotChannelCache{
+			group: cache.NewLRU(cacheSize),
+		},
 	}
 }
 
 type StaticCache struct {
 	Integration        *IntegrationCache
 	ChannelIntegration *ChannelIntegrationCache
+	BotChannel         *BotChannelCache
 }
 
 type IntegrationCache struct {
@@ -87,4 +96,46 @@ func (i *ChannelIntegrationCache) ByToken(token string) (*ChannelIntegration, er
 
 func (i *ChannelIntegrationCache) SetToCache(ci *ChannelIntegration) error {
 	return i.token.Set(ci.Token, ci)
+}
+
+///////////// BotChannelCache ////////////////
+type BotChannelCache struct {
+	group cache.Cache
+}
+
+func (b *BotChannelCache) ByAccountAndGroup(a *models.Account, groupName string) (*models.Channel, error) {
+	key := b.generateKey(a, groupName)
+	data, err := b.group.Get(key)
+	if err == nil {
+		bc, ok := data.(*models.Channel)
+		if ok {
+			return bc, nil
+		}
+	}
+
+	if err != cache.ErrNotFound {
+		return nil, err
+	}
+
+	c, err := fetchBotChannel(a, groupName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := b.SetToCache(a, groupName, c); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+
+}
+
+func (b *BotChannelCache) SetToCache(a *models.Account, groupName string, c *models.Channel) error {
+	key := b.generateKey(a, groupName)
+
+	return b.group.Set(key, c)
+}
+
+func (b *BotChannelCache) generateKey(a *models.Account, groupName string) string {
+	return fmt.Sprintf("%d-%s", a.Id, groupName)
 }

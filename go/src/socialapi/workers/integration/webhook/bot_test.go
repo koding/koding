@@ -85,7 +85,7 @@ func TestFetchBotChannel(t *testing.T) {
 			groupName := models.RandomGroupName()
 			Convey("we should be able to create bot channel for each user", func() {
 				// make sure the bot channel for the user does not exist
-				channel, err := bot.fetchBotChannel(acc, groupName)
+				channel, err := fetchBotChannel(acc, groupName)
 				So(err, ShouldEqual, bongo.RecordNotFound)
 
 				channel, err = bot.fetchOrCreateChannel(acc, groupName)
