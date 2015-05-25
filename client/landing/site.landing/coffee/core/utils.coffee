@@ -345,6 +345,7 @@ utils.extend utils,
 
     return groupName
 
+
   checkIfGroupExists: (groupName, callback) ->
 
     $.ajax
