@@ -1,16 +1,20 @@
-{ argv }     = require 'optimist'
-{ expect }   = require "chai"
+{ env : {MONGO_URL} } = process
+{ argv }              = require 'optimist'
+{ expect }            = require "chai"
 
-KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
-mongo        = "mongodb://#{ KONFIG.mongo }"
+KONFIG                = require('koding-config-manager').load("main.#{argv.c}")
+mongo                 = "mongodb://#{ KONFIG.mongo }"
+# assignment for sandbox configuration
+mongo                 = MONGO_URL  if MONGO_URL
 
-hat          = require 'hat'
-Bongo        = require 'bongo'
-JUser        = require './index'
-JAccount     = require '../account'
-JSession     = require '../session'
-TestHelper   = require "../../../../TestHelper"
+hat                   = require 'hat'
+Bongo                 = require 'bongo'
+JUser                 = require './index'
+JAccount              = require '../account'
+JSession              = require '../session'
+TestHelper            = require "../../../../testhelper"
 
+{ daisy }             = Bongo
 
 ###
   variables
@@ -80,7 +84,8 @@ runTests = -> describe 'workers.social.user.index', ->
       client.connection.delegate.type = 'registered'
       
       JUser.convert client, userFormData, (err) ->
-        expect(err.message).to.be.equal "This account is already registered."
+        expect(err)         .to.be.defined
+        expect(err.message) .to.be.equal "This account is already registered."
         done()
 
 
@@ -105,66 +110,97 @@ runTests = -> describe 'workers.social.user.index', ->
       userFormData.passwordConfirm  = 'anotherPassword'
 
       JUser.convert client, userFormData, (err) ->
-        expect(err.message).to.be.equal "Passwords must match!"
+        expect(err)         .to.be.defined
+        expect(err.message) .to.be.equal "Passwords must match!"
         done()
       
       
     it 'should pass error if username is in use', (done) ->
       
-      JUser.convert client, userFormData, (err) ->
-        expect(err.message).to.be.undefined
+      queue = [
         
-        # sending unique email address, username will remain same(duplicate)
-        userFormData.email = 'uniqueemail0@gmail.com'
+        ->
+          JUser.convert client, userFormData, (err) ->
+            expect(err.message).to.be.undefined
+
+            queue.next()
         
-        JUser.convert client, userFormData, (err) ->
-          expect(err.message).not.to.be.defined
-          done()
+        ->
+          # sending unique email address, username will remain same(duplicate)
+          userFormData.email = 'uniqueemail0@gmail.com'
+
+          JUser.convert client, userFormData, (err) ->
+            expect(err.message).to.be.defined
+
+            queue.next()
+            done()
+
+      ]
     
+      daisy queue
+
     
     it 'should pass error if email is in use', (done) ->
       
-      JUser.convert client, userFormData, (err) ->
-        expect(err.message).to.be.undefined
-        
-        # sending unique username, email address will remain same(duplicate)
-        userFormData.username = 'uniquename0'
-        
-        JUser.convert client, userFormData, (err) ->
-          expect(err.message).not.to.be.defined
-          done()
+      queue = [
+
+        ->
+          JUser.convert client, userFormData, (err) ->
+            expect(err.message).to.be.undefined
+
+            queue.next()
+
+        ->
+          # sending unique username, email address will remain same(duplicate)
+          userFormData.username = 'uniquename0'
+
+          JUser.convert client, userFormData, (err) ->
+            expect(err.message).to.be.defined
+
+            queue.next()
+            done()
+
+      ]
+
+      daisy queue
     
     
     it.skip 'should set a random password when signed up with github', (done) ->
     
-    
-    it 'should pass error when referred is same as username', (done) ->
-      
-      userFormData.referrer = userFormData.username
-      
-      JUser.convert client, userFormData, (err) ->
-        expect(err.message).not.to.be.equal "User (#{userFormData.username}) tried to refer themself."
-        done()
-    
 
     it 'should register user and create account when valid data passed to convert method', (done) ->
       
-      JUser.convert client, userFormData, (err) ->
-        expect(err.message).to.be.undefined
+      queue = [
         
-        params = { username : userFormData.username }
-        
-        JUser.one params, (err, { data : {email, registeredFrom} }) ->
-          expect(err)               .to.be.null
-          expect(email)             .to.be.equal userFormData.email
-          expect(registeredFrom.ip) .to.be.equal client.clientIP
+        ->
+          JUser.convert client, userFormData, (err) ->
+            expect(err.message).to.be.undefined
+
+            queue.next()
+
+        ->
+          params = { username : userFormData.username }
           
+          JUser.one params, (err, { data : {email, registeredFrom} }) ->
+            expect(err)               .to.be.null
+            expect(email)             .to.be.equal userFormData.email
+            expect(registeredFrom.ip) .to.be.equal client.clientIP
+
+            queue.next()
+
+        ->
           params = { 'profile.nickname' : userFormData.username }
           
           JAccount.one params, (err, { data : {profile} }) ->
             expect(err)             .to.be.null
             expect(profile.nickname).to.be.equal userFormData.username
+
+            queue.next()
             done()
+
+      ]
+
+      daisy queue
 
 
 beforeTests()

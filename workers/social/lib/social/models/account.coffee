@@ -19,7 +19,6 @@ module.exports = class JAccount extends jraphical.Module
   JName            = require './name'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
-  JStackTemplate   = require './computeproviders/stacktemplate'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -285,7 +284,11 @@ module.exports = class JAccount extends jraphical.Module
         enum                : ['invalid status',['online','offline','away','busy']]
         default             : 'online'
     broadcastableRelationships : [ 'follower' ]
+
+
     relationships           : ->
+
+      JStackTemplate   = require './computeproviders/stacktemplate'
 
       appStorage    :
         as          : 'appStorage'
