@@ -6,12 +6,13 @@ module.exports = class MoreChannelsModal extends SidebarSearchModal
 
   constructor: (options = {}, data) ->
 
-    options.cssClass      = kd.utils.curry 'more-channels sidebar-white-modal', options.cssClass
-    options.title       or= 'Other Channels you are following:'
-    options.placeholder or= 'Search'
-    options.endpoints    ?=
-      fetch               : kd.singletons.socialapi.channel.fetchFollowedChannels
-      search              : kd.singletons.socialapi.channel.searchTopics
+    options.cssClass          = kd.utils.curry 'more-channels sidebar-white-modal', options.cssClass
+    options.title           or= 'Other Channels you are following:'
+    options.placeholder     or= 'Search'
+    options.endpoints        ?=
+      fetch                   : kd.singletons.socialapi.channel.fetchFollowedChannels
+      search                  : kd.singletons.socialapi.channel.searchTopics
+    options.emptySearchText or= 'Sorry, your search did not have any results'
 
     super options, data
 
