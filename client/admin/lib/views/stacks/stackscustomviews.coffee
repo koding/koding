@@ -372,7 +372,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
       console.log options
       {callback, cancelCallback, data} = options
-      {provider, credential} = data
+      {provider, credential, stackTemplate} = data
 
       container = @views.container 'step-bootstrap'
 
@@ -411,9 +411,11 @@ module.exports = class StacksCustomViews extends CustomViews
             cssClass    : 'bootstrap-output hidden'
 
         outputView.on 'BootstrappingDone', => @addTo container,
-          navButton_next :
-            callback     : ->
-              callback {provider, credential}
+          button        :
+            title       : 'Continue'
+            cssClass    : 'solid compact green nav next'
+            callback    : ->
+              callback {provider, credential, stackTemplate}
 
         if state
           outputView.show()
@@ -465,7 +467,8 @@ module.exports = class StacksCustomViews extends CustomViews
 
       console.log options
 
-      {callback, cancelCallback, data} = options
+      {callback, cancelCallback, data}      = options
+      {stackTemplate, credential, provider} = data
 
       container = @views.container 'step-creds'
 
