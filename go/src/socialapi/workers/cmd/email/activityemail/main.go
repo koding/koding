@@ -27,11 +27,7 @@ func main() {
 	defer modelhelper.Close()
 
 	// init redis connection
-	redisConn := r.Bongo.GetRedisConn()
-	if redisConn == nil {
-		redisConn = runner.MustInitRedisConn(r.Conf)
-		defer redisConn.Close()
-	}
+	redisConn := r.Bongo.MustGetRedisConn()
 
 	handler := activityemail.New(
 		r.Bongo.Broker.MQ,

@@ -26,8 +26,7 @@ module.exports = class KodingRouter extends kd.Router
 
     super
 
-    return if @userRoute
-
+    return  if @userRoute
 
     kd.utils.defer =>
       @handleRoute @defaultRoute,
@@ -73,7 +72,7 @@ module.exports = class KodingRouter extends kd.Router
 
   handleNotFound: (route) ->
 
-    status_404 = KDRouter::handleNotFound.bind this, route
+    status_404 = kd.Router::handleNotFound.bind this, route
 
     status_301 = (redirectTarget)=>
       @handleRoute "/#{redirectTarget}", replaceState: yes
