@@ -33,7 +33,7 @@ module.exports     = class GroupStackSettings extends kd.View
       'stepSetupCredentials'
       'stepBootstrap'
       'stepDefineStack'
-      'stepTestAndSave'
+      'stepComplete'
     ]
 
     steps = []
@@ -41,8 +41,8 @@ module.exports     = class GroupStackSettings extends kd.View
     NEW_STACK_STEPS.forEach (step, index) =>
       steps.push (data) =>
         @replaceViewsWith "#{step}": {
-          callback: steps[index+1] or -> console.log 'LAST ONE'
-          cancelCallback: steps[index-1] or @bound 'initiateInitialView'
+          callback       : steps[index+1] or @bound 'setGroupTemplate'
+          cancelCallback : steps[index-1] or @bound 'initiateInitialView'
           data
         }
 
@@ -91,9 +91,12 @@ module.exports     = class GroupStackSettings extends kd.View
       return new kd.NotificationView
         title: 'Setting stack template for koding is disabled'
 
+    @replaceViewsWith loader: 'main-loader'
+
     currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
       return @showError err  if err
 
       new kd.NotificationView
         title: "Group (#{slug}) stack has been saved!"
 
+      @initiateInitialView()

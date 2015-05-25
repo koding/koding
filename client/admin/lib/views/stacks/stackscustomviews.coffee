@@ -463,14 +463,14 @@ module.exports = class StacksCustomViews extends CustomViews
       return container
 
 
-    stepTestAndSave: (options) =>
+    stepComplete: (options) =>
 
       console.log options
 
       {callback, cancelCallback, data}      = options
       {stackTemplate, credential, provider} = data
 
-      container = @views.container 'step-creds'
+      container = @views.container 'step-complete'
 
       views     = @addTo container,
         stepsHeaderView : 5
@@ -525,7 +525,7 @@ module.exports = class StacksCustomViews extends CustomViews
           { title : 'Credentials' }
           { title : 'Bootstrap' }
           { title : 'Define your Stack' }
-          { title : 'Test & Save' }
+          { title : 'Complete' }
         ]
         selected  = options
       else
