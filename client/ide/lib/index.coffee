@@ -783,7 +783,7 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (view) ->
       if view instanceof Class
         if component is 'editor'
-          view.aceView.ace[method]? value
+          view.getAce()[method]? value
         else
           view.webtermView.updateSettings()
 
