@@ -783,9 +783,7 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (view) ->
       if view instanceof Class
         if component is 'editor'
-          ace = view.aceView.ace
-          ace[method]? value
-          ace.editor.setFontSize value  if method is 'setFontSize'
+          view.getAce()[method]? value
         else
           view.webtermView.updateSettings()
 
