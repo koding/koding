@@ -150,9 +150,10 @@ module.exports = class StacksCustomViews extends CustomViews
           outputView.addContent 'Failed to parse:', e
           return
 
-        outputView.addContent cred
-        outputView.addContent 'You can continue to next step.'
-        outputView.emit 'BootstrappingDone'
+        outputView
+          .addContent cred
+          .addContent 'You can continue to next step.'
+          .emit 'BootstrappingDone'
 
 
   handleBootstrap = (outputView, credential, button) ->
@@ -249,6 +250,7 @@ module.exports = class StacksCustomViews extends CustomViews
         content = content.join ' '
         content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
         code.setPartial hljs.highlight('profile', content).value
+        return container
 
       return container
 
@@ -297,7 +299,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
 
     stacksView: (data) =>
-      @views.text 'Coming soon'
+      @views.text 'Group stack settings completed, more coming soon.'
 
 
     stepSelectProvider: (options) =>
