@@ -87,7 +87,7 @@ module.exports = class NavigationMachineItem extends JView
       tagName     : 'span'
       click       : (e) =>
         if @machine.isMine() then @handleMachineSettingsClick e
-        else if @machine.isApproved() then @showSidebarSharePopup()
+        else if @machine.isApproved() then @showSidebarSharePopup {}, e
 
 
   createSettingsIconPlaceholder: ->
@@ -171,7 +171,9 @@ module.exports = class NavigationMachineItem extends JView
     return data.workspaces.first?.channelId
 
 
-  showSidebarSharePopup: (options = {}) ->
+  showSidebarSharePopup: (options = {}, event) ->
+
+    kd.utils.stopDOMEvent event
 
     options.position  = @getPopupPosition 20
     options.channelId = @getChannelId @getData()
