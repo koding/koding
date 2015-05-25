@@ -333,7 +333,6 @@ utils.extend utils,
     { hostname } = location
     mainDomains = ['dev.koding.com', 'sandbox.koding.com', 'latest.koding.com', 'prod.koding.com']
     groupName = if hostname in mainDomains then 'koding'
-    if hostname.endsWith("asdf")
     else if hostname.indexOf('.dev.koding.com') isnt -1
     then hostname.replace('.dev.koding.com', '').split('.').last
     else if hostname.indexOf('.sandbox.koding.com') isnt -1
