@@ -472,11 +472,52 @@ module.exports = class StacksCustomViews extends CustomViews
 
       container = @views.container 'step-complete'
 
-      views     = @addTo container,
+      container.setClass 'has-markdown'
+
+      views = @addTo container,
         stepsHeaderView : 5
-        navButton_prev  :
-          callback      : -> cancelCallback data
-        navButton_next  : {callback}
+        container       :
+          loader        : 'main-loader'
+
+      handleCheckTemplate {stackTemplate}, (err, response) =>
+
+        console.log ">>>>>", err, response
+
+        @addTo container,
+          navCancelButton :
+            title         : '< Edit Template'
+            callback      : -> cancelCallback data
+
+        views.container.destroySubViews()
+
+        outputView   = @addTo views.container,
+          outputView :
+            cssClass : 'plan-output'
+
+        if err or not response
+          outputView
+            .addContent 'Something went wrong with the template:'
+            .addContent err?.message or 'No response from Kloud'
+        else
+
+          machines = parseTerraformOutput response
+
+          outputView
+            .addContent 'Template check complete succesfully'
+            .addContent 'Following machines will be created:'
+            .addContent JSON.stringify machines, null, 2
+            .addContent 'Click Complete to set this stack as default stack'
+
+          @addTo container,
+            button_save     :
+              title         : 'Complete'
+              cssClass      : 'solid compact green nav next'
+              callback      : ->
+                updateStackTemplate {
+                  stackTemplate, machines
+                }, (err, stackTemplate) ->
+                  return  if showError err
+                  callback stackTemplate
 
       return container
 
