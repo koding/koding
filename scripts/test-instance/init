@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -o errexit
 
 HOST=$(ec2metadata | grep public-hostname | FS=':' awk '{print $2}')
 
@@ -11,25 +11,23 @@ export REPOSITORY_PATH='/opt/koding'
 export CI="true"
 export WERCKER="true"
 
+export CONFIG_DEBUGMODE="true"
+export NIGHTWATCH_OPTIONS="--verbose"
+
 service nginx stop
 
 cd $REPOSITORY_PATH
-
-export CONFIG_DEBUGMODE="true"
-export NIGHTWATCH_OPTIONS="--verbose"
 
 scripts/wercker/install-node-modules koding
 scripts/install-npm.sh -u
 
 ./configure --host $HOST:8090
-
-scripts/install-npm.sh -d client -u
+./run install
 
 export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
 make -C client/test build
 
 ./run services
-./run install
 ./run migrate up
 ./run resetdb --yes
 ./run importusers

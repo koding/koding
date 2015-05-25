@@ -30,7 +30,6 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
         { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
-        { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView      }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
       ]
     koding     :
@@ -39,20 +38,22 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Blocked',        title : 'Blocked Users',     viewClass : GroupsBlockedUserView    }
         { slug : 'Widgets',        title : 'Custom Views',      viewClass : CustomViewsManager       }
         { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView      }
+        { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView      }
         { slug : 'Administration', title : 'Administration',    viewClass : AdministrationView       }
       ]
 
 
   constructor: (options = {}, data) ->
 
-    options.view = new kd.ModalView
+    data       or= kd.singletons.groupsController.getCurrentGroup()
+    options.view = new AdminAppView
       title      : 'Team Dashboard'
       cssClass   : 'AppModal AppModal--admin'
       width      : 1000
-      height     : 600
+      height     : '100%'
       overlay    : yes
-
-    data       or= kd.singletons.groupsController.getCurrentGroup()
+      tabData    : NAV_ITEMS
+    , data
 
     super options, data
 
@@ -71,10 +72,6 @@ module.exports = class AdminAppController extends AppController
 
 
   loadView: (modal) ->
-
-    modal.addSubView @mainView = new AdminAppView
-      tabData: NAV_ITEMS
-    , @getData()
 
     modal.once 'KDObjectWillBeDestroyed', ->
       { router } = kd.singletons
