@@ -388,7 +388,7 @@ module.exports = class StacksCustomViews extends CustomViews
       views     = @addTo container,
         stepsHeaderView : 3
         container       :
-          loader        : 'main-loader'
+          loader        : 'Checking bootstrap status...'
         navCancelButton :
           title         : '< Select another credential'
           callback      : -> cancelCallback data
@@ -484,7 +484,7 @@ module.exports = class StacksCustomViews extends CustomViews
       views = @addTo container,
         stepsHeaderView : 5
         container       :
-          loader        : 'main-loader'
+          loader        : 'Processing template...'
 
       handleCheckTemplate {stackTemplate}, (err, response) =>
 

@@ -19,7 +19,7 @@ module.exports     = class GroupStackSettings extends kd.View
 
   initiateInitialView: ->
 
-    @replaceViewsWith loader: 'main-loader'
+    @replaceViewsWith loader: 'Fetching stack data...'
     @fetchData (err, data) =>
       if err? or not data?.stackTemplate
       then @replaceViewsWith noStackFoundView: @bound 'initiateNewStackWizard'
@@ -91,7 +91,7 @@ module.exports     = class GroupStackSettings extends kd.View
       return new kd.NotificationView
         title: 'Setting stack template for koding is disabled'
 
-    @replaceViewsWith loader: 'main-loader'
+    @replaceViewsWith loader: 'Setting group stack...'
 
     currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
       return @showError err  if err
