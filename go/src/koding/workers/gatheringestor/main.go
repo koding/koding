@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
@@ -40,7 +41,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	handler := &GatherInjestor{log: log, dog: dogclient}
+	handler := &GatherIngestor{log: log, dog: dogclient}
 
 	mux := http.NewServeMux()
 
@@ -48,7 +49,7 @@ func main() {
 	mux.HandleFunc("/version", artifact.VersionHandler())
 	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
-	port := "6700"
+	port := fmt.Sprintf("%v", conf.GatherIngestor.Port)
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatal(err.Error())

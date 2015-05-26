@@ -7,11 +7,11 @@ import (
 	"github.com/koding/metrics"
 )
 
-type GatherInjestor struct {
+type GatherIngestor struct {
 	log logging.Logger
 	dog *metrics.DogStatsD
 }
 
-func (g *GatherInjestor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (g *GatherIngestor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
