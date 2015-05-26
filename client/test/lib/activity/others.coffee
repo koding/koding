@@ -33,17 +33,23 @@ module.exports =
 
   sendHashtagActivity: (browser) ->
 
+    helpers.beginTest(browser)
+
     helpers.sendHashtagActivity(browser)
     browser.end()
 
 
   followTopic: (browser) ->
 
+    helpers.beginTest(browser)
+
     helpers.doFollowTopic(browser)
     browser.end()
 
 
   unfollowTopic: (browser) ->
+
+    helpers.beginTest(browser)
 
     hashtag        = helpers.doFollowTopic(browser)
     publicSelector = '#main-sidebar [testpath="public-feed-link/Activity/Topic/public"]'
@@ -83,3 +89,26 @@ module.exports =
       .assert.containsText     '.kdtabpaneview.most-liked', post # Assertion
       .end()
 
+
+  switchBetweenChannels: (browser) ->
+
+    helpers.beginTest(browser)
+
+    firstHashtag  = helpers.doFollowTopic(browser)
+    secondHashtag = helpers.doFollowTopic(browser)
+
+    firstHashtag  = firstHashtag.replace '#', ''
+    secondHashtag = secondHashtag.replace '#', ''
+
+    channelTitle          = '[testpath=channel-title]'
+    firstHashtagSelector  = ".followed.topics [testpath='public-feed-link/Activity/Topic/#{firstHashtag}']"
+    secondHashtagSelector = ".followed.topics [testpath='public-feed-link/Activity/Topic/#{secondHashtag}']"
+
+    browser
+      .waitForElementVisible  firstHashtagSelector, 20000
+      .click                  firstHashtagSelector
+      .assert.containsText    channelTitle, firstHashtag # Assertion
+      .waitForElementVisible  secondHashtagSelector,20000
+      .click                  secondHashtagSelector
+      .assert.containsText    channelTitle, secondHashtag # Assertion
+      .end()
