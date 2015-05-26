@@ -18,6 +18,10 @@ ComputeController_UI            = require 'app/providers/computecontroller.ui'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
+StackTemplateList               = require './stacktemplatelist'
+StackTemplateListItem           = require './stacktemplatelistitem'
+StackTemplateListController     = require './stacktemplatelistcontroller'
+
 
 module.exports = class StacksCustomViews extends CustomViews
 
@@ -308,7 +312,28 @@ module.exports = class StacksCustomViews extends CustomViews
 
 
     stacksView: (data) =>
-      @views.text 'Group stack settings completed, more coming soon.'
+      console.log ">>>", data
+
+      container = @views.container 'stacktemplates'
+
+      @addTo container,
+        text              : 'Group stack settings completed, more coming soon.'
+        stackTemplateList : {}
+
+      return container
+
+
+    stackTemplateList: (data) =>
+
+      listView   = new StackTemplateList
+        itemClass  : StackTemplateListItem
+      controller = new StackTemplateListController
+        view       : listView
+        wrapper    : no
+        scrollView : no
+
+      __view = controller.getView()
+      return { __view, controller }
 
 
     stepSelectProvider: (options) =>
