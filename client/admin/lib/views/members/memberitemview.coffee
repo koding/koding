@@ -98,6 +98,7 @@ module.exports = class MemberItemView extends KDListItemView
 
   handleRoleChange: (newRole) ->
 
+    oldRole  = @memberRole
     button   = @actionButtons[newRole]
     jAccount = @getData()
 
@@ -122,6 +123,7 @@ module.exports = class MemberItemView extends KDListItemView
         @memberRole = @getRole data.roles
 
         @handleRoleChangeOnUI @memberRole.label
+        @emit 'MemberRoleChanged', oldRole, @memberRole
 
         @isInProgress = no
 
