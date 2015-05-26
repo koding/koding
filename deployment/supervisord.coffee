@@ -93,7 +93,7 @@ module.exports.create = (KONFIG)->
   groupConfigs = {}
 
   # for every worker create their section configs under group name
-  for name, options of KONFIG.workers
+  for name, options of KONFIG.workers  when options.supervisord?.command?
 
     groupConfigs[options.group]       or= {}
     groupConfigs[options.group][name] or= {}

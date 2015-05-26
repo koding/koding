@@ -9,6 +9,7 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+	"github.com/koding/redis"
 	tigertonic "github.com/rcrowley/go-tigertonic"
 )
 
@@ -35,6 +36,7 @@ type Mux struct {
 	server *tigertonic.Server
 	config *Config
 	log    logging.Logger
+	redis  *redis.RedisSession
 }
 
 func New(mc *Config, log logging.Logger, metrics *metrics.Metrics) *Mux {
@@ -63,7 +65,7 @@ func (m *Mux) AddHandler(request handler.Request) {
 		request.Metrics = m.Metrics
 	}
 	hHandler := handler.Wrapper(request)
-	hHandler = handler.BuildHandlerWithContext(hHandler)
+	hHandler = handler.BuildHandlerWithContext(hHandler, m.redis, m.log)
 
 	m.mux.Handle(request.Type, request.Endpoint, hHandler)
 }
@@ -130,7 +132,16 @@ func (m *Mux) Handler(r *http.Request) (http.Handler, string) {
 }
 
 func (m *Mux) Close() {
-	m.server.Close()
+	if m.server != nil {
+		m.server.Close()
+	}
+	if m.redis != nil {
+		m.redis.Close()
+	}
+}
+
+func (m *Mux) SetRedis(r *redis.RedisSession) {
+	m.redis = r
 }
 
 func (m *Mux) listener() {

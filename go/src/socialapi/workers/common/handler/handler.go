@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -13,12 +14,13 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/response"
-	"strconv"
 	"strings"
 
-	"github.com/juju/ratelimit"
+	"github.com/PuerkitoBio/throttled"
 	"github.com/koding/bongo"
+	"github.com/koding/logging"
 	kmetrics "github.com/koding/metrics"
+	"github.com/koding/redis"
 	"github.com/koding/runner"
 
 	tigertonic "github.com/rcrowley/go-tigertonic"
@@ -34,7 +36,8 @@ const (
 
 var (
 	// TODO allowed origins must be configurable
-	cors = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
+	cors         = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
+	genericError = errors.New("an error occurred")
 )
 
 type Request struct {
@@ -54,8 +57,18 @@ type Request struct {
 	Cookies   []*http.Cookie
 	Body      interface{}
 	Headers   map[string]string
-	Ratelimit func(*http.Request) *ratelimit.Bucket
+	Ratelimit *throttled.Throttler
 }
+
+var throttleErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+	runner.MustGetLogger().Error("Throttling error: %s", err)
+
+	writeJSONError(w, genericError)
+}
+
+var throttleDenyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	writeJSONError(w, response.LimitRateExceededError{})
+})
 
 // todo add prooper logging
 func getAccount(r *http.Request) *models.Account {
@@ -138,6 +151,7 @@ func Wrapper(r Request) http.Handler {
 	if r.Ratelimit != nil {
 		hHandler = BuildHandlerWithRateLimit(hHandler, r.Ratelimit)
 	}
+
 	// create the final handler
 	return cors.Build(hHandler)
 }
@@ -157,7 +171,7 @@ func buildHandlerWithTimeTracking(handler http.Handler, r Request) http.Handler 
 	)
 }
 
-func BuildHandlerWithContext(handler http.Handler) http.Handler {
+func BuildHandlerWithContext(handler http.Handler, redis *redis.RedisSession, log logging.Logger) http.Handler {
 	// add context
 	return tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
@@ -165,12 +179,11 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 			// set group name to context
 			//
 
-			context := &models.Context{
-				GroupName: getGroupName(r),
-				Client: &models.Client{
-					Account: getAccount(r),
-					IP:      net.ParseIP(utils.GetIpAddress(r)),
-				},
+			context := models.NewContext(redis, log)
+			context.GroupName = getGroupName(r)
+			context.Client = &models.Client{
+				Account: getAccount(r),
+				IP:      net.ParseIP(utils.GetIpAddress(r)),
 			}
 
 			*(tigertonic.Context(r).(*models.Context)) = *context
@@ -180,31 +193,11 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 	)
 }
 
-func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request) *ratelimit.Bucket) http.Handler {
-	// add context
-	return tigertonic.If(
-		func(r *http.Request) (http.Header, error) {
-			// get the limiter
-			bucket := limiter(r)
+func BuildHandlerWithRateLimit(handler http.Handler, t *throttled.Throttler) http.Handler {
+	throttled.Error = throttleErrorHandler
+	throttled.DefaultDeniedHandler = throttleDenyHandler
 
-			h := http.Header{}
-			h.Add("X-RateLimit-Limit", strconv.FormatInt(int64(bucket.Rate()*60), 10))
-
-			// check if any 		throttling is enabled and then check token's available.
-			// Tokens are filled per frequency of the initial bucket, so every request
-			// is going to take one token from the bucket. If many requests come in (in
-			// span time larger than the bucket's frequency), there will be no token's
-			// available more so it will return a zero.
-			timeToWait := bucket.Take(1)
-			if timeToWait > time.Duration(0) {
-				h.Add("Retry-After", strconv.FormatInt(int64(timeToWait.Seconds()), 10))
-				return h, response.LimitRateExceededError{}
-			}
-
-			return h, nil
-		},
-		handler,
-	)
+	return t.Throttle(handler)
 }
 
 func MakeRequest(request *Request) (*http.Response, error) {

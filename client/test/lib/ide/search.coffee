@@ -83,32 +83,53 @@ module.exports =
     browser.end()
 
 
-  openAnExistingFileAndSave: (browser) ->
-
-    activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active'
-
+  toggleInvisibleFiles: (browser) ->
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    text     = helpers.getFakeText()
-    fileName = ideHelpers.createAndSaveNewFile(browser, text)
+    pathSelector = "span[title='/home/#{user.username}/.bashrc']"
 
-    ideHelpers.closeFile(browser, fileName)
-    ideHelpers.openAnExistingFile(browser, user, fileName, text)
+    browser.element 'css selector', pathSelector, (result) =>
+      if result.status is 0
+       ideHelpers.toggleInvisibleFiles(browser, user)
+      else
+        helpers.clickVMHeaderButton(browser)
+        browser
+          .click '.context-list-wrapper .toggle-invisible-files'
+          .waitForElementVisible    pathSelector, 20000 # Assertion
 
-    text = helpers.getFakeText()
+          ideHelpers.toggleInvisibleFiles(browser, user)
 
-    ideHelpers.setTextToEditor(browser, text)
+      browser.end()
 
-    browser
-      .assert.containsText    activeEditorSelector, text # Assertion
 
-    ideHelpers.saveFile(browser)
-    ideHelpers.closeFile(browser, fileName)
-    ideHelpers.openAnExistingFile(browser, user, fileName, text)
+  # openAnExistingFileAndSave: (browser) ->
 
-    browser
-      .assert.containsText    activeEditorSelector, text # Assertion
+  #   activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active'
 
-    browser.end()
+
+  #   user = helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
+
+  #   text     = helpers.getFakeText()
+  #   fileName = ideHelpers.createAndSaveNewFile(browser, text)
+
+  #   ideHelpers.closeFile(browser, fileName)
+  #   ideHelpers.openAnExistingFile(browser, user, fileName, text)
+
+  #   text = helpers.getFakeText()
+
+  #   ideHelpers.setTextToEditor(browser, text)
+
+  #   browser
+  #     .assert.containsText    activeEditorSelector, text # Assertion
+
+  #   ideHelpers.saveFile(browser)
+  #   ideHelpers.closeFile(browser, fileName)
+  #   ideHelpers.openAnExistingFile(browser, user, fileName, text)
+
+  #   browser
+  #     .assert.containsText    activeEditorSelector, text # Assertion
+
+  #   browser.end()

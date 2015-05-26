@@ -140,11 +140,11 @@ sidebarTextShadow()
   borderBox()
 
   cite.count
-    size            24px 20px
-    line-height     20px
+    size            24px 16px
+    line-height     16px
     color           #fff
-    abs             3px 0px 0 0
-    font-size       10px
+    abs             0px 0px 0 0
+    font-size       9px
     font-weight     700
     background      sidebarCountBg
     rounded         3px
@@ -358,7 +358,7 @@ sidebarTextShadow()
           background  none
           border      none
           abs         0 0 0px 0px
-          rounded     0 0 3px 3px
+          rounded     1px
           .bar
             background  #4BA148
             border      none
@@ -377,7 +377,7 @@ sidebarTextShadow()
 
   .ws-settings-icon
     r-sprite          app vm-settings-icon
-    right             6px
+    right             2px
     top               5px
     opacity           0
 
@@ -447,8 +447,9 @@ sidebarTextShadow()
 
   .kdlistitemview-sidebar-item
 
-    size              auto 23px
-    padding           2px 15px
+    size              auto 16px
+    padding           0px 15px
+    margin-bottom     8px
     rounded           4px
     font-size         14px
     font-weight       400
@@ -456,7 +457,6 @@ sidebarTextShadow()
     position          relative
     display           block
     color             sidebarGray
-    overflow          hidden
     vendor            transition, margin-top .2s ease-out\,\
                                   transform .2s ease-out
 
@@ -496,17 +496,16 @@ sidebarTextShadow()
 
     .ttag
       display        block
-      line-height    19px
+      line-height    16px
       font-size      14px
       margin-left    4px
-      margin-top     2px
 
       &:before
         display      block
         content      '#'
         font-size    24px
         color        #6d6d6d
-        top          2px
+        top          -2px
         left         0
         text-shadow  none
         abs()
@@ -516,7 +515,8 @@ sidebarTextShadow()
       ellipsis()
 
     .topic-follow-btn
-      abs            3px 1px 0 0
+      size           24px 16px
+      abs            0px 1px 0 0
 
       &.following
         right        6px
@@ -533,19 +533,19 @@ sidebarTextShadow()
   .messages
 
     h3.sidebar-title
-      padding-bottom    7px
+      padding-bottom    16px
+      padding-top       18px
 
     .nothing
       hidden()
 
     .kdlistitemview-sidebar-item
-      height        28px
+      height        16px
       min-height    0
-      margin        0
       borderBox()
 
       cite.count
-        abs         6px 0px 0 0
+        abs         0px 0px 0 0
 
       > .user-numbers
         padding     0 0 0 36px
@@ -589,8 +589,7 @@ sidebarTextShadow()
         > .profile
           display     block
           float       none
-          margin-top  3px
-          line-height 23px
+          line-height 16px
           width       170px
           margin-left 4px
           borderBox()
@@ -602,7 +601,7 @@ sidebarTextShadow()
           size          10px, 10px
           bg            color, #6d6d6d
           border-radius 100%
-          abs           7px 0 0 -14px
+          abs           3px 0 0 -14px
 
       .avatarview
         size            24px 24px
@@ -763,7 +762,7 @@ h3.sidebar-title
   text-transform            uppercase
   word-spacing              .2em
   letter-spacing            .05em
-  padding                   14px 0 12px
+  padding                   14px 0 16px
   sidebarTextShadow()
   pointer()
 
@@ -916,9 +915,10 @@ h3.sidebar-title
 
 .activity-sidebar
   a.vm
-    padding           5px 8px 5px 19px
+    padding           0px 8px 0px 19px
     display           block
-    size              218px 26px
+    size              218px 16px
+    margin-bottom     8px
     opacity           1
     color             sidebarGray
     borderBox()
@@ -946,7 +946,7 @@ h3.sidebar-title
       width         200px
       vendor        transition, width .1s ease .05s
       font-size     14px
-      line-height   18px
+      line-height   16px
       ellipsis()
 
     &.social > figure
@@ -965,23 +965,19 @@ h3.sidebar-title
         width         13px
         height        13px
         bg            color, transparent
-        abs           7px 0 0 0px
+        abs           1px 0 0 0px
         rounded       3px
         border        3px solid sidebarGray
         borderBox()
       > span
         r-sprite    app vm-settings-icon
         right       2px
-        top         5px
+        top         2px
         opacity     0
         vendor      transition, opacity .1s .1s ease
         abs()
       &:hover > span
         opacity     1
-      &.terminated
-      &.notinitialized
-        figure
-          opacity   .5
       &.running > figure
         border-color   #24B463
         // bg          color, #8CEE71
@@ -992,8 +988,8 @@ h3.sidebar-title
         size        100% 3px
         background  none
         border      none
-        abs         0 0 0px 0px
-        rounded     0 0 3px 3px
+        abs         0 0 -4px 0px
+        rounded     1px
         .bar
           background  #4BA148
           border      none

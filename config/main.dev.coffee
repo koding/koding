@@ -28,7 +28,7 @@ Configuration = (options={}) ->
   redis.url           = "#{redis.host}:#{redis.port}"
 
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
-  mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
+  mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       10           , vhost:        "#{rabbitmq.vhost}" }
 
   if options.ngrok
     scheme = 'https'
@@ -44,7 +44,7 @@ Configuration = (options={}) ->
 
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
 
-  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipient: "foome@koding.com"                       }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipient: "#{process.env.USER}@koding.com"                       }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
@@ -281,7 +281,13 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
-        disableLocation : yes
+        websocket       : yes
+        locations       : [
+          {
+            location    : "~^/kontrol/(.*)"
+            proxyPass   : "http://kontrol/$1$is_args$args"
+          }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.kontrol.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
@@ -290,10 +296,15 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
-        locations       : [ location: "~^/kloud/.*" ]
+        locations       : [
+          {
+            location    : "~^/kloud/(.*)"
+            proxyPass   : "http://kloud/$1$is_args$args"
+          }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
@@ -342,6 +353,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.sourcemaps.port}"
+      nginx             :
+        locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
@@ -349,6 +362,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.appsproxy.port}"
+      nginx             :
+        locations       : [ { location : "/appsproxy" } ]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
 
@@ -458,8 +473,66 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
         command         : "#{GOBIN}/watcher -run koding/vmwatcher"
+      nginx             :
+        locations       : [ { location: "/vmwatcher" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
+
+    contentrotator      :
+      nginx             :
+        locations       : [
+          {
+            location    : "~ /-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/content-rotator/$1"
+            extraParams : [ "resolver 8.8.8.8;" ]
+          }
+        ]
+
+    userproxies      :
+      nginx             :
+        websocket       : yes
+        locations       : [
+          {
+            location    : '~ ^\\/-\\/userproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/prodproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/sandboxproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/latestproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/devproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+        ]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
@@ -497,6 +570,7 @@ Configuration = (options={}) ->
       workers = ""
       for key,val of KONFIG.workers
 
+        continue  unless val.supervisord
         workers += """
 
         function worker_daemon_#{key} {
@@ -752,7 +826,7 @@ Configuration = (options={}) ->
         node scripts/create-default-workspace
 
         # Run all the worker daemons in KONFIG.workers
-        #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
+        #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers when val.supervisord).join(" ")}
 
         # Check backend option, if it's then bypass client build
         if [ "$1" == "backend" ] ; then

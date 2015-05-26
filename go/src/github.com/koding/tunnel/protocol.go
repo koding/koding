@@ -1,7 +1,14 @@
 package tunnel
 
-const ControlPath = "/_controlPath_/"
-const TunnelPath = "/_tunnelPath_/"
+const (
+	ControlPath = "/_controlPath_/"
+	TunnelPath  = "/_tunnelPath_/"
+
+	// Custom Tunnel specific header
+	XKTunnelProtocol   = "X-KTunnel-Protocol"
+	XKTunnelId         = "X-KTunnel-Id"
+	XKTunnelIdentifier = "X-KTunnel-Identifier"
+)
 
 var Connected = "200 Connected to Tunnel"
 

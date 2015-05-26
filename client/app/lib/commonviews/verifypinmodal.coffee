@@ -12,9 +12,6 @@ module.exports = class VerifyPINModal extends KDModalViewWithForms
       overlayClick                : no
       width                       : 605
       height                      : "auto"
-      cancel                      : =>
-        callback null
-        @destroy()
       tabs                        :
         navigable                 : yes
         forms                     :

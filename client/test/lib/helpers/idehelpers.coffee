@@ -133,3 +133,21 @@ module.exports =
       .waitForElementVisible  contextMenuSelector, 20000
       .click                  openFileSelector
       .waitForElementVisible  fileTabSelector, 20000
+
+
+  toggleInvisibleFiles: (browser, user) ->
+
+    pathSelector = "span[title='/home/#{user.username}/.bashrc']"
+
+    helpers.clickVMHeaderButton(browser)
+
+    browser
+      .click                   '.context-list-wrapper .refresh'
+      .waitForElementVisible    pathSelector, 20000 # Assertion
+
+    helpers.clickVMHeaderButton(browser)
+
+    browser
+      .click                    '.context-list-wrapper .toggle-invisible-files'
+      .pause 2000
+      .waitForElementNotPresent pathSelector, 20000 # Assertion

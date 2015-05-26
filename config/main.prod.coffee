@@ -27,7 +27,7 @@ Configuration = (options={}) ->
   redis.url           = "#{redis.host}:#{redis.port}"
 
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
-  mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
+  mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       10          , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://127.0.0.1"     , local_:          "127.0.0.1"                          , port:     80                   }
   email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding' }
   kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               3000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"}
@@ -262,7 +262,13 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
-        disableLocation : yes
+        websocket       : yes
+        locations       : [
+          {
+            location    : "~^/kontrol/(.*)"
+            proxyPass   : "http://kontrol/$1$is_args$args"
+          }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.kontrol.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
@@ -274,7 +280,12 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
-        locations       : [ location: "~^/kloud/.*" ]
+        locations       : [
+          {
+            location    : "~^/kloud/(.*)"
+            proxyPass   : "http://kloud/$1$is_args$args"
+          }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
@@ -323,6 +334,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.sourcemaps.port}"
+      nginx             :
+        locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
         command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
@@ -330,6 +343,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       ports             :
         incoming        : "#{KONFIG.appsproxy.port}"
+      nginx             :
+        locations       : [ { location : "/appsproxy" } ]
       supervisord       :
         command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port}"
 
@@ -377,6 +392,8 @@ Configuration = (options={}) ->
       instances         : 1
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
+      nginx             :
+        locations       : [ { location: "/vmwatcher" } ]
       supervisord       :
         command         : "#{GOBIN}/vmwatcher"
         stopwaitsecs    : 20
@@ -537,6 +554,62 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
+
+    contentrotator      :
+      nginx             :
+        locations       : [
+          {
+            location    : "~ /-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/content-rotator/$1"
+            extraParams : [ "resolver 8.8.8.8;" ]
+          }
+        ]
+
+    userproxies      :
+      nginx             :
+        websocket       : yes
+        locations       : [
+          {
+            location    : '~ ^\\/-\\/userproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/prodproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/sandboxproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/latestproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+          {
+            location    : '~ ^\\/-\\/devproxy\\/(?<ip>.+?)\\/(?<rest>.*)'
+            proxyPass   : 'http://$ip:56789/$rest'
+            extraParams : [
+              'proxy_read_timeout 21600s;'
+              'proxy_send_timeout 21600s;'
+            ]
+          }
+        ]
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------

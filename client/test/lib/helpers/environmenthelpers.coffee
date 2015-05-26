@@ -76,10 +76,7 @@ module.exports =
     browser.waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
 
 
-  addDomain: (browser) ->
-
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  addDomain: (browser, user) ->
 
     buttonSelector     = '.domains .kdheaderview button.add-button'
     buttonLoaderSelector = '.add-view button.loading'
@@ -99,6 +96,21 @@ module.exports =
       .assert.containsText      '.kdlistitemview-domain:last-child' , domainName
 
     return domainName
+
+
+  deleteDomain: (browser, user, domainName) ->
+
+    domainSelector = '.machine-settings-modal .kdlistitemview-domain'
+    lastDomainItem = "#{domainSelector}:last-child"
+    loader         = lastDomainItem + '.in-progress'
+
+    browser
+      .moveToElement             lastDomainItem, 10, 10
+      .click                     lastDomainItem + ' span.remove'
+      .waitForElementVisible     loader, 10000
+      .waitForElementNotVisible  loader, 20000
+      .getText                   domainSelector, (result) =>
+        assert.notEqual          result.value, domainName # Assertion
 
 
   clickCreateVMButton: (browser) ->

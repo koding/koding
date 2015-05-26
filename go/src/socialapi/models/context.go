@@ -1,6 +1,11 @@
 package models
 
-import "net"
+import (
+	"net"
+
+	"github.com/koding/logging"
+	"github.com/koding/redis"
+)
 
 type Client struct {
 	Account *Account
@@ -10,6 +15,15 @@ type Client struct {
 type Context struct {
 	GroupName string
 	Client    *Client
+	redis     *redis.RedisSession
+	log       logging.Logger
+}
+
+func NewContext(redis *redis.RedisSession, log logging.Logger) *Context {
+	return &Context{
+		redis: redis,
+		log:   log,
+	}
 }
 
 func (c *Context) IsLoggedIn() bool {
@@ -37,6 +51,22 @@ func (c *Context) IsAdmin() bool {
 	}
 
 	return IsIn(c.Client.Account.Nick, superAdmins...)
+}
+
+func (c *Context) MustGetLogger() logging.Logger {
+	if c.log == nil {
+		panic(ErrLoggerNotExist)
+	}
+
+	return c.log
+}
+
+func (c *Context) MustGetRedisConn() *redis.RedisSession {
+	if c.redis == nil {
+		panic(ErrRedisNotExist)
+	}
+
+	return c.redis
 }
 
 // c/p from account.coffee

@@ -53,6 +53,7 @@ module.exports = [
 
   [
     'ide file'
+    'ide folder'
   ]
 
   [
@@ -75,6 +76,9 @@ module.exports = [
 
   [
     'environments vm'
+  ]
+
+  [
     'environments paidaccount'
   ]
 
