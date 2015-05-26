@@ -64,3 +64,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 }
+
+func writeError(err error, w http.ResponseWriter) {
+	w.Write([]byte(err.Error()))
+}
