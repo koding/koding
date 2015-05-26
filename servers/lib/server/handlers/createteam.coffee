@@ -86,7 +86,7 @@ module.exports = (req, res, next) ->
           # handle the request with an HTTP redirect:
           res.redirect 301, redirect
 
-    if alreadyMember
+    if alreadyMember is 'true'
     then JUser.login client.sessionToken, body, createGroup
     else JUser.convert client, body, createGroup
 
