@@ -41,7 +41,7 @@ func (p *Provider) RunChecker(interval time.Duration) {
 					kontrol.ErrQueryFieldsEmpty,
 					klient.ErrDialingFailed:
 				default:
-					p.Log.Error("[%s] check usage of klient kite [%s] err: %v",
+					p.Log.Debug("[%s] check usage of klient kite [%s] err: %v",
 						machine.Id.Hex(), machine.IpAddress, err)
 				}
 			}
