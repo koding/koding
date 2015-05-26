@@ -69,12 +69,10 @@
       "name": "gotolinestart",
       "binding": [
         [
-          "alt+left",
           "home"
         ],
         [
-          "command+left",
-          "home"
+          "command+left"
         ]
       ]
     },
@@ -82,12 +80,10 @@
       "name": "gotolineend",
       "binding": [
         [
-          "alt+right",
           "end"
         ],
         [
-          "command+right",
-          "end"
+          "command+right"
         ]
       ]
     }
