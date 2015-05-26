@@ -121,11 +121,16 @@ module.exports = class MemberItemView extends KDListItemView
         data.roles  = (role.as for role in roles)
         @memberRole = @getRole data.roles
 
-        @roleLabel.updatePartial "#{@memberRole.label} <span class='settings-icon'></span>"
-        @settings.destroySubViews()
-        @createSettingsView()
+        @handleRoleChangeOnUI @memberRole.label
 
         @isInProgress = no
+
+
+  handleRoleChangeOnUI: (roleLabel) ->
+
+    @roleLabel.updatePartial "#{roleLabel} <span class='settings-icon'></span>"
+    @settings.destroySubViews()
+    @createSettingsView()
 
 
   handleError: (button, message) ->
