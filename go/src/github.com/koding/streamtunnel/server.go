@@ -31,7 +31,7 @@ type Server struct {
 	controls *controls
 
 	// virtualHosts is used to map public hosts to remote clients
-	virtualHosts *virtualHosts
+	virtualHosts vhostStorage
 
 	// yamuxConfig is passed to new yamux.Session's
 	yamuxConfig *yamux.Config
@@ -211,6 +211,7 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 	}
 
 	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
+
 	conn.SetDeadline(time.Time{})
 
 	session, err := yamux.Server(conn, s.yamuxConfig)
@@ -288,20 +289,20 @@ func (s *Server) listenControl(ct *control) {
 }
 
 func (s *Server) AddHost(host, identifier string) {
-	s.virtualHosts.addHost(host, identifier)
+	s.virtualHosts.AddHost(host, identifier)
 }
 
 func (s *Server) DeleteHost(host string) {
-	s.virtualHosts.deleteHost(host)
+	s.virtualHosts.DeleteHost(host)
 }
 
 func (s *Server) GetIdentifier(host string) (string, bool) {
-	identifier, ok := s.virtualHosts.getIdentifier(host)
+	identifier, ok := s.virtualHosts.GetIdentifier(host)
 	return identifier, ok
 }
 
 func (s *Server) GetHost(identifier string) (string, bool) {
-	host, ok := s.virtualHosts.getHost(identifier)
+	host, ok := s.virtualHosts.GetHost(identifier)
 	return host, ok
 }
 

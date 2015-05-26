@@ -4,6 +4,20 @@ import (
 	"sync"
 )
 
+type vhostStorage interface {
+	// AddHost adds the given host and identifier to the storage
+	AddHost(host, identifier string)
+
+	// DeleteHost deletes the given host
+	DeleteHost(host string)
+
+	// GetHost returns the host name for the given identifier
+	GetHost(identifier string) (string, bool)
+
+	// GetIdentifier returns the identifier for the given host
+	GetIdentifier(host string) (string, bool)
+}
+
 type virtualHost struct {
 	identifier string
 }
@@ -15,26 +29,28 @@ type virtualHosts struct {
 	sync.Mutex
 }
 
+// newVirtualHosts provides an in memory virtual host storage for mapping
+// virtual hosts to identifiers.
 func newVirtualHosts() *virtualHosts {
 	return &virtualHosts{
 		mapping: make(map[string]*virtualHost),
 	}
 }
 
-func (v *virtualHosts) addHost(host, identifier string) {
+func (v *virtualHosts) AddHost(host, identifier string) {
 	v.Lock()
 	v.mapping[host] = &virtualHost{identifier: identifier}
 	v.Unlock()
 }
 
-func (v *virtualHosts) deleteHost(host string) {
+func (v *virtualHosts) DeleteHost(host string) {
 	v.Lock()
 	delete(v.mapping, host)
 	v.Unlock()
 }
 
-// getIdentifier returns the identifier associated with the given host
-func (v *virtualHosts) getIdentifier(host string) (string, bool) {
+// GetIdentifier returns the identifier associated with the given host
+func (v *virtualHosts) GetIdentifier(host string) (string, bool) {
 	v.Lock()
 	ht, ok := v.mapping[host]
 	v.Unlock()
@@ -46,8 +62,8 @@ func (v *virtualHosts) getIdentifier(host string) (string, bool) {
 	return ht.identifier, true
 }
 
-// getHost returns the host associated with the given identifier
-func (v *virtualHosts) getHost(identifier string) (string, bool) {
+// GetHost returns the host associated with the given identifier
+func (v *virtualHosts) GetHost(identifier string) (string, bool) {
 	v.Lock()
 	defer v.Unlock()
 
