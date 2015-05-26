@@ -1,0 +1,11 @@
+{with $e := .}}
+  {{if eq $e.Name "push"}}
+    {{with $auth := (printf "Authorization: Bearer %s" $e.Args.Token)}}
+    {{with $msg := (printf "{\"message_format\": \"text\", \"message\": \"%s pushed to %s\"}" $e.Payload.Pusher.Email $e.Payload.Repository.Name)}}
+    {{with $url := (printf "https://api.hipchat.com/v2/room/%s/notification" $e.Args.Room)}}
+      {{exec "curl" "-h" "Content-Type: application/json" "-h" $auth "-x" "post" "-d" $msg $url | log}}
+    {{end}}
+    {{end}}
+    {{end}}
+  {{end}}
+{{end}}

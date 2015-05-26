@@ -1,0 +1,27 @@
+language: go
+
+go:
+ - 1.4.2
+
+matrix:
+  fast_finish: true
+
+env:
+  global:
+   - secure: BjocBrBIvvPHA7ZcriuEthqi7ZAyM0W50YcNRSx6B0P5xTWDw2fW2Ek2FrQqMrS3M+YD7kt49/TXjw9WnL6+c/lpuslrquU67yWkpAQynjV7+0AadO3b3Z0mBrAA8gKcKtV5KVpxnDr8g4B5+mfmIRcck5Emo0V4IhHGO7l6u7w=
+   - GOBIN=$HOME/bin
+   - PATH=$HOME/bin:$PATH
+
+install:
+ - go get golang.org/x/tools/cmd/vet golang.org/x/tools/cmd/cover github.com/mattn/goveralls github.com/modocache/gover
+ - go get -t -v ./...
+ - go get -v github.com/PuerkitoBio/goquery
+ - go generate -v ./...
+
+script:
+ - go tool vet -all .
+ - go build ./...
+ - go test -race -v ./...
+ - if [ ! -z "$COVERALLS_TOKEN" ]; then go list -f '{{if len .TestGoFiles}}go test -coverprofile={{.Dir}}/.coverprofile {{.ImportPath}}{{end}}' ./... | xargs -i sh -c {}; fi
+ - if [ ! -z "$COVERALLS_TOKEN" ]; then gover; fi
+ - if [ ! -z "$COVERALLS_TOKEN" ]; then goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken "$COVERALLS_TOKEN"; fi
