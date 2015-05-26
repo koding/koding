@@ -19,7 +19,13 @@ type RedisConf struct {
 	DB     int
 }
 
-var ErrNil = redis.ErrNil
+var (
+	ErrNil               = redis.ErrNil
+	ErrTTLNotSet         = errors.New("ttl is not set")
+	ErrKeyNotExist       = errors.New("key does not exist")
+	ErrDestinationNotSet = errors.New("destination is not set")
+	ErrKeysNotSet        = errors.New("keys are not set")
+)
 
 func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
 	s := &RedisSession{}
@@ -27,7 +33,7 @@ func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
 	pool := &redis.Pool{
 		MaxIdle:     3,
 		MaxActive:   1000,
-		IdleTimeout: 240 * time.Second,
+		IdleTimeout: 30 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", conf.Server)
 			if err != nil {
@@ -43,6 +49,10 @@ func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
 			}
 
 			return c, err
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
 		},
 	}
 	s.pool = pool
@@ -188,11 +198,11 @@ func (r *RedisSession) TTL(key string) (time.Duration, error) {
 	}
 
 	if reply == -1 {
-		return 0, errors.New("ttl is not set")
+		return 0, ErrTTLNotSet
 	}
 
 	if reply == -2 {
-		return 0, errors.New("key does not exist")
+		return 0, ErrKeyNotExist
 	}
 
 	return time.Duration(reply) * time.Second, nil
@@ -470,12 +480,12 @@ func (r *RedisSession) prepareArgsWithKey(key string, rest ...interface{}) []int
 // See: http://redis.io/commands/zunionstore
 func (r *RedisSession) SortedSetsUnion(destination string, keys []string, weights []interface{}, aggregate string) (int64, error) {
 	if destination == "" {
-		return 0, errors.New("no destination to store")
+		return 0, ErrDestinationNotSet
 	}
 
 	lengthOfKeys := len(keys)
 	if lengthOfKeys == 0 {
-		return 0, errors.New("no keys")
+		return 0, ErrKeysNotSet
 	}
 
 	prefixed := []interface{}{

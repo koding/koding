@@ -40,7 +40,7 @@ createTerminalSession = (browser, user) ->
     browser
       .waitForElementVisible   notActiveTerminalSelector, 20000 # Assertion
       .waitForElementVisible   paneSelector + ' .terminal.active', 20000 # Assertion
-      .pause 6000 # required
+      .pause 6000 # required for the Connecting...
       .assert.containsText     terminalTextAssertSelector, userName # Assertion
 
 
