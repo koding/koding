@@ -233,11 +233,18 @@ module.exports = class StacksCustomViews extends CustomViews
       return container
 
 
-    loader: (cssClass) ->
-      new kd.LoaderView {
-        cssClass, showLoader: yes,
-        size: width: 40, height: 40
-      }
+    loader: (message) =>
+      container = @views.container 'main-loader'
+      container.addSubView new kd.LoaderView
+        showLoader : yes
+        size       :
+          width    : 40
+          height   : 40
+
+      @addTo container, text: message
+
+      return container
+
 
     outputView: (options) =>
 
