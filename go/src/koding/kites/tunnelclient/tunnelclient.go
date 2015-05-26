@@ -2,12 +2,11 @@ package main
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/multiconfig"
-	"github.com/koding/tunnel"
+	"github.com/koding/streamtunnel"
 )
 
 type registerResult struct {
@@ -15,13 +14,8 @@ type registerResult struct {
 	Identifier  string
 }
 
-type config struct {
-	ServerAddr string `default:"127.0.0.1:4444"`
-	LocalAddr  string `default:"127.0.0.1:3000"`
-}
-
 func main() {
-	conf := new(config)
+	conf := new(streamtunnel.ClientConfig)
 	multiconfig.New().MustLoad(conf)
 
 	k := kite.New("tunnelclient", "0.0.1")
@@ -29,20 +23,29 @@ func main() {
 	<-k.ServerReadyNotify()
 
 	tunnelserver := k.NewClient("http://" + conf.ServerAddr + "/kite")
-	if err := tunnelserver.Dial(); err != nil {
+	connected, err := tunnelserver.DialForever()
+	if err != nil {
 		k.Log.Error(err.Error())
 		return
 	}
 
-	result, err := callRegister(tunnelserver)
-	if err != nil {
-		fmt.Println(err)
-		return
+	<-connected
+
+	if conf.ServerAddr == "" {
+		conf.ServerAddr = "127.0.0.1:4444"
 	}
 
-	k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
-	client := tunnel.NewClient(conf.ServerAddr, conf.LocalAddr)
-	client.Start(result.Identifier)
+	client := streamtunnel.NewClient(conf)
+	client.FetchIdentifier = func() (string, error) {
+		result, err := callRegister(tunnelserver)
+		if err != nil {
+			return "", err
+		}
+
+		k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
+		return result.Identifier, nil
+	}
+	client.Start()
 }
 
 func callRegister(tunnelserver *kite.Client) (*registerResult, error) {
