@@ -2,24 +2,20 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
-	"log"
+	"net"
 	"net/http"
 	"runtime"
 
 	"github.com/koding/logging"
-	"github.com/ooyala/go-dogstatsd"
+	"github.com/koding/metrics"
 )
 
 var (
-	Name       = "ingestor"
+	WorkerName = "ingestor"
 	flagConfig = flag.String("c", "dev", "Configuration profile from file")
-	Log        = logging.NewLogger(Name)
-
-	DogClient *dogstatsd.Client
 )
 
 func initializeConf() *config.Config {
@@ -27,7 +23,7 @@ func initializeConf() *config.Config {
 
 	flag.Parse()
 	if *flagConfig == "" {
-		log.Fatal("Please define config file with -c")
+		panic("Please define config file with -c")
 	}
 
 	return config.MustConfig(*flagConfig)
@@ -37,21 +33,30 @@ func main() {
 	conf := initializeConf()
 	modelhelper.Initialize(conf.Mongo)
 
-	var err error
-	DogClient, err = dogstatsd.New("127.0.0.1:8125")
+	log := logging.NewLogger(WorkerName)
+
+	dogclient, err := metrics.NewDogStatsD(WorkerName)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 
-	http.HandleFunc("/", HomeHandler)
-	http.HandleFunc("/version", artifact.VersionHandler())
-	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	handler := &GatherInjestor{log: log, dog: dogclient}
 
-	url := fmt.Sprintf(":%d", conf.GatherIngestor.Port)
-	Log.Info("Starting gather ingestor on: %v", url)
+	mux := http.NewServeMux()
 
-	http.ListenAndServe(url, nil)
-}
+	mux.Handle("/", handler)
+	mux.HandleFunc("/version", artifact.VersionHandler())
+	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	port := "6700"
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	log.Info("Listening on server: %s", port)
+
+	if err = http.Serve(listener, mux); err != nil {
+		log.Fatal(err.Error())
+	}
 }
