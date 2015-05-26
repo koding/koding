@@ -57,6 +57,7 @@ module.exports = class PaymentWorkflow extends KDController
       return @showError err  if err
 
       unless canPurchase
+        @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
         return @showError { message: PaymentConstants.error.ERR_USER_NOT_CONFIRMED }
 
       paymentController.creditCard (err, card) =>

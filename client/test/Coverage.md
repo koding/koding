@@ -87,14 +87,17 @@
     - openFile
     - createFileFromContextMenu
     - createFileFromMachineHeader
-    - createFolderMachineHeader
-    - createFolderFromContextMenu
     - deleteFile
-    - deleteFolder
     - renameFile
     - duplicateFile
     - saveFile
+
+  -folder
+    - createFolderMachineHeader
+    - createFolderFromContextMenu
     - saveFileToFolder
+    - deleteFolder
+    - terminalFromHereFolder (not run)
 
   - general
     - expandCollapseFiletree
@@ -114,6 +117,7 @@
     - jumpToFile
     - createAndSaveNewFile
     - openAnExistingFileAndSave
+    - toggleInvisibleFiles (not run)
 
   - terminal
     - terminateAll

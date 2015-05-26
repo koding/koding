@@ -44,3 +44,22 @@ module.exports =
     browser.end()
 
 
+  terminalFromHereFolder: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    folderName = 'Web'
+    folderPath = "/home/#{user.username}/#{folderName}"
+    terminalTextAssertSelector = '.application-tabview .terminal.active .terminal-pane'
+
+    helpers.openFolderContextMenu(browser, user, folderName)
+
+    browser
+      .waitForElementVisible  '.context-list-wrapper .terminal-from-here', 20000
+      .click                  '.context-list-wrapper .terminal-from-here'
+      .pause 6000 # required for the Connecting...
+      .assert.containsText     terminalTextAssertSelector, folderPath # Assertion
+      .end()
+
+
