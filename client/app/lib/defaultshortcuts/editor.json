@@ -727,7 +727,7 @@
         "ctrl+up"
       ],
       [
-        "ctrl+up"
+        "ctrl+command+up"
       ]
     ]
   },
@@ -739,7 +739,7 @@
         "ctrl+down"
       ],
       [
-        "ctrl+down"
+        "ctrl+command+down"
       ]
     ]
   },
