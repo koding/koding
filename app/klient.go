@@ -146,6 +146,11 @@ func NewKlient(conf *KlientConfig) *Klient {
 	return kl
 }
 
+// Kite retursn the underlying Kite instance
+func (k *Klient) Kite() *kite.Kite {
+	return k.kite
+}
+
 // RegisterMethods registers all public available methods
 func (k *Klient) RegisterMethods() {
 	// don't allow anyone to call a method if we are during an update.

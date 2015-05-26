@@ -11,6 +11,8 @@ import (
 	"github.com/koding/klient/app"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
+	"github.com/koding/klient/tunnel"
+	"github.com/koding/streamtunnel"
 )
 
 var (
@@ -38,6 +40,10 @@ var (
 	flagUpdateURL = flag.String("update-url",
 		"https://s3.amazonaws.com/koding-klient/"+protocol.Environment+"/latest-version.txt",
 		"Change update endpoint for latest version")
+
+	// Tunnel flags
+	flagTunnelServerAddr = flag.String("tunnel-server", "", "Tunnel server address")
+	flagTunnelLocalAddr  = flag.String("tunnel-local", "", "Address of local server to be tunneled (optional)")
 )
 
 func main() {
@@ -90,6 +96,13 @@ func realMain() int {
 
 	a := app.NewKlient(conf)
 	defer a.Close()
+
+	// Open Pandora's box
+	go tunnel.Start(a.Kite(), &streamtunnel.ClientConfig{
+		ServerAddr: *flagTunnelServerAddr,
+		LocalAddr:  *flagTunnelLocalAddr,
+		Debug:      *flagDebug,
+	})
 
 	// Run Forrest, Run!
 	a.Run()
