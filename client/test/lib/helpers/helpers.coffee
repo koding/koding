@@ -245,15 +245,22 @@ module.exports =
     webPath       = '/home/' + user.username + '/' + folderName
     webSelector   = "span[title='" + webPath + "']"
 
+    @clickVMHeaderButton(browser)
+
+    browser
+      .click                   '.context-list-wrapper .refresh'
+      .waitForElementVisible   webSelector, 50000
+      .click                   webSelector
+      .click                   webSelector + ' + .chevron'
+
+
+  clickVMHeaderButton: (browser) ->
+
     browser
       .pause                   5000 # wait for filetree load
       .waitForElementVisible   '.vm-header', 50000
       .click                   '.vm-header .buttons'
       .waitForElementPresent   '.context-list-wrapper', 50000
-      .click                   '.context-list-wrapper .refresh'
-      .waitForElementVisible   webSelector, 50000
-      .click                   webSelector
-      .click                   webSelector + ' + .chevron'
 
 
   createFile: (browser, user, selector, folderName) ->
