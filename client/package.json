@@ -58,6 +58,7 @@
   },
   "devDependencies": {
     "chokidar": "1.0.1",
+    "coffee-reactify": "3.0.0",
     "coffee-script": "1.8.0",
     "express": "4.12.3",
     "mocha": "2.2.4",
