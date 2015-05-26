@@ -132,28 +132,9 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roleCount
     return cascadeData
 
-  cascadeHeaderElements = (roles, roleCount)->
+  optionizePermissions = (roles, set) ->
 
-    [current,remainder...] = roles
-    cascadeData = {}
-    cascadeData[current]=
-      itemClass     : KDView
-      partial       : readableText current
-      cssClass      : 'text header-item role-' + kd.utils.slugify(current)
-      attributes    :
-        title       : readableText current
-
-    if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeHeaderElements remainder, roleCount
-    return cascadeData
-
-  optionizePermissions = (roles, set)->
-    permissionOptions =
-      head            :
-        itemClass     : KDView
-        cssClass      : 'permissions-header col'
-        nextElement   :
-          cascadeHeaderElements roles, roles.length
+    permissionOptions = {}
 
     # set.permissionsByModule is giving all the possible permissions
     # module is collection name (JComment, JProposedDomain etc..)
