@@ -36,10 +36,13 @@ func main() {
 	h.AddHandlers(m)
 
 	// consume messages from RMQ
+	// Gatekeeper is not using RMQ, but runner is creating a message queue for
+	// each worker.  We need to discard the messages in the queue, otherwise
+	// all the messages are piled up
 	go r.Listen()
 
 	m.Listen()
-	r.ShutdownHandler = m.Close
+	defer m.Close()
 
 	r.Wait()
 }

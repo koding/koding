@@ -44,6 +44,7 @@ createWebLocation = ({name, locationConf}) ->
         proxy_connect_timeout 1;
         #{if internalOnly then allowInternal else ''}
         #{if auth then basicAuth else ''}
+        #{extraParamsStr}
       }
   \n"""
 

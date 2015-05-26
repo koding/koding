@@ -542,6 +542,8 @@ class Ace extends KDView
     style.id        = 'ace-font-size'
     style.innerHTML = ".ace_editor { font-size: #{value}px }"
 
+    @editor.setFontSize value
+
     oldStyleTag     = global.document.getElementById style.id
     oldStyleTag.parentNode.removeChild oldStyleTag if oldStyleTag
 

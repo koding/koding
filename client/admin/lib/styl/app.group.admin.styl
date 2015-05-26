@@ -12,17 +12,19 @@ Admin main styles
   padding                   34px 34px 0 0
   overflow                  visible
 
-.AppModal--admin
+.AppModal.AppModal--admin
+  rounded                   0
 
   .kdcustomscrollview
     styleScrollBars         rgba(0, 0, 0, .15)
 
+  .kdmodal-inner
+    height                  calc(100% \- 40px)
+    rel()
+
   .kdmodal-content
-    size                    100% 100%
-
-  .AppModal-content
-    height                  515px
-
+    width                   100%
+    height                  calc(100% \- 45px)
 
   .group-logo
     figure
@@ -93,7 +95,7 @@ Admin main styles
     color                   #4C4C4C
     font-weight             600
     opacity                 .99
-    margin                  0
+    margin                  0 20px 0 0
 
   .lazy-loader
   .kdloader
@@ -478,13 +480,7 @@ Admin main styles
   &.kdmodal .kdmodal-inner .kdmodal-content
     overflow                hidden
 
-    // not necessary anymore - SY
-    max-height              515px !important // to override computed height
-
-
-// common tab styling
-.AppModal--admin
-
+  // common tab styling
   .AppModal-content.kdtabview
     overflow                hidden
 
@@ -785,7 +781,7 @@ Admin main styles
     font-size               20px
     color                   #434343
     font-weight             400
-    
+
   .type-label
     float                   left
     line-height             40px
@@ -1045,13 +1041,8 @@ Admin main styles
       margin-top            6px
       min-width             162px
 
-  .output-view
-    height                  300px
-    background-color        #eee
-    padding                 0 4px
-    box-sizing              border-box
-    border                  1px solid #ddd
-    font-family            'UbuntuMono', monospace
+  .output-view code
+    max-height              300px
     overflow                auto
 
   button
@@ -1061,6 +1052,10 @@ Admin main styles
   .step-creds
     .kdformview
       margin-top            20px
+      .kdlabel
+        line-height         39px
+        min-width           120px
+        fl()
 
   .credential-item
     padding                 10px 0
@@ -1070,7 +1065,8 @@ Admin main styles
 
     &:hover
       .buttons button.secondary
-        display             inline-block
+        opacity             1
+        pointer-events      auto
 
     .credential-info
       padding               10px 0
@@ -1100,7 +1096,9 @@ Admin main styles
       abs                   16px 0px
 
       button.secondary
-        display             none
+        opacity             0
+        pointer-events      none
+        vendor              transition, opacity .3s .3s ease
 
       button
         min-width           80px

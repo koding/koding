@@ -10,17 +10,18 @@ module.exports = class SidebarSearchModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.title       or= 'Browse'
-    options.content     or= ''
-    options.overlay      ?= yes
-    options.width        ?= 522
-    options.height      or= 'auto'
-    options.placeholder or= 'Search...'
-    options.noItemText  or= ''
-    options.itemClass   or= SidebarTopicItem
-    options.endpoints    ?=
-      fetch               : dummyCallback
-      search              : dummyCallback
+    options.title           or= 'Browse'
+    options.content         or= ''
+    options.overlay          ?= yes
+    options.width            ?= 522
+    options.height          or= 'auto'
+    options.placeholder     or= 'Search...'
+    options.noItemText      or= ''
+    options.emptySearchText or= options.noItemText
+    options.itemClass       or= SidebarTopicItem
+    options.endpoints        ?=
+      fetch                   : dummyCallback
+      search                  : dummyCallback
 
     options.bindModalDestroy ?= yes
 
@@ -77,6 +78,7 @@ module.exports = class SidebarSearchModal extends KDModalView
     debouncedLazyLoad = kd.utils.debounce 300, @bound 'handleLazyLoad'
 
     @listController.on 'LazyLoadThresholdReached', debouncedLazyLoad
+    @listController.on 'ListIsEmptied', @bound 'handleEmpyList'
 
     @fetch {}, @bound 'populate'
 
@@ -201,3 +203,8 @@ module.exports = class SidebarSearchModal extends KDModalView
     callback()
 
 
+  handleEmpyList: ->
+
+    { noItemText, emptySearchText } = @getOptions()
+    resultText = if @searchActive then emptySearchText else noItemText
+    @listController.noItemView.updatePartial resultText

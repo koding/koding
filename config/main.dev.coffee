@@ -28,7 +28,7 @@ Configuration = (options={}) ->
   redis.url           = "#{redis.host}:#{redis.port}"
 
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
-  mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
+  mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       10           , vhost:        "#{rabbitmq.vhost}" }
 
   if options.ngrok
     scheme = 'https'
@@ -482,8 +482,9 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [
           {
-            location    : "/-/content-rotator/(.*)"
-            proxyPass   : "#{KONFIG.contentRotatorUrl}/$1"
+            location    : "~ /-/content-rotator/(.*)"
+            proxyPass   : "#{KONFIG.contentRotatorUrl}/content-rotator/$1"
+            extraParams : [ "resolver 8.8.8.8;" ]
           }
         ]
 
@@ -825,7 +826,7 @@ Configuration = (options={}) ->
         node scripts/create-default-workspace
 
         # Run all the worker daemons in KONFIG.workers
-        #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
+        #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers when val.supervisord).join(" ")}
 
         # Check backend option, if it's then bypass client build
         if [ "$1" == "backend" ] ; then
