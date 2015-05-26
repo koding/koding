@@ -41,11 +41,14 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	handler := &GatherIngestor{log: log, dog: dogclient}
+	stathandler := &GatherStat{log: log, dog: dogclient}
+	errhandler := &GatherError{log: log, dog: dogclient}
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/", handler)
+	mux.Handle("/stats", stathandler)
+	mux.Handle("/errors", errhandler)
+
 	mux.HandleFunc("/version", artifact.VersionHandler())
 	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
