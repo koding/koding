@@ -20,6 +20,16 @@ module.exports = class ShowcaseAppView extends kd.CustomHTMLView
 
 
   ###*
+   * Takes a React Component and dispatches it after initializing it.
+   *
+   * @param {React.Component} component
+  ###
+  showReactComponent: (component) ->
+
+    @_dispatcher.emit 'ShowComponent', React.createElement component
+
+
+  ###*
    * Initial render, render AppComponent, pass the dispatcher to it;
    * then append it into this view's dom element.
   ###
