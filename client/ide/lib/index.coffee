@@ -647,7 +647,7 @@ class IDEAppController extends AppController
 
     targetPanel = @layoutMap[targetOffset]
 
-    {pane} = tabView.removePane tabView.getActivePane(), yes
+    { pane } = tabView.removePane tabView.getActivePane(), yes
 
     targetPanel.subViews.first.tabView.addPane pane
     @setActiveTabView targetPanel.subViews.first.tabView
@@ -1461,19 +1461,17 @@ class IDEAppController extends AppController
       @removePaneFromTabView pane  if pane.isInitial
 
 
-  saveDriftingTabView: (tabView) ->
+  setTargetTabView: (tabView) ->
 
-    @driftingTabView = tabView
-
-
-  handleTabDropped: (event, splitView, index = null) ->
-
-    return  unless @driftingTabView
-
-    @moveTabToPanel @driftingTabView, splitView, index
+    @targetTabView = tabView
 
 
-  moveTabToPanel: (tabView, targetPanel, index = null) ->
+  handleTabDropped: (event, splitView, index) ->
+
+    @moveTabToPanel @targetTabView, splitView, index  if @targetTabView
+
+
+  moveTabToPanel: (tabView, targetPanel, index) ->
 
     return unless tabView.parent?
 
@@ -1483,7 +1481,7 @@ class IDEAppController extends AppController
     { pane }      = tabView.removePane tabView.getActivePane(), yes
     targetTabView = targetPanel.subViews.first.tabView
 
-    if index isnt null
+    if index?
 
       targetTabView.once 'PaneAdded', (paneInstance) ->
 

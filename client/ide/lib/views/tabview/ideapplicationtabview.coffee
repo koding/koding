@@ -10,9 +10,9 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
   constructor: (options = {}, data) ->
 
-    options.sortable        = no
-    options.droppable       = yes
-    options.tabHandleClass  = IDETabHandleView
+    options.sortable        ?= no
+    options.droppable       ?= yes
+    options.tabHandleClass   = IDETabHandleView
 
     super options, data
 

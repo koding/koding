@@ -8,9 +8,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     super
 
-    options = @getOptions()
-
-    if options.droppable
+    if @getOption 'droppable'
 
       @getDomElement().bind 'dragstart', (event) => @handleDragStart event
 
@@ -23,4 +21,4 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     dataTransfer.setData 'text/plain', ''
 
     { appManager } = kd.singletons
-    appManager.tell 'IDE', 'saveDriftingTabView', @getDelegate()
+    appManager.tell 'IDE', 'setTargetTabView', @getDelegate()

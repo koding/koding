@@ -24,6 +24,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     options.tabViewClass     = IDEApplicationTabView
     options.createNewEditor ?= yes
+    options.bind             = 'dragover drop'
 
     super options, data
 
@@ -529,22 +530,19 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       kd.warn "Failed to terminate session, possibly it's already dead.", err
 
 
-  bindEvents: ->
+  dragover: (event) ->
+    event.preventDefault()
 
-    super
 
-    { appManager }  = kd.singletons
-    $elm            = @getDomElement()
+  drop: (event) ->
 
-    $elm.bind 'dragover', (event) =>
-      event.preventDefault()
+    { appManager }    = kd.singletons
+    { originalEvent } = event
+    index             = null
+    $target           = $(originalEvent.target)
 
-    $elm.bind 'drop', (event) =>
-      index             = null
-      { originalEvent } = event
-      $target           = $(originalEvent.target)
+    index = $target.index()  if $target.hasClass 'kdtabhandle'
+    index = $target.parent().index()  if $target.parent().hasClass 'kdtabhandle'
 
-      index = $target.index()  if $target.hasClass 'kdtabhandle'
-      index = $target.parent().index()  if $target.parent().hasClass 'kdtabhandle'
+    appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
 
-      appManager.tell 'IDE', 'handleTabDropped', event, @.parent, index
