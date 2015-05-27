@@ -11,8 +11,8 @@ module.exports = class CredentialListItem extends kd.ListItemView
     options.cssClass = kd.utils.curry 'credential-item clearfix', options.cssClass
     super options, data
 
-    delegate  = @getDelegate()
-    { owner, title, verified } = @getData()
+    delegate = @getDelegate()
+    { publicKey, owner, title, verified } = @getData()
 
     @deleteButton = new kd.ButtonView
       cssClass : 'solid compact outline red secondary'
@@ -30,6 +30,16 @@ module.exports = class CredentialListItem extends kd.ListItemView
       loader   :
         color  : '#666'
       callback : @bound 'verifyCredential'
+
+    @inuseView = new kd.CustomHTMLView
+      cssClass : 'inuse-tag hidden'
+      partial  : 'IN USE'
+      tooltip  :
+        title  : 'This group currently using this template'
+
+    {stackTemplate} = @getOptions()
+    if stackTemplate?.credentials? and publicKey in stackTemplate.credentials
+      @inuseView.show()
 
     @warningView = new kd.CustomHTMLView
       cssClass : 'warning-message hidden'
@@ -71,7 +81,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
   pistachio: ->
     """
     <div class='credential-info clearfix'>
-      {div.tag{#(provider)}} {div.title{#(title)}}
+      {div.tag{#(provider)}} {div.title{#(title)}} {{> @inuseView}}
     </div>
     <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}{{> @verifyButton}}
