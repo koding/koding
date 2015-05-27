@@ -86,8 +86,9 @@ module.exports = class NavigationMachineItem extends JView
     @settingsIcon = new KDCustomHTMLView
       tagName     : 'span'
       click       : (e) =>
-        if @machine.isMine() then @handleMachineSettingsClick e
-        else if @machine.isApproved() then @showSidebarSharePopup {}, e
+        kd.utils.stopDOMEvent e
+        if @machine.isMine() then @handleMachineSettingsClick
+        else if @machine.isApproved() then @showSidebarSharePopup {}
 
 
   createSettingsIconPlaceholder: ->
@@ -113,11 +114,9 @@ module.exports = class NavigationMachineItem extends JView
     return state in [ NotInitialized, Running, Stopped, Terminated, Unknown ]
 
 
-  handleMachineSettingsClick: (event) ->
+  handleMachineSettingsClick: () ->
 
     return  if not @settingsEnabled()
-
-    kd.utils.stopDOMEvent event
 
     new MachineSettingsModal {}, @machine
 
@@ -171,9 +170,7 @@ module.exports = class NavigationMachineItem extends JView
     return data.workspaces.first?.channelId
 
 
-  showSidebarSharePopup: (options = {}, event) ->
-
-    kd.utils.stopDOMEvent event
+  showSidebarSharePopup: (options = {}) ->
 
     options.position  = @getPopupPosition 20
     options.channelId = @getChannelId @getData()
