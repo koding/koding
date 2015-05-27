@@ -185,7 +185,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
 	if _, err := io.Copy(w, resp.Body); err != nil {
-		return err
+		s.log.Error("copy err: %s", err) // do not return, because we might write multipe headers
 	}
 
 	return nil
