@@ -10,8 +10,6 @@ module.exports = (req, res, next) ->
   { JUser, JGroup, JInvitation } = koding.models
   {
     redirect
-    # invitation token that the user got in the mail
-    token
     # slug is team slug, unique name. Can not be changed
     slug
     # newsletter holds announcements config.
