@@ -62,6 +62,7 @@ module.exports     = class GroupStackSettings extends kd.View
       return @showError err  if err
 
       new kd.NotificationView
-        title: "Group (#{slug}) stack has been saved!"
+        title : "Group (#{slug}) stack has been saved!"
+        type  : 'mini'
 
       @initiateInitialView()
