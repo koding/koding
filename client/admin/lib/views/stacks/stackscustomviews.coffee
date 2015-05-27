@@ -18,6 +18,9 @@ ComputeController_UI            = require 'app/providers/computecontroller.ui'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
+StackTemplateList               = require './stacktemplatelist'
+StackTemplateListController     = require './stacktemplatelistcontroller'
+
 
 module.exports = class StacksCustomViews extends CustomViews
 
@@ -77,8 +80,7 @@ module.exports = class StacksCustomViews extends CustomViews
         provisioners : [] # TODO what are we going to do with provisioners? ~ GG
       }
 
-    console.info "Kloud's response:", response
-    console.info "Converted stack :", out.machines
+    console.info "[parseTerraformOutput]", out.machines
 
     return out.machines
 
@@ -159,7 +161,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
 
   handleBootstrap = (outputView, credential, button) ->
-    console.log {outputView, credential, button}
 
     outputView.destroySubViews()
     outputView.addContent 'Bootstrapping started...'
@@ -180,12 +181,12 @@ module.exports = class StacksCustomViews extends CustomViews
         else
           outputView.addContent 'Bootstrapping completed but something went wrong.'
 
-        console.log "Bootstrap result:", response
+        console.log '[KLOUD:Bootstrap]', response
 
       .catch (err) ->
 
         outputView.addContent 'Bootstrapping failed:', err.message
-        console.warn "Bootstrap failed:", err
+        console.warn '[KLOUD:Bootstrap:Fail]', err
 
       .finally button.bound 'hideLoader'
 
@@ -214,23 +215,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
 
   _.assign @views,
-
-    noStackFoundView: (callback) =>
-
-      container = @views.container 'no-stack-found'
-
-      @addTo container,
-        text_header  : 'Add Your Stack'
-        text_message : "You don't have any stacks set up yet. Stacks are awesome
-                        because when a user joins your group you can
-                        preconfigure their work environment by defining stacks.
-                        Learn more about stacks"
-        button       :
-          title      : 'Add New Stack'
-          cssClass   : 'solid medium green'
-          callback   : callback
-
-      return container
 
 
     loader: (message) =>
@@ -307,13 +291,48 @@ module.exports = class StacksCustomViews extends CustomViews
         fields: input: {name, label, defaultValue: value}
 
 
-    stacksView: (data) =>
-      @views.text 'Group stack settings completed, more coming soon.'
+    initialView: (callback) =>
+
+      container = @views.container 'stacktemplates'
+
+      { groupsController } = kd.singletons
+      currentGroup = groupsController.getCurrentGroup()
+
+      views = @addTo container,
+        text_header       : 'Compute Stack Templates'
+        container_top     :
+          text_intro      : "Stack Templates are awesome because when a user
+                             joins your group you can preconfigure their work
+                             environment by defining stacks.
+                             Learn more about stacks"
+          button          :
+            title         : 'Create New'
+            cssClass      : 'solid medium green'
+            callback      : -> callback null
+        stackTemplateList :
+          group           : currentGroup
+
+      templateList = views.stackTemplateList.__view
+      templateList.on 'ItemSelected', callback
+
+      return container
+
+
+    stackTemplateList: (options) ->
+
+      listView   = new StackTemplateList
+      controller = new StackTemplateListController
+        view       : listView
+        wrapper    : no
+        scrollView : no
+
+      __view = controller.getView()
+      return { __view, controller }
 
 
     stepSelectProvider: (options) =>
 
-      {callback, cancelCallback} = options
+      {callback, cancelCallback, data} = options
       container = @views.container 'step-provider'
 
       views     = @addTo container,
@@ -325,20 +344,25 @@ module.exports = class StacksCustomViews extends CustomViews
           callback      : cancelCallback
 
       views.providersView.on 'ItemSelected', (provider) ->
-        callback {provider}
+        data.provider = provider
+        callback data
 
       return container
 
 
-    credentialList: (provider) =>
+    credentialList: (options) =>
+
+      { provider, stackTemplate } = options
 
       listView   = new AccountCredentialList
-        itemClass  : CredentialListItem
+        itemClass   : CredentialListItem
+        itemOptions : { stackTemplate }
+
       controller = new AccountCredentialListController
-        view       : listView
-        wrapper    : no
-        scrollView : no
-        provider   : provider
+        view        : listView
+        wrapper     : no
+        scrollView  : no
+        provider    : provider
 
       __view = controller.getView()
       return { __view, controller }
@@ -346,11 +370,11 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepSetupCredentials: (options) =>
 
-      {data, callback, cancelCallback} = options
-      {provider} = data
+      { data, callback, cancelCallback } = options
+      { provider, stackTemplate } = data
 
-      container = @views.container 'step-creds'
-      views     = @addTo container,
+      container  = @views.container 'step-creds'
+      views      = @addTo container,
         stepsHeaderView : 2
         container_top   :
           text_intro    : "To be able to use this provider <strong>you need to
@@ -362,7 +386,7 @@ module.exports = class StacksCustomViews extends CustomViews
             cssClass    : 'solid compact green action'
             callback    : ->
               handleNewCredential views, provider, this
-        credentialList  : provider
+        credentialList  : { provider, stackTemplate }
         navCancelButton :
           title         : '< Select another provider'
           callback      : ->
@@ -370,14 +394,14 @@ module.exports = class StacksCustomViews extends CustomViews
 
       credentialList = views.credentialList.__view
       credentialList.on 'ItemSelected', (credential) ->
-        callback {credential, provider}
+        data.credential = credential
+        callback data
 
       return container
 
 
     stepBootstrap: (options) =>
 
-      console.log options
       {callback, cancelCallback, data} = options
       {provider, credential, stackTemplate} = data
 
@@ -434,8 +458,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepDefineStack: (options) =>
 
-      console.log options
-
       {callback, cancelCallback, data}      = options
       {provider, credential, stackTemplate} = data or {}
 
@@ -472,8 +494,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepComplete: (options) =>
 
-      console.log options
-
       {callback, cancelCallback, data}      = options
       {stackTemplate, credential, provider} = data
 
@@ -488,7 +508,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
       handleCheckTemplate {stackTemplate}, (err, response) =>
 
-        console.log ">>>>>", err, response
+        console.log '[KLOUD:checkTemplate]', err, response
 
         @addTo container,
           navCancelButton :
