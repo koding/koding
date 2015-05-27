@@ -124,6 +124,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       cssClass
       itemClass    : PermissionSwitch
       defaultValue : isChecked ? no
+      callback     : => @save()
     }
 
     if current in ['admin','owner']
@@ -213,3 +214,8 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
     createReducedList selectedRoleValues
 
 
+  save: ->
+
+    @group.updatePermissions @reducedList(), (err,res) =>
+      return showError err if err
+      new KDNotificationView title: 'Group permissions have been updated.'
