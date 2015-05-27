@@ -726,7 +726,7 @@ Admin main styles
         margin-top          80px
 
       canvas
-        margin-top        7px
+        margin-top          7px
 
 
 // Topic tab styling
@@ -943,9 +943,15 @@ Admin main styles
     padding                 0
 
   .main-loader
-    top                     45%
+    top                     42%
     height                  auto
+    width                   100%
+    text-align              center
     abs()
+
+    .text
+      margin-top            10px
+
 
   button.solid.compact.nav
     right                   0
@@ -1041,21 +1047,22 @@ Admin main styles
       margin-top            6px
       min-width             162px
 
-  .output-view code
-    max-height              300px
-    overflow                auto
-
   button
     &[disabled]
       opacity               .5
 
-  .step-creds
-    .kdformview
-      margin-top            20px
-      .kdlabel
-        line-height         39px
-        min-width           120px
-        fl()
+  .kdformview
+    margin-top              20px
+    .kdlabel
+      line-height           39px
+      min-width             160px
+      fl()
+
+  .step-define-stack
+    height                  calc(100% \- 100px)
+    .editor-view
+      border-radius         4px
+      height                calc(100% \- 100px)
 
   .credential-item
     padding                 10px 0
