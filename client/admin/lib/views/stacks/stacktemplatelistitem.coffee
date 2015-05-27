@@ -11,8 +11,8 @@ module.exports = class StackTemplateListItem extends kd.ListItemView
     options.cssClass = kd.utils.curry "stacktemplate-item clearfix", options.cssClass
     super options, data
 
-    delegate  = @getDelegate()
-    { title } = @getData()
+    delegate         = @getDelegate()
+    { title, inuse } = @getData()
 
     @deleteButton = new kd.ButtonView
       cssClass : 'solid compact outline red secondary'
@@ -21,8 +21,16 @@ module.exports = class StackTemplateListItem extends kd.ListItemView
 
     @updateButton = new kd.ButtonView
       cssClass : 'solid compact outline'
-      title    : 'UPDATE'
+      title    : 'EDIT'
       callback : @bound 'updateStackTemplate'
+
+    @inuseView = new kd.CustomHTMLView
+      cssClass : 'inuse-tag'
+      partial  : 'IN USE'
+      tooltip  :
+        title  : 'This group currently using this template'
+
+    @inuseView.hide()  unless inuse
 
 
   updateStackTemplate: ->
@@ -32,7 +40,7 @@ module.exports = class StackTemplateListItem extends kd.ListItemView
   pistachio: ->
     """
     <div class='stacktemplate-info clearfix'>
-      {div.title{#(title)}}
+      {div.title{#(title)}} {{> @inuseView}}
     </div>
     <div class='buttons'>
       {{> @deleteButton}}{{> @updateButton}}
