@@ -1,0 +1,10 @@
+{
+  "name": "showcase",
+  "main": "./lib/index.coffee",
+  "styles": [
+    "./lib/styl"
+  ],
+  "routes": {
+    "/Showcase": "ShowcaseIndex"
+  }
+}

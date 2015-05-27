@@ -10,8 +10,6 @@ module.exports = (req, res, next) ->
   { JUser, JGroup, JInvitation } = koding.models
   {
     redirect
-    # invitation token that the user got in the mail
-    token
     # slug is team slug, unique name. Can not be changed
     slug
     # newsletter holds announcements config.
@@ -61,17 +59,13 @@ module.exports = (req, res, next) ->
           # handle the request with an HTTP redirect:
           res.redirect 301, redirect
 
-    JInvitation.byCode token, (err, invitation) ->
+    # subscribe to koding marketing mailings or not
+    body.emailFrequency         or= {}
+    body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
 
-      return res.status(400).send getErrorMessage err  if err?
-
-      # subscribe to koding marketing mailings or not
-      body.emailFrequency         or= {}
-      body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
-
-      if alreadyMember
-      then JUser.login client.sessionToken, body, joinGroup
-      else JUser.convert client, body, joinGroup
+    if alreadyMember
+    then JUser.login client.sessionToken, body, joinGroup
+    else JUser.convert client, body, joinGroup
 
 
 getErrorMessage = (err) ->

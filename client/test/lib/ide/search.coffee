@@ -83,25 +83,26 @@ module.exports =
     browser.end()
 
 
-  toggleInvisibleFiles: (browser) ->
+  # toggleInvisibleFiles: (browser) ->
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  #   user = helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
 
-    pathSelector = "span[title='/home/#{user.username}/.bashrc']"
+  #   pathSelector = "span[title='/home/#{user.username}/.bashrc']"
 
-    browser.element 'css selector', pathSelector, (result) =>
-      if result.status is 0
-       ideHelpers.toggleInvisibleFiles(browser, user)
-      else
-        helpers.clickVMHeaderButton(browser)
-        browser
-          .click '.context-list-wrapper .toggle-invisible-files'
-          .waitForElementVisible    pathSelector, 20000 # Assertion
+  #   browser.element 'css selector', pathSelector, (result) =>
+  #     if result.status is 0
+  #      ideHelpers.toggleInvisibleFiles(browser, user)
+  #     else
+  #       helpers.clickVMHeaderButton(browser)
+  #       browser
+  #         .click '.context-list-wrapper .toggle-invisible-files'
+  #         .waitForElementVisible    pathSelector, 20000 # Assertion
 
-          ideHelpers.toggleInvisibleFiles(browser, user)
+  #         ideHelpers.toggleInvisibleFiles(browser, user)
 
-      browser.end()
+  #     browser.end()
+
 
 
   # openAnExistingFileAndSave: (browser) ->

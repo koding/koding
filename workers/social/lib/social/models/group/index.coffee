@@ -295,6 +295,7 @@ module.exports = class JGroup extends Module
       customize     :
         coverPhoto  : String
         logo        : String
+        default     : -> return {}
       payment       :
         plan        : String
         paymentQuota: Number
@@ -605,7 +606,7 @@ module.exports = class JGroup extends Module
 
   # isInAllowedDomain checks if given email's domain is in allowed domains
   isInAllowedDomain: (email, callback) ->
-    
+
     return no  unless @allowedDomains?.length > 0
 
     # even if incoming email doesnt have a @ in it, whole string will be taken

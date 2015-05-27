@@ -128,7 +128,7 @@ func TestTTL(t *testing.T) {
 	key := "rainbow"
 	_, err := session.TTL(key)
 	if err == nil {
-		t.Errorf("Expected %s error but got nil", "ttl is not set")
+		t.Errorf("Expected %s error but got nil", ErrTTLNotSet)
 	}
 
 	err = session.Set(key, "connection")
