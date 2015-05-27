@@ -26,7 +26,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     @logo = new KDCustomHTMLView tagName : 'figure'
 
     { group } = KD.config
-    if group.customize.logo
+    if group.customize?.logo
       @logo.setCss 'background-image', "url(#{group.customize.logo})"
       @logo.setCss 'background-size', 'cover'
     else
