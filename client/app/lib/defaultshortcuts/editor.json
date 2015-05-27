@@ -748,10 +748,10 @@
     "description": "Pageup",
     "binding": [
       [
-        "alt+page up"
+        "alt+pageup"
       ],
       [
-        "alt+page up"
+        "alt+pageup"
       ]
     ]
   },
@@ -760,10 +760,10 @@
     "description": "Pagedown",
     "binding": [
       [
-        "alt+page down"
+        "alt+pagedown"
       ],
       [
-        "alt+page down"
+        "alt+pagedown"
       ]
     ]
   }
