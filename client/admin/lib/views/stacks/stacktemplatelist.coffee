@@ -1,17 +1,19 @@
-kd                 = require 'kd'
-hljs               = require 'highlight.js'
-KDListView         = kd.ListView
-KDModalView        = kd.ModalView
-KDOverlayView      = kd.OverlayView
+kd                    = require 'kd'
+KDListView            = kd.ListView
+KDModalView           = kd.ModalView
+KDOverlayView         = kd.OverlayView
 
-showError          = require 'app/util/showError'
+hljs                  = require 'highlight.js'
+showError             = require 'app/util/showError'
+
+StackTemplateListItem = require './stacktemplatelistitem'
 
 
 module.exports = class StackTemplateList extends KDListView
 
   constructor: (options = {}, data) ->
 
-    options.tagName   ?= "ul"
+    options.itemClass ?= StackTemplateListItem
 
     super options, data
 

@@ -19,7 +19,6 @@ AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
 StackTemplateList               = require './stacktemplatelist'
-StackTemplateListItem           = require './stacktemplatelistitem'
 StackTemplateListController     = require './stacktemplatelistcontroller'
 
 
@@ -326,7 +325,6 @@ module.exports = class StacksCustomViews extends CustomViews
     stackTemplateList: (data) =>
 
       listView   = new StackTemplateList
-        itemClass  : StackTemplateListItem
       controller = new StackTemplateListController
         view       : listView
         wrapper    : no
