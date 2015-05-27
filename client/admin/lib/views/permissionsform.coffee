@@ -17,6 +17,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
   # I decided that at least some of the concerns I have with this file are
   # dependent upon a cleaner intermediate data structure in the form api.
 
+
   constructor:(options,data)->
 
     @group           = data
@@ -33,7 +34,9 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
     super options,data
     @setClass 'permissions-form col-'+@roles.length
 
-  showNewRoleModal:->
+
+  showNewRoleModal: ->
+
     roleSelectOptions = []
     @selectRoleModal  = new KDModalView title: "Select Role to Copy", overlay: yes
     roleSelectOptions.push {title: role, value: role} for role in @roles
@@ -72,7 +75,9 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
     @selectRoleModal.addSubView @roleSelectBox
     @selectRoleModal.addSubView confirmButton
 
-  readableText = (text)->
+
+  readableText = (text) ->
+
     dictionary =
       "JNewApp"        : "Apps"
       "JGroup"         : "Groups"
@@ -87,10 +92,14 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
 
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
-  _getCheckboxName =(module, permission, role)->
+
+  _getCheckboxName = (module, permission, role) ->
+
     ['permission', module].join('-')+'|'+[role, permission].join('|')
 
-  checkForPermission = (permissions,module,permission,role)->
+
+  checkForPermission = (permissions,module,permission,role) ->
+
     for perm in permissions
       if perm.module is module and perm.role is role
         for perm1 in perm.permissions
@@ -98,7 +107,8 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
             return yes
         return no
 
-  cascadeFormElements = (set,roles,module,permission,roleCount=0)->
+
+  cascadeFormElements = (set, roles, module, permission, roleCount = 0) ->
 
     [current,remainder...] = roles
     cascadeData = {}
@@ -122,6 +132,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
     if current and remainder.length > 0
       cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roleCount
     return cascadeData
+
 
   optionizePermissions = (roles, set) ->
 
@@ -148,17 +159,19 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
             cascadeFormElements set, roles, module, permission, roles.length
     permissionOptions
 
-  createTree =(values)->
-    values.reduce (acc, {module, role, permission})->
+
+  createTree = (values) ->
+    values.reduce (acc, { module, role, permission }) ->
       acc[module] ?= {}
       acc[module][role] ?= []
       acc[module][role].push permission
       return acc
     , {}
 
-  createReducedList =(values)->
+
+  createReducedList = (values) ->
     cache = {}
-    values.reduce (acc, {module, role, permission})->
+    values.reduce (acc, { module, role, permission }) ->
       storageKey = "#{module}:#{role}"
       cached = cache[storageKey]
       if cached?
@@ -169,17 +182,21 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       return acc
     , []
 
-  getFormValues:->
-    @$().serializeArray()
-    .map ({name})->
+
+  getFormValues: ->
+
+    @$().serializeArray().map ({ name }) ->
       [facet, role, permission] = name.split '|'
       module = facet.split('-')[1]
       {module, role, permission}
 
-  ['list','reducedList','tree'].forEach (method)=>
-    @::[method] =-> @getPermissions method
 
-  getPermissions:(structure='reducedList')->
+  ['list','reducedList','tree'].forEach (method) =>
+    @::[method] = -> @getPermissions method
+
+
+  getPermissions: (structure = 'reducedList') ->
+
     values = @getFormValues()
     switch structure
       when 'reducedList'  then return createReducedList values
@@ -187,7 +204,9 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       when 'tree'         then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
-  getPermissionsOfRole: (role)->
+
+  getPermissionsOfRole: (role) ->
+
     allValues = @list()
     selectedRoleValues = []
     selectedRoleValues.push permission for permission in allValues when permission.role is role
