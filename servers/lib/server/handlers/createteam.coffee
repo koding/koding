@@ -25,9 +25,10 @@ module.exports = (req, res, next) ->
     alreadyMember
   } = body
 
-  redirect ?= '/'
-  context   = { group: slug }
-  clientId  = getClientId req, res
+  redirect     ?= '/'
+  context       = { group: slug }
+  clientId      = getClientId req, res
+  alreadyMember = alreadyMember is 'true'
 
   return handleClientIdNotFound res, req  unless clientId
 
@@ -95,7 +96,7 @@ module.exports = (req, res, next) ->
           # handle the request with an HTTP redirect:
           res.redirect 301, redirect
 
-    if alreadyMember is 'true'
+    if alreadyMember
     then JUser.login client.sessionToken, body, createGroup
     else JUser.convert client, body, createGroup
 
