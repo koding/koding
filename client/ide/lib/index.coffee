@@ -58,6 +58,7 @@ class IDEAppController extends AppController
 
   constructor: (options = {}, data) ->
 
+    options.view    = new KDView cssClass: 'dark'
     options.appInfo =
       type          : 'application'
       name          : 'IDE'
