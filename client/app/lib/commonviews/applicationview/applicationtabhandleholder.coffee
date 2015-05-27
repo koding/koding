@@ -1,6 +1,6 @@
-kd = require 'kd'
-KDView = kd.View
-KDCustomHTMLView = kd.CustomHTMLView
+kd                = require 'kd'
+KDView            = kd.View
+KDCustomHTMLView  = kd.CustomHTMLView
 
 
 module.exports = class ApplicationTabHandleHolder extends KDView
