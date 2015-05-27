@@ -30,7 +30,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
         style         : 'solid medium green'
         callback      : @bound 'showNewRoleModal'
 
-    options.fields or= optionizePermissions @roles, @permissionSet
+    options.fields or= optionizePermissions.call this, @roles, @permissionSet
     super options,data
     @setClass 'permissions-form col-'+@roles.length
 
@@ -130,7 +130,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       cascadeData[current].defaultValue = yes
       cascadeData[current].disabled = yes
     if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roleCount
+      cascadeData[current].nextElement = cascadeFormElements.call this, set, remainder, module, permission, roleCount
     return cascadeData
 
 
@@ -156,7 +156,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
           attributes    :
             title       : readableText permission
           nextElement :
-            cascadeFormElements set, roles, module, permission, roles.length
+            cascadeFormElements.call this, set, roles, module, permission, roles.length
     permissionOptions
 
 
