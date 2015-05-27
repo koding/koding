@@ -15,6 +15,7 @@ IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 IDEHelpers            = require '../../idehelpers'
+$                     = require 'jquery'
 
 
 module.exports = class IDEView extends IDEWorkspaceTabView
@@ -529,14 +530,21 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
 
   bindEvents: ->
+
     super
 
-    $elm = @getDomElement()
+    { appManager }  = kd.singletons
+    $elm            = @getDomElement()
 
     $elm.bind 'dragover', (event) =>
       event.preventDefault()
 
-    { appManager } = kd.singletons
-
     $elm.bind 'drop', (event) =>
-      appManager.tell 'IDE', 'handleTabDropped', event, @.parent
+      index             = null
+      { originalEvent } = event
+      $target           = $(originalEvent.target)
+
+      index = $target.index()  if $target.hasClass 'kdtabhandle'
+      index = $target.parent().index()  if $target.parent().hasClass 'kdtabhandle'
+
+      appManager.tell 'IDE', 'handleTabDropped', event, @.parent, index
