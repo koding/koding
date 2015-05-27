@@ -33,6 +33,10 @@ type Server struct {
 	// virtualHosts is used to map public hosts to remote clients
 	virtualHosts vhostStorage
 
+	// onDisconnect contains the onDisconnect for each map
+	onDisconnect   map[string]func() error
+	onDisconnectMu sync.Mutex // protects onDisconnects
+
 	// yamuxConfig is passed to new yamux.Session's
 	yamuxConfig *yamux.Config
 
@@ -71,6 +75,7 @@ func NewServer(cfg *ServerConfig) *Server {
 	s := &Server{
 		pending:      make(map[string]chan net.Conn),
 		sessions:     make(map[string]*yamux.Session),
+		onDisconnect: make(map[string]func() error),
 		virtualHosts: newVirtualHosts(),
 		controls:     newControls(),
 		yamuxConfig:  yamuxConfig,
@@ -134,6 +139,8 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		LocalPort: port,
 	}
 
+	s.log.Debug("Sending control msg %+v", msg)
+
 	// ask client to open a session to us, so we can accept it
 	if err := control.send(msg); err != nil {
 		return err
@@ -152,6 +159,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// if we don't receive anything from the client, we'll timeout
+	s.log.Debug("Waiting for session accept")
 	select {
 	case err := <-async(acceptStream):
 		if err != nil {
@@ -166,18 +174,20 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	resp, err := http.ReadResponse(bufio.NewReader(stream), r)
-	if err != nil {
-		if resp.Body == nil {
+	defer func() {
+		if resp.Body != nil {
 			resp.Body.Close()
 		}
+	}()
+
+	if err != nil {
 		return fmt.Errorf("read from tunnel: %s", err.Error())
 	}
-	defer resp.Body.Close()
 
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
 	if _, err := io.Copy(w, resp.Body); err != nil {
-		return err
+		s.log.Error("copy err: %s", err) // do not return, because we might write multipe headers
 	}
 
 	return nil
@@ -277,6 +287,10 @@ func (s *Server) listenControl(ct *control) {
 			ct.Close()
 			s.deleteControl(ct.identifier)
 			s.deleteSession(ct.identifier)
+			if err := s.callOnDisconect(ct.identifier); err != nil {
+				s.log.Error("onDisconnect (%s) err: %s", ct.identifier, err)
+			}
+
 			s.log.Error("decode err: %s", err)
 			return
 		}
@@ -286,6 +300,35 @@ func (s *Server) listenControl(ct *control) {
 		// disconnection(above), so we can cleanup the connection.
 		s.log.Debug("msg: %s", msg)
 	}
+}
+
+// OnDisconnect calls the function when the client connected with the
+// associated identifier disconnects from the server. After a client is
+// disconnected, the associated function is alro removed and needs to be
+// readded again.
+func (s *Server) OnDisconnect(identifier string, fn func() error) {
+	s.onDisconnectMu.Lock()
+	s.onDisconnect[identifier] = fn
+	s.onDisconnectMu.Unlock()
+}
+
+func (s *Server) callOnDisconect(identifier string) error {
+	s.onDisconnectMu.Lock()
+	defer s.onDisconnectMu.Unlock()
+
+	fn, ok := s.onDisconnect[identifier]
+	if !ok {
+		return fmt.Errorf("no onDisconncet function available for '%s'", identifier)
+	}
+
+	// delete after we are finished with it
+	delete(s.onDisconnect, identifier)
+
+	if fn == nil {
+		return errors.New("onDisconnect function for '%s' is set to nil")
+	}
+
+	return fn()
 }
 
 func (s *Server) AddHost(host, identifier string) {
