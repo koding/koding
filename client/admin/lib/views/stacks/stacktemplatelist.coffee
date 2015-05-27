@@ -41,3 +41,25 @@ module.exports = class StackTemplateList extends KDListView
     overlay.once 'click',                   modal.bound   'destroy'
 
     return modal
+
+
+  showItemContent: (item) ->
+
+    stackTemplate = item.getData()
+
+    try
+      content = JSON.stringify stackTemplate, null, 2
+    catch e
+      kd.warn e; kd.log data
+      return new KDNotificationView
+        title: "An error occurred"
+
+    cred = hljs.highlight('json', content).value
+
+    new KDModalView
+      title          : stackTemplate.title
+      subtitle       : stackTemplate.modifiedAt
+      cssClass       : 'has-markdown'
+      overlay        : yes
+      overlayOptions : cssClass : 'second-overlay'
+      content        : "<pre><code>#{cred}</code></pre>"
