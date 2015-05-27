@@ -1,10 +1,9 @@
 package main
 
 import (
-	"errors"
+	"strings"
 
 	"github.com/koding/kite"
-	"github.com/koding/kite/protocol"
 	"github.com/koding/multiconfig"
 	"github.com/koding/streamtunnel"
 )
@@ -35,6 +34,8 @@ func main() {
 		conf.ServerAddr = "127.0.0.1:4444"
 	}
 
+	conf.ServerAddr = addPort(conf.ServerAddr, "80")
+
 	client := streamtunnel.NewClient(conf)
 	client.FetchIdentifier = func() (string, error) {
 		result, err := callRegister(tunnelserver)
@@ -63,21 +64,15 @@ func callRegister(tunnelserver *kite.Client) (*registerResult, error) {
 	return result, nil
 }
 
-func getTunnelServer(k *kite.Kite) (*kite.Client, error) {
-	query := &protocol.KontrolQuery{
-		Username:    "arslan",
-		Environment: "development",
-		Name:        "tunnelserver",
+// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
+// return true if the string includes a port.
+func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
+
+// Given a string of the form "host", "port", returns "host:port"
+func addPort(host, port string) string {
+	if ok := hasPort(host); ok {
+		return host
 	}
 
-	kites, err := k.GetKites(query)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(kites) == 0 {
-		return nil, errors.New("no tunnelserver available")
-	}
-
-	return kites[0], nil
+	return host + ":" + port
 }

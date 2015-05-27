@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"koding/kites/kloud/pkg/dnsclient"
-	"log"
 	"os"
 
 	"github.com/koding/kite"
@@ -64,9 +63,7 @@ func main() {
 }
 
 func (t *tunnelServer) Register(r *kite.Request) (interface{}, error) {
-	log.Printf("registering user '%s'\n", r.Username)
-
-	virtualHost := fmt.Sprintf("%s.54.85.221.74%s", r.Username, t.BaseVirtualHost)
+	virtualHost := fmt.Sprintf("%s.%s", r.Username, t.BaseVirtualHost)
 	identifier := randomID(32)
 
 	domain := r.Username + "." + t.Dns.HostedZone()
@@ -85,8 +82,6 @@ func (t *tunnelServer) Register(r *kite.Request) (interface{}, error) {
 		t.Server.DeleteHost(virtualHost)
 		return t.Dns.Delete(domain)
 	})
-
-	log.Printf("tunnel added: %s\n", virtualHost)
 
 	return registerResult{
 		VirtualHost: virtualHost,
