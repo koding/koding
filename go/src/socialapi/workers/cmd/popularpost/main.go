@@ -7,6 +7,7 @@ import (
 	"socialapi/workers/popularpost"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/jinzhu/now"
 	"github.com/koding/runner"
 )
@@ -39,20 +40,16 @@ func main() {
 	go func() {
 		for {
 			endOfDay := now.EndOfDay().UTC()
-			difference := time.Now().UTC().Sub(endOfDay)
+			difference := endOfDay.Sub(time.Now().UTC())
 
-			<-time.After(difference * -1)
+			<-time.After(difference)
 
-			//TODO: remove hardcoded of 'koding' and 'public'
-			//      get yesterday's daily buckets that exist in redis, create
-			//      weekly bucket for those groups, channel names
-			keyname := &popularpost.KeyName{
-				GroupName: "koding", ChannelName: "public",
-				Time: time.Now().UTC(),
+			if err := backoff.Retry(
+				context.CreateWeeklyBuckets,
+				backoff.NewExponentialBackOff(),
+			); err != nil {
+				r.Log.Error("Couldnt create weekly buckets", err.Error())
 			}
-
-			context.CreateSevenDayBucket(keyname)
-			context.ResetRegistry()
 		}
 	}()
 
