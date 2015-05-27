@@ -10,7 +10,7 @@ module.exports = class StackTemplateListController extends AccountListViewContro
 
   constructor: (options = {}, data) ->
 
-    options.noItemFoundText ?= "You have no stack template"
+    options.noItemFoundText ?= "You currently have no stack template"
     super options, data
 
     @loadItems()
@@ -29,6 +29,13 @@ module.exports = class StackTemplateListController extends AccountListViewContro
 
       return if showError err, \
         KodingError : "Failed to fetch stackTemplates, try again later."
+
+      { groupsController } = kd.singletons
+      currentGroup = groupsController.getCurrentGroup()
+
+      stackTemplates.map (template) ->
+        console.log template._id, currentGroup.stackTemplates
+        template.inuse = template._id in (currentGroup.stackTemplates or [])
 
       @instantiateListItems stackTemplates
 
