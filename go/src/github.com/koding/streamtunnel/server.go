@@ -139,6 +139,8 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 		LocalPort: port,
 	}
 
+	s.log.Debug("Sending control msg %+v", msg)
+
 	// ask client to open a session to us, so we can accept it
 	if err := control.send(msg); err != nil {
 		return err
@@ -157,6 +159,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// if we don't receive anything from the client, we'll timeout
+	s.log.Debug("Waiting for session accept")
 	select {
 	case err := <-async(acceptStream):
 		if err != nil {
@@ -172,7 +175,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 
 	resp, err := http.ReadResponse(bufio.NewReader(stream), r)
 	if err != nil {
-		if resp.Body == nil {
+		if resp.Body != nil {
 			resp.Body.Close()
 		}
 		return fmt.Errorf("read from tunnel: %s", err.Error())
