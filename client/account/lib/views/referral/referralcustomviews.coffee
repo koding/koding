@@ -80,9 +80,7 @@ module.exports = class ReferralCustomViews extends CustomViews
         socialIcons   :
           providers   : ['facebook', 'linkedin', 'twitter', 'google', 'mail']
         text_invite   : 'Your personal invite link:'
-        link          :
-          href        : getReferralUrl nick()
-          target      : '_blank'
+        text_link     : getReferralUrl nick()
 
       return container
 
