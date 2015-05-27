@@ -18,46 +18,39 @@ type registerResult struct {
 	Identifier  string
 }
 
-type config struct {
+type tunnelServer struct {
 	Port            int
-	BaseVirtualHost string `required:"true"`
 	Debug           bool
-
+	BaseVirtualHost string `required:"true"`
 	// Public Address of the running server
 	ServerAddr string
 
 	HostedZone string
 	AccessKey  string
 	SecretKey  string
-}
 
-type tunnelServer struct {
-	BaseVirtualHost string
-	server          *streamtunnel.Server
-	dns             *dnsclient.Route53
+	server *streamtunnel.Server
+	dns    *dnsclient.Route53
 }
 
 func main() {
-	conf := new(config)
+	t := new(tunnelServer)
 	m := multiconfig.New()
-	m.MustLoad(conf)
+	m.MustLoad(t)
 
 	auth := aws.Auth{
-		AccessKey: conf.AccessKey,
-		SecretKey: conf.SecretKey,
+		AccessKey: t.AccessKey,
+		SecretKey: t.SecretKey,
 	}
 
-	t := &tunnelServer{
-		BaseVirtualHost: conf.BaseVirtualHost,
-		server: streamtunnel.NewServer(&streamtunnel.ServerConfig{
-			Debug: conf.Debug,
-		}),
-		dns: dnsclient.NewRoute53Client(conf.HostedZone, auth),
-	}
+	t.dns = dnsclient.NewRoute53Client(t.HostedZone, auth)
+	t.server = streamtunnel.NewServer(&streamtunnel.ServerConfig{
+		Debug: t.Debug,
+	})
 
 	k := kite.New("tunnelserver", "0.0.1")
 	k.Config.DisableAuthentication = true
-	k.Config.Port = conf.Port
+	k.Config.Port = t.Port
 
 	k.HandleFunc("register", t.Register)
 	k.HandleHTTP("/{rest:.*}", t.server)
@@ -71,7 +64,20 @@ func (t *tunnelServer) Register(r *kite.Request) (interface{}, error) {
 	virtualHost := fmt.Sprintf("%s.%s", r.Username, t.BaseVirtualHost)
 	identifier := randomID(32)
 
+	domain := r.Username + "." + t.dns.HostedZone()
+
+	if err := t.dns.Upsert(domain, t.ServerAddr); err != nil {
+		return nil, err
+	}
+
 	t.server.AddHost(virtualHost, identifier)
+
+	// cleanup domain and delete in memory virtualhost
+	t.server.OnDisconnect(identifier, func() error {
+		t.server.DeleteHost(virtualHost)
+		return t.dns.Delete(domain)
+	})
+
 	log.Printf("tunnel added: %s\n", virtualHost)
 
 	return registerResult{

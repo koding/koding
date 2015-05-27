@@ -33,6 +33,10 @@ type Server struct {
 	// virtualHosts is used to map public hosts to remote clients
 	virtualHosts vhostStorage
 
+	// onDisconnect contains the onDisconnect for each map
+	onDisconnect   map[string]func() error
+	onDisconnectMu sync.Mutex // protects onDisconnects
+
 	// yamuxConfig is passed to new yamux.Session's
 	yamuxConfig *yamux.Config
 
@@ -71,6 +75,7 @@ func NewServer(cfg *ServerConfig) *Server {
 	s := &Server{
 		pending:      make(map[string]chan net.Conn),
 		sessions:     make(map[string]*yamux.Session),
+		onDisconnect: make(map[string]func() error),
 		virtualHosts: newVirtualHosts(),
 		controls:     newControls(),
 		yamuxConfig:  yamuxConfig,
@@ -277,6 +282,10 @@ func (s *Server) listenControl(ct *control) {
 			ct.Close()
 			s.deleteControl(ct.identifier)
 			s.deleteSession(ct.identifier)
+			if err := s.callOnDisconect(ct.identifier); err != nil {
+				s.log.Error("onDisconnect (%s) err: %s", ct.identifier, err)
+			}
+
 			s.log.Error("decode err: %s", err)
 			return
 		}
@@ -286,6 +295,26 @@ func (s *Server) listenControl(ct *control) {
 		// disconnection(above), so we can cleanup the connection.
 		s.log.Debug("msg: %s", msg)
 	}
+}
+
+// OnDisconnect calls the function when the client connected with the
+// associated identifier disconnects from the server.
+func (s *Server) OnDisconnect(identifier string, fn func() error) {
+	s.onDisconnectMu.Lock()
+	s.onDisconnect[identifier] = fn
+	s.onDisconnectMu.Unlock()
+}
+
+func (s *Server) callOnDisconect(identifier string) error {
+	s.onDisconnectMu.Lock()
+	fn, ok := s.onDisconnect[identifier]
+	s.onDisconnectMu.Unlock()
+
+	if !ok {
+		return fmt.Errorf("no onDisconncet function available for '%s'", identifier)
+	}
+
+	return fn()
 }
 
 func (s *Server) AddHost(host, identifier string) {
