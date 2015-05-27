@@ -275,6 +275,8 @@ fetchUserPlan = (client, callback)->
     if err? or not subscription?
     then plan = 'free'
     else plan = subscription.planTitle
+    console.log subscription
+    console.log plan
 
     # we need to clone the plan data since we are using global data here,
     # when we modify it at line 84 everything will be broken after the
