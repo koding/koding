@@ -30,6 +30,13 @@ module.exports = class ShowcaseAppView extends kd.CustomHTMLView
 
 
   ###*
+   * To be implemented...
+  ###
+  showKDView: (component) ->
+    console.error 'ShowcaseAppView::showKDView: not yet implemented'
+
+
+  ###*
    * Initial render, render AppComponent, pass the dispatcher to it;
    * then append it into this view's dom element.
   ###
