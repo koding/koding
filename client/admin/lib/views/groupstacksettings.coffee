@@ -22,7 +22,7 @@ module.exports     = class GroupStackSettings extends kd.View
       initialView: @bound 'initiateNewStackWizard'
 
 
-  initiateNewStackWizard: ->
+  initiateNewStackWizard: (stackTemplate) ->
 
     NEW_STACK_STEPS = [
       'stepSelectProvider'
@@ -42,7 +42,7 @@ module.exports     = class GroupStackSettings extends kd.View
           data
         }
 
-    steps.first()
+    steps.first { stackTemplate }
 
 
   setGroupTemplate: (stackTemplate) ->

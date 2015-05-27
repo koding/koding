@@ -310,13 +310,14 @@ module.exports = class StacksCustomViews extends CustomViews
           button          :
             title         : 'Create New'
             cssClass      : 'solid medium green'
-            callback      : callback
+            callback      : -> callback null
         stackTemplateList :
           group           : currentGroup
 
       templateList = views.stackTemplateList.__view
       templateList.on 'ItemSelected', (template) ->
         console.log 'This template is selected', template
+        callback template
 
       return container
 
@@ -335,7 +336,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepSelectProvider: (options) =>
 
-      {callback, cancelCallback} = options
+      {callback, cancelCallback, data} = options
       container = @views.container 'step-provider'
 
       views     = @addTo container,
@@ -347,7 +348,8 @@ module.exports = class StacksCustomViews extends CustomViews
           callback      : cancelCallback
 
       views.providersView.on 'ItemSelected', (provider) ->
-        callback {provider}
+        data.provider = provider
+        callback data
 
       return container
 
@@ -396,7 +398,8 @@ module.exports = class StacksCustomViews extends CustomViews
 
       credentialList = views.credentialList.__view
       credentialList.on 'ItemSelected', (credential) ->
-        callback {credential, provider}
+        data.credential = credential
+        callback data
 
       return container
 
