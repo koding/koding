@@ -33,7 +33,7 @@ module.exports = class StackTemplateListItem extends kd.ListItemView
       cssClass : 'inuse-tag'
       partial  : 'IN USE'
       tooltip  :
-        title  : 'This stack template currently using this credential'
+        title  : 'This group currently using this template'
 
     @inuseView.hide()  unless inuse
 

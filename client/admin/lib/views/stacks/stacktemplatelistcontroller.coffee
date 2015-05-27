@@ -34,7 +34,6 @@ module.exports = class StackTemplateListController extends AccountListViewContro
       currentGroup = groupsController.getCurrentGroup()
 
       stackTemplates.map (template) ->
-        console.log template._id, currentGroup.stackTemplates
         template.inuse = template._id in (currentGroup.stackTemplates or [])
 
       @instantiateListItems stackTemplates

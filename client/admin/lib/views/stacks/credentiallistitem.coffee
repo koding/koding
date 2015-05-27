@@ -35,7 +35,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       cssClass : 'inuse-tag hidden'
       partial  : 'IN USE'
       tooltip  :
-        title  : 'This group currently using this template'
+        title  : 'This stack template currently using this credential'
 
     {stackTemplate} = @getOptions()
     if stackTemplate?.credentials? and publicKey in stackTemplate.credentials

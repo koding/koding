@@ -80,8 +80,7 @@ module.exports = class StacksCustomViews extends CustomViews
         provisioners : [] # TODO what are we going to do with provisioners? ~ GG
       }
 
-    console.info "Kloud's response:", response
-    console.info "Converted stack :", out.machines
+    console.info "[parseTerraformOutput]", out.machines
 
     return out.machines
 
@@ -162,7 +161,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
 
   handleBootstrap = (outputView, credential, button) ->
-    console.log {outputView, credential, button}
 
     outputView.destroySubViews()
     outputView.addContent 'Bootstrapping started...'
@@ -183,12 +181,12 @@ module.exports = class StacksCustomViews extends CustomViews
         else
           outputView.addContent 'Bootstrapping completed but something went wrong.'
 
-        console.log "Bootstrap result:", response
+        console.log '[KLOUD:Bootstrap]', response
 
       .catch (err) ->
 
         outputView.addContent 'Bootstrapping failed:', err.message
-        console.warn "Bootstrap failed:", err
+        console.warn '[KLOUD:Bootstrap:Fail]', err
 
       .finally button.bound 'hideLoader'
 
@@ -315,9 +313,7 @@ module.exports = class StacksCustomViews extends CustomViews
           group           : currentGroup
 
       templateList = views.stackTemplateList.__view
-      templateList.on 'ItemSelected', (template) ->
-        console.log 'This template is selected', template
-        callback template
+      templateList.on 'ItemSelected', callback
 
       return container
 
@@ -406,7 +402,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepBootstrap: (options) =>
 
-      console.log options
       {callback, cancelCallback, data} = options
       {provider, credential, stackTemplate} = data
 
@@ -463,8 +458,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepDefineStack: (options) =>
 
-      console.log options
-
       {callback, cancelCallback, data}      = options
       {provider, credential, stackTemplate} = data or {}
 
@@ -501,8 +494,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepComplete: (options) =>
 
-      console.log options
-
       {callback, cancelCallback, data}      = options
       {stackTemplate, credential, provider} = data
 
@@ -517,7 +508,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
       handleCheckTemplate {stackTemplate}, (err, response) =>
 
-        console.log ">>>>>", err, response
+        console.log '[KLOUD:checkTemplate]', err, response
 
         @addTo container,
           navCancelButton :
