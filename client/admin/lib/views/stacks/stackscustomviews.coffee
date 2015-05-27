@@ -352,15 +352,19 @@ module.exports = class StacksCustomViews extends CustomViews
       return container
 
 
-    credentialList: (provider) =>
+    credentialList: (options) =>
+
+      { provider, stackTemplate } = options
 
       listView   = new AccountCredentialList
-        itemClass  : CredentialListItem
+        itemClass   : CredentialListItem
+        itemOptions : { stackTemplate }
+
       controller = new AccountCredentialListController
-        view       : listView
-        wrapper    : no
-        scrollView : no
-        provider   : provider
+        view        : listView
+        wrapper     : no
+        scrollView  : no
+        provider    : provider
 
       __view = controller.getView()
       return { __view, controller }
@@ -368,11 +372,11 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepSetupCredentials: (options) =>
 
-      {data, callback, cancelCallback} = options
-      {provider} = data
+      { data, callback, cancelCallback } = options
+      { provider, stackTemplate } = data
 
-      container = @views.container 'step-creds'
-      views     = @addTo container,
+      container  = @views.container 'step-creds'
+      views      = @addTo container,
         stepsHeaderView : 2
         container_top   :
           text_intro    : "To be able to use this provider <strong>you need to
@@ -384,7 +388,7 @@ module.exports = class StacksCustomViews extends CustomViews
             cssClass    : 'solid compact green action'
             callback    : ->
               handleNewCredential views, provider, this
-        credentialList  : provider
+        credentialList  : { provider, stackTemplate }
         navCancelButton :
           title         : '< Select another provider'
           callback      : ->
