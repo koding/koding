@@ -19,6 +19,11 @@ module.exports = class StackTemplateListItem extends kd.ListItemView
       title    : 'DELETE'
       callback : delegate.lazyBound 'deleteItem', this
 
+    @showButton = new kd.ButtonView
+      cssClass : 'solid compact outline secondary'
+      title    : 'SHOW'
+      callback : delegate.lazyBound 'showItemContent', this
+
     @updateButton = new kd.ButtonView
       cssClass : 'solid compact outline'
       title    : 'EDIT'
@@ -43,6 +48,6 @@ module.exports = class StackTemplateListItem extends kd.ListItemView
       {div.title{#(title)}} {{> @inuseView}}
     </div>
     <div class='buttons'>
-      {{> @deleteButton}}{{> @updateButton}}
+      {{> @showButton}}{{> @deleteButton}}{{> @updateButton}}
     </div>
     """
