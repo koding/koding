@@ -22,7 +22,7 @@ body.home
 
   .login-form.register
     margin                0 auto 50px auto
-    max-width             600px
+    max-width             620px
     padding               8px
     rounded               8px
     bg                    color rgba(0,0,0,.1)
@@ -63,11 +63,16 @@ body.home
         opacity         1
         right           -112px
 
+      .dots-extra
+        r-sprite          home 'dots-home'
+        opacity           .7
+        abs               10px 6px 0 0
+
       .buttons-extra
         opacity           0
         abs               -8px -75px 0 0
         z-index           -1
-        padding           8px 8px 12px 8px
+        padding           9px 8px 12px 8px
         width             auto
         rounded           8px
         bg                color rgba(0,0,0,.1)
@@ -85,8 +90,8 @@ body.home
           margin          3px 5px 0 5px
 
       > div
-        width             calc(50% - 104px)
-        padding-right     10px
+        width             calc(50% - 110px)
+        padding-right     5px
         rel()
         borderBox()
 
@@ -227,6 +232,8 @@ body.home
           r-sprite        home 'gh-home-white'
           &:hover
             opacity       1
+        .dots-extra
+          r-sprite        home 'dots-home-white'
         a.fb
           r-sprite        home 'fb-home-white'
           &:hover

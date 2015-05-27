@@ -95,6 +95,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       <div class='fl password'>{{> @password}}</div>
       <div class='fl submit'>{{> @button}}</div>
       {{> @github}}
+      <div class='dots-extra'></div>
       <div class='buttons-extra'>
         {{> @google}}
         {{> @facebook}}
