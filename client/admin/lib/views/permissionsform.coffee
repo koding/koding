@@ -24,19 +24,10 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
 
     @roles = (role.title for role in options.roles when role.title isnt 'owner')
     options.buttons or=
-      Save          :
-        style       : "solid medium green"
-        loader      : yes
-        callback    : =>
-          @buttons["Save"].hideLoader()
-          @group.updatePermissions @reducedList(), (err,res)=>
-            @buttons["Save"].hideLoader()
-            return showError err if err
-            new KDNotificationView title: "Group permissions have been updated."
-      Add           :
-        title       : "Add"
-        style       : "solid medium green"
-        callback    : @bound "showNewRoleModal"
+      Add             :
+        title         : 'Add'
+        style         : 'solid medium green'
+        callback      : @bound 'showNewRoleModal'
 
     options.fields or= optionizePermissions @roles, @permissionSet
     super options,data
