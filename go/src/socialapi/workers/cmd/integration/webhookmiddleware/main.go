@@ -20,6 +20,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	defer r.Close()
 
 	appConfig := config.MustRead(r.Conf.Path)
 	workerConfig := appConfig.WebhookMiddleware
