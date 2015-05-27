@@ -1,41 +1,42 @@
-ndpane                        = require 'ndpane'
 _                             = require 'lodash'
-kd                            = require 'kd'
 $                             = require 'jquery'
-kookies                       = require 'kookies'
-
-KDBlockingModalView           = kd.BlockingModalView
-KDCustomHTMLView              = kd.CustomHTMLView
-KDModalView                   = kd.ModalView
-KDNotificationView            = kd.NotificationView
-KDSplitView                   = kd.SplitView
-KDSplitViewPanel              = kd.SplitViewPanel
-remote                        = require('app/remote').getInstance()
-globals                       = require 'globals'
+kd                            = require 'kd'
 nick                          = require 'app/util/nick'
-showError                     = require 'app/util/showError'
+ndpane                        = require 'ndpane'
+remote                        = require('app/remote').getInstance()
+KDView                        = kd.View
 whoami                        = require 'app/util/whoami'
+globals                       = require 'globals'
+kookies                       = require 'kookies'
 Machine                       = require 'app/providers/machine'
-KodingKontrol                 = require 'app/kite/kodingkontrol'
+IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
+showError                     = require 'app/util/showError'
+KDModalView                   = kd.ModalView
+KDSplitView                   = kd.SplitView
+IDEWorkspace                  = require './workspace/ideworkspace'
+IDEStatusBar                  = require './views/statusbar/idestatusbar'
+KodingKontrol                 = require 'app/kite/kodingkontrol'
 AppController                 = require 'app/appcontroller'
-CollaborationController       = require './collaborationcontroller'
-VideoCollaborationController  = require './videocollaborationcontroller'
-IDEContentSearch              = require './views/contentsearch/idecontentsearch'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
-IDEFilesTabView               = require './views/tabview/idefilestabview'
-IDEStatusBar                  = require './views/statusbar/idestatusbar'
-IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
-IDETerminalPane               = require './workspace/panes/ideterminalpane'
-IDEView                       = require './views/tabview/ideview'
-IDEWorkspace                  = require './workspace/ideworkspace'
 splashMarkups                 = require './util/splashmarkups'
+OnboardingEvent               = require 'app/onboarding/onboardingevent'
+IDEFilesTabView               = require './views/tabview/idefilestabview'
+IDETerminalPane               = require './workspace/panes/ideterminalpane'
+KDCustomHTMLView              = kd.CustomHTMLView
+KDSplitViewPanel              = kd.SplitViewPanel
+IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
+IDEContentSearch              = require './views/contentsearch/idecontentsearch'
+KDNotificationView            = kd.NotificationView
+KDBlockingModalView           = kd.BlockingModalView
 IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
-EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
-OnboardingEvent               = require 'app/onboarding/onboardingevent'
+CollaborationController       = require './collaborationcontroller'
+VideoCollaborationController  = require './videocollaborationcontroller'
+EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
+
 
 require('./routes')()
 
