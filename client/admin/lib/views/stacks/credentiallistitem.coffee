@@ -8,7 +8,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "credential-item clearfix", options.cssClass
+    options.cssClass = kd.utils.curry 'credential-item clearfix', options.cssClass
     super options, data
 
     delegate  = @getDelegate()
@@ -33,9 +33,9 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
     @warningView = new kd.CustomHTMLView
       cssClass : 'warning-message hidden'
-      partial  : "This credential couldn't verified, please check credential
-                  details or add a new credential to be able to continue
-                  to next step"
+      partial  : "We couldn't verify these credentials, please check the
+                  ones you used or add new credentials to be able to continue
+                  to the next step."
 
 
   setVerified: (state, reason) ->
