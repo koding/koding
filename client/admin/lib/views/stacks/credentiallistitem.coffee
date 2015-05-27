@@ -8,7 +8,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "credential-item clearfix", options.cssClass
+    options.cssClass = kd.utils.curry 'credential-item clearfix', options.cssClass
     super options, data
 
     delegate  = @getDelegate()
