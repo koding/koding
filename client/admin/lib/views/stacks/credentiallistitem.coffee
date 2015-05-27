@@ -71,7 +71,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
   pistachio: ->
     """
     <div class='credential-info clearfix'>
-      {div.provider{#(provider)}} {div.title{#(title)}}
+      {div.tag{#(provider)}} {div.title{#(title)}}
     </div>
     <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}{{> @verifyButton}}
