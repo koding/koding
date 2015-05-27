@@ -83,8 +83,6 @@ class IDEAppController extends AppController
           }
         ]
 
-    $('body').addClass 'dark' # for theming
-
     @workspace = new IDEWorkspace { layoutOptions }
     @ideViews  = []
 
