@@ -18,12 +18,8 @@ module.exports     = class GroupStackSettings extends kd.View
 
 
   initiateInitialView: ->
-
-    @replaceViewsWith loader: 'Fetching stack data...'
-    @fetchData (err, data) =>
-      if err? or not data?.stackTemplate
-      then @replaceViewsWith noStackFoundView: @bound 'initiateNewStackWizard'
-      else @replaceViewsWith stacksView: data
+    @replaceViewsWith
+      initialView: @bound 'initiateNewStackWizard'
 
 
   initiateNewStackWizard: ->
@@ -47,37 +43,6 @@ module.exports     = class GroupStackSettings extends kd.View
         }
 
     steps.first()
-
-
-  fetchData: (callback) ->
-
-    { groupsController }            = kd.singletons
-    { JCredential, JStackTemplate } = remote.api
-
-    JCredential.some {}, { limit: 30 }, (err, credentials) ->
-
-      return callback {message: 'Failed to fetch credentials:', err}  if err
-
-      currentGroup = groupsController.getCurrentGroup()
-
-      if not currentGroup.stackTemplates?.length > 0
-        callback null, {credentials}
-        return
-
-      {stackTemplates} = currentGroup
-      stackTemplateId  = stackTemplates.first # TODO support multiple templates
-
-      JStackTemplate.some
-        _id   : stackTemplateId
-      , limit : 1
-      , (err, stackTemplates) ->
-
-          if err
-            console.warn 'Failed to fetch stack template:', err
-            callback null, {credentials}
-          else
-            stackTemplate = stackTemplates.first
-            callback null, {credentials, stackTemplate}
 
 
   setGroupTemplate: (stackTemplate) ->

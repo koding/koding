@@ -218,23 +218,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
   _.assign @views,
 
-    noStackFoundView: (callback) =>
-
-      container = @views.container 'no-stack-found'
-
-      @addTo container,
-        text_header  : 'Add Your Stack'
-        text_message : "You don't have any stacks set up yet. Stacks are awesome
-                        because when a user joins your group you can
-                        preconfigure their work environment by defining stacks.
-                        Learn more about stacks"
-        button       :
-          title      : 'Add New Stack'
-          cssClass   : 'solid medium green'
-          callback   : callback
-
-      return container
-
 
     loader: (message) =>
       container = @views.container 'main-loader'
@@ -310,19 +293,35 @@ module.exports = class StacksCustomViews extends CustomViews
         fields: input: {name, label, defaultValue: value}
 
 
-    stacksView: (data) =>
-      console.log ">>>", data
+    initialView: (callback) =>
 
       container = @views.container 'stacktemplates'
 
-      @addTo container,
-        text              : 'Group stack settings completed, more coming soon.'
-        stackTemplateList : {}
+      { groupsController } = kd.singletons
+      currentGroup = groupsController.getCurrentGroup()
+
+      views = @addTo container,
+        text_header       : 'Compute Stack Templates'
+        container_top     :
+          text_intro      : "Stack Templates are awesome because when a user
+                             joins your group you can preconfigure their work
+                             environment by defining stacks.
+                             Learn more about stacks"
+          button          :
+            title         : 'Create New'
+            cssClass      : 'solid medium green'
+            callback      : callback
+        stackTemplateList :
+          group           : currentGroup
+
+      templateList = views.stackTemplateList.__view
+      templateList.on 'ItemSelected', (template) ->
+        console.log 'This template is selected', template
 
       return container
 
 
-    stackTemplateList: (data) =>
+    stackTemplateList: (options) ->
 
       listView   = new StackTemplateList
       controller = new StackTemplateListController
