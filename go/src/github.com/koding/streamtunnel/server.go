@@ -174,13 +174,15 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	resp, err := http.ReadResponse(bufio.NewReader(stream), r)
-	if err != nil {
+	defer func() {
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
+	}()
+
+	if err != nil {
 		return fmt.Errorf("read from tunnel: %s", err.Error())
 	}
-	defer resp.Body.Close()
 
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
