@@ -9,11 +9,11 @@ ide.styl
 }
 
 // variables
-dark-panel-bg         = #2B2B2B
-dark-tab-header-bg    = #131313
-dark-active-tab-color = #9C9C9C
-dark-tab-color        = #5C5C5C
-text-color-green      = #4EA04C
+dark-panel-bg               = #2B2B2B
+dark-tab-header-bg          = #131313
+dark-active-tab-color       = #9C9C9C
+dark-tab-color              = #5C5C5C
+text-color-green            = #4EA04C
 
 .ide-general-handle-tooltip
   white-space               nowrap
@@ -23,93 +23,105 @@ text-color-green      = #4EA04C
 body.ide
 
   #main-panel-wrapper
-    bg                  color, #262626
+    bg                      color, #262626
 
   .application-page
-    border-left         2px solid dark-tab-header-bg
+    border-left             2px solid dark-tab-header-bg
+
     &.blurred
       .panel
-        vendor          filter, blur(2px)
-        vendor          transform, rotate3d(0,0,0)
+        vendor              filter, blur(2px)
+        vendor              transform, rotate3d(0,0,0)
 
     .kdtabhandlecontainer
-      bg                  color, dark-tab-header-bg
+      bg                    color, dark-tab-header-bg
+
       &.application-tab-handle-holder .kdtabhandle .close-tab
-        r-sprite          'ide', 'tab-close'
-        top               14px
+        r-sprite            'ide', 'tab-close'
+        top                 14px
+
       .kdtabhandle b
-        width             90%
+        width               90%
 
   #kdmaincontainer .kdsplitcomboview .kdtabview
-    bg                  color, dark-panel-bg
-    overflow            hidden
+    bg                      color, dark-panel-bg
+    overflow                hidden
 
     .koding-sidebar-handle
-      top               0
-      left              0
-      bottom            0
-      width             3px
-      cursor            ew-resize
+      top                   0
+      left                  0
+      bottom                0
+      width                 3px
+      cursor                ew-resize
       abs()
 
 body.ide .dark
 
   .vm-header .buttons .chevron
-    r-sprite            'finder', 'expanded'
-    top                 -8px !important
+    r-sprite                'finder', 'expanded'
+    top                     -8px !important
 
   .kdtabhandle
-    color               dark-tab-color
+    color                   dark-tab-color
+
     &:hover .options
-      display           inline-block
+      display               inline-block
+
     &.active
-      bg                color, dark-panel-bg
-      color             dark-active-tab-color
+      bg                    color, dark-panel-bg
+      color                 dark-active-tab-color
+
     &.menu-visible
       .options
-        display         inline-block
+        display             inline-block
+
     .options
-      r-sprite          'finder', 'expanded'
-      position          absolute
-      top               9px
-      right             20px
-      display           none
+      r-sprite              'finder', 'expanded'
+      position              absolute
+      top                   9px
+      right                 20px
+      display               none
 
     &.plus
-      border-left-color transparent
+      border-left-color     transparent
 
   .jtreeview-wrapper .jtreeitem.selected .chevron
-    display             inline-block
-    top                 3px
+    display                 inline-block
+    top                     3px
 
   .ace-koding
-    bg                  color, dark-panel-bg
+    bg                      color, dark-panel-bg
+
     .ace_gutter
-      bg                color, dark-panel-bg
-      color             dark-active-tab-color
+      bg                    color, dark-panel-bg
+      color                 dark-active-tab-color
+
     .ace_gutter-active-line
-      bg                color, dark-tab-header-bg
+      bg                    color, dark-tab-header-bg
+
     .ace_print-margin
-      bg                color, #3F3F3F
+      bg                    color, #3F3F3F
 
   .editor-bottom-bar
-    bg                  color, dark-tab-header-bg
+    bg                      color, dark-tab-header-bg
 
   .terminal .green-on-black.console
-    bg                  color, dark-panel-bg
+    bg                      color, dark-panel-bg
 
   .terminal .solarized-light ~ .kdscrolltrack .kdscrollthumb
   .terminal .black-on-white ~ .kdscrolltrack .kdscrollthumb
-    background          rgba(0, 0, 0, .6)
+    background              rgba(0, 0, 0, .6)
 
   .kdtabhandle.plus
     r-sprite                'ide', 'tab-plus'
     border-left             none
     margin                  4px
+
     .icon
       bg                    image, none
       margin                0
       opacity               0.5
+
     .icon.opaque
       opacity               1
 
@@ -131,6 +143,7 @@ body.ide .dark
     size                    30px, 40px
     opacity                 0.377
     vendor                  transition, opacity .177s ease
+
     .icon
       position              absolute
       top                   50%
@@ -157,93 +170,103 @@ body.ide .dark
 
 
   .ace-find-replace-view
-    bottom              1px !important
-    bg                  color, dark-tab-header-bg
-    border-bottom-color dark-tab-header-bg
-    box-shadow          inset 0 -1px 0 dark-tab-header-bg
+    bottom                  1px !important
+    bg                      color, dark-tab-header-bg
+    border-bottom-color     dark-tab-header-bg
+    box-shadow              inset 0 -1px 0 dark-tab-header-bg
+
     a, input
-      border-color      dark-panel-bg
+      border-color          dark-panel-bg
+
       &.active
-        border-color    dark-panel-bg !important
+        border-color        dark-panel-bg !important
 
     input
-      bg                color, dark-panel-bg
-      box-shadow        0 1px 0 dark-panel-bg
-      color             dark-active-tab-color
+      bg                    color, dark-panel-bg
+      box-shadow            0 1px 0 dark-panel-bg
+      color                 dark-active-tab-color
+
       &:hover
-        bg              color, dark-panel-bg
-        border          1px solid dark-panel-bg
-        box-shadow      0 1px 0 dark-panel-bg
+        bg                  color, dark-panel-bg
+        border              1px solid dark-panel-bg
+        box-shadow          0 1px 0 dark-panel-bg
+
       &:focus
-        bg              color, dark-panel-bg
-        border          1px solid dark-panel-bg
-        box-shadow      0 1px 0 dark-panel-bg
+        bg                  color, dark-panel-bg
+        border              1px solid dark-panel-bg
+        box-shadow          0 1px 0 dark-panel-bg
+
     button
-      bg                color, dark-panel-bg
-      color             dark-active-tab-color
-      border            1px solid dark-panel-bg
+      bg                    color, dark-panel-bg
+      color                 dark-active-tab-color
+      border                1px solid dark-panel-bg
+
       &:hover
-        bg              color, dark-panel-bg
-        opacity         .8
+        bg                  color, dark-panel-bg
+        opacity             .8
 
   .ws-tabview.fullscren
-    position            fixed
-    top                 0
-    left                0
-    z-index             10000 // yes!
+    position                fixed
+    top                     0
+    left                    0
+    z-index                 10000 // yes!
 
 // common app styling
 .ide
   .kdsplitview-resizer
-    z-index             10 // ace occupies
+    z-index                 10 // ace occupies
 
   .ace_editor
-    height              100%
+    height                  100%
 
   .terminal-pane
 
-    padding             12px
-    box-sizing          border-box
+    padding                 12px
+    box-sizing              border-box
 
     > .kdcustomscrollview
-      overflow          visible !important
-      box-shadow        0px 0px 10px 30px
-      color             dark-panel-bg
+      overflow              visible !important
+      box-shadow            0px 0px 10px 30px
+      color                 dark-panel-bg
+      styleScrollBars       rgba(255,255,255,.25)
 
-      styleScrollBars rgba(255,255,255,.25)
       .kdview.kdscrolltrack.horizontal
         hidden()
+
       .kdview.kdscrolltrack.vertical
-        right             -12px
+        right               -12px
+
       .kdview.kdscrolltrack &.out
-        opacity           1 !important
+        opacity             1 !important
 
   .kdtabhandle.dummy
   .kdview.dummy
-    display             none
+    display                 none
 
   .application-tabview
     >.kdtabpaneview
-      overflow          visible
+      overflow              visible
 
       >.pane
-        overflow        visible
+        overflow            visible
 
   .kdselectbox.dark
-    bg                  color, transparent
-    border              1px solid #555555
-    rounded             3px
-    width               120px
+    bg                      color, transparent
+    border                  1px solid #555555
+    rounded                 3px
+    width                   120px
     borderBox()
+
     .title
-      color             #9c9c9c
+      color                 #9c9c9c
+
     .arrows
-      r-sprite          'finder', 'expanded'
-      top               8px
+      r-sprite              'finder', 'expanded'
+      top                   8px
 
 
   .ide-files-tab .kdtabhandle-tabs
-    min-width           234px
+    min-width               234px
     noTextSelection()
 
 .ide-files-tab .application-tabview
@@ -252,165 +275,194 @@ body.ide .dark
 .ide-files-tab .general-handles
   hidden()
 
+
 // sidebar icons
 .ide-files-tab
+
   .application-tab-handle-holder
-    vendor              transition, none
+    vendor                  transition, none
+
   .kdtabhandle
     b
-      text-indent       -1000px
+      text-indent           -1000px
+
     &.files
-      r-sprite          'ide', 'files-off'
+      r-sprite              'ide', 'files-off'
+
       &.active
-        r-sprite        'ide', 'files-on'
+        r-sprite            'ide', 'files-on'
+
     &.vms
-      r-sprite          'ide', 'vms-off'
+      r-sprite              'ide', 'vms-off'
+
       &.active
-        r-sprite        'ide', 'vms-on'
+        r-sprite            'ide', 'vms-on'
+
     &.settings
-      r-sprite          'ide', 'settings-off'
+      r-sprite              'ide', 'settings-off'
+
       &.active
-        r-sprite        'ide', 'settings-on'
+        r-sprite            'ide', 'settings-on'
+
   .toggle
-    display             inline-block
-    r-sprite            'finder', 'expanded'
-    right               10px
-    top                 11px
+    display                 inline-block
+    r-sprite                'finder', 'expanded'
+    right                   10px
+    top                     11px
     abs()
     pointer()
 
   .kd-logo
-    display             none
-    r-sprite            'app', 'logo-full'
-    width               18px
-    position            relative
-    top                 7px
-    left                11px
-    opacity             .5
+    display                 none
+    r-sprite                'app', 'logo-full'
+    width                   18px
+    position                relative
+    top                     7px
+    left                    11px
+    opacity                 .5
     pointer()
 
 .sidebar-collapsed .toggle
-  r-sprite              'finder', 'expanded'
-  right                  12px
-  top                    85px
+  r-sprite                  'finder', 'expanded'
+  right                     12px
+  top                       85px
 
 #kdmaincontainer.collapsed
   .application-page .ide-files-tab
     .kd-logo
-      display             inline-block
-      left                -70px
+      display               inline-block
+      left                  -70px
+
     .kdtabhandle
-      left                40px
+      left                  40px
+
   .application-page.sidebar-collapsed .ide-files-tab
     .kdtabhandle
-      left                0
-      top                 40px
+      left                  0
+      top                   40px
+
     .toggle
-      top                 125px
+      top                   125px
+
     .kd-logo
-      left                10px
-      top                 -67px
+      left                  10px
+      top                   -67px
 
 
 // floating left
 .floating.kdsplitview-panel
   .ide-files-tab
     .application-tab-handle-holder
-      size              39px, 100%
+      size                  39px, 100%
       fl()
+
     .kdtabhandle
-      float             none
+      float                 none
+
     .application-tabview
-      top               0
-      left              0
-      margin-left       39px
-      height            100%
+      top                   0
+      left                  0
+      margin-left           39px
+      height                100%
       abs()
       fl()
+
     .kdtabpaneview.active
-      margin-right      39px
-      width             auto
-      border-right      2px solid dark-tab-header-bg
+      margin-right          39px
+      width                 auto
+      border-right          2px solid dark-tab-header-bg
 
 
 // vm list pane
 .vm-list-pane
-  height                auto
+  height                    auto
 
   .vm-item
-    size                auto, 39px
-    bg                  color, dark-tab-header-bg
-    position            relative
-    margin              16px 13px
-    rounded             2px
+    size                    auto, 39px
+    bg                      color, dark-tab-header-bg
+    position                relative
+    margin                  16px 13px
+    rounded                 2px
+
     .domain-name
-      text-decoration   underline
-      line-height       39px
-      color             #949290
-      font-size         13px
-      margin-left       14px
+      text-decoration       underline
+      line-height           39px
+      color                 #949290
+      font-size             13px
+      margin-left           14px
       pointer()
+
     .actions-menu
-      border            none
-      display           inline-block
-      r-sprite          'ide', 'horizontal-dots'
+      border                none
+      display               inline-block
+      r-sprite              'ide', 'horizontal-dots'
       pointer()
       abs()
-      right             12px
-      top               11px
+      right                 12px
+      top                   11px
+
       &:focus
-        box-shadow      none
+        box-shadow          none
 
   .buy-vm-button
-    rounded             2px
-    color               #FFF
-    margin              0 13px
-    font-size           13px
-    line-height         39px
-    background          none
-    display             block
-    size                auto, 39px
-    position            relative
-    border              1px dashed #5A5A5A
-    text-decoration     none
-    text-align          center
+    rounded                 2px
+    color                   #FFF
+    margin                  0 13px
+    font-size               13px
+    line-height             39px
+    background              none
+    display                 block
+    size                    auto, 39px
+    position                relative
+    border                  1px dashed #5A5A5A
+    text-decoration         none
+    text-align              center
+
     .icon
-      display           inline-block
-      r-sprite          'ide', 'add-vm'
-      float             none
-      vertical-align    sub
-      margin-right      4px
+      display               inline-block
+      r-sprite              'ide', 'add-vm'
+      float                 none
+      vertical-align        sub
+      margin-right          4px
 
 // settings pane
 .settings-pane
-  line-height           20px
-  font-size             12px
+  line-height               20px
+  font-size                 12px
+
   > .kdcustomscrollview
-    styleScrollBars     rgba(255,255,255,.25)
+    styleScrollBars         rgba(255,255,255,.25)
+
     > .kdscrollview > *
-      min-width         250px
+      min-width             250px
 
   .settings-header
-    color               text-color-green
-    padding             25px 20px 10px
+    color                   text-color-green
+    padding                 25px 20px 10px
+
   .kdselectbox
-    min-width           100px
-    display             block
-    float               right
+    min-width               100px
+    display                 block
+    float                   right
+
   p
-    color               #D4CFC9
-    padding             5px 20px
-    clear               both
+    color                   #D4CFC9
+    padding                 5px 20px
+    clear                   both
     borderBox()
+
     &.with-select
-      line-height       32px
+      line-height           32px
+
     .settings-on-off
-      display           block
-      float             right
+      display               block
+      float                 right
+
       &.on
-        bg              color, text-color-green
+        bg                  color, text-color-green
+
       &.off
-        bg              color, dark-tab-header-bg
+        bg                  color, dark-tab-header-bg
 
 // shortcuts tab
 .shortcuts
@@ -422,7 +474,7 @@ body.ide .dark
       hidden()
 
     .kdview.kdscrolltrack &.out
-      opacity           1 !important
+      opacity               1 !important
 
 
 // status bar
@@ -431,16 +483,16 @@ body.ide .dark
     > .kdsplitview
       > .panel-1
         .pane-wrapper
-          kalc          height, 100% \- 40px
+          kalc              height, 100% \- 40px
 
   .status-bar
-    bottom              0
-    width               100%
-    height              40px
-    line-height         40px
-    color               dark-tab-color
-    background          dark-tab-header-bg
-    font-size           13px
+    bottom                  0
+    width                   100%
+    height                  40px
+    line-height             40px
+    color                   dark-tab-color
+    background              dark-tab-header-bg
+    font-size               13px
     abs()
 
     .collab-status
@@ -477,416 +529,465 @@ body.ide .dark
         vendor              transform, rotate(0deg)
 
     .status
-      margin-left       12px
+      margin-left           12px
       fl()
+
       p
-        display         inline-block
+        display             inline-block
+
         &.line
-          width         50px
+          width             50px
 
     .share
-      color             #b9b9b9
-      padding           3px 8px
-      height            24px
-      text-transform    uppercase
-      font-weight       600
-      margin-top        8px
-      rounded           3px
-      font-size         12px
-      line-height       20px
-      margin-right      6px
+      color                 #b9b9b9
+      padding               3px 8px
+      height                24px
+      text-transform        uppercase
+      font-weight           600
+      margin-top            8px
+      rounded               3px
+      font-size             12px
+      line-height           20px
+      margin-right          6px
       borderBox()
       noTextDeco()
 
       &:hover
-        color           #fff
-        bg              color #24b444
+        color               #fff
+        bg                  color #24b444
 
     .icon
-      size              auto 37px
-      padding           0
-      margin-top        3px
-      margin-right      12px
+      size                  auto 37px
+      padding               0
+      margin-top            3px
+      margin-right          12px
       pointer()
       fr()
 
       cite
-        display         block
+        display             block
 
       &.shortcuts cite
-        r-sprite        'ide', 'keyboard'
+        r-sprite            'ide', 'keyboard'
+
       &.github cite
-        r-sprite        'ide', 'github'
+        r-sprite            'ide', 'github'
+
       &.help cite
-        margin-top      -1px
-        r-sprite        'ide', 'help'
+        margin-top          -1px
+        r-sprite            'ide', 'help'
 
 
   .status-bar-menu
     ul
-      bg                color, dark-tab-header-bg !important
-      padding           2px !important
-      rounded           0 !important
+      bg                    color, dark-tab-header-bg !important
+      padding               2px !important
+      rounded               0 !important
+
     li
-      color             #E6E1DC !important
-      rounded           0 !important
+      color                 #E6E1DC !important
+      rounded               0 !important
+
       &:hover
-        bg              color, dark-panel-bg !important
+        bg                  color, dark-panel-bg !important
+
       &.selected
-        bg              color, dark-panel-bg !important
+        bg                  color, dark-panel-bg !important
+
       &.separator
-        border-bottom   1px solid dark-panel-bg !important
-        margin          14px !important
+        border-bottom       1px solid dark-panel-bg !important
+        margin              14px !important
+
     .shortcut
-      color             #999 !important
-      letter-spacing    .1em
-      float             right
-      font-size         11px
+      color                 #999 !important
+      letter-spacing        .1em
+      float                 right
+      font-size             11px
 
   .syntax-selector
-    padding             3px 10px 3px 0
+    padding                 3px 10px 3px 0
+
     span
-      font-size         13px
-      margin-left       10px
+      font-size             13px
+      margin-left           10px
+
     .kdselectbox
-      height            24px
-      margin-left       35px
+      height                24px
+      margin-left           35px
+
       span
-        line-height     24px !important
-        height          24px !important
+        line-height         24px !important
+        height              24px !important
+
       .arrows
-        r-sprite        'finder', 'expanded'
-        top             2px
+        r-sprite            'finder', 'expanded'
+        top                 2px
 
 // file-finder
 .ide .file-finder
+  z-index                   10000
+  top                       96px
+  left                      50%
+  margin-left               -235px
+  width                     450px
+  padding                   10px
+  rounded                   5px
   abs()
-  z-index               10000
-  top                   96px
-  left                  50%
-  margin-left           -235px
-  width                 450px
-  padding               10px
-  rounded               5px
-  bg                    color, dark-tab-header-bg
-  vendor                box-shadow, 0px 2px 28px rgba(0, 0, 0, .5)
+  bg                        color, dark-tab-header-bg
+  vendor                    box-shadow, 0px 2px 28px rgba(0, 0, 0, .5)
+
   .icon
     abs()
-    z-index             2
-    top                 20px
-    right               20px
-    r-sprite            'ide', 'search'
+    z-index                 2
+    top                     20px
+    right                   20px
+    r-sprite                'ide', 'search'
+
   .kdinput
-    color               #928D87
-    bg                  color, #D4CFC9
-    border              1px solid dark-panel-bg
-    height              36px
-    font-size           14px
+    color                   #928D87
+    bg                      color, #D4CFC9
+    border                  1px solid dark-panel-bg
+    height                  36px
+    font-size               14px
+
     &.has-text
-      color             dark-tab-header-bg !important
+      color                 dark-tab-header-bg !important
+
     &:focus
-      box-shadow        none
-      border            1px solid dark-panel-bg
+      box-shadow            none
+      border                1px solid dark-panel-bg
+
     &:hover
-      border            1px solid dark-panel-bg
+      border                1px solid dark-panel-bg
+
   .kdlistitemview.selected
-    rounded             3px
-    bg                  color, dark-panel-bg
+    rounded                 3px
+    bg                      color, dark-panel-bg
+
   .kdlistview
-    max-height          200px
-    overflow            auto !important
-    margin-top          10px
+    max-height              200px
+    overflow                auto !important
+    margin-top              10px
+
   .warning
-    padding             20px 20px 10px 20px
-    color               #74706B
-    font-size           14px
-    text-align          center
+    padding                 20px 20px 10px 20px
+    color                   #74706B
+    font-size               14px
+    text-align              center
+
   .file-item
-    font-size           12px
-    padding             12px
-    width               auto
+    font-size               12px
+    padding                 12px
+    width                   auto
+
     p
-      line-height       14px
+      line-height           14px
+
     .name
-      color             #D4CFC9
+      color                 #D4CFC9
+
     .path
-      color             #858585
+      color                 #858585
+
     &:hover
-      rounded           3px
-      bg                color, dark-panel-bg
+      rounded               3px
+      bg                    color, dark-panel-bg
       pointer()
 
 // content search view
 .ide .search-result
+
   .filename
-    color               #858585
-    margin              30px 0 20px 20px
-    font-size           14px
+    color                   #858585
+    margin                  30px 0 20px 20px
+    font-size               14px
+
   pre
-    font-family         Menlo, Monaco, Consolas, monospace
-    margin              0 20px
-    color               #d4cfc9
-    width               auto
-    font-size           14px
-    line-height         20px
-    overflow            hidden
+    font-family             Menlo, Monaco, Consolas, monospace
+    margin                  0 20px
+    color                   #d4cfc9
+    width                   auto
+    font-size               14px
+    line-height             20px
+    overflow                hidden
+
     span
       fl()
+
       &.line-number
-        width           30px
+        width               30px
+
   .separator
-    color               #d4cfc9
-    margin              -5px 0 5px 20px
+    color                   #d4cfc9
+    margin                  -5px 0 5px 20px
+
   .match
-    bg                  color, #4EA04C
-    color               #fff
-    display             inline
-    rounded             3px
+    bg                      color, #4EA04C
+    color                   #fff
+    display                 inline
+    rounded                 3px
     pointer()
 
 // content search modal
 .ide .content-search-modal
   .kdtabview
-    bg                  color, #F9F7F3
+    bg                      color, #F9F7F3
 
   .kdmodal-inner
   .kdmodal-content
-    margin              0 !important
-    rounded             4px
+    margin                  0 !important
+    rounded                 4px
 
   .formline.button-field
-    height              55px !important
-    margin-top          16px !important
+    height                  55px !important
+    margin-top              16px !important
 
   .kdtabview
-    padding             25px 32px
-    width               auto
+    padding                 25px 32px
+    width                   auto
 
   label
-    font-size           14px
-    margin              0 0 4px 0
+    font-size               14px
+    margin                  0 0 4px 0
 
   .findinput  label
   .whereinput label
-    float               none
+    float                   none
 
   .whereinput
-    margin-bottom       28px
+    margin-bottom           28px
 
   .close-icon
-    display             none
+    display                 none
 
   .kdinput.text
-    bg                  color, #FFF
-    border              1px solid #E6E1DC
-    rounded             3px
+    bg                      color, #FFF
+    border                  1px solid #E6E1DC
+    rounded                 3px
+
     &:hover
-      border            1px solid #E6E1DC
+      border                1px solid #E6E1DC
+
     &:focus
-      box-shadow        none
+      box-shadow            none
 
   .formline.switch
-    size                180px, 35px
+    size                    180px, 35px
+
     label
       fl()
-      left              45px
-      position          relative
-      top               -2px
+      left                  45px
+      position              relative
+      top                   -2px
 
   .switch
     .input-wrapper
-      width             45px !important
+      width                 45px !important
       abs()
 
   .warningview
-    margin-top          7px
+    margin-top              7px
 
   .notification
-    height              42px
-    line-height         42px
-    text-align          center
-    color               #FFF
-    font-size           14px
-    rounded             2px
-    margin-bottom       26px
-    bg                  color, #FECD77
-    color               #846837
+    height                  42px
+    line-height             42px
+    text-align              center
+    color                   #FFF
+    font-size               14px
+    rounded                 2px
+    margin-bottom           26px
+    bg                      color, #FECD77
+    color                   #846837
+
     &.error
-      bg                color, #DC4832
-      color             #FFF
+      bg                    color, #DC4832
+      color                 #FFF
 
   .kdbutton#cancel-button
-    text-transform      capitalize
-    background          transparent
-    padding             0
-    margin              0 25px 0 0
-    position            relative
+    text-transform          capitalize
+    background              transparent
+    padding                 0
+    margin                  0 25px 0 0
+    position                relative
+
     &:focus
-      box-shadow        none
+      box-shadow            none
 
     .button-title
-      text-decoration underline
-      color           #767676
+      text-decoration       underline
+      color                 #767676
 
   .kdbutton#search-button
-    rounded             5px !important
-    bg                  color, #4EA04C
-    padding             0
-    padding             13px 18px 15px 19px
+    rounded                 5px !important
+    bg                      color, #4EA04C
+    padding                 0
+    padding                 13px 18px 15px 19px
+
     span
-      font-size         14px
-      font-weight       normal
-      line-height       45px
-      position          relative
-      top               -13px
+      font-size             14px
+      font-weight           normal
+      line-height           45px
+      position              relative
+      top                   -13px
+
     &.loading
       span
-        top             25px !important
+        top                 25px !important
 
   .icon
     abs()
-    z-index             2
-    top                 67px
-    right               45px
-    r-sprite            'ide', 'search'
+    z-index                 2
+    top                     67px
+    right                   45px
+    r-sprite                'ide', 'search'
 
 // save as dialog
 body.ide
   .kdcontextmenu.finder
-    z-index            10002
+    z-index                 10002
 
 body.ide .kddialogview.save-as-dialog
-  right                 auto
-  left                  50%
-  size                  390px, auto
-  margin-left           -195px
-  background            #F9F7F3
+  right                     auto
+  left                      50%
+  size                      390px, auto
+  margin-left               -195px
+  background                #F9F7F3
 
   .kddialog-wrapper
-    padding             25px 32px 0
-    margin              0 0 108px 0
+    padding                 25px 32px 0
+    margin                  0 0 108px 0
 
   form
     .kdlabel
-      font-size         14px
-      color             #8B8B8B
-      display           block
-      margin            0 0 13px
-      opacity           .99
-      line-height       1em
+      font-size             14px
+      color                 #8B8B8B
+      display               block
+      margin                0 0 13px
+      opacity               .99
+      line-height           1em
 
     .kdinput
-      margin            0 0 17px
-      background        #fff
-      border            1px solid #E6E1DC
-      rounded           3px
-      color             #9A9A9A
-      font-size         14px
+      margin                0 0 17px
+      background            #fff
+      border                1px solid #E6E1DC
+      rounded               3px
+      color                 #9A9A9A
+      font-size             14px
 
   .save-file-container
-    background          #2B2B2B
-    border              none
-    rounded             3px
+    background              #2B2B2B
+    border                  none
+    rounded                 3px
 
     .jtreeview-wrapper
-      height            100%
+      height                100%
 
     button.finder-mountvm
-      display           none
+      display               none
 
   .kddialog-buttons
-    background          transparent
-    border              none
-    rounded             0 0 4px 4px
-    padding             0 32px 32px
+    background              transparent
+    border                  none
+    rounded                 0 0 4px 4px
+    padding                 0 32px 32px
     borderBox()
 
     .kdbutton.green
-      background        #4EA04C
-      rounded           5px
-      width             82px
+      background            #4EA04C
+      rounded               5px
+      width                 82px
 
     .kdbutton.nobg
-      background        transparent
-      padding           0
-      margin            0 25px 0 0
+      background            transparent
+      padding               0
+      margin                0 25px 0 0
 
       .button-title
-        color           #767676
-        text-decoration underline
+        color               #767676
+        text-decoration     underline
 
 .drawing-pane
   styleScrollBars rgba(255,255,255,.25)
+
 // drawing board and toolbar
 .drawing-board-toolbar
   abs()
-  top                   10px
-  left                  10px
+  top                       10px
+  left                      10px
 
   .item
-    size                42px, 34px
-    margin-bottom       1px
-    bg                  color, #181818
+    size                    42px, 34px
+    margin-bottom           1px
+    position                relative
+    bg                      color, #181818
     pointer()
-    position            relative
+
     &:first-child
-      rounded           4px 4px 0 0
+      rounded               4px 4px 0 0
+
     &:last-child
-      rounded           0 0 4px 4px
+      rounded               0 0 4px 4px
+
     p
-      left              50%
-      top               50%
+      left                  50%
+      top                   50%
       abs()
+
     &.selected
-      width             43px
-      bg                color, #131313
+      width                 43px
+      bg                    color, #131313
       p
-        margin-left     -8px !important
+        margin-left         -8px !important
     &.undo p
-      r-sprite          'ide', 'arrow-left'
-      margin            -5px 0 0 -5px
+      r-sprite              'ide', 'arrow-left'
+      margin                -5px 0 0 -5px
+
     &.redo p
-      r-sprite          'ide', 'arrow-right'
-      margin            -5px 0 0 -5px
+      r-sprite              'ide', 'arrow-right'
+      margin                -5px 0 0 -5px
+
     &.clear p
-      r-sprite          'ide', 'refresh'
-      margin            -8px 0 0 -8px
+      r-sprite              'ide', 'refresh'
+      margin                -8px 0 0 -8px
+
     &.penSize p
-      r-sprite          'ide', 'dot'
-      margin            -7px 0 0 -7px
+      r-sprite              'ide', 'dot'
+      margin                -7px 0 0 -7px
+
     &.save p
-      r-sprite          'ide', 'download'
-      margin            -8px 0 0 -7px
+      r-sprite              'ide', 'download'
+      margin                -8px 0 0 -7px
+
     &.color .icon
-      size              14px, 14px
-      rounded           16px
-      bg                color, #CD3A33
-      margin            -7px 0 0 -7px
+      size                  14px, 14px
+      rounded               16px
+      bg                    color, #CD3A33
+      margin                -7px 0 0 -7px
 
   &.menu
-    left                53px
+    left                    53px
     .item
-      height            35px
-      margin-bottom     0
-      bg                color, #131313
+      height                35px
+      margin-bottom         0
+      bg                    color, #131313
 
     .pen-size
-      position          relative
+      position              relative
       div
-        bg              color, #5B5B5B
-        rounded         20px
-        top             50%
-        left            50%
+        bg                  color, #5B5B5B
+        rounded             20px
+        top                 50%
+        left                50%
         abs()
 
     .color
-      position          relative
+      position              relative
       div
-        size            14px, 14px
-        rounded         10px
-        top             50%
-        left            50%
-        margin          -7px 0 0 -7px
+        size                14px, 14px
+        rounded             10px
+        top                 50%
+        left                50%
+        margin              -7px 0 0 -7px
         abs()
 
 
@@ -896,47 +997,48 @@ body.ide .kddialogview.save-as-dialog
     hidden()
 
   .kdmodal-content
-    margin-top          0
+    margin-top              0
 
   .kdbutton
-    margin              17px auto !important
+    margin                  17px auto !important
 
   .top-container
-    height              285px
+    height                  285px
 
   .footer
-    height              130px
+    height                  130px
     borderBox()
 
     .headline
-      color             #5e5e5e
-      font-size         18px
-      font-weight       600
+      color                 #5e5e5e
+      font-size             18px
+      font-weight           600
 
     .dont-show-label
-      font-size         12px
-      color             #6d6d6d
-      text-decoration   underline
+      font-size             12px
+      color                 #6d6d6d
+      text-decoration       underline
 
 
 // Collaboration
 
 .ace_content
-  z-index               12
+  z-index                   12
 
 .ace-line-widget
-  color                 #FFF
-  opacity               .80
-  z-index               11
-  position              relative
+  color                     #FFF
+  opacity                   .80
+  z-index                   11
+  position                  relative
+
   .username
     abs()
-    right               0
-    rounded             2px 2px 0 0
-    padding             0 10px
+    right                   0
+    rounded                 2px 2px 0 0
+    padding                 0 10px
 
 .ace-participant-cursor
-  width                 2px !important
+  width                     2px !important
   abs()
 
 .kdcontextmenu.statusbar-files
@@ -970,10 +1072,12 @@ body.ide .kddialogview.save-as-dialog
     overflow                hidden
     pointer()
     borderBox()
+
     &.separator
       padding               0
       &:last-child
         border-bottom       none
+
     &.selected
     &.active
       color                 white
@@ -985,6 +1089,7 @@ body.ide .kddialogview.save-as-dialog
   .koding-on-off.tiny
     vendor                  transform, scale(.6)
     abs                     5px 25px 0 0
+
     &.off
       bg                    color #665
 
@@ -994,6 +1099,7 @@ body.ide .kddialogview.save-as-dialog
     display                 block
     abs                     2px 10px 0 0
     vendor                  transform, scale(.8)
+
     &:after
       content               ''
       r-sprite              ide help
@@ -1003,9 +1109,9 @@ body.ide .kddialogview.save-as-dialog
 
 .ide
   .kdsplitview-vertical .panel-0
-    borderBox()
     border-right            2px solid dark-tab-header-bg
     overflow                hidden
+    borderBox()
 
 
 .ide .application-page.read-only
@@ -1040,7 +1146,8 @@ body.ide .kddialogview.save-as-dialog
 
 
 .ide .more-modal.more-vms
-  left            50% !important
-  margin-left     -102px
+  left                      50% !important
+  margin-left               -102px
+
   .kdmodal-title
-    cursor        default
+    cursor                  default
