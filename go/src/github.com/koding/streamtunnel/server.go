@@ -301,7 +301,9 @@ func (s *Server) listenControl(ct *control) {
 }
 
 // OnDisconnect calls the function when the client connected with the
-// associated identifier disconnects from the server.
+// associated identifier disconnects from the server. After a client is
+// disconnected, the associated function is alro removed and needs to be
+// readded again.
 func (s *Server) OnDisconnect(identifier string, fn func() error) {
 	s.onDisconnectMu.Lock()
 	s.onDisconnect[identifier] = fn
@@ -310,11 +312,18 @@ func (s *Server) OnDisconnect(identifier string, fn func() error) {
 
 func (s *Server) callOnDisconect(identifier string) error {
 	s.onDisconnectMu.Lock()
-	fn, ok := s.onDisconnect[identifier]
-	s.onDisconnectMu.Unlock()
+	defer s.onDisconnectMu.Unlock()
 
+	fn, ok := s.onDisconnect[identifier]
 	if !ok {
 		return fmt.Errorf("no onDisconncet function available for '%s'", identifier)
+	}
+
+	// delete after we are finished with it
+	delete(s.onDisconnect, identifier)
+
+	if fn == nil {
+		return errors.New("onDisconnect function for '%s' is set to nil")
 	}
 
 	return fn()
