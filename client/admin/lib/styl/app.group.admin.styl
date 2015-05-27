@@ -185,51 +185,45 @@ Admin main styles
 
 
     &.permissions
-      margin-top                62px
 
       .permissions-view
         borderBox()
-        overflow                visible
+        overflow                auto
 
         .button-field
           .kdbutton
             margin-right        6px
             fr()
 
-        form > .permissions-header .permissions-header
-          height                18px
-
-        form > .permissions-header:first-child
+        .header
           z-index               99
-          width                 730px
+          width                 714px
           position              fixed
-          background            none
           padding               0
-          margin-top            -62px
           height                62px
           line-height           62px
           box-shadow            inset 0 -3px 0 #f2f2f2
           border                none
           background            #fff
 
-
           .header-item
-            text-align          center !important
-            border              none
-            margin              22px 0 0 0
-            background          none
+            text-align          center
             color               #969696
-            opacity             0.99
             font-size           14px
-            font-weight         600
+            width               140px
+            fl()
+
+            &:first-child
+              margin-left       135px
 
         .permissions-form
           overflow              visible
+          margin-top            62px
 
           .switcher
             text-align          center
             float               left
-            width               145px
+            width               140px
 
             .koding-on-off
               display           inline-block
@@ -250,7 +244,7 @@ Admin main styles
                 borderBox()
                 line-height     18px
                 display         inline-block
-                width           143px
+                width           140px
                 text-align      left
                 padding         0 16px
                 overflow        hidden
