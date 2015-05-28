@@ -30,6 +30,8 @@ module.exports = class PrivateMessagePane extends MessagePane
     options.startWithLazyLoader = no
     options.itemClass         or= PrivateMessageListItemView
 
+    options.initialParticipantStatus = 'active'
+
     super options, data
 
     @createPreviousLink()
@@ -424,8 +426,9 @@ module.exports = class PrivateMessagePane extends MessagePane
     @autoComplete.on 'ItemListChanged', (count) =>
       participant  = @autoComplete.getSelectedItemData()[count - 1]
       options      =
-        channelId  : @getData().getId()
-        accountIds : [participant.socialApiId]
+        channelId         : @getData().getId()
+        accountIds        : [participant.socialApiId]
+        participantStatus : @getOptions().initialParticipantStatus
 
       {channel} = kd.singleton 'socialapi'
       channel.addParticipants options, (err, result) =>
