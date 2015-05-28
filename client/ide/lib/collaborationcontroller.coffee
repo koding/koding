@@ -581,9 +581,10 @@ module.exports = CollaborationController =
     @statusBar.emit 'CollaborationLoading'
 
     @checkSessionActivity
+
+      error      : => @stateMachine.transition 'ErrorLoading'
       active     : => @stateMachine.transition 'Resuming'
       notStarted : => @stateMachine.transition 'NotStarted'
-      error      : => @stateMachine.transition 'ErrorLoading'
 
 
   checkSessionActivity: (callbacks) ->
