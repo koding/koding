@@ -1,14 +1,19 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+kd                   = require 'kd'
+KDView               = kd.View
+isKoding             = require 'app/util/isKoding'
+showError            = require 'app/util/showError'
+KDInputView          = kd.InputView
+KDLabelView          = kd.LabelView
+KDModalView          = kd.ModalView
+KDSelectBox          = kd.SelectBox
+KDButtonView         = kd.ButtonView
+PermissionSwitch     = require './permissionswitch'
+KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
-KDInputView = kd.InputView
-KDLabelView = kd.LabelView
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
-KDSelectBox = kd.SelectBox
-KDView = kd.View
-PermissionSwitch = require './permissionswitch'
-showError = require 'app/util/showError'
+limitedPermissions   =
+  JGroup             : [ 'send invitations', 'send private message', 'browse content by tag', 'edit tags' ]
+  ComputeProvider    : [ 'sudoer', 'create machines', 'update machines' ]
+  JStackTemplate     : [ 'create stack template', 'update stack template' ]
 
 
 module.exports = class PermissionsForm extends KDFormViewWithFields
@@ -29,6 +34,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
         title         : 'Add'
         style         : 'solid medium green'
         callback      : @bound 'showNewRoleModal'
+        cssClass      : if isKoding() then '' else 'hidden'
 
     options.fields or= optionizePermissions.call this, @roles, @permissionSet
     super options,data
@@ -144,21 +150,37 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
     # var permissions is permission under collection (module)
     # like "edit comments" for JComment
     for own module, permissions of set.permissionsByModule
-      permissionOptions['header '+module.toLowerCase()] =
+      headerTitle    = "header #{module.toLowerCase()}"
+      headerCssClass = 'permissions-module text'
+
+      if not isKoding() and not limitedPermissions[module]
+        headerCssClass += ' hidden'
+
+      permissionOptions[headerTitle] =
         itemClass       : KDView
         partial         : readableText module
-        cssClass        : 'permissions-module text'
+        cssClass        : headerCssClass
 
       for permission in permissions
-        permissionOptions[module+'-' + kd.utils.slugify(permission)] =
+        cssClass = 'text'
+
+        unless isKoding()
+          if limitedPermissions[module]
+            if limitedPermissions[module].indexOf(permission) is -1
+              cssClass += ' hidden'
+          else
+            cssClass += ' hidden'
+
+        permissionOptions[ module + '-' + kd.utils.slugify(permission) ] =
           itemClass     : KDView
           partial       : readableText permission
-          cssClass      : 'text'
+          cssClass      : cssClass
           attributes    :
             title       : readableText permission
           nextElement :
             cascadeFormElements.call this, set, roles, module, permission, roles.length
-    permissionOptions
+
+    return permissionOptions
 
 
   createTree = (values) ->
