@@ -557,7 +557,7 @@ module.exports = CollaborationController =
     @stateMachine = new CollaborationStateMachine
       stateHandlers:
         Initial      : @bound 'onCollaborationInitial'
-        Loading      : => kd.utils.defer => @onCollaborationLoading()
+        Loading      : @bound 'onCollaborationLoading'
         Resuming     : @bound 'onCollaborationResuming'
         NotStarted   : @bound 'onCollaborationNotStarted'
         Preparing    : @bound 'onCollaborationPreparing'
