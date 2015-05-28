@@ -6,6 +6,11 @@ SCRIPTS=$(dirname $0)/..
 
 INSTANCES=$(cat $INSTANCE_DATA_FILE)
 
+function terminate_instance () {
+  INSTANCE_ID=$1
+  $SCRIPTS/test-instance/terminate $INSTANCE_ID
+}
+
 function check () {
   INSTANCE=$1
   INSTANCE_ID=$(echo $INSTANCE | awk '{print $1}')
@@ -17,6 +22,13 @@ function check () {
 
   echo -en "$HOST:$PORT\t\t"
   $SCRIPTS/test-instance/check-connectivity $HOST $PORT $INTERVAL $TRY_COUNT
+  EXIT_CODE=$?
+
+  if [ $EXIT_CODE -ne 0 ]; then
+    terminate_instance $INSTANCE_ID
+  fi
+
+  return $EXIT_CODE
 }
 
 rm -f $INSTANCE_DATA_FILE
