@@ -29,6 +29,7 @@ module.exports = class PrivateMessagePane extends MessagePane
     options.noItemFoundWidget   = no
     options.startWithLazyLoader = no
     options.itemClass         or= PrivateMessageListItemView
+    options.channelType       or= 'privatemessage'
 
     options.initialParticipantStatus = 'active'
 
