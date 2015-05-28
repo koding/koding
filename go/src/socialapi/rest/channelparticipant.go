@@ -85,6 +85,22 @@ func UnblockChannelParticipant(channelId, requesterId int64, accountIds ...int64
 	)
 }
 
+func AcceptInvitation(channelId int64, token string) error {
+	url := fmt.Sprintf("/channel/%d/invitation/accept", channelId)
+	cp := models.NewChannelParticipant()
+	_, err := marshallAndSendRequestWithAuth("POST", url, cp, token)
+
+	return err
+}
+
+func RejectInvitation(channelId int64, token string) error {
+	url := fmt.Sprintf("/channel/%d/invitation/reject", channelId)
+	cp := models.NewChannelParticipant()
+	_, err := marshallAndSendRequestWithAuth("POST", url, cp, token)
+
+	return err
+}
+
 func InviteChannelParticipant(channelId, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
 	url := fmt.Sprintf("/channel/%d/participants/add?accountId=%d", channelId, requesterId)
 

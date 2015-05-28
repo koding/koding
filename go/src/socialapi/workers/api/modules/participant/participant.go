@@ -303,6 +303,84 @@ func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelPartic
 	return response.NewOK(participant)
 }
 
+func AcceptInvite(u *url.URL, h http.Header, participant *models.ChannelParticipant, ctx *models.Context) (int, http.Header, interface{}, error) {
+
+	query := request.GetQuery(u)
+
+	participant.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
+	cp, err := updateStatus(participant, query, ctx)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if err := addJoinActivity(query.Id, cp, query.AccountId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	if err := ch.ById(query.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	go notifyParticipants(ch, models.ChannelParticipant_Added_To_Channel_Event, []*models.ChannelParticipant{cp})
+
+	return response.NewDefaultOK()
+}
+
+func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticipant, ctx *models.Context) (int, http.Header, interface{}, error) {
+
+	query := request.GetQuery(u)
+	participant.StatusConstant = models.ChannelParticipant_STATUS_LEFT
+	cp, err := updateStatus(participant, query, ctx)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if err := addLeaveActivity(query.Id, cp); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+
+	if err := ch.ById(query.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, []*models.ChannelParticipant{cp})
+
+	return response.NewDefaultOK()
+}
+
+func updateStatus(participant *models.ChannelParticipant, query *request.Query, ctx *models.Context) (*models.ChannelParticipant, error) {
+
+	if ok := ctx.IsLoggedIn(); !ok {
+		return nil, models.ErrNotLoggedIn
+	}
+
+	query.AccountId = ctx.Client.Account.Id
+
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = query.Id
+
+	// check if the user is invited
+	isInvited, err := cp.IsInvited(query.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isInvited {
+		return nil, errors.New("uninvited user error")
+	}
+
+	cp.StatusConstant = participant.StatusConstant
+	// update the status
+	if err := cp.Update(); err != nil {
+		return nil, err
+	}
+
+	return cp, nil
+}
+
 func checkChannelPrerequisites(channelId, requesterId int64, participants []*models.ChannelParticipant) error {
 	if channelId == 0 || requesterId == 0 {
 		return errors.New("values are not set")
