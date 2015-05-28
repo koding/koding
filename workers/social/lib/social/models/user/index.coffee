@@ -3,8 +3,8 @@ Regions     = require 'koding-regions'
 {argv}      = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable   = require '../../traits/flaggable'
-{ extend }  = require 'underscore'
 KodingError = require '../../error'
+{ extend, uniq }  = require 'underscore'
 
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
@@ -48,7 +48,7 @@ module.exports = class JUser extends jraphical.Module
                      'administrator','members','register','activate','shared',
                      'groups','blogs','forums','topics','develop','terminal',
                      'term','twitter','facebook','google','framework', 'kite'
-                     'landing','hello','dev']
+                     'landing','hello','dev', 'sandbox', 'latest']
 
 
   hashPassword = (value, salt)->
@@ -444,6 +444,7 @@ module.exports = class JUser extends jraphical.Module
     username              = null
     user                  = null
     account               = null
+    invitation            = null
     groupName            ?= 'koding'
 
     queue = [ =>
@@ -520,18 +521,15 @@ module.exports = class JUser extends jraphical.Module
       return queue.next()  unless invitationToken
 
       JInvitation = require '../invitation'
-      JInvitation.byCode invitationToken, (err, token)=>
+      JInvitation.byCode invitationToken, (err, invitation_) =>
         return callback err  if err
-        return callback { message: "invitation token is not valid" }  unless token
-
-        groupName = token.groupName # override groupName with invitation's group name
-        @addToGroup account, groupName, null, null, (err)=>
-          return callback err  if err
-          queue.next()
+        return callback { message: "invitation is not valid" }  unless invitation_
+        invitation = invitation_
+        queue.next()
 
     , =>
       # check for membership
-      JGroup.one { slug: groupName }, (err, group)=>
+      JGroup.one { slug: groupName }, (err, group) =>
         if not group or err
           return callback { message: "group doesnt exist"}
 
@@ -539,14 +537,10 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err
           return queue.next()  if isMember # if user is already member, we can continue
 
-          # check if user's email domain is in allowed domains
-          isAllowed = group.isInAllowedDomain user.email
-          return callback { message: "Your email domain is not in allowed \
-            domains for this group and you are not a member" }  unless isAllowed
-
-          # if member is not in group, but his/her email domain is in allowed
-          # domains, add them to team
-          return @addToGroup account, groupName, null, null, queue.next
+          # addGroup will check all prerequistes about joining to a group
+          @addToGroup account, groupName, user.email, invitation, (err) ->
+            return callback err  if err
+            return queue.next()
     , ->
       # we are sure that user can access to the group, set group name into
       # cookie while logging in
@@ -714,44 +708,75 @@ module.exports = class JUser extends jraphical.Module
 
     JSession.remove { clientId: sessionToken }, callback
 
-  @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
+  @verifyEnrollmentEligibility = (options, callback) ->
+    { email, invitationToken, groupName } = options
+
+    # this is legacy but still in use, just checks if registeration is enabled or not
     JRegistrationPreferences = require '../registrationpreferences'
     JInvitation = require '../invitation'
     JRegistrationPreferences.one {}, (err, prefs)->
-      if err
-        callback err
-      else unless prefs.isRegistrationEnabled
-        callback new Error 'Registration is currently disabled!'
-      else if inviteCode
-        JInvitation.one {
-          code: inviteCode
-          status: $in : ['active','sent']
-        }, (err, invite)->
-          if err or !invite?
-            callback createKodingError 'Invalid invitation ID!'
-          else
-            callback null, { isEligible: yes, invite }
-      else
-        callback null, isEligible: yes
 
-  @addToGroup = (account, slug, email, invite, callback)->
-    JGroup.one {slug}, (err, group)->
-      return callback err if err or not group
-      if invite
-        invite.redeem account, (err) ->
-          return callback err if err
-          group.approveMember account, callback
-      else
-        group.approveMember account, callback
+      return callback err  if err
+      unless prefs.isRegistrationEnabled
+        return callback new Error 'Registration is currently disabled!'
 
-  @addToGroups = (account, invite, email, callback)->
-    @addToGroup account, 'koding', email, null, (err)=>
-      if err then callback err
-      else if invite?.group and invite.group isnt 'koding'
-        @addToGroup account, invite.group, email, invite, callback
-      else
-        callback null
+      # check if user's email domain is in allowed domains
+      checkWithDomain = (groupName, email, callback) ->
+        JGroup.one {slug: groupName }, (err, group) =>
+          return callback err  if err
+          return callback createKodingError "Group #{slug} not found" if not group
 
+          isAllowed = group.isInAllowedDomain email
+          return callback createKodingError "Your email domain is not in allowed \
+            domains for this group"  unless isAllowed
+
+          return callback null, { isEligible: yes }
+
+      # check if email domain is in allowed domains
+      return checkWithDomain groupName, email, callback  if not invitationToken
+
+      JInvitation.byCode invitationToken, (err, invitation) ->
+        # check if invitation exists
+        if err or !invitation?
+          return callback createKodingError 'Invalid invitation code!'
+
+        # check if invitation is valid
+        if invitation.isValid() and  invitation.groupName is groupName
+          return callback null, { isEligible: yes, invitation }
+
+        # last resort, check if email domain is under allowed domains
+        return checkWithDomain groupName, email, callback
+
+  @addToGroup = (account, slug, email, invitation, callback)->
+    options = { email: email, groupName: slug }
+    options.invitationToken = invitation.code if invitation?.code
+
+    JUser.verifyEnrollmentEligibility options, (err, res)=>
+      return callback err  if err
+      return callback createKodingError 'malformed response' if not res
+      return callback createKodingError 'can not join to group' if not res.isEligible
+
+      # fetch group that we are gonna add account in
+      JGroup.one {slug}, (err, group) ->
+        return callback err  if err
+        return callback createKodingError "Group #{slug} not found" if not group
+
+        group.approveMember account, (err)->
+          return callback err  if err
+          # do not forget to redeem invitation
+          return invitation.accept account, callback if invitation
+
+          return callback null
+
+  @addToGroups = (account, slugs, email, invitation, callback)->
+    slugs.push invitation.groupName if invitation?.groupName
+    slugs = uniq slugs # clean up slugs
+    queue = slugs.map (slug)=>=>
+      @addToGroup account, slug, email, invitation, (err)->
+        return callback err  if err
+        queue.fin()
+
+    dash queue, callback
 
   @createGuestUsername = -> "guest-#{rack()}"
 
@@ -974,7 +999,7 @@ module.exports = class JUser extends jraphical.Module
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName, agree,
-      inviteCode, referrer, password, passwordConfirm,
+      invitationToken, referrer, password, passwordConfirm,
       emailFrequency } = userFormData
 
     if not firstName or firstName is "" then firstName = username
@@ -997,7 +1022,7 @@ module.exports = class JUser extends jraphical.Module
       { ip, country, region } = Regions.findLocation clientIP
 
     newToken       = null
-    invite         = null
+    invitation     = null
     user           = null
     quotaExceedErr = null
     error          = null
@@ -1033,6 +1058,24 @@ module.exports = class JUser extends jraphical.Module
             return callback createKodingError "Email is already in use!"
           else
             queue.next()
+
+      =>
+        # check if user can register to regarding group
+        options =
+          email           : email
+          invitationToken : invitationToken
+          groupName       : client.context.group
+
+        @verifyEnrollmentEligibility options, (err, res) =>
+          return callback err  if err
+
+          { isEligible, invitation: invitation_ } = res
+
+          if not isEligible
+            return callback new Error "you can not register to #{client.context.group}"
+
+          invitation = invitation_
+          queue.next()
 
       =>
         if aNewRegister
@@ -1108,13 +1151,9 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        @verifyEnrollmentEligibility {email: user.email, inviteCode}, (err, { isEligible, invite: invite_ }) =>
-          return callback err  if err
-          invite = invite_
-          queue.next()
+        groupNames = [client.context.group, 'koding']
 
-      =>
-        @addToGroups account, invite, user.email, (err) =>
+        @addToGroups account, groupNames, user.email, invitation, (err) =>
           error = err
           queue.next()
       ->
