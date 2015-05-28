@@ -378,8 +378,11 @@ module.exports = class MessagePane extends KDTabPaneView
 
   addItems: (items) ->
     @listController.hideLazyLoader()
+
     items.forEach (item, i) =>
       @addMessageDeferred item, i, items.length
+
+    @emit 'ListPopulated'  unless items.length
 
     kd.utils.defer @bound 'focus'
 

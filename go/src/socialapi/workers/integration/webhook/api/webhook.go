@@ -1,56 +1,52 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 	"net/url"
+	"socialapi/config"
+	"socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
+	"strconv"
+	"strings"
 
 	"github.com/koding/logging"
+	"github.com/koding/redis"
+	"github.com/nu7hatch/gouuid"
 )
 
-var (
-	ErrBodyNotSet    = errors.New("body is not set")
-	ErrChannelNotSet = errors.New("channel is not set")
-	ErrTokenNotSet   = errors.New("token is not set")
-	ErrGroupNotSet   = errors.New("group name is not set")
-	ErrTokenNotValid = errors.New("token is not valid")
-)
-
-type WebhookRequest struct {
-	*webhook.Message
-	GroupName string
-	Token     string
-}
+const RevProxyPath = "/api/integration"
 
 type Handler struct {
-	log logging.Logger
-	bot *webhook.Bot
+	log   logging.Logger
+	bot   *webhook.Bot
+	redis *redis.RedisSession
 }
 
-func NewHandler(l logging.Logger) (*Handler, error) {
+func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger) (*Handler, error) {
 	bot, err := webhook.NewBot()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Handler{
-		log: l,
-		bot: bot,
+		log:   l,
+		bot:   bot,
+		redis: redis,
 	}, nil
 }
 
-func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, http.Header, interface{}, error) {
+func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, http.Header, interface{}, error) {
 	val := u.Query().Get("token")
 	r.Token = val
 
 	if err := r.validate(); err != nil {
-		return response.NewBadRequest(err)
+		return response.NewInvalidRequest(err)
 	}
 
-	teamIntegration, err := r.verify()
-	if err == webhook.ErrTeamIntegrationNotFound {
+	channelIntegration, err := r.verify()
+	if err == webhook.ErrChannelIntegrationNotFound {
 		return response.NewAccessDenied(ErrTokenNotValid)
 	}
 
@@ -58,43 +54,116 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 		return response.NewBadRequest(err)
 	}
 
-	r.Message.TeamIntegrationId = teamIntegration.Id
+	r.Message.ChannelIntegrationId = channelIntegration.Id
 
-	if err := h.bot.SendMessage(r.Message); err != nil {
+	// TODO check for group name match here
+
+	if err := h.bot.SendMessage(&r.Message); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(nil)
+	res := response.NewSuccessResponse(nil)
+
+	return response.NewOK(res)
 }
 
-func (r *WebhookRequest) validate() error {
-	if r.Token == "" {
-		return ErrTokenNotSet
+func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
-	if r.Body == "" {
-		return ErrBodyNotSet
+	r := new(BotChannelRequest)
+
+	r.Username = c.Client.Account.Nick
+	r.GroupName = c.GroupName
+	if err := r.validate(); err != nil {
+		return response.NewInvalidRequest(err)
 	}
 
-	// TODO we don't need this ChannelName, it will remain
-	// until we add TeamInteraction tables
-	if r.ChannelId == 0 {
-		return ErrChannelNotSet
+	channel, err := h.fetchBotChannel(r)
+	if err != nil {
+		return response.NewBadRequest(err)
 	}
 
-	if r.GroupName == "" {
-		return ErrGroupNotSet
+	cc := models.NewChannelContainer()
+	if err := cc.Fetch(channel.Id, &request.Query{AccountId: c.Client.Account.Id}); err != nil {
+		return response.NewBadRequest(err)
 	}
 
-	return nil
+	if err := cc.PopulateWith(*channel, c.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+	cc.AddUnreadCount(c.Client.Account.Id)
+
+	cc.ParticipantsPreview = append([]string{h.bot.Account().OldId}, cc.ParticipantsPreview...)
+
+	return response.NewOK(response.NewSuccessResponse(cc))
 }
 
-func (r *WebhookRequest) verify() (*webhook.TeamIntegration, error) {
-	ti := webhook.NewTeamIntegration()
-	err := ti.ByToken(r.Token)
+func (h *Handler) FetchGroupBotChannel(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	token := u.Query().Get("token")
+	if token == "" {
+		return response.NewInvalidRequest(ErrTokenNotSet)
+	}
+
+	username := u.Query().Get("username")
+	if username == "" {
+		return response.NewInvalidRequest(ErrUsernameNotSet)
+	}
+
+	// validate token
+	if _, err := uuid.ParseHex(strings.ToLower(token)); err != nil {
+		return response.NewInvalidRequest(ErrTokenNotValid)
+	}
+
+	ci, err := webhook.Cache.ChannelIntegration.ByToken(token)
+	if err != nil {
+		if err == webhook.ErrChannelIntegrationNotFound {
+			return response.NewInvalidRequest(err)
+		}
+
+		return response.NewBadRequest(err)
+	}
+
+	br := new(BotChannelRequest)
+	br.Username = username
+	br.GroupName = ci.GroupName
+	c, err := h.fetchBotChannel(br)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	resp := map[string]string{
+		"channelId": strconv.FormatInt(c.Id, 10),
+	}
+
+	return response.NewOK(response.NewSuccessResponse(resp))
+}
+
+func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
+	// check account existence
+	acc, err := r.verifyAccount()
 	if err != nil {
 		return nil, err
 	}
 
-	return ti, nil
+	// check group existence
+	group, err := r.verifyGroup()
+	if err != nil {
+		return nil, err
+	}
+
+	// prevent sending bot messages when the user is not participant
+	// of the given group
+	canOpen, err := group.CanOpen(acc.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !canOpen {
+		return nil, ErrAccountIsNotParticipant
+	}
+
+	// now we can fetch the bot channel
+	return h.bot.FetchBotChannel(acc, group)
 }

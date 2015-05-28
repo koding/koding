@@ -56,7 +56,7 @@ all: testapi
 develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
 	notificationdev trollmodeldev pinnedpostdev algoliaconnectordev \
 	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
-	teamdev
+	teamdev eventsenderdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -169,6 +169,20 @@ teamdev:
 	@echo "$(OK_COLOR)==> Running Team Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c $(CONFIG) $(DBG) $(METRICS)
 
+integrationdev: webhookdev middlewaredev
+
+webhookdev:
+	@echo "$(OK_COLOR)==> Running Webhook Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/webhook -watch socialapi/workers/integration/webhook -c $(CONFIG) $(DBG) $(METRICS)
+
+middlewaredev:
+	@echo "$(OK_COLOR)==> Running Webhook Middleware Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/webhookmiddleware -watch github.com/koding/integration -c $(CONFIG) $(DBG) $(METRICS)
+
+eventsenderdev:
+	@echo "$(OK_COLOR)==> Running Event Sender Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/eventsender -watch socialapi/workers/integration/eventsender -c $(CONFIG) $(DBG) $(METRICS)
+
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
@@ -215,6 +229,17 @@ testwebhook:
 	@`which go` test -c workers/integration/webhook/api/*.go
 	@./api.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./api.test
+
+	@echo "$(OK_COLOR)--> webhook integration tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/webhook/tests/*.go
+	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./tests.test
+
+testeventsender:
+	@echo "$(OK_COLOR)--> eventsender tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/eventsender/*.go
+	@./eventsender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./eventsender.test
 
 testpermission:
 	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
@@ -375,7 +400,7 @@ testrealtime:
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
-	testpayment testteam testintegration testrealtime
+	testpayment testteam testintegration testrealtime testwebhook
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 

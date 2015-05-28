@@ -2,10 +2,11 @@
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 request        = require 'request'
-_ = require "underscore"
+_               = require "underscore"
 
-getNextApiURL = (callback)->
-  return callback null, KONFIG.socialapi.proxyUrl
+socialProxyUrl  = "/api/social"
+webhookProxyUrl = "/api/integration"
+localDomain     = KONFIG.socialapi.customDomain.local
 
 wrapCallback = (callback)->
   (err, response, body) ->
@@ -22,33 +23,33 @@ wrapCallback = (callback)->
 createAccount = ({id, nickname}, callback)->
   if not id or not nickname
     return callback {message:"Request is not valid for creating account"}
-  url = "/account"
+  url = "#{socialProxyUrl}/account"
   post url, {oldId: id, nick: nickname}, callback
 
 updateAccount = (data, callback)->
   {id, nick} = data
   if not id or not nick
     return callback {message:"Request is not valid for updating account"}
-  url = "/account/#{id}"
+  url = "#{socialProxyUrl}/account/#{id}"
   post url, data , callback
 
 createChannel = (data, callback)->
   unless data.name or data.creatorId
     return callback { message: "Request is not valid for creating channel"}
-  url = "/channel"
+  url = "#{socialProxyUrl}/channel"
   post url, data, callback
 
 fetchChannelActivities = (data, callback)->
   if not data.channelId or not data.accountId
     return callback { message: "Request is not valid for fetching activities"}
-  url = "/channel/#{data.channelId}/history"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/history"
   get url, data, callback
 
 fetchActivityCount = (data, callback)->
   if not data.channelId
     return callback {message: "Request is not valid for fetching activity count"}
 
-  url = "/channel/#{data.channelId}/history/count"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/history/count"
   get url, data, callback
 
 fetchGroupChannels = (data, callback)->
@@ -58,41 +59,41 @@ fetchGroupChannels = (data, callback)->
   # topic fetch is crashing so we forced for a limit here
   data.limit = 15
 
-  url = "/channel"
+  url = "#{socialProxyUrl}/channel"
   get url, data, callback
 
 fetchMessage = (data, callback)->
   if not data.id
     return callback { message: "Message id is not set"}
 
-  url = "/message/#{data.id}"
+  url = "#{socialProxyUrl}/message/#{data.id}"
   get url, data, callback
 
 postToChannel = (data, callback)->
   if not data.channelId or not data.accountId or not data.body
     return callback { message: "Request is not valid for posting message"}
 
-  url = "/channel/#{data.channelId}/message"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/message"
   post url, data, callback
 
 editMessage = (data, callback)->
   if not data.body or not data.id
     return callback { message: "Request is not valid for editing a message"}
 
-  url = "/message/#{data.id}"
+  url = "#{socialProxyUrl}/message/#{data.id}"
   post url, data, callback
 
 deleteMessage = (data, callback)->
   unless data.id
     return callback { message: "Request is not valid for deleting message"}
-  url =  "/message/#{data.id}"
+  url =  "#{socialProxyUrl}/message/#{data.id}"
   deleteReq url, data, callback
 
 likeMessage = (data, callback)->
   unless data.id
     return callback { message: "Request is not valid for liking a message"}
 
-  url = "/message/#{data.id}/interaction/like/add"
+  url = "#{socialProxyUrl}/message/#{data.id}/interaction/like/add"
   delete data.id
   post url, data, callback
 
@@ -100,7 +101,7 @@ unlikeMessage = (data, callback)->
   unless data.id
     return callback { message: "Request is not valid for unliking a message"}
 
-  url = "/message/#{data.id}/interaction/like/delete"
+  url = "#{socialProxyUrl}/message/#{data.id}/interaction/like/delete"
   delete data.id
   post url, data, callback
 
@@ -108,7 +109,7 @@ listLikers = (data, callback)->
   unless data.id
     return callback { message: "Request is not valid for listing actors" }
 
-  url = "/message/#{data.id}/interaction/like"
+  url = "#{socialProxyUrl}/message/#{data.id}/interaction/like"
   delete data.id
   get url, data, callback
 
@@ -116,80 +117,80 @@ addReply = (data, callback)->
   if not data.accountId or not data.body or not data.messageId
     return callback { message: "Request is not valid for adding a reply"}
 
-  url = "/message/#{data.messageId}/reply"
+  url = "#{socialProxyUrl}/message/#{data.messageId}/reply"
   post url, data, callback
 
 listReplies = (data, callback)->
   unless data.messageId
     return callback { message: "Request is not valid for adding a reply"}
 
-  url = "/message/#{data.messageId}/reply"
+  url = "#{socialProxyUrl}/message/#{data.messageId}/reply"
   get url, data, callback
 
 fetchPopularTopics = (data, callback)->
   if not data.groupName or not data.type
     return callback {message: "Request is not valid for listing popular topics"}
 
-  url = "/popular/topics/#{data.type}"
+  url = "#{socialProxyUrl}/popular/topics/#{data.type}"
   get url, data, callback
 
 fetchPopularPosts = (data, callback)->
   if not data.groupName or not data.channelName
     return callback {message: "Request is not valid for listing popular topics"}
 
-  url = "/popular/posts/#{data.channelName}"
+  url = "#{socialProxyUrl}/popular/posts/#{data.channelName}"
   get url, data, callback
 
 fetchPinnedMessages = (data, callback)->
-  url = "/activity/pin/list"
+  url = "#{socialProxyUrl}/activity/pin/list"
   get url, data, callback
 
 pinMessage = (data, callback)->
   if not data.accountId or not data.messageId or not data.groupName
     return callback { message: "Request is not valid"}
 
-  url = "/activity/pin/add"
+  url = "#{socialProxyUrl}/activity/pin/add"
   post url, data, callback
 
 unpinMessage = (data, callback)->
   if not data.accountId or not data.messageId or not data.groupName
     return callback { message: "Request is not valid"}
 
-  url = "/activity/pin/remove"
+  url = "#{socialProxyUrl}/activity/pin/remove"
   post url, data, callback
 
 glancePinnedPost = (data, callback)->
   if not data.accountId or not data.messageId or not data.groupName
     return callback { message: "Request is not valid"}
 
-  url = "/activity/pin/glance"
+  url = "#{socialProxyUrl}/activity/pin/glance"
   post url, data, callback
 
 glanceNotifications = (data, callback)->
   if not data.accountId
     return callback { message: "Request is not valid"}
 
-  url = "/notification/glance"
+  url = "#{socialProxyUrl}/notification/glance"
   post url, data, callback
 
 listNotifications = (data, callback)->
   if not data.accountId # or not data.groupName
     return callback {message: "Request is not valid"}
 
-  url = "/notification/#{data.accountId}"
+  url = "#{socialProxyUrl}/notification/#{data.accountId}"
   get url, data, callback
 
 listParticipants = (data, callback)->
   return callback { message: "Request is not valid" } unless data.channelId
-  url = "/channel/#{data.channelId}/participants"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/participants"
   get url, data, callback
 
 addParticipants = (data, callback)->
-  url = "/channel/#{data.channelId}/participants/add"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/participants/add"
   doChannelParticipantOperation data, url, callback
 
 removeParticipants = (data, callback)->
-  url = "/channel/#{data.channelId}/participants/remove"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/participants/remove"
 
   {channelId, accountId} = data
   # fetch channel details
@@ -243,49 +244,49 @@ updateLastSeenTime = (data, callback)->
   unless data.channelId and data.accountId
     return callback {message: "Request is not valid"}
 
-  url = "/channel/#{data.channelId}/participant/#{data.accountId}/presence"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/participant/#{data.accountId}/presence"
   post url, data, callback
 
 fetchFollowedChannels = (data, callback)->
   if not data.accountId or not data.groupName
     return callback { message: "Request is not valid"}
 
-  url = "/account/#{data.accountId}/channels"
+  url = "#{socialProxyUrl}/account/#{data.accountId}/channels"
   get url, data, callback
 
 fetchFollowedChannelCount = (data, callback)->
   if not data.accountId or not data.groupName
     return callback { message: "Request is not valid"}
 
-  url = "/account/#{data.accountId}/channels/count"
+  url = "#{socialProxyUrl}/account/#{data.accountId}/channels/count"
   get url, data, callback
 
 initPrivateMessage = (data, callback)->
   if not data.body or not data.recipients or data.recipients.length < 1
     return callback { message: "Request is not valid"}
 
-  url = "/privatechannel/init"
+  url = "#{socialProxyUrl}/privatechannel/init"
   post url, data, callback
 
 sendPrivateMessage = (data, callback)->
   if not data.body or not data.channelId
     return callback { message: "Request is not valid"}
 
-  url = "/privatechannel/send"
+  url = "#{socialProxyUrl}/privatechannel/send"
   post url, data, callback
 
 fetchPrivateMessages = (data, callback)->
-  url = "/privatechannel/list"
+  url = "#{socialProxyUrl}/privatechannel/list"
   get url, data, callback
 
 fetchPrivateMessageCount = (data, callback)->
-  url = "/privatechannel/count"
+  url = "#{socialProxyUrl}/privatechannel/count"
   get url, data, callback
 
 searchChats = (data, callback)->
   if not data.name
     return callback { message: "Name should be set for chat search"}
-  url = "/privatechannel/search"
+  url = "#{socialProxyUrl}/privatechannel/search"
   get url, data, callback
 
 followUser = (data, callback)->
@@ -310,70 +311,70 @@ createGroupNotification = (data, callback)->
   unless data.admins?.length and data.actorId and data.name
     return callback {message: "Request is not valid"}
 
-  url = "/notification/group"
+  url = "#{socialProxyUrl}/notification/group"
   post url, data, callback
 
 searchTopics = (data, callback)->
   if not data.name
     return callback { message: "Name should be set for topic search"}
-  url = "/channel/search"
+  url = "#{socialProxyUrl}/channel/search"
   get url, data, callback
 
 fetchProfileFeed = (data, callback)->
   if not data.targetId
     return callback { message: "targetId should be set"}
-  url = "/account/#{data.targetId}/posts"
+  url = "#{socialProxyUrl}/account/#{data.targetId}/posts"
   get url, data, callback
 
 fetchProfileFeedCount = (data, callback)->
   if not data.targetId
     return callback { message: "targetId should be set"}
-  url = "/account/#{data.targetId}/posts/count"
+  url = "#{socialProxyUrl}/account/#{data.targetId}/posts/count"
   get url, data, callback
 
 messageById = (data, callback)->
   if not data.id
     return callback { message: "id should be set"}
-  url = "/message/#{data.id}"
+  url = "#{socialProxyUrl}/message/#{data.id}"
   get url, data, callback
 
 messageBySlug = (data, callback)->
   if not data.slug
     return callback { message: "slug should be set"}
-  url = "/message/slug/#{data.slug}"
+  url = "#{socialProxyUrl}/message/slug/#{data.slug}"
   get url, data, callback
 
 channelById = (data, callback)->
   if not data.id
     return callback { message: "id should be set"}
-  url = "/channel/#{data.id}"
+  url = "#{socialProxyUrl}/channel/#{data.id}"
   get url, data, callback
 
 channelByName = (data, callback)->
   if not data.name
     return callback { message: "name should be set"}
-  url = "/channel/name/#{data.name}"
+  url = "#{socialProxyUrl}/channel/name/#{data.name}"
   get url, data, callback
 
 checkChannelParticipation = (data, callback)->
   if not data.name or not data.type
     return callback { message: "request is not valid" }
 
-  url = "/channel/checkparticipation"
+  url = "#{socialProxyUrl}/channel/checkparticipation"
   get url, data, callback
 
 markAsTroll = (data, callback)->
   unless data.accountId
     return callback {message: "Request is not valid"}
 
-  url = "/trollmode/#{data.accountId}"
+  url = "#{socialProxyUrl}/trollmode/#{data.accountId}"
   post url, data, callback
 
 unmarkAsTroll = (data, callback)->
   unless data.accountId
     return callback {message: "Request is not valid"}
 
-  url = "/trollmode/#{data.accountId}"
+  url = "#{socialProxyUrl}/trollmode/#{data.accountId}"
   deleteReq url, data, callback
 
 getSiteMap = (data, callback)->
@@ -381,80 +382,75 @@ getSiteMap = (data, callback)->
   getXml url, {}, callback
 
 updateChannel = (data, callback) ->
-  url = "/channel/#{data.id}/update"
+  url = "#{socialProxyUrl}/channel/#{data.id}/update"
   post url, data, callback
 
 createChannel = (data, callback) ->
-  url = "/channel"
+  url = "#{socialProxyUrl}/channel"
   post url, data, callback
 
 deleteChannel = (data, callback) ->
-  url = "/channel/#{data.channelId}/delete"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/delete"
   post url, data, callback
 
 checkOwnership = (data, callback) ->
-  url = "/account/#{data.accountId}/owns"
+  url = "#{socialProxyUrl}/account/#{data.accountId}/owns"
   get url, data, callback
 
 expireSubscription = (accountId, callback) ->
-  url = "/payments/customers/#{accountId}/expire"
+  url = "#{socialProxyUrl}/payments/customers/#{accountId}/expire"
   post url, {}, callback
 
+fetchBotChannel = (data, callback) ->
+  url = "#{webhookProxyUrl}/botchannel"
+  get url, data, callback
+
 post = (url, data, callback)->
-  getNextApiURL (err, apiurl)->
-    return callback err if err
-    reqOptions =
-      url    : "#{apiurl}#{url}"
-      json   : true
-      method : 'POST'
+  reqOptions =
+    url    : "#{localDomain}#{url}"
+    json   : true
+    method : 'POST'
 
-    {reqOptions, data} = setCookieIfRequired reqOptions, data
-    {reqOptions, data} = setHeaderIfRequired reqOptions, data
+  {reqOptions, data} = setCookieIfRequired reqOptions, data
+  {reqOptions, data} = setHeaderIfRequired reqOptions, data
 
-    reqOptions.body = data
+  reqOptions.body = data
 
-    request reqOptions, wrapCallback callback
+  request reqOptions, wrapCallback callback
 
 deleteReq = (url, data, callback)->
   [data, callback] = [callback, null] unless callback
 
-  getNextApiURL (err, apiurl)->
-    return callback err if err
+  reqOptions =
+    url    : "#{localDomain}#{url}"
+    json   : true
+    method : 'DELETE'
 
-    reqOptions =
-      url    : "#{apiurl}#{url}"
-      json   : true
-      method : 'DELETE'
+  {reqOptions, data} = setCookieIfRequired reqOptions, data
 
-    {reqOptions, data} = setCookieIfRequired reqOptions, data
-
-    request reqOptions, wrapCallback callback
+  request reqOptions, wrapCallback callback
 
 getXml = (url, data, callback)->
-  getNextApiURL (err, apiurl)->
-    return callback err if err
-    reqOptions =
-      url    : "#{apiurl}#{url}"
-      method : 'GET'
+  reqOptions =
+    url    : "#{localDomain}#{url}"
+    method : 'GET'
 
-    {reqOptions, data} = setCookieIfRequired reqOptions, data
+  {reqOptions, data} = setCookieIfRequired reqOptions, data
 
-    request reqOptions, wrapCallback callback
+  request reqOptions, wrapCallback callback
 
 get = (url, data, callback)->
-  getNextApiURL (err, apiurl)->
-    return callback err if err
-    reqOptions =
-      url    : "#{apiurl}#{url}"
-      json   : true
-      method : 'GET'
+  reqOptions =
+    url    : "#{localDomain}#{url}"
+    json   : true
+    method : 'GET'
 
-    {reqOptions, data} = setCookieIfRequired reqOptions, data
+  {reqOptions, data} = setCookieIfRequired reqOptions, data
 
-    # finally set query string
-    reqOptions.qs = data
+  # finally set query string
+  reqOptions.qs = data
 
-    request reqOptions, wrapCallback callback
+  request reqOptions, wrapCallback callback
 
 setCookieIfRequired = (reqOptions, data)->
   # inject clientId cookie if exists
@@ -533,6 +529,7 @@ module.exports = {
   createChannel
   checkOwnership
   expireSubscription
+  fetchBotChannel
   post
   get
   deleteReq

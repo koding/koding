@@ -9,6 +9,7 @@ const (
 // Currently third party services: SegementIO and Sendgrid are implemented.
 type Exporter interface {
 	Send(*Event) error
+	Close() error
 }
 
 // Event represent an action in time that is done by an user, has body

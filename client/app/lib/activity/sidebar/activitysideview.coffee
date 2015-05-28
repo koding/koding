@@ -1,11 +1,11 @@
 isChannelCollaborative      = require '../../util/isChannelCollaborative'
+isFeatureEnabled            = require 'app/util/isFeatureEnabled'
 kd                          = require 'kd'
 KDCustomHTMLView            = kd.CustomHTMLView
 KDListViewController        = kd.ListViewController
 KDView                      = kd.View
 JView                       = require '../../jview'
 SidebarMoreLink             = require './sidebarmorelink'
-
 
 module.exports = class ActivitySideView extends JView
 
@@ -97,6 +97,15 @@ module.exports = class ActivitySideView extends JView
 
     {dataPath} = @getOptions()
     items = kd.singletons.socialapi.getPrefetchedData dataPath
+
+    if isFeatureEnabled('botchannel') and dataPath is 'privateMessages'
+      bot =  kd.singletons.socialapi.getPrefetchedData "bot"
+      items.unshift bot  if bot
+
+    # delete this line if `getPrefetchedeData 'bot'` returns an array.
+    # this is justn an assumption that the result will be a single social
+    # channel instance rather than an array. ~Umut
+    items = [items]  unless Array.isArray items
 
     if items?.length
     then @renderItems null, items

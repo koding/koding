@@ -8,7 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestTeamIntegrationCreate(t *testing.T) {
+func TestChannelIntegrationCreate(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err)
@@ -19,21 +19,22 @@ func TestTeamIntegrationCreate(t *testing.T) {
 
 	channel := createTestGroupChannel(t, account)
 
-	integration := createTestIntegration(t)
+	integration := CreateTestIntegration(t)
 
-	Convey("while creating a team integration", t, func() {
-		i := NewTeamIntegration()
+	Convey("while creating a channel integration", t, func() {
+		i := NewChannelIntegration()
 		i.CreatorId = account.Id
-		i.GroupChannelId = channel.Id
+		i.ChannelId = channel.Id
 		err := i.Create()
-		So(err, ShouldEqual, ErrIntegrationIdIsNotSet)
+		So(err, ShouldEqual, models.ErrGroupNameIsNotSet)
 
 		i.IntegrationId = integration.Id
-		i.GroupChannelId = 0
+		i.GroupName = models.RandomGroupName()
+		i.ChannelId = 0
 		err = i.Create()
-		So(err, ShouldEqual, ErrGroupChannelIdIsNotSet)
+		So(err, ShouldEqual, models.ErrChannelIsNotSet)
 
-		i.GroupChannelId = channel.Id
+		i.ChannelId = channel.Id
 		i.CreatorId = 0
 		err = i.Create()
 		So(err, ShouldEqual, models.ErrCreatorIdIsNotSet)

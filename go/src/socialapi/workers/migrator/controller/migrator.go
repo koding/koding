@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+	webhookmodels "socialapi/workers/integration/webhook"
 	realtimemodels "socialapi/workers/realtime/models"
 
 	"github.com/koding/logging"
@@ -75,6 +76,10 @@ func (mwc *Controller) Start() {
 
 	mwc.GrantPublicAccess()
 
+	mwc.CreateIntegrations()
+
+	mwc.CreateBotUser()
+
 	mwc.log.Notice("Migration finished")
 
 	mwc.ready <- true
@@ -103,4 +108,49 @@ func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
 	}
 
 	return a.Id, nil
+}
+
+func (mwc *Controller) CreateIntegrations() {
+	mwc.log.Notice("Creating integration channels")
+	i := webhookmodels.NewIntegration()
+	i.Title = "iterable"
+	i.Name = "iterable"
+
+	err := i.Create()
+	if err != nil {
+		mwc.log.Error("Could not create integration: %s", err)
+		return
+	}
+
+	ch := models.NewChannel()
+	if err := ch.FetchPublicChannel("koding"); err != nil {
+		mwc.log.Error("Could not fetch koding channel: %s", err)
+		return
+	}
+
+	acc := models.NewAccount()
+
+	if err := acc.ByNick("devrim"); err != nil {
+		mwc.log.Error("Could not fetch account: %s", err)
+		return
+	}
+
+	ci := webhookmodels.NewChannelIntegration()
+	ci.IntegrationId = i.Id
+	ci.ChannelId = ch.Id
+	ci.CreatorId = acc.Id
+	ci.GroupName = "koding"
+
+	if err := ci.Create(); err != nil {
+		mwc.log.Error("Could not create channel integration: %s", err)
+		return
+	}
+}
+
+func (mwc *Controller) CreateBotUser() {
+	mwc.log.Notice("Creating bot user")
+	_, err := models.CreateAccountInBothDbsWithNick("bot")
+	if err != nil {
+		mwc.log.Error("Could not create bot account")
+	}
 }

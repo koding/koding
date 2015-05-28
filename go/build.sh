@@ -57,6 +57,8 @@ services=(
   socialapi/workers/cmd/integration/webhook
   socialapi/workers/algoliaconnector/tagmigrator
   socialapi/workers/algoliaconnector/contentmigrator
+  socialapi/workers/cmd/integration/eventsender
+  socialapi/workers/cmd/integration/webhookmiddleware
 )
 
 

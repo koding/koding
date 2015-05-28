@@ -15,6 +15,13 @@ type Channel struct {
 	Token       string   `json:"token"`
 }
 
+func (c *Channel) IsPrivateChannel() bool {
+	return c.Type == "privatemessage" ||
+		c.Type == "pinnedactivity" ||
+		c.Type == "collaboration" ||
+		c.Type == "bot"
+}
+
 type ChannelInterface interface {
 	PrepareName() string
 	GrantAccess(p *PubNub, a *Authenticate) error
@@ -36,7 +43,7 @@ func (pmc *PrivateMessageChannel) PrepareName() string {
 }
 
 func (pmc *PrivateMessageChannel) GrantAccess(p *PubNub, a *Authenticate) error {
-	if pmc.Channel.Type == "privatemessage" || pmc.Channel.Type == "pinnedactivity" {
+	if pmc.IsPrivateChannel() {
 		return p.GrantAccess(a, pmc)
 	}
 
