@@ -93,6 +93,8 @@ startTest = (setId, instance, test, next) ->
 
 finishSet = (id, instance, callback, error) ->
 
+  instance.isBusy = no
+
   if error
     {job, code, signal, stdout, stderr} = error
     {test, lap} = job
@@ -119,7 +121,9 @@ finishSet = (id, instance, callback, error) ->
 
 iterator = (id, callback) ->
 
-  instance = instances[id]
+  for instance in instances when not instance.isBusy
+    instance.isBusy = yes
+    break
 
   stopwatch[id] ?= []
 
