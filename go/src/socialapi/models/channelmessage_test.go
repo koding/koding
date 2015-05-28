@@ -94,11 +94,11 @@ func TestChannelMessageCreate(t *testing.T) {
 		Convey("type constant can be activity", func() {
 			cm := createMessageWithTest()
 
-			cm.TypeConstant = ChannelMessage_TYPE_ACTIVITY
+			cm.TypeConstant = ChannelMessage_TYPE_SYSTEM
 
-			So(cm.Create(), ShouldEqual, ErrActivityTypeIsNotSet)
+			So(cm.Create(), ShouldEqual, ErrSystemTypeIsNotSet)
 
-			cm.SetPayload("activityType", "invite")
+			cm.SetPayload("systemType", "invite")
 
 			So(cm.Create(), ShouldBeNil)
 
@@ -106,7 +106,7 @@ func TestChannelMessageCreate(t *testing.T) {
 			err := icm.ById(cm.Id)
 			So(err, ShouldBeNil)
 			So(icm.Id, ShouldEqual, cm.Id)
-			So(icm.TypeConstant, ShouldEqual, ChannelMessage_TYPE_ACTIVITY)
+			So(icm.TypeConstant, ShouldEqual, ChannelMessage_TYPE_SYSTEM)
 		})
 
 		Convey("type constant can be privatemessage", func() {

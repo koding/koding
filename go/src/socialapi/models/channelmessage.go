@@ -69,7 +69,7 @@ const (
 	ChannelMessage_TYPE_LEAVE           = "leave"
 	ChannelMessage_TYPE_PRIVATE_MESSAGE = "privatemessage"
 	ChannelMessage_TYPE_BOT             = "bot"
-	ChannelMessage_TYPE_ACTIVITY        = "activity"
+	ChannelMessage_TYPE_SYSTEM          = "system"
 
 	ChannelMessagePayloadKeyLocation = "location"
 )

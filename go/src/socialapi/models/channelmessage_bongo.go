@@ -68,7 +68,7 @@ func (c *ChannelMessage) Update() error {
 
 	if cm.TypeConstant == ChannelMessage_TYPE_JOIN ||
 		cm.TypeConstant == ChannelMessage_TYPE_LEAVE ||
-		cm.TypeConstant == ChannelMessage_TYPE_ACTIVITY {
+		cm.TypeConstant == ChannelMessage_TYPE_SYSTEM {
 		return ErrChannelMessageUpdatedNotAllowed
 	}
 
@@ -95,7 +95,7 @@ func (c *ChannelMessage) Create() error {
 		return err
 	}
 
-	if err := c.validateActivityMessage(); err != nil {
+	if err := c.validateSystemMessage(); err != nil {
 		return err
 	}
 
@@ -136,18 +136,18 @@ func (c *ChannelMessage) Delete() error {
 	return bongo.B.DB.Unscoped().Delete(c).Error
 }
 
-func (c *ChannelMessage) validateActivityMessage() error {
+func (c *ChannelMessage) validateSystemMessage() error {
 
-	if c.TypeConstant != ChannelMessage_TYPE_ACTIVITY {
+	if c.TypeConstant != ChannelMessage_TYPE_SYSTEM {
 		return nil
 	}
 
 	if c.Payload == nil {
-		return ErrActivityTypeIsNotSet
+		return ErrSystemTypeIsNotSet
 	}
 
-	if _, ok := c.Payload["activityType"]; !ok {
-		return ErrActivityTypeIsNotSet
+	if _, ok := c.Payload["systemType"]; !ok {
+		return ErrSystemTypeIsNotSet
 	}
 
 	return nil

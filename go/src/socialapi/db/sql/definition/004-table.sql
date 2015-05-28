@@ -83,7 +83,7 @@ CREATE TYPE "api"."channel_message_type_constant_enum" AS ENUM (
     'leave',
     'privatemessage',
     'bot',
-    'activity'
+    'system'
 );
 
 ALTER TYPE "api"."channel_message_type_constant_enum" OWNER TO "social";

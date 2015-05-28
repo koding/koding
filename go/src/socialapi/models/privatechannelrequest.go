@@ -10,12 +10,10 @@ import (
 )
 
 const (
-	PrivateMessageActivity_TYPE_INVITE       = "invite"
-	PrivateMessageActivity_TYPE_JOIN         = "join"
-	PrivateMessageActivity_TYPE_LEAVE        = "leave"
-	PrivateMessageActivity_TYPE_REJECT       = "reject"
-	PrivateMessageActivity_TYPE_INITIATE_IDE = "initiate"
-	PrivateMessageActivity_TYPE_START_COLL   = "start"
+	PrivateMessageSystem_TYPE_INVITE = "invite"
+	PrivateMessageSystem_TYPE_JOIN   = "join"
+	PrivateMessageSystem_TYPE_LEAVE  = "leave"
+	PrivateMessageSystem_TYPE_REJECT = "reject"
 )
 
 type PrivateChannelRequest struct {
@@ -31,25 +29,25 @@ type PrivateChannelRequest struct {
 	TypeConstant    string `json:"type"`
 }
 
-func (p *PrivateChannelRequest) SetActivityTypeByParticipant(participant *ChannelParticipant) {
+func (p *PrivateChannelRequest) SetSystemTypeByParticipant(participant *ChannelParticipant) {
 	if p.Payload == nil {
 		p.Payload = gorm.Hstore{}
 	}
 
-	var activityType string
+	var systemType string
 	switch participant.StatusConstant {
 	case ChannelParticipant_STATUS_ACTIVE:
-		activityType = PrivateMessageActivity_TYPE_JOIN
+		systemType = PrivateMessageSystem_TYPE_JOIN
 	case ChannelParticipant_STATUS_REQUEST_PENDING:
-		activityType = PrivateMessageActivity_TYPE_INVITE
+		systemType = PrivateMessageSystem_TYPE_INVITE
 	case ChannelParticipant_STATUS_LEFT:
-		activityType = PrivateMessageActivity_TYPE_LEAVE
+		systemType = PrivateMessageSystem_TYPE_LEAVE
 	case ChannelParticipant_STATUS_BLOCKED:
-		activityType = PrivateMessageActivity_TYPE_REJECT
+		systemType = PrivateMessageSystem_TYPE_REJECT
 	}
 
-	if activityType != "" {
-		p.Payload["activityType"] = &activityType
+	if systemType != "" {
+		p.Payload["systemType"] = &systemType
 	}
 }
 
@@ -183,13 +181,13 @@ func (p *PrivateChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error
 		p.Payload["addedBy"] = &addedByStr
 	}
 
-	_, err := p.createActivity(c, ChannelMessage_TYPE_ACTIVITY)
+	_, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
 
 	return err
 }
 
 func (p *PrivateChannelRequest) AddLeaveActivity(c *Channel) error {
-	_, err := p.createActivity(c, ChannelMessage_TYPE_ACTIVITY)
+	_, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
 
 	return err
 }
@@ -205,11 +203,11 @@ func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int
 	if len(participantIds) > 0 {
 		payload := formatParticipantIds(participantIds)
 		p.Payload["initialParticipants"] = &payload
-		activity := PrivateMessageActivity_TYPE_JOIN
-		p.Payload["activityType"] = &activity
+		activity := PrivateMessageSystem_TYPE_JOIN
+		p.Payload["systemType"] = &activity
 	}
 
-	_, err := p.createActivity(c, ChannelMessage_TYPE_ACTIVITY)
+	cm, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
 
 	return err
 }
@@ -319,7 +317,7 @@ func getBody(p *PrivateChannelRequest, typeConstant string) string {
 	switch typeConstant {
 	case ChannelMessage_TYPE_PRIVATE_MESSAGE:
 		return p.Body
-	case ChannelMessage_TYPE_ACTIVITY:
+	case ChannelMessage_TYPE_SYSTEM:
 		return "activity"
 	}
 

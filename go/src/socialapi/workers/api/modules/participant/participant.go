@@ -461,7 +461,7 @@ func addJoinActivity(channelId int64, participant *models.ChannelParticipant, ad
 	}
 
 	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
-	pmr.SetActivityTypeByParticipant(participant)
+	pmr.SetSystemTypeByParticipant(participant)
 	if participant.StatusConstant == models.ChannelParticipant_STATUS_REQUEST_PENDING {
 		addedBy = 0
 	}
@@ -480,7 +480,7 @@ func addLeaveActivity(channelId int64, participant *models.ChannelParticipant) e
 	}
 
 	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
-	pmr.SetActivityTypeByParticipant(participant)
+	pmr.SetSystemTypeByParticipant(participant)
 
 	return pmr.AddLeaveActivity(c)
 }

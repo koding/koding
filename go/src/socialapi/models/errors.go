@@ -18,7 +18,7 @@ var (
 	ErrParentMessageIsNotSet   = errors.New("parent message is not set")
 	ErrParentMessageIdIsNotSet = errors.New("parent message id is not set")
 	ErrCreatorIdIsNotSet       = errors.New("creator id is not set")
-	ErrActivityTypeIsNotSet    = errors.New("activityType is not set in payload")
+	ErrSystemTypeIsNotSet      = errors.New("systemType is not set in payload")
 
 	ErrChannelIsNotSet                = errors.New("channel is not set")
 	ErrChannelIdIsNotSet              = errors.New("channel id is not set")
