@@ -570,6 +570,11 @@ module.exports = CollaborationController =
 
   onCollaborationInitial: ->
 
+    if @mountedMachine.isMine()
+      @showShareButton()
+
+    kd.utils.defer => @stateMachine.transition 'Loading'
+
 
   onCollaborationLoading: ->
 
@@ -604,6 +609,13 @@ module.exports = CollaborationController =
   onCollaborationNotStarted: ->
 
     @statusBar.emit 'CollaborationEnded'
+
+    owned = @mountedMachine.isMine()
+    approved = @mountedMachine.isApproved()
+
+    if (not owned) and approved
+      @statusBar.share.hide()
+
     @collectButtonShownMetric()
 
 
@@ -677,6 +689,8 @@ module.exports = CollaborationController =
 
 
   onCollaborationResuming: ->
+
+    @showShareButton()
 
     successCb = (channel, doc) =>
       @whenRealtimeReady =>
@@ -868,8 +882,8 @@ module.exports = CollaborationController =
   prepareCollaboration: ->
 
     @rtm = new RealtimeManager
-    @showShareButton()
-    @rtm.ready => @initCollaborationStateMachine()
+
+    @rtm.ready @bound 'initCollaborationStateMachine'
 
 
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
