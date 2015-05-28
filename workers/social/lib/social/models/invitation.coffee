@@ -96,6 +96,11 @@ module.exports = class JInvitation extends jraphical.Module
     operation = $set : { status: 'accepted' }
     @update operation, callback
 
+  # validTypes holds states that can still redeemable
+  validTypes: ['pending']
+
+  isValid:-> @status in @validTypes
+
   # remove deletes an invitation from database
   remove$: permit 'send invitations',
     success: (client, callback) ->
@@ -116,7 +121,6 @@ module.exports = class JInvitation extends jraphical.Module
       options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
       options.skip    = 0
 
-      console.log selector, options
       JInvitation.some selector, options, callback
 
   # search searches database with given query string, adds `starting
