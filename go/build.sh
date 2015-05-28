@@ -28,6 +28,7 @@ services=(
   koding/vmwatcher
   github.com/koding/kite/kitectl
   github.com/canthefason/go-watcher
+  github.com/mattes/migrate
 
   socialapi/workers/api
   socialapi/workers/cmd/notification
