@@ -316,6 +316,30 @@ module.exports = class JCredential extends jraphical.Module
 
           rel.remove callback
 
+  # Poor man's shadow function ~ GG
+  shadowed = (c) ->
+    r = (c) -> Math.ceil c.length / 1.5
+    return "*#{Array(r c).join '*'}#{c[(r c)..]}"
+
+
+  fetchData: (callback) ->
+
+    sensitiveKeys = PROVIDERS[@provider]?.sensitiveKeys or []
+
+    Relationship.one {sourceId: @getId(), as: 'data'}, (err, rel) ->
+
+      return callback err  if err
+      return callback new KodingError 'No data found'  unless rel
+
+      rel.fetchTarget (err, data) ->
+        return callback err  if err
+
+        meta = data?.data?.meta or {}
+        sensitiveKeys.forEach (key) ->
+          meta[key] = shadowed meta[key]
+
+        callback null, data
+
 
   fetchData$: permit
 
