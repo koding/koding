@@ -684,7 +684,7 @@ Configuration = (options={}) ->
     gatheringestor      :
       group             : "environment"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/workers/gatheringestor"
+        command         : "#{GOBIN}/watcher -run koding/workers/gatheringestor -c #{configName}"
       nginx             :
         locations       : [ { location: "/gatheringestor" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"

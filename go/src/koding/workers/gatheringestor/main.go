@@ -53,12 +53,13 @@ func main() {
 	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
 	port := fmt.Sprintf("%v", conf.GatherIngestor.Port)
+
+	log.Info("Listening on server: %s", port)
+
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	log.Info("Listening on server: %s", port)
 
 	if err = http.Serve(listener, mux); err != nil {
 		log.Fatal(err.Error())
