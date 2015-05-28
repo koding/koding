@@ -15,6 +15,7 @@ module.exports = class ProviderInterface
 
   @providerSlug   = 'baseprovider'
   @bootstrapKeys  = []
+  @sensitiveKeys  = []
 
   @ping           = NOT_IMPLEMENTED
 
