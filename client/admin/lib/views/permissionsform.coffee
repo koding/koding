@@ -143,7 +143,6 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
 
   optionizePermissions = (roles, set) ->
 
-    isKoding          = isKoding()
     permissionOptions = {}
 
     # set.permissionsByModule is giving all the possible permissions
@@ -154,7 +153,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       headerTitle    = "header #{module.toLowerCase()}"
       headerCssClass = 'permissions-module text'
 
-      if not isKoding and not limitedPermissions[module]
+      if not isKoding() and not limitedPermissions[module]
         headerCssClass += ' hidden'
 
       permissionOptions[headerTitle] =
@@ -165,7 +164,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       for permission in permissions
         cssClass = 'text'
 
-        if not isKoding
+        unless isKoding()
           if limitedPermissions[module]
             if limitedPermissions[module].indexOf(permission) is -1
               cssClass += ' hidden'
