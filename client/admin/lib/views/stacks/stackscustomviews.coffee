@@ -143,11 +143,6 @@ module.exports = class StacksCustomViews extends CustomViews
         outputView.addContent 'Failed: ', err.message
       else
 
-        # Hide sensitive information
-        provider = globals.config.providers[credential.provider]
-        (Object.keys provider.credentialFields).forEach (field) ->
-          data.meta[field] = '******************'
-
         try
           cred = JSON.stringify data.meta, null, 2
         catch e
