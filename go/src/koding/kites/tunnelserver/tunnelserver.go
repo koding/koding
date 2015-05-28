@@ -10,7 +10,7 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
-	"github.com/koding/streamtunnel"
+	"github.com/koding/tunnel"
 	"github.com/mitchellh/goamz/aws"
 )
 
@@ -33,7 +33,7 @@ type tunnelServer struct {
 
 	// internal
 	Log    logging.Logger
-	Server *streamtunnel.Server
+	Server *tunnel.Server
 	Dns    *dnsclient.Route53
 }
 
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	t.Dns = dnsclient.NewRoute53Client(t.HostedZone, auth)
-	t.Server = streamtunnel.NewServer(&streamtunnel.ServerConfig{
+	t.Server = tunnel.NewServer(&tunnel.ServerConfig{
 		Debug: t.Debug,
 	})
 	t.Log = common.NewLogger("tunnelkite", t.Debug)

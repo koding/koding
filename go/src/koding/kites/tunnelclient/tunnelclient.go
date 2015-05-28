@@ -5,7 +5,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/multiconfig"
-	"github.com/koding/streamtunnel"
+	"github.com/koding/tunnel"
 )
 
 type registerResult struct {
@@ -14,7 +14,7 @@ type registerResult struct {
 }
 
 func main() {
-	conf := new(streamtunnel.ClientConfig)
+	conf := new(tunnel.ClientConfig)
 	multiconfig.New().MustLoad(conf)
 
 	k := kite.New("tunnelclient", "0.0.1")
@@ -36,7 +36,7 @@ func main() {
 
 	conf.ServerAddr = addPort(conf.ServerAddr, "80")
 
-	client := streamtunnel.NewClient(conf)
+	client := tunnel.NewClient(conf)
 	client.FetchIdentifier = func() (string, error) {
 		result, err := callRegister(tunnelserver)
 		if err != nil {

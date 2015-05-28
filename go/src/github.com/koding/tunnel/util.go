@@ -1,4 +1,4 @@
-package streamtunnel
+package tunnel
 
 // async is a helper function to convert a blocking function to a function
 // returning an error. Useful for plugging function closures into select and co
