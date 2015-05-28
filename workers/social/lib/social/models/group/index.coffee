@@ -606,6 +606,8 @@ module.exports = class JGroup extends Module
 
   # isInAllowedDomain checks if given email's domain is in allowed domains
   isInAllowedDomain: (email, callback) ->
+    # allow for all domains for koding
+    return yes if @slug is 'koding'
 
     return no  unless @allowedDomains?.length > 0
 
