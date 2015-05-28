@@ -16,6 +16,7 @@ ldflags="-X koding/artifact.VERSION ${version:0:8}"
 
 services=(
   koding/broker
+  koding/rerouting
   koding/kites/kontrol
   koding/kites/kloud
   koding/kites/kloud/kloudctl
