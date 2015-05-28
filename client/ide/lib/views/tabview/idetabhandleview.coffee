@@ -4,21 +4,16 @@ KDTabHandleView = kd.TabHandleView
 
 module.exports = class IDETabHandleView extends KDTabHandleView
 
-  bindEvents: ->
+  constructor: (options = {}, data) ->
 
-    super
+    options.bind  = 'dragstart'
 
-    if @getOption 'droppable'
-
-      @getDomElement().bind 'dragstart', (event) => @handleDragStart event
+    super options, data
 
 
-  handleDragStart: (event) ->
-
-    { dataTransfer } = event.originalEvent
+  dragStart: (event) ->
 
     ## FF hack.
-    dataTransfer.setData 'text/plain', ''
+    event.originalEvent.dataTransfer.setData 'text/plain', ''
 
-    { appManager } = kd.singletons
-    appManager.tell 'IDE', 'setTargetTabView', @getDelegate()
+    kd.singletons.appManager.tell 'IDE', 'setTargetTabView', @getDelegate()

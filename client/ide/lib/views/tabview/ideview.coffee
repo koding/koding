@@ -531,18 +531,18 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
 
   dragover: (event) ->
-    event.preventDefault()
+
+    kd.utils.stopDOMEvent event
 
 
   drop: (event) ->
 
-    { appManager }    = kd.singletons
-    { originalEvent } = event
-    index             = null
-    $target           = $(originalEvent.target)
+    selector  = '.kdtabhandle:not(.visible-tab-handle)'
+    $target   = $(event.originalEvent.target).closest(selector)
+    index     = $target.index()
 
-    index = $target.index()  if $target.hasClass 'kdtabhandle'
-    index = $target.parent().index()  if $target.parent().hasClass 'kdtabhandle'
+    index = null  if index < 0
 
-    appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
+    kd.log index
+    kd.singletons.appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
 
