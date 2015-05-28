@@ -1,5 +1,7 @@
 Bongo                                   = require "bongo"
 koding                                  = require './../bongo'
+{ argv }                                = require 'optimist'
+KONFIG                                  = require('koding-config-manager').load "main.#{argv.c}"
 { getClientId, handleClientIdNotFound } = require './../helpers'
 { dash }                                = Bongo
 { uniq }                                = require 'underscore'
@@ -80,6 +82,13 @@ module.exports = (req, res, next) ->
         dash queue, (err)->
           # do not block group creation
           console.error "Error while creating group artifacts", body, err if err
+
+          # temp code for creating the team-access cookie for development
+          # sandbox and latest share the same config file
+          # so sandbox.koding.com covers both cases ಠ_ಠ - SY
+          if /ngrok|sandbox\.koding/.test KONFIG.hostname
+            console.log "setting cookie for #{slug}.dev.koding.com"
+            res.cookie 'team-access', 'yes', domain : ".dev.koding.com"
 
           # handle the request as an XHR response:
           return res.status(200).end() if req.xhr
