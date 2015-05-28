@@ -42,4 +42,10 @@ for INSTANCE in $INSTANCES; do
   echo
 done
 
+INSTANCE_COUNT=$(wc -l $INSTANCE_DATA_FILE | awk '{print $1}')
+
+if [ $INSTANCE_COUNT -eq 0 ]; then
+  exit 1
+fi
+
 exit 0
