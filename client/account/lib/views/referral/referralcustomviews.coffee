@@ -83,14 +83,18 @@ module.exports = class ReferralCustomViews extends CustomViews
         view          : 
           partial     : getReferralUrl nick()
           cssClass    : "text link"
-          domId       : "referral-item"
+          tooltip     :
+            title     : "CTRL (⌘) + C to copy"
+            placement : "above"
+            offset    : 0
+            delayIn   : 300
+            html      : yes
+            animate   : yes
+            selector  : null
+            partial   : "i"
           click       : ->
-            text = document.getElementById "referral-item"
-            selection = window.getSelection()
-            range = document.createRange()
-            range.selectNodeContents text
-            selection.removeAllRanges()
-            selection.addRange range
+            text = @getElement()
+            @utils.selectText text
 
       return container
 
