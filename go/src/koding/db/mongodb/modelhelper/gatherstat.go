@@ -10,9 +10,9 @@ var (
 	GatherStatsColl = "gatherstats"
 )
 
-func SaveGatherStat(g *models.GatherStat) error {
+func SaveGatherStat(stat *models.GatherStat) error {
 	query := func(c *mgo.Collection) error {
-		return c.Insert(g)
+		return c.Insert(stat)
 	}
 
 	return Mongo.Run(GatherStatsColl, query)

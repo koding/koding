@@ -1,6 +1,8 @@
 package gather
 
+import "koding/db/models"
+
 type Exporter interface {
-	SendResult([]interface{}, Options) error
-	SendError(error, Options) error
+	SendResult(*models.GatherStat) error
+	SendError(*models.GatherError) error
 }

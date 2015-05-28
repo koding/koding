@@ -2,11 +2,12 @@ package gather
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/json"
+	"koding/db/models"
 	"net/http"
 )
 
-var defaultKodingURI = "https://koding.com/gatherinjestor"
+var defaultKodingURI = "https://koding.com/-/gatherinjestor"
 
 type KodingExporter struct {
 	URI string
@@ -16,21 +17,22 @@ func NewKodingExporter() *KodingExporter {
 	return &KodingExporter{URI: defaultKodingURI}
 }
 
-func (k *KodingExporter) SendResult(results []interface{}, o Options) error {
-	buf := bytes.NewBuffer(nil)
-
-	_, err := http.Post(k.URI+"/stats", "application/json", buf)
-	return err
+func (k *KodingExporter) SendResult(output *models.GatherStat) error {
+	return k.send("/stats", output)
 }
 
-func (k *KodingExporter) SendError(err error, o Options) error {
-	if err == nil {
-		return ErrErrorIsEmpty
+func (k *KodingExporter) SendError(output *models.GatherError) error {
+	return k.send("/errors", output)
+}
+
+func (k *KodingExporter) send(path string, output interface{}) error {
+	buf := bytes.NewBuffer(nil)
+
+	err := json.NewEncoder(buf).Encode(output)
+	if err != nil {
+		return err
 	}
 
-	req := []byte(fmt.Sprintf(`{"error":%s"}`))
-	buf := bytes.NewBuffer(req)
-
-	_, err = http.Post(k.URI+"/errors", "application/json", buf)
+	_, err = http.Post(k.URI+path, "application/json", buf)
 	return err
 }

@@ -1,6 +1,9 @@
 package gather
 
 import (
+	"bytes"
+	"encoding/json"
+	"koding/db/models"
 	"math/rand"
 	"os"
 	"strings"
@@ -10,15 +13,15 @@ type Gather struct {
 	DestFolder string
 	Exporter   Exporter
 	Fetcher    Fetcher
-	Options    Options
+	Output     *models.Gather
 }
 
-func New(fetcher Fetcher, exporter Exporter, opts Options) *Gather {
+func New(fetcher Fetcher, exporter Exporter, output *models.Gather) *Gather {
 	return &Gather{
 		Fetcher:    fetcher,
 		Exporter:   exporter,
 		DestFolder: "/tmp/" + randSeq(10),
-		Options:    opts,
+		Output:     output,
 	}
 }
 
@@ -72,12 +75,30 @@ func (c *Gather) DownloadScripts(folderName string) error {
 	return c.Fetcher.Download(folderName)
 }
 
-func (c *Gather) Export(results []interface{}, err error) error {
+func (c *Gather) Export(raw []interface{}, err error) error {
 	if err != nil {
-		return c.Exporter.SendError(err, c.Options)
+		output := models.NewGatherError(c.Output, err)
+		return c.Exporter.SendError(output)
 	}
 
-	return c.Exporter.SendResult(results, c.Options)
+	results := []models.GatherSingleStat{}
+
+	for _, r := range raw {
+		buf := bytes.NewBuffer(nil)
+		if err := json.NewEncoder(buf).Encode(r); err != nil {
+			continue
+		}
+
+		var stat models.GatherSingleStat
+		if err := json.NewDecoder(buf).Decode(&stat); err != nil {
+			continue
+		}
+
+		results = append(results, stat)
+	}
+
+	output := models.NewGatherStat(c.Output, results)
+	return c.Exporter.SendResult(output)
 }
 
 func (c *Gather) Cleanup() error {

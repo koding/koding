@@ -21,22 +21,23 @@ type GatherStat struct {
 func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req = &models.GatherStat{Id: bson.NewObjectId()}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		writeError(err, w)
+		writeError(g.log, err, w)
 		return
 	}
 
 	if err := modelhelper.SaveGatherStat(req); err != nil {
-		writeError(err, w)
+		writeError(g.log, err, w)
 		return
 	}
 
-	name := fmt.Sprintf("gather:stats:%s", req.Name)
-	tags := []string{"username:" + req.Username, "env" + req.Env}
+	for _, stat := range req.Stats {
+		name := fmt.Sprintf("gather:stats:%s", stat.Name)
+		tags := []string{"username:" + req.Username, "env" + req.Env}
 
-	// name, value, tags, rate
-	if err := g.dog.Gauge(name, req.Number, tags, 1.0); err != nil {
-		writeError(err, w)
-		return
+		// name, value, tags, rate
+		if err := g.dog.Gauge(name, stat.Number, tags, 1.0); err != nil {
+			continue
+		}
 	}
 
 	w.WriteHeader(200)

@@ -66,7 +66,9 @@ func main() {
 	}
 }
 
-func writeError(err error, w http.ResponseWriter) {
+func writeError(log logging.Logger, err error, w http.ResponseWriter) {
+	log.Error(err.Error())
+
 	w.WriteHeader(500)
 	w.Write([]byte(err.Error()))
 }

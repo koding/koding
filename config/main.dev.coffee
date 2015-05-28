@@ -686,7 +686,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/watcher -run koding/workers/gatheringestor -c #{configName}"
       nginx             :
-        locations       : [ { location: "/gatheringestor" } ]
+        locations       : [ { location: "/-/gatheringestor" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
 
