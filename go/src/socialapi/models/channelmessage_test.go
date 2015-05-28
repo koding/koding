@@ -91,6 +91,24 @@ func TestChannelMessageCreate(t *testing.T) {
 			So(icm.TypeConstant, ShouldEqual, ChannelMessage_TYPE_LEAVE)
 		})
 
+		Convey("type constant can be activity", func() {
+			cm := createMessageWithTest()
+
+			cm.TypeConstant = ChannelMessage_TYPE_ACTIVITY
+
+			So(cm.Create(), ShouldEqual, ErrActivityTypeIsNotSet)
+
+			cm.SetPayload("activityType", "invite")
+
+			So(cm.Create(), ShouldBeNil)
+
+			icm := NewChannelMessage()
+			err := icm.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(icm.Id, ShouldEqual, cm.Id)
+			So(icm.TypeConstant, ShouldEqual, ChannelMessage_TYPE_ACTIVITY)
+		})
+
 		Convey("type constant can be privatemessage", func() {
 			cm := createMessageWithTest()
 			// remove type Constant

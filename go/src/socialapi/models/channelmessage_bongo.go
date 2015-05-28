@@ -67,7 +67,8 @@ func (c *ChannelMessage) Update() error {
 	}
 
 	if cm.TypeConstant == ChannelMessage_TYPE_JOIN ||
-		cm.TypeConstant == ChannelMessage_TYPE_LEAVE {
+		cm.TypeConstant == ChannelMessage_TYPE_LEAVE ||
+		cm.TypeConstant == ChannelMessage_TYPE_ACTIVITY {
 		return ErrChannelMessageUpdatedNotAllowed
 	}
 
@@ -91,6 +92,10 @@ func (c *ChannelMessage) Update() error {
 // tests are added for this function
 func (c *ChannelMessage) Create() error {
 	if err := bodyLenCheck(c.Body); err != nil {
+		return err
+	}
+
+	if err := c.validateActivityMessage(); err != nil {
 		return err
 	}
 
@@ -129,4 +134,21 @@ func (c *ChannelMessage) CountWithQuery(q *bongo.Query) (int, error) {
 
 func (c *ChannelMessage) Delete() error {
 	return bongo.B.DB.Unscoped().Delete(c).Error
+}
+
+func (c *ChannelMessage) validateActivityMessage() error {
+
+	if c.TypeConstant != ChannelMessage_TYPE_ACTIVITY {
+		return nil
+	}
+
+	if c.Payload == nil {
+		return ErrActivityTypeIsNotSet
+	}
+
+	if _, ok := c.Payload["activityType"]; !ok {
+		return ErrActivityTypeIsNotSet
+	}
+
+	return nil
 }
