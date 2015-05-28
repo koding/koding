@@ -93,6 +93,7 @@ module.exports =
     fileSelector = ".file-container span[title='#{filePath}/#{fileName}']"
 
     helpers.createFileFromMachineHeader(browser, user, fileName, no)
+    ideHelpers.clickItemInMachineHeaderMenu(browser, '.refresh')
 
     browser
       .pause   4000 # wait for file create complete
