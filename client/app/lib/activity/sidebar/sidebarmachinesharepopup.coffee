@@ -136,33 +136,36 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       return showError err  if err
       { router, mainView } = kd.singletons
 
-      doNavigation = =>
-        if machine.isPermanent()
-          route = "/IDE/#{machine.uid}/my-workspace" # permanent shared route
-        else # collaboration route
-          route = "/IDE/#{@getOptions().channelId}"
+      { channelId } = @getOptions()
+      kd.singletons.socialapi.channel.acceptInvite { channelId }, (err) =>
+        return showError err  if err
 
-        # route to permanent shared url to open the ide
-        router.handleRoute route
+        doNavigation = =>
+          if machine.isPermanent()
+            route = "/IDE/#{machine.uid}/my-workspace" # permanent shared route
+          else # collaboration route
+            route = "/IDE/#{@getOptions().channelId}"
 
-        # defer sidebar redrawing to properly select workspace
-        kd.utils.defer =>
-          mainView.activitySidebar.redrawMachineList()
-          @destroy()
+          # route to permanent shared url to open the ide
+          router.handleRoute route
 
+          # defer sidebar redrawing to properly select workspace
+          kd.utils.defer =>
+            mainView.activitySidebar.redrawMachineList()
+            @destroy()
 
-      envDataProvider.fetch =>
-        # if there is an ide instance this means user landed to ide with direct url
-        ideApp = envDataProvider.getIDEFromUId machine.uid
+        envDataProvider.fetch =>
+          # if there is an ide instance this means user landed to ide with direct url
+          ideApp = envDataProvider.getIDEFromUId machine.uid
 
-        if ideApp
-          ideApp.quit()
-          # i needed to wait 737ms to do the navigation. actually i don't want
-          # to burn more ATP for this case because it's the only case if user
-          # navigates to that url manually by knowing the machine uid and stuff
-          kd.utils.wait 737, => doNavigation()
-        else
-          doNavigation()
+          if ideApp
+            ideApp.quit()
+            # i needed to wait 737ms to do the navigation. actually i don't want
+            # to burn more ATP for this case because it's the only case if user
+            # navigates to that url manually by knowing the machine uid and stuff
+            kd.utils.wait 737, => doNavigation()
+          else
+            doNavigation()
 
 
   deny: ->
@@ -176,7 +179,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       if machine.isPermanent() then @handleDeny()
       else # remove user from chat and unshare machine for collaboration
         { channelId } = @getOptions()
-        kd.singletons.socialapi.channel.leave { channelId }, (err) =>
+        kd.singletons.socialapi.channel.rejectInvite { channelId }, (err) =>
           return showError err  if err
 
           envHelpers.setMachineUser machine, [ nick() ], no, (err) =>
