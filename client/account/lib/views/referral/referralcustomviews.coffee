@@ -80,7 +80,17 @@ module.exports = class ReferralCustomViews extends CustomViews
         socialIcons   :
           providers   : ['facebook', 'linkedin', 'twitter', 'google', 'mail']
         text_invite   : 'Your personal invite link:'
-        text_link     : getReferralUrl nick()
+        view          : 
+          partial     : getReferralUrl nick()
+          cssClass    : "text link"
+          domId       : "referral-item"
+          click       : ->
+            text = document.getElementById "referral-item"
+            selection = window.getSelection()
+            range = document.createRange()
+            range.selectNodeContents text
+            selection.removeAllRanges()
+            selection.addRange range
 
       return container
 
