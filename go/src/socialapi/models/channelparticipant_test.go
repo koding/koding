@@ -70,14 +70,14 @@ func TestChannelParticipantBeforeUpdate(t *testing.T) {
 	})
 }
 
-func TestChannelParticipantIsParticipant(t *testing.T) {
+func TestChannelParticipantCheckAccountStatus(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
 	}
 	defer r.Close()
 
-	Convey("While testing is participant", t, func() {
+	Convey("While testing account status", t, func() {
 		Convey("it should have channel id", func() {
 			cp := NewChannelParticipant()
 
@@ -112,6 +112,23 @@ func TestChannelParticipantIsParticipant(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(ip, ShouldEqual, true)
 			So(cp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_ACTIVE)
+		})
+		Convey("it should return true for pending participant", func() {
+
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+			acc := CreateAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+			cp := NewChannelParticipant()
+			cp.ChannelId = c.Id
+			cp.AccountId = acc.Id
+			cp.StatusConstant = ChannelParticipant_STATUS_REQUEST_PENDING
+			So(cp.Create(), ShouldBeNil)
+
+			ip, err := cp.IsInvited(acc.Id)
+			So(err, ShouldBeNil)
+			So(ip, ShouldEqual, true)
+			So(cp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_REQUEST_PENDING)
 		})
 	})
 }

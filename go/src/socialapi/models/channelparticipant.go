@@ -65,6 +65,8 @@ func NewChannelParticipant() *ChannelParticipant {
 // Create creates a participant in the db as active
 // multiple call of this function will result same
 func (c *ChannelParticipant) Create() error {
+	// get user defined status constant
+	statusConstant := c.StatusConstant
 	err := c.FetchParticipant()
 	if err != nil && err != bongo.RecordNotFound {
 		return err
@@ -83,7 +85,8 @@ func (c *ChannelParticipant) Create() error {
 			return ErrParticipantBlocked
 		}
 
-		c.StatusConstant = ChannelParticipant_STATUS_ACTIVE
+		// we can update pending participant to active
+		c.StatusConstant = statusConstant
 		if err := c.Update(); err != nil {
 			return err
 		}
@@ -444,6 +447,19 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 
 // Tests are done.
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
+	c.StatusConstant = ChannelParticipant_STATUS_ACTIVE
+
+	return c.checkAccountStatus(accountId)
+}
+
+func (c *ChannelParticipant) IsInvited(accountId int64) (bool, error) {
+	c.StatusConstant = ChannelParticipant_STATUS_REQUEST_PENDING
+
+	return c.checkAccountStatus(accountId)
+}
+
+func (c *ChannelParticipant) checkAccountStatus(accountId int64) (bool, error) {
+
 	if accountId == 0 {
 		return false, nil
 	}
@@ -455,7 +471,7 @@ func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	selector := map[string]interface{}{
 		"channel_id":      c.ChannelId,
 		"account_id":      accountId,
-		"status_constant": ChannelParticipant_STATUS_ACTIVE,
+		"status_constant": c.StatusConstant,
 	}
 
 	err := c.One(bongo.NewQS(selector))
