@@ -1,4 +1,4 @@
-package streamtunnel
+package tunnel
 
 import (
 	"sync"
