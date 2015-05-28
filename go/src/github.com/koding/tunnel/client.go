@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -28,6 +29,9 @@ type Client struct {
 	// yamuxConfig is passed to new yamux.Session's
 	yamuxConfig *yamux.Config
 	log         logging.Logger
+
+	closed   bool
+	closedMu sync.Mutex
 
 	// redialBackoff is used to reconnect in exponential backoff intervals
 	redialBackoff backoff.BackOff
@@ -117,7 +121,7 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 // Start starts the client and connects to the server with the identifier.
 // client.FetchIdentifier() will be used if it's not nil. It's supports
 // reconnecting with exponential backoff intervals when the connection to the
-// server disconnects.
+// server disconnects. Call client.Close() to shutdown the client completely.
 func (c *Client) Start() {
 	id := func() (string, error) {
 		if c.config.FetchIdentifier != nil {
@@ -130,7 +134,6 @@ func (c *Client) Start() {
 	c.redialBackoff.Reset()
 	for {
 		time.Sleep(c.redialBackoff.NextBackOff())
-
 		identifier, err := id()
 		if err != nil {
 			c.log.Critical("client fetch identifier err: %s", err.Error())
@@ -140,7 +143,36 @@ func (c *Client) Start() {
 		if err := c.connect(identifier); err != nil {
 			c.log.Critical("client connect err: %s", err.Error())
 		}
+
+		// exit if closed
+		c.closedMu.Lock()
+		if c.closed {
+			c.closedMu.Unlock()
+			return
+		}
+		c.closedMu.Unlock()
 	}
+}
+
+// Close closes the client and shutdowns the connection to the tunnel server
+func (c *Client) Close() error {
+	if c.session == nil {
+		return errors.New("session is not initialized")
+	}
+
+	if err := c.session.GoAway(); err != nil {
+		return err
+	}
+
+	c.closedMu.Lock()
+	c.closed = true
+	c.closedMu.Unlock()
+
+	if err := c.session.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Client) connect(identifier string) error {
@@ -253,6 +285,7 @@ func (c *Client) proxy(port string) error {
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 
 	if port == "0" {
 		port = "80"
@@ -268,12 +301,7 @@ func (c *Client) proxy(port string) error {
 		return err
 	}
 
-	go func() {
-		<-join(local, conn)
-		conn.Close()
-	}()
-
-	return nil
+	return <-c.join(local, conn)
 }
 
 func newLocalDial(addr string) (net.Conn, error) {
@@ -286,16 +314,24 @@ func newLocalDial(addr string) (net.Conn, error) {
 	return c, nil
 }
 
-func join(local, remote io.ReadWriteCloser) chan error {
+func (c *Client) join(local, remote net.Conn) chan error {
 	errc := make(chan error, 2)
 
-	copy := func(dst io.Writer, src io.Reader) {
+	transfer := func(dst, src net.Conn) {
 		_, err := io.Copy(dst, src)
+		if err != nil {
+			c.log.Error("copy error: %s", err.Error())
+		}
+
+		if err := src.Close(); err != nil {
+			c.log.Error("Close error: %s", err.Error())
+		}
+
 		errc <- err
 	}
 
-	go copy(local, remote)
-	go copy(remote, local)
+	go transfer(local, remote)
+	go transfer(remote, local)
 
 	return errc
 }
