@@ -11,7 +11,7 @@ module.exports = (req, res) ->
 
   return handleClientIdNotFound res, req unless clientId
 
-  options = { username, password, groupName, invitationToken:token }
+  options = { username, password, groupName, invitationToken: token }
 
   JUser.login clientId, options, (err, info) ->
     if err
