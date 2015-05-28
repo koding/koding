@@ -724,7 +724,8 @@ module.exports = class JUser extends jraphical.Module
       checkWithDomain = (groupName, email, callback) ->
         JGroup.one {slug: groupName }, (err, group) =>
           return callback err  if err
-          return callback createKodingError "Group #{slug} not found" if not group
+          # yes weird, but we are creating user before creating group
+          return callback null, { isEligible: yes } if not group
 
           isAllowed = group.isInAllowedDomain email
           return callback createKodingError "Your email domain is not in allowed \
@@ -759,7 +760,7 @@ module.exports = class JUser extends jraphical.Module
       # fetch group that we are gonna add account in
       JGroup.one {slug}, (err, group) ->
         return callback err  if err
-        return callback createKodingError "Group #{slug} not found" if not group
+        return callback null  if not group
 
         group.approveMember account, (err)->
           return callback err  if err
