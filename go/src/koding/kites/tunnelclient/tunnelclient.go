@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
 	"github.com/koding/kite"
@@ -35,9 +37,7 @@ func main() {
 	}
 
 	conf.ServerAddr = addPort(conf.ServerAddr, "80")
-
-	client := tunnel.NewClient(conf)
-	client.FetchIdentifier = func() (string, error) {
+	conf.FetchIdentifier = func() (string, error) {
 		result, err := callRegister(tunnelserver)
 		if err != nil {
 			return "", err
@@ -46,6 +46,13 @@ func main() {
 		k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
 		return result.Identifier, nil
 	}
+
+	client, err := tunnel.NewClient(conf)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+
 	client.Start()
 }
 

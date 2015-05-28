@@ -1,4 +1,4 @@
-# Network protocol
+# Specification
 
 # Naming conventions
 

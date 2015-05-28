@@ -1,3 +1,6 @@
+// Package tunnel is a server/client package that enables to proxy public
+// connections to your local machine over a tunnel connection from the local
+// machine to the public server.
 package tunnel
 
 import (
@@ -17,6 +20,8 @@ import (
 	"github.com/koding/logging"
 )
 
+// Server is responsible for proxying public connections to the client over a
+// tunnel connection. It also listens to control messages from the client.
 type Server struct {
 	// pending contains the channel that is associated with each new tunnel request
 	pending   map[string]chan net.Conn
@@ -56,18 +61,18 @@ type ServerConfig struct {
 	YamuxConfig *yamux.Config
 }
 
-func NewServer(cfg *ServerConfig) *Server {
+// NewServer creates a new Server. The defaults are used if config is nil.
+func NewServer(cfg *ServerConfig) (*Server, error) {
 	yamuxConfig := yamux.DefaultConfig()
 	if cfg.YamuxConfig != nil {
 		if err := yamux.VerifyConfig(cfg.YamuxConfig); err != nil {
-			fmt.Fprintf(os.Stderr, err.Error())
-			os.Exit(1)
+			return nil, err
 		}
 
 		yamuxConfig = cfg.YamuxConfig
 	}
 
-	log := newLogger("streamtunnel-server", cfg.Debug)
+	log := newLogger("tunnel-server", cfg.Debug)
 	if cfg.Log != nil {
 		log = cfg.Log
 	}
@@ -82,8 +87,8 @@ func NewServer(cfg *ServerConfig) *Server {
 		log:          log,
 	}
 
-	http.Handle(ControlPath, s.checkConnect(s.ControlHandler))
-	return s
+	http.Handle(controlPath, s.checkConnect(s.controlHandler))
+	return s, nil
 }
 
 // ServeHTTP is a tunnel that creates an http/websocket tunnel between a
@@ -92,18 +97,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// if the user didn't add the control and tunnel handler manually, we'll
 	// going to infer and call the respective path handlers.
 	switch path.Clean(r.URL.Path) + "/" {
-	case ControlPath:
-		s.checkConnect(s.ControlHandler).ServeHTTP(w, r)
+	case controlPath:
+		s.checkConnect(s.controlHandler).ServeHTTP(w, r)
 		return
 	}
 
-	if err := s.HandleHTTP(w, r); err != nil {
+	if err := s.handleHTTP(w, r); err != nil {
 		http.Error(w, err.Error(), 502)
 		return
 	}
 }
 
-func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
+// handleHTTP handles a single HTTP request
+func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 	s.log.Debug("HandleHTTP request:")
 	s.log.Debug("%v", r)
 
@@ -113,7 +119,7 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// get the identifier associated with this host
-	identifier, ok := s.GetIdentifier(host)
+	identifier, ok := s.getIdentifier(host)
 	if !ok {
 		return fmt.Errorf("no virtual host available for %s", host)
 	}
@@ -133,9 +139,9 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	// localhost:8080, so send the port to the client so it knows how to proxy
 	// correctly. If no port is available, it's up to client how to intepret it
 	_, port, _ := net.SplitHostPort(r.Host)
-	msg := ControlMsg{
-		Action:    RequestClientSession,
-		Protocol:  HTTPTransport,
+	msg := controlMsg{
+		Action:    requestClientSession,
+		Protocol:  httpTransport,
 		LocalPort: port,
 	}
 
@@ -193,11 +199,11 @@ func (s *Server) HandleHTTP(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// ControlHandler is used to capture incoming tunnel connect requests into raw
+// controlHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
-func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) (ctErr error) {
-	identifier := r.Header.Get(XKTunnelIdentifier)
-	_, ok := s.GetHost(identifier)
+func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr error) {
+	identifier := r.Header.Get(xKTunnelIdentifier)
+	_, ok := s.getHost(identifier)
 	if !ok {
 		return fmt.Errorf("no host associated for identifier %s. please use server.AddHost()", identifier)
 	}
@@ -220,7 +226,7 @@ func (s *Server) ControlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 		return fmt.Errorf("hijack not possible %s", err)
 	}
 
-	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
+	io.WriteString(conn, "HTTP/1.1 "+connected+"\n\n")
 
 	conn.SetDeadline(time.Time{})
 
@@ -331,20 +337,23 @@ func (s *Server) callOnDisconect(identifier string) error {
 	return fn()
 }
 
+// AddHost adds the given virtual host and maps it to the identifier.
 func (s *Server) AddHost(host, identifier string) {
 	s.virtualHosts.AddHost(host, identifier)
 }
 
+// DeleteHost deletes the given virtual host. Once removed any request to this
+// host is denied.
 func (s *Server) DeleteHost(host string) {
 	s.virtualHosts.DeleteHost(host)
 }
 
-func (s *Server) GetIdentifier(host string) (string, bool) {
+func (s *Server) getIdentifier(host string) (string, bool) {
 	identifier, ok := s.virtualHosts.GetIdentifier(host)
 	return identifier, ok
 }
 
-func (s *Server) GetHost(identifier string) (string, bool) {
+func (s *Server) getHost(identifier string) (string, bool) {
 	host, ok := s.virtualHosts.GetHost(identifier)
 	return host, ok
 }
