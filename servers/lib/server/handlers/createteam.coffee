@@ -25,9 +25,10 @@ module.exports = (req, res, next) ->
     alreadyMember
   } = body
 
-  redirect ?= '/'
-  context   = { group: slug }
-  clientId  = getClientId req, res
+  redirect     ?= '/'
+  context       = { group: slug }
+  clientId      = getClientId req, res
+  alreadyMember = alreadyMember is 'true'
 
   return handleClientIdNotFound res, req  unless clientId
 
