@@ -575,6 +575,8 @@ module.exports = CollaborationController =
 
     if @mountedMachine.isMine()
       @showShareButton()
+    else if @mountedMachine.isPermanent()
+      @attendWorkspaceChannel()
 
     kd.utils.defer => @stateMachine.transition 'Loading'
 
@@ -1069,9 +1071,12 @@ module.exports = CollaborationController =
 
       return  unless update.channel.id is channelId
 
-      socialHelpers.acceptChannel update.channel, (err) =>
-        return throwError err  if err
-        @stateMachine.transition 'Loading'
+      if update.isParticipant
+      then @stateMachine.transition 'Loading'
+      else
+        socialHelpers.acceptChannel update.channel, (err) =>
+          return throwError err  if err
+          @stateMachine.transition 'Loading'
 
 
   updateWorkspaceSnapshotModel: ->
