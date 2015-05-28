@@ -66,5 +66,6 @@ func main() {
 }
 
 func writeError(err error, w http.ResponseWriter) {
+	w.WriteHeader(500)
 	w.Write([]byte(err.Error()))
 }

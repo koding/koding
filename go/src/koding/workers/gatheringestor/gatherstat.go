@@ -7,6 +7,8 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 
+	"labix.org/v2/mgo/bson"
+
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 )
@@ -17,13 +19,13 @@ type GatherStat struct {
 }
 
 func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var req models.GatherStat
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var req = &models.GatherStat{Id: bson.NewObjectId()}
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		writeError(err, w)
 		return
 	}
 
-	if err := modelhelper.SaveGatherStat(&req); err != nil {
+	if err := modelhelper.SaveGatherStat(req); err != nil {
 		writeError(err, w)
 		return
 	}
