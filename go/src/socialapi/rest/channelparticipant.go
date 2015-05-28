@@ -85,6 +85,27 @@ func UnblockChannelParticipant(channelId, requesterId int64, accountIds ...int64
 	)
 }
 
+func InviteChannelParticipant(channelId, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
+	url := fmt.Sprintf("/channel/%d/participants/add?accountId=%d", channelId, requesterId)
+
+	res := make([]*models.ChannelParticipant, 0)
+	for _, accountId := range accountIds {
+		c := models.NewChannelParticipant()
+		c.AccountId = accountId
+		c.StatusConstant = models.ChannelParticipant_STATUS_REQUEST_PENDING
+		res = append(res, c)
+	}
+
+	cps, err := sendModel("POST", url, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	a := *(cps.(*[]*models.ChannelParticipant))
+
+	return a[0], nil
+}
+
 func channelParticipantOp(url string, channelId, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
 
 	res := make([]*models.ChannelParticipant, 0)

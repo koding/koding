@@ -77,6 +77,10 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		}
 
 		participant.AccountId = participants[i].AccountId
+		//We can add users with requestpending status
+		if participants[i].StatusConstant != "" {
+			participant.StatusConstant = participants[i].StatusConstant
+		}
 
 		if err := participant.Create(); err != nil {
 			return response.NewBadRequest(err)

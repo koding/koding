@@ -166,6 +166,17 @@ func TestChannelParticipantOperations(t *testing.T) {
 					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, thirdAccount.Id)
 					So(err, ShouldNotBeNil)
 				})
+
+			})
+			Convey("First user should be able to invite second user", func() {
+				_, err = rest.InviteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+				So(err, ShouldBeNil)
+				participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+				So(err, ShouldBeNil)
+				So(participants, ShouldNotBeNil)
+				// it is four because first user is "devrim" here
+				So(len(participants), ShouldEqual, 2)
+
 			})
 
 			// TODO Until we find a better way for handling async stuff, this test is skipped. Instead of sleep, we should use some
