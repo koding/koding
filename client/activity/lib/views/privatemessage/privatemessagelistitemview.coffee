@@ -34,23 +34,34 @@ module.exports = class PrivateMessageListItemView extends ActivityListItemView
       type        : 'privatemessage'
 
 
-  prepareDefaultBody: (type) -> "has #{type} the chat"
+  prepareDefaultBody: (type, addedBy) ->
+    body = "has #{type} the chat"
+
+    # append who added the user
+    body = "#{body} from an invitation by @#{addedBy}" if addedBy
+
+    return body
 
 
   prepareActivityMessage: ->
 
     {typeConstant, payload} = @getData()
-    {addedBy, initialParticipants} = payload if payload
+    {addedBy, initialParticipants, activityType} = payload if payload
+    typeConstant = activityType  if typeConstant is 'activity'
 
     # get default join/leave message body
     switch typeConstant
       when 'join'
-        body = @prepareDefaultBody 'joined'  unless initialParticipants
+        body = @prepareDefaultBody 'joined', addedBy  unless initialParticipants
       when 'leave'
-        body = @prepareDefaultBody 'left'
+        body = @prepareDefaultBody 'left', addedBy
+      when 'invite'
+        body = "invited to the session"
+      when 'reject'
+        body = "has rejected the invitation"
+      else
+        body = @getData().body
 
-    # append who added the user
-    body = "#{body} from an invitation by @#{addedBy}" if addedBy
 
     # when it contains initial participants it contains all the accounts
     # initially added to the conversation
@@ -69,11 +80,11 @@ module.exports = class PrivateMessageListItemView extends ActivityListItemView
 
     {repliesCount, payload, typeConstant} = @getData()
 
-    if typeConstant in ['join', 'leave']
+    if typeConstant in ['join', 'leave', 'activity']
       @getData().body = @prepareActivityMessage()
       @setClass 'join-leave'
 
-    if payload?['system-message']
+    if payload?['system-message'] or payload?['activityType']
       @setClass 'join-leave'
 
     @showParentPost()  if repliesCount < 3

@@ -122,7 +122,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     { channel, channelMessage, unreadCount } = update
 
     if isChannelCollaborative(channel) and channelMessage.payload
-      if channelMessage.payload['system-message'] in ['start', 'stop']
+      { activityType } = channelMessage.payload
+      activityType or= channelMessage.payload['system-message']
+
+      if activityType in ['start', 'stop']
         @fetchEnvironmentData =>
           @setWorkspaceUnreadCount channel, unreadCount
 
