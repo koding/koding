@@ -205,7 +205,7 @@ acceptInvite = (data, callback)->
   unless data.channelId or data.accountId
     return callback { message: "Request is not valid" }
 
-  url = "/channel/#{data.channelId}/invitation/accept"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/invitation/accept"
 
   post url, data, callback
 
@@ -214,7 +214,7 @@ rejectInvite = (data, callback)->
   unless data.channelId or data.accountId
     return callback { message: "Request is not valid" }
 
-  url = "/channel/#{data.channelId}/invitation/reject"
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/invitation/reject"
 
   post url, data, callback
 
