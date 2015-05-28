@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
+	"os"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -48,10 +49,16 @@ func main() {
 		SecretKey: t.SecretKey,
 	}
 
-	t.Dns = dnsclient.NewRoute53Client(t.HostedZone, auth)
-	t.Server = tunnel.NewServer(&tunnel.ServerConfig{
+	var err error
+	t.Server, err = tunnel.NewServer(&tunnel.ServerConfig{
 		Debug: t.Debug,
 	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+
+	t.Dns = dnsclient.NewRoute53Client(t.HostedZone, auth)
 	t.Log = common.NewLogger("tunnelkite", t.Debug)
 
 	k := kite.New("tunnelserver", "0.0.1")

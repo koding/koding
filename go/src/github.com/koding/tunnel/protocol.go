@@ -1,32 +1,33 @@
 package tunnel
 
-var Connected = "200 Connected to Tunnel"
-
 const (
+	connected = "200 Connected to Tunnel"
+
 	// control messages
 	ctHandshakeRequest  = "controlHandshake"
 	ctHandshakeResponse = "controlOk"
 
-	ControlPath = "/_controlPath/"
+	// http.Handler path for control connection
+	controlPath = "/_controlPath/"
 
 	// Custom Tunnel specific header
-	XKTunnelIdentifier = "X-KTunnel-Identifier"
+	xKTunnelIdentifier = "X-KTunnel-Identifier"
 )
 
-type Action int
+type action int
 
 const (
-	RequestClientSession Action = iota + 1
+	requestClientSession action = iota + 1
 )
 
-type TransportProtocol int
+type transportProtocol int
 
 const (
-	HTTPTransport TransportProtocol = iota + 1
+	httpTransport transportProtocol = iota + 1
 )
 
-type ControlMsg struct {
-	Action    Action            `json:"action"`
-	Protocol  TransportProtocol `json:"transportProtocol"`
+type controlMsg struct {
+	Action    action            `json:"action"`
+	Protocol  transportProtocol `json:"transportProtocol"`
 	LocalPort string            `json:"localPort"`
 }
