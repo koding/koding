@@ -9,6 +9,15 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+const (
+	PrivateMessageActivity_TYPE_INVITE       = "invite"
+	PrivateMessageActivity_TYPE_JOIN         = "join"
+	PrivateMessageActivity_TYPE_LEAVE        = "leave"
+	PrivateMessageActivity_TYPE_REJECT       = "reject"
+	PrivateMessageActivity_TYPE_INITIATE_IDE = "initiate"
+	PrivateMessageActivity_TYPE_START_COLL   = "start"
+)
+
 type PrivateChannelRequest struct {
 	Body            string      `json:"body"`
 	Payload         gorm.Hstore `json:"payload,omitempty"`
@@ -22,53 +31,26 @@ type PrivateChannelRequest struct {
 	TypeConstant    string `json:"type"`
 }
 
-type ChatActivity interface {
-	GetType() string
-	GetBody(*PrivateChannelRequest) string
-}
+func (p *PrivateChannelRequest) SetActivityTypeByParticipant(participant *ChannelParticipant) {
+	if p.Payload == nil {
+		p.Payload = gorm.Hstore{}
+	}
 
-type ChatMessage struct{}
+	var activityType string
+	switch participant.StatusConstant {
+	case ChannelParticipant_STATUS_ACTIVE:
+		activityType = PrivateMessageActivity_TYPE_JOIN
+	case ChannelParticipant_STATUS_REQUEST_PENDING:
+		activityType = PrivateMessageActivity_TYPE_INVITE
+	case ChannelParticipant_STATUS_LEFT:
+		activityType = PrivateMessageActivity_TYPE_LEAVE
+	case ChannelParticipant_STATUS_BLOCKED:
+		activityType = PrivateMessageActivity_TYPE_REJECT
+	}
 
-type ChatJoin struct {
-	AddedBy int64
-}
-
-type ChatLeave struct{}
-
-type ChatInit struct {
-	InitialParticipants []int64
-}
-
-func (cm ChatMessage) GetType() string {
-	return ChannelMessage_TYPE_PRIVATE_MESSAGE
-}
-
-func (cm ChatMessage) GetBody(p *PrivateChannelRequest) string {
-	return p.Body
-}
-
-func (cm ChatJoin) GetType() string {
-	return ChannelMessage_TYPE_JOIN
-}
-
-func (cm ChatJoin) GetBody(p *PrivateChannelRequest) string {
-	return "join"
-}
-
-func (cm ChatLeave) GetType() string {
-	return ChannelMessage_TYPE_LEAVE
-}
-
-func (cm ChatLeave) GetBody(p *PrivateChannelRequest) string {
-	return "leave"
-}
-
-func (cm ChatInit) GetType() string {
-	return ChannelMessage_TYPE_JOIN
-}
-
-func (cm ChatInit) GetBody(p *PrivateChannelRequest) string {
-	return "join"
+	if activityType != "" {
+		p.Payload["activityType"] = &activityType
+	}
 }
 
 func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
@@ -110,10 +92,12 @@ func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 		}
 	}
 
+	np := &PrivateChannelRequest{}
+	*np = *p
 	p.AddInitActivity(c, participantIds)
 
 	// create private message
-	cmc, err := p.AddMessage(c)
+	cmc, err := np.AddMessage(c)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +169,7 @@ func (p *PrivateChannelRequest) Clone() *PrivateChannelRequest {
 }
 
 func (p *PrivateChannelRequest) AddMessage(c *Channel) (*ChannelContainer, error) {
-	cm, err := p.createActivity(c, ChatMessage{})
+	cm, err := p.createActivity(c, ChannelMessage_TYPE_PRIVATE_MESSAGE)
 	if err != nil {
 		return nil, err
 	}
@@ -194,37 +178,44 @@ func (p *PrivateChannelRequest) AddMessage(c *Channel) (*ChannelContainer, error
 }
 
 func (p *PrivateChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error {
-	cj := ChatJoin{}
-	if p.AccountId != addedBy {
-		cj.AddedBy = addedBy
+	if p.AccountId != addedBy && addedBy != 0 {
+		addedByStr := strconv.FormatInt(addedBy, 10)
+		p.Payload["addedBy"] = &addedByStr
 	}
 
-	_, err := p.createActivity(c, cj)
+	_, err := p.createActivity(c, ChannelMessage_TYPE_ACTIVITY)
 
 	return err
 }
 
 func (p *PrivateChannelRequest) AddLeaveActivity(c *Channel) error {
-	_, err := p.createActivity(c, ChatLeave{})
+	_, err := p.createActivity(c, ChannelMessage_TYPE_ACTIVITY)
 
 	return err
 }
 
 func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int64) error {
-	ci := ChatInit{}
 	if len(participantIds) == 0 {
 		return nil
 	}
+	if p.Payload == nil {
+		p.Payload = gorm.Hstore{}
+	}
 
-	ci.InitialParticipants = participantIds
+	if len(participantIds) > 0 {
+		payload := formatParticipantIds(participantIds)
+		p.Payload["initialParticipants"] = &payload
+		activity := PrivateMessageActivity_TYPE_JOIN
+		p.Payload["activityType"] = &activity
+	}
 
-	_, err := p.createActivity(c, ci)
+	_, err := p.createActivity(c, ChannelMessage_TYPE_ACTIVITY)
 
 	return err
 }
 
-func (p *PrivateChannelRequest) createActivity(c *Channel, ca ChatActivity) (*ChannelMessage, error) {
-	cm, err := p.createMessage(c.Id, ca)
+func (p *PrivateChannelRequest) createActivity(c *Channel, typeConstant string) (*ChannelMessage, error) {
+	cm, err := p.createMessage(c.Id, typeConstant)
 	if err != nil {
 		return nil, err
 	}
@@ -232,8 +223,11 @@ func (p *PrivateChannelRequest) createActivity(c *Channel, ca ChatActivity) (*Ch
 	// add message to the channel
 	cm.ClientRequestId = p.ClientRequestId
 	_, err = c.AddMessage(cm)
+	if err != nil {
+		return nil, err
+	}
 
-	return cm, err
+	return cm, nil
 }
 
 func (p *PrivateChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*ChannelContainer, error) {
@@ -321,31 +315,24 @@ func prependCreatorId(participants []int64, authorId int64) []int64 {
 	return participantIds
 }
 
-func (p *PrivateChannelRequest) createMessage(channelId int64, ca ChatActivity) (*ChannelMessage, error) {
+func getBody(p *PrivateChannelRequest, typeConstant string) string {
+	switch typeConstant {
+	case ChannelMessage_TYPE_PRIVATE_MESSAGE:
+		return p.Body
+	case ChannelMessage_TYPE_ACTIVITY:
+		return "activity"
+	}
+
+	return ""
+}
+
+func (p *PrivateChannelRequest) createMessage(channelId int64, typeConstant string) (*ChannelMessage, error) {
 	cm := NewChannelMessage()
-	cm.Body = ca.GetBody(p)
-	cm.TypeConstant = ca.GetType()
+	cm.Body = getBody(p, typeConstant)
+	cm.TypeConstant = typeConstant
 	cm.AccountId = p.AccountId
 	cm.InitialChannelId = channelId
 	cm.Payload = p.Payload
-
-	switch ca.(type) {
-	case ChatJoin:
-		if ca.(ChatJoin).AddedBy != 0 {
-			cm.Payload = gorm.Hstore{}
-			addedBy := strconv.FormatInt(ca.(ChatJoin).AddedBy, 10)
-
-			cm.Payload["addedBy"] = &addedBy
-		}
-	case ChatInit:
-		initialParticipants := ca.(ChatInit).InitialParticipants
-		if len(initialParticipants) > 0 {
-			cm.Payload = gorm.Hstore{}
-
-			payload := formatParticipantIds(initialParticipants)
-			cm.Payload["initialParticipants"] = &payload
-		}
-	}
 
 	if err := cm.Create(); err != nil {
 		return nil, err

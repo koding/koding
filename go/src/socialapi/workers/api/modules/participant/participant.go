@@ -88,7 +88,7 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 
 		participants[i] = participant
 
-		if err := addJoinActivity(query.Id, participant.AccountId, query.AccountId); err != nil {
+		if err := addJoinActivity(query.Id, participant, query.AccountId); err != nil {
 			return response.NewBadRequest(err)
 		}
 
@@ -152,7 +152,7 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 			return response.NewBadRequest(err)
 		}
 
-		if err := addLeaveActivity(query.Id, participants[i].AccountId); err != nil {
+		if err := addLeaveActivity(query.Id, participants[i]); err != nil {
 			return response.NewBadRequest(err)
 		}
 	}
@@ -313,7 +313,7 @@ func AcceptInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 		return response.NewBadRequest(err)
 	}
 
-	if err := addJoinActivity(query.Id, cp, query.AccountId); err != nil {
+	if err := addJoinActivity(query.Id, cp, 0); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -336,6 +336,8 @@ func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 		return response.NewBadRequest(err)
 	}
 
+	// nasty hack
+	cp.StatusConstant = models.ChannelParticipant_STATUS_BLOCKED
 	if err := addLeaveActivity(query.Id, cp); err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -447,7 +449,7 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	return nil
 }
 
-func addJoinActivity(channelId, participantId, addedBy int64) error {
+func addJoinActivity(channelId int64, participant *models.ChannelParticipant, addedBy int64) error {
 
 	c, err := fetchChannelWithValidation(channelId)
 	if err != nil {
@@ -458,12 +460,16 @@ func addJoinActivity(channelId, participantId, addedBy int64) error {
 		return err
 	}
 
-	pmr := &models.PrivateChannelRequest{AccountId: participantId}
+	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
+	pmr.SetActivityTypeByParticipant(participant)
+	if participant.StatusConstant == models.ChannelParticipant_STATUS_REQUEST_PENDING {
+		addedBy = 0
+	}
 
 	return pmr.AddJoinActivity(c, addedBy)
 }
 
-func addLeaveActivity(channelId, participantId int64) error {
+func addLeaveActivity(channelId int64, participant *models.ChannelParticipant) error {
 	c, err := fetchChannelWithValidation(channelId)
 	if err != nil {
 		if err == ErrSkipActivity {
@@ -473,7 +479,8 @@ func addLeaveActivity(channelId, participantId int64) error {
 		return err
 	}
 
-	pmr := &models.PrivateChannelRequest{AccountId: participantId}
+	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
+	pmr.SetActivityTypeByParticipant(participant)
 
 	return pmr.AddLeaveActivity(c)
 }
