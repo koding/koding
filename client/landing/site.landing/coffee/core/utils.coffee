@@ -457,7 +457,7 @@ utils.extend utils,
     return formData
 
 
-  createTeam: ->
+  createTeam: (callbacks = {}) ->
 
     formData = createFormData()
 
@@ -470,10 +470,10 @@ utils.extend utils,
       url       : "/-/teams/create"
       data      : formData
       type      : 'POST'
-      success   : ->
+      success   : callbacks.success or ->
         KD.utils.clearTeamData()
         location.href = formData.redirect
-      error     : ({responseText}) ->
+      error     : callbacks.error  or ({responseText}) ->
         new KDNotificationView title : responseText
 
 
@@ -512,7 +512,7 @@ utils.extend utils,
       error       : callbacks.error
 
 
-  joinTeam: ->
+  joinTeam: (callbacks = {}) ->
 
     formData = createFormData()
 
@@ -525,6 +525,6 @@ utils.extend utils,
       url       : "/-/teams/join"
       data      : formData
       type      : 'POST'
-      success   : -> location.href = formData.redirect
-      error     : ({responseText}) ->
+      success   : callbacks.success or -> location.href = formData.redirect
+      error     : callbacks.error   or ({responseText}) ->
         new KDNotificationView title : responseText
