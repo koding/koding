@@ -43,21 +43,9 @@ type UserInfo struct {
 	Cookies []*http.Cookie
 }
 
-func getGroup(r *http.Request) (*models.Group, error) {
-	c, err := r.Cookie("groupName")
-	if err != nil && err != http.ErrNoCookie {
-		return nil, err
-	}
-
-	// initial group name
-	groupName := ""
-
-	// try to get cookie value,
+func getGroup(groupName string) (*models.Group, error) {
 	// TODO ~ when we fully implement the feature, be more cautious here
-	if c != nil && c.Value != "" {
-		groupName = c.Value
-	} else {
-		Log.Debug("couldnt find groupname, setting koding as group for now")
+	if groupName == "" {
 		groupName = "koding"
 	}
 
@@ -74,12 +62,6 @@ func getGroup(r *http.Request) (*models.Group, error) {
 // fetches `clientId` cookie and if it exists, it fetches JSession and other
 // info.
 func prepareUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
-	group, err := getGroup(r)
-	if err != nil {
-		Log.Error("err while getting group %s", err.Error())
-		return nil, err
-	}
-
 	cookie, err := getCookie(w, r)
 	if err != nil {
 		return nil, err
@@ -103,6 +85,12 @@ func prepareUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) 
 
 	user, err := modelhelper.GetUser(username)
 	if err != nil {
+		return nil, err
+	}
+
+	group, err := getGroup(session.GroupName)
+	if err != nil {
+		Log.Error("err while getting group %s", err.Error())
 		return nil, err
 	}
 
