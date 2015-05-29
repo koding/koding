@@ -1,8 +1,8 @@
-CustomLinkView = require './../core/customlinkview'
-MainHeaderView = require './../core/mainheaderview'
-JView          = require './../core/jview'
-FooterView     = require './../home/footerview'
-TeamTeamsModal = require './teamsignupform'
+CustomLinkView  = require './../core/customlinkview'
+MainHeaderView  = require './../core/mainheaderview'
+JView           = require './../core/jview'
+FooterView      = require './../home/footerview'
+TeamsSignupForm = require './teamsignupform'
 
 
 module.exports = class TeamsView extends JView
@@ -20,7 +20,7 @@ module.exports = class TeamsView extends JView
         { title : 'SIGN IN',         href : '/Team/Login',              name : 'buttonized white login',  attributes : testpath : 'login-link' }
       ]
 
-    @form = new TeamTeamsModal
+    @form = new TeamsSignupForm
       cssClass : 'TeamsModal--middle login-form'
       callback : (formData) ->
         go = ->
