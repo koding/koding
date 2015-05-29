@@ -752,15 +752,15 @@ module.exports = class JUser extends jraphical.Module
     options = { email: email, groupName: slug }
     options.invitationToken = invitation.code if invitation?.code
 
-    JUser.verifyEnrollmentEligibility options, (err, res) =>
+    JUser.verifyEnrollmentEligibility options, (err, res) ->
       return callback err  if err
       return callback createKodingError 'malformed response' if not res
       return callback createKodingError 'can not join to group' if not res.isEligible
 
       # fetch group that we are gonna add account in
       JGroup.one { slug }, (err, group) ->
-        return callback err  if err
-        return callback null if not group
+        return callback err   if err
+        return callback null  if not group
 
         group.approveMember account, (err) ->
           return callback err  if err
@@ -768,7 +768,7 @@ module.exports = class JUser extends jraphical.Module
           # do not forget to redeem invitation
           return invitation.accept account, callback  if invitation
 
-          JInvitation.one { email, groupName:slug }, (err, invitation) ->
+          JInvitation.one { email, groupName : slug }, (err, invitation) ->
             # if we got error or invitation doesnt exist, just return
             return callback null if err or not invitation
             return invitation.accept account, callback
