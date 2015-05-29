@@ -102,11 +102,6 @@ module.exports = class ActivitySideView extends JView
       bot =  kd.singletons.socialapi.getPrefetchedData "bot"
       items.unshift bot  if bot
 
-    # delete this line if `getPrefetchedeData 'bot'` returns an array.
-    # this is justn an assumption that the result will be a single social
-    # channel instance rather than an array. ~Umut
-    items = [items]  unless Array.isArray items
-
     if items?.length
     then @renderItems null, items
     else @reload()
