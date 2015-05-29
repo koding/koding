@@ -3,6 +3,7 @@ MainHeaderView  = require './../core/mainheaderview'
 JView           = require './../core/jview'
 FooterView      = require './../home/footerview'
 TeamsSignupForm = require './teamssignupform'
+TeamsLaunchForm = require './teamslaunchform'
 
 
 module.exports = class TeamsView extends JView
@@ -20,17 +21,22 @@ module.exports = class TeamsView extends JView
         { title : 'SIGN IN',         href : '/Team/Login',              name : 'buttonized white login',  attributes : testpath : 'login-link' }
       ]
 
-    @form = new TeamsSignupForm
-      cssClass : 'TeamsModal--middle login-form'
-      callback : (formData) ->
-        go = ->
-          KD.utils.storeNewTeamData 'signup', formData
-          KD.singletons.router.handleRoute '/Team/domain'
+    if KD.config.hasTeamAccess
+      @form = new TeamsSignupForm
+        cssClass : 'TeamsModal--middle login-form'
+        callback : (formData) ->
+          go = ->
+            KD.utils.storeNewTeamData 'signup', formData
+            KD.singletons.router.handleRoute '/Team/domain'
 
-        { email } = formData
-        KD.utils.validateEmail { email },
-          success : -> formData.alreadyMember = no; go()
-          error   : -> formData.alreadyMember = yes; go()
+          { email } = formData
+          KD.utils.validateEmail { email },
+            success : -> formData.alreadyMember = no; go()
+            error   : -> formData.alreadyMember = yes; go()
+    else
+      @form = new TeamTeamsModal
+        cssClass : 'TeamsModal--middle login-form'
+        callback : (formData) ->
 
 
     @footer = new FooterView
