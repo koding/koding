@@ -468,6 +468,10 @@ func (c *ChannelParticipant) checkAccountStatus(accountId int64) (bool, error) {
 		return false, ErrChannelIdIsNotSet
 	}
 
+	if c.StatusConstant == "" {
+		c.StatusConstant = ChannelParticipant_STATUS_ACTIVE
+	}
+
 	selector := map[string]interface{}{
 		"channel_id":      c.ChannelId,
 		"account_id":      accountId,

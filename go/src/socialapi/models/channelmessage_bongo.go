@@ -142,11 +142,7 @@ func (c *ChannelMessage) validateSystemMessage() error {
 		return nil
 	}
 
-	if c.Payload == nil {
-		return ErrSystemTypeIsNotSet
-	}
-
-	if _, ok := c.Payload["systemType"]; !ok {
+	if val := c.GetPayload("systemType"); val == nil {
 		return ErrSystemTypeIsNotSet
 	}
 
