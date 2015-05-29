@@ -89,7 +89,7 @@ module.exports = class KodingRouter extends kd.Router
     currentGroup       = groupsController.getCurrentGroup()
 
     # For koding default route still is /IDE always, for others if there is
-    # stack template defined for the active group, it goes again to /IDE but if 
+    # stack template defined for the active group, it goes again to /IDE but if
     # there is no stack template defined for the current group it goes /Activity
     # directly.
     #
@@ -100,9 +100,9 @@ module.exports = class KodingRouter extends kd.Router
       if not currentGroup or currentGroup.slug is 'koding'
         return '/IDE'
 
-      if not currentGroup?.stackTemplates?.length > 0
-      then return '/Activity'
-      else return '/IDE'
+      if groupsController.currentGroupHasStack()
+      then return '/IDE'
+      else return '/Activity'
 
     else
       return '/Home'
