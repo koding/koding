@@ -152,8 +152,6 @@ module.exports = class SocialMessage extends Base
     validate      : ['id']
 
   initPrivateMessageHelper = (client, data, callback)->
-    unless data.body
-      return callback message: "Message body should be set"
 
     if not data.recipients or data.recipients.length < 1
       return callback message: "You should have at least one recipient"

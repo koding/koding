@@ -80,19 +80,6 @@ func TestCollaborationChannels(t *testing.T) {
 
 		})
 
-		Convey("if body is nil, should fail to create PM", func() {
-			pmr := models.PrivateChannelRequest{}
-			pmr.AccountId = account.Id
-			pmr.Body = ""
-			pmr.GroupName = groupName
-			pmr.Recipients = []string{}
-			pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
-
-			cmc, err := rest.SendPrivateChannelRequest(pmr)
-			So(err, ShouldNotBeNil)
-			So(cmc, ShouldBeNil)
-		})
-
 		Convey("if group name is nil, should not fail to create collaboration channel", func() {
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id

@@ -79,19 +79,35 @@ func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 		}
 	}
 
+	return p.buildInitContainer(c, participantIds)
+}
+
+func (p *PrivateChannelRequest) buildInitContainer(c *Channel, participantIds []int64) (*ChannelContainer, error) {
+
 	np := &PrivateChannelRequest{}
 	*np = *p
-	p.AddInitActivity(c, participantIds)
+	lastMessage, err := p.AddInitActivity(c, participantIds)
+	if err != nil {
+		return nil, err
+	}
 
-	// create private message
-	cmc, err := np.AddMessage(c)
+	if np.Body != "" {
+		var err error
+		// create private message
+		lastMessage, err = np.AddMessage(c)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cmc, err := p.buildContainer(c, lastMessage)
 	if err != nil {
 		return nil, err
 	}
 
 	participantOldIds, err := FetchAccountOldsIdByIdsFromCache(participantIds)
 	if err != nil {
-		// we can ignore the error, wont cause trouble for the user
+		return nil, err
 	}
 
 	// set participant count
@@ -145,7 +161,12 @@ func (p *PrivateChannelRequest) Send() (*ChannelContainer, error) {
 		return nil, err
 	}
 
-	return p.AddMessage(c)
+	cm, err := p.AddMessage(c)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.buildContainer(c, cm)
 }
 
 func (p *PrivateChannelRequest) Clone() *PrivateChannelRequest {
@@ -155,13 +176,8 @@ func (p *PrivateChannelRequest) Clone() *PrivateChannelRequest {
 	return clone
 }
 
-func (p *PrivateChannelRequest) AddMessage(c *Channel) (*ChannelContainer, error) {
-	cm, err := p.createActivity(c, ChannelMessage_TYPE_PRIVATE_MESSAGE)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.buildContainer(c, cm)
+func (p *PrivateChannelRequest) AddMessage(c *Channel) (*ChannelMessage, error) {
+	return p.createActivity(c, ChannelMessage_TYPE_PRIVATE_MESSAGE)
 }
 
 func (p *PrivateChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error {
@@ -181,10 +197,11 @@ func (p *PrivateChannelRequest) AddLeaveActivity(c *Channel) error {
 	return err
 }
 
-func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int64) error {
+func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int64) (*ChannelMessage, error) {
 	if len(participantIds) == 0 {
-		return nil
+		return nil, nil
 	}
+
 	if p.Payload == nil {
 		p.Payload = gorm.Hstore{}
 	}
@@ -197,8 +214,11 @@ func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int
 	}
 
 	cm, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
+	if err != nil {
+		return nil, err
+	}
 
-	return err
+	return cm, nil
 }
 
 func (p *PrivateChannelRequest) createActivity(c *Channel, typeConstant string) (*ChannelMessage, error) {
@@ -307,7 +327,7 @@ func getBody(p *PrivateChannelRequest, typeConstant string) string {
 	case ChannelMessage_TYPE_PRIVATE_MESSAGE:
 		return p.Body
 	case ChannelMessage_TYPE_SYSTEM:
-		return "activity"
+		return "system"
 	}
 
 	return ""

@@ -100,16 +100,6 @@ func TestPrivateMesssages(t *testing.T) {
 			So(cmc, ShouldNotBeNil)
 
 		})
-		Convey("if body is nil, should fail to create PM", func() {
-			pmr := models.PrivateChannelRequest{}
-			pmr.AccountId = account.Id
-			pmr.Body = ""
-			pmr.GroupName = groupName
-			pmr.Recipients = []string{}
-			cmc, err := rest.SendPrivateChannelRequest(pmr)
-			So(err, ShouldNotBeNil)
-			So(cmc, ShouldBeNil)
-		})
 		Convey("if group name is nil, should not fail to create PM", func() {
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
