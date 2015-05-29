@@ -40,4 +40,4 @@ module.exports = (req, res) ->
       return templateFn err  if err
 
       params = { token, accountId : account._id }
-      post "/payments/paypal/return", params, (err)-> templateFn err, res
+      post "/api/social/payments/paypal/return", params, (err)-> templateFn err, res
