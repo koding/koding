@@ -23,6 +23,8 @@ module.exports = (req, res, next) ->
     newsletter
     # is group creator already a member
     alreadyMember
+    # username of the user, can be already registered or
+    username
   } = body
 
   redirect     ?= '/'
