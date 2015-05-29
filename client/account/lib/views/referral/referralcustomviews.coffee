@@ -1,4 +1,5 @@
 kd             = require 'kd'
+globals        = require 'globals'
 nick           = require 'app/util/nick'
 getReferralUrl = require 'app/util/getReferralUrl'
 CustomViews    = require 'app/commonviews/customviews'
@@ -74,6 +75,10 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       container = @views.container 'share-box'
 
+      kmt = globals.keymapType
+      firstKeyChar = if kmt.charAt(0).toUpperCase() is 'W' then 'ctrl' else '&#8984'
+      secondKeyChar = '&#x0043'
+
       @addTo container,
         text_title    : title
         text_subtitle : subtitle
@@ -84,17 +89,13 @@ module.exports = class ReferralCustomViews extends CustomViews
           partial     : getReferralUrl nick()
           cssClass    : "text link"
           tooltip     :
-            title     : "CTRL (⌘) + C to copy"
+            title     : "#{firstKeyChar.toUpperCase()} + #{secondKeyChar} to copy"
             placement : "above"
-            offset    : 0
-            delayIn   : 300
-            html      : yes
-            animate   : yes
-            selector  : null
-            partial   : "i"
           click       : ->
-            text = @getElement()
-            @utils.selectText text
+            referralUrl = @getElement()
+            @utils.selectText referralUrl
+            @tooltip.show()
+            
 
       return container
 
