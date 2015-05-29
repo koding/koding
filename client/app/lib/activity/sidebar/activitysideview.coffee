@@ -102,6 +102,9 @@ module.exports = class ActivitySideView extends JView
 
     if isFeatureEnabled('botchannel') and dataPath is 'privateMessages'
       botChannels = socialapi.getPrefetchedData 'bot'
+
+      botChannels = [botChannels]  unless Array.isArray botChannels
+
       items = botChannels.concat items
 
     if items.length

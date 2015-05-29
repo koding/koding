@@ -287,6 +287,33 @@ module.exports =
     return filename
 
 
+  createFileFromMachineHeader: (browser, user, fileName, shouldAssert = yes) ->
+
+    unless fileName
+      fileName    = @getFakeText().split(' ')[0] + '.txt'
+
+    filePath      = '/home/' + user.username
+    fileSelector  = "span[title='" + filePath + '/' + fileName + "']"
+    inputSelector = '.rename-container input.hitenterview'
+
+    browser
+      .waitForElementVisible     '.vm-header', 20000
+      .click                     '.vm-header span.chevron'
+      .waitForElementVisible     '.context-list-wrapper', 20000
+      .click                     '.context-list-wrapper li.new-file'
+      .waitForElementVisible     inputSelector, 20000
+      .click                     inputSelector
+      .clearValue                inputSelector
+      .pause  2000
+      .setValue                  inputSelector, fileName + '\n'
+
+    if shouldAssert
+      browser
+        .waitForElementPresent   fileSelector, 20000 # Assertion
+
+    return fileName
+
+
   createFolder: (browser, user) ->
 
     folderName     = @getFakeText().split(' ')[0]
