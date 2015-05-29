@@ -112,10 +112,8 @@ initChannel = (callback) ->
 
   options =
     type       : 'collaboration'
-    body       : "@#{nickname} initiated the IDE session."
     purpose    : "#{getCollaborativeChannelPrefix()}"
     recipients : [ nickname ]
-    payload    : {'system-message': 'initiate'}
 
   message.initPrivateMessage options, (err, channels) ->
     return callback err  if err

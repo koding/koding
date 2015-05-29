@@ -20,9 +20,12 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     options.cssClass = 'privatemessage'
 
     # this is backwards compatibility related. ~Umut
-    options.type = 'privatemessage'
+    options.type        = 'privatemessage'
+    options.channelType = 'collaboration'
 
     super options, data
+
+    options.initialParticipantStatus = 'requestpending'
 
     @isInSession = options.isInSession
     @videoActive = no
@@ -182,7 +185,11 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     channel = @getData()
 
-    isAlreadyUsed   = channel.lastMessage.payload?['system-message'] not in [ 'initiate', 'start' ]
+    if channel.lastMessage.payload?
+      { systemType } = channel.lastMessage.payload
+      systemType   or= channel.lastMessage.payload['system-message']
+    
+    isAlreadyUsed   = systemType not in [ 'initiate', 'start' ]
     hasParticipants = channel.participantCount > 1
 
     return  if hasParticipants or isAlreadyUsed
