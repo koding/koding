@@ -132,7 +132,7 @@ func getCollabChannels(userInfo *UserInfo) ([]string, error) {
 	path := "%v/privatechannel/list?accountId=%[2]s"
 	url := buildUrl(path, userInfo.SocialApiId, "type=collaboration", fmt.Sprintf("groupName=%s", userInfo.Group.Slug))
 
-	rawResponse, err := fetchSocialItem(url)
+	rawResponse, err := fetchSocialItem(url, userInfo)
 	if err != nil {
 		return nil, err
 	}

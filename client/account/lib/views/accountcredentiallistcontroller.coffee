@@ -75,7 +75,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     @getView().parent.prepend addButton = new KDButtonView
       cssClass  : 'add-big-btn'
-      title     : 'Add new credential'
+      title     : 'Add new credentials'
       icon      : yes
       callback  : =>
         @_addButtonMenu = new KDContextMenu

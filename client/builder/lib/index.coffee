@@ -8,6 +8,7 @@ JSONStream    = require 'JSONStream'
 through       = require 'through2'
 coffeeify     = require 'coffeeify'
 pistachioify  = require 'pistachioify'
+reactify      = require 'coffee-reactify'
 uglifyify     = require 'uglifyify'
 xtend         = require 'xtend'
 async         = require 'async'
@@ -230,7 +231,11 @@ class Haydar extends events.EventEmitter
         style      : "#{opts.baseurl}/#{manifest.name}.css"
       }
 
-    transforms = [ coffeeify, pistachioify ]
+    # we are only using this transform to output from cjsx to coffee
+    # the rest will be handled by coffeescript compiler itself.
+    _reactify = [ reactify, { coffeeout: yes } ]
+
+    transforms = [ _reactify, coffeeify, pistachioify ]
 
     if opts.minifyJs
       transforms.push [ uglifyify, {

@@ -1,14 +1,19 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+kd                   = require 'kd'
+KDView               = kd.View
+isKoding             = require 'app/util/isKoding'
+showError            = require 'app/util/showError'
+KDInputView          = kd.InputView
+KDLabelView          = kd.LabelView
+KDModalView          = kd.ModalView
+KDSelectBox          = kd.SelectBox
+KDButtonView         = kd.ButtonView
+PermissionSwitch     = require './permissionswitch'
+KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
-KDInputView = kd.InputView
-KDLabelView = kd.LabelView
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
-KDSelectBox = kd.SelectBox
-KDView = kd.View
-PermissionSwitch = require './permissionswitch'
-showError = require 'app/util/showError'
+limitedPermissions   =
+  JGroup             : [ 'send invitations', 'send private message', 'browse content by tag', 'edit tags' ]
+  ComputeProvider    : [ 'sudoer', 'create machines', 'update machines' ]
+  JStackTemplate     : [ 'create stack template', 'update stack template' ]
 
 
 module.exports = class PermissionsForm extends KDFormViewWithFields
@@ -17,6 +22,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
   # I decided that at least some of the concerns I have with this file are
   # dependent upon a cleaner intermediate data structure in the form api.
 
+
   constructor:(options,data)->
 
     @group           = data
@@ -24,25 +30,19 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
 
     @roles = (role.title for role in options.roles when role.title isnt 'owner')
     options.buttons or=
-      Save          :
-        style       : "solid medium green"
-        loader      : yes
-        callback    : =>
-          @buttons["Save"].hideLoader()
-          @group.updatePermissions @reducedList(), (err,res)=>
-            @buttons["Save"].hideLoader()
-            return showError err if err
-            new KDNotificationView title: "Group permissions have been updated."
-      Add           :
-        title       : "Add"
-        style       : "solid medium green"
-        callback    : @bound "showNewRoleModal"
+      Add             :
+        title         : 'Add'
+        style         : 'solid medium green'
+        callback      : @bound 'showNewRoleModal'
+        cssClass      : if isKoding() then '' else 'hidden'
 
-    options.fields or= optionizePermissions @roles, @permissionSet
+    options.fields or= optionizePermissions.call this, @roles, @permissionSet
     super options,data
     @setClass 'permissions-form col-'+@roles.length
 
-  showNewRoleModal:->
+
+  showNewRoleModal: ->
+
     roleSelectOptions = []
     @selectRoleModal  = new KDModalView title: "Select Role to Copy", overlay: yes
     roleSelectOptions.push {title: role, value: role} for role in @roles
@@ -81,7 +81,9 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
     @selectRoleModal.addSubView @roleSelectBox
     @selectRoleModal.addSubView confirmButton
 
-  readableText = (text)->
+
+  readableText = (text) ->
+
     dictionary =
       "JNewApp"        : "Apps"
       "JGroup"         : "Groups"
@@ -96,10 +98,14 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
 
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
-  _getCheckboxName =(module, permission, role)->
+
+  _getCheckboxName = (module, permission, role) ->
+
     ['permission', module].join('-')+'|'+[role, permission].join('|')
 
-  checkForPermission = (permissions,module,permission,role)->
+
+  checkForPermission = (permissions,module,permission,role) ->
+
     for perm in permissions
       if perm.module is module and perm.role is role
         for perm1 in perm.permissions
@@ -107,7 +113,8 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
             return yes
         return no
 
-  cascadeFormElements = (set,roles,module,permission,roleCount=0)->
+
+  cascadeFormElements = (set, roles, module, permission, roleCount = 0) ->
 
     [current,remainder...] = roles
     cascadeData = {}
@@ -123,70 +130,71 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       cssClass
       itemClass    : PermissionSwitch
       defaultValue : isChecked ? no
+      callback     : => @save()
     }
 
     if current in ['admin','owner']
       cascadeData[current].defaultValue = yes
       cascadeData[current].disabled = yes
     if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission, roleCount
+      cascadeData[current].nextElement = cascadeFormElements.call this, set, remainder, module, permission, roleCount
     return cascadeData
 
-  cascadeHeaderElements = (roles, roleCount)->
 
-    [current,remainder...] = roles
-    cascadeData = {}
-    cascadeData[current]=
-      itemClass     : KDView
-      partial       : readableText current
-      cssClass      : 'text header-item role-' + kd.utils.slugify(current)
-      attributes    :
-        title       : readableText current
+  optionizePermissions = (roles, set) ->
 
-    if current and remainder.length > 0
-      cascadeData[current].nextElement = cascadeHeaderElements remainder, roleCount
-    return cascadeData
-
-  optionizePermissions = (roles, set)->
-    permissionOptions =
-      head            :
-        itemClass     : KDView
-        cssClass      : 'permissions-header col'
-        nextElement   :
-          cascadeHeaderElements roles, roles.length
+    permissionOptions = {}
 
     # set.permissionsByModule is giving all the possible permissions
     # module is collection name (JComment, JProposedDomain etc..)
     # var permissions is permission under collection (module)
     # like "edit comments" for JComment
     for own module, permissions of set.permissionsByModule
-      permissionOptions['header '+module.toLowerCase()] =
+      headerTitle    = "header #{module.toLowerCase()}"
+      headerCssClass = 'permissions-module text'
+
+      if not isKoding() and not limitedPermissions[module]
+        headerCssClass += ' hidden'
+
+      permissionOptions[headerTitle] =
         itemClass       : KDView
         partial         : readableText module
-        cssClass        : 'permissions-module text'
+        cssClass        : headerCssClass
 
       for permission in permissions
-        permissionOptions[module+'-' + kd.utils.slugify(permission)] =
+        cssClass = 'text'
+
+        unless isKoding()
+          if limitedPermissions[module]
+            if limitedPermissions[module].indexOf(permission) is -1
+              cssClass += ' hidden'
+          else
+            cssClass += ' hidden'
+
+        permissionOptions[ module + '-' + kd.utils.slugify(permission) ] =
           itemClass     : KDView
           partial       : readableText permission
-          cssClass      : 'text'
+          cssClass      : cssClass
           attributes    :
             title       : readableText permission
           nextElement :
-            cascadeFormElements set, roles, module, permission, roles.length
-    permissionOptions
+            cascadeFormElements.call this, set, roles, module, permission, roles.length
 
-  createTree =(values)->
-    values.reduce (acc, {module, role, permission})->
+    return permissionOptions
+
+
+  createTree = (values) ->
+    values.reduce (acc, { module, role, permission }) ->
       acc[module] ?= {}
       acc[module][role] ?= []
       acc[module][role].push permission
       return acc
     , {}
 
-  createReducedList =(values)->
+
+  createReducedList = (values) ->
     cache = {}
-    values.reduce (acc, {module, role, permission})->
+    values.reduce (acc, { module, role, permission }) ->
       storageKey = "#{module}:#{role}"
       cached = cache[storageKey]
       if cached?
@@ -197,17 +205,21 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       return acc
     , []
 
-  getFormValues:->
-    @$().serializeArray()
-    .map ({name})->
+
+  getFormValues: ->
+
+    @$().serializeArray().map ({ name }) ->
       [facet, role, permission] = name.split '|'
       module = facet.split('-')[1]
       {module, role, permission}
 
-  ['list','reducedList','tree'].forEach (method)=>
-    @::[method] =-> @getPermissions method
 
-  getPermissions:(structure='reducedList')->
+  ['list','reducedList','tree'].forEach (method) =>
+    @::[method] = -> @getPermissions method
+
+
+  getPermissions: (structure = 'reducedList') ->
+
     values = @getFormValues()
     switch structure
       when 'reducedList'  then return createReducedList values
@@ -215,10 +227,17 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       when 'tree'         then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
-  getPermissionsOfRole: (role)->
+
+  getPermissionsOfRole: (role) ->
+
     allValues = @list()
     selectedRoleValues = []
     selectedRoleValues.push permission for permission in allValues when permission.role is role
     createReducedList selectedRoleValues
 
 
+  save: ->
+
+    @group.updatePermissions @reducedList(), (err,res) =>
+      return showError err if err
+      new KDNotificationView title: 'Group permissions have been updated.'

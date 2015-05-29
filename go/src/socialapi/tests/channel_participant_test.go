@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	"socialapi/rest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -193,6 +194,31 @@ func TestChannelParticipantOperations(t *testing.T) {
 				testMessage := models.NewChannelMessage()
 				err = bongo.B.Unscoped().Where("initial_channel_id = ?", channelContainer.Channel.Id).Find(testMessage).Error
 				So(err, ShouldEqual, bongo.RecordNotFound)
+			})
+			Convey("Users should not be able to add/remove users to/from bot channels", func() {
+
+				ownerAccount := models.NewAccount()
+				ownerAccount.OldId = AccountOldId.Hex()
+				ownerAccount, err = rest.CreateAccount(ownerAccount)
+				So(err, ShouldBeNil)
+				So(ownerAccount, ShouldNotBeNil)
+
+				participant := models.NewAccount()
+				participant.OldId = AccountOldId.Hex()
+				participant, err = rest.CreateAccount(participant)
+				So(err, ShouldBeNil)
+				So(participant, ShouldNotBeNil)
+				groupName := models.RandomGroupName()
+				ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+				So(err, ShouldBeNil)
+
+				ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_BOT, ses.ClientId)
+				So(err, ShouldBeNil)
+				So(ch, ShouldNotBeNil)
+
+				_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
+				So(strings.Contains(err.Error(), "can not add participants for bot channel"), ShouldBeTrue)
+
 			})
 		})
 	})

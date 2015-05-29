@@ -3,13 +3,13 @@ _  = require 'lodash'
 facade = require('./accounteditshortcutsfacade')
 EventType = require './accounteditshortcutseventtype'
 recorder = require 'record-shortcuts'
-{ presentBinding } = require 'app/shortcutscontroller'
+{ presentBinding } = require 'app/shortcutscontroller'
 
 module.exports =
 
 class AccountEditShortcutsRow extends kd.View
 
-  # Class name for columns.
+  # Class name for columns.
   COL_CLASS_NAME = 'col'
 
   # Class name to set for currently recording item.
@@ -21,13 +21,13 @@ class AccountEditShortcutsRow extends kd.View
   # Class name to set for duplicate/colliding items.
   DUP_CLASS_NAME = 'collides'
 
-  # Class name that we use to catch cancel click.
+  # Class name that we use to catch cancel click.
   CANCEL_CLASS_NAME = 'cancel'
 
   # The maximum description string length.
   DESCRIPTION_TRUNC_LEN = 30
 
-  # The separator pattern to truncate to.
+  # The separator pattern to truncate to.
   DESCRIPTION_TRUNC_SEP = ' '
 
   CLICK = 'click'
@@ -87,7 +87,7 @@ class AccountEditShortcutsRow extends kd.View
       unless silent
         @emit EventType.Item.TOGGLED, @_enabled
 
-    # Handles dom click events.
+    # Handles dom click events.
     #
     clickHandler = (e) =>
       if @_active
@@ -130,7 +130,7 @@ class AccountEditShortcutsRow extends kd.View
         binding.updatePartial presentBinding @_binding
 
     # Handles Facade.DUP, which is fired on every change made.
-    # 
+    #
     # Passed value determines if this row's binding is colliding with some other binding or not.
     #
     dupHandler = (dup) =>

@@ -1,4 +1,5 @@
 lazyrouter = require 'app/lazyrouter'
+isBotChannel = require 'activity/util/isBotChannel'
 
 handlers = require './routehandlers'
 

@@ -4,11 +4,13 @@ koding                     = require './../bongo'
 
 module.exports = (req, res) ->
 
-  { JUser }    = koding.models
-  { redirect } = req.body
-  redirect    ?= '/'
-  context      = { group: 'koding' }
-  clientId     = getClientId req, res
+  { JUser }              = koding.models
+  { redirect }           = req.body
+  redirect              ?= '/'
+  context                = { group: 'koding' }
+  clientId               = getClientId req, res
+  body                   = req.body
+  body.invitationToken   = body.token
 
   return handleClientIdNotFound res, req unless clientId
 
@@ -22,7 +24,7 @@ module.exports = (req, res) ->
 
     client.clientIP = (clientIPAddress.split ',')[0]
 
-    JUser.convert client, req.body, (err, result) ->
+    JUser.convert client, body, (err, result) ->
 
       if err?
 

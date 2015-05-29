@@ -3,7 +3,7 @@ package emailsender
 import (
 	"testing"
 
-	"github.com/koding/eventexporter/eventexportertest"
+	"github.com/koding/eventexporter"
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -44,7 +44,7 @@ func TestNew(t *testing.T) {
 				Properties: &Properties{Username: "mehmet"},
 			}
 
-			exporter := eventexportertest.NewFakeExporter()
+			exporter := eventexporter.NewFakeExporter()
 			c := New(exporter, r.Log)
 
 			err := c.Process(mail)

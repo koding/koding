@@ -36,6 +36,7 @@ module.exports = class SocialApiController extends KDController
       when 'followedChannels' then mapChannels
       when 'popularPosts', 'pinnedMessages', 'navigated' then mapActivities
       when 'privateMessages'                   then mapPrivateMessages
+      when 'bot' then mapBotChannel
 
     return fn(data) or []
 
@@ -244,6 +245,15 @@ module.exports = class SocialApiController extends KDController
 
     return  unless participant
     return {_id: participant.accountOldId, constructorName: "JAccount"}
+
+  mapBotChannel = (data) ->
+    data = data.data
+    revivedChannel = mapChannel data
+
+    revivedChannels = [revivedChannel]
+    registerAndOpenChannels revivedChannels
+
+    return revivedChannel
 
 
   mapChannels: mapChannels
@@ -493,6 +503,8 @@ module.exports = class SocialApiController extends KDController
         @channel.byId {id}, topicChannelKallback
       when 'post', 'message'
         @message.byId {id}, kallback
+      when 'bot'
+        @account.fetchBotChannel kallback
       else callback { message: "#{type} not implemented in revive" }
 
   getMessageEvents = ->
@@ -754,3 +766,14 @@ module.exports = class SocialApiController extends KDController
 
       endPoint = "/Impersonate/#{username}"
       doXhrRequest {type: 'POST', endPoint, async: yes}, callback
+
+    fetchBotChannel      : (callback) ->
+
+      doXhrRequest {
+        type     : 'GET'
+        endPoint : "/api/integration/botchannel"
+      }, (err, response) ->
+        return callback err  if err
+
+        return callback null, mapChannel response.data
+

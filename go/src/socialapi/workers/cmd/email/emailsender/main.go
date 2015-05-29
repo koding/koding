@@ -23,9 +23,11 @@ func main() {
 
 	appConfig := config.MustRead(r.Conf.Path)
 	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
 
 	exporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
 	constructor := emailsender.New(exporter, r.Log)
+	r.ShutdownHandler = constructor.Close
 
 	r.SetContext(constructor)
 

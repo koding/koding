@@ -13,34 +13,35 @@ CREATE TYPE "integration"."integration_type_constant_enum" AS ENUM (
 DROP TABLE IF EXISTS "integration"."integration";
 CREATE TABLE "integration"."integration" (
     "id" BIGINT NOT NULL DEFAULT nextval('integration.integration_id_seq'::regclass),
+    "name" VARCHAR (200) NOT NULL CHECK ("name" <> ''),
     "title" VARCHAR (200) NOT NULL COLLATE "default",
-    "icon_path" VARCHAR (200) COLLATE "default",
+    "icon_path" VARCHAR (2000) COLLATE "default",
     "description" TEXT COLLATE "default",
     "instructions" TEXT COLLATE "default",
     "type_constant" "integration"."integration_type_constant_enum",
-    "version" VARCHAR(6) NOT NULL COLLATE "default",
+    "settings" hstore,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at" timestamp(6) WITH TIME ZONE NOT NULL
+    "deleted_at" timestamp(6) WITH TIME ZONE
 ) WITH (OIDS = FALSE);
 GRANT SELECT, INSERT, UPDATE ON "integration"."integration" TO "social";
 
 -- ----------------------------
---  Table structure for team_integration
+--  Table structure for channel_integration
 -- ----------------------------
-DROP TABLE IF EXISTS "integration"."team_integration"
-CREATE TABLE "integration"."team_integration" (
-  "id" BIGINT NOT NULL DEFAULT nextval('integration.team_integration_id_seq'::regclass),
-  "bot_name" VARCHAR (200) NOT NULL COLLATE "default",
-  "bot_icon_path" VARCHAR (200) NOT NULL COLLATE "default",
+DROP TABLE IF EXISTS "integration"."channel_integration";
+CREATE TABLE "integration"."channel_integration" (
+  "id" BIGINT NOT NULL DEFAULT nextval('integration.channel_integration_id_seq'::regclass),
   "description" VARCHAR (140) NOT NULL COLLATE "default",
-  "token" VARCHAR(20) NOT NULL,
+  "token" UUID NOT NULL DEFAULT uuid_generate_v4(),
   "integration_id" BIGINT NOT NULL,
-  "group_channel_id" BIGINT NOT NULL,
+  "group_name" VARCHAR(200) NOT NULL CHECK ("group_name" <> '') COLLATE "default",
+  "channel_id" BIGINT NOT NULL,
   "creator_id" BIGINT NOT NULL,
   "is_disabled" BOOLEAN NOT NULL DEFAULT TRUE,
+  "settings" hstore,
   "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
   "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-  "deleted_at" timestamp(6) WITH TIME ZONE NOT NULL
+  "deleted_at" timestamp(6) WITH TIME ZONE
 ) WITH (OIDS = FALSE);
-GRANT SELECT, INSERT, UPDATE ON "integration"."team_integration" TO "social";
+GRANT SELECT, INSERT, UPDATE ON "integration"."channel_integration" TO "social";

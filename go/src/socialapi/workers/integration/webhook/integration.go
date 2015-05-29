@@ -4,17 +4,23 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
 var (
-	ErrTitleNotSet    = errors.New("title is not set")
-	ErrTitleNotUnique = errors.New("title is not unique")
+	ErrTitleNotSet         = errors.New("title is not set")
+	ErrNameNotUnique       = errors.New("title is not unique")
+	ErrNameNotSet          = errors.New("name is not set")
+	ErrIntegrationNotFound = errors.New("integration is not found")
 )
 
 type Integration struct {
 	// unique identifier of the integration
 	Id int64 `json:"id,string"`
+
+	// Unique name of the integration
+	Name string `json:"name" sql:"NOT NULL;TYPE:VARCHAR(25)"`
 
 	// Title of the integration
 	Title string `json:"title" sql:"NOT NULL;TYPE:VARCHAR(200)"`
@@ -31,8 +37,8 @@ type Integration struct {
 	// Type of the integration (incoming, outgoing)
 	TypeConstant string `json:"typeConstant" sql:"TYPE:VARCHAR(100)"`
 
-	// Current version of the integration
-	Version string `json:"version" sql:"NOT NULL;TYPE:VARCHAR(6)"`
+	// Settings used for storing events and other optional data
+	Settings gorm.Hstore
 
 	// Creation date of the integration
 	CreatedAt time.Time `json:"createdAt" sql:"NOT NULL"`
@@ -55,6 +61,10 @@ func NewIntegration() *Integration {
 
 func (i *Integration) Create() error {
 
+	if i.Name == "" {
+		return ErrNameNotSet
+	}
+
 	if i.Title == "" {
 		return ErrTitleNotSet
 	}
@@ -64,13 +74,13 @@ func (i *Integration) Create() error {
 	}
 
 	selector := map[string]interface{}{
-		"title": i.Title,
+		"name": i.Name,
 	}
 
 	// no need to make it idempotent
 	err := i.One(bongo.NewQS(selector))
 	if err == nil {
-		return ErrTitleNotUnique
+		return ErrNameNotUnique
 	}
 
 	if err != bongo.RecordNotFound {
@@ -78,4 +88,23 @@ func (i *Integration) Create() error {
 	}
 
 	return bongo.B.Create(i)
+}
+
+func (i *Integration) ByName(name string) error {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"name": name,
+		},
+	}
+
+	err := i.One(query)
+	if err == bongo.RecordNotFound {
+		return ErrIntegrationNotFound
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -62,8 +62,7 @@ func (p *PubNub) UpdateChannel(pm *PushMessage) error {
 	pmc := NewPrivateMessageChannel(*pm.Channel)
 
 	// channel grant public access for public channels
-	typeConstant := pmc.Type
-	if typeConstant == "privatemessage" || typeConstant == "pinnedactivity" {
+	if pmc.IsPrivateChannel() {
 		// server access must be granted for sending private messages
 		if err := p.grantServerAccess(pmc); err != nil {
 			return err

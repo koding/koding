@@ -222,8 +222,6 @@ module.exports =
 
   sendHashtagActivity: (browser) ->
 
-    @beginTest(browser)
-
     paragraph = @getFakeText()
     hashtag   = '#' + paragraph.split(' ')[0]
     post      = paragraph + ' ' + hashtag
@@ -457,5 +455,5 @@ module.exports =
   getUrl: ->
 
     return 'http://lvh.me:8090'
-    # return 'http://52.6.253.30:8090'
+    # return 'http://54.164.58.222:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'

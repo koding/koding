@@ -160,7 +160,11 @@ type Config struct {
 		Port int
 	}
 	SocialApi struct {
-		ProxyUrl string
+		ProxyUrl     string
+		CustomDomain struct {
+			Public string
+			Local  string
+		}
 	}
 	Vmwatcher struct {
 		Port           string

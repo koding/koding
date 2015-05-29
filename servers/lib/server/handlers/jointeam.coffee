@@ -10,19 +10,26 @@ module.exports = (req, res, next) ->
   { JUser, JGroup, JInvitation } = koding.models
   {
     redirect
-    # invitation token that the user got in the mail
-    token
     # slug is team slug, unique name. Can not be changed
     slug
     # newsletter holds announcements config.
     newsletter
     # is soon-to-be-group-member already a Koding member
     alreadyMember
+    # invitation token
+    token
   } = body
 
   alreadyMember = alreadyMember is 'true'
   context       = { group: slug }
   clientId      = getClientId req, res
+
+  # subscribe to koding marketing mailings or not
+  body.emailFrequency         or= {}
+  # convert string boolean to boolean
+  body.emailFrequency.marketing = newsletter is 'true'
+  # rename variable
+  body.invitationToken          = token
 
   return handleClientIdNotFound res, req  unless clientId
 
@@ -37,41 +44,21 @@ module.exports = (req, res, next) ->
 
     client.clientIP = (clientIPAddress.split ',')[0]
 
-    joinGroup = (err, result) ->
-
+    kallback = (err, result) ->
+      # return if we got error from join/register
       return res.status(400).send getErrorMessage err  if err?
-
+      # set clientId
       res.cookie 'clientId', result.newToken, path : '/'
 
-      # set session token for later usage down the line
-      client.sessionToken         = result.newToken
-      owner                       = result.account
-      client.connection.delegate  = result.account
+      # handle the request with an HTTP redirect:
+      return res.redirect 301, redirect if redirect
 
-      JGroup.one { slug }, (err, group) ->
+      # handle the request as an XHR response:
+      return res.status(200).end()
 
-        return res.status(500).send 'Couldn\'t fetch the group.'  if err or not group
-
-        group.join client, { as: 'member', inviteCode: token }, (err, response) ->
-
-          return res.status(400).send getErrorMessage err  if err?
-
-          # handle the request as an XHR response:
-          return res.status(200).end() if req.xhr
-          # handle the request with an HTTP redirect:
-          res.redirect 301, redirect
-
-    JInvitation.byCode token, (err, invitation) ->
-
-      return res.status(400).send getErrorMessage err  if err?
-
-      # subscribe to koding marketing mailings or not
-      body.emailFrequency         or= {}
-      body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
-
-      if alreadyMember
-      then JUser.login client.sessionToken, body, joinGroup
-      else JUser.convert client, body, joinGroup
+    if alreadyMember
+    then JUser.login client.sessionToken, body, kallback
+    else JUser.convert client, body, kallback
 
 
 getErrorMessage = (err) ->

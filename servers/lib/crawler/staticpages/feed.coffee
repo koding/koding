@@ -167,7 +167,7 @@ getPagination = (options)->
     pagination += getNoHrefLink " ... "
 
   [start..end].map (pageNumber)->
-    pagination += getSinglePageLink pageNumber, null, options.route
+    pagination += getSinglePageLink pageNumber, null, options.route, options.currentPage
 
   if end < numberOfPages
     pagination += getNoHrefLink " ... "
@@ -180,8 +180,13 @@ getPagination = (options)->
 getNoHrefLink = (linkText)->
   "<a href='#'>#{linkText}  </a>"
 
-getSinglePageLink = (pageNumber, linkText=pageNumber, route)->
-  link = "<a href='#{uri.address}/#{route}?page=#{pageNumber}'>#{linkText}  </a>"
+getSinglePageLink = (pageNumber, linkText=pageNumber, route, currentPage)->
+  currentPageClass = ""
+
+  if currentPage is pageNumber
+    currentPageClass = "class='activePage'"
+
+  link = "<a href='#{uri.address}/#{route}?page=#{pageNumber}' #{currentPageClass}>#{linkText}  </a>"
   return link
 
 appendDecoratedTopic = (tag, queue)->

@@ -17,28 +17,18 @@ ldflags="-X koding/artifact.VERSION ${version:0:8}"
 services=(
   koding/broker
   koding/rerouting
-  koding/kites/os
-  koding/kites/terminal
-  github.com/koding/kite/kitectl
   koding/kites/kontrol
-  github.com/coreos/etcd
   koding/kites/kloud
-  koding/kites/cmd/terraformer
   koding/kites/kloud/kloudctl
+  koding/kites/tunnelserver
+  koding/kites/tunnelclient
   koding/kites/cmd/terraformer
-  koding/virt/vmproxy
-  koding/virt/vmtool
-  koding/overview
-  koding/kontrol/kontrolproxy
-  koding/kontrol/kontrolftp
-  koding/kontrol/kontroldaemon
-  koding/kontrol/kontrolapi
-  koding/kontrol/kontrolclient
   koding/workers/guestcleanerworker
-  github.com/canthefason/go-watcher
-  github.com/mattes/migrate
   koding/go-webserver
   koding/vmwatcher
+  github.com/koding/kite/kitectl
+  github.com/canthefason/go-watcher
+  github.com/mattes/migrate
 
   socialapi/workers/api
   socialapi/workers/cmd/notification
@@ -67,6 +57,8 @@ services=(
   socialapi/workers/cmd/integration/webhook
   socialapi/workers/algoliaconnector/tagmigrator
   socialapi/workers/algoliaconnector/contentmigrator
+  socialapi/workers/cmd/integration/eventsender
+  socialapi/workers/cmd/integration/webhookmiddleware
 )
 
 
