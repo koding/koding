@@ -31,16 +31,6 @@ module.exports =
     browser.end()
 
 
-  postMessageWithCombinationOfThose: (browser) ->
-
-    helpers.beginTest(browser)
-
-    activityHelpers.postMessageWithCode(browser)
-    activityHelpers.postMessageWithImage(browser)
-    activityHelpers.postMessageWithLink(browser)
-    browser.end()
-
-
   postCommentWithCode: (browser) ->
 
     helpers.beginTest(browser)
