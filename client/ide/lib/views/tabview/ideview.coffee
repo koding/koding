@@ -543,6 +543,5 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     index = null  if index < 0
 
-    kd.log index
     kd.singletons.appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
 
