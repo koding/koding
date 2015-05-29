@@ -13,7 +13,6 @@ module.exports = class AccountCredentialList extends KDListView
 
   constructor: (options = {}, data) ->
 
-    options.tagName   ?= "ul"
     options.itemClass ?= AccountCredentialListItem
 
     super options, data

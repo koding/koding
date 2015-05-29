@@ -1,16 +1,137 @@
-_                               = require 'lodash'
 kd                              = require 'kd'
-hljs                            = require 'highlight.js'
 globals                         = require 'globals'
+remote                          = require('app/remote').getInstance()
+
+_                               = require 'lodash'
+hljs                            = require 'highlight.js'
+Encoder                         = require 'htmlencode'
 dateFormat                      = require 'dateformat'
+
+FSHelper                        = require 'app/util/fs/fshelper'
+showError                       = require 'app/util/showError'
+applyMarkdown                   = require 'app/util/applyMarkdown'
+
 CustomViews                     = require 'app/commonviews/customviews'
+IDEEditorPane                   = require 'ide/workspace/panes/ideeditorpane'
 CredentialListItem              = require './credentiallistitem'
 ComputeController_UI            = require 'app/providers/computecontroller.ui'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
+StackTemplateList               = require './stacktemplatelist'
+StackTemplateListController     = require './stacktemplatelistcontroller'
+
 
 module.exports = class StacksCustomViews extends CustomViews
+
+  # This will be used if stack template is not defined yet
+  DEFAULT_TEMPLATE = """
+  {
+    "provider": {
+      "aws": {
+        "access_key": "${var.access_key}",
+        "secret_key": "${var.secret_key}",
+        "region": "eu-central-1"
+      }
+    },
+    "resource": {
+      "aws_instance": {
+        "example": {
+          "instance_type": "t2.micro",
+          "ami": "ami-936d9d93"
+        }
+      }
+    }
+  }
+  """
+
+  parseTerraformOutput = (response) ->
+
+    # An example of a valid stack template
+    # ------------------------------------
+    # title: "Default stack",
+    # description: "Koding's default stack template for new users",
+    # machines: [
+    #   {
+    #     "label" : "koding-vm-0",
+    #     "provider" : "koding",
+    #     "instanceType" : "t2.micro",
+    #     "provisioners" : [
+    #         "devrim/koding-base"
+    #     ],
+    #     "region" : "us-east-1",
+    #     "source_ami" : "ami-a6926dce"
+    #   }
+    # ],
+
+    out = machines: []
+
+    {machines} = response
+
+    for machine, index in machines
+
+      {label, provider, region} = machine
+      {instance_type, ami} = machine.attributes
+
+      out.machines.push {
+        label, provider, region
+        source_ami   : ami
+        instanceType : instance_type
+        provisioners : [] # TODO what are we going to do with provisioners? ~ GG
+      }
+
+    console.info "[parseTerraformOutput]", out.machines
+
+    return out.machines
+
+
+  handleCheckTemplate = (options, callback) ->
+
+    { stackTemplate } = options
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+      .checkTemplate { stackTemplateId: stackTemplate._id }
+      .nodeify callback
+
+
+  updateStackTemplate = (data, callback) ->
+
+    { template, credential, title, stackTemplate, machines } = data
+
+    title     or= 'Default stack template'
+    credentials = [credential.publicKey]  if credential
+
+    if stackTemplate
+      dataToUpdate = if machines \
+        then {machines} else {title, template, credentials}
+      stackTemplate.update dataToUpdate, (err) ->
+        callback err, stackTemplate
+    else
+      remote.api.JStackTemplate.create {
+        title, template, credentials
+      }, callback
+
+
+  setGroupTemplate = (stackTemplate, callback) ->
+
+    { groupsController } = kd.singletons
+
+    currentGroup = groupsController.getCurrentGroup()
+    { slug }     = currentGroup
+
+    if slug is 'koding'
+      message = 'Setting stack template for koding is disabled'
+      new kd.NotificationView title: message
+      return callback {message}
+
+    currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) ->
+      return callback err  if err
+
+      new kd.NotificationView
+        title: "Group (#{slug}) stack has been saved!"
+
+      callback()
 
 
   fetchAndShowCredentialData = (credential, outputView) ->
@@ -22,24 +143,19 @@ module.exports = class StacksCustomViews extends CustomViews
         outputView.addContent 'Failed: ', err.message
       else
 
-        # Hide sensitive information
-        provider = globals.config.providers[credential.provider]
-        (Object.keys provider.credentialFields).forEach (field) ->
-          data.meta[field] = '******************'
-
         try
           cred = JSON.stringify data.meta, null, 2
         catch e
           outputView.addContent 'Failed to parse:', e
           return
 
-        outputView.addContent cred
-        outputView.addContent 'You can continue to next step.'
-        outputView.emit 'BootstrappingDone'
+        outputView
+          .addContent cred
+          .addContent 'You can continue to next step.'
+          .emit 'BootstrappingDone'
 
 
   handleBootstrap = (outputView, credential, button) ->
-    console.log {outputView, credential, button}
 
     outputView.destroySubViews()
     outputView.addContent 'Bootstrapping started...'
@@ -60,12 +176,12 @@ module.exports = class StacksCustomViews extends CustomViews
         else
           outputView.addContent 'Bootstrapping completed but something went wrong.'
 
-        console.log "Bootstrap result:", response
+        console.log '[KLOUD:Bootstrap]', response
 
       .catch (err) ->
 
         outputView.addContent 'Bootstrapping failed:', err.message
-        console.warn "Bootstrap failed:", err
+        console.warn '[KLOUD:Bootstrap:Fail]', err
 
       .finally button.bound 'hideLoader'
 
@@ -95,29 +211,19 @@ module.exports = class StacksCustomViews extends CustomViews
 
   _.assign @views,
 
-    noStackFoundView: (callback) =>
 
-      container = @views.container 'no-stack-found'
+    loader: (message) =>
+      container = @views.container 'main-loader'
+      container.addSubView new kd.LoaderView
+        showLoader : yes
+        size       :
+          width    : 40
+          height   : 40
 
-      @addTo container,
-        text_header  : 'Add Your Stack'
-        text_message : "You don't have any stacks set up yet. Stacks are awesome
-                        because when a user joins your group you can
-                        preconfigure their work environment by defining stacks.
-                        Learn more about stacks"
-        button       :
-          title      : 'Add New Stack'
-          cssClass   : 'solid medium green'
-          callback   : callback
+      @addTo container, text: message
 
       return container
 
-
-    loader: (cssClass) ->
-      new kd.LoaderView {
-        cssClass, showLoader: yes,
-        size: width: 40, height: 40
-      }
 
     outputView: (options) =>
 
@@ -132,8 +238,28 @@ module.exports = class StacksCustomViews extends CustomViews
         content = content.join ' '
         content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
         code.setPartial hljs.highlight('profile', content).value
+        return container
 
       return container
+
+
+    editorView: (options) =>
+
+      kd.singletons.appManager.require 'IDE'
+
+      {content} = options
+
+      content   = Encoder.htmlDecode content
+      file      = FSHelper.createFileInstance path: 'localfile:/stack.json'
+
+      editorView = new IDEEditorPane {
+        cssClass: 'editor-view'
+        file, content, delegate: this
+      }
+
+      editorView.setCss background: 'black'
+
+      return editorView
 
 
     button: (options) ->
@@ -146,17 +272,62 @@ module.exports = class StacksCustomViews extends CustomViews
       options.title = name.capitalize()
       @views.button options
 
+
     navCancelButton: (options) =>
       options.cssClass = 'solid compact light-gray nav cancel'
       @views.button options
 
-    stacksView: (data) =>
-      @views.text 'Coming soon'
+
+    input: (options, name) =>
+
+      {label, value} = options
+
+      new kd.FormViewWithFields
+        fields: input: {name, label, defaultValue: value}
+
+
+    initialView: (callback) =>
+
+      container = @views.container 'stacktemplates'
+
+      { groupsController } = kd.singletons
+      currentGroup = groupsController.getCurrentGroup()
+
+      views = @addTo container,
+        text_header       : 'Compute Stack Templates'
+        container_top     :
+          text_intro      : "Stack Templates are awesome because when a user
+                             joins your group you can preconfigure their work
+                             environment by defining stacks.
+                             Learn more about stacks"
+          button          :
+            title         : 'Create New'
+            cssClass      : 'solid medium green'
+            callback      : -> callback null
+        stackTemplateList :
+          group           : currentGroup
+
+      templateList = views.stackTemplateList.__view
+      templateList.on 'ItemSelected', callback
+
+      return container
+
+
+    stackTemplateList: (options) ->
+
+      listView   = new StackTemplateList
+      controller = new StackTemplateListController
+        view       : listView
+        wrapper    : no
+        scrollView : no
+
+      __view = controller.getView()
+      return { __view, controller }
 
 
     stepSelectProvider: (options) =>
 
-      {callback, cancelCallback} = options
+      {callback, cancelCallback, data} = options
       container = @views.container 'step-provider'
 
       views     = @addTo container,
@@ -168,20 +339,25 @@ module.exports = class StacksCustomViews extends CustomViews
           callback      : cancelCallback
 
       views.providersView.on 'ItemSelected', (provider) ->
-        callback {provider}
+        data.provider = provider
+        callback data
 
       return container
 
 
-    credentialList: (provider) =>
+    credentialList: (options) =>
+
+      { provider, stackTemplate } = options
 
       listView   = new AccountCredentialList
-        itemClass  : CredentialListItem
+        itemClass   : CredentialListItem
+        itemOptions : { stackTemplate }
+
       controller = new AccountCredentialListController
-        view       : listView
-        wrapper    : no
-        scrollView : no
-        provider   : provider
+        view        : listView
+        wrapper     : no
+        scrollView  : no
+        provider    : provider
 
       __view = controller.getView()
       return { __view, controller }
@@ -189,11 +365,11 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepSetupCredentials: (options) =>
 
-      {data, callback, cancelCallback} = options
-      {provider} = data
+      { data, callback, cancelCallback } = options
+      { provider, stackTemplate } = data
 
-      container = @views.container 'step-creds'
-      views     = @addTo container,
+      container  = @views.container 'step-creds'
+      views      = @addTo container,
         stepsHeaderView : 2
         container_top   :
           text_intro    : "To be able to use this provider <strong>you need to
@@ -205,35 +381,36 @@ module.exports = class StacksCustomViews extends CustomViews
             cssClass    : 'solid compact green action'
             callback    : ->
               handleNewCredential views, provider, this
-        credentialList  : provider
+        credentialList  : { provider, stackTemplate }
         navCancelButton :
           title         : '< Select another provider'
-          callback      : cancelCallback
+          callback      : ->
+            cancelCallback data
 
       credentialList = views.credentialList.__view
       credentialList.on 'ItemSelected', (credential) ->
-        callback {credential, provider}
+        data.credential = credential
+        callback data
 
       return container
 
 
     stepBootstrap: (options) =>
 
-      console.log options
       {callback, cancelCallback, data} = options
-      {provider, credential} = data
+      {provider, credential, stackTemplate} = data
 
-      container = @views.container 'step-creds'
+      container = @views.container 'step-bootstrap'
 
       container.setClass 'has-markdown'
 
       views     = @addTo container,
         stepsHeaderView : 3
         container       :
-          loader        : 'main-loader'
+          loader        : 'Checking bootstrap status...'
         navCancelButton :
           title         : '< Select another credential'
-          callback      : -> cancelCallback {provider}
+          callback      : -> cancelCallback data
 
       credential.isBootstrapped (err, state) =>
 
@@ -260,9 +437,11 @@ module.exports = class StacksCustomViews extends CustomViews
             cssClass    : 'bootstrap-output hidden'
 
         outputView.on 'BootstrappingDone', => @addTo container,
-          navButton_next :
-            callback     : ->
-              callback {provider, credential}
+          button        :
+            title       : 'Continue'
+            cssClass    : 'solid compact green nav next'
+            callback    : ->
+              callback {provider, credential, stackTemplate}
 
         if state
           outputView.show()
@@ -274,32 +453,93 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepDefineStack: (options) =>
 
-      console.log options
-      {callback, cancelCallback, data} = options
-      {provider, credential} = data
-      container = @views.container 'step-creds'
+      {callback, cancelCallback, data}      = options
+      {provider, credential, stackTemplate} = data or {}
 
+      container = @views.container 'step-define-stack'
+      content   = stackTemplate?.template?.content or DEFAULT_TEMPLATE
       views     = @addTo container,
         stepsHeaderView : 4
-        navButton_prev  :
+        input_title     :
+          label         : 'Stack Template Title'
+          value         : stackTemplate?.title or 'Default Template'
+        editorView      : {content}
+        navCancelButton :
+          title         : '< Boostrap Credential'
+          callback      : -> cancelCallback data
+        button_save     :
+          title         : 'Save & Test >'
+          cssClass      : 'solid compact green nav next'
           callback      : ->
-            cancelCallback {credential, provider}
-        navButton_next  : {callback}
+
+            {title}  = views.input_title.getData()
+            template = views.editorView.getValue()
+
+            updateStackTemplate {
+              title, template, credential, stackTemplate
+            }, (err, _stackTemplate) ->
+              return  if showError err
+
+              callback {
+                stackTemplate: _stackTemplate, credential, provider
+              }
 
       return container
 
 
-    stepTestAndSave: (options) =>
+    stepComplete: (options) =>
 
-      console.log options
-      {callback, cancelCallback} = options
-      container = @views.container 'step-creds'
+      {callback, cancelCallback, data}      = options
+      {stackTemplate, credential, provider} = data
 
-      views     = @addTo container,
+      container = @views.container 'step-complete'
+
+      container.setClass 'has-markdown'
+
+      views = @addTo container,
         stepsHeaderView : 5
-        navButton_prev  :
-          callback      : cancelCallback
-        navButton_next  : {callback}
+        container       :
+          loader        : 'Processing template...'
+
+      handleCheckTemplate {stackTemplate}, (err, response) =>
+
+        console.log '[KLOUD:checkTemplate]', err, response
+
+        @addTo container,
+          navCancelButton :
+            title         : '< Edit Template'
+            callback      : -> cancelCallback data
+
+        views.container.destroySubViews()
+
+        outputView   = @addTo views.container,
+          outputView :
+            cssClass : 'plan-output'
+
+        if err or not response
+          outputView
+            .addContent 'Something went wrong with the template:'
+            .addContent err?.message or 'No response from Kloud'
+        else
+
+          machines = parseTerraformOutput response
+
+          outputView
+            .addContent 'Template check complete succesfully'
+            .addContent 'Following machines will be created:'
+            .addContent JSON.stringify machines, null, 2
+            .addContent 'Click Complete to set this stack as default stack'
+
+          @addTo container,
+            button_save     :
+              title         : 'Complete'
+              cssClass      : 'solid compact green nav next'
+              callback      : ->
+                updateStackTemplate {
+                  stackTemplate, machines
+                }, (err, stackTemplate) ->
+                  return  if showError err
+                  callback stackTemplate
 
       return container
 
@@ -348,7 +588,7 @@ module.exports = class StacksCustomViews extends CustomViews
           { title : 'Credentials' }
           { title : 'Bootstrap' }
           { title : 'Define your Stack' }
-          { title : 'Test & Save' }
+          { title : 'Complete' }
         ]
         selected  = options
       else

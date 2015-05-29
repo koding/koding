@@ -24,7 +24,8 @@ CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
     'privatemessage',
     'announcement',
     'default',
-    'collaboration'
+    'collaboration',
+    'bot'
 );
 ALTER TYPE "api"."channel_type_constant_enum" OWNER TO "social";
 
@@ -80,7 +81,8 @@ CREATE TYPE "api"."channel_message_type_constant_enum" AS ENUM (
     'reply',
     'join',
     'leave',
-    'privatemessage'
+    'privatemessage',
+    'bot'
 );
 
 ALTER TYPE "api"."channel_message_type_constant_enum" OWNER TO "social";

@@ -56,6 +56,8 @@ Configuration = (options={}) ->
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                  , pubnub: pubnub                                }
+  integration         = { host:     "localhost"                                   , port:               "7300"                                  }
+  webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
   paymentwebhook      = { port   : "6600",     debug    : false }
   tokbox              = { apiKey : '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
@@ -79,6 +81,7 @@ Configuration = (options={}) ->
   disabledFeatures =
     moderation : yes
     teams      : no
+    botchannel : yes
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -103,6 +106,8 @@ Configuration = (options={}) ->
     stripe                  : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
     paypal                  : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
     gatekeeper              : gatekeeper
+    integration             : integration
+    webhookMiddleware       : webhookMiddleware
     customDomain            : customDomain
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
@@ -247,6 +252,7 @@ Configuration = (options={}) ->
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
     tokbox               : { apiKey: tokbox.apiKey }
+    disabledFeatures     : disabledFeatures
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
@@ -477,6 +483,34 @@ Configuration = (options={}) ->
         locations       : [ { location: "/vmwatcher" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
+
+    integration         :
+      group             : "socialapi"
+      ports             :
+        incoming        : "#{integration.port}"
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make webhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+      healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
+      versionURL        : "#{customDomain.local}/api/integration/version"
+      nginx             :
+        locations       : [
+          location      : "~ /api/integration/(.*)"
+          proxyPass     : "http://integration/$1$is_args$args"
+        ]
+
+    webhook             :
+      group             : "socialapi"
+      ports             :
+        incoming        : "#{webhookMiddleware.port}"
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make middlewaredev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+      healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
+      versionURL        : "#{customDomain.local}/api/webhook/version"
+      nginx             :
+        locations       : [
+          location      : "~ /api/webhook/(.*)"
+          proxyPass     : "http://webhook/$1$is_args$args"
+        ]
 
     contentrotator      :
       nginx             :
@@ -782,6 +816,15 @@ Configuration = (options={}) ->
 
       }
 
+      function migrations () {
+        # a temporary migration line (do we still need this?)
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
+      }
+
       function run () {
 
         # Check if PG DB schema update required
@@ -817,10 +860,7 @@ Configuration = (options={}) ->
         # Do PG Migration if necessary
         migrate up
 
-        # a temporary migration line (do we still need this?)
-        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
-        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_participant_status_constant_enum\" ADD VALUE IF NOT EXISTS 'blocked';"
-        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
+        migrations
 
         # Create default workspaces
         node scripts/create-default-workspace
@@ -872,6 +912,7 @@ Configuration = (options={}) ->
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
+        echo "  run importusers           : to import koding user data"
         echo "  run help                  : to show this list"
         echo ""
 
@@ -1134,7 +1175,7 @@ Configuration = (options={}) ->
       function importusers () {
 
         cd #{projectRoot}
-        node #{projectRoot}/scripts/user-importer
+        node #{projectRoot}/scripts/user-importer -c dev
 
         migrateusers
 
@@ -1283,6 +1324,7 @@ Configuration = (options={}) ->
 
         build_services
         importusers
+        migrations
 
       elif [ "$1" == "help" ]; then
         printHelp

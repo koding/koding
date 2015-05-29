@@ -1,13 +1,14 @@
 package popularpost
 
 import (
-	"errors"
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
+	"sync"
 	"time"
 
 	"github.com/jinzhu/now"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
 	"github.com/streadway/amqp"
@@ -15,7 +16,6 @@ import (
 
 var (
 	PopularPostKeyName = "popularpost"
-	keyExistsRegistry  = map[string]bool{}
 )
 
 func init() {
@@ -25,6 +25,9 @@ func init() {
 type Controller struct {
 	log   logging.Logger
 	redis *redis.RedisSession
+
+	regMux            sync.Mutex
+	keyExistsRegistry map[string]bool
 }
 
 func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -41,8 +44,9 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 
 func New(log logging.Logger, redis *redis.RedisSession) *Controller {
 	return &Controller{
-		log:   log,
-		redis: redis,
+		log:               log,
+		redis:             redis,
+		keyExistsRegistry: make(map[string]bool),
 	}
 }
 
@@ -111,9 +115,12 @@ func (f *Controller) saveToBucket(key string, inc float64, id int64) error {
 }
 
 func (f *Controller) saveToSevenDayBucket(k *KeyName, inc float64, id int64) error {
+	f.regMux.Lock()
+	defer f.regMux.Lock()
+
 	key := k.Weekly()
 
-	_, ok := keyExistsRegistry[key]
+	_, ok := f.keyExistsRegistry[key]
 	if !ok {
 		exists := f.redis.Exists(key)
 		if !exists {
@@ -123,7 +130,7 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc float64, id int64) err
 			}
 		}
 
-		keyExistsRegistry[key] = true
+		f.keyExistsRegistry[key] = true
 
 		return nil
 	}
@@ -156,6 +163,42 @@ func (f *Controller) CreateSevenDayBucket(k *KeyName) error {
 	return err
 }
 
+func (f *Controller) CreateWeeklyBuckets() error {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"type_constant": models.Channel_TYPE_GROUP,
+		},
+	}
+
+	var channels []models.Channel
+	if err := models.NewChannel().Some(&channels, query); err != nil {
+		return err
+	}
+
+	now := time.Now().UTC()
+	for _, channel := range channels {
+		keyname := &KeyName{
+			GroupName:   channel.GroupName,
+			ChannelName: channel.Name,
+			Time:        now,
+		}
+
+		if err := f.CreateSevenDayBucket(keyname); err != nil {
+			return err
+		}
+	}
+
+	f.ResetRegistry()
+
+	return nil
+}
+
+func (f *Controller) ResetRegistry() {
+	f.regMux.Lock()
+	f.keyExistsRegistry = map[string]bool{}
+	f.regMux.Unlock()
+}
+
 func PopularPostKey(groupName, channelName string, current time.Time) string {
 	name := KeyName{
 		GroupName: groupName, ChannelName: channelName,
@@ -170,21 +213,9 @@ func PopularPostKey(groupName, channelName string, current time.Time) string {
 //----------------------------------------------------------
 
 type KeyName struct {
-	GroupName, ChannelName string
-	Time                   time.Time
-}
-
-func NewKeyName(groupName, channelName string, t time.Time) (*KeyName, error) {
-	if groupName == "" || channelName == "" {
-		return nil, errors.New("groupName and channelName are required")
-	}
-
-	k := &KeyName{
-		GroupName: groupName, ChannelName: channelName,
-		Time: t,
-	}
-
-	return k, nil
+	GroupName   string
+	ChannelName string
+	Time        time.Time
 }
 
 func (k *KeyName) Today() string {
@@ -218,9 +249,11 @@ func isEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) bool
 		return false
 	}
 
-	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
-		return false
-	}
+	// we need popular posts to work with private teams ~ CS
+	//
+	// if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
+	// 	return false
+	// }
 
 	if cm.MetaBits.Is(models.Troll) {
 		return false
@@ -258,25 +291,6 @@ func getDaysAgo(t time.Time, days int) time.Time {
 	daysAgo := -time.Hour * 24 * time.Duration(days)
 
 	return t.Add(daysAgo)
-}
-
-//----------------------------------------------------------
-func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
-	endOfDay := now.EndOfDay().UTC()
-	difference := time.Now().UTC().Sub(endOfDay)
-
-	<-time.After(difference * -1)
-
-	keyname := &KeyName{
-		GroupName: groupName, ChannelName: channelName,
-		Time: time.Now().UTC(),
-	}
-
-	t.CreateSevenDayBucket(keyname)
-}
-
-func (t *Controller) ResetRegistry() {
-	keyExistsRegistry = map[string]bool{}
 }
 
 func getWeight(iCreatedAt, mCreatedAt time.Time, inc float64) float64 {

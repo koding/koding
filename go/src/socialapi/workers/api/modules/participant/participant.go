@@ -58,6 +58,10 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		return response.NewBadRequest(err)
 	}
 
+	if ch.TypeConstant == models.Channel_TYPE_BOT {
+		return response.NewBadRequest(errors.New("can not add participants for bot channel"))
+	}
+
 	for i := range participants {
 		participant := models.NewChannelParticipant()
 		participant.ChannelId = query.Id
@@ -127,6 +131,9 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	err := ch.ById(query.Id)
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+	if ch.TypeConstant == models.Channel_TYPE_BOT {
+		return response.NewBadRequest(errors.New("can not remove participants for bot channel"))
 	}
 
 	for i := range participants {
@@ -338,7 +345,8 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	// no need to continue from here for other channels
 	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
 		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
-		c.TypeConstant != models.Channel_TYPE_GROUP {
+		c.TypeConstant != models.Channel_TYPE_GROUP &&
+		c.TypeConstant != models.Channel_TYPE_BOT {
 		return nil
 	}
 

@@ -31,6 +31,8 @@ module.exports = class Payment extends Base
 
   { get, post, deleteReq } = require "./socialapi/requests"
 
+  socialProxyUrl = "/api/social"
+
 
   @subscribe = secure (client, data, callback)->
     requiredParams = [
@@ -48,7 +50,7 @@ module.exports = class Payment extends Base
           return callback err  if err
 
           data.accountId = getAccountId client
-          url = "/payments/subscribe"
+          url = "#{socialProxyUrl}/payments/subscribe"
 
           post url, data, (err, response)->
             callback err, response
@@ -65,19 +67,19 @@ module.exports = class Payment extends Base
 
   @subscriptions = (client, data, callback)->
     data.accountId = getAccountId client
-    url = "/payments/subscriptions?account_id=#{data.accountId}"
+    url = "#{socialProxyUrl}/payments/subscriptions?account_id=#{data.accountId}"
 
     get url, data, callback
 
   @invoices = secure (client, data, callback)->
     data.accountId = getAccountId client
-    url = "/payments/invoices/#{data.accountId}"
+    url = "#{socialProxyUrl}/payments/invoices/#{data.accountId}"
 
     get url, data, callback
 
   @creditCard = secure (client, data, callback)->
     data.accountId = getAccountId client
-    url = "/payments/creditcard/#{data.accountId}"
+    url = "#{socialProxyUrl}/payments/creditcard/#{data.accountId}"
 
     get url, data, callback
 
@@ -88,7 +90,7 @@ module.exports = class Payment extends Base
       return callback err  if err
 
       data.accountId = getAccountId client
-      url = "/payments/creditcard/update"
+      url = "#{socialProxyUrl}/payments/creditcard/update"
 
       post url, data, callback
 
@@ -102,7 +104,7 @@ module.exports = class Payment extends Base
 
   @deleteAccount = (client, callback)->
     accountId = getAccountId client
-    url = "/payments/customers/#{accountId}"
+    url = "#{socialProxyUrl}/payments/customers/#{accountId}"
 
     deleteReq url, {}, callback
 
@@ -112,7 +114,7 @@ module.exports = class Payment extends Base
     validateParams requiredParams, data, (err)->
       return callback err  if err
 
-      url = "/payments/paypal/token"
+      url = "#{socialProxyUrl}/payments/paypal/token"
       get url, data, callback
 
 

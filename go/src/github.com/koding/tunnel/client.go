@@ -2,163 +2,336 @@ package tunnel
 
 import (
 	"bufio"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
+	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
+	"sync"
+	"time"
+
+	"github.com/cenkalti/backoff"
+	"github.com/hashicorp/yamux"
+	"github.com/koding/logging"
 )
 
 // Client is responsible for creating a control connection to a tunnel server,
 // creating new tunnels and proxy them to tunnel server.
 type Client struct {
-	// underlying tcp connection responsible for sending/receiving control messages
-	controlConn net.Conn
+	// underlying yamux session
+	session *yamux.Session
 
-	// sendChan is used to encode ClientMsg and send them over the wire in
-	// JSON format to the server.
-	sendChan chan ClientMsg
+	// config holds the ClientConfig
+	config *ClientConfig
 
-	// serverAddr is the address of the tunnel-server
-	serverAddr string
+	// yamuxConfig is passed to new yamux.Session's
+	yamuxConfig *yamux.Config
+	log         logging.Logger
 
-	// localAddr is the address of a local server that will be tunneled to the
-	// public. Currently only one server is supported.
-	localAddr string
+	closed   bool
+	closedMu sync.Mutex
+
+	// redialBackoff is used to reconnect in exponential backoff intervals
+	redialBackoff backoff.BackOff
+}
+
+// ClientConfig defines the configuration for the Client
+type ClientConfig struct {
+	// Identifier is the secret token that needs to be passed to the server.
+	// Required if FetchIdentifier is not set
+	Identifier string
+
+	// FetchIdentifier can be used to fetch identifier. Required if Identifier
+	// is not set.
+	FetchIdentifier func() (string, error)
+
+	// ServerAddr defines the TCP address of the tunnel server to be connected. This is required.
+	ServerAddr string
+
+	// LocalAddr defines the TCP address of the local server. This is optional
+	// if you want to specify a single TCP address. Otherwise the client will
+	// always proxy to 127.0.0.1:incomingPort, where incomingPort is the
+	// tunnelserver's public exposed Port.
+	LocalAddr string
+
+	// Debug enables debug mode, enable only if you want to debug the server.
+	Debug bool
+
+	// Log defines the logger. If nil a default logging.Logger is used.
+	Log logging.Logger
+
+	// YamuxConfig defines the config which passed to every new yamux.Session. If nil
+	// yamux.DefaultConfig() is used.
+	YamuxConfig *yamux.Config
+}
+
+// verify is used to verify the ClientConfig
+func (c *ClientConfig) verify() error {
+	if c.ServerAddr == "" {
+		return errors.New("config.ServerAddr must be set")
+	}
+
+	if c.Identifier == "" && c.FetchIdentifier == nil {
+		return errors.New("neither config.Identifier nor config.FetchIdentifier is set")
+	}
+
+	if c.YamuxConfig != nil {
+		if err := yamux.VerifyConfig(c.YamuxConfig); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // NewClient creates a new tunnel that is established between the serverAddr
 // and localAddr. It exits if it can't create a new control connection to the
-// server.
-func NewClient(serverAddr, localAddr string) *Client {
+// server. If localAddr is empty client will always try to proxy to a local
+// port.
+func NewClient(cfg *ClientConfig) (*Client, error) {
+	yamuxConfig := yamux.DefaultConfig()
+	if cfg.YamuxConfig != nil {
+		yamuxConfig = cfg.YamuxConfig
+	}
+
+	log := newLogger("tunnel-client", cfg.Debug)
+	if cfg.Log != nil {
+		log = cfg.Log
+	}
+
+	if err := cfg.verify(); err != nil {
+		return nil, err
+	}
+
+	forever := backoff.NewExponentialBackOff()
+	forever.MaxElapsedTime = 365 * 24 * time.Hour // 1 year
+
 	client := &Client{
-		serverAddr: serverAddr,
-		localAddr:  localAddr,
-		sendChan:   make(chan ClientMsg),
+		config:        cfg,
+		log:           log,
+		yamuxConfig:   yamuxConfig,
+		redialBackoff: forever,
 	}
 
-	return client
+	return client, nil
 }
 
-// Run starts the client begins to listen for control messages coming from the
-// server. Run is blocking.
-func (c *Client) Start(identifier string) {
-	c.controlConn = newControlDial(c.serverAddr, identifier)
-	go c.encoder()
-	c.decoder()
-}
-
-func (c *Client) sendMsg(msg string) {
-	c.sendChan <- ClientMsg{Action: msg}
-}
-
-func (c *Client) encoder() {
-	e := json.NewEncoder(c.controlConn)
-
-	for msg := range c.sendChan {
-		err := e.Encode(&msg)
-		if err != nil {
-			log.Println("encode", err)
-			return
+// Start starts the client and connects to the server with the identifier.
+// client.FetchIdentifier() will be used if it's not nil. It's supports
+// reconnecting with exponential backoff intervals when the connection to the
+// server disconnects. Call client.Close() to shutdown the client completely.
+func (c *Client) Start() {
+	id := func() (string, error) {
+		if c.config.FetchIdentifier != nil {
+			return c.config.FetchIdentifier()
 		}
+
+		return c.config.Identifier, nil
 	}
-}
 
-func (c *Client) decoder() {
-	d := json.NewDecoder(c.controlConn)
-
+	c.redialBackoff.Reset()
 	for {
-		msg := new(ServerMsg)
-		err := d.Decode(msg)
+		time.Sleep(c.redialBackoff.NextBackOff())
+		identifier, err := id()
 		if err != nil {
-			log.Println("decode", err)
-			return
-		}
-
-		if msg.Protocol == "" || msg.TunnelID == "" || msg.Identifier == "" {
-			log.Printf("protocol or tunnelID should not be empty")
+			c.log.Critical("client fetch identifier err: %s", err.Error())
 			continue
 		}
 
-		switch msg.Protocol {
-		case "http", "websocket":
-			go c.proxy(msg)
-		default:
-			log.Printf("protocol is not valid %s\n", msg.Protocol)
-			continue
+		if err := c.connect(identifier); err != nil {
+			c.log.Critical("client connect err: %s", err.Error())
 		}
 
-	}
-}
-
-// proxy joins (proxies) the remote tcp connection with the local one.
-// the data between the two connections are copied vice versa.
-func (c *Client) proxy(serverMsg *ServerMsg) {
-	log.Printf("starting proxying from '%s' to local server: '%s'\n", serverMsg.Host, c.localAddr)
-	remote, err := newTunnelDial(c.serverAddr, serverMsg)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer remote.Close()
-
-	local, err := newLocalDial(c.localAddr)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	local.OnDisconnect(func() {
-		log.Println("local connection is closed")
-		remote.Close()
-	})
-
-	<-join(local, remote)
-}
-
-// httpProxy starts the tunnel between the remote and local server. It's a
-// blocking function. Every requst is handled in a separete goroutine. It's
-// like proxy() but the steps are more explicit.
-func (c *Client) httpProxy(serverMsg *ServerMsg) {
-	remote, err := newTunnelDial(c.serverAddr, serverMsg)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	for {
-		req, err := http.ReadRequest(bufio.NewReader(remote))
-		if err != nil {
-			fmt.Println("Server read", err)
+		// exit if closed
+		c.closedMu.Lock()
+		if c.closed {
+			c.closedMu.Unlock()
 			return
 		}
-
-		go c.handleReq(req, remote)
+		c.closedMu.Unlock()
 	}
 }
 
-func (c *Client) handleReq(req *http.Request, remote net.Conn) {
-	local, err := newLocalDial(c.localAddr)
-	if err != nil {
-		log.Println(err)
-		return
+// Close closes the client and shutdowns the connection to the tunnel server
+func (c *Client) Close() error {
+	if c.session == nil {
+		return errors.New("session is not initialized")
 	}
 
-	err = req.Write(local)
-	if err != nil {
-		log.Println("write clientConn ", err)
-		return
+	if err := c.session.GoAway(); err != nil {
+		return err
 	}
 
-	resp, err := http.ReadResponse(bufio.NewReader(local), req)
-	if err != nil {
-		fmt.Println("read response", err)
-		return
+	c.closedMu.Lock()
+	c.closed = true
+	c.closedMu.Unlock()
+
+	if err := c.session.Close(); err != nil {
+		return err
 	}
 
-	err = resp.Write(remote)
+	return nil
+}
+
+func (c *Client) connect(identifier string) error {
+	c.log.Debug("Trying to connect to '%s' with identifier '%s'", c.config.ServerAddr, identifier)
+	conn, err := net.Dial("tcp", c.config.ServerAddr)
 	if err != nil {
-		fmt.Println("resp.write", err)
-		return
+		return err
 	}
+
+	remoteAddr := fmt.Sprintf("http://%s%s", conn.RemoteAddr(), controlPath)
+	c.log.Debug("CONNECT to '%s'", remoteAddr)
+	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
+	if err != nil {
+		return fmt.Errorf("CONNECT %s", err)
+	}
+
+	req.Header.Set(xKTunnelIdentifier, identifier)
+	c.log.Debug("Writing request to TCP: %+v", req)
+	if err := req.Write(conn); err != nil {
+		return err
+	}
+
+	c.log.Debug("Reading response from TCP")
+	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
+	if err != nil {
+		return fmt.Errorf("read response %s", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 && resp.Status != connected {
+		out, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("proxy server: %s. err: %s", resp.Status, string(out))
+	}
+
+	c.session, err = yamux.Client(conn, c.yamuxConfig)
+	if err != nil {
+		return err
+	}
+
+	var stream net.Conn
+
+	openStream := func() error {
+		// this is blocking until client opens a session to us
+		stream, err = c.session.Open()
+		return err
+	}
+
+	// if we don't receive anything from the server, we'll timeout
+	select {
+	case err := <-async(openStream):
+		if err != nil {
+			return err
+		}
+	case <-time.After(time.Second * 10):
+		if stream != nil {
+			stream.Close()
+		}
+		return errors.New("timeout opening session")
+	}
+
+	if _, err := stream.Write([]byte(ctHandshakeRequest)); err != nil {
+		return err
+	}
+
+	buf := make([]byte, len(ctHandshakeResponse))
+	if _, err := stream.Read(buf); err != nil {
+		return err
+	}
+
+	if string(buf) != ctHandshakeResponse {
+		return fmt.Errorf("handshake aborted. got: %s", string(buf))
+	}
+
+	ct := newControl(stream)
+	c.log.Debug("client has started successfully.")
+
+	c.redialBackoff.Reset() // we successfully connected, so we can reset the backoff
+	return c.listenControl(ct)
+}
+
+func (c *Client) listenControl(ct *control) error {
+	for {
+		var msg controlMsg
+		err := ct.dec.Decode(&msg)
+		if err != nil {
+			c.session.GoAway()
+			c.session.Close()
+			return fmt.Errorf("decode err: '%s'", err)
+		}
+
+		c.log.Debug("controlMsg: %+v", msg)
+
+		switch msg.Action {
+		case requestClientSession:
+			go func() {
+				if err := c.proxy(msg.LocalPort); err != nil {
+					fmt.Fprintf(os.Stderr, "proxy err: '%s'\n", err)
+				}
+			}()
+		}
+	}
+}
+
+func (c *Client) proxy(port string) error {
+	conn, err := c.session.Open()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	if port == "0" {
+		port = "80"
+	}
+
+	localAddr := "127.0.0.1:" + port
+	if c.config.LocalAddr != "" {
+		localAddr = c.config.LocalAddr
+	}
+
+	local, err := newLocalDial(localAddr)
+	if err != nil {
+		return err
+	}
+
+	return <-c.join(local, conn)
+}
+
+func newLocalDial(addr string) (net.Conn, error) {
+	c, err := net.Dial("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetDeadline(time.Time{})
+	return c, nil
+}
+
+func (c *Client) join(local, remote net.Conn) chan error {
+	errc := make(chan error, 2)
+
+	transfer := func(dst, src net.Conn) {
+		_, err := io.Copy(dst, src)
+		if err != nil {
+			c.log.Error("copy error: %s", err.Error())
+		}
+
+		if err := src.Close(); err != nil {
+			c.log.Error("Close error: %s", err.Error())
+		}
+
+		errc <- err
+	}
+
+	go transfer(local, remote)
+	go transfer(remote, local)
+
+	return errc
 }

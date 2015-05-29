@@ -36,12 +36,16 @@ func (h *Handler) Push(u *url.URL, header http.Header, request services.ServiceI
 		return NewBadRequest(err)
 	}
 
-	_, err := h.prepareRequest(name, token, &request)
+	pr, err := h.prepareRequest(name, token, &request)
 	if err == services.ErrServiceNotFound {
 		return NewNotFound(services.ErrServiceNotFound)
 	}
 
 	if err != nil {
+		return NewBadRequest(err)
+	}
+
+	if err := h.push(token, pr); err != nil {
 		return NewBadRequest(err)
 	}
 

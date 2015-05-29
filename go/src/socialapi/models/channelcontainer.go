@@ -203,11 +203,7 @@ func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
 			return nil
 		}
 
-		if cc.Channel.TypeConstant != Channel_TYPE_PINNED_ACTIVITY &&
-			cc.Channel.TypeConstant != Channel_TYPE_PRIVATE_MESSAGE &&
-			cc.Channel.TypeConstant != Channel_TYPE_TOPIC &&
-			cc.Channel.TypeConstant != Channel_TYPE_COLLABORATION &&
-			cc.Channel.TypeConstant != Channel_TYPE_ANNOUNCEMENT {
+		if !cr.Channel.ShowUnreadCount() {
 			// do not calculate for other channels
 			return nil
 		}

@@ -185,51 +185,45 @@ Admin main styles
 
 
     &.permissions
-      margin-top                62px
 
       .permissions-view
         borderBox()
-        overflow                visible
+        overflow                auto
 
         .button-field
           .kdbutton
             margin-right        6px
             fr()
 
-        form > .permissions-header .permissions-header
-          height                18px
-
-        form > .permissions-header:first-child
+        .header
           z-index               99
-          width                 730px
+          width                 714px
           position              fixed
-          background            none
           padding               0
-          margin-top            -62px
           height                62px
           line-height           62px
           box-shadow            inset 0 -3px 0 #f2f2f2
           border                none
           background            #fff
 
-
           .header-item
-            text-align          center !important
-            border              none
-            margin              22px 0 0 0
-            background          none
+            text-align          center
             color               #969696
-            opacity             0.99
             font-size           14px
-            font-weight         600
+            width               140px
+            fl()
+
+            &:first-child
+              margin-left       135px
 
         .permissions-form
           overflow              visible
+          margin-top            62px
 
           .switcher
             text-align          center
             float               left
-            width               145px
+            width               140px
 
             .koding-on-off
               display           inline-block
@@ -250,7 +244,7 @@ Admin main styles
                 borderBox()
                 line-height     18px
                 display         inline-block
-                width           143px
+                width           140px
                 text-align      left
                 padding         0 16px
                 overflow        hidden
@@ -726,7 +720,7 @@ Admin main styles
         margin-top          80px
 
       canvas
-        margin-top        7px
+        margin-top          7px
 
 
 // Topic tab styling
@@ -943,9 +937,15 @@ Admin main styles
     padding                 0
 
   .main-loader
-    top                     45%
+    top                     42%
     height                  auto
+    width                   100%
+    text-align              center
     abs()
+
+    .text
+      margin-top            10px
+
 
   button.solid.compact.nav
     right                   0
@@ -1041,23 +1041,25 @@ Admin main styles
       margin-top            6px
       min-width             162px
 
-  .output-view code
-    max-height              300px
-    overflow                auto
-
   button
     &[disabled]
       opacity               .5
 
-  .step-creds
-    .kdformview
-      margin-top            20px
-      .kdlabel
-        line-height         39px
-        min-width           120px
-        fl()
+  .kdformview
+    margin-top              20px
+    .kdlabel
+      line-height           39px
+      min-width             160px
+      fl()
+
+  .step-define-stack
+    height                  calc(100% \- 100px)
+    .editor-view
+      border-radius         4px
+      height                calc(100% \- 100px)
 
   .credential-item
+  .stacktemplate-item
     padding                 10px 0
     font-size               14px
     border-bottom           1px solid #ddd
@@ -1069,28 +1071,40 @@ Admin main styles
         pointer-events      auto
 
     .credential-info
+    .stacktemplate-info
       padding               10px 0
 
       .title
         font-weight         bold
-        margin-left         10px
         fl()
 
-      .provider
+      .tag
         padding             0 3px
         font-size           12px
         background-color    #ddd
+        margin-right        10px
+        fl()
+
+      .inuse-tag
+        font-size           10px
+        padding             0 4px
+        line-height         13px
+        margin-top          5px
+        margin-left         5px
+        background-color    #02A74D
+        color               #FFFFFF
+        cursor              default
         fl()
 
     .warning-message
-      background          #FCFCE9
-      border              1px solid #D4D4A9
-      border-radius       4px
-      padding             5px
-      font-size           12px
-      color               #888869
-      margin-top          3px
-      text-align          center
+      background            #FCFCE9
+      border                1px solid #D4D4A9
+      border-radius         4px
+      padding               5px
+      font-size             12px
+      color                 #888869
+      margin-top            3px
+      text-align            center
 
     .buttons
       abs                   16px 0px

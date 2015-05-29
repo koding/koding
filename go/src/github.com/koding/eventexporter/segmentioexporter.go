@@ -28,6 +28,10 @@ func (s *SegmentIOExporter) Send(event *Event) error {
 	return s.Client.Track(trackEvent)
 }
 
+func (s *SegmentIOExporter) Close() error {
+	return s.Client.Close()
+}
+
 func buildTrack(event *Event) (*analytics.Track, error) {
 	if event.User == nil {
 		return nil, ErrSegmentIOUsernameEmpty

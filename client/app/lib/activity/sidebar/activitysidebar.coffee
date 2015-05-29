@@ -15,17 +15,19 @@ ChatSearchModal           = require './chatsearchmodal'
 ActivitySideView          = require './activitysideview'
 KDCustomHTMLView          = kd.CustomHTMLView
 SidebarTopicItem          = require './sidebartopicitem'
+fetchChatChannels         = require 'activity/util/fetchChatChannels'
 SidebarPinnedItem         = require './sidebarpinneditem'
 KDNotificationView        = kd.NotificationView
 SidebarMessageItem        = require './sidebarmessageitem'
 JTreeViewController       = kd.JTreeViewController
 MoreWorkspacesModal       = require './moreworkspacesmodal'
+fetchChatChannelCount     = require 'activity/util/fetchChatChannelCount'
 isChannelCollaborative    = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList    = require './sidebarownmachineslist'
 environmentDataProvider   = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList = require './sidebarsharedmachineslist'
 ChannelActivitySideView   = require './channelactivitysideview'
-
+isFeatureEnabled          = require 'app/util/isFeatureEnabled'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -199,10 +201,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       return showError err  if err
 
       index = switch data.typeConstant
-        when 'topic'        then 2
-        when 'group'        then 2
-        when 'announcement' then 2
+        when 'topic'          then 2
+        when 'group'          then 2
+        when 'announcement'   then 2
         else 0
+
+      if isFeatureEnabled('botchannel') and data.typeConstant is 'privatemessage'
+        index = 1
 
       if isChannelCollaborative data
         @setWorkspaceUnreadCount data, unreadCount
@@ -333,7 +338,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     section = switch type
       when 'topic', 'announcement'  then @sections.channels
-      when 'privatemessage'         then @sections.messages
+      when 'privatemessage','bot'   then @sections.messages
       else {}
 
     return section.listController
@@ -622,11 +627,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         title    : ' '
         href     : groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
-        kd.singletons.socialapi.message.fetchPrivateMessages
-          limit  : limit
-        , callback
+        fetchChatChannels { limit }, callback
       countSource: (callback) ->
-        remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
+        fetchChatChannelCount {}, callback
 
     @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
 

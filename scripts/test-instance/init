@@ -16,6 +16,8 @@ export NIGHTWATCH_OPTIONS="--verbose"
 
 service nginx stop
 
+ulimit -n 10240
+
 cd $REPOSITORY_PATH
 
 scripts/wercker/install-node-modules koding
