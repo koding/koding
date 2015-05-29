@@ -722,7 +722,7 @@ module.exports = class JUser extends jraphical.Module
 
       # check if user's email domain is in allowed domains
       checkWithDomain = (groupName, email, callback) ->
-        JGroup.one {slug: groupName }, (err, group) =>
+        JGroup.one { slug: groupName }, (err, group) =>
           return callback err  if err
           # yes weird, but we are creating user before creating group
           return callback null, { isEligible: yes } if not group
@@ -748,32 +748,36 @@ module.exports = class JUser extends jraphical.Module
         # last resort, check if email domain is under allowed domains
         return checkWithDomain groupName, email, callback
 
-  @addToGroup = (account, slug, email, invitation, callback)->
+  @addToGroup = (account, slug, email, invitation, callback) ->
     options = { email: email, groupName: slug }
     options.invitationToken = invitation.code if invitation?.code
 
-    JUser.verifyEnrollmentEligibility options, (err, res)=>
+    JUser.verifyEnrollmentEligibility options, (err, res) =>
       return callback err  if err
       return callback createKodingError 'malformed response' if not res
       return callback createKodingError 'can not join to group' if not res.isEligible
 
       # fetch group that we are gonna add account in
-      JGroup.one {slug}, (err, group) ->
+      JGroup.one { slug }, (err, group) ->
         return callback err  if err
-        return callback null  if not group
+        return callback null if not group
 
-        group.approveMember account, (err)->
+        group.approveMember account, (err) ->
           return callback err  if err
+
           # do not forget to redeem invitation
-          return invitation.accept account, callback if invitation
+          return invitation.accept account, callback  if invitation
 
-          return callback null
+          JInvitation.one { email, groupName:slug }, (err, invitation) ->
+            # if we got error or invitation doesnt exist, just return
+            return callback null if err or not invitation
+            return invitation.accept account, callback
 
-  @addToGroups = (account, slugs, email, invitation, callback)->
+  @addToGroups = (account, slugs, email, invitation, callback) ->
     slugs.push invitation.groupName if invitation?.groupName
     slugs = uniq slugs # clean up slugs
-    queue = slugs.map (slug)=>=>
-      @addToGroup account, slug, email, invitation, (err)->
+    queue = slugs.map (slug) =>=>
+      @addToGroup account, slug, email, invitation, (err) ->
         return callback err  if err
         queue.fin()
 
