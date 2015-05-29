@@ -257,7 +257,11 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/go-webserver -c #{configName}"
       nginx             :
-        locations       : [ location: "~^/IDE/.*" ]
+        locations       : [
+          { location    : "/-/token/get" }
+          { location    : "/-/token/validate" }
+          { location    : "~^/IDE/.*" }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
 

@@ -261,8 +261,9 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/go-webserver -c #{configName}"
       nginx             :
         locations       : [
-          location      : "~^/IDE/.*"
-          auth          : yes
+          { location    : "/-/token/get" }
+          { location    : "/-/token/validate" }
+          { location    : "~^/IDE/.*", auth: yes }
       ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
