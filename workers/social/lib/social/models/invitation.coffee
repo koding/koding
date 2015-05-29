@@ -134,10 +134,9 @@ module.exports = class JInvitation extends jraphical.Module
       $query = ///^#{query}///
       delete selector.query
 
-
       selector = extend selector, { $or : [
-          { 'name'  : $query }
-          { 'email' : $query }
+          { 'firstName' : $query }
+          { 'email'     : $query }
         ]
       }
 
