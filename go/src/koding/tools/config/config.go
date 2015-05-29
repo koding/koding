@@ -290,6 +290,12 @@ type RuntimeOptions struct {
 	Tokbox               struct {
 		ApiKey string `json:"apiKey"`
 	} `json:"tokbox"`
+	DisabledFeatures struct {
+		Moderation bool `json:"moderation"`
+		Teams      bool `json:"teams"`
+		BotChannel bool `json:"botchannel"`
+	} `json:"disabledFeatures"`
+	ContentRotatorUrl string `json:"contentRotatorUrl"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
