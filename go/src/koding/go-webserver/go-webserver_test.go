@@ -2,7 +2,6 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"koding/tools/config"
 
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
@@ -26,10 +25,6 @@ func init() {
 
 		return conf
 	}()
-
-	conf = &config.Config{
-		SocialApi: struct{ ProxyUrl string }{},
-	}
 
 	Log.SetLevel(logging.CRITICAL)
 

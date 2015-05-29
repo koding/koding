@@ -55,6 +55,8 @@ func main() {
 	addVersionToShareUrls(version)
 
 	http.HandleFunc("/", HomeHandler)
+	http.HandleFunc("/-/token/get", TokenGetHandler)
+	http.HandleFunc("/-/token/confirm", TokenConfirmHandler)
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 
