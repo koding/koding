@@ -3,9 +3,14 @@ package topic
 import (
 	"fmt"
 	"socialapi/models"
+	"time"
 
 	"github.com/koding/bongo"
 )
+
+// sleepTimeForUpdateInitialChannelIds holds sleeping tim per processCount, with current
+// code, it may generate at most 100 events
+var sleepTimeForUpdateInitialChannelIds = time.Second * 1
 
 // updateInitialChannelIds updates the message's initial channel id properties,
 // we are already updating the channel_message's initial channel id while
@@ -72,6 +77,8 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 				continue
 			}
 			cm.AfterUpdate() // do not forget to send updated event
+
+			time.Sleep(sleepTimeForUpdateInitialChannelIds)
 		}
 	}
 

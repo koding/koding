@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"socialapi/models"
 	"strings"
+	"time"
 
 	"github.com/koding/bongo"
 )
+
+// sleepTimeForMoveMessages holds sleeping tim per processCount, with current
+// code, processMessageLists will generate at least 300 events to system
+var sleepTimeForMoveMessages = time.Second * 3
 
 // moveMessages moves the leaf channel's messages to the root node, while moving
 // them first iterates over the chanel_message_list and process them one by one,
@@ -81,6 +86,9 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 		if err != nil {
 			errors = append(errors, err)
 		}
+
+		// sleep for every `processCount` operation
+		time.Sleep(sleepTimeForMoveMessages) // poor mans throttling strategy
 	}
 
 	if len(errors) != 0 {
@@ -127,7 +135,6 @@ func (c *Controller) processMessageLists(
 			continue
 		}
 
-		isInRootChannel, _ := models.NewChannelMessageList().IsInChannel(cm.Id, rootChannel.Id)
 		if isInRootChannel {
 			// we are deleting the leaf with an unscoped because we dont need the
 			// data in our db anymore
