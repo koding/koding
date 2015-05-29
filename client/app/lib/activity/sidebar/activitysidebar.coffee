@@ -7,6 +7,7 @@ Promise                   = require 'bluebird'
 sinkrow                   = require 'sinkrow'
 Machine                   = require 'app/providers/machine'
 FSHelper                  = require '../../util/fs/fshelper'
+isKoding                  = require 'app/util/isKoding'
 showError                 = require '../../util/showError'
 groupifyLink              = require '../../util/groupifyLink'
 ComputeHelpers            = require 'app/providers/computehelpers'
@@ -99,6 +100,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
       .on 'MachineBuilt',              @bound 'machineBuilt'
+      .on 'StacksNotConfigured',       @bound 'addStackWarning'
+
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
@@ -283,7 +286,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @removeItem id
 
-    @sharedMachinesList.removeWorkspaceByChannelId id
+    @machineListsByName['shared']?.removeWorkspaceByChannelId id
 
     # TODO update participants in sidebar
     # TODO I have added these lines for channel data synchronization,
@@ -506,6 +509,19 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     environmentDataProvider.fetch (data) => callback data
 
 
+  addStackWarning: ->
+
+    return  if isKoding()
+    return  @stackWarning.show()  if @stackWarning?
+
+    @stackWarning = new KDCustomHTMLView
+      cssClass : 'stack-warning'
+      partial  : "Compute Stacks has not been configured yet for this Team.
+                  <br/><a href='/Admin/Stacks'>click here</a> to setup now."
+
+    @machinesWrapper.addSubView @stackWarning, null, shouldPrepend = yes
+
+
   addMachineList: (expandedBoxUIds) ->
 
     @machineLists = []
@@ -515,8 +531,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @addSubView @machinesWrapper = new KDCustomHTMLView
         cssClass: 'machines-wrapper'
 
-    @ownMachinesList    = @createMachineList 'own'
-    @sharedMachinesList = @createMachineList 'shared'
+    if isKoding()
+      @createMachineList 'own'
+      @createMachineList 'shared'
 
     if environmentDataProvider.hasData()
       @addMachines_ environmentDataProvider.get(), expandedBoxUIds
@@ -538,8 +555,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @selectWorkspace { machine, workspace }  if machine and workspace
 
 
-  addBoxes: (machineList, data) ->
+  addBoxes: (listType, data) ->
 
+    return  if not data or data.length is 0
+
+    machineList = @getMachineList listType
     machineList.addMachineBoxes data
     machineList.on 'ListStateChanged', @bound 'saveSidebarStateToLocalStorage'
 
@@ -549,8 +569,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     { shared, collaboration } = data
     sharedData = shared.concat collaboration
 
-    @addBoxes @ownMachinesList, data.own
-    @addBoxes @sharedMachinesList, sharedData
+    @addBoxes 'own'    , data.own
+    @addBoxes 'shared' , sharedData
 
     if Object.keys(expandedBoxUIds).length is 0
       expandedBoxUIds = @localStorageController.getValue('SidebarState') or {}
@@ -565,6 +585,12 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   saveSidebarStateToLocalStorage: ->
 
     @localStorageController.setValue 'SidebarState', @getExpandedBoxUIds()
+
+
+  getMachineList: (type) ->
+
+    return  list  if list = @machineListsByName[type]
+    return  @createMachineList type
 
 
   createMachineList: (type, options = {}, data = []) ->
