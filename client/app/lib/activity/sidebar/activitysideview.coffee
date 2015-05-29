@@ -104,7 +104,7 @@ module.exports = class ActivitySideView extends JView
       botChannels = socialapi.getPrefetchedData 'bot'
       items.unshift botChannels  if botChannels
 
-    if items?.length
+    if items.length
     then @renderItems null, items
     else @reload()
 
