@@ -67,22 +67,22 @@ func DeleteUser(userId bson.ObjectId) error {
 }
 
 func DeleteUsersByUsername(username string) error {
-	accQuery := func(c *mgo.Collection) error {
+	userQuery := func(c *mgo.Collection) error {
 		_, err := c.RemoveAll(bson.M{"username": username})
 		return err
 	}
 
-	err := modelhelper.Mongo.Run(modelhelper.UserColl, accQuery)
+	err := modelhelper.Mongo.Run(modelhelper.UserColl, userQuery)
 	if err != nil {
 		return err
 	}
 
-	userQuery := func(c *mgo.Collection) error {
+	accQuery := func(c *mgo.Collection) error {
 		_, err := c.RemoveAll(bson.M{"profile.nickname": username})
 		return err
 	}
 
-	return modelhelper.Mongo.Run(modelhelper.UserColl, userQuery)
+	return modelhelper.Mongo.Run(modelhelper.AccountsColl, accQuery)
 }
 
 func DeleteUsersAndMachines(username string) error {
