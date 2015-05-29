@@ -2,7 +2,7 @@ CustomLinkView  = require './../core/customlinkview'
 MainHeaderView  = require './../core/mainheaderview'
 JView           = require './../core/jview'
 FooterView      = require './../home/footerview'
-TeamsSignupForm = require './teamsignupform'
+TeamsSignupForm = require './teamssignupform'
 
 
 module.exports = class TeamsView extends JView
