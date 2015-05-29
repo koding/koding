@@ -212,7 +212,8 @@ module.exports = class StacksCustomViews extends CustomViews
   _.assign @views,
 
 
-    loader: (message) =>
+    mainLoader: (message) =>
+
       container = @views.container 'main-loader'
       container.addSubView new kd.LoaderView
         showLoader : yes
@@ -302,7 +303,7 @@ module.exports = class StacksCustomViews extends CustomViews
                              Learn more about stacks"
           button          :
             title         : 'Create New'
-            cssClass      : 'solid medium green'
+            cssClass      : 'solid compact green action'
             callback      : -> callback null
         stackTemplateList :
           group           : currentGroup
@@ -407,7 +408,7 @@ module.exports = class StacksCustomViews extends CustomViews
       views     = @addTo container,
         stepsHeaderView : 3
         container       :
-          loader        : 'Checking bootstrap status...'
+          mainLoader    : 'Checking bootstrap status...'
         navCancelButton :
           title         : '< Select another credential'
           callback      : -> cancelCallback data
@@ -499,7 +500,7 @@ module.exports = class StacksCustomViews extends CustomViews
       views = @addTo container,
         stepsHeaderView : 5
         container       :
-          loader        : 'Processing template...'
+          mainLoader    : 'Processing template...'
 
       handleCheckTemplate {stackTemplate}, (err, response) =>
 
