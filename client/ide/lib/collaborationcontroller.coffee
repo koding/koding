@@ -309,7 +309,8 @@ module.exports = CollaborationController =
     return  unless message.payload
 
     { systemType } = message.payload
-    systemType or= message.payload['system-message']
+    systemType   or= message.payload['system-message']
+    
     if systemType is 'start'
       if @stateMachine.state is 'NotStarted'
         @stateMachine.transition 'Loading'
