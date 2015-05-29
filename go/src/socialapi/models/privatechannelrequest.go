@@ -9,6 +9,14 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+const (
+	PrivateMessageSystem_TYPE_INVITE = "invite"
+	PrivateMessageSystem_TYPE_JOIN   = "join"
+	PrivateMessageSystem_TYPE_LEAVE  = "leave"
+	PrivateMessageSystem_TYPE_REJECT = "reject"
+	PrivateMessageSystem_TYPE_KICK   = "kick"
+)
+
 type PrivateChannelRequest struct {
 	Body            string      `json:"body"`
 	Payload         gorm.Hstore `json:"payload,omitempty"`
@@ -22,53 +30,14 @@ type PrivateChannelRequest struct {
 	TypeConstant    string `json:"type"`
 }
 
-type ChatActivity interface {
-	GetType() string
-	GetBody(*PrivateChannelRequest) string
-}
+func (p *PrivateChannelRequest) SetSystemMessageType(systemType string) {
+	if p.Payload == nil {
+		p.Payload = gorm.Hstore{}
+	}
 
-type ChatMessage struct{}
-
-type ChatJoin struct {
-	AddedBy int64
-}
-
-type ChatLeave struct{}
-
-type ChatInit struct {
-	InitialParticipants []int64
-}
-
-func (cm ChatMessage) GetType() string {
-	return ChannelMessage_TYPE_PRIVATE_MESSAGE
-}
-
-func (cm ChatMessage) GetBody(p *PrivateChannelRequest) string {
-	return p.Body
-}
-
-func (cm ChatJoin) GetType() string {
-	return ChannelMessage_TYPE_JOIN
-}
-
-func (cm ChatJoin) GetBody(p *PrivateChannelRequest) string {
-	return "join"
-}
-
-func (cm ChatLeave) GetType() string {
-	return ChannelMessage_TYPE_LEAVE
-}
-
-func (cm ChatLeave) GetBody(p *PrivateChannelRequest) string {
-	return "leave"
-}
-
-func (cm ChatInit) GetType() string {
-	return ChannelMessage_TYPE_JOIN
-}
-
-func (cm ChatInit) GetBody(p *PrivateChannelRequest) string {
-	return "join"
+	if systemType != "" {
+		p.Payload["systemType"] = &systemType
+	}
 }
 
 func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
@@ -110,17 +79,35 @@ func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 		}
 	}
 
-	p.AddInitActivity(c, participantIds)
+	return p.buildInitContainer(c, participantIds)
+}
 
-	// create private message
-	cmc, err := p.AddMessage(c)
+func (p *PrivateChannelRequest) buildInitContainer(c *Channel, participantIds []int64) (*ChannelContainer, error) {
+
+	np := &PrivateChannelRequest{}
+	*np = *p
+	lastMessage, err := p.AddInitActivity(c, participantIds)
+	if err != nil {
+		return nil, err
+	}
+
+	if np.Body != "" {
+		var err error
+		// create private message
+		lastMessage, err = np.AddMessage(c)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cmc, err := p.buildContainer(c, lastMessage)
 	if err != nil {
 		return nil, err
 	}
 
 	participantOldIds, err := FetchAccountOldsIdByIdsFromCache(participantIds)
 	if err != nil {
-		// we can ignore the error, wont cause trouble for the user
+		return nil, err
 	}
 
 	// set participant count
@@ -174,7 +161,12 @@ func (p *PrivateChannelRequest) Send() (*ChannelContainer, error) {
 		return nil, err
 	}
 
-	return p.AddMessage(c)
+	cm, err := p.AddMessage(c)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.buildContainer(c, cm)
 }
 
 func (p *PrivateChannelRequest) Clone() *PrivateChannelRequest {
@@ -184,47 +176,53 @@ func (p *PrivateChannelRequest) Clone() *PrivateChannelRequest {
 	return clone
 }
 
-func (p *PrivateChannelRequest) AddMessage(c *Channel) (*ChannelContainer, error) {
-	cm, err := p.createActivity(c, ChatMessage{})
-	if err != nil {
-		return nil, err
-	}
-
-	return p.buildContainer(c, cm)
+func (p *PrivateChannelRequest) AddMessage(c *Channel) (*ChannelMessage, error) {
+	return p.createActivity(c, ChannelMessage_TYPE_PRIVATE_MESSAGE)
 }
 
 func (p *PrivateChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error {
-	cj := ChatJoin{}
-	if p.AccountId != addedBy {
-		cj.AddedBy = addedBy
+	if p.AccountId != addedBy && addedBy != 0 {
+		addedByStr := strconv.FormatInt(addedBy, 10)
+		p.Payload["addedBy"] = &addedByStr
 	}
 
-	_, err := p.createActivity(c, cj)
+	_, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
 
 	return err
 }
 
 func (p *PrivateChannelRequest) AddLeaveActivity(c *Channel) error {
-	_, err := p.createActivity(c, ChatLeave{})
+	_, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
 
 	return err
 }
 
-func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int64) error {
-	ci := ChatInit{}
+func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int64) (*ChannelMessage, error) {
 	if len(participantIds) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	ci.InitialParticipants = participantIds
+	if p.Payload == nil {
+		p.Payload = gorm.Hstore{}
+	}
 
-	_, err := p.createActivity(c, ci)
+	if len(participantIds) > 0 {
+		payload := formatParticipantIds(participantIds)
+		p.Payload["initialParticipants"] = &payload
+		activity := PrivateMessageSystem_TYPE_JOIN
+		p.Payload["systemType"] = &activity
+	}
 
-	return err
+	cm, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
+	if err != nil {
+		return nil, err
+	}
+
+	return cm, nil
 }
 
-func (p *PrivateChannelRequest) createActivity(c *Channel, ca ChatActivity) (*ChannelMessage, error) {
-	cm, err := p.createMessage(c.Id, ca)
+func (p *PrivateChannelRequest) createActivity(c *Channel, typeConstant string) (*ChannelMessage, error) {
+	cm, err := p.createMessage(c.Id, typeConstant)
 	if err != nil {
 		return nil, err
 	}
@@ -232,8 +230,11 @@ func (p *PrivateChannelRequest) createActivity(c *Channel, ca ChatActivity) (*Ch
 	// add message to the channel
 	cm.ClientRequestId = p.ClientRequestId
 	_, err = c.AddMessage(cm)
+	if err != nil {
+		return nil, err
+	}
 
-	return cm, err
+	return cm, nil
 }
 
 func (p *PrivateChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*ChannelContainer, error) {
@@ -321,31 +322,24 @@ func prependCreatorId(participants []int64, authorId int64) []int64 {
 	return participantIds
 }
 
-func (p *PrivateChannelRequest) createMessage(channelId int64, ca ChatActivity) (*ChannelMessage, error) {
+func getBody(p *PrivateChannelRequest, typeConstant string) string {
+	switch typeConstant {
+	case ChannelMessage_TYPE_PRIVATE_MESSAGE:
+		return p.Body
+	case ChannelMessage_TYPE_SYSTEM:
+		return "system"
+	}
+
+	return ""
+}
+
+func (p *PrivateChannelRequest) createMessage(channelId int64, typeConstant string) (*ChannelMessage, error) {
 	cm := NewChannelMessage()
-	cm.Body = ca.GetBody(p)
-	cm.TypeConstant = ca.GetType()
+	cm.Body = getBody(p, typeConstant)
+	cm.TypeConstant = typeConstant
 	cm.AccountId = p.AccountId
 	cm.InitialChannelId = channelId
 	cm.Payload = p.Payload
-
-	switch ca.(type) {
-	case ChatJoin:
-		if ca.(ChatJoin).AddedBy != 0 {
-			cm.Payload = gorm.Hstore{}
-			addedBy := strconv.FormatInt(ca.(ChatJoin).AddedBy, 10)
-
-			cm.Payload["addedBy"] = &addedBy
-		}
-	case ChatInit:
-		initialParticipants := ca.(ChatInit).InitialParticipants
-		if len(initialParticipants) > 0 {
-			cm.Payload = gorm.Hstore{}
-
-			payload := formatParticipantIds(initialParticipants)
-			cm.Payload["initialParticipants"] = &payload
-		}
-	}
 
 	if err := cm.Create(); err != nil {
 		return nil, err
