@@ -15,6 +15,7 @@ import (
 // return error whever we encounter one
 func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 	var errors []error
+	log := c.log.New("rootId", cl.RootId, "leafId", cl.LeafId)
 
 	for {
 
@@ -40,7 +41,7 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 
 		// we processed all channel participants, no need to continue anymore
 		if len(channelParticipants) == 0 {
-			c.log.Info("doesnt have any participants to process")
+			log.Info("doesnt have any participants to process")
 			break
 		}
 

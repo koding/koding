@@ -18,15 +18,17 @@ import (
 // channel, it has InitialChannelId, we should replace it with the parent's
 // channel id
 func (c *Controller) moveMessages(cl *models.ChannelLink) error {
+	log := c.log.New("rootId", cl.RootId, "leafId", cl.LeafId)
+
 	rootChannel, err := models.Cache.Channel.ById(cl.RootId)
 	if err != nil {
-		c.log.Critical("requested root channel doesnt exist. ChannelId: %d", cl.RootId)
+		log.Critical("requested root channel doesnt exist.")
 		return nil
 	}
 
 	leafChannel, err := models.Cache.Channel.ById(cl.LeafId)
 	if err != nil {
-		c.log.Critical("requested leaf channel doesnt exist. ChannelId: %d", cl.LeafId)
+		log.Critical("requested leaf channel doesnt exist.")
 		return nil
 	}
 
@@ -64,6 +66,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 
 		// we processed all channel messages. or no message exits
 		if len(messageLists) == 0 {
+			log.Info("doesnt have any message lists for moving")
 			break
 		}
 
@@ -95,6 +98,8 @@ func (c *Controller) processMessageLists(
 	toBeReplacedSourceString string,
 	toBeReplacedTargetString string,
 ) error {
+	log := c.log.New("rootId", cl.RootId, "leafId", cl.LeafId)
+
 	var erroredMessageLists []models.ChannelMessageList
 	m := models.ChannelMessageList{}
 
@@ -108,8 +113,7 @@ func (c *Controller) processMessageLists(
 		}
 
 		if err == bongo.RecordNotFound {
-			c.log.Critical("we do have inconsistent data in our db, message with id: %d doesnt exist in channel_message table but we have referance in our channel_message_list table id: %d", messageList.MessageId, messageList.Id)
-
+			log.Critical("we do have inconsistent data in our db, message with id: %d doesnt exist in channel_message table but we have referance in our channel_message_list table id: %d", messageList.MessageId, messageList.Id)
 			continue
 		}
 
@@ -117,7 +121,7 @@ func (c *Controller) processMessageLists(
 		if cl.DeleteMessages {
 			err := cm.DeleteMessageAndDependencies(true)
 			if err != nil {
-				c.log.Error("Err while deleting the mesage %s", err.Error())
+				log.Error("Err while deleting the mesage %s", err.Error())
 				erroredMessageLists = append(erroredMessageLists, messageLists[i])
 			}
 			continue
@@ -133,7 +137,7 @@ func (c *Controller) processMessageLists(
 				Table(m.TableName()).
 				Delete(messageList).
 				Error; err != nil {
-				c.log.Error("Err while deleting the channel message list %s", err.Error())
+				log.Error("Err while deleting the channel message list %s", err.Error())
 				erroredMessageLists = append(erroredMessageLists, messageLists[i])
 			}
 
@@ -148,7 +152,7 @@ func (c *Controller) processMessageLists(
 				Model(&messageList).
 				UpdateColumn("channel_id", cl.RootId).
 				Error; err != nil && !models.IsUniqueConstraintError(err) {
-				c.log.Error("Err while updating the mesage %s", err.Error())
+				log.Error("Err while updating the mesage %s", err.Error())
 				erroredMessageLists = append(erroredMessageLists, messageLists[i])
 				continue
 			}
@@ -167,7 +171,7 @@ func (c *Controller) processMessageLists(
 			Table(cm.TableName()).
 			Model(*cm). // should not be a pointer, why? dont ask me for now
 			Update(cm).Error; err != nil {
-			c.log.Error("Err while updating the mesage %s", err.Error())
+			log.Error("Err while updating the mesage %s", err.Error())
 			erroredMessageLists = append(erroredMessageLists, messageLists[i])
 			continue
 		}

@@ -16,6 +16,7 @@ import (
 // the messages has group's channel id as initial_channel_id but this code is a
 // guardian for any kind of posiible leak and future channel based requirements
 func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
+	log := c.log.New("rootId", cl.RootId, "leafId", cl.LeafId)
 
 	var erroredMessages []models.ChannelMessage
 
@@ -40,6 +41,7 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 
 		// we processed all channel messages. or no message exits
 		if len(messages) == 0 {
+			log.Info("doesnt have any message for updating initial channel id")
 			break
 		}
 
@@ -65,7 +67,7 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 				Table(cm.TableName()).
 				Model(*cm). // should not be a pointer, why? dont ask me for now
 				Update(cm).Error; err != nil {
-				c.log.Error("Err while updating the mesage %s", err.Error())
+				log.Error("Err while updating the mesage %s", err.Error())
 				erroredMessages = append(erroredMessages, messages[i])
 				continue
 			}
