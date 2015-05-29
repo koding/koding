@@ -100,6 +100,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
       .on 'MachineBuilt',              @bound 'machineBuilt'
+      .on 'StacksNotConfigured',       @bound 'addStackWarning'
+
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
@@ -505,6 +507,19 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   fetchEnvironmentData: (callback) ->
 
     environmentDataProvider.fetch (data) => callback data
+
+
+  addStackWarning: ->
+
+    return  if isKoding()
+    return  @stackWarning.show()  if @stackWarning?
+
+    @stackWarning = new KDCustomHTMLView
+      cssClass : 'stack-warning'
+      partial  : "Compute Stacks has not been configured yet for this Team.
+                  <br/><a href='/Admin/Stacks'>click here</a> to setup now."
+
+    @machinesWrapper.addSubView @stackWarning, null, shouldPrepend = yes
 
 
   addMachineList: (expandedBoxUIds) ->
