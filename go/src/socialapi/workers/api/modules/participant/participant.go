@@ -152,7 +152,7 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 			return response.NewBadRequest(err)
 		}
 
-		if err := addLeaveActivity(query.Id, participants[i]); err != nil {
+		if err := addLeaveActivity(query.Id, query.AccountId, participants[i]); err != nil {
 			return response.NewBadRequest(err)
 		}
 	}
@@ -336,9 +336,7 @@ func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 		return response.NewBadRequest(err)
 	}
 
-	// nasty hack
-	cp.StatusConstant = models.ChannelParticipant_STATUS_BLOCKED
-	if err := addLeaveActivity(query.Id, cp); err != nil {
+	if err := addLeaveActivity(query.Id, ctx.Client.Account.Id, cp); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -461,15 +459,17 @@ func addJoinActivity(channelId int64, participant *models.ChannelParticipant, ad
 	}
 
 	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
-	pmr.SetSystemTypeByParticipant(participant)
 	if participant.StatusConstant == models.ChannelParticipant_STATUS_REQUEST_PENDING {
+		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_INVITE)
 		addedBy = 0
+	} else {
+		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_JOIN)
 	}
 
 	return pmr.AddJoinActivity(c, addedBy)
 }
 
-func addLeaveActivity(channelId int64, participant *models.ChannelParticipant) error {
+func addLeaveActivity(channelId, accountId int64, participant *models.ChannelParticipant) error {
 	c, err := fetchChannelWithValidation(channelId)
 	if err != nil {
 		if err == ErrSkipActivity {
@@ -480,7 +480,11 @@ func addLeaveActivity(channelId int64, participant *models.ChannelParticipant) e
 	}
 
 	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
-	pmr.SetSystemTypeByParticipant(participant)
+	if accountId == participant.AccountId {
+		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_LEAVE)
+	} else {
+		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_KICK)
+	}
 
 	return pmr.AddLeaveActivity(c)
 }

@@ -14,6 +14,7 @@ const (
 	PrivateMessageSystem_TYPE_JOIN   = "join"
 	PrivateMessageSystem_TYPE_LEAVE  = "leave"
 	PrivateMessageSystem_TYPE_REJECT = "reject"
+	PrivateMessageSystem_TYPE_KICK   = "kick"
 )
 
 type PrivateChannelRequest struct {
@@ -29,21 +30,9 @@ type PrivateChannelRequest struct {
 	TypeConstant    string `json:"type"`
 }
 
-func (p *PrivateChannelRequest) SetSystemTypeByParticipant(participant *ChannelParticipant) {
+func (p *PrivateChannelRequest) SetSystemMessageType(systemType string) {
 	if p.Payload == nil {
 		p.Payload = gorm.Hstore{}
-	}
-
-	var systemType string
-	switch participant.StatusConstant {
-	case ChannelParticipant_STATUS_ACTIVE:
-		systemType = PrivateMessageSystem_TYPE_JOIN
-	case ChannelParticipant_STATUS_REQUEST_PENDING:
-		systemType = PrivateMessageSystem_TYPE_INVITE
-	case ChannelParticipant_STATUS_LEFT:
-		systemType = PrivateMessageSystem_TYPE_LEAVE
-	case ChannelParticipant_STATUS_BLOCKED:
-		systemType = PrivateMessageSystem_TYPE_REJECT
 	}
 
 	if systemType != "" {
