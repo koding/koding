@@ -1,0 +1,64 @@
+#!/usr/bin/env coffee
+
+###
+# this file runs shell-scripts on the test instance(s) via ssh
+###
+
+{ exec }               = require 'child_process'
+{ getNthInstanceData } = require './helper'
+
+async                  = require 'async'
+shellScripts           = require './shell-scripts'
+
+
+unless instanceData = process.argv[2]
+  console.error 'error: instance data file is not specified'
+  process.exit 1
+  
+  
+addEventListenersToChildProcess = (child) ->
+  
+  child.stdout.on 'data', (data) ->
+    process.stdout.write  data
+
+  child.stderr.on 'data', (data) ->
+    process.stdout.write  data
+  
+  child.on 'exit', (code) ->
+  
+    # if child exits with a non-zero code, exit the main process as well
+    if code isnt 0
+      console.log "exited child process with code #{code}"
+      process.exit code
+  
+
+iterator = (item, cb) ->
+  
+  child = exec item, (err, stdout, stderr) ->
+    
+    if err then console.log '---------exec error: ---------\n[' + err + ']'
+    
+    # passing err parameter null
+    cb(null)
+    
+  addEventListenersToChildProcess child
+
+
+# runs shell scripts in series in test instance via ssh
+start = ->
+
+  # getting first test instance's data
+  { publicIpAddress }   = getNthInstanceData instanceData, 0
+      
+  shellScriptsArray     = shellScripts.asArray publicIpAddress
+
+  async.eachSeries [shellScriptsArray], iterator, (err) ->
+    
+    console.log err  if err
+    process.exit()
+    
+    
+start()
+        
+    
+

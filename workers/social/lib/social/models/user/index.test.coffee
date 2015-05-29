@@ -3,9 +3,7 @@
 { expect }            = require "chai"
 
 KONFIG                = require('koding-config-manager').load("main.#{argv.c}")
-mongo                 = "mongodb://#{ KONFIG.mongo }"
-# assignment for sandbox configuration
-mongo                 = MONGO_URL  if MONGO_URL
+mongo                 = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
 
 hat                   = require 'hat'
 Bongo                 = require 'bongo'
@@ -73,8 +71,8 @@ runTests = -> describe 'workers.social.user.index', ->
       client                = JSON.parse JSON.stringify dummyClient
       userFormData          = JSON.parse JSON.stringify dummyUserFormData
       
-      # generating a random string length of 25 character
-      randomString          = hat().slice(7)
+      # generating a random string length of 20 character
+      randomString          = hat().slice(12)
       userFormData.email    = "#{randomString}@gmail.com"
       userFormData.username = randomString
       
@@ -121,7 +119,7 @@ runTests = -> describe 'workers.social.user.index', ->
         
         ->
           JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.be.undefined
+            expect(err).to.be.null
 
             queue.next()
         
@@ -146,7 +144,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.be.undefined
+            expect(err).to.be.null
 
             queue.next()
 
@@ -174,7 +172,7 @@ runTests = -> describe 'workers.social.user.index', ->
         
         ->
           JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.be.undefined
+            expect(err).to.be.null
 
             queue.next()
 

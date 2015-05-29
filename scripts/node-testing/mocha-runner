@@ -1,0 +1,66 @@
+#!/usr/bin/env coffee
+
+###
+# this file instantiates mocha runner and runs test.coffee files in a directory
+###
+
+{ join }  = require('path')
+
+fs        = require('fs')
+Mocha     = require("mocha")
+
+
+unless dir = process.argv[2]
+  console.error 'test directory is not specified'
+  process.exit 1
+
+
+addTestFilesToMocha = (mocha, dir) ->
+  
+  fs.readdirSync(dir).filter (file) ->
+    
+    fullFilePath = join dir, file
+    
+    # Recursive call in case file is a directory
+    if fs.statSync(fullFilePath).isDirectory()
+      addTestFilesToMocha mocha, fullFilePath
+                
+    # Only keep the test.coffee files
+    return file.substr(-11) is 'test.coffee'
+  .forEach (file) ->
+    # Use the method "addFile" to add the test file to mocha
+    mocha.addFile join(dir, file)
+    
+    
+runMocha = (mocha) ->
+  
+  mocha.run (failures) ->
+    console.log "mochaRunner failures = (#{failures})"
+    
+    process.exit failures
+    
+    
+addEventListenersToRunner = (runner) ->
+  
+  runner.on 'fail', (test) ->
+    console.log "failed on #{test.title} err:#{test.err}"
+    
+  
+#  instantiates mocha runner, adds test files and event listeners to runner
+start = ->
+  
+  # instantiating mocha instance
+  mocha   = new Mocha
+    slow    : 200
+    timeout : 15000
+    
+  # adding test files which will be executed
+  addTestFilesToMocha mocha, dir
+    
+  # running mocha, returns a runner instance
+  runner = runMocha mocha
+    
+  addEventListenersToRunner runner
+  
+
+start()

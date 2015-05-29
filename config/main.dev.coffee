@@ -1389,7 +1389,7 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "socialworkertests" ]; then
 
-        sh #{projectRoot}/workers/social/tests.sh
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
 
       else
         echo "Unknown command: $1"
