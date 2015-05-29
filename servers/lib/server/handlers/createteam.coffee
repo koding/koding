@@ -23,7 +23,7 @@ module.exports = (req, res, next) ->
     newsletter
     # is group creator already a member
     alreadyMember
-    # username of the user, can be already registered or
+    # username of the user, can be already registered or a new one for creation
     username
   } = body
 
