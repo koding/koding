@@ -95,19 +95,16 @@ module.exports = class ActivitySideView extends JView
 
   init: ->
 
-    {dataPath} = @getOptions()
-    items = kd.singletons.socialapi.getPrefetchedData dataPath
+    {dataPath}  = @getOptions()
+    {socialapi} = kd.singletons
+
+    items = socialapi.getPrefetchedData dataPath
 
     if isFeatureEnabled('botchannel') and dataPath is 'privateMessages'
-      bot =  kd.singletons.socialapi.getPrefetchedData "bot"
-      items.unshift bot  if bot
+      botChannels = socialapi.getPrefetchedData 'bot'
+      items = botChannels.concat items
 
-    # delete this line if `getPrefetchedeData 'bot'` returns an array.
-    # this is justn an assumption that the result will be a single social
-    # channel instance rather than an array. ~Umut
-    items = [items]  unless Array.isArray items
-
-    if items?.length
+    if items.length
     then @renderItems null, items
     else @reload()
 
