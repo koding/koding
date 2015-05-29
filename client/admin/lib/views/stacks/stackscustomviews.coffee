@@ -157,7 +157,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
   handleBootstrap = (outputView, credential, button) ->
 
-    outputView.destroySubViews()
     outputView.addContent 'Bootstrapping started...'
 
     publicKeys = [credential.publicKey]
