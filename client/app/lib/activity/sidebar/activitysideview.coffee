@@ -95,12 +95,14 @@ module.exports = class ActivitySideView extends JView
 
   init: ->
 
-    {dataPath} = @getOptions()
-    items = kd.singletons.socialapi.getPrefetchedData dataPath
+    {dataPath}  = @getOptions()
+    {socialapi} = kd.singletons
+
+    items = socialapi.getPrefetchedData dataPath
 
     if isFeatureEnabled('botchannel') and dataPath is 'privateMessages'
-      bot =  kd.singletons.socialapi.getPrefetchedData "bot"
-      items.unshift bot  if bot
+      botChannels = socialapi.getPrefetchedData 'bot'
+      items.unshift botChannels  if botChannels
 
     if items?.length
     then @renderItems null, items
