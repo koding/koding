@@ -1062,9 +1062,9 @@ module.exports = class JAccount extends jraphical.Module
         account: {id: socialApiId, nick: @profile.nickname}
         eventName: "social"
         body:
-          contents: contents
-          event: event
-          context: "koding"
+          contents : contents
+          event    : event
+          context  : contents?.group or "koding"
       }
 
       @emit 'messageBusEvent', {type: "dispatcher_notify_user", message: message}
