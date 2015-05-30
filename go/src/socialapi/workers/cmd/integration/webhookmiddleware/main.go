@@ -38,6 +38,8 @@ func main() {
 
 	addHandlers(m, h)
 
+	go r.Listen()
+
 	m.Listen()
 	r.ShutdownHandler = m.Close
 

@@ -684,6 +684,14 @@ module.exports = class SocialApiController extends KDController
       validateOptionsWith : ['channelId']
       successFn           : leaveChannel
 
+    acceptInvite          : channelRequesterFn
+      fnName              : 'acceptInvite'
+      validateOptionsWith : ['channelId']
+
+    rejectInvite          : channelRequesterFn
+      fnName              : 'rejectInvite'
+      validateOptionsWith : ['channelId']
+
     kickParticipants     : channelRequesterFn
       fnName             : 'leave'
       validateOptionsWith: ['channelId', 'accountIds']

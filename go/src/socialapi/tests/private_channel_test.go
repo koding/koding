@@ -100,16 +100,6 @@ func TestPrivateMesssages(t *testing.T) {
 			So(cmc, ShouldNotBeNil)
 
 		})
-		Convey("if body is nil, should fail to create PM", func() {
-			pmr := models.PrivateChannelRequest{}
-			pmr.AccountId = account.Id
-			pmr.Body = ""
-			pmr.GroupName = groupName
-			pmr.Recipients = []string{}
-			cmc, err := rest.SendPrivateChannelRequest(pmr)
-			So(err, ShouldNotBeNil)
-			So(cmc, ShouldBeNil)
-		})
 		Convey("if group name is nil, should not fail to create PM", func() {
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
@@ -321,11 +311,15 @@ func TestPrivateMesssages(t *testing.T) {
 			So(len(history.MessageList), ShouldEqual, 3)
 
 			So(history.MessageList[0].Message, ShouldNotBeNil)
-			So(history.MessageList[0].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
+			So(history.MessageList[0].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_SYSTEM)
 			So(history.MessageList[0].Message.Payload, ShouldNotBeNil)
 			addedBy, ok := history.MessageList[0].Message.Payload["addedBy"]
 			So(ok, ShouldBeTrue)
 			So(*addedBy, ShouldEqual, account.OldId)
+
+			systemType, ok := history.MessageList[0].Message.Payload["systemType"]
+			So(ok, ShouldBeTrue)
+			So(*systemType, ShouldEqual, models.PrivateMessageSystem_TYPE_JOIN)
 
 			// try to add same participant
 			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
@@ -414,10 +408,14 @@ func TestPrivateMesssages(t *testing.T) {
 			So(len(history.MessageList), ShouldEqual, 2)
 
 			joinMessage := history.MessageList[1].Message
-			So(joinMessage.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
+			So(joinMessage.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_SYSTEM)
 			So(joinMessage.Payload, ShouldNotBeNil)
 			initialParticipants, ok := joinMessage.Payload["initialParticipants"]
 			So(ok, ShouldBeTrue)
+
+			systemType, ok := history.MessageList[1].Message.Payload["systemType"]
+			So(ok, ShouldBeTrue)
+			So(*systemType, ShouldEqual, models.PrivateMessageSystem_TYPE_INIT)
 
 			participants := make([]string, 0)
 			err = json.Unmarshal([]byte(*initialParticipants), &participants)

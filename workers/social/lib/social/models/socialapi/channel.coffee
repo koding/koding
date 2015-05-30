@@ -36,6 +36,10 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         leave                :
           (signature Object, Function)
+        acceptInvite         :
+          (signature Object, Function)
+        rejectInvite         :
+          (signature Object, Function)
         fetchPopularTopics   :
           (signature Object, Function)
         fetchPopularPosts    :
@@ -208,6 +212,22 @@ module.exports = class SocialChannel extends Base
     data.accountIds = [ delegate.socialApiId ]  unless data.accountIds
 
     doRequest 'removeParticipants', client, data, callback
+
+  @acceptInvite = secure (client, data, callback) ->
+    return callback message: "channel id is required for accepting an invitation"  unless data.channelId
+
+    { delegate } = client.connection
+    data.accountId = delegate.socialApiId
+
+    doRequest 'acceptInvite', client, data, callback
+
+  @rejectInvite = secure (client, data, callback) ->
+    return callback message: "channel id is required for rejecting an invitation"  unless data.channelId
+
+    { delegate } = client.connection
+    data.accountId = delegate.socialApiId
+
+    doRequest 'rejectInvite', client, data, callback
 
   # glancePinnedPost - updates user's lastSeenDate for pinned posts
   @glancePinnedPost = secureRequest

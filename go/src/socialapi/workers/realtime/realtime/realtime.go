@@ -146,8 +146,19 @@ func (f *Controller) ChannelParticipantsAdded(pe *models.ParticipantEvent) error
 // TODO we can send this information with just a single message
 func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, eventName string) error {
 
+	c, err := models.Cache.Channel.ById(pe.Id)
+	if err != nil {
+		f.log.Error("Could not fetch participated channel %d: %s", pe.Id, err)
+		return nil
+	}
+
+	if c.TypeConstant == models.Channel_TYPE_ANNOUNCEMENT ||
+		c.TypeConstant == models.Channel_TYPE_GROUP {
+		return nil
+	}
+
 	// send notification to the user(added user)
-	go f.notifyChannelParticipants(pe, eventName)
+	go f.notifyChannelParticipants(c, pe, eventName)
 
 	// channel must be notified with newly added/removed participants
 	for _, participant := range pe.Participants {
@@ -175,13 +186,7 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 // notifyParticipants notifies related participants when they join/leave private channel
 // or follow/unfollow a topic.
 // this is used for updating sidebar.
-func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, eventName string) {
-	c, err := models.Cache.Channel.ById(pe.Id)
-	if err != nil {
-		f.log.Error("Could not notify participant %d: %s", pe.Id, err)
-		return
-	}
-
+func (f *Controller) notifyChannelParticipants(c *models.Channel, pe *models.ParticipantEvent, eventName string) {
 	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
 		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
 		c.TypeConstant != models.Channel_TYPE_TOPIC {

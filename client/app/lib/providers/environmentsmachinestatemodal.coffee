@@ -376,7 +376,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @createStateLabel "
         <h1>You don't have any VMs!</h1>
         <span>
-          This can happen if you have deleted all your VMs or if your VM was automatically deleted due to inactivity. <a href='http://learn.koding.com/faq/inactive-vms' target='_blank'>Learn more</a> about inactive VM cleanup.
+          This can happen if you have deleted all your VMs or if your
+          VM was automatically deleted due to inactivity. 
+          <a href='http://learn.koding.com/faq/inactive-vms' target='_blank'>
+          Learn more</a> about inactive VM cleanup.
         </span>
       "
     else

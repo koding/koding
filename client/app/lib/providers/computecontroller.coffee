@@ -54,8 +54,7 @@ module.exports = class ComputeController extends KDController
             @lastKnownUserPlan = null
             @fetchUserPlan()
 
-        # TODO Find a better way to trigger stack create ~ GG
-        if @stacks.length is 0 then do @createDefaultStack
+        @createDefaultStack()
 
         @storage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
         @emit 'ready'
@@ -352,10 +351,25 @@ module.exports = class ComputeController extends KDController
 
 
   createDefaultStack: ->
+
     return  unless isLoggedIn()
-    remote.api.ComputeProvider.createGroupStack (err, res) =>
-      return kd.warn err  if err
-      @reset yes
+
+    {mainController, groupsController} = kd.singletons
+
+    create = =>
+      remote.api.ComputeProvider.createGroupStack (err, res) =>
+        return kd.warn err  if err
+        @reset yes
+
+    mainController.ready =>
+
+      if groupsController.currentGroupHasStack()
+        create()  if @stacks.length is 0
+      else
+        currentGroup = groupsController.getCurrentGroup()
+        currentGroup.fetchMyRoles (err, roles) =>
+          return kd.warn err  if err
+          @emit 'StacksNotConfigured'  if 'admin' in (roles ? [])
 
 
   # remote.ComputeProvider and Kloud kite public methods
