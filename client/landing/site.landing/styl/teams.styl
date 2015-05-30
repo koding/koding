@@ -14,9 +14,13 @@ teams.styl
 .content-page.teams
   overflow                  auto
   color                     white
+  bg                        image url('/a/images/teams/landing-bg.jpg')
+  bg                        color #2D5EAB
+  bg                        size cover
+  bg                        position, center center
+  min-height                100%
 
   section.main-wrapper
-    bg                      color #2D5EAB
     min-height              600px
     padding                 20px 0
     font-family             adelleSans
@@ -28,13 +32,13 @@ teams.styl
     h1
     h2
       width                 60%
-      max-width             600px
+      max-width             800px
       margin                0 auto
 
     h1
       margin-top            180px
-      font-family           proximaFamily
-      font-weight           600
+      font-family           adelle
+      font-weight           400
       font-size             42px
       line-height           50px
       color                 #F4E327
@@ -65,6 +69,23 @@ teams.styl
         input.kdinput
           text-align        center
           padding           8px 0
+
+    &.pre-launch
+
+      section > div
+        &.email
+          width             62%
+        &.submit
+          width             38%
+
+        .login-input-view .placeholder-helper
+          padding           0 16px
+          text-align        left
+
+        .login-input-view input.kdinput
+          text-align        left
+          padding           8px 15px
+
   .ribbon
     padding                 .34em 1em
     margin                  0
