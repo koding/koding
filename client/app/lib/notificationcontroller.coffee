@@ -148,3 +148,29 @@ module.exports = class NotificationController extends KDObject
       kd.utils.wait 10000, =>
         kookies.expire 'clientId'
         global.location.reload yes
+
+    @on 'UserKicked', () ->
+      modal = new KDModalView
+        title         : "Permission denied. You've been removed from team."
+        overlay       : yes
+        overlayClick  : no
+        cancelable    : no
+        content       :
+          """
+          <div class="modalformline">
+            Hello,
+            This account has been removed from current team
+          </div>
+          """
+        buttons       :
+          "Ok"        :
+            style     : "solid light-gray medium"
+            callback  : (event) ->
+              kookies.expire 'clientId'
+              modal.destroy()
+              global.location.reload yes
+
+      # If not clicked on "Ok", kick him out after 10 seconds
+      kd.utils.wait 10000, =>
+        kookies.expire 'clientId'
+        global.location.reload yes
