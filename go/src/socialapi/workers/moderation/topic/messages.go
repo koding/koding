@@ -138,17 +138,14 @@ func (c *Controller) processMessageLists(
 		var channelMessageList []models.ChannelMessageList
 
 		ml := models.ChannelMessageList{}
-		err = bongo.B.DB.
+		// we can ignore error
+		_ = bongo.B.DB.
 			Model(ml).
 			Table(ml.BongoName()).
 			Unscoped().
 			Limit(processCount).
 			Where("message_id = ? AND channel_id = ?", cm.Id, rootChannel.Id).
 			Find(&channelMessageList).Error
-		if err != nil {
-			log.Error("couldn't fetch channel message list %s", err.Error())
-			erroredMessageLists = append(erroredMessageLists, messageLists[i])
-		}
 
 		isInRootChannel := len(channelMessageList) > 0
 
