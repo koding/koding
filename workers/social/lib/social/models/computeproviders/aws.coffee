@@ -6,6 +6,8 @@ module.exports = class Aws extends ProviderInterface
 
   @bootstrapKeys = ['key_pair', 'rtb', 'acl']
 
+  @sensitiveKeys = ['access_key', 'secret_key']
+
 
   @ping = (client, options, callback) ->
     callback null, "#{ @providerSlug } rulez #{ client.r.account.profile.nickname }!"

@@ -7,6 +7,7 @@ Promise                   = require 'bluebird'
 sinkrow                   = require 'sinkrow'
 Machine                   = require 'app/providers/machine'
 FSHelper                  = require '../../util/fs/fshelper'
+isKoding                  = require 'app/util/isKoding'
 showError                 = require '../../util/showError'
 groupifyLink              = require '../../util/groupifyLink'
 ComputeHelpers            = require 'app/providers/computehelpers'
@@ -15,17 +16,19 @@ ChatSearchModal           = require './chatsearchmodal'
 ActivitySideView          = require './activitysideview'
 KDCustomHTMLView          = kd.CustomHTMLView
 SidebarTopicItem          = require './sidebartopicitem'
+fetchChatChannels         = require 'activity/util/fetchChatChannels'
 SidebarPinnedItem         = require './sidebarpinneditem'
 KDNotificationView        = kd.NotificationView
 SidebarMessageItem        = require './sidebarmessageitem'
 JTreeViewController       = kd.JTreeViewController
 MoreWorkspacesModal       = require './moreworkspacesmodal'
+fetchChatChannelCount     = require 'activity/util/fetchChatChannelCount'
 isChannelCollaborative    = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList    = require './sidebarownmachineslist'
 environmentDataProvider   = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList = require './sidebarsharedmachineslist'
 ChannelActivitySideView   = require './channelactivitysideview'
-
+isFeatureEnabled          = require 'app/util/isFeatureEnabled'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -97,6 +100,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
       .on 'MachineBuilt',              @bound 'machineBuilt'
+      .on 'StacksNotConfigured',       @bound 'addStackWarning'
+
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
@@ -117,7 +122,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     { channel, channelMessage, unreadCount } = update
 
     if isChannelCollaborative(channel) and channelMessage.payload
-      if channelMessage.payload['system-message'] in ['start', 'stop']
+      { systemType } = channelMessage.payload
+      systemType or= channelMessage.payload['system-message']
+
+      if systemType in ['start', 'stop']
         @fetchEnvironmentData =>
           @setWorkspaceUnreadCount channel, unreadCount
 
@@ -199,10 +207,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       return showError err  if err
 
       index = switch data.typeConstant
-        when 'topic'        then 2
-        when 'group'        then 2
-        when 'announcement' then 2
+        when 'topic'          then 2
+        when 'group'          then 2
+        when 'announcement'   then 2
         else 0
+
+      if isFeatureEnabled('botchannel') and data.typeConstant is 'privatemessage'
+        index = 1
 
       if isChannelCollaborative data
         @setWorkspaceUnreadCount data, unreadCount
@@ -278,7 +289,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @removeItem id
 
-    @sharedMachinesList.removeWorkspaceByChannelId id
+    @machineListsByName['shared']?.removeWorkspaceByChannelId id
 
     # TODO update participants in sidebar
     # TODO I have added these lines for channel data synchronization,
@@ -333,7 +344,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     section = switch type
       when 'topic', 'announcement'  then @sections.channels
-      when 'privatemessage'         then @sections.messages
+      when 'privatemessage','bot'   then @sections.messages
       else {}
 
     return section.listController
@@ -501,6 +512,19 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     environmentDataProvider.fetch (data) => callback data
 
 
+  addStackWarning: ->
+
+    return  if isKoding()
+    return  @stackWarning.show()  if @stackWarning?
+
+    @stackWarning = new KDCustomHTMLView
+      cssClass : 'stack-warning'
+      partial  : "Compute Stacks has not been configured yet for this Team.
+                  <br/><a href='/Admin/Stacks'>click here</a> to setup now."
+
+    @machinesWrapper.addSubView @stackWarning, null, shouldPrepend = yes
+
+
   addMachineList: (expandedBoxUIds) ->
 
     @machineLists = []
@@ -510,8 +534,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @addSubView @machinesWrapper = new KDCustomHTMLView
         cssClass: 'machines-wrapper'
 
-    @ownMachinesList    = @createMachineList 'own'
-    @sharedMachinesList = @createMachineList 'shared'
+    if isKoding()
+      @createMachineList 'own'
+      @createMachineList 'shared'
 
     if environmentDataProvider.hasData()
       @addMachines_ environmentDataProvider.get(), expandedBoxUIds
@@ -533,8 +558,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @selectWorkspace { machine, workspace }  if machine and workspace
 
 
-  addBoxes: (machineList, data) ->
+  addBoxes: (listType, data) ->
 
+    return  if not data or data.length is 0
+
+    machineList = @getMachineList listType
     machineList.addMachineBoxes data
     machineList.on 'ListStateChanged', @bound 'saveSidebarStateToLocalStorage'
 
@@ -544,8 +572,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     { shared, collaboration } = data
     sharedData = shared.concat collaboration
 
-    @addBoxes @ownMachinesList, data.own
-    @addBoxes @sharedMachinesList, sharedData
+    @addBoxes 'own'    , data.own
+    @addBoxes 'shared' , sharedData
 
     if Object.keys(expandedBoxUIds).length is 0
       expandedBoxUIds = @localStorageController.getValue('SidebarState') or {}
@@ -560,6 +588,12 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   saveSidebarStateToLocalStorage: ->
 
     @localStorageController.setValue 'SidebarState', @getExpandedBoxUIds()
+
+
+  getMachineList: (type) ->
+
+    return  list  if list = @machineListsByName[type]
+    return  @createMachineList type
 
 
   createMachineList: (type, options = {}, data = []) ->
@@ -622,11 +656,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         title    : ' '
         href     : groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
-        kd.singletons.socialapi.message.fetchPrivateMessages
-          limit  : limit
-        , callback
+        fetchChatChannels { limit }, callback
       countSource: (callback) ->
-        remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
+        fetchChatChannelCount {}, callback
 
     @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
 

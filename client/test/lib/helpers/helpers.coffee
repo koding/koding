@@ -222,8 +222,6 @@ module.exports =
 
   sendHashtagActivity: (browser) ->
 
-    @beginTest(browser)
-
     paragraph = @getFakeText()
     hashtag   = '#' + paragraph.split(' ')[0]
     post      = paragraph + ' ' + hashtag
@@ -287,6 +285,33 @@ module.exports =
       .waitForElementPresent    "span[title='" + folderPath + '/' + filename + "']", 50000 # Assertion
 
     return filename
+
+
+  createFileFromMachineHeader: (browser, user, fileName, shouldAssert = yes) ->
+
+    unless fileName
+      fileName    = @getFakeText().split(' ')[0] + '.txt'
+
+    filePath      = '/home/' + user.username
+    fileSelector  = "span[title='" + filePath + '/' + fileName + "']"
+    inputSelector = '.rename-container input.hitenterview'
+
+    browser
+      .waitForElementVisible     '.vm-header', 20000
+      .click                     '.vm-header span.chevron'
+      .waitForElementVisible     '.context-list-wrapper', 20000
+      .click                     '.context-list-wrapper li.new-file'
+      .waitForElementVisible     inputSelector, 20000
+      .click                     inputSelector
+      .clearValue                inputSelector
+      .pause  2000
+      .setValue                  inputSelector, fileName + '\n'
+
+    if shouldAssert
+      browser
+        .waitForElementPresent   fileSelector, 20000 # Assertion
+
+    return fileName
 
 
   createFolder: (browser, user) ->
@@ -457,5 +482,5 @@ module.exports =
   getUrl: ->
 
     return 'http://lvh.me:8090'
-    # return 'http://52.6.253.30:8090'
+    # return 'http://54.164.58.222:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'

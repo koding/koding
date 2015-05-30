@@ -32,7 +32,7 @@ module.exports = (options, callback)->
       #{getGraphMeta shareUrl: shareUrl, body: body}
       #{getStyles()}
     </head>
-    <body class='logged-in dark ide'>
+    <body class='logged-in ide'>
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 

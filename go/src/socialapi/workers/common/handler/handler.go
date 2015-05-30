@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"koding/tools/utils"
-	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/response"
 	"strings"
@@ -200,7 +199,7 @@ func BuildHandlerWithRateLimit(handler http.Handler, t *throttled.Throttler) htt
 	return t.Throttle(handler)
 }
 
-func MakeRequest(request *Request) (*http.Response, error) {
+func DoRequest(request *Request) (*http.Response, error) {
 	if request.Cookie != "" {
 		request.Cookies = parseCookiesToArray(request.Cookie)
 	}
@@ -208,8 +207,6 @@ func MakeRequest(request *Request) (*http.Response, error) {
 	request.Endpoint = prepareQueryString(request.Endpoint, request.Params)
 
 	client := new(http.Client)
-	hostname := config.MustGet().CustomDomain.Local
-	endpoint := fmt.Sprintf("%s/%s", hostname, request.Endpoint)
 
 	var byteData io.Reader
 	if request.Body != nil {
@@ -220,7 +217,7 @@ func MakeRequest(request *Request) (*http.Response, error) {
 		byteData = bytes.NewReader(body)
 	}
 
-	req, err := http.NewRequest(request.Type, endpoint, byteData)
+	req, err := http.NewRequest(request.Type, request.Endpoint, byteData)
 	req = prepareHeaders(req, request.Headers)
 
 	if err != nil {

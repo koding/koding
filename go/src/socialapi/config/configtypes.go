@@ -38,6 +38,12 @@ type (
 		// Holds access information for realtime message authenticator
 		GateKeeper GateKeeper
 
+		// Holds host and port information for integration worker
+		Integration Integration
+
+		// Holds host and port information for webhook middleware
+		WebhookMiddleware WebhookMiddleware
+
 		Kloud Kloud
 
 		PaymentWebhook PaymentWebhook
@@ -112,6 +118,16 @@ type (
 		Pubnub Pubnub
 	}
 
+	Integration struct {
+		Host string `env:"key=KONFIG_SOCIALAPI_INTEGRATION_HOST"`
+		Port string `env:"key=KONFIG_SOCIALAPI_INTEGRATION_PORT"`
+	}
+
+	WebhookMiddleware struct {
+		Host string `env:"key=KONFIG_SOCIALAPI_WEBHOOKMIDDLEWARE_HOST"`
+		Port string `env:"key=KONFIG_SOCIALAPI_WEBHOOKMIDDLEWARE_PORT"`
+	}
+
 	Pubnub struct {
 		PublishKey    string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PUBNUB_PUBLISHKEY"`
 		SubscribeKey  string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
@@ -145,5 +161,6 @@ type (
 
 	DisabledFeatures struct {
 		Moderation bool
+		BotChannel bool
 	}
 )

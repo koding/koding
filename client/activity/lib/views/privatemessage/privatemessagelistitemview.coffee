@@ -34,33 +34,61 @@ module.exports = class PrivateMessageListItemView extends ActivityListItemView
       type        : 'privatemessage'
 
 
-  prepareDefaultBody: (type) -> "has #{type} the chat"
+  prepareDefaultBody: (options = {}) ->
 
-
-  prepareActivityMessage: ->
-
-    {typeConstant, payload} = @getData()
-    {addedBy, initialParticipants} = payload if payload
-
-    # get default join/leave message body
-    switch typeConstant
-      when 'join'
-        body = @prepareDefaultBody 'joined'  unless initialParticipants
-      when 'leave'
-        body = @prepareDefaultBody 'left'
-
-    # append who added the user
-    body = "#{body} from an invitation by @#{addedBy}" if addedBy
+    { addedBy, paneType, initialParticipants, action } = options
 
     # when it contains initial participants it contains all the accounts
     # initially added to the conversation
     if initialParticipants
-      if initialParticipants.length is 0
-        body = "started this conversation"
+      body = "has started the #{paneType}"
+
+      return body  if initialParticipants.length is 0
+
+      body = "#{body} and invited "
+      body = "#{body} @#{participant}," for participant in initialParticipants
+
+      return body.slice 0, body.length - 1
+
+    body = "has #{action} the #{paneType}"
+
+    # append who added the user
+    body = "#{body} from an invitation by @#{addedBy}"  if addedBy
+
+    return body
+
+
+  prepareActivityMessage: ->
+
+    { typeConstant, payload } = @getData()
+
+    { channelType } = @getOptions()
+
+    {addedBy, initialParticipants, systemType} = payload if payload
+    typeConstant = systemType  if typeConstant is 'system'
+
+    paneType = if channelType is 'privatemessage' then 'conversation' else 'session'
+
+    options = { addedBy, paneType, initialParticipants }
+
+    # get default join/leave message body
+    switch typeConstant
+      when 'join'
+        options.action = 'joined'
+        body = @prepareDefaultBody options
+      when 'leave'
+        options.action = 'left'
+        body = @prepareDefaultBody options
+      when 'invite'
+        body = "was invited to the #{paneType}"
+      when 'reject'
+        body = "has rejected the invite for this #{paneType}"
+      when 'kick'
+        body = "has been removed from this #{paneType}"
+      when 'initiate'
+        body = @prepareDefaultBody options
       else
-        body = "started the conversation and invited "
-        body = "#{body} @#{participant}," for participant in initialParticipants
-        body = body.slice 0, body.length - 1
+        body = @getData().body
 
     return body
 
@@ -69,11 +97,11 @@ module.exports = class PrivateMessageListItemView extends ActivityListItemView
 
     {repliesCount, payload, typeConstant} = @getData()
 
-    if typeConstant in ['join', 'leave']
+    if typeConstant in ['join', 'leave', 'system']
       @getData().body = @prepareActivityMessage()
       @setClass 'join-leave'
 
-    if payload?['system-message']
+    if payload?['system-message'] or payload?['system']
       @setClass 'join-leave'
 
     @showParentPost()  if repliesCount < 3

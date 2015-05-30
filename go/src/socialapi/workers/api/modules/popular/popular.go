@@ -139,11 +139,15 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (i
 
 	channelName := u.Query().Get("channelName")
 
-	keyname, err := popularpost.NewKeyName(query.GroupName, channelName, time.Now())
-	if err != nil {
-		return response.NewBadRequest(err)
+	if query.GroupName == "" || channelName == "" {
+		return response.NewBadRequest(errors.New("groupName and channelName are required"))
 	}
-	key := keyname.Weekly()
+
+	key := (&popularpost.KeyName{
+		GroupName:   query.GroupName,
+		ChannelName: channelName,
+		Time:        time.Now().UTC(),
+	}).Weekly()
 
 	popularPostIds, err := getIds(key, query, ctx)
 	if err != nil {

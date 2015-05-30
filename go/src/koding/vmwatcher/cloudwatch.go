@@ -6,6 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"time"
 
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
 	"github.com/crowdmob/goamz/aws"
@@ -54,19 +55,19 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	for _, machine := range userMachines {
 		meta, ok := machine.Meta.(bson.M)
 		if !ok {
-			Log.Error("queued machine has no `meta`", machine.ObjectId)
+			Log.Debug("queued machine has no `meta`", machine.ObjectId)
 			continue
 		}
 
 		region, ok := meta["region"].(string)
 		if !ok || isEmpty(region) {
-			Log.Error("queued machine has no `region`: %v", machine.ObjectId)
+			Log.Debug("queued machine has no `region`: %v", machine.ObjectId)
 			continue
 		}
 
 		instanceId, ok := meta["instanceId"].(string)
 		if !ok || isEmpty(instanceId) {
-			Log.Error("queued machine has no `instanceId`: %v", machine.ObjectId)
+			Log.Debug("queued machine has no `instanceId`: %v", machine.ObjectId)
 			continue
 		}
 
@@ -129,7 +130,9 @@ func (c *Cloudwatch) GetMachinesOverLimit(limitName string) ([]*models.Machine, 
 		if !lr.CanStart {
 			ms, err := modelhelper.GetMachinesByUsername(username)
 			if err != nil {
-				Log.Error(err.Error())
+				if err != mgo.ErrNotFound {
+					Log.Error(err.Error())
+				}
 				continue
 			}
 
@@ -159,7 +162,7 @@ func (c *Cloudwatch) IsUserOverLimit(username, limitKey string) (*LimitResponse,
 
 	planTitle, err := getPlanForUser(username)
 	if err != nil {
-		Log.Error(
+		Log.Debug(
 			"Fetching plan for username: %s failed: %v, defaulting to paid",
 			username, err,
 		)

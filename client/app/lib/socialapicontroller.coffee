@@ -36,6 +36,7 @@ module.exports = class SocialApiController extends KDController
       when 'followedChannels' then mapChannels
       when 'popularPosts', 'pinnedMessages', 'navigated' then mapActivities
       when 'privateMessages'                   then mapPrivateMessages
+      when 'bot' then mapBotChannel
 
     return fn(data) or []
 
@@ -205,7 +206,7 @@ module.exports = class SocialApiController extends KDController
 
   mapChannel = (channel) ->
     { socialapi } = kd.singletons
-    
+
     data  = channel.channel
 
     # hold state of cache hit
@@ -213,7 +214,7 @@ module.exports = class SocialApiController extends KDController
 
     # item is initially our data
     item = data
-        
+
     # if we find the channel in cache, replace item with it
     if cacheItem = socialapi.retrieveCachedItem item.typeConstant, item.id
       cacheFound = yes
@@ -221,7 +222,7 @@ module.exports = class SocialApiController extends KDController
 
     item._id                 = data.id
     item.isParticipant       = channel.isParticipant
-    # we only allow name, purpose and payload to be updated  
+    # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
     item.name                = data.name
     item.purpose             = data.purpose
@@ -229,10 +230,10 @@ module.exports = class SocialApiController extends KDController
     item.participantsPreview = mapAccounts channel.participantsPreview
     item.unreadCount         = channel.unreadCount
     item.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
-        
-    unless cacheFound 
+
+    unless cacheFound
       channelInstance = new remote.api.SocialChannel item
-    else 
+    else
       channelInstance = item
 
     kd.singletons.socialapi.cacheItem channelInstance
@@ -244,6 +245,15 @@ module.exports = class SocialApiController extends KDController
 
     return  unless participant
     return {_id: participant.accountOldId, constructorName: "JAccount"}
+
+  mapBotChannel = (data) ->
+    data = data.data
+    revivedChannel = mapChannel data
+
+    revivedChannels = [revivedChannel]
+    registerAndOpenChannels revivedChannels
+
+    return revivedChannel
 
 
   mapChannels: mapChannels
@@ -493,6 +503,8 @@ module.exports = class SocialApiController extends KDController
         @channel.byId {id}, topicChannelKallback
       when 'post', 'message'
         @message.byId {id}, kallback
+      when 'bot'
+        @account.fetchBotChannel kallback
       else callback { message: "#{type} not implemented in revive" }
 
   getMessageEvents = ->
@@ -576,7 +588,7 @@ module.exports = class SocialApiController extends KDController
     fetchPrivateMessages : messageRequesterFn
       fnName             : 'fetchPrivateMessages'
       mapperFn           : mapPrivateMessages
-    
+
     create               : channelRequesterFn
       fnName             : 'create'
       validateOptionsWith: ["name"]
@@ -672,6 +684,14 @@ module.exports = class SocialApiController extends KDController
       validateOptionsWith : ['channelId']
       successFn           : leaveChannel
 
+    acceptInvite          : channelRequesterFn
+      fnName              : 'acceptInvite'
+      validateOptionsWith : ['channelId']
+
+    rejectInvite          : channelRequesterFn
+      fnName              : 'rejectInvite'
+      validateOptionsWith : ['channelId']
+
     kickParticipants     : channelRequesterFn
       fnName             : 'leave'
       validateOptionsWith: ['channelId', 'accountIds']
@@ -754,3 +774,14 @@ module.exports = class SocialApiController extends KDController
 
       endPoint = "/Impersonate/#{username}"
       doXhrRequest {type: 'POST', endPoint, async: yes}, callback
+
+    fetchBotChannel      : (callback) ->
+
+      doXhrRequest {
+        type     : 'GET'
+        endPoint : "/api/integration/botchannel"
+      }, (err, response) ->
+        return callback err  if err
+
+        return callback null, mapChannel response.data
+

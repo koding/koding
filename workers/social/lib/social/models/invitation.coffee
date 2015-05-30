@@ -84,6 +84,9 @@ module.exports = class JInvitation extends jraphical.Module
       createdAt     :
         type        : Date
         default     : -> new Date
+      modifiedAt    :
+        type        : Date
+        default     : -> new Date
 
   accept$: secure (client, callback) ->
     { delegate } = client.connection
@@ -92,6 +95,11 @@ module.exports = class JInvitation extends jraphical.Module
   accept: (account, callback) ->
     operation = $set : { status: 'accepted' }
     @update operation, callback
+
+  # validTypes holds states that can still redeemable
+  validTypes: ['pending']
+
+  isValid:-> @status in @validTypes
 
   # remove deletes an invitation from database
   remove$: permit 'send invitations',
@@ -113,7 +121,6 @@ module.exports = class JInvitation extends jraphical.Module
       options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
       options.skip    = 0
 
-      console.log selector, options
       JInvitation.some selector, options, callback
 
   # search searches database with given query string, adds `starting
@@ -127,10 +134,9 @@ module.exports = class JInvitation extends jraphical.Module
       $query = ///^#{query}///
       delete selector.query
 
-
       selector = extend selector, { $or : [
-          { 'name'  : $query }
-          { 'email' : $query }
+          { 'firstName' : $query }
+          { 'email'     : $query }
         ]
       }
 
@@ -184,7 +190,11 @@ module.exports = class JInvitation extends jraphical.Module
       JInvitation.byCode code, (err, invitation) ->
         return callback err  if err
 
-        JInvitation.sendInvitationEmail client, invitation, callback
+        JInvitation.sendInvitationEmail client, invitation, (err) ->
+          return callback err  if err
+
+          invitation.modifiedAt = new Date
+          invitation.update callback
 
   # sendInvitationEmail sends email according to given JInvitation
   @sendInvitationEmail: (client, invitation, callback) ->

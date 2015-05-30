@@ -8,11 +8,11 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry "credential-item clearfix", options.cssClass
+    options.cssClass = kd.utils.curry 'credential-item clearfix', options.cssClass
     super options, data
 
-    delegate  = @getDelegate()
-    { owner, title, verified } = @getData()
+    delegate = @getDelegate()
+    { publicKey, owner, title, verified } = @getData()
 
     @deleteButton = new kd.ButtonView
       cssClass : 'solid compact outline red secondary'
@@ -31,11 +31,21 @@ module.exports = class CredentialListItem extends kd.ListItemView
         color  : '#666'
       callback : @bound 'verifyCredential'
 
+    @inuseView = new kd.CustomHTMLView
+      cssClass : 'inuse-tag hidden'
+      partial  : 'IN USE'
+      tooltip  :
+        title  : 'This stack template currently using this credential'
+
+    {stackTemplate} = @getOptions()
+    if stackTemplate?.credentials? and publicKey in stackTemplate.credentials
+      @inuseView.show()
+
     @warningView = new kd.CustomHTMLView
       cssClass : 'warning-message hidden'
-      partial  : "This credential couldn't verified, please check credential
-                  details or add a new credential to be able to continue
-                  to next step"
+      partial  : "We couldn't verify these credentials, please check the
+                  ones you used or add new credentials to be able to continue
+                  to the next step."
 
 
   setVerified: (state, reason) ->
@@ -71,7 +81,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
   pistachio: ->
     """
     <div class='credential-info clearfix'>
-      {div.provider{#(provider)}} {div.title{#(title)}}
+      {div.tag{#(provider)}} {div.title{#(title)}} {{> @inuseView}}
     </div>
     <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}{{> @verifyButton}}

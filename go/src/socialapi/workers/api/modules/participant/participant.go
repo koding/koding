@@ -58,6 +58,10 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		return response.NewBadRequest(err)
 	}
 
+	if ch.TypeConstant == models.Channel_TYPE_BOT {
+		return response.NewBadRequest(errors.New("can not add participants for bot channel"))
+	}
+
 	for i := range participants {
 		participant := models.NewChannelParticipant()
 		participant.ChannelId = query.Id
@@ -73,6 +77,10 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		}
 
 		participant.AccountId = participants[i].AccountId
+		//We can add users with requestpending status
+		if participants[i].StatusConstant != "" {
+			participant.StatusConstant = participants[i].StatusConstant
+		}
 
 		if err := participant.Create(); err != nil {
 			return response.NewBadRequest(err)
@@ -80,7 +88,7 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 
 		participants[i] = participant
 
-		if err := addJoinActivity(query.Id, participant.AccountId, query.AccountId); err != nil {
+		if err := addJoinActivity(query.Id, participant, query.AccountId); err != nil {
 			return response.NewBadRequest(err)
 		}
 
@@ -128,6 +136,9 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+	if ch.TypeConstant == models.Channel_TYPE_BOT {
+		return response.NewBadRequest(errors.New("can not remove participants for bot channel"))
+	}
 
 	for i := range participants {
 		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
@@ -141,7 +152,7 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 			return response.NewBadRequest(err)
 		}
 
-		if err := addLeaveActivity(query.Id, participants[i].AccountId); err != nil {
+		if err := addLeaveActivity(query.Id, query.AccountId, participants[i]); err != nil {
 			return response.NewBadRequest(err)
 		}
 	}
@@ -292,6 +303,84 @@ func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelPartic
 	return response.NewOK(participant)
 }
 
+func AcceptInvite(u *url.URL, h http.Header, participant *models.ChannelParticipant, ctx *models.Context) (int, http.Header, interface{}, error) {
+
+	query := request.GetQuery(u)
+
+	participant.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
+	cp, err := updateStatus(participant, query, ctx)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if err := addJoinActivity(query.Id, cp, 0); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	if err := ch.ById(query.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	go notifyParticipants(ch, models.ChannelParticipant_Added_To_Channel_Event, []*models.ChannelParticipant{cp})
+
+	return response.NewDefaultOK()
+}
+
+func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticipant, ctx *models.Context) (int, http.Header, interface{}, error) {
+
+	query := request.GetQuery(u)
+	participant.StatusConstant = models.ChannelParticipant_STATUS_LEFT
+	cp, err := updateStatus(participant, query, ctx)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if err := addLeaveActivity(query.Id, ctx.Client.Account.Id, cp); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+
+	if err := ch.ById(query.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, []*models.ChannelParticipant{cp})
+
+	return response.NewDefaultOK()
+}
+
+func updateStatus(participant *models.ChannelParticipant, query *request.Query, ctx *models.Context) (*models.ChannelParticipant, error) {
+
+	if ok := ctx.IsLoggedIn(); !ok {
+		return nil, models.ErrNotLoggedIn
+	}
+
+	query.AccountId = ctx.Client.Account.Id
+
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = query.Id
+
+	// check if the user is invited
+	isInvited, err := cp.IsInvited(query.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isInvited {
+		return nil, errors.New("uninvited user error")
+	}
+
+	cp.StatusConstant = participant.StatusConstant
+	// update the status
+	if err := cp.Update(); err != nil {
+		return nil, err
+	}
+
+	return cp, nil
+}
+
 func checkChannelPrerequisites(channelId, requesterId int64, participants []*models.ChannelParticipant) error {
 	if channelId == 0 || requesterId == 0 {
 		return errors.New("values are not set")
@@ -338,7 +427,8 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	// no need to continue from here for other channels
 	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
 		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
-		c.TypeConstant != models.Channel_TYPE_GROUP {
+		c.TypeConstant != models.Channel_TYPE_GROUP &&
+		c.TypeConstant != models.Channel_TYPE_BOT {
 		return nil
 	}
 
@@ -357,7 +447,7 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	return nil
 }
 
-func addJoinActivity(channelId, participantId, addedBy int64) error {
+func addJoinActivity(channelId int64, participant *models.ChannelParticipant, addedBy int64) error {
 
 	c, err := fetchChannelWithValidation(channelId)
 	if err != nil {
@@ -368,12 +458,18 @@ func addJoinActivity(channelId, participantId, addedBy int64) error {
 		return err
 	}
 
-	pmr := &models.PrivateChannelRequest{AccountId: participantId}
+	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
+	if participant.StatusConstant == models.ChannelParticipant_STATUS_REQUEST_PENDING {
+		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_INVITE)
+		addedBy = 0
+	} else {
+		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_JOIN)
+	}
 
 	return pmr.AddJoinActivity(c, addedBy)
 }
 
-func addLeaveActivity(channelId, participantId int64) error {
+func addLeaveActivity(channelId, accountId int64, participant *models.ChannelParticipant) error {
 	c, err := fetchChannelWithValidation(channelId)
 	if err != nil {
 		if err == ErrSkipActivity {
@@ -383,7 +479,12 @@ func addLeaveActivity(channelId, participantId int64) error {
 		return err
 	}
 
-	pmr := &models.PrivateChannelRequest{AccountId: participantId}
+	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
+	if accountId == participant.AccountId {
+		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_LEAVE)
+	} else {
+		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_KICK)
+	}
 
 	return pmr.AddLeaveActivity(c)
 }

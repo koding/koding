@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
+	"socialapi/workers/common/mux"
+	"socialapi/workers/integration/webhook/api"
 
 	"github.com/koding/runner"
 )
@@ -16,20 +20,30 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	defer r.Close()
 
-	// appConfig := config.MustRead(r.Conf.Path)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
 
-	// mc := mux.NewConfig(Name)
-	// m := mux.New(mc, r.Log)
-	// m.Metrics = r.Metrics
+	redisConn := r.Bongo.MustGetRedisConn()
 
-	// h := api.NewHandler(r.Log)
-	// h.AddHandlers(m)
+	iConfig := appConfig.Integration
+
+	mc := mux.NewConfig(Name, iConfig.Host, iConfig.Port)
+	m := mux.New(mc, r.Log, r.Metrics)
+
+	h, err := api.NewHandler(appConfig, redisConn, r.Log)
+	if err != nil {
+		r.Log.Fatal("Could not initialize webhook worker: %s", err)
+	}
+
+	h.AddHandlers(m)
 
 	go r.Listen()
 
-	// m.Listen()
-	// defer m.Close()
+	m.Listen()
+	defer m.Close()
 
 	r.Wait()
 }

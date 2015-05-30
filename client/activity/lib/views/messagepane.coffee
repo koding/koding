@@ -37,7 +37,7 @@ module.exports = class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    { itemClass, lastToFirst, wrapper, channelId
+    { itemClass, lastToFirst, wrapper, channelId, channelType,
       scrollView, noItemFoundWidget, startWithLazyLoader
     } = @getOptions()
 
@@ -46,7 +46,7 @@ module.exports = class MessagePane extends KDTabPaneView
     @listController = new ActivityListController {
       type          : typeConstant
       viewOptions   :
-        itemOptions : {channelId}
+        itemOptions : {channelId, channelType}
       wrapper
       itemClass
       lastToFirst
@@ -378,8 +378,11 @@ module.exports = class MessagePane extends KDTabPaneView
 
   addItems: (items) ->
     @listController.hideLazyLoader()
+
     items.forEach (item, i) =>
       @addMessageDeferred item, i, items.length
+
+    @emit 'ListPopulated'  unless items.length
 
     kd.utils.defer @bound 'focus'
 

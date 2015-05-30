@@ -1,23 +1,51 @@
 #!/bin/bash
 
-set -o errexit
-
 INSTANCE_DATA_FILE=$1
 
 SCRIPTS=$(dirname $0)/..
 
-HOSTS=$(cat $INSTANCE_DATA_FILE | awk '{print $2}')
+INSTANCES=$(cat $INSTANCE_DATA_FILE)
 
-for HOST in $HOSTS; do
-  # nginx web server is running on port 8090
-  echo -n "$HOST:8090 "
-  $SCRIPTS/test-instance/check-connectivity $HOST 8090 1m 5
+function terminate_instance () {
+  INSTANCE_ID=$1
+  $SCRIPTS/test-instance/terminate $INSTANCE_ID
+}
 
-  # selenium-server is running on port 4444
-  echo -n "$HOST:4444 "
-  $SCRIPTS/test-instance/check-connectivity $HOST 4444 1m 5
+function check () {
+  INSTANCE=$1
+  INSTANCE_ID=$(echo $INSTANCE | awk '{print $1}')
+  HOST=$(echo $INSTANCE | awk '{print $2}')
 
+  PORT=$2
+  INTERVAL=$3
+  TRY_COUNT=$4
+
+  echo -en "$HOST:$PORT\t\t"
+  $SCRIPTS/test-instance/check-connectivity $HOST $PORT $INTERVAL $TRY_COUNT
+  EXIT_CODE=$?
+
+  if [ $EXIT_CODE -ne 0 ]; then
+    terminate_instance $INSTANCE_ID
+  fi
+
+  return $EXIT_CODE
+}
+
+rm -f $INSTANCE_DATA_FILE
+touch $INSTANCE_DATA_FILE
+
+IFS=$'\n'
+for INSTANCE in $INSTANCES; do
+  check $INSTANCE 8090 1m 1 || continue # nginx
+  check $INSTANCE 4444 1m 1 || continue # selenium-server
+  echo $INSTANCE >> $INSTANCE_DATA_FILE
   echo
 done
+
+INSTANCE_COUNT=$(wc -l $INSTANCE_DATA_FILE | awk '{print $1}')
+
+if [ $INSTANCE_COUNT -eq 0 ]; then
+  exit 1
+fi
 
 exit 0

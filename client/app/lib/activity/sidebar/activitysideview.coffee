@@ -1,11 +1,11 @@
 isChannelCollaborative      = require '../../util/isChannelCollaborative'
+isFeatureEnabled            = require 'app/util/isFeatureEnabled'
 kd                          = require 'kd'
 KDCustomHTMLView            = kd.CustomHTMLView
 KDListViewController        = kd.ListViewController
 KDView                      = kd.View
 JView                       = require '../../jview'
 SidebarMoreLink             = require './sidebarmorelink'
-
 
 module.exports = class ActivitySideView extends JView
 
@@ -95,10 +95,19 @@ module.exports = class ActivitySideView extends JView
 
   init: ->
 
-    {dataPath} = @getOptions()
-    items = kd.singletons.socialapi.getPrefetchedData dataPath
+    {dataPath}  = @getOptions()
+    {socialapi} = kd.singletons
 
-    if items?.length
+    items = socialapi.getPrefetchedData dataPath
+
+    if isFeatureEnabled('botchannel') and dataPath is 'privateMessages'
+      botChannels = socialapi.getPrefetchedData 'bot'
+
+      botChannels = [botChannels]  unless Array.isArray botChannels
+
+      items = botChannels.concat items
+
+    if items.length
     then @renderItems null, items
     else @reload()
 

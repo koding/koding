@@ -4,6 +4,8 @@ import (
 	"socialapi/models"
 	"testing"
 
+	"github.com/koding/bongo"
+
 	"labix.org/v2/mgo/bson"
 )
 
@@ -35,9 +37,10 @@ func createTestGroupChannel(t *testing.T, a *models.Account) *models.Channel {
 	return testGroupChannel
 }
 
-func createTestIntegration(t *testing.T) *Integration {
+func CreateTestIntegration(t *testing.T) *Integration {
 	i := NewIntegration()
-	i.Title = "test_" + models.RandomGroupName()
+	i.Title = models.RandomGroupName()
+	i.Name = i.Title
 
 	err := i.Create()
 	if err != nil {
@@ -47,16 +50,49 @@ func createTestIntegration(t *testing.T) *Integration {
 	return i
 }
 
-func CreateTestTeamIntegration(t *testing.T) *TeamIntegration {
+func CreateIterableIntegration(t *testing.T) *Integration {
+
+	return CreateIntegration(t, "iterable")
+}
+
+func CreateIntegration(t *testing.T, name string) *Integration {
+	i := NewIntegration()
+	i.Title = name
+	i.Name = name
+
+	selector := map[string]interface{}{
+		"name": i.Name,
+	}
+
+	// no need to make it idempotent
+	err := i.One(bongo.NewQS(selector))
+	if err == nil {
+		return i
+	}
+
+	if err != bongo.RecordNotFound {
+		t.Fatal(err)
+	}
+
+	err = i.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return i
+}
+
+func CreateTestChannelIntegration(t *testing.T) *ChannelIntegration {
 	account := createTestAccount(t)
 
 	channel := createTestGroupChannel(t, account)
 
-	integration := createTestIntegration(t)
+	integration := CreateTestIntegration(t)
 
-	i := NewTeamIntegration()
+	i := NewChannelIntegration()
 	i.CreatorId = account.Id
-	i.GroupChannelId = channel.Id
+	i.ChannelId = channel.Id
+	i.GroupName = models.RandomGroupName()
 	i.IntegrationId = integration.Id
 	err := i.Create()
 	if err != nil {

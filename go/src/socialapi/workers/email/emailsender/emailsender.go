@@ -63,6 +63,12 @@ func (c *Controller) Process(m *Mail) error {
 	return c.emailer.Send(event)
 }
 
+func (c *Controller) Close() {
+	if err := c.emailer.Close(); err != nil {
+		c.log.Error("Could not close emailer successfully: %s", err)
+	}
+}
+
 // DefaultErrHandler controls the errors, return false if an error occurred
 func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	if delivery.Redelivered {

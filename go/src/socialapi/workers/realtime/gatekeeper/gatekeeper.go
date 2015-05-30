@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"socialapi/config"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/response"
@@ -14,15 +15,26 @@ import (
 	"github.com/koding/logging"
 )
 
+const (
+	CheckParticipationPath = "/api/social/channel/checkparticipation"
+	AccountPath            = "/api/social/account"
+)
+
 type Handler struct {
 	pubnub *models.PubNub
 	logger logging.Logger
+
+	checkParticipationEndpoint string
+	accountEndpoint            string
 }
 
-func NewHandler(p *models.PubNub, l logging.Logger) *Handler {
+func NewHandler(p *models.PubNub, conf *config.Config, l logging.Logger) *Handler {
+	rootPath := conf.CustomDomain.Local
 	return &Handler{
 		pubnub: p,
 		logger: l,
+		checkParticipationEndpoint: fmt.Sprintf("%s%s", rootPath, CheckParticipationPath),
+		accountEndpoint:            fmt.Sprintf("%s%s", rootPath, AccountPath),
 	}
 }
 
@@ -34,7 +46,7 @@ func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.C
 	}
 
 	req.Group = context.GroupName // override group name
-	res, err := checkParticipation(u, header, req)
+	res, err := h.checkParticipation(u, header, req)
 	if err != nil {
 		return response.NewAccessDenied(err)
 	}
@@ -55,6 +67,7 @@ func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.C
 
 // SubscribeNotification grants notification channel access for user. User information is
 // fetched from session
+
 func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *socialapimodels.Account, context *socialapimodels.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(socialapimodels.ErrNotLoggedIn)
@@ -97,12 +110,12 @@ func responseWithCookie(req interface{}, token string) (int, http.Header, interf
 }
 
 // TODO needs a better request handler
-func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*models.CheckParticipationResponse, error) {
+func (h *Handler) checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*models.CheckParticipationResponse, error) {
 	// relay the cookie to other endpoint
 	cookie := header.Get("Cookie")
 	request := &handler.Request{
 		Type:     "GET",
-		Endpoint: "/api/social/channel/checkparticipation",
+		Endpoint: h.checkParticipationEndpoint,
 		Params: map[string]string{
 			"name":      cr.Name,
 			"groupName": cr.Group,
@@ -112,7 +125,7 @@ func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*mo
 	}
 
 	// TODO update this requester
-	resp, err := handler.MakeRequest(request)
+	resp, err := handler.DoRequest(request)
 	if err != nil {
 		return nil, err
 	}
