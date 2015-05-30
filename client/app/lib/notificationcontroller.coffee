@@ -149,4 +149,9 @@ module.exports = class NotificationController extends KDObject
         kookies.expire 'clientId'
         global.location.reload yes
 
-    @on 'UserKicked', -> global.location.href = '/Banned'
+    @on 'UserKicked', ->
+      # delete client id cookie, which is used for session authentication
+      kookies.expire 'clientId'
+
+      # send user to Banned page
+      global.location.href = '/Banned'
