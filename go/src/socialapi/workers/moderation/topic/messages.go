@@ -129,11 +129,28 @@ func (c *Controller) processMessageLists(
 		if cl.DeleteMessages {
 			err := cm.DeleteMessageAndDependencies(true)
 			if err != nil {
-				log.Error("Err while deleting the mesage %s", err.Error())
+				log.Error("couldn't delete mesage %s", err.Error())
 				erroredMessageLists = append(erroredMessageLists, messageLists[i])
 			}
 			continue
 		}
+
+		var channelMessageList []models.ChannelMessageList
+
+		ml := models.ChannelMessageList{}
+		err = bongo.B.DB.
+			Model(ml).
+			Table(ml.BongoName()).
+			Unscoped().
+			Limit(processCount).
+			Where("message_id = ? AND channel_id = ?", cm.Id, rootChannel.Id).
+			Find(&channelMessageList).Error
+		if err != nil {
+			log.Error("couldn't fetch channel message list %s", err.Error())
+			erroredMessageLists = append(erroredMessageLists, messageLists[i])
+		}
+
+		isInRootChannel := len(channelMessageList) > 0
 
 		if isInRootChannel {
 			// we are deleting the leaf with an unscoped because we dont need the
@@ -159,7 +176,7 @@ func (c *Controller) processMessageLists(
 				Model(&messageList).
 				UpdateColumn("channel_id", cl.RootId).
 				Error; err != nil && !models.IsUniqueConstraintError(err) {
-				log.Error("Err while updating the mesage %s", err.Error())
+				log.Error("couldn't update mesage %s", err.Error())
 				erroredMessageLists = append(erroredMessageLists, messageLists[i])
 				continue
 			}
@@ -178,7 +195,7 @@ func (c *Controller) processMessageLists(
 			Table(cm.TableName()).
 			Model(*cm). // should not be a pointer, why? dont ask me for now
 			Update(cm).Error; err != nil {
-			log.Error("Err while updating the mesage %s", err.Error())
+			log.Error("couldn't update mesage %s", err.Error())
 			erroredMessageLists = append(erroredMessageLists, messageLists[i])
 			continue
 		}
