@@ -1,13 +1,15 @@
-globals = require 'globals'
-getGroup = require '../util/getGroup'
-remote = require('../remote').getInstance()
-trackEvent = require '../util/trackEvent'
-whoami = require '../util/whoami'
-showError = require '../util/showError'
-kd = require 'kd'
-KDController = kd.Controller
+kd                 = require 'kd'
+KDController       = kd.Controller
 KDNotificationView = kd.NotificationView
-GroupData = require './groupdata'
+
+whoami             = require '../util/whoami'
+getGroup           = require '../util/getGroup'
+showError          = require '../util/showError'
+trackEvent         = require '../util/trackEvent'
+
+remote             = require('../remote').getInstance()
+globals            = require 'globals'
+GroupData          = require './groupdata'
 
 
 module.exports = class GroupsController extends KDController
@@ -32,6 +34,11 @@ module.exports = class GroupsController extends KDController
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
+
+  currentGroupHasStack: ->
+    {stackTemplates} = @getCurrentGroup()
+    return stackTemplates?.length > 0
+
 
   filterXssAndForwardEvents: (target, events) ->
     events.forEach (event) =>
@@ -122,4 +129,3 @@ module.exports = class GroupsController extends KDController
         policy.emit 'MembershipPolicyChangeSaved'
         new KDNotificationView {title:"Membership policy has been updated."}
       showError err
-

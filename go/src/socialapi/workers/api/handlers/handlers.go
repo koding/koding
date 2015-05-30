@@ -316,6 +316,26 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  participant.AcceptInvite,
+			Name:     "participant-invitation-accept",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/invitation/accept",
+			Securer:  models.ParticipantSecurer,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  participant.RejectInvite,
+			Name:     "participant-invitation-reject",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/{id}/invitation/reject",
+			Securer:  models.ParticipantSecurer,
+		},
+	)
+
 	// list messages of the channel
 	// exempt contents are filtered
 	// caching enabled

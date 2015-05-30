@@ -178,13 +178,22 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 	}
 
 	if !canOpen {
-		return response.NewAccessDenied(
-			fmt.Errorf(
-				"account (%d) tried to retrieve the unattended channel (%d)",
-				q.AccountId,
-				c.Id,
-			),
-		)
+		cp := models.NewChannelParticipant()
+		cp.ChannelId = c.Id
+		isInvited, err := cp.IsInvited(q.AccountId)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if !isInvited {
+			return response.NewAccessDenied(
+				fmt.Errorf(
+					"account (%d) tried to retrieve the unattended channel (%d)",
+					q.AccountId,
+					c.Id,
+				),
+			)
+		}
 	}
 
 	cc := models.NewChannelContainer()
