@@ -528,3 +528,14 @@ utils.extend utils,
       success   : callbacks.success or -> location.href = formData.redirect
       error     : callbacks.error   or ({responseText}) ->
         new KDNotificationView title : responseText
+
+
+  earlyAccess: (data, callbacks = {}) ->
+
+    $.ajax
+      url       : "/-/teams/early-access"
+      data      : data
+      type      : 'POST'
+      success   : callbacks.success or -> location.reload()
+      error     : callbacks.error   or ({responseText}) ->
+        new KDNotificationView title : responseText
