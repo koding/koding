@@ -56,7 +56,7 @@ module.exports     = class GroupStackSettings extends kd.View
       return new kd.NotificationView
         title: 'Setting stack template for koding is disabled'
 
-    @replaceViewsWith loader: 'Setting group stack...'
+    @replaceViewsWith mainLoader: 'Setting group stack...'
 
     currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
       return @showError err  if err

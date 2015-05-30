@@ -3,9 +3,15 @@ package topic
 import (
 	"fmt"
 	"socialapi/models"
+	"time"
 
 	"github.com/koding/bongo"
 )
+
+// sleepTimeForMoveParticipant holds sleeping tim per processCount, with current
+// code, processParticipantMoveOperation will generate at least 100 events to
+// system
+var sleepTimeForMoveParticipant = time.Second * 1
 
 // moveParticipants moves the participants of the leaf node to the root node it
 // doesnt update the lastSeenAt time of the participants on channels if the user
@@ -15,6 +21,7 @@ import (
 // return error whever we encounter one
 func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 	var errors []error
+	log := c.log.New("rootId", cl.RootId, "leafId", cl.LeafId)
 
 	for {
 
@@ -40,7 +47,7 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 
 		// we processed all channel participants, no need to continue anymore
 		if len(channelParticipants) == 0 {
-			c.log.Info("doesnt have any participants to process")
+			log.Info("doesnt have any participants to process")
 			break
 		}
 
@@ -48,6 +55,9 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 		if err != nil {
 			errors = append(errors, err)
 		}
+
+		// sleep for every `processCount` operation
+		time.Sleep(sleepTimeForMoveParticipant) // poor mans throttling strategy
 	}
 
 	// if error happens, return it, next time it will be re-tried
