@@ -55,6 +55,12 @@ module.exports = class TeamsView extends JView
         cssClass : 'TeamsModal--middle login-form pre-launch'
         callback : (formData) ->
 
+      $els = @subTitle.$('span i')
+      i    = 0
+      KD.utils.repeat 2000, ->
+        $els.css 'opacity', 0
+        $els[i].style.opacity = 1
+        i = if i is $els.length - 1 then 0 else i + 1
 
 
   pistachio: ->
