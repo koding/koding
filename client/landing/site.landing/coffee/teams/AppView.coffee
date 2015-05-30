@@ -42,9 +42,6 @@ module.exports = class TeamsView extends JView
             success : -> formData.alreadyMember = no; go()
             error   : -> formData.alreadyMember = yes; go()
     else
-      @form = new TeamTeamsModal
-        cssClass : 'TeamsModal--middle login-form'
-        callback : (formData) ->
       @title = new KDCustomHTMLView
         tagName : 'h1'
         partial : "Introducing Koding for Teams!"
@@ -53,6 +50,9 @@ module.exports = class TeamsView extends JView
         tagName  : 'h2'
         partial  : "Your own Koding for your <span><i>company</i><i>university</i><i>class</i><i>project</i></span>"
 
+      @form = new TeamsLaunchForm
+        cssClass : 'TeamsModal--middle login-form pre-launch'
+        callback : (formData) ->
 
 
 
