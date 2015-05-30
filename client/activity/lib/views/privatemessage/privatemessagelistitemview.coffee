@@ -85,6 +85,8 @@ module.exports = class PrivateMessageListItemView extends ActivityListItemView
         body = "has rejected the invite for this #{paneType}"
       when 'kick'
         body = "has been removed from this #{paneType}"
+      when 'initiate'
+        body = @prepareDefaultBody options
       else
         body = @getData().body
 

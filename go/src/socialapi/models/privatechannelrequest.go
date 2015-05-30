@@ -15,6 +15,7 @@ const (
 	PrivateMessageSystem_TYPE_LEAVE  = "leave"
 	PrivateMessageSystem_TYPE_REJECT = "reject"
 	PrivateMessageSystem_TYPE_KICK   = "kick"
+	PrivateMessageSystem_TYPE_INIT   = "initiate"
 )
 
 type PrivateChannelRequest struct {
@@ -209,7 +210,7 @@ func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int
 	if len(participantIds) > 0 {
 		payload := formatParticipantIds(participantIds)
 		p.Payload["initialParticipants"] = &payload
-		activity := PrivateMessageSystem_TYPE_JOIN
+		activity := PrivateMessageSystem_TYPE_INIT
 		p.Payload["systemType"] = &activity
 	}
 

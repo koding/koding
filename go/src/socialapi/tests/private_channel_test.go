@@ -415,7 +415,7 @@ func TestPrivateMesssages(t *testing.T) {
 
 			systemType, ok := history.MessageList[1].Message.Payload["systemType"]
 			So(ok, ShouldBeTrue)
-			So(*systemType, ShouldEqual, models.PrivateMessageSystem_TYPE_JOIN)
+			So(*systemType, ShouldEqual, models.PrivateMessageSystem_TYPE_INIT)
 
 			participants := make([]string, 0)
 			err = json.Unmarshal([]byte(*initialParticipants), &participants)
