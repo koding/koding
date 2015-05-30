@@ -83,26 +83,35 @@ module.exports =
     browser.end()
 
 
-  # toggleInvisibleFiles: (browser) ->
+  toggleInvisibleFiles: (browser) ->
 
-  #   user = helpers.beginTest(browser)
-  #   helpers.waitForVMRunning(browser)
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   pathSelector = "span[title='/home/#{user.username}/.bashrc']"
+    fileName     = ".#{helpers.getFakeText().split(' ')[0]}.txt"
+    filePath     = "/home/#{user.username}"
+    fileSelector = ".file-container span[title='#{filePath}/#{fileName}']"
 
-  #   browser.element 'css selector', pathSelector, (result) =>
-  #     if result.status is 0
-  #      ideHelpers.toggleInvisibleFiles(browser, user)
-  #     else
-  #       helpers.clickVMHeaderButton(browser)
-  #       browser
-  #         .click '.context-list-wrapper .toggle-invisible-files'
-  #         .waitForElementVisible    pathSelector, 20000 # Assertion
+    helpers.createFileFromMachineHeader(browser, user, fileName, no)
+    ideHelpers.clickItemInMachineHeaderMenu(browser, '.refresh')
 
-  #         ideHelpers.toggleInvisibleFiles(browser, user)
+    browser
+      .pause   4000 # wait for file create complete
+      .element 'css selector', fileSelector, (result) =>
 
-  #     browser.end()
+        if result.status is 0
+          ideHelpers.clickItemInMachineHeaderMenu(browser, '.toggle-invisible-files')
 
+          browser
+            .waitForElementNotPresent fileSelector, 20000 # Assertion
+            .end()
+
+        else
+          ideHelpers.clickItemInMachineHeaderMenu(browser, '.toggle-invisible-files')
+
+          browser
+            .waitForElementVisible  fileSelector, 20000 # Assertion
+            .end()
 
 
   # openAnExistingFileAndSave: (browser) ->
