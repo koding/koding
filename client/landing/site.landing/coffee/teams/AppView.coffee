@@ -22,6 +22,14 @@ module.exports = class TeamsView extends JView
       ]
 
     if KD.config.hasTeamAccess
+      @title = new KDCustomHTMLView
+        tagName : 'h1'
+        partial : "Koding for Teams!"
+
+      @subTitle = new KDCustomHTMLView
+        tagName : 'h2'
+        partial : 'Onboard, develop, deploy, test and work together with your team right away, without a setup!'
+
       @form = new TeamsSignupForm
         cssClass : 'TeamsModal--middle login-form'
         callback : (formData) ->
@@ -37,6 +45,13 @@ module.exports = class TeamsView extends JView
       @form = new TeamTeamsModal
         cssClass : 'TeamsModal--middle login-form'
         callback : (formData) ->
+      @title = new KDCustomHTMLView
+        tagName : 'h1'
+        partial : "Introducing Koding for Teams!"
+
+      @subTitle = new KDCustomHTMLView
+        tagName  : 'h2'
+        partial  : "Your own Koding for your <span><i>company</i><i>university</i><i>class</i><i>project</i></span>"
 
 
 
@@ -46,8 +61,8 @@ module.exports = class TeamsView extends JView
     """
     {{> @header }}
     <section class='main-wrapper'>
-      <h1>Koding for Teams</h1>
-      <h2>Onboard, develop, deploy, test and work together with your team right away, without a setup!</h2>
+      {{> @title}}
+      {{> @subTitle}}
       {{> @form}}
       <figure></figure>
     </section>
