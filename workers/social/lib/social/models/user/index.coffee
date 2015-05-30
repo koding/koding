@@ -533,7 +533,6 @@ module.exports = class JUser extends jraphical.Module
 
       JInvitation = require '../invitation'
       options = { email: user.email, groupName }
-      console.log { options }
       JInvitation.one options, {}, (err, invitation_) =>
         invitation = invitation_ if invitation_
         queue.next()
