@@ -65,6 +65,6 @@ module.exports = class TeamsView extends JView
       {{> @title}}
       {{> @subTitle}}
       {{> @form}}
-      <figure></figure>
+      <div class='ribbon'><span>Coming soon!</span></div>
     </section>
     """

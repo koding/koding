@@ -65,3 +65,52 @@ teams.styl
         input.kdinput
           text-align        center
           padding           8px 0
+  .ribbon
+    padding                 .34em 1em
+    margin                  0
+    color                   #ffffff
+    font                    32px adelle
+    letter-spacing          .1em
+    background              #1eb2df
+    display                 inline-block
+    rel()
+
+    &:before
+    &:after
+      content               ""
+      width                 .2em
+      bottom                -.5em
+      position              absolute
+      display               block
+      border                .9em solid #1eb2df
+      box-shadow            0px 1px 0px rgba(0,0,0,0.4)
+      z-index               0
+
+    &:before
+      left                  -1.35em
+      border-right-width    .75em
+      border-left-color     transparent
+
+    &:after
+      right                 -1.35em
+      border-left-width     .75em
+      border-right-color    transparent
+
+    > span
+      &:before
+      &:after
+        content             ""
+        bottom              -.5em
+        position            absolute
+        display             block
+        border-style        solid
+        border-color        #0675b3 transparent transparent transparent
+        z-index             1
+
+      &:before
+        left                0
+        border-width        .5em 0 0 .5em
+
+      &:after
+        right               0
+        border-width        .5em .5em 0 0
