@@ -39,7 +39,6 @@ module.exports = class TeamsView extends JView
         callback : (formData) ->
 
 
-    @footer = new FooterView
 
 
   pistachio: ->
@@ -52,5 +51,4 @@ module.exports = class TeamsView extends JView
       {{> @form}}
       <figure></figure>
     </section>
-    {{> @footer}}
     """
