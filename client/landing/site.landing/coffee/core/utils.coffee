@@ -540,11 +540,11 @@ utils.extend utils,
       type      : 'POST'
       success   : callbacks.success or ->
         new KDNotificationView
-          title    : "Thank you! We'll let you know when we launch our Teams Product!"
+          title    : "Thank you! We'll let you know when we launch it!"
           duration : 3000
       error     : callbacks.error   or ({responseText}) ->
         if responseText is 'Already applied!'
-          responseText = "You've already applied. We'll let you know when we launch our Teams Product!"
+          responseText = "Thank you! We'll let you know when we launch it!"
         new KDNotificationView
           title    : responseText
           duration : 3000

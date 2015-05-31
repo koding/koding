@@ -54,6 +54,37 @@ module.exports = class TeamsView extends JView
       @form = new TeamsLaunchForm
         cssClass : 'TeamsModal--middle login-form pre-launch'
         callback : (formData) ->
+        callback : (formData) =>
+          KD.utils.earlyAccess formData,
+            success : @bound 'earlyAccessSuccess'
+            error   : @bound 'earlyAccessFailure'
+
+    @thanks = new KDCustomHTMLView
+      cssClass : 'ribbon hidden'
+      partial  : '<span>Thank you!</span>'
+
+
+  earlyAccessFailure: ({responseText}) ->
+
+    if responseText is 'Already applied!'
+      responseText = "Thank you! We'll let you know when we launch it!"
+      @form.hide()
+      @thanks.show()
+
+    new KDNotificationView
+      title    : responseText
+      duration : 3000
+
+
+  earlyAccessSuccess: ->
+
+    @form.hide()
+    @thanks.show()
+    new KDNotificationView
+      title    : "We'll let you know when we launch it!"
+      duration : 3000
+
+
 
       $els = @subTitle.$('span i')
       i    = 0
@@ -71,6 +102,6 @@ module.exports = class TeamsView extends JView
       {{> @title}}
       {{> @subTitle}}
       {{> @form}}
-      <div class='ribbon'><span>Coming soon!</span></div>
+      {{> @thanks}}
     </section>
     """
