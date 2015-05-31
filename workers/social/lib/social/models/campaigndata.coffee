@@ -10,6 +10,7 @@ module.exports = class JCampaignData extends jraphical.Module
         validate : require('./name').validateEmail
         set      : (value) -> value.toLowerCase()
       campaign   :
+        required : yes
         type     : String
       username   :
         type     : String
