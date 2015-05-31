@@ -85,18 +85,27 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
   readableText = (text) ->
 
     dictionary =
-      "JNewApp"        : "Apps"
-      "JGroup"         : "Groups"
-      "SocialMessage"  : "Social API"
-      "JGroupBundle"   : "Group Bundles"
-      "JProposedDomain": "Domains"
-      "JProxyFilter"   : "Proxy Filters"
-      "JInvitation"    : "Invitations"
-      "JStack"         : "Stacks"
-      "JStackTemplate" : "Stack Templates"
-      "JCredential"    : "Credentials"
+      JNewApp            : 'Apps'
+      JGroup             : 'Groups'
+      SocialMessage      : 'Social API'
+      JGroupBundle       : 'Group Bundles'
+      JProposedDomain    : 'Domains'
+      JProxyFilter       : 'Proxy Filters'
+      JInvitation        : 'Invitations'
+      JStack             : 'Stacks'
+      JStackTemplate     : 'Stack Templates'
+      JCredential        : 'Credentials'
+      ComputeProvider    : 'Compute Providers'
+      JComputeStack      : 'Compute Stacks'
+      JDomainAlias       : 'Domain Aliases'
+      JKite              : 'Kites'
+      JMachine           : 'Machines'
+      JProvisioner       : 'Provisioners'
+      JRewardCampaign    : 'Campaigns'
+      JSnapshot          : 'Snapshots'
+      SocialNotification : 'Social Notifications'
 
-    return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
+    return dictionary[text] or text.capitalize()
 
 
   _getCheckboxName = (module, permission, role) ->
