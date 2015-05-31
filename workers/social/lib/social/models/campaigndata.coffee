@@ -22,7 +22,7 @@ module.exports = class JCampaignData extends jraphical.Module
 
   @add: (data, callback) ->
 
-    model = new JInvitation data
+    model = new JCampaignData data
     model.save callback
 
 
