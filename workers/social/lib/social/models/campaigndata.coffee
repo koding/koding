@@ -23,10 +23,17 @@ module.exports = class JCampaignData extends jraphical.Module
 
   @add: (data, callback) ->
 
-    model = new JCampaignData data
-    model.save callback
     return callback message: 'Email is missing!'          unless data.email
     return callback message: 'Campaign info is missing!'  unless data.campaign
 
+    { campaign, email } = data
+
+    JCampaignData.one { campaign, email }, {}, (err, model) ->
+
+      return callback err                          if err
+      return callback message: 'Already applied!'  if model
+
+      model = new JCampaignData data
+      model.save callback
 
 
