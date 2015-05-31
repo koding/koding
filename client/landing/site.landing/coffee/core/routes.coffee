@@ -49,8 +49,14 @@ do ->
       console.warn 'No valid invitation found!'
       return router.handleRoute '/'
 
+    return handleTeamRoute section, {params, query}
+
+
+  handleTeamRoute = (section, {params, query}) ->
+
     # we open the team creation or onboarding section
-    return router.openSection 'Team', null, null, (app) -> app.jumpTo section, params, query
+    return KD.singletons.router.openSection 'Team', null, null, (app) ->
+      app.jumpTo section, params, query
 
 
   KD.registerRoutes 'Core',
@@ -63,5 +69,6 @@ do ->
     '/Join'                : handleTeamOnboardingRoute.bind this, 'join'
     '/Authenticate/:step?' : handleTeamOnboardingRoute.bind this, 'stacks'
     '/Congratz'            : handleTeamOnboardingRoute.bind this, 'congratz'
+    '/Banned'              : handleTeamRoute.bind this, 'banned'
 
 
