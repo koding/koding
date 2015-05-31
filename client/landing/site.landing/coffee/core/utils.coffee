@@ -532,10 +532,19 @@ utils.extend utils,
 
   earlyAccess: (data, callbacks = {}) ->
 
+    data.campaign = 'teams-early-access'
+
     $.ajax
       url       : "/-/teams/early-access"
       data      : data
       type      : 'POST'
-      success   : callbacks.success or -> location.reload()
+      success   : callbacks.success or ->
+        new KDNotificationView
+          title    : "Thank you! We'll let you know when we launch our Teams Product!"
+          duration : 3000
       error     : callbacks.error   or ({responseText}) ->
-        new KDNotificationView title : responseText
+        if responseText is 'Already applied!'
+          responseText = "You've already applied. We'll let you know when we launch our Teams Product!"
+        new KDNotificationView
+          title    : responseText
+          duration : 3000
