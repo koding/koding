@@ -191,6 +191,22 @@ Admin main styles
         overflow                auto
         font-size               14px
 
+        &.not-koding
+          .header .header-item
+            &:first-child
+              margin-left       294px
+
+            &:last-child
+              hidden()
+
+          .switcher
+            &:last-child
+              hidden()
+
+          .text + .switcher
+            margin-left         154px
+
+
         .button-field
           .kdbutton
             margin-right        6px
