@@ -286,7 +286,38 @@ func (c *ChannelParticipant) FetchAllParticipatedChannelIds(accountId int64) ([]
 	return channelIds, nil
 }
 
-func getParticipatedChannelsQuery(a *Account, q *request.Query) *gorm.DB {
+// FetchAllParticipatedChannelIdsInGroup fetches all channel ids of an account
+// within given group
+func (c *ChannelParticipant) FetchAllParticipatedChannelIdsInGroup(accountId int64, groupName string) ([]int64, error) {
+	if accountId == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	channelIds := make([]int64, 0)
+
+	// var results []ChannelParticipant
+	query := getParticipatedChannelsQuery(accountId, groupName)
+
+	rows, err := query.Rows()
+	if err != nil {
+		return channelIds, err
+	}
+
+	if rows == nil {
+		return nil, nil
+	}
+
+	defer rows.Close()
+
+	var channelId int64
+	for rows.Next() {
+		rows.Scan(&channelId)
+		channelIds = append(channelIds, channelId)
+	}
+
+	return channelIds, nil
+}
+
 func getParticipatedChannelsQuery(accountId int64, groupName string) *gorm.DB {
 	c := NewChannelParticipant()
 
