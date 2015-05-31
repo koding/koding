@@ -1143,6 +1143,9 @@ module.exports = class JGroup extends Module
             return callback err  if err
             contents = { group: client.context.group }
 
+            # send this event for artifact removal
+            @emit 'MemberRemoved', account
+
             # send notification for kicking
             account.sendNotification 'UserKicked', contents
 
