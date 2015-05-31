@@ -53,11 +53,12 @@ module.exports = class TeamsView extends JView
 
       @form = new TeamsLaunchForm
         cssClass : 'TeamsModal--middle login-form pre-launch'
-        callback : (formData) ->
         callback : (formData) =>
           KD.utils.earlyAccess formData,
             success : @bound 'earlyAccessSuccess'
             error   : @bound 'earlyAccessFailure'
+
+      @animateTargets()
 
     @thanks = new KDCustomHTMLView
       cssClass : 'ribbon hidden'
@@ -85,13 +86,14 @@ module.exports = class TeamsView extends JView
       duration : 3000
 
 
+  animateTargets: ->
 
-      $els = @subTitle.$('span i')
-      i    = 0
-      KD.utils.repeat 2000, ->
-        $els.css 'opacity', 0
-        $els[i].style.opacity = 1
-        i = if i is $els.length - 1 then 0 else i + 1
+    $els = @subTitle.$('span i')
+    i    = 0
+    KD.utils.repeat 2000, ->
+      $els.css 'opacity', 0
+      $els[i].style.opacity = 1
+      i = if i is $els.length - 1 then 0 else i + 1
 
 
   pistachio: ->
