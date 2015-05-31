@@ -25,5 +25,8 @@ module.exports = class JCampaignData extends jraphical.Module
 
     model = new JCampaignData data
     model.save callback
+    return callback message: 'Email is missing!'          unless data.email
+    return callback message: 'Campaign info is missing!'  unless data.campaign
+
 
 
