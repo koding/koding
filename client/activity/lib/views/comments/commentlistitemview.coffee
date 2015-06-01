@@ -285,8 +285,6 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
 
   pistachio: ->
 
-    @hasShowMoreMark = yes
-
     '''
     {{> @avatar}}
     <div class='comment-contents clearfix'>

@@ -250,7 +250,7 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
 
 
   pistachio: ->
-    @hasShowMoreMark = yes
+
     location = ""
     if @getData().payload?.location?
       location =  "<span class='location'> from #{@getData().payload.location}</span>"

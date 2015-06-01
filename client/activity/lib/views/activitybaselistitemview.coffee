@@ -44,8 +44,4 @@ module.exports = class ActivityBaseListItemView extends KDListItemView
 
       article.classList.add 'tall'
 
-      selector = if @hasShowMoreMark
-      then showMoreMarkClass
-      else '.activity-content-wrapper'
-
-      @addSubView @showMore, selector
+      @addSubView @showMore, showMoreMarkClass
