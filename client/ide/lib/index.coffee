@@ -647,7 +647,7 @@ class IDEAppController extends AppController
 
     targetPanel = @layoutMap[targetOffset]
 
-    {pane} = tabView.removePane tabView.getActivePane(), yes, yes
+    { pane } = tabView.removePane tabView.getActivePane(), yes
 
     targetPanel.subViews.first.tabView.addPane pane
     @setActiveTabView targetPanel.subViews.first.tabView
@@ -1459,3 +1459,41 @@ class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ (pane) =>
       @removePaneFromTabView pane  if pane.isInitial
+
+
+  setTargetTabView: (tabView) ->
+
+    @targetTabView = tabView
+
+
+  handleTabDropped: (event, splitView, index) ->
+
+    @moveTabToPanel @targetTabView, splitView, index  if @targetTabView
+
+
+  moveTabToPanel: (tabView, targetPanel, index) ->
+
+    return unless tabView.parent?
+
+    panel = tabView.parent.parent
+    return  unless panel instanceof KDSplitViewPanel
+
+    { pane }      = tabView.removePane tabView.getActivePane(), yes
+    targetTabView = targetPanel.subViews.first.tabView
+
+    if index?
+
+      targetTabView.once 'PaneAdded', (paneInstance) ->
+
+        { tabHandle } = paneInstance
+
+        tabHandle.getDomElement().insertBefore @handles[index].domElement
+
+        @handles.splice index, 0, tabHandle
+        @panes.splice   index, 0, paneInstance
+
+
+    targetTabView.addPane pane
+
+    @setActiveTabView targetTabView
+    @doResize()

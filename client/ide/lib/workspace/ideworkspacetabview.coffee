@@ -1,7 +1,7 @@
-kd = require 'kd'
-JView = require 'app/jview'
-ApplicationTabHandleHolder = require 'app/commonviews/applicationview/applicationtabhandleholder'
-ApplicationTabView = require 'app/commonviews/applicationview/applicationtabview'
+kd                          = require 'kd'
+JView                       = require 'app/jview'
+ApplicationTabHandleHolder  = require 'app/commonviews/applicationview/applicationtabhandleholder'
+ApplicationTabView          = require 'app/commonviews/applicationview/applicationtabview'
 
 
 module.exports = class IDEWorkspaceTabView extends JView
