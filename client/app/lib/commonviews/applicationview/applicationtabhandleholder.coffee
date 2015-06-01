@@ -1,6 +1,6 @@
-kd = require 'kd'
-KDView = kd.View
-KDCustomHTMLView = kd.CustomHTMLView
+kd                = require 'kd'
+KDView            = kd.View
+KDCustomHTMLView  = kd.CustomHTMLView
 
 
 module.exports = class ApplicationTabHandleHolder extends KDView
@@ -73,8 +73,11 @@ module.exports = class ApplicationTabHandleHolder extends KDView
 
 
   repositionPlusHandle: (handles) ->
-    handlesLength = handles.length
-    @plusHandle?.$().insertAfter handles[handlesLength - 1].$() if handlesLength
+
+    return unless handles.length
+
+    @plusHandle?.$().appendTo @tabs.getDomElement()
 
   addHandle: (handle)->
+
     @tabs.addSubView handle
