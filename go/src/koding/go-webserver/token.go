@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -44,5 +45,9 @@ func validateJWTToken(r *http.Request) (map[string]interface{}, error) {
 }
 
 func tokenKeyFunc(token *jwt.Token) (interface{}, error) {
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+	}
+
 	return []byte(Jwttoken), nil
 }
