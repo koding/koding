@@ -134,6 +134,10 @@ build:
         name: test koding mongo models
         code: |
           go test ./go/src/koding/db/mongodb/modelhelper/*go
+    - script:
+        name: test tokenizer
+        code: |
+          go test ./go/src/koding/workers/tokenizer
     # - script:
     #     name: test koding kites
     #     code: |
