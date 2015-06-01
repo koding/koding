@@ -238,15 +238,6 @@ explanation of each part below:
         ` { provider: "digitalocean" } ` to get a list of `Machine` instances
         from *DigitalOcean* provider.
 
-      - **requireMachine** : this also supports queries but this is designed
-        to ask user which `JMachine` wants to use. This is using by
-        `kodingAppsController` which prompts a machine list dialog provided by
-        `ComputeController.UI.askMachineForApp` for given application. User
-        can select and mark selected machine as default which provides to
-        bypass this dialog for the next time. This information is kept under
-        appStorage of `ComputeController` and its strcitly defined by
-        application name and the version.
-
     To run the `initScript` (`JProvisioner`) of machine one can use the
     `runInitScript` method of `ComputeController` which runs the init script in
     a `TerminalModal` by default. Can be run as background process too by
