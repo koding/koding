@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/tunnel"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 )
 
 type registerResult struct {
