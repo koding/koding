@@ -39,11 +39,7 @@ func validateJWTToken(r *http.Request) (map[string]interface{}, error) {
 	}
 
 	username, ok := token.Claims["username"].(string)
-	if !ok {
-		return nil, ErrNoUsernameInClaims
-	}
-
-	if username == "" {
+	if !ok || username == "" {
 		return nil, ErrNoUsernameInClaims
 	}
 
