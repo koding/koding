@@ -11,7 +11,6 @@ isLoggedIn           = require '../util/isLoggedIn'
 remote               = require('../remote').getInstance()
 
 ProviderView         = require './providerview'
-MachineListModal     = require './machinelistmodal'
 TerminalModal        = require '../terminal/terminalmodal'
 
 
@@ -223,20 +222,6 @@ module.exports = class ComputeController_UI
         type      : "button"
         callback  : ->
           modal.destroy()
-
-
-  @askMachineForApp: (app, callback)->
-
-    modal = new MachineListModal
-
-    modal.once "MachineSelected", (machine, remember = no)->
-      modal.off "KDModalViewDestroyed"
-      callback null, machine, remember
-
-    modal.once "KDModalViewDestroyed", ->
-      callback
-        name    : "NOMACHINE"
-        message : "No machine selected"
 
 
   showInlineInformation = do ->
