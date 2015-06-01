@@ -18,7 +18,7 @@ func newTestReq(token string) (*http.Request, error) {
 	return http.NewRequest("GET", url, nil)
 }
 
-func TestValidateJWTToken(t *testing.T) {
+func TestTokenValidateJWTToken(t *testing.T) {
 	Convey("It should return err if request has token param", t, func() {
 		req, err := newTestReq("")
 		So(err, ShouldBeNil)

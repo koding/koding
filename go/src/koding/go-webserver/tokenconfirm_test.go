@@ -42,7 +42,7 @@ func TestTokenConfirmHandler(t *testing.T) {
 				"exp":      time.Now().Add(tokenExpiresIn).Unix(),
 			}
 
-			tokenStr, err := token.SignedString([]byte(secretKey))
+			tokenStr, err := token.SignedString([]byte(Jwttoken))
 			So(err, ShouldBeNil)
 
 			url := fmt.Sprintf("%s/?token=%s", server.URL, tokenStr)
@@ -71,7 +71,7 @@ func TestTokenConfirmHandler(t *testing.T) {
 				"exp":      time.Now().Add(tokenExpiresIn).Unix(),
 			}
 
-			tokenStr, err := token.SignedString([]byte(secretKey))
+			tokenStr, err := token.SignedString([]byte(Jwttoken))
 			So(err, ShouldBeNil)
 
 			url := fmt.Sprintf("%s/?token=%s&redirect_url=%s", server.URL, tokenStr, "%2FIDE")

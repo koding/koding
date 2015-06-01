@@ -35,7 +35,7 @@ func TokenGetHandler(w http.ResponseWriter, r *http.Request) {
 		"exp":      now.Add(tokenExpiresIn).Unix(),
 	}
 
-	tokenStr, err := token.SignedString([]byte(secretKey))
+	tokenStr, err := token.SignedString([]byte(Jwttoken))
 	if err != nil {
 		Log.Error("Request to /token/get failed: %s", err.Error())
 

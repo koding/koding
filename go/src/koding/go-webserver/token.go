@@ -16,9 +16,6 @@ var (
 
 	// token expires 7 days; can be used numerous times in that period
 	tokenExpiresIn = 7 * 24 * time.Hour
-
-	// key used to sign requests
-	secretKey = "ac25b4e6009c1b6ba336a3eb17fbc3b7"
 )
 
 func validateJWTToken(r *http.Request) (map[string]interface{}, error) {
@@ -32,8 +29,8 @@ func validateJWTToken(r *http.Request) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	// jwt-go library intervally validates if token is expired or not based
-	// on `exp` claim encoded in token
+	// jwt-go library internally validates if token is expired or not based
+	// on `exp` claim encoded in token, in addition to other validations
 	if !token.Valid {
 		return nil, ErrTokenNotValid
 	}
