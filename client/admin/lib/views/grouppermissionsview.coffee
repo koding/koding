@@ -1,15 +1,18 @@
-kd = require 'kd'
-KDLoaderView = kd.LoaderView
-PermissionsForm = require './permissionsform'
-showError = require 'app/util/showError'
-JView = require 'app/jview'
+kd               = require 'kd'
+JView            = require 'app/jview'
+isKoding         = require 'app/util/isKoding'
+showError        = require 'app/util/showError'
+KDLoaderView     = kd.LoaderView
+PermissionsForm  = require './permissionsform'
 KDCustomHTMLView = kd.CustomHTMLView
 
 
 module.exports = class GroupPermissionsView extends JView
 
-  constructor: (options={}, data)->
-    options.cssClass = "permissions-view"
+  constructor: (options = {}, data) ->
+
+    options.cssClass = 'permissions-view'
+
     super options, data
 
     @loader     = new KDLoaderView
@@ -22,6 +25,9 @@ module.exports = class GroupPermissionsView extends JView
         height       : 40
 
     @addPermissionsView()
+
+    @setClass 'not-koding'  unless isKoding()
+
 
   addPermissionsView: ->
     group = @getData()

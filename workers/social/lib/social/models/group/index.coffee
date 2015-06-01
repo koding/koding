@@ -1140,6 +1140,18 @@ module.exports = class JGroup extends Module
             return callback new KodingError 'You cannot kick the owner of the group!'
 
           kallback = (err) =>
+            return callback err  if err
+            contents = { group: client.context.group }
+
+            # send notification for kicking
+            account.sendNotification 'UserKicked', contents
+
+            JSession = require '../session'
+            # remove their sessions
+            JSession.remove {
+              username  : account.profile.nickname
+              groupName : client.context.group
+            }, callback
 
           queue = roles.map (role)=>=>
             @removeMember account, role, (err)=>
@@ -1148,7 +1160,7 @@ module.exports = class JGroup extends Module
               @cycleChannel()
               queue.fin()
 
-          dash queue, callback
+          dash queue, kallback
 
   transferOwnership: permit 'grant permissions',
     success: (client, accountId, callback)->

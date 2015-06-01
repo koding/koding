@@ -23,7 +23,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
   # dependent upon a cleaner intermediate data structure in the form api.
 
 
-  constructor:(options,data)->
+  constructor: (options, data) ->
 
     @group           = data
     {@permissionSet} = options
@@ -37,8 +37,10 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
         cssClass      : if isKoding() then '' else 'hidden'
 
     options.fields or= optionizePermissions.call this, @roles, @permissionSet
+
     super options,data
-    @setClass 'permissions-form col-'+@roles.length
+
+    @setClass "permissions-form col-#{@roles.length}"
 
 
   showNewRoleModal: ->
@@ -85,18 +87,27 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
   readableText = (text) ->
 
     dictionary =
-      "JNewApp"        : "Apps"
-      "JGroup"         : "Groups"
-      "SocialMessage"  : "Social API"
-      "JGroupBundle"   : "Group Bundles"
-      "JProposedDomain": "Domains"
-      "JProxyFilter"   : "Proxy Filters"
-      "JInvitation"    : "Invitations"
-      "JStack"         : "Stacks"
-      "JStackTemplate" : "Stack Templates"
-      "JCredential"    : "Credentials"
+      JNewApp            : 'Apps'
+      JGroup             : 'Groups'
+      SocialMessage      : 'Social API'
+      JGroupBundle       : 'Group Bundles'
+      JProposedDomain    : 'Domains'
+      JProxyFilter       : 'Proxy Filters'
+      JInvitation        : 'Invitations'
+      JStack             : 'Stacks'
+      JStackTemplate     : 'Stack Templates'
+      JCredential        : 'Credentials'
+      ComputeProvider    : 'Compute Providers'
+      JComputeStack      : 'Compute Stacks'
+      JDomainAlias       : 'Domain Aliases'
+      JKite              : 'Kites'
+      JMachine           : 'Machines'
+      JProvisioner       : 'Provisioners'
+      JRewardCampaign    : 'Campaigns'
+      JSnapshot          : 'Snapshots'
+      SocialNotification : 'Social Notifications'
 
-    return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
+    return dictionary[text] or text.capitalize()
 
 
   _getCheckboxName = (module, permission, role) ->
@@ -133,11 +144,13 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       callback     : => @save()
     }
 
-    if current in ['admin','owner']
+    if current in ['admin', 'owner']
       cascadeData[current].defaultValue = yes
       cascadeData[current].disabled = yes
+
     if current and remainder.length > 0
       cascadeData[current].nextElement = cascadeFormElements.call this, set, remainder, module, permission, roleCount
+
     return cascadeData
 
 
