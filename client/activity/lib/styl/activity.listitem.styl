@@ -27,22 +27,22 @@ activity.listitem.styl
       font-size               11px
       color                   #ccc
 
+  .show-more
+    abs                   inherit 25px 0 0
+    padding               0
+    color                 #adaeb1
+    font-weight           300
+    font-size             12px
+    text-decoration       none
+
+    &:after
+      content             ''
+      height              1px
+      bg                  color #eaeaea
+      abs                 0 0px 0px 0
+
   .activity-content-wrapper
     rel()
-
-    .show-more
-      abs                   inherit 25px 0 0
-      padding               0
-      color                 #adaeb1
-      font-weight           300
-      font-size             12px
-      text-decoration       none
-
-      &:after
-        content             ''
-        height              1px
-        bg                  color #eaeaea
-        abs                 0 0px 0px 0
 
     .settings-menu-wrapper
       abs                   0 24px 0 0
@@ -107,22 +107,7 @@ activity.listitem.styl
       word-break            break-word
       clear                 both
       padding-top           12px
-      margin-bottom         12px
-      overflow              hidden
-      max-height            400px
-      opacity               .99
-      vendor                transition, max-height .3s ease
-      rel()
-
-      &.tall
-        border-bottom       1px solid #eaeaea
-        &:after
-          content           ''
-          display           block
-          abs               100% 0 0 1%
-          size              98% 10px
-          border-radius     50%
-          shadow            0 0 15px 0 rgba(0, 0, 0, 0.25)
+      activityShowMore()
 
       & > p:first-child
         padding-top         0 !important
@@ -477,7 +462,7 @@ activity.listitem.styl
         padding             0
         line-height         16px
         opacity             .99
-        display             inline
+        activityShowMore()
 
         &:after
           content           ''
@@ -485,7 +470,6 @@ activity.listitem.styl
           width             100%
           clear             both
           margin            0 0 3px 0
-
 
         p
           a

@@ -346,3 +346,21 @@ webfont2(family, file, weight=normal, hack-chrome-windows=false)
         font-family family
         src url(font-url(file + '.svg#'+ family)) format('svg')
 
+activityShowMore()
+  margin-bottom             12px
+  overflow                  hidden
+  max-height                400px
+  opacity                   .99
+  vendor                    transition, max-height .3s ease
+  rel()
+
+  &.tall
+    border-bottom           1px solid #eaeaea
+
+    &:after
+      content               ''
+      display               block
+      abs                   100% 0 0 1%
+      size                  98% 10px
+      border-radius         50%
+      shadow                0 0 15px 0 rgba(0, 0, 0, 0.25)

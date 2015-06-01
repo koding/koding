@@ -1,29 +1,27 @@
-kd                      = require 'kd'
-KDButtonView            = kd.ButtonView
-KDCustomHTMLView        = kd.CustomHTMLView
-KDListItemView          = kd.ListItemView
-KDTimeAgoView           = kd.TimeAgoView
-KDView                  = kd.View
-ActivityActionsView     = require './activityactionsview'
-ActivityEditWidget      = require './activityeditwidget'
-ActivityLikeSummaryView = require './activitylikesummaryview'
-ActivitySettingsView    = require './activitysettingsview'
-CommentView             = require './comments/commentview'
-remote                  = require('app/remote').getInstance()
-showError               = require 'app/util/showError'
-formatContent           = require 'app/util/formatContent'
-ProfileLinkView         = require 'app/commonviews/linkviews/profilelinkview'
-JView                   = require 'app/jview'
-AvatarView              = require 'app/commonviews/avatarviews/avatarview'
-Promise                 = require 'bluebird'
-emojify                 = require 'emojify.js'
-htmlencode              = require 'htmlencode'
-animatedRemoveMixin     = require 'activity/mixins/animatedremove'
+kd                        = require 'kd'
+KDButtonView              = kd.ButtonView
+KDCustomHTMLView          = kd.CustomHTMLView
+KDTimeAgoView             = kd.TimeAgoView
+KDView                    = kd.View
+ActivityActionsView       = require './activityactionsview'
+ActivityEditWidget        = require './activityeditwidget'
+ActivityLikeSummaryView   = require './activitylikesummaryview'
+ActivitySettingsView      = require './activitysettingsview'
+CommentView               = require './comments/commentview'
+remote                    = require('app/remote').getInstance()
+showError                 = require 'app/util/showError'
+formatContent             = require 'app/util/formatContent'
+ProfileLinkView           = require 'app/commonviews/linkviews/profilelinkview'
+JView                     = require 'app/jview'
+AvatarView                = require 'app/commonviews/avatarviews/avatarview'
+Promise                   = require 'bluebird'
+emojify                   = require 'emojify.js'
+htmlencode                = require 'htmlencode'
+animatedRemoveMixin       = require 'activity/mixins/animatedremove'
+ActivityBaseListItemView  = require './activitybaselistitemview'
 
 
-module.exports = class ActivityListItemView extends KDListItemView
-
-  JView.mixin @prototype
+module.exports = class ActivityListItemView extends ActivityBaseListItemView
 
   constructor: (options = {}, data) ->
 
@@ -34,7 +32,9 @@ module.exports = class ActivityListItemView extends KDListItemView
     options.attributes.testpath = "ActivityListItemView"
     options.editWidgetClass  or= ActivityEditWidget
     options.pistachioParams    = { formatContent }
-    options.showMore          ?= yes
+
+    options.showMoreWrapper    = 'article.has-markdown'
+    options.showMoreMarkClass  = '.mark-for-show-more'
 
     super options, data
 
@@ -249,53 +249,19 @@ module.exports = class ActivityListItemView extends KDListItemView
       @checkIfItsTooTall()
 
 
-  checkIfItsTooTall: ->
-
-    return unless @getOption 'showMore'
-
-    article          = @$('article.has-markdown')[0]
-    { scrollHeight } = article
-    { height }       = article.getBoundingClientRect()
-
-    if scrollHeight > height
-
-      @showMore?.destroy()
-      list = @getDelegate()
-      @showMore = new KDCustomHTMLView
-        tagName  : 'a'
-        cssClass : 'show-more'
-        href     : '#'
-        partial  : 'Show more'
-        click    : ->
-          article.style.maxHeight = "#{scrollHeight}px"
-          article.classList.remove 'tall'
-
-          kd.utils.wait 500, -> list.emit 'ItemWasExpanded'
-
-          @destroy()
-
-      article.classList.add 'tall'
-
-      selector = if @hasShowMoreMark
-      then '.mark-for-show-more'
-      else '.activity-content-wrapper'
-
-      @addSubView @showMore, selector
-
-
   pistachio: ->
     @hasShowMoreMark = yes
-    location = "" 
+    location = ""
     if @getData().payload?.location?
       location =  "<span class='location'> from #{@getData().payload.location}</span>"
-      
+
     """
     <div class="activity-content-wrapper">
       {{> @settingsButton}}
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        <div class='edited-right'>    
+        <div class='edited-right'>
           {{> @timeAgoView}}#{location}
         </div>
       </div>
