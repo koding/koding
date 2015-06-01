@@ -13,12 +13,15 @@ import (
 )
 
 var (
-	Name            = "tokenizer"
-	IterableAuthKey = "aaaa"
+	Name = "tokenizer"
+
+	//IterableAuthKey is used to authenticate requests from iterable.com
+	IterableAuthKey = "b32f0bf075f30483caa6ec5f318ee49b"
 
 	flagConfig = flag.String("c", "dev", "Configuration profile from file")
 	Log        = logging.NewLogger(Name)
 
+	// Jwttoken is environment specific siging key.
 	Jwttoken string
 )
 
