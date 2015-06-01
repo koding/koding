@@ -373,15 +373,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @progressBar = null
 
     if @state is 'NotFound'
-      @createStateLabel "
-        <h1>You don't have any VMs!</h1>
-        <span>
-          This can happen if you have deleted all your VMs or if your
-          VM was automatically deleted due to inactivity. 
-          <a href='http://learn.koding.com/faq/inactive-vms' target='_blank'>
-          Learn more</a> about inactive VM cleanup.
-        </span>
-      "
+      @createStateLabel 'NotFound'
     else
       @createStateLabel()
 
@@ -459,11 +451,33 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     return "<span class='icon'></span>#{stateText}"
 
 
-  createStateLabel: (customState)->
+  createStateLabel: (customState) ->
+
+    states       =
+      NotFound   : "
+        <h1>You don't have any VMs!</h1>
+        <span>
+          This can happen if you have deleted all your VMs or if your
+          VM was automatically deleted due to inactivity.
+          <a href='http://learn.koding.com/faq/inactive-vms' target='_blank'>
+          Learn more</a> about inactive VM cleanup.
+        </span>
+      "
+      NoTemplate : "
+        <h1>Compute Stacks not configured yet!</h1>
+        <span>
+          Your team currently is not providing any compute resources. 
+          Please contact with your team admins for more information.
+        </span>
+      "
+
+    if customState is 'NotFound'
+      {groupsController} = kd.singletons
+      customState = 'NoTemplate'  unless groupsController.currentGroupHasStack()
 
     @label     = new KDCustomHTMLView
       tagName  : 'p'
-      partial  : customState or @getStateLabel()
+      partial  : states[customState] or customState or @getStateLabel()
       cssClass : "state-label #{@state.toLowerCase()}"
 
     @container.addSubView @label
@@ -474,6 +488,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     if @state in [Terminated, 'NotFound']
       title    = 'Create a new VM'
       callback = 'requestNewMachine'
+
+      {groupsController} = kd.singletons
+      return  unless groupsController.currentGroupHasStack()
+
     else if @isManaged
       title    = 'Search for Nodes'
       callback = 'findNodes'
