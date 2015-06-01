@@ -138,16 +138,10 @@ func New(name, version string) *Kite {
 		muxer:              mux.NewRouter(),
 	}
 
-	// This is the same as sockjs.DefaultOptions except we changed the
-	// heartbeat interval from 25 seconds to 10 seconds.
-	sockjsOpts := sockjs.Options{
-		Websocket:       true,
-		JSessionID:      nil,
-		SockJSURL:       "http://cdn.sockjs.org/sockjs-0.3.min.js",
-		HeartbeatDelay:  10 * time.Second,
-		DisconnectDelay: 5 * time.Second,
-		ResponseLimit:   128 * 1024,
-	}
+	// We change the heartbeat interval from 25 seconds to 10 seconds. This is
+	// better for environments such as AWS ELB.
+	sockjsOpts := sockjs.DefaultOptions
+	sockjsOpts.HeartbeatDelay = 10 * time.Second
 
 	// All sockjs communication is done through this endpoint..
 	k.muxer.PathPrefix("/kite").Handler(sockjs.NewHandler("/kite", sockjsOpts, k.sockjsHandler))
