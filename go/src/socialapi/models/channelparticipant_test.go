@@ -515,6 +515,12 @@ func TestChannelFetchAllParticipatedChannelIdsInGroup(t *testing.T) {
 		ids, err := cp.FetchAllParticipatedChannelIdsInGroup(acc.Id, groupName1)
 		So(err, ShouldBeNil)
 		So(len(ids), ShouldEqual, 5)
+
+		Convey("fetching non participated channel, should return 0", func() {
+			ids, err := cp.FetchAllParticipatedChannelIdsInGroup(acc.Id, RandomGroupName())
+			So(err, ShouldBeNil)
+			So(len(ids), ShouldEqual, 0)
+		})
 	})
 }
 

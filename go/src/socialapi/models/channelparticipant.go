@@ -293,22 +293,20 @@ func (c *ChannelParticipant) FetchAllParticipatedChannelIdsInGroup(accountId int
 		return nil, ErrAccountIdIsNotSet
 	}
 
-	channelIds := make([]int64, 0)
-
 	// var results []ChannelParticipant
 	query := getParticipatedChannelsQuery(accountId, groupName)
 
 	rows, err := query.Rows()
 	if err != nil {
-		return channelIds, err
+		return nil, err
 	}
 
 	if rows == nil {
 		return nil, nil
 	}
-
 	defer rows.Close()
 
+	channelIds := make([]int64, 0)
 	var channelId int64
 	for rows.Next() {
 		rows.Scan(&channelId)
@@ -369,8 +367,6 @@ func (c *ChannelParticipant) FetchParticipatedTypedChannelIds(a *Account, q *req
 		return nil, ErrAccountIdIsNotSet
 	}
 
-	channelIds := make([]int64, 0)
-
 	// var results []ChannelParticipant
 	query := getParticipatedChannelsQuery(a.Id, q.GroupName)
 
@@ -389,12 +385,14 @@ func (c *ChannelParticipant) FetchParticipatedTypedChannelIds(a *Account, q *req
 
 	defer rows.Close()
 	if err != nil {
-		return channelIds, err
+		return nil, err
 	}
 
 	if rows == nil {
 		return nil, nil
 	}
+
+	channelIds := make([]int64, 0)
 
 	var channelId int64
 	for rows.Next() {
@@ -494,7 +492,6 @@ func (c *ChannelParticipant) IsInvited(accountId int64) (bool, error) {
 }
 
 func (c *ChannelParticipant) checkAccountStatus(accountId int64) (bool, error) {
-
 	if accountId == 0 {
 		return false, nil
 	}
