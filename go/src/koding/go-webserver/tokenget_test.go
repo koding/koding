@@ -36,6 +36,8 @@ func TestTokenGetHandler(t *testing.T) {
 				Email:    "indianajones@koding.com",
 			}
 
+			defer modeltesthelper.DeleteUsersByUsername(user.Name)
+
 			_, err := modeltesthelper.CreateUserWithQuery(user)
 			So(err, ShouldBeNil)
 
