@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/streamtunnel"
+	"github.com/koding/tunnel"
 )
 
 type registerResult struct {
@@ -12,7 +12,7 @@ type registerResult struct {
 	Identifier  string
 }
 
-func Start(k *kite.Kite, conf *streamtunnel.ClientConfig) error {
+func Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 	if conf.ServerAddr == "" {
 		return errors.New("Tunnel server addr is empty")
 	}
@@ -25,8 +25,7 @@ func Start(k *kite.Kite, conf *streamtunnel.ClientConfig) error {
 
 	<-connected
 
-	client := streamtunnel.NewClient(conf)
-	client.FetchIdentifier = func() (string, error) {
+	conf.FetchIdentifier = func() (string, error) {
 		result, err := callRegister(tunnelserver)
 		if err != nil {
 			return "", err
@@ -35,6 +34,12 @@ func Start(k *kite.Kite, conf *streamtunnel.ClientConfig) error {
 		k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
 		return result.Identifier, nil
 	}
+
+	client, err := tunnel.NewClient(conf)
+	if err != nil {
+		return err
+	}
+
 	go client.Start()
 	return nil
 }

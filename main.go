@@ -11,8 +11,8 @@ import (
 	"github.com/koding/klient/app"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
-	"github.com/koding/klient/tunnel"
-	"github.com/koding/streamtunnel"
+	klienttunnel "github.com/koding/klient/tunnel"
+	"github.com/koding/tunnel"
 )
 
 var (
@@ -98,7 +98,7 @@ func realMain() int {
 	defer a.Close()
 
 	// Open Pandora's box
-	go tunnel.Start(a.Kite(), &streamtunnel.ClientConfig{
+	go klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
 		ServerAddr: *flagTunnelServerAddr,
 		LocalAddr:  *flagTunnelLocalAddr,
 		Debug:      *flagDebug,
