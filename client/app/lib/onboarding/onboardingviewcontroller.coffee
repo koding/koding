@@ -15,10 +15,11 @@ module.exports = class OnboardingViewController extends KDViewController
     super options, data
 
     {@groupName, @slug} = @getOptions()
-    @items              = @getData().items.slice()
-    @startTrackDate     = new Date()
+    @itemViews          = []
 
-    @show @items.first
+    items               = @getData().items.slice()
+
+    @showItem item for item in items
 
 
   ###*
@@ -26,65 +27,14 @@ module.exports = class OnboardingViewController extends KDViewController
    *
    * @param {OnboardingItemView} item - onboarding item view
   ###
-  show: (item) ->
+  showItem: (item) ->
 
-    view = new OnboardingItemView { @groupName, @items }, item
-    @bindViewEvents view
+    view = new OnboardingItemView { @groupName }, item
     view.render()
+    @itemViews.push view
 
 
-  ###*
-   * Shows another onboarding item in group depending on the given direction
-   *
-   * @param {string} direction - direction of the onboarding navigation. Possible values are 'prev' and 'next'
-   * @param {object} itemData  - data of onboarding item view that requested onboarding navigation
-  ###
-  navigate: (direction, itemData) ->
+  destroy: ->
 
-    index = @items.indexOf itemData
-    item  = if direction is 'next' then @items[++index] else @items[--index]
-    @show item
-
-
-  ###*
-   * Binds to onboarding item view events
-   *
-   * @param {OnboardingItemView} view - view which events are necessary to listen
-  ###
-  bindViewEvents: (view) ->
-
-    view.on 'NavigationRequested', (direction) =>
-      @navigate direction, view.getData()
-
-    view.on ['OnboardingCompleted', 'OnboardingCancelled'], @bound 'handleOnboardingEnded'
-    view.on 'OnboardingFailed', @lazyBound 'handleOnboardingFailed', view
-
-
-  ###*
-   * If current item can't be shown, we need to show next onboarding item
-   * If current item is the last one, it executes end stuff
-   *
-   * @param {OnboardingItemView} view  - onboarding item view that failed to be shown
-  ###
-  handleOnboardingFailed: (view) ->
-
-    itemData = view.getData()
-    index = @items.indexOf itemData
-    @items.splice index, 1
-    if view.isLast
-      @handleOnboardingEnded()
-    else
-      @show @items[index]
-
-
-  ###*
-   * At the end of onboarding it's necessary to track the total tracked time
-   * and emit an event to tell that onboarding has been ended
-   *
-   * @emits OnboardingEnded
-  ###
-  handleOnboardingEnded: ->
-
-    trackedTime = new Date() - @startTrackDate
-    OnboardingMetrics.trackCompleted @groupName, 'Total', trackedTime
-    @emit 'OnboardingEnded', @slug
+    view.destroy() for view in @itemViews
+    super

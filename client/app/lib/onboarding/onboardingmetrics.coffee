@@ -10,34 +10,10 @@ module.exports = class OnboardingMetrics extends DatadogMetrics
    *
    * @param {string} groupName - onboarding group name
    * @param {string} itemName  - onboarding item name
-   * @param {number} count     - tracked count
   ###
-  @collect = (groupName, itemName, count) ->
+  @collect = (groupName, itemName) ->
 
     name  = 'Onboarding'
     state = "#{groupName}:#{itemName}"
 
-    super name, state, count
-
-
-  ###*
-   * Tracks onboarding completion
-   *
-   * @param {string} groupName - onboarding group name
-   * @param {string} itemName  - onboarding item name
-   * @param {number} count     - tracked time in miliseconds
-  ###
-  @trackCompleted = (groupName, itemName, count) ->
-
-    @collect groupName, "#{itemName}:completed_in", count
-
-
-  ###*
-   * Tracks onboarding cancellation
-   *
-   * @param {string} groupName - onboarding group name
-   * @param {string} itemName  - onboarding item name
-  ###
-  @trackCancelled = (groupName, itemName) ->
-
-    @collect groupName, "#{itemName}:cancelled"
+    super name, state

@@ -27,12 +27,13 @@ module.exports = class OnboardingController extends KDController
     @onboardings   = {}
     @pendingQueue  = []
     @isReady       = no
-    @isRunning     = no
-    { mainController, windowController } = kd.singletons
+    { mainController, windowController, router } = kd.singletons
 
     if isLoggedIn() then @fetchItems()
     else
       mainController.on 'accountChanged.to.loggedIn', @bound 'fetchItems'
+
+    router.on 'RouteInfoHandled', @bound 'stopOnboarding'
 
 
   ###*
@@ -97,6 +98,8 @@ module.exports = class OnboardingController extends KDController
 
     return @pendingQueue.push [].slice.call(arguments)  unless @isReady
 
+    @stopOnboarding()
+
     onboarding = @onboardings[groupName]
     return  unless onboarding
     return  unless onboarding.partial.items?.length
@@ -111,10 +114,9 @@ module.exports = class OnboardingController extends KDController
 
     return  unless (isAvailableForUser or forceRun)
 
-    @isRunning = yes
     kd.utils.wait delay, =>
-      viewController = new OnboardingViewController { groupName, slug }, onboarding.partial
-      viewController.on 'OnboardingEnded', @bound 'handleOnboardingEnded'
+      @viewController = new OnboardingViewController { groupName, slug }, onboarding.partial
+      @appStorage.setValue slug, IS_SHOWN
 
 
   ###*
@@ -145,16 +147,12 @@ module.exports = class OnboardingController extends KDController
       @appStorage.setValue slug, NEED_TO_BE_SHOWN, resolve
 
 
-  ###*
-   * Method is executed once onboarding is ended
-   * It saves a value in DB that shows that onboarding was shown for the user
-   *
-   * @param {string} slug - onboarding slug
-  ###
-  handleOnboardingEnded: (slug) ->
+  stopOnboarding: (groupName) ->
 
-    @appStorage.setValue slug, IS_SHOWN
-    @isRunning = no
+    return  if groupName and @viewController?.getOptions().groupName isnt groupName
+
+    @viewController?.destroy()
+    @viewController = null
 
 
   ###*

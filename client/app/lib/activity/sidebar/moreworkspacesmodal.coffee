@@ -30,4 +30,6 @@ module.exports = class MoreWorkspacesModal extends KDModalView
       @addSubView view = new ModalWorkspaceItem {}, workspace
       view.once 'ModalItemSelected', @bound 'destroy'
 
-    kd.singletons.onboardingController.runOnboarding OnboardingEvent.WorkspaceSettingsOpened
+    { onboardingController } = kd.singletons
+    onboardingController.runOnboarding OnboardingEvent.WorkspaceSettingsOpened
+    @on 'KDModalViewDestroyed', -> onboardingController.stopOnboarding()
