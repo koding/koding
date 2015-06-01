@@ -130,6 +130,7 @@ Configuration = (options={}) ->
 
     vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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"                                                      , kloudSecretKey : kloud.secretKey                                , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
+    tokenizer                      : {port          : 6800}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
     mq                             : mq
@@ -258,13 +259,23 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/go-webserver -c #{configName}"
       nginx             :
+        locations       : [ { location    : "~^/IDE/.*" } ]
+      healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
+
+    tokenizer           :
+      group             : "webserver"
+      ports             :
+         incoming       : "#{KONFIG.tokenizer.port}"
+      supervisord       :
+        command         : "#{GOBIN}/tokenizer -c #{configName}"
+      nginx             :
         locations       : [
           { location    : "/-/token/get" }
           { location    : "/-/token/validate" }
-          { location    : "~^/IDE/.*" }
         ]
-      healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
+      healthCheckURL    : "http://localhost:#{KONFIG.tokenizer.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.tokenizer.port}/version"
 
     kontrol             :
       group             : "environment"

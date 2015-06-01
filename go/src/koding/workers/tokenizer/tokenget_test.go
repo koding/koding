@@ -29,6 +29,13 @@ func TestTokenGetHandler(t *testing.T) {
 			So(res.StatusCode, ShouldEqual, 500)
 		})
 
+		Convey("It should return error if no authkey param", func() {
+			res, err := http.Get(server.URL + "?email=indianajones@koding.com")
+			So(err, ShouldBeNil)
+
+			So(res.StatusCode, ShouldEqual, 500)
+		})
+
 		Convey("It should generate signed token", func() {
 			user := &models.User{
 				ObjectId: bson.NewObjectId(),
@@ -41,7 +48,8 @@ func TestTokenGetHandler(t *testing.T) {
 			_, err := modeltesthelper.CreateUserWithQuery(user)
 			So(err, ShouldBeNil)
 
-			res, err := http.Get(server.URL + "?email=" + user.Email)
+			url := server.URL + "?email=" + user.Email + "&authkey=" + IterableAuthKey
+			res, err := http.Get(url)
 			So(err, ShouldBeNil)
 
 			So(res.StatusCode, ShouldEqual, 200)

@@ -9,7 +9,7 @@ import (
 func TokenConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := validateJWTToken(r)
 	if err != nil {
-		Log.Error("Request to /token/confirm failed: %s", err)
+		Log.Error("Request to /mail/confirm failed: %s", err)
 
 		w.WriteHeader(500)
 		return
@@ -21,7 +21,15 @@ func TokenConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	// token was generated and sent in an email
 	_, err = modelhelper.GetAccount(username)
 	if err != nil {
-		Log.Error("Request to /token/confirm failed: %s", err)
+		Log.Error("Request to /mail/confirm failed: %s", err)
+
+		w.WriteHeader(500)
+		return
+	}
+
+	err = modelhelper.ConfirmUser(username)
+	if err != nil {
+		Log.Error("Request to /mail/confirm failed: %s", err)
 
 		w.WriteHeader(500)
 		return
@@ -29,7 +37,7 @@ func TokenConfirmHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, err := modelhelper.CreateSessionForAccount(username, "koding")
 	if err != nil {
-		Log.Error("Request to /token/confirm failed: %s", err)
+		Log.Error("Request to /mail/confirm failed: %s", err)
 
 		w.WriteHeader(500)
 		return

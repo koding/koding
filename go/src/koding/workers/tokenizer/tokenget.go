@@ -12,7 +12,15 @@ import (
 func TokenGetHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if email == "" {
-		Log.Error("Request to /token/get failed: %v", ErrNoEmailInQuery)
+		Log.Error("Request to /mail/get failed: %v", ErrNoEmailInQuery)
+
+		w.WriteHeader(500)
+		return
+	}
+
+	authkey := r.URL.Query().Get("authkey")
+	if authkey == "" || authkey != IterableAuthKey {
+		Log.Error("Request to /mail/get failed: %v", ErrNoAuthKeyInQuery)
 
 		w.WriteHeader(500)
 		return
@@ -20,7 +28,7 @@ func TokenGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, err := modelhelper.FetchUserByEmail(email)
 	if err != nil {
-		Log.Error("Request to /token/get failed: %v", err)
+		Log.Error("Request to /mail/get failed: %v", err)
 
 		w.WriteHeader(500)
 		return
@@ -37,7 +45,7 @@ func TokenGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	tokenStr, err := token.SignedString([]byte(Jwttoken))
 	if err != nil {
-		Log.Error("Request to /token/get failed: %s", err.Error())
+		Log.Error("Request to /mail/get failed: %s", err.Error())
 
 		w.WriteHeader(500)
 		return

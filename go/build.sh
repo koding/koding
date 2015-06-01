@@ -26,6 +26,8 @@ services=(
   koding/workers/guestcleanerworker
   koding/go-webserver
   koding/vmwatcher
+  koding/workers/tokenizer
+
   github.com/koding/kite/kitectl
   github.com/canthefason/go-watcher
   github.com/mattes/migrate

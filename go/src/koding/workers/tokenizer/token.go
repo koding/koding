@@ -12,6 +12,7 @@ import (
 var (
 	ErrNoEmailInQuery     = errors.New("no email in query")
 	ErrNoTokenInQuery     = errors.New("no token in query")
+	ErrNoAuthKeyInQuery   = errors.New("no auth key in query")
 	ErrTokenNotValid      = errors.New("token not valid")
 	ErrNoUsernameInClaims = errors.New("no username in claims")
 
