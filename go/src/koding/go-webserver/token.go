@@ -51,5 +51,5 @@ func validateJWTToken(r *http.Request) (map[string]interface{}, error) {
 }
 
 func tokenKeyFunc(token *jwt.Token) (interface{}, error) {
-	return []byte(secretKey), nil
+	return []byte(Jwttoken), nil
 }

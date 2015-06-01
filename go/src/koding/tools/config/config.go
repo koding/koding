@@ -173,6 +173,7 @@ type Config struct {
 		KloudSecretKey string
 		KloudAddr      string
 	}
+	Jwttoken string
 }
 
 type RuntimeOptions struct {

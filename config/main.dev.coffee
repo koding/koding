@@ -197,9 +197,11 @@ Configuration = (options={}) ->
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
+    jwttoken                       : "7fe0ad8d0a23b453d905f06710bd756b"
 
     collaboration :
       timeout     : 1 * 60 * 1000
+
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 

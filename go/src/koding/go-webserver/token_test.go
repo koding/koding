@@ -9,6 +9,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func init() {
+	Jwttoken = "ac25b4e6009c1b6ba336a3eb17fbc3b7"
+}
+
 func newTestReq(token string) (*http.Request, error) {
 	url := "http://koding.com/-/token/confirm?token=" + token
 	return http.NewRequest("GET", url, nil)
@@ -37,7 +41,7 @@ func TestValidateJWTToken(t *testing.T) {
 			"exp": time.Now().Add(-1 * time.Hour).Unix(),
 		}
 
-		tokenStr, err := token.SignedString([]byte(secretKey))
+		tokenStr, err := token.SignedString([]byte(Jwttoken))
 		So(err, ShouldBeNil)
 
 		req, err := newTestReq(tokenStr)
@@ -53,7 +57,7 @@ func TestValidateJWTToken(t *testing.T) {
 			"exp": time.Now().Add(tokenExpiresIn).Unix(),
 		}
 
-		tokenStr, err := token.SignedString([]byte(secretKey))
+		tokenStr, err := token.SignedString([]byte(Jwttoken))
 		So(err, ShouldBeNil)
 
 		req, err := newTestReq(tokenStr)
@@ -70,7 +74,7 @@ func TestValidateJWTToken(t *testing.T) {
 			"exp":      time.Now().Add(tokenExpiresIn).Unix(),
 		}
 
-		tokenStr, err := token.SignedString([]byte(secretKey))
+		tokenStr, err := token.SignedString([]byte(Jwttoken))
 		So(err, ShouldBeNil)
 
 		req, err := newTestReq(tokenStr)
