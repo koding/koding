@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/app"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
+	klienttunnel "github.com/koding/klient/tunnel"
 )
 
 var (
@@ -38,6 +40,10 @@ var (
 	flagUpdateURL = flag.String("update-url",
 		"https://s3.amazonaws.com/koding-klient/"+protocol.Environment+"/latest-version.txt",
 		"Change update endpoint for latest version")
+
+	// Tunnel flags
+	flagTunnelServerAddr = flag.String("tunnel-server", "", "Tunnel server address")
+	flagTunnelLocalAddr  = flag.String("tunnel-local", "", "Address of local server to be tunneled (optional)")
 )
 
 func main() {
@@ -90,6 +96,13 @@ func realMain() int {
 
 	a := app.NewKlient(conf)
 	defer a.Close()
+
+	// Open Pandora's box
+	go klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
+		ServerAddr: *flagTunnelServerAddr,
+		LocalAddr:  *flagTunnelLocalAddr,
+		Debug:      *flagDebug,
+	})
 
 	// Run Forrest, Run!
 	a.Run()
