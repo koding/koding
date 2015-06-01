@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/app"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
 	klienttunnel "github.com/koding/klient/tunnel"
-	"github.com/koding/tunnel"
 )
 
 var (
