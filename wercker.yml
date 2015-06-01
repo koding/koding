@@ -137,7 +137,8 @@ build:
     - script:
         name: test tokenizer
         code: |
-          go test ./go/src/koding/workers/tokenizer
+          cd go/src/koding/workers/tokenizer
+          go test -test.v=true
     # - script:
     #     name: test koding kites
     #     code: |
