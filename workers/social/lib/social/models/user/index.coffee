@@ -528,6 +528,16 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
     , =>
+      # check if user has pending invitation
+      return queue.next()  if invitationToken
+
+      JInvitation = require '../invitation'
+      options = { email: user.email, groupName }
+      JInvitation.one options, {}, (err, invitation_) =>
+        invitation = invitation_ if invitation_
+        queue.next()
+
+    , =>
       # check for membership
       JGroup.one { slug: groupName }, (err, group) =>
         if not group or err
