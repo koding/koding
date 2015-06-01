@@ -46,19 +46,17 @@ module.exports = class SidebarMachineBox extends KDView
 
 
     computeController = kd.getSingleton 'computeController'
-    computeController.on "resize-#{@machine._id}", (event) =>
-      @handleResizeProcess event
+    computeController.on "resize-#{@machine._id}", @bound 'handleResizeProcess'
 
 
   handleResizeProcess: (event) ->
 
     { status, percentage }  = event
-    $span                   = @machineItem.settingsIcon.getDomElement()
 
     if status is Machine.State.Running and percentage is 100
-      $span.removeClass 'hidden'
+      @machineItem.settingsIcon.show()
     else
-      $span.addClass    'hidden'
+      @machineItem.settingsIcon.hide()
 
 
   createMachineItem: ->
