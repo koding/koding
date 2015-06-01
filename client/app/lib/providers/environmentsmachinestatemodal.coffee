@@ -466,8 +466,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       NoTemplate : "
         <h1>Compute Stacks not configured yet!</h1>
         <span>
-          Your Team currently not providing any compute resources for it's
-          members. You can contact with your Team owner for more information.
+          Your team currently is not providing any compute resources. 
+          Please contact with your team admins for more information.
         </span>
       "
 
