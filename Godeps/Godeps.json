@@ -92,6 +92,10 @@
 			"Rev": "bb92dddfa9792e738a631f04ada52858a139bcf7"
 		},
 		{
+			"ImportPath": "github.com/hashicorp/yamux",
+			"Rev": "b2e55852ddaf823a85c67f798080eb7d08acd71d"
+		},
+		{
 			"ImportPath": "github.com/inconshreveable/go-update",
 			"Rev": "68f5725818189545231c1fd8694793d45f2fc529"
 		},
@@ -114,6 +118,10 @@
 		{
 			"ImportPath": "github.com/koding/passwd",
 			"Rev": "12dbab6d6d5ca38ffa3c772d5d86bcc5ef1f0ad5"
+		},
+		{
+			"ImportPath": "github.com/koding/tunnel",
+			"Rev": "e79d43a5f147e12972abf94c8b7ef07f9d0d1ee2"
 		},
 		{
 			"ImportPath": "github.com/kr/binarydist",
