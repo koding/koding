@@ -11,7 +11,7 @@ func TokenConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Log.Error("Request to /mail/confirm failed: %s", err)
 
-		w.WriteHeader(500)
+		w.WriteHeader(400)
 		return
 	}
 

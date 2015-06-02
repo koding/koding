@@ -14,7 +14,7 @@ func TokenGetHandler(w http.ResponseWriter, r *http.Request) {
 	if email == "" {
 		Log.Error("Request to /mail/get failed: %v", ErrNoEmailInQuery)
 
-		w.WriteHeader(500)
+		w.WriteHeader(400)
 		return
 	}
 
@@ -22,7 +22,7 @@ func TokenGetHandler(w http.ResponseWriter, r *http.Request) {
 	if authkey == "" || authkey != IterableAuthKey {
 		Log.Error("Request to /mail/get failed: %v", ErrNoAuthKeyInQuery)
 
-		w.WriteHeader(500)
+		w.WriteHeader(400)
 		return
 	}
 
