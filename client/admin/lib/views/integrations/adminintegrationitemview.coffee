@@ -1,5 +1,6 @@
 kd             = require 'kd'
 JView          = require 'app/jview'
+remote         = require('app/remote').getInstance()
 KDButtonView   = kd.ButtonView
 KDListItemView = kd.ListItemView
 
@@ -17,9 +18,19 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
     @addButton = new KDButtonView
       cssClass : 'solid compact green add'
       title    : 'Add'
+      loader   : yes
+      callback : @bound 'fetchIntegrationChannels'
+
+
+  fetchIntegrationChannels: ->
+
+    remote.api.JAccount.some {}, {}, =>
+      @addButton.hideLoader()
+      @emit 'IntegrationGroupsFetched'
 
 
   pistachio: ->
+
     { name, desc, logo } = @getData()
 
     return """
