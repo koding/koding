@@ -426,3 +426,62 @@ computeproviders.styl
     .storage-container
       border-top-right-radius    5px !important
       border-top-left-radius     5px !important
+
+
+.environments-modal
+
+  .environment-item
+    border                  1px solid #CCC
+    border-radius           2px
+    box-sizing              border-box
+    font-size               14px
+    line-height             22px
+
+    .stack-info
+      padding               17px
+      box-sizing            border-box
+
+      .title
+        padding-top         2px
+        padding-left        36px
+
+      &:before
+        size                17px, 17px
+        display             inline-block
+        float               left
+        border              4px solid #019F40
+        border-radius       5px
+
+      .buttons
+        width               auto
+        abs                 15px, 15px
+
+  .machines-item
+    height                  66px
+    display                 flex
+    display                 -webkit-flex
+    flex-flow               row wrap
+    -webkit-flex-flow       row wrap
+    border-top              1px solid #CCC
+
+    .koding-on-off
+      margin                auto
+
+    &.header
+      font-size             10px
+      line-height           28px
+      height                28px !important
+
+      .input-title
+        text-align          center
+
+    > div
+      margin                auto
+      width                 100px
+
+      > span:last-child
+        display             block
+        color               #8B8B8B
+
+    > div:last-child
+      width                 130px
