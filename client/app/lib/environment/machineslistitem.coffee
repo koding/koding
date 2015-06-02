@@ -1,7 +1,9 @@
-kd                   = require 'kd'
-JView                = require 'app/jview'
-KodingSwitch         = require 'app/commonviews/kodingswitch'
-MachineSettingsModal = require '../providers/machinesettingsmodal'
+kd                     = require 'kd'
+JView                  = require 'app/jview'
+showError              = require 'app/util/showError'
+KodingSwitch           = require 'app/commonviews/kodingswitch'
+MachineSettingsModal   = require '../providers/machinesettingsmodal'
+ComputeErrorUsageModal = require '../providers/computeerrorusagemodal'
 
 
 module.exports = class MachinesListItem extends kd.ListItemView
@@ -26,7 +28,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
     @alwaysOnToggle = new KodingSwitch
       cssClass      : 'tiny'
       defaultValue  : alwaysOn
-      callback      : (state) -> console.log "ao >>", state
+      callback      : @bound 'handleAlwaysOnStateChanged'
 
     @sidebarToggle  = new KodingSwitch
       cssClass      : 'tiny'
@@ -39,6 +41,25 @@ module.exports = class MachinesListItem extends kd.ListItemView
       tagName       : 'span'
       click         : ->
         new MachineSettingsModal {}, machine
+
+  handleAlwaysOnStateChanged: (state) ->
+
+    { computeController } = kd.singletons
+
+    machine = @getData()
+
+    computeController.fetchUserPlan (plan) =>
+
+      computeController.setAlwaysOn machine, state, (err) =>
+
+        return  unless err
+
+        if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
+          kd.utils.defer => new ComputeErrorUsageModal { plan }
+        else
+          showError err
+
+        @alwaysOnToggle.setOff no
 
 
   pistachio: ->
