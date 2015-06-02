@@ -41,12 +41,12 @@ module.exports = class AdminIntegrationsListView extends KDView
     # fake like we are fetching data from backend and make the flow async
     remote.api.JAccount.some {}, {}, (err, data) =>
       data = [
-        { name: 'Airbrake',        logo: 'https://slack.global.ssl.fastly.net/9f42/plugins/airbrake/assets/service_128.png', desc: 'Error monitoring and handling.'                       }
-        { name: 'Datadog',         logo: 'https://slack.global.ssl.fastly.net/7bf4/img/services/datadog_128.png',            desc: 'SaaS app monitoring all in one place.'                }
-        { name: 'GitHub',          logo: 'https://slack.global.ssl.fastly.net/5721/plugins/github/assets/service_128.png',   desc: 'Source control and code management'                   }
-        { name: 'Pivotal Tracker', logo: 'https://slack.global.ssl.fastly.net/7bf4/img/services/pivotaltracker_128.png',     desc: 'Collaborative, lightweight agile project management.' }
-        { name: 'Travis CI',       logo: 'https://slack.global.ssl.fastly.net/7bf4/img/services/travis_128.png',             desc: 'Hosted software build services.'                      }
-        { name: 'Twitter',         logo: 'https://slack.global.ssl.fastly.net/7bf4/img/services/twitter_128.png',            desc: 'Social networking and microblogging service.'         }
+        { name: 'Airbrake',        logo: 'https://koding-cdn.s3.amazonaws.com/temp-images/airbrake.png',       desc: 'Error monitoring and handling.'                       }
+        { name: 'Datadog',         logo: 'https://koding-cdn.s3.amazonaws.com/temp-images/datadog.png',        desc: 'SaaS app monitoring all in one place.'                }
+        { name: 'GitHub',          logo: 'https://koding-cdn.s3.amazonaws.com/temp-images/github.png',         desc: 'Source control and code management'                   }
+        { name: 'Pivotal Tracker', logo: 'https://koding-cdn.s3.amazonaws.com/temp-images/pivotaltracker.png', desc: 'Collaborative, lightweight agile project management.' }
+        { name: 'Travis CI',       logo: 'https://koding-cdn.s3.amazonaws.com/temp-images/travisci.png',       desc: 'Hosted software build services.'                      }
+        { name: 'Twitter',         logo: 'https://koding-cdn.s3.amazonaws.com/temp-images/twitter.png',        desc: 'Social networking and microblogging service.'         }
       ]
 
       return @handleNoItem err  if err
