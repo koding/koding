@@ -15,6 +15,9 @@ import (
 )
 
 func TestTokenGetHandler(t *testing.T) {
+	initMongoConn()
+	defer closeMongoConn()
+
 	Convey("", t, func() {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/", TokenGetHandler)

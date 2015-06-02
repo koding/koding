@@ -11,7 +11,7 @@ type Tokenizer struct {
 	Mongo string `required:"true"`
 }
 
-func init() {
+func initMongoConn() {
 	conf := new(Tokenizer)
 
 	(&multiconfig.DefaultLoader{
@@ -21,4 +21,8 @@ func init() {
 	Log.SetLevel(logging.CRITICAL)
 
 	modelhelper.Initialize(conf.Mongo)
+}
+
+func closeMongoConn() {
+	modelhelper.Close()
 }
