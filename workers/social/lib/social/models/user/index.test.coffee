@@ -22,7 +22,6 @@ client                      = {}
 session                     = null
 account                     = null
 dummyClient                 = {}
-uniqueNumber                = 0
 userFormData                = {}
 dummyUserFormData           = {}
 
@@ -73,7 +72,7 @@ runTests = -> describe 'workers.social.user.index', ->
       
       # generating a random string length of 20 character
       randomString          = hat().slice(12)
-      userFormData.email    = "#{randomString}@gmail.com"
+      userFormData.email    = "kodingtestuser+#{randomString}@gmail.com"
       userFormData.username = randomString
       
     
@@ -124,14 +123,15 @@ runTests = -> describe 'workers.social.user.index', ->
             queue.next()
         
         ->
-          # sending unique email address, username will remain same(duplicate)
-          userFormData.email = 'uniqueemail0@gmail.com'
+          # sending a different email address, username will remain same(duplicate)
+          userFormData.email = 'kodingtestuser@koding.com'
 
           JUser.convert client, userFormData, (err) ->
             expect(err.message).to.be.defined
 
             queue.next()
-            done()
+        
+        -> done()
 
       ]
     
@@ -149,14 +149,15 @@ runTests = -> describe 'workers.social.user.index', ->
             queue.next()
 
         ->
-          # sending unique username, email address will remain same(duplicate)
-          userFormData.username = 'uniquename0'
+          # sending a different username, email address will remain same(duplicate)
+          userFormData.username = 'kodingtestuser'
 
           JUser.convert client, userFormData, (err) ->
             expect(err.message).to.be.defined
 
             queue.next()
-            done()
+        
+        -> done()
 
       ]
 
@@ -194,7 +195,8 @@ runTests = -> describe 'workers.social.user.index', ->
             expect(profile.nickname).to.be.equal userFormData.username
 
             queue.next()
-            done()
+        
+        -> done()
 
       ]
 
