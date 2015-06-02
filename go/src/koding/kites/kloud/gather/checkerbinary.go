@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"os/exec"
-
-	"github.com/kr/pretty"
 )
 
 type Options map[string]interface{}
@@ -26,8 +24,6 @@ func (s *CheckerBinary) Run() ([]interface{}, error) {
 	if err := json.NewDecoder(bites).Decode(&results); err != nil {
 		return nil, err
 	}
-
-	pretty.Println(results)
 
 	return results, nil
 }
