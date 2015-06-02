@@ -260,6 +260,12 @@ Configuration = (options={}) ->
     # END: PROPERTIES SHARED WITH BROWSER #
 
 
+  generateGoWorkerCommand = (command) ->
+    if options.runGoWatcher
+    then "#{GOBIN}/watcher -run koding/#{command}"
+    else "#{GOBIN}/#{command}"
+
+
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
   GOBIN = "#{projectRoot}/go/bin"
   GOPATH= "#{projectRoot}/go"
@@ -273,7 +279,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
+        command         : generateGoWorkerCommand "go-webserver -c #{configName}"
       nginx             :
         locations       : [ location: "~^/IDE/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -330,7 +336,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/broker -c #{configName}"
+        command         : generateGoWorkerCommand "broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -343,7 +349,7 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/rerouting -c #{configName}"
+        command         : generateGoWorkerCommand "rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
@@ -400,7 +406,11 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/api -c #{socialapi.configFilePath} -port=#{socialapi.port}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
@@ -456,14 +466,22 @@ Configuration = (options={}) ->
     dispatcher          :
       group             : "socialapi"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/dispatcher -c #{socialapi.configFilePath}"
 
     paymentwebhook      :
       group             : "socialapi"
       ports             :
         incoming        : paymentwebhook.port
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make paymentwebhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make paymentwebhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath} -kite-init=true"
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :
@@ -477,7 +495,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/vmwatcher"
+        command         : generateGoWorkerCommand "vmwatcher"
       nginx             :
         locations       : [ { location: "/vmwatcher" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
@@ -488,7 +506,11 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{integration.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make webhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make webhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/webhook -c #{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
       versionURL        : "#{customDomain.local}/api/integration/version"
       nginx             :
@@ -502,7 +524,11 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{webhookMiddleware.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make middlewaredev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make middlewaredev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/webhookmiddleware -c #{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
       versionURL        : "#{customDomain.local}/api/webhook/version"
       nginx             :
