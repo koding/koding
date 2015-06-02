@@ -74,9 +74,7 @@ module.exports = class ReferralCustomViews extends CustomViews
     shareBox: ({title, subtitle}) =>
 
       container = @views.container 'share-box'
-      
-      tooltipVisible = no
-      
+
       kmt = globals.keymapType
       firstKeyChar = if kmt.charAt(0).toUpperCase() is 'W' then 'ctrl' else '&#8984'
       secondKeyChar = '&#x0043'
@@ -90,18 +88,16 @@ module.exports = class ReferralCustomViews extends CustomViews
         view          : 
           partial     : getReferralUrl nick()
           cssClass    : "text link"
-          mouseenter  : ->
-            if tooltipVisible not yes then @tooltip.destroy()
-          mouseleave  : ->
-            if tooltipVisible not yes then @tooltip.destroy()
           click       : ->
             referralUrl = @getElement()
             @utils.selectText referralUrl
             @setTooltip
               title     : "#{firstKeyChar.toUpperCase()} + #{secondKeyChar} to copy"
               placement : "above"
+              sticky    : yes
             @tooltip.show()
-            tooltipVisible = yes
+            @tooltip.once 'ReceivedClickElsewhere', =>
+              @tooltip.destroy()
 
       return container
 
