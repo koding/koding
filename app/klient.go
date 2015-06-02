@@ -11,6 +11,7 @@ import (
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
+	"github.com/koding/klient/client"
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
 	"github.com/koding/klient/fs"
@@ -223,6 +224,10 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("webterm.killSession", k.terminal.KillSession)
 	k.kite.HandleFunc("webterm.killSessions", k.terminal.KillSessions)
 	k.kite.HandleFunc("webterm.rename", k.terminal.RenameSession)
+
+	// VM -> Client methods
+	k.kite.HandleFunc("client.Publish", client.Publish)
+	k.kite.HandleFunc("client.Subscribe", client.Subscribe)
 
 	k.kite.OnFirstRequest(func(c *kite.Client) {
 		// Koding (kloud) connects to much, don't display it.
