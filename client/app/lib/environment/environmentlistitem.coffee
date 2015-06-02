@@ -1,5 +1,6 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
+isKoding               = require 'app/util/isKoding'
 
 MachinesList           = require './machineslist'
 MachinesListController = require './machineslistcontroller'
@@ -17,16 +18,16 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     { machines } = @getData()
 
     @reinitButton = new kd.ButtonView
-      cssClass : 'solid compact outline'
-      title    : 'REINIT'
+      cssClass    : if isKoding() then 'hidden' else ''
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : 'reinit'
 
-    @terminateButton = new kd.ButtonView
-      cssClass : 'solid compact outline red'
-      title    : 'TERMINATE'
 
-    @addVMButton = new kd.ButtonView
-      cssClass : 'solid compact outline'
-      title    : 'ADD VM'
+    @addVMButton  = new kd.ButtonView
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : 'add'
 
     listView   = new MachinesList
     controller = new MachinesListController
@@ -45,7 +46,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     <div class='stack-info clearfix'>
       {div.title{#(title)}}
       <div class='buttons'>
-        {{> @reinitButton}}{{> @terminateButton}}{{> @addVMButton}}
+        {{> @reinitButton}}{{> @addVMButton}}
       </div>
     </div>
     {{> @machinesList}}

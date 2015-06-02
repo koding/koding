@@ -430,6 +430,21 @@ computeproviders.styl
 
 .environments-modal
 
+  .buttons
+    width                   auto
+    abs                     20px, 20px
+
+    button.icon-only
+      background            none
+      border                none
+
+      span.reinit
+        r-sprite            app, '16-reload'
+
+      span.add
+        r-sprite            app, '16-add'
+
+
   .environment-item
     border                  1px solid #CCC
     border-radius           2px
@@ -451,10 +466,6 @@ computeproviders.styl
         float               left
         border              4px solid #019F40
         border-radius       5px
-
-      .buttons
-        width               auto
-        abs                 15px, 15px
 
   .machines-item
     height                  66px
