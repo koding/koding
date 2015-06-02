@@ -70,7 +70,7 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       cssClass : 'solid green start-session'
       callback : @bound 'initiateSession'
 
-    @createProgressBar();
+    @createProgressBar()
 
     buttonTitle = if @isInSession then 'LEAVE SESSION' else 'END SESSION'
 
