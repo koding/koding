@@ -565,6 +565,7 @@ module.exports = CollaborationController =
         Creating     : @bound 'onCollaborationCreating'
         Active       : @bound 'onCollaborationActive'
         Ending       : @bound 'onCollaborationEnding'
+        Created      : @bound 'onCollaborationCreated'
 
 
 
@@ -641,10 +642,17 @@ module.exports = CollaborationController =
 
     @createCollaborationSession
       success : (doc) =>
-        @whenRealtimeReady => @stateMachine.transition 'Active'
+        @whenRealtimeReady => @stateMachine.transition 'Created'
         @activateRealtimeManager doc
       error: =>
         @stateMachine.transition 'ErrorCreating'
+
+
+  onCollaborationCreated: ->
+
+    @chat.settingsPane.progressBar.updateBar 100
+
+    kd.utils.wait 500, => @stateMachine.transition 'Active'
 
 
   createCollaborationSession: (callbacks) ->
