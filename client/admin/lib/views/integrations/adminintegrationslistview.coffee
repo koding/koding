@@ -1,10 +1,12 @@
-kd                        = require 'kd'
-KDView                    = kd.View
-remote                    = require('app/remote').getInstance()
-KDCustomHTMLView          = kd.CustomHTMLView
-KDListViewController      = kd.ListViewController
-AdminIntegrationItemView  = require './adminintegrationitemview'
-AdminIntegrationSetupView = require './adminintegrationsetupview'
+kd                          = require 'kd'
+KDView                      = kd.View
+remote                      = require('app/remote').getInstance()
+KDCustomHTMLView            = kd.CustomHTMLView
+KDCustomScrollView          = kd.CustomScrollView
+KDListViewController        = kd.ListViewController
+AdminIntegrationItemView    = require './adminintegrationitemview'
+AdminIntegrationSetupView   = require './adminintegrationsetupview'
+AdminIntegrationDetailsView = require './adminintegrationdetailsview'
 
 
 module.exports = class AdminIntegrationsListView extends KDView
@@ -18,7 +20,7 @@ module.exports = class AdminIntegrationsListView extends KDView
     @createListController()
     @fetchIntegrations()
 
-    @addSubView @setupWrapper = new KDCustomHTMLView
+    @addSubView @subContentView = new KDCustomScrollView
 
   createListController: ->
 
@@ -77,21 +79,29 @@ module.exports = class AdminIntegrationsListView extends KDView
           { name: '#off-topic', id: '125' }
         ]
 
-
-      @listController.getView().hide()
-
-      @setupWrapper.destroySubViews()
-
       setupView = new AdminIntegrationSetupView {}, data
       setupView.once 'KDObjectWillBeDestroyed', @bound 'showList'
+      setupView.once 'NewIntegrationAdded',     @bound 'showIntegrationDetails'
 
-      @setupWrapper.addSubView setupView
+      @showView setupView
+
+
+  showView: (view) ->
+
+    @listController.getView().hide()
+    @subContentView.wrapper.destroySubViews()
+    @subContentView.wrapper.addSubView view
 
 
   showList: ->
 
-    @setupWrapper.destroySubViews()
+    @subContentView.wrapper.destroySubViews()
     @listController.getView().show()
+
+
+  showIntegrationDetails: (data) ->
+
+    @showView new AdminIntegrationDetailsView {}, data
 
 
   handleNoItem: (err) ->
