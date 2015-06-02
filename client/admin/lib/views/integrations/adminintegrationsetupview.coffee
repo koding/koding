@@ -25,14 +25,13 @@ module.exports = class AdminIntegrationSetupView extends JView
 
     @addButton = new KDButtonView
       title    : "Add #{data.name} Integration"
-      disabled : yes
       cssClass : 'solid green compact add'
       callback : @bound 'fetchIntegrationConfig'
 
     @cancelButton = new KDButtonView
       title    : 'Cancel'
       cssClass : 'solid red compact cancel'
-      callback : @bound 'cancel'
+      callback : @bound 'destroy'
 
 
   handleChannelSelect: ->
@@ -41,14 +40,9 @@ module.exports = class AdminIntegrationSetupView extends JView
   fetchIntegrationConfig: ->
 
 
-  cancel: ->
-
-
   pistachio: ->
 
     { name, desc, summary, logo } = @getData()
-
-    kd.log desc
 
     return """
       <header class="integration-view">

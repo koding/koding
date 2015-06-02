@@ -81,7 +81,17 @@ module.exports = class AdminIntegrationsListView extends KDView
       @listController.getView().hide()
 
       @setupWrapper.destroySubViews()
-      @setupWrapper.addSubView new AdminIntegrationSetupView {}, data
+
+      setupView = new AdminIntegrationSetupView {}, data
+      setupView.once 'KDObjectWillBeDestroyed', @bound 'showList'
+
+      @setupWrapper.addSubView setupView
+
+
+  showList: ->
+
+    @setupWrapper.destroySubViews()
+    @listController.getView().show()
 
 
   handleNoItem: (err) ->
