@@ -146,6 +146,7 @@ build:
         name: test gather
         code: |
           go test ./go/src/koding/kites/kloud/gather -test.v=true
+          go test ./go/src/koding/kites/kloud/gather/check -test.v=true
     - script:
         name: testing backend finished
         code: |
