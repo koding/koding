@@ -74,7 +74,7 @@
       clear                 both
       border-bottom         1px solid #e0e0e0
       height                40px
-      padding               10px 0px
+      padding               8px 0px
       cursor                pointer
 
       &:hover
@@ -101,11 +101,11 @@
 
       .col
         display             table-column
-        width               60%
+        width               45%
         float               left
         font-size           .94em
         line-height         22px
-        padding             4px 0px 4px 0px
+        padding             4px 16px 4px 0px
         borderBox()
 
         > *
@@ -113,26 +113,25 @@
           vertical-align    middle
 
       .col:first-child
-        width               7%
+        width               8%
         text-align          center
+        padding             4px 0px 4px 10px
         height              auto
-        position            relative;
         top                 50%;
         vendor              transform, translateY(-50%)
 
       .col:nth-child(2)
+        width               60%
+        padding             0px 0px 4px 0px
         height              auto
-        position            relative;
-        top                 50%;
-        vendor              transform, translateY(-50%)
+        top                 42%;
+        vendor              transform, translateY(-30%)
 
       .col:nth-child(3)
         text-align          right !important
         float               right
         width               auto
-        padding             4px 16px 4px 0px
         height              auto
-        position            relative;
         top                 50%;
         vendor              transform, translateY(-50%)
 
