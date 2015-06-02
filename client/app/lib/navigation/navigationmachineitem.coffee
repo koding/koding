@@ -87,8 +87,8 @@ module.exports = class NavigationMachineItem extends JView
       tagName     : 'span'
       click       : (e) =>
         kd.utils.stopDOMEvent e
-        if @machine.isMine() then @handleMachineSettingsClick
-        else if @machine.isApproved() then @showSidebarSharePopup {}
+        if @machine.isMine() then @handleMachineSettingsClick()
+        else if @machine.isApproved() then @showSidebarSharePopup()
 
 
   createSettingsIconPlaceholder: ->
@@ -114,7 +114,7 @@ module.exports = class NavigationMachineItem extends JView
     return state in [ NotInitialized, Running, Stopped, Terminated, Unknown ]
 
 
-  handleMachineSettingsClick: () ->
+  handleMachineSettingsClick: ->
 
     return  if not @settingsEnabled()
 
