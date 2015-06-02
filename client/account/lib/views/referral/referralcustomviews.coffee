@@ -75,8 +75,7 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       container = @views.container 'share-box'
 
-      kmt = globals.keymapType
-      firstKeyChar = if kmt.charAt(0).toUpperCase() is 'W' then 'ctrl' else '&#8984'
+      superKey = if globals.os is 'mac' then '⌘' else 'CTRL'
 
       @addTo container,
         text_title    : title
@@ -91,12 +90,11 @@ module.exports = class ReferralCustomViews extends CustomViews
             referralUrl = @getElement()
             @utils.selectText referralUrl
             @setTooltip
-              title     : "#{firstKeyChar.toUpperCase()} + C to copy"
+              title     : "#{superKey} + C to copy"
               placement : "above"
               sticky    : yes
             @tooltip.show()
-            @tooltip.once 'ReceivedClickElsewhere', =>
-              @tooltip.destroy()
+            @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'destroy'
 
       return container
 
