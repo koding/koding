@@ -41,7 +41,7 @@ type ClientMethods struct {
 	subCount int
 }
 
-// The Publish method takes arbitrary event data, and passes it to
+// Publish method takes arbitrary event data, and passes it to
 // any functions which have subscribed via `client.Subscribe`. The
 // only required value is a single `eventName` value. Only listeners
 // of the given eventName will be called back with the data.
@@ -97,7 +97,7 @@ func (c *ClientMethods) Publish(r *kite.Request) (interface{}, error) {
 	return nil, nil
 }
 
-// The Subscribe method subscribes a function to any `client.Publish`
+// Subscribe method subscribes a function to any `client.Publish`
 // calls with the matching eventName.
 //
 // Example:

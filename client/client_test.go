@@ -42,7 +42,10 @@ func TestSubscribe(t *testing.T) {
 	_, err = c.Tell("client.Subscribe", struct {
 		Data      string
 		OnPublish dnode.Function
-	}{"foo", dnode.Callback(func(f *dnode.Partial) {})})
+	}{
+		Data:      "foo",
+		OnPublish: dnode.Callback(func(f *dnode.Partial) {}),
+	})
 	if err == nil {
 		t.Fatal("client.Subscribe should require EventName")
 	}
@@ -51,7 +54,10 @@ func TestSubscribe(t *testing.T) {
 	_, err = c.Tell("client.Subscribe", struct {
 		eventName string
 		Data      string
-	}{"foo", "bar"})
+	}{
+		eventName: "foo",
+		Data:      "bar",
+	})
 	if err == nil {
 		t.Fatal("client.Subscribe should require OnPublish")
 	}
@@ -60,7 +66,10 @@ func TestSubscribe(t *testing.T) {
 	_, err = c.Tell("client.Subscribe", struct {
 		eventName string
 		onPublish string
-	}{"foo", "bar"})
+	}{
+		eventName: "foo",
+		onPublish: "bar",
+	})
 	if err == nil {
 		t.Fatal("client.Subscribe should require a valid OnPublish func")
 	}
@@ -69,7 +78,10 @@ func TestSubscribe(t *testing.T) {
 	_, err = c.Tell("client.Subscribe", struct {
 		EventName string
 		OnPublish dnode.Function
-	}{"test", dnode.Callback(func(f *dnode.Partial) {})})
+	}{
+		EventName: "test",
+		OnPublish: dnode.Callback(func(f *dnode.Partial) {}),
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +100,10 @@ func TestSubscribe(t *testing.T) {
 	_, err = c.Tell("client.Subscribe", struct {
 		EventName string
 		OnPublish dnode.Function
-	}{"test", dnode.Callback(func(f *dnode.Partial) { success <- true })})
+	}{
+		EventName: "test",
+		OnPublish: dnode.Callback(func(f *dnode.Partial) { success <- true }),
+	})
 
 	if err != nil {
 		t.Fatal(err)
@@ -147,13 +162,20 @@ func TestPublish(t *testing.T) {
 	_, err = c.Tell("client.Publish", struct {
 		Random string
 		Data   string
-	}{"foo", "bar"})
+	}{
+		Random: "foo",
+		Data:   "bar",
+	})
 	if err == nil {
 		t.Fatal("client.Publish should require EventName")
 	}
 
 	// Should require subscriptions for the given event
-	_, err = c.Tell("client.Publish", struct{ EventName string }{"foo"})
+	_, err = c.Tell("client.Publish", struct {
+		EventName string
+	}{
+		EventName: "foo",
+	})
 	if err == nil {
 		t.Fatal("client.Publish should return an error, without any subs")
 	}
@@ -171,7 +193,11 @@ func TestPublish(t *testing.T) {
 		})},
 	}
 
-	_, err = c.Tell("client.Publish", struct{ EventName string }{"test"})
+	_, err = c.Tell("client.Publish", struct {
+		EventName string
+	}{
+		EventName: "test",
+	})
 	if err != nil {
 		t.Fatal("client.Publish should call onPublish callbacks without error.", err)
 	}
@@ -193,7 +219,11 @@ func TestPublish(t *testing.T) {
 		EventName string
 		CountData int
 		ListData  []string
-	}{"other", 42, []string{"life", "universe", "everything"}})
+	}{
+		EventName: "other",
+		CountData: 42,
+		ListData:  []string{"life", "universe", "everything"},
+	})
 	if err != nil {
 		t.Fatal("client.Publish should publish data without error", err)
 	}
