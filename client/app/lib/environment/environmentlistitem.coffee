@@ -22,20 +22,25 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       icon        : yes
       iconOnly    : yes
       iconClass   : 'reinit'
+      tooltip     :
+        title     : 'Re-init Stack'
+
 
 
     @addVMButton  = new kd.ButtonView
       icon        : yes
       iconOnly    : yes
       iconClass   : 'add'
+      tooltip     :
+        title     : 'Add new VM'
 
     listView   = new MachinesList
     controller = new MachinesListController
-      view       : listView
-      wrapper    : no
-      scrollView : no
+      view        : listView
+      wrapper     : no
+      scrollView  : no
     ,
-      items      : machines
+      items       : machines
 
     @machinesList = controller.getView()
 
