@@ -81,8 +81,8 @@ func (c *ClientMethods) Publish(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("client.Publish: eventName is required")
 	}
 
-	subs, ok := c.Subscriptions[params.EventName]
-	if !ok || len(subs) == 0 {
+	subs, _ := c.Subscriptions[params.EventName]
+	if len(subs) == 0 {
 		return nil, errors.New(fmt.Sprintf(
 			"client.Publish: No client.Subscribers found for '%s'",
 			params.EventName))
