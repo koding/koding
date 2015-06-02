@@ -45,6 +45,7 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
         { title : 'red',    value : 'red'     }
         { title : 'blue',   value : 'blue'    }
         { title : 'yellow', value : 'yellow'  }
+        { title : 'gray',   value : 'gray'    }
       ]
     @throbberColor.setValue data.color  if data.color
 

@@ -33,6 +33,7 @@ module.exports = class ThrobberView extends KDView
       cssClass  : 'throbber-tooltip'
       placement : tooltipPlacement
       html      : yes
+      sticky    : yes
 
 
   setPosition: ->

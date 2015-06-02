@@ -51,8 +51,9 @@ module.exports = class MachineSettingsModal extends KDModalView
     @tabView.showPaneByIndex 0
 
     { onboardingController } = kd.singletons
-    onboardingController.runOnboarding OnboardingEvent.VMSettingsOpened
-    @on 'KDModalViewDestroyed', -> onboardingController.stopOnboarding()
+    onboardingController.runOnboarding OnboardingEvent.VMSettingsOpened, yes
+    @on 'KDModalViewDestroyed', ->
+      onboardingController.stopOnboarding OnboardingEvent.VMSettingsOpened
 
 
   createTabView: ->

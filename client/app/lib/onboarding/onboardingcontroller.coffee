@@ -6,34 +6,33 @@ whoami = require 'app/util/whoami'
 checkFlag = require 'app/util/checkFlag'
 KDController = kd.Controller
 OnboardingViewController = require './onboardingviewcontroller'
-OnboardingEvent = require 'app/onboarding/onboardingevent'
+OnboardingEvent = require './onboardingevent'
+OnboardingConstants = require './onboardingconstants'
 Promise = require 'bluebird'
 
-
+###*
+ * A controller that manages onboardings for the current user
+###
 module.exports = class OnboardingController extends KDController
 
-  IS_SHOWN         = 'is_shown'
-  NEED_TO_BE_SHOWN = 'need_to_be_shown'
-
-
-  ###*
-   * A controller that manages onboardings for the current user
-   * It fetchs onboardings from DB and starts them when it's necessary
-  ###
   constructor: (options = {}, data) ->
 
     super options, data
 
-    @onboardings   = {}
-    @pendingQueue  = []
-    @isReady       = no
-    { mainController, windowController, router } = kd.singletons
+    @onboardings    = {}
+    @pendingQueue   = []
+    @isReady        = no
+    @viewController = new OnboardingViewController()
+
+    { mainController, windowController, appManager } = kd.singletons
 
     if isLoggedIn() then @fetchItems()
     else
       mainController.on 'accountChanged.to.loggedIn', @bound 'fetchItems'
 
-    router.on 'RouteInfoHandled', @bound 'stopOnboarding'
+    appManager.on 'FrontAppIsChanged', @bound 'handleFrontAppChanged'
+
+    @viewController.on 'OnboardingItemCompleted', @bound 'handleItemCompleted'
 
 
   ###*
@@ -43,9 +42,11 @@ module.exports = class OnboardingController extends KDController
   ###
   fetchItems: ->
 
+    { STORAGE_NAME, STORAGE_VERSION } = OnboardingConstants
+
     account           = whoami()
     @registrationDate = new Date(account.meta.createdAt)
-    @appStorage       = kd.getSingleton('appStorageController').storage 'OnboardingStatus', '1.0.0'
+    @appStorage       = kd.getSingleton('appStorageController').storage STORAGE_NAME, STORAGE_VERSION
     query             = partialType : 'ONBOARDING'
 
     if @isPreviewMode()
@@ -85,84 +86,169 @@ module.exports = class OnboardingController extends KDController
 
 
   ###*
-   * Runs onboarding group by name
+   * Runs onboarding group by name.
+   * If controller is not ready yet, onboarding request is added to pending queue.
    * Onboarding can be run if it was not shown for the current user yet
-   * and user was registered after onboarding had been published
-   * Also, it can be shown if it was requested to show it again
-   * If controller is not ready yet, onboarding request is added to pending queue
+   * and user was registered after onboarding had been published.
+   * Also, it can be shown if it was requested to show it again (onboarding reset).
+   * A list of onboarding group items is saved to appStorage before they run
+   * so it's possible to understand what items are left to show for the user
    *
    * @param {string} groupName - name of onboarding group
+   * @param {isModal} isModal  - a flag shows if onboarding is running on the modal.
+   * In this case onboarding items should have higher z-index
    * @param {number} delay     - time to wait before running onboarding, by default it's 2s
   ###
-  runOnboarding: (groupName, delay = 2000) ->
+  runOnboarding: (groupName, isModal = no, delay = 2000) ->
 
     return @pendingQueue.push [].slice.call(arguments)  unless @isReady
 
-    @stopOnboarding()
+    @refreshOnboarding()
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
     return  unless onboarding.partial.items?.length
 
-    slug               = @createSlug groupName
-    forceRun           = @appStorage.getValue(slug) is NEED_TO_BE_SHOWN
+    isForcedGroup = @useForcedGroup groupName
+    isProperUser  = onboarding.publishedAt and new Date(onboarding.publishedAt) < @registrationDate
+    itemSlugs     = @getItemsToRun groupName
+    items         = []
 
-    isAvailableForUser = if onboarding.publishedAt
-    then new Date(onboarding.publishedAt) < @registrationDate
-    else no
-    isAvailableForUser = not(@appStorage.getValue slug)  if isAvailableForUser
+    if isForcedGroup or (isProperUser and not itemSlugs)
+      items     = onboarding.partial.items
+      itemSlugs = @convertToSlugs items
+      @updateItemsToRun groupName, itemSlugs
+    else if itemSlugs
+      for item in onboarding.partial.items
+        itemSlug = kd.utils.slugify item.name
+        items.push item  if itemSlugs.indexOf(itemSlug) > -1
 
-    return  unless (isAvailableForUser or forceRun)
+    return  unless items.length
 
     kd.utils.wait delay, =>
-      @viewController = new OnboardingViewController { groupName, slug }, onboarding.partial
-      @appStorage.setValue slug, IS_SHOWN
+      @viewController.runItems groupName, items, isModal
 
 
   ###*
-   * For all onboardings it saves a value in DB that requests to show onboarding again
+   * Checks if onboarding group was reset before and therefore should be forcibly run
+   * If so, it removes the group from a list of reset groups, saves the list
+   * and return yes. Otherwise, it return no
    *
-   * @param {function} callback - it's called when all values are saved in DB
+   * @param {string} groupName - name of checkable group
+  ###
+  useForcedGroup: (groupName) ->
+
+    forcedGroups  = @appStorage.getValue OnboardingConstants.FORCED_ONBOARDINGS
+    index         = forcedGroups?.indexOf groupName
+    isForcedGroup = index > -1
+
+    if isForcedGroup
+      forcedGroups.splice index, 1
+      @appStorage.setValue OnboardingConstants.FORCED_ONBOARDINGS, forcedGroups
+
+    return isForcedGroup
+
+
+  ###*
+   * Saves a list of currently available onboardings to appStorage
+   * so when any onboarding is requested to run and it is in this list,
+   * it will run without any other check
+   *
+   * @param {function} callback - it's called once the list is saved
   ###
   resetOnboardings: (callback) ->
 
-    promises = []
-    for event of OnboardingEvent
-      promises.push @resetOnboarding(event)
-
-    Promise
-      .all promises
-      .then -> callback?()
-
+    events = []
+    events.push event  for event of OnboardingEvent when @onboardings[event]?
+    @appStorage.setValue OnboardingConstants.FORCED_ONBOARDINGS, events, callback
 
   ###*
-   * Saves a value in DB that requests to show onboarding again
-   *
-   * @return {Promise} - promise object that resolves once value is saved
+   * Refreshes current onboarding items according to the state of elements
+   * they are attached to. If elements are hidden, items get hidden too,
+   * and vice versa
   ###
-  resetOnboarding: (event) ->
-
-    return new Promise (resolve) =>
-      slug = @createSlug event
-      @appStorage.setValue slug, NEED_TO_BE_SHOWN, resolve
-
-
-  stopOnboarding: (groupName) ->
-
-    return  if groupName and @viewController?.getOptions().groupName isnt groupName
-
-    @viewController?.destroy()
-    @viewController = null
-
+  refreshOnboarding: -> @viewController.refreshItems()
 
   ###*
-   * Creates onboarding slug in correct format
+   * Removes onboarding group items from the page
    *
    * @param {string} groupName - name of onboarding group
   ###
-  createSlug: (groupName) ->
+  stopOnboarding: (groupName) -> @viewController.clearItems groupName
 
-    return kd.utils.slugify kd.utils.curry 'onboarding', groupName
+
+  ###*
+   * Handles FrontAppIsChanged event of appManager. If app is changed,
+   * all onboarding items which ran on previous app should be removed
+   *
+   * @param {object} appInstance     - new application
+   * @param {object} prevAppInstance - previous application
+  ###
+  handleFrontAppChanged: (appInstance, prevAppInstance) ->
+
+    @viewController.clearItems()  unless appInstance is prevAppInstance
+
+
+  ###*
+   * Handles OnboardingItemCompleted event which is called when user completes
+   * and closes onboarding item. In this case item should be removed from
+   * the list of visible items and the list should be updated in appStorage
+   * Every time onboarding runs on the page, it shows only items left
+   * in the list. When no item is in the list, onboarding won't appear
+   *
+   * @param {string} groupName - name of onboarding group
+   * @param {object} item      - data of completed item
+  ###
+  handleItemCompleted: (groupName, item) ->
+
+    itemSlugs = @getItemsToRun groupName
+    for itemSlug, index in itemSlugs when itemSlug is kd.utils.slugify item.name
+      itemSlugs.splice index, 1
+      break
+    @updateItemsToRun groupName, itemSlugs
+
+
+  ###*
+   * Creates a slug for onboarding group
+   *
+   * @param {string} groupName - name of onboarding group
+  ###
+  createGroupSlug: (groupName) ->
+
+    kd.utils.slugify kd.utils.curry 'onboarding', groupName
+
+
+  ###*
+   * Returns a list of slugs for onboarding items
+   *
+   * @param {Array} items - onboarding items
+  ###
+  convertToSlugs: (items) ->
+
+    itemSlugs = kd.utils.slugify item.name  for item in items
+
+
+  ###*
+   * Returns a list of onboarding item slugs which are left to run
+   * for onboarding group
+   *
+   * @param {string} groupName - name of onboarding group
+  ###
+  getItemsToRun: (groupName) ->
+
+    groupSlug = @createGroupSlug groupName
+    result    = @appStorage.getValue groupSlug
+
+    return result  if result instanceof Array
+
+  ###*
+   * Updates in appStorage a list of onboarding item slugs which are left to run
+   * for onboarding group
+  ###
+  updateItemsToRun: (groupName, itemSlugs, callback) ->
+
+    groupSlug = @createGroupSlug groupName
+    @appStorage.setValue groupSlug, itemSlugs, callback
 
 
   isPreviewMode: -> return checkFlag 'super-admin'

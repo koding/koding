@@ -1422,7 +1422,10 @@ a.action-link.verify-email
   width                   50px
   height                  50px
   position                absolute
-  z-index                 10001
+  z-index                 1000
+
+  &.modal-throbber
+    z-index               10001
 
   .throbber-outer-circle
     width                 40px
@@ -1435,9 +1438,9 @@ a.action-link.verify-email
     position              absolute
     top                   5px
     left                  5px
-    -webkit-animation     throbber-outer-animation ease-in-out .5s alternate infinite
-    -moz-animation        throbber-outer-animation ease-in-out .5s alternate infinite
-    animation             throbber-outer-animation ease-in-out .5s alternate infinite
+    -webkit-animation     throbber-outer-animation ease .75s alternate infinite
+    -moz-animation        throbber-outer-animation ease .75s alternate infinite
+    animation             throbber-outer-animation ease .75s alternate infinite
 
   .throbber-inner-circle
     width                 26px
@@ -1446,9 +1449,9 @@ a.action-link.verify-email
     background-color      #00ab51
     top                   12px
     left                  12px
-    -webkit-animation     throbber-inner-animation ease-in-out .5s alternate infinite
-    -moz-animation        throbber-inner-animation ease-in-out .5s alternate infinite
-    animation             throbber-inner-animation ease-in-out .5s alternate infinite
+    -webkit-animation     throbber-inner-animation ease .75s alternate infinite
+    -moz-animation        throbber-inner-animation ease .75s alternate infinite
+    animation             throbber-inner-animation ease .75s alternate infinite
 
   &.green
 
@@ -1481,6 +1484,14 @@ a.action-link.verify-email
 
     .throbber-inner-circle
       background          #f9e900
+
+  &.gray
+
+    .throbber-outer-circle
+      border-color        #7f7f81
+
+    .throbber-inner-circle
+      background          #7f7f81
 
 .throbber-tooltip
 
