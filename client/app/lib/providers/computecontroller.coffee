@@ -86,7 +86,10 @@ module.exports = class ComputeController extends KDController
     if render then @fetchStacks =>
       @info machine for machine in @machines
       @emit "RenderMachines", @machines
+      @emit "RenderStacks",   @stacks
       callback null
+
+    return this
 
 
   _clearTrialCounts: (machine)->
