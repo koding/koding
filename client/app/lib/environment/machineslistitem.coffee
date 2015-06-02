@@ -13,7 +13,14 @@ module.exports = class MachinesListItem extends kd.ListItemView
     super options, data
 
     delegate = @getDelegate()
-    { alwaysOn } = @getData()
+    { alwaysOn, slug, label } = machine = @getData()
+
+    @labelLink      = new kd.CustomHTMLView
+      cssClass      : 'label-link'
+      tagName       : 'span'
+      partial       : label
+      click         : ->
+        kd.singletons.router.handleRoute "/IDE/#{slug}"
 
     @alwaysOnToggle = new KodingSwitch
       cssClass      : 'tiny'
@@ -28,7 +35,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
   pistachio: ->
     """
       <div>
-        {{#(label)}}
+        {{> @labelLink}}
         {{#(provider)}}
       </div>
       <div>
