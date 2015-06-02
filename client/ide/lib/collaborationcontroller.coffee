@@ -730,7 +730,10 @@ module.exports = CollaborationController =
     @chat.emit 'CollaborationStarted'
     @statusBar.emit 'CollaborationStarted'
 
-    kd.singletons.onboardingController.runOnboarding OnboardingEvent.CollaborationStarted
+    { onboardingController } = kd.singletons
+    onboardingController.runOnboarding OnboardingEvent.CollaborationStarted
+    @chat.on ['ViewBecameHidden', 'ViewBecameVisible'], ->
+      onboardingController.refreshOnboarding()
 
 
   onCollaborationEnding: ->
@@ -747,6 +750,9 @@ module.exports = CollaborationController =
       @endCollaborationForParticipant =>
         @modal?.destroy()
         @handleCollaborationEndedForParticipant()
+
+    { onboardingController } = kd.singletons
+    onboardingController.stopOnboarding OnboardingEvent.CollaborationStarted
 
 
   endCollaborationForHost: (callback) ->

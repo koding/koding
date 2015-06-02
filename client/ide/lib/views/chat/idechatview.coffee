@@ -115,6 +115,7 @@ module.exports = class IDEChatView extends KDTabView
 
     @visible = no
     @hide()
+    @emit 'ViewBecameHidden'
 
 
   focus: -> @chatPane.focus()
@@ -125,6 +126,7 @@ module.exports = class IDEChatView extends KDTabView
     super
 
     @chatPane?.refresh()
+    @emit 'ViewBecameVisible'
 
 
   createLoader: ->
