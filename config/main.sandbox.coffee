@@ -132,7 +132,7 @@ Configuration = (options={}) ->
     # -- WORKER CONFIGURATION -- #
     vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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"                                                      , kloudSecretKey : kloud.secretKey                      , kloudAddr : kloud.address, connectToKlient: true, debug: true, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
-    tokenizer                      : {port          : 6800}
+    tokenizer                      : {port          : 6800                        , mailSecretKey: "175b8d775e84eca707f5b3e9459a853d"                                                     , iterableAuthKey: "b32f0bf075f30483caa6ec5f318ee49b" }
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
     mq                             : mq
@@ -184,7 +184,6 @@ Configuration = (options={}) ->
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
-    jwttoken                       : "175b8d775e84eca707f5b3e9459a853d"
 
     collaboration :
       timeout     : 1 * 60 * 1000

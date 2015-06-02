@@ -50,5 +50,5 @@ func tokenKeyFunc(token *jwt.Token) (interface{}, error) {
 		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 	}
 
-	return []byte(Jwttoken), nil
+	return []byte(SecretMailSigningKey), nil
 }

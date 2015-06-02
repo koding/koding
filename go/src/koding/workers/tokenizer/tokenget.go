@@ -43,7 +43,7 @@ func TokenGetHandler(w http.ResponseWriter, r *http.Request) {
 		"exp":      now.Add(tokenExpiresIn).Unix(),
 	}
 
-	tokenStr, err := token.SignedString([]byte(Jwttoken))
+	tokenStr, err := token.SignedString([]byte(SecretMailSigningKey))
 	if err != nil {
 		Log.Error("Request to /mail/get failed: %s", err.Error())
 

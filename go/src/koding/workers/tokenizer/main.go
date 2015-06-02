@@ -15,14 +15,14 @@ import (
 var (
 	Name = "tokenizer"
 
-	//IterableAuthKey is used to authenticate requests from iterable.com
-	IterableAuthKey = "b32f0bf075f30483caa6ec5f318ee49b"
-
 	flagConfig = flag.String("c", "dev", "Configuration profile from file")
 	Log        = logging.NewLogger(Name)
 
-	// Jwttoken is environment specific siging key.
-	Jwttoken string
+	//IterableAuthKey is used to authenticate requests from iterable.com
+	IterableAuthKey string
+
+	// SecretMailSigningKey is environment specific signing key.
+	SecretMailSigningKey string
 )
 
 func initialize() *config.Config {
@@ -31,7 +31,8 @@ func initialize() *config.Config {
 	conf := config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 
-	Jwttoken = conf.Jwttoken
+	SecretMailSigningKey = conf.Tokenizer.MailSecretKey
+	IterableAuthKey = conf.Tokenizer.IterableAuthKey
 
 	flag.Parse()
 	if *flagConfig == "" {

@@ -10,11 +10,12 @@ import (
 )
 
 func init() {
-	Jwttoken = "ac25b4e6009c1b6ba336a3eb17fbc3b7"
+	SecretMailSigningKey = "thisisatestkey"
+	IterableAuthKey = "thisisatestkey"
 }
 
 func newTestReq(token string) (*http.Request, error) {
-	url := "http://koding.com/-/token/confirm?token=" + token
+	url := "http://localhost/-/token/confirm?token=" + token
 	return http.NewRequest("GET", url, nil)
 }
 
@@ -41,7 +42,7 @@ func TestTokenValidateJWTToken(t *testing.T) {
 			"exp": time.Now().Add(-1 * time.Hour).Unix(),
 		}
 
-		tokenStr, err := token.SignedString([]byte(Jwttoken))
+		tokenStr, err := token.SignedString([]byte(SecretMailSigningKey))
 		So(err, ShouldBeNil)
 
 		req, err := newTestReq(tokenStr)
@@ -57,7 +58,7 @@ func TestTokenValidateJWTToken(t *testing.T) {
 			"exp": time.Now().Add(tokenExpiresIn).Unix(),
 		}
 
-		tokenStr, err := token.SignedString([]byte(Jwttoken))
+		tokenStr, err := token.SignedString([]byte(SecretMailSigningKey))
 		So(err, ShouldBeNil)
 
 		req, err := newTestReq(tokenStr)
@@ -74,7 +75,7 @@ func TestTokenValidateJWTToken(t *testing.T) {
 			"exp":      time.Now().Add(tokenExpiresIn).Unix(),
 		}
 
-		tokenStr, err := token.SignedString([]byte(Jwttoken))
+		tokenStr, err := token.SignedString([]byte(SecretMailSigningKey))
 		So(err, ShouldBeNil)
 
 		req, err := newTestReq(tokenStr)

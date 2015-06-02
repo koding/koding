@@ -157,7 +157,9 @@ type Config struct {
 		Port int
 	}
 	Tokenizer struct {
-		Port int
+		Port            int
+		MailSecretKey   string
+		IterableAuthKey string
 	}
 	Rerouting struct {
 		Port int
@@ -176,7 +178,6 @@ type Config struct {
 		KloudSecretKey string
 		KloudAddr      string
 	}
-	Jwttoken string
 }
 
 type RuntimeOptions struct {
