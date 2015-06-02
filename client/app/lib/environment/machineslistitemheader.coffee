@@ -17,5 +17,4 @@ module.exports = class MachinesListItemHeader extends kd.ListItemView
       <div>TYPE</div>
       <div>OS</div>
       <div class='input-title'>ALWAYS ON</div>
-      <div class='input-title'>DISPLAY ON SIDEBAR?</div>
     """

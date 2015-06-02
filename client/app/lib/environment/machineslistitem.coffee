@@ -20,7 +20,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
       defaultValue  : alwaysOn
       callback      : (state) -> console.log "ao >>", state
 
-    @sidebarToggle = new KodingSwitch
+    @sidebarToggle  = new KodingSwitch
       cssClass      : 'tiny'
       defaultValue  : yes
       callback      : (state) -> console.log "sb >>", state
@@ -41,8 +41,5 @@ module.exports = class MachinesListItem extends kd.ListItemView
       </div>
       <div>
         {{> @alwaysOnToggle}}
-      </div>
-      <div>
-        {{> @sidebarToggle}}
       </div>
     """
