@@ -242,9 +242,13 @@ deploy:
 
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
     - script:
+        name: build and upload gather scripts
+        code: |
+          cd $WERCKER_ROOT/go/src/koding/kites/kloud/gather
+          ./build.sh
+    - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
-
 
     - koding/eb-deploy@0.0.8:
         access-key: $S3_KEY_ID
