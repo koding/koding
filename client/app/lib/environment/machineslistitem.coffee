@@ -1,6 +1,7 @@
-kd           = require 'kd'
-JView        = require 'app/jview'
-KodingSwitch = require 'app/commonviews/kodingswitch'
+kd                   = require 'kd'
+JView                = require 'app/jview'
+KodingSwitch         = require 'app/commonviews/kodingswitch'
+MachineSettingsModal = require '../providers/machinesettingsmodal'
 
 
 module.exports = class MachinesListItem extends kd.ListItemView
@@ -32,6 +33,14 @@ module.exports = class MachinesListItem extends kd.ListItemView
       defaultValue  : yes
       callback      : (state) -> console.log "sb >>", state
 
+    @settingsLink   = new kd.CustomHTMLView
+      cssClass      : 'settings-link'
+      partial       : 'settings'
+      tagName       : 'span'
+      click         : ->
+        new MachineSettingsModal {}, machine
+
+
   pistachio: ->
     """
       <div>
@@ -39,7 +48,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
         {{#(provider)}}
       </div>
       <div>
-        <span>VM</span>
+        <span>VM{{> @settingsLink}}</span>
         {{#(jMachine.meta.instance_type)}}
       </div>
       <div>
