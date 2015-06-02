@@ -439,81 +439,15 @@ div.nominateicon
     label
       margin              0
 
-#editor-modal
-  &.loading
-    .kdmodal-inner
-    .kdmodal-content
-      height                 400px
-    .kdloader
-      margin                 -18px 0 0 -18px
-      top                    50%
-      left                   50%
-
-  .kdbutton.disabled
-    cursor                   not-allowed
-
-  h4 span
-    font-size                12px
-    color                    #747474
-
-  .kdmodal-inner
-  .kdmodal-content
-    margin                    0 !important
-    position                  relative
-  .close-icon
-    display                   none
-  .editor-pane > div:first-child
-    overflow                  hidden
-    padding                   6px
-    bg                        color, rgba(204, 204, 204, .4)
-    color                     #333
-    h4
-      fl()
-      font-size               18px
-      position                relative
-      top                     6px
-    button
-      fr()
-      margin-left             6px
-  figure
-    height                    358px
-    border-radius             0 0 6px 6px
-    .code-wrapper
-      height                  358px
-
-
-  .kdnotification
-    abs()
-    top                       8px !important
-    vendor                    shadow, none
-    vendor                    rounded, 4px
-
-    &.mini
-      top                     8px !important
-
-    &.tray
-      max-width               50%
-      padding                 5px 10px
-
-      .kdnotification-content
-        font-size             13px
-
-
-.kdmodal.vm-settings
-  .kdmodal-content
-    overflow              visible
-    margin                20px !important
 
 .kdmodal.ws-settings
-  .kdmodal-content
-    overflow              visible
-    margin                5px 16px !important
-
-.kdmodal.ws-settings
-.kdmodal.vm-settings
 
   background              #fafafa !important
   border-color            #fafafa !important
+
+  .kdmodal-content
+    overflow              visible
+    margin                5px 16px !important
 
   .kdmodal-title
     hidden()
@@ -535,315 +469,17 @@ div.nominateicon
       padding             0
       overflow-y          auto
 
-  .kdformview .formline
-
-    min-height            29px
-    cf()
-
+  .guides
     .input-wrapper
-
       margin-bottom       0
-      width               153px
-      text-overflow       ellipsis
-      color               #909090
-      fr()
-
-      .koding-on-off
-        margin-top        1px
-        &.on
-          background      #428040
-        &.off
-          background      #b6b6b6
-
-      .kdselectbox
-        margin-top        4px
-
-      color               #909090
-      font-size           12px
-      line-height         21px
-      font-weight         400
-      noTextDeco()
-
-      a
-        text-decoration   underline
-        color             #909090
-
-    &.nickname
-
-      .custom-link-view
-
-        cite
-          size            12px 12px
-          r-sprite        app edit-icon
-          margin-left     5px
-          cursor          pointer
-          display         inline-block
-          abs()
-
-      input
-        padding           0 0 0 2px
-        position          absolute
-        width             170px
-        top               -3px
-        left              140px
-
-
-    &.specs
-    &.guides
-      .input-wrapper
-        width             100%
-        .kdview
-          font-size       14px
-          padding         0 0 9px 2px
-
-
-    span.title
-      position        relative
-      display         inline-block
-      cursor          pointer
-
-    span.toggle
-      display         inline-block
-      r-sprite        app 'add-12'
-      vertical-align  middle
-      opacity         .4
-      cursor          pointer
-
-    &.domains
-    &.sharedwith
-
-      label.kdlabel
-
-        a
-          text-decoration none
-
-        span.help
-          display         inline-block
-          vertical-align  middle
-          r-sprite        app 'what-12'
-
-        &.expanded
-          span.toggle
-            r-sprite      app 'cancel-12'
-
-      .input-wrapper
-        width             100%
-        overflow          visible
-
-
-    &.specs
-      label.kdlabel
-        padding-top       2px
-
-    &.guides
-      label.kdlabel
-        padding-top       5px
-
-    &.disk-usage
-
-      .input-wrapper
-        height            20px
-
-        .progressbar-container
-
-          size        calc(100% \- 15px) 14px
-          background  #ddd
-          border      none
-          rounded     2px
-          top         4px
-
-          .bar
-            background  #428040
-            border      none
-            shadow      none
-
-          span
-            text-align  left
-            left        2px
-            top         1px
-
-      .resize-icon
-        r-sprite        app 'add-12'
-        top             5px
-        right           0
-        cursor          pointer
-        abs()
-
-    &.moreview
-    &.advancedview
-
-      .input-wrapper
-        width             100%
-        border-bottom     1px solid #e0e0e0
-        z-index           -1
-        top               24px
-        abs()
-
-      label.kdlabel
-        font-size         14px
-        width             100%
-        text-align        center
-        padding           14px 0 3px
-        cursor            pointer
-
-        &:before
-          content         'More'
-          background      #fafafa
-          size            55px 20px
-          padding-right   15px
-          margin-left     -15px
-          abs()
-
-        &.expanded
-
-          &:after
-            border-bottom-color #aaa
-            border-top-color    transparent
-            top                 -2px
-
-        &:after
-          margin-left         2px
-          display             inline-block
-          content             ' '
-          border              5px solid transparent
-          size                10px 10px
-          left                0
-
-          border-bottom-color transparent
-          border-top-color    #aaa
-          top                 4px
-
-          borderBox()
-          rel()
-
-    &.advancedview
-      label.kdlabel
-        &:after
-          left            5px !important
-        &:before
-          content         'Advanced'
-          width           93px
-
-    &.button-field
-      margin              0 !important
-
-  .users-view
-  .domains-view
-
-    padding               2px 0
-    borderBox()
-
-    .in-progress
-      top                 -16px
-      right               2px
-      display             block
-      width               auto
-      height              auto
-      abs()
-
-    .warning
-      top                 -14px
-      right               4px
-      r-sprite            environments, 'warning'
-      abs()
-
-    .input-view
-      border              1px solid #ddd
-      border-radius       4px
-      background          white
-      height              22px
-      overflow            hidden
-
-      input
-        padding           0
-        margin-right      0
-        margin-left       -10px
-        text-align        right
-        background        none
-        border            none
-        color             black
-        width             auto
-        height            21px
-        shadow            none
-        fl()
-
-      .domain-suffix
-        color             #999
-        width             auto
-        max-width         140px
-        display           inline-block
-        float             left
-        box-shadow        none
-        ellipsis()
-        abs()
-
-    .listview-wrapper
-      margin-top          4px
-      height              auto
-      padding             0 4px
-
-    .kdlistitemview-user
-    .kdlistitemview-domain
-      a
-        text-decoration   none !important
-
-      .koding-on-off
-        right             2px
-        vendor            transform, scale(.7)
-        display           inline-block
-        abs()
-
-      &:hover
-        div.name
-        a.avatarview
-          opacity         .7
-        span.remove
-          display         inline-block
-
-      span.remove
-        display           none
-        r-sprite          app 'delete-12'
-        cursor            pointer
-        vertical-align    middle
-        margin-left       8px
-
-    .kdlistitemview-user
-
-      width               auto
-      position            relative
-      float               left
-      padding-right       20px
-      margin-bottom       5px
-
-      a.avatarview
-        float             left
-        height            22px
-        margin-right      5px
-        background        none
-
-      .name
-        float             left
-        width             auto
-        margin-right      6px
-        cursor            pointer
-
-      span.remove
-        top               5px
-        right             8px
-        abs()
-
-  .users-view
-
-    .input-view
       width               100%
-      input
-        width             100%
-        text-align        left
-        margin-left       10px
+      .kdview
+        font-size         14px
+        padding           0 0 9px 2px
 
-    .listview-wrapper
-      margin-top          10px
-      margin-bottom       15px
+  a
+    text-decoration       underline
+    color                 #909090
 
   label.kdlabel
 
@@ -869,15 +505,6 @@ div.nominateicon
       margin              10px 10px 10px 5px !important
       width               124px
 
-
-  .kdbutton.subdomain-toggler
-    padding-right           0
-    .button-title
-      color                 #aaa
-
-  .more-form
-    padding-top           18px
-
   .delete-files
 
     label
@@ -888,8 +515,6 @@ div.nominateicon
     .kdinput
       float           left
       margin-left     10px
-
-.kdmodal.ws-settings
 
   .kdtabview
     border-bottom         1px solid #e0e0e0

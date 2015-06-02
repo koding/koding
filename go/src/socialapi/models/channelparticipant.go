@@ -286,7 +286,37 @@ func (c *ChannelParticipant) FetchAllParticipatedChannelIds(accountId int64) ([]
 	return channelIds, nil
 }
 
-func getParticipatedChannelsQuery(a *Account, q *request.Query) *gorm.DB {
+// FetchAllParticipatedChannelIdsInGroup fetches all channel ids of an account
+// within given group
+func (c *ChannelParticipant) FetchAllParticipatedChannelIdsInGroup(accountId int64, groupName string) ([]int64, error) {
+	if accountId == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	// var results []ChannelParticipant
+	query := getParticipatedChannelsQuery(accountId, groupName)
+
+	rows, err := query.Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	if rows == nil {
+		return nil, nil
+	}
+	defer rows.Close()
+
+	channelIds := make([]int64, 0)
+	var channelId int64
+	for rows.Next() {
+		rows.Scan(&channelId)
+		channelIds = append(channelIds, channelId)
+	}
+
+	return channelIds, nil
+}
+
+func getParticipatedChannelsQuery(accountId int64, groupName string) *gorm.DB {
 	c := NewChannelParticipant()
 
 	return bongo.B.DB.
@@ -299,11 +329,9 @@ func getParticipatedChannelsQuery(a *Account, q *request.Query) *gorm.DB {
 		Where(
 		`api.channel_participant.account_id = ? and
 		 api.channel.group_name = ? and
-		 api.channel.type_constant = ? and
 		 api.channel_participant.status_constant = ?`,
-		a.Id,
-		q.GroupName,
-		q.Type,
+		accountId,
+		groupName,
 		ChannelParticipant_STATUS_ACTIVE,
 	)
 }
@@ -313,7 +341,9 @@ func (c *ChannelParticipant) ParticipatedChannelCount(a *Account, q *request.Que
 		return nil, ErrAccountIdIsNotSet
 	}
 
-	query := getParticipatedChannelsQuery(a, q)
+	query := getParticipatedChannelsQuery(a.Id, q.GroupName)
+	// filter channels according to given type
+	query = query.Where("api.channel.type_constant = ?", q.Type)
 
 	// add exempt clause if needed
 	if !q.ShowExempt {
@@ -332,15 +362,16 @@ func (c *ChannelParticipant) ParticipatedChannelCount(a *Account, q *request.Que
 	return res, nil
 }
 
-func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
+func (c *ChannelParticipant) FetchParticipatedTypedChannelIds(a *Account, q *request.Query) ([]int64, error) {
 	if a.Id == 0 {
 		return nil, ErrAccountIdIsNotSet
 	}
 
-	channelIds := make([]int64, 0)
-
 	// var results []ChannelParticipant
-	query := getParticipatedChannelsQuery(a, q)
+	query := getParticipatedChannelsQuery(a.Id, q.GroupName)
+
+	// filter channels according to given type
+	query = query.Where("api.channel.type_constant = ?", q.Type)
 
 	// add exempt clause if needed
 	if !q.ShowExempt {
@@ -354,12 +385,14 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 
 	defer rows.Close()
 	if err != nil {
-		return channelIds, err
+		return nil, err
 	}
 
 	if rows == nil {
 		return nil, nil
 	}
+
+	channelIds := make([]int64, 0)
 
 	var channelId int64
 	for rows.Next() {
@@ -459,7 +492,6 @@ func (c *ChannelParticipant) IsInvited(accountId int64) (bool, error) {
 }
 
 func (c *ChannelParticipant) checkAccountStatus(accountId int64) (bool, error) {
-
 	if accountId == 0 {
 		return false, nil
 	}

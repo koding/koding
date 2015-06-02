@@ -292,10 +292,10 @@
     "description": "Fold Other",
     "binding": [
       [
-        "alt+0"
+        "alt+shift+o"
       ],
       [
-        "alt+command+0"
+        "alt+shift+command+o"
       ]
     ]
   },
@@ -304,10 +304,10 @@
     "description": "Unfold All",
     "binding": [
       [
-        "alt+shift+0"
+        "alt+shift+u"
       ],
       [
-        "alt+shift+command+0"
+        "alt+shift+command+u"
       ]
     ]
   },

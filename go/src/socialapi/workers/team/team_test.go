@@ -144,7 +144,13 @@ func TestTeam(t *testing.T) {
 					So(isParticipant, ShouldBeFalse)
 				})
 
+				Convey("should be removed from all channels", func() {
+					ids, err := cp.FetchAllParticipatedChannelIdsInGroup(cp.AccountId, groupChannel.GroupName)
+					So(err, ShouldBeNil)
+					So(len(ids), ShouldEqual, 0)
+				})
 			})
+
 			Convey("after being blocked", func() {
 				cp := &models.ChannelParticipant{
 					AccountId:      acc1.Id,
