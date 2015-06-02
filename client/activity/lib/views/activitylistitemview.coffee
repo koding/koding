@@ -25,16 +25,15 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type               = 'activity'
-    options.commentViewClass or= CommentView
-    options.commentSettings  or= {}
-    options.attributes       or= {}
-    options.attributes.testpath = "ActivityListItemView"
-    options.editWidgetClass  or= ActivityEditWidget
-    options.pistachioParams    = { formatContent }
-
-    options.showMoreWrapper    = 'article.has-markdown'
-    options.showMoreMarkClass  = '.mark-for-show-more'
+    options.type                    = 'activity'
+    options.commentViewClass      or= CommentView
+    options.commentSettings       or= {}
+    options.attributes            or= {}
+    options.attributes.testpath     = "ActivityListItemView"
+    options.editWidgetClass       or= ActivityEditWidget
+    options.pistachioParams         = { formatContent }
+    options.showMoreWrapperCssClass = 'article.has-markdown'
+    options.showMoreMarkCssClass    = '.mark-for-show-more'
 
     super options, data
 
@@ -266,7 +265,7 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
         </div>
       </div>
       {{> @editWidgetWrapper}}
-      {article.has-markdown{formatContent #(body)}}
+      {article.has-markdown.has-show-more{formatContent #(body)}}
       {{> @resend}}
       {{> @embedBoxWrapper}}
       {{> @actionLinks}}

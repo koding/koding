@@ -29,8 +29,8 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
 
     options.type                = 'comment'
 
-    options.showMoreWrapper     = '.comment-body-container'
-    options.showMoreMarkClass   = '.mark-for-show-more-cmt'
+    options.showMoreWrapperCssClass = '.comment-body-container'
+    options.showMoreMarkCssClass    = '.mark-for-show-more-cmt'
 
     super options, data
 
@@ -223,7 +223,7 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
     @author = new ProfileLinkView {origin}
 
     @body       = new JCustomHTMLView
-      cssClass        : 'comment-body-container'
+      cssClass        : 'comment-body-container has-show-more'
       pistachio       : '{p.has-markdown{formatContent #(body), yes}}'
       pistachioParams : { formatContent }
     , data

@@ -17,11 +17,11 @@ module.exports = class ActivityBaseListItemView extends KDListItemView
 
   checkIfItsTooTall: ->
 
-    { showMore, showMoreWrapper, showMoreMarkClass } = @getOptions()
+    { showMore, showMoreWrapperCssClass, showMoreMarkCssClass } = @getOptions()
 
-    return unless showMore
+    return  unless showMore
 
-    article          = @$(showMoreWrapper)[0]
+    article          = @$(showMoreWrapperCssClass)[0]
     { scrollHeight } = article
     { height }       = article.getBoundingClientRect()
 
@@ -44,4 +44,4 @@ module.exports = class ActivityBaseListItemView extends KDListItemView
 
       article.classList.add 'tall'
 
-      @addSubView @showMore, showMoreMarkClass
+      @addSubView @showMore, showMoreMarkCssClass
