@@ -77,7 +77,6 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       kmt = globals.keymapType
       firstKeyChar = if kmt.charAt(0).toUpperCase() is 'W' then 'ctrl' else '&#8984'
-      secondKeyChar = '&#x0043'
 
       @addTo container,
         text_title    : title
@@ -92,7 +91,7 @@ module.exports = class ReferralCustomViews extends CustomViews
             referralUrl = @getElement()
             @utils.selectText referralUrl
             @setTooltip
-              title     : "#{firstKeyChar.toUpperCase()} + #{secondKeyChar} to copy"
+              title     : "#{firstKeyChar.toUpperCase()} + C to copy"
               placement : "above"
               sticky    : yes
             @tooltip.show()
