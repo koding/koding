@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
@@ -39,6 +40,7 @@ type ClientMethods struct {
 
 	// Used to serve as a unique index, for Subscription deletions
 	subCount int
+	subMu    sync.Mutex
 }
 
 // Publish method takes arbitrary event data, and passes it to
@@ -126,8 +128,10 @@ func (c *ClientMethods) Subscribe(r *kite.Request) (interface{}, error) {
 	}
 
 	if params.OnPublish.IsValid() {
+		c.subMu.Lock()
 		subIndex := c.subCount
 		c.subCount++
+		c.subMu.Unlock()
 
 		if _, ok := c.Subscriptions[params.EventName]; !ok {
 			// Init the map if needed
