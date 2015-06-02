@@ -5,6 +5,8 @@ isKoding               = require 'app/util/isKoding'
 MachinesList           = require './machineslist'
 MachinesListController = require './machineslistcontroller'
 
+ComputeHelpers         = require '../providers/computehelpers'
+
 
 module.exports = class EnvironmentListItem extends kd.ListItemView
 
@@ -25,7 +27,18 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       tooltip     :
         title     : 'Re-init Stack'
 
+    {handleNewMachineRequest} = ComputeHelpers
 
+    addVMMenu = if isKoding()
+      'Create Koding VM':
+        callback : =>
+          handleNewMachineRequest
+            provider: 'koding', @_menu.bound 'destroy'
+    else
+      'Add Your own VM':
+        callback : =>
+          handleNewMachineRequest
+            provider: 'managed', @_menu.bound 'destroy'
 
     @addVMButton  = new kd.ButtonView
       icon        : yes
@@ -33,6 +46,17 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       iconClass   : 'add'
       tooltip     :
         title     : 'Add new VM'
+      callback    : =>
+        @_menu = new kd.ContextMenu
+          cssClass    : 'add-new-vm-menu'
+          delegate    : @addVMButton
+          y           : @addVMButton.getY() + 25
+          x           : @addVMButton.getX() + @addVMButton.getWidth() / 2 - 120
+          width       : 240
+          arrow       :
+            placement : 'top'
+            margin    : -47
+        , addVMMenu
 
     listView   = new MachinesList
     controller = new MachinesListController
