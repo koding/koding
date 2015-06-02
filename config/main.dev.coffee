@@ -476,6 +476,101 @@ Configuration = (options={}) ->
           }
         ]
 
+    topicfeed           :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicfeed -c #{socialapi.configFilePath}"
+
+    realtime            :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/realtime -c #{socialapi.configFilePath}"
+
+    populartopic        :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/populartopic -c #{socialapi.configFilePath}"
+
+    popularpost         :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/popularpost -c #{socialapi.configFilePath}"
+
+    notification        :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/notification -c #{socialapi.configFilePath}"
+
+    trollmode           :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
+
+    pinnedpost          :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/pinnedpost -c #{socialapi.configFilePath}"
+
+    algoliaconnector    :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/algoliaconnector -c #{socialapi.configFilePath}"
+
+    activityemail       :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/activityemail -c #{socialapi.configFilePath}"
+
+    dailyemail          :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/dailyemail -c #{socialapi.configFilePath}"
+
+    privatemessageemailsender:
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
+
+    privatemessageemailfeeder:
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+
+    sitemapfeeder       :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/sitemapfeeder -c #{socialapi.configFilePath}"
+
+    sitemapgenerator    :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
+
+    collaboration       :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/collaboration -kite-init -c #{socialapi.configFilePath}"
+
+    mailsender          :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
+    topicmoderation     :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
+
+    team                :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
+
+    eventsender         :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/eventsender -c #{socialapi.configFilePath}"
+
     gatekeeper          :
       group             : "socialapi"
       ports             :
