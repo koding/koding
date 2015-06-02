@@ -226,7 +226,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("webterm.rename", k.terminal.RenameSession)
 
 	// VM -> Client methods
-	ps := client.NewPubSub()
+	ps := client.NewPubSub(k.log)
 	k.kite.HandleFunc("client.Publish", ps.Publish)
 	k.kite.HandleFunc("client.Subscribe", ps.Subscribe)
 

@@ -3,16 +3,16 @@ package client
 import (
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
 )
 
-func NewPubSub() *PubSub {
+func NewPubSub(log kite.Logger) *PubSub {
 	return &PubSub{
 		Subscriptions: make(map[string]map[int]dnode.Function),
+		Log:           log,
 	}
 }
 
@@ -25,6 +25,8 @@ type PubSub struct {
 	// is used to easily remove a callback, without having to try and compare
 	// callback types. The subIndex will always be increasing / incrementing.
 	Subscriptions map[string]map[int]dnode.Function
+
+	Log kite.Logger
 
 	// Used to serve as a unique index, for Subscription deletions
 	subCount int
@@ -67,7 +69,8 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 
 	err := r.Args.One().Unmarshal(&params)
 	if err != nil || params.EventName == "" {
-		log.Printf("client.Publish: Unknown param format '%s'\n", r.Args.One())
+		c.Log.Info(fmt.Sprintf(
+			"client.Publish: Unknown param format '%s'\n", r.Args.One()))
 		return nil, errors.New("client.Publish: eventName is required")
 	}
 
@@ -78,8 +81,8 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 			params.EventName))
 	}
 
-	log.Printf("client.Publish: Publishing data for event '%s'\n",
-		params.EventName)
+	c.Log.Info(fmt.Sprintf(
+		"client.Publish: Publishing data for event '%s'\n", params.EventName))
 	for _, sub := range subs {
 		sub.Call(resp)
 	}
@@ -109,7 +112,8 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
-		log.Printf("client.Subscribe: Unknown param format '%s'\n", r.Args.One())
+		c.Log.Info(fmt.Sprintf(
+			"client.Subscribe: Unknown param format '%s'\n", r.Args.One()))
 		return nil, errors.New(
 			"client.Subscribe: Expected param format " +
 				"{ eventName: [string], onPublish: [function] }")
@@ -134,7 +138,7 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 			if _, ok := c.Subscriptions[params.EventName]; ok {
 				delete(c.Subscriptions[params.EventName], subIndex)
 			} else {
-				log.Println("client.Subscribe:",
+				c.Log.Info("client.Subscribe:",
 					"Subscriptions could not be found, on Disconnect")
 			}
 		}

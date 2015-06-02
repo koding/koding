@@ -8,6 +8,7 @@ import (
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/logging"
 )
 
 type mockCaller func(...interface{}) error
@@ -17,7 +18,7 @@ func (f mockCaller) Call(v ...interface{}) error {
 }
 
 func TestSubscribe(t *testing.T) {
-	ps := NewPubSub()
+	ps := NewPubSub(logging.NewLogger("testing"))
 	s := kite.New("s", "0.0.0")
 	s.Config.DisableAuthentication = true
 	s.HandleFunc("client.Subscribe", ps.Subscribe)
@@ -135,7 +136,7 @@ func TestSubscribe(t *testing.T) {
 }
 
 func TestPublish(t *testing.T) {
-	ps := NewPubSub()
+	ps := NewPubSub(logging.NewLogger("testing"))
 	s := kite.New("s", "0.0.0")
 	s.Config.DisableAuthentication = true
 	s.HandleFunc("client.Publish", ps.Publish)
