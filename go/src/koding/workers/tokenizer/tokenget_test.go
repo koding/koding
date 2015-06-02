@@ -26,14 +26,14 @@ func TestTokenGetHandler(t *testing.T) {
 			res, err := http.Get(server.URL)
 			So(err, ShouldBeNil)
 
-			So(res.StatusCode, ShouldEqual, 500)
+			So(res.StatusCode, ShouldEqual, 400)
 		})
 
 		Convey("It should return error if no authkey param", func() {
 			res, err := http.Get(server.URL + "?email=indianajones@koding.com")
 			So(err, ShouldBeNil)
 
-			So(res.StatusCode, ShouldEqual, 500)
+			So(res.StatusCode, ShouldEqual, 400)
 		})
 
 		Convey("It should generate signed token", func() {

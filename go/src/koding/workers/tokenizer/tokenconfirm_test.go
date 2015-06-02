@@ -32,7 +32,7 @@ func TestTokenConfirmHandler(t *testing.T) {
 			res, err := http.Get(server.URL)
 			So(err, ShouldBeNil)
 
-			So(res.StatusCode, ShouldEqual, 500)
+			So(res.StatusCode, ShouldEqual, 400)
 		})
 
 		Convey("It should return error if user doesn't exist", func() {

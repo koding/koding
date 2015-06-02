@@ -12,20 +12,13 @@ type Tokenizer struct {
 }
 
 func init() {
-	c := func() *Tokenizer {
-		conf := new(Tokenizer)
-		d := &multiconfig.DefaultLoader{
-			Loader: multiconfig.MultiLoader(
-				&multiconfig.EnvironmentLoader{Prefix: "KONFIG"},
-			),
-		}
+	conf := new(Tokenizer)
 
-		d.MustLoad(conf)
-
-		return conf
-	}()
+	(&multiconfig.DefaultLoader{
+		Loader: multiconfig.MultiLoader(&multiconfig.EnvironmentLoader{Prefix: "KONFIG"}),
+	}).MustLoad(conf)
 
 	Log.SetLevel(logging.CRITICAL)
 
-	modelhelper.Initialize(c.Mongo)
+	modelhelper.Initialize(conf.Mongo)
 }
