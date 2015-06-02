@@ -5,6 +5,7 @@
     "./lib/styl"
   ],
   "routes": {
-    "/Showcase": "ShowcaseIndex"
+    "/Showcase": "ShowcaseIndex",
+    "/Showcase/:collection/:component": "ShowComponent"
   }
 }
