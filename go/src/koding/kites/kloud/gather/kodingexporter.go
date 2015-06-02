@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-var defaultKodingURI = "https://koding.com/-/gatherinjestor"
+var defaultKodingURI = "https://koding.com/-/gatheringestor"
 
 type KodingExporter struct {
 	URI string
