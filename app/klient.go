@@ -226,8 +226,9 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("webterm.rename", k.terminal.RenameSession)
 
 	// VM -> Client methods
-	k.kite.HandleFunc("client.Publish", client.Publish)
-	k.kite.HandleFunc("client.Subscribe", client.Subscribe)
+	ps := client.NewPubSub()
+	k.kite.HandleFunc("client.Publish", ps.Publish)
+	k.kite.HandleFunc("client.Subscribe", ps.Subscribe)
 
 	k.kite.OnFirstRequest(func(c *kite.Client) {
 		// Koding (kloud) connects to much, don't display it.

@@ -17,11 +17,10 @@ func (f mockCaller) Call(v ...interface{}) error {
 }
 
 func TestSubscribe(t *testing.T) {
-	cm := &ClientMethods{
-		Subscriptions: make(map[string]map[int]dnode.Function)}
+	ps := NewPubSub()
 	s := kite.New("s", "0.0.0")
 	s.Config.DisableAuthentication = true
-	s.HandleFunc("client.Subscribe", cm.Subscribe)
+	s.HandleFunc("client.Subscribe", ps.Subscribe)
 	ts := httptest.NewServer(s)
 
 	k := kite.New("c", "0.0.0")
@@ -86,12 +85,12 @@ func TestSubscribe(t *testing.T) {
 		t.Error(err)
 	}
 
-	_, ok := cm.Subscriptions["test"]
+	_, ok := ps.Subscriptions["test"]
 	if !ok {
 		t.Fatal("client.Subscribe should create a map for new event types")
 	}
 
-	if len(cm.Subscriptions["test"]) != 1 {
+	if len(ps.Subscriptions["test"]) != 1 {
 		t.Fatal("client.Subscribe should store a single onPublish callback")
 	}
 
@@ -109,11 +108,11 @@ func TestSubscribe(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(cm.Subscriptions["test"]) != 2 {
+	if len(ps.Subscriptions["test"]) != 2 {
 		t.Fatal("client.Subscribe should store multiple onPublish callbacks")
 	}
 
-	cm.Subscriptions["test"][1].Call()
+	ps.Subscriptions["test"][1].Call()
 	select {
 	case <-success:
 	case <-time.After(1 * time.Second):
@@ -129,19 +128,18 @@ func TestSubscribe(t *testing.T) {
 	// removeSubscription() func as called, this without the Sleep.
 	time.Sleep(1 * time.Millisecond)
 
-	if len(cm.Subscriptions["test"]) != 0 {
+	if len(ps.Subscriptions["test"]) != 0 {
 		t.Error("client.Subscribe",
 			"should remove all of a clients callbacks on Disconnect")
 	}
 }
 
 func TestPublish(t *testing.T) {
-	cm := &ClientMethods{
-		Subscriptions: make(map[string]map[int]dnode.Function)}
+	ps := NewPubSub()
 	s := kite.New("s", "0.0.0")
 	s.Config.DisableAuthentication = true
-	s.HandleFunc("client.Publish", cm.Publish)
-	s.HandleFunc("client.Subscribe", cm.Subscribe)
+	s.HandleFunc("client.Publish", ps.Publish)
+	s.HandleFunc("client.Subscribe", ps.Subscribe)
 	ts := httptest.NewServer(s)
 
 	k := kite.New("c", "0.0.0")
@@ -182,7 +180,7 @@ func TestPublish(t *testing.T) {
 
 	// Should call onPublish callbacks
 	callbackCount := 0
-	cm.Subscriptions["test"] = map[int]dnode.Function{
+	ps.Subscriptions["test"] = map[int]dnode.Function{
 		0: dnode.Function{mockCaller(func(v ...interface{}) error {
 			callbackCount += 1
 			return nil
@@ -208,7 +206,7 @@ func TestPublish(t *testing.T) {
 
 	// Should publish arbitrary data
 	var b []byte
-	cm.Subscriptions["other"] = map[int]dnode.Function{
+	ps.Subscriptions["other"] = map[int]dnode.Function{
 		0: dnode.Function{mockCaller(func(v ...interface{}) error {
 			b = v[0].([]interface{})[0].(*dnode.Partial).Raw
 			return nil

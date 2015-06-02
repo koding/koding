@@ -10,25 +10,13 @@ import (
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
 )
 
-var defaultClientMethods *ClientMethods
-
-func init() {
-	defaultClientMethods = &ClientMethods{
+func NewPubSub() *PubSub {
+	return &PubSub{
 		Subscriptions: make(map[string]map[int]dnode.Function),
 	}
 }
 
-// See ClientMethods.Publish for docs
-func Publish(r *kite.Request) (interface{}, error) {
-	return defaultClientMethods.Publish(r)
-}
-
-// See ClientMethods.Subscribe for docs
-func Subscribe(r *kite.Request) (interface{}, error) {
-	return defaultClientMethods.Subscribe(r)
-}
-
-type ClientMethods struct {
+type PubSub struct {
 	// Subscriptions are stored as:
 	//
 	// Subscriptions[eventName][subIndex]callback
@@ -60,7 +48,7 @@ type ClientMethods struct {
 // 		}
 //
 // The only response is an error, if any.
-func (c *ClientMethods) Publish(r *kite.Request) (interface{}, error) {
+func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 	// Parse the eventName from the incoming data. Note that this method
 	// accepts any data beyond eventName, so that this method is as generic
 	// as possible.
@@ -110,7 +98,7 @@ func (c *ClientMethods) Publish(r *kite.Request) (interface{}, error) {
 // 		}
 //
 // The only response is an error, if any.
-func (c *ClientMethods) Subscribe(r *kite.Request) (interface{}, error) {
+func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 	var params struct {
 		EventName string         `json:"eventName"`
 		OnPublish dnode.Function `json:"onPublish"`
