@@ -1,8 +1,8 @@
 kd           = require 'kd'
 JView        = require 'app/jview'
 remote       = require('app/remote').getInstance()
-KDButtonView = kd.ButtonView
 KDSelectBox  = kd.SelectBox
+KDButtonView = kd.ButtonView
 
 
 module.exports = class AdminIntegrationSetupView extends JView
@@ -18,10 +18,7 @@ module.exports = class AdminIntegrationSetupView extends JView
     for channel in data.channels
       selectOptions.push title: channel.name, value: channel.id
 
-    @channelSelect = new KDSelectBox {
-      selectOptions
-      callback: @bound 'handleChannelSelect'
-    }
+    @channelSelect = new KDSelectBox { selectOptions }
 
     @addButton = new KDButtonView
       title    : "Add #{data.name} Integration"
