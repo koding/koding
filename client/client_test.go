@@ -35,7 +35,7 @@ func TestSubscribe(t *testing.T) {
 	// Should require arguments
 	_, err = c.Tell("client.Subscribe")
 	if err == nil {
-		t.Fatal("client.Subscribe should require args")
+		t.Error("client.Subscribe should require args")
 	}
 
 	// Should require eventName
@@ -47,7 +47,7 @@ func TestSubscribe(t *testing.T) {
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {}),
 	})
 	if err == nil {
-		t.Fatal("client.Subscribe should require EventName")
+		t.Error("client.Subscribe should require EventName")
 	}
 
 	// Should require onPublish
@@ -59,7 +59,7 @@ func TestSubscribe(t *testing.T) {
 		Data:      "bar",
 	})
 	if err == nil {
-		t.Fatal("client.Subscribe should require OnPublish")
+		t.Error("client.Subscribe should require OnPublish")
 	}
 
 	// Should require valid onPublish func
@@ -71,7 +71,7 @@ func TestSubscribe(t *testing.T) {
 		onPublish: "bar",
 	})
 	if err == nil {
-		t.Fatal("client.Subscribe should require a valid OnPublish func")
+		t.Error("client.Subscribe should require a valid OnPublish func")
 	}
 
 	// Should subscribe to any given event name
@@ -83,7 +83,7 @@ func TestSubscribe(t *testing.T) {
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {}),
 	})
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	_, ok := cm.Subscriptions["test"]
@@ -117,7 +117,7 @@ func TestSubscribe(t *testing.T) {
 	select {
 	case <-success:
 	case <-time.After(1 * time.Second):
-		t.Fatal("client.Subscribe should store a call-able callback.",
+		t.Error("client.Subscribe should store a call-able callback.",
 			"Attempt timed out.")
 	}
 
@@ -130,7 +130,7 @@ func TestSubscribe(t *testing.T) {
 	time.Sleep(1 * time.Millisecond)
 
 	if len(cm.Subscriptions["test"]) != 0 {
-		t.Fatal("client.Subscribe",
+		t.Error("client.Subscribe",
 			"should remove all of a clients callbacks on Disconnect")
 	}
 }
@@ -155,7 +155,7 @@ func TestPublish(t *testing.T) {
 	// Should require args
 	_, err = c.Tell("client.Publish")
 	if err == nil {
-		t.Fatal("client.Publish should require args")
+		t.Error("client.Publish should require args")
 	}
 
 	// Should require eventName
@@ -167,7 +167,7 @@ func TestPublish(t *testing.T) {
 		Data:   "bar",
 	})
 	if err == nil {
-		t.Fatal("client.Publish should require EventName")
+		t.Error("client.Publish should require EventName")
 	}
 
 	// Should require subscriptions for the given event
@@ -177,7 +177,7 @@ func TestPublish(t *testing.T) {
 		EventName: "foo",
 	})
 	if err == nil {
-		t.Fatal("client.Publish should return an error, without any subs")
+		t.Error("client.Publish should return an error, without any subs")
 	}
 
 	// Should call onPublish callbacks
@@ -232,6 +232,6 @@ func TestPublish(t *testing.T) {
 	// change. If it does, we'll just unmarshall and compare.
 	expected := `{"EventName":"other","CountData":42,"ListData":["life","universe","everything"]}`
 	if string(b) != expected {
-		t.Fatal("client.Publish should publish arbitrary")
+		t.Error("client.Publish should publish arbitrary")
 	}
 }
