@@ -44,6 +44,7 @@ func initialize() *config.Config {
 
 func main() {
 	conf := initialize()
+	defer modelhelper.Close()
 
 	http.HandleFunc("/-/mail/get", TokenGetHandler)
 	http.HandleFunc("/-/mail/confirm", TokenConfirmHandler)
