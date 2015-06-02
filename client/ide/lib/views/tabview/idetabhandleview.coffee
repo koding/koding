@@ -6,7 +6,8 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
   constructor: (options = {}, data) ->
 
-    options.bind  = 'dragstart'
+    options.droppable ?= yes
+    options.bind       = 'dragstart'
 
     super options, data
 
