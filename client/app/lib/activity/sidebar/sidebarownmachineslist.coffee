@@ -2,7 +2,7 @@ kd                 = require 'kd'
 globals            = require 'globals'
 KDCustomHTMLView   = kd.CustomHTMLView
 
-MoreVMsModal       = require 'app/activity/sidebar/morevmsmodal'
+EnvironmentsModal  = require 'app/environment/environmentsmodal'
 SidebarMachineList = require './sidebarmachinelist'
 
 
@@ -21,6 +21,7 @@ module.exports = class SidebarOwnMachinesList extends SidebarMachineList
 
 
   viewAppended: ->
+
     super
 
     @header.addSubView @unreadCount = new KDCustomHTMLView
@@ -45,5 +46,4 @@ module.exports = class SidebarOwnMachinesList extends SidebarMachineList
     @unreadCount.show()
 
 
-  headerClickHandler: ->
-    new MoreVMsModal { @stackStatus }, @getMachines()
+  headerClickHandler: -> new EnvironmentsModal
