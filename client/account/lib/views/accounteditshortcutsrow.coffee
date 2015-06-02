@@ -12,6 +12,9 @@ class AccountEditShortcutsRow extends kd.View
   # Class name for columns.
   COL_CLASS_NAME = 'col'
 
+  # Default class name for desc columns.
+  DESC_CLASS_NAME = 'col single-line'
+  
   # Class name to set for currently recording item.
   ENABLED_CLASS_NAME = 'enabled'
 
@@ -26,6 +29,9 @@ class AccountEditShortcutsRow extends kd.View
 
   # The maximum description string length.
   DESCRIPTION_TRUNC_LEN = 100
+  
+  # The maximum description string length for a single line.
+  SINGLE_LINE_LEN = 50
 
   # The separator pattern to truncate to.
   DESCRIPTION_TRUNC_SEP = ' '
@@ -63,9 +69,13 @@ class AccountEditShortcutsRow extends kd.View
     if @model.enabled then toggle.setClass ENABLED_CLASS_NAME
 
     descriptionText = _.escape @model.description
+    
+    if descriptionText.length > SINGLE_LINE_LEN
+      DESC_CLASS_NAME = 'col multi-line'
+      @setClass 'multi-line-row'
 
     description = new kd.View
-      cssClass : COL_CLASS_NAME
+      cssClass : DESC_CLASS_NAME
       partial  : _.trunc descriptionText, separator: DESCRIPTION_TRUNC_SEP, length: DESCRIPTION_TRUNC_LEN
 
     if descriptionText.length > DESCRIPTION_TRUNC_LEN

@@ -73,7 +73,7 @@
       width                 100% !important
       clear                 both
       border-bottom         1px solid #e0e0e0
-      height                40px
+      height                30px
       padding               8px 0px
       cursor                pointer
 
@@ -101,7 +101,7 @@
 
       .col
         display             table-column
-        width               45%
+        width               60%
         float               left
         font-size           .94em
         line-height         22px
@@ -113,27 +113,21 @@
           vertical-align    middle
 
       .col:first-child
-        width               8%
+        width               9%
         text-align          center
-        padding             4px 0px 4px 10px
-        height              auto
-        top                 50%;
-        vendor              transform, translateY(-50%)
+        padding-left        6px
 
       .col:nth-child(2)
         width               60%
-        padding             0px 0px 4px 0px
+        padding             4px 0px
+
+      .multi-line
         height              auto
-        top                 42%;
-        vendor              transform, translateY(-30%)
 
       .col:nth-child(3)
         text-align          right !important
         float               right
         width               auto
-        height              auto
-        top                 50%;
-        vendor              transform, translateY(-50%)
 
         &:hover
           color             #01B05A
@@ -145,6 +139,10 @@
 
         span:first-child
           padding-left      0
+
+    div.row.multi-line-row
+      height                50px
+      padding               8px 0px 10px 0px
 
     div.row.collides
       .col:nth-child(3)
