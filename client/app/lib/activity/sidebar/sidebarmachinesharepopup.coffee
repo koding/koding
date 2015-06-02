@@ -169,8 +169,11 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
       { channelId } = @getOptions()
 
-      kd.singletons.socialapi.channel.acceptInvite { channelId }, (err) =>
-        return showError err  if err
+      if channelId
+        kd.singletons.socialapi.channel.acceptInvite { channelId }, (err) =>
+          return showError err  if err
+          callback()
+      else
         callback()
 
 
