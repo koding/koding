@@ -255,7 +255,7 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 }
 
 // RemoveParticipant removes the user(participant) from the channel
-// if user is already removed from the channel, don't need to do anything
+// if user is already removed from the channel, will return with success
 //
 // Tests are done.
 func (c *Channel) RemoveParticipant(participantIds ...int64) error {

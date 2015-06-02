@@ -86,27 +86,22 @@ module.exports = class SocialAccount extends Base
             member.createSocialApiId (err, socialApiId)->
               return console.error "couldnt create socialapi id", err  if err
 
-              # add account into public channel
-              options = [{
-                channelId: socialApiChannelId
-                accountId: socialApiId
-              }]
-              options.channelId = socialApiChannelId
+              options =
+                channelId  : socialApiChannelId
+                accountIds : [ socialApiId ]
 
               SocialChannel[funcName] client, options, (err, participants) ->
-                return console.error "couldnt add user into group socialapi chan", err, options  if err
+
+                return console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err
 
                 # only add koding's members to announcement channel
                 return if group.slug isnt "koding"
 
-                # add account into announcement channel
-                options = [{
-                  channelId: socialApiAnnouncementChannelId
-                  accountId: socialApiId
-                }]
-                options.channelId = socialApiAnnouncementChannelId
+                options =
+                  channelId  : socialApiAnnouncementChannelId
+                  accountIds : [ socialApiId ]
 
                 SocialChannel[funcName] client, options, (err) ->
-                  return console.error "couldnt add user into group socialapi chan", err, options  if err
+                  return console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err
 
 

@@ -476,6 +476,54 @@ func TestChannelFetchAllParticipatedChannelIds(t *testing.T) {
 	})
 }
 
+func TestChannelFetchAllParticipatedChannelIdsInGroup(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("fetching all channels of an account by group name should succeed", t, func() {
+		// create account
+		acc := CreateAccountWithTest()
+		acc.IsTroll = false
+		So(acc.Update(), ShouldBeNil)
+
+		groupName1 := RandomGroupName()
+		groupName2 := RandomGroupName()
+		for i := 0; i < 5; i++ {
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			c.GroupName = groupName1
+			So(c.Create(), ShouldBeNil)
+
+			_, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+		}
+
+		for i := 0; i < 5; i++ {
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			c.GroupName = groupName2
+			So(c.Create(), ShouldBeNil)
+
+			_, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+		}
+
+		cp := NewChannelParticipant()
+		ids, err := cp.FetchAllParticipatedChannelIdsInGroup(acc.Id, groupName1)
+		So(err, ShouldBeNil)
+		So(len(ids), ShouldEqual, 5)
+
+		Convey("fetching non participated channel, should return 0", func() {
+			ids, err := cp.FetchAllParticipatedChannelIdsInGroup(acc.Id, RandomGroupName())
+			So(err, ShouldBeNil)
+			So(len(ids), ShouldEqual, 0)
+		})
+	})
+}
+
 func TestChannelParticipantisExempt(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {

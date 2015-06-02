@@ -1,12 +1,13 @@
-globals = require 'globals'
-kd = require 'kd'
-KDRouter = kd.Router
-KDModalView = kd.ModalView
-KodingAppsController = require './kodingappscontroller'
+kd             = require 'kd'
+KDRouter       = kd.Router
+KDModalView    = kd.ModalView
+
+remote         = require('./remote').getInstance()
+globals        = require 'globals'
+
+lazyrouter     = require './lazyrouter'
+trackEvent     = require './util/trackEvent'
 registerRoutes = require './util/registerRoutes'
-trackEvent = require './util/trackEvent'
-remote = require('./remote').getInstance()
-lazyrouter = require './lazyrouter'
 
 
 getAction = (formName) -> switch formName
@@ -72,22 +73,19 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
     when 'home' then handleRoot()
 
     when 'name'
-      open = (routeInfo, model)->
+      open = (routeInfo, model) ->
         switch model?.bongo_?.constructorName
           when 'JAccount'
             (createContentDisplayHandler 'Members') routeInfo, [model]
           when 'JGroup'
             (createSectionHandler 'Activity') routeInfo, model
-          when 'JNewApp'
-            KodingAppsController.runApprovedApp model, dontUseRouter:yes
           else
             ctx.handleNotFound routeInfo.params.name
       # (routeInfo, state, route)->
 
       if state? then open.call this, info, state
       else
-        remote.cacheable info.params.name, (err, models, name)=>
+        remote.cacheable info.params.name, (err, models, name) =>
           if models?
           then open.call this, info, models.first
           else ctx.handleNotFound info.params.name
-

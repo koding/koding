@@ -116,7 +116,7 @@ func (f *Controller) saveToBucket(key string, inc float64, id int64) error {
 
 func (f *Controller) saveToSevenDayBucket(k *KeyName, inc float64, id int64) error {
 	f.regMux.Lock()
-	defer f.regMux.Lock()
+	defer f.regMux.Unlock()
 
 	key := k.Weekly()
 
@@ -131,8 +131,6 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc float64, id int64) err
 		}
 
 		f.keyExistsRegistry[key] = true
-
-		return nil
 	}
 
 	err := f.saveToBucket(key, inc, id)

@@ -59,11 +59,24 @@ func (c *Controller) HandleParticipant(cp *models.ChannelParticipant) error {
 		return nil
 	}
 
-	for _, channelId := range group.DefaultChannels {
+	if err := c.handleDefaultChannels(group.DefaultChannels, cp); err != nil {
+		return err
+	}
+
+	if err := c.handleParticipantRemove(cp); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Controller) handleDefaultChannels(defaultChannels []string, cp *models.ChannelParticipant) error {
+	for _, channelId := range defaultChannels {
 		ci, err := strconv.ParseInt(channelId, 10, 64)
 		if err != nil {
 			return err
 		}
+
 		if err := c.handleDefaultChannel(ci, cp); err != nil {
 			return err
 		}
@@ -116,4 +129,45 @@ func (c *Controller) handleDefaultChannel(channelId int64, cp *models.ChannelPar
 	default:
 		return nil
 	}
+}
+
+// handleParticipantRemove removes a user from all channel participated channels
+// in given group
+func (c *Controller) handleParticipantRemove(cp *models.ChannelParticipant) error {
+	channel, err := models.Cache.Channel.ById(cp.ChannelId)
+	if err != nil {
+		c.log.Error("Channel: %d is not found", cp.ChannelId)
+		return nil
+	}
+
+	if channel.TypeConstant != models.Channel_TYPE_GROUP {
+		return nil
+	}
+
+	if !models.IsIn(cp.StatusConstant,
+		models.ChannelParticipant_STATUS_BLOCKED,
+		models.ChannelParticipant_STATUS_LEFT,
+	) {
+		return nil
+	}
+
+	cpp := models.NewChannelParticipant()
+	ids, err := cpp.FetchAllParticipatedChannelIdsInGroup(cp.AccountId, channel.GroupName)
+	if err != nil && err != bongo.RecordNotFound {
+		return err
+	}
+
+	if err == bongo.RecordNotFound {
+		return nil
+	}
+
+	for _, id := range ids {
+		ch := models.NewChannel()
+		ch.Id = id
+		if err := ch.RemoveParticipant(cp.AccountId); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
