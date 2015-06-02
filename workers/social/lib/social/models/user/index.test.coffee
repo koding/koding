@@ -118,7 +118,7 @@ runTests = -> describe 'workers.social.user.index', ->
         
         ->
           JUser.convert client, userFormData, (err) ->
-            expect(err).to.be.null
+            expect(err).to.not.exist
 
             queue.next()
         
@@ -144,7 +144,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           JUser.convert client, userFormData, (err) ->
-            expect(err).to.be.null
+            expect(err).to.not.exist
 
             queue.next()
 
@@ -173,7 +173,7 @@ runTests = -> describe 'workers.social.user.index', ->
         
         ->
           JUser.convert client, userFormData, (err) ->
-            expect(err).to.be.null
+            expect(err).to.not.exist
 
             queue.next()
 
@@ -181,7 +181,7 @@ runTests = -> describe 'workers.social.user.index', ->
           params = { username : userFormData.username }
           
           JUser.one params, (err, { data : {email, registeredFrom} }) ->
-            expect(err)               .to.be.null
+            expect(err)               .to.not.exist
             expect(email)             .to.be.equal userFormData.email
             expect(registeredFrom.ip) .to.be.equal client.clientIP
 
@@ -191,7 +191,7 @@ runTests = -> describe 'workers.social.user.index', ->
           params = { 'profile.nickname' : userFormData.username }
           
           JAccount.one params, (err, { data : {profile} }) ->
-            expect(err)             .to.be.null
+            expect(err)             .to.not.exist
             expect(profile.nickname).to.be.equal userFormData.username
 
             queue.next()
