@@ -12,13 +12,14 @@ module.exports = class OnboardingItemView extends KDView
    * If it's found, renders onboarding throbber with tooltip for it.
    * Also, tracks the time user spent to view the onboarding tooltip
   ###
-  render: ->
+  render: (skipErrors) ->
 
     { path, name } = @getData()
     { groupName, isModal } = @getOptions()
 
     try
       @targetElement = @getViewByPath path
+      @targetElement.on 'KDObjectWillBeDestroyed', @bound 'handleTargetDestroyed'
 
       if @targetElement and not @targetElement.hasClass 'hidden'
         { placementX, placementY, offsetX, offsetY, content, tooltipPlacement, color } = @getData()
@@ -43,10 +44,11 @@ module.exports = class OnboardingItemView extends KDView
           if @isViewed
             @throbber.destroy()
             @emit 'OnboardingItemCompleted'
-      else
+        @show()
+      else unless skipErrors
         console.warn 'Target element should be an instance of KDView and should be visible', { name, groupName }
     catch e
-      console.warn "Couldn't create onboarding item", { name, groupName, e }
+      console.warn "Couldn't create onboarding item", { name, groupName, e }  unless skipErrors
 
 
   ###*
@@ -69,24 +71,38 @@ module.exports = class OnboardingItemView extends KDView
 
 
   ###*
-   * Refreshes throbber visibility according
-   * to the target element visibility
+   * Refreshes throbber according to the target element
+   * visibility and position.
+   * If target element is absent, it tries to find it in DOM
+   * and if it exists, re-renders throbber for it
   ###
-  refreshVisiblity: ->
+  refresh: ->
 
-    return  unless @throbber
-
-    domElement = @targetElement.getDomElement()
-    visible = domElement.is(':visible') and domElement.css('visibility') isnt 'hidden'
-    visible = @targetElement.isInDom()  if visible
-
-    if visible
-      @throbber.show()
+    if @targetElement?.isInDom()
+      domElement = @targetElement.getDomElement()
+      visible = domElement.is(':visible') and domElement.css('visibility') isnt 'hidden'
+      if visible
+        @show()
+        @throbber.setPosition()
+      else @hide()
     else
-      @throbber.hide()
+      @throbber?.destroy()
+      @render yes
+
+
+  show: -> @throbber?.show()
+
+
+  hide: -> @throbber?.hide()
+
+
+  handleTargetDestroyed: ->
+
+    @targetElement = null
+    @throbber?.destroy()
 
 
   destroy: ->
 
-    @throbber?.destroy()
+    @handleTargetDestroyed()
     super

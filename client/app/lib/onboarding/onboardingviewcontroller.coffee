@@ -15,26 +15,30 @@ module.exports = class OnboardingViewController extends KDViewController
 
     @itemViews = {}
 
+
   ###*
    * Creates and renders views for onboarding items
-   * Item views are are grouped by onboarding group name.
+   * Item views are grouped by onboarding group name.
    * If item views already exist for onboarding group,
-   * the method does nothing to avoid running the same items multiple times
+   * it just refreshes them
    *
    * @param {string} groupName - name of onboarding group
    * @param {Array} items      - a list of onboarding items
    * @param {isModal} isModal  - a flag shows if onboarding is running on the modal
+   * @param {number} delay     - time to wait before running onboarding
   ###
-  runItems: (groupName, items, isModal) ->
+  runItems: (groupName, items, isModal = no, delay = 1000) ->
 
-    return  if @itemViews[groupName]
-
-    @itemViews[groupName] = []
-    for item in items
-      view = new OnboardingItemView { groupName, isModal }, item
-      view.render()
-      @bindViewEvents view
-      @itemViews[groupName].push view
+    if @itemViews[groupName]
+      kd.utils.defer @lazyBound('refreshItems', groupName)
+    else
+      @itemViews[groupName] = []
+      kd.utils.wait delay, =>
+        for item in items
+          view = new OnboardingItemView { groupName, isModal }, item
+          view.render()
+          @bindViewEvents view
+          @itemViews[groupName].push view
 
 
   ###*
@@ -53,18 +57,24 @@ module.exports = class OnboardingViewController extends KDViewController
 
 
   ###*
-   * Refreshes item views according to visibility of elements
-   * they are attached to
+   * Refreshes item views according to the state of elements
+   * they are attached to.
+   * If group name is passed, it refreshes only item views for that group.
+   * Otherwise, it refreshes all item views.
+   *
+   * @param {string} groupName - name of onboarding group
   ###
-  refreshItems: ->
+  refreshItems: (groupName) ->
 
-    for groupName, views of @itemViews
-      view.refreshVisiblity()  for view in views
+    for _groupName, views of @itemViews
+      if _groupName is groupName or not groupName
+        view.refresh()  for view in views
 
 
   ###*
    * Removes item views by onboarding group
-   * If group name is not passed, it removed all item views
+   * If group name is passed, it removes only item views for that group.
+   * Otherwise, it removes all item views.
    *
    * @param {string} groupName - name of onboarding group
   ###

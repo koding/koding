@@ -97,13 +97,11 @@ module.exports = class OnboardingController extends KDController
    * @param {string} groupName - name of onboarding group
    * @param {isModal} isModal  - a flag shows if onboarding is running on the modal.
    * In this case onboarding items should have higher z-index
-   * @param {number} delay     - time to wait before running onboarding, by default it's 2s
+   * @param {number} delay     - time to wait before running onboarding
   ###
-  runOnboarding: (groupName, isModal = no, delay = 2000) ->
+  runOnboarding: (groupName, isModal, delay) ->
 
     return @pendingQueue.push [].slice.call(arguments)  unless @isReady
-
-    @refreshOnboarding()
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
@@ -125,8 +123,7 @@ module.exports = class OnboardingController extends KDController
 
     return  unless items.length
 
-    kd.utils.wait delay, =>
-      @viewController.runItems groupName, items, isModal
+    @viewController.runItems groupName, items, isModal, delay
 
 
   ###*
@@ -163,11 +160,15 @@ module.exports = class OnboardingController extends KDController
     @appStorage.setValue OnboardingConstants.FORCED_ONBOARDINGS, events, callback
 
   ###*
-   * Refreshes current onboarding items according to the state of elements
+   * Refreshes onboarding items according to the state of elements
    * they are attached to. If elements are hidden, items get hidden too,
    * and vice versa
+   *
+   * @param {string} groupName - name of onboarding group which items should be
+   * refreshed. If groupName is null, all items should be refreshed
   ###
-  refreshOnboarding: -> @viewController.refreshItems()
+  refreshOnboarding: (groupName) -> @viewController.refreshItems groupName
+
 
   ###*
    * Removes onboarding group items from the page
@@ -178,15 +179,16 @@ module.exports = class OnboardingController extends KDController
 
 
   ###*
-   * Handles FrontAppIsChanged event of appManager. If app is changed,
-   * all onboarding items which ran on previous app should be removed
+   * Handles FrontAppIsChanged event of appManager and refreshes
+   * onboarding items. Items on previous app should be hidden,
+   * items on new app should become visible
    *
    * @param {object} appInstance     - new application
    * @param {object} prevAppInstance - previous application
   ###
   handleFrontAppChanged: (appInstance, prevAppInstance) ->
 
-    @viewController.clearItems()  unless appInstance is prevAppInstance
+    kd.utils.defer @bound 'refreshOnboarding'
 
 
   ###*
