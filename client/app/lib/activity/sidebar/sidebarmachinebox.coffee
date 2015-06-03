@@ -39,12 +39,6 @@ module.exports = class SidebarMachineBox extends KDView
 
     @machine.on 'MachineLabelUpdated', @bound 'handleMachineLabelUpdated'
 
-    if environmentDataProvider.getLastUpdatedMachineUId() is @machine.uid
-      kd.utils.wait 733, => # wait showing popup to get the coordinates correctly
-        environmentDataProvider.setLastUpdatedMachineUId null
-        @machineItem.showSidebarSharePopup()
-
-
     computeController = kd.getSingleton 'computeController'
     computeController.on "stateChanged-#{@machine._id}", @bound 'handleStateChanged'
 
