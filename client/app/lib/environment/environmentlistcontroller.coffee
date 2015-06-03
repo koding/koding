@@ -11,9 +11,14 @@ module.exports = class EnvironmentListController extends kd.ListViewController
     @loadItems()
 
 
-  loadItems: ->
+  loadItems: (stacks) ->
 
     @removeAllItems()
+
+    if stacks
+      @instantiateListItems stacks
+      return
+
     @showLazyLoader()
 
     { computeController } = kd.singletons
