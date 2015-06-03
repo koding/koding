@@ -74,6 +74,22 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     if _revisionStatus?.status? and _revisionStatus.status.code > 0
       @warningIcon.show()
+      revisionMessage = ''
+    else
+      revisionMessage = "You're currently using the latest revision."
+
+    {group, stackRevision} = stack
+    @infoIcon     = new kd.CustomHTMLView
+      cssClass    : 'info-icon'
+      tooltip     :
+        placement : 'right'
+        cssClass  : 'info-tooltip'
+        title     : "
+          This is stack is provided by #{group} team,
+          includes #{machines.length} machines and generated
+          from #{stackRevision[..5]} revision. <br/>
+          #{revisionMessage}
+        "
 
     listView   = new MachinesList
     controller = new MachinesListController
@@ -89,7 +105,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
   pistachio: ->
     """
     <div class='stack-info clearfix'>
-      {{> @warningIcon}}{div.title{#(title)}}
+      {{> @warningIcon}} {div.title{#(title)}} {{> @infoIcon}}
       <div class='buttons'>
         {{> @reinitButton}}{{> @addVMButton}}
       </div>
