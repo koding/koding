@@ -24,22 +24,26 @@ func TestSubscribe(t *testing.T) {
 	s.HandleFunc("client.Subscribe", ps.Subscribe)
 	ts := httptest.NewServer(s)
 
-	k := kite.New("c", "0.0.0")
-	c := k.NewClient(fmt.Sprintf("%s/kite", ts.URL))
+	c1 := kite.New("c1", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
+	c2 := kite.New("c2", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
 
-	err := c.Dial()
+	err := c1.Dial()
+	if err != nil {
+		t.Fatal("Failed to connect to testing Kite", err)
+	}
+	err = c2.Dial()
 	if err != nil {
 		t.Fatal("Failed to connect to testing Kite", err)
 	}
 
 	// Should require arguments
-	_, err = c.Tell("client.Subscribe")
+	_, err = c1.Tell("client.Subscribe")
 	if err == nil {
 		t.Error("client.Subscribe should require args")
 	}
 
 	// Should require eventName
-	_, err = c.Tell("client.Subscribe", struct {
+	_, err = c1.Tell("client.Subscribe", struct {
 		Data      string
 		OnPublish dnode.Function
 	}{
@@ -51,7 +55,7 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Should require onPublish
-	_, err = c.Tell("client.Subscribe", struct {
+	_, err = c1.Tell("client.Subscribe", struct {
 		eventName string
 		Data      string
 	}{
@@ -63,7 +67,7 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Should require valid onPublish func
-	_, err = c.Tell("client.Subscribe", struct {
+	_, err = c1.Tell("client.Subscribe", struct {
 		eventName string
 		onPublish string
 	}{
@@ -75,7 +79,7 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Should subscribe to any given event name
-	_, err = c.Tell("client.Subscribe", struct {
+	_, err = c1.Tell("client.Subscribe", struct {
 		EventName string
 		OnPublish dnode.Function
 	}{
@@ -97,7 +101,7 @@ func TestSubscribe(t *testing.T) {
 
 	// Should store the proper callback
 	success := make(chan bool)
-	_, err = c.Tell("client.Subscribe", struct {
+	_, err = c1.Tell("client.Subscribe", struct {
 		EventName string
 		OnPublish dnode.Function
 	}{
@@ -121,18 +125,50 @@ func TestSubscribe(t *testing.T) {
 			"Attempt timed out.")
 	}
 
+	// Should allow multiple clients to subscribe
+	_, err = c2.Tell("client.Subscribe", struct {
+		EventName string
+		OnPublish dnode.Function
+	}{
+		EventName: "test",
+		OnPublish: dnode.Callback(func(f *dnode.Partial) {}),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, ok = ps.Subscriptions["test"]
+	if !ok {
+		t.Fatal("client.Subscribe should create a map for new event types")
+	}
+
+	if len(ps.Subscriptions["test"]) != 3 {
+		t.Fatal("client.Subscribe should allow multiple clients to Sub")
+	}
+
 	// Should remove onPublish func after the client disconnects
-	c.Close()
+	c1.Close()
 
 	// Using a timer here, because c.OnDisconnect is called before the
 	// sub is actually removed. I do not know how to ensure the
 	// removeSubscription() func as called, this without the Sleep.
 	time.Sleep(1 * time.Millisecond)
 
-	if len(ps.Subscriptions["test"]) != 0 {
+	if len(ps.Subscriptions["test"]) != 1 {
 		t.Error("client.Subscribe",
 			"should remove all of a clients callbacks on Disconnect")
 	}
+
+	// Should remove the map, when all clients disconnect
+	c2.Close()
+	time.Sleep(1 * time.Millisecond)
+
+	_, ok = ps.Subscriptions["test"]
+	if ok {
+		t.Error("client.Subscribe",
+			"should remove the event map when all clients disconnect")
+	}
+
 }
 
 func TestPublish(t *testing.T) {

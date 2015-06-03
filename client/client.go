@@ -77,8 +77,20 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 	c.subMu.Lock()
 	defer c.subMu.Unlock()
 
-	subs, _ := c.Subscriptions[params.EventName]
+	subs, ok := c.Subscriptions[params.EventName]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf(
+			"client.Publish: No client.Subscribers found for '%s'",
+			params.EventName))
+	}
+
+	// This condition should never occur - Subscription() should remove
+	// all of the subs manually. If it doesn't, something wrong occured
+	// during the removal attempt.
 	if len(subs) == 0 {
+		c.Log.Info(fmt.Sprintf(
+			"client.Publish: The event '%s' was found empty, when it should "+
+				"have  been removed\n", params.EventName))
 		return nil, errors.New(fmt.Sprintf(
 			"client.Publish: No client.Subscribers found for '%s'",
 			params.EventName))
@@ -146,6 +158,10 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 
 		if _, ok := c.Subscriptions[params.EventName]; ok {
 			delete(c.Subscriptions[params.EventName], subIndex)
+			// Delete the sub map, if there are no more subs in it
+			if len(c.Subscriptions[params.EventName]) == 0 {
+				delete(c.Subscriptions, params.EventName)
+			}
 		} else {
 			c.Log.Info("client.Subscribe:",
 				"Subscriptions could not be found, on Disconnect")
