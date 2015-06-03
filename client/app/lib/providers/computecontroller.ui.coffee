@@ -181,7 +181,7 @@ module.exports = class ComputeController_UI
           title   : "Reinitialize Stack?"
           message : "
             If you choose to proceed, this stack and all the VMs will be
-            re-initialized from latest revision of this stack.
+            re-initialized from the latest revision of this stack.
             You will lose all of your existing files, workspaces, VMs and all 
             of your data.
           "
