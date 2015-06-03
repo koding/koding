@@ -2,6 +2,8 @@ package webhook
 
 import (
 	"errors"
+	"socialapi/models"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -25,6 +27,9 @@ type Integration struct {
 	// Title of the integration
 	Title string `json:"title" sql:"NOT NULL;TYPE:VARCHAR(200)"`
 
+	// Summary of the integration
+	Summary string `json:"summary" sql:"TYPE:TEXT"`
+
 	// File path of the integration icon
 	IconPath string `json:"iconPath" sql:"TYPE:VARCHAR(200)"`
 
@@ -38,7 +43,10 @@ type Integration struct {
 	TypeConstant string `json:"typeConstant" sql:"TYPE:VARCHAR(100)"`
 
 	// Settings used for storing events and other optional data
-	Settings gorm.Hstore
+	Settings gorm.Hstore `json:"settings"`
+
+	// IsPrivate used for wip integrations
+	IsPrivate bool `json:"-"`
 
 	// Creation date of the integration
 	CreatedAt time.Time `json:"createdAt" sql:"NOT NULL"`
@@ -47,7 +55,7 @@ type Integration struct {
 	UpdatedAt time.Time `json:"updatedAt" sql:"NOT NULL"`
 
 	// Deletion date of the integration
-	DeletedAt time.Time `json:"deletedAt" sql:"NOT NULL"`
+	DeletedAt time.Time `json:"-" sql:"NOT NULL"`
 }
 
 const (
@@ -107,4 +115,21 @@ func (i *Integration) ByName(name string) error {
 	}
 
 	return nil
+}
+
+func (i *Integration) List(q *request.Query) ([]Integration, error) {
+	query := &bongo.Query{
+		Sort: map[string]string{
+			"name": "ASC",
+		},
+	}
+	query.AddScope(models.ExcludeFields(q.Exclude))
+
+	var ints []Integration
+	err := i.Some(&ints, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return ints, nil
 }
