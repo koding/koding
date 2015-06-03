@@ -1,5 +1,8 @@
-kd              = require 'kd'
-KDListView      = kd.ListView
+kd                  = require 'kd'
+KDListView          = kd.ListView
+AvatarAreaConstants = require './avatarareaconstants'
+
+
 module.exports  = class PopupList extends KDListView
 
   constructor:(options = {}, data)->
@@ -10,4 +13,8 @@ module.exports  = class PopupList extends KDListView
 
     super options,data
 
+    notifListItemClicked = AvatarAreaConstants.events.NOTIF_LIST_ITEM_CLICKED
+
+    @on notifListItemClicked, =>
+      @getDelegate().emit notifListItemClicked
 
