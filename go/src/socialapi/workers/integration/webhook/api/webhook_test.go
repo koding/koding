@@ -346,3 +346,47 @@ func TestWebhookGroupBotChannel(t *testing.T) {
 		})
 	})
 }
+
+func TestWebhookIntegrationList(t *testing.T) {
+
+	tearUp(func(h *Handler, m *mux.Mux) {
+
+		Convey("while listing integrations ", t, func() {
+			name := ".A" + models.RandomGroupName()
+			firstInt := webhook.CreatePrivateIntegration(t)
+			secondInt := webhook.CreateIntegration(t, name)
+
+			Convey("it should only list public integrations", func() {
+
+				_, _, res, err := h.List(
+					mocking.URL(m, "GET", "/list"),
+					mocking.Header(nil),
+					nil,
+				)
+
+				So(err, ShouldBeNil)
+				So(res, ShouldNotBeNil)
+				r, ok := res.(*response.SuccessResponse)
+				So(ok, ShouldBeTrue)
+
+				integrations, ok := r.Data.([]webhook.Integration)
+				So(ok, ShouldBeTrue)
+				So(len(integrations), ShouldBeGreaterThanOrEqualTo, 1)
+
+				for _, integration := range integrations {
+					So(integration.IsPrivate, ShouldBeFalse)
+					So(integration.Name, ShouldNotEqual, firstInt.Name)
+				}
+			})
+
+			Reset(func() {
+
+				err := firstInt.Delete()
+				So(err, ShouldBeNil)
+
+				err = secondInt.Delete()
+				So(err, ShouldBeNil)
+			})
+		})
+	})
+}
