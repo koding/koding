@@ -14,7 +14,7 @@ Machine                 = require './machine'
 ComputeHelpers          = require './computehelpers'
 HelpSupportModal        = '../commonviews/helpsupportmodal'
 ComputeController       = require './computecontroller'
-EnvironmentsModalView   = require './environmentsmodalview'
+BaseModalView           = require './views/basemodalview'
 MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
 MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 
@@ -26,7 +26,7 @@ sendDataDogEvent        = require '../util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
-module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalView
+module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   {
     Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
@@ -466,7 +466,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       NoTemplate : "
         <h1>Compute Stacks not configured yet!</h1>
         <span>
-          Your team currently is not providing any compute resources. 
+          Your team currently is not providing any compute resources.
           Please contact with your team admins for more information.
         </span>
       "
