@@ -86,7 +86,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         placement : 'right'
         cssClass  : 'info-tooltip'
         title     : "
-          This is stack is provided by #{group} team,
+          This stack is provided by #{group}. It
           includes #{machines.length} machines and generated
           from #{stackRevision[..5]} revision. <br/>
           #{revisionMessage}
