@@ -1,11 +1,12 @@
-Bongo = require 'bongo'
-{ join: joinPath } = require 'path'
+Bongo                   = require 'bongo'
+{ join: joinPath }      = require 'path'
+{ env : { MONGO_URL } } = process
 
 argv = require('minimist') process.argv
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-mongo = "mongodb://#{ KONFIG.mongo }"
+mongo = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
 
 modelPath = '../../workers/social/lib/social/models'
 
