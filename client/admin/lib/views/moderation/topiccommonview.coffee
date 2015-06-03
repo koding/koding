@@ -59,7 +59,7 @@ module.exports = class TopicCommonView extends KDView
 
     @addSubView @listController.getView()
 
-    #@listController.on 'LazyLoadThresholdReached', @bound 'searchChannels'
+
     @listController.on 'LazyLoadThresholdReached', =>
       
       if @skip is 0 and @searchSkip is 0
@@ -80,7 +80,7 @@ module.exports = class TopicCommonView extends KDView
       skip                  : @skip
       showModerationNeeded  : true
       type                  : @getOptions().typeConstant or= "topic"
-    console.log 'fetchChannels2 skip'+ @skip  
+    
     kd.singletons.socialapi.channel.list options, @bound 'listFetchResults'
     
 
@@ -103,7 +103,7 @@ module.exports = class TopicCommonView extends KDView
     # if we have items from listing. remove them all
     if @searchSkip is 0
       @listController.removeAllItems()
-    console.log 'listSearchResults searchSkip'+ @searchSkip
+    
     @skip = 0  # revert skip of normal listing
     
     @searchSkip += channels?.length
