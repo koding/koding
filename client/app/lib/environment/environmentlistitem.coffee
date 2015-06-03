@@ -37,18 +37,21 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     addVMMenu = if isKoding()
       'Create Koding VM':
         callback : =>
-          handleNewMachineRequest
-            provider: 'koding', @_menu.bound 'destroy'
+          handleNewMachineRequest provider: 'koding'
+          @_menu.destroy()
+          delegate.emit 'ModalDestroyRequested'
     else
       'Add Your own VM':
         callback : =>
-          handleNewMachineRequest
-            provider: 'managed', @_menu.bound 'destroy'
+          handleNewMachineRequest provider: 'managed'
+          @_menu.destroy()
+          delegate.emit 'ModalDestroyRequested'
 
     @addVMButton  = new kd.ButtonView
       icon        : yes
       iconOnly    : yes
       iconClass   : 'add'
+      cssClass    : 'add-vm-button'
       tooltip     :
         title     : 'Add new VM'
       callback    : =>
