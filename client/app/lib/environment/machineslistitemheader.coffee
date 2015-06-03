@@ -9,7 +9,9 @@ module.exports = class MachinesListItemHeader extends kd.ListItemView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'machines-item header', options.cssClass
+
     super options, data
+
 
   pistachio: ->
     """
