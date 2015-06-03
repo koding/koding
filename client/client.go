@@ -119,32 +119,34 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 				"{ eventName: [string], onPublish: [function] }")
 	}
 
-	if params.OnPublish.IsValid() {
-		c.subMu.Lock()
-		subIndex := c.subCount
-		c.subCount++
-		c.subMu.Unlock()
-
-		if _, ok := c.Subscriptions[params.EventName]; !ok {
-			// Init the map if needed
-			c.Subscriptions[params.EventName] = map[int]dnode.Function{
-				subIndex: params.OnPublish,
-			}
-		} else {
-			c.Subscriptions[params.EventName][subIndex] = params.OnPublish
-		}
-
-		removeSubscription := func() {
-			if _, ok := c.Subscriptions[params.EventName]; ok {
-				delete(c.Subscriptions[params.EventName], subIndex)
-			} else {
-				c.Log.Info("client.Subscribe:",
-					"Subscriptions could not be found, on Disconnect")
-			}
-		}
-
-		r.Client.OnDisconnect(removeSubscription)
+	if !params.OnPublish.IsValid() {
+		return nil, errors.New("client.Subscribe: OnPublish Function is not valid")
 	}
+
+	c.subMu.Lock()
+	subIndex := c.subCount
+	c.subCount++
+	c.subMu.Unlock()
+
+	if _, ok := c.Subscriptions[params.EventName]; !ok {
+		// Init the map if needed
+		c.Subscriptions[params.EventName] = map[int]dnode.Function{
+			subIndex: params.OnPublish,
+		}
+	} else {
+		c.Subscriptions[params.EventName][subIndex] = params.OnPublish
+	}
+
+	removeSubscription := func() {
+		if _, ok := c.Subscriptions[params.EventName]; ok {
+			delete(c.Subscriptions[params.EventName], subIndex)
+		} else {
+			c.Log.Info("client.Subscribe:",
+				"Subscriptions could not be found, on Disconnect")
+		}
+	}
+
+	r.Client.OnDisconnect(removeSubscription)
 
 	return nil, nil
 }
