@@ -30,6 +30,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
       defaultValue  : alwaysOn
       callback      : @bound 'handleAlwaysOnStateChanged'
 
+    # removed from the view since functionality isn't there - SY
     @sidebarToggle  = new KodingSwitch
       cssClass      : 'tiny'
       defaultValue  : yes
@@ -43,6 +44,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
         new MachineSettingsModal {}, machine
 
     @settingsLink.hide()  unless machine.isRunning()
+
 
   handleAlwaysOnStateChanged: (state) ->
 
