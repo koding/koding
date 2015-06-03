@@ -138,10 +138,10 @@ build:
     #       cd go/src/koding/kites/terraformer
     #       go test -c && mv terraformer.test ./../../../../bin/ &&  CONFIG_PORT=1234 CONFIG_REGION="dev" CONFIG_ENVIRONMENT="dev" ./../../../../bin/terraformer.test
     - script:
-        name: test socialworker
+        name: test social worker
         code: |
           echo "testing social worker"
-          ./workers/social/tests.sh
+          scripts/node-testing/run-tests $(pwd)/INSTANCE_DATA
     - script:
         name: test gather
         code: |
