@@ -26,7 +26,7 @@ func New(fetcher Fetcher, exporter Exporter, output *models.Gather) *Gather {
 }
 
 func (c *Gather) Run() error {
-	// defer c.Cleanup()
+	defer c.Cleanup()
 
 	binary, err := c.GetCheckerBinary()
 	if err != nil {
