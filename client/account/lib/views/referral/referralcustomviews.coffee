@@ -85,13 +85,13 @@ module.exports = class ReferralCustomViews extends CustomViews
         text_invite   : 'Your personal invite link:'
         view          : 
           partial     : getReferralUrl nick()
-          cssClass    : "text link"
+          cssClass    : 'text link'
           click       : ->
             referralUrl = @getElement()
             @utils.selectText referralUrl
             @setTooltip
               title     : "#{superKey} + C to copy"
-              placement : "above"
+              placement : 'above'
               sticky    : yes
             @tooltip.show()
             @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'destroy'
