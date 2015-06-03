@@ -132,28 +132,28 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
     machine = @getData()
 
     @approveButton.showLoader()
+
     machine.jMachine.approve (err) =>
+
       return showError err  if err
-      { router, mainView } = kd.singletons
 
-      { channelId } = @getOptions()
-      kd.singletons.socialapi.channel.acceptInvite { channelId }, (err) =>
-        return showError err  if err
+      {router, mainView} = kd.singletons
 
-        doNavigation = =>
-          if machine.isPermanent()
-            route = "/IDE/#{machine.uid}/my-workspace" # permanent shared route
-          else # collaboration route
-            route = "/IDE/#{@getOptions().channelId}"
+      doNavigation = =>
+        if machine.isPermanent()
+          route = "/IDE/#{machine.uid}/my-workspace" # permanent shared route
+        else # collaboration route
+          route = "/IDE/#{@getOptions().channelId}"
 
-          # route to permanent shared url to open the ide
-          router.handleRoute route
+        # route to permanent shared url to open the ide
+        router.handleRoute route
 
-          # defer sidebar redrawing to properly select workspace
-          kd.utils.defer =>
-            mainView.activitySidebar.redrawMachineList()
-            @destroy()
+        # defer sidebar redrawing to properly select workspace
+        kd.utils.defer =>
+          mainView.activitySidebar.redrawMachineList()
+          @destroy()
 
+      callback = =>
         envDataProvider.fetch =>
           # if there is an ide instance this means user landed to ide with direct url
           ideApp = envDataProvider.getIDEFromUId machine.uid
@@ -166,6 +166,15 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
             kd.utils.wait 737, => doNavigation()
           else
             doNavigation()
+
+      { channelId } = @getOptions()
+
+      if channelId
+        kd.singletons.socialapi.channel.acceptInvite { channelId }, (err) =>
+          return showError err  if err
+          callback()
+      else
+        callback()
 
 
   deny: ->

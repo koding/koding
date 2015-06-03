@@ -1,5 +1,5 @@
-kd = require 'kd'
-KDView = kd.View
+kd        = require 'kd'
+KDView    = kd.View
 Pistachio = require './util/pistachio'
 
 module.exports = class JView extends KDView

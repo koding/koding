@@ -39,6 +39,25 @@ module.exports =
     browser.end()
 
 
+  searchTopicInChannelList: (browser) ->
+
+    helpers.beginTest(browser)
+
+    channelSelector = '.activity-sidebar .followed .sidebar-title'
+    searchSelector  = '.kdmodal-inner .kdmodal-content input.search-input'
+
+    hashtag = helpers.sendHashtagActivity(browser)
+
+    browser
+      .waitForElementVisible  channelSelector, 20000
+      .click                  channelSelector
+      .waitForElementVisible  '.more-channels', 20000
+      .waitForElementVisible  searchSelector, 20000
+      .setValue               searchSelector, hashtag + '\n'
+      .waitForElementVisible  ".listview-wrapper [testpath=\"public-feed-link/Activity/Topic/#{hashtag.replace '#', ''}\"]", 20000 # Assertion
+      .end()
+
+
   followTopic: (browser) ->
 
     helpers.beginTest(browser)

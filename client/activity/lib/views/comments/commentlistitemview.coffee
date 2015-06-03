@@ -1,35 +1,36 @@
-kd                     = require 'kd'
-KDButtonView           = kd.ButtonView
-KDCustomHTMLView       = kd.CustomHTMLView
-KDListItemView         = kd.ListItemView
-KDTimeAgoView          = kd.TimeAgoView
-KDView                 = kd.View
-emojify                = require 'emojify.js'
-CommentDeleteModal     = require './commentdeletemodal'
-CommentInputEditWidget = require './commentinputeditwidget'
-CommentLikeView        = require './commentlikeview'
-CommentSettingsButton  = require './commentsettingsbutton'
-remote                 = require('app/remote').getInstance()
-formatContent          = require 'app/util/formatContent'
-showError              = require 'app/util/showError'
-ProfileLinkView        = require 'app/commonviews/linkviews/profilelinkview'
-JView                  = require 'app/jview'
-JCustomHTMLView        = require 'app/jcustomhtmlview'
-CustomLinkView         = require 'app/customlinkview'
-AvatarView             = require 'app/commonviews/avatarviews/avatarview'
-isMyPost               = require 'app/util/isMyPost'
-hasPermission          = require 'app/util/hasPermission'
-updateEmbedBox         = require 'activity/mixins/updateembedbox'
-animatedRemoveMixin    = require 'activity/mixins/animatedremove'
-handleUpdate           = require 'activity/mixins/handleupdate'
+kd                        = require 'kd'
+KDButtonView              = kd.ButtonView
+KDCustomHTMLView          = kd.CustomHTMLView
+KDTimeAgoView             = kd.TimeAgoView
+KDView                    = kd.View
+emojify                   = require 'emojify.js'
+CommentDeleteModal        = require './commentdeletemodal'
+CommentInputEditWidget    = require './commentinputeditwidget'
+CommentLikeView           = require './commentlikeview'
+CommentSettingsButton     = require './commentsettingsbutton'
+remote                    = require('app/remote').getInstance()
+formatContent             = require 'app/util/formatContent'
+showError                 = require 'app/util/showError'
+ProfileLinkView           = require 'app/commonviews/linkviews/profilelinkview'
+JView                     = require 'app/jview'
+JCustomHTMLView           = require 'app/jcustomhtmlview'
+CustomLinkView            = require 'app/customlinkview'
+AvatarView                = require 'app/commonviews/avatarviews/avatarview'
+isMyPost                  = require 'app/util/isMyPost'
+hasPermission             = require 'app/util/hasPermission'
+updateEmbedBox            = require 'activity/mixins/updateembedbox'
+animatedRemoveMixin       = require 'activity/mixins/animatedremove'
+handleUpdate              = require 'activity/mixins/handleupdate'
+ActivityBaseListItemView  = require '../activitybaselistitemview'
 
-module.exports = class CommentListItemView extends KDListItemView
-
-  JView.mixin @prototype
+module.exports = class CommentListItemView extends ActivityBaseListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type = 'comment'
+    options.type                = 'comment'
+
+    options.showMoreWrapperCssClass = '.comment-body-container'
+    options.showMoreMarkCssClass    = '.mark-for-show-more-cmt'
 
     super options, data
 
@@ -222,7 +223,7 @@ module.exports = class CommentListItemView extends KDListItemView
     @author = new ProfileLinkView {origin}
 
     @body       = new JCustomHTMLView
-      cssClass        : 'comment-body-container'
+      cssClass        : 'comment-body-container has-show-more'
       pistachio       : '{p.has-markdown{formatContent #(body), yes}}'
       pistachioParams : { formatContent }
     , data
@@ -259,7 +260,9 @@ module.exports = class CommentListItemView extends KDListItemView
 
     JView::viewAppended.call this
 
-    kd.utils.defer => emojify.run @getElement()
+    kd.utils.defer =>
+      @checkIfItsTooTall()
+      emojify.run @getElement()
 
     # @setAnchors()
 
@@ -281,11 +284,13 @@ module.exports = class CommentListItemView extends KDListItemView
 
 
   pistachio: ->
+
     '''
     {{> @avatar}}
     <div class='comment-contents clearfix'>
     {{> @author}}
     {{> @body}}
+    <mark class="mark-for-show-more-cmt"> </mark>
     {{> @formWrapper}}
     {{> @menuWrapper}}
     {{> @resend}}
