@@ -34,7 +34,7 @@ gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve
 
 # BUILD
 
-gulp.task 'build-all-sites', (req 'task.build.all').bind this, argv['koding-version']
+gulp.task 'build-all-sites', req 'task.build.all'
 
 
 # DEFAULT

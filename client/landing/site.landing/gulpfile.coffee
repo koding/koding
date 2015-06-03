@@ -36,9 +36,9 @@ gulp.task 'styles', ['sprites'], req 'helper.styles'
 
 gulp.task 'sprites', ['sprites@1x', 'sprites@2x'], ->
 
-gulp.task 'sprites@1x', (req 'task.sprites').bind this, 1, argv['koding-version']
+gulp.task 'sprites@1x', (req 'task.sprites').bind this, 1
 
-gulp.task 'sprites@2x', ['sprites@1x'], (req 'task.sprites').bind this, 2, argv['koding-version']
+gulp.task 'sprites@2x', ['sprites@1x'], (req 'task.sprites').bind this, 2
 
 
 # IMAGE MINIFICATION

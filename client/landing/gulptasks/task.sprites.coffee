@@ -3,20 +3,21 @@ spritesmith = require 'gulp.spritesmith'
 argv        = require('minimist') process.argv
 site        = SITE_NAME or argv.site or 'landing'
 base        = "#{__dirname}/.."
-# tinypng     = require 'gulp-tinypng'
 
-{ BUILD_PATH } = require './helper.constants'
-{ log } = require './helper.logger'
+{ BUILD_PATH, CONFIG_PATH } = require './helper.constants'
+{ log }                     = require './helper.logger'
 
-module.exports = (pixelRatio = 1, version = '') ->
+module.exports = (pixelRatio = 1) ->
 
   suffix = if pixelRatio > 1 then "__#{pixelRatio}x" else ''
+
+  { rev } = require CONFIG_PATH
 
   stream = gulp.src "#{base}/site.#{site}/sprites@#{pixelRatio}x/**/*.png"
     .pipe spritesmith
       imgName   : "sprite@#{pixelRatio}x.png"
       cssName   : "sprite@#{pixelRatio}x.styl"
-      imgPath   : "/a/site.#{site}/images/sprite@#{pixelRatio}x.png?#{ version }"
+      imgPath   : "/a/site.#{site}/images/sprite@#{pixelRatio}x.png?#{ rev }"
       algorithm : 'binary-tree'
       padding   : 5
       cssFormat : 'stylus'
