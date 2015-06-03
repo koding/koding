@@ -28,6 +28,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
 
     @addSubView controller.getView()
 
+    listView.on 'ModalDestroyRequested', @bound 'destroy'
     listView.on 'StackReinitRequested', (stack) ->
 
       stack.delete (err) ->
