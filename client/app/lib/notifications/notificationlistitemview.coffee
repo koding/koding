@@ -1,16 +1,16 @@
-Promise = require 'bluebird'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDListItemView = kd.ListItemView
-KDNotificationView = kd.NotificationView
-KDTimeAgoView = kd.TimeAgoView
-groupifyLink = require '../util/groupifyLink'
-getFullnameFromAccount = require '../util/getFullnameFromAccount'
-remote = require('../remote').getInstance()
-whoami = require '../util/whoami'
-AvatarView = require '../commonviews/avatarviews/avatarview'
-JView = require '../jview'
-LinkGroup = require '../commonviews/linkviews/linkgroup'
+Promise                 = require 'bluebird'
+kd                      = require 'kd'
+KDCustomHTMLView        = kd.CustomHTMLView
+KDListItemView          = kd.ListItemView
+KDNotificationView      = kd.NotificationView
+KDTimeAgoView           = kd.TimeAgoView
+groupifyLink            = require '../util/groupifyLink'
+getFullnameFromAccount  = require '../util/getFullnameFromAccount'
+remote                  = require('../remote').getInstance()
+whoami                  = require '../util/whoami'
+AvatarView              = require '../commonviews/avatarviews/avatarview'
+JView                   = require '../jview'
+LinkGroup               = require '../commonviews/linkviews/linkgroup'
 
 
 module.exports = class NotificationListItemView extends KDListItemView

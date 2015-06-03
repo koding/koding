@@ -1,9 +1,9 @@
-kd = require 'kd'
-isLoggedIn = require '../util/isLoggedIn'
-AvatarPopup = require '../avatararea/avatarpopup'
-NotificationListController = require './notificationlistcontroller'
-NotificationListItemView = require './notificationlistitemview'
-PopupList = require '../avatararea/popuplist'
+kd                          = require 'kd'
+isLoggedIn                  = require '../util/isLoggedIn'
+AvatarPopup                 = require '../avatararea/avatarpopup'
+NotificationListController  = require './notificationlistcontroller'
+NotificationListItemView    = require './notificationlistitemview'
+PopupList                   = require '../avatararea/popuplist'
 
 
 module.exports = class PopupNotifications extends AvatarPopup

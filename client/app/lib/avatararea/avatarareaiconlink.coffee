@@ -1,6 +1,6 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-JView = require '../jview'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+JView             = require '../jview'
 
 
 module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
