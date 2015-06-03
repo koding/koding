@@ -29,9 +29,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
     return """
       <header class="integration-view">
         <img src="#{logo}" />
-        <p>#{name}</p>
-        <span>#{summary}</span>
+        {p{ #(name)}}
+        {{ #(summary)}}
       </header>
-      <section class="description">#{desc}</section>
+      {section.description{ #(desc)}}
       {{> @instructionsView}}
     """

@@ -86,10 +86,10 @@ module.exports = class AdminIntegrationSetupView extends JView
     return """
       <header class="integration-view">
         <img src="#{logo}" />
-        <p>#{name}</p>
-        <span>#{summary}</span>
+        {p{ #(name)}}
+        {{ #(summary)}}
       </header>
-      <section class="description">#{desc}</section>
+      {section.description{ #(desc)}}
       <section class="setup">
         <h4>Post to Channel</h4>
         <label>Start by choosing a channel where exceptions will be posted.</label>

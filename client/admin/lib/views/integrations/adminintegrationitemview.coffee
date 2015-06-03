@@ -35,7 +35,7 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
 
     return """
       <img src="#{logo}" />
-      <p>#{name}</p>
-      <span>#{desc}</span>
+      {p{ #(name)}}
+      {span{ #(desc)}}
       {{> @addButton}}
     """
