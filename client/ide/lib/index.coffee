@@ -240,6 +240,8 @@ class IDEAppController extends AppController
         panel._layout = leaf
         @layoutMap[leaf.data.offset] = panel
 
+      @doResize()
+
     ideParent.addSubView splitView
     @setActiveTabView newIDEView.tabView
 
