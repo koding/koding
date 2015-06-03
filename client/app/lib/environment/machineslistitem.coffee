@@ -42,6 +42,8 @@ module.exports = class MachinesListItem extends kd.ListItemView
       click         : ->
         new MachineSettingsModal {}, machine
 
+    @settingsLink.hide()  unless machine.isRunning()
+
   handleAlwaysOnStateChanged: (state) ->
 
     { computeController } = kd.singletons

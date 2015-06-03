@@ -91,6 +91,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           #{revisionMessage}
         "
 
+    @infoIcon.hide()  if isKoding()
+
     listView   = new MachinesList
     controller = new MachinesListController
       view        : listView
