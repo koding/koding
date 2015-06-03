@@ -4,7 +4,7 @@ querystring = require 'querystring'
 
 
 # deep extending one object from another, works only for objects
-_.deepObjectExtend = (target, source) ->
+deepObjectExtend = (target, source) ->
 
   for prop of source
 
@@ -12,7 +12,7 @@ _.deepObjectExtend = (target, source) ->
 
       # recursive call to deep extend
       if target[prop] and typeof source[prop] == 'object'
-        _.deepObjectExtend target[prop], source[prop]
+        deepObjectExtend target[prop], source[prop]
       # overwriting property
       else
         target[prop] = source[prop]
@@ -72,7 +72,7 @@ class RegisterHandlerHelper
   @getPostParams = (opts = {}) ->
 
     defaultPostParams = RegisterHandlerHelper.getDefaultParams()
-    postParams        = _.deepObjectExtend defaultPostParams, opts
+    postParams        = deepObjectExtend defaultPostParams, opts
     # after deep extending object, encodes body param to a query string
     postParams.body   = querystring.stringify postParams.body
 
