@@ -1,8 +1,9 @@
-{ argv }  = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-redis     = require "redis"
-REDIS_KEY = "social:disposable-email-addresses"
-DOMAINS   = require 'disposable-email-domains'
+{ argv }      = require 'optimist'
+KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG.redis  = process.env.REDIS_URL  if process.env.REDIS_URL
+redis         = require "redis"
+REDIS_KEY     = "social:disposable-email-addresses"
+DOMAINS       = require 'disposable-email-domains'
 
 LOW_QUALITY_DOMAINS = [
   "126.com"
