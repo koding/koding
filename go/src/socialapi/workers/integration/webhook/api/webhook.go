@@ -140,6 +140,22 @@ func (h *Handler) FetchGroupBotChannel(u *url.URL, header http.Header, _ interfa
 	return response.NewOK(response.NewSuccessResponse(resp))
 }
 
+func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	i := webhook.NewIntegration()
+	q := &request.Query{
+		Exclude: map[string]interface{}{
+			"isPrivate": true,
+		},
+	}
+
+	ints, err := i.List(q)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ints))
+}
+
 func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
 	// check account existence
 	acc, err := r.verifyAccount()
