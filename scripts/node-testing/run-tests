@@ -33,6 +33,7 @@ addEventListenersToChildProcess = (child) ->
   
 
 iterator = (item, cb) ->
+  console.log item
   
   child = exec item, (err, stdout, stderr) ->
     

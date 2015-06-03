@@ -11,7 +11,7 @@ module.exports =
       return "ssh -o 'StrictHostKeyChecking no' \
       -i ./scripts/test-instance/koding-test-instances-2015-06.pem \
       ubuntu@#{publicIpAddress} \
-      'sudo /opt/koding/run socialworkertests'"
+      'sudo /opt/koding/run socialworkertests' &"
 
 
     nodejsServer : (publicIpAddress) ->
@@ -19,15 +19,15 @@ module.exports =
       return "ssh -o 'StrictHostKeyChecking no' \
       -i $KODING_DEPLOYMENT_KEY \
       ubuntu@#{publicIpAddress} \
-      'sudo /opt/koding/run nodeservertests'"
+      'sudo /opt/koding/run nodeservertests' &"
 
 
   asArray : (publicIpAddress) ->
 
     return [
 
-      @get.socialWorker publicIpAddress
-
       @get.nodejsServer publicIpAddress
+
+      @get.socialWorker publicIpAddress
 
     ]
