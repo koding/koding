@@ -63,6 +63,15 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
             margin    : -47
         , addVMMenu
 
+    @warningIcon = new kd.CustomHTMLView
+      cssClass   : 'warning-icon hidden'
+      tooltip    :
+        title    : """Base stack template has been updated, please
+                      re-init this stack to get latest changes."""
+
+    if _revisionStatus?.status? and _revisionStatus.status.code > 0
+      @warningIcon.show()
+
     listView   = new MachinesList
     controller = new MachinesListController
       view        : listView
@@ -74,11 +83,10 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @machinesList = controller.getView()
 
 
-
   pistachio: ->
     """
     <div class='stack-info clearfix'>
-      {div.title{#(title)}}
+      {{> @warningIcon}}{div.title{#(title)}}
       <div class='buttons'>
         {{> @reinitButton}}{{> @addVMButton}}
       </div>
