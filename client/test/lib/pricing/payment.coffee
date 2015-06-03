@@ -73,3 +73,24 @@ module.exports =
       .end()
 
 
+  checkPrices: (browser) ->
+
+    helpers.beginTest(browser)
+
+    hobbyistSelector     = '.hobbyist .plan-price cite'
+    developerSelector    = '.developer .plan-price cite'
+    professionalSelector = '.professional .plan-price cite'
+    buttonSelector       = '.interval-toggle button.clean-gray:not(.toggle)'
+
+    browser
+      .url                    helpers.getUrl() + '/Pricing'
+      .waitForElementVisible  '.content-page.pricing', 20000
+      .assert.containsText    hobbyistSelector, '9.95' # Assertion
+      .assert.containsText    developerSelector, '19.95' # Assertion
+      .assert.containsText    professionalSelector, '39.95' # Assertion
+      .waitForElementVisible  buttonSelector, 20000
+      .click                  buttonSelector
+      .assert.containsText    hobbyistSelector, '12.50' # Assertion
+      .assert.containsText    developerSelector, '24.50' # Assertion
+      .assert.containsText    professionalSelector, '49.50' # Assertion
+      .end()
