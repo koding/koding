@@ -50,6 +50,7 @@ module.exports = class TopicCommonView extends KDView
         itemClass         : listViewItemClass
         itemOptions       : listViewItemOptions
       noItemFoundWidget   : noItemFoundWidget
+      useCustomScrollView : yes
       startWithLazyLoader : yes
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
@@ -58,24 +59,32 @@ module.exports = class TopicCommonView extends KDView
 
     @addSubView @listController.getView()
 
-    @listController.on 'LazyLoadThresholdReached', @bound 'searchChannels'
-
+    #@listController.on 'LazyLoadThresholdReached', @bound 'searchChannels'
+    @listController.on 'LazyLoadThresholdReached', =>
+      
+      if @skip is 0 and @searchSkip is 0
+        @fetchChannels
+      else if @skip is 0 
+        @search()
+      else 
+        @fetchChannels()
+  
 
   fetchChannels: ->
     
     return if @isFetching
     @isFetching = yes
-
+    
     options  =
       limit                 : @getOptions().itemLimit
       skip                  : @skip
       showModerationNeeded  : true
       type                  : @getOptions().typeConstant or= "topic"
-      
-    kd.singletons.socialapi.channel.list options, @bound 'listChannels'
+    console.log 'fetchChannels2 skip'+ @skip  
+    kd.singletons.socialapi.channel.list options, @bound 'listFetchResults'
     
 
-  searchChannels:(query = "") ->
+  searchChannels: (query = "") ->
     
     return if @isFetching
     @isFetching = yes
@@ -87,8 +96,32 @@ module.exports = class TopicCommonView extends KDView
       showModerationNeeded  : true
       type                  : @getOptions().typeConstant or= "topic"
 
-    kd.singletons.socialapi.channel.searchTopics options, @bound 'listChannels'
+    kd.singletons.socialapi.channel.searchTopics options, @bound 'listSearchResults'
       
+
+  listSearchResults:  (err, channels) ->
+    # if we have items from listing. remove them all
+    if @searchSkip is 0
+      @listController.removeAllItems()
+    console.log 'listSearchResults searchSkip'+ @searchSkip
+    @skip = 0  # revert skip of normal listing
+    
+    @searchSkip += channels?.length
+    @listChannels err, channels
+
+
+  listFetchResults :  (err, channels) ->
+    
+    # if we have items from searching remove them all
+    if @skip is 0
+      @listController.removeAllItems()
+    
+    @searchSkip = 0
+    
+    @skip += channels?.length
+    
+    @listChannels err, channels
+
 
   listChannels:  (err, channels) ->
     @isFetching = no
@@ -100,8 +133,6 @@ module.exports = class TopicCommonView extends KDView
     unless channels.length
       return @listController.lazyLoader?.hide()
 
-    @skip += channels.length
-
     for channel in channels
       @listController.addItem channel
 
@@ -110,10 +141,28 @@ module.exports = class TopicCommonView extends KDView
 
 
   search: ->
+  
+    query = @searchInput.getValue()
+    
+    unless @isSameSearch(query)
+      @resetListItems()
+      @searchSkip = 0
+    
+    @lastQuery = query
 
-    @skip  = 0
-    @query = @searchInput.getValue()
+    if query is ''
+      return @fetchChannels()
+
+    @searchChannels query
+
+
+  resetListItems: (showLoader = yes) ->
 
     @listController.removeAllItems()
     @listController.lazyLoader.show()
-    @searchChannels @query
+    
+    
+  isSameSearch : (query = "") ->
+    @lastQuery or= ''
+    
+    return true if query is @lastQuery
