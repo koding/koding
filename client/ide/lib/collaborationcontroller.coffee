@@ -1039,11 +1039,11 @@ module.exports = CollaborationController =
     {channelId} = @workspaceData
 
     if channelId and typeof channelId is 'string' and channelId.length
-      if @stateMachine.state is 'NotStarted'
-        @stateMachine.transition 'Loading'
-    else
-      if @stateMachine.state is 'Active'
-        @stateMachine.transition 'Ending'
+      return  unless @stateMachine.state is 'NotStarted'
+      @stateMachine.transition 'Loading'
+
+    else if @stateMachine.state is 'Active'
+      @stateMachine.transition 'Ending'
 
 
   updateWorkspaceSnapshotModel: ->
