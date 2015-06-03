@@ -6,6 +6,7 @@ MachinesList           = require './machineslist'
 MachinesListController = require './machineslistcontroller'
 
 ComputeHelpers         = require '../providers/computehelpers'
+ComputeController_UI   = require '../providers/computecontroller.ui'
 
 
 module.exports = class EnvironmentListItem extends kd.ListItemView
@@ -17,7 +18,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     options.cssClass = kd.utils.curry 'environment-item', options.cssClass
     super options, data
 
-    { machines } = @getData()
+    { machines, _revisionStatus } = stack = @getData()
+    delegate = @getDelegate()
 
     @reinitButton = new kd.ButtonView
       cssClass    : if isKoding() then 'hidden' else ''
@@ -26,6 +28,9 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       iconClass   : 'reinit'
       tooltip     :
         title     : 'Re-init Stack'
+      callback    : ->
+        ComputeController_UI.askFor 'reinitStack', {}, ->
+          delegate.emit 'StackReinitRequested', stack
 
     {handleNewMachineRequest} = ComputeHelpers
 
