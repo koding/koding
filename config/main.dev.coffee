@@ -1565,6 +1565,10 @@ Configuration = (options={}) ->
 
         #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
 
+      elif [ "$1" == "nodeservertests" ]; then
+
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers"
+
       else
         echo "Unknown command: $1"
         printHelp
