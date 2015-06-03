@@ -24,9 +24,9 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
 
   fetchIntegrationChannels: ->
 
-    remote.api.JAccount.some {}, {}, =>
+    remote.api.JAccount.some {}, {}, (err, data) =>
       @addButton.hideLoader()
-      @emit 'IntegrationGroupsFetched'
+      @emit 'IntegrationGroupsFetched', data
 
 
   pistachio: ->
