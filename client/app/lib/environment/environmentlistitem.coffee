@@ -16,6 +16,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'environment-item', options.cssClass
+
     super options, data
 
     { machines, _revisionStatus } = stack = @getData()
