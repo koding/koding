@@ -1569,6 +1569,10 @@ Configuration = (options={}) ->
       elif [ "$1" == "vmwatchertests" ]; then
         go test koding/vmwatcher -test.v=true
 
+      elif [ "$1" == "nodeservertests" ]; then
+
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers"
+
       else
         echo "Unknown command: $1"
         printHelp
