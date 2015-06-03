@@ -88,17 +88,22 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if username is a reserved one', (done) ->
       
-      count             = 0
+      queue             = []
       reservedUsernames = ['guestuser', 'guest-']
      
       for username in reservedUsernames
         userFormData.username = username
         
-        JUser.convert client, userFormData, (err) ->
-          count++
-          expect(err.message).to.be.defined
-          # running done callback when all usernames checked
-          done()  if count is reservedUsernames.length
+        queue.push ->
+        
+          JUser.convert client, userFormData, (err) ->
+            expect(err.message).to.be.defined
+            queue.next()
+      
+      # done callback will be called after all usernames checked
+      queue.push -> done()
+        
+      daisy queue
       
   
     it 'should pass error if passwords do not match', (done) ->
