@@ -16,6 +16,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
 
     super options, data
 
+
   viewAppended: ->
 
     super
