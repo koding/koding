@@ -21,17 +21,10 @@ DO $$
     BEGIN
       CREATE SEQUENCE "integration"."integration_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
     EXCEPTION WHEN duplicate_table THEN
-      RAISE NOTICE 'integration.integration_id_seq sequence already exists';
     END;
-  END;
-$$;
-
-DO $$
-  BEGIN
     BEGIN
       CREATE SEQUENCE "integration"."channel_integration_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
     EXCEPTION WHEN duplicate_table THEN
-      RAISE NOTICE 'integration.channel_integration_id_seq sequence already exists';
     END;
   END;
 $$;
@@ -63,6 +56,16 @@ SELECT create_integration_integration_type_constant_enum_type();
 DROP function create_integration_integration_type_constant_enum_type();
 
 
+DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'integration_type_constant_enum') THEN
+      CREATE TYPE "integration"."integration_type_constant_enum" AS ENUM (
+        'incoming',
+        'outgoing'
+      );
+    END IF;
+  END;
+$$;
 --
 -- create integration table for storing general purpose integration definitions
 --
@@ -116,14 +119,11 @@ GRANT SELECT, INSERT, UPDATE ON "integration"."channel_integration" TO "social";
 
 DO $$
   BEGIN
-    BEGIN
-      CREATE INDEX  "channel_integration_token_idx" ON integration.channel_integration USING btree(token DESC NULLS LAST);
-    EXCEPTION WHEN duplicate_table THEN
-      RAISE NOTICE 'channel_integration_token_idx index already exists';
-    END;
+    CREATE INDEX  "channel_integration_token_idx" ON integration.channel_integration USING btree(token DESC NULLS LAST);
+  EXCEPTION WHEN duplicate_table THEN
+    RAISE NOTICE 'channel_integration_token_idx already exists';
   END;
 $$;
-
 
 
 --
