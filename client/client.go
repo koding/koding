@@ -74,6 +74,9 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("client.Publish: eventName is required")
 	}
 
+	c.subMu.Lock()
+	defer c.subMu.Unlock()
+
 	subs, _ := c.Subscriptions[params.EventName]
 	if len(subs) == 0 {
 		return nil, errors.New(fmt.Sprintf(
@@ -126,7 +129,6 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 	c.subMu.Lock()
 	subIndex := c.subCount
 	c.subCount++
-	c.subMu.Unlock()
 
 	if _, ok := c.Subscriptions[params.EventName]; !ok {
 		// Init the map if needed
@@ -136,8 +138,12 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 	} else {
 		c.Subscriptions[params.EventName][subIndex] = params.OnPublish
 	}
+	c.subMu.Unlock()
 
 	removeSubscription := func() {
+		c.subMu.Lock()
+		defer c.subMu.Unlock()
+
 		if _, ok := c.Subscriptions[params.EventName]; ok {
 			delete(c.Subscriptions[params.EventName], subIndex)
 		} else {
