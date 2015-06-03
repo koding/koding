@@ -11,3 +11,4 @@ module.exports =
   INDEX_PATH      : ["#{base}/site.#{site}/index.html"]
   BUILD_PATH      :  "#{base}/static/a/site.#{site}"
   IMAGE_PATH      : ["#{base}/static/a/site.#{site}/**/*"]
+  CONFIG_PATH     :  "#{base}/../.config.json"
