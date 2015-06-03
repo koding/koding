@@ -101,7 +101,7 @@
 
       .col
         display             table-column
-        width               45%
+        width               60%
         float               left
         font-size           .94em
         line-height         22px
@@ -113,9 +113,13 @@
           vertical-align    middle
 
       .col:first-child
-        width               10%
+        width               9%
         text-align          center
-        padding-left        10px
+        padding-left        6px
+
+      .col:nth-child(2)
+        width               60%
+        padding             4px 0px
 
       .col:nth-child(3)
         text-align          right !important
@@ -132,6 +136,13 @@
 
         span:first-child
           padding-left      0
+
+    div.row.multi-line-row
+      height                50px
+      padding               8px 0px 10px 0px
+
+      .col:nth-child(2)
+        height              auto
 
     div.row.collides
       .col:nth-child(3)
