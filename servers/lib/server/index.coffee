@@ -59,6 +59,7 @@ app.use require './setsession'
 app.post '/-/teams/validate-token'               , require './handlers/checktoken'
 app.post '/-/teams/create'                       , require './handlers/createteam'
 app.post '/-/teams/join'                         , require './handlers/jointeam'
+app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 # fetches last members of team
 app.all  '/-/teams/:name/members'                , require './handlers/getteammembers'
 app.all  '/-/teams/:name'                        , require './handlers/getteam'
