@@ -12,9 +12,15 @@
 #   rsync -av --exclude '*.bin' ec2-user@ec2-52-0-144-82.compute-1.amazonaws.com:/home/ec2-user/2015/ ./pgreport
 #
 
+# worker_rds_log_parser
+#   Access Key ID:
+#       AKIAJX6IPI3PQCS3GJ6Q
+#   Secret Access Key:
+#       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
+# it has only access to AmazonRDSReadOnlyAccess
 DB_NAME="prod0"
-ACCESS_KEY="AKIAJSUVKX6PD254UGAA"
-SECRET_KEY="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"
+ACCESS_KEY="AKIAJX6IPI3PQCS3GJ6Q"
+SECRET_KEY="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"
 
 
 if [ ! -n "$AWS_RDS_HOME" ]; then

@@ -72,7 +72,7 @@ region. Copy the AMI ID that has "Base-koding-3gb" or a description saying
 
 Create it with the packer command:
 
-AWS_ACCESS_KEY=AKIAIKAVWAYVSMCW4Z5A  AWS_SECRET_KEY=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 packer build koding-ireland.json
+AWS_ACCESS_KEY=""  AWS_SECRET_KEY="" packer build koding-ireland.json
 
 The access and secret key should be a valid within the "koding-vms" account.
 

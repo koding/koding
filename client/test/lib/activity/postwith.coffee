@@ -54,7 +54,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    image    = 'http://placehold.it/200x100'
+    image    = 'https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png'
     comment  = image + ' hello world!'
     post     = helpers.getFakeText()
     selector = activitySelector + ' .comment-contents .link-embed-box a.embed-image-view'

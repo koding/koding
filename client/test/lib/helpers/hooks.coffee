@@ -2,8 +2,11 @@ AWS      = require 'aws-sdk'
 browser_ = null
 _        = require 'lodash'
 
-
-AWS.config.update accessKeyId: 'AKIAJSUVKX6PD254UGAA', secretAccessKey: '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'
+# worker_test_data_exporter
+# s3 put only
+# Access Key ID: AKIAIWO4ZPTLQEYSOLGA
+# Secret Access Key: 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
+AWS.config.update accessKeyId: 'AKIAIWO4ZPTLQEYSOLGA', secretAccessKey: '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'
 
 methods =
 

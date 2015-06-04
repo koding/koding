@@ -129,9 +129,17 @@ module.exports = class AccountAppController extends AppController
     appContent.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
 
+    groupSlug  = kd.singletons.groupsController.getGroupSlug()
     items = []
     for own sectionKey, section of NAV_ITEMS
-      items = items.concat section.items
+      mergeables = []
+      for item in section.items
+        if groupSlug is 'koding'
+          mergeables = section.items
+        else
+          mergeables.push item  unless item.slug in [ 'Billing', 'Externals', 'Referral', 'Delete' ]
+
+      items = items.concat mergeables
 
     # Temporary solution to hide this from other users ~ GG
     if checkFlag 'super-admin'

@@ -26,8 +26,8 @@ const (
 var (
 	s3store = s3.New(
 		aws.Auth{
-			AccessKey: "AKIAJI6CLCXQ73BBQ2SQ",
-			SecretKey: "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",
+			AccessKey: "",
+			SecretKey: "",
 		},
 		aws.USEast,
 	)

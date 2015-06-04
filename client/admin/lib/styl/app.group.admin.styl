@@ -1157,3 +1157,148 @@ Admin main styles
   .label
   .kdselectbox
     hidden()
+
+
+// integrations view
+
+.AppModal--admin .integrations
+
+  // .all-integrations .listview-wrapper
+  //   vendor                  transition, margin-left .33s ease-in
+
+  //   &.left
+  //     margin-left           -800px
+
+  .kdtabhandle
+    max-width               230px !important // override element style
+
+  .integration-view
+    border-top              1px solid #dedede
+    padding                 15px 0
+    font-size               14px
+    color                   #4c4c4c
+
+    img
+      size                  48px, 48px
+      margin-right          10px
+      fl()
+
+    p
+      color                 #434343
+      font-size             15px
+
+    .kdbutton.add
+      abs()
+      right                 0
+      top                   22px
+
+  .integration-channels
+    font-size               14px
+
+  header
+    p
+      font-size             17px !important
+
+    span
+      color                 #9e9ea6
+
+  .description
+    margin-bottom           10px
+    font-size               14px
+
+    p
+      line-height           25px
+
+  .setup
+    margin                  30px 0
+    padding                 30px 30px 40px 30px
+    rounded                 6px
+    border                  1px solid #e8e8e8
+    shadow                  0 1px 0 rgba(0, 0, 0, .25)
+    overflow                hidden
+    width                   729px
+    borderBox()
+
+    h4
+      font-size             18px
+      margin-bottom         20px
+
+    label
+      display               block
+      width                 260px
+      fl()
+
+    .kdselectbox
+      fl()
+      margin-top            8px
+      width                 400px
+
+  .buttons
+    text-align              right
+
+    .cancel
+      margin-right          10px
+
+  section.instructions
+  section.settings
+    border                  1px solid #e8e8e8
+    rounded                 6px
+    margin                  30px 0
+    padding                 30px
+    shadow                  0 1px 0 rgba(0,0,0,.25)
+    borderBox()
+
+    h4.title
+      font-size             24px
+      font-weight           400
+      margin-bottom         8px
+      color                 #555459
+
+    p.subtitle
+      font-size             18px
+      color                 #6E6D71
+      margin-bottom         20px
+
+    hr
+      margin                20px 0
+      bg                    color, #E8E8E8
+      height                1px
+      border                none
+
+  section.settings
+    .AppModal-form
+      margin                0
+      padding               0
+
+    .formline
+      overflow              hidden
+      margin-bottom         30px
+      padding-right         0
+
+      &.button-field
+       border-top           none !important
+       padding              0 !important
+
+    label
+      fl()
+      width                 260px
+      margin-right          40px
+
+      p
+        font-size           18px
+        color               #555459
+        margin-bottom       10px
+
+
+    .input-wrapper
+      fl()
+      width                 367px
+
+      .kdinput
+        borderBox()
+        margin-top          20px
+
+      .kdinput.select
+        size                367px, 34px
+        bg                  color, #FFF
+        margin-top          26px

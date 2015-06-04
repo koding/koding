@@ -711,8 +711,8 @@ func createUser(username string) (*singleUser, error) {
 		PublicKey: credPublicKey,
 		OriginId:  accountId,
 		Meta: bson.M{
-			"access_key": "AKIAJTDKW5IFUUIWVNAA",
-			"secret_key": "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",
+			"access_key": "",
+			"secret_key": "",
 			"region":     "ap-northeast-1",
 		},
 	}
@@ -1145,8 +1145,8 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 
 func kodingProvider() *koding.Provider {
 	auth := aws.Auth{
-		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
-		SecretKey: "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",
+		AccessKey: "",
+		SecretKey: "",
 	}
 
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")

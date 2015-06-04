@@ -85,9 +85,18 @@ type Config struct {
 	// Public key to create kite.key
 	PublicKey string `required:"true"`
 
+	// Private and public key to put a ssh key into the users VM's so we can
+	// have access to it. Note that these are different then from the Kontrol
+	// keys.
+	UserPublicKey  string `required:"true"`
+	UserPrivateKey string `required:"true"`
+
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
 	RegisterURL string // Explicitly register with this given url
+
+	AWSAccessKeyId     string
+	AWSSecretAccessKey string
 }
 
 func main() {
@@ -169,8 +178,8 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	auth := aws.Auth{
-		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
-		SecretKey: "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",
+		AccessKey: conf.AWSAccessKeyId,
+		SecretKey: conf.AWSSecretAccessKey,
 	}
 
 	dnsInstance := dnsclient.NewRoute53Client(conf.HostedZone, auth)
@@ -241,7 +250,16 @@ func newKite(conf *Config) *kite.Kite {
 		return session.NewContext(ctx, sess)
 	}
 	kld.Metrics = stats
-	kld.PublicKeys = publickeys.NewKeys()
+
+	userPrivateKey, userPublicKey := userMachinesKeys(conf)
+
+	// RSA key pair that we add to the newly created machine for
+	// provisioning.
+	kld.PublicKeys = &publickeys.Keys{
+		KeyName:    publickeys.DeployKeyName,
+		PrivateKey: userPrivateKey,
+		PublicKey:  userPublicKey,
+	}
 	kld.DomainStorage = dnsStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
@@ -295,6 +313,22 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	return k
+}
+
+func userMachinesKeys(conf *Config) (string, string) {
+	pubKey, err := ioutil.ReadFile(conf.UserPublicKey)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	publicKey := string(pubKey)
+
+	privKey, err := ioutil.ReadFile(conf.UserPrivateKey)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	privateKey := string(privKey)
+
+	return privateKey, publicKey
 }
 
 func kontrolKeys(conf *Config) (string, string) {
