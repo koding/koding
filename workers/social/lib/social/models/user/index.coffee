@@ -437,7 +437,8 @@ module.exports = class JUser extends jraphical.Module
 
   @login = (clientId, credentials, callback)->
 
-    { username: loginId, password, groupName, invitationToken } = credentials
+    { username: loginId, password,
+      groupName, tfcode, invitationToken } = credentials
 
     bruteForceControlData = {}
     session               = null
@@ -498,6 +499,16 @@ module.exports = class JUser extends jraphical.Module
         # check if provided password is correct
         unless user.checkPassword password
           return logAndReturnLoginError username, 'Access denied!', callback
+
+        # check if user is using 2factor auth and provided key is ok
+        if !!(user.getAt 'twofactorkey')
+
+          if tfcode
+            unless user.check2FactorAuth tfcode
+              return logAndReturnLoginError username, 'Access denied!', callback
+          else
+            return callback new KodingError \
+              'TwoFactor auth Enabled', 'VERIFICATION_CODE_NEEDED'
 
         # if everything is fine, just continue
         queue.next()
