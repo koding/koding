@@ -5,14 +5,11 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
   menu = [
     { title : 'Koding University', href : 'http://learn.koding.com',  name : 'about' }
+    { title : 'Teams',             href : '/Teams',                   name : 'teams' }
     { title : 'Features',          href : '/Features',                name : 'features' }
     { title : 'SIGN IN',           href : '/Login',                   name : 'buttonized white login',  attributes : testpath : 'login-link' }
     { title : 'SIGN UP',           href : '/Register',                name : 'buttonized green signup', attributes : testpath : 'signup-link' }
   ]
-
-  if kookies.get('team-access')? # repetition bc this is execution time not runtime
-    item = { title : 'Teams', href : '/Teams', name : 'teams' }
-    menu.splice 1, 0, item
 
   constructor: (options = {}, data) ->
 

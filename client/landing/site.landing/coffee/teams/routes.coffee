@@ -15,6 +15,6 @@ do ->
         location.assign href
         return
 
-      return router.handleRoute '/'  unless KD.config.hasTeamAccess
+      cb = (app) -> app.handleQuery query  if KD.config.hasTeamAccess and query
 
-      KD.singletons.router.openSection 'Teams', null, null, (app) -> app.handleQuery query  if query
+      KD.singletons.router.openSection 'Teams', null, null, cb

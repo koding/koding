@@ -2,7 +2,7 @@ LoginViewInlineForm      = require './../login/loginviewinlineform'
 LoginInputView           = require './../login/logininputview'
 LoginInputViewWithLoader = require './../login/logininputwithloader'
 
-module.exports = class TeamTeamsModal extends LoginViewInlineForm
+module.exports = class TeamsSignupForm extends LoginViewInlineForm
 
   constructor:->
 

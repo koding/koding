@@ -49,7 +49,20 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
         tagName : 'h5'
         partial : '...or login with your existing Koding account.'
 
-      @form = new TeamUsernameTabForm { callback }
+      @form = new TeamUsernameTabForm
+        callback : (formData) ->
+          { username } = formData
+
+          KD.utils.usernameCheck username,
+            success : -> callback formData
+            error   : ({responseJSON}) =>
+
+              {forbidden, kodingUser} = responseJSON
+              msg = if forbidden then "Sorry, \"#{username}\" is forbidden to use!"
+              else if kodingUser then "Sorry, \"#{username}\" is already taken!"
+              else                    "Sorry, there is a problem with \"#{username}\"!"
+
+              new KDNotificationView title : msg
 
 
   pistachio: ->

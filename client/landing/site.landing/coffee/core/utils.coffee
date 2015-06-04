@@ -528,3 +528,34 @@ utils.extend utils,
       success   : callbacks.success or -> location.href = formData.redirect
       error     : callbacks.error   or ({responseText}) ->
         new KDNotificationView title : responseText
+
+
+  earlyAccess: (data, callbacks = {}) ->
+
+    data.campaign = 'teams-early-access'
+
+    $.ajax
+      url       : "/-/teams/early-access"
+      data      : data
+      type      : 'POST'
+      success   : callbacks.success or ->
+        new KDNotificationView
+          title    : "Thank you! We'll let you know when we launch it!"
+          duration : 3000
+      error     : callbacks.error   or ({responseText}) ->
+        if responseText is 'Already applied!'
+          responseText = "Thank you! We'll let you know when we launch it!"
+        new KDNotificationView
+          title    : responseText
+          duration : 3000
+
+
+  usernameCheck : (username, callbacks = {}) ->
+
+    $.ajax
+      url         : "/-/validate/username"
+      type        : 'POST'
+      data        : { username }
+      xhrFields   : withCredentials : yes
+      success     : callbacks.success
+      error       : callbacks.error

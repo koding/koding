@@ -3,6 +3,7 @@
 
 modalBackground             = #FAFAFA
 greenLink                   = #27ae60
+dimmedGray                  = #848484
 
 @css {
 /*
@@ -142,6 +143,19 @@ team.styl
       bg                    position, 50% 50%
       rounded               13px
       border                3px solid modalBackground
+
+  &.TeamsModal--banned
+    > h5
+      margin                10px auto 50px
+      width                 auto
+      a
+        font-style          italic
+        color               greenLink
+        noTextDeco()
+
+    > p
+      color                 dimmedGray
+      font-style            italic
 
 .TeamsModal-button
   font-family               adelleSans
