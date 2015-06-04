@@ -1548,3 +1548,19 @@ module.exports = class JUser extends jraphical.Module
 
     # hash of given password and given user's salt should match with user's password
     return @getAt('password') is hashPassword password, @getAt('salt')
+
+
+  ###*
+   * Compare provided verification token with time
+   * based generated 2Factor code. If 2Factor not enabled returns true
+   *
+   * @param {string} verificationCode
+  ###
+  check2FactorAuth: (verificationCode) ->
+
+    key          = @getAt 'twofactorkey'
+
+    speakeasy    = require 'speakeasy'
+    generatedKey = speakeasy.totp {key, encoding: 'base32'}
+
+    return generatedKey is verificationCode
