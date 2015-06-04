@@ -22,12 +22,6 @@ DUMMY_DATA   =
   selectedChannel : '123'
   webhookUrl      : 'https://hooks.koding.com/services/123/abc/def'
   instructions    : """
-    ### Setup Instructions
-
-    Here are the steps necessary to add the Airbrake integration.
-
-    ---
-
     #### Step 1
 
     In your Airbrake dashboard, click on the menu button in the top navigation, and then select **Integrations** from the sub-menu.
@@ -71,7 +65,7 @@ module.exports = class AdminIntegrationSetupView extends JView
 
 
   setIntegration: ->
-  
+
     # assuming we make a call to backend here - SY
     kd.utils.wait 1000, =>
 
