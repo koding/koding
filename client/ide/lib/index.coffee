@@ -358,7 +358,7 @@ class IDEAppController extends AppController
   openFiles: (files) ->
 
     unless files
-      return kd.error "IDEAppController.openFiles: Called with empty files"
+      return kd.error "IDEAppController::openFiles: Called with empty files"
 
     files.forEach (path) =>
       file = FSHelper.createFileInstance { path, machine: @mountedMachine }
