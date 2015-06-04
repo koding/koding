@@ -42,14 +42,17 @@ module.exports = class TeamsView extends JView
           KD.utils.validateEmail { email },
             success : -> formData.alreadyMember = no; go()
             error   : -> formData.alreadyMember = yes; go()
+
+      @features = new KDCustomHTMLView
+
     else
       @title = new KDCustomHTMLView
         tagName : 'h1'
-        partial : "Introducing Koding for Teams!"
+        partial : 'Introducing Koding for Teams!'
 
       @subTitle = new KDCustomHTMLView
         tagName  : 'h2'
-        partial  : "Your own Koding for your <span><i>company</i><i>university</i><i>class</i><i>project</i></span>"
+        partial  : 'Your own Koding for your <span><i>company</i><i>university</i><i>class</i><i>project</i></span>'
 
       @form = new TeamsLaunchForm
         cssClass : 'TeamsModal--middle login-form pre-launch'
@@ -58,18 +61,34 @@ module.exports = class TeamsView extends JView
             success : @bound 'earlyAccessSuccess'
             error   : @bound 'earlyAccessFailure'
 
+      @features = new KDCustomHTMLView
+        tagName : 'ul'
+        partial : """
+          <li>Create your own infrastructure, use <i>Amazon</i>, <i>Google</i>, <i>Microsoft</i> or even <i>your own servers</i>.</li>
+          <li>Predefine member resources, and update all at once for everyone in your team.</li>
+          <li>Onboard new members instantly, so you don't need to setup again and again.</li>
+          <li>Integrate your everyday services such as <i>GitHub</i>, <i>Pivotal</i>, <i>Asana</i> and many others.</i></li>
+          <li>Collaborate with your teammates, have a video chat, share resources.</li>
+          <li style='list-style-type:none;'><i>and much more...</i></li>
+          """
+
       @animateTargets()
+
+    @soon = new KDCustomHTMLView
+      cssClass : 'ribbon'
+      partial  : '<span>Coming Soon!</span>'
 
     @thanks = new KDCustomHTMLView
       cssClass : 'ribbon hidden'
-      partial  : '<span>Thank you!</span>'
+      partial  : '<span>Thank You!</span>'
 
 
   earlyAccessFailure: ({responseText}) ->
 
     if responseText is 'Already applied!'
-      responseText = "Thank you! We'll let you know when we launch it!"
+      responseText = 'Thank you! We\'ll let you know when we launch it!'
       @form.hide()
+      @soon.hide()
       @thanks.show()
 
     new KDNotificationView
@@ -80,6 +99,7 @@ module.exports = class TeamsView extends JView
   earlyAccessSuccess: ->
 
     @form.hide()
+    @soon.hide()
     @thanks.show()
     new KDNotificationView
       title    : "We'll let you know when we launch it!"
@@ -104,6 +124,8 @@ module.exports = class TeamsView extends JView
       {{> @title}}
       {{> @subTitle}}
       {{> @form}}
+      {{> @soon}}
       {{> @thanks}}
+      {{> @features}}
     </section>
     """
