@@ -209,11 +209,11 @@ class IDEAppController extends AppController
    * Open a series of file paths, in the format of klient's openFiles
    * event.
    *
-   * @param {Object} response - An object formatted as a Klient event
-   *  response.
-   * @param {Array<string>} response.files - A list of file paths
+   * @param {Object} eventData - An object formatted as a Klient event
+   *  data.
+   * @param {Array<string>} eventData.files - A list of file paths
   ###
-  handleKlientOpenFiles: (response) -> @openFiles response.files
+  handleKlientOpenFiles: (eventData) -> @openFiles eventData.files
 
 
   setActiveTabView: (tabView) ->
