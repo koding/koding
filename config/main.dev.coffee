@@ -733,25 +733,26 @@ Configuration = (options={}) ->
 
     workersRunList = ->
       workers = ""
-      for key,val of KONFIG.workers
+      for name, worker of KONFIG.workers
 
-        continue  unless val.supervisord
+        continue  unless {command} = worker.supervisord
+
         workers += """
 
-        function worker_daemon_#{key} {
+        function worker_daemon_#{name} {
 
-          #------------- worker: #{key} -------------#
-          #{val.supervisord.command} &>#{projectRoot}/.logs/#{key}.log &
-          #{key}pid=$!
-          echo [#{key}] started with pid: $#{key}pid
+          #------------- worker: #{name} -------------#
+          #{command} &>#{projectRoot}/.logs/#{name}.log &
+          #{name}pid=$!
+          echo [#{name}] started with pid: $#{name}pid
 
 
         }
 
-        function worker_#{key} {
+        function worker_#{name} {
 
-          #------------- worker: #{key} -------------#
-          #{val.supervisord.command}
+          #------------- worker: #{name} -------------#
+          #{command}
 
         }
 
