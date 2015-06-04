@@ -15,7 +15,7 @@ module.exports = class KlientEventManager extends kd.Object
   ###
   constructor: (options = {}, machine) ->
 
-    super
+    super options, machine
 
     unless machine
       throw new Error kd.err "KlientEventManager requires a Machine"
