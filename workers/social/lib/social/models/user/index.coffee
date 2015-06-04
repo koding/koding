@@ -116,6 +116,7 @@ module.exports = class JUser extends jraphical.Module
         set         : (value) -> value.toLowerCase()
       password      : String
       salt          : String
+      twofactorkey  : String
       blockedUntil  : Date
       blockedReason : String
       status        :
