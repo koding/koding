@@ -42,12 +42,12 @@ module.exports = class ActivityActionsView extends JView
 
         {scrollX, scrollY} = global
 
-        new KDContextMenu
+        @append sharePopup = new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
-          x           : @shareLink.getX() + scrollX + 25
-          y           : @shareLink.getY() + scrollY - 7
+          x           : scrollX + 140
+          y           : scrollY - 12
           menuMaxWidth: 400
           menuMinWidth: 192
           lazyLoad    : yes
