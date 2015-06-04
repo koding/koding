@@ -1,9 +1,9 @@
-kd = require 'kd'
+kd                  = require 'kd'
+KDOverlayView       = kd.OverlayView
 KDBlockingModalView = kd.BlockingModalView
-KDOverlayView = kd.OverlayView
 
 
-module.exports = class EnvironmentsModalView extends KDBlockingModalView
+module.exports = class BaseModalView extends KDBlockingModalView
 
   constructor: (options = {}, data) ->
 

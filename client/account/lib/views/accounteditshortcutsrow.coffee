@@ -25,7 +25,10 @@ class AccountEditShortcutsRow extends kd.View
   CANCEL_CLASS_NAME = 'cancel'
 
   # The maximum description string length.
-  DESCRIPTION_TRUNC_LEN = 30
+  DESCRIPTION_TRUNC_LEN = 100
+  
+  # The maximum description string length for a single line.
+  SINGLE_LINE_LEN = 50
 
   # The separator pattern to truncate to.
   DESCRIPTION_TRUNC_SEP = ' '
@@ -63,6 +66,9 @@ class AccountEditShortcutsRow extends kd.View
     if @model.enabled then toggle.setClass ENABLED_CLASS_NAME
 
     descriptionText = _.escape @model.description
+    
+    if descriptionText.length > SINGLE_LINE_LEN
+      @setClass 'multi-line-row'
 
     description = new kd.View
       cssClass : COL_CLASS_NAME

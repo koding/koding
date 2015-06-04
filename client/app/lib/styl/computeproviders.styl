@@ -426,3 +426,108 @@ computeproviders.styl
     .storage-container
       border-top-right-radius    5px !important
       border-top-left-radius     5px !important
+
+.kdcontextmenu.add-new-vm-menu
+  z-index                   10002
+  span.arrow.top
+    border-bottom-color     #eee
+
+.kdtooltip.info-tooltip
+  .wrapper
+    text-align              left !important
+
+.environments-modal
+
+  .buttons
+    width                   auto
+    abs                     20px, 20px
+
+    button.icon-only
+      background            none
+      border                none
+
+      span.reinit
+        r-sprite            app, '16-reload'
+
+      span.add
+        r-sprite            app, '16-add'
+
+
+  .environment-item
+    border                  1px solid #CCC
+    border-radius           2px
+    box-sizing              border-box
+    font-size               14px
+    line-height             22px
+
+    .stack-info
+      padding               17px
+      box-sizing            border-box
+
+      .title
+        padding-top         2px
+        padding-left        11px
+        fl()
+
+      .warning-icon
+        r-sprite            app, '25-warning'
+        display             inline-block
+        margin-left         -25px
+        background-color    #FAFAFA
+        fl()
+
+      .info-icon
+        opacity             .5
+        r-sprite            app, '16-info'
+        margin-left         5px
+        margin-top          5px
+        fl()
+
+      &:before
+        size                17px, 17px
+        display             inline-block
+        float               left
+        border              4px solid #019F40
+        border-radius       5px
+
+  .machines-item
+    height                  66px
+    display                 flex
+    display                 -webkit-flex
+    flex-flow               row wrap
+    -webkit-flex-flow       row wrap
+    border-top              1px solid #CCC
+
+    .koding-on-off
+      margin                auto
+
+    span.label-link
+    span.settings-link
+      cursor                pointer
+
+    span.settings-link
+      top                   10px
+      margin-left           4px
+      color                 green
+      font-size             11px
+      abs()
+
+    &.header
+      font-size             10px
+      line-height           28px
+      height                28px !important
+
+      .input-title
+        text-align          center
+
+    > div
+      margin                auto
+      width                 100px
+
+      > span:last-child
+        display             block
+        color               #8B8B8B
+
+    > div:first-child
+      margin-left           17px
+      width                 200px

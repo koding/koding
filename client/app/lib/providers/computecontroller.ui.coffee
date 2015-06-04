@@ -140,9 +140,10 @@ module.exports = class ComputeController_UI
       callback          : (data)->
         form.emit "Submit", data
 
-  @askFor: (action, options, callback)->
+  @askFor: (action, options, callback) ->
 
     {force, machine, resizeTo} = options
+    machine ?= {}
 
     if resizeTo?
       resizeFrom = machine.jMachine.meta?.storage_size or 3
@@ -174,6 +175,15 @@ module.exports = class ComputeController_UI
             If you choose to proceed, this VM will be reset to default state.
             You will lose all your files, workspaces and data but your VM
             settings (VM aliases, sub-domains etc.) will not be lost.
+          "
+          button  : "Proceed"
+        reinitStack :
+          title   : "Reinitialize Stack?"
+          message : "
+            If you choose to proceed, this stack and all the VMs will be
+            re-initialized from the latest revision of this stack.
+            You will lose all of your existing files, workspaces, VMs and all 
+            of your data.
           "
           button  : "Proceed"
         destroy   :

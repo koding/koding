@@ -22,7 +22,7 @@ module.exports =
     # added 'hello world' bc it first thinks that you type http://placehold.it/
     # and renders it as a link, but if we continue typing it understands that
     # it is an image
-    image    = 'http://placehold.it/200x100 hello world!'
+    image    = 'https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png hello world!'
     selector = activitySelector + ' .activity-content-wrapper .link-embed-box img'
 
     browser

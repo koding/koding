@@ -163,8 +163,7 @@ module.exports =
   doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
 
     browser
-      # not necessary anymore
-      # .pause                    5000 # wait for IDE open
+      .pause                    2500 # while typing something steals activity input focus
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible    '[testpath=ActivityInputView]', 10000
       .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
@@ -482,5 +481,5 @@ module.exports =
   getUrl: ->
 
     return 'http://lvh.me:8090'
-    # return 'http://54.164.58.222:8090'
+    # return 'http://54.165.211.40:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
