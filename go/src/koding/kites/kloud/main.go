@@ -88,6 +88,9 @@ type Config struct {
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
 	RegisterURL string // Explicitly register with this given url
+
+	AWSAccessKeyId     string
+	AWSSecretAccessKey string
 }
 
 func main() {
@@ -169,8 +172,8 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	auth := aws.Auth{
-		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
-		SecretKey: "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",
+		AccessKey: conf.AWSAccessKeyId,
+		SecretKey: conf.AWSSecretAccessKey,
 	}
 
 	dnsInstance := dnsclient.NewRoute53Client(conf.HostedZone, auth)
