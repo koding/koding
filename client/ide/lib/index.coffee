@@ -185,17 +185,6 @@ class IDEAppController extends AppController
       kem.on 'openFiles', @bound 'handleKlientOpenFiles'
 
 
-  ###*
-   * Open a series of file paths, in the format of klient's openFiles
-   * event.
-   *
-   * @param {Object} response - An object formatted as a Klient event
-   *  response.
-   * @param {Array<string>} response.files - A list of file paths
-  ###
-  handleKlientOpenFiles: ({ files }) -> @openFiles files
-
-
   bindWorkspaceDataEvents: ->
 
     @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
@@ -214,6 +203,17 @@ class IDEAppController extends AppController
     return  unless global.document.contains @getView().getElement()
 
     @setActivePaneFocus state
+
+
+  ###*
+   * Open a series of file paths, in the format of klient's openFiles
+   * event.
+   *
+   * @param {Object} response - An object formatted as a Klient event
+   *  response.
+   * @param {Array<string>} response.files - A list of file paths
+  ###
+  handleKlientOpenFiles: ({ files }) -> @openFiles files
 
 
   setActiveTabView: (tabView) ->
