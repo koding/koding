@@ -15,9 +15,11 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
 
     super options, data
 
-    @addButton = new KDButtonView
+    { @integrationType } = @getData()
+
+    @button    = new KDButtonView
       cssClass : 'solid compact green add'
-      title    : 'Add'
+      title    : if @integrationType is 'new' then 'Add' else 'Configure'
       loader   : yes
       callback : @bound 'fetchIntegrationChannels'
 
@@ -25,7 +27,7 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
   fetchIntegrationChannels: ->
 
     remote.api.JAccount.some {}, {}, (err, data) =>
-      @addButton.hideLoader()
+      @button.hideLoader()
       @emit 'IntegrationGroupsFetched', data
 
 
@@ -37,5 +39,5 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
       <img src="#{logo}" />
       {p{ #(name)}}
       {span{ #(desc)}}
-      {{> @addButton}}
+      {{> @button}}
     """
