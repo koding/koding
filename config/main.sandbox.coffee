@@ -74,14 +74,13 @@ Configuration = (options={}) ->
 
   rabbitmq            = { host:     "#{prod_simulation_server}"              , port:               5672                                  , apiPort:         15672                  , login:           "guest"                              , password: "guest"                , vhost:         "/"                                                 }
   mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:      10           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "https://#{hostname}"                    , public_:            "#{hostname}"                         , local:           "http://127.0.0.1"     , local_:          "127.0.0.1"                          , port:     80                   }
-  email               = { host:     "#{customDomain.public_}"                , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding' }
+  customDomain        = { public:   "https://#{hostname}"                    , public_:            "#{hostname}"                         , local:           "http://127.0.0.1"     , local_:          "127.0.0.1"                          , port:     80                     , host: hostname }
+  email               = { host:     "#{customDomain.public_}"                , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding', forcedRecipient: null }
   kontrol             = { url:      "#{options.publicHostname}/kontrol/kite" , port:               3000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    'DYVV81J2S1'                             , indexSuffix:     '.sandbox'                             }
   algoliaSecret       = { appId:    algolia.appId                            , apiKey:             '303eb858050b1067bcd704d6cbfb977ci'   , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46', apiTokenKey: "d15cab2a1bcead494e38cc33d32c4621" }
-  mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
   postgres            = { host:     "#{prod_simulation_server}"              , port:               "5432"                                , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
   kontrolPostgres     = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "kontrolapplication"   , password:        "kontrolapplication"                 , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
@@ -89,7 +88,7 @@ Configuration = (options={}) ->
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                  , pubnub: pubnub                                }
   integration         = { host:     "localhost"                                   , port:               "7300"                                  }
   webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
-  paymentwebhook      = { port  : "6600",     debug    : false }
+  paymentwebhook      = { port:     "6600"                                        , debug:              false                                   }
   tokbox              = { apiKey: '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
 
@@ -126,7 +125,6 @@ Configuration = (options={}) ->
     email                   : email
     sitemap                 : { redisDB: 0, updateInterval : "30m" }
     algolia                 : algoliaSecret
-    mixpanel                : mixpanel
     limits                  : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 3 }
     eventExchangeName       : "BrokerMessageBus"
     disableCaching          : no
@@ -146,7 +144,6 @@ Configuration = (options={}) ->
 
   userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
-  logQueueName        = socialQueueName+'log'
 
   # do not change this for production keep it as `no`, `false`, `not true` ok? ~ GG
   autoConfirmAccounts = no
@@ -187,7 +184,6 @@ Configuration = (options={}) ->
     social                         : {port          : 3030                        , login     : "#{rabbitmq.login}"         , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
     newkites                       : {useTLS        : no                          , certFile  : ""                          , keyFile: "#{kiteHome}/kite.key"  }
-    log                            : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
@@ -221,8 +217,6 @@ Configuration = (options={}) ->
     embedly                        : {apiKey        : '94991069fb354d4e8fdb825e52d4134a'}
     troubleshoot                   : {recipientEmail: "can@koding.com"}
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
-    mixpanel                       : mixpanel.token
-    recapthcha                     : '6LfZL_kSAAAAAIrbAbnMPt9ri79pyHUZ0-QqB6Iz'
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
@@ -244,15 +238,12 @@ Configuration = (options={}) ->
   KONFIG.client.runtimeOptions =
     kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia              : algolia
-    logToExternal        : no                                 # rollbar , mixpanel etc.
     suppressLogs         : no
-    logToInternal        : no                                 # log worker
     authExchange         : "auth"
     environment          : environment                        # this is where browser knows what kite environment to query for
     version              : version
     resourceName         : socialQueueName
     userSitesDomain      : userSitesDomain
-    logResourceName      : logQueueName
     socialApiUri         : "/xhr"
     apiUri               : "/"
     mainUri              : "/"
@@ -268,7 +259,6 @@ Configuration = (options={}) ->
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha            : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
     stripe               : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles     :
       google             : {nicename: 'Google'  }
@@ -750,6 +740,8 @@ Configuration = (options={}) ->
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG, environment
   KONFIG.runFile         = generateRunFile KONFIG
   KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
+
+  KONFIG.configCheckExempt = ["ngrokProxy"]
 
   return KONFIG
 

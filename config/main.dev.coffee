@@ -96,7 +96,6 @@ Configuration = (options={}) ->
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
   algolia             = { appId:    'DYVV81J2S1'                                  , indexSuffix:        ".#{ os.hostname() }"                 }
   algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "303eb858050b1067bcd704d6cbfb977c"      , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46'   , apiTokenKey: "d15cab2a1bcead494e38cc33d32c4621" }
-  mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               "5432"                                  , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteHome            = "#{projectRoot}/kite_home/koding"
@@ -144,7 +143,6 @@ Configuration = (options={}) ->
     email                   : email
     sitemap                 : { redisDB: 0, updateInterval:  "1m" }
     algolia                 : algoliaSecret
-    mixpanel                : mixpanel
     limits                  : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
     eventExchangeName       : "BrokerMessageBus"
     disableCaching          : no
@@ -164,7 +162,6 @@ Configuration = (options={}) ->
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
-  logQueueName        = socialQueueName+'log'
   autoConfirmAccounts = yes
 
   KONFIG              =
@@ -202,7 +199,6 @@ Configuration = (options={}) ->
     social                         : {port          : 3030                , login     : "#{rabbitmq.login}"        , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
     newkites                       : {useTLS        : no                  , certFile  : ""                         , keyFile: "#{projectRoot}/kite_home/koding/kite.key"}
-    log                            : {login         : "#{rabbitmq.login}" , queueName : logQueueName}
     boxproxy                       : {port          : 8090 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
@@ -235,8 +231,6 @@ Configuration = (options={}) ->
     embedly                        : {apiKey        : "94991069fb354d4e8fdb825e52d4134a" }
     troubleshoot                   : {recipientEmail: "can@koding.com" }
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
-    recaptcha                      : '6LdLAPcSAAAAAJe857OKXNdYzN3C1D55DwGW0RgT'
-    mixpanel                       : mixpanel.token
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
@@ -259,15 +253,12 @@ Configuration = (options={}) ->
   KONFIG.client.runtimeOptions =
     kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia              : algolia
-    logToExternal        : no                                 # rollbar                                            , mixpanel etc.
     suppressLogs         : no
-    logToInternal        : no                                 # log worker
     authExchange         : "auth"
     environment          : environment                        # this is where browser knows what kite environment to query for
     version              : version
     resourceName         : socialQueueName
     userSitesDomain      : userSitesDomain
-    logResourceName      : logQueueName
     socialApiUri         : "/xhr"
     apiUri               : null
     sourceMapsUri        : "/sourcemaps"
@@ -283,7 +274,6 @@ Configuration = (options={}) ->
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha            : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
     stripe               : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles     :
       google             : {nicename: 'Google'  }
@@ -1451,6 +1441,8 @@ Configuration = (options={}) ->
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
   KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG, environment
   KONFIG.runFile        = generateRunFile        KONFIG
+
+  KONFIG.configCheckExempt = []
 
   return KONFIG
 
