@@ -58,7 +58,8 @@ module.exports = class AdminIntegrationsListView extends KDView
     remote.api.JAccount.some {}, {}, (err, data) =>
       data = DUMMY_DATA.list
 
-      data.length = 1  if @integrationType is 'configured' # dummy code.
+      if @integrationType is 'configured' # dummy code.
+        data = data.first
 
       return @handleNoItem err  if err
 
@@ -72,8 +73,9 @@ module.exports = class AdminIntegrationsListView extends KDView
 
   registerListItem: (item) ->
 
-    item.on 'IntegrationGroupsFetched', (data) =>
+    item.on 'IntegrationConfigureRequested', @bound 'showIntegrationDetails'
 
+    item.on 'IntegrationGroupsFetched', (data) =>
       setupView = new AdminIntegrationSetupView {}, data
       setupView.once 'KDObjectWillBeDestroyed', @bound 'showList'
       setupView.once 'NewIntegrationAdded',     @bound 'showIntegrationDetails'

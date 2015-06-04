@@ -65,14 +65,24 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
       cssClass : 'solid compact green add'
       title    : if @integrationType is 'new' then 'Add' else 'Configure'
       loader   : yes
-      callback : @bound 'fetchIntegrationChannels'
+      callback : =>
+        if      @integrationType is 'new' then @fetchIntegrationChannels()
+        else if @integrationType is 'configured'
+          @fetchIntegrationDetails()
 
 
   fetchIntegrationChannels: ->
 
     remote.api.JAccount.some {}, {}, (err, data) =>
       @button.hideLoader()
-      @emit 'IntegrationGroupsFetched', data
+      @emit 'IntegrationGroupsFetched', DUMMY_DATA.setupData
+
+
+  fetchIntegrationDetails: ->
+
+    remote.api.JAccount.some {}, {}, (err, data) =>
+      @button.hideLoader()
+      @emit 'IntegrationConfigureRequested', DUMMY_DATA.detailsData
 
 
   pistachio: ->
