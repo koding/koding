@@ -3,6 +3,7 @@ KDViewController = kd.ViewController
 OnboardingItemView = require './onboardingitemview'
 OnboardingMetrics = require './onboardingmetrics'
 showNotification = require 'app/util/showNotification'
+OnboardingTask = require './onboardingtask'
 
 ###*
  * View controller that manages item views on the current page
@@ -25,20 +26,19 @@ module.exports = class OnboardingViewController extends KDViewController
    * @param {string} groupName - name of onboarding group
    * @param {Array} items      - a list of onboarding items
    * @param {isModal} isModal  - a flag shows if onboarding is running on the modal
-   * @param {number} delay     - time to wait before running onboarding
   ###
-  runItems: (groupName, items, isModal = no, delay = 1000) ->
+  runItems: (groupName, items, isModal = no) ->
 
     if @itemViews[groupName]
-      kd.utils.defer @lazyBound('refreshItems', groupName)
+      @refreshItems groupName
     else
-      @itemViews[groupName] = []
-      kd.utils.wait delay, =>
-        for item in items
-          view = new OnboardingItemView { groupName, isModal }, item
-          view.render()
-          @bindViewEvents view
-          @itemViews[groupName].push view
+      @itemViews[groupName] = views = []
+      for item in items
+        view = new OnboardingItemView { groupName, isModal }, item
+        @bindViewEvents view
+        views.push view
+
+      new OnboardingTask views, 'render'
 
 
   ###*
@@ -59,16 +59,15 @@ module.exports = class OnboardingViewController extends KDViewController
   ###*
    * Refreshes item views according to the state of elements
    * they are attached to.
-   * If group name is passed, it refreshes only item views for that group.
-   * Otherwise, it refreshes all item views.
    *
    * @param {string} groupName - name of onboarding group
   ###
   refreshItems: (groupName) ->
 
-    for _groupName, views of @itemViews
-      if _groupName is groupName or not groupName
-        view.refresh()  for view in views
+    views = @itemViews[groupName]
+    return  unless views
+
+    new OnboardingTask views, 'refresh'
 
 
   ###*
@@ -88,3 +87,12 @@ module.exports = class OnboardingViewController extends KDViewController
       delete @itemViews[groupName]
     else
       @itemViews = {}
+
+
+  ###*
+   * Hides all onboarding items
+  ###
+  hideItems: ->
+
+    for groupName, views of @itemViews
+      view.hide()  for view in views

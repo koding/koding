@@ -33,4 +33,4 @@ module.exports = class MoreWorkspacesModal extends KDModalView
     { onboardingController } = kd.singletons
     onboardingController.runOnboarding OnboardingEvent.WorkspaceSettingsOpened, yes
     @on 'KDModalViewDestroyed', ->
-      onboardingController.refreshOnboarding OnboardingEvent.WorkspaceSettingsOpened
+      onboardingController.stopOnboarding OnboardingEvent.WorkspaceSettingsOpened

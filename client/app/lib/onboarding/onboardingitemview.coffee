@@ -11,15 +11,17 @@ module.exports = class OnboardingItemView extends KDView
    * Tries to find a target element in DOM.
    * If it's found, renders onboarding throbber with tooltip for it.
    * Also, tracks the time user spent to view the onboarding tooltip
+   *
+   * @return {bool|Error} - yes if target element is found, otherwise - Error object
   ###
-  render: (skipErrors) ->
+  render: ->
 
     { path, name } = @getData()
     { groupName, isModal } = @getOptions()
 
     try
       @targetElement = @getViewByPath path
-      @targetElement.on 'KDObjectWillBeDestroyed', @bound 'handleTargetDestroyed'
+      @targetElement?.on 'KDObjectWillBeDestroyed', @bound 'handleTargetDestroyed'
 
       if @targetElement and not @targetElement.hasClass 'hidden'
         { placementX, placementY, offsetX, offsetY, content, tooltipPlacement, color } = @getData()
@@ -45,10 +47,12 @@ module.exports = class OnboardingItemView extends KDView
             @throbber.destroy()
             @emit 'OnboardingItemCompleted'
         @show()
-      else unless skipErrors
-        console.warn 'Target element should be an instance of KDView and should be visible', { name, groupName }
+      else
+        return new Error "Target is neither KDView or visible. name = #{name}, groupName = #{groupName}"
     catch e
-      console.warn "Couldn't create onboarding item", { name, groupName, e }  unless skipErrors
+      return new Error "Couldn't create onboarding item. name = #{name}, groupName = #{groupName}"
+
+    return yes
 
 
   ###*
@@ -85,9 +89,10 @@ module.exports = class OnboardingItemView extends KDView
         @show()
         @throbber.setPosition()
       else @hide()
+      return yes
     else
       @throbber?.destroy()
-      @render yes
+      return @render()
 
 
   show: -> @throbber?.show()

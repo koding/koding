@@ -15,6 +15,17 @@ Promise = require 'bluebird'
 ###
 module.exports = class OnboardingController extends KDController
 
+  ###*
+   * A list of onboardings that can be shown on the page at the same time
+  ###
+  CooperativeOnboardings = [
+    [
+      OnboardingEvent.IDELoaded
+      OnboardingEvent.CollaborationStarted
+      OnboardingEvent.IDESettingsOpened
+    ]
+  ]
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -97,11 +108,12 @@ module.exports = class OnboardingController extends KDController
    * @param {string} groupName - name of onboarding group
    * @param {isModal} isModal  - a flag shows if onboarding is running on the modal.
    * In this case onboarding items should have higher z-index
-   * @param {number} delay     - time to wait before running onboarding
   ###
-  runOnboarding: (groupName, isModal, delay) ->
+  runOnboarding: (groupName, isModal) ->
 
     return @pendingQueue.push [].slice.call(arguments)  unless @isReady
+
+    @refreshCooperativeOnboardings groupName
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
@@ -123,7 +135,7 @@ module.exports = class OnboardingController extends KDController
 
     return  unless items.length
 
-    @viewController.runItems groupName, items, isModal, delay
+    @viewController.runItems groupName, items, isModal
 
 
   ###*
@@ -162,13 +174,30 @@ module.exports = class OnboardingController extends KDController
   ###*
    * Refreshes onboarding items according to the state of elements
    * they are attached to. If elements are hidden, items get hidden too,
-   * and vice versa
+   * and vice versa.
+   * If onboarding group has cooperative onboardings, they can be refreshed too
    *
-   * @param {string} groupName - name of onboarding group which items should be
-   * refreshed. If groupName is null, all items should be refreshed
+   * @param {string} groupName   - name of onboarding group which items should be refreshed
+   * @param {bool} isCooperative - a flag shows if it's necessary to refresh cooperative onboardings
   ###
-  refreshOnboarding: (groupName) -> @viewController.refreshItems groupName
+  refreshOnboarding: (groupName, isCooperative = yes) ->
 
+    @viewController.refreshItems groupName
+    @refreshCooperativeOnboardings groupName  if isCooperative
+
+
+  ###*
+   * Refreshes cooperative onboardings for onboarding group
+   *
+   * @param {string} groupName - name of onboarding group which should be checked
+   * for cooperative onboardings
+  ###
+  refreshCooperativeOnboardings: (groupName) ->
+
+    for onboardings in CooperativeOnboardings
+      if onboardings.indexOf(groupName) > -1
+        for cooperativeGroup in onboardings when cooperativeGroup isnt groupName
+          @refreshOnboarding cooperativeGroup, no
 
   ###*
    * Removes onboarding group items from the page
@@ -179,16 +208,16 @@ module.exports = class OnboardingController extends KDController
 
 
   ###*
-   * Handles FrontAppIsChanged event of appManager and refreshes
-   * onboarding items. Items on previous app should be hidden,
-   * items on new app should become visible
+   * Handles FrontAppIsChanged event of appManager and hides all
+   * onboarding items at that moment. If a new app has onboardings,
+   * they will be run using runOnboarding() later when the page is ready
    *
    * @param {object} appInstance     - new application
    * @param {object} prevAppInstance - previous application
   ###
   handleFrontAppChanged: (appInstance, prevAppInstance) ->
 
-    kd.utils.defer @bound 'refreshOnboarding'
+    @viewController.hideItems()
 
 
   ###*
