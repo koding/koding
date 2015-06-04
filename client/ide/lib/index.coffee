@@ -36,6 +36,7 @@ environmentDataProvider       = require 'app/userenvironmentdataprovider'
 CollaborationController       = require './collaborationcontroller'
 VideoCollaborationController  = require './videocollaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
+KlientEventManager            = require 'app/kite/klienteventmanager'
 
 
 require('./routes')()
@@ -169,6 +170,21 @@ class IDEAppController extends AppController
     baseSplit.resizer.on 'dblclick', @bound 'toggleSidebar'
 
 
+  ###*
+   * Listen for any `clientSubscribe` events that we care about.
+   * Currently just `openFiles`, which triggers the IDE to open
+   * a new file.
+   *
+   * @param {Machine} machine
+  ###
+  bindKlientEvents: (machine) ->
+
+    kite = machine.getBaseKite()
+    kite.ready =>
+      kem = new KlientEventManager {}, machine
+      kem.on 'openFiles', @bound 'handleKlientOpenFiles'
+
+
   bindWorkspaceDataEvents: ->
 
     @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
@@ -187,6 +203,17 @@ class IDEAppController extends AppController
     return  unless global.document.contains @getView().getElement()
 
     @setActivePaneFocus state
+
+
+  ###*
+   * Open a series of file paths, in the format of klient's openFiles
+   * event.
+   *
+   * @param {Object} eventData - An object formatted as a Klient event
+   *  data.
+   * @param {Array<string>} eventData.files - A list of file paths
+  ###
+  handleKlientOpenFiles: (eventData) -> @openFiles eventData.files
 
 
   setActiveTabView: (tabView) ->
@@ -323,6 +350,23 @@ class IDEAppController extends AppController
       callback pane
 
     @activeTabView.emit 'FileNeedsToBeOpened', file, contents, kallback, emitChange
+
+
+  ###*
+   * Open multiple file paths, loading the contents.
+   *
+   * @param {Array<string>} files - A list of file paths.
+  ###
+  openFiles: (files) ->
+
+    unless files
+      return kd.error "IDEAppController::openFiles: Called with empty files"
+
+    files.forEach (path) =>
+      file = FSHelper.createFileInstance { path, machine: @mountedMachine }
+      file.fetchContents yes, (err, content) =>
+        return kd.error err  if err
+        @openFile file, content
 
 
   openMachineTerminal: (machineData) ->
@@ -469,6 +513,7 @@ class IDEAppController extends AppController
           @mountMachine machineItem
           baseMachineKite.fetchTerminalSessions()
           @prepareCollaboration()
+          @bindKlientEvents machineItem
 
         else
           unless @machineStateModal
@@ -959,6 +1004,8 @@ class IDEAppController extends AppController
     else
       finderController.reset()
 
+    # when MachineStateModal calls this func, we need to rebind Klient.
+    @bindKlientEvents machine
     machine.getBaseKite().fetchTerminalSessions()
 
     @fetchSnapshot (snapshot) =>
