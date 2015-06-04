@@ -3,7 +3,7 @@
 cd $(dirname $0)/../..
 
 HOST=$1
-PRIVATE_KEY='install/keys/aws/koding-prod-deployment.pem'
+PRIVATE_KEY='scripts/test-instance/koding-test-instances-2015-06.pem'
 USER='ubuntu'
 
 ssh -i $PRIVATE_KEY -l $USER $HOST
