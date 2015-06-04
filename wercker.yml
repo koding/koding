@@ -218,6 +218,9 @@ deploy:
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
+        name: copy prod creds
+        code: ./scripts/copy-prod-creds.sh
+    - script:
         name: zip
         code: |
           cd $WERCKER_ROOT
