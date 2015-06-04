@@ -36,6 +36,7 @@ environmentDataProvider       = require 'app/userenvironmentdataprovider'
 CollaborationController       = require './collaborationcontroller'
 VideoCollaborationController  = require './videocollaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
+KlientEventManager            = require 'app/kite/klienteventmanager'
 
 
 require('./routes')()
@@ -178,19 +179,18 @@ class IDEAppController extends AppController
   bindKlientEvents: ->
 
     @once 'MachineDidMount', (machine) =>
-      kite = machine.getBaseKite()
-      kite.clientSubscribe
-        eventName : 'openFiles'
-        onPublish : ({ eventName, files }) =>
-          unless files
-            return kd.warn "bindKlientEvents-openFiles:
-              Files returned empty"
+      kem = new KlientEventManager {}, machine
+      kem.on 'openFiles', ({ eventName, files }) =>
 
-          files.forEach (path) =>
-            file = FSHelper.createFileInstance { path, machine }
-            file.fetchContents yes, (err, content) =>
-              return kd.error err  if err
-              @openFile file, content
+        unless files
+          return kd.warn "bindKlientEvents-openFiles:
+            Files returned empty"
+
+        files.forEach (path) =>
+          file = FSHelper.createFileInstance { path, machine }
+          file.fetchContents yes, (err, content) =>
+            return kd.error err  if err
+            @openFile file, content
 
 
   bindWorkspaceDataEvents: ->
