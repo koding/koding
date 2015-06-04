@@ -54,9 +54,6 @@ module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
 
     @tabView.addPane filesPane
 
-    filesPane.on 'KDTabPaneActive', ->
-      kd.singletons.onboardingController.refreshOnboarding()
-
     @on 'MachineMountRequested', (machineData, rootPath) =>
       @finderPane.emit 'MachineMountRequested', machineData, rootPath
 
@@ -73,8 +70,11 @@ module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
     settingsPane.addSubView @settingsPane = new IDESettingsPane
     @tabView.addPane settingsPane
 
+    { onboardingController } = kd.singletons
     settingsPane.on 'KDTabPaneActive', ->
-      kd.singletons.onboardingController.runOnboarding OnboardingEvent.IDESettingsOpened
+      onboardingController.runOnboarding OnboardingEvent.IDESettingsOpened
+    settingsPane.on 'KDTabPaneInactive', ->
+      onboardingController.refreshOnboarding OnboardingEvent.IDESettingsOpened
 
 
   # createToggleMenu: ->
