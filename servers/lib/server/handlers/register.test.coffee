@@ -1,12 +1,13 @@
-Bongo                       = require 'bongo'
+Bongo                                         = require 'bongo'
 
-{ daisy }                   = Bongo
-{ expect }                  = require "chai"
-{ RegisterHandlerHelper :
-  { getPostParams } }       = require '../../../testhelper'
+{ daisy }                                     = Bongo
+{ expect }                                    = require "chai"
+{ RegisterHandlerHelper : { getPostParams },
+  getRandomString }                           = require '../../../testhelper'
 
-hat                         = require 'hat'
-request                     = require 'request'
+hat                                           = require 'hat'
+request                                       = require 'request'
+
 
 ###
 # Variables
@@ -19,8 +20,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if username is in use', (done) ->
 
-    # 20 characters
-    randomString = hat().slice 12
+    randomString = getRandomString()
     postParams   = getPostParams
       body        :
         username  : randomString
@@ -48,7 +48,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if email is in use', (done) ->
 
-    randomString = hat().slice 12
+    randomString = getRandomString()
     postParams   = getPostParams
       body    :
         email : "kodingtestuser+#{randomString}@koding.com"
