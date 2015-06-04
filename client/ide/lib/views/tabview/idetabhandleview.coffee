@@ -14,7 +14,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
   dragStart: (event) ->
 
-    ## FF hack.
-    event.originalEvent.dataTransfer.setData 'text/plain', ''
+    ## workaround for FF and ChromeApp
+    event.originalEvent.dataTransfer.setData 'text/plain', ' '
 
     kd.singletons.appManager.tell 'IDE', 'setTargetTabView', @getDelegate()
