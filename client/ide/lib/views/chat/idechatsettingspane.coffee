@@ -1,16 +1,16 @@
-kd                      = require 'kd'
-KDButtonView            = kd.ButtonView
-KDCustomHTMLView        = kd.CustomHTMLView
-KDLoaderView            = kd.LoaderView
-KDSelectBox             = kd.SelectBox
-KDTabPaneView           = kd.TabPaneView
-KDProgressBarView       = kd.ProgressBarView
-remote                  = require('app/remote').getInstance()
-whoami                  = require 'app/util/whoami'
-nick                    = require 'app/util/nick'
-JView                   = require 'app/jview'
-CustomLinkView          = require 'app/customlinkview'
-IDEChatParticipantView  = require './idechatparticipantview'
+kd                          = require 'kd'
+KDButtonView                = kd.ButtonView
+KDCustomHTMLView            = kd.CustomHTMLView
+KDLoaderView                = kd.LoaderView
+KDSelectBox                 = kd.SelectBox
+KDTabPaneView               = kd.TabPaneView
+remote                      = require('app/remote').getInstance()
+whoami                      = require 'app/util/whoami'
+nick                        = require 'app/util/nick'
+JView                       = require 'app/jview'
+CustomLinkView              = require 'app/customlinkview'
+IDEChatParticipantView      = require './idechatparticipantview'
+ButtonViewWithProgressBar   = require 'app/commonviews/buttonviewwithprogressbar'
 
 
 module.exports          = class IDEChatSettingsPane extends KDTabPaneView
@@ -65,12 +65,21 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
 
     channel = @getData()
 
-    @startSession = new KDButtonView
-      title    : 'START SESSION'
-      cssClass : 'solid green start-session'
-      callback : @bound 'initiateSession'
+    @startSession = new ButtonViewWithProgressBar
+      button          :
+        title         : 'START SESSION'
+        cssClass      : 'solid green start-session'
+        callback      : @bound 'initiateSession'
+      progress        :
+        title         : 'STARTING SESSION'
+      loader          :
+        size          : width : 20
+        loaderOptions :
+          color       : '#FFFFFF'
+          shape       : 'spiral'
+          density     : 30
+          speed       : 1.5
 
-    @createProgressBar()
 
     buttonTitle = if @isInSession then 'LEAVE SESSION' else 'END SESSION'
 
@@ -108,47 +117,19 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       partial  : 'Fetching participants'
 
 
-  createProgressBar: ->
-
-    @progressBar = new KDProgressBarView
-      title    : 'STARTING SESSION'
-      cssClass : 'hidden'
-
-    @progressBar.on 'viewAppended', =>
-
-      loader = new KDLoaderView
-        size          : width : 20
-        loaderOptions :
-          color       : '#FFFFFF'
-          shape       : 'spiral'
-          density     : 30
-          speed       : 1.5
-
-      @progressBar.addSubView loader, null, yes
-
-      loader.show()
-
-
   initiateSession: ->
 
-    @startSession.disable()
-    @startSession.hide()
+    kd.utils.wait 500,  => @startSession.updateProgress 5
+    kd.utils.wait 1500, => @startSession.updateProgress 20
+    kd.utils.wait 2500, => @startSession.updateProgress 65
+    kd.utils.wait 3250, => @startSession.updateProgress 75
 
-    @progressBar.show()
-
-    kd.utils.wait 500,  => @updateProgressBar 5
-    kd.utils.wait 1500, => @updateProgressBar 20
-    kd.utils.wait 2500, => @updateProgressBar 65
-    kd.utils.wait 3250, => @updateProgressBar 75
-
-    {appManager} = kd.singletons
+    { appManager } = kd.singletons
 
     appManager.tell 'IDE', 'startCollaborationSession', (err, channel) =>
 
       if err
-        @progressBar.hide()
-        @startSession.enable()
-        @startSession.show()
+        @startSession.resetProgress()
         return
 
       @toggleButtons 'started'
@@ -176,16 +157,12 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     startButton = @startSession
     endButton   = @endSession
 
-    @progressBar.hide()
-
     if state is 'started'
       endButton.show()
       endButton.enable()
       startButton.hide()
-      startButton.disable()
     else
-      startButton.show()
-      startButton.enable()
+      startButton.resetProgress()
       endButton.hide()
       endButton.disable()
 
@@ -294,11 +271,6 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
   setTemplate: JView::setTemplate
 
 
-  updateProgressBar: (value) ->
-
-    @progressBar.updateBar value
-
-
   pistachio: ->
 
     return """
@@ -314,6 +286,5 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       </div>
       <div class='buttons'>
         {{> @startSession}} {{> @endSession}}
-        {{> @progressBar}}
       </div>
     """

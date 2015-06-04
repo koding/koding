@@ -310,7 +310,7 @@ module.exports = CollaborationController =
 
     { systemType } = message.payload
     systemType   or= message.payload['system-message']
-    
+
     if systemType is 'start'
       if @stateMachine.state is 'NotStarted'
         @stateMachine.transition 'Loading'
@@ -650,7 +650,7 @@ module.exports = CollaborationController =
 
   onCollaborationCreated: ->
 
-    @chat.settingsPane.progressBar.updateBar 100
+    @chat.settingsPane.startSession.updateProgress 100
 
     kd.utils.wait 500, => @stateMachine.transition 'Active'
 
