@@ -310,7 +310,9 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
+        command         :
+          run           : "#{GOBIN}/go-webserver -c #{configName}"
+          watch         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
       nginx             :
         locations       : [ location: "~^/IDE/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -367,7 +369,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/broker -c #{configName}"
+        command         :
+          run           : "#{GOBIN}/broker -c #{configName}"
+          watch         : "#{GOBIN}/watcher -run koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -380,7 +384,9 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/rerouting -c #{configName}"
+        command         :
+          run           : "#{GOBIN}/rerouting -c #{configName}"
+          watch         : "#{GOBIN}/watcher -run koding/rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
@@ -437,7 +443,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "make -C #{projectRoot}/go/src/socialapi apidev config=#{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/api -c #{socialapi.configFilePath} -port=#{socialapi.port}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi apidev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
@@ -479,104 +487,151 @@ Configuration = (options={}) ->
     topicfeed           :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/topicfeed -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/topicfeed -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed -c #{socialapi.configFilePath}"
 
     realtime            :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/realtime -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/realtime -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime -c #{socialapi.configFilePath}"
 
     populartopic        :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/populartopic -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/populartopic -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/populartopic -watch socialapi/workers/populartopic -c #{socialapi.configFilePath}"
 
     popularpost         :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/popularpost -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/popularpost -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/popularpost -watch socialapi/workers/popularpost -c #{socialapi.configFilePath}"
 
     notification        :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/notification -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/notification -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification -c #{socialapi.configFilePath}"
 
     trollmode           :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/trollmode -watch socialapi/workers/trollmode -c #{socialapi.configFilePath}"
 
     pinnedpost          :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/pinnedpost -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/pinnedpost -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/pinnedpost -watch socialapi/workers/pinnedpost -c #{socialapi.configFilePath}"
 
     algoliaconnector    :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/algoliaconnector -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/algoliaconnector -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector -c #{socialapi.configFilePath}"
 
     activityemail       :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/activityemail -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/activityemail -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail -c #{socialapi.configFilePath}"
 
     dailyemail          :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/dailyemail -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/dailyemail -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail -c #{socialapi.configFilePath}"
 
     privatemessageemailsender:
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemailsender -c #{socialapi.configFilePath}"
 
     privatemessageemailfeeder:
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+
+    privatemessageemailfeeder:
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/privatemessageemailfeeder -watch socialapi/workers/privatemessageemailfeeder -c #{socialapi.configFilePath}"
 
     sitemapfeeder       :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/sitemapfeeder -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/sitemapfeeder -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapfeeder -watch socialapi/workers/sitemapfeeder -c #{socialapi.configFilePath}"
 
     sitemapgenerator    :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapgenerator -watch socialapi/workers/sitemapgenerator -c #{socialapi.configFilePath}"
 
     collaboration       :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/collaboration -kite-init -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/collaboration -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -c #{socialapi.configFilePath}"
 
     mailsender          :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/emailsender -watch socialapi/workers/emailsender -c #{socialapi.configFilePath}"
 
     topicmoderation     :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/topicmoderation -c #{socialapi.configFilePath}"
 
     team                :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/team -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c #{socialapi.configFilePath}"
 
     eventsender         :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/eventsender -c #{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/eventsender -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/eventsender -watch socialapi/workers/eventsender -c #{socialapi.configFilePath}"
 
     gatekeeper          :
       group             : "socialapi"
       ports             :
         incoming        : "#{gatekeeper.port}"
       supervisord       :
-        command         : "make -C #{projectRoot}/go/src/socialapi gatekeeperdev config=#{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/gatekeeper -c #{socialapi.configFilePath}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi gatekeeperdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/gatekeeper/healthCheck"
       versionURL        : "#{customDomain.local}/api/gatekeeper/version"
       nginx             :
@@ -588,14 +643,18 @@ Configuration = (options={}) ->
     dispatcher          :
       group             : "socialapi"
       supervisord       :
-        command         : "make -C #{projectRoot}/go/src/socialapi dispatcherdev config=#{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/dispatcher -c #{socialapi.configFilePath}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi dispatcherdev config=#{socialapi.configFilePath}"
 
     paymentwebhook      :
       group             : "socialapi"
       ports             :
         incoming        : paymentwebhook.port
       supervisord       :
-        command         : "make -C #{projectRoot}/go/src/socialapi paymentwebhookdev config=#{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath} -kite-init=true"
+          watch         : "make -C #{projectRoot}/go/src/socialapi paymentwebhookdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :
@@ -609,7 +668,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/vmwatcher"
+        command         :
+          run           : "#{GOBIN}/vmwatcher"
+          watch         : "#{GOBIN}/watcher -run koding/vmwatcher"
       nginx             :
         locations       : [ { location: "/vmwatcher" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
@@ -620,7 +681,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{integration.port}"
       supervisord       :
-        command         : "make -C #{projectRoot}/go/src/socialapi webhookdev config=#{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/webhook -c #{socialapi.configFilePath}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi webhookdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
       versionURL        : "#{customDomain.local}/api/integration/version"
       nginx             :
@@ -634,7 +697,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{webhookMiddleware.port}"
       supervisord       :
-        command         : "make -C #{projectRoot}/go/src/socialapi middlewaredev config=#{socialapi.configFilePath}"
+        command         :
+          run           : "#{GOBIN}/webhookmiddleware -c #{socialapi.configFilePath}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi middlewaredev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
       versionURL        : "#{customDomain.local}/api/webhook/version"
       nginx             :
@@ -733,9 +798,13 @@ Configuration = (options={}) ->
 
     workersRunList = ->
       workers = ""
-      for name, worker of KONFIG.workers
+      for name, worker of KONFIG.workers when worker.supervisord
 
-        continue  unless {command} = worker.supervisord
+        {command} = worker.supervisord
+
+        if typeof command is 'object'
+          {run, watch} = command
+          command = if options.runGoWatcher then watch else run
 
         workers += """
 
