@@ -8,11 +8,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/app"
+	"github.com/koding/klient/fix"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
-	klienttunnel "github.com/koding/klient/tunnel"
 )
 
 var (
@@ -97,12 +96,18 @@ func realMain() int {
 	a := app.NewKlient(conf)
 	defer a.Close()
 
+	// TODO(arslan): enable when multi tunnel is ready
 	// Open Pandora's box
-	go klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
-		ServerAddr: *flagTunnelServerAddr,
-		LocalAddr:  *flagTunnelLocalAddr,
-		Debug:      *flagDebug,
-	})
+	// go klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
+	// 	ServerAddr: *flagTunnelServerAddr,
+	// 	LocalAddr:  *flagTunnelLocalAddr,
+	// 	Debug:      *flagDebug,
+	// })
+
+	// run inital fix commands
+	if err := fix.Run(u.Username); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+	}
 
 	// Run Forrest, Run!
 	a.Run()
