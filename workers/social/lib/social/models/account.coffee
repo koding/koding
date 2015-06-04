@@ -1426,3 +1426,23 @@ module.exports = class JAccount extends jraphical.Module
         session.update $set: {otaToken}, (err)->
           if err then errorCallback()
           else callback null, otaToken
+
+
+  ###*
+   * Internal helper for following 2Factor authentication methods
+   * Makes sure session is valid and returns JUser if possible.
+   *
+   * @param {function(err, [JUser])} callback
+  ###
+  _fetchUser = (client, callback) ->
+
+    unless client?.connection?.delegate
+      return callback new KodingError 'Invalid session'
+
+    account = client.connection.delegate
+    account.fetchUser (err, user) ->
+      return callback new KodingError 'User not found'  unless user
+
+      callback null, user
+
+
