@@ -17,6 +17,8 @@ module.exports = class AdminIntegrationsListView extends KDView
 
     super options, data
 
+    @integrationType = @getOption 'integrationType'
+
     @createListController()
     @fetchIntegrations()
 
@@ -53,9 +55,12 @@ module.exports = class AdminIntegrationsListView extends KDView
         { name: 'Twitter',         logo: 'https://koding-cdn.s3.amazonaws.com/temp-images/twitter.png',        desc: 'Social networking and microblogging service.'         }
       ]
 
+      data.length = 1  if @integrationType is 'configured' # dummy code.
+
       return @handleNoItem err  if err
 
       for item in data
+        item.integrationType = @integrationType
         listItem = @listController.addItem item
         @registerListItem listItem
 
