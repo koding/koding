@@ -29,6 +29,10 @@ options = o =
   publicPort       : argv.publicPort     or "8090"
   target           : argv.target         or "localhost"
   onlyconfigure    : argv.onlyconfigure  or no
+  runGoWatcher     : do ->
+    if argv.hasOwnProperty 'without-go-watcher'
+    then no
+    else yes
   supervisor       : argv.supervisor     or no
   deploy           : argv.deploy         or no
   host             : argv.host

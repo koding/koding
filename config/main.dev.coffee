@@ -4,6 +4,8 @@ fs                    = require 'fs'
 os                    = require 'os'
 path                  = require 'path'
 
+_ = require 'underscore'
+
 Configuration = (options={}) ->
 
   boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
@@ -297,6 +299,12 @@ Configuration = (options={}) ->
     # END: PROPERTIES SHARED WITH BROWSER #
 
 
+  generateGoWorkerCommand = (command) ->
+    if options.runGoWatcher
+    then "#{GOBIN}/watcher -run koding/#{command}"
+    else "#{GOBIN}/#{command}"
+
+
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
   GOBIN = "#{projectRoot}/go/bin"
   GOPATH= "#{projectRoot}/go"
@@ -310,7 +318,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
+        command         : generateGoWorkerCommand "go-webserver -c #{configName}"
       nginx             :
         locations       : [ location: "~^/IDE/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -367,7 +375,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/broker -c #{configName}"
+        command         : generateGoWorkerCommand "broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -380,7 +388,7 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/rerouting -c #{configName}"
+        command         : generateGoWorkerCommand "rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
@@ -437,7 +445,11 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/api -c #{socialapi.configFilePath} -port=#{socialapi.port}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
@@ -493,14 +505,22 @@ Configuration = (options={}) ->
     dispatcher          :
       group             : "socialapi"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/dispatcher -c #{socialapi.configFilePath}"
 
     paymentwebhook      :
       group             : "socialapi"
       ports             :
         incoming        : paymentwebhook.port
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make paymentwebhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make paymentwebhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath} -kite-init=true"
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :
@@ -514,7 +534,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/vmwatcher"
+        command         : generateGoWorkerCommand "vmwatcher"
       nginx             :
         locations       : [ { location: "/vmwatcher" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
@@ -525,7 +545,11 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{integration.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make webhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make webhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/webhook -c #{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
       versionURL        : "#{customDomain.local}/api/integration/version"
       nginx             :
@@ -539,7 +563,11 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{webhookMiddleware.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make middlewaredev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : do ->
+          if options.runGoWatcher
+            "cd #{projectRoot}/go/src/socialapi && make middlewaredev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+          else
+            "#{GOBIN}/webhookmiddleware -c #{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
       versionURL        : "#{customDomain.local}/api/webhook/version"
       nginx             :
@@ -603,6 +631,107 @@ Configuration = (options={}) ->
             ]
           }
         ]
+
+
+  unless options.runGoWatcher
+
+    _.extend KONFIG.workers,
+
+      topicfeed           :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/topicfeed -c #{socialapi.configFilePath}"
+
+      realtime            :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/realtime  -c #{socialapi.configFilePath}"
+
+      populartopic        :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/populartopic -c #{socialapi.configFilePath}"
+
+      popularpost         :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/popularpost -c #{socialapi.configFilePath}"
+
+      notification        :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/notification -c #{socialapi.configFilePath}"
+
+      trollmode           :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
+
+      pinnedpost          :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/pinnedpost -c #{socialapi.configFilePath}"
+
+      algoliaconnector    :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/algoliaconnector -c #{socialapi.configFilePath}"
+
+      activityemail       :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/activityemail -c #{socialapi.configFilePath}"
+
+      dailyemail          :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/dailyemail -c #{socialapi.configFilePath}"
+
+      privatemessageemailsender:
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
+
+      sitemapfeeder       :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/sitemapfeeder -c #{socialapi.configFilePath}"
+
+      sitemapgenerator    :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
+
+      privatemessageemailfeeder:
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+
+      collaboration       :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/collaboration -kite-init -c #{socialapi.configFilePath}"
+
+      emailsender         :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
+      topicmoderation     :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
+
+      team                :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
+
+      eventsender         :
+        group             : "socialapi"
+        supervisord       :
+          command         : "#{GOBIN}/eventsender -c #{socialapi.configFilePath}"
+
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
