@@ -16,8 +16,6 @@ module.exports = class ButtonViewWithProgressBar extends KDCustomHTMLView
     progressOptions = o.progress    or {}
     loaderOptions   = o.loader      or {}
 
-    progressOptions.cssClass = kd.utils.curry 'hidden', progressOptions.cssClass
-
     @button = new KDButtonView buttonOptions
 
     @button.click = (event) =>
@@ -28,6 +26,8 @@ module.exports = class ButtonViewWithProgressBar extends KDCustomHTMLView
 
     @progressBar = new KDProgressBarView progressOptions
     @loader      = new KDLoaderView loaderOptions
+
+    @progressBar.hide()
 
     @progressBar.addSubView @loader, null, yes
     @addSubView @progressBar
@@ -54,7 +54,7 @@ module.exports = class ButtonViewWithProgressBar extends KDCustomHTMLView
     @button.show()
 
 
-  updateProgress: ->
+  updateProgress: (value, unit, label) ->
 
-    KDProgressBarView::updateBar.apply @progressBar, arguments
+    @progressBar.updateBar value, unit, label
 
