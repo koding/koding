@@ -17,8 +17,8 @@ import boto
 from boto.s3.key import Key
 
 
-AWS_KEY = 'AKIAJSUVKX6PD254UGAA'
-AWS_SECRET = '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'
+AWS_KEY = ''
+AWS_SECRET = ''
 
 
 def main():
