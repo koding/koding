@@ -356,6 +356,7 @@ class IDEAppController extends AppController
    * @param {Array<string>} files - A list of file paths.
   ###
   openFiles: (files) ->
+
     unless files
       return kd.error "IDEAppController#openFiles: Called with empty files"
 
