@@ -86,7 +86,10 @@ module.exports = class ComputeController extends KDController
     if render then @fetchStacks =>
       @info machine for machine in @machines
       @emit "RenderMachines", @machines
+      @emit "RenderStacks",   @stacks
       callback null
+
+    return this
 
 
   _clearTrialCounts: (machine)->
@@ -186,16 +189,19 @@ module.exports = class ComputeController extends KDController
             queue = []
             return
 
-          @stacksById   = {}
-          for stack in stacks
-            @stacksById[stack._id] = stack
-
           @machinesById = {}
 
           machines = []
           for machine in _machines
             machines.push machine = new Machine { machine }
             @machinesById[machine._id] = machine
+
+          @stacksById = {}
+          stacks.forEach (stack) =>
+            @stacksById[stack._id] = stack
+            stack.machines = stack.machines
+              .filter (machineId) => @machinesById[machineId]
+              .map    (machineId) => @machinesById[machineId]
 
           @stacks   = stacks
           @machines = machines

@@ -66,8 +66,11 @@ module.exports =
 
     sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
     browser
-      .waitForElementVisible   '.more-modal.more-vms', 20000 # Assertion
-      .click                   '.kdbutton.create-koding-vm'
+      .waitForElementVisible   '.environments-modal', 20000 # Assertion
+      .waitForElementVisible   '.kdbutton.add-vm-button', 20000 # Assertion
+      .click                   '.kdbutton.add-vm-button'
+      .waitForElementVisible   '.kdcontextmenu.add-new-vm-menu', 20000 # Assertion
+      .click                   '.kdlistitemview.create-koding-vm'
 
 
   seeUpgradeModal: (browser) ->
