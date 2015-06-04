@@ -403,7 +403,7 @@ module.exports = class LoginView extends JView
 
   usernameCheckTimer = null
 
-  usernameCheck:(input, event, delay=800)->
+  usernameCheck: (input, event, delay=800) ->
 
     return  if event?.which is 9
     return  if input.getValue().length < 4
@@ -414,43 +414,40 @@ module.exports = class LoginView extends JView
     input.setValidationResult "usernameCheck", null
     username = input.getValue()
 
-    if input.valid
-      usernameCheckTimer = KD.utils.wait delay, =>
-        return  unless @signupModal?
+    return  unless input.valid
 
-        $.ajax
-          url         : "/-/validate/username"
-          type        : 'POST'
-          data        : { username }
-          xhrFields   : withCredentials : yes
-          success     : =>
+    usernameCheckTimer = KD.utils.wait delay, =>
+      return  unless @signupModal?
 
-            usernameCheckTimer = null
-            return  unless @signupModal?
+      KD.utils.usernameCheck username,
+        success : =>
 
-            input.setValidationResult 'usernameCheck', null
-            USERNAME_VALID = yes
+          usernameCheckTimer = null
+          return  unless @signupModal?
 
-            @checkBeforeRegister()  if pendingSignupRequest
+          input.setValidationResult 'usernameCheck', null
+          USERNAME_VALID = yes
 
-          error       : ({responseJSON}) =>
+          @checkBeforeRegister()  if pendingSignupRequest
 
-            usernameCheckTimer = null
-            return  unless @signupModal?
+        error : ({responseJSON}) =>
 
-            {forbidden, kodingUser} = responseJSON
+          usernameCheckTimer = null
+          return  unless @signupModal?
 
-            if forbidden
-              input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is forbidden to use!"
-              USERNAME_VALID = no
-            else if kodingUser
-              input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is already taken!"
-              USERNAME_VALID = no
-            else
-              input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
-              USERNAME_VALID = no
+          {forbidden, kodingUser} = responseJSON
 
-            pendingSignupRequest = no
+          if forbidden
+            input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is forbidden to use!"
+            USERNAME_VALID = no
+          else if kodingUser
+            input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is already taken!"
+            USERNAME_VALID = no
+          else
+            input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
+            USERNAME_VALID = no
+
+          pendingSignupRequest = no
 
 
   changeButtonState: (button, state) ->
