@@ -229,7 +229,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     {JSnapshot} = remote.api
     JSnapshot.some {}, {}, (err, snapshots = []) =>
       kd.warn err  if err
-      @listController.lazyLoader.hide()
+      @listController.lazyLoader?.hide()
       @listController.replaceAllItems snapshots
 
 
@@ -302,5 +302,3 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
           unrecognized, using default."
         @__snapshotsLimit = snapshotsLimits['default']
       callback null, @__snapshotsLimit
-
-

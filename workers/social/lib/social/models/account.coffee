@@ -284,7 +284,11 @@ module.exports = class JAccount extends jraphical.Module
         enum                : ['invalid status',['online','offline','away','busy']]
         default             : 'online'
     broadcastableRelationships : [ 'follower' ]
+
+
     relationships           : ->
+
+      JStackTemplate   = require './computeproviders/stacktemplate'
 
       appStorage    :
         as          : 'appStorage'
@@ -334,7 +338,7 @@ module.exports = class JAccount extends jraphical.Module
 
       stackTemplate :
         as          : 'user'
-        targetType  : 'JStackTemplate'
+        targetType  : JStackTemplate
 
 
   constructor:->

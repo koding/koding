@@ -1,4 +1,5 @@
 kd             = require 'kd'
+globals        = require 'globals'
 nick           = require 'app/util/nick'
 getReferralUrl = require 'app/util/getReferralUrl'
 CustomViews    = require 'app/commonviews/customviews'
@@ -74,15 +75,26 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       container = @views.container 'share-box'
 
+      superKey = if globals.os is 'mac' then '⌘' else 'CTRL'
+
       @addTo container,
         text_title    : title
         text_subtitle : subtitle
         socialIcons   :
           providers   : ['facebook', 'linkedin', 'twitter', 'google', 'mail']
         text_invite   : 'Your personal invite link:'
-        link          :
-          href        : getReferralUrl nick()
-          target      : '_blank'
+        view          : 
+          partial     : getReferralUrl nick()
+          cssClass    : 'text link'
+          click       : ->
+            referralUrl = @getElement()
+            @utils.selectText referralUrl
+            @setTooltip
+              title     : "#{superKey} + C to copy"
+              placement : 'above'
+              sticky    : yes
+            @tooltip.show()
+            @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'destroy'
 
       return container
 
