@@ -50,6 +50,9 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
 
     @addOnboardingView()
 
+    form = @modalTabs.forms.Main
+    form.on 'FormValidationFailed', -> form.buttons.submit.hideLoader()
+
     @on "NewTicketRequested", (form)=>
 
       return if @ticketRequested
