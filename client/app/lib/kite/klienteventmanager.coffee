@@ -17,7 +17,7 @@ module.exports = class KlientEventManager extends kd.Object
 
     super
 
-    if not machine
+    unless machine
       throw new Error kd.err "KlientEventManager requires a Machine"
 
     @kite = machine.getBaseKite()
