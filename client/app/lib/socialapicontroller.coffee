@@ -785,6 +785,16 @@ module.exports = class SocialApiController extends KDController
 
         return callback null, mapChannel response.data
 
+    fetchChannels        : (callback) ->
+
+      doXhrRequest {
+        type     : 'GET'
+        endPoint : "/api/social/account/channels"
+      }, (err, response) ->
+        return callback err  if err
+
+        return callback null, mapChannels response
+
   integrations           :
     list                 : (callback) ->
 

@@ -194,9 +194,9 @@ func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 			return response.NewBadRequest(err)
 		}
 	}
-	
+
 	acc.Settings = req.Settings
-	
+
 	if err := acc.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -253,4 +253,26 @@ func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, e
 		})
 	}
 	return ownershipResponse(err)
+}
+
+func ListGroupChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	cp := models.NewChannelParticipant()
+	cids, err := cp.FetchAllParticipatedChannelIdsInGroup(c.Client.Account.Id, c.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	channels, err := models.NewChannel().FetchByIds(cids)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cc := models.NewChannelContainers()
+	cc.PopulateWith(channels, c.Client.Account.Id)
+
+	return response.HandleResultAndError(cc, cc.Err())
 }

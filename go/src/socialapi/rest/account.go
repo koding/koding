@@ -109,3 +109,18 @@ func FetchAccountActivityCount(acc *models.Account, channel *models.Channel) (*m
 
 	return cr, nil
 }
+
+func FetchAccountChannels(token string) (*models.ChannelContainers, error) {
+	cc := models.NewChannelContainers()
+	res, err := marshallAndSendRequestWithAuth("GET", "/account/channels", cc, token)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(res, cc)
+	if err != nil {
+		return nil, err
+	}
+
+	return cc, nil
+}
