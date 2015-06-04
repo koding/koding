@@ -733,7 +733,7 @@ module.exports = CollaborationController =
     { onboardingController } = kd.singletons
     onboardingController.runOnboarding OnboardingEvent.CollaborationStarted
     @chat.on ['ViewBecameHidden', 'ViewBecameVisible'], ->
-      onboardingController.refreshOnboarding()
+      onboardingController.refreshOnboarding OnboardingEvent.CollaborationStarted
 
 
   onCollaborationEnding: ->
