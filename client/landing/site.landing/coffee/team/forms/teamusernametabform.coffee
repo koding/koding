@@ -25,9 +25,22 @@ module.exports = class TeamUsernameTabForm extends KDFormView
     username    = emailPrefix  if emailPrefix?.length > 3
 
     @username = new KDInputView
-      placeholder  : 'username'
-      name         : 'username'
-      defaultValue : username  if username
+      placeholder      : 'username'
+      name             : 'username'
+      defaultValue     : username  if username
+      validate         :
+        rules          :
+          required     : yes
+          rangeLength  : [4, 25]
+          regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
+        messages       :
+          required     : 'Please enter a username.'
+          regExp       : 'For username only lowercase letters and numbers are allowed!'
+          rangeLength  : 'Username should be between 4 and 25 characters!'
+        events         :
+          required     : 'blur'
+          rangeLength  : 'blur'
+          regExp       : 'keyup'
 
     @passwordStrength = ps = new KDCustomHTMLView
       tagName  : 'figure'
@@ -66,8 +79,6 @@ module.exports = class TeamUsernameTabForm extends KDFormView
 
           ps.unsetClass strength.join ' '
           ps.setClass strength[report.score]
-
-
 
     @button = new KDButtonView
       title      : 'Continue to environmental setup'
