@@ -42,10 +42,6 @@ build:
         name: notify cebeci
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
-    - script:
-        name: set up koding deployment key
-        code: |
-          chmod 600 $KODING_DEPLOYMENT_KEY
     - mktemp:
         envvar: INSTANCE_IP
     - script:
