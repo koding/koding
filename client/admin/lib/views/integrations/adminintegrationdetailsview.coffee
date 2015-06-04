@@ -16,8 +16,14 @@ module.exports = class AdminIntegrationDetailsView extends JView
     if instructions
       @instructionsView = new KDCustomHTMLView
         tagName  : 'section'
-        partial  : applyMarkdown instructions
         cssClass : 'has-markdown instructions'
+        partial  : """
+          <h4 class='title'>Setup Instructions</h4>
+          <p class='subtitle'>Here are the steps necessary to add the #{data.name} integration.</p>
+          <hr />
+        """
+      @instructionsView.addSubView new KDCustomHTMLView
+        partial  : applyMarkdown instructions
     else
       @instructionsView = new KDCustomHTMLView cssClass: 'hidden'
 
