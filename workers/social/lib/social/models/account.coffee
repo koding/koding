@@ -212,6 +212,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchOtaToken:
           (signature Function)
+        generate2FactorAuthKey:
+          (signature Function)
 
     schema                  :
       shareLocation         : Boolean
@@ -1446,3 +1448,30 @@ module.exports = class JAccount extends jraphical.Module
       callback null, user
 
 
+  ###*
+   * Generates 2 Factor Authentication key which can be used to
+   * setup Google Authenticator application in your mobile device.
+   *
+   * This method only generates the key by using `speakeasy` npm package
+   *
+   * @param {function (err, [{key: string, qrcode: string}])} callback
+  ###
+  generate2FactorAuthKey: secure (client, callback) ->
+
+    _fetchUser client, (err, user) ->
+      return callback err  if err
+
+      if user.getAt 'twofactorkey'
+        return callback new KodingError \
+          '2Factor authentication already in use.', 'ALREADY_INUSE'
+
+      speakeasy        = require 'speakeasy'
+      generatedKey     = speakeasy.generate_key
+        name           : "Koding - @#{user.username}"
+        length         : 16
+        symbols        : yes
+        google_auth_qr : yes
+
+      { base32: key, google_auth_qr: qrcode } = generatedKey
+
+      callback null, { key, qrcode }
