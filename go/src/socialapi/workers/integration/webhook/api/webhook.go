@@ -183,18 +183,9 @@ func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *we
 	if err := i.Validate(); err != nil {
 		return response.NewInvalidRequest(err)
 	}
-	c := models.NewChannel()
-	if err := c.ById(i.ChannelId); err != nil {
-		return response.NewBadRequest(err)
-	}
 
-	ok, err := c.CanOpen(ctx.Client.Account.Id)
-	if err != nil {
+	if err := h.isChannelValid(i.ChannelId, ctx.Client.Account.Id); err != nil {
 		return response.NewBadRequest(err)
-	}
-
-	if !ok {
-		return response.NewBadRequest(models.ErrCannotOpenChannel)
 	}
 
 	if err := i.Create(); err != nil {
@@ -202,6 +193,59 @@ func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *we
 	}
 
 	return response.NewOK(response.NewSuccessResponse(i))
+}
+
+func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewInvalidRequest(err)
+	}
+
+	if ok := ctx.IsLoggedIn(); !ok {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	if i.ChannelId == 0 {
+		return response.NewInvalidRequest(models.ErrChannelIdIsNotSet)
+	}
+
+	if err := h.isChannelValid(i.ChannelId, ctx.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ci := webhook.NewChannelIntegration()
+	if err := ci.ById(id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ci.ChannelId = i.ChannelId
+	ci.Settings = i.Settings
+	ci.Description = i.Description
+	ci.IsDisabled = i.IsDisabled
+
+	if err := ci.Update(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewDefaultOK()
+}
+
+func (h *Handler) isChannelValid(channelId, accountId int64) error {
+	c := models.NewChannel()
+	if err := c.ById(channelId); err != nil {
+		return err
+	}
+
+	ok, err := c.CanOpen(accountId)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return models.ErrCannotOpenChannel
+	}
+
+	return nil
 }
 
 func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {

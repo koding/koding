@@ -55,6 +55,15 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
+			Handler:  h.UpdateChannelIntegration,
+			Name:     "webhook-update",
+			Type:     handler.PostRequest,
+			Endpoint: "/channelintegration/{id}/update",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
 			Handler:  h.FetchBotChannel,
 			Name:     "webhook-bot-channel",
 			Type:     handler.GetRequest,

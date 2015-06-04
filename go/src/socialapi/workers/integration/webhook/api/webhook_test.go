@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"net/http"
@@ -536,6 +537,79 @@ func TestWebhookRegenerateToken(t *testing.T) {
 				So(newCi, ShouldNotBeNil)
 				So(newCi.Id, ShouldNotEqual, 0)
 				So(newCi.Token, ShouldNotEqual, ci.Token)
+			})
+		})
+	})
+}
+
+func TestWebhookUpdateChannelIntegration(t *testing.T) {
+
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("while updating the channel integrations", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			_, err := topicChannel.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			// create channel integration
+			ci := webhook.NewChannelIntegration()
+			ci.CreatorId = acc.Id
+			ci.GroupName = groupName
+			ci.ChannelId = topicChannel.Id
+			ci.IntegrationId = in.Id
+
+			err = ci.Create()
+			So(err, ShouldBeNil)
+			Convey("token should not be changed", func() {
+				currentToken := ci.Token
+				ci.Token = "123123123"
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+				endpoint := fmt.Sprintf("/channelintegration/%d/update", ci.Id)
+
+				s, _, _, err := h.UpdateChannelIntegration(
+					mocking.URL(m, "POST", endpoint),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				newCi := webhook.NewChannelIntegration()
+				err = newCi.ById(ci.Id)
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+				So(newCi.Token, ShouldEqual, currentToken)
+				So(newCi.Token, ShouldNotEqual, "123123123")
+			})
+
+			Convey("channel id should be updated", func() {
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+				endpoint := fmt.Sprintf("/channelintegration/%d/update", ci.Id)
+				newChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+				ci.ChannelId = newChannel.Id
+
+				_, err := newChannel.AddParticipant(acc.Id)
+
+				s, _, _, err := h.UpdateChannelIntegration(
+					mocking.URL(m, "POST", endpoint),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				newCi := webhook.NewChannelIntegration()
+				err = newCi.ById(ci.Id)
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+				So(newCi.ChannelId, ShouldEqual, newChannel.Id)
 			})
 		})
 	})
