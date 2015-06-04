@@ -107,7 +107,6 @@ func realMain() int {
 	// run inital fix commands
 	if err := fix.Run(u.Username); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
 	}
 
 	// Run Forrest, Run!
