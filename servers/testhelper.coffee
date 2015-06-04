@@ -3,6 +3,12 @@ hat         = require 'hat'
 querystring = require 'querystring'
 
 
+# returns 20 characters by default
+getRandomString  = (length = 20) ->
+
+  return hat().slice(32 - length)
+
+
 # deep extending one object from another, works only for objects
 deepObjectExtend = (target, source) ->
 
@@ -53,8 +59,7 @@ class RegisterHandlerHelper
 
   @getDefaultParams = ->
 
-    # 20 characters
-    randomString         = hat().slice 12
+    randomString         = getRandomString()
 
     defaultBodyObject    = RegisterHandlerHelper.getDefaultBodyObject randomString
 
@@ -81,4 +86,5 @@ class RegisterHandlerHelper
 
 module.exports = {
   RegisterHandlerHelper
+  getRandomString
 }
