@@ -14,6 +14,7 @@ var (
 	ErrIntegrationIdIsNotSet      = errors.New("integration id is not set")
 	ErrGroupChannelIdIsNotSet     = errors.New("group channel id is not set")
 	ErrChannelIntegrationNotFound = errors.New("channel integration is not found")
+	ErrTokenNotSet                = errors.New("token is not set")
 )
 
 type ChannelIntegration struct {
@@ -110,4 +111,29 @@ func (i *ChannelIntegration) Validate() error {
 	}
 
 	return nil
+}
+
+func (i *ChannelIntegration) RegenerateToken() error {
+	var token string
+	for {
+		ci := NewChannelIntegration()
+		t, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+
+		token = t.String()
+		tokenErr := ci.ByToken(token)
+		if tokenErr == ErrChannelIntegrationNotFound {
+			break
+		}
+
+		if tokenErr != nil {
+			return tokenErr
+		}
+	}
+
+	i.Token = token
+
+	return i.Update()
 }

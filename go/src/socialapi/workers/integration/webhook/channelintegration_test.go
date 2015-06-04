@@ -47,3 +47,22 @@ func TestChannelIntegrationCreate(t *testing.T) {
 	})
 
 }
+
+func TestChannelIntegrationGenerateToken(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err)
+	}
+	defer r.Close()
+
+	Convey("while generating a token", t, func() {
+		Convey("it should be unique", func() {
+			ci := NewChannelIntegration()
+			token, err := ci.GenerateToken()
+			So(err, ShouldBeNil)
+			So(token, ShouldNotBeBlank)
+			err = ci.ByToken(token)
+			So(err, ShouldEqual, ErrChannelIntegrationNotFound)
+		})
+	})
+}

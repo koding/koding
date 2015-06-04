@@ -472,4 +472,71 @@ func TestWebhookIntegrationCreate(t *testing.T) {
 		})
 	})
 }
+
+func TestWebhookRegenerateToken(t *testing.T) {
+
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("while generating tokens", t, func() {
+			// create dependencies
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			_, err := topicChannel.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			// create channel integration
+			ci := webhook.NewChannelIntegration()
+			ci.CreatorId = acc.Id
+			ci.GroupName = groupName
+			ci.ChannelId = topicChannel.Id
+			ci.IntegrationId = in.Id
+
+			err = ci.Create()
+			So(err, ShouldBeNil)
+
+			Convey("user from another channel should not be able to regenerate a token", func() {
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = models.RandomGroupName()
+
+				s, _, _, err := h.RegenerateToken(
+					mocking.URL(m, "POST", "/channelintegration/token"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+				So(err.Error(), ShouldEqual, ErrInvalidGroup.Error())
+				So(s, ShouldEqual, http.StatusBadRequest)
+			})
+
+			Convey("we should be able to regenerate a token of a current integration", func() {
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+
+				s, _, res, err := h.RegenerateToken(
+					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				sr, srOk := res.(*response.SuccessResponse)
+				So(srOk, ShouldBeTrue)
+
+				newCi, ok := sr.Data.(*webhook.ChannelIntegration)
+				So(ok, ShouldBeTrue)
+
+				So(newCi, ShouldNotBeNil)
+				So(newCi.Id, ShouldNotEqual, 0)
+				So(newCi.Token, ShouldNotEqual, ci.Token)
+			})
+		})
+	})
 }

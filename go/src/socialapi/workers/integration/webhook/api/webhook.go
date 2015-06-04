@@ -156,6 +156,23 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 	return response.NewOK(response.NewSuccessResponse(ints))
 }
 
+func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+	ci := webhook.NewChannelIntegration()
+	if err := ci.ById(i.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if i.GroupName != ctx.GroupName {
+		return response.NewBadRequest(ErrInvalidGroup)
+	}
+
+	if err := ci.RegenerateToken(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ci))
+}
+
 func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if ok := ctx.IsLoggedIn(); !ok {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
