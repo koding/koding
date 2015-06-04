@@ -134,7 +134,6 @@ class IDEAppController extends AppController
 
     @createInitialView withFakeViews
     @bindCollapseEvents()
-    @bindKlientEvents()
 
     {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
 
@@ -175,10 +174,13 @@ class IDEAppController extends AppController
    * Listen for any `clientSubscribe` events that we care about.
    * Currently just `openFiles`, which triggers the IDE to open
    * a new file.
+   *
+   * @param {Machine} machine
   ###
-  bindKlientEvents: ->
+  bindKlientEvents: (machine) ->
 
-    @once 'MachineDidMount', (machine) =>
+    kite = machine.getBaseKite()
+    kite.ready =>
       kem = new KlientEventManager {}, machine
       kem.on 'openFiles', ({ eventName, files }) =>
 
@@ -491,6 +493,7 @@ class IDEAppController extends AppController
           @mountMachine machineItem
           baseMachineKite.fetchTerminalSessions()
           @prepareCollaboration()
+          @bindKlientEvents machineItem
 
         else
           unless @machineStateModal
@@ -981,6 +984,8 @@ class IDEAppController extends AppController
     else
       finderController.reset()
 
+    # when MachineStateModal calls this func, we need to rebind Klient.
+    @bindKlientEvents machine
     machine.getBaseKite().fetchTerminalSessions()
 
     @fetchSnapshot (snapshot) =>
