@@ -390,3 +390,86 @@ func TestWebhookIntegrationList(t *testing.T) {
 		})
 	})
 }
+
+func TestWebhookIntegrationCreate(t *testing.T) {
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("while creating integrations", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+
+			Convey("it should return error when necessary fields are missing", func() {
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+
+				s, _, _, err := h.CreateChannelIntegration(
+					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err.Error(), ShouldEqual, models.ErrChannelIsNotSet.Error())
+				So(s, ShouldEqual, http.StatusBadRequest)
+			})
+
+			Convey("it should return error when account is not a participant of the given channel", func() {
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+
+				s, _, _, err := h.CreateChannelIntegration(
+					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err.Error(), ShouldEqual, models.ErrChannelIsNotSet.Error())
+				So(s, ShouldEqual, http.StatusBadRequest)
+			})
+
+			Convey("it should create", func() {
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+				ci.ChannelId = topicChannel.Id
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+
+				_, err := topicChannel.AddParticipant(acc.Id)
+				So(err, ShouldBeNil)
+
+				s, _, res, err := h.CreateChannelIntegration(
+					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				sr, srOk := res.(*response.SuccessResponse)
+				So(srOk, ShouldBeTrue)
+
+				newCi, ok := sr.Data.(*webhook.ChannelIntegration)
+				So(ok, ShouldBeTrue)
+
+				So(newCi, ShouldNotBeNil)
+				So(newCi.Id, ShouldNotEqual, 0)
+			})
+		})
+	})
+}
+}

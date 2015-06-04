@@ -156,6 +156,37 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 	return response.NewOK(response.NewSuccessResponse(ints))
 }
 
+func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+	if ok := ctx.IsLoggedIn(); !ok {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	i.CreatorId = ctx.Client.Account.Id
+	i.GroupName = ctx.GroupName
+	if err := i.Validate(); err != nil {
+		return response.NewInvalidRequest(err)
+	}
+	c := models.NewChannel()
+	if err := c.ById(i.ChannelId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ok, err := c.CanOpen(ctx.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !ok {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
+	}
+
+	if err := i.Create(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(i))
+}
+
 func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
 	// check account existence
 	acc, err := r.verifyAccount()

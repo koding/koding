@@ -60,7 +60,7 @@ func NewChannelIntegration() *ChannelIntegration {
 }
 
 func (i *ChannelIntegration) Create() error {
-	if err := i.validate(); err != nil {
+	if err := i.Validate(); err != nil {
 		return err
 	}
 
@@ -92,7 +92,7 @@ func (i *ChannelIntegration) ByToken(token string) error {
 	return nil
 }
 
-func (i *ChannelIntegration) validate() error {
+func (i *ChannelIntegration) Validate() error {
 	if i.GroupName == "" {
 		return models.ErrGroupNameIsNotSet
 	}
