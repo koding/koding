@@ -19,6 +19,7 @@ build:
           go test -v ./fs
           go test -v ./sshkeys
           go test -v ./storage
+          go test -v ./client
 
 
 deploy:
