@@ -19,6 +19,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if username is in use', (done) ->
 
+    # 20 characters
     randomString = hat().slice 12
     postParams   = getPostParams
       body        :
@@ -28,13 +29,13 @@ runTests = -> describe 'server.handlers.register', ->
 
       ->
         request.post postParams, (err, res, body) ->
-          expect(err).to.not.exist
+          expect(err)           .to.not.exist
           expect(res.statusCode).to.be.equal 200
           queue.next()
 
       ->
         request.post postParams, (err, res, body) ->
-          expect(err).to.not.exist
+          expect(err)           .to.not.exist
           expect(res.statusCode).to.be.equal 400
           queue.next()
 
