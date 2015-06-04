@@ -437,7 +437,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "make -C #{projectRoot}/go/src/socialapi apidev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
@@ -481,7 +481,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{gatekeeper.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make gatekeeperdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "make -C #{projectRoot}/go/src/socialapi gatekeeperdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/gatekeeper/healthCheck"
       versionURL        : "#{customDomain.local}/api/gatekeeper/version"
       nginx             :
@@ -493,14 +493,14 @@ Configuration = (options={}) ->
     dispatcher          :
       group             : "socialapi"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "make -C #{projectRoot}/go/src/socialapi dispatcherdev config=#{socialapi.configFilePath}"
 
     paymentwebhook      :
       group             : "socialapi"
       ports             :
         incoming        : paymentwebhook.port
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make paymentwebhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "make -C #{projectRoot}/go/src/socialapi paymentwebhookdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :
@@ -525,7 +525,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{integration.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make webhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "make -C #{projectRoot}/go/src/socialapi webhookdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
       versionURL        : "#{customDomain.local}/api/integration/version"
       nginx             :
@@ -539,7 +539,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{webhookMiddleware.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make middlewaredev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "make -C #{projectRoot}/go/src/socialapi middlewaredev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
       versionURL        : "#{customDomain.local}/api/webhook/version"
       nginx             :
@@ -886,10 +886,7 @@ Configuration = (options={}) ->
         #{projectRoot}/go/build.sh
 
         # Run Social Api builder
-        cd #{projectRoot}/go/src/socialapi
-        make configure
-
-        cd #{projectRoot}
+        make -C #{projectRoot}/go/src/socialapi configure
 
         # Do PG Migration if necessary
         migrate up
