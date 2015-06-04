@@ -548,3 +548,14 @@ utils.extend utils,
         new KDNotificationView
           title    : responseText
           duration : 3000
+
+
+  usernameCheck : (username, callbacks = {}) ->
+
+    $.ajax
+      url         : "/-/validate/username"
+      type        : 'POST'
+      data        : { username }
+      xhrFields   : withCredentials : yes
+      success     : callbacks.success
+      error       : callbacks.error
