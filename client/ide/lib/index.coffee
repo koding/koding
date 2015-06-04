@@ -133,6 +133,7 @@ class IDEAppController extends AppController
 
     @createInitialView withFakeViews
     @bindCollapseEvents()
+    @bindKlientEvents()
 
     {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
 
@@ -167,6 +168,29 @@ class IDEAppController extends AppController
 
     baseSplit = panel.layout.getSplitViewByName 'BaseSplit'
     baseSplit.resizer.on 'dblclick', @bound 'toggleSidebar'
+
+
+  ###*
+   * Listen for any `clientSubscribe` events that we care about.
+   * Currently just `openFiles`, which triggers the IDE to open
+   * a new file.
+  ###
+  bindKlientEvents: ->
+
+    @once 'MachineDidMount', (machine) =>
+      kite = machine.getBaseKite()
+      kite.clientSubscribe
+        eventName : 'openFiles'
+        onPublish : ({ eventName, files }) =>
+          unless files
+            return kd.warn "bindKlientEvents-openFiles:
+              Files returned empty"
+
+          files.forEach (path) =>
+            file = FSHelper.createFileInstance { path, machine }
+            file.fetchContents yes, (err, content) =>
+              return kd.error err  if err
+              @openFile file, content
 
 
   bindWorkspaceDataEvents: ->
