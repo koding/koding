@@ -494,8 +494,8 @@ module.exports = class JUser extends jraphical.Module
           return logAndReturnLoginError username, \
             'You should reset your password in order to continue!', callback
 
-        # hash of given password and given user's salt should match with user's password
-        unless user.getAt('password') is hashPassword password, user.getAt('salt')
+        # check if provided password is correct
+        unless user.checkPassword password
           return logAndReturnLoginError username, 'Access denied!', callback
 
         # if everything is fine, just continue
@@ -1536,3 +1536,14 @@ module.exports = class JUser extends jraphical.Module
   @getSSHKeys: secure (client, callback)->
     @fetchUser client, (err,user)->
       callback user.sshKeys or []
+
+
+  ###*
+   * Compare provided password with JUser.password
+   *
+   * @param {string} password
+  ###
+  checkPassword: (password) ->
+
+    # hash of given password and given user's salt should match with user's password
+    return @getAt('password') is hashPassword password, @getAt('salt')
