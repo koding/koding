@@ -25,7 +25,7 @@ module.exports = class KlientEventManager extends kd.Object
     if @kite.isDisconnected
       throw new Error "KlientEventManager requires an active Kite connection"
 
-    @subscribe eventName, callback for eventName, callback of options
+    @subscribe eventName, callback  for eventName, callback of options
 
 
   ###*
