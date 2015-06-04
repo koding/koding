@@ -45,7 +45,7 @@ Configuration = (options={}) ->
       secretAccessKey : "82aH++Y6osapvGF5L+Jpelqlwkc6td/ynj2UiMqY"
 
     # CloudWatchReadOnlyAccess
-    wm_vmwatcher:     # wm_vmwatcher_dev
+    vm_vmwatcher:     # vm_vmwatcher_dev
       accessKeyId     : "AKIAJ3OZKOIQUTV2GCBQ"
       secretAccessKey : "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"
 
@@ -192,7 +192,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.wm_vmwatcher.accessKeyId     , awsSecret : awsKeys.wm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
+    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
