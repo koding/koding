@@ -878,12 +878,9 @@ Configuration = (options={}) ->
         # Do npm i incase of packages.json changes
         npm i --silent
 
-        # this is a temporary adition, normally file watcher should delete the created file later on
-        cd #{projectRoot}/go/bin
-
         # Remove old watcher files (do we still need this?)
-        rm -rf goldorf-main-*
-        rm -rf watcher-*
+        rm -rf #{projectRoot}/go/bin/goldorf-main-*
+        rm -rf #{projectRoot}/go/bin/watcher-*
 
         # Run Go builder
         #{projectRoot}/go/build.sh
