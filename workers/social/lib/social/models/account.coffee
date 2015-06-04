@@ -293,6 +293,8 @@ module.exports = class JAccount extends jraphical.Module
 
     relationships           : ->
 
+      # requiring JStackTemplate here solved problems after turning stacktemplate's
+      # targetType from string to object.
       JStackTemplate   = require './computeproviders/stacktemplate'
 
       appStorage    :
