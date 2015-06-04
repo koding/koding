@@ -213,7 +213,7 @@ class IDEAppController extends AppController
    *  response.
    * @param {Array<string>} response.files - A list of file paths
   ###
-  handleKlientOpenFiles: ({ files }) -> @openFiles files
+  handleKlientOpenFiles: (response) -> @openFiles response.files
 
 
   setActiveTabView: (tabView) ->
