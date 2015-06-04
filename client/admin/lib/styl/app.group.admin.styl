@@ -1239,10 +1239,66 @@ Admin main styles
     .cancel
       margin-right          10px
 
-  .instructions
+  section.instructions
+  section.settings
     border                  1px solid #e8e8e8
     rounded                 6px
     margin                  30px 0
     padding                 30px
     shadow                  0 1px 0 rgba(0,0,0,.25)
     borderBox()
+
+    h4.title
+      font-size             24px
+      font-weight           400
+      margin-bottom         8px
+      color                 #555459
+
+    p.subtitle
+      font-size             18px
+      color                 #6E6D71
+      margin-bottom         20px
+
+    hr
+      margin                20px 0
+      bg                    color, #E8E8E8
+      height                1px
+      border                none
+
+  section.settings
+    .AppModal-form
+      margin                0
+      padding               0
+
+    .formline
+      overflow              hidden
+      margin-bottom         30px
+      padding-right         0
+
+      &.button-field
+       border-top           none !important
+       padding              0 !important
+
+    label
+      fl()
+      width                 260px
+      margin-right          40px
+
+      p
+        font-size           18px
+        color               #555459
+        margin-bottom       10px
+
+
+    .input-wrapper
+      fl()
+      width                 367px
+
+      .kdinput
+        borderBox()
+        margin-top          20px
+
+      .kdinput.select
+        size                367px, 34px
+        bg                  color, #FFF
+        margin-top          26px
