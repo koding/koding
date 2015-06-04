@@ -98,7 +98,6 @@ module.exports = class JUser extends jraphical.Module
         getSSHKeys              : (signature Function)
         authenticateWithOauth   : (signature Object, Function)
         unregister              : (signature String, Function)
-        finishRegistration      : (signature Object, Function) # DEPRECATED ~ GG
         verifyPassword          : (signature Object, Function)
         verifyByPin             : (signature Object, Function)
 
@@ -1258,14 +1257,6 @@ module.exports = class JUser extends jraphical.Module
     ]
 
     daisy queue
-
-
-  # DEPRECATED
-  @finishRegistration: secure (client, formData, callback) ->
-    { sessionToken: clientId, clientIP } = client
-    console.warn "DEPRECATED JUser::finishRegistration called from", \
-                 { clientIP, sessionToken }
-    callback null
 
 
   @removeUnsubscription:({email}, callback)->
