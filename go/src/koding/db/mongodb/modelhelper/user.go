@@ -3,6 +3,7 @@ package modelhelper
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"koding/db/models"
 	"time"
@@ -16,6 +17,8 @@ var (
 	UserStatusConfirmed   = "confirmed"
 	UserStatusUnConfirmed = "unconfirmed"
 	UserStatusBlocked     = "blocked"
+
+	ErrUserBlocked = errors.New("can't confirm blocked user")
 )
 
 // CheckAndGetUser validates the user with the given password. If not
@@ -134,8 +137,31 @@ func BlockUser(username, reason string, duration time.Duration) error {
 	}}
 
 	query := func(c *mgo.Collection) error {
-		err := c.Update(selector, updateQuery)
+		return c.Update(selector, updateQuery)
+	}
+
+	return Mongo.Run(UserColl, query)
+}
+
+func ConfirmUser(username string) error {
+	user, err := GetUser(username)
+	if err != nil {
 		return err
+	}
+
+	if user.Status == UserStatusBlocked {
+		return ErrUserBlocked
+	}
+
+	if user.Status == UserStatusConfirmed {
+		return nil
+	}
+
+	selector := bson.M{"username": username}
+	updateQuery := bson.M{"$set": bson.M{"status": UserStatusConfirmed}}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(selector, updateQuery)
 	}
 
 	return Mongo.Run(UserColl, query)

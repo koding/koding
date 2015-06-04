@@ -27,6 +27,8 @@ var (
 
 	kodingGroup *models.Group
 	conf        *config.Config
+
+	Jwttoken string
 )
 
 func initialize() {

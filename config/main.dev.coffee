@@ -147,6 +147,7 @@ Configuration = (options={}) ->
 
     vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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"                                                                 , kloudSecretKey : kloud.secretKey                                           , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
+    tokenizer                      : {port          : 6800                , mailSecretKey: "7fe0ad8d0a23b453d905f06710bd756b"                                                    , iterableAuthKey: "b32f0bf075f30483caa6ec5f318ee49b" }
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
     mq                             : mq
@@ -200,6 +201,7 @@ Configuration = (options={}) ->
 
     collaboration :
       timeout     : 1 * 60 * 1000
+
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -275,9 +277,23 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
       nginx             :
-        locations       : [ location: "~^/IDE/.*" ]
+        locations       : [ { location    : "~^/IDE/.*" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
+
+    tokenizer           :
+      group             : "webserver"
+      ports             :
+         incoming       : "#{KONFIG.tokenizer.port}"
+      supervisord       :
+        command         : "#{GOBIN}/watcher -run koding/workers/tokenizer -c #{configName}"
+      nginx             :
+        locations       : [
+          { location    : "/-/token/get" }
+          { location    : "/-/token/validate" }
+        ]
+      healthCheckURL    : "http://localhost:#{KONFIG.tokenizer.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.tokenizer.port}/version"
 
     kontrol             :
       group             : "environment"

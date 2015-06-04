@@ -156,6 +156,11 @@ type Config struct {
 	Gowebserver          struct {
 		Port int
 	}
+	Tokenizer struct {
+		Port            int
+		MailSecretKey   string
+		IterableAuthKey string
+	}
 	Rerouting struct {
 		Port int
 	}
