@@ -1,6 +1,9 @@
 @import "lib/core.fonts"
 @import "lib/core.fn"
 
+greenLink                   = #27ae60
+titleYellow                 = #F4E327
+
 @css {
 /*
 Teams Homepage stylesheet
@@ -36,12 +39,12 @@ teams.styl
       margin                0 auto
 
     h1
-      margin-top            180px
+      margin-top            130px
       font-family           adelle
       font-weight           400
       font-size             42px
       line-height           50px
-      color                 #F4E327
+      color                 titleYellow
 
     h2
       font-size             22px
@@ -50,7 +53,7 @@ teams.styl
       rel()
       span
         display             inline-block
-        height              40px
+        size                90px 40px
         vertical-align      top
         rel()
       span > i
@@ -164,3 +167,86 @@ teams.styl
       &:after
         right               0
         border-width        .5em .5em 0 0
+
+// Smartphones
+
+@media only screen and (min-width : 320px) and (max-width : 767px)
+
+  .content-page.teams
+    section.main-wrapper
+      h1
+      h2
+        width               80%
+
+      h1
+        margin-top          130px
+        font-size           32px
+        line-height         40px
+
+      h2
+        font-size           18px
+        line-height         30px
+        margin              10px auto
+
+    .TeamsModal--middle
+      margin                20px auto 40px
+      width                 90%
+
+      &.pre-launch section
+
+        > div.email
+        > div.submit
+          padding           0
+          width             100%
+
+        > div.submit
+          margin-top        10px
+
+        > div .login-input-view input.kdinput
+        > div .login-input-view .placeholder-helper
+          text-align        center
+
+    ul
+      width                 90%
+      li
+        font-size           14px
+
+    .ribbon
+      padding               .34em 1em
+      margin                0 0 60px 0
+      font                  22px adelle
+
+
+// Tablets
+
+@media only screen and (min-width : 768px)  and (max-width : 1024px)
+
+  .content-page.teams
+    section.main-wrapper
+      h1
+      h2
+        width               80%
+
+      h1
+        margin-top          130px
+        font-size           38px
+        line-height         50px
+
+      h2
+        font-size           26x
+        line-height         38px
+        margin              10px auto
+
+    .TeamsModal--middle
+      margin                20px auto 40px
+      width                 80%
+
+    ul
+      width                 90%
+      li
+        font-size           16px
+
+    .ribbon
+      padding               .34em 1em
+      margin                0 0 60px 0
+      font                  32px adelle
