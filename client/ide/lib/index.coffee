@@ -182,17 +182,18 @@ class IDEAppController extends AppController
     kite = machine.getBaseKite()
     kite.ready =>
       kem = new KlientEventManager {}, machine
-      kem.on 'openFiles', ({ eventName, files }) =>
+      kem.on 'openFiles', @bound 'handleKlientOpenFiles'
 
-        unless files
-          return kd.warn "bindKlientEvents-openFiles:
-            Files returned empty"
 
-        files.forEach (path) =>
-          file = FSHelper.createFileInstance { path, machine }
-          file.fetchContents yes, (err, content) =>
-            return kd.error err  if err
-            @openFile file, content
+  ###*
+   * Open a series of file paths, in the format of klient's openFiles
+   * event.
+   *
+   * @param {Object} response - An object formatted as a Klient event
+   *  response.
+   * @param {Array<string>} response.files - A list of file paths
+  ###
+  handleKlientOpenFiles: ({ files }) -> @openFiles files
 
 
   bindWorkspaceDataEvents: ->
@@ -347,6 +348,22 @@ class IDEAppController extends AppController
       callback pane
 
     @activeTabView.emit 'FileNeedsToBeOpened', file, contents, kallback, emitChange
+
+
+  ###*
+   * Open multiple file paths, loading the contents.
+   *
+   * @param {Array<string>} files - A list of file paths.
+  ###
+  openFiles: (files) ->
+    unless files
+      return kd.error "IDEAppController#openFiles: Called with empty files"
+
+    files.forEach (path) =>
+      file = FSHelper.createFileInstance { path, machine: @mountedMachine }
+      file.fetchContents yes, (err, content) =>
+        return kd.error err  if err
+        @openFile file, content
 
 
   openMachineTerminal: (machineData) ->
