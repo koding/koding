@@ -24,7 +24,8 @@ module.exports = class AdminMembersView extends KDView
     tabView.addPane all        = new KDTabPaneView name: 'All Services'
     tabView.addPane configured = new KDTabPaneView name: 'Configured Integrations'
 
-    all.addSubView new AdminIntegrationsListView
+    all.addSubView        new AdminIntegrationsListView integrationType: 'new'
+    configured.addSubView new AdminIntegrationsListView integrationType: 'configured'
 
     tabView.showPaneByIndex 0
     @addSubView tabView
