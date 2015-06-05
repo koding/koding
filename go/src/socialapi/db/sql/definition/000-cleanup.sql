@@ -10,6 +10,7 @@ DROP ROLE IF EXISTS social;
 -- Drop user
 -- DROP OWNED BY socialapplication CASCADE;
 DROP USER IF EXISTS socialapplication;
+DROP USER IF EXISTS socialapp201506;
 
 -- Drop tablespaces
 -- we dont need tablespaces anymore...
