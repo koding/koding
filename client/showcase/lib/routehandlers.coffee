@@ -5,7 +5,14 @@ module.exports = ShowcaseRouteHandlers =
   # /Showcase
   handleShowcaseIndex: ->
 
-    openShowcase -> console.log 'hello'
+    openShowcase (showcase) ->
+
+  # /Showcase/:collection/:component
+  handleShowComponent: ({ params: { collection, component } })->
+
+    openShowcase (showcase) ->
+
+      showcase.showCollectionComponent collection, component
 
 
 openShowcase = (callback) ->
