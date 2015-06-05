@@ -98,7 +98,6 @@ module.exports = class JUser extends jraphical.Module
         getSSHKeys              : (signature Function)
         authenticateWithOauth   : (signature Object, Function)
         unregister              : (signature String, Function)
-        finishRegistration      : (signature Object, Function) # DEPRECATED ~ GG
         verifyPassword          : (signature Object, Function)
         verifyByPin             : (signature Object, Function)
 
@@ -117,6 +116,7 @@ module.exports = class JUser extends jraphical.Module
         set         : (value) -> value.toLowerCase()
       password      : String
       salt          : String
+      twofactorkey  : String
       blockedUntil  : Date
       blockedReason : String
       status        :
@@ -437,7 +437,8 @@ module.exports = class JUser extends jraphical.Module
 
   @login = (clientId, credentials, callback)->
 
-    { username: loginId, password, groupName, invitationToken } = credentials
+    { username: loginId, password,
+      groupName, tfcode, invitationToken } = credentials
 
     bruteForceControlData = {}
     session               = null
@@ -495,9 +496,19 @@ module.exports = class JUser extends jraphical.Module
           return logAndReturnLoginError username, \
             'You should reset your password in order to continue!', callback
 
-        # hash of given password and given user's salt should match with user's password
-        unless user.getAt('password') is hashPassword password, user.getAt('salt')
+        # check if provided password is correct
+        unless user.checkPassword password
           return logAndReturnLoginError username, 'Access denied!', callback
+
+        # check if user is using 2factor auth and provided key is ok
+        if !!(user.getAt 'twofactorkey')
+
+          if tfcode
+            unless user.check2FactorAuth tfcode
+              return logAndReturnLoginError username, 'Access denied!', callback
+          else
+            return callback new KodingError \
+              'TwoFactor auth Enabled', 'VERIFICATION_CODE_NEEDED'
 
         # if everything is fine, just continue
         queue.next()
@@ -1260,14 +1271,6 @@ module.exports = class JUser extends jraphical.Module
     daisy queue
 
 
-  # DEPRECATED
-  @finishRegistration: secure (client, formData, callback) ->
-    { sessionToken: clientId, clientIP } = client
-    console.warn "DEPRECATED JUser::finishRegistration called from", \
-                 { clientIP, sessionToken }
-    callback null
-
-
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'
     JUnsubscribedMail.one {email}, (err, unsubscribed)->
@@ -1545,3 +1548,30 @@ module.exports = class JUser extends jraphical.Module
   @getSSHKeys: secure (client, callback)->
     @fetchUser client, (err,user)->
       callback user.sshKeys or []
+
+
+  ###*
+   * Compare provided password with JUser.password
+   *
+   * @param {string} password
+  ###
+  checkPassword: (password) ->
+
+    # hash of given password and given user's salt should match with user's password
+    return @getAt('password') is hashPassword password, @getAt('salt')
+
+
+  ###*
+   * Compare provided verification token with time
+   * based generated 2Factor code. If 2Factor not enabled returns true
+   *
+   * @param {string} verificationCode
+  ###
+  check2FactorAuth: (verificationCode) ->
+
+    key          = @getAt 'twofactorkey'
+
+    speakeasy    = require 'speakeasy'
+    generatedKey = speakeasy.totp {key, encoding: 'base32'}
+
+    return generatedKey is verificationCode
