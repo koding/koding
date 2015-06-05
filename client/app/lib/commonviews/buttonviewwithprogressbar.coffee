@@ -11,16 +11,13 @@ module.exports = class ButtonViewWithProgressBar extends KDCustomHTMLView
 
     super options, data
 
-    o               = @getOptions() or {}
-    buttonOptions   = o.button      or {}
-    progressOptions = o.progress    or {}
-    loaderOptions   = o.loader      or {}
+    o               = @getOptions()        or {}
+    buttonOptions   = o.buttonOptions      or {}
+    progressOptions = o.progressOptions    or {}
+    loaderOptions   = o.loaderOptions      or {}
 
     @button = new KDButtonView buttonOptions
-
-    @button.click = (event) =>
-      KDButtonView::click.call @button, event
-      @startProgress()
+    @button.setCallback @bound 'handleCallback'
 
     @addSubView @button
 
@@ -31,6 +28,14 @@ module.exports = class ButtonViewWithProgressBar extends KDCustomHTMLView
 
     @progressBar.addSubView @loader, null, yes
     @addSubView @progressBar
+
+
+  handleCallback: ->
+
+    buttonOptions = @getOption 'buttonOptions' or {}
+    buttonOptions.callback.call()  if buttonOptions.callback
+
+    @startProgress()
 
 
   startProgress: ->
