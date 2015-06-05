@@ -85,7 +85,12 @@ func TestAccountUpdated(t *testing.T) {
 						return false
 					}
 
-					return strings.HasSuffix(record["email"].(string), "@bar.com")
+					email, ok := record["email"]
+					if email == nil || !ok {
+						return false
+					}
+
+					return strings.HasSuffix(email.(string), "@bar.com")
 				})
 				So(err, ShouldBeNil)
 			})
