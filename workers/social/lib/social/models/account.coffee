@@ -212,6 +212,11 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchOtaToken:
           (signature Function)
+        generate2FactorAuthKey:
+          (signature Function)
+        setup2FactorAuth:
+          (signature Object, Function)
+
 
     schema                  :
       shareLocation         : Boolean
@@ -1426,3 +1431,98 @@ module.exports = class JAccount extends jraphical.Module
         session.update $set: {otaToken}, (err)->
           if err then errorCallback()
           else callback null, otaToken
+
+
+  ###*
+   * Internal helper for following 2Factor authentication methods
+   * Makes sure session is valid and returns JUser if possible.
+   *
+   * @param {function(err, [JUser])} callback
+  ###
+  _fetchUser = (client, callback) ->
+
+    unless client?.connection?.delegate
+      return callback new KodingError 'Invalid session'
+
+    account = client.connection.delegate
+    account.fetchUser (err, user) ->
+      return callback new KodingError 'User not found'  unless user
+
+      callback null, user
+
+
+  ###*
+   * Generates 2 Factor Authentication key which can be used to
+   * setup Google Authenticator application in your mobile device.
+   *
+   * This method only generates the key by using `speakeasy` npm package
+   *
+   * @param {function (err, [{key: string, qrcode: string}])} callback
+  ###
+  generate2FactorAuthKey: secure (client, callback) ->
+
+    _fetchUser client, (err, user) ->
+      return callback err  if err
+
+      if user.getAt 'twofactorkey'
+        return callback new KodingError \
+          '2Factor authentication already in use.', 'ALREADY_INUSE'
+
+      speakeasy        = require 'speakeasy'
+      generatedKey     = speakeasy.generate_key
+        name           : "Koding - @#{user.username}"
+        length         : 16
+        symbols        : yes
+        google_auth_qr : yes
+
+      { base32: key, google_auth_qr: qrcode } = generatedKey
+
+      callback null, { key, qrcode }
+
+
+  ###*
+   * Enable/Disable 2 Factor Authentication with provided auth `key`,
+   * `verification` and user's current `password`.
+   *
+   * Enabling:
+   * After verifying the current password, it tries to verify provided auth
+   * key with verification then updates `JUser.twofactorkey` field with the
+   * provided auth key.
+   *
+   * Disabling: (if `disable` is true)
+   * It verifies the current password, then removes `JUser.twofactorkey` field
+   *
+   * @param {{key: string, verification: string,
+   *          password: string, [disable: bool]}} options
+   * @param {function (err)} callback
+  ###
+  setup2FactorAuth: secure (client, options, callback) ->
+
+    _fetchUser client, (err, user) ->
+      return callback err  if err
+
+      {disable, password} = options
+
+      if not disable and user.getAt 'twofactorkey'
+        return callback new KodingError '2Factor authentication already in use.'
+
+      unless user.checkPassword password
+        return callback new KodingError 'Password is invalid'
+
+      if disable
+        user.update $unset: twofactorkey: '', (err) ->
+          callback err
+
+        return
+
+      {key, verification} = options
+
+      speakeasy    = require 'speakeasy'
+      generatedKey = speakeasy.totp {key, encoding: 'base32'}
+
+      if generatedKey isnt verification
+        return callback new KodingError \
+          'Verification failed for provided code.', 'INVALID_TOKEN'
+
+      user.update $set: twofactorkey: key, (err) ->
+        callback err
