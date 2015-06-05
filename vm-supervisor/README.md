@@ -16,7 +16,7 @@ Copy `ssh_config` into ~/.ssh/config.
 SSH into the machine:
 
 ```sh
-koding$ ssh ubuntu@54.172.97.80 -i install/keys/aws/koding-prod-deployment.pem
+koding$ ssh ubuntu@54.172.97.80 -i machine.pem
 ```
 
 Then you should be able to run arbitrary commands on the desired machine.

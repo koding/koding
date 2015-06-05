@@ -1,5 +1,5 @@
 kd                    = require 'kd'
-EnvironmentsModalView = require './environmentsmodalview'
+BaseModalView         = require './views/basemodalview'
 HelpSupportModal      = require '../commonviews/helpsupportmodal'
 JView                 = require '../jview'
 
@@ -11,7 +11,7 @@ DEFAULT_PERCENTAGE = 10
  * EnvironmentsProgressModal is a simple progressbar with an overlay for
  * the given container.
 ###
-module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
+module.exports = class EnvironmentsProgressModal extends BaseModalView
 
   ###*
    * @param {Number} options.initial - The initial progress value.
@@ -122,5 +122,3 @@ module.exports = class EnvironmentsProgressModal extends EnvironmentsModalView
   updatePercentage: (percentage = DEFAULT_PERCENTAGE) ->
 
     @progressBar.updateBar percentage
-
-

@@ -11,11 +11,6 @@ EOF
 
 set -o errexit
 
-if [ -z "$KODING_DEPLOYMENT_KEY" ]; then
-  echo 'error: KODING_DEPLOYMENT_KEY variable is not set'
-  exit 1
-fi
-
 HOST=$1
 
 shift # Remove HOST option from positional parameter array.
@@ -23,7 +18,7 @@ shift # Remove HOST option from positional parameter array.
 OPTIONS=$*
 
 ssh -o 'StrictHostKeyChecking no' \
-    -i $KODING_DEPLOYMENT_KEY \
+    -i $(dirname $0)/koding-test-instances-2015-06.pem \
     ubuntu@$HOST \
     "sudo /opt/koding/client/test/run.sh $OPTIONS" &
 

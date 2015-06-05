@@ -8,6 +8,52 @@ Configuration = (options={}) ->
 
   boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
+  awsKeys =
+    # s3 full access
+    worker_terraformer:
+      accessKeyId     : "AKIAICCV3GMNBL4ECN5Q"
+      secretAccessKey : "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"
+
+    # s3 put only to koding-client bucket
+    worker_koding_client_s3_put_only:
+      accessKeyId     : "AKIAJCUG42THBT4LBQEQ"
+      secretAccessKey : "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"
+
+    # admin
+    worker_test:
+      accessKeyId     : "AKIAIQESD65KKYRYAWDA"
+      secretAccessKey : "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"
+
+    # s3 put only
+    worker_test_data_exporter:
+      accessKeyId     : "AKIAIWO4ZPTLQEYSOLGA"
+      secretAccessKey : "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"
+
+    # AmazonRDSReadOnlyAccess
+    worker_rds_log_parser:
+      accessKeyId     : "AKIAJX6IPI3PQCS3GJ6Q"
+      secretAccessKey : "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"
+
+    # ELB & EC2 -> AmazonEC2ReadOnlyAccess
+    worker_multi_ssh:
+      accessKeyId     : "AKIAI7CKP5SNHCBUEDXQ"
+      secretAccessKey : "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"
+
+    # AmazonEC2FullAccess
+    worker_test_instance_launcher:
+      accessKeyId     : "AKIAJDR2J6W5AT4KWS4A"
+      secretAccessKey : "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"
+
+    # CloudWatchReadOnlyAccess
+    vm_vmwatcher:     # vm_vmwatcher_dev
+      accessKeyId     : "AKIAJ3OZKOIQUTV2GCBQ"
+      secretAccessKey : "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"
+
+    # KloudPolicy
+    vm_kloud:         # vm_kloud_dev
+      accessKeyId     : "AKIAJRNT55RTV2MHD4VA"
+      secretAccessKey : "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"
+
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "lvh.me"
   protocol            = options.protocol       or "http:"
@@ -50,7 +96,6 @@ Configuration = (options={}) ->
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
   algolia             = { appId:    'DYVV81J2S1'                                  , indexSuffix:        ".#{ os.hostname() }"                 }
   algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "303eb858050b1067bcd704d6cbfb977c"      , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46'   , apiTokenKey: "d15cab2a1bcead494e38cc33d32c4621" }
-  mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               "5432"                                  , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteHome            = "#{projectRoot}/kite_home/koding"
@@ -65,7 +110,7 @@ Configuration = (options={}) ->
   # ./go/src/socialapi/config/configtypes.go
 
   kloudPort           = 5500
-  kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+  kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem", userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub",  privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
   terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
@@ -98,7 +143,6 @@ Configuration = (options={}) ->
     email                   : email
     sitemap                 : { redisDB: 0, updateInterval:  "1m" }
     algolia                 : algoliaSecret
-    mixpanel                : mixpanel
     limits                  : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
     eventExchangeName       : "BrokerMessageBus"
     disableCaching          : no
@@ -118,7 +162,6 @@ Configuration = (options={}) ->
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
-  logQueueName        = socialQueueName+'log'
   autoConfirmAccounts = yes
 
   KONFIG              =
@@ -131,6 +174,7 @@ Configuration = (options={}) ->
     publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
+    awsKeys                        : awsKeys
     broker                         : broker
     uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
@@ -145,7 +189,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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"                                                                 , kloudSecretKey : kloud.secretKey                                           , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
+    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
@@ -155,7 +199,6 @@ Configuration = (options={}) ->
     social                         : {port          : 3030                , login     : "#{rabbitmq.login}"        , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
     newkites                       : {useTLS        : no                  , certFile  : ""                         , keyFile: "#{projectRoot}/kite_home/koding/kite.key"}
-    log                            : {login         : "#{rabbitmq.login}" , queueName : logQueueName}
     boxproxy                       : {port          : 8090 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
@@ -184,12 +227,10 @@ Configuration = (options={}) ->
     graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
     logLevel                       : {neo4jfeeder   : "notice"                                       , oskite: "info"                                               , terminal: "info"                                                                      , kontrolproxy  : "notice"                                           , kontroldaemon : "notice"                                           , userpresence  : "notice"                                          , vmproxy: "notice"      , graphitefeeder: "notice"                                                           , sync: "notice" , topicModifier : "notice" , postModifier  : "notice" , router: "notice" , rerouting: "notice" , overview: "notice" , amqputil: "notice" , rabbitMQ: "notice" , ldapserver: "notice" , broker: "notice"}
-    aws                            : {key           : "AKIAJSUVKX6PD254UGAA"                         , secret        : "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"}
+    aws                            : {key           : ""                                             , secret        : ''}
     embedly                        : {apiKey        : "94991069fb354d4e8fdb825e52d4134a" }
     troubleshoot                   : {recipientEmail: "can@koding.com" }
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
-    recaptcha                      : '6LdLAPcSAAAAAJe857OKXNdYzN3C1D55DwGW0RgT'
-    mixpanel                       : mixpanel.token
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
@@ -212,15 +253,12 @@ Configuration = (options={}) ->
   KONFIG.client.runtimeOptions =
     kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia              : algolia
-    logToExternal        : no                                 # rollbar                                            , mixpanel etc.
     suppressLogs         : no
-    logToInternal        : no                                 # log worker
     authExchange         : "auth"
     environment          : environment                        # this is where browser knows what kite environment to query for
     version              : version
     resourceName         : socialQueueName
     userSitesDomain      : userSitesDomain
-    logResourceName      : logQueueName
     socialApiUri         : "/xhr"
     apiUri               : null
     sourceMapsUri        : "/sourcemaps"
@@ -236,7 +274,6 @@ Configuration = (options={}) ->
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha            : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
     stripe               : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles     :
       google             : {nicename: 'Google'  }
@@ -301,7 +338,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port}  -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile}  -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -316,7 +353,7 @@ Configuration = (options={}) ->
     terraformer         :
       group             : "environment"
       supervisord       :
-        command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{region} -environment  #{environment} -aws-key #{KONFIG.aws.key} -aws-secret #{KONFIG.aws.secret} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
+        command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{region} -environment  #{environment} -aws-key #{awsKeys.worker_terraformer.accessKeyId} -aws-secret #{awsKeys.worker_terraformer.secretAccessKey} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
       healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
@@ -1387,6 +1424,10 @@ Configuration = (options={}) ->
         sh -c scripts/validate-npm.sh
         run $1
 
+      elif [ "$1" == "socialworkertests" ]; then
+
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
+
       else
         echo "Unknown command: $1"
         printHelp
@@ -1400,6 +1441,8 @@ Configuration = (options={}) ->
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
   KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG, environment
   KONFIG.runFile        = generateRunFile        KONFIG
+
+  KONFIG.configCheckExempt = []
 
   return KONFIG
 
