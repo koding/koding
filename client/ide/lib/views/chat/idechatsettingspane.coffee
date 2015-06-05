@@ -1,16 +1,19 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDLoaderView = kd.LoaderView
-KDSelectBox = kd.SelectBox
-KDTabPaneView = kd.TabPaneView
-remote = require('app/remote').getInstance()
-whoami = require 'app/util/whoami'
-nick = require 'app/util/nick'
-JView = require 'app/jview'
-CustomLinkView = require 'app/customlinkview'
-IDEChatParticipantView = require './idechatparticipantview'
-module.exports = class IDEChatSettingsPane extends KDTabPaneView
+kd                          = require 'kd'
+KDButtonView                = kd.ButtonView
+KDCustomHTMLView            = kd.CustomHTMLView
+KDLoaderView                = kd.LoaderView
+KDSelectBox                 = kd.SelectBox
+KDTabPaneView               = kd.TabPaneView
+remote                      = require('app/remote').getInstance()
+whoami                      = require 'app/util/whoami'
+nick                        = require 'app/util/nick'
+JView                       = require 'app/jview'
+CustomLinkView              = require 'app/customlinkview'
+IDEChatParticipantView      = require './idechatparticipantview'
+ButtonViewWithProgressBar   = require 'app/commonviews/buttonviewwithprogressbar'
+
+
+module.exports          = class IDEChatSettingsPane extends KDTabPaneView
 
   JView.mixin @constructor
 
@@ -62,11 +65,21 @@ module.exports = class IDEChatSettingsPane extends KDTabPaneView
 
     channel = @getData()
 
-    @startSession = new KDButtonView
-      title    : 'START SESSION'
-      cssClass : 'solid green start-session'
-      loader   : yes
-      callback : @bound 'initiateSession'
+    @startSession = new ButtonViewWithProgressBar
+      buttonOptions   :
+        title         : 'START SESSION'
+        cssClass      : 'solid green start-session'
+        callback      : @bound 'initiateSession'
+      progressOptions :
+        title         : 'STARTING SESSION'
+      loaderOptions   :
+        size          : width : 20
+        loaderOptions :
+          color       : '#FFFFFF'
+          shape       : 'spiral'
+          density     : 30
+          speed       : 1.5
+
 
     buttonTitle = if @isInSession then 'LEAVE SESSION' else 'END SESSION'
 
@@ -106,17 +119,20 @@ module.exports = class IDEChatSettingsPane extends KDTabPaneView
 
   initiateSession: ->
 
-    @startSession.disable()
-    @startSession.showLoader()
+    kd.utils.wait 500,  => @startSession.updateProgress 5
+    kd.utils.wait 1500, => @startSession.updateProgress 20
+    kd.utils.wait 2500, => @startSession.updateProgress 65
+    kd.utils.wait 3250, => @startSession.updateProgress 75
 
-    {appManager} = kd.singletons
+    { appManager } = kd.singletons
 
     appManager.tell 'IDE', 'startCollaborationSession', (err, channel) =>
 
-      return @startSession.enable()  if err
+      if err
+        @startSession.resetProgress()
+        return
 
       @toggleButtons 'started'
-      @startSession.hideLoader()
       @emit 'SessionStarted'
 
 
@@ -145,10 +161,8 @@ module.exports = class IDEChatSettingsPane extends KDTabPaneView
       endButton.show()
       endButton.enable()
       startButton.hide()
-      startButton.disable()
     else
-      startButton.show()
-      startButton.enable()
+      startButton.resetProgress()
       endButton.hide()
       endButton.disable()
 

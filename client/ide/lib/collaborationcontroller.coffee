@@ -310,7 +310,7 @@ module.exports = CollaborationController =
 
     { systemType } = message.payload
     systemType   or= message.payload['system-message']
-    
+
     if systemType is 'start'
       if @stateMachine.state is 'NotStarted'
         @stateMachine.transition 'Loading'
@@ -565,6 +565,7 @@ module.exports = CollaborationController =
         Creating     : @bound 'onCollaborationCreating'
         Active       : @bound 'onCollaborationActive'
         Ending       : @bound 'onCollaborationEnding'
+        Created      : @bound 'onCollaborationCreated'
 
 
 
@@ -641,10 +642,17 @@ module.exports = CollaborationController =
 
     @createCollaborationSession
       success : (doc) =>
-        @whenRealtimeReady => @stateMachine.transition 'Active'
+        @whenRealtimeReady => @stateMachine.transition 'Created'
         @activateRealtimeManager doc
       error: =>
         @stateMachine.transition 'ErrorCreating'
+
+
+  onCollaborationCreated: ->
+
+    @chat.settingsPane.startSession.updateProgress 100
+
+    kd.utils.wait 500, => @stateMachine.transition 'Active'
 
 
   createCollaborationSession: (callbacks) ->
