@@ -187,32 +187,3 @@ func makeSureAccount(handler *Controller, id string, f func(map[string]interface
 		}
 	}
 }
-
-// makeSureWithSearch tries to search again if given function fails to satisfy
-// with incoming response from algolia
-func makeSureWithSearch(
-	handler *Controller,
-	indexName string,
-	query string,
-	param interface{},
-	f func(map[string]interface{}, error) bool,
-) error {
-	index, err := handler.indexes.GetIndex(indexName)
-	if err != nil {
-		return err
-	}
-
-	deadLine := time.After(time.Minute * 2)
-	tick := time.Tick(time.Millisecond * 100)
-	for {
-		select {
-		case <-tick:
-			record, err := index.Search(query, param)
-			if f(record.(map[string]interface{}), err) {
-				return nil
-			}
-		case <-deadLine:
-			return errDeadline
-		}
-	}
-}
