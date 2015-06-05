@@ -21,7 +21,6 @@ AppController                 = require 'app/appcontroller'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
 splashMarkups                 = require './util/splashmarkups'
-OnboardingEvent               = require 'app/onboarding/onboardingevent'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
 KDCustomHTMLView              = kd.CustomHTMLView
@@ -1548,6 +1547,5 @@ class IDEAppController extends AppController
 
   runOnboarding: ->
 
-    { onboardingController, appManager } = kd.singletons
-    if appManager.frontApp is this
-      onboardingController.runOnboarding OnboardingEvent.IDELoaded
+    { onboarding, appManager } = kd.singletons
+    onboarding.run 'IDELoaded'  if appManager.frontApp is this
