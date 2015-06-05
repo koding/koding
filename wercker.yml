@@ -149,11 +149,11 @@ build:
     - script:
         name: check connectivity
         code: scripts/wercker/check-connectivity $(pwd)/INSTANCE_DATA
-    # - script:
-    #     name: test social worker
-    #     code: |
-    #       echo "testing social worker"
-    #       scripts/node-testing/run-tests $(pwd)/INSTANCE_DATA
+    - script:
+        name: test social worker
+        code: |
+          echo "testing social worker"
+          scripts/node-testing/run-tests $(pwd)/INSTANCE_DATA
     - script:
         name: testing client started
         code: |

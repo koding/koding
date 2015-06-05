@@ -1,7 +1,15 @@
-module.exports = class TestHelper
-  
-  @getDummyClientData = ->
-    
+hat = require 'hat'
+
+module.exports =
+
+  # returns 20 characters by default
+  getRandomString : (length = 20) ->
+
+    return hat().slice(32 - length)
+
+
+  getDummyClientData : ->
+
     dummyClient =
       sessionToken              : ""
       context                   :
@@ -21,17 +29,29 @@ module.exports = class TestHelper
             nickname            : "guest-a974470194e85106"
           meta                  :
             data                : {}
-    
+
     return dummyClient
-              
-              
-  @getDummyUserFormData = ->
-    
+
+
+  getDummyUserFormData : ->
+
     dummyUserFormData =
       email                     : "testacc@gmail.com",
       agree                     : "on"
       password                  : "testpass",
       username                  : "testacc",
       passwordConfirm           : "testpass"
-      
+
     return dummyUserFormData
+
+
+  getCredentials : ->
+
+    credentials =
+      username       : 'devrim',
+      password       : 'devrim',
+      tfcode         : '',
+      groupName      : 'koding',
+      invitationToken: undefined
+
+    return credentials
