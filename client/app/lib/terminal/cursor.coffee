@@ -1,3 +1,4 @@
+kd         = require 'kd'
 Style      = require './style'
 StyledText = require './styledtext'
 
@@ -19,6 +20,12 @@ module.exports = class Cursor
     @focused       = yes
 
     @blinkInterval = null
+    @windowFocused = yes
+
+    kd.singletons.windowController.addFocusListener (state) =>
+      @windowFocused = state
+      @resetBlink()
+
     @resetBlink()
 
 
@@ -84,9 +91,12 @@ module.exports = class Cursor
 
     @inversed = yes
     @updateCursorElement()
-    if (@focused and not @stopped) and @blinking
+
+    slowDrawing = localStorage?['WebTerm.slowDrawing'] is 'true'
+
+    if @blinking and (@focused and @windowFocused and not @stopped)
       @blinkInterval = global.setInterval =>
-        @inversed = if localStorage?["WebTerm.slowDrawing"] is "true" then true else not @inversed
+        @inversed = slowDrawing or !@inversed
         @updateCursorElement()
       , 600
 
