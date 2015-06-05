@@ -37,6 +37,16 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your password."
 
+    @tfcode = new LoginInputView
+      inputOptions    :
+        name          : 'tfcode'
+        placeholder   : '2factor verification code'
+        testPath      : 'login-form-tfcode'
+        attributes    :
+          testpath    : 'login-form-tfcode'
+
+    @tfcode.hide()
+
     @button = new KDButtonView
       title       : 'SIGN IN'
       style       : 'solid medium green'
@@ -51,10 +61,12 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
   resetDecoration:->
     @username.resetDecoration()
     @password.resetDecoration()
+    @tfcode.hide()
 
   pistachio:->
     """
     <div>{{> @username}}</div>
     <div>{{> @password}}</div>
+    <div>{{> @tfcode}}</div>
     <div>{{> @button}}</div>
     """

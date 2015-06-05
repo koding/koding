@@ -66,7 +66,7 @@ module.exports = class MainControllerLoggedOut extends KDController
 
   login: (formData, callback) ->
 
-    {username, password, redirectTo} = formData
+    {username, password, tfcode, redirectTo} = formData
 
     groupName = getGroupNameFromLocation()
 
@@ -82,15 +82,19 @@ module.exports = class MainControllerLoggedOut extends KDController
 
     $.ajax
       url         : '/Login'
-      data        : { username, password, groupName }
+      data        : { username, password, tfcode, groupName }
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : -> location.replace "/#{redirectTo}#{query}"
       error       : ({responseText}) =>
 
         if /suspended/i.test responseText
-        then handleBanned responseText
-        else new KDNotificationView title : responseText
+          handleBanned responseText
+        else if /TwoFactor/i.test responseText
+          @emit 'TwoFactorEnabled'
+          return
+        else
+          new KDNotificationView title : responseText
 
         @emit 'LoginFailed'
 
