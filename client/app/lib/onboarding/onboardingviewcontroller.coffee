@@ -19,26 +19,26 @@ module.exports = class OnboardingViewController extends KDViewController
 
   ###*
    * Creates and renders views for onboarding items
-   * Item views are grouped by onboarding group name.
-   * If item views already exist for onboarding group,
+   * Item views are grouped by onboarding name.
+   * If item views already exist for onboarding,
    * it just refreshes them
    *
-   * @param {string} groupName - name of onboarding group
-   * @param {Array} items      - a list of onboarding items
-   * @param {isModal} isModal  - a flag shows if onboarding is running on the modal
+   * @param {string} name     - onboarding name
+   * @param {Array} items     - a list of onboarding items
+   * @param {isModal} isModal - a flag shows if onboarding is running on the modal
   ###
-  runItems: (groupName, items, isModal = no) ->
+  runItems: (name, items, isModal = no) ->
 
-    if @itemViews[groupName]
-      @refreshItems groupName
-    else
-      @itemViews[groupName] = views = []
-      for item in items
-        view = new OnboardingItemView { groupName, isModal }, item
-        @bindViewEvents view
-        views.push view
+    return  unless items.length
+    return @refreshItems name  if @itemViews[name]
 
-      new OnboardingTask views, 'render'
+    @itemViews[name] = views = []
+    for item in items
+      view = new OnboardingItemView { onboardingName: name, isModal }, item
+      @bindViewEvents view
+      views.push view
+
+    new OnboardingTask views, 'render'
 
 
   ###*
@@ -47,44 +47,43 @@ module.exports = class OnboardingViewController extends KDViewController
   bindViewEvents: (view) ->
 
     view.on 'OnboardingItemCompleted', =>
-      { groupName } = view.getOptions()
-      viewData      = view.getData()
-      itemViews     = @itemViews[groupName]
+      { onboardingName } = view.getOptions()
+      viewData           = view.getData()
+      itemViews          = @itemViews[onboardingName]
       for itemView, index in itemViews when itemView is view
         itemViews.splice index, 1
         break
-      @emit 'OnboardingItemCompleted', groupName, viewData
+      @emit 'OnboardingItemCompleted', onboardingName, viewData
 
 
   ###*
    * Refreshes item views according to the state of elements
    * they are attached to.
    *
-   * @param {string} groupName - name of onboarding group
+   * @param {string} name - onboarding name
   ###
-  refreshItems: (groupName) ->
+  refreshItems: (name) ->
 
-    views = @itemViews[groupName]
-    return  unless views
+    return  unless views = @itemViews[name]
 
     new OnboardingTask views, 'refresh'
 
 
   ###*
-   * Removes item views by onboarding group
+   * Removes item views by onboarding name
    * If group name is passed, it removes only item views for that group.
    * Otherwise, it removes all item views.
    *
-   * @param {string} groupName - name of onboarding group
+   * @param {string} name - onboarding name
   ###
-  clearItems: (groupName) ->
+  clearItems: (name) ->
 
-    for _groupName, views of @itemViews
-      if _groupName is groupName or not groupName
+    for own _name, views of @itemViews
+      if _name is name or not name
         view.destroy()  for view in views
 
-    if groupName
-      delete @itemViews[groupName]
+    if name
+      delete @itemViews[name]
     else
       @itemViews = {}
 
@@ -94,5 +93,5 @@ module.exports = class OnboardingViewController extends KDViewController
   ###
   hideItems: ->
 
-    for groupName, views of @itemViews
+    for own name, views of @itemViews
       view.hide()  for view in views

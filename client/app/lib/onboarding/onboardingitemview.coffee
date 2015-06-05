@@ -17,7 +17,7 @@ module.exports = class OnboardingItemView extends KDView
   render: ->
 
     { path, name } = @getData()
-    { groupName, isModal } = @getOptions()
+    { onboardingName, isModal } = @getOptions()
 
     try
       @targetElement = @getViewByPath path
@@ -40,7 +40,7 @@ module.exports = class OnboardingItemView extends KDView
           @isViewed       = yes
         @throbber.tooltip.on 'ReceivedClickElsewhere', =>
           return  unless @startTrackDate
-          OnboardingMetrics.trackView groupName, name, new Date() - @startTrackDate
+          OnboardingMetrics.trackView onboardingName, name, new Date() - @startTrackDate
           @startTrackDate = null
         @throbber.on 'click', =>
           if @isViewed
@@ -48,9 +48,9 @@ module.exports = class OnboardingItemView extends KDView
             @emit 'OnboardingItemCompleted'
         @show()
       else
-        return new Error "Target is neither KDView or visible. name = #{name}, groupName = #{groupName}"
+        return new Error "Target is neither KDView or visible. name = #{name}, onboardingName = #{onboardingName}"
     catch e
-      return new Error "Couldn't create onboarding item. name = #{name}, groupName = #{groupName}"
+      return new Error "Couldn't create onboarding item. name = #{name}, onboardingName = #{onboardingName}"
 
     return yes
 

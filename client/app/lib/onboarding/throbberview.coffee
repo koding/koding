@@ -8,8 +8,8 @@ module.exports = class ThrobberView extends KDView
     options.cssClass     = kd.utils.curry 'throbber', options.cssClass
     options.placementX or= 'top'
     options.placementY or= 'left'
-    options.offsetX    or= 0
-    options.offsetY    or= 0
+    options.offsetX     ?= 0
+    options.offsetY     ?= 0
 
     super options, data
 

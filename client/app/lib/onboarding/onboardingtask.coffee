@@ -1,5 +1,6 @@
 kd = require 'kd'
 KDObject = kd.Object
+OnboardingConstants = require './onboardingconstants'
 
 ###*
  * A class that executes a specific method for a list of items
@@ -12,8 +13,8 @@ module.exports = class OnboardingTask extends KDObject
 
   constructor: (items, itemMethod) ->
 
-    @maxTime      = 3000
-    @timeInterval = 500
+    @maxTime      = OnboardingConstants.TASK_MAX_TIME
+    @timeInterval = OnboardingConstants.TASK_TIME_INTERVAL
     @startTime  = new Date()
 
     kd.utils.defer => @processItems items, itemMethod

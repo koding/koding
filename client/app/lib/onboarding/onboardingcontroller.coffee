@@ -97,65 +97,121 @@ module.exports = class OnboardingController extends KDController
 
 
   ###*
-   * Runs onboarding group by name.
+   * Runs onboarding by name.
    * If controller is not ready yet, onboarding request is added to pending queue.
    * Onboarding can be run if it was not shown for the current user yet
    * and user was registered after onboarding had been published.
-   * Also, it can be shown if it was requested to show it again (onboarding reset).
-   * A list of onboarding group items is saved to appStorage before they run
-   * so it's possible to understand what items are left to show for the user
+   * Also, it can be shown if it was requested to show it again (reset onboarding).
+   * A list of onboarding items should be saved to appStorage in order
+   * to understand what items are left to show for the user next time
    *
-   * @param {string} groupName - name of onboarding group
+   * @param {string} name      - onboarding name
    * @param {isModal} isModal  - a flag shows if onboarding is running on the modal.
    * In this case onboarding items should have higher z-index
   ###
-  runOnboarding: (groupName, isModal) ->
+  runOnboarding: (name, isModal) ->
 
     return @pendingQueue.push [].slice.call(arguments)  unless @isReady
 
-    @refreshCooperativeOnboardings groupName
+    @refreshCooperativeOnboardings name
 
-    onboarding = @onboardings[groupName]
+    onboarding = @onboardings[name]
     return  unless onboarding
     return  unless onboarding.partial.items?.length
 
-    isForcedGroup = @useForcedGroup groupName
-    isProperUser  = onboarding.publishedAt and new Date(onboarding.publishedAt) < @registrationDate
-    itemSlugs     = @getItemsToRun groupName
-    items         = []
+    items   = @getItemsIfResetOnboarding onboarding
+    isReset = items?
 
-    if isForcedGroup or (isProperUser and not itemSlugs)
-      items     = onboarding.partial.items
+    items      = @getItemsIfNewUser onboarding  unless items
+    needUpdate = items?
+
+    items = @getItemsLeftToRun onboarding  unless items
+
+    @viewController.runItems name, items, isModal
+
+    @removeFromResetOnboardings onboarding.name  if isReset
+
+    if needUpdate
       itemSlugs = @convertToSlugs items
-      @updateItemsToRun groupName, itemSlugs
-    else if itemSlugs
-      for item in onboarding.partial.items
-        itemSlug = kd.utils.slugify item.name
-        items.push item  if itemSlugs.indexOf(itemSlug) > -1
-
-    return  unless items.length
-
-    @viewController.runItems groupName, items, isModal
+      @updateItemSlugs name, itemSlugs
 
 
   ###*
-   * Checks if onboarding group was reset before and therefore should be forcibly run
-   * If so, it removes the group from a list of reset groups, saves the list
-   * and return yes. Otherwise, it return no
+   * Returns onboarding items if onboarding was reset
    *
-   * @param {string} groupName - name of checkable group
+   * @param {object} onboarding
+   * @return {Array}
   ###
-  useForcedGroup: (groupName) ->
+  getItemsIfResetOnboarding: (onboarding) ->
 
-    forcedGroups  = @appStorage.getValue OnboardingConstants.FORCED_ONBOARDINGS
-    index         = forcedGroups?.indexOf groupName
-    isForcedGroup = index > -1
+    return onboarding.partial.items  if @isResetOnboarding onboarding.name
 
-    if isForcedGroup
-      forcedGroups.splice index, 1
-      @appStorage.setValue OnboardingConstants.FORCED_ONBOARDINGS, forcedGroups
 
-    return isForcedGroup
+  ###*
+   * Returns onboarding items if user is new and have never seen onboarding
+   *
+   * @param {object} onboarding
+   * @return {Array}
+  ###
+  getItemsIfNewUser: (onboarding) ->
+
+    isNewUserForOnboarding = onboarding.publishedAt and (new Date(onboarding.publishedAt) < @registrationDate)
+    neverSeenOnboarding    = not @getSavedItemSlugs onboarding.name
+
+    return onboarding.partial.items  if isNewUserForOnboarding and neverSeenOnboarding
+
+
+  ###*
+   * Returns onboarding items left to run for the user, i.e. all items of onboarding
+   * excluding those which user has already completed
+   *
+   * @param {object} onboarding
+   * @return {Array}
+  ###
+  getItemsLeftToRun: (onboarding) ->
+
+    items     = []
+    itemSlugs = @getSavedItemSlugs onboarding.name
+
+    return  unless itemSlugs
+
+    for item in onboarding.partial.items
+      itemSlug = kd.utils.slugify item.name
+      items.push item  if itemSlugs.indexOf(itemSlug) > -1
+
+    return items
+
+
+  ###*
+   * Returns a list of onboardings which were reset by user
+   *
+   * @return {Array}
+  ###
+  getResetOnboardings: -> @appStorage.getValue OnboardingConstants.RESET_ONBOARDINGS
+
+
+  ###*
+   * Checks if onboarding was reset by user
+   *
+   * @param {string} name - onboarding name
+   * @return {bool}
+  ###
+  isResetOnboarding: (name) -> @getResetOnboardings()?.indexOf(name) > -1
+
+
+  ###*
+   * Removes onboarding from the list of reset onboardings and saves changes to appStorage
+   *
+   * @param {string} name - onboarding name
+  ###
+  removeFromResetOnboardings: (name) ->
+
+    resetOnboardings = @getResetOnboardings()
+    index            = resetOnboardings?.indexOf name
+
+    if index > -1
+      resetOnboardings.splice index, 1
+      @appStorage.setValue OnboardingConstants.RESET_ONBOARDINGS, resetOnboardings
 
 
   ###*
@@ -169,42 +225,43 @@ module.exports = class OnboardingController extends KDController
 
     events = []
     events.push event  for event of OnboardingEvent when @onboardings[event]?
-    @appStorage.setValue OnboardingConstants.FORCED_ONBOARDINGS, events, callback
+    @appStorage.setValue OnboardingConstants.RESET_ONBOARDINGS, events, callback
+
 
   ###*
    * Refreshes onboarding items according to the state of elements
    * they are attached to. If elements are hidden, items get hidden too,
    * and vice versa.
-   * If onboarding group has cooperative onboardings, they can be refreshed too
+   * If onboarding has cooperative onboardings, they can be refreshed too
    *
-   * @param {string} groupName   - name of onboarding group which items should be refreshed
+   * @param {string} name        - name of onboarding which items should be refreshed
    * @param {bool} isCooperative - a flag shows if it's necessary to refresh cooperative onboardings
   ###
-  refreshOnboarding: (groupName, isCooperative = yes) ->
+  refreshOnboarding: (name, isCooperative = yes) ->
 
-    @viewController.refreshItems groupName
-    @refreshCooperativeOnboardings groupName  if isCooperative
+    @viewController.refreshItems name
+    @refreshCooperativeOnboardings name  if isCooperative
 
 
   ###*
-   * Refreshes cooperative onboardings for onboarding group
+   * Refreshes cooperative onboardings for specific onboarding
    *
-   * @param {string} groupName - name of onboarding group which should be checked
+   * @param {string} name - name of onboarding which should be checked
    * for cooperative onboardings
   ###
-  refreshCooperativeOnboardings: (groupName) ->
+  refreshCooperativeOnboardings: (name) ->
 
     for onboardings in CooperativeOnboardings
-      if onboardings.indexOf(groupName) > -1
-        for cooperativeGroup in onboardings when cooperativeGroup isnt groupName
-          @refreshOnboarding cooperativeGroup, no
+      if onboardings.indexOf(name) > -1
+        for cooperativeOnboarding in onboardings when cooperativeOnboarding isnt name
+          @refreshOnboarding cooperativeOnboarding, no
 
   ###*
-   * Removes onboarding group items from the page
+   * Removes onboarding items from the page
    *
-   * @param {string} groupName - name of onboarding group
+   * @param {string} name - onboarding name
   ###
-  stopOnboarding: (groupName) -> @viewController.clearItems groupName
+  stopOnboarding: (name) -> @viewController.clearItems name
 
 
   ###*
@@ -227,59 +284,61 @@ module.exports = class OnboardingController extends KDController
    * Every time onboarding runs on the page, it shows only items left
    * in the list. When no item is in the list, onboarding won't appear
    *
-   * @param {string} groupName - name of onboarding group
-   * @param {object} item      - data of completed item
+   * @param {string} name - onboarding name
+   * @param {object} item - data of completed item
   ###
-  handleItemCompleted: (groupName, item) ->
+  handleItemCompleted: (name, item) ->
 
-    itemSlugs = @getItemsToRun groupName
+    itemSlugs = @getSavedItemSlugs name
     for itemSlug, index in itemSlugs when itemSlug is kd.utils.slugify item.name
       itemSlugs.splice index, 1
       break
-    @updateItemsToRun groupName, itemSlugs
+    @updateItemSlugs name, itemSlugs
 
 
   ###*
-   * Creates a slug for onboarding group
+   * Creates a slug for onboarding
    *
-   * @param {string} groupName - name of onboarding group
+   * @param {string} name - onboarding name
+   * @return {string}
   ###
-  createGroupSlug: (groupName) ->
+  createOnboardingSlug: (name) ->
 
-    kd.utils.slugify kd.utils.curry 'onboarding', groupName
+    kd.utils.slugify kd.utils.curry 'onboarding', name
 
 
   ###*
    * Returns a list of slugs for onboarding items
    *
    * @param {Array} items - onboarding items
+   * @return {Array}
   ###
   convertToSlugs: (items) ->
 
-    itemSlugs = kd.utils.slugify item.name  for item in items
+    itemSlugs = (kd.utils.slugify item.name  for item in items)
 
 
   ###*
-   * Returns a list of onboarding item slugs which are left to run
-   * for onboarding group
+   * Returns a list of saved onboarding item slugs
    *
-   * @param {string} groupName - name of onboarding group
+   * @param {string} name - onboarding name
+   * @return {Array}
   ###
-  getItemsToRun: (groupName) ->
+  getSavedItemSlugs: (name) ->
 
-    groupSlug = @createGroupSlug groupName
-    result    = @appStorage.getValue groupSlug
+    slug   = @createOnboardingSlug name
+    result = @appStorage.getValue slug
 
     return result  if result instanceof Array
 
-  ###*
-   * Updates in appStorage a list of onboarding item slugs which are left to run
-   * for onboarding group
-  ###
-  updateItemsToRun: (groupName, itemSlugs, callback) ->
 
-    groupSlug = @createGroupSlug groupName
-    @appStorage.setValue groupSlug, itemSlugs, callback
+  ###*
+   * Updates in appStorage a list of onboarding item slugs
+  ###
+  updateItemSlugs: (name, itemSlugs, callback) ->
+
+    slug = @createOnboardingSlug name
+    @appStorage.setValue slug, itemSlugs, callback
 
 
   isPreviewMode: -> return checkFlag 'super-admin'
