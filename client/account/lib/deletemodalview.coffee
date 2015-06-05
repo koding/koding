@@ -11,7 +11,7 @@ KDModalViewWithForms = kd.ModalViewWithForms
 
 module.exports = class DeleteModalView extends KDModalViewWithForms
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     data = nick()
 
@@ -100,7 +100,9 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
 
     super options, data
 
-  checkUserName:(input, showError=yes)=>
+
+
+  checkUserName: (input, showError = yes) =>
 
     if input.getValue() is @getData()
       input.setValidationResult 'keyupCheck', null
@@ -109,7 +111,8 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
       @modalTabs.forms.dangerForm.buttons.confirmButton.disable()
       input.setValidationResult 'keyupCheck', 'Sorry, entered value does not match your username!', showError
 
-  destroyExistingMachines: (callback)->
+
+  destroyExistingMachines: (callback) ->
 
     { computeController } = kd.singletons
 
@@ -127,15 +130,14 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
 
           computeController.getKloud()
           .destroy { machineId: machine._id }
-          .then  (res)->
+          .then  (res) ->
             kd.info res if res?
             computeController.emit "revive-#{machine._id}"
           .timeout globals.COMPUTECONTROLLER_TIMEOUT
-          .catch (err)->
+          .catch (err) ->
             kd.utils.wait 400, ->
               computeController.getKloud()
               .destroy { machineId: machine._id }
             kd.warn err if err?
 
         kd.utils.wait 4000, -> callback()
-
