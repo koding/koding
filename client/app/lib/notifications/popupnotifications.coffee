@@ -4,7 +4,6 @@ AvatarPopup                 = require '../avatararea/avatarpopup'
 NotificationListController  = require './notificationlistcontroller'
 NotificationListItemView    = require './notificationlistitemview'
 PopupList                   = require '../avatararea/popuplist'
-AvatarAreaConstants         = require '../avatararea/avatarareaconstants'
 
 
 module.exports = class PopupNotifications extends AvatarPopup
@@ -29,12 +28,10 @@ module.exports = class PopupNotifications extends AvatarPopup
       view         : @_popupList
       maxItems     : 5
 
-    avatarPopupShouldBeHidden = AvatarAreaConstants.events.AVATAR_POPUP_SHOULD_BE_HIDDEN
-
-    @listController.on avatarPopupShouldBeHidden, @bound 'hide'
+    @listController.on 'AvatarPopupShouldBeHidden', @bound 'hide'
 
     @forwardEvent @listController, 'NotificationCountDidChange'
-    @forwardEvent @listController, avatarPopupShouldBeHidden
+    @forwardEvent @listController, 'AvatarPopupShouldBeHidden'
 
     @avatarPopupContent.addSubView @listController.getView()
 

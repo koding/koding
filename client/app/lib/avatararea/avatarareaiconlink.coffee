@@ -1,7 +1,6 @@
 kd                  = require 'kd'
 KDCustomHTMLView    = kd.CustomHTMLView
 JView               = require '../jview'
-AvatarAreaConstants = require './avatarareaconstants'
 
 
 module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
@@ -36,7 +35,7 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
     popup = @getDelegate()
     popup.show()
 
-    popup.once AvatarAreaConstants.events.NOTIF_LIST_ITEM_CLICKED, (event) =>
+    popup.once 'NotificationListItemClicked', (event) =>
       listItemClicked = yes
 
     popup.once 'ReceivedClickElsewhere', (event) =>

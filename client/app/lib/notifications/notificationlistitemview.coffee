@@ -11,7 +11,6 @@ whoami                  = require '../util/whoami'
 AvatarView              = require '../commonviews/avatarviews/avatarview'
 JView                   = require '../jview'
 LinkGroup               = require '../commonviews/linkviews/linkgroup'
-AvatarAreaConstants     = require '../avatararea/avatarareaconstants'
 
 
 module.exports = class NotificationListItemView extends KDListItemView
@@ -102,8 +101,8 @@ module.exports = class NotificationListItemView extends KDListItemView
           duration : 1000
 
     popupList = @getDelegate()
-    popupList.emit AvatarAreaConstants.events.AVATAR_POPUP_SHOULD_BE_HIDDEN
-    popupList.emit AvatarAreaConstants.events.NOTIF_LIST_ITEM_CLICKED
+    popupList.emit 'AvatarPopupShouldBeHidden'
+    popupList.emit 'NotificationListItemClicked'
 
     switch @getData().type
       when "comment", "like", "mention"

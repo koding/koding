@@ -4,7 +4,6 @@ KDListView                = kd.ListView
 KDListViewController      = kd.ListViewController
 KDView                    = kd.View
 NotificationListItemView  = require './notificationlistitemview'
-AvatarAreaConstants       = require '../avatararea/avatarareaconstants'
 
 
 module.exports = class NotificationListController extends KDListViewController
@@ -27,7 +26,7 @@ module.exports = class NotificationListController extends KDListViewController
 
     super options, data
 
-    @forwardEvent @getListView(), AvatarAreaConstants.events.AVATAR_POPUP_SHOULD_BE_HIDDEN
+    @forwardEvent @getListView(), 'AvatarPopupShouldBeHidden'
 
   fetchNotificationTeasers:(callback)->
     {fetch} = kd.singletons.socialapi.notifications
