@@ -742,7 +742,7 @@ Configuration = (options={}) ->
   KONFIG.runFile         = generateRunFile KONFIG
   KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 
-  KONFIG.configCheckExempt = ["ngrokProxy"]
+  KONFIG.configCheckExempt = ["ngrokProxy", "command"]
 
   return KONFIG
 
