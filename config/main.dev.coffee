@@ -234,7 +234,7 @@ Configuration = (options={}) ->
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
-    prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
+    prerenderToken                 : 'rmhVl6TMAbAO4GQJyAI3'
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
