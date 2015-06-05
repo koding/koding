@@ -48,20 +48,22 @@ teams.styl
 
     h2
       font-size             22px
-      line-height           40px
+      line-height           28px
       margin                20px auto
       rel()
       span
         display             inline-block
-        size                90px 40px
+        size                240px 28px
         vertical-align      top
+        white-space         nowrap
         rel()
       span > i
         opacity             0
         transition          opacity .3s ease
         display             inline-block
-        height              40px
+        height              28px
         abs                 0px 0 0 0px
+        border-bottom       2px solid white
       span > i:first-child
         opacity             1
 
@@ -103,6 +105,7 @@ teams.styl
         .login-input-view input.kdinput
           text-align        left
           padding           8px 15px
+          font-family       adelle
   ul
     margin                  0 auto
     max-width               700px
@@ -117,6 +120,11 @@ teams.styl
         font-style          italic
         font-family         adelle
         color               titleYellow
+      a
+        color               titleYellow
+
+      &:last-child
+        padding-top         .5em
 
   .ribbon
     padding                 .34em 1em

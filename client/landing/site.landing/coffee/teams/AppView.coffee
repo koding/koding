@@ -22,6 +22,15 @@ module.exports = class TeamsView extends JView
         { title : 'SIGN IN',         href : '/Team/Login',              name : 'buttonized white login',  attributes : testpath : 'login-link' }
       ]
 
+    @soon = new KDCustomHTMLView
+      cssClass : 'ribbon'
+      partial  : '<span>Coming Soon!</span>'
+
+    @thanks = new KDCustomHTMLView
+      cssClass : 'ribbon hidden'
+      partial  : '<span>Thank You!</span>'
+
+
     if KD.config.hasTeamAccess
       @title = new KDCustomHTMLView
         tagName : 'h1'
@@ -48,11 +57,11 @@ module.exports = class TeamsView extends JView
     else
       @title = new KDCustomHTMLView
         tagName : 'h1'
-        partial : 'Introducing Koding for Teams!'
+        partial : 'Announcing Koding for Teams!'
 
       @subTitle = new KDCustomHTMLView
         tagName  : 'h2'
-        partial  : 'Your own Koding for your <span><i>company</i><i>university</i><i>class</i><i>project</i></span>'
+        partial  : 'Imagine <span><i>your-company.koding.com</i><i>your-university.koding.com</i><i>your-class.koding.com</i><i>your-project.koding.com</i></span>'
 
       @form = new TeamsLaunchForm
         cssClass : 'TeamsModal--middle login-form pre-launch'
@@ -64,23 +73,19 @@ module.exports = class TeamsView extends JView
       @features = new KDCustomHTMLView
         tagName : 'ul'
         partial : """
-          <li>Create your own infrastructure, use <i>Amazon</i>, <i>Google</i>, <i>Microsoft</i> or even <i>your own servers</i>.</li>
-          <li>Predefine member resources, and update all at once for everyone in your team.</li>
-          <li>Onboard new members instantly, so you don't need to setup again and again.</li>
-          <li>Integrate your everyday services such as <i>GitHub</i>, <i>Pivotal</i>, <i>Asana</i> and many others.</i></li>
-          <li>Collaborate with your teammates, have a video chat, share resources.</li>
-          <li style='list-style-type:none;'><i>and much more...</i></li>
+
+          <li><i>Reduce setup time</i> for new team members.</li>
+          <li>Treat your <i>infrastructure as code</i>. Easy to manage and even easier to upgrade!</li>
+          <li>Predefine the <i>compute resources</i> that your team should have.</li>
+          <li>Collaborate using <i>video/audio</i> without the need to install anything!</li>
+          <li><i>Most cloud-providers</i> are supported so you can use your existing infrastructure.</li>
+          <li>Integrate common services like <i>GitHub</i>, <i>Pivotal</i>, <i>Asana</i>, etc. into your Koding environment.</li>
+          <li style='list-style-type:none;'>Learn more on our <a href='http://blog.koding.com/teams' target='_blank'>blog</a>.</li>
           """
 
+      @soon.show()
       @animateTargets()
 
-    @soon = new KDCustomHTMLView
-      cssClass : 'ribbon'
-      partial  : '<span>Coming Soon!</span>'
-
-    @thanks = new KDCustomHTMLView
-      cssClass : 'ribbon hidden'
-      partial  : '<span>Thank You!</span>'
 
 
   earlyAccessFailure: ({responseText}) ->
