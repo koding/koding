@@ -1,4 +1,4 @@
-$ = require 'jquery'
+Style      = require './style'
 StyledText = require './styledtext'
 
 
@@ -96,15 +96,22 @@ module.exports = class Cursor
     return content  unless @visible
 
     newContent = content.substring 0, @x
-    newContent.merge = false
-    @element = content.substring(@x, @x + 1).get(0) ? new StyledText(" ", @terminal.currentStyle)
-    @element.spanForced = true
-    @element.style = $.extend true, {}, @element.style
-    @element.style.outlined = not @focused
-    @element.style.inverse = @focused and @inversed
+    newContent.merge = no
+
+    if @element = content.substring(@x, @x + 1).get 0
+      @element.style = new Style @element.style
+    else
+      @element = new StyledText ' ', @terminal.currentStyle
+
+    @element.spanForced     = yes
+    @element.style.outlined = !@focused
+    @element.style.inverse  =  @focused and @inversed
+
     newContent.push @element
-    newContent.pushAll content.substring(@x + 1)
-    newContent
+    newContent.pushAll content.substring @x + 1
+
+    return newContent
+
 
   updateCursorElement: ->
 
