@@ -22,7 +22,7 @@ module.exports = class PopupNotifications extends AvatarPopup
 
     @_popupList = new PopupList
       itemClass : NotificationListItemView
-      delegate  : @
+      delegate  : this
 
     @listController = new NotificationListController
       view         : @_popupList

@@ -39,8 +39,7 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
       listItemClicked = yes
 
     popup.once 'ReceivedClickElsewhere', (event) =>
-      skipNextClick = @isInside event.target
-      skipNextClick = no  if listItemClicked
+      skipNextClick = if listItemClicked then no else @isInside event.target
       listItemClicked = no
       popup.hide()
 
