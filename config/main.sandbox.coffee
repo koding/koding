@@ -134,8 +134,8 @@ Configuration = (options={}) ->
     eventExchangeName       : "BrokerMessageBus"
     disableCaching          : no
     debug                   : no
-    stripe                  : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
-    paypal                  : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
+    stripe                  : { secretToken : "sk_test_LLE4fVGK2zY3By3gccUYCLCw" }
+    paypal                  : { username: 'senthil+1_api1.koding.com', password: 'EUUPDYXX5EBZFGPN', signature: 'APp0PS-Ty0EAKx39nQi9zq9l6qgIAWb9YAF9AgXPK4-XeR7EAeeJSvnM', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
     gatekeeper              : gatekeeper
     integration             : integration
     webhookMiddleware       : webhookMiddleware
@@ -261,7 +261,7 @@ Configuration = (options={}) ->
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    stripe               : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
+    stripe               : { token: 'pk_test_2x9UxMl1EBdFtwT5BRfOHxtN' }
     externalProfiles     :
       google             : {nicename: 'Google'  }
       linkedin           : {nicename: 'LinkedIn'}
