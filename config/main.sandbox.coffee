@@ -186,7 +186,6 @@ Configuration = (options={}) ->
     newkites                       : {useTLS        : no                          , certFile  : ""                          , keyFile: "#{kiteHome}/kite.key"  }
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
-    appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
 
     kloud                          : kloud
@@ -249,7 +248,6 @@ Configuration = (options={}) ->
     mainUri              : "/"
     sourceMapsUri        : "/sourcemaps"
     broker               : {uri          : "/subscribe" }
-    appsUri              : "/appsproxy"
     uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout     : 1000 * 15
@@ -387,15 +385,6 @@ Configuration = (options={}) ->
         locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
         command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
-
-    appsproxy           :
-      group             : "webserver"
-      ports             :
-        incoming        : "#{KONFIG.appsproxy.port}"
-      nginx             :
-        locations       : [ { location : "/appsproxy" } ]
-      supervisord       :
-        command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port}"
 
     webserver           :
       group             : "webserver"

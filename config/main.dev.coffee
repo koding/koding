@@ -201,7 +201,6 @@ Configuration = (options={}) ->
     newkites                       : {useTLS        : no                  , certFile  : ""                         , keyFile: "#{projectRoot}/kite_home/koding/kite.key"}
     boxproxy                       : {port          : 8090 }
     sourcemaps                     : {port          : 3526 }
-    appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
     kloud                          : kloud
     terraformer                    : terraformer
@@ -264,7 +263,6 @@ Configuration = (options={}) ->
     sourceMapsUri        : "/sourcemaps"
     mainUri              : null
     broker               : uri  : "/subscribe"
-    appsUri              : "/appsproxy"
     uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout     : 1000 * 15
@@ -399,15 +397,6 @@ Configuration = (options={}) ->
         locations       : [ { location : "/sourcemaps" } ]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
-
-    appsproxy           :
-      group             : "webserver"
-      ports             :
-        incoming        : "#{KONFIG.appsproxy.port}"
-      nginx             :
-        locations       : [ { location : "/appsproxy" } ]
-      supervisord       :
-        command         : "./watch-node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
 
     webserver           :
       group             : "webserver"
@@ -806,7 +795,7 @@ Configuration = (options={}) ->
 
       function testendpoints () {
 
-        EP=("lvh.me:8090/" "lvh.me:8090/xhr" "lvh.me:8090/subscribe/info" "lvh.me:8090/kloud/kite" "lvh.me:8090/kontrol/kite" "lvh.me:8090/appsproxy" "lvh.me:8090/sourcemaps")
+        EP=("lvh.me:8090/" "lvh.me:8090/xhr" "lvh.me:8090/subscribe/info" "lvh.me:8090/kloud/kite" "lvh.me:8090/kontrol/kite" "lvh.me:8090/sourcemaps")
 
         while [ 1==1 ];
         do
