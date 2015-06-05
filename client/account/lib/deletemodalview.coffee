@@ -15,8 +15,9 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
 
     data = nick()
 
-    options.title     or= 'Please confirm account deletion'
-    options.content   or= """
+    options.title          or= 'Please confirm account deletion'
+    options.buttonTitle    or= 'Delete Account'
+    options.content        or= """
       <div class='modalformline'>
         <p>
           <strong>CAUTION! </strong>This will destroy everything you have on Koding, including your data on your VM(s). This action <strong>CANNOT</strong> be undone.
@@ -25,11 +26,11 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
         <p>Please enter <strong>#{data}</strong> into the field below to continue: </p>
       </div>
       """
-    options.callback   ?= -> kd.log "#{options.action} performed"
-    options.overlay    ?= yes
-    options.width      ?= 520
-    options.height     ?= 'auto'
-    options.tabs       ?=
+    options.callback        ?= -> kd.log "#{options.action} performed"
+    options.overlay         ?= yes
+    options.width           ?= 520
+    options.height          ?= 'auto'
+    options.tabs            ?=
       forms                  :
         dangerForm           :
           callback           : =>
@@ -73,7 +74,7 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
 
           buttons            :
             confirmButton    :
-              title          : 'Delete Account'
+              title          : options.buttonTitle
               style          : 'solid red medium'
               type           : 'submit'
               disabled       : yes
