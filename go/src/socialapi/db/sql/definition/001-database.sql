@@ -5,7 +5,7 @@ CREATE ROLE social;
 CREATE USER socialapplication PASSWORD 'socialapplication';
 
 -- new socialapp user
-CREATE USER socialapp201506 PASSWORD 'socialapp201506';
+CREATE USER socialapp201506 PASSWORD 'socialapp201506'; -- password is just for reference
 
 -- social superuser
 CREATE USER social_superuser PASSWORD 'social_superuser';
