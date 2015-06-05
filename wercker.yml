@@ -203,6 +203,8 @@ build:
           tail -n 100 /var/log/koding/social-webhookmiddleware.log || :
 deploy:
   steps:
+    - add-ssh-key:
+        keyname: DEPLOYMENT_KEY
     - script:
         name: deploy started
         code: |
