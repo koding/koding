@@ -34,11 +34,36 @@ func TestAccountSaved(t *testing.T) {
 				// make sure account is there
 				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
 
-				record, err := handler.get(IndexAccounts, acc.OldId)
+				user, err := modelhelper.GetUser(acc.Nick)
 				So(err, ShouldBeNil)
-				So(record["email"], ShouldContainSubstring, "@koding.com")
-			})
 
+				makeSureWithSearch(
+					handler,
+					IndexAccounts,
+					user.Email,
+					map[string]interface{}{"restrictSearchableAttributes": "email"},
+					func(record map[string]interface{}, err error) bool {
+						if err != nil {
+							return false
+						}
+
+						if record == nil {
+							return false
+						}
+
+						hits, ok := record["nbHits"]
+						if hits == nil || !ok {
+							return false
+						}
+
+						if hits.(float64) <= 0 {
+							return false
+						}
+
+						return true
+					},
+				)
+			})
 		})
 	})
 }
