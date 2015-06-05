@@ -29,14 +29,14 @@ runTests = -> describe 'server.handlers.register', ->
 
       ->
         request.post postParams, (err, res, body) ->
-          expect(err)           .to.not.exist
-          expect(res.statusCode).to.be.equal 200
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
           queue.next()
 
       ->
         request.post postParams, (err, res, body) ->
-          expect(err)           .to.not.exist
-          expect(res.statusCode).to.be.equal 400
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 400
           queue.next()
 
       -> done()
@@ -57,14 +57,14 @@ runTests = -> describe 'server.handlers.register', ->
 
       ->
         request.post postParams, (err, res, body) ->
-          expect(err)           .to.not.exist
-          expect(res.statusCode).to.be.equal 200
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
           queue.next()
 
       ->
         request.post postParams, (err, res, body) ->
-          expect(err)           .to.not.exist
-          expect(res.statusCode).to.be.equal 400
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 400
           queue.next()
 
       -> done()
@@ -79,8 +79,8 @@ runTests = -> describe 'server.handlers.register', ->
     postParams  = getPostParams()
 
     request.post postParams, (err, res, body) ->
-      expect(err)           .to.not.exist
-      expect(res.statusCode).to.be.equal 200
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 200
       done()
 
 
@@ -91,8 +91,8 @@ runTests = -> describe 'server.handlers.register', ->
         'x-requested-with' : 'this is not an XHR'
 
     request.post postParams, (err, res, body) ->
-      expect(err)           .to.not.exist
-      expect(res.statusCode).to.be.equal 301
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 301
       done()
 
 
