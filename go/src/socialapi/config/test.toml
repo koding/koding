@@ -14,8 +14,8 @@ segment            = "kb2hfdgf20"
 [postgres]
 Host=     "localhost"
 Port=     "5432"
-Username= "socialapplication"
-Password= "socialapplication"
+Username= "socialapp201506"
+Password= "socialapp201506"
 DBName=   "social"
 
 [mq]
