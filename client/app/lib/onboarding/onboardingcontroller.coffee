@@ -5,7 +5,7 @@ kd = require 'kd'
 whoami = require 'app/util/whoami'
 checkFlag = require 'app/util/checkFlag'
 KDController = kd.Controller
-OnboardingEvents = require './onboardingevents'
+OnboardingEvent = require './onboardingevent'
 OnboardingViewController = require './onboardingviewcontroller'
 OnboardingConstants = require './onboardingconstants'
 Promise = require 'bluebird'
@@ -224,7 +224,7 @@ module.exports = class OnboardingController extends KDController
   reset: (callback) ->
 
     events = []
-    events.push event  for event in OnboardingEvents when @onboardings[event]?
+    events.push event  for event in OnboardingEvent when @onboardings[event]?
     @appStorage.setValue OnboardingConstants.RESET_ONBOARDINGS, events, callback
 
 
