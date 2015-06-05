@@ -490,7 +490,7 @@ Configuration = (options={}) ->
           }
         ]
 
-    dailyemail          :
+    dailyemailnotifier  :
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/dailyemail -c #{socialapi.configFilePath}"
