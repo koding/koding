@@ -33,45 +33,7 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
     options.tabs            ?=
       forms                  :
         dangerForm           :
-          callback           : =>
-            {JUser}         = remote.api
-            {dangerForm}    = @modalTabs.forms
-            {username}      = dangerForm.inputs
-            {confirmButton} = dangerForm.buttons
-
-            @destroyExistingMachines =>
-
-              JUser.unregister username.getValue(), (err)=>
-                if err then new KDNotificationView title : 'There was a problem, please try again!'
-                else
-                  surveyLink = "https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform"
-                  @setTitle 'Account successfully deleted'
-                  @setContent """
-                    <div class='modalformline'>
-                      <p>
-                        Thanks for trying out Koding. Sorry to see you go. We'd appreciate if you take a moment to tell us why.
-                      </p>
-                      <br>
-                      <p><a href='#{surveyLink}' target='_blank'>Click to take the 1 minute survey.</a></p>
-                    </div>
-                    """
-                    # <iframe src="https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform?embedded=true" width="430" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
-                  @_windowDidResize()
-
-                  trackEvent 'Delete account, success',
-                    category : 'userInteraction'
-                    action   : 'clicks'
-                    label    : 'deletedAccount'
-
-                  logout =->
-                    kookies.expire 'clientId'
-                    global.location.replace '/'
-
-                  @on "KDObjectWillBeDestroyed", logout
-                  kd.utils.wait 20000, logout
-
-                confirmButton.hideLoader()
-
+          callback           : @bound 'doAction'
           buttons            :
             confirmButton    :
               title          : options.buttonTitle
@@ -101,6 +63,46 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
 
     super options, data
 
+
+  doAction: ->
+
+    { JUser }         = remote.api
+    { dangerForm }    = @modalTabs.forms
+    { username }      = dangerForm.inputs
+    { confirmButton } = dangerForm.buttons
+
+    @destroyExistingMachines =>
+
+      JUser.unregister username.getValue(), (err) =>
+        if err then new KDNotificationView title : 'There was a problem, please try again!'
+        else
+          surveyLink = 'https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform'
+          @setTitle 'Account successfully deleted'
+          @setContent """
+            <div class='modalformline'>
+              <p>
+                Thanks for trying out Koding. Sorry to see you go. We'd appreciate if you take a moment to tell us why.
+              </p>
+              <br>
+              <p><a href='#{surveyLink}' target='_blank'>Click to take the 1 minute survey.</a></p>
+            </div>
+            """
+            # <iframe src="https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform?embedded=true" width="430" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
+          @_windowDidResize()
+
+          trackEvent 'Delete account, success',
+            category : 'userInteraction'
+            action   : 'clicks'
+            label    : 'deletedAccount'
+
+          logout =->
+            kookies.expire 'clientId'
+            global.location.replace '/'
+
+          @on 'KDObjectWillBeDestroyed', logout
+          kd.utils.wait 20000, logout
+
+        confirmButton.hideLoader()
 
 
   checkUserName: (input, showError = yes) =>
