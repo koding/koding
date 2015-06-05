@@ -1,25 +1,23 @@
-$ = require 'jquery'
 module.exports = class StyledText
   COLOR_NAMES = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White", "BrightBlack", "BrightRed", "BrightGreen", "BrightYellow", "BrightBlue", "BrightMagenta", "BrightCyan", "BrightWhite"]
 
   constructor: (text, style) ->
-    @text = text
-    @style = style
-    @spanForced = false
-    @node = null
+
+    @text        = text
+    @style       = style
+    @spanForced  = no
+    @node        = null
+
 
   getNode: ->
-    if not @node?
+
+    unless @node?
       if not @style.isDefault() or @spanForced
-        @node = $(global.document.createElement("span"))
-        @node.text @text
+        @node = global.document.createElement 'span'
+        @node.appendChild global.document.createTextNode @text
         @updateNode()
       else
         @node = global.document.createTextNode @text
-    @node
-
-  updateNode: ->
-    @node.attr @style.getAttributes()
 
   class Style
     constructor: ->
@@ -35,6 +33,7 @@ module.exports = class StyledText
 
     equals: (other) ->
       @bold is other.bold and @underlined is other.underlined and @inverse is other.inverse and @textColor is other.textColor and @backgroundColor is other.backgroundColor
+    return @node
 
     getAttributes: ->
       classes = []
@@ -79,4 +78,7 @@ module.exports = class StyledText
 
   @DEFAULT_STYLE = new Style
 
+  updateNode: ->
 
+    for own attr, value of @style.getAttributes()
+      @node.setAttribute attr, value
