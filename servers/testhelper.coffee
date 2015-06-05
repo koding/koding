@@ -12,16 +12,14 @@ getRandomString  = (length = 20) ->
 # deep extending one object from another, works only for objects
 deepObjectExtend = (target, source) ->
 
-  for prop of source
+  for own prop of source
 
-    if source.hasOwnProperty(prop)
-
-      # recursive call to deep extend
-      if target[prop] and typeof source[prop] == 'object'
-        deepObjectExtend target[prop], source[prop]
-      # overwriting property
-      else
-        target[prop] = source[prop]
+    # recursive call to deep extend
+    if target[prop] and typeof source[prop] == 'object'
+      deepObjectExtend target[prop], source[prop]
+    # overwriting property
+    else
+      target[prop] = source[prop]
 
   return target
 
@@ -44,9 +42,9 @@ class RegisterHandlerHelper
   @getDefaultHeadersObject = ->
 
     userAgent =
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) '  +
-      'AppleWebKit/537.36 (KHTML, like Gecko) '           +
-      'Chrome/43.0.2357.81 Safari/537.36'
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3)
+      AppleWebKit/537.36 (KHTML, like Gecko)
+      Chrome/43.0.2357.81 Safari/537.36'
 
     defaultHeadersObject  =
       accept            : '*/*'
