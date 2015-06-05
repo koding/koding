@@ -104,13 +104,13 @@ Configuration = (options={}) ->
   integration         = { host:     "localhost"                                   , port:               "7300"                                  }
   webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
   paymentwebhook      = { port   : "6600",     debug    : false }
-  tokbox              = { apiKey : '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
+  tokbox              = { apiKey: '45253342', apiSecret: 'e834f7f61bd2b3fafc36d258da92413cebb5ce6e' }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
   kloudPort           = 5500
-  kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+  kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem", userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub",  privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
   terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount =
@@ -219,11 +219,11 @@ Configuration = (options={}) ->
     recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
-    odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
-    facebook                       : {clientId      : "475071279247628"                              , clientSecret  : "65cc36108bb1ac71920dbd4d561aca27"           , redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"}
-    google                         : {client_id     : "569190240880-o8loc6it0r1pl89i5slmm7sjar3lmgfb.apps.googleusercontent.com"                                    , client_secret : "BStkPGPO5k9GWFQcKKxBBLVq"                                            , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback" }
+    odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
+    facebook                       : {clientId      : "1408510959475637"                             , clientSecret  : "bf837bc719dc63c870ac77f9c76fe26d"           , redirectUri  : "#{customDomain.public}:#{customDomain.port}/-/oauth/facebook/callback"}
+    google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback" }
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
-    linkedin                       : {client_id     : "f4xbuwft59ui"                                 , client_secret : "fBWSPkARTnxdfomg"                           , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
+    linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
     datadog                        : {api_key       : "1daadb1d4e69d1ae0006b73d404e527b"             , app_key       : "aecf805ae46ec49bdd75e8866e61e382918e2ee5"}
     statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
@@ -236,8 +236,8 @@ Configuration = (options={}) ->
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
-    siftScience                    : 'a41deacd57929378'
-    prerenderToken                 : 'rmhVl6TMAbAO4GQJyAI3'
+    siftScience                    : '2b62c0cbea188dc6'
+    prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
@@ -285,7 +285,7 @@ Configuration = (options={}) ->
       facebook           : {nicename: 'Facebook', urlLocation: 'link'             }
       github             : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint           : {slug:'koding'       , type:'group'}
-    siftScience          : 'f270274999'
+    siftScience          : '91f469711c'
     paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
     pubnub               : { subscribekey: pubnub.subscribekey , ssl: no,  enabled: yes     }
     collaboration        : KONFIG.collaboration
@@ -312,7 +312,9 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
+        command         :
+          run           : "#{GOBIN}/go-webserver -c #{configName}"
+          watch         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
       nginx             :
         locations       : [ location: "~^/IDE/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -340,7 +342,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port}  -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile}  -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -369,7 +371,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/broker -c #{configName}"
+        command         :
+          run           : "#{GOBIN}/broker -c #{configName}"
+          watch         : "#{GOBIN}/watcher -run koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -382,7 +386,9 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/rerouting -c #{configName}"
+        command         :
+          run           : "#{GOBIN}/rerouting -c #{configName}"
+          watch         : "#{GOBIN}/watcher -run koding/rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
@@ -430,7 +436,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         :
+          run           : "#{GOBIN}/api -c #{socialapi.configFilePath} -port=#{socialapi.port}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi apidev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
@@ -469,12 +477,154 @@ Configuration = (options={}) ->
           }
         ]
 
+    topicfeed           :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/topicfeed -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed -c #{socialapi.configFilePath}"
+
+    realtime            :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/realtime -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime -c #{socialapi.configFilePath}"
+
+    populartopic        :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/populartopic -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/populartopic -watch socialapi/workers/populartopic -c #{socialapi.configFilePath}"
+
+    popularpost         :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/popularpost -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/popularpost -watch socialapi/workers/popularpost -c #{socialapi.configFilePath}"
+
+    notification        :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/notification -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification -c #{socialapi.configFilePath}"
+
+    trollmode           :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/trollmode -watch socialapi/workers/trollmode -c #{socialapi.configFilePath}"
+
+    pinnedpost          :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/pinnedpost -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/pinnedpost -watch socialapi/workers/pinnedpost -c #{socialapi.configFilePath}"
+
+    algoliaconnector    :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/algoliaconnector -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector -c #{socialapi.configFilePath}"
+
+    activityemail       :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/activityemail -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail -c #{socialapi.configFilePath}"
+
+    dailyemail          :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/dailyemail -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail -c #{socialapi.configFilePath}"
+
+    privatemessageemailsender:
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemailsender -c #{socialapi.configFilePath}"
+
+    privatemessageemailfeeder:
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+
+    privatemessageemailfeeder:
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/privatemessageemailfeeder -watch socialapi/workers/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+
+    sitemapfeeder       :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/sitemapfeeder -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapfeeder -watch socialapi/workers/sitemapfeeder -c #{socialapi.configFilePath}"
+
+    sitemapgenerator    :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapgenerator -watch socialapi/workers/sitemapgenerator -c #{socialapi.configFilePath}"
+
+    collaboration       :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/collaboration -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -c #{socialapi.configFilePath}"
+
+    mailsender          :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/emailsender -watch socialapi/workers/emailsender -c #{socialapi.configFilePath}"
+
+    topicmoderation     :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/topicmoderation -c #{socialapi.configFilePath}"
+
+    team                :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/team -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c #{socialapi.configFilePath}"
+
+    eventsender         :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/eventsender -c #{socialapi.configFilePath}"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/eventsender -watch socialapi/workers/eventsender -c #{socialapi.configFilePath}"
+
     gatekeeper          :
       group             : "socialapi"
       ports             :
         incoming        : "#{gatekeeper.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make gatekeeperdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         :
+          run           : "#{GOBIN}/gatekeeper -c #{socialapi.configFilePath}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi gatekeeperdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/gatekeeper/healthCheck"
       versionURL        : "#{customDomain.local}/api/gatekeeper/version"
       nginx             :
@@ -486,14 +636,18 @@ Configuration = (options={}) ->
     dispatcher          :
       group             : "socialapi"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         :
+          run           : "#{GOBIN}/dispatcher -c #{socialapi.configFilePath}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi dispatcherdev config=#{socialapi.configFilePath}"
 
     paymentwebhook      :
       group             : "socialapi"
       ports             :
         incoming        : paymentwebhook.port
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make paymentwebhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         :
+          run           : "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath} -kite-init=true"
+          watch         : "make -C #{projectRoot}/go/src/socialapi paymentwebhookdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :
@@ -507,7 +661,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/watcher -run koding/vmwatcher"
+        command         :
+          run           : "#{GOBIN}/vmwatcher"
+          watch         : "#{GOBIN}/watcher -run koding/vmwatcher"
       nginx             :
         locations       : [ { location: "/vmwatcher" } ]
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
@@ -518,7 +674,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{integration.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make webhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         :
+          run           : "#{GOBIN}/webhook -c #{socialapi.configFilePath}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi webhookdev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/integration/healthCheck"
       versionURL        : "#{customDomain.local}/api/integration/version"
       nginx             :
@@ -532,7 +690,9 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{webhookMiddleware.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make middlewaredev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         :
+          run           : "#{GOBIN}/webhookmiddleware -c #{socialapi.configFilePath}"
+          watch         : "make -C #{projectRoot}/go/src/socialapi middlewaredev config=#{socialapi.configFilePath}"
       healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
       versionURL        : "#{customDomain.local}/api/webhook/version"
       nginx             :
@@ -631,25 +791,30 @@ Configuration = (options={}) ->
 
     workersRunList = ->
       workers = ""
-      for key,val of KONFIG.workers
+      for name, worker of KONFIG.workers when worker.supervisord
 
-        continue  unless val.supervisord
+        {command} = worker.supervisord
+
+        if typeof command is 'object'
+          {run, watch} = command
+          command = if options.runGoWatcher then watch else run
+
         workers += """
 
-        function worker_daemon_#{key} {
+        function worker_daemon_#{name} {
 
-          #------------- worker: #{key} -------------#
-          #{val.supervisord.command} &>#{projectRoot}/.logs/#{key}.log &
-          #{key}pid=$!
-          echo [#{key}] started with pid: $#{key}pid
+          #------------- worker: #{name} -------------#
+          #{command} &>#{projectRoot}/.logs/#{name}.log &
+          #{name}pid=$!
+          echo [#{name}] started with pid: $#{name}pid
 
 
         }
 
-        function worker_#{key} {
+        function worker_#{name} {
 
-          #------------- worker: #{key} -------------#
-          #{val.supervisord.command}
+          #------------- worker: #{name} -------------#
+          #{command}
 
         }
 
@@ -871,21 +1036,15 @@ Configuration = (options={}) ->
         # Do npm i incase of packages.json changes
         npm i --silent
 
-        # this is a temporary adition, normally file watcher should delete the created file later on
-        cd #{projectRoot}/go/bin
-
         # Remove old watcher files (do we still need this?)
-        rm -rf goldorf-main-*
-        rm -rf watcher-*
+        rm -rf #{projectRoot}/go/bin/goldorf-main-*
+        rm -rf #{projectRoot}/go/bin/watcher-*
 
         # Run Go builder
         #{projectRoot}/go/build.sh
 
         # Run Social Api builder
-        cd #{projectRoot}/go/src/socialapi
-        make configure
-
-        cd #{projectRoot}
+        make -C #{projectRoot}/go/src/socialapi configure
 
         # Do PG Migration if necessary
         migrate up
