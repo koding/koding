@@ -37,11 +37,6 @@ module.exports = class TeamInviteTabForm extends KDFormView
       style    : 'TeamsModal-button compact TeamsModal-button--gray add'
       callback : @bound 'addInvitee'
 
-    @skip = new CustomLinkView
-      title    : 'Skip this step'
-      cssClass : 'TeamsModal-linkButton skip'
-      href     : '/Team/username'
-
     @button = new KDButtonView
       title      : 'NEXT'
       style      : 'TeamsModal-button TeamsModal-button--green'
@@ -67,5 +62,5 @@ module.exports = class TeamInviteTabForm extends KDFormView
     <div class='additional'></div>
     {{> @add}}
     <p class='dim'>if you’d like, you can send invitations after you finish setting up your team.</p>
-    {{> @skip}}{{> @button}}
+    {{> @button}}
     """
