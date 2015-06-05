@@ -112,9 +112,45 @@ func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
 
 func (mwc *Controller) CreateIntegrations() {
 	mwc.log.Notice("Creating integration channels")
+
+	githubInt := webhookmodels.NewIntegration()
+	githubInt.Title = "GitHub"
+	githubInt.Name = "github"
+	githubInt.Summary = "Source control and code management."
+	githubInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/github.png"
+	githubInt.Description = "GitHub offers online source code hosting for Git projects, with powerful collaboration, code review, and issue tracking. \n \n This integration will post commits, pull requests, and activity on GitHub Issues to a channel in Slack."
+
+	if err := githubInt.Create(); err != nil {
+		mwc.log.Error("Could not create integration: %s", err)
+	}
+
+	pivotalInt := webhookmodels.NewIntegration()
+	pivotalInt.Title = "Pivotal Tracker"
+	pivotalInt.Name = "pivotal"
+	pivotalInt.Summary = "Collaborative, lightweight agile project management."
+	pivotalInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/pivotaltracker.png"
+	pivotalInt.Description = "Pivotal Tracker is an agile project management tool that shows software teams their work in progress and allows them to track upcoming milestones. This integration will post updates to a channel in Slack whenever a story activity occurs in Pivotal Tracker."
+
+	if err := pivotalInt.Create(); err != nil {
+		mwc.log.Error("Could not create integration: %s", err)
+	}
+
+	travisInt := webhookmodels.NewIntegration()
+	travisInt.Title = "Travis CI"
+	travisInt.Name = "travis"
+	travisInt.Summary = "Hosted software build services."
+	travisInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/travisci.png"
+	travisInt.Description = "Travis CI is a continuous integration platform that takes care of running your software tests and deploying your apps. This integration will allow your team to receive notifications in Slack for normal branch builds, and for pull requests, as well."
+
+	if err := travisInt.Create(); err != nil {
+		mwc.log.Error("Could not create integration: %s", err)
+	}
+
 	i := webhookmodels.NewIntegration()
 	i.Title = "iterable"
 	i.Name = "iterable"
+	i.Summary = "Email engagement service"
+	i.IsPrivate = true
 
 	err := i.Create()
 	if err != nil {
@@ -145,6 +181,7 @@ func (mwc *Controller) CreateIntegrations() {
 		mwc.log.Error("Could not create channel integration: %s", err)
 		return
 	}
+
 }
 
 func (mwc *Controller) CreateBotUser() {

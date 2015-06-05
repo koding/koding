@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"socialapi/models"
+	"socialapi/request"
 	"testing"
 
 	"github.com/koding/runner"
@@ -47,6 +48,40 @@ func TestIntegrationCreate(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(ni.Id, ShouldEqual, i.Id)
 			})
+		})
+	})
+
+}
+
+func TestIntegrationList(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err)
+	}
+	defer r.Close()
+
+	Convey("while listing an integration", t, func() {
+		name1 := ".B" + models.RandomGroupName()
+		name2 := ".A" + models.RandomGroupName()
+		firstInt := CreateIntegration(t, name1)
+		secondInt := CreateIntegration(t, name2)
+
+		Convey("it should sort integrations by name", func() {
+			i := NewIntegration()
+			ints, err := i.List(&request.Query{})
+			So(err, ShouldBeNil)
+
+			So(len(ints), ShouldBeGreaterThanOrEqualTo, 2)
+			So(ints[0].Name, ShouldEqual, name2)
+			So(ints[1].Name, ShouldEqual, name1)
+		})
+
+		Reset(func() {
+			err := firstInt.Delete()
+			So(err, ShouldBeNil)
+
+			err = secondInt.Delete()
+			So(err, ShouldBeNil)
 		})
 	})
 }

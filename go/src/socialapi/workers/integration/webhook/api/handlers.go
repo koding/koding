@@ -25,7 +25,15 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 		},
 	)
 
-	// TODO list integrations handler
+	m.AddHandler(
+
+		handler.Request{
+			Handler:  h.List,
+			Name:     "webhook-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/list",
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{

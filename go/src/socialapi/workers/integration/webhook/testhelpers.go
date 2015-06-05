@@ -82,6 +82,21 @@ func CreateIntegration(t *testing.T, name string) *Integration {
 	return i
 }
 
+func CreatePrivateIntegration(t *testing.T) *Integration {
+
+	i := NewIntegration()
+	i.Title = models.RandomName()
+	i.Name = i.Title
+	i.IsPrivate = true
+
+	err := i.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return i
+}
+
 func CreateTestChannelIntegration(t *testing.T) *ChannelIntegration {
 	account := createTestAccount(t)
 
