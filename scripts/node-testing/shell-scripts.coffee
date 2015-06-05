@@ -17,7 +17,7 @@ module.exports =
     nodejsServer : (publicIpAddress) ->
 
       return "ssh -o 'StrictHostKeyChecking no' \
-      -i $KODING_DEPLOYMENT_KEY \
+      -i ./scripts/test-instance/koding-test-instances-2015-06.pem \
       ubuntu@#{publicIpAddress} \
       'sudo /opt/koding/run nodeservertests'"
 
