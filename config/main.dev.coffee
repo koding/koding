@@ -117,7 +117,7 @@ Configuration = (options={}) ->
     clientId              : "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0.apps.googleusercontent.com"
     clientSecret          : "8-gOw1ckGNW2bDgdxPHGdQh7"
     serviceAccountEmail   : "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0@developer.gserviceaccount.com"
-    serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"
+    serviceAccountKeyFile : "#{projectRoot}/keys/KodingCollaborationDev201506.pem"
 
   segment                 = 'kb2hfdgf20'
 
