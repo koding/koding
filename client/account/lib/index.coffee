@@ -143,7 +143,8 @@ module.exports = class AccountAppController extends AppController
 
     # Temporary solution to hide this from other users ~ GG
     if checkFlag 'super-admin'
-      items.push { slug : 'Credentials', title : "Credentials", listHeader: "Your Credentials", listType: "credentials" }
+      items.push { slug : 'Credentials',   title : "Credentials",   listHeader: "Your Credentials",          listType: "credentials" }
+      items.push { slug : 'TwoFactorAuth', title : "2-Factor Auth", listHeader: "Two-Factor Authentication", listType: "twofactorauth" }
 
     @navController.instantiateListItems items
 
