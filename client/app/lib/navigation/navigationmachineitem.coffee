@@ -80,7 +80,7 @@ module.exports = class NavigationMachineItem extends JView
 
     isMine     = @machine.isMine()
     isApproved = @machine.isApproved()
-    cssClass   = if (isMine or isApproved)) and @settingsEnabled() then '' else 'hidden'
+    cssClass   = if (isMine or isApproved) and @settingsEnabled() then '' else 'hidden'
 
     @settingsIcon = new KDCustomHTMLView
       tagName     : 'span'
