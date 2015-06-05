@@ -3,20 +3,28 @@ StyledText = require './styledtext'
 
 
 module.exports = class Cursor
-  constructor: (@terminal) ->
-    @x = 0
-    @y = 0
-    @element = null
-    @inversed = true
-    @visible = true
-    @focused = true
+
+  constructor: (terminal) ->
+
+    @terminal      = terminal
+    @element       = null
+
+    @x             = 0
+    @y             = 0
+    @savedX        = 0
+    @savedY        = 0
+
+    @inversed      = yes
+    @visible       = yes
+    @focused       = yes
+
     @blinkInterval = null
-    @savedX = 0
-    @savedY = 0
     @resetBlink()
+
 
   move: (x, y) ->
     @moveTo @x + x, @y + y
+
 
   moveTo: (x, y) ->
     x = Math.max x, 0
@@ -31,35 +39,50 @@ module.exports = class Cursor
     @terminal.screenBuffer.addLineToUpdate lastY if lastY < @terminal.sizeY and y isnt lastY
     @terminal.screenBuffer.addLineToUpdate y
 
+
   savePosition: ->
     @savedX = @x
     @savedY = @y
 
+
   restorePosition: ->
     @moveTo @savedX, @savedY
 
+
   setVisibility: (value) ->
-    return if @visible is value
+
+    return  if @visible is value
+
     @visible = value
     @element = null
+    
     @terminal.screenBuffer.addLineToUpdate @y
 
+
   setFocused: (value) ->
-    return if @focused is value or @stopped
+    return  if @focused is value or @stopped
+
     @focused = value
     @resetBlink()
 
-  setBlinking: (@blinking) -> @resetBlink()
+
+  setBlinking: (blinking) ->
+    @blinking = blinking
+    @resetBlink()
+
 
   stopBlink: ->
     @stopped = true
     @resetBlink()
 
+
   resetBlink: ->
+
     if @blinkInterval?
       global.clearInterval @blinkInterval
       @blinkInterval = null
-    @inversed = true
+
+    @inversed = yes
     @updateCursorElement()
     if (@focused and not @stopped) and @blinking
       @blinkInterval = global.setInterval =>
@@ -67,8 +90,11 @@ module.exports = class Cursor
         @updateCursorElement()
       , 600
 
+
   addCursorElement: (content) ->
-    return content if not @visible
+
+    return content  unless @visible
+
     newContent = content.substring 0, @x
     newContent.merge = false
     @element = content.substring(@x, @x + 1).get(0) ? new StyledText(" ", @terminal.currentStyle)
@@ -81,9 +107,10 @@ module.exports = class Cursor
     newContent
 
   updateCursorElement: ->
-    return if not @element?
-    @element.style.outlined = not @focused
-    @element.style.inverse = @focused and @inversed
+
+    return  unless @element?
+
+    @element.style.outlined = !@focused
+    @element.style.inverse  =  @focused and @inversed
+
     @element.updateNode()
-
-
