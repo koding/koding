@@ -3,6 +3,7 @@ KDListView                          = kd.ListView
 KDView                              = kd.View
 
 AccountBilling                      = require './views/accountbilling'
+LeaveGroupView                      = require './views/leavegroupview'
 AccountEditorList                   = require './accounteditorlist'
 AccountSshKeyList                   = require './accountsshkeylist'
 PrivacyPolicyView                   = require './views/privacypolicyview'
@@ -44,6 +45,7 @@ module.exports = class AccountListWrapper extends KDView
     credentials                : AccountCredentialList
     twofactorauth              : AccountTwoFactorAuth
     deleteAccount              : DeleteAccountView
+    leaveGroup                 : LeaveGroupView
     termsOfService             : TermsOfServiceView
     privacyPolicy              : PrivacyPolicyView
     shortcuts                  : AccountEditShortcuts
