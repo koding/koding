@@ -1,14 +1,14 @@
-kd = require 'kd'
-remote = require('app/remote').getInstance()
-KDView = kd.View
-KDListViewController = kd.ListViewController
-KDCustomHTMLView = kd.CustomHTMLView
-Machine = require 'app/providers/machine'
-NavigationMachineItem = require 'app/navigation/navigationmachineitem'
-SidebarWorkspaceItem = require './sidebarworkspaceitem'
-MoreWorkspacesModal = require 'app/activity/sidebar/moreworkspacesmodal'
-AddWorkspaceView = require 'app/addworkspaceview'
-IDEAppController = require 'ide'
+kd                      = require 'kd'
+remote                  = require('app/remote').getInstance()
+KDView                  = kd.View
+KDListViewController    = kd.ListViewController
+KDCustomHTMLView        = kd.CustomHTMLView
+Machine                 = require 'app/providers/machine'
+NavigationMachineItem   = require 'app/navigation/navigationmachineitem'
+SidebarWorkspaceItem    = require './sidebarworkspaceitem'
+MoreWorkspacesModal     = require 'app/activity/sidebar/moreworkspacesmodal'
+AddWorkspaceView        = require 'app/addworkspaceview'
+IDEAppController        = require 'ide'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -43,6 +43,15 @@ module.exports = class SidebarMachineBox extends KDView
       kd.utils.wait 733, => # wait showing popup to get the coordinates correctly
         environmentDataProvider.setLastUpdatedMachineUId null
         @machineItem.showSidebarSharePopup()
+
+
+    computeController = kd.getSingleton 'computeController'
+    computeController.on "stateChanged-#{@machine._id}", @bound 'handleStateChanged'
+
+
+  handleStateChanged: (state) ->
+
+    @machineItem.settingsIcon.show()  if state is Machine.State.Running
 
 
   createMachineItem: ->
