@@ -4,7 +4,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
-	"strings"
 	"testing"
 
 	"labix.org/v2/mgo/bson"
@@ -37,7 +36,7 @@ func TestAccountSaved(t *testing.T) {
 				user, err := modelhelper.GetUser(acc.Nick)
 				So(err, ShouldBeNil)
 
-				makeSureWithSearch(
+				err = makeSureWithSearch(
 					handler,
 					IndexAccounts,
 					user.Email,
@@ -63,6 +62,8 @@ func TestAccountSaved(t *testing.T) {
 						return true
 					},
 				)
+
+				So(err, ShouldBeNil)
 			})
 		})
 	})
@@ -92,34 +93,41 @@ func TestAccountUpdated(t *testing.T) {
 
 				// update user's email
 				selector := bson.M{"username": acc.Nick}
-				updateQuery := bson.M{
-					"email": models.RandomGroupName() + "@bar.com",
-				}
+				newEmail := models.RandomGroupName() + "@bar.com"
+				updateQuery := bson.M{"email": newEmail}
 				err = modelhelper.UpdateUser(selector, updateQuery)
 				So(err, ShouldBeNil)
 
 				err = handler.AccountUpdated(acc)
 				So(err, ShouldBeNil)
 
-				err = makeSureAccount(handler, acc.OldId, func(record map[string]interface{}, err error) bool {
-					if err != nil {
-						return false
-					}
+				err = makeSureWithSearch(
+					handler,
+					IndexAccounts,
+					newEmail,
+					map[string]interface{}{"restrictSearchableAttributes": "email"},
+					func(record map[string]interface{}, err error) bool {
+						if err != nil {
+							return false
+						}
 
-					if record == nil {
-						return false
-					}
+						if record == nil {
+							return false
+						}
 
-					email, ok := record["email"]
-					if email == nil || !ok {
-						return false
-					}
+						hits, ok := record["nbHits"]
+						if hits == nil || !ok {
+							return false
+						}
 
-					return strings.HasSuffix(email.(string), "@bar.com")
-				})
+						if hits.(float64) <= 0 {
+							return false
+						}
+
+						return true
+					})
 				So(err, ShouldBeNil)
 			})
-
 		})
 	})
 }
