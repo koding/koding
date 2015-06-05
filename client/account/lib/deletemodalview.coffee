@@ -1,12 +1,12 @@
-kd = require 'kd'
+kd                   = require 'kd'
+nick                 = require 'app/util/nick'
+remote               = require('app/remote').getInstance()
+Machine              = require 'app/providers/machine'
+globals              = require 'globals'
+kookies              = require 'kookies'
+trackEvent           = require 'app/util/trackEvent'
+KDNotificationView   = kd.NotificationView
 KDModalViewWithForms = kd.ModalViewWithForms
-KDNotificationView = kd.NotificationView
-Machine = require 'app/providers/machine'
-remote = require('app/remote').getInstance()
-nick = require 'app/util/nick'
-trackEvent = require 'app/util/trackEvent'
-kookies = require 'kookies'
-globals = require 'globals'
 
 
 module.exports = class DeleteModalView extends KDModalViewWithForms

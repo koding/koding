@@ -1,22 +1,23 @@
 kd                    = require 'kd'
-KDBlockingModalView   = kd.BlockingModalView
-KDCustomHTMLView      = kd.CustomHTMLView
-KDListView            = kd.ListView
-KDListViewController  = kd.ListViewController
-KDModalView           = kd.ModalView
-KDNotificationView    = kd.NotificationView
-KDTabPaneView         = kd.TabPaneView
-KDTabView             = kd.TabView
 KDView                = kd.View
 remote                = require('app/remote').getInstance()
-AccountListWrapper    = require './accountlistwrapper'
-AccountNavigationItem = require './accountnavigationitem'
-ReferrerModal         = require './views/referrermodal'
 whoami                = require 'app/util/whoami'
+Encoder               = require 'htmlencode'
+isKoding              = require 'app/util/isKoding'
+KDTabView             = kd.TabView
 checkFlag             = require 'app/util/checkFlag'
 showError             = require 'app/util/showError'
+KDListView            = kd.ListView
+KDModalView           = kd.ModalView
+KDTabPaneView         = kd.TabPaneView
 AppController         = require 'app/appcontroller'
-Encoder               = require 'htmlencode'
+ReferrerModal         = require './views/referrermodal'
+KDCustomHTMLView      = kd.CustomHTMLView
+AccountListWrapper    = require './accountlistwrapper'
+KDNotificationView    = kd.NotificationView
+KDBlockingModalView   = kd.BlockingModalView
+KDListViewController  = kd.ListViewController
+AccountNavigationItem = require './accountnavigationitem'
 require('./routehandler')()
 
 

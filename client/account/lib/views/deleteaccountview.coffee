@@ -1,7 +1,7 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+kd              = require 'kd'
+JView           = require 'app/jview'
+KDButtonView    = kd.ButtonView
 DeleteModalView = require '../deletemodalview'
-JView = require 'app/jview'
 
 
 module.exports = class DeleteAccountView extends JView
