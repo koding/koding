@@ -66,13 +66,13 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     channel = @getData()
 
     @startSession = new ButtonViewWithProgressBar
-      button          :
+      buttonOptions   :
         title         : 'START SESSION'
         cssClass      : 'solid green start-session'
         callback      : @bound 'initiateSession'
-      progress        :
+      progressOptions :
         title         : 'STARTING SESSION'
-      loader          :
+      loaderOptions   :
         size          : width : 20
         loaderOptions :
           color       : '#FFFFFF'
