@@ -76,14 +76,11 @@ module.exports = class NavigationMachineItem extends JView
         @handleMachineEvent event
 
 
-  isAvailableVM: ->
-
-    return (@machine.isMine() or @machine.isApproved()) and @settingsEnabled()
-
-
   createSettingsIcon: ->
 
-    cssClass   = if @isAvailableVM() then '' else 'hidden'
+    isMine     = @machine.isMine()
+    isApproved = @machine.isApproved()
+    cssClass   = if (isMine or isApproved)) and @settingsEnabled() then '' else 'hidden'
 
     @settingsIcon = new KDCustomHTMLView
       tagName     : 'span'
