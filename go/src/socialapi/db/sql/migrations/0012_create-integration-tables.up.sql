@@ -11,7 +11,7 @@ DO $$
   END;
 $$;
 
-GRANT usage ON SCHEMA integration to socialapplication;
+GRANT usage ON SCHEMA integration to social;
 
 --
 -- create the sequence
@@ -26,9 +26,9 @@ DO $$
   END;
 $$;
 
-GRANT USAGE ON SEQUENCE "integration"."integration_id_seq" TO "socialapplication";
+GRANT USAGE ON SEQUENCE "integration"."integration_id_seq" TO "social";
 
-GRANT USAGE ON SEQUENCE "integration"."channel_integration_id_seq" TO "socialapplication";
+GRANT USAGE ON SEQUENCE "integration"."channel_integration_id_seq" TO "social";
 
 CREATE TYPE "integration"."integration_type_constant_enum" AS ENUM (
   'incoming',

@@ -1,11 +1,19 @@
 -- Run this part in postgres database
 CREATE ROLE social;
 
+-- old socialapplication user
 CREATE USER socialapplication PASSWORD 'socialapplication';
+
+-- new socialapp user
+CREATE USER socialapp201506 PASSWORD 'socialapp201506';
+
+-- social superuser
 CREATE USER social_superuser PASSWORD 'social_superuser';
 
+-- grant access to social role for all users
 GRANT social TO socialapplication;
---GRANT social_superuser TO social WITH ADMIN OPTION;
+GRANT social TO socialapp201506;
+
 ALTER USER social_superuser WITH SUPERUSER;
 
 -- After Amazon RDS, we dont need tablespaces
