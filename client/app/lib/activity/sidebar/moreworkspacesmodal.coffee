@@ -2,7 +2,6 @@ kd                 = require 'kd'
 KDButtonView       = kd.ButtonView
 KDModalView        = kd.ModalView
 ModalWorkspaceItem = require './modalworkspaceitem'
-OnboardingEvent = require 'app/onboarding/onboardingevent'
 
 
 module.exports = class MoreWorkspacesModal extends KDModalView
@@ -30,7 +29,7 @@ module.exports = class MoreWorkspacesModal extends KDModalView
       @addSubView view = new ModalWorkspaceItem {}, workspace
       view.once 'ModalItemSelected', @bound 'destroy'
 
-    { onboardingController } = kd.singletons
-    onboardingController.runOnboarding OnboardingEvent.WorkspaceSettingsOpened, yes
+    { onboarding } = kd.singletons
+    onboarding.run 'WorkspaceSettingsOpened', yes
     @on 'KDModalViewDestroyed', ->
-      onboardingController.stopOnboarding OnboardingEvent.WorkspaceSettingsOpened
+      onboarding.stop 'WorkspaceSettingsOpened'

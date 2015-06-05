@@ -4,7 +4,7 @@ KDSelectBox = kd.SelectBox
 globals = require 'globals'
 KodingSwitch = require 'app/commonviews/kodingswitch'
 CustomPartialHelpers = require 'dashboard/custompartialhelpers'
-OnboardingEvent = require 'app/onboarding/onboardingevent'
+OnboardingEvents = require 'app/onboarding/onboardingevents'
 OnboardingEventName = require './onboardingeventname'
 
 module.exports = class OnboardingSectionForm extends KDFormViewWithFields
@@ -15,7 +15,7 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
   constructor: (options = {}, data) ->
 
     groups = []
-    groups.push { title: OnboardingEventName[event], value: event }  for event of OnboardingEvent
+    groups.push { title: OnboardingEventName[event], value: event }  for event in OnboardingEvents
 
     options.cssClass      = "section-form"
     @jCustomPartial       = data

@@ -5,8 +5,8 @@ kd = require 'kd'
 whoami = require 'app/util/whoami'
 checkFlag = require 'app/util/checkFlag'
 KDController = kd.Controller
+OnboardingEvents = require './onboardingevents'
 OnboardingViewController = require './onboardingviewcontroller'
-OnboardingEvent = require './onboardingevent'
 OnboardingConstants = require './onboardingconstants'
 Promise = require 'bluebird'
 
@@ -20,9 +20,9 @@ module.exports = class OnboardingController extends KDController
   ###
   CooperativeOnboardings = [
     [
-      OnboardingEvent.IDELoaded
-      OnboardingEvent.CollaborationStarted
-      OnboardingEvent.IDESettingsOpened
+      'IDELoaded'
+      'CollaborationStarted'
+      'IDESettingsOpened'
     ]
   ]
 
@@ -82,7 +82,7 @@ module.exports = class OnboardingController extends KDController
   ready: ->
 
     if @isPreviewMode()
-      @resetOnboardings @bound 'processPendingQueue'
+      @reset @bound 'processPendingQueue'
     else
       @processPendingQueue()
 
@@ -93,7 +93,7 @@ module.exports = class OnboardingController extends KDController
   processPendingQueue: ->
 
     @isReady = yes
-    @runOnboarding args...  for args in @pendingQueue
+    @run args...  for args in @pendingQueue
 
 
   ###*
@@ -109,7 +109,7 @@ module.exports = class OnboardingController extends KDController
    * @param {isModal} isModal  - a flag shows if onboarding is running on the modal.
    * In this case onboarding items should have higher z-index
   ###
-  runOnboarding: (name, isModal) ->
+  run: (name, isModal) ->
 
     return @pendingQueue.push [].slice.call(arguments)  unless @isReady
 
@@ -221,10 +221,10 @@ module.exports = class OnboardingController extends KDController
    *
    * @param {function} callback - it's called once the list is saved
   ###
-  resetOnboardings: (callback) ->
+  reset: (callback) ->
 
     events = []
-    events.push event  for event of OnboardingEvent when @onboardings[event]?
+    events.push event  for event in OnboardingEvents when @onboardings[event]?
     @appStorage.setValue OnboardingConstants.RESET_ONBOARDINGS, events, callback
 
 
@@ -237,7 +237,7 @@ module.exports = class OnboardingController extends KDController
    * @param {string} name        - name of onboarding which items should be refreshed
    * @param {bool} isCooperative - a flag shows if it's necessary to refresh cooperative onboardings
   ###
-  refreshOnboarding: (name, isCooperative = yes) ->
+  refresh: (name, isCooperative = yes) ->
 
     @viewController.refreshItems name
     @refreshCooperativeOnboardings name  if isCooperative
@@ -254,20 +254,20 @@ module.exports = class OnboardingController extends KDController
     for onboardings in CooperativeOnboardings
       if onboardings.indexOf(name) > -1
         for cooperativeOnboarding in onboardings when cooperativeOnboarding isnt name
-          @refreshOnboarding cooperativeOnboarding, no
+          @refresh cooperativeOnboarding, no
 
   ###*
    * Removes onboarding items from the page
    *
    * @param {string} name - onboarding name
   ###
-  stopOnboarding: (name) -> @viewController.clearItems name
+  stop: (name) -> @viewController.clearItems name
 
 
   ###*
    * Handles FrontAppIsChanged event of appManager and hides all
    * onboarding items at that moment. If a new app has onboardings,
-   * they will be run using runOnboarding() later when the page is ready
+   * they will be run using run() later when the page is ready
    *
    * @param {object} appInstance     - new application
    * @param {object} prevAppInstance - previous application
