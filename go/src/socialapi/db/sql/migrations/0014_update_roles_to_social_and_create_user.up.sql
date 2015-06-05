@@ -29,5 +29,23 @@ BEGIN
 END
 $body$
 ;
-
 GRANT social TO socialapp201506;
+
+DO
+$body$
+BEGIN
+   IF NOT EXISTS (
+      SELECT *
+      FROM   pg_catalog.pg_user
+      WHERE  usename = 'kontrolapp201506') THEN
+
+      CREATE USER kontrolapp201506 PASSWORD 'kontrolapp201506';
+   END IF;
+END
+$body$
+;
+
+GRANT kontrol TO kontrolapp201506;
+
+
+ALTER USER paymentro with password 'N8bG8ZVjp2y87Zxfi3';
