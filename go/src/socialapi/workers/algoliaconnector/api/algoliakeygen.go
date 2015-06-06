@@ -25,17 +25,17 @@ func (h *Handler) GenerateKey(u *url.URL, header http.Header, _ interface{}, con
 		return response.NewBadRequest(err)
 	}
 
-	apiKey, err := h.generateApiKey(c, accountId)
+	searchOnlyKey, err := h.generateSearchOnlyKey(c, accountId)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(&Response{ApiKey: apiKey})
+	return response.NewOK(&Response{ApiKey: searchOnlyKey})
 }
 
-func (h *Handler) generateApiKey(c *models.Channel, accountId int64) (string, error) {
+func (h *Handler) generateSearchOnlyKey(c *models.Channel, accountId int64) (string, error) {
 	tagFilter := generateTagFilters(c, accountId)
-	return h.client.GenerateSecuredApiKey(h.apiKey, tagFilter)
+	return h.client.GenerateSecuredApiKey(h.searchOnlyKey, tagFilter)
 }
 
 func generateTagFilters(c *models.Channel, accountId int64) string {
