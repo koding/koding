@@ -62,7 +62,7 @@ module.exports = class Cursor
 
     @visible = value
     @element = null
-    
+
     @terminal.screenBuffer.addLineToUpdate @y
 
 
@@ -96,7 +96,7 @@ module.exports = class Cursor
 
     if @blinking and (@focused and @windowFocused and not @stopped)
       @blinkInterval = global.setInterval =>
-        @inversed = slowDrawing or !@inversed
+        @inversed = slowDrawing or not @inversed
         @updateCursorElement()
       , 600
 

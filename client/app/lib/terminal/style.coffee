@@ -20,8 +20,8 @@ module.exports = class Style
 
   isDefault: ->
 
-    return no  if this[decor] for decor in DECORS
-    return no  if this[color] for color in COLORS
+    return no  for decor in DECORS when this[decor]
+    return no  for color in COLORS when this[color]
 
     return yes
 
