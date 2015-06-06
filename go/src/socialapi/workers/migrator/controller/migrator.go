@@ -118,7 +118,22 @@ func (mwc *Controller) CreateIntegrations() {
 	githubInt.Name = "github"
 	githubInt.Summary = "Source control and code management."
 	githubInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/github.png"
-	githubInt.Description = "GitHub offers online source code hosting for Git projects, with powerful collaboration, code review, and issue tracking. \n \n This integration will post commits, pull requests, and activity on GitHub Issues to a channel in Slack."
+	githubInt.Description = "GitHub offers online source code hosting for Git projects, with powerful collaboration, code review, and issue tracking. \n \n This integration will post commits, pull requests, and activity on GitHub Issues to a channel in Koding."
+	githubInt.Instructions = `
+    #### Step 1
+
+    In your GitHub account, go to the repository that you'd like to monitor. Click on the **Settings** tab in the right navigation.
+
+    ![github_step1.png](https://koding-cdn.s3.amazonaws.com/temp-images/airbrake_step1.png)
+
+
+    #### Step 2
+
+    Click on **Webhooks & Services** in the left navigation, and then press the **Add webhook** button.
+
+    ![airbrake_step2.png](https://koding-cdn.s3.amazonaws.com/temp-images/airbrake_step2.png)
+
+    `
 
 	if err := githubInt.Create(); err != nil {
 		mwc.log.Error("Could not create integration: %s", err)
@@ -129,7 +144,7 @@ func (mwc *Controller) CreateIntegrations() {
 	pivotalInt.Name = "pivotal"
 	pivotalInt.Summary = "Collaborative, lightweight agile project management."
 	pivotalInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/pivotaltracker.png"
-	pivotalInt.Description = "Pivotal Tracker is an agile project management tool that shows software teams their work in progress and allows them to track upcoming milestones. This integration will post updates to a channel in Slack whenever a story activity occurs in Pivotal Tracker."
+	pivotalInt.Description = "Pivotal Tracker is an agile project management tool that shows software teams their work in progress and allows them to track upcoming milestones. This integration will post updates to a channel in Koding whenever a story activity occurs in Pivotal Tracker."
 
 	if err := pivotalInt.Create(); err != nil {
 		mwc.log.Error("Could not create integration: %s", err)
@@ -140,7 +155,7 @@ func (mwc *Controller) CreateIntegrations() {
 	travisInt.Name = "travis"
 	travisInt.Summary = "Hosted software build services."
 	travisInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/travisci.png"
-	travisInt.Description = "Travis CI is a continuous integration platform that takes care of running your software tests and deploying your apps. This integration will allow your team to receive notifications in Slack for normal branch builds, and for pull requests, as well."
+	travisInt.Description = "Travis CI is a continuous integration platform that takes care of running your software tests and deploying your apps. This integration will allow your team to receive notifications in Koding for normal branch builds, and for pull requests, as well."
 
 	if err := travisInt.Create(); err != nil {
 		mwc.log.Error("Could not create integration: %s", err)

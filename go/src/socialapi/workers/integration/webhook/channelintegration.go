@@ -28,13 +28,13 @@ type ChannelIntegration struct {
 	Token string `json:"token" sql:"NOT NULL;TYPE:VARCHAR(20)"`
 
 	// Id of the integration
-	IntegrationId int64 `json:"integrationId" sql:"NOT NULL;TYPE:BIGINT"`
+	IntegrationId int64 `json:"integrationId,string" sql:"NOT NULL;TYPE:BIGINT"`
 
 	// Group name of the integration
 	GroupName string `json:"groupName" sql:"NOT NULL;TYPE:VARCHAR(200)"`
 
 	// Id of the channel
-	ChannelId int64 `json:"groupChannelId" sql:"NOT NULL;TYPE:BIGINT"`
+	ChannelId int64 `json:"channelId,string" sql:"NOT NULL;TYPE:BIGINT"`
 
 	// Id of the creator
 	CreatorId int64 `json:"creatorId" sql:"NOT NULL;TYPE:BIGINT"`

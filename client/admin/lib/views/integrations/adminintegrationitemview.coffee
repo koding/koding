@@ -72,26 +72,47 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
 
 
   fetchIntegrationChannels: ->
+    data = @getData()
 
-    remote.api.JAccount.some {}, {}, (err, data) =>
+    @fetchChannels (err, channels) =>
+      return  if err
+
+      data.channels = channels
+
       @button.hideLoader()
-      @emit 'IntegrationGroupsFetched', DUMMY_DATA.setupData
+      @emit 'IntegrationGroupsFetched', data
 
 
   fetchIntegrationDetails: ->
+    { title, summary, description, iconPath } = @getData()
 
     remote.api.JAccount.some {}, {}, (err, data) =>
       @button.hideLoader()
       @emit 'IntegrationConfigureRequested', DUMMY_DATA.detailsData
 
 
+  fetchChannels: (callback) ->
+    kd.singletons.socialapi.account.fetchChannels (err, channels) =>
+      return callback err  if err
+
+      decoratedChannels = []
+      for channel in channels
+        { id, typeConstant, name, purpose, participantsPreview } = channel
+
+        # TODO after refactoring the private channels, we also need
+        # to add them here
+        if typeConstant is 'topic' or typeConstant is 'group'
+          decoratedChannels.push { name:"##{name}", id }
+
+      callback null, decoratedChannels
+
   pistachio: ->
 
-    { name, desc, logo } = @getData()
+    { title, summary, iconPath } = @getData()
 
     return """
-      <img src="#{logo}" />
-      {p{ #(name)}}
-      {span{ #(desc)}}
+      <img src="#{iconPath}" />
+      {p{ #(title)}}
+      {span{ #(summary)}}
       {{> @button}}
     """

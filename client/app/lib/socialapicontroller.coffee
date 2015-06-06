@@ -807,3 +807,35 @@ module.exports = class SocialApiController extends KDController
 
         return callback null, response.data
 
+    create               : (options, callback) ->
+
+      doXhrRequest {
+        endPoint : "/api/integration/channelintegration/create"
+        type     : 'POST'
+        data     : options
+      }, (err, response) ->
+
+        return callback err  if err
+
+        return callback null, response.data
+
+    update              : (options, callback) ->
+
+      { id } = options
+      doXhrRequest {
+        endPoint : "/api/integration/channelintegration/#{id}/update"
+        type     : 'POST'
+        data     : options
+      }, callback
+
+    fetchChannelIntegrations : (callback) ->
+
+      doXhrRequest {
+        endPoint : "/api/integration/channelintegration/list"
+        type     : 'GET'
+      }, (err, response) ->
+        return callback err  if err
+
+        return callback null, response.data
+
+
