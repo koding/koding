@@ -10,12 +10,12 @@ module.exports = class LeaveGroupModal extends DeleteModalView
 
     data = nick()
 
-    options.title       = 'Please confirm group leave action'
-    options.buttonTitle = 'Leave Group'
+    options.title       = 'Please confirm'
+    options.buttonTitle = 'Leave Team'
     options.content     = """
       <div class='modalformline'>
         <p>
-          <strong>CAUTION! </strong>You will leave your current group and you will not be able to login again. This action <strong>CANNOT</strong> be undone.
+          <strong>CAUTION! </strong>You are going to leave your team and you will not be able to login again. This action <strong>CANNOT</strong> be undone.
         </p>
         <br>
         <p>Please enter <strong>#{data}</strong> into the field below to continue: </p>

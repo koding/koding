@@ -6,8 +6,8 @@ module.exports = class LeaveGroupView extends DeleteAccountView
 
   constructor: (options, data) ->
 
-    options.headerTitle = 'Leave from your group'
-    options.buttonTitle = 'Leave Group'
+    options.headerTitle = 'Leave from your team'
+    options.buttonTitle = 'Leave team'
     options.modalClass  =  LeaveGroupModal
 
     super options, data

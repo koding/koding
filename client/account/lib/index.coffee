@@ -52,7 +52,7 @@ module.exports = class AccountAppController extends AppController
       title : 'Danger'
       items : [
         { slug: 'Delete', title : 'Delete account', listType: 'deleteAccount' }
-        { slug: 'Leave',  title : 'Leave group',    listType: 'leaveGroup' }
+        { slug: 'Leave',  title : 'Leave team',     listType: 'leaveGroup'    }
       ]
 
 
