@@ -42,9 +42,10 @@ Password        = "DEQl7_Dr"
 RedisDB = 2
 
 [algolia]
-AppId          = "DYVV81J2S1"
-ApiSecretKey   = "682e02a34e2a65dc774f5ec355ceca33"
-IndexSuffix    = ".test"
+AppId            = "DYVV81J2S1"
+ApiSecretKey     = "682e02a34e2a65dc774f5ec355ceca33"
+IndexSuffix      = ".test"
+ApiSearchOnlyKey = "8dc0b0dc39282effe9305981d427fec7"
 
 [mixpanel]
 Enabled       = false
