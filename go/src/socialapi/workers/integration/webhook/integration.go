@@ -133,3 +133,17 @@ func (i *Integration) List(q *request.Query) ([]Integration, error) {
 
 	return ints, nil
 }
+
+func (i *Integration) FetchByIds(ids []int64) ([]Integration, error) {
+	var integrations []Integration
+
+	if len(ids) == 0 {
+		return integrations, nil
+	}
+
+	if err := bongo.B.FetchByIds(i, &integrations, ids); err != nil {
+		return nil, err
+	}
+
+	return integrations, nil
+}

@@ -230,6 +230,19 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 	return response.NewDefaultOK()
 }
 
+func (h *Handler) ListChannelIntegrations(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	ics := webhook.NewIntegrationContainers()
+	if err := ics.Populate(ctx.GroupName); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ics))
+}
+
 func (h *Handler) isChannelValid(channelId, accountId int64) error {
 	c := models.NewChannel()
 	if err := c.ById(channelId); err != nil {

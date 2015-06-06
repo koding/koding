@@ -137,3 +137,22 @@ func (i *ChannelIntegration) RegenerateToken() error {
 
 	return i.Update()
 }
+
+func (i *ChannelIntegration) ByGroupName(groupName string) ([]ChannelIntegration, error) {
+	var ints []ChannelIntegration
+	if groupName == "" {
+		return ints, nil
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name": groupName,
+		},
+	}
+
+	if err := i.Some(&ints, query); err != nil {
+		return nil, err
+	}
+
+	return ints, nil
+}
