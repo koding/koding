@@ -66,12 +66,7 @@ module.exports = class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    isMine     = @machine.isMine()
-    isApproved = @machine.isApproved()
-
-    if (isMine or isApproved) and @settingsEnabled()
-    then @createSettingsIcon()
-    else @createSettingsIconPlaceholder()
+    @createSettingsIcon()
 
     kd.singletons.computeController
       .on "reconnecting-#{@machine.uid}", =>
@@ -83,17 +78,20 @@ module.exports = class NavigationMachineItem extends JView
 
   createSettingsIcon: ->
 
+    isMine     = @machine.isMine()
+    isApproved = @machine.isApproved()
+    cssClass   = if (isMine or isApproved) and @settingsEnabled() then '' else 'hidden'
+
     @settingsIcon = new KDCustomHTMLView
       tagName     : 'span'
+      cssClass    : cssClass
       click       : (e) =>
         kd.utils.stopDOMEvent e
+
+        return  unless @settingsEnabled()
+
         if @machine.isMine() then @handleMachineSettingsClick()
         else if @machine.isApproved() then @showSidebarSharePopup()
-
-
-  createSettingsIconPlaceholder: ->
-
-    @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
 
 
   moveSettingsIconLeft : ->

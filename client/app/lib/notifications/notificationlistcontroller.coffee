@@ -1,9 +1,9 @@
-showError = require '../util/showError'
-kd = require 'kd'
-KDListView = kd.ListView
-KDListViewController = kd.ListViewController
-KDView = kd.View
-NotificationListItemView = require './notificationlistitemview'
+showError                 = require '../util/showError'
+kd                        = require 'kd'
+KDListView                = kd.ListView
+KDListViewController      = kd.ListViewController
+KDView                    = kd.View
+NotificationListItemView  = require './notificationlistitemview'
 
 
 module.exports = class NotificationListController extends KDListViewController

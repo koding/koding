@@ -64,3 +64,17 @@ module.exports =
       .pause                    8000 # wait for latency to make sure really unliked on server
       .waitForElementVisible    afterUnlikeSelector, 25000
       .end()
+
+
+  checkSharePopup: (browser) ->
+
+    helpers.postActivity(browser)
+
+    selector           = activitySelector + ' .activity-actions span.optional'
+    sharePopupSelector = '.activity-share-popup'
+
+    browser
+      .waitForElementVisible  selector, 25000
+      .click                  selector
+      .waitForElementVisible  sharePopupSelector, 20000
+      .waitForElementVisible  sharePopupSelector + ' input.share-input', 20000 # Assertion
