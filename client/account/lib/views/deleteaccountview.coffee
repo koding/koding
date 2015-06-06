@@ -1,31 +1,30 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+kd              = require 'kd'
+JView           = require 'app/jview'
+KDButtonView    = kd.ButtonView
 DeleteModalView = require '../deletemodalview'
-JView = require 'app/jview'
 
 
 module.exports = class DeleteAccountView extends JView
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
 
-    options.cssClass = 'delete-account-view'
+    options.cssClass      = 'delete-account-view'
+    options.headerTitle or= 'Delete your account'
+    options.buttonTitle or= 'Delete Account'
+    options.modalClass  or= DeleteModalView
 
     super options, data
 
     @button = new KDButtonView
-      title      : "Delete Account"
-      cssClass   : "delete-account solid red fr small"
+      title      : options.buttonTitle
+      cssClass   : 'delete-account solid red fr small'
       callback   : ->
         @disable()
-        deleteModalView = new DeleteModalView
+        deleteModalView = new options.modalClass
         deleteModalView.on 'KDModalViewDestroyed', @bound 'enable'
 
   pistachio:->
+    return """
+      <h4 class="kdview kdheaderview"><span>#{@getOptions().headerTitle}</span></h4>
+      {{> @button}}
     """
-    <h4 class="kdview kdheaderview"><span>Delete your account</span></h4>
-    {{> @button}}
-    """
-
-
-
-
