@@ -209,6 +209,84 @@ body.ide .dark
     left                    0
     z-index                 10000 // yes!
 
+  .ws-tabview .split-handle
+    position                absolute
+    size                    14px 14px
+    z-index                 1
+    cursor                  pointer
+
+    .icon
+      size                  0 0
+      position              absolute
+      display               block
+      vendor                transform, scale(1)
+      vendor                transition, transform .177s .177s ease
+
+    &:hover .icon
+      vendor                transform, scale(3)
+
+  .vertical-split-handle
+    top                     0
+    left                    50%
+    vendor                  transform, translateX(-50%)
+    vendor                  transition, height .347s .177s ease
+
+    // line to preview split action
+    &:after
+      display               block
+      content               ''
+      position              absolute
+      top                   0
+      left                  3px
+      height                0
+      width                 1px
+      bg                    color, #ccc
+      vendor                transition, height .347s .177s ease // required to make anim in sync.
+
+    .icon
+      margin                0 auto
+      border-left           3px solid transparent
+      border-right          3px solid transparent
+      border-top            3px solid #ccc
+
+    &:hover
+      height                100%
+
+    &:hover:after
+      height                100%
+
+  .horizontal-split-handle
+    top                     50%
+    right                   0
+    vendor                  transform, translateY(-50%)
+    vendor                  transition, width .347s .177s ease
+    z-index                 1000
+
+    // line to preview split action
+    &:before
+      display               block
+      content               ''
+      position              absolute
+      top                   3px
+      right                 0
+      height                1px
+      width                 0
+      bg                    color, #ccc
+      vendor                transition, width .347s .177s ease // required to make anim in sync.
+
+    .icon
+      right                 0
+      border-top            3px solid transparent
+      border-bottom         3px solid transparent
+      border-right          3px solid #ccc
+      margin                auto 0 auto auto
+
+    &:hover
+      width                 100%
+
+    &:hover:before
+      width                 100%
+
 // common app styling
 .ide
   .kdsplitview-resizer
