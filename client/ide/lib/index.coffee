@@ -271,15 +271,18 @@ class IDEAppController extends AppController
 
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
 
-    @recalculateCloseHandles()
+    @recalculateHandles()
 
 
-  recalculateCloseHandles: ->
+  recalculateHandles: ->
 
-    if @ideViews.length > 1
-      @ideViews.forEach (i) -> i.holderView.showCloseHandle()
-    else
-      @ideViews.forEach (i) -> i.holderView.hideCloseHandle()
+    closeHandleMethod = if @ideViews.length > 1
+    then 'showCloseHandle'
+    else 'hideCloseHandle'
+
+    @ideViews.forEach (view) ->
+      view.holderView[closeHandleMethod]()
+      view.ensureSplitHandlers()
 
 
   mergeSplitView: ->
@@ -310,7 +313,7 @@ class IDEAppController extends AppController
 
     splitView.merge()
 
-    @recalculateCloseHandles()
+    @recalculateHandles()
 
 
   handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
