@@ -36,6 +36,15 @@ module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
     #   cssClass : 'toggle'
     #   click    : @bound 'createToggleMenu'
 
+    @tabView.tabHandleContainer.on 'viewAppended', =>
+
+      # hijack close handle for files pane and change it to toggle the file tree.
+      @tabView.tabHandleContainer.closeHandle.off 'click'
+      @tabView.tabHandleContainer.closeHandle.on 'click', (event) =>
+        kd.utils.stopDOMEvent event
+        {frontApp} = kd.singletons.appManager
+        frontApp.toggleSidebar()
+
     @tabView.tabHandleContainer.tabs.addSubView @logo = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'kd-logo'
