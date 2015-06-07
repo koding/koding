@@ -22,6 +22,24 @@ text-color-green            = #4EA04C
 // theming
 body.ide
 
+  .sidebar-close-handle
+    position                absolute
+    top                     0
+    right                   0
+    width                   30px
+    height                  30px
+
+    // importants are here because `hidden` class adds
+    // an !important to display.
+    visibility              visible !important
+    display                 block !important
+
+    .icon
+      display               block
+      margin                15px auto
+      r-sprite              ide, tab-close
+
+
   .application-page
     border-left             2px solid dark-tab-header-bg
     bg                      color, dark-panel-bg
@@ -152,9 +170,13 @@ body.ide .dark
     .general-handles .kdtabhandle
       opacity               1
 
-  .kdtabhandle.close-handle .icon
-    r-sprite                'ide', 'tab-close'
-    width                   9px
+  .kdtabhandle.close-handle
+    .icon
+      r-sprite              'ide', 'tab-close'
+      width                 9px
+
+  .kdtabhandle.close-handle.activity-sidebar
+    position                absolute
 
   .kdtabhandle.fullscreen-handle .icon
     r-sprite                'ide', 'fullscreen'
@@ -344,7 +366,7 @@ body.ide .dark
 .ide-files-tab .application-tabview
   overflow                  hidden
 
-.ide-files-tab .general-handles
+.ide-files-tab .general-handles .fullscreen-handle
   hidden()
 
 
@@ -408,6 +430,9 @@ body.ide .dark
     .kdtabhandle
       left                  40px
 
+    .general-handles
+      hidden()
+
   .application-page.sidebar-collapsed .ide-files-tab
     .kdtabhandle
       left                  0
@@ -427,6 +452,10 @@ body.ide .dark
     .application-tab-handle-holder
       size                  39px, 100%
       fl()
+
+    .general-handles
+      opacity               0
+      hidden()
 
     .kdtabhandle
       float                 none
