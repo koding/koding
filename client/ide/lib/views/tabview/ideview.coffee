@@ -27,6 +27,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     options.tabViewClass     = IDEApplicationTabView
     options.createNewEditor ?= yes
     options.bind             = 'dragover drop'
+    options.addSplitHandlers ?= yes
 
     super options, data
 
@@ -59,7 +60,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @focusTab()
 
     @tabView.on 'PaneAdded', (pane) =>
+
+      { addSplitHandlers } = @getOptions()
+
+      @ensureSplitHandlers()  if addSplitHandlers
+
       return unless pane.options.editor
+
       {tabHandle} = pane
 
       icon = new KDCustomHTMLView
@@ -69,6 +76,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       tabHandle.addSubView icon, null, yes
 
+
     # This is a custom event for IDEApplicationTabView
     # to distinguish between user actions and programmed actions
     @tabView.on 'PaneRemovedByUserAction', (pane)=>
@@ -76,6 +84,36 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       if view instanceof IDETerminalPane
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
+
+
+  createSplitHandle = (type) ->
+
+    handle = new kd.CustomHTMLView
+      cssClass : "split-handle #{type}-split-handle"
+      partial  : '<span class="icon"></span>'
+
+    handle.setStyle { visibility: 'hidden' }
+
+    return handle
+
+
+  ensureSplitHandlers: ->
+
+    @verticalSplitHandle?.destroy()
+
+    @tabView.addSubView @verticalSplitHandle = createSplitHandle 'vertical'
+    @verticalSplitHandle.on 'click', @lazyBound 'emit', 'VerticalSplitHandleClicked'
+
+    notifier = setupSplitHandleNotifier @verticalSplitHandle
+    @on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
+
+    @horizontalSplitHandle?.destroy()
+
+    @tabView.addSubView @horizontalSplitHandle = createSplitHandle 'horizontal'
+    @horizontalSplitHandle.on 'click', @lazyBound 'emit', 'HorizontalSplitHandleClicked'
+
+    notifier = setupSplitHandleNotifier @horizontalSplitHandle
+    @on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
 
 
   createPane_: (view, paneOptions, paneData) ->
