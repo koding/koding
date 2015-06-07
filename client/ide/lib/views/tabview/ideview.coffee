@@ -13,10 +13,12 @@ IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
 IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
 KDCustomHTMLView      = kd.CustomHTMLView
 KDSplitViewPanel      = kd.SplitViewPanel
+ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
 
+HANDLE_PROXIMITY_DISTANCE = 100
 
 module.exports = class IDEView extends IDEWorkspaceTabView
 
@@ -544,4 +546,33 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     index = null  if index < 0
 
     kd.singletons.appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
+
+
+toggleVisibility = (handle, state) ->
+  el = handle.getElement()
+  el.style.visibility = state
+
+
+setupSplitHandleNotifier = (handle) ->
+
+  splitTop = handle.getY()
+  splitLeft = handle.getX()
+
+  notifier = new ProximityNotifier
+    handler: ->
+      { pageX, pageY } = event
+
+      distX = Math.pow splitLeft - pageX, 2
+      distY = Math.pow splitTop - pageY, 2
+      dist  = Math.sqrt distX + distY
+
+      return dist < HANDLE_PROXIMITY_DISTANCE
+
+  notifier.on 'MouseInside', -> toggleVisibility handle, 'visible'
+  notifier.on 'MouseOutside', -> toggleVisibility handle, 'hidden'
+
+  handle.on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
+
+  return notifier
+
 
