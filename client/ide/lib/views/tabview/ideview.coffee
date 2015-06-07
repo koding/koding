@@ -1,21 +1,21 @@
+$                     = require 'jquery'
 kd                    = require 'kd'
+nick                  = require 'app/util/nick'
+FSFile                = require 'app/util/fs/fsfile'
+KDView                = kd.View
+FSHelper              = require 'app/util/fs/fshelper'
+IDEHelpers            = require '../../idehelpers'
+IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
 KDContextMenu         = kd.ContextMenu
+KDTabPaneView         = kd.TabPaneView
+IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
+IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
+IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
 KDCustomHTMLView      = kd.CustomHTMLView
 KDSplitViewPanel      = kd.SplitViewPanel
-KDTabPaneView         = kd.TabPaneView
-KDView                = kd.View
-nick                  = require 'app/util/nick'
-FSHelper              = require 'app/util/fs/fshelper'
-FSFile                = require 'app/util/fs/fsfile'
-showErrorNotification = require 'app/util/showErrorNotification'
-IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
-IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
-IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
-IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
-IDEHelpers            = require '../../idehelpers'
-$                     = require 'jquery'
+showErrorNotification = require 'app/util/showErrorNotification'
 
 
 module.exports = class IDEView extends IDEWorkspaceTabView
