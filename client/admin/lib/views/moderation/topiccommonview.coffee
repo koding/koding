@@ -63,7 +63,7 @@ module.exports = class TopicCommonView extends KDView
     @listController.on 'LazyLoadThresholdReached', =>
       
       if @skip is 0 and @searchSkip is 0
-        @fetchChannels
+        @fetchChannels()
       else if @skip is 0 
         @search()
       else 
@@ -106,7 +106,7 @@ module.exports = class TopicCommonView extends KDView
     
     @skip = 0  # revert skip of normal listing
     
-    @searchSkip += channels?.length
+    @searchSkip += channels.length
     @listChannels err, channels
 
 
@@ -118,7 +118,7 @@ module.exports = class TopicCommonView extends KDView
     
     @searchSkip = 0
     
-    @skip += channels?.length
+    @skip += channels.length
     
     @listChannels err, channels
 
@@ -165,4 +165,4 @@ module.exports = class TopicCommonView extends KDView
   isSameSearch : (query = "") ->
     @lastQuery or= ''
     
-    return true if query is @lastQuery
+    return query is @lastQuery
