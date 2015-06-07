@@ -40,6 +40,16 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
     @on 'CloseHandleClicked', @bound 'closeSplitView'
     @on 'FullscreenHandleClicked', @bound 'toggleFullscreen'
+    @on 'VerticalSplitHandleClicked', =>
+      {frontApp} = kd.singletons.appManager
+      frontApp.setActiveTabView @tabView
+      frontApp.splitVertically()
+      @ensureSplitHandlers()
+    @on 'HorizontalSplitHandleClicked', =>
+      {frontApp} = kd.singletons.appManager
+      frontApp.setActiveTabView @tabView
+      frontApp.splitHorizontally()
+      @ensureSplitHandlers()
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
