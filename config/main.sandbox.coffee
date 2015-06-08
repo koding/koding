@@ -217,7 +217,7 @@ Configuration = (options={}) ->
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
     logLevel                       : {neo4jfeeder   : "notice"                                       , oskite: "info"                                               , terminal: "info"                                                                      , kontrolproxy  : "notice"                                           , kontroldaemon : "notice"                                           , userpresence  : "notice"                                          , vmproxy: "notice"      , graphitefeeder: "notice"                                                           , sync: "notice" , topicModifier : "notice" , postModifier  : "notice" , router: "notice" , rerouting: "notice" , overview: "notice" , amqputil: "notice" , rabbitMQ: "notice" , ldapserver: "notice" , broker: "notice"}
     aws                            : {key           : ''                                             , secret        : ''}
-    embedly                        : {apiKey        : '94991069fb354d4e8fdb825e52d4134a'}
+    embedly                        : {apiKey        : '537d6a2471864e80b91d9f4a78384873'}
     troubleshoot                   : {recipientEmail: "can@koding.com"}
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     segment                        : segment
