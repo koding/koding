@@ -19,7 +19,6 @@ envHelpers                    = require './collaboration/helpers/environment'
 CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
-OnboardingEvent               = require 'app/onboarding/onboardingevent'
 
 {warn} = kd
 
@@ -738,7 +737,10 @@ module.exports = CollaborationController =
     @chat.emit 'CollaborationStarted'
     @statusBar.emit 'CollaborationStarted'
 
-    kd.singletons.onboardingController.runOnboarding OnboardingEvent.CollaborationStarted
+    { onboarding } = kd.singletons
+    onboarding.run 'CollaborationStarted'
+    @chat.on ['ViewBecameHidden', 'ViewBecameVisible'], ->
+      onboarding.refresh 'CollaborationStarted'
 
 
   onCollaborationEnding: ->
@@ -755,6 +757,8 @@ module.exports = CollaborationController =
       @endCollaborationForParticipant =>
         @modal?.destroy()
         @handleCollaborationEndedForParticipant()
+
+    kd.singletons.onboarding.stop 'CollaborationStarted'
 
 
   endCollaborationForHost: (callback) ->

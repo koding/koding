@@ -21,7 +21,6 @@ AppController                 = require 'app/appcontroller'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
 splashMarkups                 = require './util/splashmarkups'
-OnboardingEvent               = require 'app/onboarding/onboardingevent'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
 KDCustomHTMLView              = kd.CustomHTMLView
@@ -112,9 +111,7 @@ class IDEAppController extends AppController
 
       @resizeActiveTerminalPane()
 
-      {onboardingController} = kd.singletons
-      if appManager.frontApp is this and @isMachineRunning()
-        onboardingController?.runOnboarding OnboardingEvent.IDELoaded
+      @runOnboarding()  if @isMachineRunning()
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -514,6 +511,7 @@ class IDEAppController extends AppController
           baseMachineKite.fetchTerminalSessions()
           @prepareCollaboration()
           @bindKlientEvents machineItem
+          @runOnboarding()
 
         else
           unless @machineStateModal
@@ -525,7 +523,9 @@ class IDEAppController extends AppController
             if state is NotInitialized
               @setupFakeActivityNotification()
 
-          @once 'IDEReady', => @prepareCollaboration()
+          @once 'IDEReady', =>
+            @prepareCollaboration()
+            @runOnboarding()
 
         @bindMachineEvents machineItem
         @bindWorkspaceDataEvents()
@@ -1019,13 +1019,10 @@ class IDEAppController extends AppController
       else
         @addInitialViews()
 
-      { mainView, onboardingController, appManager } = kd.singletons
+      { mainView } = kd.singletons
 
       data = { machine, workspace: @workspaceData }
       mainView.activitySidebar.selectWorkspace data
-
-      if appManager.frontApp is this
-        onboardingController.runOnboarding OnboardingEvent.IDELoaded
 
       @emit 'IDEReady'
 
@@ -1546,3 +1543,9 @@ class IDEAppController extends AppController
 
     @setActiveTabView targetTabView
     @doResize()
+
+
+  runOnboarding: ->
+
+    { onboarding, appManager } = kd.singletons
+    onboarding.run 'IDELoaded'  if appManager.frontApp is this
