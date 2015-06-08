@@ -80,7 +80,9 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
       .once 'SubmitStarted', @bound 'hideEditForm'
       .once 'Cancel', @bound 'hideEditForm'
       .once 'SubmitSucceeded', @bound 'updateEmbedBox'
-      .once 'EditSucceeded', @bound 'updateEmbedBox'
+      .once 'EditSucceeded', =>
+        @checkIfItsTooTall()
+        @updateEmbedBox()
 
 
   showResend: ->
