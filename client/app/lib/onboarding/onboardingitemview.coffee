@@ -24,7 +24,7 @@ module.exports = class OnboardingItemView extends KDView
       @targetElement?.on 'KDObjectWillBeDestroyed', @bound 'handleTargetDestroyed'
 
       if @targetElement and not @targetElement.hasClass 'hidden'
-        { placementX, placementY, offsetX, offsetY, content, tooltipPlacement, color } = @getData()
+        { placementX, placementY, offsetX, offsetY, content, tooltipPlacement, color, targetIsScrollable } = @getData()
         @throbber = new ThrobberView {
           cssClass    : kd.utils.curry color, if isModal then 'modal-throbber' else ''
           delegate    : @targetElement
@@ -34,6 +34,7 @@ module.exports = class OnboardingItemView extends KDView
           offsetX
           offsetY
           tooltipPlacement
+          targetIsScrollable
         }
         @throbber.on 'TooltipReady', =>
           @startTrackDate = new Date()
