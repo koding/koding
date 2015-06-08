@@ -114,7 +114,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
       return  unless @isMySession()
 
-      @requestVideoPublishForHost()
+      @requestVideoPublishForHost => @changeActiveParticipant getNick()
 
 
   ###*
