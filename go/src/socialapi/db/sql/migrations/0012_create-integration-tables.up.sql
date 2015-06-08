@@ -5,13 +5,12 @@
 DO $$
   BEGIN
     BEGIN
-      CREATE SCHEMA integration;
-
+      CREATE SCHEMA IF NOT EXISTS integration;
     END;
   END;
 $$;
 
-GRANT usage ON SCHEMA integration to socialapplication;
+GRANT usage ON SCHEMA integration to social;
 
 --
 -- create the sequence
@@ -21,19 +20,49 @@ DO $$
   BEGIN
     BEGIN
       CREATE SEQUENCE "integration"."integration_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
+    EXCEPTION WHEN duplicate_table THEN
+      RAISE NOTICE 'integration.integration_id_seq sequence already exists';
     END;
-      CREATE SEQUENCE "integration"."channel_integration_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
   END;
 $$;
 
-GRANT USAGE ON SEQUENCE "integration"."integration_id_seq" TO "socialapplication";
+DO $$
+  BEGIN
+    BEGIN
+      CREATE SEQUENCE "integration"."channel_integration_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
+    EXCEPTION WHEN duplicate_table THEN
+      RAISE NOTICE 'integration.channel_integration_id_seq sequence already exists';
+    END;
+  END;
+$$;
 
-GRANT USAGE ON SEQUENCE "integration"."channel_integration_id_seq" TO "socialapplication";
+GRANT USAGE ON SEQUENCE "integration"."integration_id_seq" TO "social";
 
-CREATE TYPE "integration"."integration_type_constant_enum" AS ENUM (
-  'incoming',
-  'outgoing'
-);
+GRANT USAGE ON SEQUENCE "integration"."channel_integration_id_seq" TO "social";
+
+-- Create "integration"."integration_type_constant_enum"
+--
+-- All of this to create a type if it does not exist
+CREATE OR REPLACE FUNCTION create_integration_integration_type_constant_enum_type() RETURNS integer AS $$
+DECLARE v_exists INTEGER;
+BEGIN
+    SELECT into v_exists (SELECT 1 FROM pg_type WHERE typname = 'integration_type_constant_enum');
+    IF v_exists IS NULL THEN
+      CREATE TYPE "integration"."integration_type_constant_enum" AS ENUM (
+        'incoming',
+        'outgoing'
+      );
+    END IF;
+    RETURN v_exists;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function
+SELECT create_integration_integration_type_constant_enum_type();
+-- Remove the function
+DROP function create_integration_integration_type_constant_enum_type();
+
+
 --
 -- create integration table for storing general purpose integration definitions
 --
@@ -85,7 +114,16 @@ CREATE TABLE IF NOT EXISTS "integration"."channel_integration" (
 
 GRANT SELECT, INSERT, UPDATE ON "integration"."channel_integration" TO "social";
 
-CREATE INDEX  "channel_integration_token_idx" ON integration.channel_integration USING btree(token DESC NULLS LAST);
+DO $$
+  BEGIN
+    BEGIN
+      CREATE INDEX  "channel_integration_token_idx" ON integration.channel_integration USING btree(token DESC NULLS LAST);
+    EXCEPTION WHEN duplicate_table THEN
+      RAISE NOTICE 'channel_integration_token_idx index already exists';
+    END;
+  END;
+$$;
+
 
 
 --

@@ -14,8 +14,8 @@ module.exports = class S3 extends Base
   #
   # Do not change it or do not take it from config ~ GG
 
-  AWS_KEY      = "AKIAJ26X7D2XKXVSGUAA"
-  AWS_SECRET   = "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"
+  AWS_KEY      = KONFIG.awsKeys.worker_koding_client_s3_put_only.accessKeyId
+  AWS_SECRET   = KONFIG.awsKeys.worker_koding_client_s3_put_only.secretAccessKey
 
   AWS_BUCKET   = "koding-client"
   AWS_URL      = "https://#{AWS_BUCKET}.s3.amazonaws.com"

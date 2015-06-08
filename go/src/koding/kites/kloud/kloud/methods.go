@@ -186,7 +186,7 @@ func (k *Kloud) CreateSnapshot(r *kite.Request) (reqResp interface{}, reqErr err
 	return k.coreMethods(r, snapshotFunc)
 }
 
-func (k *Kloud) DeleteSnapshot(r *kite.Request) (interface{}, error) {
+func (k *Kloud) DeleteSnapshot(r *kite.Request) (resp interface{}, kiteErr error) {
 	var args struct {
 		SnapshotId string
 	}
@@ -198,6 +198,12 @@ func (k *Kloud) DeleteSnapshot(r *kite.Request) (interface{}, error) {
 	if args.SnapshotId == "" {
 		return nil, NewError(ErrSnapshotIdMissing)
 	}
+
+	defer func() {
+		if kiteErr != nil {
+			k.Log.New("username", r.Username, "snapshotId", args.SnapshotId).Error("Could not delete snapshot: %s", kiteErr.Error())
+		}
+	}()
 
 	account, err := modelhelper.GetAccount(r.Username)
 	if err != nil {

@@ -1,4 +1,4 @@
-CREATE USER paymentro PASSWORD '8QRzgCHJb2u4zyTtX';
+CREATE USER paymentro PASSWORD 'N8bG8ZVjp2y87Zxfi3';
 GRANT usage ON SCHEMA payment to paymentro;
 
 -- ----------------------------

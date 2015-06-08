@@ -43,9 +43,9 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
     - script:
-        name: set up koding deployment key
+        name: change mod of test instace private key
         code: |
-          chmod 600 $KODING_DEPLOYMENT_KEY
+          chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
     - mktemp:
         envvar: INSTANCE_IP
     - script:
@@ -57,6 +57,9 @@ build:
           INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
           scripts/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
           cat INSTANCE_DATA
+    - script:
+        name: copy prod creds
+        code: ./scripts/copy-prod-creds.sh
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
@@ -200,6 +203,8 @@ build:
           tail -n 100 /var/log/koding/social-webhookmiddleware.log || :
 deploy:
   steps:
+    - add-ssh-key:
+        keyname: DEPLOYMENT_KEY
     - script:
         name: deploy started
         code: |
@@ -214,6 +219,9 @@ deploy:
         code: |
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
+    - script:
+        name: copy prod creds
+        code: ./scripts/copy-prod-creds.sh
     - script:
         name: zip
         code: |

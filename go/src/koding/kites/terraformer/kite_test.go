@@ -15,9 +15,9 @@ import (
 )
 
 var variables = map[string]string{
-	"aws_access_key":   "AKIAJTDKW5IFUUIWVNAA",
+	"aws_access_key":   "",
+	"aws_secret_key":   "",
 	"aws_region":       "sa-east-1",
-	"aws_secret_key":   "BKULK7pWB2crKtBafYnfcPhh7Ak+iR/ChPfkvrLC",
 	"cidr_block":       "10.0.0.0/16",
 	"environment_name": "kodingterraformtest",
 }
