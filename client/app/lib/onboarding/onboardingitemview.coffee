@@ -1,137 +1,58 @@
 htmlencode            = require 'htmlencode'
-$                     = require 'jquery'
 kd                    = require 'kd'
 KDView                = kd.View
-KDButtonView          = kd.ButtonView
-KDCustomHTMLView      = kd.CustomHTMLView
-KDSpotlightView       = kd.SpotlightView
-OnboardingContextMenu = require '../onboardingcontextmenu'
 OnboardingMetrics     = require './onboardingmetrics'
 applyMarkdown         = require 'app/util/applyMarkdown'
+ThrobberView          = require './throbberview'
 
 module.exports = class OnboardingItemView extends KDView
 
-  ESC_KEY = 27
-
   ###*
-   * A view that renders onboarding tooltip and highlights target element
-  ###
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-    data                 = @getData()
-    {@items, @groupName} = @getOptions()
-    @itemName            = data.name
-    index                = @items.indexOf data
-    @isLast              = index is @items.length - 1
-    @hasNext             = not @isLast
-    @hasPrev             = index isnt 0
-
-
-  ###*
-   * Tries to find a target element in DOM
-   * If it's found, renders onboarding tooltip for it
-   * Otherwise, emits an event to let know that onboarding item can't be shown
+   * Tries to find a target element in DOM.
+   * If it's found, renders onboarding throbber with tooltip for it.
+   * Also, tracks the time user spent to view the onboarding tooltip
    *
-   * @emits OnboardingFailed
+   * @return {bool|Error} - yes if target element is found, otherwise - Error object
   ###
   render: ->
 
-    { path } = @getData()
+    { path, name } = @getData()
+    { onboardingName, isModal } = @getOptions()
 
     try
       @targetElement = @getViewByPath path
+      @targetElement?.on 'KDObjectWillBeDestroyed', @bound 'handleTargetDestroyed'
 
       if @targetElement and not @targetElement.hasClass 'hidden'
-        @createContextMenu()
-        @startTrackDate = new Date()
+        { placementX, placementY, offsetX, offsetY, content, tooltipPlacement, color } = @getData()
+        @throbber = new ThrobberView {
+          cssClass    : kd.utils.curry color, if isModal then 'modal-throbber' else ''
+          delegate    : @targetElement
+          tooltipText : "<div class='has-markdown'>#{applyMarkdown(content) ? ''}</div>"
+          placementX
+          placementY
+          offsetX
+          offsetY
+          tooltipPlacement
+        }
+        @throbber.on 'TooltipReady', =>
+          @startTrackDate = new Date()
+          @isViewed       = yes
+        @throbber.tooltip.on 'ReceivedClickElsewhere', =>
+          return  unless @startTrackDate
+          OnboardingMetrics.trackView onboardingName, name, new Date() - @startTrackDate
+          @startTrackDate = null
+        @throbber.on 'click', =>
+          if @isViewed
+            @throbber.destroy()
+            @emit 'OnboardingItemCompleted'
+        @show()
       else
-        console.warn 'Target element should be an instance of KDView and should be visible', { @groupName, @itemName }
-        @emit 'OnboardingFailed'
+        return new Error "Target is neither KDView or visible. name = #{name}, onboardingName = #{onboardingName}"
     catch e
-      console.warn "Couldn't create onboarding item", { @groupName, @itemName, e }
-      @emit 'OnboardingFailed'
+      return new Error "Couldn't create onboarding item. name = #{name}, onboardingName = #{onboardingName}"
 
-
-  ###*
-   * Renders onboarding tooltip with OnboardingContextMenu
-   * and highlights a target element with KDSpotlightView
-  ###
-  createContextMenu: ->
-
-    @overlay       = new KDSpotlightView
-      cssClass     : 'onboarding-spotlight'
-      isRemovable  : no
-      delegate     : @targetElement
-
-    @contextMenu   = new OnboardingContextMenu
-      cssClass     : 'onboarding-wrapper'
-      sticky       : yes
-      menuMaxWidth : 500
-      menuWidth    : 500
-      delegate     : @targetElement
-    , customView   : @createContentView()
-
-    @contextMenu.on 'viewAppended', =>
-      @contextMenu.once 'KDObjectWillBeDestroyed', =>
-        @destroy()
-
-      kd.utils.defer =>
-        $('body').addClass 'noscroll'
-
-    @contextMenu.treeController.on 'keyEventPerformedOnTreeView', (event) =>
-      @cancel()  if event.which is ESC_KEY
-
-
-  ###*
-   * Creates subviews for the content of onboarding tooltip
-   *
-   * @return {KDCustomHTMLView} - content view
-  ###
-  createContentView: ->
-
-    {title, content} = @getData()
-    title            = new KDCustomHTMLView { tagName  : 'h3', partial  : applyMarkdown title     }
-    content          = new KDCustomHTMLView { tagName  : 'p' , partial  : applyMarkdown content   }
-    buttonsWrapper   = new KDCustomHTMLView { cssClass : 'buttons'                                }
-    view             = new KDCustomHTMLView { cssClass : 'onboarding-item has-markdown'           }
-    closeButton      = new KDCustomHTMLView { cssClass : 'close-icon', click    : @bound 'cancel' }
-
-    if @hasPrev
-      prevButton   = new KDButtonView
-        cssClass   : 'solid compact light-gray'
-        title      : 'PREV'
-        callback   : @lazyBound 'requestNavigation', 'prev'
-
-    if @hasNext
-      nextButton   = new KDButtonView
-        cssClass   : 'solid green compact'
-        title      : 'NEXT'
-        callback   : @lazyBound 'requestNavigation', 'next'
-
-    if @isLast
-      doneButton   = new KDButtonView
-        cssClass   : 'solid green compact'
-        title      : 'DONE'
-        callback   : @bound 'complete'
-
-    if @items.length > 1
-      stepsWrapper = new KDCustomHTMLView
-        cssClass   : 'steps'
-
-      for item in @items
-        stepsWrapper.addSubView new KDCustomHTMLView
-          tagName  : 'span'
-          cssClass : if item is @getData() then 'active' else ''
-
-    for child in [ prevButton, nextButton, doneButton, stepsWrapper ] when child
-      buttonsWrapper.addSubView child
-
-    for child in [ title, content, buttonsWrapper, closeButton ] when child
-      view.addSubView child
-
-    return view
+    return yes
 
 
   ###*
@@ -154,67 +75,39 @@ module.exports = class OnboardingItemView extends KDView
 
 
   ###*
-   * It is executed when user clicks on Prev or Next button
-   * It tracks onboarding item completion and emits event
-   * to let know that prev/next onboarding item is requested
-   *
-   * @param {string} direction - direction of the onboarding navigation. Possible values are 'prev' and 'next'
-   * @emits NavigationRequested
+   * Refreshes throbber according to the target element
+   * visibility and position.
+   * If target element is absent, it tries to find it in DOM
+   * and if it exists, re-renders throbber for it
   ###
-  requestNavigation: (direction) ->
+  refresh: ->
 
-    @destroy()
-    OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
-    @emit 'NavigationRequested', direction
-
-
-  ###*
-   * It is executed when user clicks on Done button
-   * It tracks onboarding item completion and emits event
-   * to let know that onboarding is finished
-   *
-   * @emits OnboardingCompleted
-  ###
-  complete: ->
-
-    @destroy()
-    OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
-    @emit 'OnboardingCompleted'
+    if @targetElement?.isInDom()
+      domElement = @targetElement.getDomElement()
+      visible = domElement.is(':visible') and domElement.css('visibility') isnt 'hidden'
+      if visible
+        @show()
+        @throbber.setPosition()
+      else @hide()
+      return yes
+    else
+      @throbber?.destroy()
+      return @render()
 
 
-  ###*
-   * It is executed when user closes onboarding tooltip
-   * It tracks onboarding item cancellation and emits event
-   * to let know that onboarding is cancelled
-   *
-   * @emits OnboardingCancelled
-  ###
-  cancel: ->
-
-    @destroy()
-    OnboardingMetrics.trackCancelled @groupName, @itemName
-    @emit 'OnboardingCancelled'
+  show: -> @throbber?.show()
 
 
-  ###*
-   * Returns time spent from the moment when onboarding item was started
-   * till the current time
-   *
-   * @return {number} - number of milliseconds
-  ###
-  getTrackedTime: -> new Date() - @startTrackDate
+  hide: -> @throbber?.hide()
 
 
-  ###*
-   * Destroys the tooltip and all its subviews
-  ###
+  handleTargetDestroyed: ->
+
+    @targetElement = null
+    @throbber?.destroy()
+
+
   destroy: ->
 
+    @handleTargetDestroyed()
     super
-    @overlay?.destroy()
-    @contextMenu.destroy()
-    $('body').removeClass 'noscroll'
-
-
-
-

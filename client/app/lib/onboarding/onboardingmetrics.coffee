@@ -6,38 +6,27 @@ module.exports = class OnboardingMetrics extends DatadogMetrics
 
   ###*
    * Overrides base method setting name to 'Onboarding'
-   * and building state from onboarding group and item names
+   * and building state from onboarding and item names
    *
-   * @param {string} groupName - onboarding group name
-   * @param {string} itemName  - onboarding item name
-   * @param {number} count     - tracked count
+   * @param {string} onboardingName - onboarding name
+   * @param {string} itemName       - onboarding item name
+   * @param {number} count          - tracked count
   ###
-  @collect = (groupName, itemName, count) ->
+  @collect = (onboardingName, itemName, count) ->
 
     name  = 'Onboarding'
-    state = "#{groupName}:#{itemName}"
+    state = "#{onboardingName}:#{itemName}"
 
     super name, state, count
 
 
   ###*
-   * Tracks onboarding completion
+   * Tracks onboarding item view
    *
-   * @param {string} groupName - onboarding group name
-   * @param {string} itemName  - onboarding item name
-   * @param {number} count     - tracked time in miliseconds
+   * @param {string} onboardingName - onboarding name
+   * @param {string} itemName       - onboarding item name
+   * @param {number} count          - tracked time in miliseconds
   ###
-  @trackCompleted = (groupName, itemName, count) ->
+  @trackView = (onboardingName, itemName, count) ->
 
-    @collect groupName, "#{itemName}:completed_in", count
-
-
-  ###*
-   * Tracks onboarding cancellation
-   *
-   * @param {string} groupName - onboarding group name
-   * @param {string} itemName  - onboarding item name
-  ###
-  @trackCancelled = (groupName, itemName) ->
-
-    @collect groupName, "#{itemName}:cancelled"
+    @collect onboardingName, "#{itemName}:viewed_in", count
