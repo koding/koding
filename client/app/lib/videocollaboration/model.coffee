@@ -207,8 +207,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     if @state.publishing
 
-      return  if audioState is oldAudioState
-
       @setAudioState audioState
 
     else
