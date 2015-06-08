@@ -179,7 +179,7 @@ class IDEAppController extends AppController
     kite = machine.getBaseKite()
     kite.ready =>
       kem = new KlientEventManager {}, machine
-      kem.on 'openFiles', @bound 'handleKlientOpenFiles'
+      kem.subscribe 'openFiles', @bound 'handleKlientOpenFiles'
 
 
   bindWorkspaceDataEvents: ->
