@@ -1,21 +1,21 @@
 module.exports = [
-    #IDE
+    #Chats
     [
       {
-        position : [10, 15] #percent
-        content  : 'Your VM is easily accesible at all times. \n Create a workspace for every project that you are working on.'
+        position : [15, 38] #percent
+        content  : 'Get notified when there is new information \n for you to view.'
       },
       {
-        position : [55, 6] #percent
-        content  : 'The IDE supports multi-tab layouts so that you \n can have all your files open and within easy reach.'
+        position : [42, 6] #percent
+        content  : 'Add as many private chat participants as you want!'
       },
       {
-        position : [55, 32] #percent
-        content  : 'The Koding IDE supports syntax highlighting for \n all major programming languages.'
+        position : [64, 6] #percent
+        content  : 'Easily leave any chat.'
       },
       {
-        position : [26, 42] #percent
-        content  : 'Filetree gives you easy access to your VMs file system \n and supports easy uploads using drag and drop.'
+        position : [66, 40] #percent
+        content  : 'Messages posted on Koding\'s private or public \n channels have markdown support.'
       }
     ]
     #Terminal
@@ -35,6 +35,33 @@ module.exports = [
       {
         position : [10, 17] #percent
         content  : 'Each new workspace gets its own set of IDE and Terminal tabs \n so you can easily manage different projects.'
+      }
+    ]
+    #IDE
+    [
+      {
+        position : [10, 15] #percent
+        content  : 'Your VM is easily accesible at all times. \n Create a workspace for every project that you are working on.'
+      },
+      {
+        position : [55, 6] #percent
+        content  : 'The IDE supports multi-tab layouts so that you \n can have all your files open and within easy reach.'
+      },
+      {
+        position : [44, 60] #percent
+        content  : 'The Koding IDE supports syntax highlighting for \n all major programming languages.'
+      },
+      {
+        position : [26, 42] #percent
+        content  : 'Filetree gives you easy access to your VMs file system \n and supports easy uploads using drag and drop.'
+      },
+      {
+        position : [93, 13] #percent
+        content  : 'Easily see who\'s typing when \n you are collaborating.'
+      },
+      {
+        position : [93, 59] #percent
+        content  : 'Full audio/video collaboration \n with no plugins required.'
       }
     ]
     #Channels
@@ -77,25 +104,6 @@ module.exports = [
       {
         position : [20, 58] #percent
         content  : 'You can create custom sub-domains for your VM so you can \n easily run multiple virtual servers.'
-      }
-    ]
-    #Chats
-    [
-      {
-        position : [15, 38] #percent
-        content  : 'Get notified when there is new information \n for you to view.'
-      },
-      {
-        position : [42, 6] #percent
-        content  : 'Add as many private chat participants as you want!'
-      },
-      {
-        position : [64, 6] #percent
-        content  : 'Easily leave any chat.'
-      },
-      {
-        position : [66, 40] #percent
-        content  : 'Messages posted on Koding\'s private or public \n channels have markdown support.'
       }
     ]
   ]
