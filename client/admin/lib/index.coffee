@@ -2,6 +2,7 @@ kd                        = require 'kd'
 AppController             = require 'app/appcontroller'
 
 AdminAppView              = require './adminappview'
+GithubFlow                = require './views/githubflow'
 AdminMembersView          = require './views/members/adminmembersview'
 AdministrationView        = require './views/administrationview'
 CustomViewsManager        = require './views/customviews/customviewsmanager'
@@ -33,6 +34,7 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
         { slug : 'Integrations',   title : 'Integrations',      viewClass : AdminIntegrationsView    }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
+        { slug : 'Github',         title : 'Github Flow',       viewClass : GithubFlow               }
       ]
     koding     :
       title    : 'Koding Administration'
@@ -81,4 +83,3 @@ module.exports = class AdminAppController extends AppController
       if previousRoutes.length > 0
       then router.handleRoute previousRoutes.last
       else router.handleRoute router.getDefaultRoute()
-
