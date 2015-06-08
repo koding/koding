@@ -4,7 +4,7 @@ module.exports = class ReactBridge extends React.Component
 
   constructor: (props) ->
 
-    unless props.dispatcher
+    unless props?.dispatcher
       throw new Error "#{@constructor.name}: requires a dispatcher."
 
     super props
