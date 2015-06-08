@@ -461,7 +461,9 @@ activity.listitem.styl
         padding             0
         line-height         16px
         opacity             .99
-        margin-bottom       0
+
+        &.has-show-more
+          margin-bottom     12px
 
         &:after
           content           ''
@@ -802,7 +804,6 @@ activity.listitem.styl
     kalc                    width (100% \- 100px)
 
 .kdlistitemview .has-show-more
-  margin-bottom             12px
   overflow                  hidden
   max-height                400px
   opacity                   .99
