@@ -229,10 +229,18 @@ body.ide .dark
 
   .ws-tabview .split-handle
     position                absolute
-    size                    14px 14px
+    size                    2em 2em
     z-index                 1001
     cursor                  pointer
     opacity                 0
+    vendor                  transition, width .347s .177s ease\,\
+                                        height .347s .177s ease
+
+    &:after
+    &:before
+      z-index               1
+      bg                    color #131313
+
     &.in
       opacity               1
 
@@ -241,7 +249,7 @@ body.ide .dark
       position              absolute
       display               block
       vendor                transform, scale(1)
-      vendor                transition, transform .177s .177s ease
+      z-index               2
 
     &:hover .icon
       vendor                transform, scale(3)
@@ -249,26 +257,7 @@ body.ide .dark
   .vertical-split-handle
     top                     0
     left                    50%
-    vendor                  transform, translateX(-50%)
-    vendor                  transition, height .347s .177s ease
-
-    // line to preview split action
-    &:after
-      display               block
-      content               ''
-      position              absolute
-      top                   0
-      left                  3px
-      height                0
-      width                 1px
-      bg                    color, #ccc
-      vendor                transition, height .347s .177s ease // required to make anim in sync.
-
-    .icon
-      margin                0 auto
-      border-left           3px solid transparent
-      border-right          3px solid transparent
-      border-top            3px solid #ccc
+    margin-left             -1em
 
     &:hover
       height                100%
@@ -276,37 +265,60 @@ body.ide .dark
     &:hover:after
       height                100%
 
-  .horizontal-split-handle
-    top                     50%
-    right                   0
-    vendor                  transform, translateY(-50%)
-    vendor                  transition, width .347s .177s ease
-    z-index                 1000
-
     // line to preview split action
-    &:before
+    &:after
       display               block
       content               ''
       position              absolute
-      top                   3px
-      right                 0
-      height                1px
-      width                 0
-      bg                    color, #ccc
-      vendor                transition, width .347s .177s ease // required to make anim in sync.
+      abs                   0px 0 0 1em
+      size                  2px 0
+      margin-left           -1px
+      vendor                transition, height .177s .177s ease // required to make anim in sync.
 
     .icon
-      right                 0
-      border-top            3px solid transparent
-      border-bottom         3px solid transparent
-      border-right          3px solid #ccc
-      margin                auto 0 auto auto
+      top                   0px
+      left                  1em
+      margin-left           -3px
+      border                3px solid #ccc
+      border-color          #ccc transparent transparent
+      vendor                transition, all .177s .177s ease
+
+    &:hover .icon
+      top                   3px
+      border-color          #131313 transparent transparent
+
+
+  .horizontal-split-handle
+    top                     50%
+    right                   0
+    margin-top              -1em
 
     &:hover
       width                 100%
 
     &:hover:before
       width                 100%
+
+    // line to preview split action
+    &:before
+      display               block
+      content               ''
+      abs                   1em 0px 0 0
+      size                  0 2px
+      margin-top            -1px
+      vendor                transition, width .347s .177s ease // required to make anim in sync.
+
+    .icon
+      top                   1em
+      right                 0
+      border                3px solid #ccc
+      border-color          transparent #ccc transparent transparent
+      margin-top            -3px
+      vendor                transition, all .177s .177s ease
+
+    &:hover .icon
+      right                 3px
+      border-color          transparent #131313 transparent transparent
 
 // common app styling
 .ide
