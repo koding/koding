@@ -19,8 +19,8 @@ module.exports =
     vmSelector    = ".activity-sidebar .sidebar-machine-box.#{vmName} .running"
 
     browser
+      .pause                   5000 # wait for sidebar redraw
       .waitForElementVisible   vmSelector, 20000
-      .pause                   5000
       .moveToElement           vmSelector + ' span', 125, 20
       .click                   vmSelector + ' span'
       .waitForElementVisible   modalSelector, 20000 # Assertion
