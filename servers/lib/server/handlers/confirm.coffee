@@ -1,0 +1,42 @@
+{argv}    = require 'optimist'
+KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
+{secret}  = KONFIG.jwt
+
+Analytics = require('analytics-node')
+analytics = new Analytics(KONFIG.segment)
+
+Jwt       = require 'jsonwebtoken'
+
+module.exports = (req, res, next) ->
+
+  {JUser, JSession} = (require './../bongo').models
+
+  logErrorAndReturn = (err) ->
+    console.error 'Confirming user failed:', err
+    res.status(500).end()
+
+  {token, redirect_uri, clientId} = req.query
+
+  unless token
+    return res.status(400).end()
+
+  Jwt.verify token, secret, algorithms: ['HS256'], (err, decoded) ->
+    return logErrorAndReturn err  if err
+
+    unless username = decoded.username
+      return logErrorAndReturn 'no username in token'
+
+    JUser.one {username}, (err, user) ->
+      return logErrorAndReturn err  if err
+
+      user.confirmEmail (err) ->
+        return logErrorAndReturn err  if err
+
+        groupName = 'koding'
+        JSession.createNewSession {username, groupName}, (err, session) ->
+          return logErrorAndReturn err  if err
+
+          res.cookie 'clientId', session.clientId, path: redirect_uri or "/"
+          res.status(200).end()
+
+          analytics.track userId: username, event: 'confirmed/logged in using token'

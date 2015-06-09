@@ -9,6 +9,9 @@ KodingError = require '../../error'
 Analytics   = require('analytics-node')
 analytics   = new Analytics(KONFIG.segment)
 
+# randomly generated checksum, move to config
+JWTSecret   = '7fe0ad8d0a23b453d905f06710bd756b'
+
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
 
@@ -1269,6 +1272,13 @@ module.exports = class JUser extends jraphical.Module
 
         queue.next()
 
+      ->
+        {secret, expiresInMinutes} = KONFIG.jwt
+
+        jwt   = require 'jsonwebtoken'
+        token = jwt.sign { username }, secret, { expiresInMinutes }
+
+        analytics.identifier userId: username, traits: { jwtToken: token }
     ]
 
     daisy queue
