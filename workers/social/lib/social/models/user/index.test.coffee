@@ -123,7 +123,10 @@ runTests = -> describe 'workers.social.user.index', ->
         
         ->
           JUser.convert client, userFormData, (err) ->
+            console.log err?.name
+            console.log err?.message
             expect(err).to.not.exist
+
 
             queue.next()
         
@@ -149,6 +152,8 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           JUser.convert client, userFormData, (err) ->
+            console.log err?.name
+            console.log err?.message
             expect(err).to.not.exist
 
             queue.next()
@@ -178,6 +183,8 @@ runTests = -> describe 'workers.social.user.index', ->
         
         ->
           JUser.convert client, userFormData, (err) ->
+            console.log err?.name
+            console.log err?.message
             expect(err).to.not.exist
 
             queue.next()
