@@ -1,6 +1,7 @@
 kd = require 'kd'
 KDInputView = kd.InputView
 KDSelectBox = kd.SelectBox
+KDCheckBox = kd.CheckBox
 AddNewCustomViewForm = require '../customviews/addnewcustomviewform'
 Encoder = require 'htmlencode'
 
@@ -77,6 +78,9 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
       ]
     @tooltipPlacement.setValue data.tooltipPlacement  if data.tooltipPlacement
 
+    @targetIsScrollable = new KDCheckBox
+      defaultValue  : data.targetIsScrollable
+
     @editor.setClass "hidden"
 
     @oldData = data
@@ -95,15 +99,16 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
     offsetX = @throbberOffsetX.getValue()
     offsetY = @throbberOffsetY.getValue()
     newItem =
-      name             : @input.getValue()
-      path             : @path.getValue()
-      placementX       : @throbberPlacementX.getValue()
-      placementY       : @throbberPlacementY.getValue()
-      color            : @throbberColor.getValue()
-      offsetX          : parseInt offsetX  if offsetX.length > 0
-      offsetY          : parseInt offsetY  if offsetY.length > 0
-      content          : @tooltipText.getValue()
-      tooltipPlacement : @tooltipPlacement.getValue()
+      name               : @input.getValue()
+      path               : @path.getValue()
+      placementX         : @throbberPlacementX.getValue()
+      placementY         : @throbberPlacementY.getValue()
+      color              : @throbberColor.getValue()
+      offsetX            : parseInt offsetX  if offsetX.length > 0
+      offsetY            : parseInt offsetY  if offsetY.length > 0
+      content            : @tooltipText.getValue()
+      tooltipPlacement   : @tooltipPlacement.getValue()
+      targetIsScrollable : @targetIsScrollable.getValue()
       partial : { html: "", css: "", js: "" }
 
     isUpdate = no
@@ -136,6 +141,8 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
         {{> @tooltipText}}
         <p>Tooltip Placement</p>
         {{> @tooltipPlacement}}
+        <p>Scrollable Content</p>
+        {{> @targetIsScrollable}}
       </div>
       {{> @editor}}
       <div class="button-container">
