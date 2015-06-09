@@ -201,6 +201,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     jGroup       = @getData()
     newChannels  = @separateCommas channels
     newDomains   = @separateCommas domains
+    domainRegex  = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/
     dataToUpdate = {}
 
     unless formData.title is jGroup.title
@@ -210,18 +211,21 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
       dataToUpdate.defaultChannels = newChannels
 
     unless _.isEqual newDomains, jGroup.allowedDomains
+      for domain in newDomains when not domainRegex.test domain
+        return @notify 'Please check allowed domains again'
+
       dataToUpdate.allowedDomains = newDomains
 
     return if _.isEmpty dataToUpdate
 
-    jGroup.modify dataToUpdate, (err, result) ->
+    jGroup.modify dataToUpdate, (err, result) =>
       message  = 'Group settings has been successfully updated.'
 
       if err
         message  = 'Couldn\'t update group settings. Please try again'
         kd.warn err
 
-      new KDNotificationView title: message, duration: 5000
+      @notify message
 
 
   createSection: (options = {}) ->
@@ -262,3 +266,8 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     field.addSubView nextElement  if nextElement and nextElement instanceof KDView
 
     return input
+
+
+  notify: (title, duration = 5000) ->
+
+    new KDNotificationView { title, duration }
