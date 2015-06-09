@@ -6,6 +6,7 @@ KDCustomScrollView = kd.CustomScrollView
 Encoder            = require 'htmlencode'
 s3upload           = require 'app/util/s3upload'
 showError          = require 'app/util/showError'
+validator          = require 'validator'
 showError          = require 'app/util/showError'
 geoPattern         = require 'geopattern'
 KDFormView         = kd.FormView
@@ -17,6 +18,7 @@ KDToggleButton     = kd.ToggleButton
 KDCustomHTMLView   = kd.CustomHTMLView
 GroupLogoSettings  = require '../grouplogosettings'
 KDNotificationView = kd.NotificationView
+
 
 module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
@@ -201,7 +203,6 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     jGroup       = @getData()
     newChannels  = @separateCommas channels
     newDomains   = @separateCommas domains
-    domainRegex  = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/
     dataToUpdate = {}
 
     unless formData.title is jGroup.title
@@ -211,7 +212,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
       dataToUpdate.defaultChannels = newChannels
 
     unless _.isEqual newDomains, jGroup.allowedDomains
-      for domain in newDomains when not domainRegex.test domain
+      for domain in newDomains when not validator.isURL domain
         return @notify 'Please check allowed domains again'
 
       dataToUpdate.allowedDomains = newDomains
