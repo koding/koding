@@ -179,9 +179,6 @@ body.ide .dark
       r-sprite              'ide', 'tab-close'
       width                 9px
 
-  .kdtabhandle.close-handle.activity-sidebar
-    position                absolute
-
   .kdtabhandle.fullscreen-handle .icon
     r-sprite                'ide', 'fullscreen'
 
@@ -384,6 +381,9 @@ body.ide .dark
 
 .ide-files-tab .application-tabview
   overflow                  hidden
+
+body.ide .dark .kdtabhandle.close-handle .icon
+  r-sprite                  ide, nav-collapse
 
 .ide-files-tab .general-handles .fullscreen-handle
   hidden()
