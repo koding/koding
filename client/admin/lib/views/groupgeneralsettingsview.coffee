@@ -70,7 +70,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
     @addInput form,
       label        : 'Allowed Domains'
-      description  : 'Allow sign up with a company email address. Please type a domain or multiple domains separated by commas.'
+      description  : 'Allow anyone to sign up with an email address from a domain you specify here. If you need to enter multiple domains, please separate them by commas. e.g. acme.com, acme-inc.com'
       name         : 'domains'
       placeholder  : 'domain.com, other.edu'
       defaultValue : Encoder.htmlDecode group.allowedDomains?.join(', ') ? ''
