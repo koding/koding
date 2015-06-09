@@ -6,6 +6,9 @@ Flaggable   = require '../../traits/flaggable'
 KodingError = require '../../error'
 { extend, uniq }  = require 'underscore'
 
+Analytics   = require('analytics-node')
+analytics   = new Analytics(KONFIG.segment)
+
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
 
@@ -1454,11 +1457,12 @@ module.exports = class JUser extends jraphical.Module
 
   confirmEmail: (callback)->
 
-    status = @getAt 'status'
+    status   = @getAt 'status'
+    username = @getAt 'username'
 
     # for some reason status is sometimes 'undefined', so check for that
     if status? and status isnt 'unconfirmed'
-      console.log "ALERT: #{@getAt 'username'} is trying to confirm '#{status}' email"
+      console.log "ALERT: #{username} is trying to confirm '#{status}' email"
       return callback null
 
     @update {$set: status: 'confirmed'}, (err, res)=>
@@ -1466,6 +1470,8 @@ module.exports = class JUser extends jraphical.Module
       JUser.emit "EmailConfirmed", @
 
       callback null
+
+      analytics.track userId: username, event: 'confirmed email'
 
 
   block:(blockedUntil, callback)->
