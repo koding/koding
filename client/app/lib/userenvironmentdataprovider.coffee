@@ -80,6 +80,11 @@ module.exports = UserEnvironmentDataProvider =
     return own.concat shared.concat collaboration
 
 
+  getRunningMachines: ->
+
+    @getAllMachines().filter (vm) -> vm.machine.status.state is 'Running'
+
+
   fetchMachine: (identifier, callback) ->
 
     @fetchMachineBySlug identifier, (machine) =>
