@@ -35,7 +35,7 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
     popup = @getDelegate()
     popup.show()
 
-    popup.once 'NotificationListItemClicked', (event) =>
+    popup.once 'NotificationListItemClicked', (event) ->
       listItemClicked = yes
 
     popup.once 'ReceivedClickElsewhere', (event) =>
