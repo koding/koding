@@ -11,19 +11,17 @@ module.exports = class ReactBridge extends React.Component
 
     @state = { component: @props.component or null }
 
-    @setComponent = @setComponent.bind this
-
 
   componentDidMount: ->
 
     # register to dispatcher, show the emitted component when
     # `ShowComponent` event is dispatched.
-    @props.dispatcher.on 'SetComponent', @setComponent
+    @props.dispatcher.on 'SetComponent', @bound 'setComponent'
 
 
   componentWillUnmount: ->
 
-    @props.dispatcher.off 'SetComponent', @setComponent
+    @props.dispatcher.off 'SetComponent'
 
 
   ###
