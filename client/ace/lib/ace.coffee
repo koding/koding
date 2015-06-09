@@ -679,14 +679,14 @@ class Ace extends KDView
       kd.warn 'possible race condition, shadowing the error! @acet'
       return
 
-    {tabView}    = aceView.delegate
+    { tabView }     = aceView.delegate
+    activeTabHandle = tabView.getActivePane().getHandle()
     return  unless tabView
 
-    {name}       = aceView.ace.data
-    {handles}    = tabView
+    { handles }  = tabView
     targetHandle = null
 
-    for handle in handles when handle.getOptions().title is name
+    for handle in handles when activeTabHandle.id is handle.id
       targetHandle = handle
       targetHandle.setClass 'saved'
 

@@ -141,6 +141,7 @@ class MainController extends KDController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
     kd.registerSingleton 'shortcuts',     shortcuts = new ShortcutsController
     kd.registerSingleton 'marketingController',       new MarketingController
+    kd.registerSingleton 'onboarding',                new OnboardingController
 
     shortcuts.addEventListeners()
 
@@ -153,7 +154,6 @@ class MainController extends KDController
     @ready =>
       kd.registerSingleton 'search',                  new SearchController
       kd.registerSingleton 'widgetController',        new WidgetController
-      kd.registerSingleton 'onboardingController',    new OnboardingController
 
       @emit 'AppIsReady'
 
