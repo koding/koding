@@ -13,9 +13,22 @@ module.exports = class ThrobberView extends KDView
 
     super options, data
 
-    @appendToDomBody()
+    @appendToParent()
     @createElements()
     @setPosition()
+
+
+  appendToParent: ->
+
+    { targetIsScrollable } = @getOptions()
+    targetElement          = @getDelegate()
+    targetDomElement       = targetElement.getDomElement()
+
+    if targetIsScrollable
+      targetElement.addSubView this
+      targetElement.setCss 'position', 'relative'  if targetDomElement.css('position') is 'static'
+    else
+      @appendToDomBody()
 
 
   createElements: ->
@@ -33,16 +46,15 @@ module.exports = class ThrobberView extends KDView
       cssClass  : 'throbber-tooltip'
       placement : tooltipPlacement
       html      : yes
-      sticky    : yes
 
 
   setPosition: ->
 
-    { placementX, placementY, offsetX, offsetY } = @getOptions()
+    { placementX, placementY, offsetX, offsetY, targetIsScrollable } = @getOptions()
 
     targetElement       = @getDelegate()
-    targetElementX      = targetElement.getX()
-    targetElementY      = targetElement.getY()
+    targetElementX      = if targetIsScrollable then 0 else targetElement.getX()
+    targetElementY      = if targetIsScrollable then 0 else targetElement.getY()
     targetElementWidth  = targetElement.getWidth()
     targetElementHeight = targetElement.getHeight()
 
