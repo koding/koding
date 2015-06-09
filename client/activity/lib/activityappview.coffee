@@ -17,7 +17,6 @@ isChannelCollaborative = require 'app/util/isChannelCollaborative'
 isKoding               = require 'app/util/isKoding'
 isGroup                = require 'app/util/isGroup'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
-OnboardingEvent        = require 'app/onboarding/onboardingevent'
 
 
 module.exports = class ActivityAppView extends KDView
@@ -154,13 +153,13 @@ module.exports = class ActivityAppView extends KDView
 
     switch type
       when 'topic'
-        onboardingEvent = if slug is 'public' then OnboardingEvent.PublicChannelViewed else OnboardingEvent.OtherChannelViewed
+        onboardingEvent = if slug is 'public' then 'PublicChannelViewed' else 'OtherChannelViewed'
       when 'announcement'
-        onboardingEvent = OnboardingEvent.ChangelogChannelViewed  if slug is 'changelog'
+        onboardingEvent = 'ChangelogChannelViewed'  if slug is 'changelog'
       when 'message'
-        onboardingEvent = if slug is 'new' then OnboardingEvent.NewPrivateMessageOpened else OnboardingEvent.PrivateMessagesViewed
+        onboardingEvent = if slug is 'new' then 'NewPrivateMessageOpened' else 'PrivateMessagesViewed'
 
-    kd.singletons.onboardingController.runOnboarding onboardingEvent  if onboardingEvent
+    kd.singletons.onboarding.run onboardingEvent  if onboardingEvent
 
 
   openNext: ->

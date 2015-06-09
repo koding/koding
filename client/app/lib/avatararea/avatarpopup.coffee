@@ -1,7 +1,7 @@
-$ = require 'jquery'
-isLoggedIn = require '../util/isLoggedIn'
-kd = require 'kd'
-KDView = kd.View
+$           = require 'jquery'
+isLoggedIn  = require '../util/isLoggedIn'
+kd          = require 'kd'
+KDView      = kd.View
 
 
 module.exports = class AvatarPopup extends KDView

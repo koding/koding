@@ -5,7 +5,6 @@ OnboardingAddNewForm = require './onboardingaddnewform'
 OnboardingSectionForm = require './onboardingsectionform'
 OnboardingGroupView = require './onboardinggroupview'
 OnboardingChildItem = require 'dashboard/onboardingchilditem'
-OnboardingEvent = require 'app/onboarding/onboardingevent'
 OnboardingEventName = require './onboardingeventname'
 
 

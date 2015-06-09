@@ -57,7 +57,7 @@ PostThrottleDuration = "10s"
 PostThrottleCount    = 100
 
 [stripe]
-secretToken = "sk_test_2ix1eKPy8WtfWTLecG9mPOvN"
+secretToken = "sk_test_LLE4fVGK2zY3By3gccUYCLCw"
 
 [paypal]
 Username  = "senthil+1_api1.koding.com"
