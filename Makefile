@@ -9,7 +9,7 @@ test:
 
 build: 
 	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
-	@`which go` build -v  ./...
+	@`which go` build -v -ldflags "-X github.com/koding/klient/protocol.Version 0.0.1 -X github.com/koding/klient/protocol.Environment devbuild" 
 
 .PHONY: all build test
 
