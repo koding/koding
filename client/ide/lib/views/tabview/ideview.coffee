@@ -617,7 +617,7 @@ setupSplitHandleNotifier = (handle) ->
       return dist < HANDLE_PROXIMITY_DISTANCE
 
   notifier.on 'MouseInside', -> toggleVisibility handle, yes
-  notifier.on 'MouseOutside', -> kd.utils.wait 344, -> toggleVisibility handle
+  notifier.on 'MouseOutside', -> toggleVisibility handle
 
   handle.on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
 
