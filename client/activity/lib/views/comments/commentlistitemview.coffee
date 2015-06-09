@@ -29,8 +29,8 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
 
     options.type                = 'comment'
 
-    options.showMoreWrapperCssClass = '.comment-body-container'
-    options.showMoreMarkCssClass    = '.mark-for-show-more-cmt'
+    options.showMoreWrapperSelector = '.comment-body-container'
+    options.showMoreMarkSelector    = '.mark-for-show-more-cmt'
 
     super options, data
 
