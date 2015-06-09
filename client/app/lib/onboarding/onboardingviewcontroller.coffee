@@ -3,88 +3,95 @@ KDViewController = kd.ViewController
 OnboardingItemView = require './onboardingitemview'
 OnboardingMetrics = require './onboardingmetrics'
 showNotification = require 'app/util/showNotification'
+OnboardingTask = require './onboardingtask'
 
-
+###*
+ * View controller that manages item views on the current page
+###
 module.exports = class OnboardingViewController extends KDViewController
 
-  ###*
-   * View controller that manages item views for onboarding group
-  ###
   constructor: (options = {}, data) ->
 
     super options, data
 
-    {@groupName, @slug} = @getOptions()
-    @items              = @getData().items.slice()
-    @startTrackDate     = new Date()
-
-    @show @items.first
+    @itemViews = {}
 
 
   ###*
-   * Renders onboarding item view and binds to its events
+   * Creates and renders views for onboarding items
+   * Item views are grouped by onboarding name.
+   * If item views already exist for onboarding,
+   * it just refreshes them
    *
-   * @param {OnboardingItemView} item - onboarding item view
+   * @param {string} name     - onboarding name
+   * @param {Array} items     - a list of onboarding items
+   * @param {isModal} isModal - a flag shows if onboarding is running on the modal
   ###
-  show: (item) ->
+  runItems: (name, items, isModal = no) ->
 
-    view = new OnboardingItemView { @groupName, @items }, item
-    @bindViewEvents view
-    view.render()
+    return  unless items.length
+    return @refreshItems name  if @itemViews[name]
 
+    @itemViews[name] = views = []
+    for item in items
+      view = new OnboardingItemView { onboardingName: name, isModal }, item
+      @bindViewEvents view
+      views.push view
 
-  ###*
-   * Shows another onboarding item in group depending on the given direction
-   *
-   * @param {string} direction - direction of the onboarding navigation. Possible values are 'prev' and 'next'
-   * @param {object} itemData  - data of onboarding item view that requested onboarding navigation
-  ###
-  navigate: (direction, itemData) ->
-
-    index = @items.indexOf itemData
-    item  = if direction is 'next' then @items[++index] else @items[--index]
-    @show item
+    new OnboardingTask views, 'render'
 
 
   ###*
-   * Binds to onboarding item view events
-   *
-   * @param {OnboardingItemView} view - view which events are necessary to listen
+   * Binds to item view events
   ###
   bindViewEvents: (view) ->
 
-    view.on 'NavigationRequested', (direction) =>
-      @navigate direction, view.getData()
-
-    view.on ['OnboardingCompleted', 'OnboardingCancelled'], @bound 'handleOnboardingEnded'
-    view.on 'OnboardingFailed', @lazyBound 'handleOnboardingFailed', view
+    view.on 'OnboardingItemCompleted', =>
+      { onboardingName } = view.getOptions()
+      viewData           = view.getData()
+      itemViews          = @itemViews[onboardingName]
+      for itemView, index in itemViews when itemView is view
+        itemViews.splice index, 1
+        break
+      @emit 'OnboardingItemCompleted', onboardingName, viewData
 
 
   ###*
-   * If current item can't be shown, we need to show next onboarding item
-   * If current item is the last one, it executes end stuff
+   * Refreshes item views according to the state of elements
+   * they are attached to.
    *
-   * @param {OnboardingItemView} view  - onboarding item view that failed to be shown
+   * @param {string} name - onboarding name
   ###
-  handleOnboardingFailed: (view) ->
+  refreshItems: (name) ->
 
-    itemData = view.getData()
-    index = @items.indexOf itemData
-    @items.splice index, 1
-    if view.isLast
-      @handleOnboardingEnded()
+    return  unless views = @itemViews[name]
+
+    new OnboardingTask views, 'refresh'
+
+
+  ###*
+   * Removes item views by onboarding name
+   * If group name is passed, it removes only item views for that group.
+   * Otherwise, it removes all item views.
+   *
+   * @param {string} name - onboarding name
+  ###
+  clearItems: (name) ->
+
+    for own _name, views of @itemViews
+      if _name is name or not name
+        view.destroy()  for view in views
+
+    if name
+      delete @itemViews[name]
     else
-      @show @items[index]
+      @itemViews = {}
 
 
   ###*
-   * At the end of onboarding it's necessary to track the total tracked time
-   * and emit an event to tell that onboarding has been ended
-   *
-   * @emits OnboardingEnded
+   * Hides all onboarding items
   ###
-  handleOnboardingEnded: ->
+  hideItems: ->
 
-    trackedTime = new Date() - @startTrackDate
-    OnboardingMetrics.trackCompleted @groupName, 'Total', trackedTime
-    @emit 'OnboardingEnded', @slug
+    for own name, views of @itemViews
+      view.hide()  for view in views

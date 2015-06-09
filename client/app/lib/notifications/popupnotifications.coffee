@@ -1,9 +1,9 @@
-kd = require 'kd'
-isLoggedIn = require '../util/isLoggedIn'
-AvatarPopup = require '../avatararea/avatarpopup'
-NotificationListController = require './notificationlistcontroller'
-NotificationListItemView = require './notificationlistitemview'
-PopupList = require '../avatararea/popuplist'
+kd                          = require 'kd'
+isLoggedIn                  = require '../util/isLoggedIn'
+AvatarPopup                 = require '../avatararea/avatarpopup'
+NotificationListController  = require './notificationlistcontroller'
+NotificationListItemView    = require './notificationlistitemview'
+PopupList                   = require '../avatararea/popuplist'
 
 
 module.exports = class PopupNotifications extends AvatarPopup
@@ -22,12 +22,13 @@ module.exports = class PopupNotifications extends AvatarPopup
 
     @_popupList = new PopupList
       itemClass : NotificationListItemView
+      delegate  : this
 
     @listController = new NotificationListController
       view         : @_popupList
       maxItems     : 5
 
-    @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
+    @listController.on 'AvatarPopupShouldBeHidden', @bound 'hide'
 
     @forwardEvent @listController, 'NotificationCountDidChange'
     @forwardEvent @listController, 'AvatarPopupShouldBeHidden'

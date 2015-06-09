@@ -114,7 +114,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
       return  unless @isMySession()
 
-      @requestVideoPublishForHost()
+      @requestVideoPublishForHost => @changeActiveParticipant getNick()
 
 
   ###*
@@ -206,8 +206,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
     oldAudioState = @state.audio
 
     if @state.publishing
-
-      return  if audioState is oldAudioState
 
       @setAudioState audioState
 

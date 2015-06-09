@@ -146,6 +146,13 @@ module.exports = class MainView extends KDView
         kd.utils.stopDOMEvent event
         trackEvent 'Koding Logo, click'
 
+    logoWrapper.addSubView closeHandle = new KDCustomHTMLView
+      cssClass : "sidebar-close-handle"
+      partial  : "<span class='icon'></span>"
+      click    : @bound 'toggleSidebar'
+
+    closeHandle.hide()
+
     @aside.addSubView logoWrapper
 
     @aside.addSubView @sidebar = new KDCustomScrollView

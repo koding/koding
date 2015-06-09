@@ -230,7 +230,7 @@ Configuration = (options={}) ->
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
     logLevel                       : {neo4jfeeder   : "notice"                                       , oskite: "info"                                               , terminal: "info"                                                                      , kontrolproxy  : "notice"                                           , kontroldaemon : "notice"                                           , userpresence  : "notice"                                          , vmproxy: "notice"      , graphitefeeder: "notice"                                                           , sync: "notice" , topicModifier : "notice" , postModifier  : "notice" , router: "notice" , rerouting: "notice" , overview: "notice" , amqputil: "notice" , rabbitMQ: "notice" , ldapserver: "notice" , broker: "notice"}
     aws                            : {key           : ""                                             , secret        : ''}
-    embedly                        : {apiKey        : "94991069fb354d4e8fdb825e52d4134a" }
+    embedly                        : {apiKey        : "537d6a2471864e80b91d9f4a78384873" }
     troubleshoot                   : {recipientEmail: "can@koding.com" }
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     segment                        : segment
@@ -1162,7 +1162,7 @@ Configuration = (options={}) ->
             exit 1
         fi
 
-        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h #{boot2dockerbox} social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
+        EXISTS=$(PGPASSWORD=kontrolapp201506 psql -tA -h #{boot2dockerbox} social -U kontrolapp201506 -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
         if [[ $EXISTS != '1' ]]; then
           echo ""
           echo "You don't have the new Kontrol Postgres. Please call ./run buildservices."
@@ -1311,6 +1311,7 @@ Configuration = (options={}) ->
         mkdir -p kontrol
         cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
         sed -i -e 's/somerandompassword/kontrolapp201506/' kontrol/001-schema.sql
+        sed -i -e 's/kontrolapplication/kontrolapp201506/' kontrol/001-schema.sql
 
         docker build -t koding/postgres .
 

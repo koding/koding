@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = [
   'IDELoaded'
   'CollaborationStarted'
   'PublicChannelViewed'
@@ -9,4 +9,4 @@ module.exports = {
   'VMSettingsOpened'
   'WorkspaceSettingsOpened'
   'IDESettingsOpened'
-}
+]

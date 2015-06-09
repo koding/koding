@@ -93,7 +93,7 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
       tagName : 'a'
       partial : 'Click here'
       click   : =>
-        kd.singletons.onboardingController.resetOnboardings =>
+        kd.singletons.onboarding.reset =>
           @destroy()
           global.location.reload yes
 
