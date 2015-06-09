@@ -175,9 +175,8 @@ module.exports = class TopicItemView extends KDListItemView
       
   listLeafChannels: (channels) ->
     
-    @leafChannelsListController.hideLazyLoader()
     return  unless channels?.length
-
+    @removeLabel.show()
     
     @leafSkip += channels.length
 
@@ -244,7 +243,7 @@ module.exports = class TopicItemView extends KDListItemView
         cssClass          : 'leaf-channel-list'
         itemOptions       : {}
       noItemFoundWidget   : new KDCustomHTMLView  { partial: "Doesn't have linked channel" }
-      startWithLazyLoader : yes
+      startWithLazyLoader : no
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
         spinnerOptions    :
