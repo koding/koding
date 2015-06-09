@@ -1,22 +1,24 @@
+$                     = require 'jquery'
 kd                    = require 'kd'
+nick                  = require 'app/util/nick'
+FSFile                = require 'app/util/fs/fsfile'
+KDView                = kd.View
+FSHelper              = require 'app/util/fs/fshelper'
+IDEHelpers            = require '../../idehelpers'
+IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
 KDContextMenu         = kd.ContextMenu
+KDTabPaneView         = kd.TabPaneView
+IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
+IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
+IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
 KDCustomHTMLView      = kd.CustomHTMLView
 KDSplitViewPanel      = kd.SplitViewPanel
-KDTabPaneView         = kd.TabPaneView
-KDView                = kd.View
-nick                  = require 'app/util/nick'
-FSHelper              = require 'app/util/fs/fshelper'
-FSFile                = require 'app/util/fs/fsfile'
-showErrorNotification = require 'app/util/showErrorNotification'
-IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
-IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
-IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
-IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
+ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
-IDEHelpers            = require '../../idehelpers'
-$                     = require 'jquery'
+showErrorNotification = require 'app/util/showErrorNotification'
 
+HANDLE_PROXIMITY_DISTANCE = 100
 
 module.exports = class IDEView extends IDEWorkspaceTabView
 
@@ -25,6 +27,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     options.tabViewClass     = IDEApplicationTabView
     options.createNewEditor ?= yes
     options.bind             = 'dragover drop'
+    options.addSplitHandlers ?= yes
 
     super options, data
 
@@ -37,6 +40,16 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
     @on 'CloseHandleClicked', @bound 'closeSplitView'
     @on 'FullscreenHandleClicked', @bound 'toggleFullscreen'
+    @on 'VerticalSplitHandleClicked', =>
+      {frontApp} = kd.singletons.appManager
+      frontApp.setActiveTabView @tabView
+      frontApp.splitVertically()
+      @ensureSplitHandlers()
+    @on 'HorizontalSplitHandleClicked', =>
+      {frontApp} = kd.singletons.appManager
+      frontApp.setActiveTabView @tabView
+      frontApp.splitHorizontally()
+      @ensureSplitHandlers()
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
@@ -57,7 +70,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @focusTab()
 
     @tabView.on 'PaneAdded', (pane) =>
+
+      { addSplitHandlers } = @getOptions()
+
+      @ensureSplitHandlers()  if addSplitHandlers
+
       return unless pane.options.editor
+
       {tabHandle} = pane
 
       icon = new KDCustomHTMLView
@@ -67,6 +86,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       tabHandle.addSubView icon, null, yes
 
+
     # This is a custom event for IDEApplicationTabView
     # to distinguish between user actions and programmed actions
     @tabView.on 'PaneRemovedByUserAction', (pane)=>
@@ -74,6 +94,34 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       if view instanceof IDETerminalPane
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
+
+
+  createSplitHandle = (type) ->
+
+    handle = new kd.CustomHTMLView
+      cssClass : "split-handle #{type}-split-handle"
+      partial  : '<span class="icon"></span>'
+
+    return handle
+
+
+  ensureSplitHandlers: ->
+
+    @verticalSplitHandle?.destroy()
+
+    @tabView.addSubView @verticalSplitHandle = createSplitHandle 'vertical'
+    @verticalSplitHandle.on 'click', @lazyBound 'emit', 'VerticalSplitHandleClicked'
+
+    notifier = setupSplitHandleNotifier @verticalSplitHandle
+    @on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
+
+    @horizontalSplitHandle?.destroy()
+
+    @tabView.addSubView @horizontalSplitHandle = createSplitHandle 'horizontal'
+    @horizontalSplitHandle.on 'click', @lazyBound 'emit', 'HorizontalSplitHandleClicked'
+
+    notifier = setupSplitHandleNotifier @horizontalSplitHandle
+    @on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
 
 
   createPane_: (view, paneOptions, paneData) ->
@@ -511,6 +559,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
   closeSplitView: ->
 
     { frontApp } = kd.singletons.appManager
+    frontApp.setActiveTabView @tabView
+
     frontApp.mergeSplitView()
 
 
@@ -544,4 +594,35 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     index = null  if index < 0
 
     kd.singletons.appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
+
+
+toggleVisibility = (handle, state) ->
+  el = handle.getElement()
+  if state
+  then el.classList.add 'in'
+  else el.classList.remove 'in'
+
+
+setupSplitHandleNotifier = (handle) ->
+
+  splitTop = handle.getY()
+  splitLeft = handle.getX()
+
+  notifier = new ProximityNotifier
+    handler: ->
+      { pageX, pageY } = event
+
+      distX = Math.pow splitLeft - pageX, 2
+      distY = Math.pow splitTop - pageY, 2
+      dist  = Math.sqrt distX + distY
+
+      return dist < HANDLE_PROXIMITY_DISTANCE
+
+  notifier.on 'MouseInside', -> toggleVisibility handle, yes
+  notifier.on 'MouseOutside', -> toggleVisibility handle
+
+  handle.on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
+
+  return notifier
+
 

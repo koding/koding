@@ -22,6 +22,28 @@ text-color-green            = #4EA04C
 // theming
 body.ide
 
+  #main-sidebar.has-runningMachine > .logo-wrapper
+    &:hover
+      .sidebar-close-handle
+        opacity             1
+
+    .sidebar-close-handle
+      abs                   0px 0px 0 0
+      opacity               0
+      vendor                transition, opacity .177s ease
+
+      // importants are here because `hidden` class adds
+      // an !important to display.
+      visibility              visible !important
+      display                 block !important
+
+      .icon
+        display             block
+        margin-top          3px
+        r-sprite            ide, nav-collapse
+        cursor              pointer
+
+
   .application-page
     border-left             2px solid dark-tab-header-bg
     bg                      color, dark-panel-bg
@@ -139,7 +161,7 @@ body.ide .dark
     padding                 0
     border-left             none
     size                    30px, 40px
-    opacity                 0.377
+    opacity                 0
     vendor                  transition, opacity .177s ease
 
     .icon
@@ -150,15 +172,12 @@ body.ide .dark
 
   .idetabhandle-holder:hover
     .general-handles .kdtabhandle
-      opacity               0.5
+      opacity               1
 
-  .general-handles .kdtabhandle
-    &:hover
-      opacity               1 !important
-
-  .kdtabhandle.close-handle .icon
-    r-sprite                'ide', 'tab-close'
-    width                   9px
+  .kdtabhandle.close-handle
+    .icon
+      r-sprite              'ide', 'tab-close'
+      width                 9px
 
   .kdtabhandle.fullscreen-handle .icon
     r-sprite                'ide', 'fullscreen'
@@ -208,6 +227,100 @@ body.ide .dark
     top                     0
     left                    0
     z-index                 10000 // yes!
+
+  .ws-tabview .split-handle
+    position                absolute
+    size                    2em 2em
+    z-index                 1001
+    cursor                  pointer
+    opacity                 0
+    vendor                  transition, width .347s .177s ease\,\
+                                        height .347s .177s ease\,\
+                                        opacity .177s .177s ease
+
+    &:after
+    &:before
+      z-index               1
+      bg                    color #131313
+
+    &.in
+      opacity               1
+
+    .icon
+      size                  0 0
+      position              absolute
+      display               block
+      vendor                transform, scale(1)
+      z-index               2
+
+    &:hover .icon
+      vendor                transform, scale(3)
+
+  .vertical-split-handle
+    top                     0
+    left                    50%
+    margin-left             -1em
+
+    &:hover
+      height                100%
+
+    &:hover:after
+      height                100%
+
+    // line to preview split action
+    &:after
+      display               block
+      content               ''
+      position              absolute
+      abs                   0px 0 0 1em
+      size                  2px 0
+      margin-left           -1px
+      vendor                transition, height .177s .177s ease // required to make anim in sync.
+
+    .icon
+      top                   0px
+      left                  1em
+      margin-left           -3px
+      border                3px solid #ccc
+      border-color          #ccc transparent transparent
+      vendor                transition, all .177s .177s ease
+
+    &:hover .icon
+      top                   3px
+      border-color          #131313 transparent transparent
+
+
+  .horizontal-split-handle
+    top                     50%
+    right                   0
+    margin-top              -1em
+
+    &:hover
+      width                 100%
+
+    &:hover:before
+      width                 100%
+
+    // line to preview split action
+    &:before
+      display               block
+      content               ''
+      abs                   1em 0px 0 0
+      size                  0 2px
+      margin-top            -1px
+      vendor                transition, width .347s .177s ease // required to make anim in sync.
+
+    .icon
+      top                   1em
+      right                 0
+      border                3px solid #ccc
+      border-color          transparent #ccc transparent transparent
+      margin-top            -3px
+      vendor                transition, all .177s .177s ease
+
+    &:hover .icon
+      right                 3px
+      border-color          transparent #131313 transparent transparent
 
 // common app styling
 .ide
@@ -270,7 +383,10 @@ body.ide .dark
 .ide-files-tab .application-tabview
   overflow                  hidden
 
-.ide-files-tab .general-handles
+body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
+  r-sprite                  ide, nav-collapse
+
+.ide-files-tab .general-handles .fullscreen-handle
   hidden()
 
 
@@ -334,6 +450,9 @@ body.ide .dark
     .kdtabhandle
       left                  40px
 
+    .general-handles
+      hidden()
+
   .application-page.sidebar-collapsed .ide-files-tab
     .kdtabhandle
       left                  0
@@ -353,6 +472,10 @@ body.ide .dark
     .application-tab-handle-holder
       size                  39px, 100%
       fl()
+
+    .general-handles
+      opacity               0
+      hidden()
 
     .kdtabhandle
       float                 none
