@@ -102,8 +102,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       cssClass : "split-handle #{type}-split-handle"
       partial  : '<span class="icon"></span>'
 
-    handle.setStyle { visibility: 'hidden' }
-
     return handle
 
 
@@ -598,7 +596,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
 toggleVisibility = (handle, state) ->
   el = handle.getElement()
-  el.style.visibility = state
+  if state
+  then el.classList.add 'in'
+  else el.classList.remove 'in'
 
 
 setupSplitHandleNotifier = (handle) ->
@@ -616,8 +616,8 @@ setupSplitHandleNotifier = (handle) ->
 
       return dist < HANDLE_PROXIMITY_DISTANCE
 
-  notifier.on 'MouseInside', -> toggleVisibility handle, 'visible'
-  notifier.on 'MouseOutside', -> toggleVisibility handle, 'hidden'
+  notifier.on 'MouseInside', -> toggleVisibility handle, yes
+  notifier.on 'MouseOutside', -> kd.utils.wait 344, -> toggleVisibility handle
 
   handle.on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
 
