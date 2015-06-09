@@ -68,6 +68,13 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
         tagName    : 'span'
         partial    : 'Please add channel names separated by commas.'
 
+    @addInput form,
+      label        : 'Allowed Domains'
+      description  : 'Allow sign up with a company email address. Please type a domain or multiple domains separated by commas.'
+      name         : 'domains'
+      placeholder  : 'domain.com, other.edu'
+      defaultValue : Encoder.htmlDecode group.allowedDomains?.join(', ') ? ''
+
     form.addSubView new KDButtonView
       title    : 'Save Changes'
       type     : 'submit'
@@ -178,19 +185,22 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
       title        : 'DELETE TEAM'
 
 
-  getChannelsArray: ->
+  separateCommas: (value) ->
 
-    return @generalSettingsForm.getFormData().channels # get input value
-      .split ','                                       # split from comma
-      .map    (i) -> return i.trim()                   # trim spaces
-      .filter (i) -> return i                          # filter empty values
+    # split from comma then trim spaces then filter empty values
+    return value.split ','
+               .map    (i) -> return i.trim()
+               .filter (i) -> return i
 
 
   update: ->
 
+    { channels, domains } = @generalSettingsForm.getFormData()
+
     formData     = @generalSettingsForm.getFormData()
     jGroup       = @getData()
-    newChannels  = @getChannelsArray()
+    newChannels  = @separateCommas channels
+    newDomains   = @separateCommas domains
     dataToUpdate = {}
 
     unless formData.title is jGroup.title
@@ -198,6 +208,9 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
     unless _.isEqual newChannels, jGroup.defaultChannels
       dataToUpdate.defaultChannels = newChannels
+
+    unless _.isEqual newDomains, jGroup.allowedDomains
+      dataToUpdate.allowedDomains = newDomains
 
     return if _.isEmpty dataToUpdate
 
