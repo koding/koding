@@ -559,6 +559,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
   closeSplitView: ->
 
     { frontApp } = kd.singletons.appManager
+    frontApp.setActiveTabView @tabView
+
     frontApp.mergeSplitView()
 
 
