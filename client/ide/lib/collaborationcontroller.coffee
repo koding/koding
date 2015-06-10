@@ -427,13 +427,13 @@ module.exports = CollaborationController =
 
   pollRealtimeDocument: ->
 
-    unless @rtm
+    channelId = @getSocialChannelId()
+
+    unless @rtm and channelId
       kd.utils.killRepeat @pollInterval
       return
 
-    id = @getSocialChannelId()
-
-    @isRealtimeSessionActive id, (isActive) =>
+    @isRealtimeSessionActive channelId, (isActive) =>
 
       return  if isActive
 
