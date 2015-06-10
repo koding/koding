@@ -1036,6 +1036,8 @@ module.exports = CollaborationController =
 
   onWorkspaceChannelChanged: ->
 
+    return  unless @stateMachine
+
     {channelId} = @workspaceData
 
     if channelId and typeof channelId is 'string' and channelId.length
