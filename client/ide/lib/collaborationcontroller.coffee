@@ -35,6 +35,7 @@ module.exports = CollaborationController =
   setSocialChannel: (channel) ->
 
     @socialChannel = channel
+    @bindSocialChannelEvents()
 
 
   fetchSocialChannel: (callback) ->
@@ -49,7 +50,6 @@ module.exports = CollaborationController =
       return callback err  if err
 
       @setSocialChannel channel
-      @bindSocialChannelEvents()
       callback null, channel
 
 
