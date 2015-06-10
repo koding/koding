@@ -46,7 +46,7 @@ module.exports = class AdminIntegrationSetupView extends JView
       data.id              = response.id
       data.integrationId   = response.integrationId
       data.selectedChannel = response.channelId
-      data.webhookUrl      = "#{globals.config.mainUri}/api/integration/#{data.name}/#{data.token}"
+      data.webhookUrl      = "#{globals.config.integration.url}/#{data.name}/#{data.token}"
 
       @destroy()
       @emit 'NewIntegrationAdded', data

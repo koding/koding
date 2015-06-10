@@ -86,7 +86,7 @@ Configuration = (options={}) ->
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-5b987056-ef0f-457a-aadf-87b0488c1da1", subscribekey:       "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"  , secretkey: "sec-c-MWFhYTAzZWUtYzg4My00ZjAyLThiODEtZmI0OTFkOTk0YTE0"                , serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"                , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                        , pubnub: pubnub                                }
-  integration         = { host:     "localhost"                                   , port:               "7300"                                  }
+  integration         = { host:     "localhost"                                   , port:               "7300"                                        , url: "#{customDomain.public}/api/integration" }
   webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
   paymentwebhook      = { port:     "6600"                                        , debug:              false                                   }
   tokbox              = { apiKey: '45253342', apiSecret: 'e834f7f61bd2b3fafc36d258da92413cebb5ce6e' }
@@ -278,6 +278,7 @@ Configuration = (options={}) ->
     tokbox               : { apiKey: tokbox.apiKey }
     disabledFeatures     : disabledFeatures
     contentRotatorUrl    : 'http://koding.github.io'
+    integration          : { url: "#{integration.url}" }
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
