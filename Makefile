@@ -19,6 +19,6 @@ buildservices:
 	@./run buildservices
 
 buildclient: configure
-	@./run buildlient
+	@./run buildclient
 
 .PHONY: configure run
