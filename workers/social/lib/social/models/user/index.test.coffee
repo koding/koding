@@ -65,6 +65,145 @@ runTests = -> describe 'workers.social.user.index', ->
     done()
 
 
+  describe '#createUser', ->
+
+    beforeEach ->
+
+      userInfo = TestHelper.getUserInfo()
+
+
+    it 'should pass error passwordStatus type is not valid', (done) ->
+
+      userInfo.passwordStatus = 'some invalid passwordStatus'
+      JUser.createUser userInfo, (err) ->
+        expect(err.message).to.be.equal 'Errors were encountered during validation.'
+        done()
+
+
+    it 'should error if username is not set', (done) ->
+
+      userInfo.username = ''
+      JUser.createUser userInfo, (err) ->
+        expect(err).to.exist
+        done()
+
+
+
+    it 'should pass error if username is in use', (done) ->
+
+      queue = [
+
+        ->
+          JUser.createUser userInfo, (err) ->
+            expect(err).to.not.exist
+            queue.next()
+
+        ->
+          # setting a different email, username will be duplicate
+          userInfo.email  = "kodingtestuser+#{TestHelper.getRandomString()}@gmail.com"
+          expectedError   = "The slug #{userInfo.username} is not available."
+
+          JUser.createUser userInfo, (err) ->
+            expect(err.message).to.be.equal expectedError
+            queue.next()
+
+        -> done()
+
+      ]
+
+      daisy queue
+
+
+    it 'should pass error if email is in use', (done) ->
+
+      queue = [
+
+        ->
+          JUser.createUser userInfo, (err) ->
+            expect(err).to.not.exist
+            queue.next()
+
+        ->
+          # setting a different username, email will be duplicate
+          userInfo.username = TestHelper.getRandomString()
+          expectedError     = "Sorry, \"#{userInfo.email}\" is already in use!"
+
+          JUser.createUser userInfo, (err) ->
+            expect(err.message).to.be.equal expectedError
+            queue.next()
+
+        -> done()
+
+      ]
+
+      daisy queue
+
+
+    it 'should create and save a new user when valid in case data is valid', (done) ->
+
+      queue = [
+
+        ->
+          # expecting user to be created
+          JUser.createUser userInfo, (err) ->
+            expect(err).to.not.exist
+            queue.next()
+
+        ->
+          # expecting user to be saved
+          params = {username : userInfo.username}
+          JUser.one params, (err, user) ->
+            expect(err)           .to.not.exist
+            expect(user.username) .to.be.equal userInfo.username
+            queue.next()
+
+        ->
+          # expecting account to be created and saved
+          params = { 'profile.nickname' : userInfo.username }
+          JAccount.one params, (err, account) ->
+            expect(err)     .to.not.exist
+            expect(account) .to.exist
+            queue.next()
+
+        -> done()
+
+      ]
+
+      daisy queue
+
+
+    it 'should save email frequencies correctly', (done) ->
+
+      userInfo.emailFrequency =
+        global         : off
+        daily          : off
+        privateMessage : off
+        followActions  : off
+
+      queue = [
+
+        ->
+          JUser.createUser userInfo, (err) ->
+            expect(err).to.not.exist
+            queue.next()
+
+        ->
+          params = {username : userInfo.username}
+          JUser.one params, (err, user) ->
+            expect(err)                                 .to.not.exist
+            expect(user.emailFrequency.global)          .to.be.false
+            expect(user.emailFrequency.daily)           .to.be.false
+            expect(user.emailFrequency.privateMessage)  .to.be.false
+            expect(user.emailFrequency.followActions)   .to.be.false
+            queue.next()
+
+        -> done()
+
+      ]
+
+      daisy queue
+
+
   describe '#login()', ->
 
     it 'should be to able login user when data is valid', (done) ->
@@ -453,149 +592,6 @@ runTests = -> describe 'workers.social.user.index', ->
       JUser.login clientId, loginCredentials, (err) ->
         expect(err.message).to.be.equal 'group doesnt exist'
         done()
-
-
-  describe '#convert()', ->
-
-    # variables that will be used in the convert test suite scope
-    client       = {}
-    userFormData = {}
-      
-    # this function will be called everytime before each test case under this test suite
-    beforeEach ->
-      
-      # cloning the client and userFormData from dummy datas each time.
-      # used pure nodejs instead of a library bcs we need deep cloning here.
-      client                = JSON.parse JSON.stringify dummyClient
-      userFormData          = JSON.parse JSON.stringify dummyUserFormData
-
-      randomString          = generateRandomString()
-      userFormData.email    = "kodingtestuser+#{randomString}@gmail.com"
-      userFormData.username = randomString
-      
-    
-    it 'should pass error if account is already registered', (done) ->
-        
-      client.connection.delegate.type = 'registered'
-      
-      JUser.convert client, userFormData, (err) ->
-        expect(err)         .to.exist
-        expect(err.message) .to.be.equal "This account is already registered."
-        done()
-
-
-    it 'should pass error if username is a reserved one', (done) ->
-      
-      queue             = []
-      reservedUsernames = ['guestuser', 'guest-']
-     
-      for username in reservedUsernames
-        userFormData.username = username
-        
-        queue.push ->
-          JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.exist
-            queue.next()
-      
-      # done callback will be called after all usernames checked
-      queue.push -> done()
-        
-      daisy queue
-      
-  
-    it 'should pass error if passwords do not match', (done) ->
-      
-      userFormData.password         = 'somePassword'
-      userFormData.passwordConfirm  = 'anotherPassword'
-
-      JUser.convert client, userFormData, (err) ->
-        expect(err)         .to.exist
-        expect(err.message) .to.be.equal "Passwords must match!"
-        done()
-      
-      
-    it 'should pass error if username is in use', (done) ->
-      
-      queue = [
-        
-        ->
-          JUser.convert client, userFormData, (err) ->
-            expect(err).to.not.exist
-            queue.next()
-        
-        ->
-          # sending a different email address, username will remain same(duplicate)
-          userFormData.email = 'kodingtestuser@koding.com'
-
-          JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.exist
-            queue.next()
-        
-        -> done()
-
-      ]
-    
-      daisy queue
-
-    
-    it 'should pass error if email is in use', (done) ->
-      
-      queue = [
-
-        ->
-          JUser.convert client, userFormData, (err) ->
-            expect(err).to.not.exist
-            queue.next()
-
-        ->
-          # sending a different username, email address will remain same(duplicate)
-          userFormData.username = 'kodingtestuser'
-
-          JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.exist
-            queue.next()
-        
-        -> done()
-
-      ]
-
-      daisy queue
-    
-    
-    it.skip 'should set a random password when signed up with github', (done) ->
-    
-
-    it 'should register user and create account when valid data passed to convert method', (done) ->
-      
-      queue = [
-        
-        ->
-          JUser.convert client, userFormData, (err) ->
-            expect(err).to.not.exist
-            queue.next()
-
-        ->
-          params = { username : userFormData.username }
-          
-          JUser.one params, (err, { data : {email, registeredFrom} }) ->
-            expect(err)               .to.not.exist
-            expect(email)             .to.be.equal userFormData.email
-            expect(registeredFrom.ip) .to.be.equal client.clientIP
-            queue.next()
-
-        ->
-          params = { 'profile.nickname' : userFormData.username }
-          
-          JAccount.one params, (err, { data : {profile} }) ->
-            expect(err)               .to.not.exist
-            expect(profile.nickname)  .to.be.equal userFormData.username
-            queue.next()
-        
-        -> done()
-
-      ]
-
-      daisy queue
 
 
 beforeTests()
