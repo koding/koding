@@ -53,6 +53,14 @@ module.exports = class StacksCustomViews extends CustomViews
         { title  : 'Define your Stack' }
         { title  : 'Complete' }
       ]
+    REPO_FLOW    : [
+        { title  : 'Select Repo' }
+        { title  : 'Locate File' }
+        { title  : 'Test Integrations' }
+        { title  : 'Complete' }
+      ]
+
+
   parseTerraformOutput = (response) ->
 
     # An example of a valid stack template
@@ -365,6 +373,53 @@ module.exports = class StacksCustomViews extends CustomViews
 
       __view = controller.getView()
       return { __view, controller }
+
+
+    stepSelectRepo: (options) =>
+
+      {callback, cancelCallback, data} = options
+      container = @views.container 'step-select-repo'
+
+      views     = @addTo container,
+        stepsHeaderView   :
+          steps           : STEPS.REPO_FLOW
+          selected        : 1
+        text              : "We need to locate your configuration file first so
+                             so that we can understand what we are going to do
+                             when a user joins to your team.<br />
+                             So please tell us where your stack configuration
+                             file is."
+        repoProvidersView :
+          providers       : ['github', 'bitbucket']
+        navButton_cancel  :
+          callback        : cancelCallback
+
+      views.repoProvidersView.on 'ItemSelected', (provider) ->
+        data.repo_provider = provider
+        callback data
+
+      return container
+
+
+    stepLocateFile: (options) =>
+
+      {callback, cancelCallback, data} = options
+      container = @views.container 'step-locate-file'
+
+      views     = @addTo container,
+        stepsHeaderView   :
+          steps           : STEPS.REPO_FLOW
+          selected        : 2
+        text              : "Github: Select a repository from your account"
+
+        navButton_cancel  :
+          callback        : cancelCallback
+
+      views.repoProvidersView.on 'ItemSelected', (provider) ->
+        data.repo_provider = provider
+        callback data
+
+      return container
 
 
     stepSelectProvider: (options) =>
