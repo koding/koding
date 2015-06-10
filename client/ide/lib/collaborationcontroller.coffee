@@ -50,7 +50,7 @@ module.exports = CollaborationController =
 
       @setSocialChannel channel
       @bindSocialChannelEvents()
-      callback null, @socialChannel
+      callback null, channel
 
 
   getSocialChannelId: ->
