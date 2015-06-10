@@ -45,6 +45,14 @@ module.exports = class StacksCustomViews extends CustomViews
   }
   """
 
+  STEPS          =
+    CUSTOM_STACK : [
+        { title  : 'Select Provider' }
+        { title  : 'Credentials' }
+        { title  : 'Bootstrap' }
+        { title  : 'Define your Stack' }
+        { title  : 'Complete' }
+      ]
   parseTerraformOutput = (response) ->
 
     # An example of a valid stack template
@@ -331,7 +339,9 @@ module.exports = class StacksCustomViews extends CustomViews
       container = @views.container 'step-provider'
 
       views     = @addTo container,
-        stepsHeaderView : 1
+        stepsHeaderView :
+          steps         : STEPS.CUSTOM_STACK
+          selected      : 1
         text            : "You need to select a provider first"
         providersView   :
           providers     : Object.keys globals.config.providers
@@ -370,7 +380,9 @@ module.exports = class StacksCustomViews extends CustomViews
 
       container  = @views.container 'step-creds'
       views      = @addTo container,
-        stepsHeaderView : 2
+        stepsHeaderView :
+          steps         : STEPS.CUSTOM_STACK
+          selected      : 2
         container_top   :
           text_intro    : "To be able to use this provider <strong>you need to
                            select a verified credential</strong> below, if you
@@ -405,7 +417,9 @@ module.exports = class StacksCustomViews extends CustomViews
       container.setClass 'has-markdown'
 
       views     = @addTo container,
-        stepsHeaderView : 3
+        stepsHeaderView :
+          steps         : STEPS.CUSTOM_STACK
+          selected      : 3
         container       :
           mainLoader    : 'Checking bootstrap status...'
         navCancelButton :
@@ -459,7 +473,9 @@ module.exports = class StacksCustomViews extends CustomViews
       container = @views.container 'step-define-stack'
       content   = stackTemplate?.template?.content or DEFAULT_TEMPLATE
       views     = @addTo container,
-        stepsHeaderView : 4
+        stepsHeaderView :
+          steps         : STEPS.CUSTOM_STACK
+          selected      : 4
         input_title     :
           label         : 'Stack Template Title'
           value         : stackTemplate?.title or 'Default Template'
@@ -497,7 +513,9 @@ module.exports = class StacksCustomViews extends CustomViews
       container.setClass 'has-markdown'
 
       views = @addTo container,
-        stepsHeaderView : 5
+        stepsHeaderView :
+          steps         : STEPS.CUSTOM_STACK
+          selected      : 5
         container       :
           mainLoader    : 'Processing template...'
 
