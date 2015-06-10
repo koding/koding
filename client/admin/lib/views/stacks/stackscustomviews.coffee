@@ -569,7 +569,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepsHeader: (options) =>
 
-      {title, index, selected} = options
+      { title, index, selected } = options
 
       container = @views.container "#{if selected then 'selected' else ''}"
 
@@ -582,17 +582,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepsHeaderView: (options) =>
 
-      if typeof options is 'number'
-        steps = [
-          { title : 'Select Provider' }
-          { title : 'Credentials' }
-          { title : 'Bootstrap' }
-          { title : 'Define your Stack' }
-          { title : 'Complete' }
-        ]
-        selected  = options
-      else
-        { steps } = options
+      { steps, selected } = options
 
       container = @views.container 'steps-view'
 
@@ -600,10 +590,12 @@ module.exports = class StacksCustomViews extends CustomViews
         cssClass : 'vline'
         tagName  : 'cite'
 
+      steps = steps.slice 0
       steps.forEach (step, index) =>
-        step.index = index + 1
-        if selected? and selected is step.index
-          step.selected = yes
+
+        step.index    = index + 1
+        step.selected = selected? and selected is step.index
+
         @addTo container, stepsHeader: step
 
       return container
