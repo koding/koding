@@ -299,6 +299,9 @@ module.exports = CollaborationController =
       return  unless account
 
       {nickname} = account.profile
+
+      return  if nickname is nick()
+
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
 
