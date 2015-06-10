@@ -1,11 +1,13 @@
 _ = require 'lodash'
 $ = require 'jquery'
+
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDObject = kd.Object
 Cursor = require './cursor'
 InputHandler = require './inputhandler'
 ScreenBuffer = require './screenbuffer'
+Style      = require './style'
 StyledText = require './styledtext'
 createANSIControlCodeReader = require './createansicontrolcodereader'
 
@@ -265,7 +267,7 @@ module.exports = class Terminal extends KDObject
     text = text.replace /[ ]/g, "\xA0" # NBSP
     switch @currentCharacterSets[@currentCharacterSetIndex]
       when "0"
-        nonBoldStyle = $.extend true, {}, style
+        nonBoldStyle = new Style style
         nonBoldStyle.bold = false
         for i in [0..text.length]
           c = text.charCodeAt i
@@ -283,7 +285,7 @@ module.exports = class Terminal extends KDObject
 
   writeEmptyText: (length, options) ->
     if not @currentWhitespaceStyle?
-      @currentWhitespaceStyle = $.extend true, {}, @currentStyle
+      @currentWhitespaceStyle = new Style @currentStyle
       @currentWhitespaceStyle.inverse = false
     @currentWhitespaceStyle
     options ?= {}
@@ -305,7 +307,7 @@ module.exports = class Terminal extends KDObject
     @screenBuffer.setLineContent lineIndex, newContent
 
   setStyle: (name, value) ->
-    @currentStyle = $.extend true, {}, @currentStyle
+    @currentStyle = new Style @currentStyle
     @currentStyle[name] = value
     @currentWhitespaceStyle = null
 
@@ -356,5 +358,3 @@ module.exports = class Terminal extends KDObject
     kd.utils.stopDOMEvent event
     @server.input event.originalEvent.clipboardData.getData "text/plain"
     @setKeyFocus()
-
-
