@@ -21,10 +21,24 @@ module.exports     = class GroupStackSettings extends kd.View
     @replaceViewsWith
       initialView: @bound 'initiateNewStackWizard'
 
+  initiateFollowing: (_steps) ->
+
+    steps = []
+
+    _steps.forEach (step, index) =>
+      steps.push (data) =>
+        @replaceViewsWith "#{step}": {
+          callback       : steps[index+1] or @bound 'setGroupTemplate'
+          cancelCallback : steps[index-1] or @bound 'initiateInitialView'
+          data
+        }
+
+    return steps
+
 
   initiateNewStackWizard: (stackTemplate) ->
 
-    NEW_STACK_STEPS = [
+    steps = @initiateFollowing [
       'stepSelectProvider'
       'stepSetupCredentials'
       'stepBootstrap'
@@ -32,15 +46,7 @@ module.exports     = class GroupStackSettings extends kd.View
       'stepComplete'
     ]
 
-    steps = []
 
-    NEW_STACK_STEPS.forEach (step, index) =>
-      steps.push (data) =>
-        @replaceViewsWith "#{step}": {
-          callback       : steps[index+1] or @bound 'setGroupTemplate'
-          cancelCallback : steps[index-1] or @bound 'initiateInitialView'
-          data
-        }
 
     steps.first { stackTemplate }
 
