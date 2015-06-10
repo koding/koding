@@ -26,7 +26,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
   viewAppended:->
 
-    { usage, limits, plan } = @getOptions()
+    { usage, limits, plan, region } = @getOptions()
 
     @addSubView content = new KDView
       cssClass : 'container'
@@ -60,6 +60,11 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
         { title: "Ireland",                        value: "eu-west-1" }
       ]
 
+    # Set the default region passed in as an option
+    if region
+      @disableRegion()
+      @regionSelector.setValue region
+
     regionContainer.addSubView @regionTextView = new KDView
 
     content.addSubView @snapshotsContainer = new KDView
@@ -72,13 +77,23 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     @snapshotsContainer.addSubView @snapshotsSelector = new KDSelectBox
       name          : 'snapshots'
       selectOptions : [ title: 'None', value: "" ]
-      callback      : =>
+      callback      : (snapshotId) =>
         # Update the usage text with the value of the slider
         #
         # Note that @getValues() just returns the value *option* of the
         # handles, so we're getting the value directly.
         @updateSnapshotUsageText @storageSlider.handles.first.value
         @updateCreateVMBtnEnabled @storageSlider.handles.first.value
+
+        # If the selected snapshot has a value (not empty), disable the
+        # region selector, and set it's value to the snapshot region.
+        # If it does not have a value (empty), enable the region selector.
+        if snapshotId
+          @regionSelector.setValue @snapshots[snapshotId].region
+          @updateRegionText()
+          @disableRegion()
+        else
+          @enableRegion()
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
@@ -260,3 +275,13 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
       @createVMButton.hideLoader()
       @destroy()
+
+
+  disableRegion: ->
+    @regionSelector.makeDisabled()
+
+
+  enableRegion: ->
+    @regionSelector.makeEnabled()
+
+
