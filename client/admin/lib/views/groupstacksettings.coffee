@@ -19,7 +19,11 @@ module.exports     = class GroupStackSettings extends kd.View
 
   initiateInitialView: ->
     @replaceViewsWith
-      initialView: @bound 'initiateNewStackWizard'
+      initialView: (selected) =>
+        if selected is 'create-new'
+        then @initiateNewStackWizard()
+        else @initiateRepoFlowWizard()
+
 
   initiateFollowing: (_steps) ->
 
@@ -46,7 +50,18 @@ module.exports     = class GroupStackSettings extends kd.View
       'stepComplete'
     ]
 
+    steps.first { stackTemplate }
 
+
+  initiateRepoFlowWizard: (stackTemplate) ->
+
+    steps = @initiateFollowing [
+      'stepSelectRepo'
+      'stepLocateFile'
+      'stepBootstrap'
+      'stepDefineStack'
+      'stepComplete'
+    ]
 
     steps.first { stackTemplate }
 
