@@ -834,9 +834,11 @@ module.exports = CollaborationController =
 
     @removeWorkspaceSnapshot()
 
-    @setMachineUser [nick()], no, (err) =>
-      throwError err  if err
-      @broadcastMessage type: 'ParticipantWantsToLeave'
+    unless @mountedMachine.isPermanent()
+      @setMachineUser [nick()], no, (err) =>
+        throwError err  if err
+
+    @broadcastMessage type: 'ParticipantWantsToLeave'
 
     callback()
 
