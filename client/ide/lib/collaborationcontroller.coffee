@@ -807,7 +807,6 @@ module.exports = CollaborationController =
     envHelpers.detachSocialChannel @workspaceData, (err) =>
       throwError err  if err
 
-    @unsetSocialChannel()
     callback()
 
 
@@ -907,6 +906,8 @@ module.exports = CollaborationController =
 
 
   cleanupCollaboration: (options = {}) ->
+
+    @unsetSocialChannel()
 
     # TODO: remove Active session from here,
     # we will deffo need a leaving state.
