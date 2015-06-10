@@ -45,3 +45,11 @@ module.exports = class ActivityBaseListItemView extends KDListItemView
       article.classList.add 'tall'
 
       @addSubView @showMore, showMoreMarkCssClass
+
+    else if @showMore
+
+      article.style.maxHeight = null
+      article.classList.remove 'show-more'
+      article.classList.remove 'tall'
+
+      @showMore.destroy()
