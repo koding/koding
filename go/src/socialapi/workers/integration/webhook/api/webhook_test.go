@@ -354,7 +354,7 @@ func TestWebhookIntegrationList(t *testing.T) {
 
 		Convey("while listing integrations ", t, func() {
 			name := ".A" + models.RandomGroupName()
-			firstInt := webhook.CreatePrivateIntegration(t)
+			firstInt := webhook.CreateUnpublishedIntegration(t)
 			secondInt := webhook.CreateIntegration(t, name)
 
 			Convey("it should only list public integrations", func() {
@@ -375,7 +375,7 @@ func TestWebhookIntegrationList(t *testing.T) {
 				So(len(integrations), ShouldBeGreaterThanOrEqualTo, 1)
 
 				for _, integration := range integrations {
-					So(integration.IsPrivate, ShouldBeFalse)
+					So(integration.IsPublished, ShouldBeFalse)
 					So(integration.Name, ShouldNotEqual, firstInt.Name)
 				}
 			})

@@ -165,7 +165,7 @@ func (mwc *Controller) CreateIntegrations() {
 	i.Title = "iterable"
 	i.Name = "iterable"
 	i.Summary = "Email engagement service"
-	i.IsPrivate = true
+	i.IsPublished = true
 
 	err := i.Create()
 	if err != nil {

@@ -13,7 +13,7 @@ DO $$
       WHEN duplicate_column THEN RAISE NOTICE 'column already exists';
     END;
     BEGIN
-      ALTER TABLE integration.integration ADD COLUMN is_private BOOLEAN NOT NULL DEFAULT FALSE;
+      ALTER TABLE integration.integration ADD COLUMN is_published BOOLEAN NOT NULL DEFAULT FALSE;
     EXCEPTION
       WHEN duplicate_column THEN RAISE NOTICE 'column already exists';
     END;

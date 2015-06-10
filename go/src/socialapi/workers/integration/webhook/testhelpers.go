@@ -83,12 +83,12 @@ func CreateIntegration(t *testing.T, name string) *Integration {
 	return i
 }
 
-func CreatePrivateIntegration(t *testing.T) *Integration {
+func CreateUnpublishedIntegration(t *testing.T) *Integration {
 
 	i := NewIntegration()
 	i.Title = models.RandomName()
 	i.Name = i.Title
-	i.IsPrivate = true
+	i.IsPublished = true
 
 	err := i.Create()
 	if err != nil {

@@ -45,8 +45,8 @@ type Integration struct {
 	// Settings used for storing events and other optional data
 	Settings gorm.Hstore `json:"settings"`
 
-	// IsPrivate used for wip integrations
-	IsPrivate bool `json:"-"`
+	// IsPublished used for wip integrations
+	IsPublished bool `json:"-"`
 
 	// Creation date of the integration
 	CreatedAt time.Time `json:"createdAt" sql:"NOT NULL"`
