@@ -132,9 +132,16 @@ routeToLatestWorkspace = ->
   { machineLabel, workspaceSlug, channelId } = latestWorkspace
 
   if channelId
-    dataProvider.fetchMachineAndWorkspaceByChannelId channelId, (machine, ws) =>
-      if machine and ws then router.handleRoute "/IDE/#{channelId}"
-      else routeToFallback()
+    kd.singletons.socialapi.cacheable 'channel', channelId, (err, channel) ->
+
+      if err
+        storage = kd.singletons.localStorageController.storage 'IDE'
+        storage.unsetKey 'LatestWorkspace'
+        return routeToFallback()
+
+      dataProvider.fetchMachineAndWorkspaceByChannelId channelId, (machine, ws) =>
+        if machine and ws then router.handleRoute "/IDE/#{channelId}"
+        else routeToFallback()
 
   else if machineLabel and workspaceSlug
     dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) =>
