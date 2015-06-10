@@ -915,7 +915,6 @@ module.exports = CollaborationController =
 
     @rtm.once 'RealtimeManagerWillDispose', =>
       kd.utils.killRepeat @pingInterval
-      kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       @rtm = null
