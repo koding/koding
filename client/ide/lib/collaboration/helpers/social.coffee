@@ -65,6 +65,19 @@ destroyChannel = (channel, callback) ->
 
 
 ###*
+ * Wrapper for `SocialApiController.channel.acceptInvite` function
+ * @param {SocialChannel} channel
+ * @param {function(err: object)} callback
+###
+acceptChannel = (channel, callback) ->
+
+  return callback()  if channel.isParticipant
+
+  channelId = channel.id
+  kd.singletons.socialapi.channel.acceptInvite {channelId}, callback
+
+
+###*
  * Wrapper function around `SocialApiController#channel.listParticipants`
  *
  * One difference is instead of returning simple objects,
@@ -166,6 +179,7 @@ module.exports = {
   kickParticipants
   fetchChannel
   destroyChannel
+  acceptChannel
   leaveChannel
   initChannel
   sendActivationMessage
