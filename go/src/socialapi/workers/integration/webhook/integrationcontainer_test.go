@@ -54,7 +54,7 @@ func TestIntegrationContainersPopulate(t *testing.T) {
 
 		})
 
-		Convey("it should contain all my integrations that created from twi different integration", func() {
+		Convey("it should contain all my integrations that created from two different integrations", func() {
 
 			secondIntegration := CreateTestIntegration(t)
 

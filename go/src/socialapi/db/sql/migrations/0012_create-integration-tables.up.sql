@@ -22,6 +22,7 @@ DO $$
       CREATE SEQUENCE "integration"."integration_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
     EXCEPTION WHEN duplicate_table THEN
     END;
+
     BEGIN
       CREATE SEQUENCE "integration"."channel_integration_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
     EXCEPTION WHEN duplicate_table THEN

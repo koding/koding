@@ -157,6 +157,10 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 }
 
 func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+	if ok := ctx.IsLoggedIn(); !ok {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
 	ci := webhook.NewChannelIntegration()
 	if err := ci.ById(i.Id); err != nil {
 		return response.NewBadRequest(err)

@@ -117,8 +117,7 @@ func FetchAccountChannels(token string) (*models.ChannelContainers, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(res, cc)
-	if err != nil {
+	if err := json.Unmarshal(res, cc); err != nil {
 		return nil, err
 	}
 

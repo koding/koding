@@ -1,4 +1,5 @@
 kd           = require 'kd'
+globals      = require 'globals'
 JView        = require 'app/jview'
 remote       = require('app/remote').getInstance()
 KDSelectBox  = kd.SelectBox
@@ -41,11 +42,11 @@ module.exports = class AdminIntegrationSetupView extends JView
     kd.singletons.socialapi.integrations.create options, (err, response) =>
       return console.warn "couldnt create integration", err  if err
 
-      data.token = response.token
-      data.id = response.id
-      data.integrationId = response.integrationId
+      data.token           = response.token
+      data.id              = response.id
+      data.integrationId   = response.integrationId
       data.selectedChannel = response.channelId
-      data.webhookUrl = "https://koding.com/api/integration/#{data.name}/#{data.token}"
+      data.webhookUrl      = "#{globals.config.mainUri}/api/integration/#{data.name}/#{data.token}"
 
       @destroy()
       @emit 'NewIntegrationAdded', data
