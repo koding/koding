@@ -856,7 +856,11 @@ module.exports = CollaborationController =
       @removeMachineNode()
 
     @rtm.once 'RealtimeManagerDidDispose', =>
-      kd.utils.defer @bound 'quit'
+      method = switch
+        when @mountedMachine.isPermanent() then 'prepareCollaboration'
+        else 'quit'
+
+      kd.utils.defer @bound method
 
     @cleanupCollaboration()
 
