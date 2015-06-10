@@ -199,6 +199,28 @@ func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *we
 	return response.NewOK(response.NewSuccessResponse(i))
 }
 
+func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewInvalidRequest(err)
+	}
+
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	ci := webhook.NewChannelIntegration()
+	if err := ci.ById(id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if ci.GroupName != ctx.GroupName {
+		return response.NewBadRequest(ErrInvalidGroup)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ci))
+}
+
 func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {

@@ -46,7 +46,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  h.RegenerateToken,
-			Name:     "webhook-regenerate-token",
+			Name:     "channel-integration-regenerate-token",
 			Type:     handler.PostRequest,
 			Endpoint: "/channelintegration/token",
 		},
@@ -54,8 +54,17 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
+			Handler:  h.GetChannelIntegration,
+			Name:     "channel-integration-get",
+			Type:     handler.GetRequest,
+			Endpoint: "/channelintegration/{id}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
 			Handler:  h.CreateChannelIntegration,
-			Name:     "webhook-create",
+			Name:     "channel-integration-create",
 			Type:     handler.PostRequest,
 			Endpoint: "/channelintegration/create",
 		},
@@ -64,7 +73,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  h.UpdateChannelIntegration,
-			Name:     "webhook-update",
+			Name:     "channel-integration-update",
 			Type:     handler.PostRequest,
 			Endpoint: "/channelintegration/{id}/update",
 		},

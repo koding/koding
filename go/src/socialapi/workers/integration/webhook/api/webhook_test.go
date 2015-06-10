@@ -542,6 +542,57 @@ func TestWebhookRegenerateToken(t *testing.T) {
 	})
 }
 
+func TestWebhookGetChannelIntegration(t *testing.T) {
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("while fetching the channel integration", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			_, err := topicChannel.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			// create channel integration
+			ci := webhook.NewChannelIntegration()
+			ci.CreatorId = acc.Id
+			ci.GroupName = groupName
+			ci.ChannelId = topicChannel.Id
+			ci.IntegrationId = in.Id
+
+			err = ci.Create()
+			So(err, ShouldBeNil)
+			Convey("it should be fetched with a valid id", func() {
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+				endpoint := fmt.Sprintf("/channelintegration/%d", ci.Id)
+
+				s, _, res, err := h.GetChannelIntegration(
+					mocking.URL(m, "GET", endpoint),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				sr, srOk := res.(*response.SuccessResponse)
+				So(srOk, ShouldBeTrue)
+
+				newCi, ok := sr.Data.(*webhook.ChannelIntegration)
+				So(ok, ShouldBeTrue)
+
+				So(newCi, ShouldNotBeNil)
+				So(newCi.Id, ShouldEqual, ci.Id)
+			})
+
+		})
+	})
+}
+
 func TestWebhookUpdateChannelIntegration(t *testing.T) {
 
 	tearUp(func(h *Handler, m *mux.Mux) {
