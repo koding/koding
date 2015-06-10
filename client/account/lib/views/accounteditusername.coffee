@@ -330,8 +330,7 @@ module.exports = class AccountEditUsername extends JView
               return showError err if err
               notify "We've sent you a confirmation mail.", 3500
 
-    @addSubView @verifyEmail = new KDCustomHTMLView opts
-
+    @emailForm.fields.username.parent.prepend verifyEmail = new KDCustomHTMLView opts
 
   getAvatarOptions: ->
     tagName       : 'figure'
