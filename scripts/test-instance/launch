@@ -6,6 +6,10 @@ argv = require('minimist')(process.argv.slice(2))
 AWS = require './aws'
 EC2 = new AWS.EC2()
 
+keys              =
+  config          : new Buffer(fs.readFileSync './ssh.config', 'utf8').toString 'base64'
+  id_rsa          : new Buffer(fs.readFileSync './koding-test-instances-2015-06.pem'          , 'utf8').toString 'base64'
+
 if argv['pull-request']
   git_fetch    = "git fetch origin +refs/pull/#{argv['pull-request']}/head"
   git_checkout = 'git checkout FETCH_HEAD'
@@ -31,6 +35,9 @@ userData =
   runcmd:
     - echo 127.0.0.1 `hostname` >> /etc/hosts
     - echo 127.0.0.1 freegeoip.net >> /etc/hosts
+    - echo #{keys.config}          | base64 --decode > /root/.ssh/config
+    - echo #{keys.id_rsa}          | base64 --decode > /root/.ssh/id_rsa
+    - chmod 0600 /root/.ssh/id_rsa
     - cd /opt/koding
     - ip -s -s neigh flush all
     - echo 'Checking connectivity to GitHub over ssh'
