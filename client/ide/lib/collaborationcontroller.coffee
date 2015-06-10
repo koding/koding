@@ -599,15 +599,23 @@ module.exports = CollaborationController =
     unless @workspaceData.channelId
       return callMethod 'notStarted'
 
+    checkRealtimeSession = (channel) =>
+      @isRealtimeSessionActive channel.id, (isActive, file) =>
+        if isActive
+        then callMethod 'active', channel, file
+        else callMethod 'notStarted'
+
     @fetchSocialChannel (err, channel) =>
       if err
         throwError err
         return callMethod 'notStarted'
 
-      @isRealtimeSessionActive channel.id, (isActive, file) =>
-        if isActive
-        then callMethod 'active', channel, file
-        else callMethod 'notStarted'
+      if channel.isParticipant
+      then checkRealtimeSession channel
+      else
+        socialHelpers.acceptChannel channel, (err) =>
+          return callMethod 'error', err  if err
+          checkRealtimeDocument channel
 
 
   onCollaborationNotStarted: ->
