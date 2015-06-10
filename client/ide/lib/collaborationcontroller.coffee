@@ -60,7 +60,7 @@ module.exports = CollaborationController =
 
   unsetSocialChannel: ->
 
-    @channelId = @socialChannel = @workspaceData.channelId = null
+    @channelId = @socialChannel = null
 
 
   deletePrivateMessage: (callback = kd.noop) ->
