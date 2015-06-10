@@ -275,6 +275,37 @@ module.exports = class StacksCustomViews extends CustomViews
       new kd.ButtonView options
 
 
+    menuButton: (options) ->
+
+      {menu, callback} = options
+
+      button    = null
+      _menu     = null
+      menuItems = {}
+
+      Object.keys(menu).forEach (key) ->
+        menuItems[key] =
+          callback     : ->
+            callback menu[key]
+            _menu.destroy()
+
+      options.callback = ->
+        _menu = new kd.ContextMenu
+          cssClass    : 'menu-button-menu'
+          delegate    : button
+          y           : button.getY() + button.getHeight()
+          x           : button.getX() - 5
+          width       : button.getWidth()
+          arrow       :
+            placement : 'top'
+            margin    : -button.getWidth() / 2
+        , menuItems
+
+      button = new kd.ButtonView options
+
+      return button
+
+
     navButton: (options, name) =>
       options.cssClass = kd.utils.curry 'solid compact light-gray nav', name
       options.title = name.capitalize()
@@ -308,10 +339,13 @@ module.exports = class StacksCustomViews extends CustomViews
                              joins your group you can preconfigure their work
                              environment by defining stacks.
                              Learn more about stacks"
-          button          :
-            title         : 'Create New'
+          menuButton      :
+            title         : 'Configure a Stack'
             cssClass      : 'solid compact green action'
-            callback      : -> callback null
+            menu          :
+              'Create from scratch' : 'create-new'
+              'Use from repo'       : 'from-repo'
+            callback      : callback
         stackTemplateList :
           group           : currentGroup
 
