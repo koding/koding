@@ -467,11 +467,8 @@ module.exports = CollaborationController =
 
         return  unless data.origin is @collaborationHost
 
-        if data.target is nick()
-          @removeMachineNode()
-          @showKickedModal()
-        else
-          @handleParticipantKicked data.target
+        @showKickedModal()  if data.target is nick()
+        @handleParticipantKicked data.target
 
       when 'SetMachineUser'
 
@@ -1000,7 +997,6 @@ module.exports = CollaborationController =
 
     @chat?.end()
     @showModal options
-    @handleCollaborationEndedForParticipant()
 
 
   showSessionEndedModal: (content) ->
