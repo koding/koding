@@ -1059,6 +1059,21 @@ module.exports = CollaborationController =
       @stateMachine.transition 'Ending'
 
 
+  attendWorkspaceChannel: ->
+
+    {notificationController} = kd.singletons
+
+    notificationController.on 'AddedToChannel', (update) =>
+
+      {channelId} = @workspaceData
+
+      return  unless update.channel.id is channelId
+
+      socialHelpers.acceptChannel update.channel, (err) =>
+        return throwError err  if err
+        @stateMachine.transition 'Loading'
+
+
   updateWorkspaceSnapshotModel: ->
 
     for hash, change of @getWorkspaceSnapshot()
