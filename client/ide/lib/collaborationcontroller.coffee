@@ -854,7 +854,7 @@ module.exports = CollaborationController =
       @chat = null
       @statusBar.emit 'CollaborationEnded'
       @removeParticipant nick()
-      @removeMachineNode()
+      @removeMachineNode()  unless @mountedMachine.isPermanent()
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       method = switch
