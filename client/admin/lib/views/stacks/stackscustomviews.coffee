@@ -618,6 +618,24 @@ module.exports = class StacksCustomViews extends CustomViews
 
       return container
 
+    repoProvidersView: (options) =>
+
+      {providers} = options
+
+      container = @views.container 'repo-providers'
+
+      providers.forEach (provider) =>
+
+        @addTo container,
+          button     :
+            title    : 'Select'
+            cssClass : provider
+            disabled : provider is 'bitbucket'
+            callback : ->
+              container.emit 'ItemSelected', provider
+
+      return container
+
 
     stepsHeader: (options) =>
 
