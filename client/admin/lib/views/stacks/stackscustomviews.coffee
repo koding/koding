@@ -414,7 +414,7 @@ module.exports = class StacksCustomViews extends CustomViews
           steps           : STEPS.REPO_FLOW
           selected        : 2
         text              : "Github: Select a repository from your account"
-        repoList          :
+        repoListView      :
           username        : 'gokmen'
         navCancelButton   :
           title           : '< Select another provider'
@@ -448,8 +448,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
     repoList: (options) =>
 
-      { username } = options
-
       controller          = new kd.ListViewController
         viewOptions       :
           type            : 'github'
@@ -461,12 +459,28 @@ module.exports = class StacksCustomViews extends CustomViews
           cssClass        : 'noitem-warning'
           partial         : 'There is no repository to show.'
 
-      GitHub.fetchUserRepos username, (err, repos) =>
-        return  if showError err
-        controller.replaceAllItems repos
-
       __view = controller.getView()
       return { __view, controller }
+
+
+    repoListView: (options) =>
+
+      { username } = options
+      container    = @views.container 'repo-list'
+      views        = @addTo container,
+        mainLoader : 'Fetching repository list...'
+        repoList   : options
+
+      {controller, __view: repoList} = views.repoList
+
+      repoList.hide()
+      GitHub.fetchUserRepos username, (err, repos) =>
+        views.mainLoader.hide()
+        return  if showError err
+        controller.replaceAllItems repos
+        repoList.show()
+
+      return container
 
 
     credentialList: (options) =>
