@@ -1,3 +1,4 @@
+$ = require 'jquery'
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
@@ -330,7 +331,11 @@ module.exports = class AccountEditUsername extends JView
               return showError err if err
               notify "We've sent you a confirmation mail.", 3500
 
-    @emailForm.fields.username.parent.prepend verifyEmail = new KDCustomHTMLView opts
+    @verifyEmail = new KDCustomHTMLView opts
+
+    header = @emailForm.fields.passwordHeader.getElement()
+
+    header.parentElement.insertBefore @verifyEmail.getElement(), header
 
   getAvatarOptions: ->
     tagName       : 'figure'
