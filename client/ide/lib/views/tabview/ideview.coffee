@@ -609,7 +609,7 @@ setupSplitHandleNotifier = (handle) ->
   splitLeft = handle.getX()
 
   notifier = new ProximityNotifier
-    handler: ->
+    handler: (event) ->
       { pageX, pageY } = event
 
       distX = Math.pow splitLeft - pageX, 2
