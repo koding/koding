@@ -12,9 +12,12 @@ KDHitEnterInputView     = kd.HitEnterInputView
 remote                  = require('../remote').getInstance()
 Machine                 = require './machine'
 ComputeHelpers          = require './computehelpers'
-HelpSupportModal        = '../commonviews/helpsupportmodal'
 ComputeController       = require './computecontroller'
+
 BaseModalView           = require './views/basemodalview'
+HelpSupportModal        = '../commonviews/helpsupportmodal'
+
+EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
 MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 
@@ -621,12 +624,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     findNodes = new FindManagedNodesModal { container }, @machine
 
 
-  requestNewMachine: ->
-
-    {container} = @getOptions()
-
-    MoreVMsModal = require 'app/activity/sidebar/morevmsmodal'
-    new MoreVMsModal { container }
+  requestNewMachine: -> new EnvironmentsModal
 
 
   turnOnMachine: ->
