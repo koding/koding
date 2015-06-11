@@ -12,10 +12,10 @@ module.exports = (req, res, next) ->
   {JUser, JSession} = (require './../bongo').models
 
   logErrorAndReturn = (err) ->
-    console.error 'Confirming user failed:', err
+    console.error 'confirm handler failed:', err
     res.status(500).end()
 
-  {token, redirect_uri, clientId} = req.query
+  {token, redirect_uri} = req.query
 
   unless token
     return res.status(400).end()
@@ -36,7 +36,7 @@ module.exports = (req, res, next) ->
         JSession.createNewSession {username, groupName}, (err, session) ->
           return logErrorAndReturn err  if err
 
-          res.cookie 'clientId', session.clientId, path: redirect_uri or "/"
-          res.status(200).end()
+          res.cookie 'clientId', session.clientId, path: '/'
+          res.redirect redirect_uri or '/'
 
-          analytics.track userId: username, event: 'confirmed/logged in using token'
+          analytics.track userId: username, event: 'confirmed & logged in using token'

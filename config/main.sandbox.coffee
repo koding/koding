@@ -229,7 +229,7 @@ Configuration = (options={}) ->
     contentRotatorUrl              : 'http://koding.github.io'
     collaboration                  : {timeout: 1 * 60 * 1000                                         , expiresInMinutes: 10080 }
     client                         : {watch: yes                                                     , version: version                                             , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
-    jwt                            : {secret: "ac25b4e6009c1b6ba336a3eb17fbc3b7"                     , expirationInterval: 10080  } # 7 days
+    jwt                            : {secret: "ac25b4e6009c1b6ba336a3eb17fbc3b7"                     , expiresInMinutes: 10080  } # 7 days
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify
