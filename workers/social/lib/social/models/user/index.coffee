@@ -1274,11 +1274,12 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         {secret, expiresInMinutes} = KONFIG.jwt
+        {publicHostname} = KONFIG
 
         jwt   = require 'jsonwebtoken'
         token = jwt.sign { username }, secret, { expiresInMinutes }
 
-        analytics.identify userId: username, traits: { jwtToken: token }
+        analytics.identify userId: username, traits: { jwtToken: token, host: publicHostname }
     ]
 
     daisy queue
