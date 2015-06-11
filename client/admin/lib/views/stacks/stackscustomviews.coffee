@@ -11,6 +11,8 @@ FSHelper                        = require 'app/util/fs/fshelper'
 showError                       = require 'app/util/showError'
 applyMarkdown                   = require 'app/util/applyMarkdown'
 
+GitHub                          = require 'app/extras/github/github'
+RepoItem                        = require 'app/extras/github/views/repoitem'
 CustomViews                     = require 'app/commonviews/customviews'
 IDEEditorPane                   = require 'ide/workspace/panes/ideeditorpane'
 CredentialListItem              = require './credentiallistitem'
@@ -412,6 +414,8 @@ module.exports = class StacksCustomViews extends CustomViews
           steps           : STEPS.REPO_FLOW
           selected        : 2
         text              : "Github: Select a repository from your account"
+        repoList          :
+          username        : 'gokmen'
         navCancelButton   :
           title           : '< Select another provider'
           callback        : cancelCallback
@@ -440,6 +444,29 @@ module.exports = class StacksCustomViews extends CustomViews
         callback data
 
       return container
+
+
+    repoList: (options) =>
+
+      { username } = options
+
+      controller          = new kd.ListViewController
+        viewOptions       :
+          type            : 'github'
+          wrapper         : yes
+          itemClass       : RepoItem
+          itemOptions     :
+            buttonTitle   : 'select'
+        noItemFoundWidget : new kd.View
+          cssClass        : 'noitem-warning'
+          partial         : 'There is no repository to show.'
+
+      GitHub.fetchUserRepos username, (err, repos) =>
+        return  if showError err
+        controller.replaceAllItems repos
+
+      __view = controller.getView()
+      return { __view, controller }
 
 
     credentialList: (options) =>
