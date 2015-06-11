@@ -8,17 +8,19 @@ http     = require "https"
 provider = "github"
 
 saveOauthAndRedirect = (resp, res, clientId)->
+  {returnUrl} = resp
   saveOauthToSession resp, clientId, provider, (err)->
-    redirectOauth res, provider, err
+    options = {provider, returnUrl}
+    redirectOauth res, options, err
 
 module.exports = (req, res) ->
-  {code}        = req.query
+  {code, returnUrl} = req.query
   {clientId}        = req.cookies
   access_token      = null
   scope             = null
 
   unless code
-    redirectOauth res, provider, "No code"
+    redirectOauth res, {provider}, "No code"
     return
 
   headers =
@@ -63,6 +65,7 @@ module.exports = (req, res) ->
         username  : login
         profile   : lastName
         scope     : scope
+        returnUrl : returnUrl
       }
 
       headers["Accept"] = "application/vnd.github.v3.full+json"
