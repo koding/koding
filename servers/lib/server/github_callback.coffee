@@ -13,8 +13,9 @@ saveOauthAndRedirect = (resp, res, clientId)->
 
 module.exports = (req, res) ->
   {code}        = req.query
-  {clientId}    = req.cookies
-  access_token  = null
+  {clientId}        = req.cookies
+  access_token      = null
+  scope             = null
 
   unless code
     redirectOauth res, provider, "No code"
@@ -29,7 +30,9 @@ module.exports = (req, res) ->
     rawResp = ""
     authUserResp.on "data", (chunk) -> rawResp += chunk
     authUserResp.on "end", ->
-      {access_token} = JSON.parse rawResp
+      authResponse = JSON.parse rawResp
+      {access_token, scope} = authResponse
+
       if access_token
         options =
           host    : "api.github.com"
@@ -59,6 +62,7 @@ module.exports = (req, res) ->
         token     : access_token
         username  : login
         profile   : lastName
+        scope     : scope
       }
 
       headers["Accept"] = "application/vnd.github.v3.full+json"

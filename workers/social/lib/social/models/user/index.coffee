@@ -167,6 +167,7 @@ module.exports = class JUser extends jraphical.Module
           firstName          : String
           lastName           : String
           email              : String
+          scope              : String
         odesk                :
           foreignId          : String
           token              : String
@@ -953,10 +954,10 @@ module.exports = class JUser extends jraphical.Module
             afterLogin user, sessionToken, session, kallback
           else
             info = session.foreignAuth[provider]
-            {username, email, firstName, lastName} = info
+            {username, email, firstName, lastName, scope} = info
             callback null, {
               isNewUser : true,
-              userInfo  : {username, email, firstName, lastName}
+              userInfo  : {username, email, firstName, lastName, scope}
             }
 
 
