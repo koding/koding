@@ -1,27 +1,89 @@
-Bongo                                         = require 'bongo'
+Bongo                           = require 'bongo'
 
-{ daisy }                                     = Bongo
-{ expect }                                    = require "chai"
-{ RegisterHandlerHelper : { getPostParams },
-  getRandomString }                           = require '../../../testhelper'
-
-hat                                           = require 'hat'
-request                                       = require 'request'
+{ daisy }                       = Bongo
+{ expect }                      = require "chai"
+{ generateRandomString
+  RegisterHandlerHelper }       = require '../../../testhelper'
+{ generatePostParams }          = RegisterHandlerHelper
 
 
-###
-# Variables
-###
-postParams = {}
+hat                             = require 'hat'
+request                         = require 'request'
 
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.register', ->
 
+  it 'should send HTTP 404 if method is not allowed', (done) ->
+
+    queue       = []
+    methods     = ['put, patch, del']
+    postParams  = generatePostParams()
+
+    addRequestToQueue = (queue, method) ->
+      postParams.method = method
+      request.del postParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 404
+        queue.next()
+
+    for method in methods
+      addRequestToQueue queue, method
+
+    queue.push -> done()
+
+    daisy queue
+
+
+  it 'should send HTTP 200 if GET request sent to Register hadler url', (done) ->
+
+    request.get generatePostParams().url, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 200
+      done()
+
+
+  it 'should send HTTP 400 if username is not specified', (done) ->
+
+    postParams = generatePostParams
+      body        :
+        username  : ''
+
+    request.post postParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 400
+      done()
+
+
+  it 'should send HTTP 400 if password is not specified', (done) ->
+
+    postParams = generatePostParams
+      body        :
+        password  : ''
+
+    request.post postParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 400
+      done()
+
+
+  it 'should send HTTP 400 if passwords do not match ', (done) ->
+
+    postParams = generatePostParams
+      body              :
+        password        : 'somePassword'
+        passwordConfirm : 'anotherPassword'
+
+    request.post postParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 400
+      done()
+
+
   it 'should send HTTP 400 if username is in use', (done) ->
 
-    randomString = getRandomString()
-    postParams   = getPostParams
+    randomString = generateRandomString()
+    postParams   = generatePostParams
       body        :
         username  : randomString
 
@@ -48,8 +110,8 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if email is in use', (done) ->
 
-    randomString = getRandomString()
-    postParams   = getPostParams
+    randomString = generateRandomString()
+    postParams   = generatePostParams
       body    :
         email : "kodingtestuser+#{randomString}@koding.com"
 
@@ -74,9 +136,21 @@ runTests = -> describe 'server.handlers.register', ->
     daisy queue
 
 
+  it 'should send HTTP 400 if agree is set as off', (done) ->
+
+    postParams = generatePostParams
+      body        :
+        agree     : 'off'
+
+    request.post postParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 400
+      done()
+
+
   it 'should send HTTP 200 if valid data sent as XHR request', (done) ->
 
-    postParams  = getPostParams()
+    postParams  = generatePostParams()
 
     request.post postParams, (err, res, body) ->
       expect(err)             .to.not.exist
@@ -86,7 +160,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 301 if request is not XHR',  (done) ->
 
-    postParams = getPostParams
+    postParams = generatePostParams
       headers :
         'x-requested-with' : 'this is not an XHR'
 
@@ -98,7 +172,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should pass err if url is not specified', (done) ->
 
-    postParams = getPostParams
+    postParams = generatePostParams
       url : ''
 
     request.post postParams, (err, res, body) ->
