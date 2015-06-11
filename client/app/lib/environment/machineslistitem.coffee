@@ -45,6 +45,11 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     @settingsLink.hide()  unless machine.isRunning()
 
+    # more to come like os, version etc.
+    @vminfo =
+      instance_type : machine.jMachine.meta?.instance_type or 'unknown'
+
+
 
   handleAlwaysOnStateChanged: (state) ->
 
@@ -74,7 +79,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
       </div>
       <div>
         <span>VM{{> @settingsLink}}</span>
-        {{#(jMachine.meta.instance_type)}}
+        <span>#{@vminfo.instance_type}</span>
       </div>
       <div>
         <span>UBUNTU</span>
