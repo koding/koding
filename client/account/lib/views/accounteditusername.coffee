@@ -1,4 +1,3 @@
-$ = require 'jquery'
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
