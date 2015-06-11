@@ -1,6 +1,6 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-JView = require '../jview'
+kd                  = require 'kd'
+KDCustomHTMLView    = kd.CustomHTMLView
+JView               = require '../jview'
 
 
 module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
@@ -16,10 +16,6 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
 
     @count = 0
 
-    @getDelegate().on 'AvatarPopupShouldBeHidden', =>
-
-      @unsetClass 'active'
-
 
   updateCount: (newCount = 0) ->
 
@@ -30,18 +26,23 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
     then @$('.count').addClass "hidden"
     else @$('.count').removeClass "hidden"
 
-  click: do (skipNextClick = no) -> (event) ->
+  click: do (skipNextClick = no, listItemClicked = no) -> (event) ->
 
     kd.utils.stopDOMEvent event
 
-    popup = @getDelegate()
+    return skipNextClick = no  if skipNextClick
 
-    if popup.hasClass 'active'
+    popup = @getDelegate()
+    popup.show()
+
+    popup.once 'NotificationListItemClicked', (event) =>
+      listItemClicked = yes
+
+    popup.once 'ReceivedClickElsewhere', (event) =>
+      skipNextClick = if listItemClicked then no else @isInside event.target
+      listItemClicked = no
       popup.hide()
-    else
-      popup.show()
-      popup.once 'ReceivedClickElsewhere', (event) =>
-        popup.hide()
+
 
 
   isInside: (target) ->

@@ -21,25 +21,29 @@ activity.listitem.styl
 
   &.edited .meta .edited-right
     &:after
-      content                 ' (edited)'
-      display                 inline
-      font-family             openSansFamily
-      font-size               11px
-      color                   #ccc
+      content               ' (edited)'
+      display               inline
+      font-family           openSansFamily
+      font-size             11px
+      color                 #ccc
+
+  &.editing
+    .show-more
+      display               none
 
   .show-more
-    abs                   inherit 25px 0 0
-    padding               0
-    color                 #adaeb1
-    font-weight           300
-    font-size             12px
-    text-decoration       none
+    abs                     inherit 25px 0 0
+    padding                 0
+    color                   #adaeb1
+    font-weight             300
+    font-size               12px
+    text-decoration         none
 
     &:after
-      content             ''
-      height              1px
-      bg                  color #eaeaea
-      abs                 0 0px 0px 0
+      content               ''
+      height                1px
+      bg                    color #eaeaea
+      abs                   0 0px 0px 0
 
   .activity-content-wrapper
     rel()

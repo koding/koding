@@ -1,22 +1,37 @@
-$ = require 'jquery'
+kd         = require 'kd'
+Style      = require './style'
 StyledText = require './styledtext'
 
 
 module.exports = class Cursor
-  constructor: (@terminal) ->
-    @x = 0
-    @y = 0
-    @element = null
-    @inversed = true
-    @visible = true
-    @focused = true
+
+  constructor: (terminal) ->
+
+    @terminal      = terminal
+    @element       = null
+
+    @x             = 0
+    @y             = 0
+    @savedX        = 0
+    @savedY        = 0
+
+    @inversed      = yes
+    @visible       = yes
+    @focused       = yes
+
     @blinkInterval = null
-    @savedX = 0
-    @savedY = 0
+    @windowFocused = yes
+
+    kd.singletons.windowController.addFocusListener (state) =>
+      @windowFocused = state
+      @resetBlink()
+
     @resetBlink()
+
 
   move: (x, y) ->
     @moveTo @x + x, @y + y
+
 
   moveTo: (x, y) ->
     x = Math.max x, 0
@@ -31,59 +46,88 @@ module.exports = class Cursor
     @terminal.screenBuffer.addLineToUpdate lastY if lastY < @terminal.sizeY and y isnt lastY
     @terminal.screenBuffer.addLineToUpdate y
 
+
   savePosition: ->
     @savedX = @x
     @savedY = @y
 
+
   restorePosition: ->
     @moveTo @savedX, @savedY
 
+
   setVisibility: (value) ->
-    return if @visible is value
+
+    return  if @visible is value
+
     @visible = value
     @element = null
+
     @terminal.screenBuffer.addLineToUpdate @y
 
+
   setFocused: (value) ->
-    return if @focused is value or @stopped
+    return  if @focused is value or @stopped
+
     @focused = value
     @resetBlink()
 
-  setBlinking: (@blinking) -> @resetBlink()
+
+  setBlinking: (blinking) ->
+    @blinking = blinking
+    @resetBlink()
+
 
   stopBlink: ->
     @stopped = true
     @resetBlink()
 
+
   resetBlink: ->
+
     if @blinkInterval?
       global.clearInterval @blinkInterval
       @blinkInterval = null
-    @inversed = true
+
+    @inversed = yes
     @updateCursorElement()
-    if (@focused and not @stopped) and @blinking
+
+    slowDrawing = localStorage?['WebTerm.slowDrawing'] is 'true'
+
+    if @blinking and (@focused and @windowFocused and not @stopped)
       @blinkInterval = global.setInterval =>
-        @inversed = if localStorage?["WebTerm.slowDrawing"] is "true" then true else not @inversed
+        @inversed = slowDrawing or not @inversed
         @updateCursorElement()
       , 600
 
+
   addCursorElement: (content) ->
-    return content if not @visible
+
+    return content  unless @visible
+
     newContent = content.substring 0, @x
-    newContent.merge = false
-    @element = content.substring(@x, @x + 1).get(0) ? new StyledText(" ", @terminal.currentStyle)
-    @element.spanForced = true
-    @element.style = $.extend true, {}, @element.style
-    @element.style.outlined = not @focused
-    @element.style.inverse = @focused and @inversed
+    newContent.merge = no
+
+    if @element = content.substring(@x, @x + 1).get 0
+      @element.style = new Style @element.style
+    else
+      @element = new StyledText ' ', @terminal.currentStyle
+
+    @element.spanForced     = yes
+    @element.style.outlined = !@focused
+    @element.style.inverse  =  @focused and @inversed
+
     newContent.push @element
-    newContent.pushAll content.substring(@x + 1)
-    newContent
+    newContent.pushAll content.substring @x + 1
+
+    return newContent
+
 
   updateCursorElement: ->
-    return if not @element?
-    @element.style.outlined = not @focused
-    @element.style.inverse = @focused and @inversed
+
+    return  unless @element?
+
+    @element.style.outlined = !@focused
+    @element.style.inverse  =  @focused and @inversed
+
     @element.updateNode()
-
-

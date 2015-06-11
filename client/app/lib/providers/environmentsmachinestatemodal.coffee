@@ -471,7 +471,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         </span>
       "
 
-    if customState is 'NotFound'
+    if customState is 'NotFound' and not isKoding()
       {groupsController} = kd.singletons
       customState = 'NoTemplate'  unless groupsController.currentGroupHasStack()
 

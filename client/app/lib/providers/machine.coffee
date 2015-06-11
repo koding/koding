@@ -1,9 +1,9 @@
-Promise = require 'bluebird'
-kd = require 'kd'
-KDObject = kd.Object
-doesQueryStringValid = require '../util/doesQueryStringValid'
-nick = require '../util/nick'
-globals = require 'globals'
+Promise               = require 'bluebird'
+kd                    = require 'kd'
+KDObject              = kd.Object
+doesQueryStringValid  = require '../util/doesQueryStringValid'
+nick                  = require '../util/nick'
+globals               = require 'globals'
 
 
 module.exports = class Machine extends KDObject

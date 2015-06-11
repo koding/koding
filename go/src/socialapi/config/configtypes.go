@@ -79,11 +79,11 @@ type (
 
 	// Algolia holds Algolia service credentials
 	Algolia struct {
-		AppId        string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APPID                        required"`
-		ApiKey       string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APIKEY                       required"`
-		ApiSecretKey string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APISECRETKEY                 required"`
-		IndexSuffix  string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX                  required"`
-		ApiTokenKey  string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APITOKENKEY                  required"`
+		AppId            string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APPID                        required"`
+		ApiKey           string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APIKEY                       required"`
+		ApiSecretKey     string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APISECRETKEY                 required"`
+		IndexSuffix      string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX                  required"`
+		ApiSearchOnlyKey string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APISEARCHONLYKEY             required"`
 	}
 
 	// Mixpanel holds mixpanel credentials

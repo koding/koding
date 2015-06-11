@@ -1,22 +1,23 @@
 kd                    = require 'kd'
-KDBlockingModalView   = kd.BlockingModalView
-KDCustomHTMLView      = kd.CustomHTMLView
-KDListView            = kd.ListView
-KDListViewController  = kd.ListViewController
-KDModalView           = kd.ModalView
-KDNotificationView    = kd.NotificationView
-KDTabPaneView         = kd.TabPaneView
-KDTabView             = kd.TabView
 KDView                = kd.View
 remote                = require('app/remote').getInstance()
-AccountListWrapper    = require './accountlistwrapper'
-AccountNavigationItem = require './accountnavigationitem'
-ReferrerModal         = require './views/referrermodal'
 whoami                = require 'app/util/whoami'
+Encoder               = require 'htmlencode'
+isKoding              = require 'app/util/isKoding'
+KDTabView             = kd.TabView
 checkFlag             = require 'app/util/checkFlag'
 showError             = require 'app/util/showError'
+KDListView            = kd.ListView
+KDModalView           = kd.ModalView
+KDTabPaneView         = kd.TabPaneView
 AppController         = require 'app/appcontroller'
-Encoder               = require 'htmlencode'
+ReferrerModal         = require './views/referrermodal'
+KDCustomHTMLView      = kd.CustomHTMLView
+AccountListWrapper    = require './accountlistwrapper'
+KDNotificationView    = kd.NotificationView
+KDBlockingModalView   = kd.BlockingModalView
+KDListViewController  = kd.ListViewController
+AccountNavigationItem = require './accountnavigationitem'
 require('./routehandler')()
 
 
@@ -28,29 +29,30 @@ module.exports = class AccountAppController extends AppController
 
   NAV_ITEMS =
     personal :
-      title  : "Personal"
+      title  : 'Personal'
       items  : [
-        { slug : 'Profile',   title : "User profile",        listType: "username" }
-        { slug : 'Email',     title : "Email notifications", listType: "emailNotifications" }
-        { slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" }
+        { slug : 'Profile',   title : 'User profile',        listType: 'username' }
+        { slug : 'Email',     title : 'Email notifications', listType: 'emailNotifications' }
+        { slug : 'Externals', title : 'Linked accounts',     listType: 'linkedAccounts' }
       ]
     billing :
-      title : "Billing"
+      title : 'Billing'
       items : [
-        { slug : "Billing", title : "Billing", listType: "billing" }
+        { slug : 'Billing', title : 'Billing', listType: 'billing' }
       ]
     develop :
-      title : "Develop"
+      title : 'Develop'
       items : [
-        { slug : 'SSH',         title : "SSH keys",           listHeader: "Your SSH Keys",          listType: "keys" }
-        # { slug : 'Keys',        title : "Koding Keys",        listHeader: "Your Koding Keys",       listType: "kodingKeys" }
-        { slug : 'Referral',    title : "Referral System",    listHeader: "Your Referral Options",  listType: "referralSystem" }
+        { slug : 'SSH',         title : 'SSH keys',           listHeader: 'Your SSH Keys',          listType: 'keys' }
+        # { slug : 'Keys',        title : 'Koding Keys',        listHeader: 'Your Koding Keys',       listType: 'kodingKeys' }
+        { slug : 'Referral',    title : 'Referrals',    listHeader: 'Your Referral Options',  listType: 'referralSystem' }
         { slug : 'Shortcuts', title : 'Shortcuts',           listType: 'shortcuts' }
       ]
     danger  :
-      title : "Danger"
+      title : 'Danger'
       items : [
-        { slug: 'Delete', title : "Delete account", listType: "deleteAccount" }
+        { slug: 'Delete', title : 'Delete account', listType: 'deleteAccount' }
+        { slug: 'Leave',  title : 'Leave team',     listType: 'leaveGroup'    }
       ]
 
 
@@ -84,7 +86,7 @@ module.exports = class AccountAppController extends AppController
 
   openSection: (section, query) ->
 
-    if section is "Oauth" and query.provider?
+    if section is 'Oauth' and query.provider?
       @handleOauthRedirect query
       return
 
@@ -98,10 +100,10 @@ module.exports = class AccountAppController extends AppController
 
     { error, provider } = options
 
-    error = null  if error is "null"
+    error = null  if error is 'null'
     kd.singletons.oauthController.authCompleted error, provider
 
-    kd.singletons.router.handleRoute "/Account/Externals",
+    kd.singletons.router.handleRoute '/Account/Externals',
       shouldPushState : yes
       replaceState    : yes
 
@@ -131,6 +133,10 @@ module.exports = class AccountAppController extends AppController
 
     groupSlug  = kd.singletons.groupsController.getGroupSlug()
     items = []
+
+    index = if isKoding() then 1 else 0
+    NAV_ITEMS.danger.items.splice index, 1 # remove leave or danger
+
     for own sectionKey, section of NAV_ITEMS
       mergeables = []
       for item in section.items
@@ -143,7 +149,8 @@ module.exports = class AccountAppController extends AppController
 
     # Temporary solution to hide this from other users ~ GG
     if checkFlag 'super-admin'
-      items.push { slug : 'Credentials', title : "Credentials", listHeader: "Your Credentials", listType: "credentials" }
+      items.push { slug : 'Credentials',   title : 'Credentials',   listHeader: 'Your Credentials',          listType: 'credentials'   }
+      items.push { slug : 'TwoFactorAuth', title : '2-Factor Auth', listHeader: 'Two-Factor Authentication', listType: 'twofactorauth' }
 
     @navController.instantiateListItems items
 
@@ -182,14 +189,14 @@ module.exports = class AccountAppController extends AppController
       title            : "#{name}, please confirm your email address!"
       width            : 600
       overlay          : yes
-      cssClass         : "new-kdmodal"
+      cssClass         : 'new-kdmodal'
       content          : "<div class='modalformline'>#{Encoder.htmlDecode message}</div>"
       buttons          :
-        "Resend Confirmation Email" :
-          style        : "solid green medium"
+        'Resend Confirmation Email' :
+          style        : 'solid green medium'
           callback     : => @resendHandler modal, username
         Close          :
-          style        : "solid light-gray medium"
+          style        : 'solid light-gray medium'
           callback     : -> modal.destroy()
 
     callback modal
@@ -198,9 +205,9 @@ module.exports = class AccountAppController extends AppController
   resendHandler : (modal, username) ->
 
     remote.api.JPasswordRecovery.resendVerification username, (err)=>
-      modal.buttons["Resend Confirmation Email"].hideLoader()
+      modal.buttons['Resend Confirmation Email'].hideLoader()
       return showError err if err
       new KDNotificationView
-        title     : "Check your email"
+        title     : 'Check your email'
         content   : "We've sent you a confirmation mail."
         duration  : 4500

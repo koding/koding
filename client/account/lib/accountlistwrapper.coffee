@@ -1,25 +1,28 @@
-kd = require 'kd'
-KDListView = kd.ListView
-KDView = kd.View
-AccountBilling = require './views/accountbilling'
-AccountCredentialList = require './accountcredentiallist'
-AccountCredentialListController = require './views/accountcredentiallistcontroller'
-AccountEditSecurity = require './views/accounteditsecurity'
-AccountEditUsername = require './views/accounteditusername'
-AccountEditorList = require './accounteditorlist'
-AccountEditorListController = require './views/accounteditorlistcontroller'
-AccountEmailNotifications = require './views/accountemailnotifications'
-AccountKodingKeyList = require './accountkodingkeylist'
-AccountKodingKeyListController = require './views/accountkodingkeylistcontroller'
-AccountLinkedAccountsList = require './accountlinkedaccountslist'
+kd                                  = require 'kd'
+KDListView                          = kd.ListView
+KDView                              = kd.View
+
+AccountBilling                      = require './views/accountbilling'
+LeaveGroupView                      = require './views/leavegroupview'
+AccountEditorList                   = require './accounteditorlist'
+AccountSshKeyList                   = require './accountsshkeylist'
+PrivacyPolicyView                   = require './views/privacypolicyview'
+DeleteAccountView                   = require './views/deleteaccountview'
+TermsOfServiceView                  = require './views/termsofserviceview'
+AccountEditUsername                 = require './views/accounteditusername'
+AccountEditSecurity                 = require './views/accounteditsecurity'
+AccountTwoFactorAuth                = require './accounttwofactorauth'
+AccountEditShortcuts                = require './views/accounteditshortcuts'
+AccountKodingKeyList                = require './accountkodingkeylist'
+AccountReferralSystem               = require './views/referral/accountreferralsystem'
+AccountCredentialList               = require './accountcredentiallist'
+AccountEmailNotifications           = require './views/accountemailnotifications'
+AccountLinkedAccountsList           = require './accountlinkedaccountslist'
+AccountSshKeyListController         = require './views/accountsshkeylistcontroller'
+AccountEditorListController         = require './views/accounteditorlistcontroller'
+AccountKodingKeyListController      = require './views/accountkodingkeylistcontroller'
+AccountCredentialListController     = require './views/accountcredentiallistcontroller'
 AccountLinkedAccountsListController = require './views/accountlinkedaccountslistcontroller'
-AccountReferralSystem = require './views/referral/accountreferralsystem'
-AccountSshKeyList = require './accountsshkeylist'
-AccountSshKeyListController = require './views/accountsshkeylistcontroller'
-DeleteAccountView = require './views/deleteaccountview'
-PrivacyPolicyView = require './views/privacypolicyview'
-TermsOfServiceView = require './views/termsofserviceview'
-AccountEditShortcuts = require './views/accounteditshortcuts'
 
 
 module.exports = class AccountListWrapper extends KDView
@@ -40,7 +43,9 @@ module.exports = class AccountListWrapper extends KDView
     kodingKeys                 : AccountKodingKeyList
     credentialsController      : AccountCredentialListController
     credentials                : AccountCredentialList
+    twofactorauth              : AccountTwoFactorAuth
     deleteAccount              : DeleteAccountView
+    leaveGroup                 : LeaveGroupView
     termsOfService             : TermsOfServiceView
     privacyPolicy              : PrivacyPolicyView
     shortcuts                  : AccountEditShortcuts

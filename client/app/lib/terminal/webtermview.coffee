@@ -235,10 +235,10 @@ module.exports = class WebTermView extends KDCustomScrollView
     @container.setClass themeBucket
     @messagePane.setClass themeBucket
 
-    @container.$().css
+    @container.setStyle
       fontSize: @appStorage.getValue('fontSize') + 'px'
 
-    @$().css
+    this.setStyle
       color: (global.getComputedStyle @container.getElement()).backgroundColor
 
     @terminal.updateSize true

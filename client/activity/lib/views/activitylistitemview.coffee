@@ -147,6 +147,7 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
       @editWidget.on 'SubmitSucceeded', =>
         @updateEmbedBox()
         @destroyEditWidget()
+        @checkIfItsTooTall()
       @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
       @editWidgetWrapper.addSubView @editWidget, null, yes
       @embedBoxWrapper.hide()

@@ -5,7 +5,8 @@ JAccount       = require '../models/account'
 
 
 module.exports = (options={}, callback)->
-  {client, entryPoint, params} = options
+  {client, entryPoint, params, session} = options
+  {clientId: sessionToken} = session
 
   defaultOptions =
     limit: 5
@@ -44,7 +45,7 @@ module.exports = (options={}, callback)->
     SocialChannel.fetchBotChannel client, cb
 
   fetchGroupActivities = (cb)->
-    SocialChannel.fetchGroupActivities client, {}, cb
+    SocialChannel.fetchGroupActivities client, {sessionToken}, cb
 
   fetchChannelActivities = (channelName, cb)->
     # fetch channel first
@@ -53,7 +54,7 @@ module.exports = (options={}, callback)->
       return cb { message: "channel is not set" } unless data?.channel
 
       # then fetch activity with channel id
-      SocialChannel.fetchActivities client, {id: data.channel.id}, cb
+      SocialChannel.fetchActivities client, {id: data.channel.id, sessionToken}, cb
 
   fetchProfileFeed = (client, params, cb)->
     JAccount.one {'profile.nickname': entryPoint.slug}, (err, account)->
@@ -66,7 +67,7 @@ module.exports = (options={}, callback)->
 
     switch params.section
       when "Topic"           then fetchChannelActivities params.slug, cb
-      when "Message"         then SocialChannel.fetchActivities client, {id: params.slug}, cb
+      when "Message"         then SocialChannel.fetchActivities client, {id: params.slug, sessionToken}, cb
       when "Post"            then SocialMessage.bySlug client, {slug: params.slug}, cb
       when "Announcement"    then cb {message: "announcement not implemented"}
       else fetchGroupActivities cb

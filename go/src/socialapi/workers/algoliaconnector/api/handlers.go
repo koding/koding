@@ -10,16 +10,16 @@ import (
 )
 
 type Handler struct {
-	client *algoliasearch.Client
-	logger logging.Logger
-	apiKey string
+	client        *algoliasearch.Client
+	logger        logging.Logger
+	searchOnlyKey string
 }
 
-func NewHandler(c *algoliasearch.Client, l logging.Logger, apiKey string) *Handler {
+func NewHandler(c *algoliasearch.Client, l logging.Logger, searchOnlyKey string) *Handler {
 	return &Handler{
-		client: c,
-		logger: l,
-		apiKey: apiKey,
+		client:        c,
+		logger:        l,
+		searchOnlyKey: searchOnlyKey,
 	}
 
 }
@@ -28,7 +28,7 @@ func AddHandlers(m *mux.Mux, l logging.Logger) {
 	algoliaConf := config.MustGet().Algolia
 	c := algoliasearch.NewClient(algoliaConf.AppId, algoliaConf.ApiSecretKey)
 
-	h := NewHandler(c, l, algoliaConf.ApiTokenKey)
+	h := NewHandler(c, l, algoliaConf.ApiSearchOnlyKey)
 	m.AddHandler(
 		handler.Request{
 			Handler:  h.GenerateKey,

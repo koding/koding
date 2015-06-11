@@ -681,7 +681,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   updateMachines: (callback = kd.noop) ->
 
     kd.singletons.mainController.ready =>
-      @fetchEnvironmentData @bound 'redrawMachineList'
+      @fetchEnvironmentData (data) =>
+        @redrawMachineList()
+        @emit 'MachinesUpdated'
 
 
   invalidateWorkspaces: (machine) ->
