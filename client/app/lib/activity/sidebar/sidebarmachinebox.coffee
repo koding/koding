@@ -111,6 +111,8 @@ module.exports = class SidebarMachineBox extends KDView
 
   removeWorkspace: (wsId) ->
 
+    return  if @machine.isPermanent()
+
     @listController.removeItem @workspaceListItemsById[wsId]
     @handleWorkspaceDeleted wsId
 
