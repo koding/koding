@@ -42,7 +42,9 @@ module.exports = class OAuthController extends KDController
       # @emit "ForeignAuthCompleted", provider
 
 
-  handleExistingUser: -> location.replace "/"
+  handleExistingUser: (returnUrl) ->
+    url = returnUrl or "/"
+    location.replace url
 
 
   setupOauthListeners:->
@@ -57,10 +59,10 @@ module.exports = class OAuthController extends KDController
         if err
           return new KDNotificationView title: "OAuth integration failed"
 
-        {isNewUser, userInfo} = resp
+        {isNewUser, userInfo, returnUrl} = resp
 
         if isNewUser then @handleNewUser userInfo
-        else @handleExistingUser()
+        else @handleExistingUser(returnUrl)
 
 
   doOAuth: (params, callback)->
