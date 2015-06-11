@@ -332,9 +332,9 @@ module.exports = class AccountEditUsername extends JView
 
     @verifyEmail = new KDCustomHTMLView opts
 
-    header = @emailForm.fields.passwordHeader.getElement()
+    sectionHeader = @emailForm.fields.passwordHeader.getElement()
 
-    header.parentElement.insertBefore @verifyEmail.getElement(), header
+    sectionHeader.parentElement.insertBefore @verifyEmail.getElement(), sectionHeader
 
   getAvatarOptions: ->
     tagName       : 'figure'
