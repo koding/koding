@@ -62,7 +62,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     # Set the default region passed in as an option
     if region
-      @disableRegion()
+      @regionSelector.makeDisabled()
       @regionSelector.setValue region
 
     regionContainer.addSubView @regionTextView = new KDView
@@ -91,9 +91,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
         if snapshotId
           @regionSelector.setValue @snapshots[snapshotId].region
           @updateRegionText()
-          @disableRegion()
+          @regionSelector.makeDisabled()
         else
-          @enableRegion()
+          @regionSelector.makeEnabled()
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
@@ -275,13 +275,5 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
       @createVMButton.hideLoader()
       @destroy()
-
-
-  disableRegion: ->
-    @regionSelector.makeDisabled()
-
-
-  enableRegion: ->
-    @regionSelector.makeEnabled()
 
 
