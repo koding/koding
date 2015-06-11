@@ -389,12 +389,13 @@ module.exports = class StacksCustomViews extends CustomViews
                              when a user joins to your team.<br />
                              So please tell us where your stack configuration
                              file is."
-        repoProvidersView :
+        providersView     :
           providers       : ['github', 'bitbucket']
+          enabled         : ['github']
         navButton_cancel  :
           callback        : cancelCallback
 
-      views.repoProvidersView.on 'ItemSelected', (provider) ->
+      views.providersView.on 'ItemSelected', (provider) ->
         data.repo_provider = provider
         callback data
 
@@ -411,13 +412,9 @@ module.exports = class StacksCustomViews extends CustomViews
           steps           : STEPS.REPO_FLOW
           selected        : 2
         text              : "Github: Select a repository from your account"
-
-        navButton_cancel  :
+        navCancelButton   :
+          title           : '< Select another provider'
           callback        : cancelCallback
-
-      views.repoProvidersView.on 'ItemSelected', (provider) ->
-        data.repo_provider = provider
-        callback data
 
       return container
 
@@ -434,6 +431,7 @@ module.exports = class StacksCustomViews extends CustomViews
         text            : "You need to select a provider first"
         providersView   :
           providers     : Object.keys globals.config.providers
+          enabled       : ['aws']
         navButton_cancel:
           callback      : cancelCallback
 
@@ -653,13 +651,14 @@ module.exports = class StacksCustomViews extends CustomViews
 
     providersView: (options) =>
 
-      {providers} = options
+      {providers, enabled} = options
+      enabled  ?= providers
 
       container = @views.container 'providers'
 
       providers.forEach (provider) =>
 
-        return if provider in ['custom', 'managed']
+        return  if provider in ['custom', 'managed']
 
         name = globals.config.providers[provider]?.name or provider
 
@@ -667,25 +666,7 @@ module.exports = class StacksCustomViews extends CustomViews
           button     :
             title    : name
             cssClass : provider
-            disabled : provider isnt 'aws'
-            callback : ->
-              container.emit 'ItemSelected', provider
-
-      return container
-
-    repoProvidersView: (options) =>
-
-      {providers} = options
-
-      container = @views.container 'repo-providers'
-
-      providers.forEach (provider) =>
-
-        @addTo container,
-          button     :
-            title    : 'Select'
-            cssClass : provider
-            disabled : provider is 'bitbucket'
+            disabled : provider not in enabled
             callback : ->
               container.emit 'ItemSelected', provider
 
