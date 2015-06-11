@@ -80,7 +80,7 @@ module.exports = class ActivityActionsView extends JView
 
 
   viewAppended: ->
-      
+
     @loader.hide()
 
     super
