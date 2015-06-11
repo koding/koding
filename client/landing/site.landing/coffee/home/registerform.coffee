@@ -13,19 +13,19 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       cssClass : 'gh'
       title    : 'Sign up with GitHub'
       alt      : 'Sign up with GitHub'
-      click    : -> oauthController.redirectToOauth 'github'
+      click    : -> oauthController.redirectToOauth {provider: 'github'}
 
     @google = new CustomLinkView
       cssClass : 'go'
       title    : 'Sign up with Google'
       alt      : 'Sign up with Google'
-      click    : -> oauthController.redirectToOauth 'google'
+      click    : -> oauthController.redirectToOauth {provider: 'google'}
 
     @facebook = new CustomLinkView
       cssClass : 'fb'
       title    : 'Sign up with Facebook'
       alt      : 'Sign up with Facebook'
-      click    : -> oauthController.redirectToOauth 'facebook'
+      click    : -> oauthController.redirectToOauth {provider: 'facebook'}
 
     @email.setOption 'stickyTooltip', yes
     @password.setOption 'stickyTooltip', yes

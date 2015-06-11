@@ -10,20 +10,20 @@ module.exports = class OAuthController extends KDController
     @setupOauthListeners()
 
 
-  getUrl: (provider, callback)->
+  getUrl: (options, callback)->
 
     $.ajax
       url         : '/OAuth/url'
-      data        : { provider }
+      data        : options
       type        : 'GET'
       xhrFields   : withCredentials : yes
       success     : (resp)-> callback null, resp
       error       : (err)-> callback err
 
 
-  redirectToOauth: (provider)->
+  redirectToOauth: (options)->
 
-    @getUrl provider, (err, url)->
+    @getUrl options, (err, url)->
       return notify err  if err
 
       window.location.replace url
