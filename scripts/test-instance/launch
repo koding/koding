@@ -2,9 +2,9 @@
 
 fs   = require 'fs'
 argv = require('minimist')(process.argv.slice(2))
-
-AWS = require './aws'
-EC2 = new AWS.EC2()
+path = require('path')
+AWS  = require './aws'
+EC2  = new AWS.EC2()
 
 keys              =
   config          : new Buffer(fs.readFileSync path.resolve(__dirname, 'ssh.config'), 'utf8').toString 'base64'
