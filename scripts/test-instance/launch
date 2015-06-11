@@ -7,8 +7,8 @@ AWS = require './aws'
 EC2 = new AWS.EC2()
 
 keys              =
-  config          : new Buffer(fs.readFileSync './scripts/test-instance/ssh.config', 'utf8').toString 'base64'
-  id_rsa          : new Buffer(fs.readFileSync './scripts/test-instance/koding-test-instances-2015-06.pem'          , 'utf8').toString 'base64'
+  config          : new Buffer(fs.readFileSync path.resolve(__dirname, 'ssh.config'), 'utf8').toString 'base64'
+  id_rsa          : new Buffer(fs.readFileSync path.resolve(__dirname, 'koding-test-instances-2015-06.pem'), 'utf8').toString 'base64'
 
 if argv['pull-request']
   git_fetch    = "git fetch origin +refs/pull/#{argv['pull-request']}/head"
