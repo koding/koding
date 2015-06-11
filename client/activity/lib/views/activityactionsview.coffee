@@ -42,16 +42,20 @@ module.exports = class ActivityActionsView extends JView
 
         {scrollX, scrollY} = global
 
-        @append sharePopup = new KDContextMenu
+        @sharePopup = new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
-          x           : scrollX + 140
-          y           : scrollY - 12
+          x           : @shareLink.getX() + scrollX + 25
+          y           : @shareLink.getY() + scrollY - 12
           menuMaxWidth: 400
           menuMinWidth: 192
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
+
+        pane = kd.singletons.appManager.frontApp.getView().tabs.getActivePane()
+
+        pane.scrollView.wrapper.on "scroll", @sharePopup.bound "destroy"
 
         trackEvent "Activity share, click"
 
@@ -76,7 +80,7 @@ module.exports = class ActivityActionsView extends JView
 
 
   viewAppended: ->
-
+      
     @loader.hide()
 
     super
