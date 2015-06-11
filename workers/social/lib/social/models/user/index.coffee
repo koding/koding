@@ -687,6 +687,8 @@ module.exports = class JUser extends jraphical.Module
 
   afterLogin = (user, clientId, session, callback)->
 
+    {username} = user
+
     user.fetchOwnAccount (err, account)->
       if err then return callback err
       checkLoginConstraints user, account, (err)->
@@ -696,7 +698,7 @@ module.exports = class JUser extends jraphical.Module
           replacementToken = createId()
           session.update {
             $set            :
-              username      : user.username
+              username      : username
               lastLoginDate : new Date
               clientId      : replacementToken
             $unset:
@@ -712,11 +714,12 @@ module.exports = class JUser extends jraphical.Module
               # p.s. we could do that in workers
               account.updateCounts()
 
-              JLog.log
-                type: "login", username: account.username, success: yes
+              JLog.log {type: "login", username , success: yes}
 
               JUser.clearOauthFromSession session, ->
                 callback null, { account, replacementToken }
+
+                analytics.track userId: username, event: 'logged in'
 
 
   @logout = secure (client, callback)->
@@ -1275,7 +1278,7 @@ module.exports = class JUser extends jraphical.Module
         jwt   = require 'jsonwebtoken'
         token = jwt.sign { username }, secret, { expiresInMinutes }
 
-        analytics.identifier userId: username, traits: { jwtToken: token }
+        analytics.identify userId: username, traits: { jwtToken: token }
     ]
 
     daisy queue
