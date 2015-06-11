@@ -11,7 +11,8 @@ module.exports = class OAuth extends bongo.Base
       static        :
         getUrl      : (signature String, Function)
 
-  @getUrl = secure (client, provider, callback)->
+  @getUrl = secure (client, options, callback)->
+    { provider } = options
     switch provider
       when "github"
         {clientId} = KONFIG.github
