@@ -4,11 +4,11 @@ querystring = require 'querystring'
 
 
 # returns 20 characters by default
-getRandomString  = (length = 20) ->
+generateRandomString = (length = 20) ->
 
   return hat().slice(32 - length)
 
-
+# _.extend didn't help with deep extend
 # deep extending one object from another, works only for objects
 deepObjectExtend = (target, source) ->
 
@@ -26,7 +26,7 @@ deepObjectExtend = (target, source) ->
 
 class RegisterHandlerHelper
 
-  @getDefaultBodyObject = (randomString) ->
+  @generateDefaultBodyObject = (randomString) ->
 
     defaultBodyObject     =
       email             : "testuser+#{randomString}@koding.com"
@@ -39,7 +39,7 @@ class RegisterHandlerHelper
     return defaultBodyObject
 
 
-  @getDefaultHeadersObject = ->
+  @generateDefaultHeadersObject = ->
 
     userAgent =
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3)
@@ -55,13 +55,13 @@ class RegisterHandlerHelper
     return defaultHeadersObject
 
 
-  @getDefaultParams = ->
+  @generateDefaultParams = ->
 
-    randomString         = getRandomString()
+    randomString         = generateRandomString()
 
-    defaultBodyObject    = RegisterHandlerHelper.getDefaultBodyObject randomString
+    defaultBodyObject    = RegisterHandlerHelper.generateDefaultBodyObject randomString
 
-    defaultHeadersObject = RegisterHandlerHelper.getDefaultHeadersObject()
+    defaultHeadersObject = RegisterHandlerHelper.generateDefaultHeadersObject()
 
     defaultParams        =
       url               : 'http://localhost:8090/Register'
@@ -72,9 +72,9 @@ class RegisterHandlerHelper
 
 
   # overwrites given options in the default params
-  @getPostParams = (opts = {}) ->
+  @generatePostParams = (opts = {}) ->
 
-    defaultPostParams = RegisterHandlerHelper.getDefaultParams()
+    defaultPostParams = RegisterHandlerHelper.generateDefaultParams()
     postParams        = deepObjectExtend defaultPostParams, opts
     # after deep extending object, encodes body param to a query string
     postParams.body   = querystring.stringify postParams.body
@@ -84,5 +84,5 @@ class RegisterHandlerHelper
 
 module.exports = {
   RegisterHandlerHelper
-  getRandomString
+  generateRandomString
 }
