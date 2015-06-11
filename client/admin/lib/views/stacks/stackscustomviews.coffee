@@ -12,7 +12,6 @@ showError                       = require 'app/util/showError'
 applyMarkdown                   = require 'app/util/applyMarkdown'
 
 GitHub                          = require 'app/extras/github/github'
-RepoItem                        = require 'app/extras/github/views/repoitem'
 CustomViews                     = require 'app/commonviews/customviews'
 IDEEditorPane                   = require 'ide/workspace/panes/ideeditorpane'
 CredentialListItem              = require './credentiallistitem'
@@ -20,6 +19,7 @@ ComputeController_UI            = require 'app/providers/computecontroller.ui'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
+StackRepoItem                   = require './stackrepoitem'
 StackTemplateList               = require './stacktemplatelist'
 StackTemplateListController     = require './stacktemplatelistcontroller'
 
@@ -245,7 +245,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
     outputView: (options) =>
 
-      options.cssClass = kd.utils.curry options.cssClass, 'output-view'
+      options.cssClass = kd.utils.curry 'output-view', options.cssClass
       options.tagName  = 'pre'
       container        = @views.view options
       code             = @views.view tagName : 'code'
@@ -450,11 +450,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
       controller          = new kd.ListViewController
         viewOptions       :
-          type            : 'github'
-          wrapper         : yes
-          itemClass       : RepoItem
-          itemOptions     :
-            buttonTitle   : 'select'
+          itemClass       : StackRepoItem
         noItemFoundWidget : new kd.View
           cssClass        : 'noitem-warning'
           partial         : 'There is no repository to show.'

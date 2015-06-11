@@ -1168,6 +1168,31 @@ Admin main styles
         .title
           color             #02A74D
 
+  .repo-item
+
+    padding                 10px 0
+    box-sizing              border-box
+    border-bottom           1px solid #DDD
+    pointer()
+
+    a
+      color                 #333
+      noTextDeco()
+
+    span.add-link
+      r-sprite              'app', 'sidebar-toggle'
+      vendor                transform, rotate(180deg)
+      display               block
+      margin-top            6px
+      margin-right          6px
+      pointer()
+      fr()
+
+    &.active
+      border-bottom         none
+      span.add-link
+        vendor              transform, rotate(270deg)
+
 
 .AppModal--admin .members
   .label
