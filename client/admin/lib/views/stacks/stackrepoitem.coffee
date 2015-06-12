@@ -12,23 +12,50 @@ module.exports = class StackRepoItem extends kd.ListItemView
 
     super options, data
 
-    @addButton = new kd.ButtonView
-      title    : 'ADD'
-      cssClass : 'solid green mini action-button'
-      callback : =>
-        @getDelegate().emit "RepoSelected", @getData()
-
 
   toggleSelectView: ->
     return @selectView.toggleClass 'hidden'  if @selectView
 
+    repoData = @getData()
+    delegate = @getDelegate()
+
     @selectView  = new kd.CustomHTMLView
-      partial    : 'Hello World'
+      cssClass   : 'select-view'
+
+    @selectView.addSubView branchOrTag = new kd.SelectBox
+      placeholder   : 'Branch or Tag'
+      selectOptions : [
+        { title: 'Branch', value: 'branch' }
+        { title: 'Tag',    value: 'tag' }
+      ]
+
+    @selectView.addSubView name = new kd.InputView
+      placeholder : 'Branch/Tag Name'
+      required    : yes
+
+    @selectView.addSubView location = new kd.InputView
+      placeholder : '/file/location.json'
+      required    : yes
+
+    @selectView.addSubView addButton = new kd.ButtonView
+      title       : 'ADD'
+      cssClass    : 'solid green medium'
+      type        : 'submit'
+      callback    : ->
+
+        name      = name.getValue()
+        type      = branchOrTag.getValue()
+        location  = location.getValue()
+
+        delegate.emit 'RepoSelected', { name, type, location, repoData }
 
     @addSubView @selectView
 
 
-  click: ->
+  click: (event) ->
+
+    return  if (event.target.className.indexOf 'repo-item') <= 0
+
     @toggleClass 'active'
     @toggleSelectView()
 
