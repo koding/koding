@@ -7,7 +7,7 @@ module.exports = class OAuthController extends KDController
     KD.singleton('appManager').require 'Login', =>
 
       (KD.getSingleton 'mainController').isLoggingIn on
-      KD.remote.api.OAuth.getUrl provider, (err, url)->
+      KD.remote.api.OAuth.getUrl {provider}, (err, url)->
         if err then notify err
         else
           name       = "Login"

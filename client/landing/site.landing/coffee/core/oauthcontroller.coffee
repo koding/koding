@@ -10,20 +10,20 @@ module.exports = class OAuthController extends KDController
     @setupOauthListeners()
 
 
-  getUrl: (provider, callback)->
+  getUrl: (options, callback)->
 
     $.ajax
       url         : '/OAuth/url'
-      data        : { provider }
+      data        : options
       type        : 'GET'
       xhrFields   : withCredentials : yes
       success     : (resp)-> callback null, resp
       error       : (err)-> callback err
 
 
-  redirectToOauth: (provider)->
+  redirectToOauth: (options)->
 
-    @getUrl provider, (err, url)->
+    @getUrl options, (err, url)->
       return notify err  if err
 
       window.location.replace url
@@ -42,7 +42,9 @@ module.exports = class OAuthController extends KDController
       # @emit "ForeignAuthCompleted", provider
 
 
-  handleExistingUser: -> location.replace "/"
+  handleExistingUser: (returnUrl) ->
+    url = returnUrl or "/"
+    location.replace url
 
 
   setupOauthListeners:->
@@ -57,10 +59,10 @@ module.exports = class OAuthController extends KDController
         if err
           return new KDNotificationView title: "OAuth integration failed"
 
-        {isNewUser, userInfo} = resp
+        {isNewUser, userInfo, returnUrl} = resp
 
         if isNewUser then @handleNewUser userInfo
-        else @handleExistingUser()
+        else @handleExistingUser(returnUrl)
 
 
   doOAuth: (params, callback)->
