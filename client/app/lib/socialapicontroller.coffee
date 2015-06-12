@@ -846,7 +846,7 @@ module.exports = class SocialApiController extends KDController
     fetchChannelIntegrations : (callback) ->
 
       doXhrRequest
-        endPoint : "/api/integration/channelintegration/list"
+        endPoint : "/api/integration/channelintegrations"
         type     : 'GET'
       , (err, response) ->
         return callback err  if err

@@ -39,7 +39,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:  h.ListChannelIntegrations,
 			Name:     "webhook-list-channel-integrations",
 			Type:     handler.GetRequest,
-			Endpoint: "/channelintegration/list",
+			Endpoint: "/channelintegrations",
 		},
 	)
 
