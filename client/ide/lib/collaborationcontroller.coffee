@@ -35,6 +35,7 @@ module.exports = CollaborationController =
   setSocialChannel: (channel) ->
 
     @socialChannel = channel
+    @bindSocialChannelEvents()
 
 
   fetchSocialChannel: (callback) ->
@@ -49,8 +50,7 @@ module.exports = CollaborationController =
       return callback err  if err
 
       @setSocialChannel channel
-      @bindSocialChannelEvents()
-      callback null, @socialChannel
+      callback null, channel
 
 
   getSocialChannelId: ->
@@ -60,7 +60,7 @@ module.exports = CollaborationController =
 
   unsetSocialChannel: ->
 
-    @channelId = @socialChannel = @workspaceData.channelId = null
+    @channelId = @socialChannel = null
 
 
   deletePrivateMessage: (callback = kd.noop) ->
@@ -299,6 +299,9 @@ module.exports = CollaborationController =
       return  unless account
 
       {nickname} = account.profile
+
+      return  if nickname is nick()
+
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
 
@@ -424,13 +427,13 @@ module.exports = CollaborationController =
 
   pollRealtimeDocument: ->
 
-    unless @rtm
+    channelId = @getSocialChannelId()
+
+    unless @rtm and channelId
       kd.utils.killRepeat @pollInterval
       return
 
-    id = @getSocialChannelId()
-
-    @isRealtimeSessionActive id, (isActive) =>
+    @isRealtimeSessionActive channelId, (isActive) =>
 
       return  if isActive
 
@@ -464,11 +467,8 @@ module.exports = CollaborationController =
 
         return  unless data.origin is @collaborationHost
 
-        if data.target is nick()
-          @removeMachineNode()
-          @showKickedModal()
-        else
-          @handleParticipantKicked data.target
+        @showKickedModal()  if data.target is nick()
+        @handleParticipantKicked data.target
 
       when 'SetMachineUser'
 
@@ -556,7 +556,8 @@ module.exports = CollaborationController =
 
     @stateMachine = new CollaborationStateMachine
       stateHandlers:
-        Loading      : => kd.utils.defer => @onCollaborationLoading()
+        Initial      : @bound 'onCollaborationInitial'
+        Loading      : @bound 'onCollaborationLoading'
         Resuming     : @bound 'onCollaborationResuming'
         NotStarted   : @bound 'onCollaborationNotStarted'
         Preparing    : @bound 'onCollaborationPreparing'
@@ -567,15 +568,25 @@ module.exports = CollaborationController =
         Created      : @bound 'onCollaborationCreated'
 
 
+  onCollaborationInitial: ->
+
+    if @mountedMachine.isMine()
+      @showShareButton()
+    else if @mountedMachine.isPermanent()
+      @attendWorkspaceChannel()
+
+    kd.utils.defer => @stateMachine.transition 'Loading'
+
 
   onCollaborationLoading: ->
 
     @statusBar.emit 'CollaborationLoading'
 
     @checkSessionActivity
+
+      error      : => @stateMachine.transition 'ErrorLoading'
       active     : => @stateMachine.transition 'Resuming'
       notStarted : => @stateMachine.transition 'NotStarted'
-      error      : => @stateMachine.transition 'ErrorLoading'
 
 
   checkSessionActivity: (callbacks) ->
@@ -587,20 +598,35 @@ module.exports = CollaborationController =
     unless @workspaceData.channelId
       return callMethod 'notStarted'
 
-    @fetchSocialChannel (err, channel) =>
-      if err
-        throwError err
-        return callMethod 'notStarted'
-
+    checkRealtimeSession = (channel) =>
       @isRealtimeSessionActive channel.id, (isActive, file) =>
         if isActive
         then callMethod 'active', channel, file
         else callMethod 'notStarted'
 
+    @fetchSocialChannel (err, channel) =>
+      if err
+        throwError err
+        return callMethod 'notStarted'
+
+      if channel.isParticipant
+      then checkRealtimeSession channel
+      else
+        socialHelpers.acceptChannel channel, (err) =>
+          return callMethod 'error', err  if err
+          checkRealtimeDocument channel
+
 
   onCollaborationNotStarted: ->
 
     @statusBar.emit 'CollaborationEnded'
+
+    owned = @mountedMachine.isMine()
+    approved = @mountedMachine.isApproved()
+
+    if (not owned) and approved
+      @statusBar.share.hide()
+
     @collectButtonShownMetric()
 
 
@@ -674,6 +700,8 @@ module.exports = CollaborationController =
 
 
   onCollaborationResuming: ->
+
+    @showShareButton()
 
     successCb = (channel, doc) =>
       @whenRealtimeReady =>
@@ -779,7 +807,6 @@ module.exports = CollaborationController =
     envHelpers.detachSocialChannel @workspaceData, (err) =>
       throwError err  if err
 
-    @unsetSocialChannel()
     callback()
 
 
@@ -806,9 +833,11 @@ module.exports = CollaborationController =
 
     @removeWorkspaceSnapshot()
 
-    @setMachineUser [nick()], no, (err) =>
-      throwError err  if err
-      @broadcastMessage type: 'ParticipantWantsToLeave'
+    unless @mountedMachine.isPermanent()
+      @setMachineUser [nick()], no, (err) =>
+        throwError err  if err
+
+    @broadcastMessage type: 'ParticipantWantsToLeave'
 
     callback()
 
@@ -825,10 +854,14 @@ module.exports = CollaborationController =
       @chat = null
       @statusBar.emit 'CollaborationEnded'
       @removeParticipant nick()
-      @removeMachineNode()
+      @removeMachineNode()  unless @mountedMachine.isPermanent()
 
     @rtm.once 'RealtimeManagerDidDispose', =>
-      kd.utils.defer @bound 'quit'
+      method = switch
+        when @mountedMachine.isPermanent() then 'prepareCollaboration'
+        else 'quit'
+
+      kd.utils.defer @bound method
 
     @cleanupCollaboration()
 
@@ -864,11 +897,9 @@ module.exports = CollaborationController =
 
   prepareCollaboration: ->
 
-    return  unless @mountedMachine.isMine() or @workspaceData.channelId
-
     @rtm = new RealtimeManager
-    @showShareButton()
-    @rtm.ready => @initCollaborationStateMachine()
+
+    @rtm.ready @bound 'initCollaborationStateMachine'
 
 
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
@@ -876,13 +907,14 @@ module.exports = CollaborationController =
 
   cleanupCollaboration: (options = {}) ->
 
+    @unsetSocialChannel()
+
     # TODO: remove Active session from here,
     # we will deffo need a leaving state.
     return  unless @stateMachine.state in ['Ending', 'Active']
 
     @rtm.once 'RealtimeManagerWillDispose', =>
       kd.utils.killRepeat @pingInterval
-      kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       @rtm = null
@@ -971,7 +1003,6 @@ module.exports = CollaborationController =
 
     @chat?.end()
     @showModal options
-    @handleCollaborationEndedForParticipant()
 
 
   showSessionEndedModal: (content) ->
@@ -1025,11 +1056,29 @@ module.exports = CollaborationController =
     {channelId} = @workspaceData
 
     if channelId and typeof channelId is 'string' and channelId.length
-      if @stateMachine.state is 'NotStarted'
-        @stateMachine.transition 'Loading'
-    else
-      if @stateMachine.state is 'Active'
-        @stateMachine.transition 'Ending'
+      return  unless @stateMachine.state is 'NotStarted'
+      @stateMachine.transition 'Loading'
+
+    else if @stateMachine.state is 'Active'
+      @stateMachine.transition 'Ending'
+
+
+  attendWorkspaceChannel: ->
+
+    {notificationController} = kd.singletons
+
+    notificationController.on 'AddedToChannel', (update) =>
+
+      {channelId} = @workspaceData
+
+      return  unless update.channel.id is channelId
+
+      if update.isParticipant
+      then @stateMachine.transition 'Loading'
+      else
+        socialHelpers.acceptChannel update.channel, (err) =>
+          return throwError err  if err
+          @stateMachine.transition 'Loading'
 
 
   updateWorkspaceSnapshotModel: ->
