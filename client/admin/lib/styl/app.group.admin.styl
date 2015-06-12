@@ -1193,6 +1193,39 @@ Admin main styles
       span.add-link
         vendor              transform, rotate(270deg)
 
+  .repo-user-item
+
+    background              #F3F3F3
+    overflow                hidden
+    padding                 20px
+    border-bottom           1px solid #ccc
+
+    &:last-child
+      border-bottom         none
+
+    .listview-wrapper
+      margin-top            40px
+      clear                 both
+      max-height            300px
+      overflow-x            scroll
+      padding-left          52px
+      borderBox()
+
+    .gravatar
+      width                 32px
+      fl()
+
+    .title
+      line-height           32px
+      margin-left           20px
+      fl()
+
+    &.active
+      background            white
+
+      span.active-link
+        vendor              transform, rotate(270deg)
+
 
 .AppModal--admin .members
   .label
