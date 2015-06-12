@@ -31,10 +31,15 @@ module.exports = class StackRepoUserItem extends kd.ListItemView
     return @repoListView.toggleClass 'hidden'  if @repoListView
 
     { repos, err } = @getData()
+    delegate       = @getDelegate()
 
     controller    = new kd.ListViewController
       viewOptions :
         itemClass : StackRepoItem
+
+    listView      = controller.getListView()
+
+    delegate.forwardEvent listView, 'RepoSelected'
 
     @addSubView @repoListView = controller.getView()
 

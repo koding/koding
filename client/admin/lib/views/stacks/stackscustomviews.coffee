@@ -453,7 +453,7 @@ module.exports = class StacksCustomViews extends CustomViews
           itemClass       : StackRepoUserItem
           cssClass        : 'repo-user-list'
 
-      __view = controller.getView()
+      __view = controller.getListView()
       return { __view, controller }
 
 
@@ -473,6 +473,9 @@ module.exports = class StacksCustomViews extends CustomViews
         views.mainLoader.hide()
         controller.replaceAllItems response
         repoList.show()
+
+      repoList.on 'RepoSelected', ->
+        console.log 'It Works!', arguments
 
       return container
 
