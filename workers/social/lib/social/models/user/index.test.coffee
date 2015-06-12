@@ -69,11 +69,11 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should be to able login user when data is valid', (done) ->
 
-      session           = null
-      lastLoginDate     = null
+      session                = null
+      lastLoginDate          = null
       # generating user info with random username and password
-      { username, password }    = userInfo = generateUserInfo()
-      loginCredentials          = generateCredentials { username, password }
+      { username, password } = userInfo = generateUserInfo()
+      loginCredentials       = generateCredentials { username, password }
 
       queue = [
 
@@ -91,18 +91,20 @@ runTests = -> describe 'workers.social.user.index', ->
             queue.next()
 
         ->
+          # keeping last login date
           JUser.one { username : loginCredentials.username }, (err, user) ->
             expect(err).to.not.exist
             lastLoginDate = user.lastLoginDate
             queue.next()
 
         ->
+          # expecting another successful login
           JUser.login clientId, loginCredentials, (err) ->
             expect(err).to.not.exist
             queue.next()
 
         ->
-          # expecting login date to be saved successfully
+          # expecting last login date to be changed
           JUser.one { username : loginCredentials.username }, (err, user) ->
             expect(err)           .to.not.exist
             expect(lastLoginDate) .not.to.be.equal user.lastLoginDate
@@ -178,8 +180,8 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should handle groups correctly', (done) ->
 
-      loginCredentials            = generateCredentials()
-      loginCredentials.groupName  = 'invalidgroupName'
+      loginCredentials = generateCredentials
+        groupName : 'invalidgroupName'
 
       queue = [
 
@@ -197,8 +199,8 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if account is not found', (done) ->
 
-      { username, password }    = userInfo = generateUserInfo()
-      loginCredentials          = generateCredentials { username, password }
+      { username, password } = userInfo = generateUserInfo()
+      loginCredentials       = generateCredentials { username, password }
 
       queue = [
 
@@ -251,13 +253,13 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # blocking user for 1 day
-          untilDate = new Date(Date.now() + 1000 * 60 * 24)
+          untilDate = new Date(Date.now() + 1000 * 60 * 60 * 24)
           user.block untilDate, (err) ->
             expect(err).to.not.exist
             queue.next()
 
         ->
-          # expecting login attempt to fail
+          # expecting login attempt to fail and return blocked message
           JUser.login clientId, loginCredentials, (err)->
             toDate = user.blockedUntil.toUTCString()
             expect(err.message).to.be.equal JUser.getBlockedMessage toDate
@@ -305,6 +307,7 @@ runTests = -> describe 'workers.social.user.index', ->
           setUserPasswordStatus queue, username, 'valid'
 
         ->
+          # expecting successful login
           JUser.login clientId, loginCredentials, (err)->
             expect(err).to.not.exist
             queue.next()
@@ -313,6 +316,7 @@ runTests = -> describe 'workers.social.user.index', ->
           setUserPasswordStatus queue, username, 'needs reset'
 
         ->
+          # expecting unsuccessful login attempt
           JUser.login clientId, loginCredentials, (err)->
             expect(err).to.exist
             queue.next()
@@ -331,6 +335,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
       loginCredentials = generateCredentials()
 
+      # when client id is not specified, a new session should be created
       JUser.login null, loginCredentials, (err) ->
         expect(err).to.not.exist
         done()
