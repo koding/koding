@@ -32,8 +32,8 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
     options.attributes.testpath     = "ActivityListItemView"
     options.editWidgetClass       or= ActivityEditWidget
     options.pistachioParams         = { formatContent }
-    options.showMoreWrapperCssClass = 'article.has-markdown'
-    options.showMoreMarkCssClass    = '.mark-for-show-more'
+    options.showMoreWrapperSelector = 'article.has-markdown'
+    options.showMoreMarkSelector    = '.mark-for-show-more'
 
     super options, data
 

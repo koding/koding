@@ -1,6 +1,7 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 isKoding               = require 'app/util/isKoding'
+checkFlag              = require 'app/util/checkFlag'
 
 MachinesList           = require './machineslist'
 MachinesListController = require './machineslistcontroller'
@@ -33,20 +34,14 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         ComputeController_UI.askFor 'reinitStack', {}, ->
           delegate.emit 'StackReinitRequested', stack
 
-    {handleNewMachineRequest} = ComputeHelpers
+    addVMMenu = {}
 
-    addVMMenu = if isKoding()
-      'Create Koding VM':
-        callback : =>
-          handleNewMachineRequest provider: 'koding'
-          @_menu.destroy()
-          delegate.emit 'ModalDestroyRequested'
-    else
-      'Add Your own VM':
-        callback : =>
-          handleNewMachineRequest provider: 'managed'
-          @_menu.destroy()
-          delegate.emit 'ModalDestroyRequested'
+    if isKoding()
+      addVMMenu['Create Koding VM'] = callback: @generateMenuCallback 'koding'
+
+    if not isKoding() or checkFlag 'super-admin'
+      addVMMenu['Add Your own VM']  = callback: @generateMenuCallback 'managed'
+
 
     @addVMButton  = new kd.ButtonView
       icon        : yes
@@ -103,6 +98,17 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       items       : machines
 
     @machinesList = controller.getView()
+
+
+  generateMenuCallback: (provider) ->
+
+    {handleNewMachineRequest} = ComputeHelpers
+    delegate = @getDelegate()
+
+    return =>
+      handleNewMachineRequest { provider }
+      @_menu.destroy()
+      delegate.emit 'ModalDestroyRequested'
 
 
   pistachio: ->
