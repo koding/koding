@@ -32,7 +32,12 @@ module.exports = (req, res) ->
     rawResp = ""
     authUserResp.on "data", (chunk) -> rawResp += chunk
     authUserResp.on "end", ->
-      authResponse = JSON.parse rawResp
+
+      try
+        authResponse = JSON.parse rawResp
+      catch e
+        return redirectOauth res, {provider}, "could not parse github response"
+
       {access_token, scope} = authResponse
 
       if access_token
@@ -49,7 +54,12 @@ module.exports = (req, res) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
-      userInfo = JSON.parse rawResp
+
+      try
+        userInfo = JSON.parse rawResp
+      catch e
+        return redirectOauth res, {provider}, "could not parse github response"
+
       {login, id, email, name} = userInfo
 
       if name
@@ -87,7 +97,11 @@ module.exports = (req, res) ->
     rawResp = ""
     userEmailResp.on "data", (chunk) -> rawResp += chunk
     userEmailResp.on "end", ->
-      emails = JSON.parse(rawResp)
+      try
+        emails = JSON.parse(rawResp)
+      catch e
+        return redirectOauth res, {provider}, "could not parse github response"
+
       for email in emails when email.verified and email.primary
         originalResp.email = email.email
 
