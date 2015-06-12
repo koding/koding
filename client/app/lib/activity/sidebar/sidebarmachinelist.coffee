@@ -1,7 +1,8 @@
 kd                = require 'kd'
 KDCustomHTMLView  = kd.CustomHTMLView
 
-MoreVMsModal      = require 'app/activity/sidebar/morevmsmodal'
+EnvironmentsModal = require 'app/environment/environmentsmodal'
+
 CustomLinkView    = require 'app/customlinkview'
 SidebarMachineBox = require 'app/activity/sidebar/sidebarmachinebox'
 
@@ -42,9 +43,7 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @addSubView @header
 
 
-  headerClickHandler: ->
-    new MoreVMsModal {}, @getMachines()
-
+  headerClickHandler: -> new EnvironmentsModal
 
   addMachineBoxes: (boxes) ->
 
