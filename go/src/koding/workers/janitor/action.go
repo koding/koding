@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -21,13 +22,23 @@ func SendEmail(user *models.User, warningID string) error {
 		return err
 	}
 
+	machines, err := modelhelper.GetMachinesByUsername(user.Name)
+	if err != nil {
+		return err
+	}
+
+	if len(machines) < 1 {
+		return errors.New("user has no vms")
+	}
+
 	mail := &emailsender.Mail{
 		To:      user.Email,
 		Subject: subject,
 		Properties: &emailsender.Properties{
 			Username: user.Name,
 			Options: map[string]interface{}{
-				"firstName": account.Profile.FirstName,
+				"first_name": account.Profile.FirstName,
+				"vm_name":    machines[0].Label,
 			},
 		},
 	}
