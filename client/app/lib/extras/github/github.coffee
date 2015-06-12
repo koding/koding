@@ -26,7 +26,7 @@ module.exports = class GitHub
     response = []
 
     usernames.forEach (username, index) =>
-      @fetchUserRepos username, (err, repos) ->
+      @fetchUserRepos username, (err, repos = []) ->
         response.push {username, err, repos}
         callback null, response  if index is usernames.length - 1
 

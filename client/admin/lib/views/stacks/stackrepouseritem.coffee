@@ -15,26 +15,34 @@ module.exports = class StackRepoUserItem extends kd.ListItemView
 
     {repos} = @getData()
 
+    gravatarUrl   = repos.first?.owner.avatar_url
+
     @gravatarView = new kd.CustomHTMLView
       tagName     : 'img'
       attributes  :
-        src       : repos.first?.owner.avatar_url
+        src       : gravatarUrl
       cssClass    : 'gravatar'
+
+    @gravatarView.hide()  unless gravatarUrl
 
 
   toggleRepoListView: ->
 
     return @repoListView.toggleClass 'hidden'  if @repoListView
 
-    { repos } = @getData()
+    { repos, err } = @getData()
 
-    controller          = new kd.ListViewController
-      viewOptions       :
-        itemClass       : StackRepoItem
-
-    controller.replaceAllItems repos
+    controller    = new kd.ListViewController
+      viewOptions :
+        itemClass : StackRepoItem
 
     @addSubView @repoListView = controller.getView()
+
+    if err?
+      @repoListView.addSubView new kd.CustomHTMLView
+        partial: err.message
+    else
+      controller.replaceAllItems repos
 
 
   click: (event) ->
@@ -46,4 +54,4 @@ module.exports = class StackRepoUserItem extends kd.ListItemView
 
 
   pistachio: ->
-    "{{> @gravatarView}}{div.title{#(username)}}{span.active-link{}}"
+    "{{> @gravatarView}}{div.user-title{#(username)}}{span.active-link{}}"
