@@ -30,14 +30,17 @@ module.exports = class GroupPermissionsView extends JView
 
 
   addPermissionsView: ->
-    group = @getData()
-    group.fetchRoles (err,roles)=>
-      return showError err if err
-      group.fetchPermissions (err, permissionSet)=>
-        return showError err if err
 
-        @addSubView header = new KDCustomHTMLView
-          cssClass : 'header'
+    group = @getData()
+
+    group.fetchRoles (err,roles) =>
+
+      return showError err  if err
+
+      group.fetchPermissions (err, permissionSet) =>
+
+        return showError err  if err
+
 
         for role in roles when role.title isnt 'owner'
           title = role.title.capitalize()
@@ -49,7 +52,7 @@ module.exports = class GroupPermissionsView extends JView
 
         @addSubView permissions = new PermissionsForm { permissionSet, roles }, group
 
-        permissions.on 'RoleWasAdded', (newPermissions,role)=>
+        permissions.on 'RoleWasAdded', (newPermissions,role) =>
           permissions.destroy()
           @addPermissionsView()
           @loader.show()
