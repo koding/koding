@@ -31,9 +31,8 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
       @listController.showNoItemWidget()
 
     @listController.getListView().on 'NewVmFromSnapshot', (snapshot) =>
-      { snapshotId } = snapshot
-      machine        = @getData()
-      snapshotHelpers.newVmFromSnapshot machine, snapshotId, =>
+      machine = @getData()
+      snapshotHelpers.newVmFromSnapshot snapshot, machine, =>
         @emit 'ModalDestroyRequested'
 
 

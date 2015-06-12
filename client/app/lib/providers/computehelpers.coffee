@@ -57,10 +57,10 @@ module.exports = class ComputeHelpers
         return cc._inprogress = no
 
       { plan, plans, usage } = info
-      { snapshotId }         = options
+      { snapshotId, region } = options
 
       limits  = plans[plan]
-      options = { plan, limits, usage, snapshotId }
+      options = { plan, limits, usage, snapshotId, region }
 
       if limits.total > 1
 
