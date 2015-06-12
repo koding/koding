@@ -713,7 +713,14 @@ module.exports = class JUser extends jraphical.Module
           }, (err)->
             return callback err  if err
 
-            user.update { $set: lastLoginDate: new Date }, (err) ->
+            options = lastLoginDate: new Date
+
+            if session.foreignAuth
+              { foreignAuth } = user
+              foreignAuth = extend foreignAuth, session.foreignAuth
+              options.foreignAuth = foreignAuth
+
+            user.update { $set: options }, (err) ->
               return callback err  if err
 
               # This should be called after login and this
@@ -724,7 +731,7 @@ module.exports = class JUser extends jraphical.Module
               JLog.log {type: "login", username , success: yes}
 
               JUser.clearOauthFromSession session, ->
-                callback null, { account, replacementToken }
+                callback null, { account, replacementToken, returnUrl: session.returnUrl }
 
                 analytics.track userId: username, event: 'logged in'
 
@@ -927,12 +934,13 @@ module.exports = class JUser extends jraphical.Module
         return callback createKodingError "Couldn't restore your session!"
 
       kallback = (err, resp={}) ->
-        {account, replacementToken} = resp
+        {account, replacementToken, returnUrl} = resp
         callback err, {
           isNewUser : false
           userInfo  : null
           account
           replacementToken
+          returnUrl
         }
 
       @fetchUserByProvider provider, session, (err, user) =>
@@ -940,7 +948,7 @@ module.exports = class JUser extends jraphical.Module
         return callback createKodingError err.message  if err
 
         if isUserLoggedIn
-          if user
+          if user?.username isnt client.connection.delegate.profile.nickname
             @clearOauthFromSession session, ->
               callback createKodingError """
                 Account is already linked with another user.
@@ -954,10 +962,12 @@ module.exports = class JUser extends jraphical.Module
             afterLogin user, sessionToken, session, kallback
           else
             info = session.foreignAuth[provider]
+            { returnUrl } = session
             {username, email, firstName, lastName, scope} = info
             callback null, {
               isNewUser : true,
               userInfo  : {username, email, firstName, lastName, scope}
+              returnUrl
             }
 
 
@@ -1537,7 +1547,11 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err
         @clearOauthFromSession foreignAuthInfo.session, (err)=>
           return callback err  if err
-          @copyPublicOauthToAccount username, foreignAuthInfo, callback
+          @copyPublicOauthToAccount username, foreignAuthInfo, (err, resp = {}) ->
+            return callback err  if err
+            { session: {returnUrl} } = foreignAuthInfo
+            resp.returnUrl = returnUrl  if returnUrl
+            return callback null, resp
 
   @extractOauthFromSession: (clientId, callback)->
     JSession.one {clientId: clientId}, (err, session)->
