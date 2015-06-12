@@ -65,6 +65,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
   getChannel: -> @channel
 
 
+  ###*
+   * Helper method to check if logged in user is the host.
+   *
+   * @return {boolean} _isMySession
+  ###
   isMySession: -> isMyChannel @channel
 
 
