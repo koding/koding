@@ -1,13 +1,13 @@
-kd               = require 'kd'
-JView            = require 'app/jview'
-isKoding         = require 'app/util/isKoding'
-showError        = require 'app/util/showError'
-KDLoaderView     = kd.LoaderView
-PermissionsForm  = require './permissionsform'
-KDCustomHTMLView = kd.CustomHTMLView
+kd                 = require 'kd'
+isKoding           = require 'app/util/isKoding'
+showError          = require 'app/util/showError'
+KDLoaderView       = kd.LoaderView
+PermissionsForm    = require './permissionsform'
+KDCustomHTMLView   = kd.CustomHTMLView
+KDCustomScrollView = kd.CustomScrollView
 
 
-module.exports = class GroupPermissionsView extends JView
+module.exports = class GroupPermissionsView extends KDCustomScrollView
 
   constructor: (options = {}, data) ->
 
@@ -15,7 +15,7 @@ module.exports = class GroupPermissionsView extends JView
 
     super options, data
 
-    @loader     = new KDLoaderView
+    @wrapper.addSubView @loader = new KDLoaderView
       showLoader     : yes
       loaderOptions  :
         shape        : 'spiral'
@@ -41,6 +41,7 @@ module.exports = class GroupPermissionsView extends JView
 
         return showError err  if err
 
+        @wrapper.addSubView header = new KDCustomHTMLView cssClass : 'header'
 
         for role in roles when role.title isnt 'owner'
           title = role.title.capitalize()
@@ -50,7 +51,7 @@ module.exports = class GroupPermissionsView extends JView
             cssClass   : 'header-item'
             attributes : { title }
 
-        @addSubView permissions = new PermissionsForm { permissionSet, roles }, group
+        @wrapper.addSubView permissions = new PermissionsForm { permissionSet, roles }, group
 
         permissions.on 'RoleWasAdded', (newPermissions,role) =>
           permissions.destroy()
@@ -58,10 +59,3 @@ module.exports = class GroupPermissionsView extends JView
           @loader.show()
 
         @loader.hide()
-
-  pistachio:->
-    """
-    {{> @loader}}
-    """
-
-
