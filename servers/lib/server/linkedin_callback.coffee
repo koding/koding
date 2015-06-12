@@ -21,7 +21,7 @@ module.exports = (req, res) ->
   }              = linkedin
 
   unless code
-    redirectOauth res, provider, "No code in query"
+    redirectOauth res, {provider}, "No code in query"
     return
 
   # Get user info with access token
@@ -32,14 +32,14 @@ module.exports = (req, res) ->
       try
         parseString rawResp, (err, result) ->
           if err
-            redirectOauth res, provider, "Error parsing user info"
+            redirectOauth res, {provider}, "Error parsing user info"
             return
 
           try
             profileUrl = result.person['site-standard-profile-request'][0].url[0]
             {id} = querystring.decode(url.parse(profileUrl).query)
           catch e
-            redirectOauth res, provider, "Error parsing user id"
+            redirectOauth res, {provider}, "Error parsing user id"
             return
 
           linkedInResp =
@@ -50,12 +50,12 @@ module.exports = (req, res) ->
 
           saveOauthToSession linkedInResp, clientId, provider, (err)->
             if err
-              redirectOauth res, provider, err
+              redirectOauth res, {provider}, err
               return
 
-            redirectOauth res, provider, null
+            redirectOauth res, {provider}, null
       catch e
-        redirectOauth res, provider, "Error parsing user info"
+        redirectOauth res, {provider}, "Error parsing user info"
 
   # Get access token with code
   authorizeUser = (authUserResp)->
@@ -65,7 +65,7 @@ module.exports = (req, res) ->
       try
         tokenInfo = JSON.parse rawResp
       catch e
-        redirectOauth res, provider, "Error getting access token"
+        redirectOauth res, {provider}, "Error getting access token"
 
       {access_token, expires_in} = tokenInfo
       if access_token
@@ -76,7 +76,7 @@ module.exports = (req, res) ->
         re = http.request options, fetchUserInfo
         re.end()
       else
-        redirectOauth res, provider, "No access token"
+        redirectOauth res, {provider}, "No access token"
 
   path  = "/uas/oauth2/accessToken?"
   path += "grant_type=authorization_code&"

@@ -31,7 +31,7 @@ module.exports = (req, res)->
 
   JSession.one {clientId}, (err, session)->
     if err or not session
-      redirectOauth res, provider, err
+      redirectOauth res, {provider}, err
       return
 
     {username}           = session.data
@@ -44,19 +44,19 @@ module.exports = (req, res)->
     client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,
       (err, oauthAccessToken, oauthAccessTokenSecret, results)->
         if err
-          redirectOauth res, provider, err
+          redirectOauth res, {provider}, err
           return
 
         client.get 'https://api.twitter.com/1.1/account/verify_credentials.json',
           oauthAccessToken, oauthAccessTokenSecret, (error, data)->
             if err
-              redirectOauth res, provider, err
+              redirectOauth res, {provider}, err
               return
 
             try
               response = JSON.parse data
             catch e
-              redirectOauth res, provider, "twitter: parsing json"
+              redirectOauth res, {provider}, "twitter: parsing json"
               return
 
             [firstName, restOfNames...] = response.name.split ' '
@@ -72,7 +72,7 @@ module.exports = (req, res)->
 
             saveOauthToSession twitter, clientId, provider, (err)->
               if err
-                redirectOauth res, provider, err
+                redirectOauth res, {provider}, err
                 return
 
-              redirectOauth res, provider, null
+              redirectOauth res, {provider}, null
