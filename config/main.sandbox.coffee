@@ -5,7 +5,7 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  prod_simulation_server = "10.0.0.248"
+  prod_simulation_server = "10.0.0.136"
 
   awsKeys =
     # s3 full access

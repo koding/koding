@@ -102,7 +102,6 @@ module.exports = class NotificationListItemView extends KDListItemView
 
     popupList = @getDelegate()
     popupList.emit 'AvatarPopupShouldBeHidden'
-    popupList.emit 'NotificationListItemClicked'
 
     switch @getData().type
       when "comment", "like", "mention"

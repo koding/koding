@@ -12,6 +12,3 @@ module.exports  = class PopupList extends KDListView
 
     super options,data
 
-    @on 'NotificationListItemClicked', =>
-      @getDelegate().emit 'NotificationListItemClicked'
-

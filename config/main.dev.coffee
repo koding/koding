@@ -772,8 +772,6 @@ Configuration = (options={}) ->
       env = """
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
-      export KONFIG_JSON='#{KONFIG.JSON}'
-
       """
       env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV when key not in options.exclude
       return env
