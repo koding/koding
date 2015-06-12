@@ -948,7 +948,7 @@ module.exports = class JUser extends jraphical.Module
         return callback createKodingError err.message  if err
 
         if isUserLoggedIn
-          if user?.username isnt client.connection.delegate.profile.nickname
+          if user and user.username isnt client.connection.delegate.profile.nickname
             @clearOauthFromSession session, ->
               callback createKodingError """
                 Account is already linked with another user.
