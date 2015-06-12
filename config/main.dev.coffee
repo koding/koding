@@ -237,9 +237,9 @@ Configuration = (options={}) ->
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
-    collaboration                  : {timeout: 1 * 60 * 1000                                         , expiresInMinutes: 10080 }
+    collaboration                  : {timeout: 1 * 60 * 1000}
     client                         : {watch: yes                                                     , version: version                                              , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
-    jwt                            : {secret: "71c25e4dc728431b88f82bd3e7a600c9"                     , expiresInMinutes: 10080  } # 7 days
+    jwt                            : {secret: "71c25e4dc728431b88f82bd3e7a600c9"                     , confirmExpiresInMinutes: 10080  } # 7 days
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify

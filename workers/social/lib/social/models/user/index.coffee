@@ -1273,11 +1273,13 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
-        {secret, expiresInMinutes} = KONFIG.jwt
+        {secret, confirmExpiresInMinutes} = KONFIG.jwt
         {publicHostname} = KONFIG
 
         jwt   = require 'jsonwebtoken'
-        token = jwt.sign { username }, secret, { expiresInMinutes }
+
+        # uses 'HS256' as default for signing
+        token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
 
         analytics.identify userId: username, traits: { jwtToken: token, host: publicHostname }
     ]
