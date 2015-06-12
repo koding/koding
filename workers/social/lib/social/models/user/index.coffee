@@ -6,6 +6,9 @@ Flaggable   = require '../../traits/flaggable'
 KodingError = require '../../error'
 { extend, uniq }  = require 'underscore'
 
+Analytics   = require('analytics-node')
+analytics   = new Analytics(KONFIG.segment)
+
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
 
@@ -684,6 +687,8 @@ module.exports = class JUser extends jraphical.Module
 
   afterLogin = (user, clientId, session, callback)->
 
+    {username} = user
+
     user.fetchOwnAccount (err, account)->
       if err then return callback err
       checkLoginConstraints user, account, (err)->
@@ -693,7 +698,7 @@ module.exports = class JUser extends jraphical.Module
           replacementToken = createId()
           session.update {
             $set            :
-              username      : user.username
+              username      : username
               lastLoginDate : new Date
               clientId      : replacementToken
             $unset:
@@ -709,11 +714,12 @@ module.exports = class JUser extends jraphical.Module
               # p.s. we could do that in workers
               account.updateCounts()
 
-              JLog.log
-                type: "login", username: account.username, success: yes
+              JLog.log {type: "login", username , success: yes}
 
               JUser.clearOauthFromSession session, ->
                 callback null, { account, replacementToken }
+
+                analytics.track userId: username, event: 'logged in'
 
 
   @logout = secure (client, callback)->
@@ -1266,6 +1272,16 @@ module.exports = class JUser extends jraphical.Module
 
         queue.next()
 
+      ->
+        {secret, confirmExpiresInMinutes} = KONFIG.jwt
+        {publicHostname} = KONFIG
+
+        jwt   = require 'jsonwebtoken'
+
+        # uses 'HS256' as default for signing
+        token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
+
+        analytics.identify userId: username, traits: { jwtToken: token, host: publicHostname }
     ]
 
     daisy queue
@@ -1454,11 +1470,12 @@ module.exports = class JUser extends jraphical.Module
 
   confirmEmail: (callback)->
 
-    status = @getAt 'status'
+    status   = @getAt 'status'
+    username = @getAt 'username'
 
     # for some reason status is sometimes 'undefined', so check for that
     if status? and status isnt 'unconfirmed'
-      console.log "ALERT: #{@getAt 'username'} is trying to confirm '#{status}' email"
+      console.log "ALERT: #{username} is trying to confirm '#{status}' email"
       return callback null
 
     @update {$set: status: 'confirmed'}, (err, res)=>
@@ -1466,6 +1483,8 @@ module.exports = class JUser extends jraphical.Module
       JUser.emit "EmailConfirmed", @
 
       callback null
+
+      analytics.track userId: username, event: 'confirmed email'
 
 
   block:(blockedUntil, callback)->
