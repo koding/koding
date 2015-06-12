@@ -157,7 +157,7 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 }
 
 func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
-	if ok := ctx.IsLoggedIn(); !ok {
+	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
@@ -178,7 +178,7 @@ func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.Cha
 }
 
 func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
-	if ok := ctx.IsLoggedIn(); !ok {
+	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
@@ -227,7 +227,7 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 		return response.NewInvalidRequest(err)
 	}
 
-	if ok := ctx.IsLoggedIn(); !ok {
+	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
