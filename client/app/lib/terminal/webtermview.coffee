@@ -87,8 +87,9 @@ module.exports = class WebTermView extends KDCustomScrollView
     # watch machine state:
     { computeController } = kd.singletons
     { Stopped, Stopping } = Machine.State
+    machineId             = @getMachine()._id
 
-    computeController.on "public-#{@getMachine()._id}", (event) =>
+    computeController.on "public-#{machineId}", (event) =>
       if event.status in [Stopping, Stopped]
         @terminal.cursor.stopBlink()
 
@@ -97,6 +98,17 @@ module.exports = class WebTermView extends KDCustomScrollView
         if event.status is Stopped
           @messagePane.handleError message: "ErrNoSession"
 
+    # If the machine is resizing, it will have a status of Stopping
+    # but never Stopped. For resizing, status progress goes:
+    #
+    #   Stopping -> Pending -> Starting -> Pending -> Running
+    #
+    # As such, we need to listen specifically for the resize-
+    # event to know if this is a resizing Terminal and needs to
+    # show ErrNoSession.
+    computeController.on "resize-#{machineId}", (event) =>
+      if event.percentage is 100
+        @messagePane.handleError message: "ErrNoSession"
 
     @setKeyView()
 
