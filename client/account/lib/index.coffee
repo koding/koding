@@ -103,7 +103,9 @@ module.exports = class AccountAppController extends AppController
     error = null  if error is 'null'
     kd.singletons.oauthController.authCompleted error, provider
 
-    return location.replace returnUrl  if returnUrl
+    if returnUrl
+      @closeModal()
+      return kd.singletons.router.handleRoute returnUrl
 
     kd.singletons.router.handleRoute '/Account/Externals',
       shouldPushState : yes
