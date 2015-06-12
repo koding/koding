@@ -2,6 +2,7 @@ kd        = require 'kd'
 helper    = require './helper'
 constants = require './constants'
 
+
 module.exports = class VideoCollaborationViewModel extends kd.Object
 
   constructor: (options = {}, data) ->
@@ -10,7 +11,7 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
 
     {@view, @model} = options
 
-    @model.on 'ActiveParticipantChanged',   @bound 'switchTo'
+    @model.on 'ActiveParticipantChanged', (nick) => kd.utils.defer => @switchTo nick
     @model.on 'VideoCollaborationActive',   @bound 'fixParticipantVideoElements'
     @model.on 'SelectedParticipantChanged', @bound 'handleParticipantSelected'
 
