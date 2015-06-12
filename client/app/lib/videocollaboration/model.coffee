@@ -266,13 +266,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
         error   : (err) -> console.error err
 
     session.on 'signal:start', =>
-
       @setActive()
-      @changeActiveParticipant getNick()
 
-      return  unless @isMySession()
-
-      @requestVideoPublishForHost()
+      if @isMySession()
+        @requestVideoPublishForHost => @changeActiveParticipant getNick()
+      else
+        @changeActiveParticipant getNick()
 
 
     # this event only comes to the user who has been muted, so need to make a
