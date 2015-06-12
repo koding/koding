@@ -21,9 +21,20 @@ module.exports = class GitHub
     $.ajax req
     null
 
-  @fetchUserRepos = (username, callback = kd.noop, force)->
 
-    if force then @resetCache username
+  @fetchUsersRepos = (usernames, callback = kd.noop) ->
+    response = []
+
+    usernames.forEach (username, index) =>
+      @fetchUserRepos username, (err, repos) ->
+        response.push {username, err, repos}
+        callback null, response  if index is usernames.length - 1
+
+
+  @fetchUserRepos = (username, callback = kd.noop, force) ->
+
+    @resetCache username  if force
+
     if @_repoCache[username]?.length > 0
       callback null, @_repoCache[username]
       return
@@ -162,4 +173,3 @@ module.exports = class GitHub
                            api calls, try again in #{remaining}."""
 
     callback options
-
