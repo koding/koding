@@ -469,7 +469,7 @@ module.exports = class StacksCustomViews extends CustomViews
       {controller, __view: repoList} = views.repoList
 
       repoList.hide()
-      GitHub.fetchUsersRepos users, (err, response) =>
+      GitHub.fetchUsersRepos users, (err, response) ->
         views.mainLoader.hide()
         controller.replaceAllItems response
         repoList.show()

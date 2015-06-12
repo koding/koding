@@ -164,9 +164,9 @@ module.exports = class GitHub
 
       remaining = if remaining > 1
                     "#{remaining} minutes"
-                  if remaining is 1
+                  else if remaining is 1
                     "#{remaining} minute"
-                  if remaining is 0
+                  else
                     "a minute."
 
       options.message = """You reached the rate limit for GitHub
