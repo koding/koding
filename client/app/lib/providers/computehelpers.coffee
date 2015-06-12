@@ -1,12 +1,16 @@
-kd = require 'kd'
-Promise = require 'bluebird'
-globals = require 'globals'
-Machine = require './machine'
-showError = require '../util/showError'
+kd                    = require 'kd'
+KDNotificationView    = kd.NotificationView
+
+globals               = require 'globals'
+Promise               = require 'bluebird'
+
+nick                  = require 'app/util/nick'
+showError             = require 'app/util/showError'
+
+Machine               = require './machine'
+AddManagedVMModal     = require './managed/addmanagedvmmodal'
 ComputePlansModalPaid = require './computeplansmodalpaid'
 ComputePlansModalFree = require './computeplansmodalfree'
-KDNotificationView = kd.NotificationView
-AddManagedVMModal = require './managed/addmanagedvmmodal'
 
 
 module.exports = class ComputeHelpers
@@ -70,7 +74,11 @@ module.exports = class ComputeHelpers
         callback()
         return
 
-      cc.queryMachines provider: 'koding', (err, machines)=>
+      query        =
+        provider   : 'koding'
+        credential : nick()
+
+      cc.queryMachines query, (err, machines) ->
 
         kd.warn err  if err?
 
