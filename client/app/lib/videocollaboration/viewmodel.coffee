@@ -24,6 +24,9 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
     @model.on 'AudioPublishStateChanged', viewControlBinder 'controlAudio'
     @model.on 'SpeakerStateChanged',      viewControlBinder 'controlSpeaker'
 
+    # every time we are re/publishing, we have to fix the video element css.
+    @model.on 'VideoPublishStateChanged', => fixParticipantVideo @model.publisher
+
 
   ###*
    * First hide all participants, even the offline ones(!), then show
