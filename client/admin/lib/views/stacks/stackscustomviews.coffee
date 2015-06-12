@@ -19,7 +19,7 @@ ComputeController_UI            = require 'app/providers/computecontroller.ui'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
-StackRepoItem                   = require './stackrepoitem'
+StackRepoUserItem               = require './stackrepouseritem'
 StackTemplateList               = require './stacktemplatelist'
 StackTemplateListController     = require './stacktemplatelistcontroller'
 
@@ -415,7 +415,7 @@ module.exports = class StacksCustomViews extends CustomViews
           selected        : 2
         text              : "Github: Select a repository from your account"
         repoListView      :
-          username        : 'gokmen'
+          users           : ['gokmen', 'koding']
         navCancelButton   :
           title           : '< Select another provider'
           callback        : cancelCallback
@@ -450,10 +450,8 @@ module.exports = class StacksCustomViews extends CustomViews
 
       controller          = new kd.ListViewController
         viewOptions       :
-          itemClass       : StackRepoItem
-        noItemFoundWidget : new kd.View
-          cssClass        : 'noitem-warning'
-          partial         : 'There is no repository to show.'
+          itemClass       : StackRepoUserItem
+          cssClass        : 'repo-user-list'
 
       __view = controller.getView()
       return { __view, controller }
@@ -461,19 +459,19 @@ module.exports = class StacksCustomViews extends CustomViews
 
     repoListView: (options) =>
 
-      { username } = options
-      container    = @views.container 'repo-list'
+      { users } = options
+
+      container    = @views.container 'repo-listview'
       views        = @addTo container,
-        mainLoader : 'Fetching repository list...'
+        mainLoader : 'Fetching repositories list...'
         repoList   : options
 
       {controller, __view: repoList} = views.repoList
 
       repoList.hide()
-      GitHub.fetchUserRepos username, (err, repos) =>
+      GitHub.fetchUsersRepos users, (err, response) =>
         views.mainLoader.hide()
-        return  if showError err
-        controller.replaceAllItems repos
+        controller.replaceAllItems response
         repoList.show()
 
       return container

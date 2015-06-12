@@ -1168,11 +1168,21 @@ Admin main styles
         .title
           color             #02A74D
 
+  .step-locate-file
+    height                  calc(100% \- 80px)
+
+  .repo-listview
+    margin-top              20px
+    height                  calc(100% \- 100px)
+    .repo-user-list
+      border                1px solid #ccc
+      borderBox()
+
   .repo-item
+  .repo-user-item
 
     padding                 10px 0
     box-sizing              border-box
-    border-bottom           1px solid #DDD
     pointer()
 
     a
@@ -1180,6 +1190,7 @@ Admin main styles
       noTextDeco()
 
     span.add-link
+    span.active-link
       r-sprite              'app', 'sidebar-toggle'
       vendor                transform, rotate(180deg)
       display               block
@@ -1187,6 +1198,12 @@ Admin main styles
       margin-right          6px
       pointer()
       fr()
+
+    span.active-link
+      margin-top            10px
+
+  .repo-item
+    border-bottom           1px solid #DDD
 
     &.active
       border-bottom         none
