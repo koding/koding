@@ -15,4 +15,6 @@ var (
 	ErrGroupNotFound           = errors.New("group not found")
 	ErrAccountIsNotParticipant = errors.New("account is not participant of the channel")
 	ErrEmailNotFound           = errors.New("email not found")
+	ErrIntegrationNotFound     = errors.New("integration not found")
+	ErrInvalidGroup            = errors.New("invalid group")
 )

@@ -222,3 +222,45 @@ func TestAccountProfilePostCount(t *testing.T) {
 		})
 	})
 }
+
+func TestAccountGroupChannels(t *testing.T) {
+	r := runner.New("rest-tests")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	groupName := models.RandomGroupName()
+
+	Convey("While fetching account activity count in profile page", t, func() {
+		// create account
+		acc1 := models.NewAccount()
+		acc1.OldId = bson.NewObjectId().Hex()
+		acc1, err := rest.CreateAccount(acc1)
+		So(err, ShouldBeNil)
+		So(acc1, ShouldNotBeNil)
+
+		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		// create channel
+		channel, err := rest.CreateChannelByGroupNameAndType(acc1.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
+		So(err, ShouldBeNil)
+		So(channel, ShouldNotBeNil)
+
+		channel, err = rest.CreateChannelByGroupNameAndType(acc1.Id, groupName, models.Channel_TYPE_TOPIC, ses.ClientId)
+		So(err, ShouldBeNil)
+		So(channel, ShouldNotBeNil)
+
+		cc, err := rest.FetchAccountChannels(ses.ClientId)
+		So(err, ShouldBeNil)
+		ccs := []models.ChannelContainer(*cc)
+		So(len(ccs), ShouldEqual, 2)
+	})
+}

@@ -39,3 +39,7 @@ func (i *Integration) One(q *bongo.Query) error {
 func (i *Integration) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(i, data, q)
 }
+
+func (i *Integration) Delete() error {
+	return bongo.B.Delete(i)
+}

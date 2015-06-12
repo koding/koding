@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"net/http"
@@ -342,6 +343,324 @@ func TestWebhookGroupBotChannel(t *testing.T) {
 				val, ok := cast["channelId"]
 				So(ok, ShouldBeTrue)
 				So(val, ShouldNotEqual, "")
+			})
+		})
+	})
+}
+
+func TestWebhookIntegrationList(t *testing.T) {
+
+	tearUp(func(h *Handler, m *mux.Mux) {
+
+		Convey("while listing integrations ", t, func() {
+			name := ".A" + models.RandomGroupName()
+			firstInt := webhook.CreateUnpublishedIntegration(t)
+			secondInt := webhook.CreateIntegration(t, name)
+
+			Convey("it should only list public integrations", func() {
+
+				_, _, res, err := h.List(
+					mocking.URL(m, "GET", "/list"),
+					mocking.Header(nil),
+					nil,
+				)
+
+				So(err, ShouldBeNil)
+				So(res, ShouldNotBeNil)
+				r, ok := res.(*response.SuccessResponse)
+				So(ok, ShouldBeTrue)
+
+				integrations, ok := r.Data.([]webhook.Integration)
+				So(ok, ShouldBeTrue)
+				So(len(integrations), ShouldBeGreaterThanOrEqualTo, 1)
+
+				for _, integration := range integrations {
+					So(integration.IsPublished, ShouldBeFalse)
+					So(integration.Name, ShouldNotEqual, firstInt.Name)
+				}
+			})
+
+			Reset(func() {
+
+				err := firstInt.Delete()
+				So(err, ShouldBeNil)
+
+				err = secondInt.Delete()
+				So(err, ShouldBeNil)
+			})
+		})
+	})
+}
+
+func TestWebhookIntegrationCreate(t *testing.T) {
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("while creating integrations", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+
+			Convey("it should return error when necessary fields are missing", func() {
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+
+				s, _, _, err := h.CreateChannelIntegration(
+					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err.Error(), ShouldEqual, models.ErrChannelIsNotSet.Error())
+				So(s, ShouldEqual, http.StatusBadRequest)
+			})
+
+			Convey("it should return error when account is not a participant of the given channel", func() {
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+
+				s, _, _, err := h.CreateChannelIntegration(
+					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err.Error(), ShouldEqual, models.ErrChannelIsNotSet.Error())
+				So(s, ShouldEqual, http.StatusBadRequest)
+			})
+
+			Convey("it should create", func() {
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+				ci.ChannelId = topicChannel.Id
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+
+				_, err := topicChannel.AddParticipant(acc.Id)
+				So(err, ShouldBeNil)
+
+				s, _, res, err := h.CreateChannelIntegration(
+					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				sr, srOk := res.(*response.SuccessResponse)
+				So(srOk, ShouldBeTrue)
+
+				newCi, ok := sr.Data.(*webhook.ChannelIntegration)
+				So(ok, ShouldBeTrue)
+
+				So(newCi, ShouldNotBeNil)
+				So(newCi.Id, ShouldNotEqual, 0)
+			})
+		})
+	})
+}
+
+func TestWebhookRegenerateToken(t *testing.T) {
+
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("while generating tokens", t, func() {
+			// create dependencies
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			_, err := topicChannel.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			// create channel integration
+			ci := webhook.NewChannelIntegration()
+			ci.CreatorId = acc.Id
+			ci.GroupName = groupName
+			ci.ChannelId = topicChannel.Id
+			ci.IntegrationId = in.Id
+
+			err = ci.Create()
+			So(err, ShouldBeNil)
+
+			Convey("user from another channel should not be able to regenerate a token", func() {
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = models.RandomGroupName()
+
+				s, _, _, err := h.RegenerateToken(
+					mocking.URL(m, "POST", "/channelintegration/token"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+				So(err.Error(), ShouldEqual, ErrInvalidGroup.Error())
+				So(s, ShouldEqual, http.StatusBadRequest)
+			})
+
+			Convey("we should be able to regenerate a token of a current integration", func() {
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+
+				s, _, res, err := h.RegenerateToken(
+					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				sr, srOk := res.(*response.SuccessResponse)
+				So(srOk, ShouldBeTrue)
+
+				newCi, ok := sr.Data.(*webhook.ChannelIntegration)
+				So(ok, ShouldBeTrue)
+
+				So(newCi, ShouldNotBeNil)
+				So(newCi.Id, ShouldNotEqual, 0)
+				So(newCi.Token, ShouldNotEqual, ci.Token)
+			})
+		})
+	})
+}
+
+func TestWebhookGetChannelIntegration(t *testing.T) {
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("while fetching the channel integration", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			_, err := topicChannel.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			// create channel integration
+			ci := webhook.NewChannelIntegration()
+			ci.CreatorId = acc.Id
+			ci.GroupName = groupName
+			ci.ChannelId = topicChannel.Id
+			ci.IntegrationId = in.Id
+
+			err = ci.Create()
+			So(err, ShouldBeNil)
+			Convey("it should be fetched with a valid id", func() {
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+				endpoint := fmt.Sprintf("/channelintegration/%d", ci.Id)
+
+				s, _, res, err := h.GetChannelIntegration(
+					mocking.URL(m, "GET", endpoint),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				sr, srOk := res.(*response.SuccessResponse)
+				So(srOk, ShouldBeTrue)
+
+				newCi, ok := sr.Data.(*webhook.ChannelIntegration)
+				So(ok, ShouldBeTrue)
+
+				So(newCi, ShouldNotBeNil)
+				So(newCi.Id, ShouldEqual, ci.Id)
+			})
+
+		})
+	})
+}
+
+func TestWebhookUpdateChannelIntegration(t *testing.T) {
+
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("while updating the channel integrations", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			_, err := topicChannel.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			// create channel integration
+			ci := webhook.NewChannelIntegration()
+			ci.CreatorId = acc.Id
+			ci.GroupName = groupName
+			ci.ChannelId = topicChannel.Id
+			ci.IntegrationId = in.Id
+
+			err = ci.Create()
+			So(err, ShouldBeNil)
+			Convey("token should not be changed", func() {
+				currentToken := ci.Token
+				ci.Token = "123123123"
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+				endpoint := fmt.Sprintf("/channelintegration/%d/update", ci.Id)
+
+				s, _, _, err := h.UpdateChannelIntegration(
+					mocking.URL(m, "POST", endpoint),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				newCi := webhook.NewChannelIntegration()
+				err = newCi.ById(ci.Id)
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+				So(newCi.Token, ShouldEqual, currentToken)
+				So(newCi.Token, ShouldNotEqual, "123123123")
+			})
+
+			Convey("channel id should be updated", func() {
+
+				c := &models.Context{}
+				c.Client = &models.Client{Account: acc}
+				c.GroupName = groupName
+				endpoint := fmt.Sprintf("/channelintegration/%d/update", ci.Id)
+				newChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+				ci.ChannelId = newChannel.Id
+
+				_, err := newChannel.AddParticipant(acc.Id)
+
+				s, _, _, err := h.UpdateChannelIntegration(
+					mocking.URL(m, "POST", endpoint),
+					mocking.Header(nil),
+					ci,
+					c,
+				)
+
+				newCi := webhook.NewChannelIntegration()
+				err = newCi.ById(ci.Id)
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+				So(newCi.ChannelId, ShouldEqual, newChannel.Id)
 			})
 		})
 	})
