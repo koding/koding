@@ -9,7 +9,7 @@ module.exports = class OAuth extends bongo.Base
   @set
     sharedMethods   :
       static        :
-        getUrl      : (signature String, Function)
+        getUrl      : (signature Object, Function)
 
   @getUrl = secure (client, options, callback)->
     { provider } = options
