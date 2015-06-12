@@ -48,14 +48,26 @@ getUniqueLabel = (label, labels = []) ->
  * for hobbyist's, and showing the new machine modal for all other
  * users.
  *
+ * @param {Object} snapshot - An object, containing required `region` and
+ *  `snapshotId` fields.
+ * @param {String} snapshot.region - The region that the vm will be
+ *  created in.
+ * @param {String} snapshot.snapshotId - The snapshotId to create the
+ *  machine from.
  * @param {Machine} machine - The machine to reinit a snapshot onto, in
  *  the event that it's needed (hobbyists).
- * @param {String} snapshotId - The snapshotId to create the machine from
  * @param {Function()} callback - Called once the process has begin, *not*
  *  when the process is entirely done. (Eg, after plan confirmations have
  *  taken place, etc).
 ###
-newVmFromSnapshot = (machine, snapshotId, callback = kd.noop) ->
+newVmFromSnapshot = (snapshot, machine, callback = kd.noop) ->
+
+  { region, snapshotId } = snapshot
+
+  unless region
+    return kd.error "newVmFromSnapshot: snapshot.region is required"
+  unless snapshotId
+    return kd.error "newVmFromSnapshot: snapshot.snapshotId is required"
 
   computeController = kd.getSingleton 'computeController'
   paymentController = kd.getSingleton 'paymentController'
@@ -72,6 +84,7 @@ newVmFromSnapshot = (machine, snapshotId, callback = kd.noop) ->
     else
       handleNewMachineRequest
         provider   : 'koding'
+        region     : region
         snapshotId : snapshotId
         callback
 

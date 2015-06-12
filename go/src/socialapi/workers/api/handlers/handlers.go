@@ -457,6 +457,16 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
+			Handler:  account.ListGroupChannels,
+			Name:     "account-group-channel-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/account/channels",
+			Securer:  models.AccountReadSecurer,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
 			Handler:  account.GetAccountFromSession,
 			Name:     "account-info",
 			Type:     handler.GetRequest,

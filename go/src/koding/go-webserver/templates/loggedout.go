@@ -12,8 +12,6 @@ var LoggedOutHome = `
   </head>
 
   <body class='home'>
-    {{template "analytics"}}
-
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
     <script src="/a/site.landing/js/libs.js?{{.Version}}"></script>
     <script src="/a/site.landing/js/kd.libs.js?{{.Version}}"></script>
