@@ -1182,6 +1182,16 @@ module.exports = class JUser extends jraphical.Module
         else
           queue.next()
 
+      ->
+        account.update $set: type: 'registered', (err) ->
+          return callback err  if err?
+          queue.next()
+
+      ->
+        account.createSocialApiId (err) ->
+          return callback err  if err
+          queue.next()
+
       =>
         groupNames = [client.context.group, 'koding']
 
@@ -1202,15 +1212,6 @@ module.exports = class JUser extends jraphical.Module
           # We are not returning error here on purpose, even stack template
           # not created for a user we don't want to break registration process
           # at all ~ GG
-          queue.next()
-      ->
-        account.update $set: type: 'registered', (err) ->
-          return callback err  if err?
-          queue.next()
-
-      ->
-        account.createSocialApiId (err) ->
-          return callback err  if err
           queue.next()
       ->
         return queue.next()  unless referrer
