@@ -86,7 +86,7 @@ Configuration = (options={}) ->
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-5b987056-ef0f-457a-aadf-87b0488c1da1", subscribekey:       "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"  , secretkey: "sec-c-MWFhYTAzZWUtYzg4My00ZjAyLThiODEtZmI0OTFkOTk0YTE0"                , serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"                , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                        , pubnub: pubnub                                }
-  integration         = { host:     "localhost"                                   , port:               "7300"                                  }
+  integration         = { host:     "localhost"                                   , port:               "7300"                                        , url: "#{customDomain.public}/api/integration" }
   webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
   paymentwebhook      = { port:     "6600"                                        , debug:              false                                   }
   tokbox              = { apiKey: '45253342', apiSecret: 'e834f7f61bd2b3fafc36d258da92413cebb5ce6e' }
@@ -212,10 +212,7 @@ Configuration = (options={}) ->
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.public}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "#{customDomain.public}:#{customDomain.port}/-/oauth/linkedin/callback"}
     datadog                        : {api_key       : "1daadb1d4e69d1ae0006b73d404e527b"             , app_key       : "aecf805ae46ec49bdd75e8866e61e382918e2ee5"}
-    statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
-    graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
-    logLevel                       : {neo4jfeeder   : "notice"                                       , oskite: "info"                                               , terminal: "info"                                                                      , kontrolproxy  : "notice"                                           , kontroldaemon : "notice"                                           , userpresence  : "notice"                                          , vmproxy: "notice"      , graphitefeeder: "notice"                                                           , sync: "notice" , topicModifier : "notice" , postModifier  : "notice" , router: "notice" , rerouting: "notice" , overview: "notice" , amqputil: "notice" , rabbitMQ: "notice" , ldapserver: "notice" , broker: "notice"}
     aws                            : {key           : ''                                             , secret        : ''}
     embedly                        : {apiKey        : '537d6a2471864e80b91d9f4a78384873'}
     troubleshoot                   : {recipientEmail: "can@koding.com"}
@@ -227,13 +224,9 @@ Configuration = (options={}) ->
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
-
-    collaboration :
-      timeout     : 1 * 60 * 1000
-
-    #--- CLIENT-SIDE BUILD CONFIGURATION ---#
-
-    client                         : {watch: yes , version: version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
+    collaboration                  : {timeout: 1 * 60 * 1000}
+    client                         : {watch: yes                                                     , version: version                                             , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
+    jwt                            : {secret: "ac25b4e6009c1b6ba336a3eb17fbc3b7"                     , confirmExpiresInMinutes: 10080  } # 7 days
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify
@@ -278,6 +271,7 @@ Configuration = (options={}) ->
     tokbox               : { apiKey: tokbox.apiKey }
     disabledFeatures     : disabledFeatures
     contentRotatorUrl    : 'http://koding.github.io'
+    integration          : { url: "#{integration.url}" }
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
