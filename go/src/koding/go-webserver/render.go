@@ -10,16 +10,17 @@ import (
 )
 
 type HomeContent struct {
+	Impersonating bool
 	Version       string
-	Runtime       config.RuntimeOptions
-	User          *LoggedInUser
 	Title         string
 	Description   string
 	ShareUrl      string
 	GpImage       string
 	FbImage       string
 	TwImage       string
-	Impersonating bool
+	Segment       string
+	Runtime       config.RuntimeOptions
+	User          *LoggedInUser
 }
 
 func writeLoggedInHomeToResp(w http.ResponseWriter, u *LoggedInUser) {
@@ -68,6 +69,7 @@ func buildHomeContent() HomeContent {
 	hc := HomeContent{
 		Version:     conf.Version,
 		ShareUrl:    conf.Client.RuntimeOptions.MainUri,
+		Segment:     conf.Segment,
 		Title:       kodingTitle,
 		Description: kodingDescription,
 		GpImage:     kodingGpImage,
@@ -81,10 +83,8 @@ func buildHomeContent() HomeContent {
 func buildHomeTemplate(content string) *template.Template {
 	homeTmpl := template.Must(template.New("home").Parse(content))
 	headerTmpl := template.Must(template.New("header").Parse(templates.Header))
-	analyticsTmpl := template.Must(template.New("analytics").Parse(templates.Analytics))
 
 	homeTmpl.AddParseTree("header", headerTmpl.Tree)
-	homeTmpl.AddParseTree("analytics", analyticsTmpl.Tree)
 
 	return homeTmpl
 }

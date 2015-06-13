@@ -21,7 +21,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         cssClass : 'has-markdown instructions'
         partial  : """
           <h4 class='title'>Setup Instructions</h4>
-          <p class='subtitle'>Here are the steps necessary to add the #{data.name} integration.</p>
+          <p class='subtitle'>Here are the steps necessary to add the #{data.title} integration.</p>
           <hr />
         """
       @instructionsView.addSubView new KDCustomHTMLView
@@ -41,7 +41,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           defaultValue  : data.selectedChannel
         url             :
           type          : 'input'
-          label         : '<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into Airbrake.</span>'
+          label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{data.title}.</span>"
           defaultValue  : data.webhookUrl
         label           :
           type          : 'input'
@@ -50,24 +50,41 @@ module.exports = class AdminIntegrationDetailsView extends JView
         name            :
           type          : 'input'
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
-          defaultValue  : data.name
+          defaultValue  : data.title
       buttons           :
         Save            :
           title         : 'Save Integration'
+          type          : 'submit'
           cssClass      : 'solid green medium'
+          loader        : yes
+      callback          : (formData) =>
+        data = @getData()
+        { name, label, channels } = formData
+        options =
+          id          : data.id
+          channelId   : channels
+
+        if label isnt data.summary
+          options.description = label
+
+        if name isnt data.title
+          options.settings = customName : name
+
+        kd.singletons.socialapi.integrations.update options, (err) ->
+          return console.error err  if err
 
 
   pistachio: ->
 
-    { name, desc, summary, logo } = @getData()
+    { title, description, summary, iconPath } = @getData()
 
     return """
       <header class="integration-view">
-        <img src="#{logo}" />
-        {p{ #(name)}}
+        <img src="#{iconPath}" />
+        {p{ #(title)}}
         {{ #(summary)}}
       </header>
-      {section.description{ #(desc)}}
+      {section.description{ #(description)}}
       {{> @instructionsView}}
       <section class="settings">
         <h4 class='title'>Integration Settings</h4>

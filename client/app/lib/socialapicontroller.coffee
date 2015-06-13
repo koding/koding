@@ -727,40 +727,40 @@ module.exports = class SocialApiController extends KDController
 
   moderation:
     link     : (options, callback) ->
-      doXhrRequest {
+      doXhrRequest
         endPoint : "/api/social/moderation/channel/#{options.rootId}/link"
         type     : 'POST'
         data     : options
-      }, callback
+      , callback
 
     unlink   : (options, callback) ->
-      doXhrRequest {
+      doXhrRequest
         endPoint : "/api/social/moderation/channel/#{options.rootId}/link/#{options.leafId}?#{serialize(options)}"
         type     : 'DELETE'
-      }, callback
+      , callback
 
     list     : (options, callback) ->
-      doXhrRequest {
+      doXhrRequest
         endPoint : "/api/social/moderation/channel/#{options.rootId}/link?#{serialize(options)}"
         type     : 'GET'
-      }, (err, result)->
+      , (err, result)->
         return callback err if err
         return callback null, mapChannels result
 
     fetchRoot   : (options, callback) ->
-      doXhrRequest {
+      doXhrRequest
         endPoint : "/api/social/moderation/channel/root/#{options.leafId}?#{serialize(options)}"
         type     : 'GET'
-      }, (err, result)->
+      , (err, result)->
         return callback err if err
         return callback null, mapChannel result
 
     blacklist: (options, callback) ->
-      doXhrRequest {
+      doXhrRequest
         endPoint : "/api/social/moderation/channel/blacklist"
         type     : 'POST'
         data     : options
-      }, callback
+      , callback
 
   notifications          :
     fetch                : notificationRequesterFn
@@ -772,16 +772,85 @@ module.exports = class SocialApiController extends KDController
   account                :
     impersonate          : (username, callback) ->
 
-      endPoint = "/Impersonate/#{username}"
-      doXhrRequest {type: 'POST', endPoint, async: yes}, callback
+      doXhrRequest
+        type     : 'POST'
+        endPoint :  "/Impersonate/#{username}"
+        async    : yes
+      , callback
 
     fetchBotChannel      : (callback) ->
 
-      doXhrRequest {
+      doXhrRequest
         type     : 'GET'
         endPoint : "/api/integration/botchannel"
-      }, (err, response) ->
+      , (err, response) ->
         return callback err  if err
 
         return callback null, mapChannel response.data
+
+    fetchChannels        : (callback) ->
+
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/account/channels"
+      , (err, response) ->
+        return callback err  if err
+
+        return callback null, mapChannels response
+
+  integrations :
+    list : (callback) ->
+
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/integration/list"
+      , (err, response) ->
+
+        return callback err  if err
+
+        return callback null, response.data
+
+    fetch : (options, callback) ->
+      { id } = options
+
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/integration/channelintegration/#{id}"
+      , (err, response) ->
+
+        return callback err  if err
+
+        return callback null, response.data
+
+    create : (options, callback) ->
+
+      doXhrRequest
+        endPoint : "/api/integration/channelintegration/create"
+        type     : 'POST'
+        data     : options
+      , (err, response) ->
+
+        return callback err  if err
+
+        return callback null, response.data
+
+    update : (options, callback) ->
+
+      { id } = options
+      doXhrRequest
+        endPoint : "/api/integration/channelintegration/#{id}/update"
+        type     : 'POST'
+        data     : options
+      , callback
+
+    fetchChannelIntegrations : (callback) ->
+
+      doXhrRequest
+        endPoint : "/api/integration/channelintegrations"
+        type     : 'GET'
+      , (err, response) ->
+        return callback err  if err
+
+        return callback null, response.data
+
 

@@ -39,3 +39,15 @@ func (i *ChannelIntegration) One(q *bongo.Query) error {
 func (i *ChannelIntegration) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(i, data, q)
 }
+
+func (i *ChannelIntegration) Update() error {
+	if err := i.Validate(); err != nil {
+		return err
+	}
+
+	if i.Token == "" {
+		return ErrTokenNotSet
+	}
+
+	return bongo.B.Update(i)
+}

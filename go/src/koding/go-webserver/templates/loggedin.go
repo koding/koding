@@ -13,8 +13,6 @@ var LoggedInHome = `
   <body class='logged-in ide'>
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-    {{template "analytics" }}
-
     <script>
       var _globals = {
         config: {{.Runtime}},

@@ -16,10 +16,12 @@ CREATE TABLE "integration"."integration" (
     "name" VARCHAR (200) NOT NULL CHECK ("name" <> ''),
     "title" VARCHAR (200) NOT NULL COLLATE "default",
     "icon_path" VARCHAR (2000) COLLATE "default",
+    "summary" TEXT COLLATE "default",
     "description" TEXT COLLATE "default",
     "instructions" TEXT COLLATE "default",
     "type_constant" "integration"."integration_type_constant_enum",
     "settings" hstore,
+    "is_published" BOOLEAN NOT NULL DEFAULT FALSE,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "deleted_at" timestamp(6) WITH TIME ZONE

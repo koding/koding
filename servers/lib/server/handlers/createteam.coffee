@@ -106,7 +106,7 @@ module.exports = (req, res, next) ->
 
 # convertToArray converts given comma separated string value into cleaned,
 # trimmed, lowercased, unified array of string
-convertToArray = (commaSeparatedData)->
+convertToArray = (commaSeparatedData = '')->
   return []  if commaSeparatedData is ''
 
   data = commaSeparatedData.split(',') or []
