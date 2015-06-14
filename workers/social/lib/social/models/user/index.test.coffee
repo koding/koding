@@ -117,6 +117,40 @@ runTests = -> describe 'workers.social.user.index', ->
       daisy queue
 
 
+    it 'should handle username normalizing correctly', (done) ->
+
+      # generating user info with random username and password
+      { username, password, email } = userInfo = generateUserInfo()
+      loginCredentials              = generateCredentials { username, password }
+
+      queue = [
+
+        ->
+          # creating a new user
+          JUser.createUser userInfo, (err, user) ->
+            expect(err).to.not.exist
+            queue.next()
+
+        ->
+          # expecting user to be able to login with username
+          JUser.login clientId, loginCredentials, (err) ->
+            expect(err).to.not.exist
+            queue.next()
+
+        ->
+          # expecting user to be able to login with email
+          loginCredentials.username = email
+          JUser.login clientId, loginCredentials, (err) ->
+            expect(err).to.not.exist
+            queue.next()
+
+        -> done()
+
+      ]
+
+      daisy queue
+
+
     it 'should handle two factor authentication correctly', (done) ->
 
       tfcode                    = null
