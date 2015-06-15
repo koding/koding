@@ -58,7 +58,9 @@ module.exports = class StacksCustomViews extends CustomViews
     REPO_FLOW    : [
         { title  : 'Select Repo' }
         { title  : 'Locate File' }
-        { title  : 'Test Integrations' }
+        { title  : 'Fetch Template' }
+        { title  : 'Credentials' }
+        { title  : 'Bootstrap' }
         { title  : 'Complete' }
       ]
 
@@ -111,6 +113,21 @@ module.exports = class StacksCustomViews extends CustomViews
     computeController.getKloud()
       .checkTemplate { stackTemplateId: stackTemplate._id }
       .nodeify callback
+
+
+  fetchTemplate = (repo, callback) ->
+
+    {repoData: {full_name}, name, location} = repo
+
+    req_url   = "https://raw.githubusercontent.com/#{full_name}/#{name}#{location}"
+    req       =
+      url     : req_url
+      success : (rest...) -> callback null, rest...
+      error   : (rest...) -> callback rest...
+
+    $.ajax req
+
+    return
 
 
   updateStackTemplate = (data, callback) ->
@@ -252,10 +269,15 @@ module.exports = class StacksCustomViews extends CustomViews
 
       container.addSubView code
 
-      container.addContent = (content...) =>
+      container.addContent = (content...) ->
         content = content.join ' '
         content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
         code.setPartial hljs.highlight('profile', content).value
+        return container
+
+      container.setContent = (content...) ->
+        content = content.join ' '
+        code.updatePartial hljs.highlight('profile', content).value
         return container
 
       return container
@@ -406,7 +428,9 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepLocateFile: (options) =>
 
-      {callback, cancelCallback, data} = options
+      { callback, cancelCallback, data } = options
+      { repo_provider } = data
+
       container = @views.container 'step-locate-file'
 
       views     = @addTo container,
@@ -419,6 +443,43 @@ module.exports = class StacksCustomViews extends CustomViews
         navCancelButton   :
           title           : '< Select another provider'
           callback        : cancelCallback
+
+      views.repoListView.on 'RepoSelected', (selected_repo) ->
+        callback { repo_provider, selected_repo }
+
+      return container
+
+
+    stepFetchTemplate: (options) =>
+
+      { callback, cancelCallback, data } = options
+      { repo_provider, selected_repo }   = data
+
+      container = @views.container 'step-fetch-template'
+
+      views     = @addTo container,
+        stepsHeaderView   :
+          steps           : STEPS.REPO_FLOW
+          selected        : 3
+        mainLoader        : 'Fetching template...'
+        outputView        :
+          cssClass        : 'hidden'
+        navCancelButton   :
+          title           : '< Select another repo'
+          callback        : cancelCallback
+
+      { outputView, mainLoader } = views
+
+
+      fetchTemplate selected_repo, (err, template) ->
+
+        mainLoader.hide()
+        outputView.show()
+
+        outputView.setContent template ? err?.statusText ? 'Something went wrong!'
+
+
+      console.log { data }
 
       return container
 
@@ -474,8 +535,7 @@ module.exports = class StacksCustomViews extends CustomViews
         controller.replaceAllItems response
         repoList.show()
 
-      repoList.on 'RepoSelected', ->
-        console.log 'It Works!', arguments
+      container.forwardEvent repoList, 'RepoSelected'
 
       return container
 

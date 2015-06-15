@@ -58,8 +58,9 @@ module.exports     = class GroupStackSettings extends kd.View
     steps = @initiateFollowing [
       'stepSelectRepo'
       'stepLocateFile'
+      'stepFetchTemplate'
+      'stepSetupCredentials'
       'stepBootstrap'
-      'stepDefineStack'
       'stepComplete'
     ]
 
