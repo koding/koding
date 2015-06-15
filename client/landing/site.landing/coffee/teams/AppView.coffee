@@ -18,7 +18,6 @@ module.exports = class TeamsView extends JView
       navItems : [
         { title : 'Blog',            href : 'http://blog.koding.com',   name : 'blog' }
         { title : 'Teams',           href : '/Teams',                   name : 'teams' }
-        { title : 'Success Stories', href : '/Features',                name : 'success' }
         { title : 'SIGN IN',         href : '/Team/Login',              name : 'buttonized white login',  attributes : testpath : 'login-link' }
       ]
 
