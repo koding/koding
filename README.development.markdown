@@ -62,6 +62,34 @@ into unstarted state.
 You can add a goal entry to iDoneThis, preferrably by backlinking
 story.
 
+## Development
+
+* Your code should have decent amount of comments ( not only function comments but also inline )
+* Your code should have good coverage of tests of integration and unit (+%70)
+* Your code should be formatted accordingly ( go/coffee style guides )
+* If your code/feature requires a UI test, inform QA team with steps & and feature to test at devs@koding.com
+* If your code requires a metric for alerting and/or monitoring, inform at sysops@koding.com
+* If your code requires a system/server change, do it in your code
+* if your code requires an API change, do it as backward compatible ( do not remove any API right away even if it is obsolete, do it with another deploy )
+* Feature you develop, SHOULD be testable in dev env too without needing to take any extra step
+* If your code requires a db migration, you _must_ do it with backward compatible steps
+* do not apply database changes without having anyone to review them
+* notify others at koding channel if your are gonna apply a blocking/performance degrading change
+* Use logging in your code wisely, do not output lines that make sense only for you. Know the difference between debug&info&critical&error&fatal
+* If your code requires a new Go package, open a separate PR containing only that package, all added Go packages should be reviewed too.
+* DO NOT open a PR with LOTS of code in it, after stating your intentions & architecture to the reviewer, do open small, incremental PRs
+* Do not come and say, i used a new feature of a tool we use and you all need to update your X to version Y
+* instead do
+  * test it thoroughly in your local for a while,
+  * request one of your colleagues to use that specific version along with you,
+  * update dev scripts to enforce dev env to use that version,
+  * add help text on how to update it,
+  * update wercker boxes
+  * update test boxes
+  * update elasticbeanstalk env scripts to use them
+  * deploy your changes separately from normal schedule if it can break deployments
+
+
 ### Making changes in submodules
 
 Following paths are submodules owned by koding in
