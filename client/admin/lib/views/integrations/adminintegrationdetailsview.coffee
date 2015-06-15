@@ -41,14 +41,17 @@ module.exports = class AdminIntegrationDetailsView extends JView
           defaultValue  : data.selectedChannel
         url             :
           type          : 'input'
+          cssClass      : 'text'
           label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{data.title}.</span>"
           defaultValue  : data.webhookUrl
         label           :
           type          : 'input'
+          cssClass      : 'text'
           label         : '<p>Descriptive Label</p><span>Use this label to provide extra context in your list of integrations (optional).</span>'
           defaultValue  : data.summary
         name            :
           type          : 'input'
+          cssClass      : 'text'
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
           defaultValue  : data.title
       buttons           :
