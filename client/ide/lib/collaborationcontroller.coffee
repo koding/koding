@@ -614,7 +614,7 @@ module.exports = CollaborationController =
       else
         socialHelpers.acceptChannel channel, (err) =>
           return callMethod 'error', err  if err
-          checkRealtimeDocument channel
+          checkRealtimeSession channel
 
 
   onCollaborationNotStarted: ->
