@@ -15,13 +15,10 @@ if [ ! -d $FOLDERPATH ]; then
 fi
 
 cd $FOLDERPATH
-for file in $(ls -l | grep ".js$" | awk '{print $9}')
-do
-  curl https://api.rollbar.com/api/1/sourcemap \
-    -F access_token=$ROLLBAR_TOKEN\
-    -F version=$VERSION \
-    -F minified_url=https://koding.com/a/p/p/$VERSION/$file \
-    -F source_map=@$file.map
-done
+curl https://api.rollbar.com/api/1/sourcemap \
+  -F access_token=$ROLLBAR_TOKEN\
+  -F version=$VERSION \
+  -F minified_url=https://koding.com/a/p/p/$VERSION/bundle.js \
+  -F source_map=@bundle.js.map
 
 rm -f *.map
