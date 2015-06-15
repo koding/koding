@@ -21,6 +21,13 @@ module.exports = class SocialApiController extends KDController
 
     super options, data
 
+    @bindNotificationEvents()
+
+
+  bindNotificationEvents: ->
+
+    kd.singletons.notificationController
+
 
   getPrefetchedData: (dataPath) ->
 
