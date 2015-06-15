@@ -22,18 +22,18 @@ module.exports = class StackRepoItem extends kd.ListItemView
     @selectView  = new kd.CustomHTMLView
       cssClass   : 'select-view'
 
-    @selectView.addSubView branchOrTag = new kd.SelectBox
+    @selectView.addSubView branchOrTagInput = new kd.SelectBox
       placeholder   : 'Branch or Tag'
       selectOptions : [
         { title: 'Branch', value: 'branch' }
         { title: 'Tag',    value: 'tag' }
       ]
 
-    @selectView.addSubView name = new kd.InputView
+    @selectView.addSubView nameInput = new kd.InputView
       placeholder : 'Branch/Tag Name'
       required    : yes
 
-    @selectView.addSubView location = new kd.InputView
+    @selectView.addSubView locationInput = new kd.InputView
       placeholder : '/file/location.json'
       required    : yes
 
@@ -43,11 +43,13 @@ module.exports = class StackRepoItem extends kd.ListItemView
       type        : 'submit'
       callback    : ->
 
-        name      = name.getValue()
-        type      = branchOrTag.getValue()
-        location  = location.getValue()
+        name      = nameInput.getValue()
+        type      = branchOrTagInput.getValue()
+        location  = locationInput.getValue()
 
-        delegate.emit 'RepoSelected', { name, type, location, repoData }
+        delegate.emit 'RepoSelected', {
+          name, type, location, repoData
+        }
 
     @addSubView @selectView
 
