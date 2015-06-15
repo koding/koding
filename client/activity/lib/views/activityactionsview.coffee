@@ -54,7 +54,7 @@ module.exports = class ActivityActionsView extends JView
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
 
         pane = @parent.getDelegate()
-        
+
         pane.parent.parent.parent.parent.parent.scrollView.wrapper.on "scroll", @sharePopup.bound "destroy"
 
         trackEvent "Activity share, click"
