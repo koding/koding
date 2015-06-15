@@ -608,8 +608,8 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         :
-          run           : "#{GOBIN}/collaboration -c #{socialapi.configFilePath}"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -c #{socialapi.configFilePath}"
+          run           : "#{GOBIN}/collaboration -c #{socialapi.configFilePath} -kite-init=true"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -c #{socialapi.configFilePath} -kite-init=true"
 
     gatekeeper          :
       group             : "socialapi"
