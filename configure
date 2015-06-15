@@ -62,14 +62,13 @@ rest = ->
     true
 
 
-  configMatchesDev = (KONFIG)->
-    return true  if o.config is "dev"
+  configMatchesDev = (config)->
 
     dev     = require("./config/main.dev.coffee")(options)
     devKeys = JSON.parse(dev.JSON)
-    keys    = JSON.parse KONFIG.JSON
+    keys    = JSON.parse config.JSON
 
-    equals(devKeys, keys, KONFIG.configCheckExempt)
+    equals(devKeys, keys, config.configCheckExempt)
 
 
   createRunFile = (KONFIG)->
@@ -109,7 +108,13 @@ rest = ->
   createRunFile KONFIG
   writeVersion KONFIG
 
-  process.exit(1)   unless configMatchesDev(KONFIG)
+  # check 'prod', 'sandbox' config schema against 'dev'
+  for c in ["sandbox", "prod"]
+    if fs.existsSync("./config/main.#{c}.coffee")
+      config = require("./config/main.#{c}.coffee")(options)
+
+      unless configMatchesDev(config)
+        process.exit(1)
 
 git.long (str) ->
   if str != ""
