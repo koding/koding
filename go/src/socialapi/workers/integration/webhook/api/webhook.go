@@ -140,6 +140,153 @@ func (h *Handler) FetchGroupBotChannel(u *url.URL, header http.Header, _ interfa
 	return response.NewOK(response.NewSuccessResponse(resp))
 }
 
+func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	i := webhook.NewIntegration()
+	q := &request.Query{
+		Exclude: map[string]interface{}{
+			"isPublished": true,
+		},
+	}
+
+	ints, err := i.List(q)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ints))
+}
+
+func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	ci := webhook.NewChannelIntegration()
+	if err := ci.ById(i.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if i.GroupName != ctx.GroupName {
+		return response.NewBadRequest(ErrInvalidGroup)
+	}
+
+	if err := ci.RegenerateToken(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ci))
+}
+
+func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	i.CreatorId = ctx.Client.Account.Id
+	i.GroupName = ctx.GroupName
+	if err := i.Validate(); err != nil {
+		return response.NewInvalidRequest(err)
+	}
+
+	if err := h.isChannelValid(i.ChannelId, ctx.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if err := i.Create(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(i))
+}
+
+func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewInvalidRequest(err)
+	}
+
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	ci := webhook.NewChannelIntegration()
+	if err := ci.ById(id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if ci.GroupName != ctx.GroupName {
+		return response.NewBadRequest(ErrInvalidGroup)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ci))
+}
+
+func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewInvalidRequest(err)
+	}
+
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	if i.ChannelId == 0 {
+		return response.NewInvalidRequest(models.ErrChannelIdIsNotSet)
+	}
+
+	if err := h.isChannelValid(i.ChannelId, ctx.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ci := webhook.NewChannelIntegration()
+	if err := ci.ById(id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ci.ChannelId = i.ChannelId
+	ci.Settings = i.Settings
+	ci.Description = i.Description
+	ci.IsDisabled = i.IsDisabled
+
+	if err := ci.Update(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewDefaultOK()
+}
+
+func (h *Handler) ListChannelIntegrations(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	ics := webhook.NewIntegrationContainers()
+	if err := ics.Populate(ctx.GroupName); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ics))
+}
+
+func (h *Handler) isChannelValid(channelId, accountId int64) error {
+	c := models.NewChannel()
+	if err := c.ById(channelId); err != nil {
+		return err
+	}
+
+	ok, err := c.CanOpen(accountId)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return models.ErrCannotOpenChannel
+	}
+
+	return nil
+}
+
 func (h *Handler) fetchBotChannel(r *BotChannelRequest) (*models.Channel, error) {
 	// check account existence
 	acc, err := r.verifyAccount()

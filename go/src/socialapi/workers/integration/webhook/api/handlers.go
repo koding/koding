@@ -25,7 +25,59 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 		},
 	)
 
-	// TODO list integrations handler
+	m.AddHandler(
+		handler.Request{
+			Handler:  h.List,
+			Name:     "webhook-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/list",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  h.ListChannelIntegrations,
+			Name:     "webhook-list-channel-integrations",
+			Type:     handler.GetRequest,
+			Endpoint: "/channelintegrations",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  h.RegenerateToken,
+			Name:     "channel-integration-regenerate-token",
+			Type:     handler.PostRequest,
+			Endpoint: "/channelintegration/token",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  h.GetChannelIntegration,
+			Name:     "channel-integration-get",
+			Type:     handler.GetRequest,
+			Endpoint: "/channelintegration/{id}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  h.CreateChannelIntegration,
+			Name:     "channel-integration-create",
+			Type:     handler.PostRequest,
+			Endpoint: "/channelintegration/create",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  h.UpdateChannelIntegration,
+			Name:     "channel-integration-update",
+			Type:     handler.PostRequest,
+			Endpoint: "/channelintegration/{id}/update",
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{

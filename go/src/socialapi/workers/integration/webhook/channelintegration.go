@@ -14,6 +14,7 @@ var (
 	ErrIntegrationIdIsNotSet      = errors.New("integration id is not set")
 	ErrGroupChannelIdIsNotSet     = errors.New("group channel id is not set")
 	ErrChannelIntegrationNotFound = errors.New("channel integration is not found")
+	ErrTokenNotSet                = errors.New("token is not set")
 )
 
 type ChannelIntegration struct {
@@ -27,13 +28,13 @@ type ChannelIntegration struct {
 	Token string `json:"token" sql:"NOT NULL;TYPE:VARCHAR(20)"`
 
 	// Id of the integration
-	IntegrationId int64 `json:"integrationId" sql:"NOT NULL;TYPE:BIGINT"`
+	IntegrationId int64 `json:"integrationId,string" sql:"NOT NULL;TYPE:BIGINT"`
 
 	// Group name of the integration
 	GroupName string `json:"groupName" sql:"NOT NULL;TYPE:VARCHAR(200)"`
 
 	// Id of the channel
-	ChannelId int64 `json:"groupChannelId" sql:"NOT NULL;TYPE:BIGINT"`
+	ChannelId int64 `json:"channelId,string" sql:"NOT NULL;TYPE:BIGINT"`
 
 	// Id of the creator
 	CreatorId int64 `json:"creatorId" sql:"NOT NULL;TYPE:BIGINT"`
@@ -60,7 +61,7 @@ func NewChannelIntegration() *ChannelIntegration {
 }
 
 func (i *ChannelIntegration) Create() error {
-	if err := i.validate(); err != nil {
+	if err := i.Validate(); err != nil {
 		return err
 	}
 
@@ -92,7 +93,7 @@ func (i *ChannelIntegration) ByToken(token string) error {
 	return nil
 }
 
-func (i *ChannelIntegration) validate() error {
+func (i *ChannelIntegration) Validate() error {
 	if i.GroupName == "" {
 		return models.ErrGroupNameIsNotSet
 	}
@@ -110,4 +111,48 @@ func (i *ChannelIntegration) validate() error {
 	}
 
 	return nil
+}
+
+func (i *ChannelIntegration) RegenerateToken() error {
+	var token string
+	for {
+		ci := NewChannelIntegration()
+		t, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+
+		token = t.String()
+		tokenErr := ci.ByToken(token)
+		if tokenErr == ErrChannelIntegrationNotFound {
+			break
+		}
+
+		if tokenErr != nil {
+			return tokenErr
+		}
+	}
+
+	i.Token = token
+
+	return i.Update()
+}
+
+func (i *ChannelIntegration) ByGroupName(groupName string) ([]ChannelIntegration, error) {
+	var ints []ChannelIntegration
+	if groupName == "" {
+		return ints, nil
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name": groupName,
+		},
+	}
+
+	if err := i.Some(&ints, query); err != nil {
+		return nil, err
+	}
+
+	return ints, nil
 }

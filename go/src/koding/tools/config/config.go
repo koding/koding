@@ -173,6 +173,7 @@ type Config struct {
 		KloudSecretKey string
 		KloudAddr      string
 	}
+	Segment string
 }
 
 type RuntimeOptions struct {
