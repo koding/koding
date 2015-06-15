@@ -96,6 +96,12 @@ func (mwc *Controller) createPublicChannel() {
 	if err != nil {
 		mwc.log.Error("Could not create public channel: %s", err)
 	}
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = c.Id
+	cp.AccountId = 1
+	if err := cp.Create(); err != nil {
+		mwc.log.Error("Could not add devrim to public channel: %s", err)
+	}
 }
 
 func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
