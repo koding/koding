@@ -20,11 +20,11 @@ module.exports = (req, res, next, options)->
 
     model = result.models.last
 
-    generateFakeClient req, res, (err, client)->
+    generateFakeClient req, res, (err, client, session)->
 
       model.fetchHomepageView {
         section, account, bongoModels,
-        client, params, loggedIn
+        client, params, loggedIn, session
       }, (err, view) ->
         if err then next err
         else if view? then res.send view
