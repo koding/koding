@@ -47,9 +47,6 @@ module.exports = class AdminIntegrationsListView extends KDView
 
       return @handleNoItem err  if err
 
-      if @integrationType is 'configured' # dummy code.
-        data = data.first
-
       for item in data
         item.integrationType = @integrationType
         listItem = @listController.addItem item
