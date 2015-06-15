@@ -508,7 +508,10 @@ module.exports = class SocialApiController extends KDController
     topicChannelKallback = (err, data) =>
       return callback err  if err
 
-      registerAndOpenChannels [data]
+      if data.isParticipant
+      then registerAndOpenChannels [data]
+      else @realtimeSubscriptionQueue.push data
+
       kallback err, data
 
     return switch type
