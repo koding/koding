@@ -55,6 +55,7 @@ module.exports = (req, res)->
               response = JSON.parse data
             catch e
               redirectOauth res, {provider}, "Error parsing user info"
+              return
 
             odesk                   = session.foreignAuth.odesk
             odesk.token             = accessToken
