@@ -88,7 +88,10 @@ story.
   * update test boxes
   * update elasticbeanstalk env scripts to use them
   * deploy your changes separately from normal schedule if it can break deployments
-
+* Do not push any credential, authrization key, public/private key pairs,
+secret key, password or similar sensitive information that is used in production
+systems to main koding/koding repository. If you need to add new configuration
+parameters let `on call` person to help you with setting it to credential repo.
 
 ### Making changes in submodules
 
