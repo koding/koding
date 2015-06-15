@@ -31,6 +31,7 @@ module.exports = class JSession extends Model
         odesk       : Object
         facebook    : Object
         linkedin    : Object
+      returnUrl     : String
       foreignAuthType : String
       impersonating : Boolean
     sharedEvents    :
