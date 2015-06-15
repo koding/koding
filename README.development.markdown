@@ -411,5 +411,3 @@ Things to watch out while creating machines;
 * Assing proper security groups
 * Do no create random security groups
 * Name security groups properly
-
-sgPrefix     = "sg"
