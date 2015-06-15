@@ -1,11 +1,11 @@
 package models
 
 import (
+	"math/rand"
 	"socialapi/config"
 	"socialapi/request"
-	"testing"
-	"math/rand"
 	"strconv"
+	"testing"
 	"time"
 
 	"github.com/koding/bongo"
@@ -90,7 +90,7 @@ func TestInteractionListLikedMessage(t *testing.T) {
 		})
 
 		Convey("it should list the messages that liked", func() {
-			messages, err := int1.ListLikedMessages(query, channel.Id)
+			messages, err := NewInteraction().ListLikedMessages(query, channel.Id)
 			So(err, ShouldBeNil)
 			So(messages, ShouldNotBeNil)
 			So(messages[0].Body, ShouldEqual, message1.Body)
@@ -98,7 +98,7 @@ func TestInteractionListLikedMessage(t *testing.T) {
 
 		Convey("it should fetch the messages even if type is not same ", func() {
 			channel2 := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_TOPIC, kodingGroup)
-			message3 := CreateMessageWithBody(channel2.Id, account.Id, ChannelMessage_TYPE_POST, "topuc-not topic ?")
+			message3 := CreateMessageWithBody(channel2.Id, account.Id, ChannelMessage_TYPE_POST, "topic-not topic ?")
 			int3, err := AddInteractionWithTest(Interaction_TYPE_LIKE, message3.Id, account.Id)
 			So(int3, ShouldNotBeNil)
 			So(err, ShouldBeNil)
@@ -111,7 +111,7 @@ func TestInteractionListLikedMessage(t *testing.T) {
 
 		Convey("it should not fetch the messages if group is different ", func() {
 			// 2 messages is sent the group84 & 2 msg sent to groupKoding,
-			// we should only fetch 2 messages in group84, not messages in the groupKoding 
+			// we should only fetch 2 messages in group84, not messages in the groupKoding
 			rand.Seed(time.Now().UnixNano())
 			group84 := "group" + strconv.Itoa(rand.Intn(10e9))
 			channel2 := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_GROUP, group84)
@@ -133,7 +133,7 @@ func TestInteractionListLikedMessage(t *testing.T) {
 		Convey("it should not fetch the messages if message is troll", func() {
 			// Normally, we have 3 messages(2 message is exist above),
 			// but one of the messages is troll message,
-			// so, we should fetch 2 messages, not troll message 
+			// so, we should fetch 2 messages, not troll message
 			messageTroll := CreateTrollMessage(channel.Id, account.Id, ChannelMessage_TYPE_POST)
 			int6, err := AddInteractionWithTest(Interaction_TYPE_LIKE, messageTroll.Id, account.Id)
 			So(int6, ShouldNotBeNil)
