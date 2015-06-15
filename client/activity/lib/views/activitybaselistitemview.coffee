@@ -25,7 +25,7 @@ module.exports = class ActivityBaseListItemView extends KDListItemView
     { scrollHeight } = article
     { height }       = article.getBoundingClientRect()
 
-    if scrollHeight > height
+    if scrollHeight - 12 > height
 
       @showMore?.destroy()
       list = @getDelegate()
