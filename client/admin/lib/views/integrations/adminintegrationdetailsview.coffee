@@ -44,6 +44,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           cssClass      : 'text'
           label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{data.title}.</span>"
           defaultValue  : data.webhookUrl
+          attributes    : readonly: 'readonly'
         label           :
           type          : 'input'
           cssClass      : 'text'
