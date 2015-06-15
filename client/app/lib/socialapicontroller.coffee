@@ -18,6 +18,7 @@ module.exports = class SocialApiController extends KDController
     @openedChannels = {}
     @_cache         = {}
     @_inScreenMap   = {}
+    @realtimeSubscriptionQueue = []
 
     super options, data
 
@@ -27,6 +28,15 @@ module.exports = class SocialApiController extends KDController
   bindNotificationEvents: ->
 
     kd.singletons.notificationController
+
+      .on 'AddedToChannel', (update) =>
+
+        if update.isParticipant
+
+          for channel, index in @realtimeSubscriptionQueue when channel.id is update.channel.id
+            @realtimeSubscriptionQueue.splice index, 1
+            registerAndOpenChannels [channel]
+            break
 
 
   getPrefetchedData: (dataPath) ->
