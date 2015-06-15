@@ -76,6 +76,9 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     marketingController.on 'SnippetNeedsToBeShown', @bound 'showMarketingSnippet'
 
+    @on 'MachineTurnOnStarted', (machine)->
+      sendDataDogEvent 'MachineTurnedOn', tags: {label: machine.label}
+
 
   triggerEventTimer: (percentage)->
 
@@ -631,11 +634,6 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     computeController = kd.getSingleton 'computeController'
 
-    trackEvent 'Turn on machine, click',
-      category : 'userInteraction'
-      label    : 'turnedOnVM'
-      action   : 'clicks'
-
     target     = @machine
     stack      = computeController.findStackFromMachineId @machine._id
 
@@ -647,7 +645,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     computeController.off  "error-#{target._id}"
 
-    @emit 'MachineTurnOnStarted'
+    @emit 'MachineTurnOnStarted', @machine
 
     methodName   = 'start'
     nextState    = 'Starting'

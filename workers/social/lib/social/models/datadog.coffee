@@ -4,6 +4,9 @@ KodingError = require '../error'
 {argv} = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
+Analytics   = require('analytics-node')
+analytics   = new Analytics(KONFIG.segment)
+
 module.exports = class DataDog extends Base
 
   dogapi = require 'dogapi'
@@ -43,6 +46,11 @@ module.exports = class DataDog extends Base
       notify : "@slack-alerts"
       tags   : ["user:%nickname%", "version:%version%", "context:pubnub-channel", "channel-token:%channelToken%"]
 
+    MachineTurnedOn:
+      title         : "machine.turnedon"
+      text          : "turn on machine"
+      sendToSegment : true
+      tags          : []
 
   tagReplace = (sourceTag, userTags)->
 
@@ -94,7 +102,7 @@ module.exports = class DataDog extends Base
     tags['nickname'] = nickname
 
     title = ev.title
-    text = parseText ev.text, tags
+    text  = parseText ev.text, tags
     tags  = tagReplace ev.tags, tags
 
     if logs?
@@ -105,6 +113,9 @@ module.exports = class DataDog extends Base
 
     if ev.notify?
       text += "\n #{ev.notify}"
+
+    if ev.sendToSegment?
+      analytics.track userId: nickname, event: text, properties: data.tags
 
     DogApi.add_event {title, text, tags}, (err, res, status)->
 
