@@ -57,9 +57,13 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
 
     options.cssClass = 'integration-view'
 
+    { @integrationType } = data
+    @createButton data
+
     super options, data
 
-    { @integrationType } = @getData()
+
+  createButton: (data) ->
 
     @button    = new KDButtonView
       cssClass : 'solid compact green add'
