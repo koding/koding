@@ -98,14 +98,8 @@ module.exports = class WebTermView extends KDCustomScrollView
         if event.status is Stopped
           @messagePane.handleError message: "ErrNoSession"
 
-    # If the machine is resizing, it will have a status of Stopping
-    # but never Stopped. For resizing, status progress goes:
-    #
-    #   Stopping -> Pending -> Starting -> Pending -> Running
-    #
-    # As such, we need to listen specifically for the resize-
-    # event to know if this is a resizing Terminal and needs to
-    # show ErrNoSession.
+    # Listen for resize events to show an error after a resize has
+    # finished. This provides same UX as a stopped machine (above).
     computeController.on "resize-#{machineId}", (event) =>
       if event.percentage is 100
         @messagePane.handleError message: "ErrNoSession"
