@@ -1,0 +1,7 @@
+{
+  "name": "teams",
+  "main": "./lib/index.coffee",
+  "styles": [
+    "./lib/styl"
+  ]
+}
