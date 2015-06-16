@@ -255,6 +255,13 @@ module.exports = class PricingAppView extends KDView
         inProcess = no
         return showError "That's already your current plan."
 
+      { PAYPAL, KODING } = PaymentConstants.provider
+
+      # change the provider to koding to make other views work.
+      if provider is PAYPAL
+        if subscriptionState is 'expired'
+          options.provider = KODING
+
       @setState options
 
       @workflowController = new PaymentWorkflow { @state, delegate: this }
