@@ -9,13 +9,17 @@ module.exports = class OAuth extends bongo.Base
   @set
     sharedMethods   :
       static        :
-        getUrl      : (signature String, Function)
+        getUrl      : (signature Object, Function)
 
-  @getUrl = secure (client, provider, callback)->
+  @getUrl = secure (client, options, callback)->
+    { provider } = options
     switch provider
       when "github"
-        {clientId} = KONFIG.github
-        url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
+        {clientId, redirectUri} = KONFIG.github
+        {scope, returnUrl} = options
+        scope = "user:email"  unless scope
+        redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
+        url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
         callback null, url
       when "facebook"
         {clientId, redirectUri} = KONFIG.facebook

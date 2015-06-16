@@ -8,16 +8,19 @@ http     = require "https"
 provider = "github"
 
 saveOauthAndRedirect = (resp, res, clientId)->
+  {returnUrl} = resp
   saveOauthToSession resp, clientId, provider, (err)->
-    redirectOauth res, provider, err
+    options = {provider, returnUrl}
+    redirectOauth res, options, err
 
 module.exports = (req, res) ->
-  {code}        = req.query
-  {clientId}    = req.cookies
-  access_token  = null
+  {code, returnUrl} = req.query
+  {clientId}        = req.cookies
+  access_token      = null
+  scope             = null
 
   unless code
-    redirectOauth res, provider, "No code"
+    redirectOauth res, {provider}, "No code"
     return
 
   headers =
@@ -29,7 +32,14 @@ module.exports = (req, res) ->
     rawResp = ""
     authUserResp.on "data", (chunk) -> rawResp += chunk
     authUserResp.on "end", ->
-      {access_token} = JSON.parse rawResp
+
+      try
+        authResponse = JSON.parse rawResp
+      catch e
+        return redirectOauth res, {provider}, "could not parse github response"
+
+      {access_token, scope} = authResponse
+
       if access_token
         options =
           host    : "api.github.com"
@@ -44,7 +54,12 @@ module.exports = (req, res) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
-      userInfo = JSON.parse rawResp
+
+      try
+        userInfo = JSON.parse rawResp
+      catch e
+        return redirectOauth res, {provider}, "could not parse github response"
+
       {login, id, email, name} = userInfo
 
       if name
@@ -59,6 +74,8 @@ module.exports = (req, res) ->
         token     : access_token
         username  : login
         profile   : lastName
+        scope     : scope
+        returnUrl : returnUrl
       }
 
       headers["Accept"] = "application/vnd.github.v3.full+json"
@@ -80,7 +97,11 @@ module.exports = (req, res) ->
     rawResp = ""
     userEmailResp.on "data", (chunk) -> rawResp += chunk
     userEmailResp.on "end", ->
-      emails = JSON.parse(rawResp)
+      try
+        emails = JSON.parse(rawResp)
+      catch e
+        return redirectOauth res, {provider}, "could not parse github response"
+
       for email in emails when email.verified and email.primary
         originalResp.email = email.email
 
