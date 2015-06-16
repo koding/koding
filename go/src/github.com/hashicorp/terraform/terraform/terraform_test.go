@@ -47,6 +47,14 @@ func tempDir(t *testing.T) string {
 	return dir
 }
 
+// tempEnv lets you temporarily set an environment variable. It returns
+// the old value that should be set via a defer.
+func tempEnv(t *testing.T, k string, v string) string {
+	old := os.Getenv(k)
+	os.Setenv(k, v)
+	return old
+}
+
 func testConfig(t *testing.T, name string) *config.Config {
 	c, err := config.Load(filepath.Join(fixtureDir, name, "main.tf"))
 	if err != nil {
@@ -174,6 +182,18 @@ aws_instance.foo:
 const testTerraformApplyStr = `
 aws_instance.bar:
   ID = foo
+  foo = bar
+  type = aws_instance
+aws_instance.foo:
+  ID = foo
+  num = 2
+  type = aws_instance
+`
+
+const testTerraformApplyProviderAliasStr = `
+aws_instance.bar:
+  ID = foo
+  provider = aws.bar
   foo = bar
   type = aws_instance
 aws_instance.foo:
@@ -342,6 +362,12 @@ module.child:
   leader = 1
 `
 
+const testTerraformApplyModuleDestroyOrderStr = `
+<no state>
+module.child:
+  <no state>
+`
+
 const testTerraformApplyMultiProviderStr = `
 aws_instance.bar:
   ID = foo
@@ -351,6 +377,13 @@ do_instance.foo:
   ID = foo
   num = 2
   type = do_instance
+`
+
+const testTerraformApplyOutputOrphanStr = `
+<no state>
+Outputs:
+
+foo = bar
 `
 
 const testTerraformApplyProvisionerStr = `
@@ -606,6 +639,13 @@ aws_instance.foo:
   ID = foo
   bar = baz
   num = 2
+  type = aws_instance
+`
+
+const testTerraformApplyVarsEnvStr = `
+aws_instance.bar:
+  ID = foo
+  foo = baz
   type = aws_instance
 `
 
@@ -954,6 +994,26 @@ aws_instance.foo:
 module.child:
   aws_instance.foo:
     ID = bar
+`
+
+const testTerraformPlanModuleDestroyCycleStr = `
+DIFF:
+
+module.a_module:
+  DESTROY MODULE
+  DESTROY: aws_instance.a
+module.b_module:
+  DESTROY MODULE
+  DESTROY: aws_instance.b
+
+STATE:
+
+module.a_module:
+  aws_instance.a:
+    ID = a
+module.b_module:
+  aws_instance.b:
+    ID = b
 `
 
 const testTerraformPlanModuleDestroyMultivarStr = `
