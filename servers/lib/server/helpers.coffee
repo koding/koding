@@ -148,12 +148,18 @@ isLoggedIn = (req, res, callback)->
 saveOauthToSession = (oauthInfo, clientId, provider, callback)->
   {JSession}                       = koding.models
   query                            = {"foreignAuthType" : provider}
+  if oauthInfo.returnUrl
+    query.returnUrl = oauthInfo.returnUrl
+    delete oauthInfo.returnUrl
   query["foreignAuth.#{provider}"] = oauthInfo
 
   JSession.update {clientId}, $set:query, callback
 
-redirectOauth = (res, provider, err)->
-  res.redirect("/Account/Oauth?provider=#{provider}&error=#{err}")
+redirectOauth = (res, options, err)->
+  { returnUrl, provider } = options
+  redirectUrl = "/Account/Oauth?provider=#{provider}&error=#{err}"
+  redirectUrl = "#{redirectUrl}&returnUrl=#{returnUrl}"  if returnUrl
+  res.redirect(redirectUrl)
 
 getAlias = do->
   caseSensitiveAliases = ['auth']

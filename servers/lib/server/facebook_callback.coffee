@@ -13,7 +13,7 @@ module.exports = (req, res) ->
   {code}       = req.query
 
   unless code
-    redirectOauth res, provider, "No code"
+    redirectOauth res, {provider}, "No code"
     return
 
   url  = "https://graph.facebook.com/oauth/access_token?"
@@ -38,7 +38,7 @@ module.exports = (req, res) ->
         r.end()
       else
         console.log "facebook err, no access token", rawResp
-        redirectOauth res, provider, "No access token"
+        redirectOauth res, {provider}, "No access token"
 
   # Get user info with access token
   fetchUserInfo = (userInfoResp) ->
@@ -63,7 +63,7 @@ module.exports = (req, res) ->
       saveOauthToSession facebookResp, clientId, provider, (err)->
         if err
           console.log "facebook err, saving to session", err
-          redirectOauth res, provider, err
+          redirectOauth res, {provider}, err
           return
 
-        redirectOauth res, provider, null
+        redirectOauth res, {provider}, null
