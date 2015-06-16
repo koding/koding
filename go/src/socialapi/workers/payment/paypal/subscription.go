@@ -56,8 +56,8 @@ func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymen
 		CurrentPeriodStart:     time.Now(),
 		AmountInCents:          plan.AmountInCents,
 	}
-	err = subModel.Create()
-	if err != nil {
+
+	if err := subModel.Create(); err != nil {
 		return err
 	}
 
