@@ -237,19 +237,22 @@ module.exports = class PricingAppView extends KDView
         .router
         .handleRoute '/Login'  unless isLoggedIn()
 
+      { currentPlan, currentPlanInterval,
+        subscriptionState, provider, inProcess } = @state
+
       # wait for loading the current plan,
       # call this method until it's ready.
-      unless @state.currentPlan?
+      unless currentPlan?
         return @loadPlan => @planSelected options
 
       isCurrentPlan =
-        options.planTitle     is @state.currentPlan and
-        (options.planInterval is @state.currentPlanInterval or
+        options.planTitle     is currentPlan and
+        (options.planInterval is currentPlanInterval or
         options.planTitle     is PaymentConstants.planTitle.FREE) and
-        'expired'             isnt @state.subscriptionState
+        'expired'             isnt subscriptionState
 
       if isCurrentPlan
-        @state.inProcess = no
+        inProcess = no
         return showError "That's already your current plan."
 
       @setState options
