@@ -88,21 +88,21 @@ module.exports = class JUser extends jraphical.Module
       # instances     :
       static        :
         login                   : (signature Object, Function)
-        logout                  : (signature Function)
-        usernameAvailable       : (signature String, Function)
-        emailAvailable          : (signature String, Function)
-        changePassword          : (signature String, Function)
-        changeEmail             : (signature Object, Function)
-        fetchUser               : (signature Function)
         whoami                  : (signature Function)
-        isRegistrationEnabled   : (signature Function)
+        logout                  : (signature Function)
         convert                 : (signature Object, Function)
+        fetchUser               : (signature Function)
         setSSHKeys              : (signature [Object], Function)
         getSSHKeys              : (signature Function)
-        authenticateWithOauth   : (signature Object, Function)
         unregister              : (signature String, Function)
-        verifyPassword          : (signature Object, Function)
         verifyByPin             : (signature Object, Function)
+        changeEmail             : (signature Object, Function)
+        verifyPassword          : (signature Object, Function)
+        emailAvailable          : (signature String, Function)
+        changePassword          : (signature String, Function)
+        usernameAvailable       : (signature String, Function)
+        authenticateWithOauth   : (signature Object, Function)
+        isRegistrationEnabled   : (signature Function)
 
     schema          :
       username      :
@@ -167,6 +167,7 @@ module.exports = class JUser extends jraphical.Module
           firstName          : String
           lastName           : String
           email              : String
+          scope              : String
         odesk                :
           foreignId          : String
           token              : String
@@ -388,28 +389,34 @@ module.exports = class JUser extends jraphical.Module
 
   @whoami = secure ({connection:{delegate}}, callback)-> callback null, delegate
 
+
+  @getBlockedMessage = (toDate) ->
+
+     return """
+      Account suspended due to violation of our acceptable use policy.
+
+      Hello,
+
+      This account has been put on suspension by Koding moderators due
+      to a violation of our acceptable use policy. The ban will be in
+      effect until #{toDate} at which time you will be able to log back
+      in again. Should you have any questions regarding this ban, please
+      write to ban@koding.com and allow 2-3 business days for us to
+      research and reply. Even though your account is banned, all your
+      data is safe and will be accessible once the ban lifts.
+
+      Please note, repeated violations of our acceptable use policy
+      will result in the permanent deletion of your account.
+
+      Team Koding
+    """
+
+
   checkBlockedStatus = (user, callback)->
     if user.status is 'blocked'
       if user.blockedUntil and user.blockedUntil > new Date
-        toDate = user.blockedUntil.toUTCString()
-        message = """
-          Account suspended due to violation of our acceptable use policy.
-
-          Hello,
-
-          This account has been put on suspension by Koding moderators due
-          to a violation of our acceptable use policy. The ban will be in
-          effect until #{toDate} at which time you will be able to log back
-          in again. Should you have any questions regarding this ban, please
-          write to ban@koding.com and allow 2-3 business days for us to
-          research and reply. Even though your account is banned, all your
-          data is safe and will be accessible once the ban lifts.
-
-          Please note, repeated violations of our acceptable use policy
-          will result in the permanent deletion of your account.
-
-          Team Koding
-        """
+        toDate    = user.blockedUntil.toUTCString()
+        message   = JUser.getBlockedMessage toDate
 
         callback createKodingError message
       else
@@ -706,7 +713,14 @@ module.exports = class JUser extends jraphical.Module
           }, (err)->
             return callback err  if err
 
-            user.update { $set: lastLoginDate: new Date }, (err) ->
+            options = lastLoginDate: new Date
+
+            if session.foreignAuth
+              { foreignAuth } = user
+              foreignAuth = extend foreignAuth, session.foreignAuth
+              options.foreignAuth = foreignAuth
+
+            user.update { $set: options }, (err) ->
               return callback err  if err
 
               # This should be called after login and this
@@ -717,7 +731,7 @@ module.exports = class JUser extends jraphical.Module
               JLog.log {type: "login", username , success: yes}
 
               JUser.clearOauthFromSession session, ->
-                callback null, { account, replacementToken }
+                callback null, { account, replacementToken, returnUrl: session.returnUrl }
 
                 analytics.track userId: username, event: 'logged in'
 
@@ -920,12 +934,13 @@ module.exports = class JUser extends jraphical.Module
         return callback createKodingError "Couldn't restore your session!"
 
       kallback = (err, resp={}) ->
-        {account, replacementToken} = resp
+        {account, replacementToken, returnUrl} = resp
         callback err, {
           isNewUser : false
           userInfo  : null
           account
           replacementToken
+          returnUrl
         }
 
       @fetchUserByProvider provider, session, (err, user) =>
@@ -933,7 +948,7 @@ module.exports = class JUser extends jraphical.Module
         return callback createKodingError err.message  if err
 
         if isUserLoggedIn
-          if user
+          if user and user.username isnt client.connection.delegate.profile.nickname
             @clearOauthFromSession session, ->
               callback createKodingError """
                 Account is already linked with another user.
@@ -947,10 +962,12 @@ module.exports = class JUser extends jraphical.Module
             afterLogin user, sessionToken, session, kallback
           else
             info = session.foreignAuth[provider]
-            {username, email, firstName, lastName} = info
+            { returnUrl } = session
+            {username, email, firstName, lastName, scope} = info
             callback null, {
               isNewUser : true,
-              userInfo  : {username, email, firstName, lastName}
+              userInfo  : {username, email, firstName, lastName, scope}
+              returnUrl
             }
 
 
@@ -1182,6 +1199,16 @@ module.exports = class JUser extends jraphical.Module
         else
           queue.next()
 
+      ->
+        account.update $set: type: 'registered', (err) ->
+          return callback err  if err?
+          queue.next()
+
+      ->
+        account.createSocialApiId (err) ->
+          return callback err  if err
+          queue.next()
+
       =>
         groupNames = [client.context.group, 'koding']
 
@@ -1202,15 +1229,6 @@ module.exports = class JUser extends jraphical.Module
           # We are not returning error here on purpose, even stack template
           # not created for a user we don't want to break registration process
           # at all ~ GG
-          queue.next()
-      ->
-        account.update $set: type: 'registered', (err) ->
-          return callback err  if err?
-          queue.next()
-
-      ->
-        account.createSocialApiId (err) ->
-          return callback err  if err
           queue.next()
       ->
         return queue.next()  unless referrer
@@ -1529,7 +1547,11 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err
         @clearOauthFromSession foreignAuthInfo.session, (err)=>
           return callback err  if err
-          @copyPublicOauthToAccount username, foreignAuthInfo, callback
+          @copyPublicOauthToAccount username, foreignAuthInfo, (err, resp = {}) ->
+            return callback err  if err
+            { session: {returnUrl} } = foreignAuthInfo
+            resp.returnUrl = returnUrl  if returnUrl
+            return callback null, resp
 
   @extractOauthFromSession: (clientId, callback)->
     JSession.one {clientId: clientId}, (err, session)->

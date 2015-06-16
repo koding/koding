@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"log"
@@ -20,6 +21,11 @@ func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
 		fmt.Println(err)
+		return
+	}
+
+	if r.Kite == nil {
+		fmt.Println(errors.New("couldnt init kite"))
 		return
 	}
 

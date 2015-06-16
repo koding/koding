@@ -6,7 +6,7 @@ JAccount       = require '../models/account'
 
 module.exports = (options={}, callback)->
   {client, entryPoint, params, session} = options
-  {clientId: sessionToken} = session
+  {clientId: sessionToken} = session  if session
 
   defaultOptions =
     limit: 5

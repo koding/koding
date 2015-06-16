@@ -64,6 +64,9 @@ build:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
+        name: delete prod creds unless prod
+        code: ./scripts/delete-prod-creds-unless-prod.sh
+    - script:
         name: client node modules
         code: scripts/install-npm.sh -d client -u
     - script:
@@ -149,11 +152,11 @@ build:
     - script:
         name: check connectivity
         code: scripts/wercker/check-connectivity $(pwd)/INSTANCE_DATA
-    # - script:
-    #     name: test social worker
-    #     code: |
-    #       echo "testing social worker"
-    #       scripts/node-testing/run-tests $(pwd)/INSTANCE_DATA
+    - script:
+        name: test social worker
+        code: |
+          echo "testing social worker"
+          scripts/node-testing/run-tests $(pwd)/INSTANCE_DATA
     - script:
         name: testing client started
         code: |
@@ -234,6 +237,9 @@ deploy:
           zip -q --symlinks -r $ARCHIVE .
 
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
+    - script:
+        name: delete prod creds unless prod
+        code: ./scripts/delete-prod-creds-unless-prod.sh
 
 
     - koding/eb-deploy@0.0.8:

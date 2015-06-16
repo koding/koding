@@ -74,7 +74,9 @@ module.exports = (req, res, next) ->
         allowedDomains  : convertToArray domains # clear & convert domains into array
       , owner, (err, group) ->
 
-        return res.status(500).send "Couldn't create the group."  if err or not group
+        if err or not group
+          console.error 'Error while creating the group', err
+          return res.status(500).send "Couldn't create the group."
 
         queue = [
           # add other parallel operations here

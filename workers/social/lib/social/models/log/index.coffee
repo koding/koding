@@ -1,11 +1,11 @@
-{Module} = require 'jraphical'
+{ Module } = require 'jraphical'
 
 module.exports = class JLog extends Module
 
-  {daisy} = Bongo = require 'bongo'
+  { daisy } = Bongo = require 'bongo'
 
-  TRY_LIMIT_FOR_BLOCKING = 5
-  TIME_LIMIT_IN_MIN = 5
+  TRY_LIMIT_FOR_BLOCKING  = 5
+  TIME_LIMIT_IN_MIN       = 5
 
   @set
     softDelete      : no
@@ -19,7 +19,7 @@ module.exports = class JLog extends Module
       type          :
         type        : String
         required    : yes
-        set         : (value)-> value.toLowerCase()
+        set         : (value) -> value.toLowerCase()
       ip            :
         type        : String
         required    : yes
@@ -41,14 +41,21 @@ module.exports = class JLog extends Module
         type        : String
         required    : no
 
-  @log = (data, callback = ->)->
+
+  @log = (data, callback = ->) ->
+
     log = new JLog data
     log.save (err) -> callback err
 
-  @timeLimit = ()->
-    TIME_LIMIT_IN_MIN
 
-  checkRestrictions = (err, results, callback)->
+  @timeLimit = -> TIME_LIMIT_IN_MIN
+
+
+  @tryLimit = -> TRY_LIMIT_FOR_BLOCKING
+
+
+  checkRestrictions = (err, results, callback) ->
+
     # if err dont let to login
     if err then return callback false
 
@@ -62,7 +69,7 @@ module.exports = class JLog extends Module
     # we count from there, trimming list to
     # - 1 - false
     # - 2 - false
-    headUntil = (list, condition)->
+    headUntil = (list, condition) ->
       head = []
       for i in list
         return head if condition(i)
@@ -75,16 +82,29 @@ module.exports = class JLog extends Module
     # if items length is lt CHECK_LIMIT return true
     callback results.length < TRY_LIMIT_FOR_BLOCKING
 
-  @checkLoginBruteForce = (data, callback)->
-    {ip, username} = data
 
-    daisy queue = [
+  @checkLoginBruteForce = (data, callback) ->
+
+    { ip, username } = data
+
+    queue = [
+
       ->
         return queue.next() unless username
-        JLog.some {username : username}, {limit : TRY_LIMIT_FOR_BLOCKING, sort: createdAt: -1}, (err, results)->
+
+        options =
+          limit       : TRY_LIMIT_FOR_BLOCKING
+          sort        :
+            createdAt : -1
+
+        JLog.some { username }, options, (err, results)->
           checkRestrictions err, results, (res)->
             unless res then return callback res
             queue.next()
+
       ->
         return callback true
+
     ]
+
+    daisy queue

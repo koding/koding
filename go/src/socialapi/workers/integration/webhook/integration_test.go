@@ -61,8 +61,8 @@ func TestIntegrationList(t *testing.T) {
 	defer r.Close()
 
 	Convey("while listing an integration", t, func() {
-		name1 := ".B" + models.RandomGroupName()
-		name2 := ".A" + models.RandomGroupName()
+		name1 := "001" + models.RandomGroupName()
+		name2 := "000" + models.RandomGroupName()
 		firstInt := CreateIntegration(t, name1)
 		secondInt := CreateIntegration(t, name2)
 
