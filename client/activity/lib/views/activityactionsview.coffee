@@ -55,7 +55,7 @@ module.exports = class ActivityActionsView extends JView
 
         pane = kd.singletons.appManager.frontApp.getView().tabs.getActivePane()
 
-        pane.scrollView.wrapper.on 'scroll', @sharePopup.bound 'destroy'
+        pane.scrollView.wrapper.once 'scroll', @sharePopup.bound 'destroy'
 
         trackEvent "Activity share, click"
 
