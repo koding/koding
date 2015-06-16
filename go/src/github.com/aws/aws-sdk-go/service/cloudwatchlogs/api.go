@@ -4,24 +4,31 @@
 package cloudwatchlogs
 
 import (
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCreateLogGroup = "CreateLogGroup"
+var oprw sync.Mutex
 
 // CreateLogGroupRequest generates a request for the CreateLogGroup operation.
 func (c *CloudWatchLogs) CreateLogGroupRequest(input *CreateLogGroupInput) (req *aws.Request, output *CreateLogGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateLogGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateLogGroup == nil {
+		opCreateLogGroup = &aws.Operation{
+			Name:       "CreateLogGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateLogGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateLogGroup, input, output)
 	output = &CreateLogGroupOutput{}
 	req.Data = output
 	return
@@ -40,21 +47,26 @@ func (c *CloudWatchLogs) CreateLogGroup(input *CreateLogGroupInput) (*CreateLogG
 	return out, err
 }
 
-const opCreateLogStream = "CreateLogStream"
+var opCreateLogGroup *aws.Operation
 
 // CreateLogStreamRequest generates a request for the CreateLogStream operation.
 func (c *CloudWatchLogs) CreateLogStreamRequest(input *CreateLogStreamInput) (req *aws.Request, output *CreateLogStreamOutput) {
-	op := &aws.Operation{
-		Name:       opCreateLogStream,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateLogStream == nil {
+		opCreateLogStream = &aws.Operation{
+			Name:       "CreateLogStream",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateLogStreamInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateLogStream, input, output)
 	output = &CreateLogStreamOutput{}
 	req.Data = output
 	return
@@ -73,21 +85,26 @@ func (c *CloudWatchLogs) CreateLogStream(input *CreateLogStreamInput) (*CreateLo
 	return out, err
 }
 
-const opDeleteLogGroup = "DeleteLogGroup"
+var opCreateLogStream *aws.Operation
 
 // DeleteLogGroupRequest generates a request for the DeleteLogGroup operation.
 func (c *CloudWatchLogs) DeleteLogGroupRequest(input *DeleteLogGroupInput) (req *aws.Request, output *DeleteLogGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteLogGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteLogGroup == nil {
+		opDeleteLogGroup = &aws.Operation{
+			Name:       "DeleteLogGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteLogGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteLogGroup, input, output)
 	output = &DeleteLogGroupOutput{}
 	req.Data = output
 	return
@@ -101,21 +118,26 @@ func (c *CloudWatchLogs) DeleteLogGroup(input *DeleteLogGroupInput) (*DeleteLogG
 	return out, err
 }
 
-const opDeleteLogStream = "DeleteLogStream"
+var opDeleteLogGroup *aws.Operation
 
 // DeleteLogStreamRequest generates a request for the DeleteLogStream operation.
 func (c *CloudWatchLogs) DeleteLogStreamRequest(input *DeleteLogStreamInput) (req *aws.Request, output *DeleteLogStreamOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteLogStream,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteLogStream == nil {
+		opDeleteLogStream = &aws.Operation{
+			Name:       "DeleteLogStream",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteLogStreamInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteLogStream, input, output)
 	output = &DeleteLogStreamOutput{}
 	req.Data = output
 	return
@@ -129,21 +151,26 @@ func (c *CloudWatchLogs) DeleteLogStream(input *DeleteLogStreamInput) (*DeleteLo
 	return out, err
 }
 
-const opDeleteMetricFilter = "DeleteMetricFilter"
+var opDeleteLogStream *aws.Operation
 
 // DeleteMetricFilterRequest generates a request for the DeleteMetricFilter operation.
 func (c *CloudWatchLogs) DeleteMetricFilterRequest(input *DeleteMetricFilterInput) (req *aws.Request, output *DeleteMetricFilterOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteMetricFilter,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteMetricFilter == nil {
+		opDeleteMetricFilter = &aws.Operation{
+			Name:       "DeleteMetricFilter",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteMetricFilterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteMetricFilter, input, output)
 	output = &DeleteMetricFilterOutput{}
 	req.Data = output
 	return
@@ -156,21 +183,26 @@ func (c *CloudWatchLogs) DeleteMetricFilter(input *DeleteMetricFilterInput) (*De
 	return out, err
 }
 
-const opDeleteRetentionPolicy = "DeleteRetentionPolicy"
+var opDeleteMetricFilter *aws.Operation
 
 // DeleteRetentionPolicyRequest generates a request for the DeleteRetentionPolicy operation.
 func (c *CloudWatchLogs) DeleteRetentionPolicyRequest(input *DeleteRetentionPolicyInput) (req *aws.Request, output *DeleteRetentionPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteRetentionPolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteRetentionPolicy == nil {
+		opDeleteRetentionPolicy = &aws.Operation{
+			Name:       "DeleteRetentionPolicy",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteRetentionPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteRetentionPolicy, input, output)
 	output = &DeleteRetentionPolicyOutput{}
 	req.Data = output
 	return
@@ -184,21 +216,26 @@ func (c *CloudWatchLogs) DeleteRetentionPolicy(input *DeleteRetentionPolicyInput
 	return out, err
 }
 
-const opDeleteSubscriptionFilter = "DeleteSubscriptionFilter"
+var opDeleteRetentionPolicy *aws.Operation
 
 // DeleteSubscriptionFilterRequest generates a request for the DeleteSubscriptionFilter operation.
 func (c *CloudWatchLogs) DeleteSubscriptionFilterRequest(input *DeleteSubscriptionFilterInput) (req *aws.Request, output *DeleteSubscriptionFilterOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteSubscriptionFilter,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteSubscriptionFilter == nil {
+		opDeleteSubscriptionFilter = &aws.Operation{
+			Name:       "DeleteSubscriptionFilter",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteSubscriptionFilterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteSubscriptionFilter, input, output)
 	output = &DeleteSubscriptionFilterOutput{}
 	req.Data = output
 	return
@@ -211,27 +248,32 @@ func (c *CloudWatchLogs) DeleteSubscriptionFilter(input *DeleteSubscriptionFilte
 	return out, err
 }
 
-const opDescribeLogGroups = "DescribeLogGroups"
+var opDeleteSubscriptionFilter *aws.Operation
 
 // DescribeLogGroupsRequest generates a request for the DescribeLogGroups operation.
 func (c *CloudWatchLogs) DescribeLogGroupsRequest(input *DescribeLogGroupsInput) (req *aws.Request, output *DescribeLogGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLogGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextToken"},
-			OutputTokens:    []string{"nextToken"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLogGroups == nil {
+		opDescribeLogGroups = &aws.Operation{
+			Name:       "DescribeLogGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextToken"},
+				OutputTokens:    []string{"nextToken"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLogGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLogGroups, input, output)
 	output = &DescribeLogGroupsOutput{}
 	req.Data = output
 	return
@@ -258,27 +300,32 @@ func (c *CloudWatchLogs) DescribeLogGroupsPages(input *DescribeLogGroupsInput, f
 	})
 }
 
-const opDescribeLogStreams = "DescribeLogStreams"
+var opDescribeLogGroups *aws.Operation
 
 // DescribeLogStreamsRequest generates a request for the DescribeLogStreams operation.
 func (c *CloudWatchLogs) DescribeLogStreamsRequest(input *DescribeLogStreamsInput) (req *aws.Request, output *DescribeLogStreamsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLogStreams,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextToken"},
-			OutputTokens:    []string{"nextToken"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLogStreams == nil {
+		opDescribeLogStreams = &aws.Operation{
+			Name:       "DescribeLogStreams",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextToken"},
+				OutputTokens:    []string{"nextToken"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLogStreamsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLogStreams, input, output)
 	output = &DescribeLogStreamsOutput{}
 	req.Data = output
 	return
@@ -306,27 +353,32 @@ func (c *CloudWatchLogs) DescribeLogStreamsPages(input *DescribeLogStreamsInput,
 	})
 }
 
-const opDescribeMetricFilters = "DescribeMetricFilters"
+var opDescribeLogStreams *aws.Operation
 
 // DescribeMetricFiltersRequest generates a request for the DescribeMetricFilters operation.
 func (c *CloudWatchLogs) DescribeMetricFiltersRequest(input *DescribeMetricFiltersInput) (req *aws.Request, output *DescribeMetricFiltersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeMetricFilters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextToken"},
-			OutputTokens:    []string{"nextToken"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeMetricFilters == nil {
+		opDescribeMetricFilters = &aws.Operation{
+			Name:       "DescribeMetricFilters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextToken"},
+				OutputTokens:    []string{"nextToken"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeMetricFiltersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeMetricFilters, input, output)
 	output = &DescribeMetricFiltersOutput{}
 	req.Data = output
 	return
@@ -352,21 +404,26 @@ func (c *CloudWatchLogs) DescribeMetricFiltersPages(input *DescribeMetricFilters
 	})
 }
 
-const opDescribeSubscriptionFilters = "DescribeSubscriptionFilters"
+var opDescribeMetricFilters *aws.Operation
 
 // DescribeSubscriptionFiltersRequest generates a request for the DescribeSubscriptionFilters operation.
 func (c *CloudWatchLogs) DescribeSubscriptionFiltersRequest(input *DescribeSubscriptionFiltersInput) (req *aws.Request, output *DescribeSubscriptionFiltersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSubscriptionFilters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSubscriptionFilters == nil {
+		opDescribeSubscriptionFilters = &aws.Operation{
+			Name:       "DescribeSubscriptionFilters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSubscriptionFiltersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSubscriptionFilters, input, output)
 	output = &DescribeSubscriptionFiltersOutput{}
 	req.Data = output
 	return
@@ -386,21 +443,26 @@ func (c *CloudWatchLogs) DescribeSubscriptionFilters(input *DescribeSubscription
 	return out, err
 }
 
-const opFilterLogEvents = "FilterLogEvents"
+var opDescribeSubscriptionFilters *aws.Operation
 
 // FilterLogEventsRequest generates a request for the FilterLogEvents operation.
 func (c *CloudWatchLogs) FilterLogEventsRequest(input *FilterLogEventsInput) (req *aws.Request, output *FilterLogEventsOutput) {
-	op := &aws.Operation{
-		Name:       opFilterLogEvents,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opFilterLogEvents == nil {
+		opFilterLogEvents = &aws.Operation{
+			Name:       "FilterLogEvents",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &FilterLogEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opFilterLogEvents, input, output)
 	output = &FilterLogEventsOutput{}
 	req.Data = output
 	return
@@ -426,27 +488,32 @@ func (c *CloudWatchLogs) FilterLogEvents(input *FilterLogEventsInput) (*FilterLo
 	return out, err
 }
 
-const opGetLogEvents = "GetLogEvents"
+var opFilterLogEvents *aws.Operation
 
 // GetLogEventsRequest generates a request for the GetLogEvents operation.
 func (c *CloudWatchLogs) GetLogEventsRequest(input *GetLogEventsInput) (req *aws.Request, output *GetLogEventsOutput) {
-	op := &aws.Operation{
-		Name:       opGetLogEvents,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextToken"},
-			OutputTokens:    []string{"nextForwardToken"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetLogEvents == nil {
+		opGetLogEvents = &aws.Operation{
+			Name:       "GetLogEvents",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextToken"},
+				OutputTokens:    []string{"nextForwardToken"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &GetLogEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetLogEvents, input, output)
 	output = &GetLogEventsOutput{}
 	req.Data = output
 	return
@@ -475,21 +542,26 @@ func (c *CloudWatchLogs) GetLogEventsPages(input *GetLogEventsInput, fn func(p *
 	})
 }
 
-const opPutLogEvents = "PutLogEvents"
+var opGetLogEvents *aws.Operation
 
 // PutLogEventsRequest generates a request for the PutLogEvents operation.
 func (c *CloudWatchLogs) PutLogEventsRequest(input *PutLogEventsInput) (req *aws.Request, output *PutLogEventsOutput) {
-	op := &aws.Operation{
-		Name:       opPutLogEvents,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutLogEvents == nil {
+		opPutLogEvents = &aws.Operation{
+			Name:       "PutLogEvents",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutLogEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutLogEvents, input, output)
 	output = &PutLogEventsOutput{}
 	req.Data = output
 	return
@@ -514,21 +586,26 @@ func (c *CloudWatchLogs) PutLogEvents(input *PutLogEventsInput) (*PutLogEventsOu
 	return out, err
 }
 
-const opPutMetricFilter = "PutMetricFilter"
+var opPutLogEvents *aws.Operation
 
 // PutMetricFilterRequest generates a request for the PutMetricFilter operation.
 func (c *CloudWatchLogs) PutMetricFilterRequest(input *PutMetricFilterInput) (req *aws.Request, output *PutMetricFilterOutput) {
-	op := &aws.Operation{
-		Name:       opPutMetricFilter,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutMetricFilter == nil {
+		opPutMetricFilter = &aws.Operation{
+			Name:       "PutMetricFilter",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutMetricFilterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutMetricFilter, input, output)
 	output = &PutMetricFilterOutput{}
 	req.Data = output
 	return
@@ -546,21 +623,26 @@ func (c *CloudWatchLogs) PutMetricFilter(input *PutMetricFilterInput) (*PutMetri
 	return out, err
 }
 
-const opPutRetentionPolicy = "PutRetentionPolicy"
+var opPutMetricFilter *aws.Operation
 
 // PutRetentionPolicyRequest generates a request for the PutRetentionPolicy operation.
 func (c *CloudWatchLogs) PutRetentionPolicyRequest(input *PutRetentionPolicyInput) (req *aws.Request, output *PutRetentionPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opPutRetentionPolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutRetentionPolicy == nil {
+		opPutRetentionPolicy = &aws.Operation{
+			Name:       "PutRetentionPolicy",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutRetentionPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutRetentionPolicy, input, output)
 	output = &PutRetentionPolicyOutput{}
 	req.Data = output
 	return
@@ -575,21 +657,26 @@ func (c *CloudWatchLogs) PutRetentionPolicy(input *PutRetentionPolicyInput) (*Pu
 	return out, err
 }
 
-const opPutSubscriptionFilter = "PutSubscriptionFilter"
+var opPutRetentionPolicy *aws.Operation
 
 // PutSubscriptionFilterRequest generates a request for the PutSubscriptionFilter operation.
 func (c *CloudWatchLogs) PutSubscriptionFilterRequest(input *PutSubscriptionFilterInput) (req *aws.Request, output *PutSubscriptionFilterOutput) {
-	op := &aws.Operation{
-		Name:       opPutSubscriptionFilter,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutSubscriptionFilter == nil {
+		opPutSubscriptionFilter = &aws.Operation{
+			Name:       "PutSubscriptionFilter",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutSubscriptionFilterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutSubscriptionFilter, input, output)
 	output = &PutSubscriptionFilterOutput{}
 	req.Data = output
 	return
@@ -609,21 +696,26 @@ func (c *CloudWatchLogs) PutSubscriptionFilter(input *PutSubscriptionFilterInput
 	return out, err
 }
 
-const opTestMetricFilter = "TestMetricFilter"
+var opPutSubscriptionFilter *aws.Operation
 
 // TestMetricFilterRequest generates a request for the TestMetricFilter operation.
 func (c *CloudWatchLogs) TestMetricFilterRequest(input *TestMetricFilterInput) (req *aws.Request, output *TestMetricFilterOutput) {
-	op := &aws.Operation{
-		Name:       opTestMetricFilter,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opTestMetricFilter == nil {
+		opTestMetricFilter = &aws.Operation{
+			Name:       "TestMetricFilter",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &TestMetricFilterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opTestMetricFilter, input, output)
 	output = &TestMetricFilterOutput{}
 	req.Data = output
 	return
@@ -637,6 +729,8 @@ func (c *CloudWatchLogs) TestMetricFilter(input *TestMetricFilterInput) (*TestMe
 	err := req.Send()
 	return out, err
 }
+
+var opTestMetricFilter *aws.Operation
 
 type CreateLogGroupInput struct {
 	// The name of the log group to create.

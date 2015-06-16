@@ -4,24 +4,31 @@
 package kinesis
 
 import (
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAddTagsToStream = "AddTagsToStream"
+var oprw sync.Mutex
 
 // AddTagsToStreamRequest generates a request for the AddTagsToStream operation.
 func (c *Kinesis) AddTagsToStreamRequest(input *AddTagsToStreamInput) (req *aws.Request, output *AddTagsToStreamOutput) {
-	op := &aws.Operation{
-		Name:       opAddTagsToStream,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddTagsToStream == nil {
+		opAddTagsToStream = &aws.Operation{
+			Name:       "AddTagsToStream",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddTagsToStreamInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddTagsToStream, input, output)
 	output = &AddTagsToStreamOutput{}
 	req.Data = output
 	return
@@ -38,21 +45,26 @@ func (c *Kinesis) AddTagsToStream(input *AddTagsToStreamInput) (*AddTagsToStream
 	return out, err
 }
 
-const opCreateStream = "CreateStream"
+var opAddTagsToStream *aws.Operation
 
 // CreateStreamRequest generates a request for the CreateStream operation.
 func (c *Kinesis) CreateStreamRequest(input *CreateStreamInput) (req *aws.Request, output *CreateStreamOutput) {
-	op := &aws.Operation{
-		Name:       opCreateStream,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateStream == nil {
+		opCreateStream = &aws.Operation{
+			Name:       "CreateStream",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateStreamInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateStream, input, output)
 	output = &CreateStreamOutput{}
 	req.Data = output
 	return
@@ -100,21 +112,26 @@ func (c *Kinesis) CreateStream(input *CreateStreamInput) (*CreateStreamOutput, e
 	return out, err
 }
 
-const opDeleteStream = "DeleteStream"
+var opCreateStream *aws.Operation
 
 // DeleteStreamRequest generates a request for the DeleteStream operation.
 func (c *Kinesis) DeleteStreamRequest(input *DeleteStreamInput) (req *aws.Request, output *DeleteStreamOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteStream,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteStream == nil {
+		opDeleteStream = &aws.Operation{
+			Name:       "DeleteStream",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteStreamInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteStream, input, output)
 	output = &DeleteStreamOutput{}
 	req.Data = output
 	return
@@ -145,27 +162,32 @@ func (c *Kinesis) DeleteStream(input *DeleteStreamInput) (*DeleteStreamOutput, e
 	return out, err
 }
 
-const opDescribeStream = "DescribeStream"
+var opDeleteStream *aws.Operation
 
 // DescribeStreamRequest generates a request for the DescribeStream operation.
 func (c *Kinesis) DescribeStreamRequest(input *DescribeStreamInput) (req *aws.Request, output *DescribeStreamOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeStream,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"ExclusiveStartShardId"},
-			OutputTokens:    []string{"StreamDescription.Shards[-1].ShardId"},
-			LimitToken:      "Limit",
-			TruncationToken: "StreamDescription.HasMoreShards",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeStream == nil {
+		opDescribeStream = &aws.Operation{
+			Name:       "DescribeStream",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"ExclusiveStartShardId"},
+				OutputTokens:    []string{"StreamDescription.Shards[-1].ShardId"},
+				LimitToken:      "Limit",
+				TruncationToken: "StreamDescription.HasMoreShards",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeStreamInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeStream, input, output)
 	output = &DescribeStreamOutput{}
 	req.Data = output
 	return
@@ -206,21 +228,26 @@ func (c *Kinesis) DescribeStreamPages(input *DescribeStreamInput, fn func(p *Des
 	})
 }
 
-const opGetRecords = "GetRecords"
+var opDescribeStream *aws.Operation
 
 // GetRecordsRequest generates a request for the GetRecords operation.
 func (c *Kinesis) GetRecordsRequest(input *GetRecordsInput) (req *aws.Request, output *GetRecordsOutput) {
-	op := &aws.Operation{
-		Name:       opGetRecords,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetRecords == nil {
+		opGetRecords = &aws.Operation{
+			Name:       "GetRecords",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetRecordsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetRecords, input, output)
 	output = &GetRecordsOutput{}
 	req.Data = output
 	return
@@ -276,21 +303,26 @@ func (c *Kinesis) GetRecords(input *GetRecordsInput) (*GetRecordsOutput, error) 
 	return out, err
 }
 
-const opGetShardIterator = "GetShardIterator"
+var opGetRecords *aws.Operation
 
 // GetShardIteratorRequest generates a request for the GetShardIterator operation.
 func (c *Kinesis) GetShardIteratorRequest(input *GetShardIteratorInput) (req *aws.Request, output *GetShardIteratorOutput) {
-	op := &aws.Operation{
-		Name:       opGetShardIterator,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetShardIterator == nil {
+		opGetShardIterator = &aws.Operation{
+			Name:       "GetShardIterator",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetShardIteratorInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetShardIterator, input, output)
 	output = &GetShardIteratorOutput{}
 	req.Data = output
 	return
@@ -339,27 +371,32 @@ func (c *Kinesis) GetShardIterator(input *GetShardIteratorInput) (*GetShardItera
 	return out, err
 }
 
-const opListStreams = "ListStreams"
+var opGetShardIterator *aws.Operation
 
 // ListStreamsRequest generates a request for the ListStreams operation.
 func (c *Kinesis) ListStreamsRequest(input *ListStreamsInput) (req *aws.Request, output *ListStreamsOutput) {
-	op := &aws.Operation{
-		Name:       opListStreams,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"ExclusiveStartStreamName"},
-			OutputTokens:    []string{"StreamNames[-1]"},
-			LimitToken:      "Limit",
-			TruncationToken: "HasMoreStreams",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListStreams == nil {
+		opListStreams = &aws.Operation{
+			Name:       "ListStreams",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"ExclusiveStartStreamName"},
+				OutputTokens:    []string{"StreamNames[-1]"},
+				LimitToken:      "Limit",
+				TruncationToken: "HasMoreStreams",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListStreamsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListStreams, input, output)
 	output = &ListStreamsOutput{}
 	req.Data = output
 	return
@@ -394,21 +431,26 @@ func (c *Kinesis) ListStreamsPages(input *ListStreamsInput, fn func(p *ListStrea
 	})
 }
 
-const opListTagsForStream = "ListTagsForStream"
+var opListStreams *aws.Operation
 
 // ListTagsForStreamRequest generates a request for the ListTagsForStream operation.
 func (c *Kinesis) ListTagsForStreamRequest(input *ListTagsForStreamInput) (req *aws.Request, output *ListTagsForStreamOutput) {
-	op := &aws.Operation{
-		Name:       opListTagsForStream,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListTagsForStream == nil {
+		opListTagsForStream = &aws.Operation{
+			Name:       "ListTagsForStream",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListTagsForStreamInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListTagsForStream, input, output)
 	output = &ListTagsForStreamOutput{}
 	req.Data = output
 	return
@@ -421,21 +463,26 @@ func (c *Kinesis) ListTagsForStream(input *ListTagsForStreamInput) (*ListTagsFor
 	return out, err
 }
 
-const opMergeShards = "MergeShards"
+var opListTagsForStream *aws.Operation
 
 // MergeShardsRequest generates a request for the MergeShards operation.
 func (c *Kinesis) MergeShardsRequest(input *MergeShardsInput) (req *aws.Request, output *MergeShardsOutput) {
-	op := &aws.Operation{
-		Name:       opMergeShards,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opMergeShards == nil {
+		opMergeShards = &aws.Operation{
+			Name:       "MergeShards",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &MergeShardsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opMergeShards, input, output)
 	output = &MergeShardsOutput{}
 	req.Data = output
 	return
@@ -482,21 +529,26 @@ func (c *Kinesis) MergeShards(input *MergeShardsInput) (*MergeShardsOutput, erro
 	return out, err
 }
 
-const opPutRecord = "PutRecord"
+var opMergeShards *aws.Operation
 
 // PutRecordRequest generates a request for the PutRecord operation.
 func (c *Kinesis) PutRecordRequest(input *PutRecordInput) (req *aws.Request, output *PutRecordOutput) {
-	op := &aws.Operation{
-		Name:       opPutRecord,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutRecord == nil {
+		opPutRecord = &aws.Operation{
+			Name:       "PutRecord",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutRecordInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutRecord, input, output)
 	output = &PutRecordOutput{}
 	req.Data = output
 	return
@@ -546,21 +598,26 @@ func (c *Kinesis) PutRecord(input *PutRecordInput) (*PutRecordOutput, error) {
 	return out, err
 }
 
-const opPutRecords = "PutRecords"
+var opPutRecord *aws.Operation
 
 // PutRecordsRequest generates a request for the PutRecords operation.
 func (c *Kinesis) PutRecordsRequest(input *PutRecordsInput) (req *aws.Request, output *PutRecordsOutput) {
-	op := &aws.Operation{
-		Name:       opPutRecords,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutRecords == nil {
+		opPutRecords = &aws.Operation{
+			Name:       "PutRecords",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutRecordsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutRecords, input, output)
 	output = &PutRecordsOutput{}
 	req.Data = output
 	return
@@ -627,21 +684,26 @@ func (c *Kinesis) PutRecords(input *PutRecordsInput) (*PutRecordsOutput, error) 
 	return out, err
 }
 
-const opRemoveTagsFromStream = "RemoveTagsFromStream"
+var opPutRecords *aws.Operation
 
 // RemoveTagsFromStreamRequest generates a request for the RemoveTagsFromStream operation.
 func (c *Kinesis) RemoveTagsFromStreamRequest(input *RemoveTagsFromStreamInput) (req *aws.Request, output *RemoveTagsFromStreamOutput) {
-	op := &aws.Operation{
-		Name:       opRemoveTagsFromStream,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemoveTagsFromStream == nil {
+		opRemoveTagsFromStream = &aws.Operation{
+			Name:       "RemoveTagsFromStream",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemoveTagsFromStreamInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemoveTagsFromStream, input, output)
 	output = &RemoveTagsFromStreamOutput{}
 	req.Data = output
 	return
@@ -656,21 +718,26 @@ func (c *Kinesis) RemoveTagsFromStream(input *RemoveTagsFromStreamInput) (*Remov
 	return out, err
 }
 
-const opSplitShard = "SplitShard"
+var opRemoveTagsFromStream *aws.Operation
 
 // SplitShardRequest generates a request for the SplitShard operation.
 func (c *Kinesis) SplitShardRequest(input *SplitShardInput) (req *aws.Request, output *SplitShardOutput) {
-	op := &aws.Operation{
-		Name:       opSplitShard,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSplitShard == nil {
+		opSplitShard = &aws.Operation{
+			Name:       "SplitShard",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SplitShardInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSplitShard, input, output)
 	output = &SplitShardOutput{}
 	req.Data = output
 	return
@@ -727,6 +794,8 @@ func (c *Kinesis) SplitShard(input *SplitShardInput) (*SplitShardOutput, error) 
 	err := req.Send()
 	return out, err
 }
+
+var opSplitShard *aws.Operation
 
 // Represents the input for AddTagsToStream.
 type AddTagsToStreamInput struct {

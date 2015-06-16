@@ -4,24 +4,31 @@
 package workspaces
 
 import (
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCreateWorkspaces = "CreateWorkspaces"
+var oprw sync.Mutex
 
 // CreateWorkspacesRequest generates a request for the CreateWorkspaces operation.
 func (c *WorkSpaces) CreateWorkspacesRequest(input *CreateWorkspacesInput) (req *aws.Request, output *CreateWorkspacesOutput) {
-	op := &aws.Operation{
-		Name:       opCreateWorkspaces,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateWorkspaces == nil {
+		opCreateWorkspaces = &aws.Operation{
+			Name:       "CreateWorkspaces",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateWorkspaces, input, output)
 	output = &CreateWorkspacesOutput{}
 	req.Data = output
 	return
@@ -36,21 +43,26 @@ func (c *WorkSpaces) CreateWorkspaces(input *CreateWorkspacesInput) (*CreateWork
 	return out, err
 }
 
-const opDescribeWorkspaceBundles = "DescribeWorkspaceBundles"
+var opCreateWorkspaces *aws.Operation
 
 // DescribeWorkspaceBundlesRequest generates a request for the DescribeWorkspaceBundles operation.
 func (c *WorkSpaces) DescribeWorkspaceBundlesRequest(input *DescribeWorkspaceBundlesInput) (req *aws.Request, output *DescribeWorkspaceBundlesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeWorkspaceBundles,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeWorkspaceBundles == nil {
+		opDescribeWorkspaceBundles = &aws.Operation{
+			Name:       "DescribeWorkspaceBundles",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeWorkspaceBundlesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeWorkspaceBundles, input, output)
 	output = &DescribeWorkspaceBundlesOutput{}
 	req.Data = output
 	return
@@ -72,21 +84,26 @@ func (c *WorkSpaces) DescribeWorkspaceBundles(input *DescribeWorkspaceBundlesInp
 	return out, err
 }
 
-const opDescribeWorkspaceDirectories = "DescribeWorkspaceDirectories"
+var opDescribeWorkspaceBundles *aws.Operation
 
 // DescribeWorkspaceDirectoriesRequest generates a request for the DescribeWorkspaceDirectories operation.
 func (c *WorkSpaces) DescribeWorkspaceDirectoriesRequest(input *DescribeWorkspaceDirectoriesInput) (req *aws.Request, output *DescribeWorkspaceDirectoriesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeWorkspaceDirectories,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeWorkspaceDirectories == nil {
+		opDescribeWorkspaceDirectories = &aws.Operation{
+			Name:       "DescribeWorkspaceDirectories",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeWorkspaceDirectoriesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeWorkspaceDirectories, input, output)
 	output = &DescribeWorkspaceDirectoriesOutput{}
 	req.Data = output
 	return
@@ -106,21 +123,26 @@ func (c *WorkSpaces) DescribeWorkspaceDirectories(input *DescribeWorkspaceDirect
 	return out, err
 }
 
-const opDescribeWorkspaces = "DescribeWorkspaces"
+var opDescribeWorkspaceDirectories *aws.Operation
 
 // DescribeWorkspacesRequest generates a request for the DescribeWorkspaces operation.
 func (c *WorkSpaces) DescribeWorkspacesRequest(input *DescribeWorkspacesInput) (req *aws.Request, output *DescribeWorkspacesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeWorkspaces,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeWorkspaces == nil {
+		opDescribeWorkspaces = &aws.Operation{
+			Name:       "DescribeWorkspaces",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeWorkspaces, input, output)
 	output = &DescribeWorkspacesOutput{}
 	req.Data = output
 	return
@@ -141,21 +163,26 @@ func (c *WorkSpaces) DescribeWorkspaces(input *DescribeWorkspacesInput) (*Descri
 	return out, err
 }
 
-const opRebootWorkspaces = "RebootWorkspaces"
+var opDescribeWorkspaces *aws.Operation
 
 // RebootWorkspacesRequest generates a request for the RebootWorkspaces operation.
 func (c *WorkSpaces) RebootWorkspacesRequest(input *RebootWorkspacesInput) (req *aws.Request, output *RebootWorkspacesOutput) {
-	op := &aws.Operation{
-		Name:       opRebootWorkspaces,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRebootWorkspaces == nil {
+		opRebootWorkspaces = &aws.Operation{
+			Name:       "RebootWorkspaces",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RebootWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRebootWorkspaces, input, output)
 	output = &RebootWorkspacesOutput{}
 	req.Data = output
 	return
@@ -174,21 +201,26 @@ func (c *WorkSpaces) RebootWorkspaces(input *RebootWorkspacesInput) (*RebootWork
 	return out, err
 }
 
-const opRebuildWorkspaces = "RebuildWorkspaces"
+var opRebootWorkspaces *aws.Operation
 
 // RebuildWorkspacesRequest generates a request for the RebuildWorkspaces operation.
 func (c *WorkSpaces) RebuildWorkspacesRequest(input *RebuildWorkspacesInput) (req *aws.Request, output *RebuildWorkspacesOutput) {
-	op := &aws.Operation{
-		Name:       opRebuildWorkspaces,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRebuildWorkspaces == nil {
+		opRebuildWorkspaces = &aws.Operation{
+			Name:       "RebuildWorkspaces",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RebuildWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRebuildWorkspaces, input, output)
 	output = &RebuildWorkspacesOutput{}
 	req.Data = output
 	return
@@ -216,21 +248,26 @@ func (c *WorkSpaces) RebuildWorkspaces(input *RebuildWorkspacesInput) (*RebuildW
 	return out, err
 }
 
-const opTerminateWorkspaces = "TerminateWorkspaces"
+var opRebuildWorkspaces *aws.Operation
 
 // TerminateWorkspacesRequest generates a request for the TerminateWorkspaces operation.
 func (c *WorkSpaces) TerminateWorkspacesRequest(input *TerminateWorkspacesInput) (req *aws.Request, output *TerminateWorkspacesOutput) {
-	op := &aws.Operation{
-		Name:       opTerminateWorkspaces,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opTerminateWorkspaces == nil {
+		opTerminateWorkspaces = &aws.Operation{
+			Name:       "TerminateWorkspaces",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &TerminateWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opTerminateWorkspaces, input, output)
 	output = &TerminateWorkspacesOutput{}
 	req.Data = output
 	return
@@ -251,6 +288,8 @@ func (c *WorkSpaces) TerminateWorkspaces(input *TerminateWorkspacesInput) (*Term
 	err := req.Send()
 	return out, err
 }
+
+var opTerminateWorkspaces *aws.Operation
 
 // Contains information about the compute type of a WorkSpace bundle.
 type ComputeType struct {

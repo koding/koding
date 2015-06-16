@@ -4,24 +4,31 @@
 package cloudhsm
 
 import (
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCreateHAPG = "CreateHapg"
+var oprw sync.Mutex
 
 // CreateHAPGRequest generates a request for the CreateHAPG operation.
 func (c *CloudHSM) CreateHAPGRequest(input *CreateHAPGInput) (req *aws.Request, output *CreateHAPGOutput) {
-	op := &aws.Operation{
-		Name:       opCreateHAPG,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateHAPG == nil {
+		opCreateHAPG = &aws.Operation{
+			Name:       "CreateHapg",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateHAPGInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateHAPG, input, output)
 	output = &CreateHAPGOutput{}
 	req.Data = output
 	return
@@ -35,21 +42,26 @@ func (c *CloudHSM) CreateHAPG(input *CreateHAPGInput) (*CreateHAPGOutput, error)
 	return out, err
 }
 
-const opCreateHSM = "CreateHsm"
+var opCreateHAPG *aws.Operation
 
 // CreateHSMRequest generates a request for the CreateHSM operation.
 func (c *CloudHSM) CreateHSMRequest(input *CreateHSMInput) (req *aws.Request, output *CreateHSMOutput) {
-	op := &aws.Operation{
-		Name:       opCreateHSM,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateHSM == nil {
+		opCreateHSM = &aws.Operation{
+			Name:       "CreateHsm",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateHSMInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateHSM, input, output)
 	output = &CreateHSMOutput{}
 	req.Data = output
 	return
@@ -72,21 +84,26 @@ func (c *CloudHSM) CreateHSM(input *CreateHSMInput) (*CreateHSMOutput, error) {
 	return out, err
 }
 
-const opCreateLunaClient = "CreateLunaClient"
+var opCreateHSM *aws.Operation
 
 // CreateLunaClientRequest generates a request for the CreateLunaClient operation.
 func (c *CloudHSM) CreateLunaClientRequest(input *CreateLunaClientInput) (req *aws.Request, output *CreateLunaClientOutput) {
-	op := &aws.Operation{
-		Name:       opCreateLunaClient,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateLunaClient == nil {
+		opCreateLunaClient = &aws.Operation{
+			Name:       "CreateLunaClient",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateLunaClientInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateLunaClient, input, output)
 	output = &CreateLunaClientOutput{}
 	req.Data = output
 	return
@@ -99,21 +116,26 @@ func (c *CloudHSM) CreateLunaClient(input *CreateLunaClientInput) (*CreateLunaCl
 	return out, err
 }
 
-const opDeleteHAPG = "DeleteHapg"
+var opCreateLunaClient *aws.Operation
 
 // DeleteHAPGRequest generates a request for the DeleteHAPG operation.
 func (c *CloudHSM) DeleteHAPGRequest(input *DeleteHAPGInput) (req *aws.Request, output *DeleteHAPGOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteHAPG,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteHAPG == nil {
+		opDeleteHAPG = &aws.Operation{
+			Name:       "DeleteHapg",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteHAPGInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteHAPG, input, output)
 	output = &DeleteHAPGOutput{}
 	req.Data = output
 	return
@@ -126,21 +148,26 @@ func (c *CloudHSM) DeleteHAPG(input *DeleteHAPGInput) (*DeleteHAPGOutput, error)
 	return out, err
 }
 
-const opDeleteHSM = "DeleteHsm"
+var opDeleteHAPG *aws.Operation
 
 // DeleteHSMRequest generates a request for the DeleteHSM operation.
 func (c *CloudHSM) DeleteHSMRequest(input *DeleteHSMInput) (req *aws.Request, output *DeleteHSMOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteHSM,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteHSM == nil {
+		opDeleteHSM = &aws.Operation{
+			Name:       "DeleteHsm",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteHSMInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteHSM, input, output)
 	output = &DeleteHSMOutput{}
 	req.Data = output
 	return
@@ -154,21 +181,26 @@ func (c *CloudHSM) DeleteHSM(input *DeleteHSMInput) (*DeleteHSMOutput, error) {
 	return out, err
 }
 
-const opDeleteLunaClient = "DeleteLunaClient"
+var opDeleteHSM *aws.Operation
 
 // DeleteLunaClientRequest generates a request for the DeleteLunaClient operation.
 func (c *CloudHSM) DeleteLunaClientRequest(input *DeleteLunaClientInput) (req *aws.Request, output *DeleteLunaClientOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteLunaClient,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteLunaClient == nil {
+		opDeleteLunaClient = &aws.Operation{
+			Name:       "DeleteLunaClient",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteLunaClientInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteLunaClient, input, output)
 	output = &DeleteLunaClientOutput{}
 	req.Data = output
 	return
@@ -181,21 +213,26 @@ func (c *CloudHSM) DeleteLunaClient(input *DeleteLunaClientInput) (*DeleteLunaCl
 	return out, err
 }
 
-const opDescribeHAPG = "DescribeHapg"
+var opDeleteLunaClient *aws.Operation
 
 // DescribeHAPGRequest generates a request for the DescribeHAPG operation.
 func (c *CloudHSM) DescribeHAPGRequest(input *DescribeHAPGInput) (req *aws.Request, output *DescribeHAPGOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeHAPG,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeHAPG == nil {
+		opDescribeHAPG = &aws.Operation{
+			Name:       "DescribeHapg",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeHAPGInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeHAPG, input, output)
 	output = &DescribeHAPGOutput{}
 	req.Data = output
 	return
@@ -208,21 +245,26 @@ func (c *CloudHSM) DescribeHAPG(input *DescribeHAPGInput) (*DescribeHAPGOutput, 
 	return out, err
 }
 
-const opDescribeHSM = "DescribeHsm"
+var opDescribeHAPG *aws.Operation
 
 // DescribeHSMRequest generates a request for the DescribeHSM operation.
 func (c *CloudHSM) DescribeHSMRequest(input *DescribeHSMInput) (req *aws.Request, output *DescribeHSMOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeHSM,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeHSM == nil {
+		opDescribeHSM = &aws.Operation{
+			Name:       "DescribeHsm",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeHSMInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeHSM, input, output)
 	output = &DescribeHSMOutput{}
 	req.Data = output
 	return
@@ -236,21 +278,26 @@ func (c *CloudHSM) DescribeHSM(input *DescribeHSMInput) (*DescribeHSMOutput, err
 	return out, err
 }
 
-const opDescribeLunaClient = "DescribeLunaClient"
+var opDescribeHSM *aws.Operation
 
 // DescribeLunaClientRequest generates a request for the DescribeLunaClient operation.
 func (c *CloudHSM) DescribeLunaClientRequest(input *DescribeLunaClientInput) (req *aws.Request, output *DescribeLunaClientOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLunaClient,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLunaClient == nil {
+		opDescribeLunaClient = &aws.Operation{
+			Name:       "DescribeLunaClient",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLunaClientInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLunaClient, input, output)
 	output = &DescribeLunaClientOutput{}
 	req.Data = output
 	return
@@ -263,21 +310,26 @@ func (c *CloudHSM) DescribeLunaClient(input *DescribeLunaClientInput) (*Describe
 	return out, err
 }
 
-const opGetConfig = "GetConfig"
+var opDescribeLunaClient *aws.Operation
 
 // GetConfigRequest generates a request for the GetConfig operation.
 func (c *CloudHSM) GetConfigRequest(input *GetConfigInput) (req *aws.Request, output *GetConfigOutput) {
-	op := &aws.Operation{
-		Name:       opGetConfig,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetConfig == nil {
+		opGetConfig = &aws.Operation{
+			Name:       "GetConfig",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetConfigInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetConfig, input, output)
 	output = &GetConfigOutput{}
 	req.Data = output
 	return
@@ -291,21 +343,26 @@ func (c *CloudHSM) GetConfig(input *GetConfigInput) (*GetConfigOutput, error) {
 	return out, err
 }
 
-const opListAvailableZones = "ListAvailableZones"
+var opGetConfig *aws.Operation
 
 // ListAvailableZonesRequest generates a request for the ListAvailableZones operation.
 func (c *CloudHSM) ListAvailableZonesRequest(input *ListAvailableZonesInput) (req *aws.Request, output *ListAvailableZonesOutput) {
-	op := &aws.Operation{
-		Name:       opListAvailableZones,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListAvailableZones == nil {
+		opListAvailableZones = &aws.Operation{
+			Name:       "ListAvailableZones",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListAvailableZonesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListAvailableZones, input, output)
 	output = &ListAvailableZonesOutput{}
 	req.Data = output
 	return
@@ -318,21 +375,26 @@ func (c *CloudHSM) ListAvailableZones(input *ListAvailableZonesInput) (*ListAvai
 	return out, err
 }
 
-const opListHSMs = "ListHsms"
+var opListAvailableZones *aws.Operation
 
 // ListHSMsRequest generates a request for the ListHSMs operation.
 func (c *CloudHSM) ListHSMsRequest(input *ListHSMsInput) (req *aws.Request, output *ListHSMsOutput) {
-	op := &aws.Operation{
-		Name:       opListHSMs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListHSMs == nil {
+		opListHSMs = &aws.Operation{
+			Name:       "ListHsms",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListHSMsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListHSMs, input, output)
 	output = &ListHSMsOutput{}
 	req.Data = output
 	return
@@ -351,21 +413,26 @@ func (c *CloudHSM) ListHSMs(input *ListHSMsInput) (*ListHSMsOutput, error) {
 	return out, err
 }
 
-const opListHapgs = "ListHapgs"
+var opListHSMs *aws.Operation
 
 // ListHapgsRequest generates a request for the ListHapgs operation.
 func (c *CloudHSM) ListHapgsRequest(input *ListHapgsInput) (req *aws.Request, output *ListHapgsOutput) {
-	op := &aws.Operation{
-		Name:       opListHapgs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListHapgs == nil {
+		opListHapgs = &aws.Operation{
+			Name:       "ListHapgs",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListHapgsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListHapgs, input, output)
 	output = &ListHapgsOutput{}
 	req.Data = output
 	return
@@ -383,21 +450,26 @@ func (c *CloudHSM) ListHapgs(input *ListHapgsInput) (*ListHapgsOutput, error) {
 	return out, err
 }
 
-const opListLunaClients = "ListLunaClients"
+var opListHapgs *aws.Operation
 
 // ListLunaClientsRequest generates a request for the ListLunaClients operation.
 func (c *CloudHSM) ListLunaClientsRequest(input *ListLunaClientsInput) (req *aws.Request, output *ListLunaClientsOutput) {
-	op := &aws.Operation{
-		Name:       opListLunaClients,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListLunaClients == nil {
+		opListLunaClients = &aws.Operation{
+			Name:       "ListLunaClients",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListLunaClientsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListLunaClients, input, output)
 	output = &ListLunaClientsOutput{}
 	req.Data = output
 	return
@@ -415,21 +487,26 @@ func (c *CloudHSM) ListLunaClients(input *ListLunaClientsInput) (*ListLunaClient
 	return out, err
 }
 
-const opModifyHAPG = "ModifyHapg"
+var opListLunaClients *aws.Operation
 
 // ModifyHAPGRequest generates a request for the ModifyHAPG operation.
 func (c *CloudHSM) ModifyHAPGRequest(input *ModifyHAPGInput) (req *aws.Request, output *ModifyHAPGOutput) {
-	op := &aws.Operation{
-		Name:       opModifyHAPG,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyHAPG == nil {
+		opModifyHAPG = &aws.Operation{
+			Name:       "ModifyHapg",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyHAPGInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyHAPG, input, output)
 	output = &ModifyHAPGOutput{}
 	req.Data = output
 	return
@@ -442,21 +519,26 @@ func (c *CloudHSM) ModifyHAPG(input *ModifyHAPGInput) (*ModifyHAPGOutput, error)
 	return out, err
 }
 
-const opModifyHSM = "ModifyHsm"
+var opModifyHAPG *aws.Operation
 
 // ModifyHSMRequest generates a request for the ModifyHSM operation.
 func (c *CloudHSM) ModifyHSMRequest(input *ModifyHSMInput) (req *aws.Request, output *ModifyHSMOutput) {
-	op := &aws.Operation{
-		Name:       opModifyHSM,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyHSM == nil {
+		opModifyHSM = &aws.Operation{
+			Name:       "ModifyHsm",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyHSMInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyHSM, input, output)
 	output = &ModifyHSMOutput{}
 	req.Data = output
 	return
@@ -475,21 +557,26 @@ func (c *CloudHSM) ModifyHSM(input *ModifyHSMInput) (*ModifyHSMOutput, error) {
 	return out, err
 }
 
-const opModifyLunaClient = "ModifyLunaClient"
+var opModifyHSM *aws.Operation
 
 // ModifyLunaClientRequest generates a request for the ModifyLunaClient operation.
 func (c *CloudHSM) ModifyLunaClientRequest(input *ModifyLunaClientInput) (req *aws.Request, output *ModifyLunaClientOutput) {
-	op := &aws.Operation{
-		Name:       opModifyLunaClient,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyLunaClient == nil {
+		opModifyLunaClient = &aws.Operation{
+			Name:       "ModifyLunaClient",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyLunaClientInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyLunaClient, input, output)
 	output = &ModifyLunaClientOutput{}
 	req.Data = output
 	return
@@ -504,6 +591,8 @@ func (c *CloudHSM) ModifyLunaClient(input *ModifyLunaClientInput) (*ModifyLunaCl
 	err := req.Send()
 	return out, err
 }
+
+var opModifyLunaClient *aws.Operation
 
 // Contains the inputs for the CreateHapgRequest action.
 type CreateHAPGInput struct {

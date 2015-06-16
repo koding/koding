@@ -4,24 +4,31 @@
 package sqs
 
 import (
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAddPermission = "AddPermission"
+var oprw sync.Mutex
 
 // AddPermissionRequest generates a request for the AddPermission operation.
 func (c *SQS) AddPermissionRequest(input *AddPermissionInput) (req *aws.Request, output *AddPermissionOutput) {
-	op := &aws.Operation{
-		Name:       opAddPermission,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddPermission == nil {
+		opAddPermission = &aws.Operation{
+			Name:       "AddPermission",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddPermissionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddPermission, input, output)
 	output = &AddPermissionOutput{}
 	req.Data = output
 	return
@@ -51,21 +58,26 @@ func (c *SQS) AddPermission(input *AddPermissionInput) (*AddPermissionOutput, er
 	return out, err
 }
 
-const opChangeMessageVisibility = "ChangeMessageVisibility"
+var opAddPermission *aws.Operation
 
 // ChangeMessageVisibilityRequest generates a request for the ChangeMessageVisibility operation.
 func (c *SQS) ChangeMessageVisibilityRequest(input *ChangeMessageVisibilityInput) (req *aws.Request, output *ChangeMessageVisibilityOutput) {
-	op := &aws.Operation{
-		Name:       opChangeMessageVisibility,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opChangeMessageVisibility == nil {
+		opChangeMessageVisibility = &aws.Operation{
+			Name:       "ChangeMessageVisibility",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ChangeMessageVisibilityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opChangeMessageVisibility, input, output)
 	output = &ChangeMessageVisibilityOutput{}
 	req.Data = output
 	return
@@ -107,21 +119,26 @@ func (c *SQS) ChangeMessageVisibility(input *ChangeMessageVisibilityInput) (*Cha
 	return out, err
 }
 
-const opChangeMessageVisibilityBatch = "ChangeMessageVisibilityBatch"
+var opChangeMessageVisibility *aws.Operation
 
 // ChangeMessageVisibilityBatchRequest generates a request for the ChangeMessageVisibilityBatch operation.
 func (c *SQS) ChangeMessageVisibilityBatchRequest(input *ChangeMessageVisibilityBatchInput) (req *aws.Request, output *ChangeMessageVisibilityBatchOutput) {
-	op := &aws.Operation{
-		Name:       opChangeMessageVisibilityBatch,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opChangeMessageVisibilityBatch == nil {
+		opChangeMessageVisibilityBatch = &aws.Operation{
+			Name:       "ChangeMessageVisibilityBatch",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ChangeMessageVisibilityBatchInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opChangeMessageVisibilityBatch, input, output)
 	output = &ChangeMessageVisibilityBatchOutput{}
 	req.Data = output
 	return
@@ -146,21 +163,26 @@ func (c *SQS) ChangeMessageVisibilityBatch(input *ChangeMessageVisibilityBatchIn
 	return out, err
 }
 
-const opCreateQueue = "CreateQueue"
+var opChangeMessageVisibilityBatch *aws.Operation
 
 // CreateQueueRequest generates a request for the CreateQueue operation.
 func (c *SQS) CreateQueueRequest(input *CreateQueueInput) (req *aws.Request, output *CreateQueueOutput) {
-	op := &aws.Operation{
-		Name:       opCreateQueue,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateQueue == nil {
+		opCreateQueue = &aws.Operation{
+			Name:       "CreateQueue",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateQueueInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateQueue, input, output)
 	output = &CreateQueueOutput{}
 	req.Data = output
 	return
@@ -197,21 +219,26 @@ func (c *SQS) CreateQueue(input *CreateQueueInput) (*CreateQueueOutput, error) {
 	return out, err
 }
 
-const opDeleteMessage = "DeleteMessage"
+var opCreateQueue *aws.Operation
 
 // DeleteMessageRequest generates a request for the DeleteMessage operation.
 func (c *SQS) DeleteMessageRequest(input *DeleteMessageInput) (req *aws.Request, output *DeleteMessageOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteMessage,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteMessage == nil {
+		opDeleteMessage = &aws.Operation{
+			Name:       "DeleteMessage",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteMessageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteMessage, input, output)
 	output = &DeleteMessageOutput{}
 	req.Data = output
 	return
@@ -243,21 +270,26 @@ func (c *SQS) DeleteMessage(input *DeleteMessageInput) (*DeleteMessageOutput, er
 	return out, err
 }
 
-const opDeleteMessageBatch = "DeleteMessageBatch"
+var opDeleteMessage *aws.Operation
 
 // DeleteMessageBatchRequest generates a request for the DeleteMessageBatch operation.
 func (c *SQS) DeleteMessageBatchRequest(input *DeleteMessageBatchInput) (req *aws.Request, output *DeleteMessageBatchOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteMessageBatch,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteMessageBatch == nil {
+		opDeleteMessageBatch = &aws.Operation{
+			Name:       "DeleteMessageBatch",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteMessageBatchInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteMessageBatch, input, output)
 	output = &DeleteMessageBatchOutput{}
 	req.Data = output
 	return
@@ -282,21 +314,26 @@ func (c *SQS) DeleteMessageBatch(input *DeleteMessageBatchInput) (*DeleteMessage
 	return out, err
 }
 
-const opDeleteQueue = "DeleteQueue"
+var opDeleteMessageBatch *aws.Operation
 
 // DeleteQueueRequest generates a request for the DeleteQueue operation.
 func (c *SQS) DeleteQueueRequest(input *DeleteQueueInput) (req *aws.Request, output *DeleteQueueOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteQueue,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteQueue == nil {
+		opDeleteQueue = &aws.Operation{
+			Name:       "DeleteQueue",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteQueueInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteQueue, input, output)
 	output = &DeleteQueueOutput{}
 	req.Data = output
 	return
@@ -325,21 +362,26 @@ func (c *SQS) DeleteQueue(input *DeleteQueueInput) (*DeleteQueueOutput, error) {
 	return out, err
 }
 
-const opGetQueueAttributes = "GetQueueAttributes"
+var opDeleteQueue *aws.Operation
 
 // GetQueueAttributesRequest generates a request for the GetQueueAttributes operation.
 func (c *SQS) GetQueueAttributesRequest(input *GetQueueAttributesInput) (req *aws.Request, output *GetQueueAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opGetQueueAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetQueueAttributes == nil {
+		opGetQueueAttributes = &aws.Operation{
+			Name:       "GetQueueAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetQueueAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetQueueAttributes, input, output)
 	output = &GetQueueAttributesOutput{}
 	req.Data = output
 	return
@@ -386,21 +428,26 @@ func (c *SQS) GetQueueAttributes(input *GetQueueAttributesInput) (*GetQueueAttri
 	return out, err
 }
 
-const opGetQueueURL = "GetQueueUrl"
+var opGetQueueAttributes *aws.Operation
 
 // GetQueueURLRequest generates a request for the GetQueueURL operation.
 func (c *SQS) GetQueueURLRequest(input *GetQueueURLInput) (req *aws.Request, output *GetQueueURLOutput) {
-	op := &aws.Operation{
-		Name:       opGetQueueURL,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetQueueURL == nil {
+		opGetQueueURL = &aws.Operation{
+			Name:       "GetQueueUrl",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetQueueURLInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetQueueURL, input, output)
 	output = &GetQueueURLOutput{}
 	req.Data = output
 	return
@@ -420,21 +467,26 @@ func (c *SQS) GetQueueURL(input *GetQueueURLInput) (*GetQueueURLOutput, error) {
 	return out, err
 }
 
-const opListDeadLetterSourceQueues = "ListDeadLetterSourceQueues"
+var opGetQueueURL *aws.Operation
 
 // ListDeadLetterSourceQueuesRequest generates a request for the ListDeadLetterSourceQueues operation.
 func (c *SQS) ListDeadLetterSourceQueuesRequest(input *ListDeadLetterSourceQueuesInput) (req *aws.Request, output *ListDeadLetterSourceQueuesOutput) {
-	op := &aws.Operation{
-		Name:       opListDeadLetterSourceQueues,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListDeadLetterSourceQueues == nil {
+		opListDeadLetterSourceQueues = &aws.Operation{
+			Name:       "ListDeadLetterSourceQueues",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListDeadLetterSourceQueuesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListDeadLetterSourceQueues, input, output)
 	output = &ListDeadLetterSourceQueuesOutput{}
 	req.Data = output
 	return
@@ -451,21 +503,26 @@ func (c *SQS) ListDeadLetterSourceQueues(input *ListDeadLetterSourceQueuesInput)
 	return out, err
 }
 
-const opListQueues = "ListQueues"
+var opListDeadLetterSourceQueues *aws.Operation
 
 // ListQueuesRequest generates a request for the ListQueues operation.
 func (c *SQS) ListQueuesRequest(input *ListQueuesInput) (req *aws.Request, output *ListQueuesOutput) {
-	op := &aws.Operation{
-		Name:       opListQueues,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListQueues == nil {
+		opListQueues = &aws.Operation{
+			Name:       "ListQueues",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListQueuesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListQueues, input, output)
 	output = &ListQueuesOutput{}
 	req.Data = output
 	return
@@ -480,21 +537,26 @@ func (c *SQS) ListQueues(input *ListQueuesInput) (*ListQueuesOutput, error) {
 	return out, err
 }
 
-const opPurgeQueue = "PurgeQueue"
+var opListQueues *aws.Operation
 
 // PurgeQueueRequest generates a request for the PurgeQueue operation.
 func (c *SQS) PurgeQueueRequest(input *PurgeQueueInput) (req *aws.Request, output *PurgeQueueOutput) {
-	op := &aws.Operation{
-		Name:       opPurgeQueue,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPurgeQueue == nil {
+		opPurgeQueue = &aws.Operation{
+			Name:       "PurgeQueue",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PurgeQueueInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPurgeQueue, input, output)
 	output = &PurgeQueueOutput{}
 	req.Data = output
 	return
@@ -515,21 +577,26 @@ func (c *SQS) PurgeQueue(input *PurgeQueueInput) (*PurgeQueueOutput, error) {
 	return out, err
 }
 
-const opReceiveMessage = "ReceiveMessage"
+var opPurgeQueue *aws.Operation
 
 // ReceiveMessageRequest generates a request for the ReceiveMessage operation.
 func (c *SQS) ReceiveMessageRequest(input *ReceiveMessageInput) (req *aws.Request, output *ReceiveMessageOutput) {
-	op := &aws.Operation{
-		Name:       opReceiveMessage,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReceiveMessage == nil {
+		opReceiveMessage = &aws.Operation{
+			Name:       "ReceiveMessage",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReceiveMessageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReceiveMessage, input, output)
 	output = &ReceiveMessageOutput{}
 	req.Data = output
 	return
@@ -583,21 +650,26 @@ func (c *SQS) ReceiveMessage(input *ReceiveMessageInput) (*ReceiveMessageOutput,
 	return out, err
 }
 
-const opRemovePermission = "RemovePermission"
+var opReceiveMessage *aws.Operation
 
 // RemovePermissionRequest generates a request for the RemovePermission operation.
 func (c *SQS) RemovePermissionRequest(input *RemovePermissionInput) (req *aws.Request, output *RemovePermissionOutput) {
-	op := &aws.Operation{
-		Name:       opRemovePermission,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemovePermission == nil {
+		opRemovePermission = &aws.Operation{
+			Name:       "RemovePermission",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemovePermissionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemovePermission, input, output)
 	output = &RemovePermissionOutput{}
 	req.Data = output
 	return
@@ -611,21 +683,26 @@ func (c *SQS) RemovePermission(input *RemovePermissionInput) (*RemovePermissionO
 	return out, err
 }
 
-const opSendMessage = "SendMessage"
+var opRemovePermission *aws.Operation
 
 // SendMessageRequest generates a request for the SendMessage operation.
 func (c *SQS) SendMessageRequest(input *SendMessageInput) (req *aws.Request, output *SendMessageOutput) {
-	op := &aws.Operation{
-		Name:       opSendMessage,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSendMessage == nil {
+		opSendMessage = &aws.Operation{
+			Name:       "SendMessage",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SendMessageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSendMessage, input, output)
 	output = &SendMessageOutput{}
 	req.Data = output
 	return
@@ -649,21 +726,26 @@ func (c *SQS) SendMessage(input *SendMessageInput) (*SendMessageOutput, error) {
 	return out, err
 }
 
-const opSendMessageBatch = "SendMessageBatch"
+var opSendMessage *aws.Operation
 
 // SendMessageBatchRequest generates a request for the SendMessageBatch operation.
 func (c *SQS) SendMessageBatchRequest(input *SendMessageBatchInput) (req *aws.Request, output *SendMessageBatchOutput) {
-	op := &aws.Operation{
-		Name:       opSendMessageBatch,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSendMessageBatch == nil {
+		opSendMessageBatch = &aws.Operation{
+			Name:       "SendMessageBatch",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SendMessageBatchInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSendMessageBatch, input, output)
 	output = &SendMessageBatchOutput{}
 	req.Data = output
 	return
@@ -701,21 +783,26 @@ func (c *SQS) SendMessageBatch(input *SendMessageBatchInput) (*SendMessageBatchO
 	return out, err
 }
 
-const opSetQueueAttributes = "SetQueueAttributes"
+var opSendMessageBatch *aws.Operation
 
 // SetQueueAttributesRequest generates a request for the SetQueueAttributes operation.
 func (c *SQS) SetQueueAttributesRequest(input *SetQueueAttributesInput) (req *aws.Request, output *SetQueueAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opSetQueueAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetQueueAttributes == nil {
+		opSetQueueAttributes = &aws.Operation{
+			Name:       "SetQueueAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetQueueAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetQueueAttributes, input, output)
 	output = &SetQueueAttributesOutput{}
 	req.Data = output
 	return
@@ -734,6 +821,8 @@ func (c *SQS) SetQueueAttributes(input *SetQueueAttributesInput) (*SetQueueAttri
 	err := req.Send()
 	return out, err
 }
+
+var opSetQueueAttributes *aws.Operation
 
 type AddPermissionInput struct {
 	// The AWS account number of the principal (http://docs.aws.amazon.com/general/latest/gr/glos-chap.html#P)

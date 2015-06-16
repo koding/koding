@@ -4,26 +4,32 @@
 package kms
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCreateAlias = "CreateAlias"
+var oprw sync.Mutex
 
 // CreateAliasRequest generates a request for the CreateAlias operation.
 func (c *KMS) CreateAliasRequest(input *CreateAliasInput) (req *aws.Request, output *CreateAliasOutput) {
-	op := &aws.Operation{
-		Name:       opCreateAlias,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateAlias == nil {
+		opCreateAlias = &aws.Operation{
+			Name:       "CreateAlias",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateAliasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateAlias, input, output)
 	output = &CreateAliasOutput{}
 	req.Data = output
 	return
@@ -47,21 +53,26 @@ func (c *KMS) CreateAlias(input *CreateAliasInput) (*CreateAliasOutput, error) {
 	return out, err
 }
 
-const opCreateGrant = "CreateGrant"
+var opCreateAlias *aws.Operation
 
 // CreateGrantRequest generates a request for the CreateGrant operation.
 func (c *KMS) CreateGrantRequest(input *CreateGrantInput) (req *aws.Request, output *CreateGrantOutput) {
-	op := &aws.Operation{
-		Name:       opCreateGrant,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateGrant == nil {
+		opCreateGrant = &aws.Operation{
+			Name:       "CreateGrant",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateGrantInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateGrant, input, output)
 	output = &CreateGrantOutput{}
 	req.Data = output
 	return
@@ -78,21 +89,26 @@ func (c *KMS) CreateGrant(input *CreateGrantInput) (*CreateGrantOutput, error) {
 	return out, err
 }
 
-const opCreateKey = "CreateKey"
+var opCreateGrant *aws.Operation
 
 // CreateKeyRequest generates a request for the CreateKey operation.
 func (c *KMS) CreateKeyRequest(input *CreateKeyInput) (req *aws.Request, output *CreateKeyOutput) {
-	op := &aws.Operation{
-		Name:       opCreateKey,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateKey == nil {
+		opCreateKey = &aws.Operation{
+			Name:       "CreateKey",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateKeyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateKey, input, output)
 	output = &CreateKeyOutput{}
 	req.Data = output
 	return
@@ -108,21 +124,26 @@ func (c *KMS) CreateKey(input *CreateKeyInput) (*CreateKeyOutput, error) {
 	return out, err
 }
 
-const opDecrypt = "Decrypt"
+var opCreateKey *aws.Operation
 
 // DecryptRequest generates a request for the Decrypt operation.
 func (c *KMS) DecryptRequest(input *DecryptInput) (req *aws.Request, output *DecryptOutput) {
-	op := &aws.Operation{
-		Name:       opDecrypt,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDecrypt == nil {
+		opDecrypt = &aws.Operation{
+			Name:       "Decrypt",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DecryptInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDecrypt, input, output)
 	output = &DecryptOutput{}
 	req.Data = output
 	return
@@ -146,21 +167,26 @@ func (c *KMS) Decrypt(input *DecryptInput) (*DecryptOutput, error) {
 	return out, err
 }
 
-const opDeleteAlias = "DeleteAlias"
+var opDecrypt *aws.Operation
 
 // DeleteAliasRequest generates a request for the DeleteAlias operation.
 func (c *KMS) DeleteAliasRequest(input *DeleteAliasInput) (req *aws.Request, output *DeleteAliasOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteAlias,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteAlias == nil {
+		opDeleteAlias = &aws.Operation{
+			Name:       "DeleteAlias",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteAliasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteAlias, input, output)
 	output = &DeleteAliasOutput{}
 	req.Data = output
 	return
@@ -174,21 +200,26 @@ func (c *KMS) DeleteAlias(input *DeleteAliasInput) (*DeleteAliasOutput, error) {
 	return out, err
 }
 
-const opDescribeKey = "DescribeKey"
+var opDeleteAlias *aws.Operation
 
 // DescribeKeyRequest generates a request for the DescribeKey operation.
 func (c *KMS) DescribeKeyRequest(input *DescribeKeyInput) (req *aws.Request, output *DescribeKeyOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeKey,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeKey == nil {
+		opDescribeKey = &aws.Operation{
+			Name:       "DescribeKey",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeKeyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeKey, input, output)
 	output = &DescribeKeyOutput{}
 	req.Data = output
 	return
@@ -201,21 +232,26 @@ func (c *KMS) DescribeKey(input *DescribeKeyInput) (*DescribeKeyOutput, error) {
 	return out, err
 }
 
-const opDisableKey = "DisableKey"
+var opDescribeKey *aws.Operation
 
 // DisableKeyRequest generates a request for the DisableKey operation.
 func (c *KMS) DisableKeyRequest(input *DisableKeyInput) (req *aws.Request, output *DisableKeyOutput) {
-	op := &aws.Operation{
-		Name:       opDisableKey,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisableKey == nil {
+		opDisableKey = &aws.Operation{
+			Name:       "DisableKey",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisableKeyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisableKey, input, output)
 	output = &DisableKeyOutput{}
 	req.Data = output
 	return
@@ -228,21 +264,26 @@ func (c *KMS) DisableKey(input *DisableKeyInput) (*DisableKeyOutput, error) {
 	return out, err
 }
 
-const opDisableKeyRotation = "DisableKeyRotation"
+var opDisableKey *aws.Operation
 
 // DisableKeyRotationRequest generates a request for the DisableKeyRotation operation.
 func (c *KMS) DisableKeyRotationRequest(input *DisableKeyRotationInput) (req *aws.Request, output *DisableKeyRotationOutput) {
-	op := &aws.Operation{
-		Name:       opDisableKeyRotation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisableKeyRotation == nil {
+		opDisableKeyRotation = &aws.Operation{
+			Name:       "DisableKeyRotation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisableKeyRotationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisableKeyRotation, input, output)
 	output = &DisableKeyRotationOutput{}
 	req.Data = output
 	return
@@ -255,21 +296,26 @@ func (c *KMS) DisableKeyRotation(input *DisableKeyRotationInput) (*DisableKeyRot
 	return out, err
 }
 
-const opEnableKey = "EnableKey"
+var opDisableKeyRotation *aws.Operation
 
 // EnableKeyRequest generates a request for the EnableKey operation.
 func (c *KMS) EnableKeyRequest(input *EnableKeyInput) (req *aws.Request, output *EnableKeyOutput) {
-	op := &aws.Operation{
-		Name:       opEnableKey,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableKey == nil {
+		opEnableKey = &aws.Operation{
+			Name:       "EnableKey",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableKeyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableKey, input, output)
 	output = &EnableKeyOutput{}
 	req.Data = output
 	return
@@ -283,21 +329,26 @@ func (c *KMS) EnableKey(input *EnableKeyInput) (*EnableKeyOutput, error) {
 	return out, err
 }
 
-const opEnableKeyRotation = "EnableKeyRotation"
+var opEnableKey *aws.Operation
 
 // EnableKeyRotationRequest generates a request for the EnableKeyRotation operation.
 func (c *KMS) EnableKeyRotationRequest(input *EnableKeyRotationInput) (req *aws.Request, output *EnableKeyRotationOutput) {
-	op := &aws.Operation{
-		Name:       opEnableKeyRotation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableKeyRotation == nil {
+		opEnableKeyRotation = &aws.Operation{
+			Name:       "EnableKeyRotation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableKeyRotationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableKeyRotation, input, output)
 	output = &EnableKeyRotationOutput{}
 	req.Data = output
 	return
@@ -310,21 +361,26 @@ func (c *KMS) EnableKeyRotation(input *EnableKeyRotationInput) (*EnableKeyRotati
 	return out, err
 }
 
-const opEncrypt = "Encrypt"
+var opEnableKeyRotation *aws.Operation
 
 // EncryptRequest generates a request for the Encrypt operation.
 func (c *KMS) EncryptRequest(input *EncryptInput) (req *aws.Request, output *EncryptOutput) {
-	op := &aws.Operation{
-		Name:       opEncrypt,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEncrypt == nil {
+		opEncrypt = &aws.Operation{
+			Name:       "Encrypt",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EncryptInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEncrypt, input, output)
 	output = &EncryptOutput{}
 	req.Data = output
 	return
@@ -353,21 +409,26 @@ func (c *KMS) Encrypt(input *EncryptInput) (*EncryptOutput, error) {
 	return out, err
 }
 
-const opGenerateDataKey = "GenerateDataKey"
+var opEncrypt *aws.Operation
 
 // GenerateDataKeyRequest generates a request for the GenerateDataKey operation.
 func (c *KMS) GenerateDataKeyRequest(input *GenerateDataKeyInput) (req *aws.Request, output *GenerateDataKeyOutput) {
-	op := &aws.Operation{
-		Name:       opGenerateDataKey,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGenerateDataKey == nil {
+		opGenerateDataKey = &aws.Operation{
+			Name:       "GenerateDataKey",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GenerateDataKeyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGenerateDataKey, input, output)
 	output = &GenerateDataKeyOutput{}
 	req.Data = output
 	return
@@ -409,21 +470,26 @@ func (c *KMS) GenerateDataKey(input *GenerateDataKeyInput) (*GenerateDataKeyOutp
 	return out, err
 }
 
-const opGenerateDataKeyWithoutPlaintext = "GenerateDataKeyWithoutPlaintext"
+var opGenerateDataKey *aws.Operation
 
 // GenerateDataKeyWithoutPlaintextRequest generates a request for the GenerateDataKeyWithoutPlaintext operation.
 func (c *KMS) GenerateDataKeyWithoutPlaintextRequest(input *GenerateDataKeyWithoutPlaintextInput) (req *aws.Request, output *GenerateDataKeyWithoutPlaintextOutput) {
-	op := &aws.Operation{
-		Name:       opGenerateDataKeyWithoutPlaintext,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGenerateDataKeyWithoutPlaintext == nil {
+		opGenerateDataKeyWithoutPlaintext = &aws.Operation{
+			Name:       "GenerateDataKeyWithoutPlaintext",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GenerateDataKeyWithoutPlaintextInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGenerateDataKeyWithoutPlaintext, input, output)
 	output = &GenerateDataKeyWithoutPlaintextOutput{}
 	req.Data = output
 	return
@@ -440,21 +506,26 @@ func (c *KMS) GenerateDataKeyWithoutPlaintext(input *GenerateDataKeyWithoutPlain
 	return out, err
 }
 
-const opGenerateRandom = "GenerateRandom"
+var opGenerateDataKeyWithoutPlaintext *aws.Operation
 
 // GenerateRandomRequest generates a request for the GenerateRandom operation.
 func (c *KMS) GenerateRandomRequest(input *GenerateRandomInput) (req *aws.Request, output *GenerateRandomOutput) {
-	op := &aws.Operation{
-		Name:       opGenerateRandom,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGenerateRandom == nil {
+		opGenerateRandom = &aws.Operation{
+			Name:       "GenerateRandom",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GenerateRandomInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGenerateRandom, input, output)
 	output = &GenerateRandomOutput{}
 	req.Data = output
 	return
@@ -467,21 +538,26 @@ func (c *KMS) GenerateRandom(input *GenerateRandomInput) (*GenerateRandomOutput,
 	return out, err
 }
 
-const opGetKeyPolicy = "GetKeyPolicy"
+var opGenerateRandom *aws.Operation
 
 // GetKeyPolicyRequest generates a request for the GetKeyPolicy operation.
 func (c *KMS) GetKeyPolicyRequest(input *GetKeyPolicyInput) (req *aws.Request, output *GetKeyPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opGetKeyPolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetKeyPolicy == nil {
+		opGetKeyPolicy = &aws.Operation{
+			Name:       "GetKeyPolicy",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetKeyPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetKeyPolicy, input, output)
 	output = &GetKeyPolicyOutput{}
 	req.Data = output
 	return
@@ -494,21 +570,26 @@ func (c *KMS) GetKeyPolicy(input *GetKeyPolicyInput) (*GetKeyPolicyOutput, error
 	return out, err
 }
 
-const opGetKeyRotationStatus = "GetKeyRotationStatus"
+var opGetKeyPolicy *aws.Operation
 
 // GetKeyRotationStatusRequest generates a request for the GetKeyRotationStatus operation.
 func (c *KMS) GetKeyRotationStatusRequest(input *GetKeyRotationStatusInput) (req *aws.Request, output *GetKeyRotationStatusOutput) {
-	op := &aws.Operation{
-		Name:       opGetKeyRotationStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetKeyRotationStatus == nil {
+		opGetKeyRotationStatus = &aws.Operation{
+			Name:       "GetKeyRotationStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetKeyRotationStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetKeyRotationStatus, input, output)
 	output = &GetKeyRotationStatusOutput{}
 	req.Data = output
 	return
@@ -522,21 +603,26 @@ func (c *KMS) GetKeyRotationStatus(input *GetKeyRotationStatusInput) (*GetKeyRot
 	return out, err
 }
 
-const opListAliases = "ListAliases"
+var opGetKeyRotationStatus *aws.Operation
 
 // ListAliasesRequest generates a request for the ListAliases operation.
 func (c *KMS) ListAliasesRequest(input *ListAliasesInput) (req *aws.Request, output *ListAliasesOutput) {
-	op := &aws.Operation{
-		Name:       opListAliases,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListAliases == nil {
+		opListAliases = &aws.Operation{
+			Name:       "ListAliases",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListAliasesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListAliases, input, output)
 	output = &ListAliasesOutput{}
 	req.Data = output
 	return
@@ -549,21 +635,26 @@ func (c *KMS) ListAliases(input *ListAliasesInput) (*ListAliasesOutput, error) {
 	return out, err
 }
 
-const opListGrants = "ListGrants"
+var opListAliases *aws.Operation
 
 // ListGrantsRequest generates a request for the ListGrants operation.
 func (c *KMS) ListGrantsRequest(input *ListGrantsInput) (req *aws.Request, output *ListGrantsOutput) {
-	op := &aws.Operation{
-		Name:       opListGrants,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListGrants == nil {
+		opListGrants = &aws.Operation{
+			Name:       "ListGrants",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListGrantsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListGrants, input, output)
 	output = &ListGrantsOutput{}
 	req.Data = output
 	return
@@ -576,21 +667,26 @@ func (c *KMS) ListGrants(input *ListGrantsInput) (*ListGrantsOutput, error) {
 	return out, err
 }
 
-const opListKeyPolicies = "ListKeyPolicies"
+var opListGrants *aws.Operation
 
 // ListKeyPoliciesRequest generates a request for the ListKeyPolicies operation.
 func (c *KMS) ListKeyPoliciesRequest(input *ListKeyPoliciesInput) (req *aws.Request, output *ListKeyPoliciesOutput) {
-	op := &aws.Operation{
-		Name:       opListKeyPolicies,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListKeyPolicies == nil {
+		opListKeyPolicies = &aws.Operation{
+			Name:       "ListKeyPolicies",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListKeyPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListKeyPolicies, input, output)
 	output = &ListKeyPoliciesOutput{}
 	req.Data = output
 	return
@@ -603,21 +699,26 @@ func (c *KMS) ListKeyPolicies(input *ListKeyPoliciesInput) (*ListKeyPoliciesOutp
 	return out, err
 }
 
-const opListKeys = "ListKeys"
+var opListKeyPolicies *aws.Operation
 
 // ListKeysRequest generates a request for the ListKeys operation.
 func (c *KMS) ListKeysRequest(input *ListKeysInput) (req *aws.Request, output *ListKeysOutput) {
-	op := &aws.Operation{
-		Name:       opListKeys,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListKeys == nil {
+		opListKeys = &aws.Operation{
+			Name:       "ListKeys",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListKeysInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListKeys, input, output)
 	output = &ListKeysOutput{}
 	req.Data = output
 	return
@@ -630,21 +731,26 @@ func (c *KMS) ListKeys(input *ListKeysInput) (*ListKeysOutput, error) {
 	return out, err
 }
 
-const opPutKeyPolicy = "PutKeyPolicy"
+var opListKeys *aws.Operation
 
 // PutKeyPolicyRequest generates a request for the PutKeyPolicy operation.
 func (c *KMS) PutKeyPolicyRequest(input *PutKeyPolicyInput) (req *aws.Request, output *PutKeyPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opPutKeyPolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutKeyPolicy == nil {
+		opPutKeyPolicy = &aws.Operation{
+			Name:       "PutKeyPolicy",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutKeyPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutKeyPolicy, input, output)
 	output = &PutKeyPolicyOutput{}
 	req.Data = output
 	return
@@ -657,21 +763,26 @@ func (c *KMS) PutKeyPolicy(input *PutKeyPolicyInput) (*PutKeyPolicyOutput, error
 	return out, err
 }
 
-const opReEncrypt = "ReEncrypt"
+var opPutKeyPolicy *aws.Operation
 
 // ReEncryptRequest generates a request for the ReEncrypt operation.
 func (c *KMS) ReEncryptRequest(input *ReEncryptInput) (req *aws.Request, output *ReEncryptOutput) {
-	op := &aws.Operation{
-		Name:       opReEncrypt,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReEncrypt == nil {
+		opReEncrypt = &aws.Operation{
+			Name:       "ReEncrypt",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReEncryptInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReEncrypt, input, output)
 	output = &ReEncryptOutput{}
 	req.Data = output
 	return
@@ -695,21 +806,26 @@ func (c *KMS) ReEncrypt(input *ReEncryptInput) (*ReEncryptOutput, error) {
 	return out, err
 }
 
-const opRetireGrant = "RetireGrant"
+var opReEncrypt *aws.Operation
 
 // RetireGrantRequest generates a request for the RetireGrant operation.
 func (c *KMS) RetireGrantRequest(input *RetireGrantInput) (req *aws.Request, output *RetireGrantOutput) {
-	op := &aws.Operation{
-		Name:       opRetireGrant,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRetireGrant == nil {
+		opRetireGrant = &aws.Operation{
+			Name:       "RetireGrant",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RetireGrantInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRetireGrant, input, output)
 	output = &RetireGrantOutput{}
 	req.Data = output
 	return
@@ -730,21 +846,26 @@ func (c *KMS) RetireGrant(input *RetireGrantInput) (*RetireGrantOutput, error) {
 	return out, err
 }
 
-const opRevokeGrant = "RevokeGrant"
+var opRetireGrant *aws.Operation
 
 // RevokeGrantRequest generates a request for the RevokeGrant operation.
 func (c *KMS) RevokeGrantRequest(input *RevokeGrantInput) (req *aws.Request, output *RevokeGrantOutput) {
-	op := &aws.Operation{
-		Name:       opRevokeGrant,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRevokeGrant == nil {
+		opRevokeGrant = &aws.Operation{
+			Name:       "RevokeGrant",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RevokeGrantInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRevokeGrant, input, output)
 	output = &RevokeGrantOutput{}
 	req.Data = output
 	return
@@ -758,21 +879,26 @@ func (c *KMS) RevokeGrant(input *RevokeGrantInput) (*RevokeGrantOutput, error) {
 	return out, err
 }
 
-const opUpdateAlias = "UpdateAlias"
+var opRevokeGrant *aws.Operation
 
 // UpdateAliasRequest generates a request for the UpdateAlias operation.
 func (c *KMS) UpdateAliasRequest(input *UpdateAliasInput) (req *aws.Request, output *UpdateAliasOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateAlias,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateAlias == nil {
+		opUpdateAlias = &aws.Operation{
+			Name:       "UpdateAlias",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateAliasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateAlias, input, output)
 	output = &UpdateAliasOutput{}
 	req.Data = output
 	return
@@ -797,21 +923,26 @@ func (c *KMS) UpdateAlias(input *UpdateAliasInput) (*UpdateAliasOutput, error) {
 	return out, err
 }
 
-const opUpdateKeyDescription = "UpdateKeyDescription"
+var opUpdateAlias *aws.Operation
 
 // UpdateKeyDescriptionRequest generates a request for the UpdateKeyDescription operation.
 func (c *KMS) UpdateKeyDescriptionRequest(input *UpdateKeyDescriptionInput) (req *aws.Request, output *UpdateKeyDescriptionOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateKeyDescription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateKeyDescription == nil {
+		opUpdateKeyDescription = &aws.Operation{
+			Name:       "UpdateKeyDescription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateKeyDescriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateKeyDescription, input, output)
 	output = &UpdateKeyDescriptionOutput{}
 	req.Data = output
 	return
@@ -823,6 +954,8 @@ func (c *KMS) UpdateKeyDescription(input *UpdateKeyDescriptionInput) (*UpdateKey
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateKeyDescription *aws.Operation
 
 // Contains information about an alias.
 type AliasListEntry struct {

@@ -4,24 +4,31 @@
 package opsworks
 
 import (
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAssignInstance = "AssignInstance"
+var oprw sync.Mutex
 
 // AssignInstanceRequest generates a request for the AssignInstance operation.
 func (c *OpsWorks) AssignInstanceRequest(input *AssignInstanceInput) (req *aws.Request, output *AssignInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opAssignInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAssignInstance == nil {
+		opAssignInstance = &aws.Operation{
+			Name:       "AssignInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AssignInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAssignInstance, input, output)
 	output = &AssignInstanceOutput{}
 	req.Data = output
 	return
@@ -41,21 +48,26 @@ func (c *OpsWorks) AssignInstance(input *AssignInstanceInput) (*AssignInstanceOu
 	return out, err
 }
 
-const opAssignVolume = "AssignVolume"
+var opAssignInstance *aws.Operation
 
 // AssignVolumeRequest generates a request for the AssignVolume operation.
 func (c *OpsWorks) AssignVolumeRequest(input *AssignVolumeInput) (req *aws.Request, output *AssignVolumeOutput) {
-	op := &aws.Operation{
-		Name:       opAssignVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAssignVolume == nil {
+		opAssignVolume = &aws.Operation{
+			Name:       "AssignVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AssignVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAssignVolume, input, output)
 	output = &AssignVolumeOutput{}
 	req.Data = output
 	return
@@ -77,21 +89,26 @@ func (c *OpsWorks) AssignVolume(input *AssignVolumeInput) (*AssignVolumeOutput, 
 	return out, err
 }
 
-const opAssociateElasticIP = "AssociateElasticIp"
+var opAssignVolume *aws.Operation
 
 // AssociateElasticIPRequest generates a request for the AssociateElasticIP operation.
 func (c *OpsWorks) AssociateElasticIPRequest(input *AssociateElasticIPInput) (req *aws.Request, output *AssociateElasticIPOutput) {
-	op := &aws.Operation{
-		Name:       opAssociateElasticIP,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAssociateElasticIP == nil {
+		opAssociateElasticIP = &aws.Operation{
+			Name:       "AssociateElasticIp",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AssociateElasticIPInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAssociateElasticIP, input, output)
 	output = &AssociateElasticIPOutput{}
 	req.Data = output
 	return
@@ -111,21 +128,26 @@ func (c *OpsWorks) AssociateElasticIP(input *AssociateElasticIPInput) (*Associat
 	return out, err
 }
 
-const opAttachElasticLoadBalancer = "AttachElasticLoadBalancer"
+var opAssociateElasticIP *aws.Operation
 
 // AttachElasticLoadBalancerRequest generates a request for the AttachElasticLoadBalancer operation.
 func (c *OpsWorks) AttachElasticLoadBalancerRequest(input *AttachElasticLoadBalancerInput) (req *aws.Request, output *AttachElasticLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opAttachElasticLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAttachElasticLoadBalancer == nil {
+		opAttachElasticLoadBalancer = &aws.Operation{
+			Name:       "AttachElasticLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AttachElasticLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAttachElasticLoadBalancer, input, output)
 	output = &AttachElasticLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -148,21 +170,26 @@ func (c *OpsWorks) AttachElasticLoadBalancer(input *AttachElasticLoadBalancerInp
 	return out, err
 }
 
-const opCloneStack = "CloneStack"
+var opAttachElasticLoadBalancer *aws.Operation
 
 // CloneStackRequest generates a request for the CloneStack operation.
 func (c *OpsWorks) CloneStackRequest(input *CloneStackInput) (req *aws.Request, output *CloneStackOutput) {
-	op := &aws.Operation{
-		Name:       opCloneStack,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCloneStack == nil {
+		opCloneStack = &aws.Operation{
+			Name:       "CloneStack",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CloneStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCloneStack, input, output)
 	output = &CloneStackOutput{}
 	req.Data = output
 	return
@@ -180,21 +207,26 @@ func (c *OpsWorks) CloneStack(input *CloneStackInput) (*CloneStackOutput, error)
 	return out, err
 }
 
-const opCreateApp = "CreateApp"
+var opCloneStack *aws.Operation
 
 // CreateAppRequest generates a request for the CreateApp operation.
 func (c *OpsWorks) CreateAppRequest(input *CreateAppInput) (req *aws.Request, output *CreateAppOutput) {
-	op := &aws.Operation{
-		Name:       opCreateApp,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateApp == nil {
+		opCreateApp = &aws.Operation{
+			Name:       "CreateApp",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateAppInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateApp, input, output)
 	output = &CreateAppOutput{}
 	req.Data = output
 	return
@@ -213,21 +245,26 @@ func (c *OpsWorks) CreateApp(input *CreateAppInput) (*CreateAppOutput, error) {
 	return out, err
 }
 
-const opCreateDeployment = "CreateDeployment"
+var opCreateApp *aws.Operation
 
 // CreateDeploymentRequest generates a request for the CreateDeployment operation.
 func (c *OpsWorks) CreateDeploymentRequest(input *CreateDeploymentInput) (req *aws.Request, output *CreateDeploymentOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDeployment,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDeployment == nil {
+		opCreateDeployment = &aws.Operation{
+			Name:       "CreateDeployment",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDeploymentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDeployment, input, output)
 	output = &CreateDeploymentOutput{}
 	req.Data = output
 	return
@@ -247,21 +284,26 @@ func (c *OpsWorks) CreateDeployment(input *CreateDeploymentInput) (*CreateDeploy
 	return out, err
 }
 
-const opCreateInstance = "CreateInstance"
+var opCreateDeployment *aws.Operation
 
 // CreateInstanceRequest generates a request for the CreateInstance operation.
 func (c *OpsWorks) CreateInstanceRequest(input *CreateInstanceInput) (req *aws.Request, output *CreateInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opCreateInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateInstance == nil {
+		opCreateInstance = &aws.Operation{
+			Name:       "CreateInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateInstance, input, output)
 	output = &CreateInstanceOutput{}
 	req.Data = output
 	return
@@ -280,21 +322,26 @@ func (c *OpsWorks) CreateInstance(input *CreateInstanceInput) (*CreateInstanceOu
 	return out, err
 }
 
-const opCreateLayer = "CreateLayer"
+var opCreateInstance *aws.Operation
 
 // CreateLayerRequest generates a request for the CreateLayer operation.
 func (c *OpsWorks) CreateLayerRequest(input *CreateLayerInput) (req *aws.Request, output *CreateLayerOutput) {
-	op := &aws.Operation{
-		Name:       opCreateLayer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateLayer == nil {
+		opCreateLayer = &aws.Operation{
+			Name:       "CreateLayer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateLayerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateLayer, input, output)
 	output = &CreateLayerOutput{}
 	req.Data = output
 	return
@@ -319,21 +366,26 @@ func (c *OpsWorks) CreateLayer(input *CreateLayerInput) (*CreateLayerOutput, err
 	return out, err
 }
 
-const opCreateStack = "CreateStack"
+var opCreateLayer *aws.Operation
 
 // CreateStackRequest generates a request for the CreateStack operation.
 func (c *OpsWorks) CreateStackRequest(input *CreateStackInput) (req *aws.Request, output *CreateStackOutput) {
-	op := &aws.Operation{
-		Name:       opCreateStack,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateStack == nil {
+		opCreateStack = &aws.Operation{
+			Name:       "CreateStack",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateStack, input, output)
 	output = &CreateStackOutput{}
 	req.Data = output
 	return
@@ -350,21 +402,26 @@ func (c *OpsWorks) CreateStack(input *CreateStackInput) (*CreateStackOutput, err
 	return out, err
 }
 
-const opCreateUserProfile = "CreateUserProfile"
+var opCreateStack *aws.Operation
 
 // CreateUserProfileRequest generates a request for the CreateUserProfile operation.
 func (c *OpsWorks) CreateUserProfileRequest(input *CreateUserProfileInput) (req *aws.Request, output *CreateUserProfileOutput) {
-	op := &aws.Operation{
-		Name:       opCreateUserProfile,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateUserProfile == nil {
+		opCreateUserProfile = &aws.Operation{
+			Name:       "CreateUserProfile",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateUserProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateUserProfile, input, output)
 	output = &CreateUserProfileOutput{}
 	req.Data = output
 	return
@@ -381,21 +438,26 @@ func (c *OpsWorks) CreateUserProfile(input *CreateUserProfileInput) (*CreateUser
 	return out, err
 }
 
-const opDeleteApp = "DeleteApp"
+var opCreateUserProfile *aws.Operation
 
 // DeleteAppRequest generates a request for the DeleteApp operation.
 func (c *OpsWorks) DeleteAppRequest(input *DeleteAppInput) (req *aws.Request, output *DeleteAppOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteApp,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteApp == nil {
+		opDeleteApp = &aws.Operation{
+			Name:       "DeleteApp",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteAppInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteApp, input, output)
 	output = &DeleteAppOutput{}
 	req.Data = output
 	return
@@ -413,21 +475,26 @@ func (c *OpsWorks) DeleteApp(input *DeleteAppInput) (*DeleteAppOutput, error) {
 	return out, err
 }
 
-const opDeleteInstance = "DeleteInstance"
+var opDeleteApp *aws.Operation
 
 // DeleteInstanceRequest generates a request for the DeleteInstance operation.
 func (c *OpsWorks) DeleteInstanceRequest(input *DeleteInstanceInput) (req *aws.Request, output *DeleteInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteInstance == nil {
+		opDeleteInstance = &aws.Operation{
+			Name:       "DeleteInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteInstance, input, output)
 	output = &DeleteInstanceOutput{}
 	req.Data = output
 	return
@@ -448,21 +515,26 @@ func (c *OpsWorks) DeleteInstance(input *DeleteInstanceInput) (*DeleteInstanceOu
 	return out, err
 }
 
-const opDeleteLayer = "DeleteLayer"
+var opDeleteInstance *aws.Operation
 
 // DeleteLayerRequest generates a request for the DeleteLayer operation.
 func (c *OpsWorks) DeleteLayerRequest(input *DeleteLayerInput) (req *aws.Request, output *DeleteLayerOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteLayer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteLayer == nil {
+		opDeleteLayer = &aws.Operation{
+			Name:       "DeleteLayer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteLayerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteLayer, input, output)
 	output = &DeleteLayerOutput{}
 	req.Data = output
 	return
@@ -482,21 +554,26 @@ func (c *OpsWorks) DeleteLayer(input *DeleteLayerInput) (*DeleteLayerOutput, err
 	return out, err
 }
 
-const opDeleteStack = "DeleteStack"
+var opDeleteLayer *aws.Operation
 
 // DeleteStackRequest generates a request for the DeleteStack operation.
 func (c *OpsWorks) DeleteStackRequest(input *DeleteStackInput) (req *aws.Request, output *DeleteStackOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteStack,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteStack == nil {
+		opDeleteStack = &aws.Operation{
+			Name:       "DeleteStack",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteStack, input, output)
 	output = &DeleteStackOutput{}
 	req.Data = output
 	return
@@ -516,21 +593,26 @@ func (c *OpsWorks) DeleteStack(input *DeleteStackInput) (*DeleteStackOutput, err
 	return out, err
 }
 
-const opDeleteUserProfile = "DeleteUserProfile"
+var opDeleteStack *aws.Operation
 
 // DeleteUserProfileRequest generates a request for the DeleteUserProfile operation.
 func (c *OpsWorks) DeleteUserProfileRequest(input *DeleteUserProfileInput) (req *aws.Request, output *DeleteUserProfileOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteUserProfile,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteUserProfile == nil {
+		opDeleteUserProfile = &aws.Operation{
+			Name:       "DeleteUserProfile",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteUserProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteUserProfile, input, output)
 	output = &DeleteUserProfileOutput{}
 	req.Data = output
 	return
@@ -547,21 +629,26 @@ func (c *OpsWorks) DeleteUserProfile(input *DeleteUserProfileInput) (*DeleteUser
 	return out, err
 }
 
-const opDeregisterElasticIP = "DeregisterElasticIp"
+var opDeleteUserProfile *aws.Operation
 
 // DeregisterElasticIPRequest generates a request for the DeregisterElasticIP operation.
 func (c *OpsWorks) DeregisterElasticIPRequest(input *DeregisterElasticIPInput) (req *aws.Request, output *DeregisterElasticIPOutput) {
-	op := &aws.Operation{
-		Name:       opDeregisterElasticIP,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeregisterElasticIP == nil {
+		opDeregisterElasticIP = &aws.Operation{
+			Name:       "DeregisterElasticIp",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeregisterElasticIPInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeregisterElasticIP, input, output)
 	output = &DeregisterElasticIPOutput{}
 	req.Data = output
 	return
@@ -580,21 +667,26 @@ func (c *OpsWorks) DeregisterElasticIP(input *DeregisterElasticIPInput) (*Deregi
 	return out, err
 }
 
-const opDeregisterInstance = "DeregisterInstance"
+var opDeregisterElasticIP *aws.Operation
 
 // DeregisterInstanceRequest generates a request for the DeregisterInstance operation.
 func (c *OpsWorks) DeregisterInstanceRequest(input *DeregisterInstanceInput) (req *aws.Request, output *DeregisterInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opDeregisterInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeregisterInstance == nil {
+		opDeregisterInstance = &aws.Operation{
+			Name:       "DeregisterInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeregisterInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeregisterInstance, input, output)
 	output = &DeregisterInstanceOutput{}
 	req.Data = output
 	return
@@ -614,21 +706,26 @@ func (c *OpsWorks) DeregisterInstance(input *DeregisterInstanceInput) (*Deregist
 	return out, err
 }
 
-const opDeregisterRDSDBInstance = "DeregisterRdsDbInstance"
+var opDeregisterInstance *aws.Operation
 
 // DeregisterRDSDBInstanceRequest generates a request for the DeregisterRDSDBInstance operation.
 func (c *OpsWorks) DeregisterRDSDBInstanceRequest(input *DeregisterRDSDBInstanceInput) (req *aws.Request, output *DeregisterRDSDBInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opDeregisterRDSDBInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeregisterRDSDBInstance == nil {
+		opDeregisterRDSDBInstance = &aws.Operation{
+			Name:       "DeregisterRdsDbInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeregisterRDSDBInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeregisterRDSDBInstance, input, output)
 	output = &DeregisterRDSDBInstanceOutput{}
 	req.Data = output
 	return
@@ -646,21 +743,26 @@ func (c *OpsWorks) DeregisterRDSDBInstance(input *DeregisterRDSDBInstanceInput) 
 	return out, err
 }
 
-const opDeregisterVolume = "DeregisterVolume"
+var opDeregisterRDSDBInstance *aws.Operation
 
 // DeregisterVolumeRequest generates a request for the DeregisterVolume operation.
 func (c *OpsWorks) DeregisterVolumeRequest(input *DeregisterVolumeInput) (req *aws.Request, output *DeregisterVolumeOutput) {
-	op := &aws.Operation{
-		Name:       opDeregisterVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeregisterVolume == nil {
+		opDeregisterVolume = &aws.Operation{
+			Name:       "DeregisterVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeregisterVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeregisterVolume, input, output)
 	output = &DeregisterVolumeOutput{}
 	req.Data = output
 	return
@@ -679,21 +781,26 @@ func (c *OpsWorks) DeregisterVolume(input *DeregisterVolumeInput) (*DeregisterVo
 	return out, err
 }
 
-const opDescribeApps = "DescribeApps"
+var opDeregisterVolume *aws.Operation
 
 // DescribeAppsRequest generates a request for the DescribeApps operation.
 func (c *OpsWorks) DescribeAppsRequest(input *DescribeAppsInput) (req *aws.Request, output *DescribeAppsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeApps,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeApps == nil {
+		opDescribeApps = &aws.Operation{
+			Name:       "DescribeApps",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAppsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeApps, input, output)
 	output = &DescribeAppsOutput{}
 	req.Data = output
 	return
@@ -713,21 +820,26 @@ func (c *OpsWorks) DescribeApps(input *DescribeAppsInput) (*DescribeAppsOutput, 
 	return out, err
 }
 
-const opDescribeCommands = "DescribeCommands"
+var opDescribeApps *aws.Operation
 
 // DescribeCommandsRequest generates a request for the DescribeCommands operation.
 func (c *OpsWorks) DescribeCommandsRequest(input *DescribeCommandsInput) (req *aws.Request, output *DescribeCommandsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCommands,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCommands == nil {
+		opDescribeCommands = &aws.Operation{
+			Name:       "DescribeCommands",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCommandsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCommands, input, output)
 	output = &DescribeCommandsOutput{}
 	req.Data = output
 	return
@@ -747,21 +859,26 @@ func (c *OpsWorks) DescribeCommands(input *DescribeCommandsInput) (*DescribeComm
 	return out, err
 }
 
-const opDescribeDeployments = "DescribeDeployments"
+var opDescribeCommands *aws.Operation
 
 // DescribeDeploymentsRequest generates a request for the DescribeDeployments operation.
 func (c *OpsWorks) DescribeDeploymentsRequest(input *DescribeDeploymentsInput) (req *aws.Request, output *DescribeDeploymentsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDeployments,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDeployments == nil {
+		opDescribeDeployments = &aws.Operation{
+			Name:       "DescribeDeployments",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDeploymentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDeployments, input, output)
 	output = &DescribeDeploymentsOutput{}
 	req.Data = output
 	return
@@ -781,21 +898,26 @@ func (c *OpsWorks) DescribeDeployments(input *DescribeDeploymentsInput) (*Descri
 	return out, err
 }
 
-const opDescribeElasticIPs = "DescribeElasticIps"
+var opDescribeDeployments *aws.Operation
 
 // DescribeElasticIPsRequest generates a request for the DescribeElasticIPs operation.
 func (c *OpsWorks) DescribeElasticIPsRequest(input *DescribeElasticIPsInput) (req *aws.Request, output *DescribeElasticIPsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeElasticIPs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeElasticIPs == nil {
+		opDescribeElasticIPs = &aws.Operation{
+			Name:       "DescribeElasticIps",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeElasticIPsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeElasticIPs, input, output)
 	output = &DescribeElasticIPsOutput{}
 	req.Data = output
 	return
@@ -815,21 +937,26 @@ func (c *OpsWorks) DescribeElasticIPs(input *DescribeElasticIPsInput) (*Describe
 	return out, err
 }
 
-const opDescribeElasticLoadBalancers = "DescribeElasticLoadBalancers"
+var opDescribeElasticIPs *aws.Operation
 
 // DescribeElasticLoadBalancersRequest generates a request for the DescribeElasticLoadBalancers operation.
 func (c *OpsWorks) DescribeElasticLoadBalancersRequest(input *DescribeElasticLoadBalancersInput) (req *aws.Request, output *DescribeElasticLoadBalancersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeElasticLoadBalancers,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeElasticLoadBalancers == nil {
+		opDescribeElasticLoadBalancers = &aws.Operation{
+			Name:       "DescribeElasticLoadBalancers",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeElasticLoadBalancersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeElasticLoadBalancers, input, output)
 	output = &DescribeElasticLoadBalancersOutput{}
 	req.Data = output
 	return
@@ -849,21 +976,26 @@ func (c *OpsWorks) DescribeElasticLoadBalancers(input *DescribeElasticLoadBalanc
 	return out, err
 }
 
-const opDescribeInstances = "DescribeInstances"
+var opDescribeElasticLoadBalancers *aws.Operation
 
 // DescribeInstancesRequest generates a request for the DescribeInstances operation.
 func (c *OpsWorks) DescribeInstancesRequest(input *DescribeInstancesInput) (req *aws.Request, output *DescribeInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeInstances == nil {
+		opDescribeInstances = &aws.Operation{
+			Name:       "DescribeInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeInstances, input, output)
 	output = &DescribeInstancesOutput{}
 	req.Data = output
 	return
@@ -883,21 +1015,26 @@ func (c *OpsWorks) DescribeInstances(input *DescribeInstancesInput) (*DescribeIn
 	return out, err
 }
 
-const opDescribeLayers = "DescribeLayers"
+var opDescribeInstances *aws.Operation
 
 // DescribeLayersRequest generates a request for the DescribeLayers operation.
 func (c *OpsWorks) DescribeLayersRequest(input *DescribeLayersInput) (req *aws.Request, output *DescribeLayersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLayers,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLayers == nil {
+		opDescribeLayers = &aws.Operation{
+			Name:       "DescribeLayers",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLayersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLayers, input, output)
 	output = &DescribeLayersOutput{}
 	req.Data = output
 	return
@@ -917,21 +1054,26 @@ func (c *OpsWorks) DescribeLayers(input *DescribeLayersInput) (*DescribeLayersOu
 	return out, err
 }
 
-const opDescribeLoadBasedAutoScaling = "DescribeLoadBasedAutoScaling"
+var opDescribeLayers *aws.Operation
 
 // DescribeLoadBasedAutoScalingRequest generates a request for the DescribeLoadBasedAutoScaling operation.
 func (c *OpsWorks) DescribeLoadBasedAutoScalingRequest(input *DescribeLoadBasedAutoScalingInput) (req *aws.Request, output *DescribeLoadBasedAutoScalingOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLoadBasedAutoScaling,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLoadBasedAutoScaling == nil {
+		opDescribeLoadBasedAutoScaling = &aws.Operation{
+			Name:       "DescribeLoadBasedAutoScaling",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLoadBasedAutoScalingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLoadBasedAutoScaling, input, output)
 	output = &DescribeLoadBasedAutoScalingOutput{}
 	req.Data = output
 	return
@@ -951,21 +1093,26 @@ func (c *OpsWorks) DescribeLoadBasedAutoScaling(input *DescribeLoadBasedAutoScal
 	return out, err
 }
 
-const opDescribeMyUserProfile = "DescribeMyUserProfile"
+var opDescribeLoadBasedAutoScaling *aws.Operation
 
 // DescribeMyUserProfileRequest generates a request for the DescribeMyUserProfile operation.
 func (c *OpsWorks) DescribeMyUserProfileRequest(input *DescribeMyUserProfileInput) (req *aws.Request, output *DescribeMyUserProfileOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeMyUserProfile,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeMyUserProfile == nil {
+		opDescribeMyUserProfile = &aws.Operation{
+			Name:       "DescribeMyUserProfile",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeMyUserProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeMyUserProfile, input, output)
 	output = &DescribeMyUserProfileOutput{}
 	req.Data = output
 	return
@@ -982,21 +1129,26 @@ func (c *OpsWorks) DescribeMyUserProfile(input *DescribeMyUserProfileInput) (*De
 	return out, err
 }
 
-const opDescribePermissions = "DescribePermissions"
+var opDescribeMyUserProfile *aws.Operation
 
 // DescribePermissionsRequest generates a request for the DescribePermissions operation.
 func (c *OpsWorks) DescribePermissionsRequest(input *DescribePermissionsInput) (req *aws.Request, output *DescribePermissionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribePermissions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribePermissions == nil {
+		opDescribePermissions = &aws.Operation{
+			Name:       "DescribePermissions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribePermissionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribePermissions, input, output)
 	output = &DescribePermissionsOutput{}
 	req.Data = output
 	return
@@ -1014,21 +1166,26 @@ func (c *OpsWorks) DescribePermissions(input *DescribePermissionsInput) (*Descri
 	return out, err
 }
 
-const opDescribeRAIDArrays = "DescribeRaidArrays"
+var opDescribePermissions *aws.Operation
 
 // DescribeRAIDArraysRequest generates a request for the DescribeRAIDArrays operation.
 func (c *OpsWorks) DescribeRAIDArraysRequest(input *DescribeRAIDArraysInput) (req *aws.Request, output *DescribeRAIDArraysOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeRAIDArrays,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeRAIDArrays == nil {
+		opDescribeRAIDArrays = &aws.Operation{
+			Name:       "DescribeRaidArrays",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeRAIDArraysInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeRAIDArrays, input, output)
 	output = &DescribeRAIDArraysOutput{}
 	req.Data = output
 	return
@@ -1048,21 +1205,26 @@ func (c *OpsWorks) DescribeRAIDArrays(input *DescribeRAIDArraysInput) (*Describe
 	return out, err
 }
 
-const opDescribeRDSDBInstances = "DescribeRdsDbInstances"
+var opDescribeRAIDArrays *aws.Operation
 
 // DescribeRDSDBInstancesRequest generates a request for the DescribeRDSDBInstances operation.
 func (c *OpsWorks) DescribeRDSDBInstancesRequest(input *DescribeRDSDBInstancesInput) (req *aws.Request, output *DescribeRDSDBInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeRDSDBInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeRDSDBInstances == nil {
+		opDescribeRDSDBInstances = &aws.Operation{
+			Name:       "DescribeRdsDbInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeRDSDBInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeRDSDBInstances, input, output)
 	output = &DescribeRDSDBInstancesOutput{}
 	req.Data = output
 	return
@@ -1080,21 +1242,26 @@ func (c *OpsWorks) DescribeRDSDBInstances(input *DescribeRDSDBInstancesInput) (*
 	return out, err
 }
 
-const opDescribeServiceErrors = "DescribeServiceErrors"
+var opDescribeRDSDBInstances *aws.Operation
 
 // DescribeServiceErrorsRequest generates a request for the DescribeServiceErrors operation.
 func (c *OpsWorks) DescribeServiceErrorsRequest(input *DescribeServiceErrorsInput) (req *aws.Request, output *DescribeServiceErrorsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeServiceErrors,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeServiceErrors == nil {
+		opDescribeServiceErrors = &aws.Operation{
+			Name:       "DescribeServiceErrors",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeServiceErrorsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeServiceErrors, input, output)
 	output = &DescribeServiceErrorsOutput{}
 	req.Data = output
 	return
@@ -1112,21 +1279,26 @@ func (c *OpsWorks) DescribeServiceErrors(input *DescribeServiceErrorsInput) (*De
 	return out, err
 }
 
-const opDescribeStackProvisioningParameters = "DescribeStackProvisioningParameters"
+var opDescribeServiceErrors *aws.Operation
 
 // DescribeStackProvisioningParametersRequest generates a request for the DescribeStackProvisioningParameters operation.
 func (c *OpsWorks) DescribeStackProvisioningParametersRequest(input *DescribeStackProvisioningParametersInput) (req *aws.Request, output *DescribeStackProvisioningParametersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeStackProvisioningParameters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeStackProvisioningParameters == nil {
+		opDescribeStackProvisioningParameters = &aws.Operation{
+			Name:       "DescribeStackProvisioningParameters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeStackProvisioningParametersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeStackProvisioningParameters, input, output)
 	output = &DescribeStackProvisioningParametersOutput{}
 	req.Data = output
 	return
@@ -1144,21 +1316,26 @@ func (c *OpsWorks) DescribeStackProvisioningParameters(input *DescribeStackProvi
 	return out, err
 }
 
-const opDescribeStackSummary = "DescribeStackSummary"
+var opDescribeStackProvisioningParameters *aws.Operation
 
 // DescribeStackSummaryRequest generates a request for the DescribeStackSummary operation.
 func (c *OpsWorks) DescribeStackSummaryRequest(input *DescribeStackSummaryInput) (req *aws.Request, output *DescribeStackSummaryOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeStackSummary,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeStackSummary == nil {
+		opDescribeStackSummary = &aws.Operation{
+			Name:       "DescribeStackSummary",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeStackSummaryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeStackSummary, input, output)
 	output = &DescribeStackSummaryOutput{}
 	req.Data = output
 	return
@@ -1177,21 +1354,26 @@ func (c *OpsWorks) DescribeStackSummary(input *DescribeStackSummaryInput) (*Desc
 	return out, err
 }
 
-const opDescribeStacks = "DescribeStacks"
+var opDescribeStackSummary *aws.Operation
 
 // DescribeStacksRequest generates a request for the DescribeStacks operation.
 func (c *OpsWorks) DescribeStacksRequest(input *DescribeStacksInput) (req *aws.Request, output *DescribeStacksOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeStacks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeStacks == nil {
+		opDescribeStacks = &aws.Operation{
+			Name:       "DescribeStacks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeStacksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeStacks, input, output)
 	output = &DescribeStacksOutput{}
 	req.Data = output
 	return
@@ -1209,21 +1391,26 @@ func (c *OpsWorks) DescribeStacks(input *DescribeStacksInput) (*DescribeStacksOu
 	return out, err
 }
 
-const opDescribeTimeBasedAutoScaling = "DescribeTimeBasedAutoScaling"
+var opDescribeStacks *aws.Operation
 
 // DescribeTimeBasedAutoScalingRequest generates a request for the DescribeTimeBasedAutoScaling operation.
 func (c *OpsWorks) DescribeTimeBasedAutoScalingRequest(input *DescribeTimeBasedAutoScalingInput) (req *aws.Request, output *DescribeTimeBasedAutoScalingOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeTimeBasedAutoScaling,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeTimeBasedAutoScaling == nil {
+		opDescribeTimeBasedAutoScaling = &aws.Operation{
+			Name:       "DescribeTimeBasedAutoScaling",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeTimeBasedAutoScalingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeTimeBasedAutoScaling, input, output)
 	output = &DescribeTimeBasedAutoScalingOutput{}
 	req.Data = output
 	return
@@ -1243,21 +1430,26 @@ func (c *OpsWorks) DescribeTimeBasedAutoScaling(input *DescribeTimeBasedAutoScal
 	return out, err
 }
 
-const opDescribeUserProfiles = "DescribeUserProfiles"
+var opDescribeTimeBasedAutoScaling *aws.Operation
 
 // DescribeUserProfilesRequest generates a request for the DescribeUserProfiles operation.
 func (c *OpsWorks) DescribeUserProfilesRequest(input *DescribeUserProfilesInput) (req *aws.Request, output *DescribeUserProfilesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeUserProfiles,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeUserProfiles == nil {
+		opDescribeUserProfiles = &aws.Operation{
+			Name:       "DescribeUserProfiles",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeUserProfilesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeUserProfiles, input, output)
 	output = &DescribeUserProfilesOutput{}
 	req.Data = output
 	return
@@ -1274,21 +1466,26 @@ func (c *OpsWorks) DescribeUserProfiles(input *DescribeUserProfilesInput) (*Desc
 	return out, err
 }
 
-const opDescribeVolumes = "DescribeVolumes"
+var opDescribeUserProfiles *aws.Operation
 
 // DescribeVolumesRequest generates a request for the DescribeVolumes operation.
 func (c *OpsWorks) DescribeVolumesRequest(input *DescribeVolumesInput) (req *aws.Request, output *DescribeVolumesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVolumes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVolumes == nil {
+		opDescribeVolumes = &aws.Operation{
+			Name:       "DescribeVolumes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVolumesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVolumes, input, output)
 	output = &DescribeVolumesOutput{}
 	req.Data = output
 	return
@@ -1308,21 +1505,26 @@ func (c *OpsWorks) DescribeVolumes(input *DescribeVolumesInput) (*DescribeVolume
 	return out, err
 }
 
-const opDetachElasticLoadBalancer = "DetachElasticLoadBalancer"
+var opDescribeVolumes *aws.Operation
 
 // DetachElasticLoadBalancerRequest generates a request for the DetachElasticLoadBalancer operation.
 func (c *OpsWorks) DetachElasticLoadBalancerRequest(input *DetachElasticLoadBalancerInput) (req *aws.Request, output *DetachElasticLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opDetachElasticLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDetachElasticLoadBalancer == nil {
+		opDetachElasticLoadBalancer = &aws.Operation{
+			Name:       "DetachElasticLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DetachElasticLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDetachElasticLoadBalancer, input, output)
 	output = &DetachElasticLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -1340,21 +1542,26 @@ func (c *OpsWorks) DetachElasticLoadBalancer(input *DetachElasticLoadBalancerInp
 	return out, err
 }
 
-const opDisassociateElasticIP = "DisassociateElasticIp"
+var opDetachElasticLoadBalancer *aws.Operation
 
 // DisassociateElasticIPRequest generates a request for the DisassociateElasticIP operation.
 func (c *OpsWorks) DisassociateElasticIPRequest(input *DisassociateElasticIPInput) (req *aws.Request, output *DisassociateElasticIPOutput) {
-	op := &aws.Operation{
-		Name:       opDisassociateElasticIP,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisassociateElasticIP == nil {
+		opDisassociateElasticIP = &aws.Operation{
+			Name:       "DisassociateElasticIp",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisassociateElasticIPInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisassociateElasticIP, input, output)
 	output = &DisassociateElasticIPOutput{}
 	req.Data = output
 	return
@@ -1374,21 +1581,26 @@ func (c *OpsWorks) DisassociateElasticIP(input *DisassociateElasticIPInput) (*Di
 	return out, err
 }
 
-const opGetHostnameSuggestion = "GetHostnameSuggestion"
+var opDisassociateElasticIP *aws.Operation
 
 // GetHostnameSuggestionRequest generates a request for the GetHostnameSuggestion operation.
 func (c *OpsWorks) GetHostnameSuggestionRequest(input *GetHostnameSuggestionInput) (req *aws.Request, output *GetHostnameSuggestionOutput) {
-	op := &aws.Operation{
-		Name:       opGetHostnameSuggestion,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetHostnameSuggestion == nil {
+		opGetHostnameSuggestion = &aws.Operation{
+			Name:       "GetHostnameSuggestion",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetHostnameSuggestionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetHostnameSuggestion, input, output)
 	output = &GetHostnameSuggestionOutput{}
 	req.Data = output
 	return
@@ -1407,21 +1619,26 @@ func (c *OpsWorks) GetHostnameSuggestion(input *GetHostnameSuggestionInput) (*Ge
 	return out, err
 }
 
-const opGrantAccess = "GrantAccess"
+var opGetHostnameSuggestion *aws.Operation
 
 // GrantAccessRequest generates a request for the GrantAccess operation.
 func (c *OpsWorks) GrantAccessRequest(input *GrantAccessInput) (req *aws.Request, output *GrantAccessOutput) {
-	op := &aws.Operation{
-		Name:       opGrantAccess,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGrantAccess == nil {
+		opGrantAccess = &aws.Operation{
+			Name:       "GrantAccess",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GrantAccessInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGrantAccess, input, output)
 	output = &GrantAccessOutput{}
 	req.Data = output
 	return
@@ -1435,21 +1652,26 @@ func (c *OpsWorks) GrantAccess(input *GrantAccessInput) (*GrantAccessOutput, err
 	return out, err
 }
 
-const opRebootInstance = "RebootInstance"
+var opGrantAccess *aws.Operation
 
 // RebootInstanceRequest generates a request for the RebootInstance operation.
 func (c *OpsWorks) RebootInstanceRequest(input *RebootInstanceInput) (req *aws.Request, output *RebootInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opRebootInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRebootInstance == nil {
+		opRebootInstance = &aws.Operation{
+			Name:       "RebootInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RebootInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRebootInstance, input, output)
 	output = &RebootInstanceOutput{}
 	req.Data = output
 	return
@@ -1468,21 +1690,26 @@ func (c *OpsWorks) RebootInstance(input *RebootInstanceInput) (*RebootInstanceOu
 	return out, err
 }
 
-const opRegisterElasticIP = "RegisterElasticIp"
+var opRebootInstance *aws.Operation
 
 // RegisterElasticIPRequest generates a request for the RegisterElasticIP operation.
 func (c *OpsWorks) RegisterElasticIPRequest(input *RegisterElasticIPInput) (req *aws.Request, output *RegisterElasticIPOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterElasticIP,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterElasticIP == nil {
+		opRegisterElasticIP = &aws.Operation{
+			Name:       "RegisterElasticIp",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterElasticIPInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterElasticIP, input, output)
 	output = &RegisterElasticIPOutput{}
 	req.Data = output
 	return
@@ -1503,21 +1730,26 @@ func (c *OpsWorks) RegisterElasticIP(input *RegisterElasticIPInput) (*RegisterEl
 	return out, err
 }
 
-const opRegisterInstance = "RegisterInstance"
+var opRegisterElasticIP *aws.Operation
 
 // RegisterInstanceRequest generates a request for the RegisterInstance operation.
 func (c *OpsWorks) RegisterInstanceRequest(input *RegisterInstanceInput) (req *aws.Request, output *RegisterInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterInstance == nil {
+		opRegisterInstance = &aws.Operation{
+			Name:       "RegisterInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterInstance, input, output)
 	output = &RegisterInstanceOutput{}
 	req.Data = output
 	return
@@ -1540,21 +1772,26 @@ func (c *OpsWorks) RegisterInstance(input *RegisterInstanceInput) (*RegisterInst
 	return out, err
 }
 
-const opRegisterRDSDBInstance = "RegisterRdsDbInstance"
+var opRegisterInstance *aws.Operation
 
 // RegisterRDSDBInstanceRequest generates a request for the RegisterRDSDBInstance operation.
 func (c *OpsWorks) RegisterRDSDBInstanceRequest(input *RegisterRDSDBInstanceInput) (req *aws.Request, output *RegisterRDSDBInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterRDSDBInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterRDSDBInstance == nil {
+		opRegisterRDSDBInstance = &aws.Operation{
+			Name:       "RegisterRdsDbInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterRDSDBInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterRDSDBInstance, input, output)
 	output = &RegisterRDSDBInstanceOutput{}
 	req.Data = output
 	return
@@ -1572,21 +1809,26 @@ func (c *OpsWorks) RegisterRDSDBInstance(input *RegisterRDSDBInstanceInput) (*Re
 	return out, err
 }
 
-const opRegisterVolume = "RegisterVolume"
+var opRegisterRDSDBInstance *aws.Operation
 
 // RegisterVolumeRequest generates a request for the RegisterVolume operation.
 func (c *OpsWorks) RegisterVolumeRequest(input *RegisterVolumeInput) (req *aws.Request, output *RegisterVolumeOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterVolume == nil {
+		opRegisterVolume = &aws.Operation{
+			Name:       "RegisterVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterVolume, input, output)
 	output = &RegisterVolumeOutput{}
 	req.Data = output
 	return
@@ -1607,21 +1849,26 @@ func (c *OpsWorks) RegisterVolume(input *RegisterVolumeInput) (*RegisterVolumeOu
 	return out, err
 }
 
-const opSetLoadBasedAutoScaling = "SetLoadBasedAutoScaling"
+var opRegisterVolume *aws.Operation
 
 // SetLoadBasedAutoScalingRequest generates a request for the SetLoadBasedAutoScaling operation.
 func (c *OpsWorks) SetLoadBasedAutoScalingRequest(input *SetLoadBasedAutoScalingInput) (req *aws.Request, output *SetLoadBasedAutoScalingOutput) {
-	op := &aws.Operation{
-		Name:       opSetLoadBasedAutoScaling,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetLoadBasedAutoScaling == nil {
+		opSetLoadBasedAutoScaling = &aws.Operation{
+			Name:       "SetLoadBasedAutoScaling",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetLoadBasedAutoScalingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetLoadBasedAutoScaling, input, output)
 	output = &SetLoadBasedAutoScalingOutput{}
 	req.Data = output
 	return
@@ -1646,21 +1893,26 @@ func (c *OpsWorks) SetLoadBasedAutoScaling(input *SetLoadBasedAutoScalingInput) 
 	return out, err
 }
 
-const opSetPermission = "SetPermission"
+var opSetLoadBasedAutoScaling *aws.Operation
 
 // SetPermissionRequest generates a request for the SetPermission operation.
 func (c *OpsWorks) SetPermissionRequest(input *SetPermissionInput) (req *aws.Request, output *SetPermissionOutput) {
-	op := &aws.Operation{
-		Name:       opSetPermission,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetPermission == nil {
+		opSetPermission = &aws.Operation{
+			Name:       "SetPermission",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetPermissionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetPermission, input, output)
 	output = &SetPermissionOutput{}
 	req.Data = output
 	return
@@ -1679,21 +1931,26 @@ func (c *OpsWorks) SetPermission(input *SetPermissionInput) (*SetPermissionOutpu
 	return out, err
 }
 
-const opSetTimeBasedAutoScaling = "SetTimeBasedAutoScaling"
+var opSetPermission *aws.Operation
 
 // SetTimeBasedAutoScalingRequest generates a request for the SetTimeBasedAutoScaling operation.
 func (c *OpsWorks) SetTimeBasedAutoScalingRequest(input *SetTimeBasedAutoScalingInput) (req *aws.Request, output *SetTimeBasedAutoScalingOutput) {
-	op := &aws.Operation{
-		Name:       opSetTimeBasedAutoScaling,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetTimeBasedAutoScaling == nil {
+		opSetTimeBasedAutoScaling = &aws.Operation{
+			Name:       "SetTimeBasedAutoScaling",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetTimeBasedAutoScalingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetTimeBasedAutoScaling, input, output)
 	output = &SetTimeBasedAutoScalingOutput{}
 	req.Data = output
 	return
@@ -1713,21 +1970,26 @@ func (c *OpsWorks) SetTimeBasedAutoScaling(input *SetTimeBasedAutoScalingInput) 
 	return out, err
 }
 
-const opStartInstance = "StartInstance"
+var opSetTimeBasedAutoScaling *aws.Operation
 
 // StartInstanceRequest generates a request for the StartInstance operation.
 func (c *OpsWorks) StartInstanceRequest(input *StartInstanceInput) (req *aws.Request, output *StartInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opStartInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStartInstance == nil {
+		opStartInstance = &aws.Operation{
+			Name:       "StartInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StartInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStartInstance, input, output)
 	output = &StartInstanceOutput{}
 	req.Data = output
 	return
@@ -1746,21 +2008,26 @@ func (c *OpsWorks) StartInstance(input *StartInstanceInput) (*StartInstanceOutpu
 	return out, err
 }
 
-const opStartStack = "StartStack"
+var opStartInstance *aws.Operation
 
 // StartStackRequest generates a request for the StartStack operation.
 func (c *OpsWorks) StartStackRequest(input *StartStackInput) (req *aws.Request, output *StartStackOutput) {
-	op := &aws.Operation{
-		Name:       opStartStack,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStartStack == nil {
+		opStartStack = &aws.Operation{
+			Name:       "StartStack",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StartStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStartStack, input, output)
 	output = &StartStackOutput{}
 	req.Data = output
 	return
@@ -1778,21 +2045,26 @@ func (c *OpsWorks) StartStack(input *StartStackInput) (*StartStackOutput, error)
 	return out, err
 }
 
-const opStopInstance = "StopInstance"
+var opStartStack *aws.Operation
 
 // StopInstanceRequest generates a request for the StopInstance operation.
 func (c *OpsWorks) StopInstanceRequest(input *StopInstanceInput) (req *aws.Request, output *StopInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opStopInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStopInstance == nil {
+		opStopInstance = &aws.Operation{
+			Name:       "StopInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StopInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStopInstance, input, output)
 	output = &StopInstanceOutput{}
 	req.Data = output
 	return
@@ -1813,21 +2085,26 @@ func (c *OpsWorks) StopInstance(input *StopInstanceInput) (*StopInstanceOutput, 
 	return out, err
 }
 
-const opStopStack = "StopStack"
+var opStopInstance *aws.Operation
 
 // StopStackRequest generates a request for the StopStack operation.
 func (c *OpsWorks) StopStackRequest(input *StopStackInput) (req *aws.Request, output *StopStackOutput) {
-	op := &aws.Operation{
-		Name:       opStopStack,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStopStack == nil {
+		opStopStack = &aws.Operation{
+			Name:       "StopStack",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StopStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStopStack, input, output)
 	output = &StopStackOutput{}
 	req.Data = output
 	return
@@ -1845,21 +2122,26 @@ func (c *OpsWorks) StopStack(input *StopStackInput) (*StopStackOutput, error) {
 	return out, err
 }
 
-const opUnassignInstance = "UnassignInstance"
+var opStopStack *aws.Operation
 
 // UnassignInstanceRequest generates a request for the UnassignInstance operation.
 func (c *OpsWorks) UnassignInstanceRequest(input *UnassignInstanceInput) (req *aws.Request, output *UnassignInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opUnassignInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUnassignInstance == nil {
+		opUnassignInstance = &aws.Operation{
+			Name:       "UnassignInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UnassignInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUnassignInstance, input, output)
 	output = &UnassignInstanceOutput{}
 	req.Data = output
 	return
@@ -1880,21 +2162,26 @@ func (c *OpsWorks) UnassignInstance(input *UnassignInstanceInput) (*UnassignInst
 	return out, err
 }
 
-const opUnassignVolume = "UnassignVolume"
+var opUnassignInstance *aws.Operation
 
 // UnassignVolumeRequest generates a request for the UnassignVolume operation.
 func (c *OpsWorks) UnassignVolumeRequest(input *UnassignVolumeInput) (req *aws.Request, output *UnassignVolumeOutput) {
-	op := &aws.Operation{
-		Name:       opUnassignVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUnassignVolume == nil {
+		opUnassignVolume = &aws.Operation{
+			Name:       "UnassignVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UnassignVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUnassignVolume, input, output)
 	output = &UnassignVolumeOutput{}
 	req.Data = output
 	return
@@ -1913,21 +2200,26 @@ func (c *OpsWorks) UnassignVolume(input *UnassignVolumeInput) (*UnassignVolumeOu
 	return out, err
 }
 
-const opUpdateApp = "UpdateApp"
+var opUnassignVolume *aws.Operation
 
 // UpdateAppRequest generates a request for the UpdateApp operation.
 func (c *OpsWorks) UpdateAppRequest(input *UpdateAppInput) (req *aws.Request, output *UpdateAppOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateApp,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateApp == nil {
+		opUpdateApp = &aws.Operation{
+			Name:       "UpdateApp",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateAppInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateApp, input, output)
 	output = &UpdateAppOutput{}
 	req.Data = output
 	return
@@ -1945,21 +2237,26 @@ func (c *OpsWorks) UpdateApp(input *UpdateAppInput) (*UpdateAppOutput, error) {
 	return out, err
 }
 
-const opUpdateElasticIP = "UpdateElasticIp"
+var opUpdateApp *aws.Operation
 
 // UpdateElasticIPRequest generates a request for the UpdateElasticIP operation.
 func (c *OpsWorks) UpdateElasticIPRequest(input *UpdateElasticIPInput) (req *aws.Request, output *UpdateElasticIPOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateElasticIP,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateElasticIP == nil {
+		opUpdateElasticIP = &aws.Operation{
+			Name:       "UpdateElasticIp",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateElasticIPInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateElasticIP, input, output)
 	output = &UpdateElasticIPOutput{}
 	req.Data = output
 	return
@@ -1978,21 +2275,26 @@ func (c *OpsWorks) UpdateElasticIP(input *UpdateElasticIPInput) (*UpdateElasticI
 	return out, err
 }
 
-const opUpdateInstance = "UpdateInstance"
+var opUpdateElasticIP *aws.Operation
 
 // UpdateInstanceRequest generates a request for the UpdateInstance operation.
 func (c *OpsWorks) UpdateInstanceRequest(input *UpdateInstanceInput) (req *aws.Request, output *UpdateInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateInstance == nil {
+		opUpdateInstance = &aws.Operation{
+			Name:       "UpdateInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateInstance, input, output)
 	output = &UpdateInstanceOutput{}
 	req.Data = output
 	return
@@ -2010,21 +2312,26 @@ func (c *OpsWorks) UpdateInstance(input *UpdateInstanceInput) (*UpdateInstanceOu
 	return out, err
 }
 
-const opUpdateLayer = "UpdateLayer"
+var opUpdateInstance *aws.Operation
 
 // UpdateLayerRequest generates a request for the UpdateLayer operation.
 func (c *OpsWorks) UpdateLayerRequest(input *UpdateLayerInput) (req *aws.Request, output *UpdateLayerOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateLayer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateLayer == nil {
+		opUpdateLayer = &aws.Operation{
+			Name:       "UpdateLayer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateLayerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateLayer, input, output)
 	output = &UpdateLayerOutput{}
 	req.Data = output
 	return
@@ -2042,21 +2349,26 @@ func (c *OpsWorks) UpdateLayer(input *UpdateLayerInput) (*UpdateLayerOutput, err
 	return out, err
 }
 
-const opUpdateMyUserProfile = "UpdateMyUserProfile"
+var opUpdateLayer *aws.Operation
 
 // UpdateMyUserProfileRequest generates a request for the UpdateMyUserProfile operation.
 func (c *OpsWorks) UpdateMyUserProfileRequest(input *UpdateMyUserProfileInput) (req *aws.Request, output *UpdateMyUserProfileOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateMyUserProfile,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateMyUserProfile == nil {
+		opUpdateMyUserProfile = &aws.Operation{
+			Name:       "UpdateMyUserProfile",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateMyUserProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateMyUserProfile, input, output)
 	output = &UpdateMyUserProfileOutput{}
 	req.Data = output
 	return
@@ -2073,21 +2385,26 @@ func (c *OpsWorks) UpdateMyUserProfile(input *UpdateMyUserProfileInput) (*Update
 	return out, err
 }
 
-const opUpdateRDSDBInstance = "UpdateRdsDbInstance"
+var opUpdateMyUserProfile *aws.Operation
 
 // UpdateRDSDBInstanceRequest generates a request for the UpdateRDSDBInstance operation.
 func (c *OpsWorks) UpdateRDSDBInstanceRequest(input *UpdateRDSDBInstanceInput) (req *aws.Request, output *UpdateRDSDBInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateRDSDBInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateRDSDBInstance == nil {
+		opUpdateRDSDBInstance = &aws.Operation{
+			Name:       "UpdateRdsDbInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateRDSDBInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateRDSDBInstance, input, output)
 	output = &UpdateRDSDBInstanceOutput{}
 	req.Data = output
 	return
@@ -2105,21 +2422,26 @@ func (c *OpsWorks) UpdateRDSDBInstance(input *UpdateRDSDBInstanceInput) (*Update
 	return out, err
 }
 
-const opUpdateStack = "UpdateStack"
+var opUpdateRDSDBInstance *aws.Operation
 
 // UpdateStackRequest generates a request for the UpdateStack operation.
 func (c *OpsWorks) UpdateStackRequest(input *UpdateStackInput) (req *aws.Request, output *UpdateStackOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateStack,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateStack == nil {
+		opUpdateStack = &aws.Operation{
+			Name:       "UpdateStack",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateStack, input, output)
 	output = &UpdateStackOutput{}
 	req.Data = output
 	return
@@ -2137,21 +2459,26 @@ func (c *OpsWorks) UpdateStack(input *UpdateStackInput) (*UpdateStackOutput, err
 	return out, err
 }
 
-const opUpdateUserProfile = "UpdateUserProfile"
+var opUpdateStack *aws.Operation
 
 // UpdateUserProfileRequest generates a request for the UpdateUserProfile operation.
 func (c *OpsWorks) UpdateUserProfileRequest(input *UpdateUserProfileInput) (req *aws.Request, output *UpdateUserProfileOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateUserProfile,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateUserProfile == nil {
+		opUpdateUserProfile = &aws.Operation{
+			Name:       "UpdateUserProfile",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateUserProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateUserProfile, input, output)
 	output = &UpdateUserProfileOutput{}
 	req.Data = output
 	return
@@ -2168,21 +2495,26 @@ func (c *OpsWorks) UpdateUserProfile(input *UpdateUserProfileInput) (*UpdateUser
 	return out, err
 }
 
-const opUpdateVolume = "UpdateVolume"
+var opUpdateUserProfile *aws.Operation
 
 // UpdateVolumeRequest generates a request for the UpdateVolume operation.
 func (c *OpsWorks) UpdateVolumeRequest(input *UpdateVolumeInput) (req *aws.Request, output *UpdateVolumeOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateVolume == nil {
+		opUpdateVolume = &aws.Operation{
+			Name:       "UpdateVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateVolume, input, output)
 	output = &UpdateVolumeOutput{}
 	req.Data = output
 	return
@@ -2200,6 +2532,8 @@ func (c *OpsWorks) UpdateVolume(input *UpdateVolumeInput) (*UpdateVolumeOutput, 
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateVolume *aws.Operation
 
 // A description of the app.
 type App struct {

@@ -4,26 +4,32 @@
 package datapipeline
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opActivatePipeline = "ActivatePipeline"
+var oprw sync.Mutex
 
 // ActivatePipelineRequest generates a request for the ActivatePipeline operation.
 func (c *DataPipeline) ActivatePipelineRequest(input *ActivatePipelineInput) (req *aws.Request, output *ActivatePipelineOutput) {
-	op := &aws.Operation{
-		Name:       opActivatePipeline,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opActivatePipeline == nil {
+		opActivatePipeline = &aws.Operation{
+			Name:       "ActivatePipeline",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ActivatePipelineInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opActivatePipeline, input, output)
 	output = &ActivatePipelineOutput{}
 	req.Data = output
 	return
@@ -43,21 +49,26 @@ func (c *DataPipeline) ActivatePipeline(input *ActivatePipelineInput) (*Activate
 	return out, err
 }
 
-const opAddTags = "AddTags"
+var opActivatePipeline *aws.Operation
 
 // AddTagsRequest generates a request for the AddTags operation.
 func (c *DataPipeline) AddTagsRequest(input *AddTagsInput) (req *aws.Request, output *AddTagsOutput) {
-	op := &aws.Operation{
-		Name:       opAddTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddTags == nil {
+		opAddTags = &aws.Operation{
+			Name:       "AddTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddTags, input, output)
 	output = &AddTagsOutput{}
 	req.Data = output
 	return
@@ -70,21 +81,26 @@ func (c *DataPipeline) AddTags(input *AddTagsInput) (*AddTagsOutput, error) {
 	return out, err
 }
 
-const opCreatePipeline = "CreatePipeline"
+var opAddTags *aws.Operation
 
 // CreatePipelineRequest generates a request for the CreatePipeline operation.
 func (c *DataPipeline) CreatePipelineRequest(input *CreatePipelineInput) (req *aws.Request, output *CreatePipelineOutput) {
-	op := &aws.Operation{
-		Name:       opCreatePipeline,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreatePipeline == nil {
+		opCreatePipeline = &aws.Operation{
+			Name:       "CreatePipeline",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreatePipelineInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreatePipeline, input, output)
 	output = &CreatePipelineOutput{}
 	req.Data = output
 	return
@@ -98,21 +114,26 @@ func (c *DataPipeline) CreatePipeline(input *CreatePipelineInput) (*CreatePipeli
 	return out, err
 }
 
-const opDeactivatePipeline = "DeactivatePipeline"
+var opCreatePipeline *aws.Operation
 
 // DeactivatePipelineRequest generates a request for the DeactivatePipeline operation.
 func (c *DataPipeline) DeactivatePipelineRequest(input *DeactivatePipelineInput) (req *aws.Request, output *DeactivatePipelineOutput) {
-	op := &aws.Operation{
-		Name:       opDeactivatePipeline,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeactivatePipeline == nil {
+		opDeactivatePipeline = &aws.Operation{
+			Name:       "DeactivatePipeline",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeactivatePipelineInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeactivatePipeline, input, output)
 	output = &DeactivatePipelineOutput{}
 	req.Data = output
 	return
@@ -130,21 +151,26 @@ func (c *DataPipeline) DeactivatePipeline(input *DeactivatePipelineInput) (*Deac
 	return out, err
 }
 
-const opDeletePipeline = "DeletePipeline"
+var opDeactivatePipeline *aws.Operation
 
 // DeletePipelineRequest generates a request for the DeletePipeline operation.
 func (c *DataPipeline) DeletePipelineRequest(input *DeletePipelineInput) (req *aws.Request, output *DeletePipelineOutput) {
-	op := &aws.Operation{
-		Name:       opDeletePipeline,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeletePipeline == nil {
+		opDeletePipeline = &aws.Operation{
+			Name:       "DeletePipeline",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeletePipelineInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeletePipeline, input, output)
 	output = &DeletePipelineOutput{}
 	req.Data = output
 	return
@@ -164,27 +190,32 @@ func (c *DataPipeline) DeletePipeline(input *DeletePipelineInput) (*DeletePipeli
 	return out, err
 }
 
-const opDescribeObjects = "DescribeObjects"
+var opDeletePipeline *aws.Operation
 
 // DescribeObjectsRequest generates a request for the DescribeObjects operation.
 func (c *DataPipeline) DescribeObjectsRequest(input *DescribeObjectsInput) (req *aws.Request, output *DescribeObjectsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeObjects,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"marker"},
-			OutputTokens:    []string{"marker"},
-			LimitToken:      "",
-			TruncationToken: "hasMoreResults",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeObjects == nil {
+		opDescribeObjects = &aws.Operation{
+			Name:       "DescribeObjects",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"marker"},
+				OutputTokens:    []string{"marker"},
+				LimitToken:      "",
+				TruncationToken: "hasMoreResults",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeObjectsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeObjects, input, output)
 	output = &DescribeObjectsOutput{}
 	req.Data = output
 	return
@@ -206,21 +237,26 @@ func (c *DataPipeline) DescribeObjectsPages(input *DescribeObjectsInput, fn func
 	})
 }
 
-const opDescribePipelines = "DescribePipelines"
+var opDescribeObjects *aws.Operation
 
 // DescribePipelinesRequest generates a request for the DescribePipelines operation.
 func (c *DataPipeline) DescribePipelinesRequest(input *DescribePipelinesInput) (req *aws.Request, output *DescribePipelinesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribePipelines,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribePipelines == nil {
+		opDescribePipelines = &aws.Operation{
+			Name:       "DescribePipelines",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribePipelinesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribePipelines, input, output)
 	output = &DescribePipelinesOutput{}
 	req.Data = output
 	return
@@ -241,21 +277,26 @@ func (c *DataPipeline) DescribePipelines(input *DescribePipelinesInput) (*Descri
 	return out, err
 }
 
-const opEvaluateExpression = "EvaluateExpression"
+var opDescribePipelines *aws.Operation
 
 // EvaluateExpressionRequest generates a request for the EvaluateExpression operation.
 func (c *DataPipeline) EvaluateExpressionRequest(input *EvaluateExpressionInput) (req *aws.Request, output *EvaluateExpressionOutput) {
-	op := &aws.Operation{
-		Name:       opEvaluateExpression,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEvaluateExpression == nil {
+		opEvaluateExpression = &aws.Operation{
+			Name:       "EvaluateExpression",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EvaluateExpressionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEvaluateExpression, input, output)
 	output = &EvaluateExpressionOutput{}
 	req.Data = output
 	return
@@ -270,21 +311,26 @@ func (c *DataPipeline) EvaluateExpression(input *EvaluateExpressionInput) (*Eval
 	return out, err
 }
 
-const opGetPipelineDefinition = "GetPipelineDefinition"
+var opEvaluateExpression *aws.Operation
 
 // GetPipelineDefinitionRequest generates a request for the GetPipelineDefinition operation.
 func (c *DataPipeline) GetPipelineDefinitionRequest(input *GetPipelineDefinitionInput) (req *aws.Request, output *GetPipelineDefinitionOutput) {
-	op := &aws.Operation{
-		Name:       opGetPipelineDefinition,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetPipelineDefinition == nil {
+		opGetPipelineDefinition = &aws.Operation{
+			Name:       "GetPipelineDefinition",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetPipelineDefinitionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetPipelineDefinition, input, output)
 	output = &GetPipelineDefinitionOutput{}
 	req.Data = output
 	return
@@ -298,27 +344,32 @@ func (c *DataPipeline) GetPipelineDefinition(input *GetPipelineDefinitionInput) 
 	return out, err
 }
 
-const opListPipelines = "ListPipelines"
+var opGetPipelineDefinition *aws.Operation
 
 // ListPipelinesRequest generates a request for the ListPipelines operation.
 func (c *DataPipeline) ListPipelinesRequest(input *ListPipelinesInput) (req *aws.Request, output *ListPipelinesOutput) {
-	op := &aws.Operation{
-		Name:       opListPipelines,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"marker"},
-			OutputTokens:    []string{"marker"},
-			LimitToken:      "",
-			TruncationToken: "hasMoreResults",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListPipelines == nil {
+		opListPipelines = &aws.Operation{
+			Name:       "ListPipelines",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"marker"},
+				OutputTokens:    []string{"marker"},
+				LimitToken:      "",
+				TruncationToken: "hasMoreResults",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListPipelinesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListPipelines, input, output)
 	output = &ListPipelinesOutput{}
 	req.Data = output
 	return
@@ -339,21 +390,26 @@ func (c *DataPipeline) ListPipelinesPages(input *ListPipelinesInput, fn func(p *
 	})
 }
 
-const opPollForTask = "PollForTask"
+var opListPipelines *aws.Operation
 
 // PollForTaskRequest generates a request for the PollForTask operation.
 func (c *DataPipeline) PollForTaskRequest(input *PollForTaskInput) (req *aws.Request, output *PollForTaskOutput) {
-	op := &aws.Operation{
-		Name:       opPollForTask,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPollForTask == nil {
+		opPollForTask = &aws.Operation{
+			Name:       "PollForTask",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PollForTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPollForTask, input, output)
 	output = &PollForTaskOutput{}
 	req.Data = output
 	return
@@ -379,21 +435,26 @@ func (c *DataPipeline) PollForTask(input *PollForTaskInput) (*PollForTaskOutput,
 	return out, err
 }
 
-const opPutPipelineDefinition = "PutPipelineDefinition"
+var opPollForTask *aws.Operation
 
 // PutPipelineDefinitionRequest generates a request for the PutPipelineDefinition operation.
 func (c *DataPipeline) PutPipelineDefinitionRequest(input *PutPipelineDefinitionInput) (req *aws.Request, output *PutPipelineDefinitionOutput) {
-	op := &aws.Operation{
-		Name:       opPutPipelineDefinition,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutPipelineDefinition == nil {
+		opPutPipelineDefinition = &aws.Operation{
+			Name:       "PutPipelineDefinition",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutPipelineDefinitionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutPipelineDefinition, input, output)
 	output = &PutPipelineDefinitionOutput{}
 	req.Data = output
 	return
@@ -417,27 +478,32 @@ func (c *DataPipeline) PutPipelineDefinition(input *PutPipelineDefinitionInput) 
 	return out, err
 }
 
-const opQueryObjects = "QueryObjects"
+var opPutPipelineDefinition *aws.Operation
 
 // QueryObjectsRequest generates a request for the QueryObjects operation.
 func (c *DataPipeline) QueryObjectsRequest(input *QueryObjectsInput) (req *aws.Request, output *QueryObjectsOutput) {
-	op := &aws.Operation{
-		Name:       opQueryObjects,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"marker"},
-			OutputTokens:    []string{"marker"},
-			LimitToken:      "limit",
-			TruncationToken: "hasMoreResults",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opQueryObjects == nil {
+		opQueryObjects = &aws.Operation{
+			Name:       "QueryObjects",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"marker"},
+				OutputTokens:    []string{"marker"},
+				LimitToken:      "limit",
+				TruncationToken: "hasMoreResults",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &QueryObjectsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opQueryObjects, input, output)
 	output = &QueryObjectsOutput{}
 	req.Data = output
 	return
@@ -458,21 +524,26 @@ func (c *DataPipeline) QueryObjectsPages(input *QueryObjectsInput, fn func(p *Qu
 	})
 }
 
-const opRemoveTags = "RemoveTags"
+var opQueryObjects *aws.Operation
 
 // RemoveTagsRequest generates a request for the RemoveTags operation.
 func (c *DataPipeline) RemoveTagsRequest(input *RemoveTagsInput) (req *aws.Request, output *RemoveTagsOutput) {
-	op := &aws.Operation{
-		Name:       opRemoveTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemoveTags == nil {
+		opRemoveTags = &aws.Operation{
+			Name:       "RemoveTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemoveTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemoveTags, input, output)
 	output = &RemoveTagsOutput{}
 	req.Data = output
 	return
@@ -485,21 +556,26 @@ func (c *DataPipeline) RemoveTags(input *RemoveTagsInput) (*RemoveTagsOutput, er
 	return out, err
 }
 
-const opReportTaskProgress = "ReportTaskProgress"
+var opRemoveTags *aws.Operation
 
 // ReportTaskProgressRequest generates a request for the ReportTaskProgress operation.
 func (c *DataPipeline) ReportTaskProgressRequest(input *ReportTaskProgressInput) (req *aws.Request, output *ReportTaskProgressOutput) {
-	op := &aws.Operation{
-		Name:       opReportTaskProgress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReportTaskProgress == nil {
+		opReportTaskProgress = &aws.Operation{
+			Name:       "ReportTaskProgress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReportTaskProgressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReportTaskProgress, input, output)
 	output = &ReportTaskProgressOutput{}
 	req.Data = output
 	return
@@ -523,21 +599,26 @@ func (c *DataPipeline) ReportTaskProgress(input *ReportTaskProgressInput) (*Repo
 	return out, err
 }
 
-const opReportTaskRunnerHeartbeat = "ReportTaskRunnerHeartbeat"
+var opReportTaskProgress *aws.Operation
 
 // ReportTaskRunnerHeartbeatRequest generates a request for the ReportTaskRunnerHeartbeat operation.
 func (c *DataPipeline) ReportTaskRunnerHeartbeatRequest(input *ReportTaskRunnerHeartbeatInput) (req *aws.Request, output *ReportTaskRunnerHeartbeatOutput) {
-	op := &aws.Operation{
-		Name:       opReportTaskRunnerHeartbeat,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReportTaskRunnerHeartbeat == nil {
+		opReportTaskRunnerHeartbeat = &aws.Operation{
+			Name:       "ReportTaskRunnerHeartbeat",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReportTaskRunnerHeartbeatInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReportTaskRunnerHeartbeat, input, output)
 	output = &ReportTaskRunnerHeartbeatOutput{}
 	req.Data = output
 	return
@@ -554,21 +635,26 @@ func (c *DataPipeline) ReportTaskRunnerHeartbeat(input *ReportTaskRunnerHeartbea
 	return out, err
 }
 
-const opSetStatus = "SetStatus"
+var opReportTaskRunnerHeartbeat *aws.Operation
 
 // SetStatusRequest generates a request for the SetStatus operation.
 func (c *DataPipeline) SetStatusRequest(input *SetStatusInput) (req *aws.Request, output *SetStatusOutput) {
-	op := &aws.Operation{
-		Name:       opSetStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetStatus == nil {
+		opSetStatus = &aws.Operation{
+			Name:       "SetStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetStatus, input, output)
 	output = &SetStatusOutput{}
 	req.Data = output
 	return
@@ -585,21 +671,26 @@ func (c *DataPipeline) SetStatus(input *SetStatusInput) (*SetStatusOutput, error
 	return out, err
 }
 
-const opSetTaskStatus = "SetTaskStatus"
+var opSetStatus *aws.Operation
 
 // SetTaskStatusRequest generates a request for the SetTaskStatus operation.
 func (c *DataPipeline) SetTaskStatusRequest(input *SetTaskStatusInput) (req *aws.Request, output *SetTaskStatusOutput) {
-	op := &aws.Operation{
-		Name:       opSetTaskStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetTaskStatus == nil {
+		opSetTaskStatus = &aws.Operation{
+			Name:       "SetTaskStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetTaskStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetTaskStatus, input, output)
 	output = &SetTaskStatusOutput{}
 	req.Data = output
 	return
@@ -616,21 +707,26 @@ func (c *DataPipeline) SetTaskStatus(input *SetTaskStatusInput) (*SetTaskStatusO
 	return out, err
 }
 
-const opValidatePipelineDefinition = "ValidatePipelineDefinition"
+var opSetTaskStatus *aws.Operation
 
 // ValidatePipelineDefinitionRequest generates a request for the ValidatePipelineDefinition operation.
 func (c *DataPipeline) ValidatePipelineDefinitionRequest(input *ValidatePipelineDefinitionInput) (req *aws.Request, output *ValidatePipelineDefinitionOutput) {
-	op := &aws.Operation{
-		Name:       opValidatePipelineDefinition,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opValidatePipelineDefinition == nil {
+		opValidatePipelineDefinition = &aws.Operation{
+			Name:       "ValidatePipelineDefinition",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ValidatePipelineDefinitionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opValidatePipelineDefinition, input, output)
 	output = &ValidatePipelineDefinitionOutput{}
 	req.Data = output
 	return
@@ -643,6 +739,8 @@ func (c *DataPipeline) ValidatePipelineDefinition(input *ValidatePipelineDefinit
 	err := req.Send()
 	return out, err
 }
+
+var opValidatePipelineDefinition *aws.Operation
 
 // Contains the parameters for ActivatePipeline.
 type ActivatePipelineInput struct {

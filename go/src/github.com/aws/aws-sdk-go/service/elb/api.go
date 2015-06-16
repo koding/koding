@@ -4,26 +4,32 @@
 package elb
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAddTags = "AddTags"
+var oprw sync.Mutex
 
 // AddTagsRequest generates a request for the AddTags operation.
 func (c *ELB) AddTagsRequest(input *AddTagsInput) (req *aws.Request, output *AddTagsOutput) {
-	op := &aws.Operation{
-		Name:       opAddTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddTags == nil {
+		opAddTags = &aws.Operation{
+			Name:       "AddTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddTags, input, output)
 	output = &AddTagsOutput{}
 	req.Data = output
 	return
@@ -43,21 +49,26 @@ func (c *ELB) AddTags(input *AddTagsInput) (*AddTagsOutput, error) {
 	return out, err
 }
 
-const opApplySecurityGroupsToLoadBalancer = "ApplySecurityGroupsToLoadBalancer"
+var opAddTags *aws.Operation
 
 // ApplySecurityGroupsToLoadBalancerRequest generates a request for the ApplySecurityGroupsToLoadBalancer operation.
 func (c *ELB) ApplySecurityGroupsToLoadBalancerRequest(input *ApplySecurityGroupsToLoadBalancerInput) (req *aws.Request, output *ApplySecurityGroupsToLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opApplySecurityGroupsToLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opApplySecurityGroupsToLoadBalancer == nil {
+		opApplySecurityGroupsToLoadBalancer = &aws.Operation{
+			Name:       "ApplySecurityGroupsToLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ApplySecurityGroupsToLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opApplySecurityGroupsToLoadBalancer, input, output)
 	output = &ApplySecurityGroupsToLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -75,21 +86,26 @@ func (c *ELB) ApplySecurityGroupsToLoadBalancer(input *ApplySecurityGroupsToLoad
 	return out, err
 }
 
-const opAttachLoadBalancerToSubnets = "AttachLoadBalancerToSubnets"
+var opApplySecurityGroupsToLoadBalancer *aws.Operation
 
 // AttachLoadBalancerToSubnetsRequest generates a request for the AttachLoadBalancerToSubnets operation.
 func (c *ELB) AttachLoadBalancerToSubnetsRequest(input *AttachLoadBalancerToSubnetsInput) (req *aws.Request, output *AttachLoadBalancerToSubnetsOutput) {
-	op := &aws.Operation{
-		Name:       opAttachLoadBalancerToSubnets,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAttachLoadBalancerToSubnets == nil {
+		opAttachLoadBalancerToSubnets = &aws.Operation{
+			Name:       "AttachLoadBalancerToSubnets",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AttachLoadBalancerToSubnetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAttachLoadBalancerToSubnets, input, output)
 	output = &AttachLoadBalancerToSubnetsOutput{}
 	req.Data = output
 	return
@@ -108,21 +124,26 @@ func (c *ELB) AttachLoadBalancerToSubnets(input *AttachLoadBalancerToSubnetsInpu
 	return out, err
 }
 
-const opConfigureHealthCheck = "ConfigureHealthCheck"
+var opAttachLoadBalancerToSubnets *aws.Operation
 
 // ConfigureHealthCheckRequest generates a request for the ConfigureHealthCheck operation.
 func (c *ELB) ConfigureHealthCheckRequest(input *ConfigureHealthCheckInput) (req *aws.Request, output *ConfigureHealthCheckOutput) {
-	op := &aws.Operation{
-		Name:       opConfigureHealthCheck,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opConfigureHealthCheck == nil {
+		opConfigureHealthCheck = &aws.Operation{
+			Name:       "ConfigureHealthCheck",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ConfigureHealthCheckInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opConfigureHealthCheck, input, output)
 	output = &ConfigureHealthCheckOutput{}
 	req.Data = output
 	return
@@ -139,21 +160,26 @@ func (c *ELB) ConfigureHealthCheck(input *ConfigureHealthCheckInput) (*Configure
 	return out, err
 }
 
-const opCreateAppCookieStickinessPolicy = "CreateAppCookieStickinessPolicy"
+var opConfigureHealthCheck *aws.Operation
 
 // CreateAppCookieStickinessPolicyRequest generates a request for the CreateAppCookieStickinessPolicy operation.
 func (c *ELB) CreateAppCookieStickinessPolicyRequest(input *CreateAppCookieStickinessPolicyInput) (req *aws.Request, output *CreateAppCookieStickinessPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opCreateAppCookieStickinessPolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateAppCookieStickinessPolicy == nil {
+		opCreateAppCookieStickinessPolicy = &aws.Operation{
+			Name:       "CreateAppCookieStickinessPolicy",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateAppCookieStickinessPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateAppCookieStickinessPolicy, input, output)
 	output = &CreateAppCookieStickinessPolicyOutput{}
 	req.Data = output
 	return
@@ -180,21 +206,26 @@ func (c *ELB) CreateAppCookieStickinessPolicy(input *CreateAppCookieStickinessPo
 	return out, err
 }
 
-const opCreateLBCookieStickinessPolicy = "CreateLBCookieStickinessPolicy"
+var opCreateAppCookieStickinessPolicy *aws.Operation
 
 // CreateLBCookieStickinessPolicyRequest generates a request for the CreateLBCookieStickinessPolicy operation.
 func (c *ELB) CreateLBCookieStickinessPolicyRequest(input *CreateLBCookieStickinessPolicyInput) (req *aws.Request, output *CreateLBCookieStickinessPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opCreateLBCookieStickinessPolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateLBCookieStickinessPolicy == nil {
+		opCreateLBCookieStickinessPolicy = &aws.Operation{
+			Name:       "CreateLBCookieStickinessPolicy",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateLBCookieStickinessPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateLBCookieStickinessPolicy, input, output)
 	output = &CreateLBCookieStickinessPolicyOutput{}
 	req.Data = output
 	return
@@ -223,21 +254,26 @@ func (c *ELB) CreateLBCookieStickinessPolicy(input *CreateLBCookieStickinessPoli
 	return out, err
 }
 
-const opCreateLoadBalancer = "CreateLoadBalancer"
+var opCreateLBCookieStickinessPolicy *aws.Operation
 
 // CreateLoadBalancerRequest generates a request for the CreateLoadBalancer operation.
 func (c *ELB) CreateLoadBalancerRequest(input *CreateLoadBalancerInput) (req *aws.Request, output *CreateLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opCreateLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateLoadBalancer == nil {
+		opCreateLoadBalancer = &aws.Operation{
+			Name:       "CreateLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateLoadBalancer, input, output)
 	output = &CreateLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -261,21 +297,26 @@ func (c *ELB) CreateLoadBalancer(input *CreateLoadBalancerInput) (*CreateLoadBal
 	return out, err
 }
 
-const opCreateLoadBalancerListeners = "CreateLoadBalancerListeners"
+var opCreateLoadBalancer *aws.Operation
 
 // CreateLoadBalancerListenersRequest generates a request for the CreateLoadBalancerListeners operation.
 func (c *ELB) CreateLoadBalancerListenersRequest(input *CreateLoadBalancerListenersInput) (req *aws.Request, output *CreateLoadBalancerListenersOutput) {
-	op := &aws.Operation{
-		Name:       opCreateLoadBalancerListeners,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateLoadBalancerListeners == nil {
+		opCreateLoadBalancerListeners = &aws.Operation{
+			Name:       "CreateLoadBalancerListeners",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateLoadBalancerListenersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateLoadBalancerListeners, input, output)
 	output = &CreateLoadBalancerListenersOutput{}
 	req.Data = output
 	return
@@ -294,21 +335,26 @@ func (c *ELB) CreateLoadBalancerListeners(input *CreateLoadBalancerListenersInpu
 	return out, err
 }
 
-const opCreateLoadBalancerPolicy = "CreateLoadBalancerPolicy"
+var opCreateLoadBalancerListeners *aws.Operation
 
 // CreateLoadBalancerPolicyRequest generates a request for the CreateLoadBalancerPolicy operation.
 func (c *ELB) CreateLoadBalancerPolicyRequest(input *CreateLoadBalancerPolicyInput) (req *aws.Request, output *CreateLoadBalancerPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opCreateLoadBalancerPolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateLoadBalancerPolicy == nil {
+		opCreateLoadBalancerPolicy = &aws.Operation{
+			Name:       "CreateLoadBalancerPolicy",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateLoadBalancerPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateLoadBalancerPolicy, input, output)
 	output = &CreateLoadBalancerPolicyOutput{}
 	req.Data = output
 	return
@@ -325,21 +371,26 @@ func (c *ELB) CreateLoadBalancerPolicy(input *CreateLoadBalancerPolicyInput) (*C
 	return out, err
 }
 
-const opDeleteLoadBalancer = "DeleteLoadBalancer"
+var opCreateLoadBalancerPolicy *aws.Operation
 
 // DeleteLoadBalancerRequest generates a request for the DeleteLoadBalancer operation.
 func (c *ELB) DeleteLoadBalancerRequest(input *DeleteLoadBalancerInput) (req *aws.Request, output *DeleteLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteLoadBalancer == nil {
+		opDeleteLoadBalancer = &aws.Operation{
+			Name:       "DeleteLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteLoadBalancer, input, output)
 	output = &DeleteLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -361,21 +412,26 @@ func (c *ELB) DeleteLoadBalancer(input *DeleteLoadBalancerInput) (*DeleteLoadBal
 	return out, err
 }
 
-const opDeleteLoadBalancerListeners = "DeleteLoadBalancerListeners"
+var opDeleteLoadBalancer *aws.Operation
 
 // DeleteLoadBalancerListenersRequest generates a request for the DeleteLoadBalancerListeners operation.
 func (c *ELB) DeleteLoadBalancerListenersRequest(input *DeleteLoadBalancerListenersInput) (req *aws.Request, output *DeleteLoadBalancerListenersOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteLoadBalancerListeners,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteLoadBalancerListeners == nil {
+		opDeleteLoadBalancerListeners = &aws.Operation{
+			Name:       "DeleteLoadBalancerListeners",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteLoadBalancerListenersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteLoadBalancerListeners, input, output)
 	output = &DeleteLoadBalancerListenersOutput{}
 	req.Data = output
 	return
@@ -388,21 +444,26 @@ func (c *ELB) DeleteLoadBalancerListeners(input *DeleteLoadBalancerListenersInpu
 	return out, err
 }
 
-const opDeleteLoadBalancerPolicy = "DeleteLoadBalancerPolicy"
+var opDeleteLoadBalancerListeners *aws.Operation
 
 // DeleteLoadBalancerPolicyRequest generates a request for the DeleteLoadBalancerPolicy operation.
 func (c *ELB) DeleteLoadBalancerPolicyRequest(input *DeleteLoadBalancerPolicyInput) (req *aws.Request, output *DeleteLoadBalancerPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteLoadBalancerPolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteLoadBalancerPolicy == nil {
+		opDeleteLoadBalancerPolicy = &aws.Operation{
+			Name:       "DeleteLoadBalancerPolicy",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteLoadBalancerPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteLoadBalancerPolicy, input, output)
 	output = &DeleteLoadBalancerPolicyOutput{}
 	req.Data = output
 	return
@@ -416,21 +477,26 @@ func (c *ELB) DeleteLoadBalancerPolicy(input *DeleteLoadBalancerPolicyInput) (*D
 	return out, err
 }
 
-const opDeregisterInstancesFromLoadBalancer = "DeregisterInstancesFromLoadBalancer"
+var opDeleteLoadBalancerPolicy *aws.Operation
 
 // DeregisterInstancesFromLoadBalancerRequest generates a request for the DeregisterInstancesFromLoadBalancer operation.
 func (c *ELB) DeregisterInstancesFromLoadBalancerRequest(input *DeregisterInstancesFromLoadBalancerInput) (req *aws.Request, output *DeregisterInstancesFromLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opDeregisterInstancesFromLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeregisterInstancesFromLoadBalancer == nil {
+		opDeregisterInstancesFromLoadBalancer = &aws.Operation{
+			Name:       "DeregisterInstancesFromLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeregisterInstancesFromLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeregisterInstancesFromLoadBalancer, input, output)
 	output = &DeregisterInstancesFromLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -451,21 +517,26 @@ func (c *ELB) DeregisterInstancesFromLoadBalancer(input *DeregisterInstancesFrom
 	return out, err
 }
 
-const opDescribeInstanceHealth = "DescribeInstanceHealth"
+var opDeregisterInstancesFromLoadBalancer *aws.Operation
 
 // DescribeInstanceHealthRequest generates a request for the DescribeInstanceHealth operation.
 func (c *ELB) DescribeInstanceHealthRequest(input *DescribeInstanceHealthInput) (req *aws.Request, output *DescribeInstanceHealthOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeInstanceHealth,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeInstanceHealth == nil {
+		opDescribeInstanceHealth = &aws.Operation{
+			Name:       "DescribeInstanceHealth",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeInstanceHealthInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeInstanceHealth, input, output)
 	output = &DescribeInstanceHealthOutput{}
 	req.Data = output
 	return
@@ -481,21 +552,26 @@ func (c *ELB) DescribeInstanceHealth(input *DescribeInstanceHealthInput) (*Descr
 	return out, err
 }
 
-const opDescribeLoadBalancerAttributes = "DescribeLoadBalancerAttributes"
+var opDescribeInstanceHealth *aws.Operation
 
 // DescribeLoadBalancerAttributesRequest generates a request for the DescribeLoadBalancerAttributes operation.
 func (c *ELB) DescribeLoadBalancerAttributesRequest(input *DescribeLoadBalancerAttributesInput) (req *aws.Request, output *DescribeLoadBalancerAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLoadBalancerAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLoadBalancerAttributes == nil {
+		opDescribeLoadBalancerAttributes = &aws.Operation{
+			Name:       "DescribeLoadBalancerAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLoadBalancerAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLoadBalancerAttributes, input, output)
 	output = &DescribeLoadBalancerAttributesOutput{}
 	req.Data = output
 	return
@@ -508,21 +584,26 @@ func (c *ELB) DescribeLoadBalancerAttributes(input *DescribeLoadBalancerAttribut
 	return out, err
 }
 
-const opDescribeLoadBalancerPolicies = "DescribeLoadBalancerPolicies"
+var opDescribeLoadBalancerAttributes *aws.Operation
 
 // DescribeLoadBalancerPoliciesRequest generates a request for the DescribeLoadBalancerPolicies operation.
 func (c *ELB) DescribeLoadBalancerPoliciesRequest(input *DescribeLoadBalancerPoliciesInput) (req *aws.Request, output *DescribeLoadBalancerPoliciesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLoadBalancerPolicies,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLoadBalancerPolicies == nil {
+		opDescribeLoadBalancerPolicies = &aws.Operation{
+			Name:       "DescribeLoadBalancerPolicies",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLoadBalancerPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLoadBalancerPolicies, input, output)
 	output = &DescribeLoadBalancerPoliciesOutput{}
 	req.Data = output
 	return
@@ -542,21 +623,26 @@ func (c *ELB) DescribeLoadBalancerPolicies(input *DescribeLoadBalancerPoliciesIn
 	return out, err
 }
 
-const opDescribeLoadBalancerPolicyTypes = "DescribeLoadBalancerPolicyTypes"
+var opDescribeLoadBalancerPolicies *aws.Operation
 
 // DescribeLoadBalancerPolicyTypesRequest generates a request for the DescribeLoadBalancerPolicyTypes operation.
 func (c *ELB) DescribeLoadBalancerPolicyTypesRequest(input *DescribeLoadBalancerPolicyTypesInput) (req *aws.Request, output *DescribeLoadBalancerPolicyTypesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLoadBalancerPolicyTypes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLoadBalancerPolicyTypes == nil {
+		opDescribeLoadBalancerPolicyTypes = &aws.Operation{
+			Name:       "DescribeLoadBalancerPolicyTypes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLoadBalancerPolicyTypesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLoadBalancerPolicyTypes, input, output)
 	output = &DescribeLoadBalancerPolicyTypesOutput{}
 	req.Data = output
 	return
@@ -572,27 +658,32 @@ func (c *ELB) DescribeLoadBalancerPolicyTypes(input *DescribeLoadBalancerPolicyT
 	return out, err
 }
 
-const opDescribeLoadBalancers = "DescribeLoadBalancers"
+var opDescribeLoadBalancerPolicyTypes *aws.Operation
 
 // DescribeLoadBalancersRequest generates a request for the DescribeLoadBalancers operation.
 func (c *ELB) DescribeLoadBalancersRequest(input *DescribeLoadBalancersInput) (req *aws.Request, output *DescribeLoadBalancersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeLoadBalancers,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"NextMarker"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeLoadBalancers == nil {
+		opDescribeLoadBalancers = &aws.Operation{
+			Name:       "DescribeLoadBalancers",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"NextMarker"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeLoadBalancersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeLoadBalancers, input, output)
 	output = &DescribeLoadBalancersOutput{}
 	req.Data = output
 	return
@@ -613,21 +704,26 @@ func (c *ELB) DescribeLoadBalancersPages(input *DescribeLoadBalancersInput, fn f
 	})
 }
 
-const opDescribeTags = "DescribeTags"
+var opDescribeLoadBalancers *aws.Operation
 
 // DescribeTagsRequest generates a request for the DescribeTags operation.
 func (c *ELB) DescribeTagsRequest(input *DescribeTagsInput) (req *aws.Request, output *DescribeTagsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeTags == nil {
+		opDescribeTags = &aws.Operation{
+			Name:       "DescribeTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeTags, input, output)
 	output = &DescribeTagsOutput{}
 	req.Data = output
 	return
@@ -640,21 +736,26 @@ func (c *ELB) DescribeTags(input *DescribeTagsInput) (*DescribeTagsOutput, error
 	return out, err
 }
 
-const opDetachLoadBalancerFromSubnets = "DetachLoadBalancerFromSubnets"
+var opDescribeTags *aws.Operation
 
 // DetachLoadBalancerFromSubnetsRequest generates a request for the DetachLoadBalancerFromSubnets operation.
 func (c *ELB) DetachLoadBalancerFromSubnetsRequest(input *DetachLoadBalancerFromSubnetsInput) (req *aws.Request, output *DetachLoadBalancerFromSubnetsOutput) {
-	op := &aws.Operation{
-		Name:       opDetachLoadBalancerFromSubnets,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDetachLoadBalancerFromSubnets == nil {
+		opDetachLoadBalancerFromSubnets = &aws.Operation{
+			Name:       "DetachLoadBalancerFromSubnets",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DetachLoadBalancerFromSubnetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDetachLoadBalancerFromSubnets, input, output)
 	output = &DetachLoadBalancerFromSubnetsOutput{}
 	req.Data = output
 	return
@@ -672,21 +773,26 @@ func (c *ELB) DetachLoadBalancerFromSubnets(input *DetachLoadBalancerFromSubnets
 	return out, err
 }
 
-const opDisableAvailabilityZonesForLoadBalancer = "DisableAvailabilityZonesForLoadBalancer"
+var opDetachLoadBalancerFromSubnets *aws.Operation
 
 // DisableAvailabilityZonesForLoadBalancerRequest generates a request for the DisableAvailabilityZonesForLoadBalancer operation.
 func (c *ELB) DisableAvailabilityZonesForLoadBalancerRequest(input *DisableAvailabilityZonesForLoadBalancerInput) (req *aws.Request, output *DisableAvailabilityZonesForLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opDisableAvailabilityZonesForLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisableAvailabilityZonesForLoadBalancer == nil {
+		opDisableAvailabilityZonesForLoadBalancer = &aws.Operation{
+			Name:       "DisableAvailabilityZonesForLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisableAvailabilityZonesForLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisableAvailabilityZonesForLoadBalancer, input, output)
 	output = &DisableAvailabilityZonesForLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -710,21 +816,26 @@ func (c *ELB) DisableAvailabilityZonesForLoadBalancer(input *DisableAvailability
 	return out, err
 }
 
-const opEnableAvailabilityZonesForLoadBalancer = "EnableAvailabilityZonesForLoadBalancer"
+var opDisableAvailabilityZonesForLoadBalancer *aws.Operation
 
 // EnableAvailabilityZonesForLoadBalancerRequest generates a request for the EnableAvailabilityZonesForLoadBalancer operation.
 func (c *ELB) EnableAvailabilityZonesForLoadBalancerRequest(input *EnableAvailabilityZonesForLoadBalancerInput) (req *aws.Request, output *EnableAvailabilityZonesForLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opEnableAvailabilityZonesForLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableAvailabilityZonesForLoadBalancer == nil {
+		opEnableAvailabilityZonesForLoadBalancer = &aws.Operation{
+			Name:       "EnableAvailabilityZonesForLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableAvailabilityZonesForLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableAvailabilityZonesForLoadBalancer, input, output)
 	output = &EnableAvailabilityZonesForLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -744,21 +855,26 @@ func (c *ELB) EnableAvailabilityZonesForLoadBalancer(input *EnableAvailabilityZo
 	return out, err
 }
 
-const opModifyLoadBalancerAttributes = "ModifyLoadBalancerAttributes"
+var opEnableAvailabilityZonesForLoadBalancer *aws.Operation
 
 // ModifyLoadBalancerAttributesRequest generates a request for the ModifyLoadBalancerAttributes operation.
 func (c *ELB) ModifyLoadBalancerAttributesRequest(input *ModifyLoadBalancerAttributesInput) (req *aws.Request, output *ModifyLoadBalancerAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opModifyLoadBalancerAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyLoadBalancerAttributes == nil {
+		opModifyLoadBalancerAttributes = &aws.Operation{
+			Name:       "ModifyLoadBalancerAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyLoadBalancerAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyLoadBalancerAttributes, input, output)
 	output = &ModifyLoadBalancerAttributesOutput{}
 	req.Data = output
 	return
@@ -784,21 +900,26 @@ func (c *ELB) ModifyLoadBalancerAttributes(input *ModifyLoadBalancerAttributesIn
 	return out, err
 }
 
-const opRegisterInstancesWithLoadBalancer = "RegisterInstancesWithLoadBalancer"
+var opModifyLoadBalancerAttributes *aws.Operation
 
 // RegisterInstancesWithLoadBalancerRequest generates a request for the RegisterInstancesWithLoadBalancer operation.
 func (c *ELB) RegisterInstancesWithLoadBalancerRequest(input *RegisterInstancesWithLoadBalancerInput) (req *aws.Request, output *RegisterInstancesWithLoadBalancerOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterInstancesWithLoadBalancer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterInstancesWithLoadBalancer == nil {
+		opRegisterInstancesWithLoadBalancer = &aws.Operation{
+			Name:       "RegisterInstancesWithLoadBalancer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterInstancesWithLoadBalancerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterInstancesWithLoadBalancer, input, output)
 	output = &RegisterInstancesWithLoadBalancerOutput{}
 	req.Data = output
 	return
@@ -837,21 +958,26 @@ func (c *ELB) RegisterInstancesWithLoadBalancer(input *RegisterInstancesWithLoad
 	return out, err
 }
 
-const opRemoveTags = "RemoveTags"
+var opRegisterInstancesWithLoadBalancer *aws.Operation
 
 // RemoveTagsRequest generates a request for the RemoveTags operation.
 func (c *ELB) RemoveTagsRequest(input *RemoveTagsInput) (req *aws.Request, output *RemoveTagsOutput) {
-	op := &aws.Operation{
-		Name:       opRemoveTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemoveTags == nil {
+		opRemoveTags = &aws.Operation{
+			Name:       "RemoveTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemoveTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemoveTags, input, output)
 	output = &RemoveTagsOutput{}
 	req.Data = output
 	return
@@ -864,21 +990,26 @@ func (c *ELB) RemoveTags(input *RemoveTagsInput) (*RemoveTagsOutput, error) {
 	return out, err
 }
 
-const opSetLoadBalancerListenerSSLCertificate = "SetLoadBalancerListenerSSLCertificate"
+var opRemoveTags *aws.Operation
 
 // SetLoadBalancerListenerSSLCertificateRequest generates a request for the SetLoadBalancerListenerSSLCertificate operation.
 func (c *ELB) SetLoadBalancerListenerSSLCertificateRequest(input *SetLoadBalancerListenerSSLCertificateInput) (req *aws.Request, output *SetLoadBalancerListenerSSLCertificateOutput) {
-	op := &aws.Operation{
-		Name:       opSetLoadBalancerListenerSSLCertificate,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetLoadBalancerListenerSSLCertificate == nil {
+		opSetLoadBalancerListenerSSLCertificate = &aws.Operation{
+			Name:       "SetLoadBalancerListenerSSLCertificate",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetLoadBalancerListenerSSLCertificateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetLoadBalancerListenerSSLCertificate, input, output)
 	output = &SetLoadBalancerListenerSSLCertificateOutput{}
 	req.Data = output
 	return
@@ -897,21 +1028,26 @@ func (c *ELB) SetLoadBalancerListenerSSLCertificate(input *SetLoadBalancerListen
 	return out, err
 }
 
-const opSetLoadBalancerPoliciesForBackendServer = "SetLoadBalancerPoliciesForBackendServer"
+var opSetLoadBalancerListenerSSLCertificate *aws.Operation
 
 // SetLoadBalancerPoliciesForBackendServerRequest generates a request for the SetLoadBalancerPoliciesForBackendServer operation.
 func (c *ELB) SetLoadBalancerPoliciesForBackendServerRequest(input *SetLoadBalancerPoliciesForBackendServerInput) (req *aws.Request, output *SetLoadBalancerPoliciesForBackendServerOutput) {
-	op := &aws.Operation{
-		Name:       opSetLoadBalancerPoliciesForBackendServer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetLoadBalancerPoliciesForBackendServer == nil {
+		opSetLoadBalancerPoliciesForBackendServer = &aws.Operation{
+			Name:       "SetLoadBalancerPoliciesForBackendServer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetLoadBalancerPoliciesForBackendServerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetLoadBalancerPoliciesForBackendServer, input, output)
 	output = &SetLoadBalancerPoliciesForBackendServerOutput{}
 	req.Data = output
 	return
@@ -934,21 +1070,26 @@ func (c *ELB) SetLoadBalancerPoliciesForBackendServer(input *SetLoadBalancerPoli
 	return out, err
 }
 
-const opSetLoadBalancerPoliciesOfListener = "SetLoadBalancerPoliciesOfListener"
+var opSetLoadBalancerPoliciesForBackendServer *aws.Operation
 
 // SetLoadBalancerPoliciesOfListenerRequest generates a request for the SetLoadBalancerPoliciesOfListener operation.
 func (c *ELB) SetLoadBalancerPoliciesOfListenerRequest(input *SetLoadBalancerPoliciesOfListenerInput) (req *aws.Request, output *SetLoadBalancerPoliciesOfListenerOutput) {
-	op := &aws.Operation{
-		Name:       opSetLoadBalancerPoliciesOfListener,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetLoadBalancerPoliciesOfListener == nil {
+		opSetLoadBalancerPoliciesOfListener = &aws.Operation{
+			Name:       "SetLoadBalancerPoliciesOfListener",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetLoadBalancerPoliciesOfListenerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetLoadBalancerPoliciesOfListener, input, output)
 	output = &SetLoadBalancerPoliciesOfListenerOutput{}
 	req.Data = output
 	return
@@ -961,6 +1102,8 @@ func (c *ELB) SetLoadBalancerPoliciesOfListener(input *SetLoadBalancerPoliciesOf
 	err := req.Send()
 	return out, err
 }
+
+var opSetLoadBalancerPoliciesOfListener *aws.Operation
 
 // Information about the AccessLog attribute.
 type AccessLog struct {

@@ -4,24 +4,31 @@
 package mobileanalytics
 
 import (
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opPutEvents = "PutEvents"
+var oprw sync.Mutex
 
 // PutEventsRequest generates a request for the PutEvents operation.
 func (c *MobileAnalytics) PutEventsRequest(input *PutEventsInput) (req *aws.Request, output *PutEventsOutput) {
-	op := &aws.Operation{
-		Name:       opPutEvents,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2014-06-05/events",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutEvents == nil {
+		opPutEvents = &aws.Operation{
+			Name:       "PutEvents",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2014-06-05/events",
+		}
 	}
 
 	if input == nil {
 		input = &PutEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutEvents, input, output)
 	output = &PutEventsOutput{}
 	req.Data = output
 	return
@@ -35,6 +42,8 @@ func (c *MobileAnalytics) PutEvents(input *PutEventsInput) (*PutEventsOutput, er
 	err := req.Send()
 	return out, err
 }
+
+var opPutEvents *aws.Operation
 
 // A JSON object representing a batch of unique event occurrences in your app.
 type Event struct {

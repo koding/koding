@@ -4,26 +4,32 @@
 package rds
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAddSourceIdentifierToSubscription = "AddSourceIdentifierToSubscription"
+var oprw sync.Mutex
 
 // AddSourceIdentifierToSubscriptionRequest generates a request for the AddSourceIdentifierToSubscription operation.
 func (c *RDS) AddSourceIdentifierToSubscriptionRequest(input *AddSourceIdentifierToSubscriptionInput) (req *aws.Request, output *AddSourceIdentifierToSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opAddSourceIdentifierToSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddSourceIdentifierToSubscription == nil {
+		opAddSourceIdentifierToSubscription = &aws.Operation{
+			Name:       "AddSourceIdentifierToSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddSourceIdentifierToSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddSourceIdentifierToSubscription, input, output)
 	output = &AddSourceIdentifierToSubscriptionOutput{}
 	req.Data = output
 	return
@@ -36,21 +42,26 @@ func (c *RDS) AddSourceIdentifierToSubscription(input *AddSourceIdentifierToSubs
 	return out, err
 }
 
-const opAddTagsToResource = "AddTagsToResource"
+var opAddSourceIdentifierToSubscription *aws.Operation
 
 // AddTagsToResourceRequest generates a request for the AddTagsToResource operation.
 func (c *RDS) AddTagsToResourceRequest(input *AddTagsToResourceInput) (req *aws.Request, output *AddTagsToResourceOutput) {
-	op := &aws.Operation{
-		Name:       opAddTagsToResource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddTagsToResource == nil {
+		opAddTagsToResource = &aws.Operation{
+			Name:       "AddTagsToResource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddTagsToResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddTagsToResource, input, output)
 	output = &AddTagsToResourceOutput{}
 	req.Data = output
 	return
@@ -68,21 +79,26 @@ func (c *RDS) AddTagsToResource(input *AddTagsToResourceInput) (*AddTagsToResour
 	return out, err
 }
 
-const opApplyPendingMaintenanceAction = "ApplyPendingMaintenanceAction"
+var opAddTagsToResource *aws.Operation
 
 // ApplyPendingMaintenanceActionRequest generates a request for the ApplyPendingMaintenanceAction operation.
 func (c *RDS) ApplyPendingMaintenanceActionRequest(input *ApplyPendingMaintenanceActionInput) (req *aws.Request, output *ApplyPendingMaintenanceActionOutput) {
-	op := &aws.Operation{
-		Name:       opApplyPendingMaintenanceAction,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opApplyPendingMaintenanceAction == nil {
+		opApplyPendingMaintenanceAction = &aws.Operation{
+			Name:       "ApplyPendingMaintenanceAction",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ApplyPendingMaintenanceActionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opApplyPendingMaintenanceAction, input, output)
 	output = &ApplyPendingMaintenanceActionOutput{}
 	req.Data = output
 	return
@@ -95,21 +111,26 @@ func (c *RDS) ApplyPendingMaintenanceAction(input *ApplyPendingMaintenanceAction
 	return out, err
 }
 
-const opAuthorizeDBSecurityGroupIngress = "AuthorizeDBSecurityGroupIngress"
+var opApplyPendingMaintenanceAction *aws.Operation
 
 // AuthorizeDBSecurityGroupIngressRequest generates a request for the AuthorizeDBSecurityGroupIngress operation.
 func (c *RDS) AuthorizeDBSecurityGroupIngressRequest(input *AuthorizeDBSecurityGroupIngressInput) (req *aws.Request, output *AuthorizeDBSecurityGroupIngressOutput) {
-	op := &aws.Operation{
-		Name:       opAuthorizeDBSecurityGroupIngress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAuthorizeDBSecurityGroupIngress == nil {
+		opAuthorizeDBSecurityGroupIngress = &aws.Operation{
+			Name:       "AuthorizeDBSecurityGroupIngress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AuthorizeDBSecurityGroupIngressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAuthorizeDBSecurityGroupIngress, input, output)
 	output = &AuthorizeDBSecurityGroupIngressOutput{}
 	req.Data = output
 	return
@@ -133,21 +154,26 @@ func (c *RDS) AuthorizeDBSecurityGroupIngress(input *AuthorizeDBSecurityGroupIng
 	return out, err
 }
 
-const opCopyDBParameterGroup = "CopyDBParameterGroup"
+var opAuthorizeDBSecurityGroupIngress *aws.Operation
 
 // CopyDBParameterGroupRequest generates a request for the CopyDBParameterGroup operation.
 func (c *RDS) CopyDBParameterGroupRequest(input *CopyDBParameterGroupInput) (req *aws.Request, output *CopyDBParameterGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCopyDBParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCopyDBParameterGroup == nil {
+		opCopyDBParameterGroup = &aws.Operation{
+			Name:       "CopyDBParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CopyDBParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCopyDBParameterGroup, input, output)
 	output = &CopyDBParameterGroupOutput{}
 	req.Data = output
 	return
@@ -160,21 +186,26 @@ func (c *RDS) CopyDBParameterGroup(input *CopyDBParameterGroupInput) (*CopyDBPar
 	return out, err
 }
 
-const opCopyDBSnapshot = "CopyDBSnapshot"
+var opCopyDBParameterGroup *aws.Operation
 
 // CopyDBSnapshotRequest generates a request for the CopyDBSnapshot operation.
 func (c *RDS) CopyDBSnapshotRequest(input *CopyDBSnapshotInput) (req *aws.Request, output *CopyDBSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opCopyDBSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCopyDBSnapshot == nil {
+		opCopyDBSnapshot = &aws.Operation{
+			Name:       "CopyDBSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CopyDBSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCopyDBSnapshot, input, output)
 	output = &CopyDBSnapshotOutput{}
 	req.Data = output
 	return
@@ -188,21 +219,26 @@ func (c *RDS) CopyDBSnapshot(input *CopyDBSnapshotInput) (*CopyDBSnapshotOutput,
 	return out, err
 }
 
-const opCopyOptionGroup = "CopyOptionGroup"
+var opCopyDBSnapshot *aws.Operation
 
 // CopyOptionGroupRequest generates a request for the CopyOptionGroup operation.
 func (c *RDS) CopyOptionGroupRequest(input *CopyOptionGroupInput) (req *aws.Request, output *CopyOptionGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCopyOptionGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCopyOptionGroup == nil {
+		opCopyOptionGroup = &aws.Operation{
+			Name:       "CopyOptionGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CopyOptionGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCopyOptionGroup, input, output)
 	output = &CopyOptionGroupOutput{}
 	req.Data = output
 	return
@@ -215,21 +251,26 @@ func (c *RDS) CopyOptionGroup(input *CopyOptionGroupInput) (*CopyOptionGroupOutp
 	return out, err
 }
 
-const opCreateDBInstance = "CreateDBInstance"
+var opCopyOptionGroup *aws.Operation
 
 // CreateDBInstanceRequest generates a request for the CreateDBInstance operation.
 func (c *RDS) CreateDBInstanceRequest(input *CreateDBInstanceInput) (req *aws.Request, output *CreateDBInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDBInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDBInstance == nil {
+		opCreateDBInstance = &aws.Operation{
+			Name:       "CreateDBInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDBInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDBInstance, input, output)
 	output = &CreateDBInstanceOutput{}
 	req.Data = output
 	return
@@ -242,21 +283,26 @@ func (c *RDS) CreateDBInstance(input *CreateDBInstanceInput) (*CreateDBInstanceO
 	return out, err
 }
 
-const opCreateDBInstanceReadReplica = "CreateDBInstanceReadReplica"
+var opCreateDBInstance *aws.Operation
 
 // CreateDBInstanceReadReplicaRequest generates a request for the CreateDBInstanceReadReplica operation.
 func (c *RDS) CreateDBInstanceReadReplicaRequest(input *CreateDBInstanceReadReplicaInput) (req *aws.Request, output *CreateDBInstanceReadReplicaOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDBInstanceReadReplica,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDBInstanceReadReplica == nil {
+		opCreateDBInstanceReadReplica = &aws.Operation{
+			Name:       "CreateDBInstanceReadReplica",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDBInstanceReadReplicaInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDBInstanceReadReplica, input, output)
 	output = &CreateDBInstanceReadReplicaOutput{}
 	req.Data = output
 	return
@@ -276,21 +322,26 @@ func (c *RDS) CreateDBInstanceReadReplica(input *CreateDBInstanceReadReplicaInpu
 	return out, err
 }
 
-const opCreateDBParameterGroup = "CreateDBParameterGroup"
+var opCreateDBInstanceReadReplica *aws.Operation
 
 // CreateDBParameterGroupRequest generates a request for the CreateDBParameterGroup operation.
 func (c *RDS) CreateDBParameterGroupRequest(input *CreateDBParameterGroupInput) (req *aws.Request, output *CreateDBParameterGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDBParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDBParameterGroup == nil {
+		opCreateDBParameterGroup = &aws.Operation{
+			Name:       "CreateDBParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDBParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDBParameterGroup, input, output)
 	output = &CreateDBParameterGroupOutput{}
 	req.Data = output
 	return
@@ -323,21 +374,26 @@ func (c *RDS) CreateDBParameterGroup(input *CreateDBParameterGroupInput) (*Creat
 	return out, err
 }
 
-const opCreateDBSecurityGroup = "CreateDBSecurityGroup"
+var opCreateDBParameterGroup *aws.Operation
 
 // CreateDBSecurityGroupRequest generates a request for the CreateDBSecurityGroup operation.
 func (c *RDS) CreateDBSecurityGroupRequest(input *CreateDBSecurityGroupInput) (req *aws.Request, output *CreateDBSecurityGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDBSecurityGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDBSecurityGroup == nil {
+		opCreateDBSecurityGroup = &aws.Operation{
+			Name:       "CreateDBSecurityGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDBSecurityGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDBSecurityGroup, input, output)
 	output = &CreateDBSecurityGroupOutput{}
 	req.Data = output
 	return
@@ -351,21 +407,26 @@ func (c *RDS) CreateDBSecurityGroup(input *CreateDBSecurityGroupInput) (*CreateD
 	return out, err
 }
 
-const opCreateDBSnapshot = "CreateDBSnapshot"
+var opCreateDBSecurityGroup *aws.Operation
 
 // CreateDBSnapshotRequest generates a request for the CreateDBSnapshot operation.
 func (c *RDS) CreateDBSnapshotRequest(input *CreateDBSnapshotInput) (req *aws.Request, output *CreateDBSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDBSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDBSnapshot == nil {
+		opCreateDBSnapshot = &aws.Operation{
+			Name:       "CreateDBSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDBSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDBSnapshot, input, output)
 	output = &CreateDBSnapshotOutput{}
 	req.Data = output
 	return
@@ -378,21 +439,26 @@ func (c *RDS) CreateDBSnapshot(input *CreateDBSnapshotInput) (*CreateDBSnapshotO
 	return out, err
 }
 
-const opCreateDBSubnetGroup = "CreateDBSubnetGroup"
+var opCreateDBSnapshot *aws.Operation
 
 // CreateDBSubnetGroupRequest generates a request for the CreateDBSubnetGroup operation.
 func (c *RDS) CreateDBSubnetGroupRequest(input *CreateDBSubnetGroupInput) (req *aws.Request, output *CreateDBSubnetGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDBSubnetGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDBSubnetGroup == nil {
+		opCreateDBSubnetGroup = &aws.Operation{
+			Name:       "CreateDBSubnetGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDBSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDBSubnetGroup, input, output)
 	output = &CreateDBSubnetGroupOutput{}
 	req.Data = output
 	return
@@ -406,21 +472,26 @@ func (c *RDS) CreateDBSubnetGroup(input *CreateDBSubnetGroupInput) (*CreateDBSub
 	return out, err
 }
 
-const opCreateEventSubscription = "CreateEventSubscription"
+var opCreateDBSubnetGroup *aws.Operation
 
 // CreateEventSubscriptionRequest generates a request for the CreateEventSubscription operation.
 func (c *RDS) CreateEventSubscriptionRequest(input *CreateEventSubscriptionInput) (req *aws.Request, output *CreateEventSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opCreateEventSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateEventSubscription == nil {
+		opCreateEventSubscription = &aws.Operation{
+			Name:       "CreateEventSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateEventSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateEventSubscription, input, output)
 	output = &CreateEventSubscriptionOutput{}
 	req.Data = output
 	return
@@ -451,21 +522,26 @@ func (c *RDS) CreateEventSubscription(input *CreateEventSubscriptionInput) (*Cre
 	return out, err
 }
 
-const opCreateOptionGroup = "CreateOptionGroup"
+var opCreateEventSubscription *aws.Operation
 
 // CreateOptionGroupRequest generates a request for the CreateOptionGroup operation.
 func (c *RDS) CreateOptionGroupRequest(input *CreateOptionGroupInput) (req *aws.Request, output *CreateOptionGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateOptionGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateOptionGroup == nil {
+		opCreateOptionGroup = &aws.Operation{
+			Name:       "CreateOptionGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateOptionGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateOptionGroup, input, output)
 	output = &CreateOptionGroupOutput{}
 	req.Data = output
 	return
@@ -478,21 +554,26 @@ func (c *RDS) CreateOptionGroup(input *CreateOptionGroupInput) (*CreateOptionGro
 	return out, err
 }
 
-const opDeleteDBInstance = "DeleteDBInstance"
+var opCreateOptionGroup *aws.Operation
 
 // DeleteDBInstanceRequest generates a request for the DeleteDBInstance operation.
 func (c *RDS) DeleteDBInstanceRequest(input *DeleteDBInstanceInput) (req *aws.Request, output *DeleteDBInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDBInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDBInstance == nil {
+		opDeleteDBInstance = &aws.Operation{
+			Name:       "DeleteDBInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDBInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDBInstance, input, output)
 	output = &DeleteDBInstanceOutput{}
 	req.Data = output
 	return
@@ -514,21 +595,26 @@ func (c *RDS) DeleteDBInstance(input *DeleteDBInstanceInput) (*DeleteDBInstanceO
 	return out, err
 }
 
-const opDeleteDBParameterGroup = "DeleteDBParameterGroup"
+var opDeleteDBInstance *aws.Operation
 
 // DeleteDBParameterGroupRequest generates a request for the DeleteDBParameterGroup operation.
 func (c *RDS) DeleteDBParameterGroupRequest(input *DeleteDBParameterGroupInput) (req *aws.Request, output *DeleteDBParameterGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDBParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDBParameterGroup == nil {
+		opDeleteDBParameterGroup = &aws.Operation{
+			Name:       "DeleteDBParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDBParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDBParameterGroup, input, output)
 	output = &DeleteDBParameterGroupOutput{}
 	req.Data = output
 	return
@@ -542,21 +628,26 @@ func (c *RDS) DeleteDBParameterGroup(input *DeleteDBParameterGroupInput) (*Delet
 	return out, err
 }
 
-const opDeleteDBSecurityGroup = "DeleteDBSecurityGroup"
+var opDeleteDBParameterGroup *aws.Operation
 
 // DeleteDBSecurityGroupRequest generates a request for the DeleteDBSecurityGroup operation.
 func (c *RDS) DeleteDBSecurityGroupRequest(input *DeleteDBSecurityGroupInput) (req *aws.Request, output *DeleteDBSecurityGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDBSecurityGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDBSecurityGroup == nil {
+		opDeleteDBSecurityGroup = &aws.Operation{
+			Name:       "DeleteDBSecurityGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDBSecurityGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDBSecurityGroup, input, output)
 	output = &DeleteDBSecurityGroupOutput{}
 	req.Data = output
 	return
@@ -571,21 +662,26 @@ func (c *RDS) DeleteDBSecurityGroup(input *DeleteDBSecurityGroupInput) (*DeleteD
 	return out, err
 }
 
-const opDeleteDBSnapshot = "DeleteDBSnapshot"
+var opDeleteDBSecurityGroup *aws.Operation
 
 // DeleteDBSnapshotRequest generates a request for the DeleteDBSnapshot operation.
 func (c *RDS) DeleteDBSnapshotRequest(input *DeleteDBSnapshotInput) (req *aws.Request, output *DeleteDBSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDBSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDBSnapshot == nil {
+		opDeleteDBSnapshot = &aws.Operation{
+			Name:       "DeleteDBSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDBSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDBSnapshot, input, output)
 	output = &DeleteDBSnapshotOutput{}
 	req.Data = output
 	return
@@ -601,21 +697,26 @@ func (c *RDS) DeleteDBSnapshot(input *DeleteDBSnapshotInput) (*DeleteDBSnapshotO
 	return out, err
 }
 
-const opDeleteDBSubnetGroup = "DeleteDBSubnetGroup"
+var opDeleteDBSnapshot *aws.Operation
 
 // DeleteDBSubnetGroupRequest generates a request for the DeleteDBSubnetGroup operation.
 func (c *RDS) DeleteDBSubnetGroupRequest(input *DeleteDBSubnetGroupInput) (req *aws.Request, output *DeleteDBSubnetGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDBSubnetGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDBSubnetGroup == nil {
+		opDeleteDBSubnetGroup = &aws.Operation{
+			Name:       "DeleteDBSubnetGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDBSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDBSubnetGroup, input, output)
 	output = &DeleteDBSubnetGroupOutput{}
 	req.Data = output
 	return
@@ -630,21 +731,26 @@ func (c *RDS) DeleteDBSubnetGroup(input *DeleteDBSubnetGroupInput) (*DeleteDBSub
 	return out, err
 }
 
-const opDeleteEventSubscription = "DeleteEventSubscription"
+var opDeleteDBSubnetGroup *aws.Operation
 
 // DeleteEventSubscriptionRequest generates a request for the DeleteEventSubscription operation.
 func (c *RDS) DeleteEventSubscriptionRequest(input *DeleteEventSubscriptionInput) (req *aws.Request, output *DeleteEventSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteEventSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteEventSubscription == nil {
+		opDeleteEventSubscription = &aws.Operation{
+			Name:       "DeleteEventSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteEventSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteEventSubscription, input, output)
 	output = &DeleteEventSubscriptionOutput{}
 	req.Data = output
 	return
@@ -657,21 +763,26 @@ func (c *RDS) DeleteEventSubscription(input *DeleteEventSubscriptionInput) (*Del
 	return out, err
 }
 
-const opDeleteOptionGroup = "DeleteOptionGroup"
+var opDeleteEventSubscription *aws.Operation
 
 // DeleteOptionGroupRequest generates a request for the DeleteOptionGroup operation.
 func (c *RDS) DeleteOptionGroupRequest(input *DeleteOptionGroupInput) (req *aws.Request, output *DeleteOptionGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteOptionGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteOptionGroup == nil {
+		opDeleteOptionGroup = &aws.Operation{
+			Name:       "DeleteOptionGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteOptionGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteOptionGroup, input, output)
 	output = &DeleteOptionGroupOutput{}
 	req.Data = output
 	return
@@ -684,21 +795,26 @@ func (c *RDS) DeleteOptionGroup(input *DeleteOptionGroupInput) (*DeleteOptionGro
 	return out, err
 }
 
-const opDescribeAccountAttributes = "DescribeAccountAttributes"
+var opDeleteOptionGroup *aws.Operation
 
 // DescribeAccountAttributesRequest generates a request for the DescribeAccountAttributes operation.
 func (c *RDS) DescribeAccountAttributesRequest(input *DescribeAccountAttributesInput) (req *aws.Request, output *DescribeAccountAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAccountAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAccountAttributes == nil {
+		opDescribeAccountAttributes = &aws.Operation{
+			Name:       "DescribeAccountAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAccountAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAccountAttributes, input, output)
 	output = &DescribeAccountAttributesOutput{}
 	req.Data = output
 	return
@@ -716,21 +832,26 @@ func (c *RDS) DescribeAccountAttributes(input *DescribeAccountAttributesInput) (
 	return out, err
 }
 
-const opDescribeCertificates = "DescribeCertificates"
+var opDescribeAccountAttributes *aws.Operation
 
 // DescribeCertificatesRequest generates a request for the DescribeCertificates operation.
 func (c *RDS) DescribeCertificatesRequest(input *DescribeCertificatesInput) (req *aws.Request, output *DescribeCertificatesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCertificates,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCertificates == nil {
+		opDescribeCertificates = &aws.Operation{
+			Name:       "DescribeCertificates",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCertificatesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCertificates, input, output)
 	output = &DescribeCertificatesOutput{}
 	req.Data = output
 	return
@@ -743,27 +864,32 @@ func (c *RDS) DescribeCertificates(input *DescribeCertificatesInput) (*DescribeC
 	return out, err
 }
 
-const opDescribeDBEngineVersions = "DescribeDBEngineVersions"
+var opDescribeCertificates *aws.Operation
 
 // DescribeDBEngineVersionsRequest generates a request for the DescribeDBEngineVersions operation.
 func (c *RDS) DescribeDBEngineVersionsRequest(input *DescribeDBEngineVersionsInput) (req *aws.Request, output *DescribeDBEngineVersionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDBEngineVersions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDBEngineVersions == nil {
+		opDescribeDBEngineVersions = &aws.Operation{
+			Name:       "DescribeDBEngineVersions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDBEngineVersionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDBEngineVersions, input, output)
 	output = &DescribeDBEngineVersionsOutput{}
 	req.Data = output
 	return
@@ -783,27 +909,32 @@ func (c *RDS) DescribeDBEngineVersionsPages(input *DescribeDBEngineVersionsInput
 	})
 }
 
-const opDescribeDBInstances = "DescribeDBInstances"
+var opDescribeDBEngineVersions *aws.Operation
 
 // DescribeDBInstancesRequest generates a request for the DescribeDBInstances operation.
 func (c *RDS) DescribeDBInstancesRequest(input *DescribeDBInstancesInput) (req *aws.Request, output *DescribeDBInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDBInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDBInstances == nil {
+		opDescribeDBInstances = &aws.Operation{
+			Name:       "DescribeDBInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDBInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDBInstances, input, output)
 	output = &DescribeDBInstancesOutput{}
 	req.Data = output
 	return
@@ -823,27 +954,32 @@ func (c *RDS) DescribeDBInstancesPages(input *DescribeDBInstancesInput, fn func(
 	})
 }
 
-const opDescribeDBLogFiles = "DescribeDBLogFiles"
+var opDescribeDBInstances *aws.Operation
 
 // DescribeDBLogFilesRequest generates a request for the DescribeDBLogFiles operation.
 func (c *RDS) DescribeDBLogFilesRequest(input *DescribeDBLogFilesInput) (req *aws.Request, output *DescribeDBLogFilesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDBLogFiles,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDBLogFiles == nil {
+		opDescribeDBLogFiles = &aws.Operation{
+			Name:       "DescribeDBLogFiles",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDBLogFilesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDBLogFiles, input, output)
 	output = &DescribeDBLogFilesOutput{}
 	req.Data = output
 	return
@@ -863,27 +999,32 @@ func (c *RDS) DescribeDBLogFilesPages(input *DescribeDBLogFilesInput, fn func(p 
 	})
 }
 
-const opDescribeDBParameterGroups = "DescribeDBParameterGroups"
+var opDescribeDBLogFiles *aws.Operation
 
 // DescribeDBParameterGroupsRequest generates a request for the DescribeDBParameterGroups operation.
 func (c *RDS) DescribeDBParameterGroupsRequest(input *DescribeDBParameterGroupsInput) (req *aws.Request, output *DescribeDBParameterGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDBParameterGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDBParameterGroups == nil {
+		opDescribeDBParameterGroups = &aws.Operation{
+			Name:       "DescribeDBParameterGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDBParameterGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDBParameterGroups, input, output)
 	output = &DescribeDBParameterGroupsOutput{}
 	req.Data = output
 	return
@@ -905,27 +1046,32 @@ func (c *RDS) DescribeDBParameterGroupsPages(input *DescribeDBParameterGroupsInp
 	})
 }
 
-const opDescribeDBParameters = "DescribeDBParameters"
+var opDescribeDBParameterGroups *aws.Operation
 
 // DescribeDBParametersRequest generates a request for the DescribeDBParameters operation.
 func (c *RDS) DescribeDBParametersRequest(input *DescribeDBParametersInput) (req *aws.Request, output *DescribeDBParametersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDBParameters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDBParameters == nil {
+		opDescribeDBParameters = &aws.Operation{
+			Name:       "DescribeDBParameters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDBParametersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDBParameters, input, output)
 	output = &DescribeDBParametersOutput{}
 	req.Data = output
 	return
@@ -945,27 +1091,32 @@ func (c *RDS) DescribeDBParametersPages(input *DescribeDBParametersInput, fn fun
 	})
 }
 
-const opDescribeDBSecurityGroups = "DescribeDBSecurityGroups"
+var opDescribeDBParameters *aws.Operation
 
 // DescribeDBSecurityGroupsRequest generates a request for the DescribeDBSecurityGroups operation.
 func (c *RDS) DescribeDBSecurityGroupsRequest(input *DescribeDBSecurityGroupsInput) (req *aws.Request, output *DescribeDBSecurityGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDBSecurityGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDBSecurityGroups == nil {
+		opDescribeDBSecurityGroups = &aws.Operation{
+			Name:       "DescribeDBSecurityGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDBSecurityGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDBSecurityGroups, input, output)
 	output = &DescribeDBSecurityGroupsOutput{}
 	req.Data = output
 	return
@@ -987,27 +1138,32 @@ func (c *RDS) DescribeDBSecurityGroupsPages(input *DescribeDBSecurityGroupsInput
 	})
 }
 
-const opDescribeDBSnapshots = "DescribeDBSnapshots"
+var opDescribeDBSecurityGroups *aws.Operation
 
 // DescribeDBSnapshotsRequest generates a request for the DescribeDBSnapshots operation.
 func (c *RDS) DescribeDBSnapshotsRequest(input *DescribeDBSnapshotsInput) (req *aws.Request, output *DescribeDBSnapshotsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDBSnapshots,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDBSnapshots == nil {
+		opDescribeDBSnapshots = &aws.Operation{
+			Name:       "DescribeDBSnapshots",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDBSnapshotsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDBSnapshots, input, output)
 	output = &DescribeDBSnapshotsOutput{}
 	req.Data = output
 	return
@@ -1027,27 +1183,32 @@ func (c *RDS) DescribeDBSnapshotsPages(input *DescribeDBSnapshotsInput, fn func(
 	})
 }
 
-const opDescribeDBSubnetGroups = "DescribeDBSubnetGroups"
+var opDescribeDBSnapshots *aws.Operation
 
 // DescribeDBSubnetGroupsRequest generates a request for the DescribeDBSubnetGroups operation.
 func (c *RDS) DescribeDBSubnetGroupsRequest(input *DescribeDBSubnetGroupsInput) (req *aws.Request, output *DescribeDBSubnetGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDBSubnetGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDBSubnetGroups == nil {
+		opDescribeDBSubnetGroups = &aws.Operation{
+			Name:       "DescribeDBSubnetGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDBSubnetGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDBSubnetGroups, input, output)
 	output = &DescribeDBSubnetGroupsOutput{}
 	req.Data = output
 	return
@@ -1070,27 +1231,32 @@ func (c *RDS) DescribeDBSubnetGroupsPages(input *DescribeDBSubnetGroupsInput, fn
 	})
 }
 
-const opDescribeEngineDefaultParameters = "DescribeEngineDefaultParameters"
+var opDescribeDBSubnetGroups *aws.Operation
 
 // DescribeEngineDefaultParametersRequest generates a request for the DescribeEngineDefaultParameters operation.
 func (c *RDS) DescribeEngineDefaultParametersRequest(input *DescribeEngineDefaultParametersInput) (req *aws.Request, output *DescribeEngineDefaultParametersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEngineDefaultParameters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"EngineDefaults.Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEngineDefaultParameters == nil {
+		opDescribeEngineDefaultParameters = &aws.Operation{
+			Name:       "DescribeEngineDefaultParameters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"EngineDefaults.Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEngineDefaultParametersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEngineDefaultParameters, input, output)
 	output = &DescribeEngineDefaultParametersOutput{}
 	req.Data = output
 	return
@@ -1111,21 +1277,26 @@ func (c *RDS) DescribeEngineDefaultParametersPages(input *DescribeEngineDefaultP
 	})
 }
 
-const opDescribeEventCategories = "DescribeEventCategories"
+var opDescribeEngineDefaultParameters *aws.Operation
 
 // DescribeEventCategoriesRequest generates a request for the DescribeEventCategories operation.
 func (c *RDS) DescribeEventCategoriesRequest(input *DescribeEventCategoriesInput) (req *aws.Request, output *DescribeEventCategoriesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEventCategories,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEventCategories == nil {
+		opDescribeEventCategories = &aws.Operation{
+			Name:       "DescribeEventCategories",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEventCategoriesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEventCategories, input, output)
 	output = &DescribeEventCategoriesOutput{}
 	req.Data = output
 	return
@@ -1141,27 +1312,32 @@ func (c *RDS) DescribeEventCategories(input *DescribeEventCategoriesInput) (*Des
 	return out, err
 }
 
-const opDescribeEventSubscriptions = "DescribeEventSubscriptions"
+var opDescribeEventCategories *aws.Operation
 
 // DescribeEventSubscriptionsRequest generates a request for the DescribeEventSubscriptions operation.
 func (c *RDS) DescribeEventSubscriptionsRequest(input *DescribeEventSubscriptionsInput) (req *aws.Request, output *DescribeEventSubscriptionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEventSubscriptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEventSubscriptions == nil {
+		opDescribeEventSubscriptions = &aws.Operation{
+			Name:       "DescribeEventSubscriptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEventSubscriptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEventSubscriptions, input, output)
 	output = &DescribeEventSubscriptionsOutput{}
 	req.Data = output
 	return
@@ -1185,27 +1361,32 @@ func (c *RDS) DescribeEventSubscriptionsPages(input *DescribeEventSubscriptionsI
 	})
 }
 
-const opDescribeEvents = "DescribeEvents"
+var opDescribeEventSubscriptions *aws.Operation
 
 // DescribeEventsRequest generates a request for the DescribeEvents operation.
 func (c *RDS) DescribeEventsRequest(input *DescribeEventsInput) (req *aws.Request, output *DescribeEventsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEvents,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEvents == nil {
+		opDescribeEvents = &aws.Operation{
+			Name:       "DescribeEvents",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEvents, input, output)
 	output = &DescribeEventsOutput{}
 	req.Data = output
 	return
@@ -1229,27 +1410,32 @@ func (c *RDS) DescribeEventsPages(input *DescribeEventsInput, fn func(p *Describ
 	})
 }
 
-const opDescribeOptionGroupOptions = "DescribeOptionGroupOptions"
+var opDescribeEvents *aws.Operation
 
 // DescribeOptionGroupOptionsRequest generates a request for the DescribeOptionGroupOptions operation.
 func (c *RDS) DescribeOptionGroupOptionsRequest(input *DescribeOptionGroupOptionsInput) (req *aws.Request, output *DescribeOptionGroupOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeOptionGroupOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeOptionGroupOptions == nil {
+		opDescribeOptionGroupOptions = &aws.Operation{
+			Name:       "DescribeOptionGroupOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeOptionGroupOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeOptionGroupOptions, input, output)
 	output = &DescribeOptionGroupOptionsOutput{}
 	req.Data = output
 	return
@@ -1269,27 +1455,32 @@ func (c *RDS) DescribeOptionGroupOptionsPages(input *DescribeOptionGroupOptionsI
 	})
 }
 
-const opDescribeOptionGroups = "DescribeOptionGroups"
+var opDescribeOptionGroupOptions *aws.Operation
 
 // DescribeOptionGroupsRequest generates a request for the DescribeOptionGroups operation.
 func (c *RDS) DescribeOptionGroupsRequest(input *DescribeOptionGroupsInput) (req *aws.Request, output *DescribeOptionGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeOptionGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeOptionGroups == nil {
+		opDescribeOptionGroups = &aws.Operation{
+			Name:       "DescribeOptionGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeOptionGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeOptionGroups, input, output)
 	output = &DescribeOptionGroupsOutput{}
 	req.Data = output
 	return
@@ -1309,27 +1500,32 @@ func (c *RDS) DescribeOptionGroupsPages(input *DescribeOptionGroupsInput, fn fun
 	})
 }
 
-const opDescribeOrderableDBInstanceOptions = "DescribeOrderableDBInstanceOptions"
+var opDescribeOptionGroups *aws.Operation
 
 // DescribeOrderableDBInstanceOptionsRequest generates a request for the DescribeOrderableDBInstanceOptions operation.
 func (c *RDS) DescribeOrderableDBInstanceOptionsRequest(input *DescribeOrderableDBInstanceOptionsInput) (req *aws.Request, output *DescribeOrderableDBInstanceOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeOrderableDBInstanceOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeOrderableDBInstanceOptions == nil {
+		opDescribeOrderableDBInstanceOptions = &aws.Operation{
+			Name:       "DescribeOrderableDBInstanceOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeOrderableDBInstanceOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeOrderableDBInstanceOptions, input, output)
 	output = &DescribeOrderableDBInstanceOptionsOutput{}
 	req.Data = output
 	return
@@ -1349,21 +1545,26 @@ func (c *RDS) DescribeOrderableDBInstanceOptionsPages(input *DescribeOrderableDB
 	})
 }
 
-const opDescribePendingMaintenanceActions = "DescribePendingMaintenanceActions"
+var opDescribeOrderableDBInstanceOptions *aws.Operation
 
 // DescribePendingMaintenanceActionsRequest generates a request for the DescribePendingMaintenanceActions operation.
 func (c *RDS) DescribePendingMaintenanceActionsRequest(input *DescribePendingMaintenanceActionsInput) (req *aws.Request, output *DescribePendingMaintenanceActionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribePendingMaintenanceActions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribePendingMaintenanceActions == nil {
+		opDescribePendingMaintenanceActions = &aws.Operation{
+			Name:       "DescribePendingMaintenanceActions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribePendingMaintenanceActionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribePendingMaintenanceActions, input, output)
 	output = &DescribePendingMaintenanceActionsOutput{}
 	req.Data = output
 	return
@@ -1377,27 +1578,32 @@ func (c *RDS) DescribePendingMaintenanceActions(input *DescribePendingMaintenanc
 	return out, err
 }
 
-const opDescribeReservedDBInstances = "DescribeReservedDBInstances"
+var opDescribePendingMaintenanceActions *aws.Operation
 
 // DescribeReservedDBInstancesRequest generates a request for the DescribeReservedDBInstances operation.
 func (c *RDS) DescribeReservedDBInstancesRequest(input *DescribeReservedDBInstancesInput) (req *aws.Request, output *DescribeReservedDBInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReservedDBInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReservedDBInstances == nil {
+		opDescribeReservedDBInstances = &aws.Operation{
+			Name:       "DescribeReservedDBInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReservedDBInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReservedDBInstances, input, output)
 	output = &DescribeReservedDBInstancesOutput{}
 	req.Data = output
 	return
@@ -1418,27 +1624,32 @@ func (c *RDS) DescribeReservedDBInstancesPages(input *DescribeReservedDBInstance
 	})
 }
 
-const opDescribeReservedDBInstancesOfferings = "DescribeReservedDBInstancesOfferings"
+var opDescribeReservedDBInstances *aws.Operation
 
 // DescribeReservedDBInstancesOfferingsRequest generates a request for the DescribeReservedDBInstancesOfferings operation.
 func (c *RDS) DescribeReservedDBInstancesOfferingsRequest(input *DescribeReservedDBInstancesOfferingsInput) (req *aws.Request, output *DescribeReservedDBInstancesOfferingsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReservedDBInstancesOfferings,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReservedDBInstancesOfferings == nil {
+		opDescribeReservedDBInstancesOfferings = &aws.Operation{
+			Name:       "DescribeReservedDBInstancesOfferings",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReservedDBInstancesOfferingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReservedDBInstancesOfferings, input, output)
 	output = &DescribeReservedDBInstancesOfferingsOutput{}
 	req.Data = output
 	return
@@ -1458,27 +1669,32 @@ func (c *RDS) DescribeReservedDBInstancesOfferingsPages(input *DescribeReservedD
 	})
 }
 
-const opDownloadDBLogFilePortion = "DownloadDBLogFilePortion"
+var opDescribeReservedDBInstancesOfferings *aws.Operation
 
 // DownloadDBLogFilePortionRequest generates a request for the DownloadDBLogFilePortion operation.
 func (c *RDS) DownloadDBLogFilePortionRequest(input *DownloadDBLogFilePortionInput) (req *aws.Request, output *DownloadDBLogFilePortionOutput) {
-	op := &aws.Operation{
-		Name:       opDownloadDBLogFilePortion,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "NumberOfLines",
-			TruncationToken: "AdditionalDataPending",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDownloadDBLogFilePortion == nil {
+		opDownloadDBLogFilePortion = &aws.Operation{
+			Name:       "DownloadDBLogFilePortion",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "NumberOfLines",
+				TruncationToken: "AdditionalDataPending",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DownloadDBLogFilePortionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDownloadDBLogFilePortion, input, output)
 	output = &DownloadDBLogFilePortionOutput{}
 	req.Data = output
 	return
@@ -1498,21 +1714,26 @@ func (c *RDS) DownloadDBLogFilePortionPages(input *DownloadDBLogFilePortionInput
 	})
 }
 
-const opListTagsForResource = "ListTagsForResource"
+var opDownloadDBLogFilePortion *aws.Operation
 
 // ListTagsForResourceRequest generates a request for the ListTagsForResource operation.
 func (c *RDS) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *aws.Request, output *ListTagsForResourceOutput) {
-	op := &aws.Operation{
-		Name:       opListTagsForResource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListTagsForResource == nil {
+		opListTagsForResource = &aws.Operation{
+			Name:       "ListTagsForResource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListTagsForResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListTagsForResource, input, output)
 	output = &ListTagsForResourceOutput{}
 	req.Data = output
 	return
@@ -1528,21 +1749,26 @@ func (c *RDS) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsFor
 	return out, err
 }
 
-const opModifyDBInstance = "ModifyDBInstance"
+var opListTagsForResource *aws.Operation
 
 // ModifyDBInstanceRequest generates a request for the ModifyDBInstance operation.
 func (c *RDS) ModifyDBInstanceRequest(input *ModifyDBInstanceInput) (req *aws.Request, output *ModifyDBInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opModifyDBInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyDBInstance == nil {
+		opModifyDBInstance = &aws.Operation{
+			Name:       "ModifyDBInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyDBInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyDBInstance, input, output)
 	output = &ModifyDBInstanceOutput{}
 	req.Data = output
 	return
@@ -1556,21 +1782,26 @@ func (c *RDS) ModifyDBInstance(input *ModifyDBInstanceInput) (*ModifyDBInstanceO
 	return out, err
 }
 
-const opModifyDBParameterGroup = "ModifyDBParameterGroup"
+var opModifyDBInstance *aws.Operation
 
 // ModifyDBParameterGroupRequest generates a request for the ModifyDBParameterGroup operation.
 func (c *RDS) ModifyDBParameterGroupRequest(input *ModifyDBParameterGroupInput) (req *aws.Request, output *DBParameterGroupNameMessage) {
-	op := &aws.Operation{
-		Name:       opModifyDBParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyDBParameterGroup == nil {
+		opModifyDBParameterGroup = &aws.Operation{
+			Name:       "ModifyDBParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyDBParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyDBParameterGroup, input, output)
 	output = &DBParameterGroupNameMessage{}
 	req.Data = output
 	return
@@ -1600,21 +1831,26 @@ func (c *RDS) ModifyDBParameterGroup(input *ModifyDBParameterGroupInput) (*DBPar
 	return out, err
 }
 
-const opModifyDBSubnetGroup = "ModifyDBSubnetGroup"
+var opModifyDBParameterGroup *aws.Operation
 
 // ModifyDBSubnetGroupRequest generates a request for the ModifyDBSubnetGroup operation.
 func (c *RDS) ModifyDBSubnetGroupRequest(input *ModifyDBSubnetGroupInput) (req *aws.Request, output *ModifyDBSubnetGroupOutput) {
-	op := &aws.Operation{
-		Name:       opModifyDBSubnetGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyDBSubnetGroup == nil {
+		opModifyDBSubnetGroup = &aws.Operation{
+			Name:       "ModifyDBSubnetGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyDBSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyDBSubnetGroup, input, output)
 	output = &ModifyDBSubnetGroupOutput{}
 	req.Data = output
 	return
@@ -1628,21 +1864,26 @@ func (c *RDS) ModifyDBSubnetGroup(input *ModifyDBSubnetGroupInput) (*ModifyDBSub
 	return out, err
 }
 
-const opModifyEventSubscription = "ModifyEventSubscription"
+var opModifyDBSubnetGroup *aws.Operation
 
 // ModifyEventSubscriptionRequest generates a request for the ModifyEventSubscription operation.
 func (c *RDS) ModifyEventSubscriptionRequest(input *ModifyEventSubscriptionInput) (req *aws.Request, output *ModifyEventSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opModifyEventSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyEventSubscription == nil {
+		opModifyEventSubscription = &aws.Operation{
+			Name:       "ModifyEventSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyEventSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyEventSubscription, input, output)
 	output = &ModifyEventSubscriptionOutput{}
 	req.Data = output
 	return
@@ -1663,21 +1904,26 @@ func (c *RDS) ModifyEventSubscription(input *ModifyEventSubscriptionInput) (*Mod
 	return out, err
 }
 
-const opModifyOptionGroup = "ModifyOptionGroup"
+var opModifyEventSubscription *aws.Operation
 
 // ModifyOptionGroupRequest generates a request for the ModifyOptionGroup operation.
 func (c *RDS) ModifyOptionGroupRequest(input *ModifyOptionGroupInput) (req *aws.Request, output *ModifyOptionGroupOutput) {
-	op := &aws.Operation{
-		Name:       opModifyOptionGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyOptionGroup == nil {
+		opModifyOptionGroup = &aws.Operation{
+			Name:       "ModifyOptionGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyOptionGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyOptionGroup, input, output)
 	output = &ModifyOptionGroupOutput{}
 	req.Data = output
 	return
@@ -1690,21 +1936,26 @@ func (c *RDS) ModifyOptionGroup(input *ModifyOptionGroupInput) (*ModifyOptionGro
 	return out, err
 }
 
-const opPromoteReadReplica = "PromoteReadReplica"
+var opModifyOptionGroup *aws.Operation
 
 // PromoteReadReplicaRequest generates a request for the PromoteReadReplica operation.
 func (c *RDS) PromoteReadReplicaRequest(input *PromoteReadReplicaInput) (req *aws.Request, output *PromoteReadReplicaOutput) {
-	op := &aws.Operation{
-		Name:       opPromoteReadReplica,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPromoteReadReplica == nil {
+		opPromoteReadReplica = &aws.Operation{
+			Name:       "PromoteReadReplica",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PromoteReadReplicaInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPromoteReadReplica, input, output)
 	output = &PromoteReadReplicaOutput{}
 	req.Data = output
 	return
@@ -1722,21 +1973,26 @@ func (c *RDS) PromoteReadReplica(input *PromoteReadReplicaInput) (*PromoteReadRe
 	return out, err
 }
 
-const opPurchaseReservedDBInstancesOffering = "PurchaseReservedDBInstancesOffering"
+var opPromoteReadReplica *aws.Operation
 
 // PurchaseReservedDBInstancesOfferingRequest generates a request for the PurchaseReservedDBInstancesOffering operation.
 func (c *RDS) PurchaseReservedDBInstancesOfferingRequest(input *PurchaseReservedDBInstancesOfferingInput) (req *aws.Request, output *PurchaseReservedDBInstancesOfferingOutput) {
-	op := &aws.Operation{
-		Name:       opPurchaseReservedDBInstancesOffering,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPurchaseReservedDBInstancesOffering == nil {
+		opPurchaseReservedDBInstancesOffering = &aws.Operation{
+			Name:       "PurchaseReservedDBInstancesOffering",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PurchaseReservedDBInstancesOfferingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPurchaseReservedDBInstancesOffering, input, output)
 	output = &PurchaseReservedDBInstancesOfferingOutput{}
 	req.Data = output
 	return
@@ -1749,21 +2005,26 @@ func (c *RDS) PurchaseReservedDBInstancesOffering(input *PurchaseReservedDBInsta
 	return out, err
 }
 
-const opRebootDBInstance = "RebootDBInstance"
+var opPurchaseReservedDBInstancesOffering *aws.Operation
 
 // RebootDBInstanceRequest generates a request for the RebootDBInstance operation.
 func (c *RDS) RebootDBInstanceRequest(input *RebootDBInstanceInput) (req *aws.Request, output *RebootDBInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opRebootDBInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRebootDBInstance == nil {
+		opRebootDBInstance = &aws.Operation{
+			Name:       "RebootDBInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RebootDBInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRebootDBInstance, input, output)
 	output = &RebootDBInstanceOutput{}
 	req.Data = output
 	return
@@ -1792,21 +2053,26 @@ func (c *RDS) RebootDBInstance(input *RebootDBInstanceInput) (*RebootDBInstanceO
 	return out, err
 }
 
-const opRemoveSourceIdentifierFromSubscription = "RemoveSourceIdentifierFromSubscription"
+var opRebootDBInstance *aws.Operation
 
 // RemoveSourceIdentifierFromSubscriptionRequest generates a request for the RemoveSourceIdentifierFromSubscription operation.
 func (c *RDS) RemoveSourceIdentifierFromSubscriptionRequest(input *RemoveSourceIdentifierFromSubscriptionInput) (req *aws.Request, output *RemoveSourceIdentifierFromSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opRemoveSourceIdentifierFromSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemoveSourceIdentifierFromSubscription == nil {
+		opRemoveSourceIdentifierFromSubscription = &aws.Operation{
+			Name:       "RemoveSourceIdentifierFromSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemoveSourceIdentifierFromSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemoveSourceIdentifierFromSubscription, input, output)
 	output = &RemoveSourceIdentifierFromSubscriptionOutput{}
 	req.Data = output
 	return
@@ -1819,21 +2085,26 @@ func (c *RDS) RemoveSourceIdentifierFromSubscription(input *RemoveSourceIdentifi
 	return out, err
 }
 
-const opRemoveTagsFromResource = "RemoveTagsFromResource"
+var opRemoveSourceIdentifierFromSubscription *aws.Operation
 
 // RemoveTagsFromResourceRequest generates a request for the RemoveTagsFromResource operation.
 func (c *RDS) RemoveTagsFromResourceRequest(input *RemoveTagsFromResourceInput) (req *aws.Request, output *RemoveTagsFromResourceOutput) {
-	op := &aws.Operation{
-		Name:       opRemoveTagsFromResource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemoveTagsFromResource == nil {
+		opRemoveTagsFromResource = &aws.Operation{
+			Name:       "RemoveTagsFromResource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemoveTagsFromResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemoveTagsFromResource, input, output)
 	output = &RemoveTagsFromResourceOutput{}
 	req.Data = output
 	return
@@ -1849,21 +2120,26 @@ func (c *RDS) RemoveTagsFromResource(input *RemoveTagsFromResourceInput) (*Remov
 	return out, err
 }
 
-const opResetDBParameterGroup = "ResetDBParameterGroup"
+var opRemoveTagsFromResource *aws.Operation
 
 // ResetDBParameterGroupRequest generates a request for the ResetDBParameterGroup operation.
 func (c *RDS) ResetDBParameterGroupRequest(input *ResetDBParameterGroupInput) (req *aws.Request, output *DBParameterGroupNameMessage) {
-	op := &aws.Operation{
-		Name:       opResetDBParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opResetDBParameterGroup == nil {
+		opResetDBParameterGroup = &aws.Operation{
+			Name:       "ResetDBParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ResetDBParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opResetDBParameterGroup, input, output)
 	output = &DBParameterGroupNameMessage{}
 	req.Data = output
 	return
@@ -1882,21 +2158,26 @@ func (c *RDS) ResetDBParameterGroup(input *ResetDBParameterGroupInput) (*DBParam
 	return out, err
 }
 
-const opRestoreDBInstanceFromDBSnapshot = "RestoreDBInstanceFromDBSnapshot"
+var opResetDBParameterGroup *aws.Operation
 
 // RestoreDBInstanceFromDBSnapshotRequest generates a request for the RestoreDBInstanceFromDBSnapshot operation.
 func (c *RDS) RestoreDBInstanceFromDBSnapshotRequest(input *RestoreDBInstanceFromDBSnapshotInput) (req *aws.Request, output *RestoreDBInstanceFromDBSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opRestoreDBInstanceFromDBSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRestoreDBInstanceFromDBSnapshot == nil {
+		opRestoreDBInstanceFromDBSnapshot = &aws.Operation{
+			Name:       "RestoreDBInstanceFromDBSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RestoreDBInstanceFromDBSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRestoreDBInstanceFromDBSnapshot, input, output)
 	output = &RestoreDBInstanceFromDBSnapshotOutput{}
 	req.Data = output
 	return
@@ -1921,21 +2202,26 @@ func (c *RDS) RestoreDBInstanceFromDBSnapshot(input *RestoreDBInstanceFromDBSnap
 	return out, err
 }
 
-const opRestoreDBInstanceToPointInTime = "RestoreDBInstanceToPointInTime"
+var opRestoreDBInstanceFromDBSnapshot *aws.Operation
 
 // RestoreDBInstanceToPointInTimeRequest generates a request for the RestoreDBInstanceToPointInTime operation.
 func (c *RDS) RestoreDBInstanceToPointInTimeRequest(input *RestoreDBInstanceToPointInTimeInput) (req *aws.Request, output *RestoreDBInstanceToPointInTimeOutput) {
-	op := &aws.Operation{
-		Name:       opRestoreDBInstanceToPointInTime,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRestoreDBInstanceToPointInTime == nil {
+		opRestoreDBInstanceToPointInTime = &aws.Operation{
+			Name:       "RestoreDBInstanceToPointInTime",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RestoreDBInstanceToPointInTimeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRestoreDBInstanceToPointInTime, input, output)
 	output = &RestoreDBInstanceToPointInTimeOutput{}
 	req.Data = output
 	return
@@ -1952,21 +2238,26 @@ func (c *RDS) RestoreDBInstanceToPointInTime(input *RestoreDBInstanceToPointInTi
 	return out, err
 }
 
-const opRevokeDBSecurityGroupIngress = "RevokeDBSecurityGroupIngress"
+var opRestoreDBInstanceToPointInTime *aws.Operation
 
 // RevokeDBSecurityGroupIngressRequest generates a request for the RevokeDBSecurityGroupIngress operation.
 func (c *RDS) RevokeDBSecurityGroupIngressRequest(input *RevokeDBSecurityGroupIngressInput) (req *aws.Request, output *RevokeDBSecurityGroupIngressOutput) {
-	op := &aws.Operation{
-		Name:       opRevokeDBSecurityGroupIngress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRevokeDBSecurityGroupIngress == nil {
+		opRevokeDBSecurityGroupIngress = &aws.Operation{
+			Name:       "RevokeDBSecurityGroupIngress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RevokeDBSecurityGroupIngressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRevokeDBSecurityGroupIngress, input, output)
 	output = &RevokeDBSecurityGroupIngressOutput{}
 	req.Data = output
 	return
@@ -1981,6 +2272,8 @@ func (c *RDS) RevokeDBSecurityGroupIngress(input *RevokeDBSecurityGroupIngressIn
 	err := req.Send()
 	return out, err
 }
+
+var opRevokeDBSecurityGroupIngress *aws.Operation
 
 // Describes a quota for an AWS account, for example, the number of DB instances
 // allowed.

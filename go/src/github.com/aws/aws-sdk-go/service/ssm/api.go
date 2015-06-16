@@ -4,26 +4,32 @@
 package ssm
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCreateAssociation = "CreateAssociation"
+var oprw sync.Mutex
 
 // CreateAssociationRequest generates a request for the CreateAssociation operation.
 func (c *SSM) CreateAssociationRequest(input *CreateAssociationInput) (req *aws.Request, output *CreateAssociationOutput) {
-	op := &aws.Operation{
-		Name:       opCreateAssociation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateAssociation == nil {
+		opCreateAssociation = &aws.Operation{
+			Name:       "CreateAssociation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateAssociationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateAssociation, input, output)
 	output = &CreateAssociationOutput{}
 	req.Data = output
 	return
@@ -44,21 +50,26 @@ func (c *SSM) CreateAssociation(input *CreateAssociationInput) (*CreateAssociati
 	return out, err
 }
 
-const opCreateAssociationBatch = "CreateAssociationBatch"
+var opCreateAssociation *aws.Operation
 
 // CreateAssociationBatchRequest generates a request for the CreateAssociationBatch operation.
 func (c *SSM) CreateAssociationBatchRequest(input *CreateAssociationBatchInput) (req *aws.Request, output *CreateAssociationBatchOutput) {
-	op := &aws.Operation{
-		Name:       opCreateAssociationBatch,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateAssociationBatch == nil {
+		opCreateAssociationBatch = &aws.Operation{
+			Name:       "CreateAssociationBatch",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateAssociationBatchInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateAssociationBatch, input, output)
 	output = &CreateAssociationBatchOutput{}
 	req.Data = output
 	return
@@ -79,21 +90,26 @@ func (c *SSM) CreateAssociationBatch(input *CreateAssociationBatchInput) (*Creat
 	return out, err
 }
 
-const opCreateDocument = "CreateDocument"
+var opCreateAssociationBatch *aws.Operation
 
 // CreateDocumentRequest generates a request for the CreateDocument operation.
 func (c *SSM) CreateDocumentRequest(input *CreateDocumentInput) (req *aws.Request, output *CreateDocumentOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDocument,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDocument == nil {
+		opCreateDocument = &aws.Operation{
+			Name:       "CreateDocument",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDocumentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDocument, input, output)
 	output = &CreateDocumentOutput{}
 	req.Data = output
 	return
@@ -109,21 +125,26 @@ func (c *SSM) CreateDocument(input *CreateDocumentInput) (*CreateDocumentOutput,
 	return out, err
 }
 
-const opDeleteAssociation = "DeleteAssociation"
+var opCreateDocument *aws.Operation
 
 // DeleteAssociationRequest generates a request for the DeleteAssociation operation.
 func (c *SSM) DeleteAssociationRequest(input *DeleteAssociationInput) (req *aws.Request, output *DeleteAssociationOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteAssociation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteAssociation == nil {
+		opDeleteAssociation = &aws.Operation{
+			Name:       "DeleteAssociation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteAssociationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteAssociation, input, output)
 	output = &DeleteAssociationOutput{}
 	req.Data = output
 	return
@@ -142,21 +163,26 @@ func (c *SSM) DeleteAssociation(input *DeleteAssociationInput) (*DeleteAssociati
 	return out, err
 }
 
-const opDeleteDocument = "DeleteDocument"
+var opDeleteAssociation *aws.Operation
 
 // DeleteDocumentRequest generates a request for the DeleteDocument operation.
 func (c *SSM) DeleteDocumentRequest(input *DeleteDocumentInput) (req *aws.Request, output *DeleteDocumentOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDocument,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDocument == nil {
+		opDeleteDocument = &aws.Operation{
+			Name:       "DeleteDocument",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDocumentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDocument, input, output)
 	output = &DeleteDocumentOutput{}
 	req.Data = output
 	return
@@ -172,21 +198,26 @@ func (c *SSM) DeleteDocument(input *DeleteDocumentInput) (*DeleteDocumentOutput,
 	return out, err
 }
 
-const opDescribeAssociation = "DescribeAssociation"
+var opDeleteDocument *aws.Operation
 
 // DescribeAssociationRequest generates a request for the DescribeAssociation operation.
 func (c *SSM) DescribeAssociationRequest(input *DescribeAssociationInput) (req *aws.Request, output *DescribeAssociationOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAssociation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAssociation == nil {
+		opDescribeAssociation = &aws.Operation{
+			Name:       "DescribeAssociation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAssociationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAssociation, input, output)
 	output = &DescribeAssociationOutput{}
 	req.Data = output
 	return
@@ -199,21 +230,26 @@ func (c *SSM) DescribeAssociation(input *DescribeAssociationInput) (*DescribeAss
 	return out, err
 }
 
-const opDescribeDocument = "DescribeDocument"
+var opDescribeAssociation *aws.Operation
 
 // DescribeDocumentRequest generates a request for the DescribeDocument operation.
 func (c *SSM) DescribeDocumentRequest(input *DescribeDocumentInput) (req *aws.Request, output *DescribeDocumentOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDocument,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDocument == nil {
+		opDescribeDocument = &aws.Operation{
+			Name:       "DescribeDocument",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDocumentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDocument, input, output)
 	output = &DescribeDocumentOutput{}
 	req.Data = output
 	return
@@ -226,21 +262,26 @@ func (c *SSM) DescribeDocument(input *DescribeDocumentInput) (*DescribeDocumentO
 	return out, err
 }
 
-const opGetDocument = "GetDocument"
+var opDescribeDocument *aws.Operation
 
 // GetDocumentRequest generates a request for the GetDocument operation.
 func (c *SSM) GetDocumentRequest(input *GetDocumentInput) (req *aws.Request, output *GetDocumentOutput) {
-	op := &aws.Operation{
-		Name:       opGetDocument,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetDocument == nil {
+		opGetDocument = &aws.Operation{
+			Name:       "GetDocument",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetDocumentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetDocument, input, output)
 	output = &GetDocumentOutput{}
 	req.Data = output
 	return
@@ -253,21 +294,26 @@ func (c *SSM) GetDocument(input *GetDocumentInput) (*GetDocumentOutput, error) {
 	return out, err
 }
 
-const opListAssociations = "ListAssociations"
+var opGetDocument *aws.Operation
 
 // ListAssociationsRequest generates a request for the ListAssociations operation.
 func (c *SSM) ListAssociationsRequest(input *ListAssociationsInput) (req *aws.Request, output *ListAssociationsOutput) {
-	op := &aws.Operation{
-		Name:       opListAssociations,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListAssociations == nil {
+		opListAssociations = &aws.Operation{
+			Name:       "ListAssociations",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListAssociationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListAssociations, input, output)
 	output = &ListAssociationsOutput{}
 	req.Data = output
 	return
@@ -280,21 +326,26 @@ func (c *SSM) ListAssociations(input *ListAssociationsInput) (*ListAssociationsO
 	return out, err
 }
 
-const opListDocuments = "ListDocuments"
+var opListAssociations *aws.Operation
 
 // ListDocumentsRequest generates a request for the ListDocuments operation.
 func (c *SSM) ListDocumentsRequest(input *ListDocumentsInput) (req *aws.Request, output *ListDocumentsOutput) {
-	op := &aws.Operation{
-		Name:       opListDocuments,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListDocuments == nil {
+		opListDocuments = &aws.Operation{
+			Name:       "ListDocuments",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListDocumentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListDocuments, input, output)
 	output = &ListDocumentsOutput{}
 	req.Data = output
 	return
@@ -307,21 +358,26 @@ func (c *SSM) ListDocuments(input *ListDocumentsInput) (*ListDocumentsOutput, er
 	return out, err
 }
 
-const opUpdateAssociationStatus = "UpdateAssociationStatus"
+var opListDocuments *aws.Operation
 
 // UpdateAssociationStatusRequest generates a request for the UpdateAssociationStatus operation.
 func (c *SSM) UpdateAssociationStatusRequest(input *UpdateAssociationStatusInput) (req *aws.Request, output *UpdateAssociationStatusOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateAssociationStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateAssociationStatus == nil {
+		opUpdateAssociationStatus = &aws.Operation{
+			Name:       "UpdateAssociationStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateAssociationStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateAssociationStatus, input, output)
 	output = &UpdateAssociationStatusOutput{}
 	req.Data = output
 	return
@@ -334,6 +390,8 @@ func (c *SSM) UpdateAssociationStatus(input *UpdateAssociationStatusInput) (*Upd
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateAssociationStatus *aws.Operation
 
 // Describes an association of a configuration document and an instance.
 type Association struct {

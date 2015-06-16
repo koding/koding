@@ -4,26 +4,32 @@
 package elasticbeanstalk
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAbortEnvironmentUpdate = "AbortEnvironmentUpdate"
+var oprw sync.Mutex
 
 // AbortEnvironmentUpdateRequest generates a request for the AbortEnvironmentUpdate operation.
 func (c *ElasticBeanstalk) AbortEnvironmentUpdateRequest(input *AbortEnvironmentUpdateInput) (req *aws.Request, output *AbortEnvironmentUpdateOutput) {
-	op := &aws.Operation{
-		Name:       opAbortEnvironmentUpdate,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAbortEnvironmentUpdate == nil {
+		opAbortEnvironmentUpdate = &aws.Operation{
+			Name:       "AbortEnvironmentUpdate",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AbortEnvironmentUpdateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAbortEnvironmentUpdate, input, output)
 	output = &AbortEnvironmentUpdateOutput{}
 	req.Data = output
 	return
@@ -37,21 +43,26 @@ func (c *ElasticBeanstalk) AbortEnvironmentUpdate(input *AbortEnvironmentUpdateI
 	return out, err
 }
 
-const opCheckDNSAvailability = "CheckDNSAvailability"
+var opAbortEnvironmentUpdate *aws.Operation
 
 // CheckDNSAvailabilityRequest generates a request for the CheckDNSAvailability operation.
 func (c *ElasticBeanstalk) CheckDNSAvailabilityRequest(input *CheckDNSAvailabilityInput) (req *aws.Request, output *CheckDNSAvailabilityOutput) {
-	op := &aws.Operation{
-		Name:       opCheckDNSAvailability,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCheckDNSAvailability == nil {
+		opCheckDNSAvailability = &aws.Operation{
+			Name:       "CheckDNSAvailability",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CheckDNSAvailabilityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCheckDNSAvailability, input, output)
 	output = &CheckDNSAvailabilityOutput{}
 	req.Data = output
 	return
@@ -64,21 +75,26 @@ func (c *ElasticBeanstalk) CheckDNSAvailability(input *CheckDNSAvailabilityInput
 	return out, err
 }
 
-const opCreateApplication = "CreateApplication"
+var opCheckDNSAvailability *aws.Operation
 
 // CreateApplicationRequest generates a request for the CreateApplication operation.
 func (c *ElasticBeanstalk) CreateApplicationRequest(input *CreateApplicationInput) (req *aws.Request, output *ApplicationDescriptionMessage) {
-	op := &aws.Operation{
-		Name:       opCreateApplication,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateApplication == nil {
+		opCreateApplication = &aws.Operation{
+			Name:       "CreateApplication",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateApplication, input, output)
 	output = &ApplicationDescriptionMessage{}
 	req.Data = output
 	return
@@ -92,21 +108,26 @@ func (c *ElasticBeanstalk) CreateApplication(input *CreateApplicationInput) (*Ap
 	return out, err
 }
 
-const opCreateApplicationVersion = "CreateApplicationVersion"
+var opCreateApplication *aws.Operation
 
 // CreateApplicationVersionRequest generates a request for the CreateApplicationVersion operation.
 func (c *ElasticBeanstalk) CreateApplicationVersionRequest(input *CreateApplicationVersionInput) (req *aws.Request, output *ApplicationVersionDescriptionMessage) {
-	op := &aws.Operation{
-		Name:       opCreateApplicationVersion,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateApplicationVersion == nil {
+		opCreateApplicationVersion = &aws.Operation{
+			Name:       "CreateApplicationVersion",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateApplicationVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateApplicationVersion, input, output)
 	output = &ApplicationVersionDescriptionMessage{}
 	req.Data = output
 	return
@@ -124,21 +145,26 @@ func (c *ElasticBeanstalk) CreateApplicationVersion(input *CreateApplicationVers
 	return out, err
 }
 
-const opCreateConfigurationTemplate = "CreateConfigurationTemplate"
+var opCreateApplicationVersion *aws.Operation
 
 // CreateConfigurationTemplateRequest generates a request for the CreateConfigurationTemplate operation.
 func (c *ElasticBeanstalk) CreateConfigurationTemplateRequest(input *CreateConfigurationTemplateInput) (req *aws.Request, output *ConfigurationSettingsDescription) {
-	op := &aws.Operation{
-		Name:       opCreateConfigurationTemplate,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateConfigurationTemplate == nil {
+		opCreateConfigurationTemplate = &aws.Operation{
+			Name:       "CreateConfigurationTemplate",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateConfigurationTemplateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateConfigurationTemplate, input, output)
 	output = &ConfigurationSettingsDescription{}
 	req.Data = output
 	return
@@ -157,21 +183,26 @@ func (c *ElasticBeanstalk) CreateConfigurationTemplate(input *CreateConfiguratio
 	return out, err
 }
 
-const opCreateEnvironment = "CreateEnvironment"
+var opCreateConfigurationTemplate *aws.Operation
 
 // CreateEnvironmentRequest generates a request for the CreateEnvironment operation.
 func (c *ElasticBeanstalk) CreateEnvironmentRequest(input *CreateEnvironmentInput) (req *aws.Request, output *EnvironmentDescription) {
-	op := &aws.Operation{
-		Name:       opCreateEnvironment,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateEnvironment == nil {
+		opCreateEnvironment = &aws.Operation{
+			Name:       "CreateEnvironment",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateEnvironment, input, output)
 	output = &EnvironmentDescription{}
 	req.Data = output
 	return
@@ -185,21 +216,26 @@ func (c *ElasticBeanstalk) CreateEnvironment(input *CreateEnvironmentInput) (*En
 	return out, err
 }
 
-const opCreateStorageLocation = "CreateStorageLocation"
+var opCreateEnvironment *aws.Operation
 
 // CreateStorageLocationRequest generates a request for the CreateStorageLocation operation.
 func (c *ElasticBeanstalk) CreateStorageLocationRequest(input *CreateStorageLocationInput) (req *aws.Request, output *CreateStorageLocationOutput) {
-	op := &aws.Operation{
-		Name:       opCreateStorageLocation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateStorageLocation == nil {
+		opCreateStorageLocation = &aws.Operation{
+			Name:       "CreateStorageLocation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateStorageLocationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateStorageLocation, input, output)
 	output = &CreateStorageLocationOutput{}
 	req.Data = output
 	return
@@ -214,21 +250,26 @@ func (c *ElasticBeanstalk) CreateStorageLocation(input *CreateStorageLocationInp
 	return out, err
 }
 
-const opDeleteApplication = "DeleteApplication"
+var opCreateStorageLocation *aws.Operation
 
 // DeleteApplicationRequest generates a request for the DeleteApplication operation.
 func (c *ElasticBeanstalk) DeleteApplicationRequest(input *DeleteApplicationInput) (req *aws.Request, output *DeleteApplicationOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteApplication,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteApplication == nil {
+		opDeleteApplication = &aws.Operation{
+			Name:       "DeleteApplication",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteApplication, input, output)
 	output = &DeleteApplicationOutput{}
 	req.Data = output
 	return
@@ -245,21 +286,26 @@ func (c *ElasticBeanstalk) DeleteApplication(input *DeleteApplicationInput) (*De
 	return out, err
 }
 
-const opDeleteApplicationVersion = "DeleteApplicationVersion"
+var opDeleteApplication *aws.Operation
 
 // DeleteApplicationVersionRequest generates a request for the DeleteApplicationVersion operation.
 func (c *ElasticBeanstalk) DeleteApplicationVersionRequest(input *DeleteApplicationVersionInput) (req *aws.Request, output *DeleteApplicationVersionOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteApplicationVersion,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteApplicationVersion == nil {
+		opDeleteApplicationVersion = &aws.Operation{
+			Name:       "DeleteApplicationVersion",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteApplicationVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteApplicationVersion, input, output)
 	output = &DeleteApplicationVersionOutput{}
 	req.Data = output
 	return
@@ -275,21 +321,26 @@ func (c *ElasticBeanstalk) DeleteApplicationVersion(input *DeleteApplicationVers
 	return out, err
 }
 
-const opDeleteConfigurationTemplate = "DeleteConfigurationTemplate"
+var opDeleteApplicationVersion *aws.Operation
 
 // DeleteConfigurationTemplateRequest generates a request for the DeleteConfigurationTemplate operation.
 func (c *ElasticBeanstalk) DeleteConfigurationTemplateRequest(input *DeleteConfigurationTemplateInput) (req *aws.Request, output *DeleteConfigurationTemplateOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteConfigurationTemplate,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteConfigurationTemplate == nil {
+		opDeleteConfigurationTemplate = &aws.Operation{
+			Name:       "DeleteConfigurationTemplate",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteConfigurationTemplateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteConfigurationTemplate, input, output)
 	output = &DeleteConfigurationTemplateOutput{}
 	req.Data = output
 	return
@@ -306,21 +357,26 @@ func (c *ElasticBeanstalk) DeleteConfigurationTemplate(input *DeleteConfiguratio
 	return out, err
 }
 
-const opDeleteEnvironmentConfiguration = "DeleteEnvironmentConfiguration"
+var opDeleteConfigurationTemplate *aws.Operation
 
 // DeleteEnvironmentConfigurationRequest generates a request for the DeleteEnvironmentConfiguration operation.
 func (c *ElasticBeanstalk) DeleteEnvironmentConfigurationRequest(input *DeleteEnvironmentConfigurationInput) (req *aws.Request, output *DeleteEnvironmentConfigurationOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteEnvironmentConfiguration,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteEnvironmentConfiguration == nil {
+		opDeleteEnvironmentConfiguration = &aws.Operation{
+			Name:       "DeleteEnvironmentConfiguration",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteEnvironmentConfigurationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteEnvironmentConfiguration, input, output)
 	output = &DeleteEnvironmentConfigurationOutput{}
 	req.Data = output
 	return
@@ -340,21 +396,26 @@ func (c *ElasticBeanstalk) DeleteEnvironmentConfiguration(input *DeleteEnvironme
 	return out, err
 }
 
-const opDescribeApplicationVersions = "DescribeApplicationVersions"
+var opDeleteEnvironmentConfiguration *aws.Operation
 
 // DescribeApplicationVersionsRequest generates a request for the DescribeApplicationVersions operation.
 func (c *ElasticBeanstalk) DescribeApplicationVersionsRequest(input *DescribeApplicationVersionsInput) (req *aws.Request, output *DescribeApplicationVersionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeApplicationVersions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeApplicationVersions == nil {
+		opDescribeApplicationVersions = &aws.Operation{
+			Name:       "DescribeApplicationVersions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeApplicationVersionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeApplicationVersions, input, output)
 	output = &DescribeApplicationVersionsOutput{}
 	req.Data = output
 	return
@@ -367,21 +428,26 @@ func (c *ElasticBeanstalk) DescribeApplicationVersions(input *DescribeApplicatio
 	return out, err
 }
 
-const opDescribeApplications = "DescribeApplications"
+var opDescribeApplicationVersions *aws.Operation
 
 // DescribeApplicationsRequest generates a request for the DescribeApplications operation.
 func (c *ElasticBeanstalk) DescribeApplicationsRequest(input *DescribeApplicationsInput) (req *aws.Request, output *DescribeApplicationsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeApplications,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeApplications == nil {
+		opDescribeApplications = &aws.Operation{
+			Name:       "DescribeApplications",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeApplicationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeApplications, input, output)
 	output = &DescribeApplicationsOutput{}
 	req.Data = output
 	return
@@ -394,21 +460,26 @@ func (c *ElasticBeanstalk) DescribeApplications(input *DescribeApplicationsInput
 	return out, err
 }
 
-const opDescribeConfigurationOptions = "DescribeConfigurationOptions"
+var opDescribeApplications *aws.Operation
 
 // DescribeConfigurationOptionsRequest generates a request for the DescribeConfigurationOptions operation.
 func (c *ElasticBeanstalk) DescribeConfigurationOptionsRequest(input *DescribeConfigurationOptionsInput) (req *aws.Request, output *DescribeConfigurationOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeConfigurationOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeConfigurationOptions == nil {
+		opDescribeConfigurationOptions = &aws.Operation{
+			Name:       "DescribeConfigurationOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeConfigurationOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeConfigurationOptions, input, output)
 	output = &DescribeConfigurationOptionsOutput{}
 	req.Data = output
 	return
@@ -425,21 +496,26 @@ func (c *ElasticBeanstalk) DescribeConfigurationOptions(input *DescribeConfigura
 	return out, err
 }
 
-const opDescribeConfigurationSettings = "DescribeConfigurationSettings"
+var opDescribeConfigurationOptions *aws.Operation
 
 // DescribeConfigurationSettingsRequest generates a request for the DescribeConfigurationSettings operation.
 func (c *ElasticBeanstalk) DescribeConfigurationSettingsRequest(input *DescribeConfigurationSettingsInput) (req *aws.Request, output *DescribeConfigurationSettingsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeConfigurationSettings,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeConfigurationSettings == nil {
+		opDescribeConfigurationSettings = &aws.Operation{
+			Name:       "DescribeConfigurationSettings",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeConfigurationSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeConfigurationSettings, input, output)
 	output = &DescribeConfigurationSettingsOutput{}
 	req.Data = output
 	return
@@ -464,21 +540,26 @@ func (c *ElasticBeanstalk) DescribeConfigurationSettings(input *DescribeConfigur
 	return out, err
 }
 
-const opDescribeEnvironmentResources = "DescribeEnvironmentResources"
+var opDescribeConfigurationSettings *aws.Operation
 
 // DescribeEnvironmentResourcesRequest generates a request for the DescribeEnvironmentResources operation.
 func (c *ElasticBeanstalk) DescribeEnvironmentResourcesRequest(input *DescribeEnvironmentResourcesInput) (req *aws.Request, output *DescribeEnvironmentResourcesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEnvironmentResources,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEnvironmentResources == nil {
+		opDescribeEnvironmentResources = &aws.Operation{
+			Name:       "DescribeEnvironmentResources",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEnvironmentResourcesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEnvironmentResources, input, output)
 	output = &DescribeEnvironmentResourcesOutput{}
 	req.Data = output
 	return
@@ -491,21 +572,26 @@ func (c *ElasticBeanstalk) DescribeEnvironmentResources(input *DescribeEnvironme
 	return out, err
 }
 
-const opDescribeEnvironments = "DescribeEnvironments"
+var opDescribeEnvironmentResources *aws.Operation
 
 // DescribeEnvironmentsRequest generates a request for the DescribeEnvironments operation.
 func (c *ElasticBeanstalk) DescribeEnvironmentsRequest(input *DescribeEnvironmentsInput) (req *aws.Request, output *DescribeEnvironmentsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEnvironments,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEnvironments == nil {
+		opDescribeEnvironments = &aws.Operation{
+			Name:       "DescribeEnvironments",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEnvironmentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEnvironments, input, output)
 	output = &DescribeEnvironmentsOutput{}
 	req.Data = output
 	return
@@ -518,27 +604,32 @@ func (c *ElasticBeanstalk) DescribeEnvironments(input *DescribeEnvironmentsInput
 	return out, err
 }
 
-const opDescribeEvents = "DescribeEvents"
+var opDescribeEnvironments *aws.Operation
 
 // DescribeEventsRequest generates a request for the DescribeEvents operation.
 func (c *ElasticBeanstalk) DescribeEventsRequest(input *DescribeEventsInput) (req *aws.Request, output *DescribeEventsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEvents,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEvents == nil {
+		opDescribeEvents = &aws.Operation{
+			Name:       "DescribeEvents",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEvents, input, output)
 	output = &DescribeEventsOutput{}
 	req.Data = output
 	return
@@ -560,21 +651,26 @@ func (c *ElasticBeanstalk) DescribeEventsPages(input *DescribeEventsInput, fn fu
 	})
 }
 
-const opListAvailableSolutionStacks = "ListAvailableSolutionStacks"
+var opDescribeEvents *aws.Operation
 
 // ListAvailableSolutionStacksRequest generates a request for the ListAvailableSolutionStacks operation.
 func (c *ElasticBeanstalk) ListAvailableSolutionStacksRequest(input *ListAvailableSolutionStacksInput) (req *aws.Request, output *ListAvailableSolutionStacksOutput) {
-	op := &aws.Operation{
-		Name:       opListAvailableSolutionStacks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListAvailableSolutionStacks == nil {
+		opListAvailableSolutionStacks = &aws.Operation{
+			Name:       "ListAvailableSolutionStacks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListAvailableSolutionStacksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListAvailableSolutionStacks, input, output)
 	output = &ListAvailableSolutionStacksOutput{}
 	req.Data = output
 	return
@@ -587,21 +683,26 @@ func (c *ElasticBeanstalk) ListAvailableSolutionStacks(input *ListAvailableSolut
 	return out, err
 }
 
-const opRebuildEnvironment = "RebuildEnvironment"
+var opListAvailableSolutionStacks *aws.Operation
 
 // RebuildEnvironmentRequest generates a request for the RebuildEnvironment operation.
 func (c *ElasticBeanstalk) RebuildEnvironmentRequest(input *RebuildEnvironmentInput) (req *aws.Request, output *RebuildEnvironmentOutput) {
-	op := &aws.Operation{
-		Name:       opRebuildEnvironment,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRebuildEnvironment == nil {
+		opRebuildEnvironment = &aws.Operation{
+			Name:       "RebuildEnvironment",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RebuildEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRebuildEnvironment, input, output)
 	output = &RebuildEnvironmentOutput{}
 	req.Data = output
 	return
@@ -615,21 +716,26 @@ func (c *ElasticBeanstalk) RebuildEnvironment(input *RebuildEnvironmentInput) (*
 	return out, err
 }
 
-const opRequestEnvironmentInfo = "RequestEnvironmentInfo"
+var opRebuildEnvironment *aws.Operation
 
 // RequestEnvironmentInfoRequest generates a request for the RequestEnvironmentInfo operation.
 func (c *ElasticBeanstalk) RequestEnvironmentInfoRequest(input *RequestEnvironmentInfoInput) (req *aws.Request, output *RequestEnvironmentInfoOutput) {
-	op := &aws.Operation{
-		Name:       opRequestEnvironmentInfo,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRequestEnvironmentInfo == nil {
+		opRequestEnvironmentInfo = &aws.Operation{
+			Name:       "RequestEnvironmentInfo",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RequestEnvironmentInfoInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRequestEnvironmentInfo, input, output)
 	output = &RequestEnvironmentInfoOutput{}
 	req.Data = output
 	return
@@ -656,21 +762,26 @@ func (c *ElasticBeanstalk) RequestEnvironmentInfo(input *RequestEnvironmentInfoI
 	return out, err
 }
 
-const opRestartAppServer = "RestartAppServer"
+var opRequestEnvironmentInfo *aws.Operation
 
 // RestartAppServerRequest generates a request for the RestartAppServer operation.
 func (c *ElasticBeanstalk) RestartAppServerRequest(input *RestartAppServerInput) (req *aws.Request, output *RestartAppServerOutput) {
-	op := &aws.Operation{
-		Name:       opRestartAppServer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRestartAppServer == nil {
+		opRestartAppServer = &aws.Operation{
+			Name:       "RestartAppServer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RestartAppServerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRestartAppServer, input, output)
 	output = &RestartAppServerOutput{}
 	req.Data = output
 	return
@@ -684,21 +795,26 @@ func (c *ElasticBeanstalk) RestartAppServer(input *RestartAppServerInput) (*Rest
 	return out, err
 }
 
-const opRetrieveEnvironmentInfo = "RetrieveEnvironmentInfo"
+var opRestartAppServer *aws.Operation
 
 // RetrieveEnvironmentInfoRequest generates a request for the RetrieveEnvironmentInfo operation.
 func (c *ElasticBeanstalk) RetrieveEnvironmentInfoRequest(input *RetrieveEnvironmentInfoInput) (req *aws.Request, output *RetrieveEnvironmentInfoOutput) {
-	op := &aws.Operation{
-		Name:       opRetrieveEnvironmentInfo,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRetrieveEnvironmentInfo == nil {
+		opRetrieveEnvironmentInfo = &aws.Operation{
+			Name:       "RetrieveEnvironmentInfo",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RetrieveEnvironmentInfoInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRetrieveEnvironmentInfo, input, output)
 	output = &RetrieveEnvironmentInfoOutput{}
 	req.Data = output
 	return
@@ -715,21 +831,26 @@ func (c *ElasticBeanstalk) RetrieveEnvironmentInfo(input *RetrieveEnvironmentInf
 	return out, err
 }
 
-const opSwapEnvironmentCNAMEs = "SwapEnvironmentCNAMEs"
+var opRetrieveEnvironmentInfo *aws.Operation
 
 // SwapEnvironmentCNAMEsRequest generates a request for the SwapEnvironmentCNAMEs operation.
 func (c *ElasticBeanstalk) SwapEnvironmentCNAMEsRequest(input *SwapEnvironmentCNAMEsInput) (req *aws.Request, output *SwapEnvironmentCNAMEsOutput) {
-	op := &aws.Operation{
-		Name:       opSwapEnvironmentCNAMEs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSwapEnvironmentCNAMEs == nil {
+		opSwapEnvironmentCNAMEs = &aws.Operation{
+			Name:       "SwapEnvironmentCNAMEs",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SwapEnvironmentCNAMEsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSwapEnvironmentCNAMEs, input, output)
 	output = &SwapEnvironmentCNAMEsOutput{}
 	req.Data = output
 	return
@@ -742,21 +863,26 @@ func (c *ElasticBeanstalk) SwapEnvironmentCNAMEs(input *SwapEnvironmentCNAMEsInp
 	return out, err
 }
 
-const opTerminateEnvironment = "TerminateEnvironment"
+var opSwapEnvironmentCNAMEs *aws.Operation
 
 // TerminateEnvironmentRequest generates a request for the TerminateEnvironment operation.
 func (c *ElasticBeanstalk) TerminateEnvironmentRequest(input *TerminateEnvironmentInput) (req *aws.Request, output *EnvironmentDescription) {
-	op := &aws.Operation{
-		Name:       opTerminateEnvironment,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opTerminateEnvironment == nil {
+		opTerminateEnvironment = &aws.Operation{
+			Name:       "TerminateEnvironment",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &TerminateEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opTerminateEnvironment, input, output)
 	output = &EnvironmentDescription{}
 	req.Data = output
 	return
@@ -769,21 +895,26 @@ func (c *ElasticBeanstalk) TerminateEnvironment(input *TerminateEnvironmentInput
 	return out, err
 }
 
-const opUpdateApplication = "UpdateApplication"
+var opTerminateEnvironment *aws.Operation
 
 // UpdateApplicationRequest generates a request for the UpdateApplication operation.
 func (c *ElasticBeanstalk) UpdateApplicationRequest(input *UpdateApplicationInput) (req *aws.Request, output *ApplicationDescriptionMessage) {
-	op := &aws.Operation{
-		Name:       opUpdateApplication,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateApplication == nil {
+		opUpdateApplication = &aws.Operation{
+			Name:       "UpdateApplication",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateApplication, input, output)
 	output = &ApplicationDescriptionMessage{}
 	req.Data = output
 	return
@@ -799,21 +930,26 @@ func (c *ElasticBeanstalk) UpdateApplication(input *UpdateApplicationInput) (*Ap
 	return out, err
 }
 
-const opUpdateApplicationVersion = "UpdateApplicationVersion"
+var opUpdateApplication *aws.Operation
 
 // UpdateApplicationVersionRequest generates a request for the UpdateApplicationVersion operation.
 func (c *ElasticBeanstalk) UpdateApplicationVersionRequest(input *UpdateApplicationVersionInput) (req *aws.Request, output *ApplicationVersionDescriptionMessage) {
-	op := &aws.Operation{
-		Name:       opUpdateApplicationVersion,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateApplicationVersion == nil {
+		opUpdateApplicationVersion = &aws.Operation{
+			Name:       "UpdateApplicationVersion",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateApplicationVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateApplicationVersion, input, output)
 	output = &ApplicationVersionDescriptionMessage{}
 	req.Data = output
 	return
@@ -829,21 +965,26 @@ func (c *ElasticBeanstalk) UpdateApplicationVersion(input *UpdateApplicationVers
 	return out, err
 }
 
-const opUpdateConfigurationTemplate = "UpdateConfigurationTemplate"
+var opUpdateApplicationVersion *aws.Operation
 
 // UpdateConfigurationTemplateRequest generates a request for the UpdateConfigurationTemplate operation.
 func (c *ElasticBeanstalk) UpdateConfigurationTemplateRequest(input *UpdateConfigurationTemplateInput) (req *aws.Request, output *ConfigurationSettingsDescription) {
-	op := &aws.Operation{
-		Name:       opUpdateConfigurationTemplate,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateConfigurationTemplate == nil {
+		opUpdateConfigurationTemplate = &aws.Operation{
+			Name:       "UpdateConfigurationTemplate",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateConfigurationTemplateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateConfigurationTemplate, input, output)
 	output = &ConfigurationSettingsDescription{}
 	req.Data = output
 	return
@@ -863,21 +1004,26 @@ func (c *ElasticBeanstalk) UpdateConfigurationTemplate(input *UpdateConfiguratio
 	return out, err
 }
 
-const opUpdateEnvironment = "UpdateEnvironment"
+var opUpdateConfigurationTemplate *aws.Operation
 
 // UpdateEnvironmentRequest generates a request for the UpdateEnvironment operation.
 func (c *ElasticBeanstalk) UpdateEnvironmentRequest(input *UpdateEnvironmentInput) (req *aws.Request, output *EnvironmentDescription) {
-	op := &aws.Operation{
-		Name:       opUpdateEnvironment,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateEnvironment == nil {
+		opUpdateEnvironment = &aws.Operation{
+			Name:       "UpdateEnvironment",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateEnvironment, input, output)
 	output = &EnvironmentDescription{}
 	req.Data = output
 	return
@@ -900,21 +1046,26 @@ func (c *ElasticBeanstalk) UpdateEnvironment(input *UpdateEnvironmentInput) (*En
 	return out, err
 }
 
-const opValidateConfigurationSettings = "ValidateConfigurationSettings"
+var opUpdateEnvironment *aws.Operation
 
 // ValidateConfigurationSettingsRequest generates a request for the ValidateConfigurationSettings operation.
 func (c *ElasticBeanstalk) ValidateConfigurationSettingsRequest(input *ValidateConfigurationSettingsInput) (req *aws.Request, output *ValidateConfigurationSettingsOutput) {
-	op := &aws.Operation{
-		Name:       opValidateConfigurationSettings,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opValidateConfigurationSettings == nil {
+		opValidateConfigurationSettings = &aws.Operation{
+			Name:       "ValidateConfigurationSettings",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ValidateConfigurationSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opValidateConfigurationSettings, input, output)
 	output = &ValidateConfigurationSettingsOutput{}
 	req.Data = output
 	return
@@ -930,6 +1081,8 @@ func (c *ElasticBeanstalk) ValidateConfigurationSettings(input *ValidateConfigur
 	err := req.Send()
 	return out, err
 }
+
+var opValidateConfigurationSettings *aws.Operation
 
 type AbortEnvironmentUpdateInput struct {
 	// This specifies the ID of the environment with the in-progress update that

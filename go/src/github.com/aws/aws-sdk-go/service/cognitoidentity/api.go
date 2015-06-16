@@ -4,26 +4,32 @@
 package cognitoidentity
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCreateIdentityPool = "CreateIdentityPool"
+var oprw sync.Mutex
 
 // CreateIdentityPoolRequest generates a request for the CreateIdentityPool operation.
 func (c *CognitoIdentity) CreateIdentityPoolRequest(input *CreateIdentityPoolInput) (req *aws.Request, output *IdentityPool) {
-	op := &aws.Operation{
-		Name:       opCreateIdentityPool,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateIdentityPool == nil {
+		opCreateIdentityPool = &aws.Operation{
+			Name:       "CreateIdentityPool",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateIdentityPoolInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateIdentityPool, input, output)
 	output = &IdentityPool{}
 	req.Data = output
 	return
@@ -38,21 +44,26 @@ func (c *CognitoIdentity) CreateIdentityPool(input *CreateIdentityPoolInput) (*I
 	return out, err
 }
 
-const opDeleteIdentities = "DeleteIdentities"
+var opCreateIdentityPool *aws.Operation
 
 // DeleteIdentitiesRequest generates a request for the DeleteIdentities operation.
 func (c *CognitoIdentity) DeleteIdentitiesRequest(input *DeleteIdentitiesInput) (req *aws.Request, output *DeleteIdentitiesOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteIdentities,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteIdentities == nil {
+		opDeleteIdentities = &aws.Operation{
+			Name:       "DeleteIdentities",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteIdentitiesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteIdentities, input, output)
 	output = &DeleteIdentitiesOutput{}
 	req.Data = output
 	return
@@ -68,21 +79,26 @@ func (c *CognitoIdentity) DeleteIdentities(input *DeleteIdentitiesInput) (*Delet
 	return out, err
 }
 
-const opDeleteIdentityPool = "DeleteIdentityPool"
+var opDeleteIdentities *aws.Operation
 
 // DeleteIdentityPoolRequest generates a request for the DeleteIdentityPool operation.
 func (c *CognitoIdentity) DeleteIdentityPoolRequest(input *DeleteIdentityPoolInput) (req *aws.Request, output *DeleteIdentityPoolOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteIdentityPool,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteIdentityPool == nil {
+		opDeleteIdentityPool = &aws.Operation{
+			Name:       "DeleteIdentityPool",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteIdentityPoolInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteIdentityPool, input, output)
 	output = &DeleteIdentityPoolOutput{}
 	req.Data = output
 	return
@@ -98,21 +114,26 @@ func (c *CognitoIdentity) DeleteIdentityPool(input *DeleteIdentityPoolInput) (*D
 	return out, err
 }
 
-const opDescribeIdentity = "DescribeIdentity"
+var opDeleteIdentityPool *aws.Operation
 
 // DescribeIdentityRequest generates a request for the DescribeIdentity operation.
 func (c *CognitoIdentity) DescribeIdentityRequest(input *DescribeIdentityInput) (req *aws.Request, output *IdentityDescription) {
-	op := &aws.Operation{
-		Name:       opDescribeIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeIdentity == nil {
+		opDescribeIdentity = &aws.Operation{
+			Name:       "DescribeIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeIdentity, input, output)
 	output = &IdentityDescription{}
 	req.Data = output
 	return
@@ -128,21 +149,26 @@ func (c *CognitoIdentity) DescribeIdentity(input *DescribeIdentityInput) (*Ident
 	return out, err
 }
 
-const opDescribeIdentityPool = "DescribeIdentityPool"
+var opDescribeIdentity *aws.Operation
 
 // DescribeIdentityPoolRequest generates a request for the DescribeIdentityPool operation.
 func (c *CognitoIdentity) DescribeIdentityPoolRequest(input *DescribeIdentityPoolInput) (req *aws.Request, output *IdentityPool) {
-	op := &aws.Operation{
-		Name:       opDescribeIdentityPool,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeIdentityPool == nil {
+		opDescribeIdentityPool = &aws.Operation{
+			Name:       "DescribeIdentityPool",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeIdentityPoolInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeIdentityPool, input, output)
 	output = &IdentityPool{}
 	req.Data = output
 	return
@@ -158,21 +184,26 @@ func (c *CognitoIdentity) DescribeIdentityPool(input *DescribeIdentityPoolInput)
 	return out, err
 }
 
-const opGetCredentialsForIdentity = "GetCredentialsForIdentity"
+var opDescribeIdentityPool *aws.Operation
 
 // GetCredentialsForIdentityRequest generates a request for the GetCredentialsForIdentity operation.
 func (c *CognitoIdentity) GetCredentialsForIdentityRequest(input *GetCredentialsForIdentityInput) (req *aws.Request, output *GetCredentialsForIdentityOutput) {
-	op := &aws.Operation{
-		Name:       opGetCredentialsForIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetCredentialsForIdentity == nil {
+		opGetCredentialsForIdentity = &aws.Operation{
+			Name:       "GetCredentialsForIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetCredentialsForIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetCredentialsForIdentity, input, output)
 	output = &GetCredentialsForIdentityOutput{}
 	req.Data = output
 	return
@@ -190,21 +221,26 @@ func (c *CognitoIdentity) GetCredentialsForIdentity(input *GetCredentialsForIden
 	return out, err
 }
 
-const opGetID = "GetId"
+var opGetCredentialsForIdentity *aws.Operation
 
 // GetIDRequest generates a request for the GetID operation.
 func (c *CognitoIdentity) GetIDRequest(input *GetIDInput) (req *aws.Request, output *GetIDOutput) {
-	op := &aws.Operation{
-		Name:       opGetID,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetID == nil {
+		opGetID = &aws.Operation{
+			Name:       "GetId",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetIDInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetID, input, output)
 	output = &GetIDOutput{}
 	req.Data = output
 	return
@@ -222,21 +258,26 @@ func (c *CognitoIdentity) GetID(input *GetIDInput) (*GetIDOutput, error) {
 	return out, err
 }
 
-const opGetIdentityPoolRoles = "GetIdentityPoolRoles"
+var opGetID *aws.Operation
 
 // GetIdentityPoolRolesRequest generates a request for the GetIdentityPoolRoles operation.
 func (c *CognitoIdentity) GetIdentityPoolRolesRequest(input *GetIdentityPoolRolesInput) (req *aws.Request, output *GetIdentityPoolRolesOutput) {
-	op := &aws.Operation{
-		Name:       opGetIdentityPoolRoles,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetIdentityPoolRoles == nil {
+		opGetIdentityPoolRoles = &aws.Operation{
+			Name:       "GetIdentityPoolRoles",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetIdentityPoolRolesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetIdentityPoolRoles, input, output)
 	output = &GetIdentityPoolRolesOutput{}
 	req.Data = output
 	return
@@ -251,21 +292,26 @@ func (c *CognitoIdentity) GetIdentityPoolRoles(input *GetIdentityPoolRolesInput)
 	return out, err
 }
 
-const opGetOpenIDToken = "GetOpenIdToken"
+var opGetIdentityPoolRoles *aws.Operation
 
 // GetOpenIDTokenRequest generates a request for the GetOpenIDToken operation.
 func (c *CognitoIdentity) GetOpenIDTokenRequest(input *GetOpenIDTokenInput) (req *aws.Request, output *GetOpenIDTokenOutput) {
-	op := &aws.Operation{
-		Name:       opGetOpenIDToken,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetOpenIDToken == nil {
+		opGetOpenIDToken = &aws.Operation{
+			Name:       "GetOpenIdToken",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetOpenIDTokenInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetOpenIDToken, input, output)
 	output = &GetOpenIDTokenOutput{}
 	req.Data = output
 	return
@@ -284,21 +330,26 @@ func (c *CognitoIdentity) GetOpenIDToken(input *GetOpenIDTokenInput) (*GetOpenID
 	return out, err
 }
 
-const opGetOpenIDTokenForDeveloperIdentity = "GetOpenIdTokenForDeveloperIdentity"
+var opGetOpenIDToken *aws.Operation
 
 // GetOpenIDTokenForDeveloperIdentityRequest generates a request for the GetOpenIDTokenForDeveloperIdentity operation.
 func (c *CognitoIdentity) GetOpenIDTokenForDeveloperIdentityRequest(input *GetOpenIDTokenForDeveloperIdentityInput) (req *aws.Request, output *GetOpenIDTokenForDeveloperIdentityOutput) {
-	op := &aws.Operation{
-		Name:       opGetOpenIDTokenForDeveloperIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetOpenIDTokenForDeveloperIdentity == nil {
+		opGetOpenIDTokenForDeveloperIdentity = &aws.Operation{
+			Name:       "GetOpenIdTokenForDeveloperIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetOpenIDTokenForDeveloperIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetOpenIDTokenForDeveloperIdentity, input, output)
 	output = &GetOpenIDTokenForDeveloperIdentityOutput{}
 	req.Data = output
 	return
@@ -326,21 +377,26 @@ func (c *CognitoIdentity) GetOpenIDTokenForDeveloperIdentity(input *GetOpenIDTok
 	return out, err
 }
 
-const opListIdentities = "ListIdentities"
+var opGetOpenIDTokenForDeveloperIdentity *aws.Operation
 
 // ListIdentitiesRequest generates a request for the ListIdentities operation.
 func (c *CognitoIdentity) ListIdentitiesRequest(input *ListIdentitiesInput) (req *aws.Request, output *ListIdentitiesOutput) {
-	op := &aws.Operation{
-		Name:       opListIdentities,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListIdentities == nil {
+		opListIdentities = &aws.Operation{
+			Name:       "ListIdentities",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListIdentitiesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListIdentities, input, output)
 	output = &ListIdentitiesOutput{}
 	req.Data = output
 	return
@@ -355,21 +411,26 @@ func (c *CognitoIdentity) ListIdentities(input *ListIdentitiesInput) (*ListIdent
 	return out, err
 }
 
-const opListIdentityPools = "ListIdentityPools"
+var opListIdentities *aws.Operation
 
 // ListIdentityPoolsRequest generates a request for the ListIdentityPools operation.
 func (c *CognitoIdentity) ListIdentityPoolsRequest(input *ListIdentityPoolsInput) (req *aws.Request, output *ListIdentityPoolsOutput) {
-	op := &aws.Operation{
-		Name:       opListIdentityPools,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListIdentityPools == nil {
+		opListIdentityPools = &aws.Operation{
+			Name:       "ListIdentityPools",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListIdentityPoolsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListIdentityPools, input, output)
 	output = &ListIdentityPoolsOutput{}
 	req.Data = output
 	return
@@ -384,21 +445,26 @@ func (c *CognitoIdentity) ListIdentityPools(input *ListIdentityPoolsInput) (*Lis
 	return out, err
 }
 
-const opLookupDeveloperIdentity = "LookupDeveloperIdentity"
+var opListIdentityPools *aws.Operation
 
 // LookupDeveloperIdentityRequest generates a request for the LookupDeveloperIdentity operation.
 func (c *CognitoIdentity) LookupDeveloperIdentityRequest(input *LookupDeveloperIdentityInput) (req *aws.Request, output *LookupDeveloperIdentityOutput) {
-	op := &aws.Operation{
-		Name:       opLookupDeveloperIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opLookupDeveloperIdentity == nil {
+		opLookupDeveloperIdentity = &aws.Operation{
+			Name:       "LookupDeveloperIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &LookupDeveloperIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opLookupDeveloperIdentity, input, output)
 	output = &LookupDeveloperIdentityOutput{}
 	req.Data = output
 	return
@@ -420,21 +486,26 @@ func (c *CognitoIdentity) LookupDeveloperIdentity(input *LookupDeveloperIdentity
 	return out, err
 }
 
-const opMergeDeveloperIdentities = "MergeDeveloperIdentities"
+var opLookupDeveloperIdentity *aws.Operation
 
 // MergeDeveloperIdentitiesRequest generates a request for the MergeDeveloperIdentities operation.
 func (c *CognitoIdentity) MergeDeveloperIdentitiesRequest(input *MergeDeveloperIdentitiesInput) (req *aws.Request, output *MergeDeveloperIdentitiesOutput) {
-	op := &aws.Operation{
-		Name:       opMergeDeveloperIdentities,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opMergeDeveloperIdentities == nil {
+		opMergeDeveloperIdentities = &aws.Operation{
+			Name:       "MergeDeveloperIdentities",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &MergeDeveloperIdentitiesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opMergeDeveloperIdentities, input, output)
 	output = &MergeDeveloperIdentitiesOutput{}
 	req.Data = output
 	return
@@ -455,21 +526,26 @@ func (c *CognitoIdentity) MergeDeveloperIdentities(input *MergeDeveloperIdentiti
 	return out, err
 }
 
-const opSetIdentityPoolRoles = "SetIdentityPoolRoles"
+var opMergeDeveloperIdentities *aws.Operation
 
 // SetIdentityPoolRolesRequest generates a request for the SetIdentityPoolRoles operation.
 func (c *CognitoIdentity) SetIdentityPoolRolesRequest(input *SetIdentityPoolRolesInput) (req *aws.Request, output *SetIdentityPoolRolesOutput) {
-	op := &aws.Operation{
-		Name:       opSetIdentityPoolRoles,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetIdentityPoolRoles == nil {
+		opSetIdentityPoolRoles = &aws.Operation{
+			Name:       "SetIdentityPoolRoles",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetIdentityPoolRolesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetIdentityPoolRoles, input, output)
 	output = &SetIdentityPoolRolesOutput{}
 	req.Data = output
 	return
@@ -485,21 +561,26 @@ func (c *CognitoIdentity) SetIdentityPoolRoles(input *SetIdentityPoolRolesInput)
 	return out, err
 }
 
-const opUnlinkDeveloperIdentity = "UnlinkDeveloperIdentity"
+var opSetIdentityPoolRoles *aws.Operation
 
 // UnlinkDeveloperIdentityRequest generates a request for the UnlinkDeveloperIdentity operation.
 func (c *CognitoIdentity) UnlinkDeveloperIdentityRequest(input *UnlinkDeveloperIdentityInput) (req *aws.Request, output *UnlinkDeveloperIdentityOutput) {
-	op := &aws.Operation{
-		Name:       opUnlinkDeveloperIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUnlinkDeveloperIdentity == nil {
+		opUnlinkDeveloperIdentity = &aws.Operation{
+			Name:       "UnlinkDeveloperIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UnlinkDeveloperIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUnlinkDeveloperIdentity, input, output)
 	output = &UnlinkDeveloperIdentityOutput{}
 	req.Data = output
 	return
@@ -517,21 +598,26 @@ func (c *CognitoIdentity) UnlinkDeveloperIdentity(input *UnlinkDeveloperIdentity
 	return out, err
 }
 
-const opUnlinkIdentity = "UnlinkIdentity"
+var opUnlinkDeveloperIdentity *aws.Operation
 
 // UnlinkIdentityRequest generates a request for the UnlinkIdentity operation.
 func (c *CognitoIdentity) UnlinkIdentityRequest(input *UnlinkIdentityInput) (req *aws.Request, output *UnlinkIdentityOutput) {
-	op := &aws.Operation{
-		Name:       opUnlinkIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUnlinkIdentity == nil {
+		opUnlinkIdentity = &aws.Operation{
+			Name:       "UnlinkIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UnlinkIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUnlinkIdentity, input, output)
 	output = &UnlinkIdentityOutput{}
 	req.Data = output
 	return
@@ -548,21 +634,26 @@ func (c *CognitoIdentity) UnlinkIdentity(input *UnlinkIdentityInput) (*UnlinkIde
 	return out, err
 }
 
-const opUpdateIdentityPool = "UpdateIdentityPool"
+var opUnlinkIdentity *aws.Operation
 
 // UpdateIdentityPoolRequest generates a request for the UpdateIdentityPool operation.
 func (c *CognitoIdentity) UpdateIdentityPoolRequest(input *IdentityPool) (req *aws.Request, output *IdentityPool) {
-	op := &aws.Operation{
-		Name:       opUpdateIdentityPool,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateIdentityPool == nil {
+		opUpdateIdentityPool = &aws.Operation{
+			Name:       "UpdateIdentityPool",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &IdentityPool{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateIdentityPool, input, output)
 	output = &IdentityPool{}
 	req.Data = output
 	return
@@ -576,6 +667,8 @@ func (c *CognitoIdentity) UpdateIdentityPool(input *IdentityPool) (*IdentityPool
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateIdentityPool *aws.Operation
 
 // Input to the CreateIdentityPool action.
 type CreateIdentityPoolInput struct {

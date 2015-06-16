@@ -494,8 +494,6 @@ func ExampleECS_ListTaskDefinitions() {
 		FamilyPrefix: aws.String("String"),
 		MaxResults:   aws.Long(1),
 		NextToken:    aws.String("String"),
-		Sort:         aws.String("SortOrder"),
-		Status:       aws.String("TaskDefinitionStatus"),
 	}
 	resp, err := svc.ListTaskDefinitions(params)
 
@@ -702,13 +700,6 @@ func ExampleECS_RunTask() {
 						aws.String("String"), // Required
 						// More values...
 					},
-					Environment: []*ecs.KeyValuePair{
-						{ // Required
-							Name:  aws.String("String"),
-							Value: aws.String("String"),
-						},
-						// More values...
-					},
 					Name: aws.String("String"),
 				},
 				// More values...
@@ -752,13 +743,6 @@ func ExampleECS_StartTask() {
 				{ // Required
 					Command: []*string{
 						aws.String("String"), // Required
-						// More values...
-					},
-					Environment: []*ecs.KeyValuePair{
-						{ // Required
-							Name:  aws.String("String"),
-							Value: aws.String("String"),
-						},
 						// More values...
 					},
 					Name: aws.String("String"),

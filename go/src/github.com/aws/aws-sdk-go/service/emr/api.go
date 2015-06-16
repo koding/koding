@@ -4,26 +4,32 @@
 package emr
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAddInstanceGroups = "AddInstanceGroups"
+var oprw sync.Mutex
 
 // AddInstanceGroupsRequest generates a request for the AddInstanceGroups operation.
 func (c *EMR) AddInstanceGroupsRequest(input *AddInstanceGroupsInput) (req *aws.Request, output *AddInstanceGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opAddInstanceGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddInstanceGroups == nil {
+		opAddInstanceGroups = &aws.Operation{
+			Name:       "AddInstanceGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddInstanceGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddInstanceGroups, input, output)
 	output = &AddInstanceGroupsOutput{}
 	req.Data = output
 	return
@@ -36,21 +42,26 @@ func (c *EMR) AddInstanceGroups(input *AddInstanceGroupsInput) (*AddInstanceGrou
 	return out, err
 }
 
-const opAddJobFlowSteps = "AddJobFlowSteps"
+var opAddInstanceGroups *aws.Operation
 
 // AddJobFlowStepsRequest generates a request for the AddJobFlowSteps operation.
 func (c *EMR) AddJobFlowStepsRequest(input *AddJobFlowStepsInput) (req *aws.Request, output *AddJobFlowStepsOutput) {
-	op := &aws.Operation{
-		Name:       opAddJobFlowSteps,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddJobFlowSteps == nil {
+		opAddJobFlowSteps = &aws.Operation{
+			Name:       "AddJobFlowSteps",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddJobFlowStepsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddJobFlowSteps, input, output)
 	output = &AddJobFlowStepsOutput{}
 	req.Data = output
 	return
@@ -86,21 +97,26 @@ func (c *EMR) AddJobFlowSteps(input *AddJobFlowStepsInput) (*AddJobFlowStepsOutp
 	return out, err
 }
 
-const opAddTags = "AddTags"
+var opAddJobFlowSteps *aws.Operation
 
 // AddTagsRequest generates a request for the AddTags operation.
 func (c *EMR) AddTagsRequest(input *AddTagsInput) (req *aws.Request, output *AddTagsOutput) {
-	op := &aws.Operation{
-		Name:       opAddTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddTags == nil {
+		opAddTags = &aws.Operation{
+			Name:       "AddTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddTags, input, output)
 	output = &AddTagsOutput{}
 	req.Data = output
 	return
@@ -116,21 +132,26 @@ func (c *EMR) AddTags(input *AddTagsInput) (*AddTagsOutput, error) {
 	return out, err
 }
 
-const opDescribeCluster = "DescribeCluster"
+var opAddTags *aws.Operation
 
 // DescribeClusterRequest generates a request for the DescribeCluster operation.
 func (c *EMR) DescribeClusterRequest(input *DescribeClusterInput) (req *aws.Request, output *DescribeClusterOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCluster,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCluster == nil {
+		opDescribeCluster = &aws.Operation{
+			Name:       "DescribeCluster",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeClusterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCluster, input, output)
 	output = &DescribeClusterOutput{}
 	req.Data = output
 	return
@@ -144,21 +165,26 @@ func (c *EMR) DescribeCluster(input *DescribeClusterInput) (*DescribeClusterOutp
 	return out, err
 }
 
-const opDescribeJobFlows = "DescribeJobFlows"
+var opDescribeCluster *aws.Operation
 
 // DescribeJobFlowsRequest generates a request for the DescribeJobFlows operation.
 func (c *EMR) DescribeJobFlowsRequest(input *DescribeJobFlowsInput) (req *aws.Request, output *DescribeJobFlowsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeJobFlows,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeJobFlows == nil {
+		opDescribeJobFlows = &aws.Operation{
+			Name:       "DescribeJobFlows",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeJobFlowsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeJobFlows, input, output)
 	output = &DescribeJobFlowsOutput{}
 	req.Data = output
 	return
@@ -188,21 +214,26 @@ func (c *EMR) DescribeJobFlows(input *DescribeJobFlowsInput) (*DescribeJobFlowsO
 	return out, err
 }
 
-const opDescribeStep = "DescribeStep"
+var opDescribeJobFlows *aws.Operation
 
 // DescribeStepRequest generates a request for the DescribeStep operation.
 func (c *EMR) DescribeStepRequest(input *DescribeStepInput) (req *aws.Request, output *DescribeStepOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeStep,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeStep == nil {
+		opDescribeStep = &aws.Operation{
+			Name:       "DescribeStep",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeStepInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeStep, input, output)
 	output = &DescribeStepOutput{}
 	req.Data = output
 	return
@@ -215,27 +246,32 @@ func (c *EMR) DescribeStep(input *DescribeStepInput) (*DescribeStepOutput, error
 	return out, err
 }
 
-const opListBootstrapActions = "ListBootstrapActions"
+var opDescribeStep *aws.Operation
 
 // ListBootstrapActionsRequest generates a request for the ListBootstrapActions operation.
 func (c *EMR) ListBootstrapActionsRequest(input *ListBootstrapActionsInput) (req *aws.Request, output *ListBootstrapActionsOutput) {
-	op := &aws.Operation{
-		Name:       opListBootstrapActions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListBootstrapActions == nil {
+		opListBootstrapActions = &aws.Operation{
+			Name:       "ListBootstrapActions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListBootstrapActionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListBootstrapActions, input, output)
 	output = &ListBootstrapActionsOutput{}
 	req.Data = output
 	return
@@ -255,27 +291,32 @@ func (c *EMR) ListBootstrapActionsPages(input *ListBootstrapActionsInput, fn fun
 	})
 }
 
-const opListClusters = "ListClusters"
+var opListBootstrapActions *aws.Operation
 
 // ListClustersRequest generates a request for the ListClusters operation.
 func (c *EMR) ListClustersRequest(input *ListClustersInput) (req *aws.Request, output *ListClustersOutput) {
-	op := &aws.Operation{
-		Name:       opListClusters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListClusters == nil {
+		opListClusters = &aws.Operation{
+			Name:       "ListClusters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListClustersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListClusters, input, output)
 	output = &ListClustersOutput{}
 	req.Data = output
 	return
@@ -299,27 +340,32 @@ func (c *EMR) ListClustersPages(input *ListClustersInput, fn func(p *ListCluster
 	})
 }
 
-const opListInstanceGroups = "ListInstanceGroups"
+var opListClusters *aws.Operation
 
 // ListInstanceGroupsRequest generates a request for the ListInstanceGroups operation.
 func (c *EMR) ListInstanceGroupsRequest(input *ListInstanceGroupsInput) (req *aws.Request, output *ListInstanceGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opListInstanceGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListInstanceGroups == nil {
+		opListInstanceGroups = &aws.Operation{
+			Name:       "ListInstanceGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListInstanceGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListInstanceGroups, input, output)
 	output = &ListInstanceGroupsOutput{}
 	req.Data = output
 	return
@@ -339,27 +385,32 @@ func (c *EMR) ListInstanceGroupsPages(input *ListInstanceGroupsInput, fn func(p 
 	})
 }
 
-const opListInstances = "ListInstances"
+var opListInstanceGroups *aws.Operation
 
 // ListInstancesRequest generates a request for the ListInstances operation.
 func (c *EMR) ListInstancesRequest(input *ListInstancesInput) (req *aws.Request, output *ListInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opListInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListInstances == nil {
+		opListInstances = &aws.Operation{
+			Name:       "ListInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListInstances, input, output)
 	output = &ListInstancesOutput{}
 	req.Data = output
 	return
@@ -383,27 +434,32 @@ func (c *EMR) ListInstancesPages(input *ListInstancesInput, fn func(p *ListInsta
 	})
 }
 
-const opListSteps = "ListSteps"
+var opListInstances *aws.Operation
 
 // ListStepsRequest generates a request for the ListSteps operation.
 func (c *EMR) ListStepsRequest(input *ListStepsInput) (req *aws.Request, output *ListStepsOutput) {
-	op := &aws.Operation{
-		Name:       opListSteps,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListSteps == nil {
+		opListSteps = &aws.Operation{
+			Name:       "ListSteps",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListStepsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListSteps, input, output)
 	output = &ListStepsOutput{}
 	req.Data = output
 	return
@@ -423,21 +479,26 @@ func (c *EMR) ListStepsPages(input *ListStepsInput, fn func(p *ListStepsOutput, 
 	})
 }
 
-const opModifyInstanceGroups = "ModifyInstanceGroups"
+var opListSteps *aws.Operation
 
 // ModifyInstanceGroupsRequest generates a request for the ModifyInstanceGroups operation.
 func (c *EMR) ModifyInstanceGroupsRequest(input *ModifyInstanceGroupsInput) (req *aws.Request, output *ModifyInstanceGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opModifyInstanceGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyInstanceGroups == nil {
+		opModifyInstanceGroups = &aws.Operation{
+			Name:       "ModifyInstanceGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyInstanceGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyInstanceGroups, input, output)
 	output = &ModifyInstanceGroupsOutput{}
 	req.Data = output
 	return
@@ -453,21 +514,26 @@ func (c *EMR) ModifyInstanceGroups(input *ModifyInstanceGroupsInput) (*ModifyIns
 	return out, err
 }
 
-const opRemoveTags = "RemoveTags"
+var opModifyInstanceGroups *aws.Operation
 
 // RemoveTagsRequest generates a request for the RemoveTags operation.
 func (c *EMR) RemoveTagsRequest(input *RemoveTagsInput) (req *aws.Request, output *RemoveTagsOutput) {
-	op := &aws.Operation{
-		Name:       opRemoveTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemoveTags == nil {
+		opRemoveTags = &aws.Operation{
+			Name:       "RemoveTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemoveTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemoveTags, input, output)
 	output = &RemoveTagsOutput{}
 	req.Data = output
 	return
@@ -485,21 +551,26 @@ func (c *EMR) RemoveTags(input *RemoveTagsInput) (*RemoveTagsOutput, error) {
 	return out, err
 }
 
-const opRunJobFlow = "RunJobFlow"
+var opRemoveTags *aws.Operation
 
 // RunJobFlowRequest generates a request for the RunJobFlow operation.
 func (c *EMR) RunJobFlowRequest(input *RunJobFlowInput) (req *aws.Request, output *RunJobFlowOutput) {
-	op := &aws.Operation{
-		Name:       opRunJobFlow,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRunJobFlow == nil {
+		opRunJobFlow = &aws.Operation{
+			Name:       "RunJobFlow",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RunJobFlowInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRunJobFlow, input, output)
 	output = &RunJobFlowOutput{}
 	req.Data = output
 	return
@@ -534,21 +605,26 @@ func (c *EMR) RunJobFlow(input *RunJobFlowInput) (*RunJobFlowOutput, error) {
 	return out, err
 }
 
-const opSetTerminationProtection = "SetTerminationProtection"
+var opRunJobFlow *aws.Operation
 
 // SetTerminationProtectionRequest generates a request for the SetTerminationProtection operation.
 func (c *EMR) SetTerminationProtectionRequest(input *SetTerminationProtectionInput) (req *aws.Request, output *SetTerminationProtectionOutput) {
-	op := &aws.Operation{
-		Name:       opSetTerminationProtection,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetTerminationProtection == nil {
+		opSetTerminationProtection = &aws.Operation{
+			Name:       "SetTerminationProtection",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetTerminationProtectionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetTerminationProtection, input, output)
 	output = &SetTerminationProtectionOutput{}
 	req.Data = output
 	return
@@ -577,21 +653,26 @@ func (c *EMR) SetTerminationProtection(input *SetTerminationProtectionInput) (*S
 	return out, err
 }
 
-const opSetVisibleToAllUsers = "SetVisibleToAllUsers"
+var opSetTerminationProtection *aws.Operation
 
 // SetVisibleToAllUsersRequest generates a request for the SetVisibleToAllUsers operation.
 func (c *EMR) SetVisibleToAllUsersRequest(input *SetVisibleToAllUsersInput) (req *aws.Request, output *SetVisibleToAllUsersOutput) {
-	op := &aws.Operation{
-		Name:       opSetVisibleToAllUsers,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetVisibleToAllUsers == nil {
+		opSetVisibleToAllUsers = &aws.Operation{
+			Name:       "SetVisibleToAllUsers",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetVisibleToAllUsersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetVisibleToAllUsers, input, output)
 	output = &SetVisibleToAllUsersOutput{}
 	req.Data = output
 	return
@@ -609,21 +690,26 @@ func (c *EMR) SetVisibleToAllUsers(input *SetVisibleToAllUsersInput) (*SetVisibl
 	return out, err
 }
 
-const opTerminateJobFlows = "TerminateJobFlows"
+var opSetVisibleToAllUsers *aws.Operation
 
 // TerminateJobFlowsRequest generates a request for the TerminateJobFlows operation.
 func (c *EMR) TerminateJobFlowsRequest(input *TerminateJobFlowsInput) (req *aws.Request, output *TerminateJobFlowsOutput) {
-	op := &aws.Operation{
-		Name:       opTerminateJobFlows,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opTerminateJobFlows == nil {
+		opTerminateJobFlows = &aws.Operation{
+			Name:       "TerminateJobFlows",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &TerminateJobFlowsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opTerminateJobFlows, input, output)
 	output = &TerminateJobFlowsOutput{}
 	req.Data = output
 	return
@@ -643,6 +729,8 @@ func (c *EMR) TerminateJobFlows(input *TerminateJobFlowsInput) (*TerminateJobFlo
 	err := req.Send()
 	return out, err
 }
+
+var opTerminateJobFlows *aws.Operation
 
 // Input to an AddInstanceGroups call.
 type AddInstanceGroupsInput struct {

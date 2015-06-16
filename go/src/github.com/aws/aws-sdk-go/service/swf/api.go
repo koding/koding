@@ -4,26 +4,32 @@
 package swf
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCountClosedWorkflowExecutions = "CountClosedWorkflowExecutions"
+var oprw sync.Mutex
 
 // CountClosedWorkflowExecutionsRequest generates a request for the CountClosedWorkflowExecutions operation.
 func (c *SWF) CountClosedWorkflowExecutionsRequest(input *CountClosedWorkflowExecutionsInput) (req *aws.Request, output *WorkflowExecutionCount) {
-	op := &aws.Operation{
-		Name:       opCountClosedWorkflowExecutions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCountClosedWorkflowExecutions == nil {
+		opCountClosedWorkflowExecutions = &aws.Operation{
+			Name:       "CountClosedWorkflowExecutions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CountClosedWorkflowExecutionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCountClosedWorkflowExecutions, input, output)
 	output = &WorkflowExecutionCount{}
 	req.Data = output
 	return
@@ -55,21 +61,26 @@ func (c *SWF) CountClosedWorkflowExecutions(input *CountClosedWorkflowExecutions
 	return out, err
 }
 
-const opCountOpenWorkflowExecutions = "CountOpenWorkflowExecutions"
+var opCountClosedWorkflowExecutions *aws.Operation
 
 // CountOpenWorkflowExecutionsRequest generates a request for the CountOpenWorkflowExecutions operation.
 func (c *SWF) CountOpenWorkflowExecutionsRequest(input *CountOpenWorkflowExecutionsInput) (req *aws.Request, output *WorkflowExecutionCount) {
-	op := &aws.Operation{
-		Name:       opCountOpenWorkflowExecutions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCountOpenWorkflowExecutions == nil {
+		opCountOpenWorkflowExecutions = &aws.Operation{
+			Name:       "CountOpenWorkflowExecutions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CountOpenWorkflowExecutionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCountOpenWorkflowExecutions, input, output)
 	output = &WorkflowExecutionCount{}
 	req.Data = output
 	return
@@ -101,21 +112,26 @@ func (c *SWF) CountOpenWorkflowExecutions(input *CountOpenWorkflowExecutionsInpu
 	return out, err
 }
 
-const opCountPendingActivityTasks = "CountPendingActivityTasks"
+var opCountOpenWorkflowExecutions *aws.Operation
 
 // CountPendingActivityTasksRequest generates a request for the CountPendingActivityTasks operation.
 func (c *SWF) CountPendingActivityTasksRequest(input *CountPendingActivityTasksInput) (req *aws.Request, output *PendingTaskCount) {
-	op := &aws.Operation{
-		Name:       opCountPendingActivityTasks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCountPendingActivityTasks == nil {
+		opCountPendingActivityTasks = &aws.Operation{
+			Name:       "CountPendingActivityTasks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CountPendingActivityTasksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCountPendingActivityTasks, input, output)
 	output = &PendingTaskCount{}
 	req.Data = output
 	return
@@ -146,21 +162,26 @@ func (c *SWF) CountPendingActivityTasks(input *CountPendingActivityTasksInput) (
 	return out, err
 }
 
-const opCountPendingDecisionTasks = "CountPendingDecisionTasks"
+var opCountPendingActivityTasks *aws.Operation
 
 // CountPendingDecisionTasksRequest generates a request for the CountPendingDecisionTasks operation.
 func (c *SWF) CountPendingDecisionTasksRequest(input *CountPendingDecisionTasksInput) (req *aws.Request, output *PendingTaskCount) {
-	op := &aws.Operation{
-		Name:       opCountPendingDecisionTasks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCountPendingDecisionTasks == nil {
+		opCountPendingDecisionTasks = &aws.Operation{
+			Name:       "CountPendingDecisionTasks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CountPendingDecisionTasksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCountPendingDecisionTasks, input, output)
 	output = &PendingTaskCount{}
 	req.Data = output
 	return
@@ -191,21 +212,26 @@ func (c *SWF) CountPendingDecisionTasks(input *CountPendingDecisionTasksInput) (
 	return out, err
 }
 
-const opDeprecateActivityType = "DeprecateActivityType"
+var opCountPendingDecisionTasks *aws.Operation
 
 // DeprecateActivityTypeRequest generates a request for the DeprecateActivityType operation.
 func (c *SWF) DeprecateActivityTypeRequest(input *DeprecateActivityTypeInput) (req *aws.Request, output *DeprecateActivityTypeOutput) {
-	op := &aws.Operation{
-		Name:       opDeprecateActivityType,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeprecateActivityType == nil {
+		opDeprecateActivityType = &aws.Operation{
+			Name:       "DeprecateActivityType",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeprecateActivityTypeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeprecateActivityType, input, output)
 	output = &DeprecateActivityTypeOutput{}
 	req.Data = output
 	return
@@ -237,21 +263,26 @@ func (c *SWF) DeprecateActivityType(input *DeprecateActivityTypeInput) (*Depreca
 	return out, err
 }
 
-const opDeprecateDomain = "DeprecateDomain"
+var opDeprecateActivityType *aws.Operation
 
 // DeprecateDomainRequest generates a request for the DeprecateDomain operation.
 func (c *SWF) DeprecateDomainRequest(input *DeprecateDomainInput) (req *aws.Request, output *DeprecateDomainOutput) {
-	op := &aws.Operation{
-		Name:       opDeprecateDomain,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeprecateDomain == nil {
+		opDeprecateDomain = &aws.Operation{
+			Name:       "DeprecateDomain",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeprecateDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeprecateDomain, input, output)
 	output = &DeprecateDomainOutput{}
 	req.Data = output
 	return
@@ -284,21 +315,26 @@ func (c *SWF) DeprecateDomain(input *DeprecateDomainInput) (*DeprecateDomainOutp
 	return out, err
 }
 
-const opDeprecateWorkflowType = "DeprecateWorkflowType"
+var opDeprecateDomain *aws.Operation
 
 // DeprecateWorkflowTypeRequest generates a request for the DeprecateWorkflowType operation.
 func (c *SWF) DeprecateWorkflowTypeRequest(input *DeprecateWorkflowTypeInput) (req *aws.Request, output *DeprecateWorkflowTypeOutput) {
-	op := &aws.Operation{
-		Name:       opDeprecateWorkflowType,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeprecateWorkflowType == nil {
+		opDeprecateWorkflowType = &aws.Operation{
+			Name:       "DeprecateWorkflowType",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeprecateWorkflowTypeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeprecateWorkflowType, input, output)
 	output = &DeprecateWorkflowTypeOutput{}
 	req.Data = output
 	return
@@ -331,21 +367,26 @@ func (c *SWF) DeprecateWorkflowType(input *DeprecateWorkflowTypeInput) (*Depreca
 	return out, err
 }
 
-const opDescribeActivityType = "DescribeActivityType"
+var opDeprecateWorkflowType *aws.Operation
 
 // DescribeActivityTypeRequest generates a request for the DescribeActivityType operation.
 func (c *SWF) DescribeActivityTypeRequest(input *DescribeActivityTypeInput) (req *aws.Request, output *DescribeActivityTypeOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeActivityType,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeActivityType == nil {
+		opDescribeActivityType = &aws.Operation{
+			Name:       "DescribeActivityType",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeActivityTypeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeActivityType, input, output)
 	output = &DescribeActivityTypeOutput{}
 	req.Data = output
 	return
@@ -376,21 +417,26 @@ func (c *SWF) DescribeActivityType(input *DescribeActivityTypeInput) (*DescribeA
 	return out, err
 }
 
-const opDescribeDomain = "DescribeDomain"
+var opDescribeActivityType *aws.Operation
 
 // DescribeDomainRequest generates a request for the DescribeDomain operation.
 func (c *SWF) DescribeDomainRequest(input *DescribeDomainInput) (req *aws.Request, output *DescribeDomainOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDomain,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDomain == nil {
+		opDescribeDomain = &aws.Operation{
+			Name:       "DescribeDomain",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDomain, input, output)
 	output = &DescribeDomainOutput{}
 	req.Data = output
 	return
@@ -418,21 +464,26 @@ func (c *SWF) DescribeDomain(input *DescribeDomainInput) (*DescribeDomainOutput,
 	return out, err
 }
 
-const opDescribeWorkflowExecution = "DescribeWorkflowExecution"
+var opDescribeDomain *aws.Operation
 
 // DescribeWorkflowExecutionRequest generates a request for the DescribeWorkflowExecution operation.
 func (c *SWF) DescribeWorkflowExecutionRequest(input *DescribeWorkflowExecutionInput) (req *aws.Request, output *DescribeWorkflowExecutionOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeWorkflowExecution,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeWorkflowExecution == nil {
+		opDescribeWorkflowExecution = &aws.Operation{
+			Name:       "DescribeWorkflowExecution",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeWorkflowExecutionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeWorkflowExecution, input, output)
 	output = &DescribeWorkflowExecutionOutput{}
 	req.Data = output
 	return
@@ -461,21 +512,26 @@ func (c *SWF) DescribeWorkflowExecution(input *DescribeWorkflowExecutionInput) (
 	return out, err
 }
 
-const opDescribeWorkflowType = "DescribeWorkflowType"
+var opDescribeWorkflowExecution *aws.Operation
 
 // DescribeWorkflowTypeRequest generates a request for the DescribeWorkflowType operation.
 func (c *SWF) DescribeWorkflowTypeRequest(input *DescribeWorkflowTypeInput) (req *aws.Request, output *DescribeWorkflowTypeOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeWorkflowType,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeWorkflowType == nil {
+		opDescribeWorkflowType = &aws.Operation{
+			Name:       "DescribeWorkflowType",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeWorkflowTypeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeWorkflowType, input, output)
 	output = &DescribeWorkflowTypeOutput{}
 	req.Data = output
 	return
@@ -506,27 +562,32 @@ func (c *SWF) DescribeWorkflowType(input *DescribeWorkflowTypeInput) (*DescribeW
 	return out, err
 }
 
-const opGetWorkflowExecutionHistory = "GetWorkflowExecutionHistory"
+var opDescribeWorkflowType *aws.Operation
 
 // GetWorkflowExecutionHistoryRequest generates a request for the GetWorkflowExecutionHistory operation.
 func (c *SWF) GetWorkflowExecutionHistoryRequest(input *GetWorkflowExecutionHistoryInput) (req *aws.Request, output *GetWorkflowExecutionHistoryOutput) {
-	op := &aws.Operation{
-		Name:       opGetWorkflowExecutionHistory,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextPageToken"},
-			OutputTokens:    []string{"nextPageToken"},
-			LimitToken:      "maximumPageSize",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetWorkflowExecutionHistory == nil {
+		opGetWorkflowExecutionHistory = &aws.Operation{
+			Name:       "GetWorkflowExecutionHistory",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextPageToken"},
+				OutputTokens:    []string{"nextPageToken"},
+				LimitToken:      "maximumPageSize",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &GetWorkflowExecutionHistoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetWorkflowExecutionHistory, input, output)
 	output = &GetWorkflowExecutionHistoryOutput{}
 	req.Data = output
 	return
@@ -563,27 +624,32 @@ func (c *SWF) GetWorkflowExecutionHistoryPages(input *GetWorkflowExecutionHistor
 	})
 }
 
-const opListActivityTypes = "ListActivityTypes"
+var opGetWorkflowExecutionHistory *aws.Operation
 
 // ListActivityTypesRequest generates a request for the ListActivityTypes operation.
 func (c *SWF) ListActivityTypesRequest(input *ListActivityTypesInput) (req *aws.Request, output *ListActivityTypesOutput) {
-	op := &aws.Operation{
-		Name:       opListActivityTypes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextPageToken"},
-			OutputTokens:    []string{"nextPageToken"},
-			LimitToken:      "maximumPageSize",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListActivityTypes == nil {
+		opListActivityTypes = &aws.Operation{
+			Name:       "ListActivityTypes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextPageToken"},
+				OutputTokens:    []string{"nextPageToken"},
+				LimitToken:      "maximumPageSize",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListActivityTypesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListActivityTypes, input, output)
 	output = &ListActivityTypesOutput{}
 	req.Data = output
 	return
@@ -621,27 +687,32 @@ func (c *SWF) ListActivityTypesPages(input *ListActivityTypesInput, fn func(p *L
 	})
 }
 
-const opListClosedWorkflowExecutions = "ListClosedWorkflowExecutions"
+var opListActivityTypes *aws.Operation
 
 // ListClosedWorkflowExecutionsRequest generates a request for the ListClosedWorkflowExecutions operation.
 func (c *SWF) ListClosedWorkflowExecutionsRequest(input *ListClosedWorkflowExecutionsInput) (req *aws.Request, output *WorkflowExecutionInfos) {
-	op := &aws.Operation{
-		Name:       opListClosedWorkflowExecutions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextPageToken"},
-			OutputTokens:    []string{"nextPageToken"},
-			LimitToken:      "maximumPageSize",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListClosedWorkflowExecutions == nil {
+		opListClosedWorkflowExecutions = &aws.Operation{
+			Name:       "ListClosedWorkflowExecutions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextPageToken"},
+				OutputTokens:    []string{"nextPageToken"},
+				LimitToken:      "maximumPageSize",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListClosedWorkflowExecutionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListClosedWorkflowExecutions, input, output)
 	output = &WorkflowExecutionInfos{}
 	req.Data = output
 	return
@@ -682,27 +753,32 @@ func (c *SWF) ListClosedWorkflowExecutionsPages(input *ListClosedWorkflowExecuti
 	})
 }
 
-const opListDomains = "ListDomains"
+var opListClosedWorkflowExecutions *aws.Operation
 
 // ListDomainsRequest generates a request for the ListDomains operation.
 func (c *SWF) ListDomainsRequest(input *ListDomainsInput) (req *aws.Request, output *ListDomainsOutput) {
-	op := &aws.Operation{
-		Name:       opListDomains,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextPageToken"},
-			OutputTokens:    []string{"nextPageToken"},
-			LimitToken:      "maximumPageSize",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListDomains == nil {
+		opListDomains = &aws.Operation{
+			Name:       "ListDomains",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextPageToken"},
+				OutputTokens:    []string{"nextPageToken"},
+				LimitToken:      "maximumPageSize",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListDomainsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListDomains, input, output)
 	output = &ListDomainsOutput{}
 	req.Data = output
 	return
@@ -740,27 +816,32 @@ func (c *SWF) ListDomainsPages(input *ListDomainsInput, fn func(p *ListDomainsOu
 	})
 }
 
-const opListOpenWorkflowExecutions = "ListOpenWorkflowExecutions"
+var opListDomains *aws.Operation
 
 // ListOpenWorkflowExecutionsRequest generates a request for the ListOpenWorkflowExecutions operation.
 func (c *SWF) ListOpenWorkflowExecutionsRequest(input *ListOpenWorkflowExecutionsInput) (req *aws.Request, output *WorkflowExecutionInfos) {
-	op := &aws.Operation{
-		Name:       opListOpenWorkflowExecutions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextPageToken"},
-			OutputTokens:    []string{"nextPageToken"},
-			LimitToken:      "maximumPageSize",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListOpenWorkflowExecutions == nil {
+		opListOpenWorkflowExecutions = &aws.Operation{
+			Name:       "ListOpenWorkflowExecutions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextPageToken"},
+				OutputTokens:    []string{"nextPageToken"},
+				LimitToken:      "maximumPageSize",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListOpenWorkflowExecutionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListOpenWorkflowExecutions, input, output)
 	output = &WorkflowExecutionInfos{}
 	req.Data = output
 	return
@@ -801,27 +882,32 @@ func (c *SWF) ListOpenWorkflowExecutionsPages(input *ListOpenWorkflowExecutionsI
 	})
 }
 
-const opListWorkflowTypes = "ListWorkflowTypes"
+var opListOpenWorkflowExecutions *aws.Operation
 
 // ListWorkflowTypesRequest generates a request for the ListWorkflowTypes operation.
 func (c *SWF) ListWorkflowTypesRequest(input *ListWorkflowTypesInput) (req *aws.Request, output *ListWorkflowTypesOutput) {
-	op := &aws.Operation{
-		Name:       opListWorkflowTypes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextPageToken"},
-			OutputTokens:    []string{"nextPageToken"},
-			LimitToken:      "maximumPageSize",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListWorkflowTypes == nil {
+		opListWorkflowTypes = &aws.Operation{
+			Name:       "ListWorkflowTypes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextPageToken"},
+				OutputTokens:    []string{"nextPageToken"},
+				LimitToken:      "maximumPageSize",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListWorkflowTypesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListWorkflowTypes, input, output)
 	output = &ListWorkflowTypesOutput{}
 	req.Data = output
 	return
@@ -857,21 +943,26 @@ func (c *SWF) ListWorkflowTypesPages(input *ListWorkflowTypesInput, fn func(p *L
 	})
 }
 
-const opPollForActivityTask = "PollForActivityTask"
+var opListWorkflowTypes *aws.Operation
 
 // PollForActivityTaskRequest generates a request for the PollForActivityTask operation.
 func (c *SWF) PollForActivityTaskRequest(input *PollForActivityTaskInput) (req *aws.Request, output *PollForActivityTaskOutput) {
-	op := &aws.Operation{
-		Name:       opPollForActivityTask,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPollForActivityTask == nil {
+		opPollForActivityTask = &aws.Operation{
+			Name:       "PollForActivityTask",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PollForActivityTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPollForActivityTask, input, output)
 	output = &PollForActivityTaskOutput{}
 	req.Data = output
 	return
@@ -908,27 +999,32 @@ func (c *SWF) PollForActivityTask(input *PollForActivityTaskInput) (*PollForActi
 	return out, err
 }
 
-const opPollForDecisionTask = "PollForDecisionTask"
+var opPollForActivityTask *aws.Operation
 
 // PollForDecisionTaskRequest generates a request for the PollForDecisionTask operation.
 func (c *SWF) PollForDecisionTaskRequest(input *PollForDecisionTaskInput) (req *aws.Request, output *PollForDecisionTaskOutput) {
-	op := &aws.Operation{
-		Name:       opPollForDecisionTask,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextPageToken"},
-			OutputTokens:    []string{"nextPageToken"},
-			LimitToken:      "maximumPageSize",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPollForDecisionTask == nil {
+		opPollForDecisionTask = &aws.Operation{
+			Name:       "PollForDecisionTask",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextPageToken"},
+				OutputTokens:    []string{"nextPageToken"},
+				LimitToken:      "maximumPageSize",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &PollForDecisionTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPollForDecisionTask, input, output)
 	output = &PollForDecisionTaskOutput{}
 	req.Data = output
 	return
@@ -980,21 +1076,26 @@ func (c *SWF) PollForDecisionTaskPages(input *PollForDecisionTaskInput, fn func(
 	})
 }
 
-const opRecordActivityTaskHeartbeat = "RecordActivityTaskHeartbeat"
+var opPollForDecisionTask *aws.Operation
 
 // RecordActivityTaskHeartbeatRequest generates a request for the RecordActivityTaskHeartbeat operation.
 func (c *SWF) RecordActivityTaskHeartbeatRequest(input *RecordActivityTaskHeartbeatInput) (req *aws.Request, output *RecordActivityTaskHeartbeatOutput) {
-	op := &aws.Operation{
-		Name:       opRecordActivityTaskHeartbeat,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRecordActivityTaskHeartbeat == nil {
+		opRecordActivityTaskHeartbeat = &aws.Operation{
+			Name:       "RecordActivityTaskHeartbeat",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RecordActivityTaskHeartbeatInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRecordActivityTaskHeartbeat, input, output)
 	output = &RecordActivityTaskHeartbeatOutput{}
 	req.Data = output
 	return
@@ -1042,21 +1143,26 @@ func (c *SWF) RecordActivityTaskHeartbeat(input *RecordActivityTaskHeartbeatInpu
 	return out, err
 }
 
-const opRegisterActivityType = "RegisterActivityType"
+var opRecordActivityTaskHeartbeat *aws.Operation
 
 // RegisterActivityTypeRequest generates a request for the RegisterActivityType operation.
 func (c *SWF) RegisterActivityTypeRequest(input *RegisterActivityTypeInput) (req *aws.Request, output *RegisterActivityTypeOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterActivityType,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterActivityType == nil {
+		opRegisterActivityType = &aws.Operation{
+			Name:       "RegisterActivityType",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterActivityTypeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterActivityType, input, output)
 	output = &RegisterActivityTypeOutput{}
 	req.Data = output
 	return
@@ -1089,21 +1195,26 @@ func (c *SWF) RegisterActivityType(input *RegisterActivityTypeInput) (*RegisterA
 	return out, err
 }
 
-const opRegisterDomain = "RegisterDomain"
+var opRegisterActivityType *aws.Operation
 
 // RegisterDomainRequest generates a request for the RegisterDomain operation.
 func (c *SWF) RegisterDomainRequest(input *RegisterDomainInput) (req *aws.Request, output *RegisterDomainOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterDomain,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterDomain == nil {
+		opRegisterDomain = &aws.Operation{
+			Name:       "RegisterDomain",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterDomain, input, output)
 	output = &RegisterDomainOutput{}
 	req.Data = output
 	return
@@ -1131,21 +1242,26 @@ func (c *SWF) RegisterDomain(input *RegisterDomainInput) (*RegisterDomainOutput,
 	return out, err
 }
 
-const opRegisterWorkflowType = "RegisterWorkflowType"
+var opRegisterDomain *aws.Operation
 
 // RegisterWorkflowTypeRequest generates a request for the RegisterWorkflowType operation.
 func (c *SWF) RegisterWorkflowTypeRequest(input *RegisterWorkflowTypeInput) (req *aws.Request, output *RegisterWorkflowTypeOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterWorkflowType,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterWorkflowType == nil {
+		opRegisterWorkflowType = &aws.Operation{
+			Name:       "RegisterWorkflowType",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterWorkflowTypeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterWorkflowType, input, output)
 	output = &RegisterWorkflowTypeOutput{}
 	req.Data = output
 	return
@@ -1181,21 +1297,26 @@ func (c *SWF) RegisterWorkflowType(input *RegisterWorkflowTypeInput) (*RegisterW
 	return out, err
 }
 
-const opRequestCancelWorkflowExecution = "RequestCancelWorkflowExecution"
+var opRegisterWorkflowType *aws.Operation
 
 // RequestCancelWorkflowExecutionRequest generates a request for the RequestCancelWorkflowExecution operation.
 func (c *SWF) RequestCancelWorkflowExecutionRequest(input *RequestCancelWorkflowExecutionInput) (req *aws.Request, output *RequestCancelWorkflowExecutionOutput) {
-	op := &aws.Operation{
-		Name:       opRequestCancelWorkflowExecution,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRequestCancelWorkflowExecution == nil {
+		opRequestCancelWorkflowExecution = &aws.Operation{
+			Name:       "RequestCancelWorkflowExecution",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RequestCancelWorkflowExecutionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRequestCancelWorkflowExecution, input, output)
 	output = &RequestCancelWorkflowExecutionOutput{}
 	req.Data = output
 	return
@@ -1230,21 +1351,26 @@ func (c *SWF) RequestCancelWorkflowExecution(input *RequestCancelWorkflowExecuti
 	return out, err
 }
 
-const opRespondActivityTaskCanceled = "RespondActivityTaskCanceled"
+var opRequestCancelWorkflowExecution *aws.Operation
 
 // RespondActivityTaskCanceledRequest generates a request for the RespondActivityTaskCanceled operation.
 func (c *SWF) RespondActivityTaskCanceledRequest(input *RespondActivityTaskCanceledInput) (req *aws.Request, output *RespondActivityTaskCanceledOutput) {
-	op := &aws.Operation{
-		Name:       opRespondActivityTaskCanceled,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRespondActivityTaskCanceled == nil {
+		opRespondActivityTaskCanceled = &aws.Operation{
+			Name:       "RespondActivityTaskCanceled",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RespondActivityTaskCanceledInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRespondActivityTaskCanceled, input, output)
 	output = &RespondActivityTaskCanceledOutput{}
 	req.Data = output
 	return
@@ -1284,21 +1410,26 @@ func (c *SWF) RespondActivityTaskCanceled(input *RespondActivityTaskCanceledInpu
 	return out, err
 }
 
-const opRespondActivityTaskCompleted = "RespondActivityTaskCompleted"
+var opRespondActivityTaskCanceled *aws.Operation
 
 // RespondActivityTaskCompletedRequest generates a request for the RespondActivityTaskCompleted operation.
 func (c *SWF) RespondActivityTaskCompletedRequest(input *RespondActivityTaskCompletedInput) (req *aws.Request, output *RespondActivityTaskCompletedOutput) {
-	op := &aws.Operation{
-		Name:       opRespondActivityTaskCompleted,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRespondActivityTaskCompleted == nil {
+		opRespondActivityTaskCompleted = &aws.Operation{
+			Name:       "RespondActivityTaskCompleted",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RespondActivityTaskCompletedInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRespondActivityTaskCompleted, input, output)
 	output = &RespondActivityTaskCompletedOutput{}
 	req.Data = output
 	return
@@ -1336,21 +1467,26 @@ func (c *SWF) RespondActivityTaskCompleted(input *RespondActivityTaskCompletedIn
 	return out, err
 }
 
-const opRespondActivityTaskFailed = "RespondActivityTaskFailed"
+var opRespondActivityTaskCompleted *aws.Operation
 
 // RespondActivityTaskFailedRequest generates a request for the RespondActivityTaskFailed operation.
 func (c *SWF) RespondActivityTaskFailedRequest(input *RespondActivityTaskFailedInput) (req *aws.Request, output *RespondActivityTaskFailedOutput) {
-	op := &aws.Operation{
-		Name:       opRespondActivityTaskFailed,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRespondActivityTaskFailed == nil {
+		opRespondActivityTaskFailed = &aws.Operation{
+			Name:       "RespondActivityTaskFailed",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RespondActivityTaskFailedInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRespondActivityTaskFailed, input, output)
 	output = &RespondActivityTaskFailedOutput{}
 	req.Data = output
 	return
@@ -1385,21 +1521,26 @@ func (c *SWF) RespondActivityTaskFailed(input *RespondActivityTaskFailedInput) (
 	return out, err
 }
 
-const opRespondDecisionTaskCompleted = "RespondDecisionTaskCompleted"
+var opRespondActivityTaskFailed *aws.Operation
 
 // RespondDecisionTaskCompletedRequest generates a request for the RespondDecisionTaskCompleted operation.
 func (c *SWF) RespondDecisionTaskCompletedRequest(input *RespondDecisionTaskCompletedInput) (req *aws.Request, output *RespondDecisionTaskCompletedOutput) {
-	op := &aws.Operation{
-		Name:       opRespondDecisionTaskCompleted,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRespondDecisionTaskCompleted == nil {
+		opRespondDecisionTaskCompleted = &aws.Operation{
+			Name:       "RespondDecisionTaskCompleted",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RespondDecisionTaskCompletedInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRespondDecisionTaskCompleted, input, output)
 	output = &RespondDecisionTaskCompletedOutput{}
 	req.Data = output
 	return
@@ -1427,21 +1568,26 @@ func (c *SWF) RespondDecisionTaskCompleted(input *RespondDecisionTaskCompletedIn
 	return out, err
 }
 
-const opSignalWorkflowExecution = "SignalWorkflowExecution"
+var opRespondDecisionTaskCompleted *aws.Operation
 
 // SignalWorkflowExecutionRequest generates a request for the SignalWorkflowExecution operation.
 func (c *SWF) SignalWorkflowExecutionRequest(input *SignalWorkflowExecutionInput) (req *aws.Request, output *SignalWorkflowExecutionOutput) {
-	op := &aws.Operation{
-		Name:       opSignalWorkflowExecution,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSignalWorkflowExecution == nil {
+		opSignalWorkflowExecution = &aws.Operation{
+			Name:       "SignalWorkflowExecution",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SignalWorkflowExecutionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSignalWorkflowExecution, input, output)
 	output = &SignalWorkflowExecutionOutput{}
 	req.Data = output
 	return
@@ -1474,21 +1620,26 @@ func (c *SWF) SignalWorkflowExecution(input *SignalWorkflowExecutionInput) (*Sig
 	return out, err
 }
 
-const opStartWorkflowExecution = "StartWorkflowExecution"
+var opSignalWorkflowExecution *aws.Operation
 
 // StartWorkflowExecutionRequest generates a request for the StartWorkflowExecution operation.
 func (c *SWF) StartWorkflowExecutionRequest(input *StartWorkflowExecutionInput) (req *aws.Request, output *StartWorkflowExecutionOutput) {
-	op := &aws.Operation{
-		Name:       opStartWorkflowExecution,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStartWorkflowExecution == nil {
+		opStartWorkflowExecution = &aws.Operation{
+			Name:       "StartWorkflowExecution",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StartWorkflowExecutionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStartWorkflowExecution, input, output)
 	output = &StartWorkflowExecutionOutput{}
 	req.Data = output
 	return
@@ -1524,21 +1675,26 @@ func (c *SWF) StartWorkflowExecution(input *StartWorkflowExecutionInput) (*Start
 	return out, err
 }
 
-const opTerminateWorkflowExecution = "TerminateWorkflowExecution"
+var opStartWorkflowExecution *aws.Operation
 
 // TerminateWorkflowExecutionRequest generates a request for the TerminateWorkflowExecution operation.
 func (c *SWF) TerminateWorkflowExecutionRequest(input *TerminateWorkflowExecutionInput) (req *aws.Request, output *TerminateWorkflowExecutionOutput) {
-	op := &aws.Operation{
-		Name:       opTerminateWorkflowExecution,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opTerminateWorkflowExecution == nil {
+		opTerminateWorkflowExecution = &aws.Operation{
+			Name:       "TerminateWorkflowExecution",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &TerminateWorkflowExecutionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opTerminateWorkflowExecution, input, output)
 	output = &TerminateWorkflowExecutionOutput{}
 	req.Data = output
 	return
@@ -1573,6 +1729,8 @@ func (c *SWF) TerminateWorkflowExecution(input *TerminateWorkflowExecutionInput)
 	err := req.Send()
 	return out, err
 }
+
+var opTerminateWorkflowExecution *aws.Operation
 
 // Provides details of the ActivityTaskCancelRequested event.
 type ActivityTaskCancelRequestedEventAttributes struct {

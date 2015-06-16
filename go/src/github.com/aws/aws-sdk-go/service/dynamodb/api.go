@@ -4,32 +4,38 @@
 package dynamodb
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opBatchGetItem = "BatchGetItem"
+var oprw sync.Mutex
 
 // BatchGetItemRequest generates a request for the BatchGetItem operation.
 func (c *DynamoDB) BatchGetItemRequest(input *BatchGetItemInput) (req *aws.Request, output *BatchGetItemOutput) {
-	op := &aws.Operation{
-		Name:       opBatchGetItem,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"RequestItems"},
-			OutputTokens:    []string{"UnprocessedKeys"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opBatchGetItem == nil {
+		opBatchGetItem = &aws.Operation{
+			Name:       "BatchGetItem",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"RequestItems"},
+				OutputTokens:    []string{"UnprocessedKeys"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &BatchGetItemInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opBatchGetItem, input, output)
 	output = &BatchGetItemOutput{}
 	req.Data = output
 	return
@@ -94,21 +100,26 @@ func (c *DynamoDB) BatchGetItemPages(input *BatchGetItemInput, fn func(p *BatchG
 	})
 }
 
-const opBatchWriteItem = "BatchWriteItem"
+var opBatchGetItem *aws.Operation
 
 // BatchWriteItemRequest generates a request for the BatchWriteItem operation.
 func (c *DynamoDB) BatchWriteItemRequest(input *BatchWriteItemInput) (req *aws.Request, output *BatchWriteItemOutput) {
-	op := &aws.Operation{
-		Name:       opBatchWriteItem,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opBatchWriteItem == nil {
+		opBatchWriteItem = &aws.Operation{
+			Name:       "BatchWriteItem",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &BatchWriteItemInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opBatchWriteItem, input, output)
 	output = &BatchWriteItemOutput{}
 	req.Data = output
 	return
@@ -190,21 +201,26 @@ func (c *DynamoDB) BatchWriteItem(input *BatchWriteItemInput) (*BatchWriteItemOu
 	return out, err
 }
 
-const opCreateTable = "CreateTable"
+var opBatchWriteItem *aws.Operation
 
 // CreateTableRequest generates a request for the CreateTable operation.
 func (c *DynamoDB) CreateTableRequest(input *CreateTableInput) (req *aws.Request, output *CreateTableOutput) {
-	op := &aws.Operation{
-		Name:       opCreateTable,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateTable == nil {
+		opCreateTable = &aws.Operation{
+			Name:       "CreateTable",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateTableInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateTable, input, output)
 	output = &CreateTableOutput{}
 	req.Data = output
 	return
@@ -231,21 +247,26 @@ func (c *DynamoDB) CreateTable(input *CreateTableInput) (*CreateTableOutput, err
 	return out, err
 }
 
-const opDeleteItem = "DeleteItem"
+var opCreateTable *aws.Operation
 
 // DeleteItemRequest generates a request for the DeleteItem operation.
 func (c *DynamoDB) DeleteItemRequest(input *DeleteItemInput) (req *aws.Request, output *DeleteItemOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteItem,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteItem == nil {
+		opDeleteItem = &aws.Operation{
+			Name:       "DeleteItem",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteItemInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteItem, input, output)
 	output = &DeleteItemOutput{}
 	req.Data = output
 	return
@@ -271,21 +292,26 @@ func (c *DynamoDB) DeleteItem(input *DeleteItemInput) (*DeleteItemOutput, error)
 	return out, err
 }
 
-const opDeleteTable = "DeleteTable"
+var opDeleteItem *aws.Operation
 
 // DeleteTableRequest generates a request for the DeleteTable operation.
 func (c *DynamoDB) DeleteTableRequest(input *DeleteTableInput) (req *aws.Request, output *DeleteTableOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteTable,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteTable == nil {
+		opDeleteTable = &aws.Operation{
+			Name:       "DeleteTable",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteTableInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteTable, input, output)
 	output = &DeleteTableOutput{}
 	req.Data = output
 	return
@@ -311,21 +337,26 @@ func (c *DynamoDB) DeleteTable(input *DeleteTableInput) (*DeleteTableOutput, err
 	return out, err
 }
 
-const opDescribeTable = "DescribeTable"
+var opDeleteTable *aws.Operation
 
 // DescribeTableRequest generates a request for the DescribeTable operation.
 func (c *DynamoDB) DescribeTableRequest(input *DescribeTableInput) (req *aws.Request, output *DescribeTableOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeTable,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeTable == nil {
+		opDescribeTable = &aws.Operation{
+			Name:       "DescribeTable",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeTableInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeTable, input, output)
 	output = &DescribeTableOutput{}
 	req.Data = output
 	return
@@ -346,21 +377,26 @@ func (c *DynamoDB) DescribeTable(input *DescribeTableInput) (*DescribeTableOutpu
 	return out, err
 }
 
-const opGetItem = "GetItem"
+var opDescribeTable *aws.Operation
 
 // GetItemRequest generates a request for the GetItem operation.
 func (c *DynamoDB) GetItemRequest(input *GetItemInput) (req *aws.Request, output *GetItemOutput) {
-	op := &aws.Operation{
-		Name:       opGetItem,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetItem == nil {
+		opGetItem = &aws.Operation{
+			Name:       "GetItem",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetItemInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetItem, input, output)
 	output = &GetItemOutput{}
 	req.Data = output
 	return
@@ -379,27 +415,32 @@ func (c *DynamoDB) GetItem(input *GetItemInput) (*GetItemOutput, error) {
 	return out, err
 }
 
-const opListTables = "ListTables"
+var opGetItem *aws.Operation
 
 // ListTablesRequest generates a request for the ListTables operation.
 func (c *DynamoDB) ListTablesRequest(input *ListTablesInput) (req *aws.Request, output *ListTablesOutput) {
-	op := &aws.Operation{
-		Name:       opListTables,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"ExclusiveStartTableName"},
-			OutputTokens:    []string{"LastEvaluatedTableName"},
-			LimitToken:      "Limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListTables == nil {
+		opListTables = &aws.Operation{
+			Name:       "ListTables",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"ExclusiveStartTableName"},
+				OutputTokens:    []string{"LastEvaluatedTableName"},
+				LimitToken:      "Limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListTablesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListTables, input, output)
 	output = &ListTablesOutput{}
 	req.Data = output
 	return
@@ -421,21 +462,26 @@ func (c *DynamoDB) ListTablesPages(input *ListTablesInput, fn func(p *ListTables
 	})
 }
 
-const opPutItem = "PutItem"
+var opListTables *aws.Operation
 
 // PutItemRequest generates a request for the PutItem operation.
 func (c *DynamoDB) PutItemRequest(input *PutItemInput) (req *aws.Request, output *PutItemOutput) {
-	op := &aws.Operation{
-		Name:       opPutItem,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutItem == nil {
+		opPutItem = &aws.Operation{
+			Name:       "PutItem",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutItemInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutItem, input, output)
 	output = &PutItemOutput{}
 	req.Data = output
 	return
@@ -472,27 +518,32 @@ func (c *DynamoDB) PutItem(input *PutItemInput) (*PutItemOutput, error) {
 	return out, err
 }
 
-const opQuery = "Query"
+var opPutItem *aws.Operation
 
 // QueryRequest generates a request for the Query operation.
 func (c *DynamoDB) QueryRequest(input *QueryInput) (req *aws.Request, output *QueryOutput) {
-	op := &aws.Operation{
-		Name:       opQuery,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"ExclusiveStartKey"},
-			OutputTokens:    []string{"LastEvaluatedKey"},
-			LimitToken:      "Limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opQuery == nil {
+		opQuery = &aws.Operation{
+			Name:       "Query",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"ExclusiveStartKey"},
+				OutputTokens:    []string{"LastEvaluatedKey"},
+				LimitToken:      "Limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &QueryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opQuery, input, output)
 	output = &QueryOutput{}
 	req.Data = output
 	return
@@ -536,27 +587,32 @@ func (c *DynamoDB) QueryPages(input *QueryInput, fn func(p *QueryOutput, lastPag
 	})
 }
 
-const opScan = "Scan"
+var opQuery *aws.Operation
 
 // ScanRequest generates a request for the Scan operation.
 func (c *DynamoDB) ScanRequest(input *ScanInput) (req *aws.Request, output *ScanOutput) {
-	op := &aws.Operation{
-		Name:       opScan,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"ExclusiveStartKey"},
-			OutputTokens:    []string{"LastEvaluatedKey"},
-			LimitToken:      "Limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opScan == nil {
+		opScan = &aws.Operation{
+			Name:       "Scan",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"ExclusiveStartKey"},
+				OutputTokens:    []string{"LastEvaluatedKey"},
+				LimitToken:      "Limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ScanInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opScan, input, output)
 	output = &ScanOutput{}
 	req.Data = output
 	return
@@ -592,21 +648,26 @@ func (c *DynamoDB) ScanPages(input *ScanInput, fn func(p *ScanOutput, lastPage b
 	})
 }
 
-const opUpdateItem = "UpdateItem"
+var opScan *aws.Operation
 
 // UpdateItemRequest generates a request for the UpdateItem operation.
 func (c *DynamoDB) UpdateItemRequest(input *UpdateItemInput) (req *aws.Request, output *UpdateItemOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateItem,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateItem == nil {
+		opUpdateItem = &aws.Operation{
+			Name:       "UpdateItem",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateItemInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateItem, input, output)
 	output = &UpdateItemOutput{}
 	req.Data = output
 	return
@@ -628,21 +689,26 @@ func (c *DynamoDB) UpdateItem(input *UpdateItemInput) (*UpdateItemOutput, error)
 	return out, err
 }
 
-const opUpdateTable = "UpdateTable"
+var opUpdateItem *aws.Operation
 
 // UpdateTableRequest generates a request for the UpdateTable operation.
 func (c *DynamoDB) UpdateTableRequest(input *UpdateTableInput) (req *aws.Request, output *UpdateTableOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateTable,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateTable == nil {
+		opUpdateTable = &aws.Operation{
+			Name:       "UpdateTable",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateTableInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateTable, input, output)
 	output = &UpdateTableOutput{}
 	req.Data = output
 	return
@@ -671,6 +737,8 @@ func (c *DynamoDB) UpdateTable(input *UpdateTableInput) (*UpdateTableOutput, err
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateTable *aws.Operation
 
 // Represents an attribute for describing the key schema for the table and indexes.
 type AttributeDefinition struct {

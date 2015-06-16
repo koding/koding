@@ -4,26 +4,32 @@
 package directoryservice
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opConnectDirectory = "ConnectDirectory"
+var oprw sync.Mutex
 
 // ConnectDirectoryRequest generates a request for the ConnectDirectory operation.
 func (c *DirectoryService) ConnectDirectoryRequest(input *ConnectDirectoryInput) (req *aws.Request, output *ConnectDirectoryOutput) {
-	op := &aws.Operation{
-		Name:       opConnectDirectory,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opConnectDirectory == nil {
+		opConnectDirectory = &aws.Operation{
+			Name:       "ConnectDirectory",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ConnectDirectoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opConnectDirectory, input, output)
 	output = &ConnectDirectoryOutput{}
 	req.Data = output
 	return
@@ -36,21 +42,26 @@ func (c *DirectoryService) ConnectDirectory(input *ConnectDirectoryInput) (*Conn
 	return out, err
 }
 
-const opCreateAlias = "CreateAlias"
+var opConnectDirectory *aws.Operation
 
 // CreateAliasRequest generates a request for the CreateAlias operation.
 func (c *DirectoryService) CreateAliasRequest(input *CreateAliasInput) (req *aws.Request, output *CreateAliasOutput) {
-	op := &aws.Operation{
-		Name:       opCreateAlias,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateAlias == nil {
+		opCreateAlias = &aws.Operation{
+			Name:       "CreateAlias",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateAliasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateAlias, input, output)
 	output = &CreateAliasOutput{}
 	req.Data = output
 	return
@@ -68,21 +79,26 @@ func (c *DirectoryService) CreateAlias(input *CreateAliasInput) (*CreateAliasOut
 	return out, err
 }
 
-const opCreateComputer = "CreateComputer"
+var opCreateAlias *aws.Operation
 
 // CreateComputerRequest generates a request for the CreateComputer operation.
 func (c *DirectoryService) CreateComputerRequest(input *CreateComputerInput) (req *aws.Request, output *CreateComputerOutput) {
-	op := &aws.Operation{
-		Name:       opCreateComputer,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateComputer == nil {
+		opCreateComputer = &aws.Operation{
+			Name:       "CreateComputer",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateComputerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateComputer, input, output)
 	output = &CreateComputerOutput{}
 	req.Data = output
 	return
@@ -96,21 +112,26 @@ func (c *DirectoryService) CreateComputer(input *CreateComputerInput) (*CreateCo
 	return out, err
 }
 
-const opCreateDirectory = "CreateDirectory"
+var opCreateComputer *aws.Operation
 
 // CreateDirectoryRequest generates a request for the CreateDirectory operation.
 func (c *DirectoryService) CreateDirectoryRequest(input *CreateDirectoryInput) (req *aws.Request, output *CreateDirectoryOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDirectory,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDirectory == nil {
+		opCreateDirectory = &aws.Operation{
+			Name:       "CreateDirectory",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDirectoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDirectory, input, output)
 	output = &CreateDirectoryOutput{}
 	req.Data = output
 	return
@@ -123,21 +144,26 @@ func (c *DirectoryService) CreateDirectory(input *CreateDirectoryInput) (*Create
 	return out, err
 }
 
-const opCreateSnapshot = "CreateSnapshot"
+var opCreateDirectory *aws.Operation
 
 // CreateSnapshotRequest generates a request for the CreateSnapshot operation.
 func (c *DirectoryService) CreateSnapshotRequest(input *CreateSnapshotInput) (req *aws.Request, output *CreateSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opCreateSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateSnapshot == nil {
+		opCreateSnapshot = &aws.Operation{
+			Name:       "CreateSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateSnapshot, input, output)
 	output = &CreateSnapshotOutput{}
 	req.Data = output
 	return
@@ -152,21 +178,26 @@ func (c *DirectoryService) CreateSnapshot(input *CreateSnapshotInput) (*CreateSn
 	return out, err
 }
 
-const opDeleteDirectory = "DeleteDirectory"
+var opCreateSnapshot *aws.Operation
 
 // DeleteDirectoryRequest generates a request for the DeleteDirectory operation.
 func (c *DirectoryService) DeleteDirectoryRequest(input *DeleteDirectoryInput) (req *aws.Request, output *DeleteDirectoryOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDirectory,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDirectory == nil {
+		opDeleteDirectory = &aws.Operation{
+			Name:       "DeleteDirectory",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDirectoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDirectory, input, output)
 	output = &DeleteDirectoryOutput{}
 	req.Data = output
 	return
@@ -179,21 +210,26 @@ func (c *DirectoryService) DeleteDirectory(input *DeleteDirectoryInput) (*Delete
 	return out, err
 }
 
-const opDeleteSnapshot = "DeleteSnapshot"
+var opDeleteDirectory *aws.Operation
 
 // DeleteSnapshotRequest generates a request for the DeleteSnapshot operation.
 func (c *DirectoryService) DeleteSnapshotRequest(input *DeleteSnapshotInput) (req *aws.Request, output *DeleteSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteSnapshot == nil {
+		opDeleteSnapshot = &aws.Operation{
+			Name:       "DeleteSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteSnapshot, input, output)
 	output = &DeleteSnapshotOutput{}
 	req.Data = output
 	return
@@ -206,21 +242,26 @@ func (c *DirectoryService) DeleteSnapshot(input *DeleteSnapshotInput) (*DeleteSn
 	return out, err
 }
 
-const opDescribeDirectories = "DescribeDirectories"
+var opDeleteSnapshot *aws.Operation
 
 // DescribeDirectoriesRequest generates a request for the DescribeDirectories operation.
 func (c *DirectoryService) DescribeDirectoriesRequest(input *DescribeDirectoriesInput) (req *aws.Request, output *DescribeDirectoriesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDirectories,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDirectories == nil {
+		opDescribeDirectories = &aws.Operation{
+			Name:       "DescribeDirectories",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDirectoriesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDirectories, input, output)
 	output = &DescribeDirectoriesOutput{}
 	req.Data = output
 	return
@@ -244,21 +285,26 @@ func (c *DirectoryService) DescribeDirectories(input *DescribeDirectoriesInput) 
 	return out, err
 }
 
-const opDescribeSnapshots = "DescribeSnapshots"
+var opDescribeDirectories *aws.Operation
 
 // DescribeSnapshotsRequest generates a request for the DescribeSnapshots operation.
 func (c *DirectoryService) DescribeSnapshotsRequest(input *DescribeSnapshotsInput) (req *aws.Request, output *DescribeSnapshotsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSnapshots,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSnapshots == nil {
+		opDescribeSnapshots = &aws.Operation{
+			Name:       "DescribeSnapshots",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSnapshotsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSnapshots, input, output)
 	output = &DescribeSnapshotsOutput{}
 	req.Data = output
 	return
@@ -278,21 +324,26 @@ func (c *DirectoryService) DescribeSnapshots(input *DescribeSnapshotsInput) (*De
 	return out, err
 }
 
-const opDisableRadius = "DisableRadius"
+var opDescribeSnapshots *aws.Operation
 
 // DisableRadiusRequest generates a request for the DisableRadius operation.
 func (c *DirectoryService) DisableRadiusRequest(input *DisableRadiusInput) (req *aws.Request, output *DisableRadiusOutput) {
-	op := &aws.Operation{
-		Name:       opDisableRadius,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisableRadius == nil {
+		opDisableRadius = &aws.Operation{
+			Name:       "DisableRadius",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisableRadiusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisableRadius, input, output)
 	output = &DisableRadiusOutput{}
 	req.Data = output
 	return
@@ -306,21 +357,26 @@ func (c *DirectoryService) DisableRadius(input *DisableRadiusInput) (*DisableRad
 	return out, err
 }
 
-const opDisableSSO = "DisableSso"
+var opDisableRadius *aws.Operation
 
 // DisableSSORequest generates a request for the DisableSSO operation.
 func (c *DirectoryService) DisableSSORequest(input *DisableSSOInput) (req *aws.Request, output *DisableSSOOutput) {
-	op := &aws.Operation{
-		Name:       opDisableSSO,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisableSSO == nil {
+		opDisableSSO = &aws.Operation{
+			Name:       "DisableSso",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisableSSOInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisableSSO, input, output)
 	output = &DisableSSOOutput{}
 	req.Data = output
 	return
@@ -333,21 +389,26 @@ func (c *DirectoryService) DisableSSO(input *DisableSSOInput) (*DisableSSOOutput
 	return out, err
 }
 
-const opEnableRadius = "EnableRadius"
+var opDisableSSO *aws.Operation
 
 // EnableRadiusRequest generates a request for the EnableRadius operation.
 func (c *DirectoryService) EnableRadiusRequest(input *EnableRadiusInput) (req *aws.Request, output *EnableRadiusOutput) {
-	op := &aws.Operation{
-		Name:       opEnableRadius,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableRadius == nil {
+		opEnableRadius = &aws.Operation{
+			Name:       "EnableRadius",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableRadiusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableRadius, input, output)
 	output = &EnableRadiusOutput{}
 	req.Data = output
 	return
@@ -361,21 +422,26 @@ func (c *DirectoryService) EnableRadius(input *EnableRadiusInput) (*EnableRadius
 	return out, err
 }
 
-const opEnableSSO = "EnableSso"
+var opEnableRadius *aws.Operation
 
 // EnableSSORequest generates a request for the EnableSSO operation.
 func (c *DirectoryService) EnableSSORequest(input *EnableSSOInput) (req *aws.Request, output *EnableSSOOutput) {
-	op := &aws.Operation{
-		Name:       opEnableSSO,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableSSO == nil {
+		opEnableSSO = &aws.Operation{
+			Name:       "EnableSso",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableSSOInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableSSO, input, output)
 	output = &EnableSSOOutput{}
 	req.Data = output
 	return
@@ -388,21 +454,26 @@ func (c *DirectoryService) EnableSSO(input *EnableSSOInput) (*EnableSSOOutput, e
 	return out, err
 }
 
-const opGetDirectoryLimits = "GetDirectoryLimits"
+var opEnableSSO *aws.Operation
 
 // GetDirectoryLimitsRequest generates a request for the GetDirectoryLimits operation.
 func (c *DirectoryService) GetDirectoryLimitsRequest(input *GetDirectoryLimitsInput) (req *aws.Request, output *GetDirectoryLimitsOutput) {
-	op := &aws.Operation{
-		Name:       opGetDirectoryLimits,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetDirectoryLimits == nil {
+		opGetDirectoryLimits = &aws.Operation{
+			Name:       "GetDirectoryLimits",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetDirectoryLimitsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetDirectoryLimits, input, output)
 	output = &GetDirectoryLimitsOutput{}
 	req.Data = output
 	return
@@ -415,21 +486,26 @@ func (c *DirectoryService) GetDirectoryLimits(input *GetDirectoryLimitsInput) (*
 	return out, err
 }
 
-const opGetSnapshotLimits = "GetSnapshotLimits"
+var opGetDirectoryLimits *aws.Operation
 
 // GetSnapshotLimitsRequest generates a request for the GetSnapshotLimits operation.
 func (c *DirectoryService) GetSnapshotLimitsRequest(input *GetSnapshotLimitsInput) (req *aws.Request, output *GetSnapshotLimitsOutput) {
-	op := &aws.Operation{
-		Name:       opGetSnapshotLimits,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetSnapshotLimits == nil {
+		opGetSnapshotLimits = &aws.Operation{
+			Name:       "GetSnapshotLimits",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetSnapshotLimitsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetSnapshotLimits, input, output)
 	output = &GetSnapshotLimitsOutput{}
 	req.Data = output
 	return
@@ -442,21 +518,26 @@ func (c *DirectoryService) GetSnapshotLimits(input *GetSnapshotLimitsInput) (*Ge
 	return out, err
 }
 
-const opRestoreFromSnapshot = "RestoreFromSnapshot"
+var opGetSnapshotLimits *aws.Operation
 
 // RestoreFromSnapshotRequest generates a request for the RestoreFromSnapshot operation.
 func (c *DirectoryService) RestoreFromSnapshotRequest(input *RestoreFromSnapshotInput) (req *aws.Request, output *RestoreFromSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opRestoreFromSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRestoreFromSnapshot == nil {
+		opRestoreFromSnapshot = &aws.Operation{
+			Name:       "RestoreFromSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RestoreFromSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRestoreFromSnapshot, input, output)
 	output = &RestoreFromSnapshotOutput{}
 	req.Data = output
 	return
@@ -477,21 +558,26 @@ func (c *DirectoryService) RestoreFromSnapshot(input *RestoreFromSnapshotInput) 
 	return out, err
 }
 
-const opUpdateRadius = "UpdateRadius"
+var opRestoreFromSnapshot *aws.Operation
 
 // UpdateRadiusRequest generates a request for the UpdateRadius operation.
 func (c *DirectoryService) UpdateRadiusRequest(input *UpdateRadiusInput) (req *aws.Request, output *UpdateRadiusOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateRadius,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateRadius == nil {
+		opUpdateRadius = &aws.Operation{
+			Name:       "UpdateRadius",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateRadiusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateRadius, input, output)
 	output = &UpdateRadiusOutput{}
 	req.Data = output
 	return
@@ -504,6 +590,8 @@ func (c *DirectoryService) UpdateRadius(input *UpdateRadiusInput) (*UpdateRadius
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateRadius *aws.Operation
 
 // Represents a named directory attribute.
 type Attribute struct {

@@ -4,26 +4,32 @@
 package ec2
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAcceptVPCPeeringConnection = "AcceptVpcPeeringConnection"
+var oprw sync.Mutex
 
 // AcceptVPCPeeringConnectionRequest generates a request for the AcceptVPCPeeringConnection operation.
 func (c *EC2) AcceptVPCPeeringConnectionRequest(input *AcceptVPCPeeringConnectionInput) (req *aws.Request, output *AcceptVPCPeeringConnectionOutput) {
-	op := &aws.Operation{
-		Name:       opAcceptVPCPeeringConnection,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAcceptVPCPeeringConnection == nil {
+		opAcceptVPCPeeringConnection = &aws.Operation{
+			Name:       "AcceptVpcPeeringConnection",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AcceptVPCPeeringConnectionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAcceptVPCPeeringConnection, input, output)
 	output = &AcceptVPCPeeringConnectionOutput{}
 	req.Data = output
 	return
@@ -39,21 +45,26 @@ func (c *EC2) AcceptVPCPeeringConnection(input *AcceptVPCPeeringConnectionInput)
 	return out, err
 }
 
-const opAllocateAddress = "AllocateAddress"
+var opAcceptVPCPeeringConnection *aws.Operation
 
 // AllocateAddressRequest generates a request for the AllocateAddress operation.
 func (c *EC2) AllocateAddressRequest(input *AllocateAddressInput) (req *aws.Request, output *AllocateAddressOutput) {
-	op := &aws.Operation{
-		Name:       opAllocateAddress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAllocateAddress == nil {
+		opAllocateAddress = &aws.Operation{
+			Name:       "AllocateAddress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AllocateAddressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAllocateAddress, input, output)
 	output = &AllocateAddressOutput{}
 	req.Data = output
 	return
@@ -70,21 +81,26 @@ func (c *EC2) AllocateAddress(input *AllocateAddressInput) (*AllocateAddressOutp
 	return out, err
 }
 
-const opAssignPrivateIPAddresses = "AssignPrivateIpAddresses"
+var opAllocateAddress *aws.Operation
 
 // AssignPrivateIPAddressesRequest generates a request for the AssignPrivateIPAddresses operation.
 func (c *EC2) AssignPrivateIPAddressesRequest(input *AssignPrivateIPAddressesInput) (req *aws.Request, output *AssignPrivateIPAddressesOutput) {
-	op := &aws.Operation{
-		Name:       opAssignPrivateIPAddresses,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAssignPrivateIPAddresses == nil {
+		opAssignPrivateIPAddresses = &aws.Operation{
+			Name:       "AssignPrivateIpAddresses",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AssignPrivateIPAddressesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAssignPrivateIPAddresses, input, output)
 	output = &AssignPrivateIPAddressesOutput{}
 	req.Data = output
 	return
@@ -107,21 +123,26 @@ func (c *EC2) AssignPrivateIPAddresses(input *AssignPrivateIPAddressesInput) (*A
 	return out, err
 }
 
-const opAssociateAddress = "AssociateAddress"
+var opAssignPrivateIPAddresses *aws.Operation
 
 // AssociateAddressRequest generates a request for the AssociateAddress operation.
 func (c *EC2) AssociateAddressRequest(input *AssociateAddressInput) (req *aws.Request, output *AssociateAddressOutput) {
-	op := &aws.Operation{
-		Name:       opAssociateAddress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAssociateAddress == nil {
+		opAssociateAddress = &aws.Operation{
+			Name:       "AssociateAddress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AssociateAddressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAssociateAddress, input, output)
 	output = &AssociateAddressOutput{}
 	req.Data = output
 	return
@@ -150,21 +171,26 @@ func (c *EC2) AssociateAddress(input *AssociateAddressInput) (*AssociateAddressO
 	return out, err
 }
 
-const opAssociateDHCPOptions = "AssociateDhcpOptions"
+var opAssociateAddress *aws.Operation
 
 // AssociateDHCPOptionsRequest generates a request for the AssociateDHCPOptions operation.
 func (c *EC2) AssociateDHCPOptionsRequest(input *AssociateDHCPOptionsInput) (req *aws.Request, output *AssociateDHCPOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opAssociateDHCPOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAssociateDHCPOptions == nil {
+		opAssociateDHCPOptions = &aws.Operation{
+			Name:       "AssociateDhcpOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AssociateDHCPOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAssociateDHCPOptions, input, output)
 	output = &AssociateDHCPOptionsOutput{}
 	req.Data = output
 	return
@@ -188,21 +214,26 @@ func (c *EC2) AssociateDHCPOptions(input *AssociateDHCPOptionsInput) (*Associate
 	return out, err
 }
 
-const opAssociateRouteTable = "AssociateRouteTable"
+var opAssociateDHCPOptions *aws.Operation
 
 // AssociateRouteTableRequest generates a request for the AssociateRouteTable operation.
 func (c *EC2) AssociateRouteTableRequest(input *AssociateRouteTableInput) (req *aws.Request, output *AssociateRouteTableOutput) {
-	op := &aws.Operation{
-		Name:       opAssociateRouteTable,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAssociateRouteTable == nil {
+		opAssociateRouteTable = &aws.Operation{
+			Name:       "AssociateRouteTable",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AssociateRouteTableInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAssociateRouteTable, input, output)
 	output = &AssociateRouteTableOutput{}
 	req.Data = output
 	return
@@ -222,21 +253,26 @@ func (c *EC2) AssociateRouteTable(input *AssociateRouteTableInput) (*AssociateRo
 	return out, err
 }
 
-const opAttachClassicLinkVPC = "AttachClassicLinkVpc"
+var opAssociateRouteTable *aws.Operation
 
 // AttachClassicLinkVPCRequest generates a request for the AttachClassicLinkVPC operation.
 func (c *EC2) AttachClassicLinkVPCRequest(input *AttachClassicLinkVPCInput) (req *aws.Request, output *AttachClassicLinkVPCOutput) {
-	op := &aws.Operation{
-		Name:       opAttachClassicLinkVPC,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAttachClassicLinkVPC == nil {
+		opAttachClassicLinkVPC = &aws.Operation{
+			Name:       "AttachClassicLinkVpc",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AttachClassicLinkVPCInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAttachClassicLinkVPC, input, output)
 	output = &AttachClassicLinkVPCOutput{}
 	req.Data = output
 	return
@@ -260,21 +296,26 @@ func (c *EC2) AttachClassicLinkVPC(input *AttachClassicLinkVPCInput) (*AttachCla
 	return out, err
 }
 
-const opAttachInternetGateway = "AttachInternetGateway"
+var opAttachClassicLinkVPC *aws.Operation
 
 // AttachInternetGatewayRequest generates a request for the AttachInternetGateway operation.
 func (c *EC2) AttachInternetGatewayRequest(input *AttachInternetGatewayInput) (req *aws.Request, output *AttachInternetGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opAttachInternetGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAttachInternetGateway == nil {
+		opAttachInternetGateway = &aws.Operation{
+			Name:       "AttachInternetGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AttachInternetGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAttachInternetGateway, input, output)
 	output = &AttachInternetGatewayOutput{}
 	req.Data = output
 	return
@@ -289,21 +330,26 @@ func (c *EC2) AttachInternetGateway(input *AttachInternetGatewayInput) (*AttachI
 	return out, err
 }
 
-const opAttachNetworkInterface = "AttachNetworkInterface"
+var opAttachInternetGateway *aws.Operation
 
 // AttachNetworkInterfaceRequest generates a request for the AttachNetworkInterface operation.
 func (c *EC2) AttachNetworkInterfaceRequest(input *AttachNetworkInterfaceInput) (req *aws.Request, output *AttachNetworkInterfaceOutput) {
-	op := &aws.Operation{
-		Name:       opAttachNetworkInterface,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAttachNetworkInterface == nil {
+		opAttachNetworkInterface = &aws.Operation{
+			Name:       "AttachNetworkInterface",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AttachNetworkInterfaceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAttachNetworkInterface, input, output)
 	output = &AttachNetworkInterfaceOutput{}
 	req.Data = output
 	return
@@ -316,21 +362,26 @@ func (c *EC2) AttachNetworkInterface(input *AttachNetworkInterfaceInput) (*Attac
 	return out, err
 }
 
-const opAttachVPNGateway = "AttachVpnGateway"
+var opAttachNetworkInterface *aws.Operation
 
 // AttachVPNGatewayRequest generates a request for the AttachVPNGateway operation.
 func (c *EC2) AttachVPNGatewayRequest(input *AttachVPNGatewayInput) (req *aws.Request, output *AttachVPNGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opAttachVPNGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAttachVPNGateway == nil {
+		opAttachVPNGateway = &aws.Operation{
+			Name:       "AttachVpnGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AttachVPNGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAttachVPNGateway, input, output)
 	output = &AttachVPNGatewayOutput{}
 	req.Data = output
 	return
@@ -345,21 +396,26 @@ func (c *EC2) AttachVPNGateway(input *AttachVPNGatewayInput) (*AttachVPNGatewayO
 	return out, err
 }
 
-const opAttachVolume = "AttachVolume"
+var opAttachVPNGateway *aws.Operation
 
 // AttachVolumeRequest generates a request for the AttachVolume operation.
 func (c *EC2) AttachVolumeRequest(input *AttachVolumeInput) (req *aws.Request, output *VolumeAttachment) {
-	op := &aws.Operation{
-		Name:       opAttachVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAttachVolume == nil {
+		opAttachVolume = &aws.Operation{
+			Name:       "AttachVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AttachVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAttachVolume, input, output)
 	output = &VolumeAttachment{}
 	req.Data = output
 	return
@@ -396,21 +452,26 @@ func (c *EC2) AttachVolume(input *AttachVolumeInput) (*VolumeAttachment, error) 
 	return out, err
 }
 
-const opAuthorizeSecurityGroupEgress = "AuthorizeSecurityGroupEgress"
+var opAttachVolume *aws.Operation
 
 // AuthorizeSecurityGroupEgressRequest generates a request for the AuthorizeSecurityGroupEgress operation.
 func (c *EC2) AuthorizeSecurityGroupEgressRequest(input *AuthorizeSecurityGroupEgressInput) (req *aws.Request, output *AuthorizeSecurityGroupEgressOutput) {
-	op := &aws.Operation{
-		Name:       opAuthorizeSecurityGroupEgress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAuthorizeSecurityGroupEgress == nil {
+		opAuthorizeSecurityGroupEgress = &aws.Operation{
+			Name:       "AuthorizeSecurityGroupEgress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AuthorizeSecurityGroupEgressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAuthorizeSecurityGroupEgress, input, output)
 	output = &AuthorizeSecurityGroupEgressOutput{}
 	req.Data = output
 	return
@@ -443,21 +504,26 @@ func (c *EC2) AuthorizeSecurityGroupEgress(input *AuthorizeSecurityGroupEgressIn
 	return out, err
 }
 
-const opAuthorizeSecurityGroupIngress = "AuthorizeSecurityGroupIngress"
+var opAuthorizeSecurityGroupEgress *aws.Operation
 
 // AuthorizeSecurityGroupIngressRequest generates a request for the AuthorizeSecurityGroupIngress operation.
 func (c *EC2) AuthorizeSecurityGroupIngressRequest(input *AuthorizeSecurityGroupIngressInput) (req *aws.Request, output *AuthorizeSecurityGroupIngressOutput) {
-	op := &aws.Operation{
-		Name:       opAuthorizeSecurityGroupIngress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAuthorizeSecurityGroupIngress == nil {
+		opAuthorizeSecurityGroupIngress = &aws.Operation{
+			Name:       "AuthorizeSecurityGroupIngress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AuthorizeSecurityGroupIngressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAuthorizeSecurityGroupIngress, input, output)
 	output = &AuthorizeSecurityGroupIngressOutput{}
 	req.Data = output
 	return
@@ -488,21 +554,26 @@ func (c *EC2) AuthorizeSecurityGroupIngress(input *AuthorizeSecurityGroupIngress
 	return out, err
 }
 
-const opBundleInstance = "BundleInstance"
+var opAuthorizeSecurityGroupIngress *aws.Operation
 
 // BundleInstanceRequest generates a request for the BundleInstance operation.
 func (c *EC2) BundleInstanceRequest(input *BundleInstanceInput) (req *aws.Request, output *BundleInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opBundleInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opBundleInstance == nil {
+		opBundleInstance = &aws.Operation{
+			Name:       "BundleInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &BundleInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opBundleInstance, input, output)
 	output = &BundleInstanceOutput{}
 	req.Data = output
 	return
@@ -524,21 +595,26 @@ func (c *EC2) BundleInstance(input *BundleInstanceInput) (*BundleInstanceOutput,
 	return out, err
 }
 
-const opCancelBundleTask = "CancelBundleTask"
+var opBundleInstance *aws.Operation
 
 // CancelBundleTaskRequest generates a request for the CancelBundleTask operation.
 func (c *EC2) CancelBundleTaskRequest(input *CancelBundleTaskInput) (req *aws.Request, output *CancelBundleTaskOutput) {
-	op := &aws.Operation{
-		Name:       opCancelBundleTask,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCancelBundleTask == nil {
+		opCancelBundleTask = &aws.Operation{
+			Name:       "CancelBundleTask",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CancelBundleTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCancelBundleTask, input, output)
 	output = &CancelBundleTaskOutput{}
 	req.Data = output
 	return
@@ -551,21 +627,26 @@ func (c *EC2) CancelBundleTask(input *CancelBundleTaskInput) (*CancelBundleTaskO
 	return out, err
 }
 
-const opCancelConversionTask = "CancelConversionTask"
+var opCancelBundleTask *aws.Operation
 
 // CancelConversionTaskRequest generates a request for the CancelConversionTask operation.
 func (c *EC2) CancelConversionTaskRequest(input *CancelConversionTaskInput) (req *aws.Request, output *CancelConversionTaskOutput) {
-	op := &aws.Operation{
-		Name:       opCancelConversionTask,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCancelConversionTask == nil {
+		opCancelConversionTask = &aws.Operation{
+			Name:       "CancelConversionTask",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CancelConversionTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCancelConversionTask, input, output)
 	output = &CancelConversionTaskOutput{}
 	req.Data = output
 	return
@@ -586,21 +667,26 @@ func (c *EC2) CancelConversionTask(input *CancelConversionTaskInput) (*CancelCon
 	return out, err
 }
 
-const opCancelExportTask = "CancelExportTask"
+var opCancelConversionTask *aws.Operation
 
 // CancelExportTaskRequest generates a request for the CancelExportTask operation.
 func (c *EC2) CancelExportTaskRequest(input *CancelExportTaskInput) (req *aws.Request, output *CancelExportTaskOutput) {
-	op := &aws.Operation{
-		Name:       opCancelExportTask,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCancelExportTask == nil {
+		opCancelExportTask = &aws.Operation{
+			Name:       "CancelExportTask",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CancelExportTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCancelExportTask, input, output)
 	output = &CancelExportTaskOutput{}
 	req.Data = output
 	return
@@ -616,21 +702,26 @@ func (c *EC2) CancelExportTask(input *CancelExportTaskInput) (*CancelExportTaskO
 	return out, err
 }
 
-const opCancelImportTask = "CancelImportTask"
+var opCancelExportTask *aws.Operation
 
 // CancelImportTaskRequest generates a request for the CancelImportTask operation.
 func (c *EC2) CancelImportTaskRequest(input *CancelImportTaskInput) (req *aws.Request, output *CancelImportTaskOutput) {
-	op := &aws.Operation{
-		Name:       opCancelImportTask,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCancelImportTask == nil {
+		opCancelImportTask = &aws.Operation{
+			Name:       "CancelImportTask",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CancelImportTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCancelImportTask, input, output)
 	output = &CancelImportTaskOutput{}
 	req.Data = output
 	return
@@ -643,21 +734,26 @@ func (c *EC2) CancelImportTask(input *CancelImportTaskInput) (*CancelImportTaskO
 	return out, err
 }
 
-const opCancelReservedInstancesListing = "CancelReservedInstancesListing"
+var opCancelImportTask *aws.Operation
 
 // CancelReservedInstancesListingRequest generates a request for the CancelReservedInstancesListing operation.
 func (c *EC2) CancelReservedInstancesListingRequest(input *CancelReservedInstancesListingInput) (req *aws.Request, output *CancelReservedInstancesListingOutput) {
-	op := &aws.Operation{
-		Name:       opCancelReservedInstancesListing,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCancelReservedInstancesListing == nil {
+		opCancelReservedInstancesListing = &aws.Operation{
+			Name:       "CancelReservedInstancesListing",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CancelReservedInstancesListingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCancelReservedInstancesListing, input, output)
 	output = &CancelReservedInstancesListingOutput{}
 	req.Data = output
 	return
@@ -674,21 +770,26 @@ func (c *EC2) CancelReservedInstancesListing(input *CancelReservedInstancesListi
 	return out, err
 }
 
-const opCancelSpotFleetRequests = "CancelSpotFleetRequests"
+var opCancelReservedInstancesListing *aws.Operation
 
 // CancelSpotFleetRequestsRequest generates a request for the CancelSpotFleetRequests operation.
 func (c *EC2) CancelSpotFleetRequestsRequest(input *CancelSpotFleetRequestsInput) (req *aws.Request, output *CancelSpotFleetRequestsOutput) {
-	op := &aws.Operation{
-		Name:       opCancelSpotFleetRequests,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCancelSpotFleetRequests == nil {
+		opCancelSpotFleetRequests = &aws.Operation{
+			Name:       "CancelSpotFleetRequests",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CancelSpotFleetRequestsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCancelSpotFleetRequests, input, output)
 	output = &CancelSpotFleetRequestsOutput{}
 	req.Data = output
 	return
@@ -701,21 +802,26 @@ func (c *EC2) CancelSpotFleetRequests(input *CancelSpotFleetRequestsInput) (*Can
 	return out, err
 }
 
-const opCancelSpotInstanceRequests = "CancelSpotInstanceRequests"
+var opCancelSpotFleetRequests *aws.Operation
 
 // CancelSpotInstanceRequestsRequest generates a request for the CancelSpotInstanceRequests operation.
 func (c *EC2) CancelSpotInstanceRequestsRequest(input *CancelSpotInstanceRequestsInput) (req *aws.Request, output *CancelSpotInstanceRequestsOutput) {
-	op := &aws.Operation{
-		Name:       opCancelSpotInstanceRequests,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCancelSpotInstanceRequests == nil {
+		opCancelSpotInstanceRequests = &aws.Operation{
+			Name:       "CancelSpotInstanceRequests",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CancelSpotInstanceRequestsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCancelSpotInstanceRequests, input, output)
 	output = &CancelSpotInstanceRequestsOutput{}
 	req.Data = output
 	return
@@ -736,21 +842,26 @@ func (c *EC2) CancelSpotInstanceRequests(input *CancelSpotInstanceRequestsInput)
 	return out, err
 }
 
-const opConfirmProductInstance = "ConfirmProductInstance"
+var opCancelSpotInstanceRequests *aws.Operation
 
 // ConfirmProductInstanceRequest generates a request for the ConfirmProductInstance operation.
 func (c *EC2) ConfirmProductInstanceRequest(input *ConfirmProductInstanceInput) (req *aws.Request, output *ConfirmProductInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opConfirmProductInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opConfirmProductInstance == nil {
+		opConfirmProductInstance = &aws.Operation{
+			Name:       "ConfirmProductInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ConfirmProductInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opConfirmProductInstance, input, output)
 	output = &ConfirmProductInstanceOutput{}
 	req.Data = output
 	return
@@ -766,21 +877,26 @@ func (c *EC2) ConfirmProductInstance(input *ConfirmProductInstanceInput) (*Confi
 	return out, err
 }
 
-const opCopyImage = "CopyImage"
+var opConfirmProductInstance *aws.Operation
 
 // CopyImageRequest generates a request for the CopyImage operation.
 func (c *EC2) CopyImageRequest(input *CopyImageInput) (req *aws.Request, output *CopyImageOutput) {
-	op := &aws.Operation{
-		Name:       opCopyImage,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCopyImage == nil {
+		opCopyImage = &aws.Operation{
+			Name:       "CopyImage",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CopyImageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCopyImage, input, output)
 	output = &CopyImageOutput{}
 	req.Data = output
 	return
@@ -799,21 +915,26 @@ func (c *EC2) CopyImage(input *CopyImageInput) (*CopyImageOutput, error) {
 	return out, err
 }
 
-const opCopySnapshot = "CopySnapshot"
+var opCopyImage *aws.Operation
 
 // CopySnapshotRequest generates a request for the CopySnapshot operation.
 func (c *EC2) CopySnapshotRequest(input *CopySnapshotInput) (req *aws.Request, output *CopySnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opCopySnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCopySnapshot == nil {
+		opCopySnapshot = &aws.Operation{
+			Name:       "CopySnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CopySnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCopySnapshot, input, output)
 	output = &CopySnapshotOutput{}
 	req.Data = output
 	return
@@ -839,21 +960,26 @@ func (c *EC2) CopySnapshot(input *CopySnapshotInput) (*CopySnapshotOutput, error
 	return out, err
 }
 
-const opCreateCustomerGateway = "CreateCustomerGateway"
+var opCopySnapshot *aws.Operation
 
 // CreateCustomerGatewayRequest generates a request for the CreateCustomerGateway operation.
 func (c *EC2) CreateCustomerGatewayRequest(input *CreateCustomerGatewayInput) (req *aws.Request, output *CreateCustomerGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opCreateCustomerGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateCustomerGateway == nil {
+		opCreateCustomerGateway = &aws.Operation{
+			Name:       "CreateCustomerGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateCustomerGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateCustomerGateway, input, output)
 	output = &CreateCustomerGatewayOutput{}
 	req.Data = output
 	return
@@ -890,21 +1016,26 @@ func (c *EC2) CreateCustomerGateway(input *CreateCustomerGatewayInput) (*CreateC
 	return out, err
 }
 
-const opCreateDHCPOptions = "CreateDhcpOptions"
+var opCreateCustomerGateway *aws.Operation
 
 // CreateDHCPOptionsRequest generates a request for the CreateDHCPOptions operation.
 func (c *EC2) CreateDHCPOptionsRequest(input *CreateDHCPOptionsInput) (req *aws.Request, output *CreateDHCPOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDHCPOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDHCPOptions == nil {
+		opCreateDHCPOptions = &aws.Operation{
+			Name:       "CreateDhcpOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDHCPOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDHCPOptions, input, output)
 	output = &CreateDHCPOptionsOutput{}
 	req.Data = output
 	return
@@ -945,21 +1076,26 @@ func (c *EC2) CreateDHCPOptions(input *CreateDHCPOptionsInput) (*CreateDHCPOptio
 	return out, err
 }
 
-const opCreateFlowLogs = "CreateFlowLogs"
+var opCreateDHCPOptions *aws.Operation
 
 // CreateFlowLogsRequest generates a request for the CreateFlowLogs operation.
 func (c *EC2) CreateFlowLogsRequest(input *CreateFlowLogsInput) (req *aws.Request, output *CreateFlowLogsOutput) {
-	op := &aws.Operation{
-		Name:       opCreateFlowLogs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateFlowLogs == nil {
+		opCreateFlowLogs = &aws.Operation{
+			Name:       "CreateFlowLogs",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateFlowLogsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateFlowLogs, input, output)
 	output = &CreateFlowLogsOutput{}
 	req.Data = output
 	return
@@ -981,21 +1117,26 @@ func (c *EC2) CreateFlowLogs(input *CreateFlowLogsInput) (*CreateFlowLogsOutput,
 	return out, err
 }
 
-const opCreateImage = "CreateImage"
+var opCreateFlowLogs *aws.Operation
 
 // CreateImageRequest generates a request for the CreateImage operation.
 func (c *EC2) CreateImageRequest(input *CreateImageInput) (req *aws.Request, output *CreateImageOutput) {
-	op := &aws.Operation{
-		Name:       opCreateImage,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateImage == nil {
+		opCreateImage = &aws.Operation{
+			Name:       "CreateImage",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateImageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateImage, input, output)
 	output = &CreateImageOutput{}
 	req.Data = output
 	return
@@ -1017,21 +1158,26 @@ func (c *EC2) CreateImage(input *CreateImageInput) (*CreateImageOutput, error) {
 	return out, err
 }
 
-const opCreateInstanceExportTask = "CreateInstanceExportTask"
+var opCreateImage *aws.Operation
 
 // CreateInstanceExportTaskRequest generates a request for the CreateInstanceExportTask operation.
 func (c *EC2) CreateInstanceExportTaskRequest(input *CreateInstanceExportTaskInput) (req *aws.Request, output *CreateInstanceExportTaskOutput) {
-	op := &aws.Operation{
-		Name:       opCreateInstanceExportTask,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateInstanceExportTask == nil {
+		opCreateInstanceExportTask = &aws.Operation{
+			Name:       "CreateInstanceExportTask",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateInstanceExportTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateInstanceExportTask, input, output)
 	output = &CreateInstanceExportTaskOutput{}
 	req.Data = output
 	return
@@ -1049,21 +1195,26 @@ func (c *EC2) CreateInstanceExportTask(input *CreateInstanceExportTaskInput) (*C
 	return out, err
 }
 
-const opCreateInternetGateway = "CreateInternetGateway"
+var opCreateInstanceExportTask *aws.Operation
 
 // CreateInternetGatewayRequest generates a request for the CreateInternetGateway operation.
 func (c *EC2) CreateInternetGatewayRequest(input *CreateInternetGatewayInput) (req *aws.Request, output *CreateInternetGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opCreateInternetGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateInternetGateway == nil {
+		opCreateInternetGateway = &aws.Operation{
+			Name:       "CreateInternetGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateInternetGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateInternetGateway, input, output)
 	output = &CreateInternetGatewayOutput{}
 	req.Data = output
 	return
@@ -1080,21 +1231,26 @@ func (c *EC2) CreateInternetGateway(input *CreateInternetGatewayInput) (*CreateI
 	return out, err
 }
 
-const opCreateKeyPair = "CreateKeyPair"
+var opCreateInternetGateway *aws.Operation
 
 // CreateKeyPairRequest generates a request for the CreateKeyPair operation.
 func (c *EC2) CreateKeyPairRequest(input *CreateKeyPairInput) (req *aws.Request, output *CreateKeyPairOutput) {
-	op := &aws.Operation{
-		Name:       opCreateKeyPair,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateKeyPair == nil {
+		opCreateKeyPair = &aws.Operation{
+			Name:       "CreateKeyPair",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateKeyPairInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateKeyPair, input, output)
 	output = &CreateKeyPairOutput{}
 	req.Data = output
 	return
@@ -1118,21 +1274,26 @@ func (c *EC2) CreateKeyPair(input *CreateKeyPairInput) (*CreateKeyPairOutput, er
 	return out, err
 }
 
-const opCreateNetworkACL = "CreateNetworkAcl"
+var opCreateKeyPair *aws.Operation
 
 // CreateNetworkACLRequest generates a request for the CreateNetworkACL operation.
 func (c *EC2) CreateNetworkACLRequest(input *CreateNetworkACLInput) (req *aws.Request, output *CreateNetworkACLOutput) {
-	op := &aws.Operation{
-		Name:       opCreateNetworkACL,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateNetworkACL == nil {
+		opCreateNetworkACL = &aws.Operation{
+			Name:       "CreateNetworkAcl",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateNetworkACLInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateNetworkACL, input, output)
 	output = &CreateNetworkACLOutput{}
 	req.Data = output
 	return
@@ -1149,21 +1310,26 @@ func (c *EC2) CreateNetworkACL(input *CreateNetworkACLInput) (*CreateNetworkACLO
 	return out, err
 }
 
-const opCreateNetworkACLEntry = "CreateNetworkAclEntry"
+var opCreateNetworkACL *aws.Operation
 
 // CreateNetworkACLEntryRequest generates a request for the CreateNetworkACLEntry operation.
 func (c *EC2) CreateNetworkACLEntryRequest(input *CreateNetworkACLEntryInput) (req *aws.Request, output *CreateNetworkACLEntryOutput) {
-	op := &aws.Operation{
-		Name:       opCreateNetworkACLEntry,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateNetworkACLEntry == nil {
+		opCreateNetworkACLEntry = &aws.Operation{
+			Name:       "CreateNetworkAclEntry",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateNetworkACLEntryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateNetworkACLEntry, input, output)
 	output = &CreateNetworkACLEntryOutput{}
 	req.Data = output
 	return
@@ -1192,21 +1358,26 @@ func (c *EC2) CreateNetworkACLEntry(input *CreateNetworkACLEntryInput) (*CreateN
 	return out, err
 }
 
-const opCreateNetworkInterface = "CreateNetworkInterface"
+var opCreateNetworkACLEntry *aws.Operation
 
 // CreateNetworkInterfaceRequest generates a request for the CreateNetworkInterface operation.
 func (c *EC2) CreateNetworkInterfaceRequest(input *CreateNetworkInterfaceInput) (req *aws.Request, output *CreateNetworkInterfaceOutput) {
-	op := &aws.Operation{
-		Name:       opCreateNetworkInterface,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateNetworkInterface == nil {
+		opCreateNetworkInterface = &aws.Operation{
+			Name:       "CreateNetworkInterface",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateNetworkInterfaceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateNetworkInterface, input, output)
 	output = &CreateNetworkInterfaceOutput{}
 	req.Data = output
 	return
@@ -1223,21 +1394,26 @@ func (c *EC2) CreateNetworkInterface(input *CreateNetworkInterfaceInput) (*Creat
 	return out, err
 }
 
-const opCreatePlacementGroup = "CreatePlacementGroup"
+var opCreateNetworkInterface *aws.Operation
 
 // CreatePlacementGroupRequest generates a request for the CreatePlacementGroup operation.
 func (c *EC2) CreatePlacementGroupRequest(input *CreatePlacementGroupInput) (req *aws.Request, output *CreatePlacementGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreatePlacementGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreatePlacementGroup == nil {
+		opCreatePlacementGroup = &aws.Operation{
+			Name:       "CreatePlacementGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreatePlacementGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreatePlacementGroup, input, output)
 	output = &CreatePlacementGroupOutput{}
 	req.Data = output
 	return
@@ -1255,21 +1431,26 @@ func (c *EC2) CreatePlacementGroup(input *CreatePlacementGroupInput) (*CreatePla
 	return out, err
 }
 
-const opCreateReservedInstancesListing = "CreateReservedInstancesListing"
+var opCreatePlacementGroup *aws.Operation
 
 // CreateReservedInstancesListingRequest generates a request for the CreateReservedInstancesListing operation.
 func (c *EC2) CreateReservedInstancesListingRequest(input *CreateReservedInstancesListingInput) (req *aws.Request, output *CreateReservedInstancesListingOutput) {
-	op := &aws.Operation{
-		Name:       opCreateReservedInstancesListing,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateReservedInstancesListing == nil {
+		opCreateReservedInstancesListing = &aws.Operation{
+			Name:       "CreateReservedInstancesListing",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateReservedInstancesListingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateReservedInstancesListing, input, output)
 	output = &CreateReservedInstancesListingOutput{}
 	req.Data = output
 	return
@@ -1301,21 +1482,26 @@ func (c *EC2) CreateReservedInstancesListing(input *CreateReservedInstancesListi
 	return out, err
 }
 
-const opCreateRoute = "CreateRoute"
+var opCreateReservedInstancesListing *aws.Operation
 
 // CreateRouteRequest generates a request for the CreateRoute operation.
 func (c *EC2) CreateRouteRequest(input *CreateRouteInput) (req *aws.Request, output *CreateRouteOutput) {
-	op := &aws.Operation{
-		Name:       opCreateRoute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateRoute == nil {
+		opCreateRoute = &aws.Operation{
+			Name:       "CreateRoute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateRouteInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateRoute, input, output)
 	output = &CreateRouteOutput{}
 	req.Data = output
 	return
@@ -1346,21 +1532,26 @@ func (c *EC2) CreateRoute(input *CreateRouteInput) (*CreateRouteOutput, error) {
 	return out, err
 }
 
-const opCreateRouteTable = "CreateRouteTable"
+var opCreateRoute *aws.Operation
 
 // CreateRouteTableRequest generates a request for the CreateRouteTable operation.
 func (c *EC2) CreateRouteTableRequest(input *CreateRouteTableInput) (req *aws.Request, output *CreateRouteTableOutput) {
-	op := &aws.Operation{
-		Name:       opCreateRouteTable,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateRouteTable == nil {
+		opCreateRouteTable = &aws.Operation{
+			Name:       "CreateRouteTable",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateRouteTableInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateRouteTable, input, output)
 	output = &CreateRouteTableOutput{}
 	req.Data = output
 	return
@@ -1377,21 +1568,26 @@ func (c *EC2) CreateRouteTable(input *CreateRouteTableInput) (*CreateRouteTableO
 	return out, err
 }
 
-const opCreateSecurityGroup = "CreateSecurityGroup"
+var opCreateRouteTable *aws.Operation
 
 // CreateSecurityGroupRequest generates a request for the CreateSecurityGroup operation.
 func (c *EC2) CreateSecurityGroupRequest(input *CreateSecurityGroupInput) (req *aws.Request, output *CreateSecurityGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateSecurityGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateSecurityGroup == nil {
+		opCreateSecurityGroup = &aws.Operation{
+			Name:       "CreateSecurityGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateSecurityGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateSecurityGroup, input, output)
 	output = &CreateSecurityGroupOutput{}
 	req.Data = output
 	return
@@ -1430,21 +1626,26 @@ func (c *EC2) CreateSecurityGroup(input *CreateSecurityGroupInput) (*CreateSecur
 	return out, err
 }
 
-const opCreateSnapshot = "CreateSnapshot"
+var opCreateSecurityGroup *aws.Operation
 
 // CreateSnapshotRequest generates a request for the CreateSnapshot operation.
 func (c *EC2) CreateSnapshotRequest(input *CreateSnapshotInput) (req *aws.Request, output *Snapshot) {
-	op := &aws.Operation{
-		Name:       opCreateSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateSnapshot == nil {
+		opCreateSnapshot = &aws.Operation{
+			Name:       "CreateSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateSnapshot, input, output)
 	output = &Snapshot{}
 	req.Data = output
 	return
@@ -1484,21 +1685,26 @@ func (c *EC2) CreateSnapshot(input *CreateSnapshotInput) (*Snapshot, error) {
 	return out, err
 }
 
-const opCreateSpotDatafeedSubscription = "CreateSpotDatafeedSubscription"
+var opCreateSnapshot *aws.Operation
 
 // CreateSpotDatafeedSubscriptionRequest generates a request for the CreateSpotDatafeedSubscription operation.
 func (c *EC2) CreateSpotDatafeedSubscriptionRequest(input *CreateSpotDatafeedSubscriptionInput) (req *aws.Request, output *CreateSpotDatafeedSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opCreateSpotDatafeedSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateSpotDatafeedSubscription == nil {
+		opCreateSpotDatafeedSubscription = &aws.Operation{
+			Name:       "CreateSpotDatafeedSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateSpotDatafeedSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateSpotDatafeedSubscription, input, output)
 	output = &CreateSpotDatafeedSubscriptionOutput{}
 	req.Data = output
 	return
@@ -1514,21 +1720,26 @@ func (c *EC2) CreateSpotDatafeedSubscription(input *CreateSpotDatafeedSubscripti
 	return out, err
 }
 
-const opCreateSubnet = "CreateSubnet"
+var opCreateSpotDatafeedSubscription *aws.Operation
 
 // CreateSubnetRequest generates a request for the CreateSubnet operation.
 func (c *EC2) CreateSubnetRequest(input *CreateSubnetInput) (req *aws.Request, output *CreateSubnetOutput) {
-	op := &aws.Operation{
-		Name:       opCreateSubnet,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateSubnet == nil {
+		opCreateSubnet = &aws.Operation{
+			Name:       "CreateSubnet",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateSubnetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateSubnet, input, output)
 	output = &CreateSubnetOutput{}
 	req.Data = output
 	return
@@ -1565,21 +1776,26 @@ func (c *EC2) CreateSubnet(input *CreateSubnetInput) (*CreateSubnetOutput, error
 	return out, err
 }
 
-const opCreateTags = "CreateTags"
+var opCreateSubnet *aws.Operation
 
 // CreateTagsRequest generates a request for the CreateTags operation.
 func (c *EC2) CreateTagsRequest(input *CreateTagsInput) (req *aws.Request, output *CreateTagsOutput) {
-	op := &aws.Operation{
-		Name:       opCreateTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateTags == nil {
+		opCreateTags = &aws.Operation{
+			Name:       "CreateTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateTags, input, output)
 	output = &CreateTagsOutput{}
 	req.Data = output
 	return
@@ -1597,21 +1813,26 @@ func (c *EC2) CreateTags(input *CreateTagsInput) (*CreateTagsOutput, error) {
 	return out, err
 }
 
-const opCreateVPC = "CreateVpc"
+var opCreateTags *aws.Operation
 
 // CreateVPCRequest generates a request for the CreateVPC operation.
 func (c *EC2) CreateVPCRequest(input *CreateVPCInput) (req *aws.Request, output *CreateVPCOutput) {
-	op := &aws.Operation{
-		Name:       opCreateVPC,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateVPC == nil {
+		opCreateVPC = &aws.Operation{
+			Name:       "CreateVpc",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateVPCInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateVPC, input, output)
 	output = &CreateVPCOutput{}
 	req.Data = output
 	return
@@ -1634,21 +1855,26 @@ func (c *EC2) CreateVPC(input *CreateVPCInput) (*CreateVPCOutput, error) {
 	return out, err
 }
 
-const opCreateVPCEndpoint = "CreateVpcEndpoint"
+var opCreateVPC *aws.Operation
 
 // CreateVPCEndpointRequest generates a request for the CreateVPCEndpoint operation.
 func (c *EC2) CreateVPCEndpointRequest(input *CreateVPCEndpointInput) (req *aws.Request, output *CreateVPCEndpointOutput) {
-	op := &aws.Operation{
-		Name:       opCreateVPCEndpoint,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateVPCEndpoint == nil {
+		opCreateVPCEndpoint = &aws.Operation{
+			Name:       "CreateVpcEndpoint",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateVPCEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateVPCEndpoint, input, output)
 	output = &CreateVPCEndpointOutput{}
 	req.Data = output
 	return
@@ -1667,21 +1893,26 @@ func (c *EC2) CreateVPCEndpoint(input *CreateVPCEndpointInput) (*CreateVPCEndpoi
 	return out, err
 }
 
-const opCreateVPCPeeringConnection = "CreateVpcPeeringConnection"
+var opCreateVPCEndpoint *aws.Operation
 
 // CreateVPCPeeringConnectionRequest generates a request for the CreateVPCPeeringConnection operation.
 func (c *EC2) CreateVPCPeeringConnectionRequest(input *CreateVPCPeeringConnectionInput) (req *aws.Request, output *CreateVPCPeeringConnectionOutput) {
-	op := &aws.Operation{
-		Name:       opCreateVPCPeeringConnection,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateVPCPeeringConnection == nil {
+		opCreateVPCPeeringConnection = &aws.Operation{
+			Name:       "CreateVpcPeeringConnection",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateVPCPeeringConnectionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateVPCPeeringConnection, input, output)
 	output = &CreateVPCPeeringConnectionOutput{}
 	req.Data = output
 	return
@@ -1704,21 +1935,26 @@ func (c *EC2) CreateVPCPeeringConnection(input *CreateVPCPeeringConnectionInput)
 	return out, err
 }
 
-const opCreateVPNConnection = "CreateVpnConnection"
+var opCreateVPCPeeringConnection *aws.Operation
 
 // CreateVPNConnectionRequest generates a request for the CreateVPNConnection operation.
 func (c *EC2) CreateVPNConnectionRequest(input *CreateVPNConnectionInput) (req *aws.Request, output *CreateVPNConnectionOutput) {
-	op := &aws.Operation{
-		Name:       opCreateVPNConnection,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateVPNConnection == nil {
+		opCreateVPNConnection = &aws.Operation{
+			Name:       "CreateVpnConnection",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateVPNConnectionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateVPNConnection, input, output)
 	output = &CreateVPNConnectionOutput{}
 	req.Data = output
 	return
@@ -1747,21 +1983,26 @@ func (c *EC2) CreateVPNConnection(input *CreateVPNConnectionInput) (*CreateVPNCo
 	return out, err
 }
 
-const opCreateVPNConnectionRoute = "CreateVpnConnectionRoute"
+var opCreateVPNConnection *aws.Operation
 
 // CreateVPNConnectionRouteRequest generates a request for the CreateVPNConnectionRoute operation.
 func (c *EC2) CreateVPNConnectionRouteRequest(input *CreateVPNConnectionRouteInput) (req *aws.Request, output *CreateVPNConnectionRouteOutput) {
-	op := &aws.Operation{
-		Name:       opCreateVPNConnectionRoute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateVPNConnectionRoute == nil {
+		opCreateVPNConnectionRoute = &aws.Operation{
+			Name:       "CreateVpnConnectionRoute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateVPNConnectionRouteInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateVPNConnectionRoute, input, output)
 	output = &CreateVPNConnectionRouteOutput{}
 	req.Data = output
 	return
@@ -1781,21 +2022,26 @@ func (c *EC2) CreateVPNConnectionRoute(input *CreateVPNConnectionRouteInput) (*C
 	return out, err
 }
 
-const opCreateVPNGateway = "CreateVpnGateway"
+var opCreateVPNConnectionRoute *aws.Operation
 
 // CreateVPNGatewayRequest generates a request for the CreateVPNGateway operation.
 func (c *EC2) CreateVPNGatewayRequest(input *CreateVPNGatewayInput) (req *aws.Request, output *CreateVPNGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opCreateVPNGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateVPNGateway == nil {
+		opCreateVPNGateway = &aws.Operation{
+			Name:       "CreateVpnGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateVPNGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateVPNGateway, input, output)
 	output = &CreateVPNGatewayOutput{}
 	req.Data = output
 	return
@@ -1814,21 +2060,26 @@ func (c *EC2) CreateVPNGateway(input *CreateVPNGatewayInput) (*CreateVPNGatewayO
 	return out, err
 }
 
-const opCreateVolume = "CreateVolume"
+var opCreateVPNGateway *aws.Operation
 
 // CreateVolumeRequest generates a request for the CreateVolume operation.
 func (c *EC2) CreateVolumeRequest(input *CreateVolumeInput) (req *aws.Request, output *Volume) {
-	op := &aws.Operation{
-		Name:       opCreateVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateVolume == nil {
+		opCreateVolume = &aws.Operation{
+			Name:       "CreateVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateVolume, input, output)
 	output = &Volume{}
 	req.Data = output
 	return
@@ -1856,21 +2107,26 @@ func (c *EC2) CreateVolume(input *CreateVolumeInput) (*Volume, error) {
 	return out, err
 }
 
-const opDeleteCustomerGateway = "DeleteCustomerGateway"
+var opCreateVolume *aws.Operation
 
 // DeleteCustomerGatewayRequest generates a request for the DeleteCustomerGateway operation.
 func (c *EC2) DeleteCustomerGatewayRequest(input *DeleteCustomerGatewayInput) (req *aws.Request, output *DeleteCustomerGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteCustomerGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteCustomerGateway == nil {
+		opDeleteCustomerGateway = &aws.Operation{
+			Name:       "DeleteCustomerGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteCustomerGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteCustomerGateway, input, output)
 	output = &DeleteCustomerGatewayOutput{}
 	req.Data = output
 	return
@@ -1884,21 +2140,26 @@ func (c *EC2) DeleteCustomerGateway(input *DeleteCustomerGatewayInput) (*DeleteC
 	return out, err
 }
 
-const opDeleteDHCPOptions = "DeleteDhcpOptions"
+var opDeleteCustomerGateway *aws.Operation
 
 // DeleteDHCPOptionsRequest generates a request for the DeleteDHCPOptions operation.
 func (c *EC2) DeleteDHCPOptionsRequest(input *DeleteDHCPOptionsInput) (req *aws.Request, output *DeleteDHCPOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDHCPOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDHCPOptions == nil {
+		opDeleteDHCPOptions = &aws.Operation{
+			Name:       "DeleteDhcpOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDHCPOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDHCPOptions, input, output)
 	output = &DeleteDHCPOptionsOutput{}
 	req.Data = output
 	return
@@ -1914,21 +2175,26 @@ func (c *EC2) DeleteDHCPOptions(input *DeleteDHCPOptionsInput) (*DeleteDHCPOptio
 	return out, err
 }
 
-const opDeleteFlowLogs = "DeleteFlowLogs"
+var opDeleteDHCPOptions *aws.Operation
 
 // DeleteFlowLogsRequest generates a request for the DeleteFlowLogs operation.
 func (c *EC2) DeleteFlowLogsRequest(input *DeleteFlowLogsInput) (req *aws.Request, output *DeleteFlowLogsOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteFlowLogs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteFlowLogs == nil {
+		opDeleteFlowLogs = &aws.Operation{
+			Name:       "DeleteFlowLogs",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteFlowLogsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteFlowLogs, input, output)
 	output = &DeleteFlowLogsOutput{}
 	req.Data = output
 	return
@@ -1941,21 +2207,26 @@ func (c *EC2) DeleteFlowLogs(input *DeleteFlowLogsInput) (*DeleteFlowLogsOutput,
 	return out, err
 }
 
-const opDeleteInternetGateway = "DeleteInternetGateway"
+var opDeleteFlowLogs *aws.Operation
 
 // DeleteInternetGatewayRequest generates a request for the DeleteInternetGateway operation.
 func (c *EC2) DeleteInternetGatewayRequest(input *DeleteInternetGatewayInput) (req *aws.Request, output *DeleteInternetGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteInternetGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteInternetGateway == nil {
+		opDeleteInternetGateway = &aws.Operation{
+			Name:       "DeleteInternetGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteInternetGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteInternetGateway, input, output)
 	output = &DeleteInternetGatewayOutput{}
 	req.Data = output
 	return
@@ -1969,21 +2240,26 @@ func (c *EC2) DeleteInternetGateway(input *DeleteInternetGatewayInput) (*DeleteI
 	return out, err
 }
 
-const opDeleteKeyPair = "DeleteKeyPair"
+var opDeleteInternetGateway *aws.Operation
 
 // DeleteKeyPairRequest generates a request for the DeleteKeyPair operation.
 func (c *EC2) DeleteKeyPairRequest(input *DeleteKeyPairInput) (req *aws.Request, output *DeleteKeyPairOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteKeyPair,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteKeyPair == nil {
+		opDeleteKeyPair = &aws.Operation{
+			Name:       "DeleteKeyPair",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteKeyPairInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteKeyPair, input, output)
 	output = &DeleteKeyPairOutput{}
 	req.Data = output
 	return
@@ -1996,21 +2272,26 @@ func (c *EC2) DeleteKeyPair(input *DeleteKeyPairInput) (*DeleteKeyPairOutput, er
 	return out, err
 }
 
-const opDeleteNetworkACL = "DeleteNetworkAcl"
+var opDeleteKeyPair *aws.Operation
 
 // DeleteNetworkACLRequest generates a request for the DeleteNetworkACL operation.
 func (c *EC2) DeleteNetworkACLRequest(input *DeleteNetworkACLInput) (req *aws.Request, output *DeleteNetworkACLOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteNetworkACL,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteNetworkACL == nil {
+		opDeleteNetworkACL = &aws.Operation{
+			Name:       "DeleteNetworkAcl",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteNetworkACLInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteNetworkACL, input, output)
 	output = &DeleteNetworkACLOutput{}
 	req.Data = output
 	return
@@ -2024,21 +2305,26 @@ func (c *EC2) DeleteNetworkACL(input *DeleteNetworkACLInput) (*DeleteNetworkACLO
 	return out, err
 }
 
-const opDeleteNetworkACLEntry = "DeleteNetworkAclEntry"
+var opDeleteNetworkACL *aws.Operation
 
 // DeleteNetworkACLEntryRequest generates a request for the DeleteNetworkACLEntry operation.
 func (c *EC2) DeleteNetworkACLEntryRequest(input *DeleteNetworkACLEntryInput) (req *aws.Request, output *DeleteNetworkACLEntryOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteNetworkACLEntry,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteNetworkACLEntry == nil {
+		opDeleteNetworkACLEntry = &aws.Operation{
+			Name:       "DeleteNetworkAclEntry",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteNetworkACLEntryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteNetworkACLEntry, input, output)
 	output = &DeleteNetworkACLEntryOutput{}
 	req.Data = output
 	return
@@ -2052,21 +2338,26 @@ func (c *EC2) DeleteNetworkACLEntry(input *DeleteNetworkACLEntryInput) (*DeleteN
 	return out, err
 }
 
-const opDeleteNetworkInterface = "DeleteNetworkInterface"
+var opDeleteNetworkACLEntry *aws.Operation
 
 // DeleteNetworkInterfaceRequest generates a request for the DeleteNetworkInterface operation.
 func (c *EC2) DeleteNetworkInterfaceRequest(input *DeleteNetworkInterfaceInput) (req *aws.Request, output *DeleteNetworkInterfaceOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteNetworkInterface,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteNetworkInterface == nil {
+		opDeleteNetworkInterface = &aws.Operation{
+			Name:       "DeleteNetworkInterface",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteNetworkInterfaceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteNetworkInterface, input, output)
 	output = &DeleteNetworkInterfaceOutput{}
 	req.Data = output
 	return
@@ -2080,21 +2371,26 @@ func (c *EC2) DeleteNetworkInterface(input *DeleteNetworkInterfaceInput) (*Delet
 	return out, err
 }
 
-const opDeletePlacementGroup = "DeletePlacementGroup"
+var opDeleteNetworkInterface *aws.Operation
 
 // DeletePlacementGroupRequest generates a request for the DeletePlacementGroup operation.
 func (c *EC2) DeletePlacementGroupRequest(input *DeletePlacementGroupInput) (req *aws.Request, output *DeletePlacementGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeletePlacementGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeletePlacementGroup == nil {
+		opDeletePlacementGroup = &aws.Operation{
+			Name:       "DeletePlacementGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeletePlacementGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeletePlacementGroup, input, output)
 	output = &DeletePlacementGroupOutput{}
 	req.Data = output
 	return
@@ -2110,21 +2406,26 @@ func (c *EC2) DeletePlacementGroup(input *DeletePlacementGroupInput) (*DeletePla
 	return out, err
 }
 
-const opDeleteRoute = "DeleteRoute"
+var opDeletePlacementGroup *aws.Operation
 
 // DeleteRouteRequest generates a request for the DeleteRoute operation.
 func (c *EC2) DeleteRouteRequest(input *DeleteRouteInput) (req *aws.Request, output *DeleteRouteOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteRoute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteRoute == nil {
+		opDeleteRoute = &aws.Operation{
+			Name:       "DeleteRoute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteRouteInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteRoute, input, output)
 	output = &DeleteRouteOutput{}
 	req.Data = output
 	return
@@ -2137,21 +2438,26 @@ func (c *EC2) DeleteRoute(input *DeleteRouteInput) (*DeleteRouteOutput, error) {
 	return out, err
 }
 
-const opDeleteRouteTable = "DeleteRouteTable"
+var opDeleteRoute *aws.Operation
 
 // DeleteRouteTableRequest generates a request for the DeleteRouteTable operation.
 func (c *EC2) DeleteRouteTableRequest(input *DeleteRouteTableInput) (req *aws.Request, output *DeleteRouteTableOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteRouteTable,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteRouteTable == nil {
+		opDeleteRouteTable = &aws.Operation{
+			Name:       "DeleteRouteTable",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteRouteTableInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteRouteTable, input, output)
 	output = &DeleteRouteTableOutput{}
 	req.Data = output
 	return
@@ -2166,21 +2472,26 @@ func (c *EC2) DeleteRouteTable(input *DeleteRouteTableInput) (*DeleteRouteTableO
 	return out, err
 }
 
-const opDeleteSecurityGroup = "DeleteSecurityGroup"
+var opDeleteRouteTable *aws.Operation
 
 // DeleteSecurityGroupRequest generates a request for the DeleteSecurityGroup operation.
 func (c *EC2) DeleteSecurityGroupRequest(input *DeleteSecurityGroupInput) (req *aws.Request, output *DeleteSecurityGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteSecurityGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteSecurityGroup == nil {
+		opDeleteSecurityGroup = &aws.Operation{
+			Name:       "DeleteSecurityGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteSecurityGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteSecurityGroup, input, output)
 	output = &DeleteSecurityGroupOutput{}
 	req.Data = output
 	return
@@ -2197,21 +2508,26 @@ func (c *EC2) DeleteSecurityGroup(input *DeleteSecurityGroupInput) (*DeleteSecur
 	return out, err
 }
 
-const opDeleteSnapshot = "DeleteSnapshot"
+var opDeleteSecurityGroup *aws.Operation
 
 // DeleteSnapshotRequest generates a request for the DeleteSnapshot operation.
 func (c *EC2) DeleteSnapshotRequest(input *DeleteSnapshotInput) (req *aws.Request, output *DeleteSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteSnapshot == nil {
+		opDeleteSnapshot = &aws.Operation{
+			Name:       "DeleteSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteSnapshot, input, output)
 	output = &DeleteSnapshotOutput{}
 	req.Data = output
 	return
@@ -2238,21 +2554,26 @@ func (c *EC2) DeleteSnapshot(input *DeleteSnapshotInput) (*DeleteSnapshotOutput,
 	return out, err
 }
 
-const opDeleteSpotDatafeedSubscription = "DeleteSpotDatafeedSubscription"
+var opDeleteSnapshot *aws.Operation
 
 // DeleteSpotDatafeedSubscriptionRequest generates a request for the DeleteSpotDatafeedSubscription operation.
 func (c *EC2) DeleteSpotDatafeedSubscriptionRequest(input *DeleteSpotDatafeedSubscriptionInput) (req *aws.Request, output *DeleteSpotDatafeedSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteSpotDatafeedSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteSpotDatafeedSubscription == nil {
+		opDeleteSpotDatafeedSubscription = &aws.Operation{
+			Name:       "DeleteSpotDatafeedSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteSpotDatafeedSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteSpotDatafeedSubscription, input, output)
 	output = &DeleteSpotDatafeedSubscriptionOutput{}
 	req.Data = output
 	return
@@ -2267,21 +2588,26 @@ func (c *EC2) DeleteSpotDatafeedSubscription(input *DeleteSpotDatafeedSubscripti
 	return out, err
 }
 
-const opDeleteSubnet = "DeleteSubnet"
+var opDeleteSpotDatafeedSubscription *aws.Operation
 
 // DeleteSubnetRequest generates a request for the DeleteSubnet operation.
 func (c *EC2) DeleteSubnetRequest(input *DeleteSubnetInput) (req *aws.Request, output *DeleteSubnetOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteSubnet,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteSubnet == nil {
+		opDeleteSubnet = &aws.Operation{
+			Name:       "DeleteSubnet",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteSubnetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteSubnet, input, output)
 	output = &DeleteSubnetOutput{}
 	req.Data = output
 	return
@@ -2295,21 +2621,26 @@ func (c *EC2) DeleteSubnet(input *DeleteSubnetInput) (*DeleteSubnetOutput, error
 	return out, err
 }
 
-const opDeleteTags = "DeleteTags"
+var opDeleteSubnet *aws.Operation
 
 // DeleteTagsRequest generates a request for the DeleteTags operation.
 func (c *EC2) DeleteTagsRequest(input *DeleteTagsInput) (req *aws.Request, output *DeleteTagsOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteTags == nil {
+		opDeleteTags = &aws.Operation{
+			Name:       "DeleteTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteTags, input, output)
 	output = &DeleteTagsOutput{}
 	req.Data = output
 	return
@@ -2326,21 +2657,26 @@ func (c *EC2) DeleteTags(input *DeleteTagsInput) (*DeleteTagsOutput, error) {
 	return out, err
 }
 
-const opDeleteVPC = "DeleteVpc"
+var opDeleteTags *aws.Operation
 
 // DeleteVPCRequest generates a request for the DeleteVPC operation.
 func (c *EC2) DeleteVPCRequest(input *DeleteVPCInput) (req *aws.Request, output *DeleteVPCOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVPC,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVPC == nil {
+		opDeleteVPC = &aws.Operation{
+			Name:       "DeleteVpc",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVPCInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVPC, input, output)
 	output = &DeleteVPCOutput{}
 	req.Data = output
 	return
@@ -2357,21 +2693,26 @@ func (c *EC2) DeleteVPC(input *DeleteVPCInput) (*DeleteVPCOutput, error) {
 	return out, err
 }
 
-const opDeleteVPCEndpoints = "DeleteVpcEndpoints"
+var opDeleteVPC *aws.Operation
 
 // DeleteVPCEndpointsRequest generates a request for the DeleteVPCEndpoints operation.
 func (c *EC2) DeleteVPCEndpointsRequest(input *DeleteVPCEndpointsInput) (req *aws.Request, output *DeleteVPCEndpointsOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVPCEndpoints,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVPCEndpoints == nil {
+		opDeleteVPCEndpoints = &aws.Operation{
+			Name:       "DeleteVpcEndpoints",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVPCEndpointsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVPCEndpoints, input, output)
 	output = &DeleteVPCEndpointsOutput{}
 	req.Data = output
 	return
@@ -2385,21 +2726,26 @@ func (c *EC2) DeleteVPCEndpoints(input *DeleteVPCEndpointsInput) (*DeleteVPCEndp
 	return out, err
 }
 
-const opDeleteVPCPeeringConnection = "DeleteVpcPeeringConnection"
+var opDeleteVPCEndpoints *aws.Operation
 
 // DeleteVPCPeeringConnectionRequest generates a request for the DeleteVPCPeeringConnection operation.
 func (c *EC2) DeleteVPCPeeringConnectionRequest(input *DeleteVPCPeeringConnectionInput) (req *aws.Request, output *DeleteVPCPeeringConnectionOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVPCPeeringConnection,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVPCPeeringConnection == nil {
+		opDeleteVPCPeeringConnection = &aws.Operation{
+			Name:       "DeleteVpcPeeringConnection",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVPCPeeringConnectionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVPCPeeringConnection, input, output)
 	output = &DeleteVPCPeeringConnectionOutput{}
 	req.Data = output
 	return
@@ -2415,21 +2761,26 @@ func (c *EC2) DeleteVPCPeeringConnection(input *DeleteVPCPeeringConnectionInput)
 	return out, err
 }
 
-const opDeleteVPNConnection = "DeleteVpnConnection"
+var opDeleteVPCPeeringConnection *aws.Operation
 
 // DeleteVPNConnectionRequest generates a request for the DeleteVPNConnection operation.
 func (c *EC2) DeleteVPNConnectionRequest(input *DeleteVPNConnectionInput) (req *aws.Request, output *DeleteVPNConnectionOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVPNConnection,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVPNConnection == nil {
+		opDeleteVPNConnection = &aws.Operation{
+			Name:       "DeleteVpnConnection",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVPNConnectionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVPNConnection, input, output)
 	output = &DeleteVPNConnectionOutput{}
 	req.Data = output
 	return
@@ -2451,21 +2802,26 @@ func (c *EC2) DeleteVPNConnection(input *DeleteVPNConnectionInput) (*DeleteVPNCo
 	return out, err
 }
 
-const opDeleteVPNConnectionRoute = "DeleteVpnConnectionRoute"
+var opDeleteVPNConnection *aws.Operation
 
 // DeleteVPNConnectionRouteRequest generates a request for the DeleteVPNConnectionRoute operation.
 func (c *EC2) DeleteVPNConnectionRouteRequest(input *DeleteVPNConnectionRouteInput) (req *aws.Request, output *DeleteVPNConnectionRouteOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVPNConnectionRoute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVPNConnectionRoute == nil {
+		opDeleteVPNConnectionRoute = &aws.Operation{
+			Name:       "DeleteVpnConnectionRoute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVPNConnectionRouteInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVPNConnectionRoute, input, output)
 	output = &DeleteVPNConnectionRouteOutput{}
 	req.Data = output
 	return
@@ -2481,21 +2837,26 @@ func (c *EC2) DeleteVPNConnectionRoute(input *DeleteVPNConnectionRouteInput) (*D
 	return out, err
 }
 
-const opDeleteVPNGateway = "DeleteVpnGateway"
+var opDeleteVPNConnectionRoute *aws.Operation
 
 // DeleteVPNGatewayRequest generates a request for the DeleteVPNGateway operation.
 func (c *EC2) DeleteVPNGatewayRequest(input *DeleteVPNGatewayInput) (req *aws.Request, output *DeleteVPNGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVPNGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVPNGateway == nil {
+		opDeleteVPNGateway = &aws.Operation{
+			Name:       "DeleteVpnGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVPNGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVPNGateway, input, output)
 	output = &DeleteVPNGatewayOutput{}
 	req.Data = output
 	return
@@ -2512,21 +2873,26 @@ func (c *EC2) DeleteVPNGateway(input *DeleteVPNGatewayInput) (*DeleteVPNGatewayO
 	return out, err
 }
 
-const opDeleteVolume = "DeleteVolume"
+var opDeleteVPNGateway *aws.Operation
 
 // DeleteVolumeRequest generates a request for the DeleteVolume operation.
 func (c *EC2) DeleteVolumeRequest(input *DeleteVolumeInput) (req *aws.Request, output *DeleteVolumeOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVolume == nil {
+		opDeleteVolume = &aws.Operation{
+			Name:       "DeleteVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVolume, input, output)
 	output = &DeleteVolumeOutput{}
 	req.Data = output
 	return
@@ -2545,21 +2911,26 @@ func (c *EC2) DeleteVolume(input *DeleteVolumeInput) (*DeleteVolumeOutput, error
 	return out, err
 }
 
-const opDeregisterImage = "DeregisterImage"
+var opDeleteVolume *aws.Operation
 
 // DeregisterImageRequest generates a request for the DeregisterImage operation.
 func (c *EC2) DeregisterImageRequest(input *DeregisterImageInput) (req *aws.Request, output *DeregisterImageOutput) {
-	op := &aws.Operation{
-		Name:       opDeregisterImage,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeregisterImage == nil {
+		opDeregisterImage = &aws.Operation{
+			Name:       "DeregisterImage",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeregisterImageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeregisterImage, input, output)
 	output = &DeregisterImageOutput{}
 	req.Data = output
 	return
@@ -2575,21 +2946,26 @@ func (c *EC2) DeregisterImage(input *DeregisterImageInput) (*DeregisterImageOutp
 	return out, err
 }
 
-const opDescribeAccountAttributes = "DescribeAccountAttributes"
+var opDeregisterImage *aws.Operation
 
 // DescribeAccountAttributesRequest generates a request for the DescribeAccountAttributes operation.
 func (c *EC2) DescribeAccountAttributesRequest(input *DescribeAccountAttributesInput) (req *aws.Request, output *DescribeAccountAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAccountAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAccountAttributes == nil {
+		opDescribeAccountAttributes = &aws.Operation{
+			Name:       "DescribeAccountAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAccountAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAccountAttributes, input, output)
 	output = &DescribeAccountAttributesOutput{}
 	req.Data = output
 	return
@@ -2620,21 +2996,26 @@ func (c *EC2) DescribeAccountAttributes(input *DescribeAccountAttributesInput) (
 	return out, err
 }
 
-const opDescribeAddresses = "DescribeAddresses"
+var opDescribeAccountAttributes *aws.Operation
 
 // DescribeAddressesRequest generates a request for the DescribeAddresses operation.
 func (c *EC2) DescribeAddressesRequest(input *DescribeAddressesInput) (req *aws.Request, output *DescribeAddressesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAddresses,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAddresses == nil {
+		opDescribeAddresses = &aws.Operation{
+			Name:       "DescribeAddresses",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAddressesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAddresses, input, output)
 	output = &DescribeAddressesOutput{}
 	req.Data = output
 	return
@@ -2651,21 +3032,26 @@ func (c *EC2) DescribeAddresses(input *DescribeAddressesInput) (*DescribeAddress
 	return out, err
 }
 
-const opDescribeAvailabilityZones = "DescribeAvailabilityZones"
+var opDescribeAddresses *aws.Operation
 
 // DescribeAvailabilityZonesRequest generates a request for the DescribeAvailabilityZones operation.
 func (c *EC2) DescribeAvailabilityZonesRequest(input *DescribeAvailabilityZonesInput) (req *aws.Request, output *DescribeAvailabilityZonesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAvailabilityZones,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAvailabilityZones == nil {
+		opDescribeAvailabilityZones = &aws.Operation{
+			Name:       "DescribeAvailabilityZones",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAvailabilityZonesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAvailabilityZones, input, output)
 	output = &DescribeAvailabilityZonesOutput{}
 	req.Data = output
 	return
@@ -2684,21 +3070,26 @@ func (c *EC2) DescribeAvailabilityZones(input *DescribeAvailabilityZonesInput) (
 	return out, err
 }
 
-const opDescribeBundleTasks = "DescribeBundleTasks"
+var opDescribeAvailabilityZones *aws.Operation
 
 // DescribeBundleTasksRequest generates a request for the DescribeBundleTasks operation.
 func (c *EC2) DescribeBundleTasksRequest(input *DescribeBundleTasksInput) (req *aws.Request, output *DescribeBundleTasksOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeBundleTasks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeBundleTasks == nil {
+		opDescribeBundleTasks = &aws.Operation{
+			Name:       "DescribeBundleTasks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeBundleTasksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeBundleTasks, input, output)
 	output = &DescribeBundleTasksOutput{}
 	req.Data = output
 	return
@@ -2716,21 +3107,26 @@ func (c *EC2) DescribeBundleTasks(input *DescribeBundleTasksInput) (*DescribeBun
 	return out, err
 }
 
-const opDescribeClassicLinkInstances = "DescribeClassicLinkInstances"
+var opDescribeBundleTasks *aws.Operation
 
 // DescribeClassicLinkInstancesRequest generates a request for the DescribeClassicLinkInstances operation.
 func (c *EC2) DescribeClassicLinkInstancesRequest(input *DescribeClassicLinkInstancesInput) (req *aws.Request, output *DescribeClassicLinkInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeClassicLinkInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeClassicLinkInstances == nil {
+		opDescribeClassicLinkInstances = &aws.Operation{
+			Name:       "DescribeClassicLinkInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeClassicLinkInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeClassicLinkInstances, input, output)
 	output = &DescribeClassicLinkInstancesOutput{}
 	req.Data = output
 	return
@@ -2746,21 +3142,26 @@ func (c *EC2) DescribeClassicLinkInstances(input *DescribeClassicLinkInstancesIn
 	return out, err
 }
 
-const opDescribeConversionTasks = "DescribeConversionTasks"
+var opDescribeClassicLinkInstances *aws.Operation
 
 // DescribeConversionTasksRequest generates a request for the DescribeConversionTasks operation.
 func (c *EC2) DescribeConversionTasksRequest(input *DescribeConversionTasksInput) (req *aws.Request, output *DescribeConversionTasksOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeConversionTasks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeConversionTasks == nil {
+		opDescribeConversionTasks = &aws.Operation{
+			Name:       "DescribeConversionTasks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeConversionTasksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeConversionTasks, input, output)
 	output = &DescribeConversionTasksOutput{}
 	req.Data = output
 	return
@@ -2776,21 +3177,26 @@ func (c *EC2) DescribeConversionTasks(input *DescribeConversionTasksInput) (*Des
 	return out, err
 }
 
-const opDescribeCustomerGateways = "DescribeCustomerGateways"
+var opDescribeConversionTasks *aws.Operation
 
 // DescribeCustomerGatewaysRequest generates a request for the DescribeCustomerGateways operation.
 func (c *EC2) DescribeCustomerGatewaysRequest(input *DescribeCustomerGatewaysInput) (req *aws.Request, output *DescribeCustomerGatewaysOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCustomerGateways,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCustomerGateways == nil {
+		opDescribeCustomerGateways = &aws.Operation{
+			Name:       "DescribeCustomerGateways",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCustomerGatewaysInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCustomerGateways, input, output)
 	output = &DescribeCustomerGatewaysOutput{}
 	req.Data = output
 	return
@@ -2807,21 +3213,26 @@ func (c *EC2) DescribeCustomerGateways(input *DescribeCustomerGatewaysInput) (*D
 	return out, err
 }
 
-const opDescribeDHCPOptions = "DescribeDhcpOptions"
+var opDescribeCustomerGateways *aws.Operation
 
 // DescribeDHCPOptionsRequest generates a request for the DescribeDHCPOptions operation.
 func (c *EC2) DescribeDHCPOptionsRequest(input *DescribeDHCPOptionsInput) (req *aws.Request, output *DescribeDHCPOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDHCPOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDHCPOptions == nil {
+		opDescribeDHCPOptions = &aws.Operation{
+			Name:       "DescribeDhcpOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDHCPOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDHCPOptions, input, output)
 	output = &DescribeDHCPOptionsOutput{}
 	req.Data = output
 	return
@@ -2837,21 +3248,26 @@ func (c *EC2) DescribeDHCPOptions(input *DescribeDHCPOptionsInput) (*DescribeDHC
 	return out, err
 }
 
-const opDescribeExportTasks = "DescribeExportTasks"
+var opDescribeDHCPOptions *aws.Operation
 
 // DescribeExportTasksRequest generates a request for the DescribeExportTasks operation.
 func (c *EC2) DescribeExportTasksRequest(input *DescribeExportTasksInput) (req *aws.Request, output *DescribeExportTasksOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeExportTasks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeExportTasks == nil {
+		opDescribeExportTasks = &aws.Operation{
+			Name:       "DescribeExportTasks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeExportTasksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeExportTasks, input, output)
 	output = &DescribeExportTasksOutput{}
 	req.Data = output
 	return
@@ -2864,21 +3280,26 @@ func (c *EC2) DescribeExportTasks(input *DescribeExportTasksInput) (*DescribeExp
 	return out, err
 }
 
-const opDescribeFlowLogs = "DescribeFlowLogs"
+var opDescribeExportTasks *aws.Operation
 
 // DescribeFlowLogsRequest generates a request for the DescribeFlowLogs operation.
 func (c *EC2) DescribeFlowLogsRequest(input *DescribeFlowLogsInput) (req *aws.Request, output *DescribeFlowLogsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeFlowLogs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeFlowLogs == nil {
+		opDescribeFlowLogs = &aws.Operation{
+			Name:       "DescribeFlowLogs",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeFlowLogsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeFlowLogs, input, output)
 	output = &DescribeFlowLogsOutput{}
 	req.Data = output
 	return
@@ -2893,21 +3314,26 @@ func (c *EC2) DescribeFlowLogs(input *DescribeFlowLogsInput) (*DescribeFlowLogsO
 	return out, err
 }
 
-const opDescribeImageAttribute = "DescribeImageAttribute"
+var opDescribeFlowLogs *aws.Operation
 
 // DescribeImageAttributeRequest generates a request for the DescribeImageAttribute operation.
 func (c *EC2) DescribeImageAttributeRequest(input *DescribeImageAttributeInput) (req *aws.Request, output *DescribeImageAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeImageAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeImageAttribute == nil {
+		opDescribeImageAttribute = &aws.Operation{
+			Name:       "DescribeImageAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeImageAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeImageAttribute, input, output)
 	output = &DescribeImageAttributeOutput{}
 	req.Data = output
 	return
@@ -2921,21 +3347,26 @@ func (c *EC2) DescribeImageAttribute(input *DescribeImageAttributeInput) (*Descr
 	return out, err
 }
 
-const opDescribeImages = "DescribeImages"
+var opDescribeImageAttribute *aws.Operation
 
 // DescribeImagesRequest generates a request for the DescribeImages operation.
 func (c *EC2) DescribeImagesRequest(input *DescribeImagesInput) (req *aws.Request, output *DescribeImagesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeImages,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeImages == nil {
+		opDescribeImages = &aws.Operation{
+			Name:       "DescribeImages",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeImagesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeImages, input, output)
 	output = &DescribeImagesOutput{}
 	req.Data = output
 	return
@@ -2954,21 +3385,26 @@ func (c *EC2) DescribeImages(input *DescribeImagesInput) (*DescribeImagesOutput,
 	return out, err
 }
 
-const opDescribeImportImageTasks = "DescribeImportImageTasks"
+var opDescribeImages *aws.Operation
 
 // DescribeImportImageTasksRequest generates a request for the DescribeImportImageTasks operation.
 func (c *EC2) DescribeImportImageTasksRequest(input *DescribeImportImageTasksInput) (req *aws.Request, output *DescribeImportImageTasksOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeImportImageTasks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeImportImageTasks == nil {
+		opDescribeImportImageTasks = &aws.Operation{
+			Name:       "DescribeImportImageTasks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeImportImageTasksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeImportImageTasks, input, output)
 	output = &DescribeImportImageTasksOutput{}
 	req.Data = output
 	return
@@ -2982,21 +3418,26 @@ func (c *EC2) DescribeImportImageTasks(input *DescribeImportImageTasksInput) (*D
 	return out, err
 }
 
-const opDescribeImportSnapshotTasks = "DescribeImportSnapshotTasks"
+var opDescribeImportImageTasks *aws.Operation
 
 // DescribeImportSnapshotTasksRequest generates a request for the DescribeImportSnapshotTasks operation.
 func (c *EC2) DescribeImportSnapshotTasksRequest(input *DescribeImportSnapshotTasksInput) (req *aws.Request, output *DescribeImportSnapshotTasksOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeImportSnapshotTasks,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeImportSnapshotTasks == nil {
+		opDescribeImportSnapshotTasks = &aws.Operation{
+			Name:       "DescribeImportSnapshotTasks",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeImportSnapshotTasksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeImportSnapshotTasks, input, output)
 	output = &DescribeImportSnapshotTasksOutput{}
 	req.Data = output
 	return
@@ -3009,21 +3450,26 @@ func (c *EC2) DescribeImportSnapshotTasks(input *DescribeImportSnapshotTasksInpu
 	return out, err
 }
 
-const opDescribeInstanceAttribute = "DescribeInstanceAttribute"
+var opDescribeImportSnapshotTasks *aws.Operation
 
 // DescribeInstanceAttributeRequest generates a request for the DescribeInstanceAttribute operation.
 func (c *EC2) DescribeInstanceAttributeRequest(input *DescribeInstanceAttributeInput) (req *aws.Request, output *DescribeInstanceAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeInstanceAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeInstanceAttribute == nil {
+		opDescribeInstanceAttribute = &aws.Operation{
+			Name:       "DescribeInstanceAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeInstanceAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeInstanceAttribute, input, output)
 	output = &DescribeInstanceAttributeOutput{}
 	req.Data = output
 	return
@@ -3040,27 +3486,32 @@ func (c *EC2) DescribeInstanceAttribute(input *DescribeInstanceAttributeInput) (
 	return out, err
 }
 
-const opDescribeInstanceStatus = "DescribeInstanceStatus"
+var opDescribeInstanceAttribute *aws.Operation
 
 // DescribeInstanceStatusRequest generates a request for the DescribeInstanceStatus operation.
 func (c *EC2) DescribeInstanceStatusRequest(input *DescribeInstanceStatusInput) (req *aws.Request, output *DescribeInstanceStatusOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeInstanceStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxResults",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeInstanceStatus == nil {
+		opDescribeInstanceStatus = &aws.Operation{
+			Name:       "DescribeInstanceStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxResults",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeInstanceStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeInstanceStatus, input, output)
 	output = &DescribeInstanceStatusOutput{}
 	req.Data = output
 	return
@@ -3099,27 +3550,32 @@ func (c *EC2) DescribeInstanceStatusPages(input *DescribeInstanceStatusInput, fn
 	})
 }
 
-const opDescribeInstances = "DescribeInstances"
+var opDescribeInstanceStatus *aws.Operation
 
 // DescribeInstancesRequest generates a request for the DescribeInstances operation.
 func (c *EC2) DescribeInstancesRequest(input *DescribeInstancesInput) (req *aws.Request, output *DescribeInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxResults",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeInstances == nil {
+		opDescribeInstances = &aws.Operation{
+			Name:       "DescribeInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxResults",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeInstances, input, output)
 	output = &DescribeInstancesOutput{}
 	req.Data = output
 	return
@@ -3148,21 +3604,26 @@ func (c *EC2) DescribeInstancesPages(input *DescribeInstancesInput, fn func(p *D
 	})
 }
 
-const opDescribeInternetGateways = "DescribeInternetGateways"
+var opDescribeInstances *aws.Operation
 
 // DescribeInternetGatewaysRequest generates a request for the DescribeInternetGateways operation.
 func (c *EC2) DescribeInternetGatewaysRequest(input *DescribeInternetGatewaysInput) (req *aws.Request, output *DescribeInternetGatewaysOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeInternetGateways,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeInternetGateways == nil {
+		opDescribeInternetGateways = &aws.Operation{
+			Name:       "DescribeInternetGateways",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeInternetGatewaysInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeInternetGateways, input, output)
 	output = &DescribeInternetGatewaysOutput{}
 	req.Data = output
 	return
@@ -3175,21 +3636,26 @@ func (c *EC2) DescribeInternetGateways(input *DescribeInternetGatewaysInput) (*D
 	return out, err
 }
 
-const opDescribeKeyPairs = "DescribeKeyPairs"
+var opDescribeInternetGateways *aws.Operation
 
 // DescribeKeyPairsRequest generates a request for the DescribeKeyPairs operation.
 func (c *EC2) DescribeKeyPairsRequest(input *DescribeKeyPairsInput) (req *aws.Request, output *DescribeKeyPairsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeKeyPairs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeKeyPairs == nil {
+		opDescribeKeyPairs = &aws.Operation{
+			Name:       "DescribeKeyPairs",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeKeyPairsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeKeyPairs, input, output)
 	output = &DescribeKeyPairsOutput{}
 	req.Data = output
 	return
@@ -3205,21 +3671,26 @@ func (c *EC2) DescribeKeyPairs(input *DescribeKeyPairsInput) (*DescribeKeyPairsO
 	return out, err
 }
 
-const opDescribeMovingAddresses = "DescribeMovingAddresses"
+var opDescribeKeyPairs *aws.Operation
 
 // DescribeMovingAddressesRequest generates a request for the DescribeMovingAddresses operation.
 func (c *EC2) DescribeMovingAddressesRequest(input *DescribeMovingAddressesInput) (req *aws.Request, output *DescribeMovingAddressesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeMovingAddresses,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeMovingAddresses == nil {
+		opDescribeMovingAddresses = &aws.Operation{
+			Name:       "DescribeMovingAddresses",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeMovingAddressesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeMovingAddresses, input, output)
 	output = &DescribeMovingAddressesOutput{}
 	req.Data = output
 	return
@@ -3234,21 +3705,26 @@ func (c *EC2) DescribeMovingAddresses(input *DescribeMovingAddressesInput) (*Des
 	return out, err
 }
 
-const opDescribeNetworkACLs = "DescribeNetworkAcls"
+var opDescribeMovingAddresses *aws.Operation
 
 // DescribeNetworkACLsRequest generates a request for the DescribeNetworkACLs operation.
 func (c *EC2) DescribeNetworkACLsRequest(input *DescribeNetworkACLsInput) (req *aws.Request, output *DescribeNetworkACLsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeNetworkACLs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeNetworkACLs == nil {
+		opDescribeNetworkACLs = &aws.Operation{
+			Name:       "DescribeNetworkAcls",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeNetworkACLsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeNetworkACLs, input, output)
 	output = &DescribeNetworkACLsOutput{}
 	req.Data = output
 	return
@@ -3264,21 +3740,26 @@ func (c *EC2) DescribeNetworkACLs(input *DescribeNetworkACLsInput) (*DescribeNet
 	return out, err
 }
 
-const opDescribeNetworkInterfaceAttribute = "DescribeNetworkInterfaceAttribute"
+var opDescribeNetworkACLs *aws.Operation
 
 // DescribeNetworkInterfaceAttributeRequest generates a request for the DescribeNetworkInterfaceAttribute operation.
 func (c *EC2) DescribeNetworkInterfaceAttributeRequest(input *DescribeNetworkInterfaceAttributeInput) (req *aws.Request, output *DescribeNetworkInterfaceAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeNetworkInterfaceAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeNetworkInterfaceAttribute == nil {
+		opDescribeNetworkInterfaceAttribute = &aws.Operation{
+			Name:       "DescribeNetworkInterfaceAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeNetworkInterfaceAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeNetworkInterfaceAttribute, input, output)
 	output = &DescribeNetworkInterfaceAttributeOutput{}
 	req.Data = output
 	return
@@ -3292,21 +3773,26 @@ func (c *EC2) DescribeNetworkInterfaceAttribute(input *DescribeNetworkInterfaceA
 	return out, err
 }
 
-const opDescribeNetworkInterfaces = "DescribeNetworkInterfaces"
+var opDescribeNetworkInterfaceAttribute *aws.Operation
 
 // DescribeNetworkInterfacesRequest generates a request for the DescribeNetworkInterfaces operation.
 func (c *EC2) DescribeNetworkInterfacesRequest(input *DescribeNetworkInterfacesInput) (req *aws.Request, output *DescribeNetworkInterfacesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeNetworkInterfaces,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeNetworkInterfaces == nil {
+		opDescribeNetworkInterfaces = &aws.Operation{
+			Name:       "DescribeNetworkInterfaces",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeNetworkInterfacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeNetworkInterfaces, input, output)
 	output = &DescribeNetworkInterfacesOutput{}
 	req.Data = output
 	return
@@ -3319,21 +3805,26 @@ func (c *EC2) DescribeNetworkInterfaces(input *DescribeNetworkInterfacesInput) (
 	return out, err
 }
 
-const opDescribePlacementGroups = "DescribePlacementGroups"
+var opDescribeNetworkInterfaces *aws.Operation
 
 // DescribePlacementGroupsRequest generates a request for the DescribePlacementGroups operation.
 func (c *EC2) DescribePlacementGroupsRequest(input *DescribePlacementGroupsInput) (req *aws.Request, output *DescribePlacementGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribePlacementGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribePlacementGroups == nil {
+		opDescribePlacementGroups = &aws.Operation{
+			Name:       "DescribePlacementGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribePlacementGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribePlacementGroups, input, output)
 	output = &DescribePlacementGroupsOutput{}
 	req.Data = output
 	return
@@ -3348,21 +3839,26 @@ func (c *EC2) DescribePlacementGroups(input *DescribePlacementGroupsInput) (*Des
 	return out, err
 }
 
-const opDescribePrefixLists = "DescribePrefixLists"
+var opDescribePlacementGroups *aws.Operation
 
 // DescribePrefixListsRequest generates a request for the DescribePrefixLists operation.
 func (c *EC2) DescribePrefixListsRequest(input *DescribePrefixListsInput) (req *aws.Request, output *DescribePrefixListsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribePrefixLists,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribePrefixLists == nil {
+		opDescribePrefixLists = &aws.Operation{
+			Name:       "DescribePrefixLists",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribePrefixListsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribePrefixLists, input, output)
 	output = &DescribePrefixListsOutput{}
 	req.Data = output
 	return
@@ -3379,21 +3875,26 @@ func (c *EC2) DescribePrefixLists(input *DescribePrefixListsInput) (*DescribePre
 	return out, err
 }
 
-const opDescribeRegions = "DescribeRegions"
+var opDescribePrefixLists *aws.Operation
 
 // DescribeRegionsRequest generates a request for the DescribeRegions operation.
 func (c *EC2) DescribeRegionsRequest(input *DescribeRegionsInput) (req *aws.Request, output *DescribeRegionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeRegions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeRegions == nil {
+		opDescribeRegions = &aws.Operation{
+			Name:       "DescribeRegions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeRegionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeRegions, input, output)
 	output = &DescribeRegionsOutput{}
 	req.Data = output
 	return
@@ -3409,21 +3910,26 @@ func (c *EC2) DescribeRegions(input *DescribeRegionsInput) (*DescribeRegionsOutp
 	return out, err
 }
 
-const opDescribeReservedInstances = "DescribeReservedInstances"
+var opDescribeRegions *aws.Operation
 
 // DescribeReservedInstancesRequest generates a request for the DescribeReservedInstances operation.
 func (c *EC2) DescribeReservedInstancesRequest(input *DescribeReservedInstancesInput) (req *aws.Request, output *DescribeReservedInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReservedInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReservedInstances == nil {
+		opDescribeReservedInstances = &aws.Operation{
+			Name:       "DescribeReservedInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReservedInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReservedInstances, input, output)
 	output = &DescribeReservedInstancesOutput{}
 	req.Data = output
 	return
@@ -3439,21 +3945,26 @@ func (c *EC2) DescribeReservedInstances(input *DescribeReservedInstancesInput) (
 	return out, err
 }
 
-const opDescribeReservedInstancesListings = "DescribeReservedInstancesListings"
+var opDescribeReservedInstances *aws.Operation
 
 // DescribeReservedInstancesListingsRequest generates a request for the DescribeReservedInstancesListings operation.
 func (c *EC2) DescribeReservedInstancesListingsRequest(input *DescribeReservedInstancesListingsInput) (req *aws.Request, output *DescribeReservedInstancesListingsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReservedInstancesListings,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReservedInstancesListings == nil {
+		opDescribeReservedInstancesListings = &aws.Operation{
+			Name:       "DescribeReservedInstancesListings",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReservedInstancesListingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReservedInstancesListings, input, output)
 	output = &DescribeReservedInstancesListingsOutput{}
 	req.Data = output
 	return
@@ -3487,27 +3998,32 @@ func (c *EC2) DescribeReservedInstancesListings(input *DescribeReservedInstances
 	return out, err
 }
 
-const opDescribeReservedInstancesModifications = "DescribeReservedInstancesModifications"
+var opDescribeReservedInstancesListings *aws.Operation
 
 // DescribeReservedInstancesModificationsRequest generates a request for the DescribeReservedInstancesModifications operation.
 func (c *EC2) DescribeReservedInstancesModificationsRequest(input *DescribeReservedInstancesModificationsInput) (req *aws.Request, output *DescribeReservedInstancesModificationsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReservedInstancesModifications,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReservedInstancesModifications == nil {
+		opDescribeReservedInstancesModifications = &aws.Operation{
+			Name:       "DescribeReservedInstancesModifications",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReservedInstancesModificationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReservedInstancesModifications, input, output)
 	output = &DescribeReservedInstancesModificationsOutput{}
 	req.Data = output
 	return
@@ -3533,27 +4049,32 @@ func (c *EC2) DescribeReservedInstancesModificationsPages(input *DescribeReserve
 	})
 }
 
-const opDescribeReservedInstancesOfferings = "DescribeReservedInstancesOfferings"
+var opDescribeReservedInstancesModifications *aws.Operation
 
 // DescribeReservedInstancesOfferingsRequest generates a request for the DescribeReservedInstancesOfferings operation.
 func (c *EC2) DescribeReservedInstancesOfferingsRequest(input *DescribeReservedInstancesOfferingsInput) (req *aws.Request, output *DescribeReservedInstancesOfferingsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReservedInstancesOfferings,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxResults",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReservedInstancesOfferings == nil {
+		opDescribeReservedInstancesOfferings = &aws.Operation{
+			Name:       "DescribeReservedInstancesOfferings",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxResults",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReservedInstancesOfferingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReservedInstancesOfferings, input, output)
 	output = &DescribeReservedInstancesOfferingsOutput{}
 	req.Data = output
 	return
@@ -3580,21 +4101,26 @@ func (c *EC2) DescribeReservedInstancesOfferingsPages(input *DescribeReservedIns
 	})
 }
 
-const opDescribeRouteTables = "DescribeRouteTables"
+var opDescribeReservedInstancesOfferings *aws.Operation
 
 // DescribeRouteTablesRequest generates a request for the DescribeRouteTables operation.
 func (c *EC2) DescribeRouteTablesRequest(input *DescribeRouteTablesInput) (req *aws.Request, output *DescribeRouteTablesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeRouteTables,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeRouteTables == nil {
+		opDescribeRouteTables = &aws.Operation{
+			Name:       "DescribeRouteTables",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeRouteTablesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeRouteTables, input, output)
 	output = &DescribeRouteTablesOutput{}
 	req.Data = output
 	return
@@ -3610,21 +4136,26 @@ func (c *EC2) DescribeRouteTables(input *DescribeRouteTablesInput) (*DescribeRou
 	return out, err
 }
 
-const opDescribeSecurityGroups = "DescribeSecurityGroups"
+var opDescribeRouteTables *aws.Operation
 
 // DescribeSecurityGroupsRequest generates a request for the DescribeSecurityGroups operation.
 func (c *EC2) DescribeSecurityGroupsRequest(input *DescribeSecurityGroupsInput) (req *aws.Request, output *DescribeSecurityGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSecurityGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSecurityGroups == nil {
+		opDescribeSecurityGroups = &aws.Operation{
+			Name:       "DescribeSecurityGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSecurityGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSecurityGroups, input, output)
 	output = &DescribeSecurityGroupsOutput{}
 	req.Data = output
 	return
@@ -3644,21 +4175,26 @@ func (c *EC2) DescribeSecurityGroups(input *DescribeSecurityGroupsInput) (*Descr
 	return out, err
 }
 
-const opDescribeSnapshotAttribute = "DescribeSnapshotAttribute"
+var opDescribeSecurityGroups *aws.Operation
 
 // DescribeSnapshotAttributeRequest generates a request for the DescribeSnapshotAttribute operation.
 func (c *EC2) DescribeSnapshotAttributeRequest(input *DescribeSnapshotAttributeInput) (req *aws.Request, output *DescribeSnapshotAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSnapshotAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSnapshotAttribute == nil {
+		opDescribeSnapshotAttribute = &aws.Operation{
+			Name:       "DescribeSnapshotAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSnapshotAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSnapshotAttribute, input, output)
 	output = &DescribeSnapshotAttributeOutput{}
 	req.Data = output
 	return
@@ -3675,27 +4211,32 @@ func (c *EC2) DescribeSnapshotAttribute(input *DescribeSnapshotAttributeInput) (
 	return out, err
 }
 
-const opDescribeSnapshots = "DescribeSnapshots"
+var opDescribeSnapshotAttribute *aws.Operation
 
 // DescribeSnapshotsRequest generates a request for the DescribeSnapshots operation.
 func (c *EC2) DescribeSnapshotsRequest(input *DescribeSnapshotsInput) (req *aws.Request, output *DescribeSnapshotsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSnapshots,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSnapshots == nil {
+		opDescribeSnapshots = &aws.Operation{
+			Name:       "DescribeSnapshots",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSnapshotsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSnapshots, input, output)
 	output = &DescribeSnapshotsOutput{}
 	req.Data = output
 	return
@@ -3754,21 +4295,26 @@ func (c *EC2) DescribeSnapshotsPages(input *DescribeSnapshotsInput, fn func(p *D
 	})
 }
 
-const opDescribeSpotDatafeedSubscription = "DescribeSpotDatafeedSubscription"
+var opDescribeSnapshots *aws.Operation
 
 // DescribeSpotDatafeedSubscriptionRequest generates a request for the DescribeSpotDatafeedSubscription operation.
 func (c *EC2) DescribeSpotDatafeedSubscriptionRequest(input *DescribeSpotDatafeedSubscriptionInput) (req *aws.Request, output *DescribeSpotDatafeedSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSpotDatafeedSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSpotDatafeedSubscription == nil {
+		opDescribeSpotDatafeedSubscription = &aws.Operation{
+			Name:       "DescribeSpotDatafeedSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSpotDatafeedSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSpotDatafeedSubscription, input, output)
 	output = &DescribeSpotDatafeedSubscriptionOutput{}
 	req.Data = output
 	return
@@ -3783,21 +4329,26 @@ func (c *EC2) DescribeSpotDatafeedSubscription(input *DescribeSpotDatafeedSubscr
 	return out, err
 }
 
-const opDescribeSpotFleetInstances = "DescribeSpotFleetInstances"
+var opDescribeSpotDatafeedSubscription *aws.Operation
 
 // DescribeSpotFleetInstancesRequest generates a request for the DescribeSpotFleetInstances operation.
 func (c *EC2) DescribeSpotFleetInstancesRequest(input *DescribeSpotFleetInstancesInput) (req *aws.Request, output *DescribeSpotFleetInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSpotFleetInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSpotFleetInstances == nil {
+		opDescribeSpotFleetInstances = &aws.Operation{
+			Name:       "DescribeSpotFleetInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSpotFleetInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSpotFleetInstances, input, output)
 	output = &DescribeSpotFleetInstancesOutput{}
 	req.Data = output
 	return
@@ -3810,21 +4361,26 @@ func (c *EC2) DescribeSpotFleetInstances(input *DescribeSpotFleetInstancesInput)
 	return out, err
 }
 
-const opDescribeSpotFleetRequestHistory = "DescribeSpotFleetRequestHistory"
+var opDescribeSpotFleetInstances *aws.Operation
 
 // DescribeSpotFleetRequestHistoryRequest generates a request for the DescribeSpotFleetRequestHistory operation.
 func (c *EC2) DescribeSpotFleetRequestHistoryRequest(input *DescribeSpotFleetRequestHistoryInput) (req *aws.Request, output *DescribeSpotFleetRequestHistoryOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSpotFleetRequestHistory,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSpotFleetRequestHistory == nil {
+		opDescribeSpotFleetRequestHistory = &aws.Operation{
+			Name:       "DescribeSpotFleetRequestHistory",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSpotFleetRequestHistoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSpotFleetRequestHistory, input, output)
 	output = &DescribeSpotFleetRequestHistoryOutput{}
 	req.Data = output
 	return
@@ -3842,21 +4398,26 @@ func (c *EC2) DescribeSpotFleetRequestHistory(input *DescribeSpotFleetRequestHis
 	return out, err
 }
 
-const opDescribeSpotFleetRequests = "DescribeSpotFleetRequests"
+var opDescribeSpotFleetRequestHistory *aws.Operation
 
 // DescribeSpotFleetRequestsRequest generates a request for the DescribeSpotFleetRequests operation.
 func (c *EC2) DescribeSpotFleetRequestsRequest(input *DescribeSpotFleetRequestsInput) (req *aws.Request, output *DescribeSpotFleetRequestsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSpotFleetRequests,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSpotFleetRequests == nil {
+		opDescribeSpotFleetRequests = &aws.Operation{
+			Name:       "DescribeSpotFleetRequests",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSpotFleetRequestsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSpotFleetRequests, input, output)
 	output = &DescribeSpotFleetRequestsOutput{}
 	req.Data = output
 	return
@@ -3869,21 +4430,26 @@ func (c *EC2) DescribeSpotFleetRequests(input *DescribeSpotFleetRequestsInput) (
 	return out, err
 }
 
-const opDescribeSpotInstanceRequests = "DescribeSpotInstanceRequests"
+var opDescribeSpotFleetRequests *aws.Operation
 
 // DescribeSpotInstanceRequestsRequest generates a request for the DescribeSpotInstanceRequests operation.
 func (c *EC2) DescribeSpotInstanceRequestsRequest(input *DescribeSpotInstanceRequestsInput) (req *aws.Request, output *DescribeSpotInstanceRequestsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSpotInstanceRequests,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSpotInstanceRequests == nil {
+		opDescribeSpotInstanceRequests = &aws.Operation{
+			Name:       "DescribeSpotInstanceRequests",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSpotInstanceRequestsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSpotInstanceRequests, input, output)
 	output = &DescribeSpotInstanceRequestsOutput{}
 	req.Data = output
 	return
@@ -3907,27 +4473,32 @@ func (c *EC2) DescribeSpotInstanceRequests(input *DescribeSpotInstanceRequestsIn
 	return out, err
 }
 
-const opDescribeSpotPriceHistory = "DescribeSpotPriceHistory"
+var opDescribeSpotInstanceRequests *aws.Operation
 
 // DescribeSpotPriceHistoryRequest generates a request for the DescribeSpotPriceHistory operation.
 func (c *EC2) DescribeSpotPriceHistoryRequest(input *DescribeSpotPriceHistoryInput) (req *aws.Request, output *DescribeSpotPriceHistoryOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSpotPriceHistory,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxResults",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSpotPriceHistory == nil {
+		opDescribeSpotPriceHistory = &aws.Operation{
+			Name:       "DescribeSpotPriceHistory",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxResults",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSpotPriceHistoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSpotPriceHistory, input, output)
 	output = &DescribeSpotPriceHistoryOutput{}
 	req.Data = output
 	return
@@ -3955,21 +4526,26 @@ func (c *EC2) DescribeSpotPriceHistoryPages(input *DescribeSpotPriceHistoryInput
 	})
 }
 
-const opDescribeSubnets = "DescribeSubnets"
+var opDescribeSpotPriceHistory *aws.Operation
 
 // DescribeSubnetsRequest generates a request for the DescribeSubnets operation.
 func (c *EC2) DescribeSubnetsRequest(input *DescribeSubnetsInput) (req *aws.Request, output *DescribeSubnetsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSubnets,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSubnets == nil {
+		opDescribeSubnets = &aws.Operation{
+			Name:       "DescribeSubnets",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSubnetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSubnets, input, output)
 	output = &DescribeSubnetsOutput{}
 	req.Data = output
 	return
@@ -3985,21 +4561,26 @@ func (c *EC2) DescribeSubnets(input *DescribeSubnetsInput) (*DescribeSubnetsOutp
 	return out, err
 }
 
-const opDescribeTags = "DescribeTags"
+var opDescribeSubnets *aws.Operation
 
 // DescribeTagsRequest generates a request for the DescribeTags operation.
 func (c *EC2) DescribeTagsRequest(input *DescribeTagsInput) (req *aws.Request, output *DescribeTagsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeTags == nil {
+		opDescribeTags = &aws.Operation{
+			Name:       "DescribeTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeTags, input, output)
 	output = &DescribeTagsOutput{}
 	req.Data = output
 	return
@@ -4015,21 +4596,26 @@ func (c *EC2) DescribeTags(input *DescribeTagsInput) (*DescribeTagsOutput, error
 	return out, err
 }
 
-const opDescribeVPCAttribute = "DescribeVpcAttribute"
+var opDescribeTags *aws.Operation
 
 // DescribeVPCAttributeRequest generates a request for the DescribeVPCAttribute operation.
 func (c *EC2) DescribeVPCAttributeRequest(input *DescribeVPCAttributeInput) (req *aws.Request, output *DescribeVPCAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVPCAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVPCAttribute == nil {
+		opDescribeVPCAttribute = &aws.Operation{
+			Name:       "DescribeVpcAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVPCAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVPCAttribute, input, output)
 	output = &DescribeVPCAttributeOutput{}
 	req.Data = output
 	return
@@ -4043,21 +4629,26 @@ func (c *EC2) DescribeVPCAttribute(input *DescribeVPCAttributeInput) (*DescribeV
 	return out, err
 }
 
-const opDescribeVPCClassicLink = "DescribeVpcClassicLink"
+var opDescribeVPCAttribute *aws.Operation
 
 // DescribeVPCClassicLinkRequest generates a request for the DescribeVPCClassicLink operation.
 func (c *EC2) DescribeVPCClassicLinkRequest(input *DescribeVPCClassicLinkInput) (req *aws.Request, output *DescribeVPCClassicLinkOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVPCClassicLink,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVPCClassicLink == nil {
+		opDescribeVPCClassicLink = &aws.Operation{
+			Name:       "DescribeVpcClassicLink",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVPCClassicLinkInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVPCClassicLink, input, output)
 	output = &DescribeVPCClassicLinkOutput{}
 	req.Data = output
 	return
@@ -4070,21 +4661,26 @@ func (c *EC2) DescribeVPCClassicLink(input *DescribeVPCClassicLinkInput) (*Descr
 	return out, err
 }
 
-const opDescribeVPCEndpointServices = "DescribeVpcEndpointServices"
+var opDescribeVPCClassicLink *aws.Operation
 
 // DescribeVPCEndpointServicesRequest generates a request for the DescribeVPCEndpointServices operation.
 func (c *EC2) DescribeVPCEndpointServicesRequest(input *DescribeVPCEndpointServicesInput) (req *aws.Request, output *DescribeVPCEndpointServicesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVPCEndpointServices,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVPCEndpointServices == nil {
+		opDescribeVPCEndpointServices = &aws.Operation{
+			Name:       "DescribeVpcEndpointServices",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVPCEndpointServicesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVPCEndpointServices, input, output)
 	output = &DescribeVPCEndpointServicesOutput{}
 	req.Data = output
 	return
@@ -4098,21 +4694,26 @@ func (c *EC2) DescribeVPCEndpointServices(input *DescribeVPCEndpointServicesInpu
 	return out, err
 }
 
-const opDescribeVPCEndpoints = "DescribeVpcEndpoints"
+var opDescribeVPCEndpointServices *aws.Operation
 
 // DescribeVPCEndpointsRequest generates a request for the DescribeVPCEndpoints operation.
 func (c *EC2) DescribeVPCEndpointsRequest(input *DescribeVPCEndpointsInput) (req *aws.Request, output *DescribeVPCEndpointsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVPCEndpoints,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVPCEndpoints == nil {
+		opDescribeVPCEndpoints = &aws.Operation{
+			Name:       "DescribeVpcEndpoints",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVPCEndpointsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVPCEndpoints, input, output)
 	output = &DescribeVPCEndpointsOutput{}
 	req.Data = output
 	return
@@ -4125,21 +4726,26 @@ func (c *EC2) DescribeVPCEndpoints(input *DescribeVPCEndpointsInput) (*DescribeV
 	return out, err
 }
 
-const opDescribeVPCPeeringConnections = "DescribeVpcPeeringConnections"
+var opDescribeVPCEndpoints *aws.Operation
 
 // DescribeVPCPeeringConnectionsRequest generates a request for the DescribeVPCPeeringConnections operation.
 func (c *EC2) DescribeVPCPeeringConnectionsRequest(input *DescribeVPCPeeringConnectionsInput) (req *aws.Request, output *DescribeVPCPeeringConnectionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVPCPeeringConnections,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVPCPeeringConnections == nil {
+		opDescribeVPCPeeringConnections = &aws.Operation{
+			Name:       "DescribeVpcPeeringConnections",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVPCPeeringConnectionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVPCPeeringConnections, input, output)
 	output = &DescribeVPCPeeringConnectionsOutput{}
 	req.Data = output
 	return
@@ -4152,21 +4758,26 @@ func (c *EC2) DescribeVPCPeeringConnections(input *DescribeVPCPeeringConnections
 	return out, err
 }
 
-const opDescribeVPCs = "DescribeVpcs"
+var opDescribeVPCPeeringConnections *aws.Operation
 
 // DescribeVPCsRequest generates a request for the DescribeVPCs operation.
 func (c *EC2) DescribeVPCsRequest(input *DescribeVPCsInput) (req *aws.Request, output *DescribeVPCsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVPCs,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVPCs == nil {
+		opDescribeVPCs = &aws.Operation{
+			Name:       "DescribeVpcs",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVPCsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVPCs, input, output)
 	output = &DescribeVPCsOutput{}
 	req.Data = output
 	return
@@ -4179,21 +4790,26 @@ func (c *EC2) DescribeVPCs(input *DescribeVPCsInput) (*DescribeVPCsOutput, error
 	return out, err
 }
 
-const opDescribeVPNConnections = "DescribeVpnConnections"
+var opDescribeVPCs *aws.Operation
 
 // DescribeVPNConnectionsRequest generates a request for the DescribeVPNConnections operation.
 func (c *EC2) DescribeVPNConnectionsRequest(input *DescribeVPNConnectionsInput) (req *aws.Request, output *DescribeVPNConnectionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVPNConnections,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVPNConnections == nil {
+		opDescribeVPNConnections = &aws.Operation{
+			Name:       "DescribeVpnConnections",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVPNConnectionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVPNConnections, input, output)
 	output = &DescribeVPNConnectionsOutput{}
 	req.Data = output
 	return
@@ -4210,21 +4826,26 @@ func (c *EC2) DescribeVPNConnections(input *DescribeVPNConnectionsInput) (*Descr
 	return out, err
 }
 
-const opDescribeVPNGateways = "DescribeVpnGateways"
+var opDescribeVPNConnections *aws.Operation
 
 // DescribeVPNGatewaysRequest generates a request for the DescribeVPNGateways operation.
 func (c *EC2) DescribeVPNGatewaysRequest(input *DescribeVPNGatewaysInput) (req *aws.Request, output *DescribeVPNGatewaysOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVPNGateways,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVPNGateways == nil {
+		opDescribeVPNGateways = &aws.Operation{
+			Name:       "DescribeVpnGateways",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVPNGatewaysInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVPNGateways, input, output)
 	output = &DescribeVPNGatewaysOutput{}
 	req.Data = output
 	return
@@ -4241,21 +4862,26 @@ func (c *EC2) DescribeVPNGateways(input *DescribeVPNGatewaysInput) (*DescribeVPN
 	return out, err
 }
 
-const opDescribeVolumeAttribute = "DescribeVolumeAttribute"
+var opDescribeVPNGateways *aws.Operation
 
 // DescribeVolumeAttributeRequest generates a request for the DescribeVolumeAttribute operation.
 func (c *EC2) DescribeVolumeAttributeRequest(input *DescribeVolumeAttributeInput) (req *aws.Request, output *DescribeVolumeAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVolumeAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVolumeAttribute == nil {
+		opDescribeVolumeAttribute = &aws.Operation{
+			Name:       "DescribeVolumeAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVolumeAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVolumeAttribute, input, output)
 	output = &DescribeVolumeAttributeOutput{}
 	req.Data = output
 	return
@@ -4272,27 +4898,32 @@ func (c *EC2) DescribeVolumeAttribute(input *DescribeVolumeAttributeInput) (*Des
 	return out, err
 }
 
-const opDescribeVolumeStatus = "DescribeVolumeStatus"
+var opDescribeVolumeAttribute *aws.Operation
 
 // DescribeVolumeStatusRequest generates a request for the DescribeVolumeStatus operation.
 func (c *EC2) DescribeVolumeStatusRequest(input *DescribeVolumeStatusInput) (req *aws.Request, output *DescribeVolumeStatusOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVolumeStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxResults",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVolumeStatus == nil {
+		opDescribeVolumeStatus = &aws.Operation{
+			Name:       "DescribeVolumeStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxResults",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVolumeStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVolumeStatus, input, output)
 	output = &DescribeVolumeStatusOutput{}
 	req.Data = output
 	return
@@ -4346,27 +4977,32 @@ func (c *EC2) DescribeVolumeStatusPages(input *DescribeVolumeStatusInput, fn fun
 	})
 }
 
-const opDescribeVolumes = "DescribeVolumes"
+var opDescribeVolumeStatus *aws.Operation
 
 // DescribeVolumesRequest generates a request for the DescribeVolumes operation.
 func (c *EC2) DescribeVolumesRequest(input *DescribeVolumesInput) (req *aws.Request, output *DescribeVolumesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVolumes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxResults",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVolumes == nil {
+		opDescribeVolumes = &aws.Operation{
+			Name:       "DescribeVolumes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxResults",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVolumesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVolumes, input, output)
 	output = &DescribeVolumesOutput{}
 	req.Data = output
 	return
@@ -4396,21 +5032,26 @@ func (c *EC2) DescribeVolumesPages(input *DescribeVolumesInput, fn func(p *Descr
 	})
 }
 
-const opDetachClassicLinkVPC = "DetachClassicLinkVpc"
+var opDescribeVolumes *aws.Operation
 
 // DetachClassicLinkVPCRequest generates a request for the DetachClassicLinkVPC operation.
 func (c *EC2) DetachClassicLinkVPCRequest(input *DetachClassicLinkVPCInput) (req *aws.Request, output *DetachClassicLinkVPCOutput) {
-	op := &aws.Operation{
-		Name:       opDetachClassicLinkVPC,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDetachClassicLinkVPC == nil {
+		opDetachClassicLinkVPC = &aws.Operation{
+			Name:       "DetachClassicLinkVpc",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DetachClassicLinkVPCInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDetachClassicLinkVPC, input, output)
 	output = &DetachClassicLinkVPCOutput{}
 	req.Data = output
 	return
@@ -4425,21 +5066,26 @@ func (c *EC2) DetachClassicLinkVPC(input *DetachClassicLinkVPCInput) (*DetachCla
 	return out, err
 }
 
-const opDetachInternetGateway = "DetachInternetGateway"
+var opDetachClassicLinkVPC *aws.Operation
 
 // DetachInternetGatewayRequest generates a request for the DetachInternetGateway operation.
 func (c *EC2) DetachInternetGatewayRequest(input *DetachInternetGatewayInput) (req *aws.Request, output *DetachInternetGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opDetachInternetGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDetachInternetGateway == nil {
+		opDetachInternetGateway = &aws.Operation{
+			Name:       "DetachInternetGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DetachInternetGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDetachInternetGateway, input, output)
 	output = &DetachInternetGatewayOutput{}
 	req.Data = output
 	return
@@ -4454,21 +5100,26 @@ func (c *EC2) DetachInternetGateway(input *DetachInternetGatewayInput) (*DetachI
 	return out, err
 }
 
-const opDetachNetworkInterface = "DetachNetworkInterface"
+var opDetachInternetGateway *aws.Operation
 
 // DetachNetworkInterfaceRequest generates a request for the DetachNetworkInterface operation.
 func (c *EC2) DetachNetworkInterfaceRequest(input *DetachNetworkInterfaceInput) (req *aws.Request, output *DetachNetworkInterfaceOutput) {
-	op := &aws.Operation{
-		Name:       opDetachNetworkInterface,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDetachNetworkInterface == nil {
+		opDetachNetworkInterface = &aws.Operation{
+			Name:       "DetachNetworkInterface",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DetachNetworkInterfaceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDetachNetworkInterface, input, output)
 	output = &DetachNetworkInterfaceOutput{}
 	req.Data = output
 	return
@@ -4481,21 +5132,26 @@ func (c *EC2) DetachNetworkInterface(input *DetachNetworkInterfaceInput) (*Detac
 	return out, err
 }
 
-const opDetachVPNGateway = "DetachVpnGateway"
+var opDetachNetworkInterface *aws.Operation
 
 // DetachVPNGatewayRequest generates a request for the DetachVPNGateway operation.
 func (c *EC2) DetachVPNGatewayRequest(input *DetachVPNGatewayInput) (req *aws.Request, output *DetachVPNGatewayOutput) {
-	op := &aws.Operation{
-		Name:       opDetachVPNGateway,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDetachVPNGateway == nil {
+		opDetachVPNGateway = &aws.Operation{
+			Name:       "DetachVpnGateway",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DetachVPNGatewayInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDetachVPNGateway, input, output)
 	output = &DetachVPNGatewayOutput{}
 	req.Data = output
 	return
@@ -4515,21 +5171,26 @@ func (c *EC2) DetachVPNGateway(input *DetachVPNGatewayInput) (*DetachVPNGatewayO
 	return out, err
 }
 
-const opDetachVolume = "DetachVolume"
+var opDetachVPNGateway *aws.Operation
 
 // DetachVolumeRequest generates a request for the DetachVolume operation.
 func (c *EC2) DetachVolumeRequest(input *DetachVolumeInput) (req *aws.Request, output *VolumeAttachment) {
-	op := &aws.Operation{
-		Name:       opDetachVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDetachVolume == nil {
+		opDetachVolume = &aws.Operation{
+			Name:       "DetachVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DetachVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDetachVolume, input, output)
 	output = &VolumeAttachment{}
 	req.Data = output
 	return
@@ -4554,21 +5215,26 @@ func (c *EC2) DetachVolume(input *DetachVolumeInput) (*VolumeAttachment, error) 
 	return out, err
 }
 
-const opDisableVGWRoutePropagation = "DisableVgwRoutePropagation"
+var opDetachVolume *aws.Operation
 
 // DisableVGWRoutePropagationRequest generates a request for the DisableVGWRoutePropagation operation.
 func (c *EC2) DisableVGWRoutePropagationRequest(input *DisableVGWRoutePropagationInput) (req *aws.Request, output *DisableVGWRoutePropagationOutput) {
-	op := &aws.Operation{
-		Name:       opDisableVGWRoutePropagation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisableVGWRoutePropagation == nil {
+		opDisableVGWRoutePropagation = &aws.Operation{
+			Name:       "DisableVgwRoutePropagation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisableVGWRoutePropagationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisableVGWRoutePropagation, input, output)
 	output = &DisableVGWRoutePropagationOutput{}
 	req.Data = output
 	return
@@ -4582,21 +5248,26 @@ func (c *EC2) DisableVGWRoutePropagation(input *DisableVGWRoutePropagationInput)
 	return out, err
 }
 
-const opDisableVPCClassicLink = "DisableVpcClassicLink"
+var opDisableVGWRoutePropagation *aws.Operation
 
 // DisableVPCClassicLinkRequest generates a request for the DisableVPCClassicLink operation.
 func (c *EC2) DisableVPCClassicLinkRequest(input *DisableVPCClassicLinkInput) (req *aws.Request, output *DisableVPCClassicLinkOutput) {
-	op := &aws.Operation{
-		Name:       opDisableVPCClassicLink,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisableVPCClassicLink == nil {
+		opDisableVPCClassicLink = &aws.Operation{
+			Name:       "DisableVpcClassicLink",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisableVPCClassicLinkInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisableVPCClassicLink, input, output)
 	output = &DisableVPCClassicLinkOutput{}
 	req.Data = output
 	return
@@ -4610,21 +5281,26 @@ func (c *EC2) DisableVPCClassicLink(input *DisableVPCClassicLinkInput) (*Disable
 	return out, err
 }
 
-const opDisassociateAddress = "DisassociateAddress"
+var opDisableVPCClassicLink *aws.Operation
 
 // DisassociateAddressRequest generates a request for the DisassociateAddress operation.
 func (c *EC2) DisassociateAddressRequest(input *DisassociateAddressInput) (req *aws.Request, output *DisassociateAddressOutput) {
-	op := &aws.Operation{
-		Name:       opDisassociateAddress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisassociateAddress == nil {
+		opDisassociateAddress = &aws.Operation{
+			Name:       "DisassociateAddress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisassociateAddressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisassociateAddress, input, output)
 	output = &DisassociateAddressOutput{}
 	req.Data = output
 	return
@@ -4645,21 +5321,26 @@ func (c *EC2) DisassociateAddress(input *DisassociateAddressInput) (*Disassociat
 	return out, err
 }
 
-const opDisassociateRouteTable = "DisassociateRouteTable"
+var opDisassociateAddress *aws.Operation
 
 // DisassociateRouteTableRequest generates a request for the DisassociateRouteTable operation.
 func (c *EC2) DisassociateRouteTableRequest(input *DisassociateRouteTableInput) (req *aws.Request, output *DisassociateRouteTableOutput) {
-	op := &aws.Operation{
-		Name:       opDisassociateRouteTable,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisassociateRouteTable == nil {
+		opDisassociateRouteTable = &aws.Operation{
+			Name:       "DisassociateRouteTable",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisassociateRouteTableInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisassociateRouteTable, input, output)
 	output = &DisassociateRouteTableOutput{}
 	req.Data = output
 	return
@@ -4677,21 +5358,26 @@ func (c *EC2) DisassociateRouteTable(input *DisassociateRouteTableInput) (*Disas
 	return out, err
 }
 
-const opEnableVGWRoutePropagation = "EnableVgwRoutePropagation"
+var opDisassociateRouteTable *aws.Operation
 
 // EnableVGWRoutePropagationRequest generates a request for the EnableVGWRoutePropagation operation.
 func (c *EC2) EnableVGWRoutePropagationRequest(input *EnableVGWRoutePropagationInput) (req *aws.Request, output *EnableVGWRoutePropagationOutput) {
-	op := &aws.Operation{
-		Name:       opEnableVGWRoutePropagation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableVGWRoutePropagation == nil {
+		opEnableVGWRoutePropagation = &aws.Operation{
+			Name:       "EnableVgwRoutePropagation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableVGWRoutePropagationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableVGWRoutePropagation, input, output)
 	output = &EnableVGWRoutePropagationOutput{}
 	req.Data = output
 	return
@@ -4705,21 +5391,26 @@ func (c *EC2) EnableVGWRoutePropagation(input *EnableVGWRoutePropagationInput) (
 	return out, err
 }
 
-const opEnableVPCClassicLink = "EnableVpcClassicLink"
+var opEnableVGWRoutePropagation *aws.Operation
 
 // EnableVPCClassicLinkRequest generates a request for the EnableVPCClassicLink operation.
 func (c *EC2) EnableVPCClassicLinkRequest(input *EnableVPCClassicLinkInput) (req *aws.Request, output *EnableVPCClassicLinkOutput) {
-	op := &aws.Operation{
-		Name:       opEnableVPCClassicLink,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableVPCClassicLink == nil {
+		opEnableVPCClassicLink = &aws.Operation{
+			Name:       "EnableVpcClassicLink",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableVPCClassicLinkInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableVPCClassicLink, input, output)
 	output = &EnableVPCClassicLinkOutput{}
 	req.Data = output
 	return
@@ -4738,21 +5429,26 @@ func (c *EC2) EnableVPCClassicLink(input *EnableVPCClassicLinkInput) (*EnableVPC
 	return out, err
 }
 
-const opEnableVolumeIO = "EnableVolumeIO"
+var opEnableVPCClassicLink *aws.Operation
 
 // EnableVolumeIORequest generates a request for the EnableVolumeIO operation.
 func (c *EC2) EnableVolumeIORequest(input *EnableVolumeIOInput) (req *aws.Request, output *EnableVolumeIOOutput) {
-	op := &aws.Operation{
-		Name:       opEnableVolumeIO,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableVolumeIO == nil {
+		opEnableVolumeIO = &aws.Operation{
+			Name:       "EnableVolumeIO",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableVolumeIOInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableVolumeIO, input, output)
 	output = &EnableVolumeIOOutput{}
 	req.Data = output
 	return
@@ -4766,21 +5462,26 @@ func (c *EC2) EnableVolumeIO(input *EnableVolumeIOInput) (*EnableVolumeIOOutput,
 	return out, err
 }
 
-const opGetConsoleOutput = "GetConsoleOutput"
+var opEnableVolumeIO *aws.Operation
 
 // GetConsoleOutputRequest generates a request for the GetConsoleOutput operation.
 func (c *EC2) GetConsoleOutputRequest(input *GetConsoleOutputInput) (req *aws.Request, output *GetConsoleOutputOutput) {
-	op := &aws.Operation{
-		Name:       opGetConsoleOutput,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetConsoleOutput == nil {
+		opGetConsoleOutput = &aws.Operation{
+			Name:       "GetConsoleOutput",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetConsoleOutputInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetConsoleOutput, input, output)
 	output = &GetConsoleOutputOutput{}
 	req.Data = output
 	return
@@ -4810,21 +5511,26 @@ func (c *EC2) GetConsoleOutput(input *GetConsoleOutputInput) (*GetConsoleOutputO
 	return out, err
 }
 
-const opGetPasswordData = "GetPasswordData"
+var opGetConsoleOutput *aws.Operation
 
 // GetPasswordDataRequest generates a request for the GetPasswordData operation.
 func (c *EC2) GetPasswordDataRequest(input *GetPasswordDataInput) (req *aws.Request, output *GetPasswordDataOutput) {
-	op := &aws.Operation{
-		Name:       opGetPasswordData,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetPasswordData == nil {
+		opGetPasswordData = &aws.Operation{
+			Name:       "GetPasswordData",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetPasswordDataInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetPasswordData, input, output)
 	output = &GetPasswordDataOutput{}
 	req.Data = output
 	return
@@ -4850,21 +5556,26 @@ func (c *EC2) GetPasswordData(input *GetPasswordDataInput) (*GetPasswordDataOutp
 	return out, err
 }
 
-const opImportImage = "ImportImage"
+var opGetPasswordData *aws.Operation
 
 // ImportImageRequest generates a request for the ImportImage operation.
 func (c *EC2) ImportImageRequest(input *ImportImageInput) (req *aws.Request, output *ImportImageOutput) {
-	op := &aws.Operation{
-		Name:       opImportImage,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opImportImage == nil {
+		opImportImage = &aws.Operation{
+			Name:       "ImportImage",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ImportImageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opImportImage, input, output)
 	output = &ImportImageOutput{}
 	req.Data = output
 	return
@@ -4878,21 +5589,26 @@ func (c *EC2) ImportImage(input *ImportImageInput) (*ImportImageOutput, error) {
 	return out, err
 }
 
-const opImportInstance = "ImportInstance"
+var opImportImage *aws.Operation
 
 // ImportInstanceRequest generates a request for the ImportInstance operation.
 func (c *EC2) ImportInstanceRequest(input *ImportInstanceInput) (req *aws.Request, output *ImportInstanceOutput) {
-	op := &aws.Operation{
-		Name:       opImportInstance,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opImportInstance == nil {
+		opImportInstance = &aws.Operation{
+			Name:       "ImportInstance",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ImportInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opImportInstance, input, output)
 	output = &ImportInstanceOutput{}
 	req.Data = output
 	return
@@ -4911,21 +5627,26 @@ func (c *EC2) ImportInstance(input *ImportInstanceInput) (*ImportInstanceOutput,
 	return out, err
 }
 
-const opImportKeyPair = "ImportKeyPair"
+var opImportInstance *aws.Operation
 
 // ImportKeyPairRequest generates a request for the ImportKeyPair operation.
 func (c *EC2) ImportKeyPairRequest(input *ImportKeyPairInput) (req *aws.Request, output *ImportKeyPairOutput) {
-	op := &aws.Operation{
-		Name:       opImportKeyPair,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opImportKeyPair == nil {
+		opImportKeyPair = &aws.Operation{
+			Name:       "ImportKeyPair",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ImportKeyPairInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opImportKeyPair, input, output)
 	output = &ImportKeyPairOutput{}
 	req.Data = output
 	return
@@ -4945,21 +5666,26 @@ func (c *EC2) ImportKeyPair(input *ImportKeyPairInput) (*ImportKeyPairOutput, er
 	return out, err
 }
 
-const opImportSnapshot = "ImportSnapshot"
+var opImportKeyPair *aws.Operation
 
 // ImportSnapshotRequest generates a request for the ImportSnapshot operation.
 func (c *EC2) ImportSnapshotRequest(input *ImportSnapshotInput) (req *aws.Request, output *ImportSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opImportSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opImportSnapshot == nil {
+		opImportSnapshot = &aws.Operation{
+			Name:       "ImportSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ImportSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opImportSnapshot, input, output)
 	output = &ImportSnapshotOutput{}
 	req.Data = output
 	return
@@ -4972,21 +5698,26 @@ func (c *EC2) ImportSnapshot(input *ImportSnapshotInput) (*ImportSnapshotOutput,
 	return out, err
 }
 
-const opImportVolume = "ImportVolume"
+var opImportSnapshot *aws.Operation
 
 // ImportVolumeRequest generates a request for the ImportVolume operation.
 func (c *EC2) ImportVolumeRequest(input *ImportVolumeInput) (req *aws.Request, output *ImportVolumeOutput) {
-	op := &aws.Operation{
-		Name:       opImportVolume,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opImportVolume == nil {
+		opImportVolume = &aws.Operation{
+			Name:       "ImportVolume",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ImportVolumeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opImportVolume, input, output)
 	output = &ImportVolumeOutput{}
 	req.Data = output
 	return
@@ -5004,21 +5735,26 @@ func (c *EC2) ImportVolume(input *ImportVolumeInput) (*ImportVolumeOutput, error
 	return out, err
 }
 
-const opModifyImageAttribute = "ModifyImageAttribute"
+var opImportVolume *aws.Operation
 
 // ModifyImageAttributeRequest generates a request for the ModifyImageAttribute operation.
 func (c *EC2) ModifyImageAttributeRequest(input *ModifyImageAttributeInput) (req *aws.Request, output *ModifyImageAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opModifyImageAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyImageAttribute == nil {
+		opModifyImageAttribute = &aws.Operation{
+			Name:       "ModifyImageAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyImageAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyImageAttribute, input, output)
 	output = &ModifyImageAttributeOutput{}
 	req.Data = output
 	return
@@ -5035,21 +5771,26 @@ func (c *EC2) ModifyImageAttribute(input *ModifyImageAttributeInput) (*ModifyIma
 	return out, err
 }
 
-const opModifyInstanceAttribute = "ModifyInstanceAttribute"
+var opModifyImageAttribute *aws.Operation
 
 // ModifyInstanceAttributeRequest generates a request for the ModifyInstanceAttribute operation.
 func (c *EC2) ModifyInstanceAttributeRequest(input *ModifyInstanceAttributeInput) (req *aws.Request, output *ModifyInstanceAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opModifyInstanceAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyInstanceAttribute == nil {
+		opModifyInstanceAttribute = &aws.Operation{
+			Name:       "ModifyInstanceAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyInstanceAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyInstanceAttribute, input, output)
 	output = &ModifyInstanceAttributeOutput{}
 	req.Data = output
 	return
@@ -5067,21 +5808,26 @@ func (c *EC2) ModifyInstanceAttribute(input *ModifyInstanceAttributeInput) (*Mod
 	return out, err
 }
 
-const opModifyNetworkInterfaceAttribute = "ModifyNetworkInterfaceAttribute"
+var opModifyInstanceAttribute *aws.Operation
 
 // ModifyNetworkInterfaceAttributeRequest generates a request for the ModifyNetworkInterfaceAttribute operation.
 func (c *EC2) ModifyNetworkInterfaceAttributeRequest(input *ModifyNetworkInterfaceAttributeInput) (req *aws.Request, output *ModifyNetworkInterfaceAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opModifyNetworkInterfaceAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyNetworkInterfaceAttribute == nil {
+		opModifyNetworkInterfaceAttribute = &aws.Operation{
+			Name:       "ModifyNetworkInterfaceAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyNetworkInterfaceAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyNetworkInterfaceAttribute, input, output)
 	output = &ModifyNetworkInterfaceAttributeOutput{}
 	req.Data = output
 	return
@@ -5095,21 +5841,26 @@ func (c *EC2) ModifyNetworkInterfaceAttribute(input *ModifyNetworkInterfaceAttri
 	return out, err
 }
 
-const opModifyReservedInstances = "ModifyReservedInstances"
+var opModifyNetworkInterfaceAttribute *aws.Operation
 
 // ModifyReservedInstancesRequest generates a request for the ModifyReservedInstances operation.
 func (c *EC2) ModifyReservedInstancesRequest(input *ModifyReservedInstancesInput) (req *aws.Request, output *ModifyReservedInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opModifyReservedInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyReservedInstances == nil {
+		opModifyReservedInstances = &aws.Operation{
+			Name:       "ModifyReservedInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyReservedInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyReservedInstances, input, output)
 	output = &ModifyReservedInstancesOutput{}
 	req.Data = output
 	return
@@ -5128,21 +5879,26 @@ func (c *EC2) ModifyReservedInstances(input *ModifyReservedInstancesInput) (*Mod
 	return out, err
 }
 
-const opModifySnapshotAttribute = "ModifySnapshotAttribute"
+var opModifyReservedInstances *aws.Operation
 
 // ModifySnapshotAttributeRequest generates a request for the ModifySnapshotAttribute operation.
 func (c *EC2) ModifySnapshotAttributeRequest(input *ModifySnapshotAttributeInput) (req *aws.Request, output *ModifySnapshotAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opModifySnapshotAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifySnapshotAttribute == nil {
+		opModifySnapshotAttribute = &aws.Operation{
+			Name:       "ModifySnapshotAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifySnapshotAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifySnapshotAttribute, input, output)
 	output = &ModifySnapshotAttributeOutput{}
 	req.Data = output
 	return
@@ -5165,21 +5921,26 @@ func (c *EC2) ModifySnapshotAttribute(input *ModifySnapshotAttributeInput) (*Mod
 	return out, err
 }
 
-const opModifySubnetAttribute = "ModifySubnetAttribute"
+var opModifySnapshotAttribute *aws.Operation
 
 // ModifySubnetAttributeRequest generates a request for the ModifySubnetAttribute operation.
 func (c *EC2) ModifySubnetAttributeRequest(input *ModifySubnetAttributeInput) (req *aws.Request, output *ModifySubnetAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opModifySubnetAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifySubnetAttribute == nil {
+		opModifySubnetAttribute = &aws.Operation{
+			Name:       "ModifySubnetAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifySubnetAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifySubnetAttribute, input, output)
 	output = &ModifySubnetAttributeOutput{}
 	req.Data = output
 	return
@@ -5192,21 +5953,26 @@ func (c *EC2) ModifySubnetAttribute(input *ModifySubnetAttributeInput) (*ModifyS
 	return out, err
 }
 
-const opModifyVPCAttribute = "ModifyVpcAttribute"
+var opModifySubnetAttribute *aws.Operation
 
 // ModifyVPCAttributeRequest generates a request for the ModifyVPCAttribute operation.
 func (c *EC2) ModifyVPCAttributeRequest(input *ModifyVPCAttributeInput) (req *aws.Request, output *ModifyVPCAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opModifyVPCAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyVPCAttribute == nil {
+		opModifyVPCAttribute = &aws.Operation{
+			Name:       "ModifyVpcAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyVPCAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyVPCAttribute, input, output)
 	output = &ModifyVPCAttributeOutput{}
 	req.Data = output
 	return
@@ -5219,21 +5985,26 @@ func (c *EC2) ModifyVPCAttribute(input *ModifyVPCAttributeInput) (*ModifyVPCAttr
 	return out, err
 }
 
-const opModifyVPCEndpoint = "ModifyVpcEndpoint"
+var opModifyVPCAttribute *aws.Operation
 
 // ModifyVPCEndpointRequest generates a request for the ModifyVPCEndpoint operation.
 func (c *EC2) ModifyVPCEndpointRequest(input *ModifyVPCEndpointInput) (req *aws.Request, output *ModifyVPCEndpointOutput) {
-	op := &aws.Operation{
-		Name:       opModifyVPCEndpoint,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyVPCEndpoint == nil {
+		opModifyVPCEndpoint = &aws.Operation{
+			Name:       "ModifyVpcEndpoint",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyVPCEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyVPCEndpoint, input, output)
 	output = &ModifyVPCEndpointOutput{}
 	req.Data = output
 	return
@@ -5248,21 +6019,26 @@ func (c *EC2) ModifyVPCEndpoint(input *ModifyVPCEndpointInput) (*ModifyVPCEndpoi
 	return out, err
 }
 
-const opModifyVolumeAttribute = "ModifyVolumeAttribute"
+var opModifyVPCEndpoint *aws.Operation
 
 // ModifyVolumeAttributeRequest generates a request for the ModifyVolumeAttribute operation.
 func (c *EC2) ModifyVolumeAttributeRequest(input *ModifyVolumeAttributeInput) (req *aws.Request, output *ModifyVolumeAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opModifyVolumeAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyVolumeAttribute == nil {
+		opModifyVolumeAttribute = &aws.Operation{
+			Name:       "ModifyVolumeAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyVolumeAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyVolumeAttribute, input, output)
 	output = &ModifyVolumeAttributeOutput{}
 	req.Data = output
 	return
@@ -5284,21 +6060,26 @@ func (c *EC2) ModifyVolumeAttribute(input *ModifyVolumeAttributeInput) (*ModifyV
 	return out, err
 }
 
-const opMonitorInstances = "MonitorInstances"
+var opModifyVolumeAttribute *aws.Operation
 
 // MonitorInstancesRequest generates a request for the MonitorInstances operation.
 func (c *EC2) MonitorInstancesRequest(input *MonitorInstancesInput) (req *aws.Request, output *MonitorInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opMonitorInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opMonitorInstances == nil {
+		opMonitorInstances = &aws.Operation{
+			Name:       "MonitorInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &MonitorInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opMonitorInstances, input, output)
 	output = &MonitorInstancesOutput{}
 	req.Data = output
 	return
@@ -5313,21 +6094,26 @@ func (c *EC2) MonitorInstances(input *MonitorInstancesInput) (*MonitorInstancesO
 	return out, err
 }
 
-const opMoveAddressToVPC = "MoveAddressToVpc"
+var opMonitorInstances *aws.Operation
 
 // MoveAddressToVPCRequest generates a request for the MoveAddressToVPC operation.
 func (c *EC2) MoveAddressToVPCRequest(input *MoveAddressToVPCInput) (req *aws.Request, output *MoveAddressToVPCOutput) {
-	op := &aws.Operation{
-		Name:       opMoveAddressToVPC,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opMoveAddressToVPC == nil {
+		opMoveAddressToVPC = &aws.Operation{
+			Name:       "MoveAddressToVpc",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &MoveAddressToVPCInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opMoveAddressToVPC, input, output)
 	output = &MoveAddressToVPCOutput{}
 	req.Data = output
 	return
@@ -5346,21 +6132,26 @@ func (c *EC2) MoveAddressToVPC(input *MoveAddressToVPCInput) (*MoveAddressToVPCO
 	return out, err
 }
 
-const opPurchaseReservedInstancesOffering = "PurchaseReservedInstancesOffering"
+var opMoveAddressToVPC *aws.Operation
 
 // PurchaseReservedInstancesOfferingRequest generates a request for the PurchaseReservedInstancesOffering operation.
 func (c *EC2) PurchaseReservedInstancesOfferingRequest(input *PurchaseReservedInstancesOfferingInput) (req *aws.Request, output *PurchaseReservedInstancesOfferingOutput) {
-	op := &aws.Operation{
-		Name:       opPurchaseReservedInstancesOffering,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPurchaseReservedInstancesOffering == nil {
+		opPurchaseReservedInstancesOffering = &aws.Operation{
+			Name:       "PurchaseReservedInstancesOffering",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PurchaseReservedInstancesOfferingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPurchaseReservedInstancesOffering, input, output)
 	output = &PurchaseReservedInstancesOfferingOutput{}
 	req.Data = output
 	return
@@ -5384,21 +6175,26 @@ func (c *EC2) PurchaseReservedInstancesOffering(input *PurchaseReservedInstances
 	return out, err
 }
 
-const opRebootInstances = "RebootInstances"
+var opPurchaseReservedInstancesOffering *aws.Operation
 
 // RebootInstancesRequest generates a request for the RebootInstances operation.
 func (c *EC2) RebootInstancesRequest(input *RebootInstancesInput) (req *aws.Request, output *RebootInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opRebootInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRebootInstances == nil {
+		opRebootInstances = &aws.Operation{
+			Name:       "RebootInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RebootInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRebootInstances, input, output)
 	output = &RebootInstancesOutput{}
 	req.Data = output
 	return
@@ -5421,21 +6217,26 @@ func (c *EC2) RebootInstances(input *RebootInstancesInput) (*RebootInstancesOutp
 	return out, err
 }
 
-const opRegisterImage = "RegisterImage"
+var opRebootInstances *aws.Operation
 
 // RegisterImageRequest generates a request for the RegisterImage operation.
 func (c *EC2) RegisterImageRequest(input *RegisterImageInput) (req *aws.Request, output *RegisterImageOutput) {
-	op := &aws.Operation{
-		Name:       opRegisterImage,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRegisterImage == nil {
+		opRegisterImage = &aws.Operation{
+			Name:       "RegisterImage",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RegisterImageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRegisterImage, input, output)
 	output = &RegisterImageOutput{}
 	req.Data = output
 	return
@@ -5467,21 +6268,26 @@ func (c *EC2) RegisterImage(input *RegisterImageInput) (*RegisterImageOutput, er
 	return out, err
 }
 
-const opRejectVPCPeeringConnection = "RejectVpcPeeringConnection"
+var opRegisterImage *aws.Operation
 
 // RejectVPCPeeringConnectionRequest generates a request for the RejectVPCPeeringConnection operation.
 func (c *EC2) RejectVPCPeeringConnectionRequest(input *RejectVPCPeeringConnectionInput) (req *aws.Request, output *RejectVPCPeeringConnectionOutput) {
-	op := &aws.Operation{
-		Name:       opRejectVPCPeeringConnection,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRejectVPCPeeringConnection == nil {
+		opRejectVPCPeeringConnection = &aws.Operation{
+			Name:       "RejectVpcPeeringConnection",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RejectVPCPeeringConnectionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRejectVPCPeeringConnection, input, output)
 	output = &RejectVPCPeeringConnectionOutput{}
 	req.Data = output
 	return
@@ -5498,21 +6304,26 @@ func (c *EC2) RejectVPCPeeringConnection(input *RejectVPCPeeringConnectionInput)
 	return out, err
 }
 
-const opReleaseAddress = "ReleaseAddress"
+var opRejectVPCPeeringConnection *aws.Operation
 
 // ReleaseAddressRequest generates a request for the ReleaseAddress operation.
 func (c *EC2) ReleaseAddressRequest(input *ReleaseAddressInput) (req *aws.Request, output *ReleaseAddressOutput) {
-	op := &aws.Operation{
-		Name:       opReleaseAddress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReleaseAddress == nil {
+		opReleaseAddress = &aws.Operation{
+			Name:       "ReleaseAddress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReleaseAddressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReleaseAddress, input, output)
 	output = &ReleaseAddressOutput{}
 	req.Data = output
 	return
@@ -5539,21 +6350,26 @@ func (c *EC2) ReleaseAddress(input *ReleaseAddressInput) (*ReleaseAddressOutput,
 	return out, err
 }
 
-const opReplaceNetworkACLAssociation = "ReplaceNetworkAclAssociation"
+var opReleaseAddress *aws.Operation
 
 // ReplaceNetworkACLAssociationRequest generates a request for the ReplaceNetworkACLAssociation operation.
 func (c *EC2) ReplaceNetworkACLAssociationRequest(input *ReplaceNetworkACLAssociationInput) (req *aws.Request, output *ReplaceNetworkACLAssociationOutput) {
-	op := &aws.Operation{
-		Name:       opReplaceNetworkACLAssociation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReplaceNetworkACLAssociation == nil {
+		opReplaceNetworkACLAssociation = &aws.Operation{
+			Name:       "ReplaceNetworkAclAssociation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReplaceNetworkACLAssociationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReplaceNetworkACLAssociation, input, output)
 	output = &ReplaceNetworkACLAssociationOutput{}
 	req.Data = output
 	return
@@ -5569,21 +6385,26 @@ func (c *EC2) ReplaceNetworkACLAssociation(input *ReplaceNetworkACLAssociationIn
 	return out, err
 }
 
-const opReplaceNetworkACLEntry = "ReplaceNetworkAclEntry"
+var opReplaceNetworkACLAssociation *aws.Operation
 
 // ReplaceNetworkACLEntryRequest generates a request for the ReplaceNetworkACLEntry operation.
 func (c *EC2) ReplaceNetworkACLEntryRequest(input *ReplaceNetworkACLEntryInput) (req *aws.Request, output *ReplaceNetworkACLEntryOutput) {
-	op := &aws.Operation{
-		Name:       opReplaceNetworkACLEntry,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReplaceNetworkACLEntry == nil {
+		opReplaceNetworkACLEntry = &aws.Operation{
+			Name:       "ReplaceNetworkAclEntry",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReplaceNetworkACLEntryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReplaceNetworkACLEntry, input, output)
 	output = &ReplaceNetworkACLEntryOutput{}
 	req.Data = output
 	return
@@ -5598,21 +6419,26 @@ func (c *EC2) ReplaceNetworkACLEntry(input *ReplaceNetworkACLEntryInput) (*Repla
 	return out, err
 }
 
-const opReplaceRoute = "ReplaceRoute"
+var opReplaceNetworkACLEntry *aws.Operation
 
 // ReplaceRouteRequest generates a request for the ReplaceRoute operation.
 func (c *EC2) ReplaceRouteRequest(input *ReplaceRouteInput) (req *aws.Request, output *ReplaceRouteOutput) {
-	op := &aws.Operation{
-		Name:       opReplaceRoute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReplaceRoute == nil {
+		opReplaceRoute = &aws.Operation{
+			Name:       "ReplaceRoute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReplaceRouteInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReplaceRoute, input, output)
 	output = &ReplaceRouteOutput{}
 	req.Data = output
 	return
@@ -5630,21 +6456,26 @@ func (c *EC2) ReplaceRoute(input *ReplaceRouteInput) (*ReplaceRouteOutput, error
 	return out, err
 }
 
-const opReplaceRouteTableAssociation = "ReplaceRouteTableAssociation"
+var opReplaceRoute *aws.Operation
 
 // ReplaceRouteTableAssociationRequest generates a request for the ReplaceRouteTableAssociation operation.
 func (c *EC2) ReplaceRouteTableAssociationRequest(input *ReplaceRouteTableAssociationInput) (req *aws.Request, output *ReplaceRouteTableAssociationOutput) {
-	op := &aws.Operation{
-		Name:       opReplaceRouteTableAssociation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReplaceRouteTableAssociation == nil {
+		opReplaceRouteTableAssociation = &aws.Operation{
+			Name:       "ReplaceRouteTableAssociation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReplaceRouteTableAssociationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReplaceRouteTableAssociation, input, output)
 	output = &ReplaceRouteTableAssociationOutput{}
 	req.Data = output
 	return
@@ -5665,21 +6496,26 @@ func (c *EC2) ReplaceRouteTableAssociation(input *ReplaceRouteTableAssociationIn
 	return out, err
 }
 
-const opReportInstanceStatus = "ReportInstanceStatus"
+var opReplaceRouteTableAssociation *aws.Operation
 
 // ReportInstanceStatusRequest generates a request for the ReportInstanceStatus operation.
 func (c *EC2) ReportInstanceStatusRequest(input *ReportInstanceStatusInput) (req *aws.Request, output *ReportInstanceStatusOutput) {
-	op := &aws.Operation{
-		Name:       opReportInstanceStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opReportInstanceStatus == nil {
+		opReportInstanceStatus = &aws.Operation{
+			Name:       "ReportInstanceStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ReportInstanceStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opReportInstanceStatus, input, output)
 	output = &ReportInstanceStatusOutput{}
 	req.Data = output
 	return
@@ -5698,21 +6534,26 @@ func (c *EC2) ReportInstanceStatus(input *ReportInstanceStatusInput) (*ReportIns
 	return out, err
 }
 
-const opRequestSpotFleet = "RequestSpotFleet"
+var opReportInstanceStatus *aws.Operation
 
 // RequestSpotFleetRequest generates a request for the RequestSpotFleet operation.
 func (c *EC2) RequestSpotFleetRequest(input *RequestSpotFleetInput) (req *aws.Request, output *RequestSpotFleetOutput) {
-	op := &aws.Operation{
-		Name:       opRequestSpotFleet,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRequestSpotFleet == nil {
+		opRequestSpotFleet = &aws.Operation{
+			Name:       "RequestSpotFleet",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RequestSpotFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRequestSpotFleet, input, output)
 	output = &RequestSpotFleetOutput{}
 	req.Data = output
 	return
@@ -5728,21 +6569,26 @@ func (c *EC2) RequestSpotFleet(input *RequestSpotFleetInput) (*RequestSpotFleetO
 	return out, err
 }
 
-const opRequestSpotInstances = "RequestSpotInstances"
+var opRequestSpotFleet *aws.Operation
 
 // RequestSpotInstancesRequest generates a request for the RequestSpotInstances operation.
 func (c *EC2) RequestSpotInstancesRequest(input *RequestSpotInstancesInput) (req *aws.Request, output *RequestSpotInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opRequestSpotInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRequestSpotInstances == nil {
+		opRequestSpotInstances = &aws.Operation{
+			Name:       "RequestSpotInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RequestSpotInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRequestSpotInstances, input, output)
 	output = &RequestSpotInstancesOutput{}
 	req.Data = output
 	return
@@ -5760,21 +6606,26 @@ func (c *EC2) RequestSpotInstances(input *RequestSpotInstancesInput) (*RequestSp
 	return out, err
 }
 
-const opResetImageAttribute = "ResetImageAttribute"
+var opRequestSpotInstances *aws.Operation
 
 // ResetImageAttributeRequest generates a request for the ResetImageAttribute operation.
 func (c *EC2) ResetImageAttributeRequest(input *ResetImageAttributeInput) (req *aws.Request, output *ResetImageAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opResetImageAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opResetImageAttribute == nil {
+		opResetImageAttribute = &aws.Operation{
+			Name:       "ResetImageAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ResetImageAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opResetImageAttribute, input, output)
 	output = &ResetImageAttributeOutput{}
 	req.Data = output
 	return
@@ -5789,21 +6640,26 @@ func (c *EC2) ResetImageAttribute(input *ResetImageAttributeInput) (*ResetImageA
 	return out, err
 }
 
-const opResetInstanceAttribute = "ResetInstanceAttribute"
+var opResetImageAttribute *aws.Operation
 
 // ResetInstanceAttributeRequest generates a request for the ResetInstanceAttribute operation.
 func (c *EC2) ResetInstanceAttributeRequest(input *ResetInstanceAttributeInput) (req *aws.Request, output *ResetInstanceAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opResetInstanceAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opResetInstanceAttribute == nil {
+		opResetInstanceAttribute = &aws.Operation{
+			Name:       "ResetInstanceAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ResetInstanceAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opResetInstanceAttribute, input, output)
 	output = &ResetInstanceAttributeOutput{}
 	req.Data = output
 	return
@@ -5824,21 +6680,26 @@ func (c *EC2) ResetInstanceAttribute(input *ResetInstanceAttributeInput) (*Reset
 	return out, err
 }
 
-const opResetNetworkInterfaceAttribute = "ResetNetworkInterfaceAttribute"
+var opResetInstanceAttribute *aws.Operation
 
 // ResetNetworkInterfaceAttributeRequest generates a request for the ResetNetworkInterfaceAttribute operation.
 func (c *EC2) ResetNetworkInterfaceAttributeRequest(input *ResetNetworkInterfaceAttributeInput) (req *aws.Request, output *ResetNetworkInterfaceAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opResetNetworkInterfaceAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opResetNetworkInterfaceAttribute == nil {
+		opResetNetworkInterfaceAttribute = &aws.Operation{
+			Name:       "ResetNetworkInterfaceAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ResetNetworkInterfaceAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opResetNetworkInterfaceAttribute, input, output)
 	output = &ResetNetworkInterfaceAttributeOutput{}
 	req.Data = output
 	return
@@ -5852,21 +6713,26 @@ func (c *EC2) ResetNetworkInterfaceAttribute(input *ResetNetworkInterfaceAttribu
 	return out, err
 }
 
-const opResetSnapshotAttribute = "ResetSnapshotAttribute"
+var opResetNetworkInterfaceAttribute *aws.Operation
 
 // ResetSnapshotAttributeRequest generates a request for the ResetSnapshotAttribute operation.
 func (c *EC2) ResetSnapshotAttributeRequest(input *ResetSnapshotAttributeInput) (req *aws.Request, output *ResetSnapshotAttributeOutput) {
-	op := &aws.Operation{
-		Name:       opResetSnapshotAttribute,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opResetSnapshotAttribute == nil {
+		opResetSnapshotAttribute = &aws.Operation{
+			Name:       "ResetSnapshotAttribute",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ResetSnapshotAttributeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opResetSnapshotAttribute, input, output)
 	output = &ResetSnapshotAttributeOutput{}
 	req.Data = output
 	return
@@ -5883,21 +6749,26 @@ func (c *EC2) ResetSnapshotAttribute(input *ResetSnapshotAttributeInput) (*Reset
 	return out, err
 }
 
-const opRestoreAddressToClassic = "RestoreAddressToClassic"
+var opResetSnapshotAttribute *aws.Operation
 
 // RestoreAddressToClassicRequest generates a request for the RestoreAddressToClassic operation.
 func (c *EC2) RestoreAddressToClassicRequest(input *RestoreAddressToClassicInput) (req *aws.Request, output *RestoreAddressToClassicOutput) {
-	op := &aws.Operation{
-		Name:       opRestoreAddressToClassic,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRestoreAddressToClassic == nil {
+		opRestoreAddressToClassic = &aws.Operation{
+			Name:       "RestoreAddressToClassic",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RestoreAddressToClassicInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRestoreAddressToClassic, input, output)
 	output = &RestoreAddressToClassicOutput{}
 	req.Data = output
 	return
@@ -5913,21 +6784,26 @@ func (c *EC2) RestoreAddressToClassic(input *RestoreAddressToClassicInput) (*Res
 	return out, err
 }
 
-const opRevokeSecurityGroupEgress = "RevokeSecurityGroupEgress"
+var opRestoreAddressToClassic *aws.Operation
 
 // RevokeSecurityGroupEgressRequest generates a request for the RevokeSecurityGroupEgress operation.
 func (c *EC2) RevokeSecurityGroupEgressRequest(input *RevokeSecurityGroupEgressInput) (req *aws.Request, output *RevokeSecurityGroupEgressOutput) {
-	op := &aws.Operation{
-		Name:       opRevokeSecurityGroupEgress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRevokeSecurityGroupEgress == nil {
+		opRevokeSecurityGroupEgress = &aws.Operation{
+			Name:       "RevokeSecurityGroupEgress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RevokeSecurityGroupEgressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRevokeSecurityGroupEgress, input, output)
 	output = &RevokeSecurityGroupEgressOutput{}
 	req.Data = output
 	return
@@ -5950,21 +6826,26 @@ func (c *EC2) RevokeSecurityGroupEgress(input *RevokeSecurityGroupEgressInput) (
 	return out, err
 }
 
-const opRevokeSecurityGroupIngress = "RevokeSecurityGroupIngress"
+var opRevokeSecurityGroupEgress *aws.Operation
 
 // RevokeSecurityGroupIngressRequest generates a request for the RevokeSecurityGroupIngress operation.
 func (c *EC2) RevokeSecurityGroupIngressRequest(input *RevokeSecurityGroupIngressInput) (req *aws.Request, output *RevokeSecurityGroupIngressOutput) {
-	op := &aws.Operation{
-		Name:       opRevokeSecurityGroupIngress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRevokeSecurityGroupIngress == nil {
+		opRevokeSecurityGroupIngress = &aws.Operation{
+			Name:       "RevokeSecurityGroupIngress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RevokeSecurityGroupIngressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRevokeSecurityGroupIngress, input, output)
 	output = &RevokeSecurityGroupIngressOutput{}
 	req.Data = output
 	return
@@ -5987,21 +6868,26 @@ func (c *EC2) RevokeSecurityGroupIngress(input *RevokeSecurityGroupIngressInput)
 	return out, err
 }
 
-const opRunInstances = "RunInstances"
+var opRevokeSecurityGroupIngress *aws.Operation
 
 // RunInstancesRequest generates a request for the RunInstances operation.
 func (c *EC2) RunInstancesRequest(input *RunInstancesInput) (req *aws.Request, output *Reservation) {
-	op := &aws.Operation{
-		Name:       opRunInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRunInstances == nil {
+		opRunInstances = &aws.Operation{
+			Name:       "RunInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RunInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRunInstances, input, output)
 	output = &Reservation{}
 	req.Data = output
 	return
@@ -6046,21 +6932,26 @@ func (c *EC2) RunInstances(input *RunInstancesInput) (*Reservation, error) {
 	return out, err
 }
 
-const opStartInstances = "StartInstances"
+var opRunInstances *aws.Operation
 
 // StartInstancesRequest generates a request for the StartInstances operation.
 func (c *EC2) StartInstancesRequest(input *StartInstancesInput) (req *aws.Request, output *StartInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opStartInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStartInstances == nil {
+		opStartInstances = &aws.Operation{
+			Name:       "StartInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StartInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStartInstances, input, output)
 	output = &StartInstancesOutput{}
 	req.Data = output
 	return
@@ -6091,21 +6982,26 @@ func (c *EC2) StartInstances(input *StartInstancesInput) (*StartInstancesOutput,
 	return out, err
 }
 
-const opStopInstances = "StopInstances"
+var opStartInstances *aws.Operation
 
 // StopInstancesRequest generates a request for the StopInstances operation.
 func (c *EC2) StopInstancesRequest(input *StopInstancesInput) (req *aws.Request, output *StopInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opStopInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStopInstances == nil {
+		opStopInstances = &aws.Operation{
+			Name:       "StopInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StopInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStopInstances, input, output)
 	output = &StopInstancesOutput{}
 	req.Data = output
 	return
@@ -6148,21 +7044,26 @@ func (c *EC2) StopInstances(input *StopInstancesInput) (*StopInstancesOutput, er
 	return out, err
 }
 
-const opTerminateInstances = "TerminateInstances"
+var opStopInstances *aws.Operation
 
 // TerminateInstancesRequest generates a request for the TerminateInstances operation.
 func (c *EC2) TerminateInstancesRequest(input *TerminateInstancesInput) (req *aws.Request, output *TerminateInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opTerminateInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opTerminateInstances == nil {
+		opTerminateInstances = &aws.Operation{
+			Name:       "TerminateInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &TerminateInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opTerminateInstances, input, output)
 	output = &TerminateInstancesOutput{}
 	req.Data = output
 	return
@@ -6195,21 +7096,26 @@ func (c *EC2) TerminateInstances(input *TerminateInstancesInput) (*TerminateInst
 	return out, err
 }
 
-const opUnassignPrivateIPAddresses = "UnassignPrivateIpAddresses"
+var opTerminateInstances *aws.Operation
 
 // UnassignPrivateIPAddressesRequest generates a request for the UnassignPrivateIPAddresses operation.
 func (c *EC2) UnassignPrivateIPAddressesRequest(input *UnassignPrivateIPAddressesInput) (req *aws.Request, output *UnassignPrivateIPAddressesOutput) {
-	op := &aws.Operation{
-		Name:       opUnassignPrivateIPAddresses,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUnassignPrivateIPAddresses == nil {
+		opUnassignPrivateIPAddresses = &aws.Operation{
+			Name:       "UnassignPrivateIpAddresses",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UnassignPrivateIPAddressesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUnassignPrivateIPAddresses, input, output)
 	output = &UnassignPrivateIPAddressesOutput{}
 	req.Data = output
 	return
@@ -6222,21 +7128,26 @@ func (c *EC2) UnassignPrivateIPAddresses(input *UnassignPrivateIPAddressesInput)
 	return out, err
 }
 
-const opUnmonitorInstances = "UnmonitorInstances"
+var opUnassignPrivateIPAddresses *aws.Operation
 
 // UnmonitorInstancesRequest generates a request for the UnmonitorInstances operation.
 func (c *EC2) UnmonitorInstancesRequest(input *UnmonitorInstancesInput) (req *aws.Request, output *UnmonitorInstancesOutput) {
-	op := &aws.Operation{
-		Name:       opUnmonitorInstances,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUnmonitorInstances == nil {
+		opUnmonitorInstances = &aws.Operation{
+			Name:       "UnmonitorInstances",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UnmonitorInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUnmonitorInstances, input, output)
 	output = &UnmonitorInstancesOutput{}
 	req.Data = output
 	return
@@ -6250,6 +7161,8 @@ func (c *EC2) UnmonitorInstances(input *UnmonitorInstancesInput) (*UnmonitorInst
 	err := req.Send()
 	return out, err
 }
+
+var opUnmonitorInstances *aws.Operation
 
 type AcceptVPCPeeringConnectionInput struct {
 	// Checks whether you have the required permissions for the action, without

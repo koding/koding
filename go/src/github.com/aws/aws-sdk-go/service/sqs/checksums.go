@@ -20,7 +20,7 @@ func setupChecksumValidation(r *aws.Request) {
 		return
 	}
 
-	switch r.Operation.Name {
+	switch r.Operation {
 	case opSendMessage:
 		r.Handlers.Unmarshal.PushBack(verifySendMessage)
 	case opSendMessageBatch:

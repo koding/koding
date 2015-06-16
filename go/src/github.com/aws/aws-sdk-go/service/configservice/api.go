@@ -4,26 +4,32 @@
 package configservice
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opDeleteDeliveryChannel = "DeleteDeliveryChannel"
+var oprw sync.Mutex
 
 // DeleteDeliveryChannelRequest generates a request for the DeleteDeliveryChannel operation.
 func (c *ConfigService) DeleteDeliveryChannelRequest(input *DeleteDeliveryChannelInput) (req *aws.Request, output *DeleteDeliveryChannelOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDeliveryChannel,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDeliveryChannel == nil {
+		opDeleteDeliveryChannel = &aws.Operation{
+			Name:       "DeleteDeliveryChannel",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDeliveryChannelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDeliveryChannel, input, output)
 	output = &DeleteDeliveryChannelOutput{}
 	req.Data = output
 	return
@@ -41,21 +47,26 @@ func (c *ConfigService) DeleteDeliveryChannel(input *DeleteDeliveryChannelInput)
 	return out, err
 }
 
-const opDeliverConfigSnapshot = "DeliverConfigSnapshot"
+var opDeleteDeliveryChannel *aws.Operation
 
 // DeliverConfigSnapshotRequest generates a request for the DeliverConfigSnapshot operation.
 func (c *ConfigService) DeliverConfigSnapshotRequest(input *DeliverConfigSnapshotInput) (req *aws.Request, output *DeliverConfigSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opDeliverConfigSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeliverConfigSnapshot == nil {
+		opDeliverConfigSnapshot = &aws.Operation{
+			Name:       "DeliverConfigSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeliverConfigSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeliverConfigSnapshot, input, output)
 	output = &DeliverConfigSnapshotOutput{}
 	req.Data = output
 	return
@@ -74,21 +85,26 @@ func (c *ConfigService) DeliverConfigSnapshot(input *DeliverConfigSnapshotInput)
 	return out, err
 }
 
-const opDescribeConfigurationRecorderStatus = "DescribeConfigurationRecorderStatus"
+var opDeliverConfigSnapshot *aws.Operation
 
 // DescribeConfigurationRecorderStatusRequest generates a request for the DescribeConfigurationRecorderStatus operation.
 func (c *ConfigService) DescribeConfigurationRecorderStatusRequest(input *DescribeConfigurationRecorderStatusInput) (req *aws.Request, output *DescribeConfigurationRecorderStatusOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeConfigurationRecorderStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeConfigurationRecorderStatus == nil {
+		opDescribeConfigurationRecorderStatus = &aws.Operation{
+			Name:       "DescribeConfigurationRecorderStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeConfigurationRecorderStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeConfigurationRecorderStatus, input, output)
 	output = &DescribeConfigurationRecorderStatusOutput{}
 	req.Data = output
 	return
@@ -105,21 +121,26 @@ func (c *ConfigService) DescribeConfigurationRecorderStatus(input *DescribeConfi
 	return out, err
 }
 
-const opDescribeConfigurationRecorders = "DescribeConfigurationRecorders"
+var opDescribeConfigurationRecorderStatus *aws.Operation
 
 // DescribeConfigurationRecordersRequest generates a request for the DescribeConfigurationRecorders operation.
 func (c *ConfigService) DescribeConfigurationRecordersRequest(input *DescribeConfigurationRecordersInput) (req *aws.Request, output *DescribeConfigurationRecordersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeConfigurationRecorders,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeConfigurationRecorders == nil {
+		opDescribeConfigurationRecorders = &aws.Operation{
+			Name:       "DescribeConfigurationRecorders",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeConfigurationRecordersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeConfigurationRecorders, input, output)
 	output = &DescribeConfigurationRecordersOutput{}
 	req.Data = output
 	return
@@ -136,21 +157,26 @@ func (c *ConfigService) DescribeConfigurationRecorders(input *DescribeConfigurat
 	return out, err
 }
 
-const opDescribeDeliveryChannelStatus = "DescribeDeliveryChannelStatus"
+var opDescribeConfigurationRecorders *aws.Operation
 
 // DescribeDeliveryChannelStatusRequest generates a request for the DescribeDeliveryChannelStatus operation.
 func (c *ConfigService) DescribeDeliveryChannelStatusRequest(input *DescribeDeliveryChannelStatusInput) (req *aws.Request, output *DescribeDeliveryChannelStatusOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDeliveryChannelStatus,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDeliveryChannelStatus == nil {
+		opDescribeDeliveryChannelStatus = &aws.Operation{
+			Name:       "DescribeDeliveryChannelStatus",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDeliveryChannelStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDeliveryChannelStatus, input, output)
 	output = &DescribeDeliveryChannelStatusOutput{}
 	req.Data = output
 	return
@@ -167,21 +193,26 @@ func (c *ConfigService) DescribeDeliveryChannelStatus(input *DescribeDeliveryCha
 	return out, err
 }
 
-const opDescribeDeliveryChannels = "DescribeDeliveryChannels"
+var opDescribeDeliveryChannelStatus *aws.Operation
 
 // DescribeDeliveryChannelsRequest generates a request for the DescribeDeliveryChannels operation.
 func (c *ConfigService) DescribeDeliveryChannelsRequest(input *DescribeDeliveryChannelsInput) (req *aws.Request, output *DescribeDeliveryChannelsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDeliveryChannels,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDeliveryChannels == nil {
+		opDescribeDeliveryChannels = &aws.Operation{
+			Name:       "DescribeDeliveryChannels",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDeliveryChannelsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDeliveryChannels, input, output)
 	output = &DescribeDeliveryChannelsOutput{}
 	req.Data = output
 	return
@@ -198,27 +229,32 @@ func (c *ConfigService) DescribeDeliveryChannels(input *DescribeDeliveryChannels
 	return out, err
 }
 
-const opGetResourceConfigHistory = "GetResourceConfigHistory"
+var opDescribeDeliveryChannels *aws.Operation
 
 // GetResourceConfigHistoryRequest generates a request for the GetResourceConfigHistory operation.
 func (c *ConfigService) GetResourceConfigHistoryRequest(input *GetResourceConfigHistoryInput) (req *aws.Request, output *GetResourceConfigHistoryOutput) {
-	op := &aws.Operation{
-		Name:       opGetResourceConfigHistory,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"nextToken"},
-			OutputTokens:    []string{"nextToken"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetResourceConfigHistory == nil {
+		opGetResourceConfigHistory = &aws.Operation{
+			Name:       "GetResourceConfigHistory",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"nextToken"},
+				OutputTokens:    []string{"nextToken"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &GetResourceConfigHistoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetResourceConfigHistory, input, output)
 	output = &GetResourceConfigHistoryOutput{}
 	req.Data = output
 	return
@@ -246,21 +282,26 @@ func (c *ConfigService) GetResourceConfigHistoryPages(input *GetResourceConfigHi
 	})
 }
 
-const opPutConfigurationRecorder = "PutConfigurationRecorder"
+var opGetResourceConfigHistory *aws.Operation
 
 // PutConfigurationRecorderRequest generates a request for the PutConfigurationRecorder operation.
 func (c *ConfigService) PutConfigurationRecorderRequest(input *PutConfigurationRecorderInput) (req *aws.Request, output *PutConfigurationRecorderOutput) {
-	op := &aws.Operation{
-		Name:       opPutConfigurationRecorder,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutConfigurationRecorder == nil {
+		opPutConfigurationRecorder = &aws.Operation{
+			Name:       "PutConfigurationRecorder",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutConfigurationRecorderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutConfigurationRecorder, input, output)
 	output = &PutConfigurationRecorderOutput{}
 	req.Data = output
 	return
@@ -279,21 +320,26 @@ func (c *ConfigService) PutConfigurationRecorder(input *PutConfigurationRecorder
 	return out, err
 }
 
-const opPutDeliveryChannel = "PutDeliveryChannel"
+var opPutConfigurationRecorder *aws.Operation
 
 // PutDeliveryChannelRequest generates a request for the PutDeliveryChannel operation.
 func (c *ConfigService) PutDeliveryChannelRequest(input *PutDeliveryChannelInput) (req *aws.Request, output *PutDeliveryChannelOutput) {
-	op := &aws.Operation{
-		Name:       opPutDeliveryChannel,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutDeliveryChannel == nil {
+		opPutDeliveryChannel = &aws.Operation{
+			Name:       "PutDeliveryChannel",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutDeliveryChannelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutDeliveryChannel, input, output)
 	output = &PutDeliveryChannelOutput{}
 	req.Data = output
 	return
@@ -316,21 +362,26 @@ func (c *ConfigService) PutDeliveryChannel(input *PutDeliveryChannelInput) (*Put
 	return out, err
 }
 
-const opStartConfigurationRecorder = "StartConfigurationRecorder"
+var opPutDeliveryChannel *aws.Operation
 
 // StartConfigurationRecorderRequest generates a request for the StartConfigurationRecorder operation.
 func (c *ConfigService) StartConfigurationRecorderRequest(input *StartConfigurationRecorderInput) (req *aws.Request, output *StartConfigurationRecorderOutput) {
-	op := &aws.Operation{
-		Name:       opStartConfigurationRecorder,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStartConfigurationRecorder == nil {
+		opStartConfigurationRecorder = &aws.Operation{
+			Name:       "StartConfigurationRecorder",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StartConfigurationRecorderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStartConfigurationRecorder, input, output)
 	output = &StartConfigurationRecorderOutput{}
 	req.Data = output
 	return
@@ -347,21 +398,26 @@ func (c *ConfigService) StartConfigurationRecorder(input *StartConfigurationReco
 	return out, err
 }
 
-const opStopConfigurationRecorder = "StopConfigurationRecorder"
+var opStartConfigurationRecorder *aws.Operation
 
 // StopConfigurationRecorderRequest generates a request for the StopConfigurationRecorder operation.
 func (c *ConfigService) StopConfigurationRecorderRequest(input *StopConfigurationRecorderInput) (req *aws.Request, output *StopConfigurationRecorderOutput) {
-	op := &aws.Operation{
-		Name:       opStopConfigurationRecorder,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opStopConfigurationRecorder == nil {
+		opStopConfigurationRecorder = &aws.Operation{
+			Name:       "StopConfigurationRecorder",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &StopConfigurationRecorderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opStopConfigurationRecorder, input, output)
 	output = &StopConfigurationRecorderOutput{}
 	req.Data = output
 	return
@@ -373,6 +429,8 @@ func (c *ConfigService) StopConfigurationRecorder(input *StopConfigurationRecord
 	err := req.Send()
 	return out, err
 }
+
+var opStopConfigurationRecorder *aws.Operation
 
 // A list that contains the status of the delivery of either the snapshot or
 // the configuration history to the specified Amazon S3 bucket.

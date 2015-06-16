@@ -1,4 +1,4 @@
-package dynamodbattribute
+package dynamodb
 
 import (
 	"bytes"

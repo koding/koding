@@ -4,26 +4,32 @@
 package machinelearning
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCreateBatchPrediction = "CreateBatchPrediction"
+var oprw sync.Mutex
 
 // CreateBatchPredictionRequest generates a request for the CreateBatchPrediction operation.
 func (c *MachineLearning) CreateBatchPredictionRequest(input *CreateBatchPredictionInput) (req *aws.Request, output *CreateBatchPredictionOutput) {
-	op := &aws.Operation{
-		Name:       opCreateBatchPrediction,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateBatchPrediction == nil {
+		opCreateBatchPrediction = &aws.Operation{
+			Name:       "CreateBatchPrediction",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateBatchPredictionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateBatchPrediction, input, output)
 	output = &CreateBatchPredictionOutput{}
 	req.Data = output
 	return
@@ -49,21 +55,26 @@ func (c *MachineLearning) CreateBatchPrediction(input *CreateBatchPredictionInpu
 	return out, err
 }
 
-const opCreateDataSourceFromRDS = "CreateDataSourceFromRDS"
+var opCreateBatchPrediction *aws.Operation
 
 // CreateDataSourceFromRDSRequest generates a request for the CreateDataSourceFromRDS operation.
 func (c *MachineLearning) CreateDataSourceFromRDSRequest(input *CreateDataSourceFromRDSInput) (req *aws.Request, output *CreateDataSourceFromRDSOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDataSourceFromRDS,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDataSourceFromRDS == nil {
+		opCreateDataSourceFromRDS = &aws.Operation{
+			Name:       "CreateDataSourceFromRDS",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDataSourceFromRDSInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDataSourceFromRDS, input, output)
 	output = &CreateDataSourceFromRDSOutput{}
 	req.Data = output
 	return
@@ -89,21 +100,26 @@ func (c *MachineLearning) CreateDataSourceFromRDS(input *CreateDataSourceFromRDS
 	return out, err
 }
 
-const opCreateDataSourceFromRedshift = "CreateDataSourceFromRedshift"
+var opCreateDataSourceFromRDS *aws.Operation
 
 // CreateDataSourceFromRedshiftRequest generates a request for the CreateDataSourceFromRedshift operation.
 func (c *MachineLearning) CreateDataSourceFromRedshiftRequest(input *CreateDataSourceFromRedshiftInput) (req *aws.Request, output *CreateDataSourceFromRedshiftOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDataSourceFromRedshift,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDataSourceFromRedshift == nil {
+		opCreateDataSourceFromRedshift = &aws.Operation{
+			Name:       "CreateDataSourceFromRedshift",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDataSourceFromRedshiftInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDataSourceFromRedshift, input, output)
 	output = &CreateDataSourceFromRedshiftOutput{}
 	req.Data = output
 	return
@@ -145,21 +161,26 @@ func (c *MachineLearning) CreateDataSourceFromRedshift(input *CreateDataSourceFr
 	return out, err
 }
 
-const opCreateDataSourceFromS3 = "CreateDataSourceFromS3"
+var opCreateDataSourceFromRedshift *aws.Operation
 
 // CreateDataSourceFromS3Request generates a request for the CreateDataSourceFromS3 operation.
 func (c *MachineLearning) CreateDataSourceFromS3Request(input *CreateDataSourceFromS3Input) (req *aws.Request, output *CreateDataSourceFromS3Output) {
-	op := &aws.Operation{
-		Name:       opCreateDataSourceFromS3,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDataSourceFromS3 == nil {
+		opCreateDataSourceFromS3 = &aws.Operation{
+			Name:       "CreateDataSourceFromS3",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDataSourceFromS3Input{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDataSourceFromS3, input, output)
 	output = &CreateDataSourceFromS3Output{}
 	req.Data = output
 	return
@@ -201,21 +222,26 @@ func (c *MachineLearning) CreateDataSourceFromS3(input *CreateDataSourceFromS3In
 	return out, err
 }
 
-const opCreateEvaluation = "CreateEvaluation"
+var opCreateDataSourceFromS3 *aws.Operation
 
 // CreateEvaluationRequest generates a request for the CreateEvaluation operation.
 func (c *MachineLearning) CreateEvaluationRequest(input *CreateEvaluationInput) (req *aws.Request, output *CreateEvaluationOutput) {
-	op := &aws.Operation{
-		Name:       opCreateEvaluation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateEvaluation == nil {
+		opCreateEvaluation = &aws.Operation{
+			Name:       "CreateEvaluation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateEvaluationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateEvaluation, input, output)
 	output = &CreateEvaluationOutput{}
 	req.Data = output
 	return
@@ -243,21 +269,26 @@ func (c *MachineLearning) CreateEvaluation(input *CreateEvaluationInput) (*Creat
 	return out, err
 }
 
-const opCreateMLModel = "CreateMLModel"
+var opCreateEvaluation *aws.Operation
 
 // CreateMLModelRequest generates a request for the CreateMLModel operation.
 func (c *MachineLearning) CreateMLModelRequest(input *CreateMLModelInput) (req *aws.Request, output *CreateMLModelOutput) {
-	op := &aws.Operation{
-		Name:       opCreateMLModel,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateMLModel == nil {
+		opCreateMLModel = &aws.Operation{
+			Name:       "CreateMLModel",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateMLModelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateMLModel, input, output)
 	output = &CreateMLModelOutput{}
 	req.Data = output
 	return
@@ -286,21 +317,26 @@ func (c *MachineLearning) CreateMLModel(input *CreateMLModelInput) (*CreateMLMod
 	return out, err
 }
 
-const opCreateRealtimeEndpoint = "CreateRealtimeEndpoint"
+var opCreateMLModel *aws.Operation
 
 // CreateRealtimeEndpointRequest generates a request for the CreateRealtimeEndpoint operation.
 func (c *MachineLearning) CreateRealtimeEndpointRequest(input *CreateRealtimeEndpointInput) (req *aws.Request, output *CreateRealtimeEndpointOutput) {
-	op := &aws.Operation{
-		Name:       opCreateRealtimeEndpoint,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateRealtimeEndpoint == nil {
+		opCreateRealtimeEndpoint = &aws.Operation{
+			Name:       "CreateRealtimeEndpoint",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateRealtimeEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateRealtimeEndpoint, input, output)
 	output = &CreateRealtimeEndpointOutput{}
 	req.Data = output
 	return
@@ -315,21 +351,26 @@ func (c *MachineLearning) CreateRealtimeEndpoint(input *CreateRealtimeEndpointIn
 	return out, err
 }
 
-const opDeleteBatchPrediction = "DeleteBatchPrediction"
+var opCreateRealtimeEndpoint *aws.Operation
 
 // DeleteBatchPredictionRequest generates a request for the DeleteBatchPrediction operation.
 func (c *MachineLearning) DeleteBatchPredictionRequest(input *DeleteBatchPredictionInput) (req *aws.Request, output *DeleteBatchPredictionOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteBatchPrediction,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteBatchPrediction == nil {
+		opDeleteBatchPrediction = &aws.Operation{
+			Name:       "DeleteBatchPrediction",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteBatchPredictionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteBatchPrediction, input, output)
 	output = &DeleteBatchPredictionOutput{}
 	req.Data = output
 	return
@@ -347,21 +388,26 @@ func (c *MachineLearning) DeleteBatchPrediction(input *DeleteBatchPredictionInpu
 	return out, err
 }
 
-const opDeleteDataSource = "DeleteDataSource"
+var opDeleteBatchPrediction *aws.Operation
 
 // DeleteDataSourceRequest generates a request for the DeleteDataSource operation.
 func (c *MachineLearning) DeleteDataSourceRequest(input *DeleteDataSourceInput) (req *aws.Request, output *DeleteDataSourceOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDataSource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDataSource == nil {
+		opDeleteDataSource = &aws.Operation{
+			Name:       "DeleteDataSource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDataSourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDataSource, input, output)
 	output = &DeleteDataSourceOutput{}
 	req.Data = output
 	return
@@ -379,21 +425,26 @@ func (c *MachineLearning) DeleteDataSource(input *DeleteDataSourceInput) (*Delet
 	return out, err
 }
 
-const opDeleteEvaluation = "DeleteEvaluation"
+var opDeleteDataSource *aws.Operation
 
 // DeleteEvaluationRequest generates a request for the DeleteEvaluation operation.
 func (c *MachineLearning) DeleteEvaluationRequest(input *DeleteEvaluationInput) (req *aws.Request, output *DeleteEvaluationOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteEvaluation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteEvaluation == nil {
+		opDeleteEvaluation = &aws.Operation{
+			Name:       "DeleteEvaluation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteEvaluationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteEvaluation, input, output)
 	output = &DeleteEvaluationOutput{}
 	req.Data = output
 	return
@@ -411,21 +462,26 @@ func (c *MachineLearning) DeleteEvaluation(input *DeleteEvaluationInput) (*Delet
 	return out, err
 }
 
-const opDeleteMLModel = "DeleteMLModel"
+var opDeleteEvaluation *aws.Operation
 
 // DeleteMLModelRequest generates a request for the DeleteMLModel operation.
 func (c *MachineLearning) DeleteMLModelRequest(input *DeleteMLModelInput) (req *aws.Request, output *DeleteMLModelOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteMLModel,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteMLModel == nil {
+		opDeleteMLModel = &aws.Operation{
+			Name:       "DeleteMLModel",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteMLModelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteMLModel, input, output)
 	output = &DeleteMLModelOutput{}
 	req.Data = output
 	return
@@ -443,21 +499,26 @@ func (c *MachineLearning) DeleteMLModel(input *DeleteMLModelInput) (*DeleteMLMod
 	return out, err
 }
 
-const opDeleteRealtimeEndpoint = "DeleteRealtimeEndpoint"
+var opDeleteMLModel *aws.Operation
 
 // DeleteRealtimeEndpointRequest generates a request for the DeleteRealtimeEndpoint operation.
 func (c *MachineLearning) DeleteRealtimeEndpointRequest(input *DeleteRealtimeEndpointInput) (req *aws.Request, output *DeleteRealtimeEndpointOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteRealtimeEndpoint,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteRealtimeEndpoint == nil {
+		opDeleteRealtimeEndpoint = &aws.Operation{
+			Name:       "DeleteRealtimeEndpoint",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteRealtimeEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteRealtimeEndpoint, input, output)
 	output = &DeleteRealtimeEndpointOutput{}
 	req.Data = output
 	return
@@ -470,27 +531,32 @@ func (c *MachineLearning) DeleteRealtimeEndpoint(input *DeleteRealtimeEndpointIn
 	return out, err
 }
 
-const opDescribeBatchPredictions = "DescribeBatchPredictions"
+var opDeleteRealtimeEndpoint *aws.Operation
 
 // DescribeBatchPredictionsRequest generates a request for the DescribeBatchPredictions operation.
 func (c *MachineLearning) DescribeBatchPredictionsRequest(input *DescribeBatchPredictionsInput) (req *aws.Request, output *DescribeBatchPredictionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeBatchPredictions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "Limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeBatchPredictions == nil {
+		opDescribeBatchPredictions = &aws.Operation{
+			Name:       "DescribeBatchPredictions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "Limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeBatchPredictionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeBatchPredictions, input, output)
 	output = &DescribeBatchPredictionsOutput{}
 	req.Data = output
 	return
@@ -511,27 +577,32 @@ func (c *MachineLearning) DescribeBatchPredictionsPages(input *DescribeBatchPred
 	})
 }
 
-const opDescribeDataSources = "DescribeDataSources"
+var opDescribeBatchPredictions *aws.Operation
 
 // DescribeDataSourcesRequest generates a request for the DescribeDataSources operation.
 func (c *MachineLearning) DescribeDataSourcesRequest(input *DescribeDataSourcesInput) (req *aws.Request, output *DescribeDataSourcesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDataSources,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "Limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDataSources == nil {
+		opDescribeDataSources = &aws.Operation{
+			Name:       "DescribeDataSources",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "Limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDataSourcesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDataSources, input, output)
 	output = &DescribeDataSourcesOutput{}
 	req.Data = output
 	return
@@ -551,27 +622,32 @@ func (c *MachineLearning) DescribeDataSourcesPages(input *DescribeDataSourcesInp
 	})
 }
 
-const opDescribeEvaluations = "DescribeEvaluations"
+var opDescribeDataSources *aws.Operation
 
 // DescribeEvaluationsRequest generates a request for the DescribeEvaluations operation.
 func (c *MachineLearning) DescribeEvaluationsRequest(input *DescribeEvaluationsInput) (req *aws.Request, output *DescribeEvaluationsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEvaluations,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "Limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEvaluations == nil {
+		opDescribeEvaluations = &aws.Operation{
+			Name:       "DescribeEvaluations",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "Limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEvaluationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEvaluations, input, output)
 	output = &DescribeEvaluationsOutput{}
 	req.Data = output
 	return
@@ -592,27 +668,32 @@ func (c *MachineLearning) DescribeEvaluationsPages(input *DescribeEvaluationsInp
 	})
 }
 
-const opDescribeMLModels = "DescribeMLModels"
+var opDescribeEvaluations *aws.Operation
 
 // DescribeMLModelsRequest generates a request for the DescribeMLModels operation.
 func (c *MachineLearning) DescribeMLModelsRequest(input *DescribeMLModelsInput) (req *aws.Request, output *DescribeMLModelsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeMLModels,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "Limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeMLModels == nil {
+		opDescribeMLModels = &aws.Operation{
+			Name:       "DescribeMLModels",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "Limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeMLModelsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeMLModels, input, output)
 	output = &DescribeMLModelsOutput{}
 	req.Data = output
 	return
@@ -632,21 +713,26 @@ func (c *MachineLearning) DescribeMLModelsPages(input *DescribeMLModelsInput, fn
 	})
 }
 
-const opGetBatchPrediction = "GetBatchPrediction"
+var opDescribeMLModels *aws.Operation
 
 // GetBatchPredictionRequest generates a request for the GetBatchPrediction operation.
 func (c *MachineLearning) GetBatchPredictionRequest(input *GetBatchPredictionInput) (req *aws.Request, output *GetBatchPredictionOutput) {
-	op := &aws.Operation{
-		Name:       opGetBatchPrediction,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetBatchPrediction == nil {
+		opGetBatchPrediction = &aws.Operation{
+			Name:       "GetBatchPrediction",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetBatchPredictionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetBatchPrediction, input, output)
 	output = &GetBatchPredictionOutput{}
 	req.Data = output
 	return
@@ -660,21 +746,26 @@ func (c *MachineLearning) GetBatchPrediction(input *GetBatchPredictionInput) (*G
 	return out, err
 }
 
-const opGetDataSource = "GetDataSource"
+var opGetBatchPrediction *aws.Operation
 
 // GetDataSourceRequest generates a request for the GetDataSource operation.
 func (c *MachineLearning) GetDataSourceRequest(input *GetDataSourceInput) (req *aws.Request, output *GetDataSourceOutput) {
-	op := &aws.Operation{
-		Name:       opGetDataSource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetDataSource == nil {
+		opGetDataSource = &aws.Operation{
+			Name:       "GetDataSource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetDataSourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetDataSource, input, output)
 	output = &GetDataSourceOutput{}
 	req.Data = output
 	return
@@ -692,21 +783,26 @@ func (c *MachineLearning) GetDataSource(input *GetDataSourceInput) (*GetDataSour
 	return out, err
 }
 
-const opGetEvaluation = "GetEvaluation"
+var opGetDataSource *aws.Operation
 
 // GetEvaluationRequest generates a request for the GetEvaluation operation.
 func (c *MachineLearning) GetEvaluationRequest(input *GetEvaluationInput) (req *aws.Request, output *GetEvaluationOutput) {
-	op := &aws.Operation{
-		Name:       opGetEvaluation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetEvaluation == nil {
+		opGetEvaluation = &aws.Operation{
+			Name:       "GetEvaluation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetEvaluationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetEvaluation, input, output)
 	output = &GetEvaluationOutput{}
 	req.Data = output
 	return
@@ -720,21 +816,26 @@ func (c *MachineLearning) GetEvaluation(input *GetEvaluationInput) (*GetEvaluati
 	return out, err
 }
 
-const opGetMLModel = "GetMLModel"
+var opGetEvaluation *aws.Operation
 
 // GetMLModelRequest generates a request for the GetMLModel operation.
 func (c *MachineLearning) GetMLModelRequest(input *GetMLModelInput) (req *aws.Request, output *GetMLModelOutput) {
-	op := &aws.Operation{
-		Name:       opGetMLModel,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetMLModel == nil {
+		opGetMLModel = &aws.Operation{
+			Name:       "GetMLModel",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetMLModelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetMLModel, input, output)
 	output = &GetMLModelOutput{}
 	req.Data = output
 	return
@@ -750,21 +851,26 @@ func (c *MachineLearning) GetMLModel(input *GetMLModelInput) (*GetMLModelOutput,
 	return out, err
 }
 
-const opPredict = "Predict"
+var opGetMLModel *aws.Operation
 
 // PredictRequest generates a request for the Predict operation.
 func (c *MachineLearning) PredictRequest(input *PredictInput) (req *aws.Request, output *PredictOutput) {
-	op := &aws.Operation{
-		Name:       opPredict,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPredict == nil {
+		opPredict = &aws.Operation{
+			Name:       "Predict",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PredictInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPredict, input, output)
 	output = &PredictOutput{}
 	req.Data = output
 	return
@@ -780,21 +886,26 @@ func (c *MachineLearning) Predict(input *PredictInput) (*PredictOutput, error) {
 	return out, err
 }
 
-const opUpdateBatchPrediction = "UpdateBatchPrediction"
+var opPredict *aws.Operation
 
 // UpdateBatchPredictionRequest generates a request for the UpdateBatchPrediction operation.
 func (c *MachineLearning) UpdateBatchPredictionRequest(input *UpdateBatchPredictionInput) (req *aws.Request, output *UpdateBatchPredictionOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateBatchPrediction,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateBatchPrediction == nil {
+		opUpdateBatchPrediction = &aws.Operation{
+			Name:       "UpdateBatchPrediction",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateBatchPredictionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateBatchPrediction, input, output)
 	output = &UpdateBatchPredictionOutput{}
 	req.Data = output
 	return
@@ -810,21 +921,26 @@ func (c *MachineLearning) UpdateBatchPrediction(input *UpdateBatchPredictionInpu
 	return out, err
 }
 
-const opUpdateDataSource = "UpdateDataSource"
+var opUpdateBatchPrediction *aws.Operation
 
 // UpdateDataSourceRequest generates a request for the UpdateDataSource operation.
 func (c *MachineLearning) UpdateDataSourceRequest(input *UpdateDataSourceInput) (req *aws.Request, output *UpdateDataSourceOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateDataSource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateDataSource == nil {
+		opUpdateDataSource = &aws.Operation{
+			Name:       "UpdateDataSource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateDataSourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateDataSource, input, output)
 	output = &UpdateDataSourceOutput{}
 	req.Data = output
 	return
@@ -840,21 +956,26 @@ func (c *MachineLearning) UpdateDataSource(input *UpdateDataSourceInput) (*Updat
 	return out, err
 }
 
-const opUpdateEvaluation = "UpdateEvaluation"
+var opUpdateDataSource *aws.Operation
 
 // UpdateEvaluationRequest generates a request for the UpdateEvaluation operation.
 func (c *MachineLearning) UpdateEvaluationRequest(input *UpdateEvaluationInput) (req *aws.Request, output *UpdateEvaluationOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateEvaluation,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateEvaluation == nil {
+		opUpdateEvaluation = &aws.Operation{
+			Name:       "UpdateEvaluation",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateEvaluationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateEvaluation, input, output)
 	output = &UpdateEvaluationOutput{}
 	req.Data = output
 	return
@@ -870,21 +991,26 @@ func (c *MachineLearning) UpdateEvaluation(input *UpdateEvaluationInput) (*Updat
 	return out, err
 }
 
-const opUpdateMLModel = "UpdateMLModel"
+var opUpdateEvaluation *aws.Operation
 
 // UpdateMLModelRequest generates a request for the UpdateMLModel operation.
 func (c *MachineLearning) UpdateMLModelRequest(input *UpdateMLModelInput) (req *aws.Request, output *UpdateMLModelOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateMLModel,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateMLModel == nil {
+		opUpdateMLModel = &aws.Operation{
+			Name:       "UpdateMLModel",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateMLModelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateMLModel, input, output)
 	output = &UpdateMLModelOutput{}
 	req.Data = output
 	return
@@ -899,6 +1025,8 @@ func (c *MachineLearning) UpdateMLModel(input *UpdateMLModelInput) (*UpdateMLMod
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateMLModel *aws.Operation
 
 // Represents the output of GetBatchPrediction operation.
 //

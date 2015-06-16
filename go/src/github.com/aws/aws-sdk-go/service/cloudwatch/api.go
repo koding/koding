@@ -4,26 +4,32 @@
 package cloudwatch
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opDeleteAlarms = "DeleteAlarms"
+var oprw sync.Mutex
 
 // DeleteAlarmsRequest generates a request for the DeleteAlarms operation.
 func (c *CloudWatch) DeleteAlarmsRequest(input *DeleteAlarmsInput) (req *aws.Request, output *DeleteAlarmsOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteAlarms,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteAlarms == nil {
+		opDeleteAlarms = &aws.Operation{
+			Name:       "DeleteAlarms",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteAlarmsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteAlarms, input, output)
 	output = &DeleteAlarmsOutput{}
 	req.Data = output
 	return
@@ -36,27 +42,32 @@ func (c *CloudWatch) DeleteAlarms(input *DeleteAlarmsInput) (*DeleteAlarmsOutput
 	return out, err
 }
 
-const opDescribeAlarmHistory = "DescribeAlarmHistory"
+var opDeleteAlarms *aws.Operation
 
 // DescribeAlarmHistoryRequest generates a request for the DescribeAlarmHistory operation.
 func (c *CloudWatch) DescribeAlarmHistoryRequest(input *DescribeAlarmHistoryInput) (req *aws.Request, output *DescribeAlarmHistoryOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAlarmHistory,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAlarmHistory == nil {
+		opDescribeAlarmHistory = &aws.Operation{
+			Name:       "DescribeAlarmHistory",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAlarmHistoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAlarmHistory, input, output)
 	output = &DescribeAlarmHistoryOutput{}
 	req.Data = output
 	return
@@ -81,27 +92,32 @@ func (c *CloudWatch) DescribeAlarmHistoryPages(input *DescribeAlarmHistoryInput,
 	})
 }
 
-const opDescribeAlarms = "DescribeAlarms"
+var opDescribeAlarmHistory *aws.Operation
 
 // DescribeAlarmsRequest generates a request for the DescribeAlarms operation.
 func (c *CloudWatch) DescribeAlarmsRequest(input *DescribeAlarmsInput) (req *aws.Request, output *DescribeAlarmsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAlarms,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAlarms == nil {
+		opDescribeAlarms = &aws.Operation{
+			Name:       "DescribeAlarms",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAlarmsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAlarms, input, output)
 	output = &DescribeAlarmsOutput{}
 	req.Data = output
 	return
@@ -123,21 +139,26 @@ func (c *CloudWatch) DescribeAlarmsPages(input *DescribeAlarmsInput, fn func(p *
 	})
 }
 
-const opDescribeAlarmsForMetric = "DescribeAlarmsForMetric"
+var opDescribeAlarms *aws.Operation
 
 // DescribeAlarmsForMetricRequest generates a request for the DescribeAlarmsForMetric operation.
 func (c *CloudWatch) DescribeAlarmsForMetricRequest(input *DescribeAlarmsForMetricInput) (req *aws.Request, output *DescribeAlarmsForMetricOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAlarmsForMetric,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAlarmsForMetric == nil {
+		opDescribeAlarmsForMetric = &aws.Operation{
+			Name:       "DescribeAlarmsForMetric",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAlarmsForMetricInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAlarmsForMetric, input, output)
 	output = &DescribeAlarmsForMetricOutput{}
 	req.Data = output
 	return
@@ -151,21 +172,26 @@ func (c *CloudWatch) DescribeAlarmsForMetric(input *DescribeAlarmsForMetricInput
 	return out, err
 }
 
-const opDisableAlarmActions = "DisableAlarmActions"
+var opDescribeAlarmsForMetric *aws.Operation
 
 // DisableAlarmActionsRequest generates a request for the DisableAlarmActions operation.
 func (c *CloudWatch) DisableAlarmActionsRequest(input *DisableAlarmActionsInput) (req *aws.Request, output *DisableAlarmActionsOutput) {
-	op := &aws.Operation{
-		Name:       opDisableAlarmActions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDisableAlarmActions == nil {
+		opDisableAlarmActions = &aws.Operation{
+			Name:       "DisableAlarmActions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DisableAlarmActionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDisableAlarmActions, input, output)
 	output = &DisableAlarmActionsOutput{}
 	req.Data = output
 	return
@@ -179,21 +205,26 @@ func (c *CloudWatch) DisableAlarmActions(input *DisableAlarmActionsInput) (*Disa
 	return out, err
 }
 
-const opEnableAlarmActions = "EnableAlarmActions"
+var opDisableAlarmActions *aws.Operation
 
 // EnableAlarmActionsRequest generates a request for the EnableAlarmActions operation.
 func (c *CloudWatch) EnableAlarmActionsRequest(input *EnableAlarmActionsInput) (req *aws.Request, output *EnableAlarmActionsOutput) {
-	op := &aws.Operation{
-		Name:       opEnableAlarmActions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opEnableAlarmActions == nil {
+		opEnableAlarmActions = &aws.Operation{
+			Name:       "EnableAlarmActions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &EnableAlarmActionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opEnableAlarmActions, input, output)
 	output = &EnableAlarmActionsOutput{}
 	req.Data = output
 	return
@@ -206,21 +237,26 @@ func (c *CloudWatch) EnableAlarmActions(input *EnableAlarmActionsInput) (*Enable
 	return out, err
 }
 
-const opGetMetricStatistics = "GetMetricStatistics"
+var opEnableAlarmActions *aws.Operation
 
 // GetMetricStatisticsRequest generates a request for the GetMetricStatistics operation.
 func (c *CloudWatch) GetMetricStatisticsRequest(input *GetMetricStatisticsInput) (req *aws.Request, output *GetMetricStatisticsOutput) {
-	op := &aws.Operation{
-		Name:       opGetMetricStatistics,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetMetricStatistics == nil {
+		opGetMetricStatistics = &aws.Operation{
+			Name:       "GetMetricStatistics",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetMetricStatisticsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetMetricStatistics, input, output)
 	output = &GetMetricStatisticsOutput{}
 	req.Data = output
 	return
@@ -258,27 +294,32 @@ func (c *CloudWatch) GetMetricStatistics(input *GetMetricStatisticsInput) (*GetM
 	return out, err
 }
 
-const opListMetrics = "ListMetrics"
+var opGetMetricStatistics *aws.Operation
 
 // ListMetricsRequest generates a request for the ListMetrics operation.
 func (c *CloudWatch) ListMetricsRequest(input *ListMetricsInput) (req *aws.Request, output *ListMetricsOutput) {
-	op := &aws.Operation{
-		Name:       opListMetrics,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListMetrics == nil {
+		opListMetrics = &aws.Operation{
+			Name:       "ListMetrics",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListMetricsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListMetrics, input, output)
 	output = &ListMetricsOutput{}
 	req.Data = output
 	return
@@ -306,21 +347,26 @@ func (c *CloudWatch) ListMetricsPages(input *ListMetricsInput, fn func(p *ListMe
 	})
 }
 
-const opPutMetricAlarm = "PutMetricAlarm"
+var opListMetrics *aws.Operation
 
 // PutMetricAlarmRequest generates a request for the PutMetricAlarm operation.
 func (c *CloudWatch) PutMetricAlarmRequest(input *PutMetricAlarmInput) (req *aws.Request, output *PutMetricAlarmOutput) {
-	op := &aws.Operation{
-		Name:       opPutMetricAlarm,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutMetricAlarm == nil {
+		opPutMetricAlarm = &aws.Operation{
+			Name:       "PutMetricAlarm",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutMetricAlarmInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutMetricAlarm, input, output)
 	output = &PutMetricAlarmOutput{}
 	req.Data = output
 	return
@@ -341,21 +387,26 @@ func (c *CloudWatch) PutMetricAlarm(input *PutMetricAlarmInput) (*PutMetricAlarm
 	return out, err
 }
 
-const opPutMetricData = "PutMetricData"
+var opPutMetricAlarm *aws.Operation
 
 // PutMetricDataRequest generates a request for the PutMetricData operation.
 func (c *CloudWatch) PutMetricDataRequest(input *PutMetricDataInput) (req *aws.Request, output *PutMetricDataOutput) {
-	op := &aws.Operation{
-		Name:       opPutMetricData,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPutMetricData == nil {
+		opPutMetricData = &aws.Operation{
+			Name:       "PutMetricData",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PutMetricDataInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPutMetricData, input, output)
 	output = &PutMetricDataOutput{}
 	req.Data = output
 	return
@@ -381,21 +432,26 @@ func (c *CloudWatch) PutMetricData(input *PutMetricDataInput) (*PutMetricDataOut
 	return out, err
 }
 
-const opSetAlarmState = "SetAlarmState"
+var opPutMetricData *aws.Operation
 
 // SetAlarmStateRequest generates a request for the SetAlarmState operation.
 func (c *CloudWatch) SetAlarmStateRequest(input *SetAlarmStateInput) (req *aws.Request, output *SetAlarmStateOutput) {
-	op := &aws.Operation{
-		Name:       opSetAlarmState,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetAlarmState == nil {
+		opSetAlarmState = &aws.Operation{
+			Name:       "SetAlarmState",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetAlarmStateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetAlarmState, input, output)
 	output = &SetAlarmStateOutput{}
 	req.Data = output
 	return
@@ -410,6 +466,8 @@ func (c *CloudWatch) SetAlarmState(input *SetAlarmStateInput) (*SetAlarmStateOut
 	err := req.Send()
 	return out, err
 }
+
+var opSetAlarmState *aws.Operation
 
 // The AlarmHistoryItem data type contains descriptive information about the
 // history of a specific alarm. If you call DescribeAlarmHistory, Amazon CloudWatch

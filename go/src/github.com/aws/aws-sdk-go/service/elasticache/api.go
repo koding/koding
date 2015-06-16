@@ -4,26 +4,32 @@
 package elasticache
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAddTagsToResource = "AddTagsToResource"
+var oprw sync.Mutex
 
 // AddTagsToResourceRequest generates a request for the AddTagsToResource operation.
 func (c *ElastiCache) AddTagsToResourceRequest(input *AddTagsToResourceInput) (req *aws.Request, output *TagListMessage) {
-	op := &aws.Operation{
-		Name:       opAddTagsToResource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddTagsToResource == nil {
+		opAddTagsToResource = &aws.Operation{
+			Name:       "AddTagsToResource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddTagsToResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddTagsToResource, input, output)
 	output = &TagListMessage{}
 	req.Data = output
 	return
@@ -46,21 +52,26 @@ func (c *ElastiCache) AddTagsToResource(input *AddTagsToResourceInput) (*TagList
 	return out, err
 }
 
-const opAuthorizeCacheSecurityGroupIngress = "AuthorizeCacheSecurityGroupIngress"
+var opAddTagsToResource *aws.Operation
 
 // AuthorizeCacheSecurityGroupIngressRequest generates a request for the AuthorizeCacheSecurityGroupIngress operation.
 func (c *ElastiCache) AuthorizeCacheSecurityGroupIngressRequest(input *AuthorizeCacheSecurityGroupIngressInput) (req *aws.Request, output *AuthorizeCacheSecurityGroupIngressOutput) {
-	op := &aws.Operation{
-		Name:       opAuthorizeCacheSecurityGroupIngress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAuthorizeCacheSecurityGroupIngress == nil {
+		opAuthorizeCacheSecurityGroupIngress = &aws.Operation{
+			Name:       "AuthorizeCacheSecurityGroupIngress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AuthorizeCacheSecurityGroupIngressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAuthorizeCacheSecurityGroupIngress, input, output)
 	output = &AuthorizeCacheSecurityGroupIngressOutput{}
 	req.Data = output
 	return
@@ -78,21 +89,26 @@ func (c *ElastiCache) AuthorizeCacheSecurityGroupIngress(input *AuthorizeCacheSe
 	return out, err
 }
 
-const opCopySnapshot = "CopySnapshot"
+var opAuthorizeCacheSecurityGroupIngress *aws.Operation
 
 // CopySnapshotRequest generates a request for the CopySnapshot operation.
 func (c *ElastiCache) CopySnapshotRequest(input *CopySnapshotInput) (req *aws.Request, output *CopySnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opCopySnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCopySnapshot == nil {
+		opCopySnapshot = &aws.Operation{
+			Name:       "CopySnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CopySnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCopySnapshot, input, output)
 	output = &CopySnapshotOutput{}
 	req.Data = output
 	return
@@ -105,21 +121,26 @@ func (c *ElastiCache) CopySnapshot(input *CopySnapshotInput) (*CopySnapshotOutpu
 	return out, err
 }
 
-const opCreateCacheCluster = "CreateCacheCluster"
+var opCopySnapshot *aws.Operation
 
 // CreateCacheClusterRequest generates a request for the CreateCacheCluster operation.
 func (c *ElastiCache) CreateCacheClusterRequest(input *CreateCacheClusterInput) (req *aws.Request, output *CreateCacheClusterOutput) {
-	op := &aws.Operation{
-		Name:       opCreateCacheCluster,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateCacheCluster == nil {
+		opCreateCacheCluster = &aws.Operation{
+			Name:       "CreateCacheCluster",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateCacheClusterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateCacheCluster, input, output)
 	output = &CreateCacheClusterOutput{}
 	req.Data = output
 	return
@@ -134,21 +155,26 @@ func (c *ElastiCache) CreateCacheCluster(input *CreateCacheClusterInput) (*Creat
 	return out, err
 }
 
-const opCreateCacheParameterGroup = "CreateCacheParameterGroup"
+var opCreateCacheCluster *aws.Operation
 
 // CreateCacheParameterGroupRequest generates a request for the CreateCacheParameterGroup operation.
 func (c *ElastiCache) CreateCacheParameterGroupRequest(input *CreateCacheParameterGroupInput) (req *aws.Request, output *CreateCacheParameterGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateCacheParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateCacheParameterGroup == nil {
+		opCreateCacheParameterGroup = &aws.Operation{
+			Name:       "CreateCacheParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateCacheParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateCacheParameterGroup, input, output)
 	output = &CreateCacheParameterGroupOutput{}
 	req.Data = output
 	return
@@ -163,21 +189,26 @@ func (c *ElastiCache) CreateCacheParameterGroup(input *CreateCacheParameterGroup
 	return out, err
 }
 
-const opCreateCacheSecurityGroup = "CreateCacheSecurityGroup"
+var opCreateCacheParameterGroup *aws.Operation
 
 // CreateCacheSecurityGroupRequest generates a request for the CreateCacheSecurityGroup operation.
 func (c *ElastiCache) CreateCacheSecurityGroupRequest(input *CreateCacheSecurityGroupInput) (req *aws.Request, output *CreateCacheSecurityGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateCacheSecurityGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateCacheSecurityGroup == nil {
+		opCreateCacheSecurityGroup = &aws.Operation{
+			Name:       "CreateCacheSecurityGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateCacheSecurityGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateCacheSecurityGroup, input, output)
 	output = &CreateCacheSecurityGroupOutput{}
 	req.Data = output
 	return
@@ -196,21 +227,26 @@ func (c *ElastiCache) CreateCacheSecurityGroup(input *CreateCacheSecurityGroupIn
 	return out, err
 }
 
-const opCreateCacheSubnetGroup = "CreateCacheSubnetGroup"
+var opCreateCacheSecurityGroup *aws.Operation
 
 // CreateCacheSubnetGroupRequest generates a request for the CreateCacheSubnetGroup operation.
 func (c *ElastiCache) CreateCacheSubnetGroupRequest(input *CreateCacheSubnetGroupInput) (req *aws.Request, output *CreateCacheSubnetGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateCacheSubnetGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateCacheSubnetGroup == nil {
+		opCreateCacheSubnetGroup = &aws.Operation{
+			Name:       "CreateCacheSubnetGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateCacheSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateCacheSubnetGroup, input, output)
 	output = &CreateCacheSubnetGroupOutput{}
 	req.Data = output
 	return
@@ -226,21 +262,26 @@ func (c *ElastiCache) CreateCacheSubnetGroup(input *CreateCacheSubnetGroupInput)
 	return out, err
 }
 
-const opCreateReplicationGroup = "CreateReplicationGroup"
+var opCreateCacheSubnetGroup *aws.Operation
 
 // CreateReplicationGroupRequest generates a request for the CreateReplicationGroup operation.
 func (c *ElastiCache) CreateReplicationGroupRequest(input *CreateReplicationGroupInput) (req *aws.Request, output *CreateReplicationGroupOutput) {
-	op := &aws.Operation{
-		Name:       opCreateReplicationGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateReplicationGroup == nil {
+		opCreateReplicationGroup = &aws.Operation{
+			Name:       "CreateReplicationGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateReplicationGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateReplicationGroup, input, output)
 	output = &CreateReplicationGroupOutput{}
 	req.Data = output
 	return
@@ -263,21 +304,26 @@ func (c *ElastiCache) CreateReplicationGroup(input *CreateReplicationGroupInput)
 	return out, err
 }
 
-const opCreateSnapshot = "CreateSnapshot"
+var opCreateReplicationGroup *aws.Operation
 
 // CreateSnapshotRequest generates a request for the CreateSnapshot operation.
 func (c *ElastiCache) CreateSnapshotRequest(input *CreateSnapshotInput) (req *aws.Request, output *CreateSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opCreateSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateSnapshot == nil {
+		opCreateSnapshot = &aws.Operation{
+			Name:       "CreateSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateSnapshot, input, output)
 	output = &CreateSnapshotOutput{}
 	req.Data = output
 	return
@@ -291,21 +337,26 @@ func (c *ElastiCache) CreateSnapshot(input *CreateSnapshotInput) (*CreateSnapsho
 	return out, err
 }
 
-const opDeleteCacheCluster = "DeleteCacheCluster"
+var opCreateSnapshot *aws.Operation
 
 // DeleteCacheClusterRequest generates a request for the DeleteCacheCluster operation.
 func (c *ElastiCache) DeleteCacheClusterRequest(input *DeleteCacheClusterInput) (req *aws.Request, output *DeleteCacheClusterOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteCacheCluster,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteCacheCluster == nil {
+		opDeleteCacheCluster = &aws.Operation{
+			Name:       "DeleteCacheCluster",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteCacheClusterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteCacheCluster, input, output)
 	output = &DeleteCacheClusterOutput{}
 	req.Data = output
 	return
@@ -325,21 +376,26 @@ func (c *ElastiCache) DeleteCacheCluster(input *DeleteCacheClusterInput) (*Delet
 	return out, err
 }
 
-const opDeleteCacheParameterGroup = "DeleteCacheParameterGroup"
+var opDeleteCacheCluster *aws.Operation
 
 // DeleteCacheParameterGroupRequest generates a request for the DeleteCacheParameterGroup operation.
 func (c *ElastiCache) DeleteCacheParameterGroupRequest(input *DeleteCacheParameterGroupInput) (req *aws.Request, output *DeleteCacheParameterGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteCacheParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteCacheParameterGroup == nil {
+		opDeleteCacheParameterGroup = &aws.Operation{
+			Name:       "DeleteCacheParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteCacheParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteCacheParameterGroup, input, output)
 	output = &DeleteCacheParameterGroupOutput{}
 	req.Data = output
 	return
@@ -354,21 +410,26 @@ func (c *ElastiCache) DeleteCacheParameterGroup(input *DeleteCacheParameterGroup
 	return out, err
 }
 
-const opDeleteCacheSecurityGroup = "DeleteCacheSecurityGroup"
+var opDeleteCacheParameterGroup *aws.Operation
 
 // DeleteCacheSecurityGroupRequest generates a request for the DeleteCacheSecurityGroup operation.
 func (c *ElastiCache) DeleteCacheSecurityGroupRequest(input *DeleteCacheSecurityGroupInput) (req *aws.Request, output *DeleteCacheSecurityGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteCacheSecurityGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteCacheSecurityGroup == nil {
+		opDeleteCacheSecurityGroup = &aws.Operation{
+			Name:       "DeleteCacheSecurityGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteCacheSecurityGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteCacheSecurityGroup, input, output)
 	output = &DeleteCacheSecurityGroupOutput{}
 	req.Data = output
 	return
@@ -384,21 +445,26 @@ func (c *ElastiCache) DeleteCacheSecurityGroup(input *DeleteCacheSecurityGroupIn
 	return out, err
 }
 
-const opDeleteCacheSubnetGroup = "DeleteCacheSubnetGroup"
+var opDeleteCacheSecurityGroup *aws.Operation
 
 // DeleteCacheSubnetGroupRequest generates a request for the DeleteCacheSubnetGroup operation.
 func (c *ElastiCache) DeleteCacheSubnetGroupRequest(input *DeleteCacheSubnetGroupInput) (req *aws.Request, output *DeleteCacheSubnetGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteCacheSubnetGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteCacheSubnetGroup == nil {
+		opDeleteCacheSubnetGroup = &aws.Operation{
+			Name:       "DeleteCacheSubnetGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteCacheSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteCacheSubnetGroup, input, output)
 	output = &DeleteCacheSubnetGroupOutput{}
 	req.Data = output
 	return
@@ -414,21 +480,26 @@ func (c *ElastiCache) DeleteCacheSubnetGroup(input *DeleteCacheSubnetGroupInput)
 	return out, err
 }
 
-const opDeleteReplicationGroup = "DeleteReplicationGroup"
+var opDeleteCacheSubnetGroup *aws.Operation
 
 // DeleteReplicationGroupRequest generates a request for the DeleteReplicationGroup operation.
 func (c *ElastiCache) DeleteReplicationGroupRequest(input *DeleteReplicationGroupInput) (req *aws.Request, output *DeleteReplicationGroupOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteReplicationGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteReplicationGroup == nil {
+		opDeleteReplicationGroup = &aws.Operation{
+			Name:       "DeleteReplicationGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteReplicationGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteReplicationGroup, input, output)
 	output = &DeleteReplicationGroupOutput{}
 	req.Data = output
 	return
@@ -448,21 +519,26 @@ func (c *ElastiCache) DeleteReplicationGroup(input *DeleteReplicationGroupInput)
 	return out, err
 }
 
-const opDeleteSnapshot = "DeleteSnapshot"
+var opDeleteReplicationGroup *aws.Operation
 
 // DeleteSnapshotRequest generates a request for the DeleteSnapshot operation.
 func (c *ElastiCache) DeleteSnapshotRequest(input *DeleteSnapshotInput) (req *aws.Request, output *DeleteSnapshotOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteSnapshot,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteSnapshot == nil {
+		opDeleteSnapshot = &aws.Operation{
+			Name:       "DeleteSnapshot",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteSnapshotInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteSnapshot, input, output)
 	output = &DeleteSnapshotOutput{}
 	req.Data = output
 	return
@@ -477,27 +553,32 @@ func (c *ElastiCache) DeleteSnapshot(input *DeleteSnapshotInput) (*DeleteSnapsho
 	return out, err
 }
 
-const opDescribeCacheClusters = "DescribeCacheClusters"
+var opDeleteSnapshot *aws.Operation
 
 // DescribeCacheClustersRequest generates a request for the DescribeCacheClusters operation.
 func (c *ElastiCache) DescribeCacheClustersRequest(input *DescribeCacheClustersInput) (req *aws.Request, output *DescribeCacheClustersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCacheClusters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCacheClusters == nil {
+		opDescribeCacheClusters = &aws.Operation{
+			Name:       "DescribeCacheClusters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCacheClustersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCacheClusters, input, output)
 	output = &DescribeCacheClustersOutput{}
 	req.Data = output
 	return
@@ -538,27 +619,32 @@ func (c *ElastiCache) DescribeCacheClustersPages(input *DescribeCacheClustersInp
 	})
 }
 
-const opDescribeCacheEngineVersions = "DescribeCacheEngineVersions"
+var opDescribeCacheClusters *aws.Operation
 
 // DescribeCacheEngineVersionsRequest generates a request for the DescribeCacheEngineVersions operation.
 func (c *ElastiCache) DescribeCacheEngineVersionsRequest(input *DescribeCacheEngineVersionsInput) (req *aws.Request, output *DescribeCacheEngineVersionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCacheEngineVersions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCacheEngineVersions == nil {
+		opDescribeCacheEngineVersions = &aws.Operation{
+			Name:       "DescribeCacheEngineVersions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCacheEngineVersionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCacheEngineVersions, input, output)
 	output = &DescribeCacheEngineVersionsOutput{}
 	req.Data = output
 	return
@@ -579,27 +665,32 @@ func (c *ElastiCache) DescribeCacheEngineVersionsPages(input *DescribeCacheEngin
 	})
 }
 
-const opDescribeCacheParameterGroups = "DescribeCacheParameterGroups"
+var opDescribeCacheEngineVersions *aws.Operation
 
 // DescribeCacheParameterGroupsRequest generates a request for the DescribeCacheParameterGroups operation.
 func (c *ElastiCache) DescribeCacheParameterGroupsRequest(input *DescribeCacheParameterGroupsInput) (req *aws.Request, output *DescribeCacheParameterGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCacheParameterGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCacheParameterGroups == nil {
+		opDescribeCacheParameterGroups = &aws.Operation{
+			Name:       "DescribeCacheParameterGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCacheParameterGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCacheParameterGroups, input, output)
 	output = &DescribeCacheParameterGroupsOutput{}
 	req.Data = output
 	return
@@ -621,27 +712,32 @@ func (c *ElastiCache) DescribeCacheParameterGroupsPages(input *DescribeCachePara
 	})
 }
 
-const opDescribeCacheParameters = "DescribeCacheParameters"
+var opDescribeCacheParameterGroups *aws.Operation
 
 // DescribeCacheParametersRequest generates a request for the DescribeCacheParameters operation.
 func (c *ElastiCache) DescribeCacheParametersRequest(input *DescribeCacheParametersInput) (req *aws.Request, output *DescribeCacheParametersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCacheParameters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCacheParameters == nil {
+		opDescribeCacheParameters = &aws.Operation{
+			Name:       "DescribeCacheParameters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCacheParametersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCacheParameters, input, output)
 	output = &DescribeCacheParametersOutput{}
 	req.Data = output
 	return
@@ -662,27 +758,32 @@ func (c *ElastiCache) DescribeCacheParametersPages(input *DescribeCacheParameter
 	})
 }
 
-const opDescribeCacheSecurityGroups = "DescribeCacheSecurityGroups"
+var opDescribeCacheParameters *aws.Operation
 
 // DescribeCacheSecurityGroupsRequest generates a request for the DescribeCacheSecurityGroups operation.
 func (c *ElastiCache) DescribeCacheSecurityGroupsRequest(input *DescribeCacheSecurityGroupsInput) (req *aws.Request, output *DescribeCacheSecurityGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCacheSecurityGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCacheSecurityGroups == nil {
+		opDescribeCacheSecurityGroups = &aws.Operation{
+			Name:       "DescribeCacheSecurityGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCacheSecurityGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCacheSecurityGroups, input, output)
 	output = &DescribeCacheSecurityGroupsOutput{}
 	req.Data = output
 	return
@@ -704,27 +805,32 @@ func (c *ElastiCache) DescribeCacheSecurityGroupsPages(input *DescribeCacheSecur
 	})
 }
 
-const opDescribeCacheSubnetGroups = "DescribeCacheSubnetGroups"
+var opDescribeCacheSecurityGroups *aws.Operation
 
 // DescribeCacheSubnetGroupsRequest generates a request for the DescribeCacheSubnetGroups operation.
 func (c *ElastiCache) DescribeCacheSubnetGroupsRequest(input *DescribeCacheSubnetGroupsInput) (req *aws.Request, output *DescribeCacheSubnetGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeCacheSubnetGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeCacheSubnetGroups == nil {
+		opDescribeCacheSubnetGroups = &aws.Operation{
+			Name:       "DescribeCacheSubnetGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeCacheSubnetGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeCacheSubnetGroups, input, output)
 	output = &DescribeCacheSubnetGroupsOutput{}
 	req.Data = output
 	return
@@ -746,27 +852,32 @@ func (c *ElastiCache) DescribeCacheSubnetGroupsPages(input *DescribeCacheSubnetG
 	})
 }
 
-const opDescribeEngineDefaultParameters = "DescribeEngineDefaultParameters"
+var opDescribeCacheSubnetGroups *aws.Operation
 
 // DescribeEngineDefaultParametersRequest generates a request for the DescribeEngineDefaultParameters operation.
 func (c *ElastiCache) DescribeEngineDefaultParametersRequest(input *DescribeEngineDefaultParametersInput) (req *aws.Request, output *DescribeEngineDefaultParametersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEngineDefaultParameters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"EngineDefaults.Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEngineDefaultParameters == nil {
+		opDescribeEngineDefaultParameters = &aws.Operation{
+			Name:       "DescribeEngineDefaultParameters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"EngineDefaults.Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEngineDefaultParametersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEngineDefaultParameters, input, output)
 	output = &DescribeEngineDefaultParametersOutput{}
 	req.Data = output
 	return
@@ -787,27 +898,32 @@ func (c *ElastiCache) DescribeEngineDefaultParametersPages(input *DescribeEngine
 	})
 }
 
-const opDescribeEvents = "DescribeEvents"
+var opDescribeEngineDefaultParameters *aws.Operation
 
 // DescribeEventsRequest generates a request for the DescribeEvents operation.
 func (c *ElastiCache) DescribeEventsRequest(input *DescribeEventsInput) (req *aws.Request, output *DescribeEventsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeEvents,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeEvents == nil {
+		opDescribeEvents = &aws.Operation{
+			Name:       "DescribeEvents",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeEvents, input, output)
 	output = &DescribeEventsOutput{}
 	req.Data = output
 	return
@@ -833,27 +949,32 @@ func (c *ElastiCache) DescribeEventsPages(input *DescribeEventsInput, fn func(p 
 	})
 }
 
-const opDescribeReplicationGroups = "DescribeReplicationGroups"
+var opDescribeEvents *aws.Operation
 
 // DescribeReplicationGroupsRequest generates a request for the DescribeReplicationGroups operation.
 func (c *ElastiCache) DescribeReplicationGroupsRequest(input *DescribeReplicationGroupsInput) (req *aws.Request, output *DescribeReplicationGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReplicationGroups,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReplicationGroups == nil {
+		opDescribeReplicationGroups = &aws.Operation{
+			Name:       "DescribeReplicationGroups",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReplicationGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReplicationGroups, input, output)
 	output = &DescribeReplicationGroupsOutput{}
 	req.Data = output
 	return
@@ -875,27 +996,32 @@ func (c *ElastiCache) DescribeReplicationGroupsPages(input *DescribeReplicationG
 	})
 }
 
-const opDescribeReservedCacheNodes = "DescribeReservedCacheNodes"
+var opDescribeReplicationGroups *aws.Operation
 
 // DescribeReservedCacheNodesRequest generates a request for the DescribeReservedCacheNodes operation.
 func (c *ElastiCache) DescribeReservedCacheNodesRequest(input *DescribeReservedCacheNodesInput) (req *aws.Request, output *DescribeReservedCacheNodesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReservedCacheNodes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReservedCacheNodes == nil {
+		opDescribeReservedCacheNodes = &aws.Operation{
+			Name:       "DescribeReservedCacheNodes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReservedCacheNodesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReservedCacheNodes, input, output)
 	output = &DescribeReservedCacheNodesOutput{}
 	req.Data = output
 	return
@@ -916,27 +1042,32 @@ func (c *ElastiCache) DescribeReservedCacheNodesPages(input *DescribeReservedCac
 	})
 }
 
-const opDescribeReservedCacheNodesOfferings = "DescribeReservedCacheNodesOfferings"
+var opDescribeReservedCacheNodes *aws.Operation
 
 // DescribeReservedCacheNodesOfferingsRequest generates a request for the DescribeReservedCacheNodesOfferings operation.
 func (c *ElastiCache) DescribeReservedCacheNodesOfferingsRequest(input *DescribeReservedCacheNodesOfferingsInput) (req *aws.Request, output *DescribeReservedCacheNodesOfferingsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeReservedCacheNodesOfferings,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeReservedCacheNodesOfferings == nil {
+		opDescribeReservedCacheNodesOfferings = &aws.Operation{
+			Name:       "DescribeReservedCacheNodesOfferings",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeReservedCacheNodesOfferingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeReservedCacheNodesOfferings, input, output)
 	output = &DescribeReservedCacheNodesOfferingsOutput{}
 	req.Data = output
 	return
@@ -957,27 +1088,32 @@ func (c *ElastiCache) DescribeReservedCacheNodesOfferingsPages(input *DescribeRe
 	})
 }
 
-const opDescribeSnapshots = "DescribeSnapshots"
+var opDescribeReservedCacheNodesOfferings *aws.Operation
 
 // DescribeSnapshotsRequest generates a request for the DescribeSnapshots operation.
 func (c *ElastiCache) DescribeSnapshotsRequest(input *DescribeSnapshotsInput) (req *aws.Request, output *DescribeSnapshotsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSnapshots,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "MaxRecords",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSnapshots == nil {
+		opDescribeSnapshots = &aws.Operation{
+			Name:       "DescribeSnapshots",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "MaxRecords",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSnapshotsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSnapshots, input, output)
 	output = &DescribeSnapshotsOutput{}
 	req.Data = output
 	return
@@ -1000,21 +1136,26 @@ func (c *ElastiCache) DescribeSnapshotsPages(input *DescribeSnapshotsInput, fn f
 	})
 }
 
-const opListTagsForResource = "ListTagsForResource"
+var opDescribeSnapshots *aws.Operation
 
 // ListTagsForResourceRequest generates a request for the ListTagsForResource operation.
 func (c *ElastiCache) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *aws.Request, output *TagListMessage) {
-	op := &aws.Operation{
-		Name:       opListTagsForResource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListTagsForResource == nil {
+		opListTagsForResource = &aws.Operation{
+			Name:       "ListTagsForResource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListTagsForResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListTagsForResource, input, output)
 	output = &TagListMessage{}
 	req.Data = output
 	return
@@ -1034,21 +1175,26 @@ func (c *ElastiCache) ListTagsForResource(input *ListTagsForResourceInput) (*Tag
 	return out, err
 }
 
-const opModifyCacheCluster = "ModifyCacheCluster"
+var opListTagsForResource *aws.Operation
 
 // ModifyCacheClusterRequest generates a request for the ModifyCacheCluster operation.
 func (c *ElastiCache) ModifyCacheClusterRequest(input *ModifyCacheClusterInput) (req *aws.Request, output *ModifyCacheClusterOutput) {
-	op := &aws.Operation{
-		Name:       opModifyCacheCluster,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyCacheCluster == nil {
+		opModifyCacheCluster = &aws.Operation{
+			Name:       "ModifyCacheCluster",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyCacheClusterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyCacheCluster, input, output)
 	output = &ModifyCacheClusterOutput{}
 	req.Data = output
 	return
@@ -1063,21 +1209,26 @@ func (c *ElastiCache) ModifyCacheCluster(input *ModifyCacheClusterInput) (*Modif
 	return out, err
 }
 
-const opModifyCacheParameterGroup = "ModifyCacheParameterGroup"
+var opModifyCacheCluster *aws.Operation
 
 // ModifyCacheParameterGroupRequest generates a request for the ModifyCacheParameterGroup operation.
 func (c *ElastiCache) ModifyCacheParameterGroupRequest(input *ModifyCacheParameterGroupInput) (req *aws.Request, output *CacheParameterGroupNameMessage) {
-	op := &aws.Operation{
-		Name:       opModifyCacheParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyCacheParameterGroup == nil {
+		opModifyCacheParameterGroup = &aws.Operation{
+			Name:       "ModifyCacheParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyCacheParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyCacheParameterGroup, input, output)
 	output = &CacheParameterGroupNameMessage{}
 	req.Data = output
 	return
@@ -1092,21 +1243,26 @@ func (c *ElastiCache) ModifyCacheParameterGroup(input *ModifyCacheParameterGroup
 	return out, err
 }
 
-const opModifyCacheSubnetGroup = "ModifyCacheSubnetGroup"
+var opModifyCacheParameterGroup *aws.Operation
 
 // ModifyCacheSubnetGroupRequest generates a request for the ModifyCacheSubnetGroup operation.
 func (c *ElastiCache) ModifyCacheSubnetGroupRequest(input *ModifyCacheSubnetGroupInput) (req *aws.Request, output *ModifyCacheSubnetGroupOutput) {
-	op := &aws.Operation{
-		Name:       opModifyCacheSubnetGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyCacheSubnetGroup == nil {
+		opModifyCacheSubnetGroup = &aws.Operation{
+			Name:       "ModifyCacheSubnetGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyCacheSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyCacheSubnetGroup, input, output)
 	output = &ModifyCacheSubnetGroupOutput{}
 	req.Data = output
 	return
@@ -1119,21 +1275,26 @@ func (c *ElastiCache) ModifyCacheSubnetGroup(input *ModifyCacheSubnetGroupInput)
 	return out, err
 }
 
-const opModifyReplicationGroup = "ModifyReplicationGroup"
+var opModifyCacheSubnetGroup *aws.Operation
 
 // ModifyReplicationGroupRequest generates a request for the ModifyReplicationGroup operation.
 func (c *ElastiCache) ModifyReplicationGroupRequest(input *ModifyReplicationGroupInput) (req *aws.Request, output *ModifyReplicationGroupOutput) {
-	op := &aws.Operation{
-		Name:       opModifyReplicationGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyReplicationGroup == nil {
+		opModifyReplicationGroup = &aws.Operation{
+			Name:       "ModifyReplicationGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyReplicationGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyReplicationGroup, input, output)
 	output = &ModifyReplicationGroupOutput{}
 	req.Data = output
 	return
@@ -1147,21 +1308,26 @@ func (c *ElastiCache) ModifyReplicationGroup(input *ModifyReplicationGroupInput)
 	return out, err
 }
 
-const opPurchaseReservedCacheNodesOffering = "PurchaseReservedCacheNodesOffering"
+var opModifyReplicationGroup *aws.Operation
 
 // PurchaseReservedCacheNodesOfferingRequest generates a request for the PurchaseReservedCacheNodesOffering operation.
 func (c *ElastiCache) PurchaseReservedCacheNodesOfferingRequest(input *PurchaseReservedCacheNodesOfferingInput) (req *aws.Request, output *PurchaseReservedCacheNodesOfferingOutput) {
-	op := &aws.Operation{
-		Name:       opPurchaseReservedCacheNodesOffering,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPurchaseReservedCacheNodesOffering == nil {
+		opPurchaseReservedCacheNodesOffering = &aws.Operation{
+			Name:       "PurchaseReservedCacheNodesOffering",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PurchaseReservedCacheNodesOfferingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPurchaseReservedCacheNodesOffering, input, output)
 	output = &PurchaseReservedCacheNodesOfferingOutput{}
 	req.Data = output
 	return
@@ -1175,21 +1341,26 @@ func (c *ElastiCache) PurchaseReservedCacheNodesOffering(input *PurchaseReserved
 	return out, err
 }
 
-const opRebootCacheCluster = "RebootCacheCluster"
+var opPurchaseReservedCacheNodesOffering *aws.Operation
 
 // RebootCacheClusterRequest generates a request for the RebootCacheCluster operation.
 func (c *ElastiCache) RebootCacheClusterRequest(input *RebootCacheClusterInput) (req *aws.Request, output *RebootCacheClusterOutput) {
-	op := &aws.Operation{
-		Name:       opRebootCacheCluster,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRebootCacheCluster == nil {
+		opRebootCacheCluster = &aws.Operation{
+			Name:       "RebootCacheCluster",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RebootCacheClusterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRebootCacheCluster, input, output)
 	output = &RebootCacheClusterOutput{}
 	req.Data = output
 	return
@@ -1211,21 +1382,26 @@ func (c *ElastiCache) RebootCacheCluster(input *RebootCacheClusterInput) (*Reboo
 	return out, err
 }
 
-const opRemoveTagsFromResource = "RemoveTagsFromResource"
+var opRebootCacheCluster *aws.Operation
 
 // RemoveTagsFromResourceRequest generates a request for the RemoveTagsFromResource operation.
 func (c *ElastiCache) RemoveTagsFromResourceRequest(input *RemoveTagsFromResourceInput) (req *aws.Request, output *TagListMessage) {
-	op := &aws.Operation{
-		Name:       opRemoveTagsFromResource,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemoveTagsFromResource == nil {
+		opRemoveTagsFromResource = &aws.Operation{
+			Name:       "RemoveTagsFromResource",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemoveTagsFromResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemoveTagsFromResource, input, output)
 	output = &TagListMessage{}
 	req.Data = output
 	return
@@ -1239,21 +1415,26 @@ func (c *ElastiCache) RemoveTagsFromResource(input *RemoveTagsFromResourceInput)
 	return out, err
 }
 
-const opResetCacheParameterGroup = "ResetCacheParameterGroup"
+var opRemoveTagsFromResource *aws.Operation
 
 // ResetCacheParameterGroupRequest generates a request for the ResetCacheParameterGroup operation.
 func (c *ElastiCache) ResetCacheParameterGroupRequest(input *ResetCacheParameterGroupInput) (req *aws.Request, output *CacheParameterGroupNameMessage) {
-	op := &aws.Operation{
-		Name:       opResetCacheParameterGroup,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opResetCacheParameterGroup == nil {
+		opResetCacheParameterGroup = &aws.Operation{
+			Name:       "ResetCacheParameterGroup",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ResetCacheParameterGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opResetCacheParameterGroup, input, output)
 	output = &CacheParameterGroupNameMessage{}
 	req.Data = output
 	return
@@ -1269,21 +1450,26 @@ func (c *ElastiCache) ResetCacheParameterGroup(input *ResetCacheParameterGroupIn
 	return out, err
 }
 
-const opRevokeCacheSecurityGroupIngress = "RevokeCacheSecurityGroupIngress"
+var opResetCacheParameterGroup *aws.Operation
 
 // RevokeCacheSecurityGroupIngressRequest generates a request for the RevokeCacheSecurityGroupIngress operation.
 func (c *ElastiCache) RevokeCacheSecurityGroupIngressRequest(input *RevokeCacheSecurityGroupIngressInput) (req *aws.Request, output *RevokeCacheSecurityGroupIngressOutput) {
-	op := &aws.Operation{
-		Name:       opRevokeCacheSecurityGroupIngress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRevokeCacheSecurityGroupIngress == nil {
+		opRevokeCacheSecurityGroupIngress = &aws.Operation{
+			Name:       "RevokeCacheSecurityGroupIngress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RevokeCacheSecurityGroupIngressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRevokeCacheSecurityGroupIngress, input, output)
 	output = &RevokeCacheSecurityGroupIngressOutput{}
 	req.Data = output
 	return
@@ -1297,6 +1483,8 @@ func (c *ElastiCache) RevokeCacheSecurityGroupIngress(input *RevokeCacheSecurity
 	err := req.Send()
 	return out, err
 }
+
+var opRevokeCacheSecurityGroupIngress *aws.Operation
 
 // Represents the input of an AddTagsToResource action.
 type AddTagsToResourceInput struct {

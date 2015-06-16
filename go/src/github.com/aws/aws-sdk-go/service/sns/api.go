@@ -4,24 +4,31 @@
 package sns
 
 import (
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAddPermission = "AddPermission"
+var oprw sync.Mutex
 
 // AddPermissionRequest generates a request for the AddPermission operation.
 func (c *SNS) AddPermissionRequest(input *AddPermissionInput) (req *aws.Request, output *AddPermissionOutput) {
-	op := &aws.Operation{
-		Name:       opAddPermission,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddPermission == nil {
+		opAddPermission = &aws.Operation{
+			Name:       "AddPermission",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &AddPermissionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddPermission, input, output)
 	output = &AddPermissionOutput{}
 	req.Data = output
 	return
@@ -35,21 +42,26 @@ func (c *SNS) AddPermission(input *AddPermissionInput) (*AddPermissionOutput, er
 	return out, err
 }
 
-const opConfirmSubscription = "ConfirmSubscription"
+var opAddPermission *aws.Operation
 
 // ConfirmSubscriptionRequest generates a request for the ConfirmSubscription operation.
 func (c *SNS) ConfirmSubscriptionRequest(input *ConfirmSubscriptionInput) (req *aws.Request, output *ConfirmSubscriptionOutput) {
-	op := &aws.Operation{
-		Name:       opConfirmSubscription,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opConfirmSubscription == nil {
+		opConfirmSubscription = &aws.Operation{
+			Name:       "ConfirmSubscription",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ConfirmSubscriptionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opConfirmSubscription, input, output)
 	output = &ConfirmSubscriptionOutput{}
 	req.Data = output
 	return
@@ -66,21 +78,26 @@ func (c *SNS) ConfirmSubscription(input *ConfirmSubscriptionInput) (*ConfirmSubs
 	return out, err
 }
 
-const opCreatePlatformApplication = "CreatePlatformApplication"
+var opConfirmSubscription *aws.Operation
 
 // CreatePlatformApplicationRequest generates a request for the CreatePlatformApplication operation.
 func (c *SNS) CreatePlatformApplicationRequest(input *CreatePlatformApplicationInput) (req *aws.Request, output *CreatePlatformApplicationOutput) {
-	op := &aws.Operation{
-		Name:       opCreatePlatformApplication,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreatePlatformApplication == nil {
+		opCreatePlatformApplication = &aws.Operation{
+			Name:       "CreatePlatformApplication",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreatePlatformApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreatePlatformApplication, input, output)
 	output = &CreatePlatformApplicationOutput{}
 	req.Data = output
 	return
@@ -105,21 +122,26 @@ func (c *SNS) CreatePlatformApplication(input *CreatePlatformApplicationInput) (
 	return out, err
 }
 
-const opCreatePlatformEndpoint = "CreatePlatformEndpoint"
+var opCreatePlatformApplication *aws.Operation
 
 // CreatePlatformEndpointRequest generates a request for the CreatePlatformEndpoint operation.
 func (c *SNS) CreatePlatformEndpointRequest(input *CreatePlatformEndpointInput) (req *aws.Request, output *CreatePlatformEndpointOutput) {
-	op := &aws.Operation{
-		Name:       opCreatePlatformEndpoint,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreatePlatformEndpoint == nil {
+		opCreatePlatformEndpoint = &aws.Operation{
+			Name:       "CreatePlatformEndpoint",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreatePlatformEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreatePlatformEndpoint, input, output)
 	output = &CreatePlatformEndpointOutput{}
 	req.Data = output
 	return
@@ -145,21 +167,26 @@ func (c *SNS) CreatePlatformEndpoint(input *CreatePlatformEndpointInput) (*Creat
 	return out, err
 }
 
-const opCreateTopic = "CreateTopic"
+var opCreatePlatformEndpoint *aws.Operation
 
 // CreateTopicRequest generates a request for the CreateTopic operation.
 func (c *SNS) CreateTopicRequest(input *CreateTopicInput) (req *aws.Request, output *CreateTopicOutput) {
-	op := &aws.Operation{
-		Name:       opCreateTopic,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateTopic == nil {
+		opCreateTopic = &aws.Operation{
+			Name:       "CreateTopic",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateTopicInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateTopic, input, output)
 	output = &CreateTopicOutput{}
 	req.Data = output
 	return
@@ -176,21 +203,26 @@ func (c *SNS) CreateTopic(input *CreateTopicInput) (*CreateTopicOutput, error) {
 	return out, err
 }
 
-const opDeleteEndpoint = "DeleteEndpoint"
+var opCreateTopic *aws.Operation
 
 // DeleteEndpointRequest generates a request for the DeleteEndpoint operation.
 func (c *SNS) DeleteEndpointRequest(input *DeleteEndpointInput) (req *aws.Request, output *DeleteEndpointOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteEndpoint,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteEndpoint == nil {
+		opDeleteEndpoint = &aws.Operation{
+			Name:       "DeleteEndpoint",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteEndpoint, input, output)
 	output = &DeleteEndpointOutput{}
 	req.Data = output
 	return
@@ -204,21 +236,26 @@ func (c *SNS) DeleteEndpoint(input *DeleteEndpointInput) (*DeleteEndpointOutput,
 	return out, err
 }
 
-const opDeletePlatformApplication = "DeletePlatformApplication"
+var opDeleteEndpoint *aws.Operation
 
 // DeletePlatformApplicationRequest generates a request for the DeletePlatformApplication operation.
 func (c *SNS) DeletePlatformApplicationRequest(input *DeletePlatformApplicationInput) (req *aws.Request, output *DeletePlatformApplicationOutput) {
-	op := &aws.Operation{
-		Name:       opDeletePlatformApplication,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeletePlatformApplication == nil {
+		opDeletePlatformApplication = &aws.Operation{
+			Name:       "DeletePlatformApplication",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeletePlatformApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeletePlatformApplication, input, output)
 	output = &DeletePlatformApplicationOutput{}
 	req.Data = output
 	return
@@ -233,21 +270,26 @@ func (c *SNS) DeletePlatformApplication(input *DeletePlatformApplicationInput) (
 	return out, err
 }
 
-const opDeleteTopic = "DeleteTopic"
+var opDeletePlatformApplication *aws.Operation
 
 // DeleteTopicRequest generates a request for the DeleteTopic operation.
 func (c *SNS) DeleteTopicRequest(input *DeleteTopicInput) (req *aws.Request, output *DeleteTopicOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteTopic,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteTopic == nil {
+		opDeleteTopic = &aws.Operation{
+			Name:       "DeleteTopic",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteTopicInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteTopic, input, output)
 	output = &DeleteTopicOutput{}
 	req.Data = output
 	return
@@ -263,21 +305,26 @@ func (c *SNS) DeleteTopic(input *DeleteTopicInput) (*DeleteTopicOutput, error) {
 	return out, err
 }
 
-const opGetEndpointAttributes = "GetEndpointAttributes"
+var opDeleteTopic *aws.Operation
 
 // GetEndpointAttributesRequest generates a request for the GetEndpointAttributes operation.
 func (c *SNS) GetEndpointAttributesRequest(input *GetEndpointAttributesInput) (req *aws.Request, output *GetEndpointAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opGetEndpointAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetEndpointAttributes == nil {
+		opGetEndpointAttributes = &aws.Operation{
+			Name:       "GetEndpointAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetEndpointAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetEndpointAttributes, input, output)
 	output = &GetEndpointAttributesOutput{}
 	req.Data = output
 	return
@@ -292,21 +339,26 @@ func (c *SNS) GetEndpointAttributes(input *GetEndpointAttributesInput) (*GetEndp
 	return out, err
 }
 
-const opGetPlatformApplicationAttributes = "GetPlatformApplicationAttributes"
+var opGetEndpointAttributes *aws.Operation
 
 // GetPlatformApplicationAttributesRequest generates a request for the GetPlatformApplicationAttributes operation.
 func (c *SNS) GetPlatformApplicationAttributesRequest(input *GetPlatformApplicationAttributesInput) (req *aws.Request, output *GetPlatformApplicationAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opGetPlatformApplicationAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetPlatformApplicationAttributes == nil {
+		opGetPlatformApplicationAttributes = &aws.Operation{
+			Name:       "GetPlatformApplicationAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetPlatformApplicationAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetPlatformApplicationAttributes, input, output)
 	output = &GetPlatformApplicationAttributesOutput{}
 	req.Data = output
 	return
@@ -321,21 +373,26 @@ func (c *SNS) GetPlatformApplicationAttributes(input *GetPlatformApplicationAttr
 	return out, err
 }
 
-const opGetSubscriptionAttributes = "GetSubscriptionAttributes"
+var opGetPlatformApplicationAttributes *aws.Operation
 
 // GetSubscriptionAttributesRequest generates a request for the GetSubscriptionAttributes operation.
 func (c *SNS) GetSubscriptionAttributesRequest(input *GetSubscriptionAttributesInput) (req *aws.Request, output *GetSubscriptionAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opGetSubscriptionAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetSubscriptionAttributes == nil {
+		opGetSubscriptionAttributes = &aws.Operation{
+			Name:       "GetSubscriptionAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetSubscriptionAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetSubscriptionAttributes, input, output)
 	output = &GetSubscriptionAttributesOutput{}
 	req.Data = output
 	return
@@ -348,21 +405,26 @@ func (c *SNS) GetSubscriptionAttributes(input *GetSubscriptionAttributesInput) (
 	return out, err
 }
 
-const opGetTopicAttributes = "GetTopicAttributes"
+var opGetSubscriptionAttributes *aws.Operation
 
 // GetTopicAttributesRequest generates a request for the GetTopicAttributes operation.
 func (c *SNS) GetTopicAttributesRequest(input *GetTopicAttributesInput) (req *aws.Request, output *GetTopicAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opGetTopicAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetTopicAttributes == nil {
+		opGetTopicAttributes = &aws.Operation{
+			Name:       "GetTopicAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetTopicAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetTopicAttributes, input, output)
 	output = &GetTopicAttributesOutput{}
 	req.Data = output
 	return
@@ -376,27 +438,32 @@ func (c *SNS) GetTopicAttributes(input *GetTopicAttributesInput) (*GetTopicAttri
 	return out, err
 }
 
-const opListEndpointsByPlatformApplication = "ListEndpointsByPlatformApplication"
+var opGetTopicAttributes *aws.Operation
 
 // ListEndpointsByPlatformApplicationRequest generates a request for the ListEndpointsByPlatformApplication operation.
 func (c *SNS) ListEndpointsByPlatformApplicationRequest(input *ListEndpointsByPlatformApplicationInput) (req *aws.Request, output *ListEndpointsByPlatformApplicationOutput) {
-	op := &aws.Operation{
-		Name:       opListEndpointsByPlatformApplication,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListEndpointsByPlatformApplication == nil {
+		opListEndpointsByPlatformApplication = &aws.Operation{
+			Name:       "ListEndpointsByPlatformApplication",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListEndpointsByPlatformApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListEndpointsByPlatformApplication, input, output)
 	output = &ListEndpointsByPlatformApplicationOutput{}
 	req.Data = output
 	return
@@ -423,27 +490,32 @@ func (c *SNS) ListEndpointsByPlatformApplicationPages(input *ListEndpointsByPlat
 	})
 }
 
-const opListPlatformApplications = "ListPlatformApplications"
+var opListEndpointsByPlatformApplication *aws.Operation
 
 // ListPlatformApplicationsRequest generates a request for the ListPlatformApplications operation.
 func (c *SNS) ListPlatformApplicationsRequest(input *ListPlatformApplicationsInput) (req *aws.Request, output *ListPlatformApplicationsOutput) {
-	op := &aws.Operation{
-		Name:       opListPlatformApplications,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListPlatformApplications == nil {
+		opListPlatformApplications = &aws.Operation{
+			Name:       "ListPlatformApplications",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListPlatformApplicationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListPlatformApplications, input, output)
 	output = &ListPlatformApplicationsOutput{}
 	req.Data = output
 	return
@@ -470,27 +542,32 @@ func (c *SNS) ListPlatformApplicationsPages(input *ListPlatformApplicationsInput
 	})
 }
 
-const opListSubscriptions = "ListSubscriptions"
+var opListPlatformApplications *aws.Operation
 
 // ListSubscriptionsRequest generates a request for the ListSubscriptions operation.
 func (c *SNS) ListSubscriptionsRequest(input *ListSubscriptionsInput) (req *aws.Request, output *ListSubscriptionsOutput) {
-	op := &aws.Operation{
-		Name:       opListSubscriptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListSubscriptions == nil {
+		opListSubscriptions = &aws.Operation{
+			Name:       "ListSubscriptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListSubscriptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListSubscriptions, input, output)
 	output = &ListSubscriptionsOutput{}
 	req.Data = output
 	return
@@ -513,27 +590,32 @@ func (c *SNS) ListSubscriptionsPages(input *ListSubscriptionsInput, fn func(p *L
 	})
 }
 
-const opListSubscriptionsByTopic = "ListSubscriptionsByTopic"
+var opListSubscriptions *aws.Operation
 
 // ListSubscriptionsByTopicRequest generates a request for the ListSubscriptionsByTopic operation.
 func (c *SNS) ListSubscriptionsByTopicRequest(input *ListSubscriptionsByTopicInput) (req *aws.Request, output *ListSubscriptionsByTopicOutput) {
-	op := &aws.Operation{
-		Name:       opListSubscriptionsByTopic,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListSubscriptionsByTopic == nil {
+		opListSubscriptionsByTopic = &aws.Operation{
+			Name:       "ListSubscriptionsByTopic",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListSubscriptionsByTopicInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListSubscriptionsByTopic, input, output)
 	output = &ListSubscriptionsByTopicOutput{}
 	req.Data = output
 	return
@@ -556,27 +638,32 @@ func (c *SNS) ListSubscriptionsByTopicPages(input *ListSubscriptionsByTopicInput
 	})
 }
 
-const opListTopics = "ListTopics"
+var opListSubscriptionsByTopic *aws.Operation
 
 // ListTopicsRequest generates a request for the ListTopics operation.
 func (c *SNS) ListTopicsRequest(input *ListTopicsInput) (req *aws.Request, output *ListTopicsOutput) {
-	op := &aws.Operation{
-		Name:       opListTopics,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListTopics == nil {
+		opListTopics = &aws.Operation{
+			Name:       "ListTopics",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListTopicsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListTopics, input, output)
 	output = &ListTopicsOutput{}
 	req.Data = output
 	return
@@ -598,21 +685,26 @@ func (c *SNS) ListTopicsPages(input *ListTopicsInput, fn func(p *ListTopicsOutpu
 	})
 }
 
-const opPublish = "Publish"
+var opListTopics *aws.Operation
 
 // PublishRequest generates a request for the Publish operation.
 func (c *SNS) PublishRequest(input *PublishInput) (req *aws.Request, output *PublishOutput) {
-	op := &aws.Operation{
-		Name:       opPublish,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opPublish == nil {
+		opPublish = &aws.Operation{
+			Name:       "Publish",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &PublishInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opPublish, input, output)
 	output = &PublishOutput{}
 	req.Data = output
 	return
@@ -634,21 +726,26 @@ func (c *SNS) Publish(input *PublishInput) (*PublishOutput, error) {
 	return out, err
 }
 
-const opRemovePermission = "RemovePermission"
+var opPublish *aws.Operation
 
 // RemovePermissionRequest generates a request for the RemovePermission operation.
 func (c *SNS) RemovePermissionRequest(input *RemovePermissionInput) (req *aws.Request, output *RemovePermissionOutput) {
-	op := &aws.Operation{
-		Name:       opRemovePermission,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemovePermission == nil {
+		opRemovePermission = &aws.Operation{
+			Name:       "RemovePermission",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &RemovePermissionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemovePermission, input, output)
 	output = &RemovePermissionOutput{}
 	req.Data = output
 	return
@@ -661,21 +758,26 @@ func (c *SNS) RemovePermission(input *RemovePermissionInput) (*RemovePermissionO
 	return out, err
 }
 
-const opSetEndpointAttributes = "SetEndpointAttributes"
+var opRemovePermission *aws.Operation
 
 // SetEndpointAttributesRequest generates a request for the SetEndpointAttributes operation.
 func (c *SNS) SetEndpointAttributesRequest(input *SetEndpointAttributesInput) (req *aws.Request, output *SetEndpointAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opSetEndpointAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetEndpointAttributes == nil {
+		opSetEndpointAttributes = &aws.Operation{
+			Name:       "SetEndpointAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetEndpointAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetEndpointAttributes, input, output)
 	output = &SetEndpointAttributesOutput{}
 	req.Data = output
 	return
@@ -690,21 +792,26 @@ func (c *SNS) SetEndpointAttributes(input *SetEndpointAttributesInput) (*SetEndp
 	return out, err
 }
 
-const opSetPlatformApplicationAttributes = "SetPlatformApplicationAttributes"
+var opSetEndpointAttributes *aws.Operation
 
 // SetPlatformApplicationAttributesRequest generates a request for the SetPlatformApplicationAttributes operation.
 func (c *SNS) SetPlatformApplicationAttributesRequest(input *SetPlatformApplicationAttributesInput) (req *aws.Request, output *SetPlatformApplicationAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opSetPlatformApplicationAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetPlatformApplicationAttributes == nil {
+		opSetPlatformApplicationAttributes = &aws.Operation{
+			Name:       "SetPlatformApplicationAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetPlatformApplicationAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetPlatformApplicationAttributes, input, output)
 	output = &SetPlatformApplicationAttributesOutput{}
 	req.Data = output
 	return
@@ -719,21 +826,26 @@ func (c *SNS) SetPlatformApplicationAttributes(input *SetPlatformApplicationAttr
 	return out, err
 }
 
-const opSetSubscriptionAttributes = "SetSubscriptionAttributes"
+var opSetPlatformApplicationAttributes *aws.Operation
 
 // SetSubscriptionAttributesRequest generates a request for the SetSubscriptionAttributes operation.
 func (c *SNS) SetSubscriptionAttributesRequest(input *SetSubscriptionAttributesInput) (req *aws.Request, output *SetSubscriptionAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opSetSubscriptionAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetSubscriptionAttributes == nil {
+		opSetSubscriptionAttributes = &aws.Operation{
+			Name:       "SetSubscriptionAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetSubscriptionAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetSubscriptionAttributes, input, output)
 	output = &SetSubscriptionAttributesOutput{}
 	req.Data = output
 	return
@@ -746,21 +858,26 @@ func (c *SNS) SetSubscriptionAttributes(input *SetSubscriptionAttributesInput) (
 	return out, err
 }
 
-const opSetTopicAttributes = "SetTopicAttributes"
+var opSetSubscriptionAttributes *aws.Operation
 
 // SetTopicAttributesRequest generates a request for the SetTopicAttributes operation.
 func (c *SNS) SetTopicAttributesRequest(input *SetTopicAttributesInput) (req *aws.Request, output *SetTopicAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opSetTopicAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetTopicAttributes == nil {
+		opSetTopicAttributes = &aws.Operation{
+			Name:       "SetTopicAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetTopicAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetTopicAttributes, input, output)
 	output = &SetTopicAttributesOutput{}
 	req.Data = output
 	return
@@ -773,21 +890,26 @@ func (c *SNS) SetTopicAttributes(input *SetTopicAttributesInput) (*SetTopicAttri
 	return out, err
 }
 
-const opSubscribe = "Subscribe"
+var opSetTopicAttributes *aws.Operation
 
 // SubscribeRequest generates a request for the Subscribe operation.
 func (c *SNS) SubscribeRequest(input *SubscribeInput) (req *aws.Request, output *SubscribeOutput) {
-	op := &aws.Operation{
-		Name:       opSubscribe,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSubscribe == nil {
+		opSubscribe = &aws.Operation{
+			Name:       "Subscribe",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SubscribeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSubscribe, input, output)
 	output = &SubscribeOutput{}
 	req.Data = output
 	return
@@ -803,21 +925,26 @@ func (c *SNS) Subscribe(input *SubscribeInput) (*SubscribeOutput, error) {
 	return out, err
 }
 
-const opUnsubscribe = "Unsubscribe"
+var opSubscribe *aws.Operation
 
 // UnsubscribeRequest generates a request for the Unsubscribe operation.
 func (c *SNS) UnsubscribeRequest(input *UnsubscribeInput) (req *aws.Request, output *UnsubscribeOutput) {
-	op := &aws.Operation{
-		Name:       opUnsubscribe,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUnsubscribe == nil {
+		opUnsubscribe = &aws.Operation{
+			Name:       "Unsubscribe",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UnsubscribeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUnsubscribe, input, output)
 	output = &UnsubscribeOutput{}
 	req.Data = output
 	return
@@ -834,6 +961,8 @@ func (c *SNS) Unsubscribe(input *UnsubscribeInput) (*UnsubscribeOutput, error) {
 	err := req.Send()
 	return out, err
 }
+
+var opUnsubscribe *aws.Operation
 
 type AddPermissionInput struct {
 	// The AWS account IDs of the users (principals) who will be given access to

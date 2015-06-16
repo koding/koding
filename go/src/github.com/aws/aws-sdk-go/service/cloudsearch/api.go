@@ -4,26 +4,32 @@
 package cloudsearch
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opBuildSuggesters = "BuildSuggesters"
+var oprw sync.Mutex
 
 // BuildSuggestersRequest generates a request for the BuildSuggesters operation.
 func (c *CloudSearch) BuildSuggestersRequest(input *BuildSuggestersInput) (req *aws.Request, output *BuildSuggestersOutput) {
-	op := &aws.Operation{
-		Name:       opBuildSuggesters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opBuildSuggesters == nil {
+		opBuildSuggesters = &aws.Operation{
+			Name:       "BuildSuggesters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &BuildSuggestersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opBuildSuggesters, input, output)
 	output = &BuildSuggestersOutput{}
 	req.Data = output
 	return
@@ -38,21 +44,26 @@ func (c *CloudSearch) BuildSuggesters(input *BuildSuggestersInput) (*BuildSugges
 	return out, err
 }
 
-const opCreateDomain = "CreateDomain"
+var opBuildSuggesters *aws.Operation
 
 // CreateDomainRequest generates a request for the CreateDomain operation.
 func (c *CloudSearch) CreateDomainRequest(input *CreateDomainInput) (req *aws.Request, output *CreateDomainOutput) {
-	op := &aws.Operation{
-		Name:       opCreateDomain,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateDomain == nil {
+		opCreateDomain = &aws.Operation{
+			Name:       "CreateDomain",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateDomain, input, output)
 	output = &CreateDomainOutput{}
 	req.Data = output
 	return
@@ -67,21 +78,26 @@ func (c *CloudSearch) CreateDomain(input *CreateDomainInput) (*CreateDomainOutpu
 	return out, err
 }
 
-const opDefineAnalysisScheme = "DefineAnalysisScheme"
+var opCreateDomain *aws.Operation
 
 // DefineAnalysisSchemeRequest generates a request for the DefineAnalysisScheme operation.
 func (c *CloudSearch) DefineAnalysisSchemeRequest(input *DefineAnalysisSchemeInput) (req *aws.Request, output *DefineAnalysisSchemeOutput) {
-	op := &aws.Operation{
-		Name:       opDefineAnalysisScheme,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDefineAnalysisScheme == nil {
+		opDefineAnalysisScheme = &aws.Operation{
+			Name:       "DefineAnalysisScheme",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DefineAnalysisSchemeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDefineAnalysisScheme, input, output)
 	output = &DefineAnalysisSchemeOutput{}
 	req.Data = output
 	return
@@ -97,21 +113,26 @@ func (c *CloudSearch) DefineAnalysisScheme(input *DefineAnalysisSchemeInput) (*D
 	return out, err
 }
 
-const opDefineExpression = "DefineExpression"
+var opDefineAnalysisScheme *aws.Operation
 
 // DefineExpressionRequest generates a request for the DefineExpression operation.
 func (c *CloudSearch) DefineExpressionRequest(input *DefineExpressionInput) (req *aws.Request, output *DefineExpressionOutput) {
-	op := &aws.Operation{
-		Name:       opDefineExpression,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDefineExpression == nil {
+		opDefineExpression = &aws.Operation{
+			Name:       "DefineExpression",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DefineExpressionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDefineExpression, input, output)
 	output = &DefineExpressionOutput{}
 	req.Data = output
 	return
@@ -127,21 +148,26 @@ func (c *CloudSearch) DefineExpression(input *DefineExpressionInput) (*DefineExp
 	return out, err
 }
 
-const opDefineIndexField = "DefineIndexField"
+var opDefineExpression *aws.Operation
 
 // DefineIndexFieldRequest generates a request for the DefineIndexField operation.
 func (c *CloudSearch) DefineIndexFieldRequest(input *DefineIndexFieldInput) (req *aws.Request, output *DefineIndexFieldOutput) {
-	op := &aws.Operation{
-		Name:       opDefineIndexField,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDefineIndexField == nil {
+		opDefineIndexField = &aws.Operation{
+			Name:       "DefineIndexField",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DefineIndexFieldInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDefineIndexField, input, output)
 	output = &DefineIndexFieldOutput{}
 	req.Data = output
 	return
@@ -161,21 +187,26 @@ func (c *CloudSearch) DefineIndexField(input *DefineIndexFieldInput) (*DefineInd
 	return out, err
 }
 
-const opDefineSuggester = "DefineSuggester"
+var opDefineIndexField *aws.Operation
 
 // DefineSuggesterRequest generates a request for the DefineSuggester operation.
 func (c *CloudSearch) DefineSuggesterRequest(input *DefineSuggesterInput) (req *aws.Request, output *DefineSuggesterOutput) {
-	op := &aws.Operation{
-		Name:       opDefineSuggester,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDefineSuggester == nil {
+		opDefineSuggester = &aws.Operation{
+			Name:       "DefineSuggester",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DefineSuggesterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDefineSuggester, input, output)
 	output = &DefineSuggesterOutput{}
 	req.Data = output
 	return
@@ -193,21 +224,26 @@ func (c *CloudSearch) DefineSuggester(input *DefineSuggesterInput) (*DefineSugge
 	return out, err
 }
 
-const opDeleteAnalysisScheme = "DeleteAnalysisScheme"
+var opDefineSuggester *aws.Operation
 
 // DeleteAnalysisSchemeRequest generates a request for the DeleteAnalysisScheme operation.
 func (c *CloudSearch) DeleteAnalysisSchemeRequest(input *DeleteAnalysisSchemeInput) (req *aws.Request, output *DeleteAnalysisSchemeOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteAnalysisScheme,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteAnalysisScheme == nil {
+		opDeleteAnalysisScheme = &aws.Operation{
+			Name:       "DeleteAnalysisScheme",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteAnalysisSchemeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteAnalysisScheme, input, output)
 	output = &DeleteAnalysisSchemeOutput{}
 	req.Data = output
 	return
@@ -222,21 +258,26 @@ func (c *CloudSearch) DeleteAnalysisScheme(input *DeleteAnalysisSchemeInput) (*D
 	return out, err
 }
 
-const opDeleteDomain = "DeleteDomain"
+var opDeleteAnalysisScheme *aws.Operation
 
 // DeleteDomainRequest generates a request for the DeleteDomain operation.
 func (c *CloudSearch) DeleteDomainRequest(input *DeleteDomainInput) (req *aws.Request, output *DeleteDomainOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteDomain,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteDomain == nil {
+		opDeleteDomain = &aws.Operation{
+			Name:       "DeleteDomain",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteDomain, input, output)
 	output = &DeleteDomainOutput{}
 	req.Data = output
 	return
@@ -252,21 +293,26 @@ func (c *CloudSearch) DeleteDomain(input *DeleteDomainInput) (*DeleteDomainOutpu
 	return out, err
 }
 
-const opDeleteExpression = "DeleteExpression"
+var opDeleteDomain *aws.Operation
 
 // DeleteExpressionRequest generates a request for the DeleteExpression operation.
 func (c *CloudSearch) DeleteExpressionRequest(input *DeleteExpressionInput) (req *aws.Request, output *DeleteExpressionOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteExpression,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteExpression == nil {
+		opDeleteExpression = &aws.Operation{
+			Name:       "DeleteExpression",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteExpressionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteExpression, input, output)
 	output = &DeleteExpressionOutput{}
 	req.Data = output
 	return
@@ -281,21 +327,26 @@ func (c *CloudSearch) DeleteExpression(input *DeleteExpressionInput) (*DeleteExp
 	return out, err
 }
 
-const opDeleteIndexField = "DeleteIndexField"
+var opDeleteExpression *aws.Operation
 
 // DeleteIndexFieldRequest generates a request for the DeleteIndexField operation.
 func (c *CloudSearch) DeleteIndexFieldRequest(input *DeleteIndexFieldInput) (req *aws.Request, output *DeleteIndexFieldOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteIndexField,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteIndexField == nil {
+		opDeleteIndexField = &aws.Operation{
+			Name:       "DeleteIndexField",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteIndexFieldInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteIndexField, input, output)
 	output = &DeleteIndexFieldOutput{}
 	req.Data = output
 	return
@@ -310,21 +361,26 @@ func (c *CloudSearch) DeleteIndexField(input *DeleteIndexFieldInput) (*DeleteInd
 	return out, err
 }
 
-const opDeleteSuggester = "DeleteSuggester"
+var opDeleteIndexField *aws.Operation
 
 // DeleteSuggesterRequest generates a request for the DeleteSuggester operation.
 func (c *CloudSearch) DeleteSuggesterRequest(input *DeleteSuggesterInput) (req *aws.Request, output *DeleteSuggesterOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteSuggester,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteSuggester == nil {
+		opDeleteSuggester = &aws.Operation{
+			Name:       "DeleteSuggester",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteSuggesterInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteSuggester, input, output)
 	output = &DeleteSuggesterOutput{}
 	req.Data = output
 	return
@@ -339,21 +395,26 @@ func (c *CloudSearch) DeleteSuggester(input *DeleteSuggesterInput) (*DeleteSugge
 	return out, err
 }
 
-const opDescribeAnalysisSchemes = "DescribeAnalysisSchemes"
+var opDeleteSuggester *aws.Operation
 
 // DescribeAnalysisSchemesRequest generates a request for the DescribeAnalysisSchemes operation.
 func (c *CloudSearch) DescribeAnalysisSchemesRequest(input *DescribeAnalysisSchemesInput) (req *aws.Request, output *DescribeAnalysisSchemesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAnalysisSchemes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAnalysisSchemes == nil {
+		opDescribeAnalysisSchemes = &aws.Operation{
+			Name:       "DescribeAnalysisSchemes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAnalysisSchemesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAnalysisSchemes, input, output)
 	output = &DescribeAnalysisSchemesOutput{}
 	req.Data = output
 	return
@@ -372,21 +433,26 @@ func (c *CloudSearch) DescribeAnalysisSchemes(input *DescribeAnalysisSchemesInpu
 	return out, err
 }
 
-const opDescribeAvailabilityOptions = "DescribeAvailabilityOptions"
+var opDescribeAnalysisSchemes *aws.Operation
 
 // DescribeAvailabilityOptionsRequest generates a request for the DescribeAvailabilityOptions operation.
 func (c *CloudSearch) DescribeAvailabilityOptionsRequest(input *DescribeAvailabilityOptionsInput) (req *aws.Request, output *DescribeAvailabilityOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeAvailabilityOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeAvailabilityOptions == nil {
+		opDescribeAvailabilityOptions = &aws.Operation{
+			Name:       "DescribeAvailabilityOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeAvailabilityOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeAvailabilityOptions, input, output)
 	output = &DescribeAvailabilityOptionsOutput{}
 	req.Data = output
 	return
@@ -403,21 +469,26 @@ func (c *CloudSearch) DescribeAvailabilityOptions(input *DescribeAvailabilityOpt
 	return out, err
 }
 
-const opDescribeDomains = "DescribeDomains"
+var opDescribeAvailabilityOptions *aws.Operation
 
 // DescribeDomainsRequest generates a request for the DescribeDomains operation.
 func (c *CloudSearch) DescribeDomainsRequest(input *DescribeDomainsInput) (req *aws.Request, output *DescribeDomainsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeDomains,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeDomains == nil {
+		opDescribeDomains = &aws.Operation{
+			Name:       "DescribeDomains",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeDomainsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeDomains, input, output)
 	output = &DescribeDomainsOutput{}
 	req.Data = output
 	return
@@ -435,21 +506,26 @@ func (c *CloudSearch) DescribeDomains(input *DescribeDomainsInput) (*DescribeDom
 	return out, err
 }
 
-const opDescribeExpressions = "DescribeExpressions"
+var opDescribeDomains *aws.Operation
 
 // DescribeExpressionsRequest generates a request for the DescribeExpressions operation.
 func (c *CloudSearch) DescribeExpressionsRequest(input *DescribeExpressionsInput) (req *aws.Request, output *DescribeExpressionsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeExpressions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeExpressions == nil {
+		opDescribeExpressions = &aws.Operation{
+			Name:       "DescribeExpressions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeExpressionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeExpressions, input, output)
 	output = &DescribeExpressionsOutput{}
 	req.Data = output
 	return
@@ -467,21 +543,26 @@ func (c *CloudSearch) DescribeExpressions(input *DescribeExpressionsInput) (*Des
 	return out, err
 }
 
-const opDescribeIndexFields = "DescribeIndexFields"
+var opDescribeExpressions *aws.Operation
 
 // DescribeIndexFieldsRequest generates a request for the DescribeIndexFields operation.
 func (c *CloudSearch) DescribeIndexFieldsRequest(input *DescribeIndexFieldsInput) (req *aws.Request, output *DescribeIndexFieldsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeIndexFields,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeIndexFields == nil {
+		opDescribeIndexFields = &aws.Operation{
+			Name:       "DescribeIndexFields",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeIndexFieldsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeIndexFields, input, output)
 	output = &DescribeIndexFieldsOutput{}
 	req.Data = output
 	return
@@ -499,21 +580,26 @@ func (c *CloudSearch) DescribeIndexFields(input *DescribeIndexFieldsInput) (*Des
 	return out, err
 }
 
-const opDescribeScalingParameters = "DescribeScalingParameters"
+var opDescribeIndexFields *aws.Operation
 
 // DescribeScalingParametersRequest generates a request for the DescribeScalingParameters operation.
 func (c *CloudSearch) DescribeScalingParametersRequest(input *DescribeScalingParametersInput) (req *aws.Request, output *DescribeScalingParametersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeScalingParameters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeScalingParameters == nil {
+		opDescribeScalingParameters = &aws.Operation{
+			Name:       "DescribeScalingParameters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeScalingParametersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeScalingParameters, input, output)
 	output = &DescribeScalingParametersOutput{}
 	req.Data = output
 	return
@@ -529,21 +615,26 @@ func (c *CloudSearch) DescribeScalingParameters(input *DescribeScalingParameters
 	return out, err
 }
 
-const opDescribeServiceAccessPolicies = "DescribeServiceAccessPolicies"
+var opDescribeScalingParameters *aws.Operation
 
 // DescribeServiceAccessPoliciesRequest generates a request for the DescribeServiceAccessPolicies operation.
 func (c *CloudSearch) DescribeServiceAccessPoliciesRequest(input *DescribeServiceAccessPoliciesInput) (req *aws.Request, output *DescribeServiceAccessPoliciesOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeServiceAccessPolicies,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeServiceAccessPolicies == nil {
+		opDescribeServiceAccessPolicies = &aws.Operation{
+			Name:       "DescribeServiceAccessPolicies",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeServiceAccessPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeServiceAccessPolicies, input, output)
 	output = &DescribeServiceAccessPoliciesOutput{}
 	req.Data = output
 	return
@@ -561,21 +652,26 @@ func (c *CloudSearch) DescribeServiceAccessPolicies(input *DescribeServiceAccess
 	return out, err
 }
 
-const opDescribeSuggesters = "DescribeSuggesters"
+var opDescribeServiceAccessPolicies *aws.Operation
 
 // DescribeSuggestersRequest generates a request for the DescribeSuggesters operation.
 func (c *CloudSearch) DescribeSuggestersRequest(input *DescribeSuggestersInput) (req *aws.Request, output *DescribeSuggestersOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeSuggesters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeSuggesters == nil {
+		opDescribeSuggesters = &aws.Operation{
+			Name:       "DescribeSuggesters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeSuggestersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeSuggesters, input, output)
 	output = &DescribeSuggestersOutput{}
 	req.Data = output
 	return
@@ -594,21 +690,26 @@ func (c *CloudSearch) DescribeSuggesters(input *DescribeSuggestersInput) (*Descr
 	return out, err
 }
 
-const opIndexDocuments = "IndexDocuments"
+var opDescribeSuggesters *aws.Operation
 
 // IndexDocumentsRequest generates a request for the IndexDocuments operation.
 func (c *CloudSearch) IndexDocumentsRequest(input *IndexDocumentsInput) (req *aws.Request, output *IndexDocumentsOutput) {
-	op := &aws.Operation{
-		Name:       opIndexDocuments,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opIndexDocuments == nil {
+		opIndexDocuments = &aws.Operation{
+			Name:       "IndexDocuments",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &IndexDocumentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opIndexDocuments, input, output)
 	output = &IndexDocumentsOutput{}
 	req.Data = output
 	return
@@ -623,21 +724,26 @@ func (c *CloudSearch) IndexDocuments(input *IndexDocumentsInput) (*IndexDocument
 	return out, err
 }
 
-const opListDomainNames = "ListDomainNames"
+var opIndexDocuments *aws.Operation
 
 // ListDomainNamesRequest generates a request for the ListDomainNames operation.
 func (c *CloudSearch) ListDomainNamesRequest(input *ListDomainNamesInput) (req *aws.Request, output *ListDomainNamesOutput) {
-	op := &aws.Operation{
-		Name:       opListDomainNames,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListDomainNames == nil {
+		opListDomainNames = &aws.Operation{
+			Name:       "ListDomainNames",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListDomainNamesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListDomainNames, input, output)
 	output = &ListDomainNamesOutput{}
 	req.Data = output
 	return
@@ -650,21 +756,26 @@ func (c *CloudSearch) ListDomainNames(input *ListDomainNamesInput) (*ListDomainN
 	return out, err
 }
 
-const opUpdateAvailabilityOptions = "UpdateAvailabilityOptions"
+var opListDomainNames *aws.Operation
 
 // UpdateAvailabilityOptionsRequest generates a request for the UpdateAvailabilityOptions operation.
 func (c *CloudSearch) UpdateAvailabilityOptionsRequest(input *UpdateAvailabilityOptionsInput) (req *aws.Request, output *UpdateAvailabilityOptionsOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateAvailabilityOptions,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateAvailabilityOptions == nil {
+		opUpdateAvailabilityOptions = &aws.Operation{
+			Name:       "UpdateAvailabilityOptions",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateAvailabilityOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateAvailabilityOptions, input, output)
 	output = &UpdateAvailabilityOptionsOutput{}
 	req.Data = output
 	return
@@ -682,21 +793,26 @@ func (c *CloudSearch) UpdateAvailabilityOptions(input *UpdateAvailabilityOptions
 	return out, err
 }
 
-const opUpdateScalingParameters = "UpdateScalingParameters"
+var opUpdateAvailabilityOptions *aws.Operation
 
 // UpdateScalingParametersRequest generates a request for the UpdateScalingParameters operation.
 func (c *CloudSearch) UpdateScalingParametersRequest(input *UpdateScalingParametersInput) (req *aws.Request, output *UpdateScalingParametersOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateScalingParameters,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateScalingParameters == nil {
+		opUpdateScalingParameters = &aws.Operation{
+			Name:       "UpdateScalingParameters",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateScalingParametersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateScalingParameters, input, output)
 	output = &UpdateScalingParametersOutput{}
 	req.Data = output
 	return
@@ -716,21 +832,26 @@ func (c *CloudSearch) UpdateScalingParameters(input *UpdateScalingParametersInpu
 	return out, err
 }
 
-const opUpdateServiceAccessPolicies = "UpdateServiceAccessPolicies"
+var opUpdateScalingParameters *aws.Operation
 
 // UpdateServiceAccessPoliciesRequest generates a request for the UpdateServiceAccessPolicies operation.
 func (c *CloudSearch) UpdateServiceAccessPoliciesRequest(input *UpdateServiceAccessPoliciesInput) (req *aws.Request, output *UpdateServiceAccessPoliciesOutput) {
-	op := &aws.Operation{
-		Name:       opUpdateServiceAccessPolicies,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateServiceAccessPolicies == nil {
+		opUpdateServiceAccessPolicies = &aws.Operation{
+			Name:       "UpdateServiceAccessPolicies",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateServiceAccessPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateServiceAccessPolicies, input, output)
 	output = &UpdateServiceAccessPoliciesOutput{}
 	req.Data = output
 	return
@@ -745,6 +866,8 @@ func (c *CloudSearch) UpdateServiceAccessPolicies(input *UpdateServiceAccessPoli
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateServiceAccessPolicies *aws.Operation
 
 // The configured access rules for the domain's document and search endpoints,
 // and the current status of those rules.

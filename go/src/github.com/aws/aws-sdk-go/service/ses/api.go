@@ -4,26 +4,32 @@
 package ses
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opDeleteIdentity = "DeleteIdentity"
+var oprw sync.Mutex
 
 // DeleteIdentityRequest generates a request for the DeleteIdentity operation.
 func (c *SES) DeleteIdentityRequest(input *DeleteIdentityInput) (req *aws.Request, output *DeleteIdentityOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteIdentity == nil {
+		opDeleteIdentity = &aws.Operation{
+			Name:       "DeleteIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteIdentity, input, output)
 	output = &DeleteIdentityOutput{}
 	req.Data = output
 	return
@@ -39,21 +45,26 @@ func (c *SES) DeleteIdentity(input *DeleteIdentityInput) (*DeleteIdentityOutput,
 	return out, err
 }
 
-const opDeleteVerifiedEmailAddress = "DeleteVerifiedEmailAddress"
+var opDeleteIdentity *aws.Operation
 
 // DeleteVerifiedEmailAddressRequest generates a request for the DeleteVerifiedEmailAddress operation.
 func (c *SES) DeleteVerifiedEmailAddressRequest(input *DeleteVerifiedEmailAddressInput) (req *aws.Request, output *DeleteVerifiedEmailAddressOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVerifiedEmailAddress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVerifiedEmailAddress == nil {
+		opDeleteVerifiedEmailAddress = &aws.Operation{
+			Name:       "DeleteVerifiedEmailAddress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVerifiedEmailAddressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVerifiedEmailAddress, input, output)
 	output = &DeleteVerifiedEmailAddressOutput{}
 	req.Data = output
 	return
@@ -70,21 +81,26 @@ func (c *SES) DeleteVerifiedEmailAddress(input *DeleteVerifiedEmailAddressInput)
 	return out, err
 }
 
-const opGetIdentityDKIMAttributes = "GetIdentityDkimAttributes"
+var opDeleteVerifiedEmailAddress *aws.Operation
 
 // GetIdentityDKIMAttributesRequest generates a request for the GetIdentityDKIMAttributes operation.
 func (c *SES) GetIdentityDKIMAttributesRequest(input *GetIdentityDKIMAttributesInput) (req *aws.Request, output *GetIdentityDKIMAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opGetIdentityDKIMAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetIdentityDKIMAttributes == nil {
+		opGetIdentityDKIMAttributes = &aws.Operation{
+			Name:       "GetIdentityDkimAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetIdentityDKIMAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetIdentityDKIMAttributes, input, output)
 	output = &GetIdentityDKIMAttributesOutput{}
 	req.Data = output
 	return
@@ -114,21 +130,26 @@ func (c *SES) GetIdentityDKIMAttributes(input *GetIdentityDKIMAttributesInput) (
 	return out, err
 }
 
-const opGetIdentityNotificationAttributes = "GetIdentityNotificationAttributes"
+var opGetIdentityDKIMAttributes *aws.Operation
 
 // GetIdentityNotificationAttributesRequest generates a request for the GetIdentityNotificationAttributes operation.
 func (c *SES) GetIdentityNotificationAttributesRequest(input *GetIdentityNotificationAttributesInput) (req *aws.Request, output *GetIdentityNotificationAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opGetIdentityNotificationAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetIdentityNotificationAttributes == nil {
+		opGetIdentityNotificationAttributes = &aws.Operation{
+			Name:       "GetIdentityNotificationAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetIdentityNotificationAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetIdentityNotificationAttributes, input, output)
 	output = &GetIdentityNotificationAttributesOutput{}
 	req.Data = output
 	return
@@ -148,21 +169,26 @@ func (c *SES) GetIdentityNotificationAttributes(input *GetIdentityNotificationAt
 	return out, err
 }
 
-const opGetIdentityVerificationAttributes = "GetIdentityVerificationAttributes"
+var opGetIdentityNotificationAttributes *aws.Operation
 
 // GetIdentityVerificationAttributesRequest generates a request for the GetIdentityVerificationAttributes operation.
 func (c *SES) GetIdentityVerificationAttributesRequest(input *GetIdentityVerificationAttributesInput) (req *aws.Request, output *GetIdentityVerificationAttributesOutput) {
-	op := &aws.Operation{
-		Name:       opGetIdentityVerificationAttributes,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetIdentityVerificationAttributes == nil {
+		opGetIdentityVerificationAttributes = &aws.Operation{
+			Name:       "GetIdentityVerificationAttributes",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetIdentityVerificationAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetIdentityVerificationAttributes, input, output)
 	output = &GetIdentityVerificationAttributesOutput{}
 	req.Data = output
 	return
@@ -180,21 +206,26 @@ func (c *SES) GetIdentityVerificationAttributes(input *GetIdentityVerificationAt
 	return out, err
 }
 
-const opGetSendQuota = "GetSendQuota"
+var opGetIdentityVerificationAttributes *aws.Operation
 
 // GetSendQuotaRequest generates a request for the GetSendQuota operation.
 func (c *SES) GetSendQuotaRequest(input *GetSendQuotaInput) (req *aws.Request, output *GetSendQuotaOutput) {
-	op := &aws.Operation{
-		Name:       opGetSendQuota,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetSendQuota == nil {
+		opGetSendQuota = &aws.Operation{
+			Name:       "GetSendQuota",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetSendQuotaInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetSendQuota, input, output)
 	output = &GetSendQuotaOutput{}
 	req.Data = output
 	return
@@ -209,21 +240,26 @@ func (c *SES) GetSendQuota(input *GetSendQuotaInput) (*GetSendQuotaOutput, error
 	return out, err
 }
 
-const opGetSendStatistics = "GetSendStatistics"
+var opGetSendQuota *aws.Operation
 
 // GetSendStatisticsRequest generates a request for the GetSendStatistics operation.
 func (c *SES) GetSendStatisticsRequest(input *GetSendStatisticsInput) (req *aws.Request, output *GetSendStatisticsOutput) {
-	op := &aws.Operation{
-		Name:       opGetSendStatistics,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetSendStatistics == nil {
+		opGetSendStatistics = &aws.Operation{
+			Name:       "GetSendStatistics",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &GetSendStatisticsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetSendStatistics, input, output)
 	output = &GetSendStatisticsOutput{}
 	req.Data = output
 	return
@@ -241,27 +277,32 @@ func (c *SES) GetSendStatistics(input *GetSendStatisticsInput) (*GetSendStatisti
 	return out, err
 }
 
-const opListIdentities = "ListIdentities"
+var opGetSendStatistics *aws.Operation
 
 // ListIdentitiesRequest generates a request for the ListIdentities operation.
 func (c *SES) ListIdentitiesRequest(input *ListIdentitiesInput) (req *aws.Request, output *ListIdentitiesOutput) {
-	op := &aws.Operation{
-		Name:       opListIdentities,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"NextToken"},
-			OutputTokens:    []string{"NextToken"},
-			LimitToken:      "MaxItems",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListIdentities == nil {
+		opListIdentities = &aws.Operation{
+			Name:       "ListIdentities",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"NextToken"},
+				OutputTokens:    []string{"NextToken"},
+				LimitToken:      "MaxItems",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListIdentitiesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListIdentities, input, output)
 	output = &ListIdentitiesOutput{}
 	req.Data = output
 	return
@@ -284,21 +325,26 @@ func (c *SES) ListIdentitiesPages(input *ListIdentitiesInput, fn func(p *ListIde
 	})
 }
 
-const opListVerifiedEmailAddresses = "ListVerifiedEmailAddresses"
+var opListIdentities *aws.Operation
 
 // ListVerifiedEmailAddressesRequest generates a request for the ListVerifiedEmailAddresses operation.
 func (c *SES) ListVerifiedEmailAddressesRequest(input *ListVerifiedEmailAddressesInput) (req *aws.Request, output *ListVerifiedEmailAddressesOutput) {
-	op := &aws.Operation{
-		Name:       opListVerifiedEmailAddresses,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListVerifiedEmailAddresses == nil {
+		opListVerifiedEmailAddresses = &aws.Operation{
+			Name:       "ListVerifiedEmailAddresses",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &ListVerifiedEmailAddressesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListVerifiedEmailAddresses, input, output)
 	output = &ListVerifiedEmailAddressesOutput{}
 	req.Data = output
 	return
@@ -315,21 +361,26 @@ func (c *SES) ListVerifiedEmailAddresses(input *ListVerifiedEmailAddressesInput)
 	return out, err
 }
 
-const opSendEmail = "SendEmail"
+var opListVerifiedEmailAddresses *aws.Operation
 
 // SendEmailRequest generates a request for the SendEmail operation.
 func (c *SES) SendEmailRequest(input *SendEmailInput) (req *aws.Request, output *SendEmailOutput) {
-	op := &aws.Operation{
-		Name:       opSendEmail,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSendEmail == nil {
+		opSendEmail = &aws.Operation{
+			Name:       "SendEmail",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SendEmailInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSendEmail, input, output)
 	output = &SendEmailOutput{}
 	req.Data = output
 	return
@@ -360,21 +411,26 @@ func (c *SES) SendEmail(input *SendEmailInput) (*SendEmailOutput, error) {
 	return out, err
 }
 
-const opSendRawEmail = "SendRawEmail"
+var opSendEmail *aws.Operation
 
 // SendRawEmailRequest generates a request for the SendRawEmail operation.
 func (c *SES) SendRawEmailRequest(input *SendRawEmailInput) (req *aws.Request, output *SendRawEmailOutput) {
-	op := &aws.Operation{
-		Name:       opSendRawEmail,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSendRawEmail == nil {
+		opSendRawEmail = &aws.Operation{
+			Name:       "SendRawEmail",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SendRawEmailInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSendRawEmail, input, output)
 	output = &SendRawEmailOutput{}
 	req.Data = output
 	return
@@ -412,21 +468,26 @@ func (c *SES) SendRawEmail(input *SendRawEmailInput) (*SendRawEmailOutput, error
 	return out, err
 }
 
-const opSetIdentityDKIMEnabled = "SetIdentityDkimEnabled"
+var opSendRawEmail *aws.Operation
 
 // SetIdentityDKIMEnabledRequest generates a request for the SetIdentityDKIMEnabled operation.
 func (c *SES) SetIdentityDKIMEnabledRequest(input *SetIdentityDKIMEnabledInput) (req *aws.Request, output *SetIdentityDKIMEnabledOutput) {
-	op := &aws.Operation{
-		Name:       opSetIdentityDKIMEnabled,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetIdentityDKIMEnabled == nil {
+		opSetIdentityDKIMEnabled = &aws.Operation{
+			Name:       "SetIdentityDkimEnabled",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetIdentityDKIMEnabledInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetIdentityDKIMEnabled, input, output)
 	output = &SetIdentityDKIMEnabledOutput{}
 	req.Data = output
 	return
@@ -452,21 +513,26 @@ func (c *SES) SetIdentityDKIMEnabled(input *SetIdentityDKIMEnabledInput) (*SetId
 	return out, err
 }
 
-const opSetIdentityFeedbackForwardingEnabled = "SetIdentityFeedbackForwardingEnabled"
+var opSetIdentityDKIMEnabled *aws.Operation
 
 // SetIdentityFeedbackForwardingEnabledRequest generates a request for the SetIdentityFeedbackForwardingEnabled operation.
 func (c *SES) SetIdentityFeedbackForwardingEnabledRequest(input *SetIdentityFeedbackForwardingEnabledInput) (req *aws.Request, output *SetIdentityFeedbackForwardingEnabledOutput) {
-	op := &aws.Operation{
-		Name:       opSetIdentityFeedbackForwardingEnabled,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetIdentityFeedbackForwardingEnabled == nil {
+		opSetIdentityFeedbackForwardingEnabled = &aws.Operation{
+			Name:       "SetIdentityFeedbackForwardingEnabled",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetIdentityFeedbackForwardingEnabledInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetIdentityFeedbackForwardingEnabled, input, output)
 	output = &SetIdentityFeedbackForwardingEnabledOutput{}
 	req.Data = output
 	return
@@ -489,21 +555,26 @@ func (c *SES) SetIdentityFeedbackForwardingEnabled(input *SetIdentityFeedbackFor
 	return out, err
 }
 
-const opSetIdentityNotificationTopic = "SetIdentityNotificationTopic"
+var opSetIdentityFeedbackForwardingEnabled *aws.Operation
 
 // SetIdentityNotificationTopicRequest generates a request for the SetIdentityNotificationTopic operation.
 func (c *SES) SetIdentityNotificationTopicRequest(input *SetIdentityNotificationTopicInput) (req *aws.Request, output *SetIdentityNotificationTopicOutput) {
-	op := &aws.Operation{
-		Name:       opSetIdentityNotificationTopic,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetIdentityNotificationTopic == nil {
+		opSetIdentityNotificationTopic = &aws.Operation{
+			Name:       "SetIdentityNotificationTopic",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &SetIdentityNotificationTopicInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetIdentityNotificationTopic, input, output)
 	output = &SetIdentityNotificationTopicOutput{}
 	req.Data = output
 	return
@@ -525,21 +596,26 @@ func (c *SES) SetIdentityNotificationTopic(input *SetIdentityNotificationTopicIn
 	return out, err
 }
 
-const opVerifyDomainDKIM = "VerifyDomainDkim"
+var opSetIdentityNotificationTopic *aws.Operation
 
 // VerifyDomainDKIMRequest generates a request for the VerifyDomainDKIM operation.
 func (c *SES) VerifyDomainDKIMRequest(input *VerifyDomainDKIMInput) (req *aws.Request, output *VerifyDomainDKIMOutput) {
-	op := &aws.Operation{
-		Name:       opVerifyDomainDKIM,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opVerifyDomainDKIM == nil {
+		opVerifyDomainDKIM = &aws.Operation{
+			Name:       "VerifyDomainDkim",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &VerifyDomainDKIMInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opVerifyDomainDKIM, input, output)
 	output = &VerifyDomainDKIMOutput{}
 	req.Data = output
 	return
@@ -566,21 +642,26 @@ func (c *SES) VerifyDomainDKIM(input *VerifyDomainDKIMInput) (*VerifyDomainDKIMO
 	return out, err
 }
 
-const opVerifyDomainIdentity = "VerifyDomainIdentity"
+var opVerifyDomainDKIM *aws.Operation
 
 // VerifyDomainIdentityRequest generates a request for the VerifyDomainIdentity operation.
 func (c *SES) VerifyDomainIdentityRequest(input *VerifyDomainIdentityInput) (req *aws.Request, output *VerifyDomainIdentityOutput) {
-	op := &aws.Operation{
-		Name:       opVerifyDomainIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opVerifyDomainIdentity == nil {
+		opVerifyDomainIdentity = &aws.Operation{
+			Name:       "VerifyDomainIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &VerifyDomainIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opVerifyDomainIdentity, input, output)
 	output = &VerifyDomainIdentityOutput{}
 	req.Data = output
 	return
@@ -595,21 +676,26 @@ func (c *SES) VerifyDomainIdentity(input *VerifyDomainIdentityInput) (*VerifyDom
 	return out, err
 }
 
-const opVerifyEmailAddress = "VerifyEmailAddress"
+var opVerifyDomainIdentity *aws.Operation
 
 // VerifyEmailAddressRequest generates a request for the VerifyEmailAddress operation.
 func (c *SES) VerifyEmailAddressRequest(input *VerifyEmailAddressInput) (req *aws.Request, output *VerifyEmailAddressOutput) {
-	op := &aws.Operation{
-		Name:       opVerifyEmailAddress,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opVerifyEmailAddress == nil {
+		opVerifyEmailAddress = &aws.Operation{
+			Name:       "VerifyEmailAddress",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &VerifyEmailAddressInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opVerifyEmailAddress, input, output)
 	output = &VerifyEmailAddressOutput{}
 	req.Data = output
 	return
@@ -627,21 +713,26 @@ func (c *SES) VerifyEmailAddress(input *VerifyEmailAddressInput) (*VerifyEmailAd
 	return out, err
 }
 
-const opVerifyEmailIdentity = "VerifyEmailIdentity"
+var opVerifyEmailAddress *aws.Operation
 
 // VerifyEmailIdentityRequest generates a request for the VerifyEmailIdentity operation.
 func (c *SES) VerifyEmailIdentityRequest(input *VerifyEmailIdentityInput) (req *aws.Request, output *VerifyEmailIdentityOutput) {
-	op := &aws.Operation{
-		Name:       opVerifyEmailIdentity,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opVerifyEmailIdentity == nil {
+		opVerifyEmailIdentity = &aws.Operation{
+			Name:       "VerifyEmailIdentity",
+			HTTPMethod: "POST",
+			HTTPPath:   "/",
+		}
 	}
 
 	if input == nil {
 		input = &VerifyEmailIdentityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opVerifyEmailIdentity, input, output)
 	output = &VerifyEmailIdentityOutput{}
 	req.Data = output
 	return
@@ -656,6 +747,8 @@ func (c *SES) VerifyEmailIdentity(input *VerifyEmailIdentityInput) (*VerifyEmail
 	err := req.Send()
 	return out, err
 }
+
+var opVerifyEmailIdentity *aws.Operation
 
 // Represents the body of the message. You can specify text, HTML, or both.
 // If you use both, then the message should display correctly in the widest

@@ -5,26 +5,32 @@ package lambda
 
 import (
 	"io"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAddPermission = "AddPermission"
+var oprw sync.Mutex
 
 // AddPermissionRequest generates a request for the AddPermission operation.
 func (c *Lambda) AddPermissionRequest(input *AddPermissionInput) (req *aws.Request, output *AddPermissionOutput) {
-	op := &aws.Operation{
-		Name:       opAddPermission,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/policy",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAddPermission == nil {
+		opAddPermission = &aws.Operation{
+			Name:       "AddPermission",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/policy",
+		}
 	}
 
 	if input == nil {
 		input = &AddPermissionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAddPermission, input, output)
 	output = &AddPermissionOutput{}
 	req.Data = output
 	return
@@ -46,21 +52,26 @@ func (c *Lambda) AddPermission(input *AddPermissionInput) (*AddPermissionOutput,
 	return out, err
 }
 
-const opCreateEventSourceMapping = "CreateEventSourceMapping"
+var opAddPermission *aws.Operation
 
 // CreateEventSourceMappingRequest generates a request for the CreateEventSourceMapping operation.
 func (c *Lambda) CreateEventSourceMappingRequest(input *CreateEventSourceMappingInput) (req *aws.Request, output *EventSourceMappingConfiguration) {
-	op := &aws.Operation{
-		Name:       opCreateEventSourceMapping,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2015-03-31/event-source-mappings/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateEventSourceMapping == nil {
+		opCreateEventSourceMapping = &aws.Operation{
+			Name:       "CreateEventSourceMapping",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2015-03-31/event-source-mappings/",
+		}
 	}
 
 	if input == nil {
 		input = &CreateEventSourceMappingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateEventSourceMapping, input, output)
 	output = &EventSourceMappingConfiguration{}
 	req.Data = output
 	return
@@ -91,21 +102,26 @@ func (c *Lambda) CreateEventSourceMapping(input *CreateEventSourceMappingInput) 
 	return out, err
 }
 
-const opCreateFunction = "CreateFunction"
+var opCreateEventSourceMapping *aws.Operation
 
 // CreateFunctionRequest generates a request for the CreateFunction operation.
 func (c *Lambda) CreateFunctionRequest(input *CreateFunctionInput) (req *aws.Request, output *FunctionConfiguration) {
-	op := &aws.Operation{
-		Name:       opCreateFunction,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2015-03-31/functions",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateFunction == nil {
+		opCreateFunction = &aws.Operation{
+			Name:       "CreateFunction",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2015-03-31/functions",
+		}
 	}
 
 	if input == nil {
 		input = &CreateFunctionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateFunction, input, output)
 	output = &FunctionConfiguration{}
 	req.Data = output
 	return
@@ -123,21 +139,26 @@ func (c *Lambda) CreateFunction(input *CreateFunctionInput) (*FunctionConfigurat
 	return out, err
 }
 
-const opDeleteEventSourceMapping = "DeleteEventSourceMapping"
+var opCreateFunction *aws.Operation
 
 // DeleteEventSourceMappingRequest generates a request for the DeleteEventSourceMapping operation.
 func (c *Lambda) DeleteEventSourceMappingRequest(input *DeleteEventSourceMappingInput) (req *aws.Request, output *EventSourceMappingConfiguration) {
-	op := &aws.Operation{
-		Name:       opDeleteEventSourceMapping,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/2015-03-31/event-source-mappings/{UUID}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteEventSourceMapping == nil {
+		opDeleteEventSourceMapping = &aws.Operation{
+			Name:       "DeleteEventSourceMapping",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/2015-03-31/event-source-mappings/{UUID}",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteEventSourceMappingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteEventSourceMapping, input, output)
 	output = &EventSourceMappingConfiguration{}
 	req.Data = output
 	return
@@ -154,21 +175,26 @@ func (c *Lambda) DeleteEventSourceMapping(input *DeleteEventSourceMappingInput) 
 	return out, err
 }
 
-const opDeleteFunction = "DeleteFunction"
+var opDeleteEventSourceMapping *aws.Operation
 
 // DeleteFunctionRequest generates a request for the DeleteFunction operation.
 func (c *Lambda) DeleteFunctionRequest(input *DeleteFunctionInput) (req *aws.Request, output *DeleteFunctionOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteFunction,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteFunction == nil {
+		opDeleteFunction = &aws.Operation{
+			Name:       "DeleteFunction",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteFunctionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteFunction, input, output)
 	output = &DeleteFunctionOutput{}
 	req.Data = output
 	return
@@ -186,21 +212,26 @@ func (c *Lambda) DeleteFunction(input *DeleteFunctionInput) (*DeleteFunctionOutp
 	return out, err
 }
 
-const opGetEventSourceMapping = "GetEventSourceMapping"
+var opDeleteFunction *aws.Operation
 
 // GetEventSourceMappingRequest generates a request for the GetEventSourceMapping operation.
 func (c *Lambda) GetEventSourceMappingRequest(input *GetEventSourceMappingInput) (req *aws.Request, output *EventSourceMappingConfiguration) {
-	op := &aws.Operation{
-		Name:       opGetEventSourceMapping,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-03-31/event-source-mappings/{UUID}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetEventSourceMapping == nil {
+		opGetEventSourceMapping = &aws.Operation{
+			Name:       "GetEventSourceMapping",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-03-31/event-source-mappings/{UUID}",
+		}
 	}
 
 	if input == nil {
 		input = &GetEventSourceMappingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetEventSourceMapping, input, output)
 	output = &EventSourceMappingConfiguration{}
 	req.Data = output
 	return
@@ -217,21 +248,26 @@ func (c *Lambda) GetEventSourceMapping(input *GetEventSourceMappingInput) (*Even
 	return out, err
 }
 
-const opGetFunction = "GetFunction"
+var opGetEventSourceMapping *aws.Operation
 
 // GetFunctionRequest generates a request for the GetFunction operation.
 func (c *Lambda) GetFunctionRequest(input *GetFunctionInput) (req *aws.Request, output *GetFunctionOutput) {
-	op := &aws.Operation{
-		Name:       opGetFunction,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetFunction == nil {
+		opGetFunction = &aws.Operation{
+			Name:       "GetFunction",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD",
+		}
 	}
 
 	if input == nil {
 		input = &GetFunctionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetFunction, input, output)
 	output = &GetFunctionOutput{}
 	req.Data = output
 	return
@@ -250,21 +286,26 @@ func (c *Lambda) GetFunction(input *GetFunctionInput) (*GetFunctionOutput, error
 	return out, err
 }
 
-const opGetFunctionConfiguration = "GetFunctionConfiguration"
+var opGetFunction *aws.Operation
 
 // GetFunctionConfigurationRequest generates a request for the GetFunctionConfiguration operation.
 func (c *Lambda) GetFunctionConfigurationRequest(input *GetFunctionConfigurationInput) (req *aws.Request, output *FunctionConfiguration) {
-	op := &aws.Operation{
-		Name:       opGetFunctionConfiguration,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/configuration",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetFunctionConfiguration == nil {
+		opGetFunctionConfiguration = &aws.Operation{
+			Name:       "GetFunctionConfiguration",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/configuration",
+		}
 	}
 
 	if input == nil {
 		input = &GetFunctionConfigurationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetFunctionConfiguration, input, output)
 	output = &FunctionConfiguration{}
 	req.Data = output
 	return
@@ -282,21 +323,26 @@ func (c *Lambda) GetFunctionConfiguration(input *GetFunctionConfigurationInput) 
 	return out, err
 }
 
-const opGetPolicy = "GetPolicy"
+var opGetFunctionConfiguration *aws.Operation
 
 // GetPolicyRequest generates a request for the GetPolicy operation.
 func (c *Lambda) GetPolicyRequest(input *GetPolicyInput) (req *aws.Request, output *GetPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opGetPolicy,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/policy",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetPolicy == nil {
+		opGetPolicy = &aws.Operation{
+			Name:       "GetPolicy",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/policy",
+		}
 	}
 
 	if input == nil {
 		input = &GetPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetPolicy, input, output)
 	output = &GetPolicyOutput{}
 	req.Data = output
 	return
@@ -312,21 +358,26 @@ func (c *Lambda) GetPolicy(input *GetPolicyInput) (*GetPolicyOutput, error) {
 	return out, err
 }
 
-const opInvoke = "Invoke"
+var opGetPolicy *aws.Operation
 
 // InvokeRequest generates a request for the Invoke operation.
 func (c *Lambda) InvokeRequest(input *InvokeInput) (req *aws.Request, output *InvokeOutput) {
-	op := &aws.Operation{
-		Name:       opInvoke,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}/invocations",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opInvoke == nil {
+		opInvoke = &aws.Operation{
+			Name:       "Invoke",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}/invocations",
+		}
 	}
 
 	if input == nil {
 		input = &InvokeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opInvoke, input, output)
 	output = &InvokeOutput{}
 	req.Data = output
 	return
@@ -341,21 +392,26 @@ func (c *Lambda) Invoke(input *InvokeInput) (*InvokeOutput, error) {
 	return out, err
 }
 
-const opInvokeAsync = "InvokeAsync"
+var opInvoke *aws.Operation
 
 // InvokeAsyncRequest generates a request for the InvokeAsync operation.
 func (c *Lambda) InvokeAsyncRequest(input *InvokeAsyncInput) (req *aws.Request, output *InvokeAsyncOutput) {
-	op := &aws.Operation{
-		Name:       opInvokeAsync,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2014-11-13/functions/{FunctionName}/invoke-async/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opInvokeAsync == nil {
+		opInvokeAsync = &aws.Operation{
+			Name:       "InvokeAsync",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2014-11-13/functions/{FunctionName}/invoke-async/",
+		}
 	}
 
 	if input == nil {
 		input = &InvokeAsyncInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opInvokeAsync, input, output)
 	output = &InvokeAsyncOutput{}
 	req.Data = output
 	return
@@ -373,27 +429,32 @@ func (c *Lambda) InvokeAsync(input *InvokeAsyncInput) (*InvokeAsyncOutput, error
 	return out, err
 }
 
-const opListEventSourceMappings = "ListEventSourceMappings"
+var opInvokeAsync *aws.Operation
 
 // ListEventSourceMappingsRequest generates a request for the ListEventSourceMappings operation.
 func (c *Lambda) ListEventSourceMappingsRequest(input *ListEventSourceMappingsInput) (req *aws.Request, output *ListEventSourceMappingsOutput) {
-	op := &aws.Operation{
-		Name:       opListEventSourceMappings,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-03-31/event-source-mappings/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"NextMarker"},
-			LimitToken:      "MaxItems",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListEventSourceMappings == nil {
+		opListEventSourceMappings = &aws.Operation{
+			Name:       "ListEventSourceMappings",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-03-31/event-source-mappings/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"NextMarker"},
+				LimitToken:      "MaxItems",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListEventSourceMappingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListEventSourceMappings, input, output)
 	output = &ListEventSourceMappingsOutput{}
 	req.Data = output
 	return
@@ -421,27 +482,32 @@ func (c *Lambda) ListEventSourceMappingsPages(input *ListEventSourceMappingsInpu
 	})
 }
 
-const opListFunctions = "ListFunctions"
+var opListEventSourceMappings *aws.Operation
 
 // ListFunctionsRequest generates a request for the ListFunctions operation.
 func (c *Lambda) ListFunctionsRequest(input *ListFunctionsInput) (req *aws.Request, output *ListFunctionsOutput) {
-	op := &aws.Operation{
-		Name:       opListFunctions,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-03-31/functions/",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"Marker"},
-			OutputTokens:    []string{"NextMarker"},
-			LimitToken:      "MaxItems",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListFunctions == nil {
+		opListFunctions = &aws.Operation{
+			Name:       "ListFunctions",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-03-31/functions/",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"Marker"},
+				OutputTokens:    []string{"NextMarker"},
+				LimitToken:      "MaxItems",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListFunctionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListFunctions, input, output)
 	output = &ListFunctionsOutput{}
 	req.Data = output
 	return
@@ -465,21 +531,26 @@ func (c *Lambda) ListFunctionsPages(input *ListFunctionsInput, fn func(p *ListFu
 	})
 }
 
-const opRemovePermission = "RemovePermission"
+var opListFunctions *aws.Operation
 
 // RemovePermissionRequest generates a request for the RemovePermission operation.
 func (c *Lambda) RemovePermissionRequest(input *RemovePermissionInput) (req *aws.Request, output *RemovePermissionOutput) {
-	op := &aws.Operation{
-		Name:       opRemovePermission,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/policy/{StatementId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opRemovePermission == nil {
+		opRemovePermission = &aws.Operation{
+			Name:       "RemovePermission",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/policy/{StatementId}",
+		}
 	}
 
 	if input == nil {
 		input = &RemovePermissionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opRemovePermission, input, output)
 	output = &RemovePermissionOutput{}
 	req.Data = output
 	return
@@ -498,21 +569,26 @@ func (c *Lambda) RemovePermission(input *RemovePermissionInput) (*RemovePermissi
 	return out, err
 }
 
-const opUpdateEventSourceMapping = "UpdateEventSourceMapping"
+var opRemovePermission *aws.Operation
 
 // UpdateEventSourceMappingRequest generates a request for the UpdateEventSourceMapping operation.
 func (c *Lambda) UpdateEventSourceMappingRequest(input *UpdateEventSourceMappingInput) (req *aws.Request, output *EventSourceMappingConfiguration) {
-	op := &aws.Operation{
-		Name:       opUpdateEventSourceMapping,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/2015-03-31/event-source-mappings/{UUID}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateEventSourceMapping == nil {
+		opUpdateEventSourceMapping = &aws.Operation{
+			Name:       "UpdateEventSourceMapping",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/2015-03-31/event-source-mappings/{UUID}",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateEventSourceMappingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateEventSourceMapping, input, output)
 	output = &EventSourceMappingConfiguration{}
 	req.Data = output
 	return
@@ -531,21 +607,26 @@ func (c *Lambda) UpdateEventSourceMapping(input *UpdateEventSourceMappingInput) 
 	return out, err
 }
 
-const opUpdateFunctionCode = "UpdateFunctionCode"
+var opUpdateEventSourceMapping *aws.Operation
 
 // UpdateFunctionCodeRequest generates a request for the UpdateFunctionCode operation.
 func (c *Lambda) UpdateFunctionCodeRequest(input *UpdateFunctionCodeInput) (req *aws.Request, output *FunctionConfiguration) {
-	op := &aws.Operation{
-		Name:       opUpdateFunctionCode,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/code",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateFunctionCode == nil {
+		opUpdateFunctionCode = &aws.Operation{
+			Name:       "UpdateFunctionCode",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/code",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateFunctionCodeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateFunctionCode, input, output)
 	output = &FunctionConfiguration{}
 	req.Data = output
 	return
@@ -562,21 +643,26 @@ func (c *Lambda) UpdateFunctionCode(input *UpdateFunctionCodeInput) (*FunctionCo
 	return out, err
 }
 
-const opUpdateFunctionConfiguration = "UpdateFunctionConfiguration"
+var opUpdateFunctionCode *aws.Operation
 
 // UpdateFunctionConfigurationRequest generates a request for the UpdateFunctionConfiguration operation.
 func (c *Lambda) UpdateFunctionConfigurationRequest(input *UpdateFunctionConfigurationInput) (req *aws.Request, output *FunctionConfiguration) {
-	op := &aws.Operation{
-		Name:       opUpdateFunctionConfiguration,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/configuration",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUpdateFunctionConfiguration == nil {
+		opUpdateFunctionConfiguration = &aws.Operation{
+			Name:       "UpdateFunctionConfiguration",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/2015-03-31/functions/{FunctionName}/versions/HEAD/configuration",
+		}
 	}
 
 	if input == nil {
 		input = &UpdateFunctionConfigurationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUpdateFunctionConfiguration, input, output)
 	output = &FunctionConfiguration{}
 	req.Data = output
 	return
@@ -594,6 +680,8 @@ func (c *Lambda) UpdateFunctionConfiguration(input *UpdateFunctionConfigurationI
 	err := req.Send()
 	return out, err
 }
+
+var opUpdateFunctionConfiguration *aws.Operation
 
 type AddPermissionInput struct {
 	// The AWS Lambda action you want to allow in this statement. Each Lambda action

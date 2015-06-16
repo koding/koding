@@ -182,6 +182,8 @@ func (a *API) importsGoCode() string {
 
 // A tplAPI is the top level template for the API
 var tplAPI = template.Must(template.New("api").Parse(`
+var oprw sync.Mutex
+
 {{ range $_, $o := .OperationList }}
 {{ $o.GoCode }}
 
@@ -196,6 +198,7 @@ var tplAPI = template.Must(template.New("api").Parse(`
 // APIGoCode renders the API in Go code. Returning it as a string
 func (a *API) APIGoCode() string {
 	a.resetImports()
+	a.imports["sync"] = true
 	var buf bytes.Buffer
 	err := tplAPI.Execute(&buf, a)
 	if err != nil {

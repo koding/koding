@@ -5,25 +5,31 @@ package glacier
 
 import (
 	"io"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opAbortMultipartUpload = "AbortMultipartUpload"
+var oprw sync.Mutex
 
 // AbortMultipartUploadRequest generates a request for the AbortMultipartUpload operation.
 func (c *Glacier) AbortMultipartUploadRequest(input *AbortMultipartUploadInput) (req *aws.Request, output *AbortMultipartUploadOutput) {
-	op := &aws.Operation{
-		Name:       opAbortMultipartUpload,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opAbortMultipartUpload == nil {
+		opAbortMultipartUpload = &aws.Operation{
+			Name:       "AbortMultipartUpload",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}",
+		}
 	}
 
 	if input == nil {
 		input = &AbortMultipartUploadInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opAbortMultipartUpload, input, output)
 	output = &AbortMultipartUploadOutput{}
 	req.Data = output
 	return
@@ -55,21 +61,26 @@ func (c *Glacier) AbortMultipartUpload(input *AbortMultipartUploadInput) (*Abort
 	return out, err
 }
 
-const opCompleteMultipartUpload = "CompleteMultipartUpload"
+var opAbortMultipartUpload *aws.Operation
 
 // CompleteMultipartUploadRequest generates a request for the CompleteMultipartUpload operation.
 func (c *Glacier) CompleteMultipartUploadRequest(input *CompleteMultipartUploadInput) (req *aws.Request, output *ArchiveCreationOutput) {
-	op := &aws.Operation{
-		Name:       opCompleteMultipartUpload,
-		HTTPMethod: "POST",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCompleteMultipartUpload == nil {
+		opCompleteMultipartUpload = &aws.Operation{
+			Name:       "CompleteMultipartUpload",
+			HTTPMethod: "POST",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}",
+		}
 	}
 
 	if input == nil {
 		input = &CompleteMultipartUploadInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCompleteMultipartUpload, input, output)
 	output = &ArchiveCreationOutput{}
 	req.Data = output
 	return
@@ -125,21 +136,26 @@ func (c *Glacier) CompleteMultipartUpload(input *CompleteMultipartUploadInput) (
 	return out, err
 }
 
-const opCreateVault = "CreateVault"
+var opCompleteMultipartUpload *aws.Operation
 
 // CreateVaultRequest generates a request for the CreateVault operation.
 func (c *Glacier) CreateVaultRequest(input *CreateVaultInput) (req *aws.Request, output *CreateVaultOutput) {
-	op := &aws.Operation{
-		Name:       opCreateVault,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateVault == nil {
+		opCreateVault = &aws.Operation{
+			Name:       "CreateVault",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}",
+		}
 	}
 
 	if input == nil {
 		input = &CreateVaultInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateVault, input, output)
 	output = &CreateVaultOutput{}
 	req.Data = output
 	return
@@ -175,21 +191,26 @@ func (c *Glacier) CreateVault(input *CreateVaultInput) (*CreateVaultOutput, erro
 	return out, err
 }
 
-const opDeleteArchive = "DeleteArchive"
+var opCreateVault *aws.Operation
 
 // DeleteArchiveRequest generates a request for the DeleteArchive operation.
 func (c *Glacier) DeleteArchiveRequest(input *DeleteArchiveInput) (req *aws.Request, output *DeleteArchiveOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteArchive,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/archives/{archiveId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteArchive == nil {
+		opDeleteArchive = &aws.Operation{
+			Name:       "DeleteArchive",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/archives/{archiveId}",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteArchiveInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteArchive, input, output)
 	output = &DeleteArchiveOutput{}
 	req.Data = output
 	return
@@ -222,21 +243,26 @@ func (c *Glacier) DeleteArchive(input *DeleteArchiveInput) (*DeleteArchiveOutput
 	return out, err
 }
 
-const opDeleteVault = "DeleteVault"
+var opDeleteArchive *aws.Operation
 
 // DeleteVaultRequest generates a request for the DeleteVault operation.
 func (c *Glacier) DeleteVaultRequest(input *DeleteVaultInput) (req *aws.Request, output *DeleteVaultOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVault,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVault == nil {
+		opDeleteVault = &aws.Operation{
+			Name:       "DeleteVault",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVaultInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVault, input, output)
 	output = &DeleteVaultOutput{}
 	req.Data = output
 	return
@@ -271,21 +297,26 @@ func (c *Glacier) DeleteVault(input *DeleteVaultInput) (*DeleteVaultOutput, erro
 	return out, err
 }
 
-const opDeleteVaultAccessPolicy = "DeleteVaultAccessPolicy"
+var opDeleteVault *aws.Operation
 
 // DeleteVaultAccessPolicyRequest generates a request for the DeleteVaultAccessPolicy operation.
 func (c *Glacier) DeleteVaultAccessPolicyRequest(input *DeleteVaultAccessPolicyInput) (req *aws.Request, output *DeleteVaultAccessPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVaultAccessPolicy,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/access-policy",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVaultAccessPolicy == nil {
+		opDeleteVaultAccessPolicy = &aws.Operation{
+			Name:       "DeleteVaultAccessPolicy",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/access-policy",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVaultAccessPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVaultAccessPolicy, input, output)
 	output = &DeleteVaultAccessPolicyOutput{}
 	req.Data = output
 	return
@@ -306,21 +337,26 @@ func (c *Glacier) DeleteVaultAccessPolicy(input *DeleteVaultAccessPolicyInput) (
 	return out, err
 }
 
-const opDeleteVaultNotifications = "DeleteVaultNotifications"
+var opDeleteVaultAccessPolicy *aws.Operation
 
 // DeleteVaultNotificationsRequest generates a request for the DeleteVaultNotifications operation.
 func (c *Glacier) DeleteVaultNotificationsRequest(input *DeleteVaultNotificationsInput) (req *aws.Request, output *DeleteVaultNotificationsOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteVaultNotifications,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/notification-configuration",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteVaultNotifications == nil {
+		opDeleteVaultNotifications = &aws.Operation{
+			Name:       "DeleteVaultNotifications",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/notification-configuration",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteVaultNotificationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteVaultNotifications, input, output)
 	output = &DeleteVaultNotificationsOutput{}
 	req.Data = output
 	return
@@ -347,21 +383,26 @@ func (c *Glacier) DeleteVaultNotifications(input *DeleteVaultNotificationsInput)
 	return out, err
 }
 
-const opDescribeJob = "DescribeJob"
+var opDeleteVaultNotifications *aws.Operation
 
 // DescribeJobRequest generates a request for the DescribeJob operation.
 func (c *Glacier) DescribeJobRequest(input *DescribeJobInput) (req *aws.Request, output *JobDescription) {
-	op := &aws.Operation{
-		Name:       opDescribeJob,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/jobs/{jobId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeJob == nil {
+		opDescribeJob = &aws.Operation{
+			Name:       "DescribeJob",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/jobs/{jobId}",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeJob, input, output)
 	output = &JobDescription{}
 	req.Data = output
 	return
@@ -395,21 +436,26 @@ func (c *Glacier) DescribeJob(input *DescribeJobInput) (*JobDescription, error) 
 	return out, err
 }
 
-const opDescribeVault = "DescribeVault"
+var opDescribeJob *aws.Operation
 
 // DescribeVaultRequest generates a request for the DescribeVault operation.
 func (c *Glacier) DescribeVaultRequest(input *DescribeVaultInput) (req *aws.Request, output *DescribeVaultOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeVault,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeVault == nil {
+		opDescribeVault = &aws.Operation{
+			Name:       "DescribeVault",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeVaultInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeVault, input, output)
 	output = &DescribeVaultOutput{}
 	req.Data = output
 	return
@@ -441,21 +487,26 @@ func (c *Glacier) DescribeVault(input *DescribeVaultInput) (*DescribeVaultOutput
 	return out, err
 }
 
-const opGetDataRetrievalPolicy = "GetDataRetrievalPolicy"
+var opDescribeVault *aws.Operation
 
 // GetDataRetrievalPolicyRequest generates a request for the GetDataRetrievalPolicy operation.
 func (c *Glacier) GetDataRetrievalPolicyRequest(input *GetDataRetrievalPolicyInput) (req *aws.Request, output *GetDataRetrievalPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opGetDataRetrievalPolicy,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/policies/data-retrieval",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetDataRetrievalPolicy == nil {
+		opGetDataRetrievalPolicy = &aws.Operation{
+			Name:       "GetDataRetrievalPolicy",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/policies/data-retrieval",
+		}
 	}
 
 	if input == nil {
 		input = &GetDataRetrievalPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetDataRetrievalPolicy, input, output)
 	output = &GetDataRetrievalPolicyOutput{}
 	req.Data = output
 	return
@@ -470,21 +521,26 @@ func (c *Glacier) GetDataRetrievalPolicy(input *GetDataRetrievalPolicyInput) (*G
 	return out, err
 }
 
-const opGetJobOutput = "GetJobOutput"
+var opGetDataRetrievalPolicy *aws.Operation
 
 // GetJobOutputRequest generates a request for the GetJobOutput operation.
 func (c *Glacier) GetJobOutputRequest(input *GetJobOutputInput) (req *aws.Request, output *GetJobOutputOutput) {
-	op := &aws.Operation{
-		Name:       opGetJobOutput,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/jobs/{jobId}/output",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetJobOutput == nil {
+		opGetJobOutput = &aws.Operation{
+			Name:       "GetJobOutput",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/jobs/{jobId}/output",
+		}
 	}
 
 	if input == nil {
 		input = &GetJobOutputInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetJobOutput, input, output)
 	output = &GetJobOutputOutput{}
 	req.Data = output
 	return
@@ -540,21 +596,26 @@ func (c *Glacier) GetJobOutput(input *GetJobOutputInput) (*GetJobOutputOutput, e
 	return out, err
 }
 
-const opGetVaultAccessPolicy = "GetVaultAccessPolicy"
+var opGetJobOutput *aws.Operation
 
 // GetVaultAccessPolicyRequest generates a request for the GetVaultAccessPolicy operation.
 func (c *Glacier) GetVaultAccessPolicyRequest(input *GetVaultAccessPolicyInput) (req *aws.Request, output *GetVaultAccessPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opGetVaultAccessPolicy,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/access-policy",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetVaultAccessPolicy == nil {
+		opGetVaultAccessPolicy = &aws.Operation{
+			Name:       "GetVaultAccessPolicy",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/access-policy",
+		}
 	}
 
 	if input == nil {
 		input = &GetVaultAccessPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetVaultAccessPolicy, input, output)
 	output = &GetVaultAccessPolicyOutput{}
 	req.Data = output
 	return
@@ -572,21 +633,26 @@ func (c *Glacier) GetVaultAccessPolicy(input *GetVaultAccessPolicyInput) (*GetVa
 	return out, err
 }
 
-const opGetVaultNotifications = "GetVaultNotifications"
+var opGetVaultAccessPolicy *aws.Operation
 
 // GetVaultNotificationsRequest generates a request for the GetVaultNotifications operation.
 func (c *Glacier) GetVaultNotificationsRequest(input *GetVaultNotificationsInput) (req *aws.Request, output *GetVaultNotificationsOutput) {
-	op := &aws.Operation{
-		Name:       opGetVaultNotifications,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/notification-configuration",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opGetVaultNotifications == nil {
+		opGetVaultNotifications = &aws.Operation{
+			Name:       "GetVaultNotifications",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/notification-configuration",
+		}
 	}
 
 	if input == nil {
 		input = &GetVaultNotificationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opGetVaultNotifications, input, output)
 	output = &GetVaultNotificationsOutput{}
 	req.Data = output
 	return
@@ -617,21 +683,26 @@ func (c *Glacier) GetVaultNotifications(input *GetVaultNotificationsInput) (*Get
 	return out, err
 }
 
-const opInitiateJob = "InitiateJob"
+var opGetVaultNotifications *aws.Operation
 
 // InitiateJobRequest generates a request for the InitiateJob operation.
 func (c *Glacier) InitiateJobRequest(input *InitiateJobInput) (req *aws.Request, output *InitiateJobOutput) {
-	op := &aws.Operation{
-		Name:       opInitiateJob,
-		HTTPMethod: "POST",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/jobs",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opInitiateJob == nil {
+		opInitiateJob = &aws.Operation{
+			Name:       "InitiateJob",
+			HTTPMethod: "POST",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/jobs",
+		}
 	}
 
 	if input == nil {
 		input = &InitiateJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opInitiateJob, input, output)
 	output = &InitiateJobOutput{}
 	req.Data = output
 	return
@@ -759,21 +830,26 @@ func (c *Glacier) InitiateJob(input *InitiateJobInput) (*InitiateJobOutput, erro
 	return out, err
 }
 
-const opInitiateMultipartUpload = "InitiateMultipartUpload"
+var opInitiateJob *aws.Operation
 
 // InitiateMultipartUploadRequest generates a request for the InitiateMultipartUpload operation.
 func (c *Glacier) InitiateMultipartUploadRequest(input *InitiateMultipartUploadInput) (req *aws.Request, output *InitiateMultipartUploadOutput) {
-	op := &aws.Operation{
-		Name:       opInitiateMultipartUpload,
-		HTTPMethod: "POST",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opInitiateMultipartUpload == nil {
+		opInitiateMultipartUpload = &aws.Operation{
+			Name:       "InitiateMultipartUpload",
+			HTTPMethod: "POST",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads",
+		}
 	}
 
 	if input == nil {
 		input = &InitiateMultipartUploadInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opInitiateMultipartUpload, input, output)
 	output = &InitiateMultipartUploadOutput{}
 	req.Data = output
 	return
@@ -820,27 +896,32 @@ func (c *Glacier) InitiateMultipartUpload(input *InitiateMultipartUploadInput) (
 	return out, err
 }
 
-const opListJobs = "ListJobs"
+var opInitiateMultipartUpload *aws.Operation
 
 // ListJobsRequest generates a request for the ListJobs operation.
 func (c *Glacier) ListJobsRequest(input *ListJobsInput) (req *aws.Request, output *ListJobsOutput) {
-	op := &aws.Operation{
-		Name:       opListJobs,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/jobs",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListJobs == nil {
+		opListJobs = &aws.Operation{
+			Name:       "ListJobs",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/jobs",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListJobsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListJobs, input, output)
 	output = &ListJobsOutput{}
 	req.Data = output
 	return
@@ -899,27 +980,32 @@ func (c *Glacier) ListJobsPages(input *ListJobsInput, fn func(p *ListJobsOutput,
 	})
 }
 
-const opListMultipartUploads = "ListMultipartUploads"
+var opListJobs *aws.Operation
 
 // ListMultipartUploadsRequest generates a request for the ListMultipartUploads operation.
 func (c *Glacier) ListMultipartUploadsRequest(input *ListMultipartUploadsInput) (req *aws.Request, output *ListMultipartUploadsOutput) {
-	op := &aws.Operation{
-		Name:       opListMultipartUploads,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListMultipartUploads == nil {
+		opListMultipartUploads = &aws.Operation{
+			Name:       "ListMultipartUploads",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListMultipartUploadsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListMultipartUploads, input, output)
 	output = &ListMultipartUploadsOutput{}
 	req.Data = output
 	return
@@ -968,27 +1054,32 @@ func (c *Glacier) ListMultipartUploadsPages(input *ListMultipartUploadsInput, fn
 	})
 }
 
-const opListParts = "ListParts"
+var opListMultipartUploads *aws.Operation
 
 // ListPartsRequest generates a request for the ListParts operation.
 func (c *Glacier) ListPartsRequest(input *ListPartsInput) (req *aws.Request, output *ListPartsOutput) {
-	op := &aws.Operation{
-		Name:       opListParts,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListParts == nil {
+		opListParts = &aws.Operation{
+			Name:       "ListParts",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListPartsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListParts, input, output)
 	output = &ListPartsOutput{}
 	req.Data = output
 	return
@@ -1031,27 +1122,32 @@ func (c *Glacier) ListPartsPages(input *ListPartsInput, fn func(p *ListPartsOutp
 	})
 }
 
-const opListVaults = "ListVaults"
+var opListParts *aws.Operation
 
 // ListVaultsRequest generates a request for the ListVaults operation.
 func (c *Glacier) ListVaultsRequest(input *ListVaultsInput) (req *aws.Request, output *ListVaultsOutput) {
-	op := &aws.Operation{
-		Name:       opListVaults,
-		HTTPMethod: "GET",
-		HTTPPath:   "/{accountId}/vaults",
-		Paginator: &aws.Paginator{
-			InputTokens:     []string{"marker"},
-			OutputTokens:    []string{"Marker"},
-			LimitToken:      "limit",
-			TruncationToken: "",
-		},
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opListVaults == nil {
+		opListVaults = &aws.Operation{
+			Name:       "ListVaults",
+			HTTPMethod: "GET",
+			HTTPPath:   "/{accountId}/vaults",
+			Paginator: &aws.Paginator{
+				InputTokens:     []string{"marker"},
+				OutputTokens:    []string{"Marker"},
+				LimitToken:      "limit",
+				TruncationToken: "",
+			},
+		}
 	}
 
 	if input == nil {
 		input = &ListVaultsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opListVaults, input, output)
 	output = &ListVaultsOutput{}
 	req.Data = output
 	return
@@ -1092,21 +1188,26 @@ func (c *Glacier) ListVaultsPages(input *ListVaultsInput, fn func(p *ListVaultsO
 	})
 }
 
-const opSetDataRetrievalPolicy = "SetDataRetrievalPolicy"
+var opListVaults *aws.Operation
 
 // SetDataRetrievalPolicyRequest generates a request for the SetDataRetrievalPolicy operation.
 func (c *Glacier) SetDataRetrievalPolicyRequest(input *SetDataRetrievalPolicyInput) (req *aws.Request, output *SetDataRetrievalPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opSetDataRetrievalPolicy,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/{accountId}/policies/data-retrieval",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetDataRetrievalPolicy == nil {
+		opSetDataRetrievalPolicy = &aws.Operation{
+			Name:       "SetDataRetrievalPolicy",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/{accountId}/policies/data-retrieval",
+		}
 	}
 
 	if input == nil {
 		input = &SetDataRetrievalPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetDataRetrievalPolicy, input, output)
 	output = &SetDataRetrievalPolicyOutput{}
 	req.Data = output
 	return
@@ -1125,21 +1226,26 @@ func (c *Glacier) SetDataRetrievalPolicy(input *SetDataRetrievalPolicyInput) (*S
 	return out, err
 }
 
-const opSetVaultAccessPolicy = "SetVaultAccessPolicy"
+var opSetDataRetrievalPolicy *aws.Operation
 
 // SetVaultAccessPolicyRequest generates a request for the SetVaultAccessPolicy operation.
 func (c *Glacier) SetVaultAccessPolicyRequest(input *SetVaultAccessPolicyInput) (req *aws.Request, output *SetVaultAccessPolicyOutput) {
-	op := &aws.Operation{
-		Name:       opSetVaultAccessPolicy,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/access-policy",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetVaultAccessPolicy == nil {
+		opSetVaultAccessPolicy = &aws.Operation{
+			Name:       "SetVaultAccessPolicy",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/access-policy",
+		}
 	}
 
 	if input == nil {
 		input = &SetVaultAccessPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetVaultAccessPolicy, input, output)
 	output = &SetVaultAccessPolicyOutput{}
 	req.Data = output
 	return
@@ -1158,21 +1264,26 @@ func (c *Glacier) SetVaultAccessPolicy(input *SetVaultAccessPolicyInput) (*SetVa
 	return out, err
 }
 
-const opSetVaultNotifications = "SetVaultNotifications"
+var opSetVaultAccessPolicy *aws.Operation
 
 // SetVaultNotificationsRequest generates a request for the SetVaultNotifications operation.
 func (c *Glacier) SetVaultNotificationsRequest(input *SetVaultNotificationsInput) (req *aws.Request, output *SetVaultNotificationsOutput) {
-	op := &aws.Operation{
-		Name:       opSetVaultNotifications,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/notification-configuration",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opSetVaultNotifications == nil {
+		opSetVaultNotifications = &aws.Operation{
+			Name:       "SetVaultNotifications",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/notification-configuration",
+		}
 	}
 
 	if input == nil {
 		input = &SetVaultNotificationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opSetVaultNotifications, input, output)
 	output = &SetVaultNotificationsOutput{}
 	req.Data = output
 	return
@@ -1213,21 +1324,26 @@ func (c *Glacier) SetVaultNotifications(input *SetVaultNotificationsInput) (*Set
 	return out, err
 }
 
-const opUploadArchive = "UploadArchive"
+var opSetVaultNotifications *aws.Operation
 
 // UploadArchiveRequest generates a request for the UploadArchive operation.
 func (c *Glacier) UploadArchiveRequest(input *UploadArchiveInput) (req *aws.Request, output *ArchiveCreationOutput) {
-	op := &aws.Operation{
-		Name:       opUploadArchive,
-		HTTPMethod: "POST",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/archives",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUploadArchive == nil {
+		opUploadArchive = &aws.Operation{
+			Name:       "UploadArchive",
+			HTTPMethod: "POST",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/archives",
+		}
 	}
 
 	if input == nil {
 		input = &UploadArchiveInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUploadArchive, input, output)
 	output = &ArchiveCreationOutput{}
 	req.Data = output
 	return
@@ -1275,21 +1391,26 @@ func (c *Glacier) UploadArchive(input *UploadArchiveInput) (*ArchiveCreationOutp
 	return out, err
 }
 
-const opUploadMultipartPart = "UploadMultipartPart"
+var opUploadArchive *aws.Operation
 
 // UploadMultipartPartRequest generates a request for the UploadMultipartPart operation.
 func (c *Glacier) UploadMultipartPartRequest(input *UploadMultipartPartInput) (req *aws.Request, output *UploadMultipartPartOutput) {
-	op := &aws.Operation{
-		Name:       opUploadMultipartPart,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opUploadMultipartPart == nil {
+		opUploadMultipartPart = &aws.Operation{
+			Name:       "UploadMultipartPart",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}",
+		}
 	}
 
 	if input == nil {
 		input = &UploadMultipartPartInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opUploadMultipartPart, input, output)
 	output = &UploadMultipartPartOutput{}
 	req.Data = output
 	return
@@ -1343,6 +1464,8 @@ func (c *Glacier) UploadMultipartPart(input *UploadMultipartPartInput) (*UploadM
 	err := req.Send()
 	return out, err
 }
+
+var opUploadMultipartPart *aws.Operation
 
 // Provides options to abort a multipart upload identified by the upload ID.
 //

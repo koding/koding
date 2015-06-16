@@ -4,26 +4,32 @@
 package efs
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-const opCreateFileSystem = "CreateFileSystem"
+var oprw sync.Mutex
 
 // CreateFileSystemRequest generates a request for the CreateFileSystem operation.
 func (c *EFS) CreateFileSystemRequest(input *CreateFileSystemInput) (req *aws.Request, output *FileSystemDescription) {
-	op := &aws.Operation{
-		Name:       opCreateFileSystem,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2015-02-01/file-systems",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateFileSystem == nil {
+		opCreateFileSystem = &aws.Operation{
+			Name:       "CreateFileSystem",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2015-02-01/file-systems",
+		}
 	}
 
 	if input == nil {
 		input = &CreateFileSystemInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateFileSystem, input, output)
 	output = &FileSystemDescription{}
 	req.Data = output
 	return
@@ -66,21 +72,26 @@ func (c *EFS) CreateFileSystem(input *CreateFileSystemInput) (*FileSystemDescrip
 	return out, err
 }
 
-const opCreateMountTarget = "CreateMountTarget"
+var opCreateFileSystem *aws.Operation
 
 // CreateMountTargetRequest generates a request for the CreateMountTarget operation.
 func (c *EFS) CreateMountTargetRequest(input *CreateMountTargetInput) (req *aws.Request, output *MountTargetDescription) {
-	op := &aws.Operation{
-		Name:       opCreateMountTarget,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2015-02-01/mount-targets",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateMountTarget == nil {
+		opCreateMountTarget = &aws.Operation{
+			Name:       "CreateMountTarget",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2015-02-01/mount-targets",
+		}
 	}
 
 	if input == nil {
 		input = &CreateMountTargetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateMountTarget, input, output)
 	output = &MountTargetDescription{}
 	req.Data = output
 	return
@@ -168,21 +179,26 @@ func (c *EFS) CreateMountTarget(input *CreateMountTargetInput) (*MountTargetDesc
 	return out, err
 }
 
-const opCreateTags = "CreateTags"
+var opCreateMountTarget *aws.Operation
 
 // CreateTagsRequest generates a request for the CreateTags operation.
 func (c *EFS) CreateTagsRequest(input *CreateTagsInput) (req *aws.Request, output *CreateTagsOutput) {
-	op := &aws.Operation{
-		Name:       opCreateTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2015-02-01/create-tags/{FileSystemId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opCreateTags == nil {
+		opCreateTags = &aws.Operation{
+			Name:       "CreateTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2015-02-01/create-tags/{FileSystemId}",
+		}
 	}
 
 	if input == nil {
 		input = &CreateTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opCreateTags, input, output)
 	output = &CreateTagsOutput{}
 	req.Data = output
 	return
@@ -202,21 +218,26 @@ func (c *EFS) CreateTags(input *CreateTagsInput) (*CreateTagsOutput, error) {
 	return out, err
 }
 
-const opDeleteFileSystem = "DeleteFileSystem"
+var opCreateTags *aws.Operation
 
 // DeleteFileSystemRequest generates a request for the DeleteFileSystem operation.
 func (c *EFS) DeleteFileSystemRequest(input *DeleteFileSystemInput) (req *aws.Request, output *DeleteFileSystemOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteFileSystem,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/2015-02-01/file-systems/{FileSystemId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteFileSystem == nil {
+		opDeleteFileSystem = &aws.Operation{
+			Name:       "DeleteFileSystem",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/2015-02-01/file-systems/{FileSystemId}",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteFileSystemInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteFileSystem, input, output)
 	output = &DeleteFileSystemOutput{}
 	req.Data = output
 	return
@@ -242,21 +263,26 @@ func (c *EFS) DeleteFileSystem(input *DeleteFileSystemInput) (*DeleteFileSystemO
 	return out, err
 }
 
-const opDeleteMountTarget = "DeleteMountTarget"
+var opDeleteFileSystem *aws.Operation
 
 // DeleteMountTargetRequest generates a request for the DeleteMountTarget operation.
 func (c *EFS) DeleteMountTargetRequest(input *DeleteMountTargetInput) (req *aws.Request, output *DeleteMountTargetOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteMountTarget,
-		HTTPMethod: "DELETE",
-		HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteMountTarget == nil {
+		opDeleteMountTarget = &aws.Operation{
+			Name:       "DeleteMountTarget",
+			HTTPMethod: "DELETE",
+			HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteMountTargetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteMountTarget, input, output)
 	output = &DeleteMountTargetOutput{}
 	req.Data = output
 	return
@@ -290,21 +316,26 @@ func (c *EFS) DeleteMountTarget(input *DeleteMountTargetInput) (*DeleteMountTarg
 	return out, err
 }
 
-const opDeleteTags = "DeleteTags"
+var opDeleteMountTarget *aws.Operation
 
 // DeleteTagsRequest generates a request for the DeleteTags operation.
 func (c *EFS) DeleteTagsRequest(input *DeleteTagsInput) (req *aws.Request, output *DeleteTagsOutput) {
-	op := &aws.Operation{
-		Name:       opDeleteTags,
-		HTTPMethod: "POST",
-		HTTPPath:   "/2015-02-01/delete-tags/{FileSystemId}",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDeleteTags == nil {
+		opDeleteTags = &aws.Operation{
+			Name:       "DeleteTags",
+			HTTPMethod: "POST",
+			HTTPPath:   "/2015-02-01/delete-tags/{FileSystemId}",
+		}
 	}
 
 	if input == nil {
 		input = &DeleteTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDeleteTags, input, output)
 	output = &DeleteTagsOutput{}
 	req.Data = output
 	return
@@ -324,21 +355,26 @@ func (c *EFS) DeleteTags(input *DeleteTagsInput) (*DeleteTagsOutput, error) {
 	return out, err
 }
 
-const opDescribeFileSystems = "DescribeFileSystems"
+var opDeleteTags *aws.Operation
 
 // DescribeFileSystemsRequest generates a request for the DescribeFileSystems operation.
 func (c *EFS) DescribeFileSystemsRequest(input *DescribeFileSystemsInput) (req *aws.Request, output *DescribeFileSystemsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeFileSystems,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-02-01/file-systems",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeFileSystems == nil {
+		opDescribeFileSystems = &aws.Operation{
+			Name:       "DescribeFileSystems",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-02-01/file-systems",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeFileSystemsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeFileSystems, input, output)
 	output = &DescribeFileSystemsOutput{}
 	req.Data = output
 	return
@@ -376,21 +412,26 @@ func (c *EFS) DescribeFileSystems(input *DescribeFileSystemsInput) (*DescribeFil
 	return out, err
 }
 
-const opDescribeMountTargetSecurityGroups = "DescribeMountTargetSecurityGroups"
+var opDescribeFileSystems *aws.Operation
 
 // DescribeMountTargetSecurityGroupsRequest generates a request for the DescribeMountTargetSecurityGroups operation.
 func (c *EFS) DescribeMountTargetSecurityGroupsRequest(input *DescribeMountTargetSecurityGroupsInput) (req *aws.Request, output *DescribeMountTargetSecurityGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeMountTargetSecurityGroups,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}/security-groups",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeMountTargetSecurityGroups == nil {
+		opDescribeMountTargetSecurityGroups = &aws.Operation{
+			Name:       "DescribeMountTargetSecurityGroups",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}/security-groups",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeMountTargetSecurityGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeMountTargetSecurityGroups, input, output)
 	output = &DescribeMountTargetSecurityGroupsOutput{}
 	req.Data = output
 	return
@@ -411,21 +452,26 @@ func (c *EFS) DescribeMountTargetSecurityGroups(input *DescribeMountTargetSecuri
 	return out, err
 }
 
-const opDescribeMountTargets = "DescribeMountTargets"
+var opDescribeMountTargetSecurityGroups *aws.Operation
 
 // DescribeMountTargetsRequest generates a request for the DescribeMountTargets operation.
 func (c *EFS) DescribeMountTargetsRequest(input *DescribeMountTargetsInput) (req *aws.Request, output *DescribeMountTargetsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeMountTargets,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-02-01/mount-targets",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeMountTargets == nil {
+		opDescribeMountTargets = &aws.Operation{
+			Name:       "DescribeMountTargets",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-02-01/mount-targets",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeMountTargetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeMountTargets, input, output)
 	output = &DescribeMountTargetsOutput{}
 	req.Data = output
 	return
@@ -442,21 +488,26 @@ func (c *EFS) DescribeMountTargets(input *DescribeMountTargetsInput) (*DescribeM
 	return out, err
 }
 
-const opDescribeTags = "DescribeTags"
+var opDescribeMountTargets *aws.Operation
 
 // DescribeTagsRequest generates a request for the DescribeTags operation.
 func (c *EFS) DescribeTagsRequest(input *DescribeTagsInput) (req *aws.Request, output *DescribeTagsOutput) {
-	op := &aws.Operation{
-		Name:       opDescribeTags,
-		HTTPMethod: "GET",
-		HTTPPath:   "/2015-02-01/tags/{FileSystemId}/",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opDescribeTags == nil {
+		opDescribeTags = &aws.Operation{
+			Name:       "DescribeTags",
+			HTTPMethod: "GET",
+			HTTPPath:   "/2015-02-01/tags/{FileSystemId}/",
+		}
 	}
 
 	if input == nil {
 		input = &DescribeTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opDescribeTags, input, output)
 	output = &DescribeTagsOutput{}
 	req.Data = output
 	return
@@ -475,21 +526,26 @@ func (c *EFS) DescribeTags(input *DescribeTagsInput) (*DescribeTagsOutput, error
 	return out, err
 }
 
-const opModifyMountTargetSecurityGroups = "ModifyMountTargetSecurityGroups"
+var opDescribeTags *aws.Operation
 
 // ModifyMountTargetSecurityGroupsRequest generates a request for the ModifyMountTargetSecurityGroups operation.
 func (c *EFS) ModifyMountTargetSecurityGroupsRequest(input *ModifyMountTargetSecurityGroupsInput) (req *aws.Request, output *ModifyMountTargetSecurityGroupsOutput) {
-	op := &aws.Operation{
-		Name:       opModifyMountTargetSecurityGroups,
-		HTTPMethod: "PUT",
-		HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}/security-groups",
+	oprw.Lock()
+	defer oprw.Unlock()
+
+	if opModifyMountTargetSecurityGroups == nil {
+		opModifyMountTargetSecurityGroups = &aws.Operation{
+			Name:       "ModifyMountTargetSecurityGroups",
+			HTTPMethod: "PUT",
+			HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}/security-groups",
+		}
 	}
 
 	if input == nil {
 		input = &ModifyMountTargetSecurityGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
+	req = c.newRequest(opModifyMountTargetSecurityGroups, input, output)
 	output = &ModifyMountTargetSecurityGroupsOutput{}
 	req.Data = output
 	return
@@ -514,6 +570,8 @@ func (c *EFS) ModifyMountTargetSecurityGroups(input *ModifyMountTargetSecurityGr
 	err := req.Send()
 	return out, err
 }
+
+var opModifyMountTargetSecurityGroups *aws.Operation
 
 type CreateFileSystemInput struct {
 	// String of up to 64 ASCII characters. Amazon EFS uses this to ensure idempotent
