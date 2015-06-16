@@ -53,9 +53,9 @@ module.exports = class ActivityActionsView extends JView
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
 
-        pane = @parent.getDelegate()
+        pane = kd.singletons.appManager.frontApp.getView().tabs.getActivePane()
 
-        pane.parent.parent.parent.parent.parent.scrollView.wrapper.on "scroll", @sharePopup.bound "destroy"
+        pane.scrollView.wrapper.on 'scroll', @sharePopup.bound 'destroy'
 
         trackEvent "Activity share, click"
 
