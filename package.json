@@ -112,10 +112,11 @@
     "yield-siftscience": "0.0.8"
   },
   "devDependencies": {
-    "crypto": "0.0.3",
-    "which": "1.0.5",
     "chai": "2.2.0",
-    "mocha": "2.2.4"
+    "crypto": "0.0.3",
+    "github": "0.2.4",
+    "mocha": "2.2.4",
+    "which": "1.0.5"
   },
   "optionalDependencies": {},
   "engines": {
