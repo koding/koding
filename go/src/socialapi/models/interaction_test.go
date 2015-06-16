@@ -93,7 +93,7 @@ func TestInteractionListLikedMessage(t *testing.T) {
 			messages, err := NewInteraction().ListLikedMessages(query, channel.Id)
 			So(err, ShouldBeNil)
 			So(messages, ShouldNotBeNil)
-			So(messages[0].Body, ShouldEqual, message1.Body)
+			So(messages[1].Body, ShouldEqual, message1.Body) // last liked will be listed as first
 		})
 
 		Convey("it should fetch the messages even if type is not same ", func() {
