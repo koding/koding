@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -76,13 +75,7 @@ func Delete(d *schema.ResourceData, meta interface{}) error {
 func Exists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	rendered, err := render(d)
 	if err != nil {
-		if _, ok := err.(templateRenderError); ok {
-			log.Printf("[DEBUG] Got error while rendering in Exists: %s", err)
-			log.Printf("[DEBUG] Returning false so the template re-renders using latest variables from config.")
-			return false, nil
-		} else {
-			return false, err
-		}
+		return false, err
 	}
 	return hash(rendered) == d.Id(), nil
 }
@@ -93,8 +86,6 @@ func Read(d *schema.ResourceData, meta interface{}) error {
 	// do.
 	return nil
 }
-
-type templateRenderError error
 
 var readfile func(string) ([]byte, error) = ioutil.ReadFile // testing hook
 
@@ -114,9 +105,7 @@ func render(d *schema.ResourceData) (string, error) {
 
 	rendered, err := execute(string(buf), vars)
 	if err != nil {
-		return "", templateRenderError(
-			fmt.Errorf("failed to render %v: %v", filename, err),
-		)
+		return "", fmt.Errorf("failed to render %v: %v", filename, err)
 	}
 
 	return rendered, nil

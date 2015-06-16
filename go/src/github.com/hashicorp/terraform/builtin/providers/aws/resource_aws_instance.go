@@ -451,7 +451,6 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("tenancy", instance.Placement.Tenancy)
 	}
 
-	d.Set("instance_type", instance.InstanceType)
 	d.Set("key_name", instance.KeyName)
 	d.Set("public_dns", instance.PublicDNSName)
 	d.Set("public_ip", instance.PublicIPAddress)
@@ -710,44 +709,18 @@ func fetchRootDeviceName(ami string, conn *ec2.EC2) (*string, error) {
 	}
 
 	log.Printf("[DEBUG] Describing AMI %q to get root block device name", ami)
-	res, err := conn.DescribeImages(&ec2.DescribeImagesInput{
-		ImageIDs: []*string{aws.String(ami)},
-	})
-	if err != nil {
+	req := &ec2.DescribeImagesInput{ImageIDs: []*string{aws.String(ami)}}
+	if res, err := conn.DescribeImages(req); err == nil {
+		if len(res.Images) == 1 {
+			return res.Images[0].RootDeviceName, nil
+		} else if len(res.Images) == 0 {
+			return nil, nil
+		} else {
+			return nil, fmt.Errorf("Expected 1 AMI for ID: %s, got: %#v", ami, res.Images)
+		}
+	} else {
 		return nil, err
 	}
-
-	// For a bad image, we just return nil so we don't block a refresh
-	if len(res.Images) == 0 {
-		return nil, nil
-	}
-
-	image := res.Images[0]
-	rootDeviceName := image.RootDeviceName
-
-	// Some AMIs have a RootDeviceName like "/dev/sda1" that does not appear as a
-	// DeviceName in the BlockDeviceMapping list (which will instead have
-	// something like "/dev/sda")
-	//
-	// While this seems like it breaks an invariant of AMIs, it ends up working
-	// on the AWS side, and AMIs like this are common enough that we need to
-	// special case it so Terraform does the right thing.
-	//
-	// Our heuristic is: if the RootDeviceName does not appear in the
-	// BlockDeviceMapping, assume that the DeviceName of the first
-	// BlockDeviceMapping entry serves as the root device.
-	rootDeviceNameInMapping := false
-	for _, bdm := range image.BlockDeviceMappings {
-		if bdm.DeviceName == image.RootDeviceName {
-			rootDeviceNameInMapping = true
-		}
-	}
-
-	if !rootDeviceNameInMapping && len(image.BlockDeviceMappings) > 0 {
-		rootDeviceName = image.BlockDeviceMappings[0].DeviceName
-	}
-
-	return rootDeviceName, nil
 }
 
 func readBlockDeviceMappingsFromConfig(

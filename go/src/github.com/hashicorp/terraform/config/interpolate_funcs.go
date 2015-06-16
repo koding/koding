@@ -19,15 +19,18 @@ var Funcs map[string]ast.Function
 
 func init() {
 	Funcs = map[string]ast.Function{
-		"concat":     interpolationFuncConcat(),
-		"element":    interpolationFuncElement(),
 		"file":       interpolationFuncFile(),
 		"format":     interpolationFuncFormat(),
 		"formatlist": interpolationFuncFormatList(),
 		"join":       interpolationFuncJoin(),
-		"length":     interpolationFuncLength(),
+		"element":    interpolationFuncElement(),
 		"replace":    interpolationFuncReplace(),
 		"split":      interpolationFuncSplit(),
+		"length":     interpolationFuncLength(),
+
+		// Concat is a little useless now since we supported embeddded
+		// interpolations but we keep it around for backwards compat reasons.
+		"concat": interpolationFuncConcat(),
 	}
 }
 
@@ -43,32 +46,11 @@ func interpolationFuncConcat() ast.Function {
 		VariadicType: ast.TypeString,
 		Callback: func(args []interface{}) (interface{}, error) {
 			var b bytes.Buffer
-			var finalList []string
-
-			var isDeprecated = true
-
-			for _, arg := range args {
-				argument := arg.(string)
-
-				if len(argument) == 0 {
-					continue
-				}
-
-				if strings.Contains(argument, InterpSplitDelim) {
-					isDeprecated = false
-				}
-
-				finalList = append(finalList, argument)
-
-				// Deprecated concat behaviour
-				b.WriteString(argument)
+			for _, v := range args {
+				b.WriteString(v.(string))
 			}
 
-			if isDeprecated {
-				return b.String(), nil
-			}
-
-			return strings.Join(finalList, InterpSplitDelim), nil
+			return b.String(), nil
 		},
 	}
 }

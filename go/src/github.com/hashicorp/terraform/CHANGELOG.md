@@ -1,33 +1,20 @@
 ## 0.6.0 (Unreleased)
 
-BACKWARDS INCOMPATIBILITIES:
-
- * `provisioner/remote-exec`: The `agent` field now defaults to `true` if
-    the `SSH_AGENT_SOCK` environment variable is present. In other words,
-    `ssh-agent` support is now opt-out instead of opt-in functionality. [GH-2408]
- * `concat()` has been repurposed to combine lists instead of strings [GH-1790]
-
 FEATURES:
 
-  * **New provider: `azure`** [GH-2052, GH-2053, GH-2372, GH-2380, GH-2394]
+  * **New provider: `azure`** [GH-2053]
   * **New resource: `aws_autoscaling_notification`** [GH-2197]
-  * **New resource: `aws_autoscaling_policy`** [GH-2201]
-  * **New resource: `aws_cloudwatch_metric_alarm`** [GH-2201]
-  * **New resource: `aws_dynamodb_table`** [GH-2121]
   * **New resource: `aws_ecs_cluster`** [GH-1803]
   * **New resource: `aws_ecs_service`** [GH-1803]
   * **New resource: `aws_ecs_task_definition`** [GH-1803]
-  * **New resource: `aws_flow_log`** [GH-2384]
   * **New resource: `aws_iam_group_association`** [GH-2273]
   * **New resource: `aws_lambda_function`** [GH-2170]
-  * **New resource: `aws_route53_delegation_set`** [GH-1999]
   * **New resource: `aws_route53_health_check`** [GH-2226]
   * **New resource: `aws_spot_instance_request`** [GH-2263]
   * **New remote state backend: `swift`**: You can now store remote state in
      a OpenStack Swift. [GH-2254]
   * command/output: support display of module outputs [GH-2102]
-  * core: `keys()` and `values()` funcs for map variables [GH-2198]
-  * provisioner/remote-exec: SSH bastion host support and ssh-agent forwarding [GH-2425]
+  * core: keys() and values() funcs for map variables [GH-2198]
 
 IMPROVEMENTS:
 
@@ -35,9 +22,6 @@ IMPROVEMENTS:
       option to ignore TLS cert verification. [GH-2214]
   * provider/aws: ElastiCache Subnet Groups can be updated
       without destroying first [GH-2191]
-  * provider/aws: Normalize `certificate_chain` in `aws_iam_servier_certificate` to
-      prevent unnecessary replacement. [GH-2411]
-  * provider/aws: Show outputs after `terraform refresh` [GH-2347]
   * provider/docker: `docker_container` has the `privileged`
       option. [GH-2227]
   * provider/openstack: allow `OS_AUTH_TOKEN` environment variable
@@ -50,23 +34,12 @@ BUG FIXES:
   * command/apply: prevent output duplication when reporting errors [GH-2267]
   * provider/aws: fix panic when route has no cidr_block [GH-2215]
   * provider/aws: fix issue preventing destruction of IAM Roles [GH-2177]
-  * provider/aws: fix issue where Security Group Rules could collide and fail 
-      to save to the state file correctly [GH-2376]
   * provider/aws: fix issue preventing destruction self referencing Securtity
      Group Rules [GH-2305]
   * provider/aws: fix issue causing perpetual diff on ELB listeners
       when non-lowercase protocol strings were used [GH-2246]
   * provider/aws: corrected frankfurt S3 website region [GH-2259]
   * provider/aws: `aws_elasticache_cluster` port is required [GH-2160]
-  * provider/aws: Handle AMIs where RootBlockDevice does not appear in the
-      BlockDeviceMapping, preventing root_block_device from working [GH-2271]
-  * provider/aws: fix `terraform show` with remote state [GH-2371]
-  * provider/aws: detect `instance_type` drift on `aws_instance` [GH-2374]
-  * provider/aws: fix crash when `security_group_rule` referenced non-existent
-      security group [GH-2434]
-  * provider/template: fix issue causing "unknown variable" rendering errors
-      when an existing set of template variables is changed [GH-2386]
-  * core: fix `-no-color` flag in subcommands [GH-2414]
 
 ## 0.5.3 (June 1, 2015)
 
@@ -95,7 +68,8 @@ IMPROVEMENTS:
 BUG FIXES:
 
   * provider/aws: Correctly handle AWS keypairs which no longer exist [GH-2032]
-  * provider/aws: Fix issue with restoring an Instance from snapshot ID [GH-2120]
+  * provider/aws: Fix issue with restoring an Instance from snapshot ID
+    [GH-2120]
   * provider/template: store relative path in the state [GH-2038]
   * provisioner/chef: fix interpolation in the Chef provisioner [GH-2168]
   * provisioner/remote-exec: Don't prepend shebang on scripts that already

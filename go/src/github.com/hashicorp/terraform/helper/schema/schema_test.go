@@ -2796,20 +2796,6 @@ func TestSchemaMap_InternalValidate(t *testing.T) {
 			},
 			false,
 		},
-
-		// ValidateFunc on non-primitive
-		{
-			map[string]*Schema{
-				"foo": &Schema{
-					Type:     TypeMap,
-					Required: true,
-					ValidateFunc: func(v interface{}) (ws []string, es []error) {
-						return
-					},
-				},
-			},
-			true,
-		},
 	}
 
 	for i, tc := range cases {
@@ -3413,77 +3399,7 @@ func TestSchemaMap_Validate(t *testing.T) {
 
 			Err: true,
 			Errors: []error{
-				fmt.Errorf(`"optional_att": conflicts with required_att ("required-val")`),
-			},
-		},
-
-		"Good with ValidateFunc": {
-			Schema: map[string]*Schema{
-				"validate_me": &Schema{
-					Type:     TypeString,
-					Required: true,
-					ValidateFunc: func(v interface{}) (ws []string, es []error) {
-						return
-					},
-				},
-			},
-			Config: map[string]interface{}{
-				"validate_me": "valid",
-			},
-			Err: false,
-		},
-
-		"Bad with ValidateFunc": {
-			Schema: map[string]*Schema{
-				"validate_me": &Schema{
-					Type:     TypeString,
-					Required: true,
-					ValidateFunc: func(v interface{}) (ws []string, es []error) {
-						es = append(es, fmt.Errorf("something is not right here"))
-						return
-					},
-				},
-			},
-			Config: map[string]interface{}{
-				"validate_me": "invalid",
-			},
-			Err: true,
-			Errors: []error{
-				fmt.Errorf(`something is not right here`),
-			},
-		},
-
-		"ValidateFunc not called when type does not match": {
-			Schema: map[string]*Schema{
-				"number": &Schema{
-					Type:     TypeInt,
-					Required: true,
-					ValidateFunc: func(v interface{}) (ws []string, es []error) {
-						t.Fatalf("Should not have gotten validate call")
-						return
-					},
-				},
-			},
-			Config: map[string]interface{}{
-				"number": "NaN",
-			},
-			Err: true,
-		},
-		"ValidateFunc gets decoded type": {
-			Schema: map[string]*Schema{
-				"maybe": &Schema{
-					Type:     TypeBool,
-					Required: true,
-					ValidateFunc: func(v interface{}) (ws []string, es []error) {
-						if _, ok := v.(bool); !ok {
-							t.Fatalf("Expected bool, got: %#v", v)
-						}
-						return
-					},
-				},
-			},
-			Config: map[string]interface{}{
-				"maybe": "true",
+				fmt.Errorf("\"optional_att\": conflicts with required_att (\"required-val\")"),
 			},
 		},
 	}
