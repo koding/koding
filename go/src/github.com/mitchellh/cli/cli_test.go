@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -87,11 +88,46 @@ func TestCLIRun(t *testing.T) {
 	}
 }
 
+func TestCLIRun_default(t *testing.T) {
+	commandBar := new(MockCommand)
+	commandBar.RunResult = 42
+
+	cli := &CLI{
+		Args: []string{"-bar", "-baz"},
+		Commands: map[string]CommandFactory{
+			"": func() (Command, error) {
+				return commandBar, nil
+			},
+			"foo": func() (Command, error) {
+				return new(MockCommand), nil
+			},
+		},
+	}
+
+	exitCode, err := cli.Run()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if exitCode != commandBar.RunResult {
+		t.Fatalf("bad: %d", exitCode)
+	}
+
+	if !commandBar.RunCalled {
+		t.Fatalf("run should be called")
+	}
+
+	if !reflect.DeepEqual(commandBar.RunArgs, []string{"-bar", "-baz"}) {
+		t.Fatalf("bad args: %#v", commandBar.RunArgs)
+	}
+}
+
 func TestCLIRun_printHelp(t *testing.T) {
 	testCases := [][]string{
 		{},
 		{"-h"},
 		{"i-dont-exist"},
+		{"-bad-flag", "foo"},
 	}
 
 	for _, testCase := range testCases {
@@ -100,6 +136,11 @@ func TestCLIRun_printHelp(t *testing.T) {
 
 		cli := &CLI{
 			Args: testCase,
+			Commands: map[string]CommandFactory{
+				"foo": func() (Command, error) {
+					return new(MockCommand), nil
+				},
+			},
 			HelpFunc: func(map[string]CommandFactory) string {
 				return helpText
 			},
@@ -117,7 +158,7 @@ func TestCLIRun_printHelp(t *testing.T) {
 			continue
 		}
 
-		if buf.String() != (helpText + "\n") {
+		if !strings.Contains(buf.String(), helpText) {
 			t.Errorf("Args: %#v. Text: %v", testCase, buf.String())
 		}
 	}
