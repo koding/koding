@@ -8,11 +8,13 @@ AdminIntegrationItemView    = require './adminintegrationitemview'
 AdminIntegrationSetupView   = require './adminintegrationsetupview'
 AdminIntegrationDetailsView = require './adminintegrationdetailsview'
 
+
 module.exports = class AdminIntegrationsListView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'all-integrations'
+    options.cssClass        = 'all-integrations'
+    options.listItemClass or= AdminIntegrationItemView
 
     super options, data
 
@@ -23,12 +25,13 @@ module.exports = class AdminIntegrationsListView extends KDView
 
     @addSubView @subContentView = new KDCustomScrollView
 
+
   createListController: ->
 
     @listController       = new KDListViewController
       viewOptions         :
         wrapper           : yes
-        itemClass         : AdminIntegrationItemView
+        itemClass         : @getOptions().listItemClass
       useCustomScrollView : yes
       noItemFoundWidget   : new KDCustomHTMLView
         cssClass          : 'hidden no-item-found'
@@ -47,12 +50,17 @@ module.exports = class AdminIntegrationsListView extends KDView
 
       return @handleNoItem err  if err
 
-      for item in data
-        item.integrationType = @integrationType
-        listItem = @listController.addItem item
-        @registerListItem listItem
+      @listItems data
 
-      @listController.lazyLoader.hide()
+
+  listItems: (items) ->
+
+    for item in items
+      item.integrationType = @integrationType
+      listItem = @listController.addItem item
+      @registerListItem listItem
+
+    @listController.lazyLoader.hide()
 
 
   registerListItem: (item) ->
