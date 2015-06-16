@@ -103,7 +103,7 @@ func TestExpireSubscription(t *testing.T) {
 	})
 }
 
-func TestSubscriptionsRequest(t *testing.T) {
+func TestSubscriptionsRequest1(t *testing.T) {
 	Convey("Given nonexistent user", t, func() {
 		req := AccountRequest{AccountId: "indianajones"}
 		resp, err := req.Subscriptions()
@@ -191,6 +191,57 @@ func TestSubscriptionsRequest(t *testing.T) {
 		Convey("Then it should return the active subscription", func() {
 			So(resp.CurrentPeriodStart.IsZero(), ShouldEqual, false)
 			So(resp.CurrentPeriodEnd.IsZero(), ShouldEqual, false)
+			So(resp.State, ShouldEqual, "active")
+
+			So(resp.PlanTitle, ShouldEqual, StartingPlan)
+			So(resp.PlanInterval, ShouldEqual, StartingInterval)
+		})
+	})
+}
+
+func TestSubscriptionsRequest2(t *testing.T) {
+	Convey("Given user has multiple subscriptions", t, func() {
+		token, accId, _ := generateFakeUserInfo()
+
+		customer := &paymentmodels.Customer{
+			OldId:              accId,
+			Username:           accId,
+			Provider:           stripe.ProviderName,
+			ProviderCustomerId: token,
+		}
+		So(customer.Create(), ShouldBeNil)
+
+		plan := &paymentmodels.Plan{
+			Title:          StartingPlan,
+			Interval:       StartingInterval,
+			Provider:       stripe.ProviderName,
+			ProviderPlanId: token,
+		}
+		So(plan.Create(), ShouldBeNil)
+
+		sub1 := &paymentmodels.Subscription{
+			PlanId:                 plan.Id,
+			CustomerId:             customer.Id,
+			State:                  "expired",
+			Provider:               stripe.ProviderName,
+			ProviderSubscriptionId: token,
+		}
+		So(sub1.Create(), ShouldBeNil)
+
+		sub2 := &paymentmodels.Subscription{
+			PlanId:                 plan.Id,
+			CustomerId:             customer.Id,
+			State:                  "active",
+			Provider:               stripe.ProviderName,
+			ProviderSubscriptionId: token + "1",
+		}
+		So(sub2.Create(), ShouldBeNil)
+
+		Convey("Then it should return last subscription", func() {
+			req := AccountRequest{AccountId: customer.OldId}
+			resp, err := req.Subscriptions()
+			So(err, ShouldBeNil)
+
 			So(resp.State, ShouldEqual, "active")
 
 			So(resp.PlanTitle, ShouldEqual, StartingPlan)

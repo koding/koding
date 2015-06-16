@@ -32,9 +32,12 @@ type Customer struct {
 }
 
 func (c *Customer) ByOldId(oldId string) (*Customer, error) {
-	selector := map[string]interface{}{"old_id": oldId}
+	query := &bongo.Query{
+		Selector: map[string]interface{}{"old_id": oldId},
+		Sort:     map[string]string{"created_at": "DESC"},
+	}
 
-	err := c.One(bongo.NewQS(selector))
+	err := c.One(query)
 	if err == gorm.RecordNotFound {
 		return nil, paymenterrors.ErrCustomerNotFound
 	}
@@ -90,8 +93,12 @@ func (c *Customer) FindSubscriptions() ([]Subscription, error) {
 
 	s := Subscription{}
 	err := s.Some(&subscriptions, query)
-	if err != nil {
+	if err != nil && err != bongo.RecordNotFound {
 		return nil, err
+	}
+
+	if err == bongo.RecordNotFound {
+		return nil, paymenterrors.ErrCustomerNotSubscribedToAnyPlans
 	}
 
 	return subscriptions, nil
@@ -137,8 +144,7 @@ func (c *Customer) ByActiveSubscription() ([]Customer, error) {
 
 func (c *Customer) ByProviderSubscription(id, providerName string) error {
 	subscription := NewSubscription()
-	err := subscription.ByProviderId(id, providerName)
-	if err != nil {
+	if err := subscription.ByProviderId(id, providerName); err != nil {
 		return err
 	}
 
@@ -146,8 +152,7 @@ func (c *Customer) ByProviderSubscription(id, providerName string) error {
 }
 
 func (c *Customer) GetUser(providerCustomerId string) (*models.User, error) {
-	err := c.ByProviderCustomerId(providerCustomerId)
-	if err != nil {
+	if err := c.ByProviderCustomerId(providerCustomerId); err != nil {
 		return nil, err
 	}
 
