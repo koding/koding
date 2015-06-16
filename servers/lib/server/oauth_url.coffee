@@ -20,6 +20,6 @@ module.exports = (req, res)->
       return res.status(500).send client.message
 
     {OAuth} = koding.models
-    OAuth.getUrl client, provider, (err, url)->
+    OAuth.getUrl client, req.query, (err, url)->
       return res.status(400).send err.message  if err
       res.status(200).send url
