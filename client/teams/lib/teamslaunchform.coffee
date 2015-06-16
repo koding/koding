@@ -1,4 +1,5 @@
-kd = require 'kd'
+kd    = require 'kd'
+JView = require 'app/jview'
 
 module.exports = class TeamsLaunchForm extends LoginViewInlineForm
 

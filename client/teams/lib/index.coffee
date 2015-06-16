@@ -1,7 +1,6 @@
-kd = require 'kd'
+kd            = require 'kd'
 AppController = require 'app/appcontroller'
-
-TeamsAppView = require './teamsappview'
+TeamsAppView  = require './teamsappview'
 
 module.exports = class TeamsAppController extends AppController
 
