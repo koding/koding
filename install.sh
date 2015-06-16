@@ -22,7 +22,7 @@ sudo dpkg -i --force-confnew klient.deb > /dev/null
 
 echo "Authenticating to ${KONTROLURL}"
 # It's ok $1 to be empty, in that case it'll try to register via password input
-sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1
+sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1 -username $2
 
 if [ ! -f /etc/kite/kite.key ]; then
     echo "/etc/kite/kite.key not found. Aborting installation"
