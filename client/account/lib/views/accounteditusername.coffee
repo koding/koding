@@ -85,6 +85,13 @@ module.exports = class AccountEditUsername extends JView
           attributes       :
             readonly       : "#{not /^guest-/.test @account.profile.nickname}"
           testPath         : "account-username-input"
+        verifyEmail        :
+          itemClass        : KDCustomHTMLView
+          tagName          : "a"
+          partial          : "You didn't verify your email yet <span>Verify now</span>"
+          cssClass         : "hidden action-link verify-email"
+          testPath         : "account-email-edit"
+          click            : @bound 'verifyUserEmail'
         passwordHeader     :
           itemClass        : KDCustomHTMLView
           partial          : 'CHANGE PASSWORD'
@@ -255,6 +262,24 @@ module.exports = class AccountEditUsername extends JView
     ]
     sinkrow.daisy queue
 
+  verifyUserEmail: ->
+
+    {email} = @userInfo
+    {nickname, firstName, lastName} = @account.profile
+
+    notify = (message)->
+      new KDNotificationView
+        title    : message
+        duration : 3500
+
+    whoami().fetchFromUser "email", (err, email) =>
+      return notify err.message, 3500  if err
+
+      remote.api.JPasswordRecovery.resendVerification nickname, (err) =>
+        @emailForm.fields.verifyEmail.hide()
+        @emailForm.inputs.verifyEmail.hide()
+        return showError err if err
+        notify "We've sent you a confirmation mail.", 3500
 
   confirmCurrentPassword: (opts, callback) ->
 
@@ -316,25 +341,8 @@ module.exports = class AccountEditUsername extends JView
         duration : 3500
 
     if @userInfo.status is "unconfirmed"
-      opts =
-        tagName      : "a"
-        partial      : "You didn't verify your email yet <span>Verify now</span>"
-        cssClass     : "action-link verify-email"
-        testPath     : "account-email-edit"
-        click        : =>
-          whoami().fetchFromUser "email", (err, email) =>
-            return notify err.message, 3500  if err
-
-            remote.api.JPasswordRecovery.resendVerification nickname, (err) =>
-              @verifyEmail.hide()
-              return showError err if err
-              notify "We've sent you a confirmation mail.", 3500
-
-    @verifyEmail = new KDCustomHTMLView opts
-
-    sectionHeader = @emailForm.fields.passwordHeader.getElement()
-
-    sectionHeader.parentElement.insertBefore @verifyEmail.getElement(), sectionHeader
+      @emailForm.fields.verifyEmail.show()
+      @emailForm.inputs.verifyEmail.show()
 
   getAvatarOptions: ->
     tagName       : 'figure'
