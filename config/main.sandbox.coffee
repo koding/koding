@@ -703,12 +703,6 @@ Configuration = (options={}) ->
       else
         return ""
 
-  prodKeys =
-    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa"          , "utf8")
-    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub"      , "utf8")
-    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys" , "utf8")
-    config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
-
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
