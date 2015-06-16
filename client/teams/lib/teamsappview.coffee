@@ -2,8 +2,6 @@ kd              = require 'kd'
 JView           = require 'app/jview'
 FooterView      = require 'app/commonviews/footerview'
 remote          = require('app/remote').getInstance()
-TeamsLaunchForm = require './teamslaunchform'
-
 
 module.exports = class TeamsAppView extends kd.CustomHTMLView
 
