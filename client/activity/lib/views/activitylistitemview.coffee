@@ -228,7 +228,6 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
     super
 
     emojify.run @getElement()
-    @checkIfItsTooTall()
 
 
   viewAppended: ->

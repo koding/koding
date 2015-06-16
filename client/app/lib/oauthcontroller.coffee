@@ -5,14 +5,14 @@ KDController       = kd.Controller
 KDNotificationView = kd.NotificationView
 
 # Api:
-#   KD.singletons.oauthController.redirectToOauthUrl "github"
+#   KD.singletons.oauthController.redirectToOauthUrl {provider: "github", returnUrl:"https://koding.com/Activity/Public/Recent"}
 #   KD.singletons.oauthController.authCompleted null, "github"
 module.exports = class OAuthController extends KDController
 
-  redirectToOauthUrl: (provider)->
+  redirectToOauthUrl: (options)->
 
     (kd.getSingleton 'mainController').isLoggingIn on
-    remote.api.OAuth.getUrl provider, (err, url)->
+    remote.api.OAuth.getUrl options, (err, url)->
       if err then notify err
       else window.location.replace url
 
