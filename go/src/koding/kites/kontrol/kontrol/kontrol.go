@@ -122,7 +122,7 @@ func authenticateMachine(authType string, r *kite.Request) error {
 
 		session, err := modelhelper.GetSessionFromToken(args.Token)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		if session.Username != r.Client.Kite.Username {
