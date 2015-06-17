@@ -44,6 +44,7 @@ module.exports = class PrivateMessagePane extends MessagePane
       kd.utils.wait 300, =>
         @unsetClass 'translucent'
         @input.input.setPlaceholder ''
+        @resetPadding()
         @scrollDown()
 
     list = @listController.getListView()
