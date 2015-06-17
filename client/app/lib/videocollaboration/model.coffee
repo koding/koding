@@ -65,6 +65,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
   getChannel: -> @channel
 
 
+  ###*
+   * Helper method to check if logged in user is the host.
+   *
+   * @return {boolean} _isMySession
+  ###
   isMySession: -> isMyChannel @channel
 
 
@@ -110,11 +115,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     if videoActive
       @setActive()
-      @changeActiveParticipant getNick()
 
-      return  unless @isMySession()
-
-      @requestVideoPublishForHost => @changeActiveParticipant getNick()
+      if @isMySession()
+        @requestVideoPublishForHost => @changeActiveParticipant getNick()
+      else
+        @changeActiveParticipant getNick()
 
 
   ###*
@@ -261,13 +266,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
         error   : (err) -> console.error err
 
     session.on 'signal:start', =>
-
       @setActive()
-      @changeActiveParticipant getNick()
 
-      return  unless @isMySession()
-
-      @requestVideoPublishForHost()
+      if @isMySession()
+        @requestVideoPublishForHost => @changeActiveParticipant getNick()
+      else
+        @changeActiveParticipant getNick()
 
 
     # this event only comes to the user who has been muted, so need to make a
