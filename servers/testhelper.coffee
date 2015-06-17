@@ -30,10 +30,10 @@ class RegisterHandlerHelper
 
     defaultBodyObject     =
       email             : "testuser+#{randomString}@koding.com"
-      password          : 'testtest'
+      password          : 'testpass'
       inviteCode        : ''
       username          : randomString
-      passwordConfirm   : 'testtest'
+      passwordConfirm   : 'testpass'
       agree             : 'on'
 
     return defaultBodyObject
