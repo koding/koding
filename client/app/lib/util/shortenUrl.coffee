@@ -1,17 +1,21 @@
 $ = require 'jquery'
 kd = require 'kd'
 
-module.exports = shortenUrl = (url, callback)->
-  request = $.ajax "https://www.googleapis.com/urlshortener/v1/url",
-    type        : "POST"
-    contentType : "application/json"
-    data        : JSON.stringify {longUrl: url}
+module.exports = shortenUrl = (longUrl, callback) ->
+
+  apiUrl = 'https://www.googleapis.com/urlshortener/v1/url'
+
+  request = $.ajax
+    url         : apiUrl
+    type        : 'POST'
+    contentType : 'application/json'
+    data        : JSON.stringify {longUrl}
+    dataType    : 'json'
     timeout     : 4000
-    dataType    : "json"
 
-  request.done (data)=>
-    callback data?.id or url, data
+  request.done (data) ->
+    callback data?.id or longUrl, data
 
-  request.error ({status, statusText, responseText})->
-    kd.log "URL shorten error, returning self as fallback.", status, statusText, responseText
-    callback url
+  request.error ({status, statusText, responseText}) ->
+    console.error 'URL shortener error', status, statusText, responseText
+    callback longUrl
