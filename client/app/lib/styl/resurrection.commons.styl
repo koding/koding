@@ -138,12 +138,19 @@ validationRed = rgba(217, 58, 55, 0.65)
 .avatarview
   background-size           100% 100%
   background-repeat         no-repeat
-  overflow                  hidden
   display                   block
   vertical-align            top
   background                rgba(0, 0, 0, .05)
   rounded                   3px
+  position                  relative
+
   img
+    rounded                 3px
+
+  cite.staff
+    r-sprite                app 'staff-badge-16'
+    abs                     0 -6px -8px 0
+    border                  2px solid #fff
     rounded                 3px
 
 aside.app-sidebar
@@ -982,6 +989,10 @@ button.app-settings-menu
 
       &:last-child
         border-bottom   1px solid transparent
+
+    .avatarview
+      cite.staff
+        hidden()
 
 
   .kdmodal-buttons
