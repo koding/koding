@@ -87,8 +87,9 @@ module.exports = class WebTermView extends KDCustomScrollView
     # watch machine state:
     { computeController } = kd.singletons
     { Stopped, Stopping } = Machine.State
+    machineId             = @getMachine()._id
 
-    computeController.on "public-#{@getMachine()._id}", (event) =>
+    computeController.on "public-#{machineId}", (event) =>
       if event.status in [Stopping, Stopped]
         @terminal.cursor.stopBlink()
 
@@ -97,6 +98,11 @@ module.exports = class WebTermView extends KDCustomScrollView
         if event.status is Stopped
           @messagePane.handleError message: "ErrNoSession"
 
+    # Listen for resize events to show an error after a resize has
+    # finished. This provides same UX as a stopped machine (above).
+    computeController.on "resize-#{machineId}", (event) =>
+      if event.percentage is 100
+        @messagePane.handleError message: "ErrNoSession"
 
     @setKeyView()
 
