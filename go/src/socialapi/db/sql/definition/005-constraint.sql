@@ -61,7 +61,11 @@ ALTER TABLE api.channel_message ADD CONSTRAINT "channel_message_account_id_fkey"
 -- ----------------------------
 --  Indexes structure for table channel_message
 -- ----------------------------
+DROP INDEX IF EXISTS "api"."channel_message_i_c_id_t_const_a_id_c_at_d_at_idx";
+CREATE INDEX "channel_message_i_c_id_t_const_a_id_c_at_d_at_idx" ON "api"."channel_message" USING btree (initial_channel_id DESC NULLS LAST,type_constant DESC NULLS LAST,account_id DESC NULLS LAST,created_at DESC NULLS LAST,deleted_at DESC NULLS LAST);
 
+DROP INDEX IF EXISTS "api"."channel_message_slug_deleted_at_meta_bits_idx";
+CREATE INDEX "channel_message_slug_deleted_at_meta_bits_idx" ON "api"."channel_message" USING btree(slug DESC NULLS LAST, deleted_at DESC NULLS FIRST, meta_bits ASC NULLS LAST);
 -- ----------------------------
 --  Check constraints for table channel_message
 -- ----------------------------
@@ -119,7 +123,10 @@ ALTER TABLE api.channel_participant ADD CONSTRAINT "channel_participant_account_
 -- CREATE INDEX  "channel_participant_account_id_idx" ON api.channel_participant USING btree(account_id ASC NULLS LAST);
 -- CREATE INDEX  "channel_participant_channel_id_idx" ON api.channel_participant USING btree(channel_id ASC NULLS LAST);
 -- CREATE INDEX  "channel_participant_lower_idx" ON api.channel_participant USING btree(status_constant);
+DROP INDEX IF EXISTS "api"."channel_participant_channel_id_status_constant_meta_bits_idx";
 CREATE INDEX  "channel_participant_channel_id_status_constant_meta_bits_idx" ON "api"."channel_participant" USING btree(channel_id DESC, status_constant ASC, meta_bits ASC);
+DROP INDEX IF EXISTS "api"."channel_participant_channel_id_idx";
+CREATE INDEX  "channel_participant_channel_id_idx" ON "api"."channel_participant" USING btree(channel_id DESC NULLS LAST);
 -- ----------------------------
 --  Check constraints for table channel_participant
 -- ----------------------------

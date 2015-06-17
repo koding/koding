@@ -423,7 +423,7 @@ func (c *ChannelParticipant) FetchParticipatedTypedChannelIds(a *Account, q *req
 // they will be able to see the contents of it, they will get the notifications,
 // they will see the unread count
 func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, error) {
-	var channelIds []int64
+	var channels []Channel
 	channel := NewChannel()
 	res := bongo.B.DB.
 		Model(channel).
@@ -433,28 +433,39 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 		q.GroupName,
 		[]string{Channel_TYPE_GROUP, Channel_TYPE_ANNOUNCEMENT},
 	).
-		Order("type_constant ASC").
+		// Order("type_constant ASC"). // order by increases query plan by x12K
 		// no need to traverse all database, limit with a known count
 		Limit(2).
 		// only select ids
-		Pluck("id", &channelIds)
+		Find(&channels)
 
 	if err := bongo.CheckErr(res); err != nil {
 		return nil, err
 	}
 
 	// be sure that this account is a participant of default channels
-	if err := c.ensureParticipation(q.AccountId, channelIds); err != nil {
+	if err := c.ensureParticipation(q.AccountId, channels); err != nil {
 		return nil, err
+	}
+
+	// order channels in memory instead of ordering them in db
+	channelIds := make([]int64, 2)
+	for _, channel := range channels {
+		if channel.TypeConstant == Channel_TYPE_GROUP {
+			channelIds[0] = channel.Id
+		}
+		if channel.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
+			channelIds[1] = channel.Id
+		}
 	}
 
 	return channelIds, nil
 }
 
-func (c *ChannelParticipant) ensureParticipation(accountId int64, channelIds []int64) error {
-	for _, channelId := range channelIds {
+func (c *ChannelParticipant) ensureParticipation(accountId int64, channels []Channel) error {
+	for _, channel := range channels {
 		cp := NewChannelParticipant()
-		cp.ChannelId = channelId
+		cp.ChannelId = channel.Id
 		cp.AccountId = accountId
 		// create is idempotent, multiple calls wont cause any problem, if the
 		// user is already a participant, will return as if a succesful request
