@@ -40,35 +40,45 @@ func New(config *aws.Config, log logging.Logger) (*RecordManager, error) {
 
 func (r *RecordManager) Init() error {
 	r.log.Debug("init started")
-	r.log.Debug("working on hosted zone")
 
-	err := r.getHostedZone()
+	hostedZoneLogger := r.log.New("HostedZone")
+	hostedZoneLogger.Debug("working...")
+
+	err := r.getHostedZone(hostedZoneLogger)
 	if err != nil && err != errHostedZoneNotFound {
 		return err
 	}
 
 	if err == errHostedZoneNotFound {
-		r.log.Debug("hosted zone not found, creating")
-		err := r.createHostedZone()
+		hostedZoneLogger.Debug("Not found, creating...")
+		err := r.createHostedZone(hostedZoneLogger)
 		if err != nil {
 			return err
 		}
 	}
 
-	r.log.Debug("hosted zone is ready")
-
+	hostedZoneLogger.Debug("hosted zone is ready")
+	hostedZoneLogger.Info("RecordManager is ready")
 	return err
 }
 
-func (r *RecordManager) getHostedZone() error {
+func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 	iteration := 0
 	// try to get our hosted zone
 	for {
-		r.log.New("iteration", iteration).Debug("fetching hosted zone")
+		// just be paranoid about remove api calls, dont harden too much
+		if iteration == maxIteration {
+			return errMaxIterationReached
+		}
+
+		log := hostedZoneLogger.New("iteration", iteration)
+
+		iteration++
 
 		// for pagination
 		var nextMarker *string
 
+		log.Debug("fetching hosted zone")
 		listHostedZonesResp, err := r.svc.ListHostedZones(
 			&route53.ListHostedZonesInput{
 				Marker: nextMarker,
@@ -85,7 +95,7 @@ func (r *RecordManager) getHostedZone() error {
 		for _, hostedZone := range listHostedZonesResp.HostedZones {
 			if *hostedZone.CallerReference == callerReferance {
 				r.hostedZone = hostedZone
-				r.log.New("iteration", iteration).Debug("hosted zone found")
+				log.Debug("hosted zone found")
 				return nil
 			}
 		}
@@ -103,8 +113,8 @@ func (r *RecordManager) getHostedZone() error {
 
 // createHostedZone creates hosted zone and makes sure that it is in to be used
 // state
-func (r *RecordManager) createHostedZone() error {
-	r.log.Debug("create hosted zone started")
+func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error {
+	hostedZoneLogger.Debug("create hosted zone started")
 
 	resp, err := r.svc.CreateHostedZone(&route53.CreateHostedZoneInput{
 		CallerReference: aws.String(callerReferance),
@@ -129,7 +139,7 @@ func (r *RecordManager) createHostedZone() error {
 	for {
 		// if our change propagated, we can return
 		if *changeInfo.Status == validStateForHostedZone {
-			r.log.Debug("hosted zone status is valid")
+			hostedZoneLogger.Debug("hosted zone status is valid")
 			break
 		}
 
@@ -138,7 +148,7 @@ func (r *RecordManager) createHostedZone() error {
 			return errDeadlineReachedForChangeInfo
 		default:
 			time.Sleep(time.Second * 3) // poor man's throttling
-			r.log.New("changeInfoID", *changeInfo.ID).Debug("fetching latest status")
+			hostedZoneLogger.New("changeInfoID", *changeInfo.ID).Debug("fetching latest status")
 			getChangeResp, err := r.svc.GetChange(&route53.GetChangeInput{
 				ID: changeInfo.ID,
 			})
@@ -199,11 +209,10 @@ func (r *RecordManager) createRecordSet() error {
 		HostedZoneID: r.hostedZone.ID,
 	}
 
-	resp, err := r.svc.ChangeResourceRecordSets(params)
+	_, err := r.svc.ChangeResourceRecordSets(params)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("resp-->", resp)
 	return nil
 }

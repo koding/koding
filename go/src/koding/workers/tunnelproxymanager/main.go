@@ -54,34 +54,10 @@ func main() {
 
 	queueName := "SQS-ElasticBeanstalkNotifications-Environment-" + ebEnvName
 
-	log.Info("Running with %s queue", queueName)
-
-	fmt.Println("queueName-->", queueName)
-
 	l, err := NewLifeCycle(config, log, queueName)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	err = l.MakeSureSNS("tunnelproxymanager_test")
-	if err != nil {
-		fmt.Println("err.Error()1-->", err.Error())
-
-	}
-
-	if err := l.MakeSureSQS(queueName); err != nil {
-		fmt.Println("err.Error()3-->", err.Error())
-	}
-	fmt.Println("l.queueURL-->", *l.queueURL)
-
-	err = l.MakeSureSubscriptions()
-	if err != nil {
-		fmt.Println("err.Error()2-->", err.Error())
-
-	}
-	fmt.Println("l.queueARN-->", *l.queueARN)
-	fmt.Println("l.topicARN-->", *l.topicARN)
-	fmt.Println("l.subscriptionARN-->", *l.subscriptionARN)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -154,7 +130,7 @@ func main() {
 	}()
 
 	err = l.Listen(func(body *string) error {
-		fmt.Println("body-->", *body)
+		// fmt.Println("body-->", *body)
 		return nil
 	})
 	if err != nil {
