@@ -1,7 +1,9 @@
-kd = require 'kd'
-KDSplitComboView = kd.SplitComboView
-KDView = kd.View
-IDEBaseSplitView = require '../views/idebasesplitview'
+kd                = require 'kd'
+KDSplitComboView  = kd.SplitComboView
+KDView            = kd.View
+IDEBaseSplitView  = require '../views/idebasesplitview'
+
+
 module.exports = class IDEWorkspaceLayoutBuilder extends KDSplitComboView
 
   init: ->

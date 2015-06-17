@@ -1,7 +1,7 @@
-kd = require 'kd'
-KDController = kd.Controller
-IDEPanel = require './idepanel'
-module.exports = class IDEWorkspace extends KDController
+kd              = require 'kd'
+KDController    = kd.Controller
+IDEPanel        = require './idepanel'
+module.exports  = class IDEWorkspace extends KDController
 
   constructor: (options = {}, data) ->
 
