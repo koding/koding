@@ -26,6 +26,8 @@ if typeof argv.count isnt 'number'
   console.error 'error: Non-number value is given as instance count'
   process.exit 1
 
+console.log "bot public key", process.env.KODING_BOT_PUBLIC_KEY
+
 userData =
   """
   #cloud-config
