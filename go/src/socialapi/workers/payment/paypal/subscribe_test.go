@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSubscribe1(t *testing.T) {
+func TestSubscribe(t *testing.T) {
 	server := startTestServer()
 	defer server.Close()
 
@@ -32,7 +32,7 @@ func TestSubscribe1(t *testing.T) {
 	)
 }
 
-func TestSubscribe2(t *testing.T) {
+func TestReactivatedSubscription(t *testing.T) {
 	server := startTestServer()
 	defer server.Close()
 
@@ -55,38 +55,13 @@ func TestSubscribe2(t *testing.T) {
 				})
 
 				Convey("Then it should save subscription", func() {
+					customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 					sub, err := customer.FindActiveSubscription()
 
 					So(err, ShouldBeNil)
 					So(sub, ShouldNotBeNil)
 				})
 			})
-		}),
-	)
-}
-
-func TestSubscribe3(t *testing.T) {
-	server := startTestServer()
-	defer server.Close()
-
-	Convey("Given customer with not active subscription", t,
-		subscribeFn(func(token, accId, email string) {
-			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
-			So(err, ShouldBeNil)
-			So(customer, ShouldNotBeNil)
-
-			err = ExpireSubscription(customer.ProviderCustomerId)
-			So(err, ShouldBeNil)
-
-			err = Subscribe(token, accId)
-			So(err, ShouldBeNil)
-
-			customer, err = paymentmodels.NewCustomer().ByOldId(accId)
-			So(err, ShouldBeNil)
-
-			sub, err := customer.FindActiveSubscription()
-			So(err, ShouldBeNil)
-			So(sub, ShouldNotBeNil)
 		}),
 	)
 }
