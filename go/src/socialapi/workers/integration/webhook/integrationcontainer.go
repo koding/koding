@@ -15,18 +15,14 @@ func (ic *IntegrationContainer) PushChannelIntegration(ci ChannelIntegration) {
 	ic.ChannelIntegrations = append(ic.ChannelIntegrations, ci)
 }
 
-type IntegrationContainers struct {
-	IntegrationContainers []IntegrationContainer `json:"integrations"`
-}
+type IntegrationContainers []IntegrationContainer
 
 func NewIntegrationContainers() *IntegrationContainers {
-	return &IntegrationContainers{
-		IntegrationContainers: make([]IntegrationContainer, 0),
-	}
+	return &IntegrationContainers{}
 }
 
-func (ics *IntegrationContainers) PushIntegrationContainer(i *IntegrationContainer) {
-	ics.IntegrationContainers = append(ics.IntegrationContainers, *i)
+func (ics *IntegrationContainers) PushIntegrationContainer(i IntegrationContainer) {
+	*ics = append(*ics, i)
 }
 
 func (ics *IntegrationContainers) Populate(groupName string) error {
@@ -62,7 +58,7 @@ func (ics *IntegrationContainers) Populate(groupName string) error {
 	for _, integration := range ints {
 		ic := containers[integration.Id]
 		ic.Integration = &integration
-		ics.PushIntegrationContainer(ic)
+		ics.PushIntegrationContainer(*ic)
 	}
 
 	return nil
