@@ -20,9 +20,9 @@ module.exports     = class GroupStackSettings extends kd.View
   initiateInitialView: ->
     @replaceViewsWith
       initialView: (selected) =>
-        if selected is 'create-new'
-        then @initiateNewStackWizard()
-        else @initiateRepoFlowWizard()
+        if selected is 'from-repo'
+        then @initiateRepoFlowWizard()
+        else @initiateNewStackWizard()
 
 
   initiateFollowing: (_steps) ->
