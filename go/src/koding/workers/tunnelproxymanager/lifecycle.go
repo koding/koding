@@ -4,71 +4,39 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/awslabs/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/koding/logging"
 )
 
 type LifeCycle struct {
-	closed    bool
-	closeChan chan chan struct{}
-	mu        sync.Mutex
-	svc       *sqs.SQS
-	log       logging.Logger
-	queueURL  *string
+	closed          bool
+	closeChan       chan chan struct{}
+	mu              sync.Mutex
+	sqs             *sqs.SQS
+	sns             *sns.SNS
+	autoscaling     *autoscaling.AutoScaling
+	log             logging.Logger
+	queueURL        *string
+	queueARN        *string
+	subscriptionARN *string
+	topicARN        *string
 }
 
 func NewLifeCycle(config *aws.Config, log logging.Logger, queueName string) (*LifeCycle, error) {
 	lc := &LifeCycle{
-		closed:    false,
-		closeChan: make(chan chan struct{}),
-		svc:       sqs.New(config),
-		log:       log,
-	}
-
-	if err := lc.generateQueueURL(queueName); err != nil {
-		return nil, err
+		closed:      false,
+		closeChan:   make(chan chan struct{}),
+		sqs:         sqs.New(config),
+		sns:         sns.New(config),
+		autoscaling: autoscaling.New(config),
+		log:         log,
 	}
 
 	return lc, nil
 
-}
-
-func (l *LifeCycle) generateQueueURL(queueName string) error {
-	// create queue is idempotent, if it is already created returns existing one
-	// all Attributes should be same tho
-	createQueueResp, err := l.svc.CreateQueue(&sqs.CreateQueueInput{
-		QueueName: aws.String(queueName), // Required
-		Attributes: &map[string]*string{ // Required
-			// The time in seconds that the delivery of all messages in the
-			// queue will be delayed
-			"DelaySeconds": aws.String("0"),
-
-			//  The limit of how many bytes a message can contain
-			"MaximumMessageSize": aws.String("262144"), // 256 KiB
-
-			// The number of seconds Amazon SQS retains a message. Integer
-			// representing seconds, from 60 (1 minute) to 1209600 (14 days).
-			"MessageRetentionPeriod": aws.String("3600"), // 1 hour
-
-			//The time for which a ReceiveMessage call will wait for a message
-			//to arrive
-			"ReceiveMessageWaitTimeSeconds": aws.String("20"),
-
-			// The visibility timeout for the queue. An integer from 0 to 43200
-			// (12 hours). Messages will be available again if they are not
-			// deleted in VisibilityTimeout
-			"VisibilityTimeout": aws.String("60"), // 60 secs
-		},
-	})
-
-	if err != nil {
-		return err
-	}
-
-	l.queueURL = createQueueResp.QueueURL
-
-	return nil
 }
 
 // Listen listens for messages that are put into lifecycle queues
@@ -90,7 +58,7 @@ func (l *LifeCycle) Listen(f func(*string) error) error {
 
 func (l *LifeCycle) process(f func(*string) error) error {
 	// try to get messages from qeueue, will longpoll for 20 secs
-	recieveResp, err := l.svc.ReceiveMessage(&sqs.ReceiveMessageInput{
+	recieveResp, err := l.sqs.ReceiveMessage(&sqs.ReceiveMessageInput{
 		QueueURL:            l.queueURL, // Required
 		MaxNumberOfMessages: aws.Long(1),
 	})
@@ -109,7 +77,7 @@ func (l *LifeCycle) process(f func(*string) error) error {
 		}
 
 		// if we got sucess just delete the message from queue
-		if _, err := l.svc.DeleteMessage(&sqs.DeleteMessageInput{
+		if _, err := l.sqs.DeleteMessage(&sqs.DeleteMessageInput{
 			QueueURL:      l.queueURL,            // Required
 			ReceiptHandle: message.ReceiptHandle, // Required
 		}); err != nil {
