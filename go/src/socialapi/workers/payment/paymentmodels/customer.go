@@ -93,12 +93,12 @@ func (c *Customer) FindSubscriptions() ([]Subscription, error) {
 
 	s := Subscription{}
 	err := s.Some(&subscriptions, query)
-	if err != nil && err != bongo.RecordNotFound {
-		return nil, err
-	}
-
 	if err == bongo.RecordNotFound {
 		return nil, paymenterrors.ErrCustomerNotSubscribedToAnyPlans
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return subscriptions, nil

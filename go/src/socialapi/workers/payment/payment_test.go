@@ -199,7 +199,7 @@ func TestSubscriptionsRequest1(t *testing.T) {
 	})
 }
 
-func TestSubscriptionsRequest2(t *testing.T) {
+func TestMultipleSubscriptionsRequest(t *testing.T) {
 	Convey("Given user has multiple subscriptions", t, func() {
 		token, accId, _ := generateFakeUserInfo()
 

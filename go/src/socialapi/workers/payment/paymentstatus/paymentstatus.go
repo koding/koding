@@ -34,12 +34,12 @@ func Check(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan
 	}
 
 	currentSubscription, err := customer.FindActiveSubscription()
-	if err != nil && err != paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
-		return Error, err
-	}
-
 	if err == paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
 		return ExistingUserHasNoSub, nil
+	}
+
+	if err != nil {
+		return Error, err
 	}
 
 	oldPlan := paymentmodels.NewPlan()
