@@ -31,5 +31,5 @@ module.exports = class EmbedBoxImageView extends KDCustomHTMLView
         title     : oembed.title or ''
         width     : "100%"
 
-    @image.on 'load', (event) =>
+    @image.on 'load', (event) ->
       kd.singletons.windowController.notifyWindowResizeListeners()
