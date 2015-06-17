@@ -20,7 +20,7 @@ kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
 
 contents  =
   install : """#{kontrolUrl}
-    $ curl -sSL kodi.ng/s/klient.sh | bash -s %%TOKEN%% %%USERNAME%%
+    $ curl -sSL s3.amazonaws.com/koding-klient/install.sh | bash -s %%TOKEN%% %%USERNAME%%
   """
 
 module.exports   = view =
