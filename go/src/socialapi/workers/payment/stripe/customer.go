@@ -80,7 +80,5 @@ func DeleteCustomer(accId string) error {
 		return err
 	}
 
-	err = stripeCustomer.Del(customer.ProviderCustomerId)
-
-	return err
+	return stripeCustomer.Del(customer.ProviderCustomerId)
 }
