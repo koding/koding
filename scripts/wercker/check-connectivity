@@ -24,10 +24,6 @@ function check () {
   $SCRIPTS/test-instance/check-connectivity $HOST $PORT $INTERVAL $TRY_COUNT
   EXIT_CODE=$?
 
-  if [ $EXIT_CODE -ne 0 ]; then
-    terminate_instance $INSTANCE_ID
-  fi
-
   return $EXIT_CODE
 }
 
