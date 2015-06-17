@@ -30,12 +30,10 @@ identifyUser = (account)->
     kd.singletons.paymentController.subscriptions (err, currentSub) ->
       plan = "error fetching plan" if err
       args =
-        "$id"          : _id
-        "$username"    : nickname
-        "$first_name"  : firstName
-        "$last_name"   : lastName
-        "$created"     : meta?.createdAt
-        "$email"       : email
+        firstName      : firstName
+        lastName       : lastName
+        createdAt      : meta?.createdAt
+        email          : email
         subscription   : currentSub
         lastLoginDate  : lastLoginDate
         status         : status
