@@ -54,8 +54,8 @@ module.exports = class AvatarView extends LinkView
       @setCss 'background-image', 'none'
 
     @cite = new KDCustomHTMLView
-      tagName   : "cite"
-      tooltip   :
+      tagName     : 'cite'
+      tooltip     :
         title     : 'Koding Staff'
         placement : 'right'
         direction : 'center'
