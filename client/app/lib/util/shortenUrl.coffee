@@ -1,9 +1,12 @@
 $ = require 'jquery'
 kd = require 'kd'
+globals = require 'globals'
 
 module.exports = shortenUrl = (longUrl, callback) ->
 
-  apiUrl = 'https://www.googleapis.com/urlshortener/v1/url'
+  {apiKey} = globals.config.google
+
+  apiUrl = "https://www.googleapis.com/urlshortener/v1/url?key=#{apiKey}"
 
   request = $.ajax
     url         : apiUrl
