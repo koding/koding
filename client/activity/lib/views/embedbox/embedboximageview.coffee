@@ -25,7 +25,11 @@ module.exports = class EmbedBoxImageView extends KDCustomHTMLView
 
     @addSubView @image  = new KDCustomHTMLView
       tagName     : 'img'
+      bind        : 'load'
       attributes  :
         src       : proxifyUrl oembed.images?[0]?.url, {width}
         title     : oembed.title or ''
         width     : "100%"
+
+    @image.on 'load', (event) =>
+      kd.singletons.windowController.notifyWindowResizeListeners()
