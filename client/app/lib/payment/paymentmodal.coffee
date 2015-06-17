@@ -51,14 +51,17 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
   initViews: ->
 
-    { provider, planTitle } = @state
+    { provider, planTitle, subscriptionState } = @state
     { PAYPAL } = PaymentConstants.provider
     { FREE }   = PaymentConstants.planTitle
 
     @addSubView @errors = new KDCustomHTMLView {cssClass : 'errors hidden'}
     @addSubView @form   = new PaymentForm {@state}
 
-    @handlePaypalNotAllowed()  if provider is PAYPAL and planTitle isnt FREE
+    if provider is PAYPAL
+      if subscriptionState isnt 'expired'
+        if planTitle isnt FREE
+          @handlePaypalNotAllowed()
 
 
   initEvents: ->

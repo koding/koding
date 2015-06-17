@@ -115,7 +115,7 @@ module.exports = class DataDog extends Base
       text += "\n #{ev.notify}"
 
     if ev.sendToSegment?
-      analytics.track userId: nickname, event: text, properties: data.tags
+      analytics.track userId: nickname, event: ev.text, properties: data.tags
 
     DogApi.add_event {title, text, tags}, (err, res, status)->
 

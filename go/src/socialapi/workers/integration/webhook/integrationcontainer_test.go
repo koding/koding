@@ -32,11 +32,11 @@ func TestIntegrationContainersPopulate(t *testing.T) {
 			ics := NewIntegrationContainers()
 			err := ics.Populate(ci.GroupName)
 			So(err, ShouldBeNil)
-			So(len(ics.IntegrationContainers), ShouldEqual, 1)
-			testInt := ics.IntegrationContainers[0].Integration
+			So(len(*ics), ShouldEqual, 1)
+			testInt := (*ics)[0].Integration
 			So(testInt.Name, ShouldEqual, integration.Name)
-			So(len(ics.IntegrationContainers[0].ChannelIntegrations), ShouldEqual, 1)
-			testCi := ics.IntegrationContainers[0].ChannelIntegrations[0]
+			So(len((*ics)[0].ChannelIntegrations), ShouldEqual, 1)
+			testCi := (*ics)[0].ChannelIntegrations[0]
 			So(testCi.Id, ShouldEqual, ci.Id)
 
 			// test for 2 channel integrations created from 1 integration
@@ -47,10 +47,10 @@ func TestIntegrationContainersPopulate(t *testing.T) {
 			ics = NewIntegrationContainers()
 			err = ics.Populate(ci.GroupName)
 			So(err, ShouldBeNil)
-			So(len(ics.IntegrationContainers), ShouldEqual, 1)
-			testInt = ics.IntegrationContainers[0].Integration
+			So(len(*ics), ShouldEqual, 1)
+			testInt = (*ics)[0].Integration
 			So(testInt.Name, ShouldEqual, integration.Name)
-			So(len(ics.IntegrationContainers[0].ChannelIntegrations), ShouldEqual, 2)
+			So(len((*ics)[0].ChannelIntegrations), ShouldEqual, 2)
 
 		})
 
@@ -69,9 +69,9 @@ func TestIntegrationContainersPopulate(t *testing.T) {
 			ics := NewIntegrationContainers()
 			err = ics.Populate(ci.GroupName)
 			So(err, ShouldBeNil)
-			So(len(ics.IntegrationContainers), ShouldEqual, 2)
-			So(len(ics.IntegrationContainers[0].ChannelIntegrations), ShouldEqual, 1)
-			So(len(ics.IntegrationContainers[1].ChannelIntegrations), ShouldEqual, 1)
+			So(len(*ics), ShouldEqual, 2)
+			So(len((*ics)[0].ChannelIntegrations), ShouldEqual, 1)
+			So(len((*ics)[1].ChannelIntegrations), ShouldEqual, 1)
 		})
 	})
 }
