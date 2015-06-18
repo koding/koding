@@ -202,11 +202,11 @@ module.exports = class ActivityPane extends MessagePane
     content = @[contentName]
 
     @clearSearch()
-    
+
     {router} = kd.singletons
     unless router.visitedRoutes.last is content.options.route
       router.visitedRoutes.push content.options.route
-    
+
 
     unless content.isLoaded
       @fetch options, @createContentSetter contentName
@@ -265,6 +265,9 @@ module.exports = class ActivityPane extends MessagePane
     @searchResults.startSearch()
 
     @searchResults.clear()  unless options.dontClear
+
+    # algolia doesn't need to dontClear paramete
+    delete options.dontClear  if options.dontClear
 
     kd.singletons.search
       .searchChannel text, @getData().id, options
