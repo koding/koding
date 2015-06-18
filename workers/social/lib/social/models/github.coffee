@@ -9,6 +9,7 @@ KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 module.exports = class Github extends Base
 
   OAUTH_PROVIDER = 'github'
+  USER_AGENT     = 'Koding-Bridge'
 
   @trait __dirname, '../traits/protected'
 
@@ -29,6 +30,21 @@ module.exports = class Github extends Base
         fetchContent      :
           (signature Object, Function)
 
+  initGithubFor = (client) ->
+
+    { oauth: {token} } = client.r
+
+    gh = new GithubAPI
+      version        : '3.0.0'
+      debug          : true
+      timeout        : 5000
+      headers        :
+        'user-agent' : USER_AGENT
+
+    gh.authenticate { type: 'oauth', token }
+
+    return gh
+
 
   @listRepos = permit 'list repos', success: revive
 
@@ -37,21 +53,10 @@ module.exports = class Github extends Base
 
   , (client, options, callback) ->
 
-    { oauth: {foreignId}, user: {username} } = client.r
+    initGithubFor client
 
-    gh = new GithubAPI
-      version        : '3.0.0'
-      debug          : true
-      timeout        : 5000
-      headers        :
-        'user-agent' : 'Koding-Bridge'
-
-    gh.authenticate
-      type           : 'oauth'
-      token          : foreignId
-
-    gh.repos.getAll {}, (err, res) ->
-      callback err, res
+      .repos.getAll {}, (err, res) ->
+        callback err, res
 
 
   @fetchContent = permit 'fetch content', success: revive
