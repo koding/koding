@@ -1,14 +1,15 @@
 Bongo                           = require 'bongo'
+koding                          = require './../bongo'
 
 { daisy }                       = Bongo
 { expect }                      = require "chai"
 { generateRandomString
   RegisterHandlerHelper }       = require '../../../testhelper'
-{ generatePostParams }          = RegisterHandlerHelper
-
+{ generateRequestParams }       = RegisterHandlerHelper
 
 hat                             = require 'hat'
 request                         = require 'request'
+querystring                     = require 'querystring'
 
 
 # here we have actual tests
@@ -18,7 +19,7 @@ runTests = -> describe 'server.handlers.register', ->
 
     queue       = []
     methods     = ['put, patch, del']
-    postParams  = generatePostParams()
+    postParams  = generateRequestParams()
 
     addRequestToQueue = (queue, method) ->
       postParams.method = method
@@ -37,7 +38,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 200 if GET request sent to Register hadler url', (done) ->
 
-    request.get generatePostParams().url, (err, res, body) ->
+    request.get generateRequestParams().url, (err, res, body) ->
       expect(err)             .to.not.exist
       expect(res.statusCode)  .to.be.equal 200
       done()
@@ -45,7 +46,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if username is not specified', (done) ->
 
-    postParams = generatePostParams
+    postParams = generateRequestParams
       body        :
         username  : ''
 
@@ -57,7 +58,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if password is not specified', (done) ->
 
-    postParams = generatePostParams
+    postParams = generateRequestParams
       body        :
         password  : ''
 
@@ -69,7 +70,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if passwords do not match ', (done) ->
 
-    postParams = generatePostParams
+    postParams = generateRequestParams
       body              :
         password        : 'somePassword'
         passwordConfirm : 'anotherPassword'
@@ -83,7 +84,7 @@ runTests = -> describe 'server.handlers.register', ->
   it 'should send HTTP 400 if username is in use', (done) ->
 
     randomString = generateRandomString()
-    postParams   = generatePostParams
+    postParams   = generateRequestParams
       body        :
         username  : randomString
 
@@ -111,7 +112,7 @@ runTests = -> describe 'server.handlers.register', ->
   it 'should send HTTP 400 if email is in use', (done) ->
 
     randomString = generateRandomString()
-    postParams   = generatePostParams
+    postParams   = generateRequestParams
       body    :
         email : "kodingtestuser+#{randomString}@koding.com"
 
@@ -138,7 +139,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if agree is set as off', (done) ->
 
-    postParams = generatePostParams
+    postParams = generateRequestParams
       body        :
         agree     : 'off'
 
@@ -148,19 +149,49 @@ runTests = -> describe 'server.handlers.register', ->
       done()
 
 
-  it 'should send HTTP 200 if valid data sent as XHR request', (done) ->
+  it 'should send HTTP 200 and save user if valid data sent as XHR', (done) ->
 
-    postParams  = generatePostParams()
+    postParams          = generateRequestParams()
+    { username, email } = querystring.parse postParams.body
+    { JUser, JAccount } = koding.models
 
-    request.post postParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 200
-      done()
+    queue = [
+
+      ->
+        # expecting HTTP 200 response
+        request.post postParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        # expecting user to be saved on mongodb
+        params = { username : username }
+
+        JUser.one params, (err, { data : {email, registeredFrom} }) ->
+          expect(err)               .to.not.exist
+          expect(email)             .to.be.equal email
+          queue.next()
+
+      ->
+        #expecting acount to be created
+        params = { 'profile.nickname' : username }
+
+        JAccount.one params, (err, { data : {profile} }) ->
+          expect(err)               .to.not.exist
+          expect(profile.nickname)  .to.be.equal username
+          queue.next()
+
+      -> done()
+
+    ]
+
+    daisy queue
 
 
   it 'should send HTTP 301 if request is not XHR',  (done) ->
 
-    postParams = generatePostParams
+    postParams = generateRequestParams
       headers :
         'x-requested-with' : 'this is not an XHR'
 
@@ -172,7 +203,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should pass err if url is not specified', (done) ->
 
-    postParams = generatePostParams
+    postParams = generateRequestParams
       url : ''
 
     request.post postParams, (err, res, body) ->
