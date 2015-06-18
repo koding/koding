@@ -4,9 +4,82 @@ querystring = require 'querystring'
 
 
 # returns 20 characters by default
-generateRandomString = (length = 20) ->
+generateRandomString = (length = 20) -> hat().slice(32 - length)
 
-  return hat().slice(32 - length)
+
+generateRandomEmail = -> "testuser+#{generateRandomString()}@koding.com"
+
+
+generateRandomUsername = -> generateRandomString()
+
+
+generateUrl = (opts = {}) ->
+
+  getRoute = (route) ->
+    if    route
+    then  "/#{route}"
+    else  ''
+
+  getSubdomain = (subdomain) ->
+    if    subdomain
+    then  "#{subdomain}."
+    else  ''
+
+  urlParts =
+    host      : 'localhost'
+    port      : ':8090'
+    route     : ''
+    protocol  : 'http://'
+    subdomain : ''
+
+  urlParts = _.extend urlParts, opts
+
+  url =
+    urlParts.protocol +
+    getSubdomain(urlParts.subdomain) +
+    urlParts.host +
+    urlParts.port +
+    getRoute(urlParts.route)
+
+  return url
+
+
+generateDefaultHeadersObject = (opts = {}) ->
+
+  userAgent =
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3)
+    AppleWebKit/537.36 (KHTML, like Gecko)
+    Chrome/43.0.2357.81 Safari/537.36'
+
+  defaultHeadersObject  =
+    accept            : '*/*'
+    'x-requested-with': 'XMLHttpRequest'
+    'user-agent'      : userAgent
+    'content-type'    : 'application/x-www-form-urlencoded; charset=UTF-8'
+
+  defaultHeadersObject = deepObjectExtend defaultHeadersObject, opts
+
+  return defaultHeadersObject
+
+
+generateDefaultBodyObject = -> {}
+
+
+generateDefaultParams = (opts = {}) ->
+
+  defaultBodyObject    = generateDefaultBodyObject()
+
+  defaultHeadersObject = generateDefaultHeadersObject()
+
+  defaultParams        =
+    url               : generateUrl()
+    body              : defaultBodyObject
+    headers           : defaultHeadersObject
+
+  defaultParams = deepObjectExtend defaultParams, opts
+
+  return defaultParams
+
 
 # _.extend didn't help with deep extend
 # deep extending one object from another, works only for objects
@@ -24,65 +97,95 @@ deepObjectExtend = (target, source) ->
   return target
 
 
+class TeamHandlerHelper
+
+  @convertToArray = (commaSeparatedData = '')->
+
+    return []  if commaSeparatedData is ''
+
+    data = commaSeparatedData.split(',') or []
+
+    data = data
+      .filter (s) -> s isnt ''           # clear empty ones
+      .map (s) -> s.trim().toLowerCase() # clear empty spaces
+
+    return data
+
+
+  generateCreateTeamRequestBody = ->
+
+    companyName = "testcompany#{generateRandomString(10)}"
+    username    = generateRandomUsername()
+
+    defaultBodyObject =
+      email          :  generateRandomEmail()
+      companyName    :  companyName
+      alreadyMember  :  'false'
+      slug           :  companyName
+      allow          :  'true'
+      domains        :  'koding.com, kd.io'
+      invitees       :  'cihangir@koding.com,cihangir@koding.com,cihangir@savas.io,'
+      newsletter     :  'true'
+      username       :  username
+      password       :  'testpass'
+      agree          :  'on'
+      passwordConfirm:  'testpass'
+      redirect       :  "#{@getUrl}?username=#{username}"
+
+    return defaultBodyObject
+
+
+  # overwrites given options in the default params
+  @generateCreateRequestParams = (opts = {}) ->
+
+    url  = generateUrl
+      route : '-/teams/create'
+
+    body = generateCreateTeamRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
 class RegisterHandlerHelper
 
-  @generateDefaultBodyObject = (randomString) ->
+  generateRequestBody = ->
 
-    defaultBodyObject     =
-      email             : "testuser+#{randomString}@koding.com"
+    defaultBodyObject =
+      email             : generateRandomEmail()
       password          : 'testpass'
       inviteCode        : ''
-      username          : randomString
+      username          : generateRandomUsername()
       passwordConfirm   : 'testpass'
       agree             : 'on'
 
     return defaultBodyObject
 
 
-  @generateDefaultHeadersObject = ->
-
-    userAgent =
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3)
-      AppleWebKit/537.36 (KHTML, like Gecko)
-      Chrome/43.0.2357.81 Safari/537.36'
-
-    defaultHeadersObject  =
-      accept            : '*/*'
-      'x-requested-with': 'XMLHttpRequest'
-      'user-agent'      : userAgent
-      'content-type'    : 'application/x-www-form-urlencoded; charset=UTF-8'
-
-    return defaultHeadersObject
-
-
-  @generateDefaultParams = ->
-
-    randomString         = generateRandomString()
-
-    defaultBodyObject    = RegisterHandlerHelper.generateDefaultBodyObject randomString
-
-    defaultHeadersObject = RegisterHandlerHelper.generateDefaultHeadersObject()
-
-    defaultParams        =
-      url               : 'http://localhost:8090/Register'
-      body              : defaultBodyObject
-      headers           : defaultHeadersObject
-
-    return defaultParams
-
-
   # overwrites given options in the default params
-  @generatePostParams = (opts = {}) ->
+  @generateRequestParams = (opts = {}) ->
 
-    defaultPostParams = RegisterHandlerHelper.generateDefaultParams()
-    postParams        = deepObjectExtend defaultPostParams, opts
+    url  = generateUrl
+      route : 'Register'
+
+    body = generateRequestBody()
+
+    params                = { url, body }
+    defaultRequestParams  = generateDefaultParams params
+    requestParams         = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
-    postParams.body   = querystring.stringify postParams.body
+    requestParams.body    = querystring.stringify requestParams.body
 
-    return postParams
+    return requestParams
 
 
 module.exports = {
-  RegisterHandlerHelper
+  TeamHandlerHelper
   generateRandomString
+  RegisterHandlerHelper
 }
