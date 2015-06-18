@@ -1,6 +1,6 @@
-# chromedriver (v2.14)
+# chromedriver (v2.15)
 
-http://chromedriver.storage.googleapis.com/index.html?path=2.14/
+http://chromedriver.storage.googleapis.com/index.html?path=2.15/
 
 # selenium server (v2.46.0)
 
