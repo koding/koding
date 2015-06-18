@@ -1,8 +1,11 @@
 package webhook
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"socialapi/models"
+	"socialapi/workers/common/handler"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -54,6 +57,9 @@ type ChannelIntegration struct {
 
 	// Deletion date of the integration
 	DeletedAt time.Time `json:"deletedAt" sql:"NOT NULL"`
+
+	// Options is used for providing optional data
+	Options map[string]interface{} `json:"optional" sql:"-"`
 }
 
 func NewChannelIntegration() *ChannelIntegration {
@@ -155,4 +161,57 @@ func (i *ChannelIntegration) ByGroupName(groupName string) ([]ChannelIntegration
 	}
 
 	return ints, nil
+}
+
+type Options map[string]interface{}
+
+func (ci *ChannelIntegration) FetchOptions(cookie, rootPath string) (Options, error) {
+
+	i := NewIntegration()
+	if err := i.ById(ci.IntegrationId); err != nil {
+		return nil, err
+	}
+
+	// fetch optional fields
+	sections, err := i.GetSections()
+	if err != nil {
+		return nil, err
+	}
+
+	options := Options{}
+	events, err := i.GetEvents()
+	if err != ErrSettingNotFound {
+		options["events"] = events
+	}
+
+	for _, s := range sections {
+		if s.Endpoint == "" {
+			continue
+		}
+
+		request := &handler.Request{
+			Type:     "GET",
+			Endpoint: fmt.Sprintf("%s%s", rootPath, s.Endpoint),
+			Cookie:   cookie,
+		}
+
+		resp, err := handler.DoRequest(request)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode != 200 {
+			return nil, errors.New(resp.Status)
+		}
+		defer resp.Body.Close()
+
+		var result interface{}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+
+		options[s.Name] = result
+	}
+
+	return options, nil
 }

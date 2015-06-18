@@ -19,9 +19,10 @@ import (
 const RevProxyPath = "/api/integration"
 
 type Handler struct {
-	log   logging.Logger
-	bot   *webhook.Bot
-	redis *redis.RedisSession
+	log      logging.Logger
+	bot      *webhook.Bot
+	redis    *redis.RedisSession
+	rootPath string
 }
 
 func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger) (*Handler, error) {
@@ -31,9 +32,10 @@ func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger
 	}
 
 	return &Handler{
-		log:   l,
-		bot:   bot,
-		redis: redis,
+		log:      l,
+		bot:      bot,
+		redis:    redis,
+		rootPath: conf.CustomDomain.Local,
 	}, nil
 }
 
@@ -177,6 +179,8 @@ func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.Cha
 	return response.NewOK(response.NewSuccessResponse(ci))
 }
 
+// CreateChannelIntegration creates the channel integration with creatorId, groupName, channelId, and integrationId. It generates a random
+// token and saves id. Optional parameters are assigned via UpdateChannelIntegration handler.
 func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
@@ -199,6 +203,7 @@ func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *we
 	return response.NewOK(response.NewSuccessResponse(i))
 }
 
+// GetChannelIntegration returns the channel integration with given id. Also it fetches the external data if it is needed
 func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -229,6 +234,21 @@ func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interf
 		return response.NewBadRequest(err)
 	}
 	cic.Integration = i
+
+	fetchOptions := u.Query().Get("fetchOptions")
+	optionsEnabled, _ := strconv.ParseBool(fetchOptions)
+
+	if !optionsEnabled {
+		return response.NewOK(response.NewSuccessResponse(cic))
+	}
+
+	cookie := header.Get("Cookie")
+	options, err := ci.FetchOptions(cookie, h.rootPath)
+	if err == nil {
+		ci.Options = options
+	} else {
+		h.log.Error("Could not get optional fields: %s", err)
+	}
 
 	return response.NewOK(response.NewSuccessResponse(cic))
 }
