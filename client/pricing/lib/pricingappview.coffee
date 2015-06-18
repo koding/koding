@@ -182,6 +182,8 @@ module.exports = class PricingAppView extends KDView
 
       @plans.setState @state
 
+      @selectIntervalToggle planInterval
+
       callback()
 
 
