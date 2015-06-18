@@ -23,24 +23,41 @@ var (
 	errDeadlineReachedForChangeInfo = errors.New("deadline for change info")
 )
 
+// RecordManager manages Route53 records
 type RecordManager struct {
-	svc        *route53.Route53
+	// aws services
+	route53 *route53.Route53
+
+	// application wide parameters
 	hostedZone *route53.HostedZone
-	log        logging.Logger
 	region     string
+
+	// general usage
+	log logging.Logger
 }
 
-func New(config *aws.Config, log logging.Logger) (*RecordManager, error) {
+// New creates a RecordManager
+func NewRecordManager(config *aws.Config, log logging.Logger, region string) (*RecordManager, error) {
 	return &RecordManager{
-		svc:    route53.New(config),
-		log:    log.New("recordmanager"),
-		region: "us-east-1", // TODO make configurable
+		route53: route53.New(config),
+		log:     log.New("recordmanager"),
+		region:  region,
 	}, nil
 }
 
+// Init initializes record manager's prerequisites
 func (r *RecordManager) Init() error {
 	r.log.Debug("init started")
 
+	if err := r.ensureHostedZone(); err != nil {
+		return err
+	}
+
+	r.log.Info("RecordManager is ready")
+	return nil
+}
+
+func (r *RecordManager) ensureHostedZone() error {
 	hostedZoneLogger := r.log.New("HostedZone")
 	hostedZoneLogger.Debug("working...")
 
@@ -58,8 +75,8 @@ func (r *RecordManager) Init() error {
 	}
 
 	hostedZoneLogger.Debug("hosted zone is ready")
-	hostedZoneLogger.Info("RecordManager is ready")
-	return err
+
+	return nil
 }
 
 func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
@@ -79,7 +96,7 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 		var nextMarker *string
 
 		log.Debug("fetching hosted zone")
-		listHostedZonesResp, err := r.svc.ListHostedZones(
+		listHostedZonesResp, err := r.route53.ListHostedZones(
 			&route53.ListHostedZonesInput{
 				Marker: nextMarker,
 			}, // we dont have anything to filter
@@ -116,7 +133,7 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error {
 	hostedZoneLogger.Debug("create hosted zone started")
 
-	resp, err := r.svc.CreateHostedZone(&route53.CreateHostedZoneInput{
+	resp, err := r.route53.CreateHostedZone(&route53.CreateHostedZoneInput{
 		CallerReference: aws.String(callerReferance),
 		Name:            aws.String(hostedZoneName),
 		HostedZoneConfig: &route53.HostedZoneConfig{
@@ -149,7 +166,7 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 		default:
 			time.Sleep(time.Second * 3) // poor man's throttling
 			hostedZoneLogger.New("changeInfoID", *changeInfo.ID).Debug("fetching latest status")
-			getChangeResp, err := r.svc.GetChange(&route53.GetChangeInput{
+			getChangeResp, err := r.route53.GetChange(&route53.GetChangeInput{
 				ID: changeInfo.ID,
 			})
 			if err != nil {
@@ -209,7 +226,7 @@ func (r *RecordManager) createRecordSet() error {
 		HostedZoneID: r.hostedZone.ID,
 	}
 
-	_, err := r.svc.ChangeResourceRecordSets(params)
+	_, err := r.route53.ChangeResourceRecordSets(params)
 	if err != nil {
 		return err
 	}
