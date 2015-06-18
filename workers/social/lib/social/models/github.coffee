@@ -66,4 +66,15 @@ module.exports = class Github extends Base
 
   , (client, options, callback) ->
 
-    callback new KodingError 'Not Implemented.'
+    { oauth }  = client.r
+
+    reqOptions =
+      user     : oauth.username
+      repo     : options.repo
+      path     : options.path
+      ref      : options.ref ? 'master'
+
+    initGithubFor client
+
+      .repos.getContent reqOptions, (err, res) ->
+        callback err, res
