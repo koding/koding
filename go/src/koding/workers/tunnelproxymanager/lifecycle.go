@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/cenkalti/backoff"
 	"github.com/koding/logging"
 )
 
@@ -73,7 +74,7 @@ func NewLifeCycle(config *aws.Config, log logging.Logger, name string) (*LifeCyc
 		return nil, err
 	}
 
-	// output parameters
+	// output parameters, they are safe to be in logs
 	l.log.New("queueURL").Debug(*l.queueURL)
 	l.log.New("queueARN").Debug(*l.queueARN)
 	l.log.New("topicARN").Debug(*l.topicARN)
@@ -92,7 +93,19 @@ func (l *LifeCycle) Listen(f func(*string) error) error {
 			close(c)
 			return nil
 		default:
-			if err := l.process(f); err != nil {
+			ticker := backoff.NewTicker(backoff.NewExponentialBackOff())
+
+			var err error
+			for _ = range ticker.C {
+				if err = l.process(f); err != nil {
+					l.log.Error("will retry... err: %s", err.Error())
+					continue
+				}
+
+				ticker.Stop()
+				break
+			}
+			if err != nil {
 				return err
 			}
 		}
@@ -126,6 +139,7 @@ func (l *LifeCycle) process(f func(*string) error) error {
 		return errors.New("recieveResp is nil")
 	}
 
+	// we can operate in sync mode, becase we are already fetching one message
 	for _, message := range recieveResp.Messages {
 		// process message
 		if err := f(message.Body); err != nil {
