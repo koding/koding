@@ -43,7 +43,7 @@ type LifeCycle struct {
 // by one manager, there wont be any race condition on processing that
 // particular message. Manager is idempotent, if any given resource doesnt exist
 // in the given AWS system, it will create or re-use the previous ones
-func NewLifeCycle(config *aws.Config, log logging.Logger, queueName string) (*LifeCycle, error) {
+func NewLifeCycle(config *aws.Config, log logging.Logger, name string) (*LifeCycle, error) {
 	l := &LifeCycle{
 		closed:      false,
 		closeChan:   make(chan chan struct{}),
@@ -53,12 +53,12 @@ func NewLifeCycle(config *aws.Config, log logging.Logger, queueName string) (*Li
 		log:         log.New("lifecycle"),
 	}
 
-	if err := l.EnureSNS("tunnelproxymanager_test"); err != nil {
+	if err := l.EnureSNS(name); err != nil {
 		log.Error("Could not ensure SNS Err: %s", err.Error())
 		return nil, err
 	}
 
-	if err := l.MakeSureSQS(queueName); err != nil {
+	if err := l.MakeSureSQS(name); err != nil {
 		log.Error("Coud not ensure SQS Err: %s", err.Error())
 		return nil, err
 	}
