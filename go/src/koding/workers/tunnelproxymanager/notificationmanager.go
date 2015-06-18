@@ -25,7 +25,10 @@ var (
 // EnureSNS creates or gets required Topic ARN for lifecycle management, that
 // will be attached to autoscaling group, this function is idempotent, multiple
 // calls will result with same response
-func (l *LifeCycle) EnureSNS(topicName string) error {
+func (l *LifeCycle) EnureSNS(name string) error {
+	// generate SNS name
+	topicName := "SNS-" + name
+
 	snsLogger := l.log.New("SNS")
 	snsLogger.Debug("getting SNS...")
 
@@ -89,13 +92,14 @@ func (l *LifeCycle) getSNS(snsLogger logging.Logger, topicName string) error {
 }
 
 func (l *LifeCycle) createSNS(snsLogger logging.Logger, topicName string) error {
-	_, err := l.sns.CreateTopic(&sns.CreateTopicInput{
+	topic, err := l.sns.CreateTopic(&sns.CreateTopicInput{
 		Name: aws.String(topicName), // Required
 	})
 	if err != nil {
 		return err
 	}
 
+	l.topicARN = topic.TopicARN
 	snsLogger.Debug("created %s SNS topic", topicName)
 	return nil
 }
@@ -181,10 +185,11 @@ func newDefaultPolicy(topicARN, queueARN string) *policy {
 // }`
 
 // MakeSureSQS configures a queue for listening to a predefined system
-func (l *LifeCycle) MakeSureSQS(queueName string) error {
+func (l *LifeCycle) MakeSureSQS(name string) error {
 	sqsLogger := l.log.New("SQS")
 	sqsLogger.Debug("working...")
 
+	queueName := "SQS-" + name
 	// create queue is idempotent, if it is already created returns existing one
 	// all Attributes should be same tho
 	createQueueResp, err := l.sqs.CreateQueue(&sqs.CreateQueueInput{
@@ -258,7 +263,7 @@ func (l *LifeCycle) MakeSureSQS(queueName string) error {
 	//   QueueArn: "arn:aws:sqs:us-east-1:616271189586:SQS-ElasticBeanstalkNotifications-Environment-cihangir",
 	//   Policy: "{\"Version\":\"2012-10-17\",\"Id\":\"arn:aws:sqs:us-east-1:616271189586:SQS-ElasticBeanstalkNotifications-Environment-cihangir/SQSDefaultPolicy\",\"Statement\":[{\"Sid\":\"tunnelproxy_dev_1\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"*\"},\"Action\":\"SQS:SendMessage\",\"Resource\":\"arn:aws:sqs:us-east-1:616271189586:SQS-ElasticBeanstalkNotifications-Environment-cihangir\",\"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:sns:us-east-1:616271189586:tunnelproxymanager_test\"}}}]}"
 	// }
-	if string(b) != *resp.Attributes["Policy"] {
+	if !isValid(resp.Attributes, string(b)) {
 		sqsLogger.Debug("Queue Policy is not correct, fixing it...")
 		_, err := l.sqs.SetQueueAttributes(&sqs.SetQueueAttributesInput{
 			Attributes: map[string]*string{ // Required
@@ -274,6 +279,22 @@ func (l *LifeCycle) MakeSureSQS(queueName string) error {
 
 	sqsLogger.Debug("Queue is ready")
 	return nil
+}
+
+func isValid(attr map[string]*string, b string) bool {
+	if attr == nil {
+		return false
+	}
+
+	_, ok := attr["Policy"]
+	if !ok {
+		return false
+	}
+
+	if b != *attr["Policy"] {
+		return false
+	}
+	return true
 }
 
 func (l *LifeCycle) MakeSureSubscriptions() error {
