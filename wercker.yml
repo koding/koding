@@ -141,7 +141,7 @@ build:
         code: |
           go test ./go/src/koding/db/mongodb/modelhelper/*go
     - script:
-        name: test vmwatcehr
+        name: test vmwatcher
         code: |
           go test koding/vmwatcher
     # - script:
