@@ -74,7 +74,9 @@ getActivityContent = (activityContent)->
   commentsList = prepareComments activityContent
   repliesCount = activityContent.replies?.length
   count        = Math.min (commentCount - repliesCount), 10
-  repliesText  = "There #{if count is 1 then 'is' else 'are'} #{count} number of comments above, login to see"
+  repliesText  = if count is 1
+  then "There is one comment above, please login to see."
+  else "There are #{count} comments above, please login to see."
   hasComments  = if repliesCount > 0
   then 'has-comments'
   else 'no-comments'
