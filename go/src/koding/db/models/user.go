@@ -31,6 +31,7 @@ type User struct {
 
 	EmailFrequency *EmailFrequency `bson:"emailFrequency" json:"emailFrequency"`
 	Inactive       *UserInactive   `bson:"inactive,omitempty" json:"inactive"`
+	ForeignAuth    ForeignAuth     `bson:"foreignAuth" json:"-"`
 }
 
 type EmailFrequency struct {
@@ -55,4 +56,15 @@ type UserInactive struct {
 	AssignedAt time.Time            `bson:"assignedAt" json:"assignedAt"`
 	ModifiedAt time.Time            `bson:"modifiedAt" json:"modifiedAt"`
 	Warnings   map[string]time.Time `bson:"warnings,omitempty" json:"warnings"`
+}
+
+type ForeignAuth struct {
+	Github Github `bson:"github" json:"-"`
+}
+
+type Github struct {
+	Token    string `bson:"token" json:"-"`
+	Email    string
+	Username string
+	Scope    string
 }
