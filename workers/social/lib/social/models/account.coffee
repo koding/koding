@@ -1427,7 +1427,8 @@ module.exports = class JAccount extends jraphical.Module
       if session.otaToken?
         callback null, session.otaToken
       else
-        otaToken = createId()
+        otaToken = createId().split '-'
+        otaToken = "#{otaToken[0]}-#{otaToken[3]}"
         session.update $set: {otaToken}, (err)->
           if err then errorCallback()
           else callback null, otaToken

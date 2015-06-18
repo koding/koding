@@ -51,7 +51,7 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	}
 
 	switch status {
-	case paymentstatus.NewSubscription:
+	case paymentstatus.NewSub, paymentstatus.ExpiredSub:
 		err = handleNewSubscription(token, accId, plan)
 	case paymentstatus.ExistingUserHasNoSub:
 		err = handleExistingUser(token, accId, plan)

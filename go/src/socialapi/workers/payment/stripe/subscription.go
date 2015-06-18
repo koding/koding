@@ -77,9 +77,7 @@ func CancelSubscription(customer *paymentmodels.Customer, subscription *paymentm
 		Log.Error(err.Error())
 	}
 
-	err = subscription.UpdateState(paymentmodels.SubscriptionStateCanceled)
-
-	return err
+	return subscription.UpdateState(paymentmodels.SubscriptionStateCanceled)
 }
 
 func findCustomerSubscriptions(customer *paymentmodels.Customer, query *bongo.Query) ([]paymentmodels.Subscription, error) {
@@ -108,9 +106,7 @@ func CancelSubscriptionAndRemoveCC(customer *paymentmodels.Customer, currentSubs
 		return err
 	}
 
-	err = RemoveCreditCard(customer)
-
-	return err
+	return RemoveCreditCard(customer)
 }
 
 func handleUpgrade(currentSubscription *paymentmodels.Subscription, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
@@ -138,9 +134,7 @@ func handleUpgrade(currentSubscription *paymentmodels.Subscription, customer *pa
 		}
 	}
 
-	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
-
-	return err
+	return currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
 }
 
 // On downgrade, unlike upgrade, wait till end of the billing cycle to move to the new plan.
@@ -156,7 +150,5 @@ func handleDowngrade(currentSubscription *paymentmodels.Subscription, customer *
 		return handleStripeError(err)
 	}
 
-	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
-
-	return err
+	return currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
 }

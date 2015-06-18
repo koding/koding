@@ -79,16 +79,12 @@ func (s *Subscription) UpdatePlan(planId int64, amountInCents uint64) error {
 	s.PlanId = planId
 	s.AmountInCents = amountInCents
 
-	err := bongo.B.Update(s)
-
-	return err
+	return bongo.B.Update(s)
 }
 
 func (s *Subscription) UpdateState(state string) error {
 	s.State = state
-	err := bongo.B.Update(s)
-
-	return err
+	return bongo.B.Update(s)
 }
 
 func (s *Subscription) Cancel() error {
@@ -107,9 +103,7 @@ func (s *Subscription) Expire() error {
 
 func (s *Subscription) UpdateTimeForDowngrade(t time.Time) error {
 	s.CanceledAt = t
-	err := bongo.B.Update(s)
-
-	return err
+	return bongo.B.Update(s)
 }
 
 func (s *Subscription) ByProviderId(providerId, provider string) error {
@@ -117,9 +111,8 @@ func (s *Subscription) ByProviderId(providerId, provider string) error {
 		"provider_subscription_id": providerId,
 		"provider":                 provider,
 	}
-	err := s.Find(selector)
 
-	return err
+	return s.Find(selector)
 }
 
 func (s *Subscription) ByCustomerIdAndState(customerId int64, state string) error {
@@ -165,9 +158,7 @@ func (s *Subscription) UpdateToExpireTime(t time.Time) error {
 	s.ExpiredAt = t
 	s.CanceledAt = t
 
-	err := bongo.B.Update(s)
-
-	return err
+	return bongo.B.Update(s)
 }
 
 func (s *Subscription) UpdateCurrentPeriods(start, end time.Time) error {
