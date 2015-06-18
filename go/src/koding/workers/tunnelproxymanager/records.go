@@ -12,7 +12,7 @@ import (
 
 const (
 	// callerReferance is used as unique id for idempotency on aws side
-	callerReferance         = "tunnelproxy_dev_1"
+	callerReferance         = "tunnelproxy_dev_2"
 	hostedZoneName          = "tunnelproxy.koding.com"
 	hostedZoneComment       = "Hosted zone for tunnel proxies"
 	validStateForHostedZone = "INSYNC" // taken from aws response
@@ -53,7 +53,7 @@ func (r *RecordManager) Init() error {
 		return err
 	}
 
-	r.log.Info("RecordManager is ready")
+	r.log.Info("init is done")
 	return nil
 }
 
@@ -84,8 +84,8 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 	// try to get our hosted zone
 	for {
 		// just be paranoid about remove api calls, dont harden too much
-		if iteration == maxIteration {
-			return errMaxIterationReached
+		if iteration == 100 {
+			return errors.New("iteration terminated")
 		}
 
 		log := hostedZoneLogger.New("iteration", iteration)
@@ -133,6 +133,8 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error {
 	hostedZoneLogger.Debug("create hosted zone started")
 
+	// CreateHostedZone is not idempotent, multiple calls to this function
+	// result in duplicate records, fyi
 	resp, err := r.route53.CreateHostedZone(&route53.CreateHostedZoneInput{
 		CallerReference: aws.String(callerReferance),
 		Name:            aws.String(hostedZoneName),
@@ -140,7 +142,6 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 			Comment: aws.String(hostedZoneComment),
 		},
 	})
-
 	if err != nil {
 		return err
 	}
@@ -150,7 +151,7 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 	}
 
 	changeInfo := resp.ChangeInfo
-	deadline := time.After(time.Minute * 4)
+	deadline := time.After(time.Minute * 5) // at most i've seen ~3min
 
 	// make sure it propagated
 	for {
