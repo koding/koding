@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"encoding/json"
 	"errors"
 	"socialapi/models"
 	"socialapi/request"
@@ -15,6 +16,7 @@ var (
 	ErrNameNotUnique       = errors.New("title is not unique")
 	ErrNameNotSet          = errors.New("name is not set")
 	ErrIntegrationNotFound = errors.New("integration is not found")
+	ErrSettingNotFound     = errors.New("setting is not found")
 )
 
 type Integration struct {
@@ -146,4 +148,106 @@ func (i *Integration) FetchByIds(ids []int64) ([]Integration, error) {
 	}
 
 	return integrations, nil
+}
+
+///////////////   Section   //////////////////
+
+// Section is used for defining integration specific fields
+type Section struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// Endpoint used for when the data needs to be fetched from external resource
+	Endpoint string      `json:"endpoint"`
+	Values   interface{} `json:"values"`
+}
+
+func NewSection(name, description string) Section {
+	return Section{
+		Name:        name,
+		Description: description,
+	}
+}
+
+type Sections []Section
+
+func NewSections(s ...Section) Sections {
+	sections := Sections{}
+	sections = append(sections, s...)
+
+	return sections
+}
+
+func (i *Integration) AddSections(s Sections) error {
+	return i.AddSettings("sections", s)
+}
+
+func (i *Integration) AddSettings(name string, value interface{}) error {
+	if i.Settings == nil {
+		i.Settings = gorm.Hstore{}
+	}
+
+	settings, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	settingsStr := string(settings)
+
+	i.Settings[name] = &settingsStr
+
+	return nil
+}
+
+func (i *Integration) GetSections() (Sections, error) {
+	sections := Sections{}
+	err := i.GetSettings("sections", &sections)
+
+	return sections, err
+}
+
+func (i *Integration) GetSettings(name string, value interface{}) error {
+	if i.Settings == nil {
+		return ErrSettingNotFound
+	}
+
+	v, ok := i.Settings[name]
+	if !ok {
+		return ErrSettingNotFound
+	}
+
+	return json.Unmarshal([]byte(*v), &value)
+}
+
+////////////////   Event   /////////////////
+
+type Event struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+func NewEvent(name, description string) Event {
+	return Event{
+		Name:        name,
+		Description: description,
+	}
+}
+
+type Events []Event
+
+func NewEvents(e ...Event) Events {
+	events := Events{}
+	events = append(events, e...)
+
+	return events
+}
+
+func (i *Integration) AddEvents(e Events) error {
+	return i.AddSettings("events", e)
+}
+
+func (i *Integration) GetEvents() (Events, error) {
+	events := Events{}
+	err := i.GetSettings("events", &events)
+
+	return events, err
 }

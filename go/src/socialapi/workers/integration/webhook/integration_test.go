@@ -85,3 +85,35 @@ func TestIntegrationList(t *testing.T) {
 		})
 	})
 }
+
+func TestIntegrationSettings(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err)
+	}
+	defer r.Close()
+
+	Convey("while applying setting to an integration", t, func() {
+		Convey("it should able to store sections", func() {
+			i := NewIntegration()
+			i.Name = models.RandomGroupName()
+			i.Title = i.Name
+			s1 := NewSection("repositories", "Very nice repositories")
+			s2 := NewSection("behaviors", "Some behaviors are strange")
+			sections := NewSections(s1, s2)
+			i.AddSections(sections)
+			err := i.Create()
+			So(err, ShouldBeNil)
+
+			expectedIntegration := NewIntegration()
+			err = expectedIntegration.ByName(i.Name)
+			So(err, ShouldBeNil)
+			expectedSections := &Sections{}
+			err = expectedIntegration.GetSettings("sections", expectedSections)
+			So(err, ShouldBeNil)
+			sectionArr := []Section(*expectedSections)
+			So(len(sectionArr), ShouldEqual, 2)
+			So(sectionArr[0].Name, ShouldEqual, "repositories")
+		})
+	})
+}
