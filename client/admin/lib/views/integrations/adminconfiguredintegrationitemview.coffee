@@ -9,7 +9,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
   createButton: (data) ->
 
     @button = new KDButtonView
-      cssClass : 'outline compact green configure'
+      cssClass : 'solid compact outline configure'
       title    : "#{data.channelIntegrations.length} Configured"
       callback : ->
 
