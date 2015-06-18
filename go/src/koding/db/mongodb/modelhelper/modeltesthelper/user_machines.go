@@ -15,7 +15,7 @@ func CreateUserWithMachine(username string) (*models.User, error) {
 		return nil, err
 	}
 
-	machine, err := CreateMachineForUser(user.ObjectId)
+	machine, err := CreateMachineForUser(user.ObjectId, username)
 	if err != nil {
 		return nil, err
 	}
@@ -35,9 +35,9 @@ func DeleteMachine(id bson.ObjectId) error {
 	return modelhelper.Mongo.Run(modelhelper.MachinesColl, deleteQuery)
 }
 
-func CreateMachineForUser(userId bson.ObjectId) (*models.Machine, error) {
+func CreateMachineForUser(userId bson.ObjectId, username string) (*models.Machine, error) {
 	machineUser := models.MachineUser{Id: userId, Owner: true}
-	return createMachine(machineUser)
+	return createMachine(machineUser, username)
 }
 
 func ShareMachineWithUser(machineId, userId bson.ObjectId, p bool) error {
@@ -55,11 +55,13 @@ func ShareMachineWithUser(machineId, userId bson.ObjectId, p bool) error {
 	return modelhelper.Mongo.Run(modelhelper.MachinesColl, query)
 }
 
-func createMachine(machineUser models.MachineUser) (*models.Machine, error) {
+func createMachine(machineUser models.MachineUser, username string) (*models.Machine, error) {
 	machine := &models.Machine{
-		ObjectId: bson.NewObjectId(),
-		Users:    []models.MachineUser{machineUser},
-		Uid:      randStr(10),
+		ObjectId:   bson.NewObjectId(),
+		Users:      []models.MachineUser{machineUser},
+		Uid:        randStr(10),
+		Provider:   "koding",
+		Credential: username,
 	}
 
 	insertQuery := func(c *mgo.Collection) error {
