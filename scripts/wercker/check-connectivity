@@ -42,7 +42,8 @@ for INSTANCE in $INSTANCES; do
   echo
 done
 
-INSTANCE_COUNT=$(wc -l $INSTANCE_DATA_FILE | awk '{print $1}')
+INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')
+INSTANCE_COUNT=$(echo $INSTANCE_IDS | wc -l)
 
 if [ $INSTANCE_COUNT -eq 0 ]; then
   exit 1
