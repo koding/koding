@@ -49,4 +49,6 @@ if [ $INSTANCE_COUNT -eq 0 ]; then
   exit 1
 fi
 
+echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/protect
+
 exit 0
