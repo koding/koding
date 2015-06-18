@@ -266,7 +266,7 @@ module.exports = class ActivityPane extends MessagePane
 
     @searchResults.clear()  unless options.dontClear
 
-    # algolia doesn't need to dontClear paramete
+    # algolia doesn't need dontClear parameter
     delete options.dontClear  if options.dontClear
 
     kd.singletons.search
