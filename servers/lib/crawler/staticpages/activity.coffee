@@ -60,9 +60,9 @@ getActivityContent = (activityContent)->
   location = activityContent?.payload?.location
   if location
     location = "from #{location}"
-  else 
+  else
     location = ""
- 
+
   avatarImage   = createAvatarImage hash, avatar
   createdAt     = createCreationDate createdAt, activityContent.slug
   author        = createAuthor fullName, nickname
@@ -70,9 +70,12 @@ getActivityContent = (activityContent)->
   displayCommentCount = if commentCount then commentCount else ""
 
   {formatBody} = require './bodyrenderer'
-  body = formatBody body
+  body         = formatBody body
   commentsList = prepareComments activityContent
-  hasComments  = if activityContent.replies?.length > 0
+  repliesCount = activityContent.replies?.length
+  count        = Math.min (commentCount - repliesCount), 10
+  repliesText  = "There #{if count is 1 then 'is' else 'are'} #{count} number of comments above, login to see"
+  hasComments  = if repliesCount > 0
   then 'has-comments'
   else 'no-comments'
 
@@ -105,6 +108,9 @@ getActivityContent = (activityContent)->
         </div>
       </div>
       <div class="kdview comment-container static #{hasComments}">
+        <a class="custom-link-view list-previous-link" href="/Register">
+          #{repliesText}
+        </a>
         <div class="kdview listview-wrapper">
           <div class="kdview kdscrollview">
             <div class="kdview kdlistview kdlistview-comments">
