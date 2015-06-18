@@ -18,10 +18,15 @@ type Storage interface {
 	Pop(string, string) (string, error)
 	Exists(string, string, string) (bool, error)
 
-	//zset
+	//zset for per user score
 	GetScore(string, string) (float64, error)
 	SaveScore(string, string, float64) error
 	GetFromScore(string, float64) ([]string, error)
+
+	//zset for per user limit
+	SaveUserLimit(string, float64) error
+	GetUserLimit(string) (float64, error)
+	RemoveUserLimit(string) error
 }
 
 type RedisStorage struct {
@@ -111,9 +116,26 @@ func (r *RedisStorage) GetFromScore(key string, from float64) ([]string, error) 
 	return members, nil
 }
 
+func (r *RedisStorage) SaveUserLimit(member string, score float64) error {
+	return r.Client.SortedSetAddSingle(r.userLimitPrefix(), member, score)
+}
+
+func (r *RedisStorage) GetUserLimit(member string) (float64, error) {
+	return r.Client.SortedSetScore(r.userLimitPrefix(), member)
+}
+
+func (r *RedisStorage) RemoveUserLimit(member string) error {
+	_, err := r.Client.SortedSetRem(r.userLimitPrefix(), member)
+	return err
+}
+
 //----------------------------------------------------------
 // Prefix helpers
 //----------------------------------------------------------
+
+func (r *RedisStorage) userLimitPrefix() string {
+	return r.prefix("users", "limit")
+}
 
 func (r *RedisStorage) usersPrefix(key string) string {
 	return r.weekPrefix(key + ":users")

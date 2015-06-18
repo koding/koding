@@ -1,8 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"labix.org/v2/mgo"
@@ -135,4 +139,16 @@ func removeUserMachine(username string) {
 	}
 
 	modelhelper.Mongo.Run(modelhelper.MachinesColl, query)
+}
+
+func buildPaymentServer(planTitle string) (string, *httptest.Server) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, fmt.Sprintf(`{"planTitle":"%s"}`, planTitle))
+	})
+
+	server := httptest.NewServer(mux)
+	url, _ := url.Parse(server.URL)
+
+	return url.String(), server
 }
