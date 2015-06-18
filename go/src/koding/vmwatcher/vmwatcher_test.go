@@ -134,5 +134,5 @@ func removeUserMachine(username string) {
 		return c.Remove(bson.M{"credential": username})
 	}
 
-	modelhelper.Mongo.Run(modelhelper.MachineColl, query)
+	modelhelper.Mongo.Run(modelhelper.MachinesColl, query)
 }
