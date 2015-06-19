@@ -421,8 +421,12 @@ sidebarTextShadow()
       right           36px
       abs()
 
-    .listview-wrapper
-      margin-bottom   8px
+    .sidebar-machine-box
+      &:last-child
+        .listview-wrapper
+          margin-bottom 0px
+      .listview-wrapper
+        margin-bottom   8px
 
     .kdlistview
       overflow        visible
