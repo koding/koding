@@ -1,11 +1,8 @@
 kd     = require 'kd'
-JView  = require 'app/jview'
 whoami = require 'app/util/whoami'
 
 
 module.exports = class AccountTwoFactorAuth extends kd.View
-
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -22,9 +19,9 @@ module.exports = class AccountTwoFactorAuth extends kd.View
     console.warn err
 
     new kd.NotificationView
-      type      : 'mini'
-      title     : err.message
-      cssClass  : 'error'
+      type     : 'mini'
+      title    : err.message
+      cssClass : 'error'
 
     return err
 
@@ -35,22 +32,24 @@ module.exports = class AccountTwoFactorAuth extends kd.View
 
     @addSubView loader = @getLoaderView()
 
-    me = whoami()
-    me.generate2FactorAuthKey (err, authInfo) =>
+    kd.singletons.mainController.ready =>
+      me = whoami()
+      me.generate2FactorAuthKey (err, authInfo) =>
 
-      loader.hide()
+        loader.hide()
 
-      if err
-        if err.name is 'ALREADY_INUSE'
-          @addSubView @getEnabledView()
-          return
-        return @showError err
+        if err
+          if err.name is 'ALREADY_INUSE'
+            @addSubView @getEnabledView()
+            return
+          return @showError err
 
+        {key, qrcode} = authInfo
+        @_activeKey   = key
 
-      {key, qrcode} = authInfo
-      @addSubView @getInstructionsView key
-      @addSubView @getQrCodeView qrcode
-      @addSubView @getFormView key
+        @addSubView @getInstructionsView()
+        @addSubView @getQrCodeView qrcode
+        @addSubView @getFormView()
 
 
   getEnabledView: ->
