@@ -18,6 +18,8 @@ import (
 	"github.com/koding/multiconfig"
 )
 
+const maxIterationCount = 100
+
 func main() {
 	conf := &Config{}
 

@@ -39,7 +39,7 @@ func (l *LifeCycle) getSNS(snsLogger logging.Logger, topicName string) error {
 
 	for {
 
-		if iteration == 100 {
+		if iteration == maxIterationCount {
 			return errors.New("iteration terminated")
 		}
 		log := snsLogger.New("iteration", iteration)

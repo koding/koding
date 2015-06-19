@@ -84,7 +84,7 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 	// try to get our hosted zone
 	for {
 		// just be paranoid about remove api calls, dont harden too much
-		if iteration == 100 {
+		if iteration == maxIterationCount {
 			return errors.New("iteration terminated")
 		}
 
