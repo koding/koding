@@ -11,7 +11,8 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     { storeNewTeamData, createTeam, joinTeam, getTeamData } = KD.utils
     { join } = getTeamData().signup
     storeNewTeamData 'username', formData
-    if join then joinTeam() else createTeam()
+    if join then joinTeam() else do ->
+      createTeam success : -> KD.singletons.router.handleRoute '/Team/Stacks'
 
   constructor:(options = {}, data)->
 
