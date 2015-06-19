@@ -798,3 +798,51 @@ app.settings.styl
     text-align              left
     padding-top             0
     top                     -4px
+
+
+.AppModal--account
+
+  .tfauth
+
+    font-size               14px
+
+    a
+      color                 #01A74E
+      noTextDeco()
+
+      &.learn-link
+        text-decoration     underline !important
+
+    .intro
+      margin-bottom         20px
+
+      cite
+        r-sprite            'account', 'twofactor-badge'
+        fr()
+
+    .instructions
+
+      counter-reset         instructions
+
+      li
+        list-style          none
+        margin-top          10px
+        padding-left        55px
+
+      li:before
+        content             counter(instructions)
+        counter-increment   instructions
+
+        size                24px, 24px
+        line-height         24px
+
+        border-radius       24px
+
+        display             inline-block
+        background-color    #01A74E
+        color               white
+
+        text-align          center
+        font-size           11px
+        left                20px
+        abs()
