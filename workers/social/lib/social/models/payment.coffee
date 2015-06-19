@@ -179,10 +179,12 @@ module.exports = class Payment extends Base
 
   fetchPlan = (client, planTitle, callback)->
 
-    plans = require "./computeproviders/plans"
-    plan  = plans[planTitle]
+    plans   = require "./computeproviders/plans"
 
-    return callback {"message" : "plan not found"}  unless plan
+    return callback {"message" : "plan not found"}  unless plans[planTitle]
+
+    {clone} = require 'underscore'
+    plan    = clone plans[planTitle]
 
     fetchReferrerSpace client, (err, space)->
       return callback err  if err
