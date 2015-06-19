@@ -9,7 +9,7 @@ module.exports = class ComputeProvider extends Base
 
   {
     PLANS, PROVIDERS, fetchStackTemplate, revive,
-    reviveClient, reviveCredential, fetchUsage, checkTemplateUsage
+    fetchUsage, checkTemplateUsage
   } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
