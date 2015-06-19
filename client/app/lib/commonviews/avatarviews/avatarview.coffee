@@ -53,6 +53,13 @@ module.exports = class AvatarView extends LinkView
       @gravatar.setCss 'opacity', '1'
       @setCss 'background-image', 'none'
 
+    @cite = new KDCustomHTMLView
+      tagName     : 'cite'
+      tooltip     :
+        title     : 'Koding Staff'
+        placement : 'right'
+        direction : 'center'
+
     super options, data
 
     if @detailedAvatar?
@@ -118,7 +125,7 @@ module.exports = class AvatarView extends LinkView
       else (value for own key, value of account.globalFlags).join(" ")
     else ""
 
-    @$('cite').addClass flags
+    @cite.setClass flags
 
     kd.getSingleton("groupsController").ready =>
       {slug} = kd.getSingleton("groupsController").getCurrentGroup()
@@ -168,7 +175,7 @@ module.exports = class AvatarView extends LinkView
   pistachio: ->
     """
     {{> @gravatar}}
-    <cite></cite>
+    {{> @cite}}
     """
 
 

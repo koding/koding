@@ -93,11 +93,7 @@ func checkCustomerIsSaved(accId string) bool {
 
 func checkCustomerExistsInStripe(id string) bool {
 	customer, err := stripeCustomer.Get(id, nil)
-	if err != nil {
-		return false
-	}
-
-	if customer.Id != id {
+	if err != nil || customer.Id != id {
 		return false
 	}
 
