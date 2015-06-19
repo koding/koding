@@ -18,7 +18,4 @@ module.exports = class AdminConfiguredIntegrationsListView extends AdminIntegrat
 
       return @handleNoItem err  if err
 
-      # temp code
-      data = data.integrations
-
       @listItems data
