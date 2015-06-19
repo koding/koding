@@ -58,12 +58,50 @@ module.exports = class AccountTwoFactorAuth extends kd.View
   getEnabledView: ->
 
     @addSubView new kd.CustomHTMLView
-      partial: 'You are using 2-Factor auth now'
+      cssClass  : 'enabled-intro'
+      partial   : "
+        <div>
+          2-Factor Authentication is <green>active</green> for your account.
+          <cite></cite>
+        </div>
+        #{@getLearnLink()}
+      "
 
-    @addSubView password = new kd.InputView
-      name          : 'password'
-      type          : 'password'
-      placeholder   : 'Current Password'
+    @addSubView inputForm  = new kd.FormViewWithFields
+      cssClass             : 'AppModal-form'
+      fields               :
+        password           :
+          cssClass         : 'Formline--half'
+          placeholder      : 'Enter your Koding password'
+          name             : 'password'
+          type             : 'password'
+          label            : 'Password'
+        button             :
+          label            : '&nbsp;'
+          cssClass         : 'Formline--half'
+          itemClass        : kd.ButtonView
+          title            : 'Disable 2-Factor Auth'
+          style            : 'solid medium disable-tf'
+          callback         : =>
+
+            { password }   = inputForm.inputs
+
+            options        =
+              password     : password.getValue()
+              disable      : yes
+
+            me = whoami()
+            me.setup2FactorAuth options, (err) =>
+
+              return  if @showError err
+
+              new kd.NotificationView
+                title      : 'Successfully Disabled!'
+                type       : 'mini'
+
+              @buildInitialView()
+
+
   getFormView: ->
 
     @addSubView inputForm  = new kd.FormViewWithFields
@@ -84,15 +122,10 @@ module.exports = class AccountTwoFactorAuth extends kd.View
     { password, tfcode } = inputForm.inputs
 
     @addSubView new kd.ButtonView
-      title         : 'Disable 2-Factor Auth'
-      callback      : =>
       title            : 'Enable 2-Factor Auth'
       style            : 'solid green small enable-tf'
       callback         : =>
 
-        options     =
-          password  : password.getValue()
-          disable   : yes
         options        =
           key          : @_activeKey
           password     : password.getValue()
@@ -104,7 +137,6 @@ module.exports = class AccountTwoFactorAuth extends kd.View
           return  if @showError err
 
           new kd.NotificationView
-            title : 'Successfully Disabled!'
             title : 'Successfully Enabled!'
             type  : 'mini'
 

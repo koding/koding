@@ -824,6 +824,23 @@ app.settings.styl
         r-sprite            'account', 'twofactor-badge'
         fr()
 
+    .enabled-intro > div
+      text-align            center
+      background            white
+      border                1px solid #ccc
+      border-radius         3px
+      margin-bottom         20px
+      padding               30px
+
+      cite
+        text-align          center
+        r-sprite            'account', 'twofactor-badge'
+        display             block
+        margin              20px auto 0
+
+      green
+        color               #01A74E
+
     .instructions
 
       counter-reset         instructions
@@ -883,3 +900,11 @@ app.settings.styl
       &.enable-tf
         fr()
 
+      &.disable-tf
+        height              38px
+        width               250px
+        background-color    #FE7C52
+
+        .button-title
+          line-height       38px  !important
+          color             white !important
