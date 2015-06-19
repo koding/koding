@@ -112,7 +112,7 @@ class TeamHandlerHelper
     return data
 
 
-  generateCreateTeamRequestBody = ->
+  @generateCreateTeamRequestBody = (opts = {}) ->
 
     companyName = "testcompany#{generateRandomString(10)}"
     username    = generateRandomUsername()
@@ -124,24 +124,27 @@ class TeamHandlerHelper
       slug           :  companyName
       allow          :  'true'
       domains        :  'koding.com, kd.io'
-      invitees       :  'cihangir@koding.com,cihangir@koding.com,cihangir@savas.io,'
+      invitees       :  'test@koding.com,test@test.com,'
       newsletter     :  'true'
       username       :  username
       password       :  'testpass'
       agree          :  'on'
       passwordConfirm:  'testpass'
-      redirect       :  "#{@getUrl}?username=#{username}"
+      redirect       :  "#{generateUrl()}?username=#{username}"
+
+
+    deepObjectExtend defaultBodyObject, opts
 
     return defaultBodyObject
 
 
   # overwrites given options in the default params
-  @generateCreateRequestParams = (opts = {}) ->
+  @generateCreateTeamRequestParams = (opts = {}) ->
 
     url  = generateUrl
       route : '-/teams/create'
 
-    body = generateCreateTeamRequestBody()
+    body = TeamHandlerHelper.generateCreateTeamRequestBody()
 
     params               = { url, body }
     defaultRequestParams = generateDefaultParams params
@@ -154,7 +157,7 @@ class TeamHandlerHelper
 
 class RegisterHandlerHelper
 
-  generateRequestBody = ->
+  @generateRequestBody = (opts = {}) ->
 
     defaultBodyObject =
       email             : generateRandomEmail()
@@ -163,6 +166,8 @@ class RegisterHandlerHelper
       username          : generateRandomUsername()
       passwordConfirm   : 'testpass'
       agree             : 'on'
+
+    deepObjectExtend defaultBodyObject, opts
 
     return defaultBodyObject
 
@@ -173,7 +178,7 @@ class RegisterHandlerHelper
     url  = generateUrl
       route : 'Register'
 
-    body = generateRequestBody()
+    body = RegisterHandlerHelper.generateRequestBody()
 
     params                = { url, body }
     defaultRequestParams  = generateDefaultParams params
