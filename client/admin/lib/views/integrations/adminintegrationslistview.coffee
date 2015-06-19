@@ -103,7 +103,10 @@ module.exports = class AdminIntegrationsListView extends KDView
 
   showIntegrationDetails: (data) ->
 
-    @showView new AdminIntegrationDetailsView {}, data
+    detailsView = new AdminIntegrationDetailsView {}, data
+    detailsView.once 'NewIntegrationSaved', => @emit 'ShowConfiguredTab'
+
+    @showView detailsView
 
 
   handleNoItem: (err) ->
