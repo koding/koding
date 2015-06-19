@@ -55,6 +55,9 @@ module.exports = class AdminIntegrationsListView extends KDView
 
   listItems: (items) ->
 
+    if not items or items.length is 0
+      return @handleNoItem()
+
     for item in items
       item.integrationType = @integrationType
       listItem = @listController.addItem item
@@ -95,6 +98,6 @@ module.exports = class AdminIntegrationsListView extends KDView
 
   handleNoItem: (err) ->
 
-    kd.warn err
+    kd.warn err  if err
     @listController.lazyLoader.hide()
     @listController.noItemView.show()
