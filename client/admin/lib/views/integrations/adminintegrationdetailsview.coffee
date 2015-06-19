@@ -61,6 +61,11 @@ module.exports = class AdminIntegrationDetailsView extends JView
           type          : 'submit'
           cssClass      : 'solid green medium save'
           loader        : yes
+        Cancel          :
+          title         : 'Cancel'
+          cssClass      : 'solid green medium red'
+          callback      : => @emit 'IntegrationCancelled'
+
       callback          : (formData) =>
         data = @getData()
         { name, label, channels } = formData
