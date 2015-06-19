@@ -32,7 +32,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     items = ({ title: channel.name, value: channel.id } for channel in data.channels)
 
     @settingsForm       = new KDFormViewWithFields
-      cssClass          : 'AppModal-form'
+      cssClass          : 'AppModal-form details-form'
       fields            :
         channels        :
           type          : 'select'
@@ -59,7 +59,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         Save            :
           title         : 'Save Integration'
           type          : 'submit'
-          cssClass      : 'solid green medium'
+          cssClass      : 'solid green medium save'
           loader        : yes
       callback          : (formData) =>
         data = @getData()
