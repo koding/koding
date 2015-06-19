@@ -74,8 +74,11 @@ module.exports = class AdminIntegrationDetailsView extends JView
         if name isnt data.title
           options.settings = customName : name
 
-        kd.singletons.socialapi.integrations.update options, (err) ->
-          return console.error err  if err
+        kd.singletons.socialapi.integrations.update options, (err) =>
+          return kd.warn err  if err
+
+          @settingsForm.buttons.Save.hideLoader()
+          @emit 'NewIntegrationSaved'
 
 
   pistachio: ->
