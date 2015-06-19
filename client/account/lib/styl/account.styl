@@ -846,3 +846,28 @@ app.settings.styl
         font-size           11px
         left                20px
         abs()
+
+    .qrcode-view
+      height                186px
+      text-align            center
+      background            white
+      border                1px solid #ccc
+      border-radius         3px
+      margin-top            20px
+      padding               10px
+      borderBox()
+
+      img
+        margin-left         17px
+
+      button
+        background          none
+        border              none
+        top                 calc(100% \- 30px)
+        right               10px
+        opacity             .5
+        fr()
+
+        .icon
+          r-sprite          app, '16-reload'
+
