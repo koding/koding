@@ -24,6 +24,9 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
       title      : "Sign in to #{slug}.koding.com"
       style      : 'TeamsModal-button TeamsModal-button--green'
       callback   : ->
+        KD.utils.clearTeamData()
+        location.href = "https://#{slug}.koding.com"
+
   pistachio: ->
 
     """
