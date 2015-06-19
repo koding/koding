@@ -64,7 +64,7 @@ func DeleteVMs(user *models.User, _ string) error {
 
 	for _, machine := range machines {
 		// avoid spamming kloud
-		time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
+		time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
 
 		_, err := KiteClient.Tell("destroy", &requestArgs{
 			MachineID: machine.ObjectId.Hex(),
