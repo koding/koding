@@ -32,10 +32,9 @@ module.exports = class PricingAppController extends KDViewController
       KodingAppsController.appendHeadElement 'script', paypalOptions, =>
         @emit 'ready'
 
-    appManager = kd.singleton "appManager"
-    appManager.on 'AppIsBeingShown', (app) =>
-      return  unless app instanceof PricingAppController
-      @getView().loadPlan()
+    kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
+      @getView().loadPlan()  if app instanceof PricingAppController
+
 
   initAppStorage: ->
 
