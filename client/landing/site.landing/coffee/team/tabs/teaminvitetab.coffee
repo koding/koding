@@ -21,7 +21,7 @@ module.exports = class TeamInviteTab extends KDTabPaneView
     @form = new TeamInviteTabForm
       callback: (formData) ->
         KD.utils.storeNewTeamData 'invitees', formData
-        KD.singletons.router.handleRoute '/Team/username'
+        KD.singletons.router.handleRoute '/Team/Username'
 
   pistachio: ->
 
