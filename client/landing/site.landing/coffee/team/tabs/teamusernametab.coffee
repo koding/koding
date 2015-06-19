@@ -19,9 +19,8 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
     super options, data
 
-    teamData                = KD.utils.getTeamData()
-    { alreadyMember, join } = teamData.signup
-    { mainController }      = KD.singletons
+    teamData          = KD.utils.getTeamData()
+    { alreadyMember } = teamData.signup
 
     @header = new MainHeaderView
       cssClass : 'team'
