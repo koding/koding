@@ -13,8 +13,9 @@ module.exports = class AdminIntegrationsListView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass        = 'all-integrations'
-    options.listItemClass or= AdminIntegrationItemView
+    options.cssClass            = 'all-integrations'
+    options.listItemClass     or= AdminIntegrationItemView
+    options.fetcherMethodName or= 'list'
 
     super options, data
 
@@ -46,7 +47,9 @@ module.exports = class AdminIntegrationsListView extends KDView
 
   fetchIntegrations: ->
 
-    kd.singletons.socialapi.integrations.list (err, data) =>
+    methodName = @getOption 'fetcherMethodName'
+
+    kd.singletons.socialapi.integrations[methodName] (err, data) =>
 
       return @handleNoItem err  if err
 

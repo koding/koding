@@ -7,15 +7,7 @@ module.exports = class AdminConfiguredIntegrationsListView extends AdminIntegrat
 
   constructor: (options = {}, data) ->
 
-    options.listItemClass = AdminConfiguredIntegrationItemView
+    options.listItemClass     = AdminConfiguredIntegrationItemView
+    options.fetcherMethodName = 'fetchChannelIntegrations'
 
     super options, data
-
-
-  fetchIntegrations: ->
-
-    kd.singletons.socialapi.integrations.fetchChannelIntegrations (err, data) =>
-
-      return @handleNoItem err  if err
-
-      @listItems data
