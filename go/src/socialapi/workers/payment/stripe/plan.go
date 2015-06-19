@@ -78,8 +78,7 @@ func CreatePlan(id, title, nameForStripe string, interval paymentplan.PlanInterv
 func FindPlanByTitleAndInterval(title, interval string) (*paymentmodels.Plan, error) {
 	plan := paymentmodels.NewPlan()
 
-	err := plan.ByTitleAndInterval(title, interval)
-	if err != nil {
+	if err := plan.ByTitleAndInterval(title, interval); err != nil {
 		if paymenterrors.IsPlanNotFoundErr(err) {
 			return nil, paymenterrors.ErrPlanNotFound
 		}

@@ -33,8 +33,7 @@ func InitializeClientKey(creds config.Paypal) {
 }
 
 func Client() (*paypal.PayPalClient, error) {
-	err := isClientInitialized()
-	if err != nil {
+	if err := isClientInitialized(); err != nil {
 		return nil, err
 	}
 

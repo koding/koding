@@ -11,7 +11,8 @@ type Status int
 const (
 	Default                 Status = iota
 	Error                   Status = iota
-	NewSubscription         Status = iota
+	NewSub                  Status = iota
+	ExpiredSub              Status = iota
 	ExistingUserHasNoSub    Status = iota
 	AlreadySubscribedToPlan Status = iota
 	DowngradeToFreePlan     Status = iota
@@ -21,25 +22,28 @@ const (
 
 func Check(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan) (Status, error) {
 	if IsNewSubscription(customer, err) {
-		return NewSubscription, nil
+		return NewSub, nil
 	}
 
 	if IsDowngradeToFreePlan(plan) {
 		return DowngradeToFreePlan, nil
 	}
 
-	currentSubscription, err := customer.FindActiveSubscription()
-	if err != nil && err != paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
-		return Error, err
+	if sub, err := IsSubscribedToNotActiveSub(customer); err == nil && sub {
+		return ExpiredSub, nil
 	}
 
+	currentSubscription, err := customer.FindActiveSubscription()
 	if err == paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
 		return ExistingUserHasNoSub, nil
 	}
 
-	oldPlan := paymentmodels.NewPlan()
-	err = oldPlan.ById(currentSubscription.PlanId)
 	if err != nil {
+		return Error, err
+	}
+
+	oldPlan := paymentmodels.NewPlan()
+	if err := oldPlan.ById(currentSubscription.PlanId); err != nil {
 		return Error, err
 	}
 
@@ -73,6 +77,30 @@ func IsAlreadySubscribedToPlan(oldPlan, plan *paymentmodels.Plan) bool {
 
 func IsDowngradeToFreePlan(plan *paymentmodels.Plan) bool {
 	return plan.Title == "free"
+}
+
+// IsSubscribedToNotActiveSub returns if user has an active subscription. If an
+// user has multiple subscriptions, active subscription takes precedence.
+func IsSubscribedToNotActiveSub(customer *paymentmodels.Customer) (bool, error) {
+	subscriptions, err := customer.FindSubscriptions()
+	if err != nil && err != paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
+		return false, err
+	}
+
+	if len(subscriptions) == 0 || err == paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
+		return false, nil
+	}
+
+	var states = map[string]struct{}{}
+	for _, sub := range subscriptions {
+		states[sub.State] = struct{}{}
+	}
+
+	if _, ok := states[paymentmodels.SubscriptionStateActive]; ok {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func IsDowngradeToNonFreePlan(oldPlan, plan *paymentmodels.Plan) bool {

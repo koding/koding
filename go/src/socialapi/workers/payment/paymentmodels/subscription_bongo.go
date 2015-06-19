@@ -41,14 +41,11 @@ func (s *Subscription) BeforeUpdate() error {
 
 func (s *Subscription) ById(id int64) error {
 	selector := map[string]interface{}{"id": s.Id}
-	err := s.Find(selector)
-
-	return err
+	return s.Find(selector)
 }
 
 func (s *Subscription) Find(selector map[string]interface{}) error {
-	err := s.One(bongo.NewQS(selector))
-	return err
+	return s.One(bongo.NewQS(selector))
 }
 
 func (s *Subscription) Delete() error {

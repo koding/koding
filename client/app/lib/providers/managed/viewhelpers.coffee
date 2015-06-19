@@ -1,5 +1,6 @@
 
 kd    = require 'kd'
+nick  = require 'app/util/nick'
 
 addTo = (parent, views)->
   map = {}
@@ -13,16 +14,14 @@ addTo = (parent, views)->
 
   return map
 
-globals = require 'globals'
+globals    = require 'globals'
 kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
              then "\n$ export KONTROLURL=#{globals.config.newkontrol.url}" else ''
 
 contents  =
   install : """#{kontrolUrl}
-    $ curl -sO https://s3.amazonaws.com/koding-klient/install.sh
-    $ bash ./install.sh
+    $ curl -sSL s3.amazonaws.com/koding-klient/install.sh | bash -s %%TOKEN%% %%USERNAME%%
   """
-  # Add %%TOKEN%% to install instructions to enable tokens
 
 module.exports   = view =
   message        : ({text, cssClass}) -> new kd.View
@@ -48,7 +47,8 @@ module.exports   = view =
   instructions   : (content) ->
     content      = contents[content] ? content
     if view._otatoken
-      content    = content.replace '%%TOKEN%%', view._otatoken
+      content    = content.replace '%%TOKEN%%',    view._otatoken
+      content    = content.replace '%%USERNAME%%', nick()
     container    = new kd.View
     addTo container,
       header     : 'Instructions'
