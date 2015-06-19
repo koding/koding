@@ -495,8 +495,9 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       title    = 'Create a new VM'
       callback = 'requestNewMachine'
 
-      {groupsController} = kd.singletons
-      return  unless groupsController.currentGroupHasStack()
+      if not isKoding()
+        {groupsController} = kd.singletons
+        return  unless groupsController.currentGroupHasStack()
 
     else if @isManaged
       title    = 'Search for Nodes'
