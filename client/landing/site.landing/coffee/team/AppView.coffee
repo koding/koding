@@ -1,17 +1,17 @@
 module.exports = class TeamView extends KDView
 
   TABS =
-    login         : require './tabs/teamlogintab'
-    domain        : require './tabs/teamdomaintab'
-    invite        : require './tabs/teaminvitetab'
-    username      : require './tabs/teamusernametab'
-    welcome       : require './tabs/teamwelcometab'
-    join          : require './tabs/teamusernametab'
-    congratz      : require './tabs/teamcongratztab'
-    banned        : require './tabs/teambannedtab'
-    authenticate  : require './tabs/teamauthenticatetab'
+    login           : require './tabs/teamlogintab'
+    domain          : require './tabs/teamdomaintab'
     'email-domains' : require './tabs/teamalloweddomaintab'
+    invite          : require './tabs/teaminvitetab'
+    username        : require './tabs/teamusernametab'
+    welcome         : require './tabs/teamwelcometab'
+    join            : require './tabs/teamusernametab'
+    congrats        : require './tabs/teamcongratstab'
     stacks          : require './tabs/teamstackstab'
+    banned          : require './tabs/teambannedtab'
+    authenticate    : require './tabs/teamauthenticatetab'
 
   constructor: (options = {}, data) ->
 
