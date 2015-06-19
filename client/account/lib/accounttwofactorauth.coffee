@@ -64,14 +64,39 @@ module.exports = class AccountTwoFactorAuth extends kd.View
       name          : 'password'
       type          : 'password'
       placeholder   : 'Current Password'
+  getFormView: ->
+
+    @addSubView inputForm  = new kd.FormViewWithFields
+      cssClass             : 'AppModal-form'
+      fields               :
+        password           :
+          cssClass         : 'Formline--half'
+          placeholder      : 'Enter your Koding password'
+          name             : 'password'
+          type             : 'password'
+          label            : 'Password'
+        tfcode             :
+          cssClass         : 'Formline--half'
+          placeholder      : 'Enter the verification code'
+          name             : 'tfcode'
+          label            : 'Verification Code'
+
+    { password, tfcode } = inputForm.inputs
 
     @addSubView new kd.ButtonView
       title         : 'Disable 2-Factor Auth'
       callback      : =>
+      title            : 'Enable 2-Factor Auth'
+      style            : 'solid green small enable-tf'
+      callback         : =>
 
         options     =
           password  : password.getValue()
           disable   : yes
+        options        =
+          key          : @_activeKey
+          password     : password.getValue()
+          verification : tfcode.getValue()
 
         me = whoami()
         me.setup2FactorAuth options, (err) =>
@@ -80,34 +105,17 @@ module.exports = class AccountTwoFactorAuth extends kd.View
 
           new kd.NotificationView
             title : 'Successfully Disabled!'
+            title : 'Successfully Enabled!'
             type  : 'mini'
 
           @buildInitialView()
 
 
-  getFormView: (key) ->
-
-    @addSubView password = new kd.InputView
-      name          : 'password'
-      type          : 'password'
-      placeholder   : 'Current Password'
   getQrCodeView: (url) ->
 
-    @addSubView tfcode = new kd.InputView
-      name          : 'tfcode'
-      placeholder   : '2factor verification code'
-
-    @addSubView new kd.ButtonView
-      title         : 'Enable 2-Factor Auth'
-      callback      : =>
     view = new kd.CustomHTMLView
       cssClass   : 'qrcode-view'
 
-        options = {
-          key,
-          password     : password.getValue()
-          verification : tfcode.getValue()
-        }
     view.addSubView imageView = new kd.CustomHTMLView
       tagName    : 'img'
       attributes : src: url
@@ -137,7 +145,9 @@ module.exports = class AccountTwoFactorAuth extends kd.View
 
 
   getLoaderView: ->
+
     new kd.LoaderView
+      cssClass   : 'main-loader'
       showLoader : yes
       size       :
         width    : 40

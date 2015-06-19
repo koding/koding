@@ -813,6 +813,10 @@ app.settings.styl
       &.learn-link
         text-decoration     underline !important
 
+    .main-loader
+      left                  46%
+      margin-top            50%
+
     .intro
       margin-bottom         20px
 
@@ -870,4 +874,12 @@ app.settings.styl
 
         .icon
           r-sprite          app, '16-reload'
+
+    // Shame on you Safari! ~ GG
+    input
+      margin                0
+
+    button
+      &.enable-tf
+        fr()
 
