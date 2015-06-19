@@ -272,6 +272,7 @@ Configuration = (options={}) ->
     disabledFeatures     : disabledFeatures
     contentRotatorUrl    : 'http://koding.github.io'
     integration          : { url: "#{integration.url}" }
+    google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`

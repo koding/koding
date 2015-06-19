@@ -285,6 +285,7 @@ Configuration = (options={}) ->
     tokbox               : { apiKey: tokbox.apiKey }
     disabledFeatures     : disabledFeatures
     integration          : { url: "#{integration.url}" }
+    google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
