@@ -7,7 +7,7 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'congratz'
+    options.name = 'congrats'
 
     super options, data
 
@@ -21,7 +21,9 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
 
     """
     {{> @header }}
-    <div class="TeamsModal">
-      <h4></h4>
+    <div class="TeamsModal TeamsModal--groupCreation">
+      <figure></figure>
+      <h4>Congratulations</h4>
+      <h5>You are done.</h5>
     </div>
     """
