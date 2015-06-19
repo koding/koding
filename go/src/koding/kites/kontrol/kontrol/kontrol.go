@@ -42,7 +42,7 @@ func New(c *Config) *kontrol.Kontrol {
 		kiteConf.Port = c.Port
 	}
 
-	kon := kontrol.New(kiteConf, Version, string(publicKey), string(privateKey))
+	kon := kontrol.New(kiteConf, Version)
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 	kon.MachineAuthenticate = authenticateMachine
 
@@ -57,11 +57,15 @@ func New(c *Config) *kontrol.Kontrol {
 			Password: c.Postgres.Password,
 			DBName:   c.Postgres.DBName,
 		}
+		p := kontrol.NewPostgres(postgresConf, kon.Kite.Log)
 
-		kon.SetStorage(kontrol.NewPostgres(postgresConf, kon.Kite.Log))
+		kon.SetStorage(p)
+		kon.SetKeyPairStorage(p)
 	default:
 		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
 	}
+
+	kon.AddKeyPair("", string(publicKey), string(privateKey))
 
 	if c.TLSKeyFile != "" && c.TLSCertFile != "" {
 		kon.Kite.UseTLSFile(c.TLSCertFile, c.TLSKeyFile)
