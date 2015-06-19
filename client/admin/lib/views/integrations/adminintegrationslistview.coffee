@@ -56,6 +56,13 @@ module.exports = class AdminIntegrationsListView extends KDView
       @listItems data
 
 
+  refresh: ->
+
+    @listController.removeAllItems()
+    @listController.lazyLoader.show()
+    @fetchIntegrations()
+
+
   listItems: (items) ->
 
     if not items or items.length is 0
