@@ -58,24 +58,6 @@ func RemoveToken(clientId string) error {
 	return nil
 }
 
-func FindAndRemoveToken(token string) error {
-	session := new(models.Session)
-
-	query := func(c *mgo.Collection) error {
-		update := mgo.Change{Remove: true}
-		info, err := c.Find(bson.M{"otaToken": token}).Apply(update, &session)
-		fmt.Printf("info = %+v\n", info)
-		return err
-	}
-
-	err := Mongo.Run("jSessions", query)
-	if err != nil {
-		return fmt.Errorf("otaToken '%s' is not validated; err: %s", token, err)
-	}
-
-	return nil
-}
-
 func UpdateSessionIP(token string, ip string) error {
 	updateData := bson.M{
 		"clientIP": ip,
