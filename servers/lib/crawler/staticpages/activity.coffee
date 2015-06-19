@@ -110,9 +110,7 @@ getActivityContent = (activityContent)->
         </div>
       </div>
       <div class="kdview comment-container static #{hasComments}">
-        <a class="custom-link-view list-previous-link" href="/Register">
-          #{repliesText}
-        </a>
+        #{if count > 0 then "<a class='custom-link-view list-previous-link' href='/Login'>#{repliesText}</a>" else ""}
         <div class="kdview listview-wrapper">
           <div class="kdview kdscrollview">
             <div class="kdview kdlistview kdlistview-comments">

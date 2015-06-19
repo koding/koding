@@ -297,6 +297,9 @@ type RuntimeOptions struct {
 		BotChannel bool `json:"botchannel"`
 	} `json:"disabledFeatures"`
 	ContentRotatorUrl string `json:"contentRotatorUrl"`
+	Google struct {
+		ApiKey string `json:"apiKey"`
+	} `json:"google"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
