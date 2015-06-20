@@ -25,6 +25,7 @@ services=(
   koding/kites/cmd/terraformer
   koding/workers/guestcleanerworker
   koding/go-webserver
+  koding/workers/cmd/tunnelproxymanager
   koding/vmwatcher
   github.com/koding/kite/kitectl
   github.com/canthefason/go-watcher
