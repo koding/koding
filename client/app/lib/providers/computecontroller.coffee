@@ -470,8 +470,7 @@ module.exports = class ComputeController extends KDController
 
     return if methodNotSupportedBy machine
 
-    ComputeController_UI.askFor 'reinit', {machine, force: @_force}, =>
-
+    startReinit = =>
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
         percentage  : 0
@@ -494,6 +493,34 @@ module.exports = class ComputeController extends KDController
       .catch (err)=>
 
         (@errorHandler call, 'reinit', machine) err
+
+    { JSnapshot } = remote.api
+    jMachine      = machine.data
+    mSnapshotId   = jMachine?.meta?.snapshotId
+
+    # If it's a caller supplied snapshot, reinit.
+    # If the machine does not have a snapshotId, reinit.
+    if snapshotId or not mSnapshotId
+      return ComputeController_UI.askFor 'reinit',
+        {machine, force: @_force}, startReinit
+
+    # If the caller did not supply a snapshot, and the machine has a
+    # snapshotId, we need to confirm that the machine's snapshot still
+    # exists.
+    JSnapshot.one mSnapshotId, (err, snapshot) =>
+      # If the snapshot exists in mongo, proceed like normally
+      if snapshot
+        return ComputeController_UI.askFor 'reinit',
+          {machine, force: @_force}, startReinit
+
+      # If the snapshot does not exist in mongo, remove it from
+      # the machine after confirming with the user
+      ComputeController_UI.askFor 'reinitNoSnapshot',
+        {machine, force: @_force}, => jMachine.removeSnapshot (err) =>
+          return kd.error  if err
+          startReinit()
+
+
 
 
   resize: (machine, resizeTo = 10)->

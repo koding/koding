@@ -186,6 +186,17 @@ module.exports = class ComputeController_UI
             of your data.
           "
           button  : "Proceed"
+        reinitNoSnapshot :
+          title   : "Reinitialize without Snapshot?"
+          message : "
+            The snapshot on which this VM was originally based has been
+            deleted so this VM cannot be reinitialized. Would you like
+            to reinit using a standard Koding base VM image?
+
+            You will lose all your files, workspaces and data but your VM
+            settings (VM aliases, sub-domains etc.) will not be lost.
+          "
+          button  : "Proceed"
         destroy   :
           title   : "Remove VM?"
           message : "
