@@ -56,7 +56,8 @@
     "algoliasearch": "kd-shim-algoliasearch",
     "underscore": "lodash",
     "sockjs-client": "kd-shim-sockjs-client",
-    "os": "component-os"
+    "os": "component-os",
+    "kd-react": "@koding/kd-react"
   },
   "devDependencies": {
     "chokidar": "1.0.1",
