@@ -1,4 +1,4 @@
-package main
+package tunnelproxymanager
 
 import (
 	"errors"
@@ -6,9 +6,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/cenkalti/backoff"
+	"github.com/coreos/go-log/log"
 	"github.com/koding/logging"
 )
 
@@ -20,11 +22,13 @@ type LifeCycle struct {
 	mu        sync.Mutex
 
 	// aws services
+	ec2         *ec2.EC2
 	sqs         *sqs.SQS
 	sns         *sns.SNS
 	autoscaling *autoscaling.AutoScaling
 
 	// application wide parameters
+	asgName         *string
 	queueURL        *string
 	queueARN        *string
 	subscriptionARN *string
@@ -44,34 +48,46 @@ type LifeCycle struct {
 // by one manager, there wont be any race condition on processing that
 // particular message. Manager is idempotent, if any given resource doesnt exist
 // in the given AWS system, it will create or re-use the previous ones
-func NewLifeCycle(config *aws.Config, log logging.Logger, name string) (*LifeCycle, error) {
+func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeCycle {
 	l := &LifeCycle{
-		closed:      false,
-		closeChan:   make(chan chan struct{}),
+		closed:    false,
+		closeChan: make(chan chan struct{}),
+
+		ec2:         ec2.New(config),
 		sqs:         sqs.New(config),
 		sns:         sns.New(config),
 		autoscaling: autoscaling.New(config),
-		log:         log.New("lifecycle"),
+
+		asgName: &asgName,
+
+		log: log.New("lifecycle"),
 	}
+
+	return l
+
+}
+
+func (l *LifeCycle) Init(name string) error {
+	l.log.Debug("Configuring...")
 
 	if err := l.EnureSNS(name); err != nil {
 		log.Error("Could not ensure SNS Err: %s", err.Error())
-		return nil, err
+		return err
 	}
 
 	if err := l.MakeSureSQS(name); err != nil {
 		log.Error("Coud not ensure SQS Err: %s", err.Error())
-		return nil, err
+		return err
 	}
 
 	if err := l.MakeSureSubscriptions(); err != nil {
 		log.Error("Could not create subscription to SNS from SQS Err: %s", err.Error())
-		return nil, err
+		return err
 	}
 
 	if err := l.AttachNotificationToAutoScaling(); err != nil {
 		log.Error("Could not attach notification to autoscaling Err: %s", err.Error())
-		return nil, err
+		return err
 	}
 
 	// output parameters, they are safe to be in logs
@@ -81,8 +97,7 @@ func NewLifeCycle(config *aws.Config, log logging.Logger, name string) (*LifeCyc
 	l.log.New("subscriptionARN").Debug(*l.subscriptionARN)
 
 	l.log.Info("Lifecycle manager is ready")
-	return l, nil
-
+	return nil
 }
 
 // Listen listens for messages that are put into lifecycle queues
