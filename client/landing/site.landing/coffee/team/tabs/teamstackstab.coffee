@@ -20,7 +20,7 @@ module.exports = class TeamStacksTab extends KDTabPaneView
     @next = new KDButtonView
       title      : 'Next'
       style      : 'TeamsModal-button TeamsModal-button--green'
-      callback   : ->
+      callback   : -> KD.singletons.router.handleRoute '/Team/Congrats'
 
 
   pistachio: ->
