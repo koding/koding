@@ -1,4 +1,4 @@
-package main
+package tunnelproxymanager
 
 import (
 	"errors"
@@ -16,6 +16,8 @@ const (
 	hostedZoneName          = "tunnelproxy.koding.com"
 	hostedZoneComment       = "Hosted zone for tunnel proxies"
 	validStateForHostedZone = "INSYNC" // taken from aws response
+
+	maxIterationCount = 100
 )
 
 var (
@@ -37,17 +39,17 @@ type RecordManager struct {
 }
 
 // New creates a RecordManager
-func NewRecordManager(config *aws.Config, log logging.Logger, region string) (*RecordManager, error) {
+func NewRecordManager(config *aws.Config, log logging.Logger, region string) *RecordManager {
 	return &RecordManager{
 		route53: route53.New(config),
 		log:     log.New("recordmanager"),
 		region:  region,
-	}, nil
+	}
 }
 
 // Init initializes record manager's prerequisites
 func (r *RecordManager) Init() error {
-	r.log.Debug("init started")
+	r.log.Debug("Configuring...")
 
 	if err := r.ensureHostedZone(); err != nil {
 		return err
@@ -58,25 +60,22 @@ func (r *RecordManager) Init() error {
 }
 
 func (r *RecordManager) ensureHostedZone() error {
-	hostedZoneLogger := r.log.New("HostedZone")
-	hostedZoneLogger.Debug("working...")
+	hostedZoneLogger := r.log.New("HostedZone").New("name", hostedZoneName)
+	hostedZoneLogger.Debug("Trying to get existing Hosted Zone")
 
 	err := r.getHostedZone(hostedZoneLogger)
-	if err != nil && err != errHostedZoneNotFound {
+	if err == nil {
+		hostedZoneLogger.Debug("Hosted Zone exists..")
+		return nil
+	}
+
+	if err != errHostedZoneNotFound {
+		hostedZoneLogger.Debug("ne isin var burada")
 		return err
 	}
 
-	if err == errHostedZoneNotFound {
-		hostedZoneLogger.Debug("Not found, creating...")
-		err := r.createHostedZone(hostedZoneLogger)
-		if err != nil {
-			return err
-		}
-	}
-
-	hostedZoneLogger.Debug("hosted zone is ready")
-
-	return nil
+	hostedZoneLogger.Debug("Not found, creating...")
+	return r.createHostedZone(hostedZoneLogger)
 }
 
 func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
@@ -95,7 +94,7 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 		// for pagination
 		var nextMarker *string
 
-		log.Debug("fetching hosted zone")
+		log.Debug("Fetching hosted zone")
 		listHostedZonesResp, err := r.route53.ListHostedZones(
 			&route53.ListHostedZonesInput{
 				Marker: nextMarker,
@@ -112,7 +111,6 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 		for _, hostedZone := range listHostedZonesResp.HostedZones {
 			if *hostedZone.CallerReference == callerReferance {
 				r.hostedZone = hostedZone
-				log.Debug("hosted zone found")
 				return nil
 			}
 		}
@@ -184,32 +182,32 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 
 	r.hostedZone = resp.HostedZone
 
+	hostedZoneLogger.Debug("create hosted finished successfully")
+
 	return nil
 }
 
-func (r *RecordManager) createRecordSet() error {
+func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 	if r.hostedZone == nil {
 		return errors.New("hosted zone is not set")
 	}
 
+	resourceRecords := make([]*route53.ResourceRecord, 0)
+	for _, instance := range instances {
+		resourceRecords = append(resourceRecords, &route53.ResourceRecord{
+			Value: instance,
+		})
+	}
 	params := &route53.ChangeResourceRecordSetsInput{
 		ChangeBatch: &route53.ChangeBatch{
 			Changes: []*route53.Change{
 				&route53.Change{
 					Action: aws.String("UPSERT"),
 					ResourceRecordSet: &route53.ResourceRecordSet{
-						Name:   aws.String(hostedZoneName),
-						Type:   aws.String("A"),
-						Region: aws.String(r.region),
-						ResourceRecords: []*route53.ResourceRecord{
-							// TODO these will be actual ip adreesses of proxy machines
-							&route53.ResourceRecord{
-								Value: aws.String("52.7.21.41"),
-							},
-							&route53.ResourceRecord{
-								Value: aws.String("52.1.117.108"),
-							},
-						},
+						Name:            aws.String(hostedZoneName),
+						Type:            aws.String("A"),
+						Region:          aws.String(r.region),
+						ResourceRecords: resourceRecords,
 						// use region name as identifer
 						SetIdentifier: aws.String(r.region),
 						TTL:           aws.Long(1),
