@@ -1300,6 +1300,7 @@ module.exports = class JUser extends jraphical.Module
         token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
 
         analytics.identify userId: username, traits: { jwtToken: token, host: publicHostname }
+        analytics.track userId: username, event: 'registered'
     ]
 
     daisy queue

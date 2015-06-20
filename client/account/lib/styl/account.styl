@@ -66,12 +66,20 @@ app.settings.styl
 
   // FIXME credentials icon ~ GG
   .AppModal-navItem.credentials
-  .AppModal-navItem.twofactorauth
     &:before
       r-sprite              'account' 'sshkeys'
 
     &.selected:before
       r-sprite              'account' 'sshkeys-active'
+
+  .AppModal-navItem.twofactorauth
+    margin-left             3px
+    &:before
+      margin-right          15px
+      r-sprite              'account' 'twofactor'
+
+    &.selected:before
+      r-sprite              'account' 'twofactor-active'
 
   .AppModal-navItem.referral
     &:before
@@ -98,7 +106,7 @@ app.settings.styl
       r-sprite              'account' 'shortcuts-active'
 
   .AppModal-content
-    min-height              540px
+    min-height              590px
 
   .AppModal-form
     padding-top             20px
@@ -124,6 +132,9 @@ app.settings.styl
   img
     display                 block
     margin                  0
+
+  cite.staff
+    hidden()
 
 .AppModal--account-avatarArea-buttons
   overflow                  hidden
@@ -787,3 +798,113 @@ app.settings.styl
     text-align              left
     padding-top             0
     top                     -4px
+
+
+.AppModal--account
+
+  .tfauth
+
+    font-size               14px
+
+    a
+      color                 #01A74E
+      noTextDeco()
+
+      &.learn-link
+        text-decoration     underline !important
+
+    .main-loader
+      left                  46%
+      margin-top            50%
+
+    .intro
+      margin-bottom         20px
+
+      cite
+        r-sprite            'account', 'twofactor-badge'
+        fr()
+
+    .enabled-intro > div
+      text-align            center
+      background            white
+      border                1px solid #ccc
+      border-radius         3px
+      margin-bottom         20px
+      padding               30px
+
+      cite
+        text-align          center
+        r-sprite            'account', 'twofactor-badge'
+        display             block
+        margin              20px auto 0
+
+      green
+        color               #01A74E
+
+    .instructions
+
+      counter-reset         instructions
+
+      li
+        list-style          none
+        margin-top          10px
+        padding-left        55px
+
+      li:before
+        content             counter(instructions)
+        counter-increment   instructions
+
+        size                24px, 24px
+        line-height         24px
+
+        border-radius       24px
+
+        display             inline-block
+        background-color    #01A74E
+        color               white
+
+        text-align          center
+        font-size           11px
+        left                20px
+        abs()
+
+    .qrcode-view
+      height                186px
+      text-align            center
+      background            white
+      border                1px solid #ccc
+      border-radius         3px
+      margin-top            20px
+      padding               10px
+      borderBox()
+
+      img
+        margin-left         17px
+
+      button
+        background          none
+        border              none
+        top                 calc(100% \- 30px)
+        right               10px
+        opacity             .5
+        fr()
+
+        .icon
+          r-sprite          app, '16-reload'
+
+    // Shame on you Safari! ~ GG
+    input
+      margin                0
+
+    button
+      &.enable-tf
+        fr()
+
+      &.disable-tf
+        height              38px
+        width               250px
+        background-color    #FE7C52
+
+        .button-title
+          line-height       38px  !important
+          color             white !important

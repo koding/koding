@@ -28,6 +28,5 @@ func (c *Customer) Delete() error {
 
 func (c *Customer) ById(id int64) error {
 	selector := map[string]interface{}{"id": id}
-
 	return c.One(bongo.NewQS(selector))
 }

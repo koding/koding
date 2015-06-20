@@ -70,6 +70,16 @@ reviveClient = (client, callback, revive = yes)->
       callback null, res
 
 
+reviveOauth = (client, oauthProvider, callback) ->
+
+  { user }    = client.r
+  foreignAuth = user.getAt "foreignAuth.#{oauthProvider}"
+
+  if not foreignAuth
+  then callback new KodingError "Authentication not found for #{oauthProvider}"
+  else callback null, foreignAuth
+ 
+
 locks = []
 
 lockProcess = (client)->
@@ -98,6 +108,7 @@ revive = do -> ({
     shouldReviveProvider
     shouldReviveProvisioners
     shouldLockProcess
+    shouldHaveOauth
     hasOptions
   }, fn) ->
 
@@ -142,6 +153,22 @@ revive = do -> ({
 
       return callback err       if err
       client.r = revivedClient  if revivedClient?
+
+
+      # OAUTH Check
+
+      if shouldHaveOauth?
+
+        reviveOauth client, shouldHaveOauth, (err, oauth) =>
+          return callback err     if err
+          client.r.oauth = oauth  if oauth?
+
+          if hasOptions
+          then fn.call this, client, options, callback
+          else fn.call this, client, callback
+
+        return
+
 
       # This is Koding only which doesn't need a valid credential
       # since the user session is enough for koding provider for now.

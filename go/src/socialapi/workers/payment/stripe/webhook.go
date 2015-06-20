@@ -12,8 +12,7 @@ import (
 
 func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription) error {
 	subscription := paymentmodels.NewSubscription()
-	err := subscription.ByProviderId(req.ID, ProviderName)
-	if err != nil {
+	if err := subscription.ByProviderId(req.ID, ProviderName); err != nil {
 		return err
 	}
 
@@ -22,8 +21,7 @@ func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription) error {
 	}
 
 	customer := paymentmodels.NewCustomer()
-	err = customer.ById(subscription.CustomerId)
-	if err != nil {
+	if err := customer.ById(subscription.CustomerId); err != nil {
 		return err
 	}
 
@@ -49,14 +47,12 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 	}
 
 	subscription := paymentmodels.NewSubscription()
-	err := subscription.ByProviderId(id, ProviderName)
-	if err != nil {
+	if err := subscription.ByProviderId(id, ProviderName); err != nil {
 		return err
 	}
 
 	plan := paymentmodels.NewPlan()
-	plan.ByProviderId(item.Plan.ID, ProviderName)
-	if err != nil {
+	if err := plan.ByProviderId(item.Plan.ID, ProviderName); err != nil {
 		return err
 	}
 
@@ -72,7 +68,7 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 		subscription.Id, plan.Id, time.Unix(int64(item.Period.Start), 0),
 	)
 
-	err = subscription.UpdateInvoiceCreated(
+	err := subscription.UpdateInvoiceCreated(
 		plan.AmountInCents, plan.Id,
 		int64(item.Period.Start), int64(item.Period.End),
 	)
@@ -90,8 +86,7 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 
 func CustomerDeletedWebhook(req *webhookmodels.StripeCustomer) error {
 	customer := paymentmodels.NewCustomer()
-	err := customer.ByProviderCustomerId(req.ID)
-	if err != nil {
+	if err := customer.ByProviderCustomerId(req.ID); err != nil {
 		return err
 	}
 

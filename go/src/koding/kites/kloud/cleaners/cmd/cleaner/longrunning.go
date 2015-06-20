@@ -21,7 +21,7 @@ type LongRunning struct {
 
 func (l *LongRunning) Process() {
 	l.runningInstances = l.Instances.
-		OlderThan(6*time.Hour).
+		OlderThan(12*time.Hour).
 		States("running").
 		WithTag("koding-env", "production")
 
