@@ -14,6 +14,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
       cssClass : 'solid compact outline configure'
       title    : "#{data.channelIntegrations.length} Configured"
       callback : =>
+        @toggleClass 'list-visible'
         if @listView then @listView.toggleClass 'hidden' else @createList()
 
 
