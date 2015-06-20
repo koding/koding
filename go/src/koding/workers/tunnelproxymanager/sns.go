@@ -1,94 +1,81 @@
-package main
+package tunnelproxymanager
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
-	"github.com/koding/logging"
 )
 
 var (
-	errTopicNotFound = errors.New("topic not found")
+	errSNSNameNotSet  = errors.New("SNS Name must not be empty")
+	errSNSNotSet      = errors.New("SNS is not set")
+	errTopicARNNotSet = errors.New("topic arn is not set")
 )
 
 // EnureSNS creates or gets required Topic ARN for lifecycle management, that
-// will be attached to autoscaling group, this function is idempotent, multiple
+// will be attached to autoscaling group. This function is idempotent, multiple
 // calls will result with same response
 func (l *LifeCycle) EnureSNS(name string) error {
+	if name == "" {
+		return errSNSNameNotSet
+	}
+
+	if l.sns == nil {
+		return errSNSNotSet
+	}
 
 	topicName := "SNS-" + name
 
-	snsLogger := l.log.New("SNS")
-	snsLogger.Debug("getting SNS...")
+	snsLogger := l.log.New("SNS").New("topicName", topicName)
 
-	err := l.getSNS(snsLogger, topicName)
-	if err == errTopicNotFound {
-		return l.createSNS(snsLogger, topicName)
-	}
+	snsLogger.Debug("Preparing SNS Topic")
+
+	// CreateTopic is idempotent
+	topic, err := l.sns.CreateTopic(
+		&sns.CreateTopicInput{
+			Name: aws.String(topicName),
+		},
+	)
 	if err != nil {
-		snsLogger.Debug("SNS is ready")
+		return err
 	}
 
-	return err
+	l.topicARN = topic.TopicARN // dont forget to assing topic ARN
+
+	snsLogger.Debug("SNS Topic is ready")
+	return nil
 }
 
-func (l *LifeCycle) getSNS(snsLogger logging.Logger, topicName string) error {
-	iteration := 0
-
-	for {
-
-		if iteration == maxIterationCount {
-			return errors.New("iteration terminated")
-		}
-		log := snsLogger.New("iteration", iteration)
-
-		iteration++
-
-		// for next pagination, if required
-		var nextToken *string
-
-		log.Debug("fetching SNS...")
-		listTopicResp, err := l.sns.ListTopics(&sns.ListTopicsInput{
-			NextToken: nextToken,
-		})
-		if err != nil {
-			return err
-		}
-
-		if listTopicResp == nil {
-			return errors.New("malformed response")
-		}
-
-		for _, topic := range listTopicResp.Topics {
-			resources := strings.Split(*topic.TopicARN, ":")
-			name := resources[len(resources)-1]
-			if name == topicName {
-				l.topicARN = topic.TopicARN
-				log.Debug("%s topic is found. ARN: %s", topicName, *l.topicARN)
-				return nil
-			}
-		}
-
-		if listTopicResp.NextToken == nil || *listTopicResp.NextToken == "" {
-			return errTopicNotFound
-		}
-
-		nextToken = listTopicResp.NextToken
-
+func (l *LifeCycle) MakeSureSubscriptions() error {
+	if l.topicARN == nil {
+		return errTopicARNNotSet
 	}
-}
 
-func (l *LifeCycle) createSNS(snsLogger logging.Logger, topicName string) error {
-	topic, err := l.sns.CreateTopic(&sns.CreateTopicInput{
-		Name: aws.String(topicName),
+	if l.queueURL == nil {
+		return errQueueURLNotSet
+	}
+
+	log := l.log.New("SNS")
+	log.Debug("Creating subscription between SNS %s and SQS %s", *l.topicARN, *l.queueARN)
+
+	// Subscribe is idempotent, if it is already created before, returns the
+	// previous one
+	resp, err := l.sns.Subscribe(&sns.SubscribeInput{
+		Protocol: aws.String("sqs"),
+		TopicARN: l.topicARN,
+		Endpoint: l.queueARN,
 	})
 	if err != nil {
 		return err
 	}
 
-	l.topicARN = topic.TopicARN
-	snsLogger.Debug("created %s SNS topic", topicName)
+	if resp == nil || resp.SubscriptionARN == nil {
+		return errors.New("malformed response")
+	}
+
+	l.subscriptionARN = resp.SubscriptionARN
+
+	log.Debug("Subscription is ready between SNS and SQS")
 	return nil
 }
