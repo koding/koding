@@ -1172,6 +1172,46 @@ Admin main styles
   .kdtabhandle
     max-width               230px !important // override element style
 
+  .configured-list
+    margin-top              20px
+
+    .integration
+      border-top            1px solid #dedede
+      margin-left           60px
+      padding               15px 0
+      position              relative
+      borderBox()
+
+      &:hover
+        .edit
+          visible()
+
+      .by
+        fl()
+        color               #8d8d8d
+        font-size           12px
+        line-height         25px
+
+      time
+        color               #8d8d8d
+        margin-left         4px
+        font-size           12px
+        line-height         25px
+
+      .edit
+        abs()
+        pointer()
+        hidden()
+        line-height         78px
+        right               15px
+        top                 0
+
+        span
+          r-sprite          'app', 'sidebar-toggle'
+          display           inline-block
+          vendor            transform, rotate(180deg)
+
+
   .integration-view
     border-top              1px solid #dedede
     padding                 15px 0
@@ -1190,7 +1230,7 @@ Admin main styles
     .kdbutton.add
     .kdbutton.configure
       abs()
-      right                 5px
+      right                 15px
       top                   22px
 
   .integration-channels
