@@ -16,13 +16,21 @@ fi
 LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
 
-echo "Downloading and installing klient 0.1.${LATESTVERSION}"
-curl -s $LATESTURL -o klient.deb
+if [ ! -f klient.deb ]; then
+    echo "Downloading and installing klient 0.1.${LATESTVERSION}"
+    curl -s $LATESTURL -o klient.deb
+fi
+
 sudo dpkg -i --force-confnew klient.deb > /dev/null
+
+KITE_USERNAME=""
+if [ ! -z "$2" ]; then
+    KITE_USERNAME=$2
+fi
 
 echo "Authenticating to ${KONTROLURL}"
 # It's ok $1 to be empty, in that case it'll try to register via password input
-sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1 -username $2
+sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1 -username "$KITE_USERNAME"
 
 if [ ! -f /etc/kite/kite.key ]; then
     echo "/etc/kite/kite.key not found. Aborting installation"

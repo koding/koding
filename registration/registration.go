@@ -21,8 +21,10 @@ import (
 func Register(kontrolURL, kiteHome, username, token string) error {
 	var err error
 
-	// Open up a prompt if the username is not passed via a flag
-	if username == "" {
+	// Open up a prompt if the username is not passed via a flag and it's not a
+	// token based authentication. If token is empty, it means the user can be
+	// authenticated via password
+	if token == "" && username == "" {
 		username, err = ask("Username:")
 		if err != nil {
 			return err
