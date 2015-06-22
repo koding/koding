@@ -6,9 +6,6 @@ Flaggable   = require '../../traits/flaggable'
 KodingError = require '../../error'
 { extend, uniq }  = require 'underscore'
 
-Analytics   = require('analytics-node')
-analytics   = new Analytics(KONFIG.segment)
-
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
 
@@ -22,6 +19,7 @@ module.exports = class JUser extends jraphical.Module
   JPaymentSubscription = require '../payment/subscription'
   ComputeProvider      = require '../computeproviders/computeprovider'
   Email                = require '../email'
+  Analytics            = require '../analytics'
 
   { v4: createId } = require 'node-uuid'
   {Relationship}   = jraphical
@@ -733,7 +731,7 @@ module.exports = class JUser extends jraphical.Module
               JUser.clearOauthFromSession session, ->
                 callback null, { account, replacementToken, returnUrl: session.returnUrl }
 
-                analytics.track userId: username, event: 'logged in'
+                Analytics.track username, 'logged in'
 
 
   @logout = secure (client, callback)->
@@ -1299,8 +1297,8 @@ module.exports = class JUser extends jraphical.Module
         # uses 'HS256' as default for signing
         token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
 
-        analytics.identify userId: username, traits: { jwtToken: token, host: publicHostname }
-        analytics.track userId: username, event: 'registered'
+        Analytics.identify username, { jwtToken: token }
+        Analytics.track username, 'registered'
     ]
 
     daisy queue
@@ -1503,7 +1501,7 @@ module.exports = class JUser extends jraphical.Module
 
       callback null
 
-      analytics.track userId: username, event: 'confirmed email'
+      Analytics.track username, 'confirmed email'
 
 
   block:(blockedUntil, callback)->
