@@ -5,6 +5,7 @@ koding                              = require './../bongo'
 { expect }                          = require "chai"
 { Relationship }                    = require 'jraphical'
 { TeamHandlerHelper
+  generateRandomEmail
   generateRandomString
   RegisterHandlerHelper }           = require '../../../testhelper'
 
@@ -203,8 +204,8 @@ runTests = -> describe 'server.handlers.createteam', ->
     makeCreateTeamRequest = (username, newsletter) ->
       createTeamRequestParams = generateCreateTeamRequestParams
         body         :
-          newsletter : newsletter
           username   : username
+          newsletter : newsletter
 
       request.post createTeamRequestParams, (err, res, body) ->
         expect(err)             .to.not.exist
@@ -287,16 +288,39 @@ runTests = -> describe 'server.handlers.createteam', ->
       done()
 
 
-  it 'should send HTTP 400 when email is not set', (done) ->
+  it 'should send HTTP 400 when email is in use', (done) ->
+
+    email                   = generateRandomEmail()
+    registerRequestParams   = RegisterHandlerHelper.generateRequestParams
+      body    :
+        email : email
 
     createTeamRequestParams = generateCreateTeamRequestParams
       body    :
-        email : ''
+        email : email
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      done()
+    queue = [
+
+      ->
+        # registering a new user
+        request.post registerRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        # expecting HTTP 400 using already registered email
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 400
+          expect(body)            .to.be.equal 'Email is already in use!'
+          queue.next()
+
+      -> done()
+
+    ]
+
+    daisy queue
 
 
   # TODO: this somehow returns 200, needs to be investigated
@@ -311,6 +335,42 @@ runTests = -> describe 'server.handlers.createteam', ->
       expect(err)             .to.not.exist
       expect(res.statusCode)  .to.be.equal 400
       done()
+
+
+  it 'should send HTTP 400 when username is in use', (done) ->
+
+    username                = generateRandomString()
+    registerRequestParams   = RegisterHandlerHelper.generateRequestParams
+      body        :
+        username  : username
+
+    createTeamRequestParams = generateCreateTeamRequestParams
+      body        :
+        username  : username
+
+    queue = [
+
+      ->
+        # registering a new user
+        request.post registerRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        # expecting HTTP 400 using already registered username
+        expectedBody = 'Errors were encountered during validation: username'
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 400
+          expect(body)            .to.be.equal expectedBody
+          queue.next()
+
+      -> done()
+
+    ]
+
+    daisy queue
 
 
   it 'should send HTTP 400 when username is not set', (done) ->
