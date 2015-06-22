@@ -494,29 +494,34 @@ module.exports = class ComputeController extends KDController
 
         (@errorHandler call, 'reinit', machine) err
 
-    { JSnapshot } = remote.api
-    jMachine      = machine.data
-    mSnapshotId   = jMachine?.meta?.snapshotId
+    # A shorthand for ComputeController_UI Askfor
+    askFor = (type, callback = kd.noop) =>
+      ComputeController_UI.askFor type, {machine, force: @_force}, callback
 
-    # If it's a caller supplied snapshot, reinit.
-    # If the machine does not have a snapshotId, reinit.
-    if snapshotId or not mSnapshotId
-      return ComputeController_UI.askFor 'reinit',
-        {machine, force: @_force}, startReinit
+    { JSnapshot }     = remote.api
+    jMachine          = machine.data
+    machineSnapshotId = jMachine?.meta?.snapshotId
 
-    # If the caller did not supply a snapshot, and the machine has a
-    # snapshotId, we need to confirm that the machine's snapshot still
-    # exists.
-    JSnapshot.one mSnapshotId, (err, snapshot) =>
-      # If the snapshot exists in mongo, proceed like normally
-      if snapshot
-        return ComputeController_UI.askFor 'reinit',
-          {machine, force: @_force}, startReinit
+    # If a machineSnapshotId exists, we need to validate that the
+    # actual *snapshot* belonging to that Id still exists.
+    # If the caller supplied a snapshotId, we don't need to bother
+    # validating it.
+    validateMachineSnapshot = machineSnapshotId and not snapshotId
+
+    # If we don't need to validate the Machine Snapshot,
+    # askFor a normal reinit
+    unless validateMachineSnapshot
+      return askFor 'reinit', startReinit
+
+    # We need to validate that the machineSnapshotId still exists
+    JSnapshot.one machineSnapshotId, (err, snapshot) =>
+      # If the snapshot exists in mongo, askFor a normal reinit
+      return askFor 'reinit', startReinit  if snapshot
 
       # If the snapshot does not exist in mongo, remove it from
       # the machine after confirming with the user
-      ComputeController_UI.askFor 'reinitNoSnapshot',
-        {machine, force: @_force}, => jMachine.removeSnapshot (err) =>
+      askFor 'reinitNoSnapshot', =>
+        jMachine.removeSnapshot (err) =>
           return kd.error  if err
           startReinit()
 
