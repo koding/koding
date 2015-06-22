@@ -23,7 +23,7 @@ type Storage interface {
 	SaveScore(string, string, float64) error
 	GetFromScore(string, float64) ([]string, error)
 
-	//zset for per user limit
+	//hash for per user limit
 	SaveUserLimit(string, float64) error
 	GetUserLimit(string) (float64, error)
 	RemoveUserLimit(string) error
@@ -116,16 +116,26 @@ func (r *RedisStorage) GetFromScore(key string, from float64) ([]string, error) 
 	return members, nil
 }
 
-func (r *RedisStorage) SaveUserLimit(member string, score float64) error {
-	return r.Client.SortedSetAddSingle(r.userLimitPrefix(), member, score)
+func (r *RedisStorage) SaveUserLimit(member string, limit float64) error {
+	return r.Client.HashSet(r.userLimitPrefix(), member, limit)
 }
 
 func (r *RedisStorage) GetUserLimit(member string) (float64, error) {
-	return r.Client.SortedSetScore(r.userLimitPrefix(), member)
+	limitStr, err := r.Client.GetHashSetField(r.userLimitPrefix(), member)
+	if err != nil {
+		return 0, err
+	}
+
+	limit, err := strconv.ParseFloat(limitStr, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return limit, nil
 }
 
 func (r *RedisStorage) RemoveUserLimit(member string) error {
-	_, err := r.Client.SortedSetRem(r.userLimitPrefix(), member)
+	_, err := r.Client.DeleteHashSetField(r.userLimitPrefix(), member)
 	return err
 }
 
