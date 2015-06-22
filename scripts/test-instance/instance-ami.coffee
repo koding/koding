@@ -1,5 +1,5 @@
 module.exports  =
-  current: 'ami-3736c45c'
+  current: 'ami-9b02f0f0'
 
   # Ordered by creation date
   list: [
@@ -9,5 +9,5 @@ module.exports  =
     'ami-193fd572'
     'ami-a7986fcc'
     'ami-b920d7d2'
-    'ami-3736c45c'
+    'ami-9b02f0f0'
   ]
