@@ -191,6 +191,7 @@ class RegisterHandlerHelper
 
 module.exports = {
   TeamHandlerHelper
+  generateRandomEmail
   generateRandomString
   RegisterHandlerHelper
 }
