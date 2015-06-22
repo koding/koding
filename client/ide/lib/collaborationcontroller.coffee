@@ -514,17 +514,49 @@ module.exports = CollaborationController =
     @mountMachine @mountedMachine
 
 
+  ###*
+   * Filter snapshot data for plain panes's array
+   *
+   * @param {Object} snapshot
+   * @return {Array} panes
+  ###
+  filterSnapshot: (snapshot) ->
+
+    panes = []
+
+    ###*
+     *
+     * <Recursive>
+     * @param {Object} item
+    ###
+    findPanes = (item) ->
+
+      if item.views.length
+        if item.views.first.context # if items are a pane
+          for pane in item.views    # collect panes
+            panes.push pane
+        else
+          for subView in item.views
+            findPanes subView       # recall function
+
+
+    for item in snapshot when item.type is 'split'
+      findPanes item
+
+    return panes
+
+
   resurrectSnapshot: ->
 
     return  if @fakeTabView
 
     snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
-    snapshot = @appendHostSnapshot snapshot  unless @amIHost
+    snapshot = @filterSnapshot @appendHostSnapshot snapshot  unless @amIHost
 
     @removeInitialViews()
 
     for change in snapshot when change.context
-      @createPaneFromChange change
+      @createPaneFromChange change, no
 
     @changeActiveTabView change?.context?.paneType
 
