@@ -57,24 +57,23 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
   createElements: ->
 
-    text       = 'wants to share their VM with you.'
-    titleFirst = no
-
-    if @isApproved
-      text       = 'Shared with you by'
-      titleFirst = yes
-
     @createAvatarView @getData().getOwner()
-    @createTitle text, titleFirst
+    @createTitle()
     @createButtons()
 
 
-  createTitle: (text, prepend) ->
+  createTitle: ->
+
+    prepend = @isApproved
+
+    titleKey = if @isApproved
+    then 'approved'
+    else @getOption 'type'
 
     view = new KDCustomHTMLView
       tagName  : 'p'
       cssClass : 'title'
-      partial  : text
+      partial  : TITLES[titleKey]
 
     @addSubView view, null, prepend
 
@@ -213,3 +212,9 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
     @overlay?.destroy()
 
     super
+
+
+  TITLES =
+    'shared machine' : 'wants to share their VM with you.'
+    'collaboration'  : 'wants to collaborate with you on their VM.'
+    'approved'       : 'Shared with you by'
