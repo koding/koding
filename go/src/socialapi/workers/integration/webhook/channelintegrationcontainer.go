@@ -16,6 +16,10 @@ func NewChannelIntegrationContainer(ci *ChannelIntegration) *ChannelIntegrationC
 }
 
 func (cic *ChannelIntegrationContainer) Populate() error {
+	if cic.ChannelIntegration == nil {
+		return ErrChannelIntegrationNotFound
+	}
+
 	ci := cic.ChannelIntegration
 	c, err := models.Cache.Channel.ById(ci.ChannelId)
 	if err != nil {
