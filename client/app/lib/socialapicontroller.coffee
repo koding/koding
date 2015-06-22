@@ -873,4 +873,14 @@ module.exports = class SocialApiController extends KDController
 
         return callback null, response.data
 
+    regenerateToken : (options, callback) ->
+
+      doXhrRequest
+        endPoint : "/api/integration/channelintegration/token"
+        type     : 'POST'
+        data     : options
+      , (err, response) ->
+        return callback err  if err
+
+        return callback null, response.data
 
