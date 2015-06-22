@@ -35,8 +35,8 @@ module.exports = class ThrobberView extends KDView
 
     { placementX, placementY, tooltipText, tooltipPlacement } = @getOptions()
 
-    @addSubView new KDView { cssClass: 'throbber-outer-circle' }
-    @addSubView new KDView { cssClass: 'throbber-inner-circle' }
+    @addSubView throbberMarker = new KDView { cssClass: 'throbber-marker' }
+    throbberMarker.addSubView throbberRays = new KDView { cssClass: 'throbber-rays' }
 
     if tooltipPlacement is 'auto' or not tooltipPlacement
       tooltipPlacement = if placementX is 'left' then 'left' else 'right'

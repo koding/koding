@@ -1425,76 +1425,76 @@ a.action-link.verify-email
 
 // onboarding throbbers
 .throbber
-  width                   50px
-  height                  50px
-  position                absolute
   z-index                 1000
+  display                 block
+  position                absolute
 
   &.modal-throbber
     z-index               10001
 
-  .throbber-outer-circle
-    width                 40px
-    height                40px
-    border-radius         50%
-    border                2px solid
-    border-color          #00ab51
-    box-sizing            border-box
-    background            transparent
-    position              absolute
-    top                   5px
-    left                  5px
-    -webkit-animation     throbber-outer-animation ease .75s alternate infinite
-    -moz-animation        throbber-outer-animation ease .75s alternate infinite
-    animation             throbber-outer-animation ease .75s alternate infinite
+  .throbber-marker
+    width                 8px
+    height                8px
+    background            #00ab51
+    border-radius         4px
 
-  .throbber-inner-circle
-    width                 26px
-    height                26px
-    border-radius         50%
-    background-color      #00ab51
-    top                   12px
-    left                  12px
-    opacity               0.5
+  .throbber-rays
+    margin                0 auto
+    position              absolute
+    right                 -7px
+    top                   -7px
+    background-color      transparent
+    opacity               0.1
+    width                 18px
+    height                18px
+    border                2px solid rgba(0, 128, 64, 1)
+    -webkit-border-radius 10px
+    -moz-border-radius    10px
+    -o-border-radius      10px
+    -ms-border-radius     10px
+    border-radius         10px
+    -webkit-animation     throbber-pulse-animation 2s linear infinite
+    -moz-animation        throbber-pulse-animation 2s linear infinite
+    border-image          initial
 
   &.green
 
-    .throbber-outer-circle
+    .throbber-rays
       border-color        #00ab51
 
-    .throbber-inner-circle
+    .throbber-marker
       background          #00ab51
 
   &.red
 
-    .throbber-outer-circle
+    .throbber-rays
       border-color        #ff6a58
 
-    .throbber-inner-circle
+    .throbber-marker
       background          #ff6a58
 
   &.blue
 
-    .throbber-outer-circle
+    .throbber-rays
       border-color        #4c9fff
 
-    .throbber-inner-circle
+    .throbber-marker
       background          #4c9fff
 
   &.yellow
 
-    .throbber-outer-circle
+    .throbber-rays
       border-color        #f9e900
 
-    .throbber-inner-circle
+    .throbber-marker
       background          #f9e900
 
   &.gray
 
-    .throbber-outer-circle
+    .throbber-rays
       border-color        #7f7f81
 
-    .throbber-inner-circle
+    .throbber-marker
       background          #7f7f81
 
 .throbber-tooltip
