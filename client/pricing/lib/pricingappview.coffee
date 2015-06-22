@@ -179,10 +179,11 @@ module.exports = class PricingAppView extends KDView
       @state.currentPlan         = planTitle
       @state.subscriptionState   = state
       @state.currentPlanInterval = planInterval
+      @state.planInterval        = if planTitle is 'free' then 'year' else planInterval
 
       @plans.setState @state
 
-      @selectIntervalToggle planInterval
+      @handleToggleChanged planInterval: @state.planInterval
 
       callback()
 

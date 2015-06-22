@@ -5,6 +5,7 @@
   "dependencies": {
     "@koding/getscript": "0.1.0",
     "@koding/inherits-underscore": "0.2.0",
+    "@koding/kd-react": "git+ssh://git@github.com/koding/kd-react.git#0.1.2",
     "accounting": "0.4.1",
     "backoff": "2.4.1",
     "bluebird": "2.8.2",
@@ -55,7 +56,8 @@
     "algoliasearch": "kd-shim-algoliasearch",
     "underscore": "lodash",
     "sockjs-client": "kd-shim-sockjs-client",
-    "os": "component-os"
+    "os": "component-os",
+    "kd-react": "@koding/kd-react"
   },
   "devDependencies": {
     "chokidar": "1.0.1",
@@ -63,7 +65,7 @@
     "coffee-script": "1.8.0",
     "express": "4.12.3",
     "mocha": "2.2.4",
-    "nightwatch": "0.5.36",
+    "nightwatch": "0.6.15",
     "socket.io": "1.3.5",
     "yargs": "3.5.4"
   }

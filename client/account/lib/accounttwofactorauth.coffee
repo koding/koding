@@ -1,13 +1,13 @@
 kd     = require 'kd'
-JView  = require 'app/jview'
 whoami = require 'app/util/whoami'
 
 
 module.exports = class AccountTwoFactorAuth extends kd.View
 
-  JView.mixin @prototype
-
   constructor: (options = {}, data) ->
+
+    options.cssClass = kd.utils.curry \
+      'AppModal--account tfauth', options.cssClass
 
     super options, data
 
@@ -22,9 +22,9 @@ module.exports = class AccountTwoFactorAuth extends kd.View
     console.warn err
 
     new kd.NotificationView
-      type      : 'mini'
-      title     : err.message
-      cssClass  : 'error'
+      type     : 'mini'
+      title    : err.message
+      cssClass : 'error'
 
     return err
 
@@ -35,75 +35,101 @@ module.exports = class AccountTwoFactorAuth extends kd.View
 
     @addSubView loader = @getLoaderView()
 
-    me = whoami()
-    me.generate2FactorAuthKey (err, authInfo) =>
+    kd.singletons.mainController.ready =>
+      me = whoami()
+      me.generate2FactorAuthKey (err, authInfo) =>
 
-      loader.hide()
+        loader.hide()
 
-      if err
-        if err.name is 'ALREADY_INUSE'
-          @addSubView @getEnabledView()
-          return
-        return @showError err
+        if err
+          if err.name is 'ALREADY_INUSE'
+            @addSubView @getEnabledView()
+            return
+          return @showError err
 
+        {key, qrcode} = authInfo
+        @_activeKey   = key
 
-      {key, qrcode} = authInfo
-      @addSubView @getInstructionsView key
-      @addSubView @getQrCodeView qrcode
-      @addSubView @getFormView key
+        @addSubView @getInstructionsView()
+        @addSubView @getQrCodeView qrcode
+        @addSubView @getFormView()
 
 
   getEnabledView: ->
 
     @addSubView new kd.CustomHTMLView
-      partial: 'You are using 2-Factor auth now'
+      cssClass  : 'enabled-intro'
+      partial   : "
+        <div>
+          2-Factor Authentication is <green>active</green> for your account.
+          <cite></cite>
+        </div>
+        #{@getLearnLink()}
+      "
 
-    @addSubView password = new kd.InputView
-      name          : 'password'
-      type          : 'password'
-      placeholder   : 'Current Password'
+    @addSubView inputForm  = new kd.FormViewWithFields
+      cssClass             : 'AppModal-form'
+      fields               :
+        password           :
+          cssClass         : 'Formline--half'
+          placeholder      : 'Enter your Koding password'
+          name             : 'password'
+          type             : 'password'
+          label            : 'Password'
+        button             :
+          label            : '&nbsp;'
+          cssClass         : 'Formline--half'
+          itemClass        : kd.ButtonView
+          title            : 'Disable 2-Factor Auth'
+          style            : 'solid medium disable-tf'
+          callback         : =>
+
+            { password }   = inputForm.inputs
+
+            options        =
+              password     : password.getValue()
+              disable      : yes
+
+            me = whoami()
+            me.setup2FactorAuth options, (err) =>
+
+              return  if @showError err
+
+              new kd.NotificationView
+                title      : 'Successfully Disabled!'
+                type       : 'mini'
+
+              @buildInitialView()
+
+
+  getFormView: ->
+
+    @addSubView inputForm  = new kd.FormViewWithFields
+      cssClass             : 'AppModal-form'
+      fields               :
+        password           :
+          cssClass         : 'Formline--half'
+          placeholder      : 'Enter your Koding password'
+          name             : 'password'
+          type             : 'password'
+          label            : 'Password'
+        tfcode             :
+          cssClass         : 'Formline--half'
+          placeholder      : 'Enter the verification code'
+          name             : 'tfcode'
+          label            : 'Verification Code'
+
+    { password, tfcode } = inputForm.inputs
 
     @addSubView new kd.ButtonView
-      title         : 'Disable 2-Factor Auth'
-      callback      : =>
+      title            : 'Enable 2-Factor Auth'
+      style            : 'solid green small enable-tf'
+      callback         : =>
 
-        options     =
-          password  : password.getValue()
-          disable   : yes
-
-        me = whoami()
-        me.setup2FactorAuth options, (err) =>
-
-          return  if @showError err
-
-          new kd.NotificationView
-            title : 'Successfully Disabled!'
-            type  : 'mini'
-
-          @buildInitialView()
-
-
-  getFormView: (key) ->
-
-    @addSubView password = new kd.InputView
-      name          : 'password'
-      type          : 'password'
-      placeholder   : 'Current Password'
-
-    @addSubView tfcode = new kd.InputView
-      name          : 'tfcode'
-      placeholder   : '2factor verification code'
-
-    @addSubView new kd.ButtonView
-      title         : 'Enable 2-Factor Auth'
-      callback      : =>
-
-        options = {
-          key,
+        options        =
+          key          : @_activeKey
           password     : password.getValue()
           verification : tfcode.getValue()
-        }
-
 
         me = whoami()
         me.setup2FactorAuth options, (err) =>
@@ -118,38 +144,72 @@ module.exports = class AccountTwoFactorAuth extends kd.View
 
 
   getQrCodeView: (url) ->
-    new kd.CustomHTMLView
+
+    view = new kd.CustomHTMLView
+      cssClass   : 'qrcode-view'
+
+    view.addSubView imageView = new kd.CustomHTMLView
       tagName    : 'img'
-      attributes :
-        src      : url
+      attributes : src: url
+
+    view.addSubView button = new kd.ButtonView
+      iconOnly   : yes
+      icon       : 'reload'
+      loader     :
+        color    : '#000000'
+        size     :
+          width  : 20
+          height : 20
+      callback   : =>
+
+        me = whoami()
+        me.generate2FactorAuthKey (err, authInfo) =>
+
+          @showError err
+
+          if authInfo
+            @_activeKey = authInfo.key
+            imageView.setAttribute 'src', authInfo.qrcode
+
+          kd.utils.defer button.bound 'hideLoader'
+
+    return view
+
 
   getLoaderView: ->
+
     new kd.LoaderView
+      cssClass   : 'main-loader'
       showLoader : yes
       size       :
         width    : 40
         height   : 40
 
-  getInstructionsView: (key) ->
+  getLearnLink: ->
+    "
+      <a class='learn-link' href='https://learn.koding.com/guides/2-factor-auth/' target=_blank>
+      Learn more about 2-factor authentication.</a>
+    "
+
+  getInstructionsView: ->
+
     new kd.CustomHTMLView
-      partial: """
-        <p>Download and Install the Google Authenticator app on your phone.</p>
+      cssClass : 'instructions'
+      partial  : """
+        <div class='intro'>
+          <cite></cite>
+          Download and install the Google Authenticator app on your
+          <a href='https://goo.gl/x01UdJ' target=_blank>iPhone</a> or
+          <a href='https://goo.gl/Oe5t7l' target=_blank>Android</a> phone.
+          Then follow the steps listed below to set up 2-factor authentication
+          for your Koding account. <br />
+          #{@getLearnLink()}
+        </div>
 
-        <p>
-          <a href="https://itunes.apple.com/en/app/google-authenticator/id388497605?mt=8" target=_blank>Authenticator for iOS Devices</a>
-          iPhone, iPod Touch, or iPad, available free in the Apple App store.
-        </p>
+        <li>Open the Authenticator app on your phone.
+        <li>Tap the “+" or “..." icon and then choose “Scan barcode" to add Koding.
+        <li>Scan the code shown below using your phone's camera.
+        <li>Enter the 6-digit verification code generated by the app in the space
+        below and click the “Enable” button.
 
-        <p>
-          <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&feature=search_result#?t=W251bGwsMSwyLDEsImNvbS5nb29nbGUuYW5kcm9pZC5hcHBzLmF1dGhlbnRpY2F0b3IyIl0." target=_blank>Authenticator for Android Devices</a>
-          Available free from the Google Play store.
-        </p>
-
-        <p>
-          <li>Launch the Google Authenticator app.</li>
-          <li>Click the pencil icon, top right</li>
-          <li>Click the + button</li>
-          <li>Scan the Barcode below and you'll get a verification code.</li>
-          <li>Or use this code for entering manually: #{key}</li>
-        </p>
       """
