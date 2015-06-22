@@ -187,7 +187,7 @@ module.exports = class AccountTwoFactorAuth extends kd.View
 
   getLearnLink: ->
     "
-      <a class='learn-link' href='https://learn.koding.com' target=_blank>
+      <a class='learn-link' href='https://learn.koding.com/guides/2-factor-auth/' target=_blank>
       Learn more about 2-factor authentication.</a>
     "
 

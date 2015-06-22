@@ -27,13 +27,14 @@ remove = (child) ->
   monitors[id] = null
 
 
-add = (child) ->
+add = (child, callback) ->
 
   childs[child.pid] = Date.now()
 
   child.stdout.on 'data', do (child) ->
     return _.debounce ->
       childs[child.pid] = Date.now()
+      callback()
     , 10000
 
   child.on 'exit', do (child) ->
