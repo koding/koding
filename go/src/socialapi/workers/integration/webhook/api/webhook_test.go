@@ -582,11 +582,11 @@ func TestWebhookGetChannelIntegration(t *testing.T) {
 				sr, srOk := res.(*response.SuccessResponse)
 				So(srOk, ShouldBeTrue)
 
-				newCi, ok := sr.Data.(*webhook.ChannelIntegration)
+				newCi, ok := sr.Data.(*webhook.ChannelIntegrationContainer)
 				So(ok, ShouldBeTrue)
 
 				So(newCi, ShouldNotBeNil)
-				So(newCi.Id, ShouldEqual, ci.Id)
+				So(newCi.ChannelIntegration.Id, ShouldEqual, ci.Id)
 			})
 
 		})
