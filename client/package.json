@@ -5,12 +5,12 @@
   "dependencies": {
     "@koding/getscript": "0.1.0",
     "@koding/inherits-underscore": "0.2.0",
+    "@koding/kd-react": "git+ssh://git@github.com/koding/kd-react.git#0.1.2",
     "accounting": "0.4.1",
     "backoff": "2.4.1",
     "bluebird": "2.8.2",
     "bongo-client": "git+ssh://git@github.com:koding/bongo-client#v0.2.5",
     "broker-client": "git+ssh://git@github.com:koding/broker-client#v0.3.1",
-    "kd-react": "git+ssh://git@github.com:koding/kd-react#0.1.2",
     "component-os": "0.0.1",
     "convert-source-map": "1.1.0",
     "dateformat": "1.0.11",
