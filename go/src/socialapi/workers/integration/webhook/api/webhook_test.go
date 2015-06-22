@@ -502,10 +502,12 @@ func TestWebhookRegenerateToken(t *testing.T) {
 				c.Client = &models.Client{Account: acc}
 				c.GroupName = models.RandomGroupName()
 
+				testCi := webhook.NewChannelIntegration()
+				testCi.Id = ci.Id
 				s, _, _, err := h.RegenerateToken(
 					mocking.URL(m, "POST", "/channelintegration/token"),
 					mocking.Header(nil),
-					ci,
+					testCi,
 					c,
 				)
 				So(err.Error(), ShouldEqual, ErrInvalidGroup.Error())
@@ -518,10 +520,12 @@ func TestWebhookRegenerateToken(t *testing.T) {
 				c.Client = &models.Client{Account: acc}
 				c.GroupName = groupName
 
+				testCi := webhook.NewChannelIntegration()
+				testCi.Id = ci.Id
 				s, _, res, err := h.RegenerateToken(
 					mocking.URL(m, "POST", "/channelintegration/create"),
 					mocking.Header(nil),
-					ci,
+					testCi,
 					c,
 				)
 
