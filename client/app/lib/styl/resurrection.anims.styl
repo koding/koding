@@ -20,14 +20,6 @@
     -moz-transform translateZ(-60px) rotateX(40deg)
     opacity           .5
 
-@keyframes pulse
-  0%
-    opacity .5
-  50%
-    opacity 1
-  100%
-    opacity .5
-
 @keyframes explode
   100%
     opacity 0
@@ -191,9 +183,8 @@
   100%
     bg                     position, 100% 0
 
-/* throbber animation */
-
-@keyframes throbber-pulse-animation
+/* pulse animation */
+@keyframes pulse
   0%
     -webkit-transform scale(0)
     opacity 0
@@ -210,7 +201,7 @@
     opacity 0
     -webkit-transform scale(1)
 
-@-webkit-keyframes throbber-pulse-animation
+@-webkit-keyframes pulse
   0%
     -webkit-transform scale(0)
     opacity 0
@@ -227,7 +218,7 @@
     opacity 0
     -webkit-transform scale(1)
 
-@-moz-keyframes throbber-pulse-animation
+@-moz-keyframes pulse
   0%
     -moz-transform scale(0)
     opacity 0
