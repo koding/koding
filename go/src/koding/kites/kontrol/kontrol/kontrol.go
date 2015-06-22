@@ -61,6 +61,7 @@ func New(c *Config) *kontrol.Kontrol {
 
 		kon.SetStorage(p)
 		kon.SetKeyPairStorage(p)
+		kon.MachineKeyPicker = newMachineKeyPicker(p)
 	default:
 		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
 	}
@@ -72,6 +73,12 @@ func New(c *Config) *kontrol.Kontrol {
 	}
 
 	return kon
+}
+
+func newMachineKeyPicker(pg *kontrol.Postgres) func(*kite.Request) (*kontrol.KeyPair, error) {
+	return func(r *kite.Request) (*kontrol.KeyPair, error) {
+		return nil, errors.New("not implemented yet")
+	}
 }
 
 func authenticateFromSessionID(r *kite.Request) error {
