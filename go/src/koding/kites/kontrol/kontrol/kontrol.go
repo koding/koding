@@ -61,7 +61,7 @@ func New(c *Config) *kontrol.Kontrol {
 
 		kon.SetStorage(p)
 		kon.SetKeyPairStorage(p)
-		kon.MachineKeyPicker = newMachineKeyPicker(p)
+		// kon.MachineKeyPicker = newMachineKeyPicker(p)
 	default:
 		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
 	}
@@ -75,11 +75,31 @@ func New(c *Config) *kontrol.Kontrol {
 	return kon
 }
 
-func newMachineKeyPicker(pg *kontrol.Postgres) func(*kite.Request) (*kontrol.KeyPair, error) {
-	return func(r *kite.Request) (*kontrol.KeyPair, error) {
-		return nil, errors.New("not implemented yet")
-	}
-}
+// func newMachineKeyPicker(pg *kontrol.Postgres) func(*kite.Request) (*kontrol.KeyPair, error) {
+// 	return func(r *kite.Request) (*kontrol.KeyPair, error) {
+// 		psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+// 		sqlQuery, args, err := psql.
+// 			Select("id", "public", "private").
+// 			From("kite.key").
+// 			Where(map[string]interface{}{
+// 			"deleted_at": nil,
+// 		}).ToSql()
+// 		if err != nil {
+// 			return nil, err
+// 		}
+//
+// 		keyPair := &KeyPair{}
+// 		err = p.DB.QueryRow(sqlQuery, args...).Scan(&keyPair.ID, &keyPair.Public, &keyPair.Private)
+// 		if err != nil {
+// 			if err == sql.ErrNoRows {
+// 				return nil, ErrNoKeyFound
+// 			}
+// 			return nil, err
+// 		}
+//
+// 		return keyPair, nil
+// 	}
+// }
 
 func authenticateFromSessionID(r *kite.Request) error {
 	username, err := findUsernameFromSessionID(r.Auth.Key)
