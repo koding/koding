@@ -117,7 +117,8 @@ func (r *RedisStorage) GetFromScore(key string, from float64) ([]string, error) 
 }
 
 func (r *RedisStorage) SaveUserLimit(member string, limit float64) error {
-	return r.Client.HashSet(r.userLimitPrefix(), member, limit)
+	_, err := r.Client.HashSet(r.userLimitPrefix(), member, limit)
+	return err
 }
 
 func (r *RedisStorage) GetUserLimit(member string) (float64, error) {
