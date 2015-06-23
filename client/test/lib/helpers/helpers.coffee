@@ -39,7 +39,7 @@ module.exports =
   attemptLogin: (browser, user) ->
 
     browser
-      .waitForElementVisible  '[testpath=main-header]', 50000
+      .waitForElementVisible  '[testpath=main-header] hello', 50000
       .click                  'nav:not(.mobile-menu) [testpath=login-link]'
       .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '[testpath=login-form-username]', user.username
