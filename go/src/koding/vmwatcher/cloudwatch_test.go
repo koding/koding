@@ -1,61 +1,153 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCloudwatch(t *testing.T) {
-	// Convey("Given a vm", t, func() {
-	//   machine, err := insertRunningMachine()
-	//   So(err, ShouldBeNil)
+func TestCloudwatchFree(t *testing.T) {
+	Convey("", t, func() {
+		url, server := buildPaymentServer("free")
+		PlanUrl = url
 
-	//   Convey("Then it should save cloudwatch data", func() {
-	//     c := Cloudwatch{Name: NetworkOut}
-	//     err := c.GetAndSaveData(machine.Credential)
+		defer server.Close()
 
-	//     So(err, ShouldBeNil)
-	//   })
+		username := "indianajones"
+		_, _, err := modeltesthelper.CreateUser(username)
+		So(err, ShouldBeNil)
 
-	//   Reset(func() {
-	//     removeMachine(machine)
-	//   })
-	// })
+		defer removeUser(username)
 
-	Convey("Given user", t, func() {
-		var networkOutMetric, username = metricsToSave[0], "indianajones"
+		var networkOutMetric = metricsToSave[0]
 
-		Convey("When user is overlimit", func() {
-			Convey("Then it should save value", func() {
-				var value float64 = NetworkOutLimit * PaidPlanMultiplier * 2
+		Convey("When user is overlimit than free plan", func() {
+			var value float64 = NetworkOutLimit * PaidPlanMultiplier * 2
 
-				err := networkOutMetric.Save(username, value)
+			err := networkOutMetric.Save(username, value)
+			So(err, ShouldBeNil)
+
+			Convey("Then they can't start their machine", func() {
+				lr, err := networkOutMetric.IsUserOverLimit(username, StopLimitKey)
 				So(err, ShouldBeNil)
 
-				Convey("Then it return if user is overlimit", func() {
-					lr, err := networkOutMetric.IsUserOverLimit(username)
-					So(err, ShouldBeNil)
-
-					So(lr.CanStart, ShouldBeFalse)
-				})
+				So(lr.CanStart, ShouldBeFalse)
 			})
 		})
 
-		Convey("When user is underlimit", func() {
-			Convey("Then it should save value", func() {
-				var value float64 = NetworkOutLimit - 100
+		Convey("When user is underlimit than free plan", func() {
+			var value float64 = NetworkOutLimit - 100
 
-				err := networkOutMetric.Save(username, value)
+			err := networkOutMetric.Save(username, value)
+			So(err, ShouldBeNil)
+
+			Convey("Then they can start their machine", func() {
+				lr, err := networkOutMetric.IsUserOverLimit(username, StopLimitKey)
 				So(err, ShouldBeNil)
 
-				Convey("Then it return if user is overlimit", func() {
-					lr, err := networkOutMetric.IsUserOverLimit(username)
-					So(err, ShouldBeNil)
-
-					So(lr.CanStart, ShouldBeTrue)
-				})
+				So(lr.CanStart, ShouldBeTrue)
 			})
 		})
 	})
+}
+
+func TestCloudwatchPaid(t *testing.T) {
+	Convey("", t, func() {
+		url, server := buildPaymentServer("hobbyist")
+		PlanUrl = url
+
+		defer server.Close()
+
+		username := "indianajones"
+		_, _, err := modeltesthelper.CreateUser(username)
+		So(err, ShouldBeNil)
+
+		defer removeUser(username)
+		var networkOutMetric = metricsToSave[0]
+
+		Convey("When user is overlimit than paid plan", func() {
+			var value float64 = NetworkOutLimit * PaidPlanMultiplier * 2
+
+			err := networkOutMetric.Save(username, value)
+			So(err, ShouldBeNil)
+
+			Convey("Then they can't start their machine", func() {
+				lr, err := networkOutMetric.IsUserOverLimit(username, StopLimitKey)
+				So(err, ShouldBeNil)
+
+				So(lr.CanStart, ShouldBeFalse)
+			})
+		})
+
+		Convey("When user is underlimit than free plan", func() {
+			var value float64 = (NetworkOutLimit * PaidPlanMultiplier) - 100
+
+			err := networkOutMetric.Save(username, value)
+			So(err, ShouldBeNil)
+
+			Convey("Then they can start their machine", func() {
+				lr, err := networkOutMetric.IsUserOverLimit(username, StopLimitKey)
+				So(err, ShouldBeNil)
+
+				So(lr.CanStart, ShouldBeTrue)
+			})
+		})
+	})
+}
+
+func TestCloudwatchPerUser(t *testing.T) {
+	Convey("", t, func() {
+		url, server := buildPaymentServer("free")
+		PlanUrl = url
+
+		defer server.Close()
+
+		username := "indianajones"
+		_, _, err := modeltesthelper.CreateUser(username)
+		So(err, ShouldBeNil)
+
+		defer removeUser(username)
+
+		var networkOutMetric = metricsToSave[0]
+
+		Convey("When user is overlimit than their specified limit", func() {
+			var value float64 = NetworkOutLimit
+
+			err := networkOutMetric.Save(username, value)
+			So(err, ShouldBeNil)
+
+			err = saveUserLimit(username, value-1)
+			So(err, ShouldBeNil)
+
+			Convey("Then they can't start their machine", func() {
+				lr, err := networkOutMetric.IsUserOverLimit(username, StopLimitKey)
+				So(err, ShouldBeNil)
+
+				So(lr.CanStart, ShouldBeFalse)
+			})
+		})
+
+		Convey("When user is underlimit than their specified limit", func() {
+			var value float64 = NetworkOutLimit
+
+			err := networkOutMetric.Save(username, value)
+			So(err, ShouldBeNil)
+
+			err = saveUserLimit(username, value+1)
+			So(err, ShouldBeNil)
+
+			Convey("Then they can start their machine", func() {
+				lr, err := networkOutMetric.IsUserOverLimit(username, StopLimitKey)
+				So(err, ShouldBeNil)
+
+				So(lr.CanStart, ShouldBeTrue)
+			})
+		})
+	})
+}
+
+func removeUser(username string) {
+	modeltesthelper.DeleteUsersByUsername(username)
+	storage.RemoveUserLimit(username)
 }
