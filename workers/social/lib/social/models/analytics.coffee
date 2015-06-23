@@ -17,6 +17,6 @@ module.exports = class Analytics
 
   @addDefaults = (opts) ->
     opts["env"]      = KONFIG.environment
-    opts["hostname"] = KONFIG.publicHostname
+    opts["hostname"] = KONFIG.hostname
 
     opts

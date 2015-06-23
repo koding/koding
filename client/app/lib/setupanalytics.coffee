@@ -1,6 +1,6 @@
+kd          = require 'kd'
+globals     = require 'globals'
 isLoggedIn = require './util/isLoggedIn'
-kd = require 'kd'
-globals = require 'globals'
 
 setupIdentify = ->
 
@@ -43,6 +43,7 @@ identifyUser = (account)->
         foreignAuth    : providers      if Object.keys(providers).length > 0
         sshKeysCount   : sshKeys.length if sshKeys?.length > 0
         userAgent      : navigator.userAgent
+        env            : globals.config.environment
 
       analytics?.identify nickname, args
 
@@ -61,9 +62,9 @@ setupRollbar = ->
 
   Rollbar?.configure
     payload: client: javascript:
-      source_map_enabled: true
-      code_version: globals.config.version
+      source_map_enabled:    true
       guess_uncaught_frames: true
+      code_version:          globals.config.version
 
 module.exports = ->
 

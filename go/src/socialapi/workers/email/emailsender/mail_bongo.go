@@ -61,5 +61,5 @@ func (m *Mail) SetOption(key string, value interface{}) {
 		m.Properties.Options = NewPropertiesOptions()
 	}
 
-	m.Properties.Options["subject"] = m.Subject
+	m.Properties.Options[key] = value
 }
