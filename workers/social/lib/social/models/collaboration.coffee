@@ -3,6 +3,8 @@
 google       = require 'googleapis'
 google_utils = require 'koding-googleapis'
 
+{notifyByUsernames} = require './notify'
+
 JMachine   = require './computeproviders/machine'
 JWorkspace = require './workspace'
 
