@@ -235,21 +235,6 @@ func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interf
 	}
 	cic.Integration = i
 
-	fetchOptions := u.Query().Get("fetchOptions")
-	optionsEnabled, _ := strconv.ParseBool(fetchOptions)
-
-	if !optionsEnabled {
-		return response.NewOK(response.NewSuccessResponse(cic))
-	}
-
-	cookie := header.Get("Cookie")
-	options, err := ci.FetchOptions(cookie, h.rootPath)
-	if err == nil {
-		ci.Options = options
-	} else {
-		h.log.Error("Could not get optional fields: %s", err)
-	}
-
 	return response.NewOK(response.NewSuccessResponse(cic))
 }
 
