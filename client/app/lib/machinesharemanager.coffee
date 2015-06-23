@@ -9,6 +9,8 @@ module.exports = class MachineShareManager extends kd.Object
     @registry = {}
     @callbacks = {}
 
+    @bindEvents()
+
 
   get: (uid) ->  @registry[uid]
 
@@ -34,3 +36,8 @@ module.exports = class MachineShareManager extends kd.Object
 
     index = @callbacks[uid]?.indexOf callback
     @callbacks[uid].splice index, 1  if index > -1
+
+
+  bindEvents: ->
+
+    kd.singletons.notificationController
