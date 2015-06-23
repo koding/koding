@@ -1,5 +1,7 @@
 bongo = require 'bongo'
 
+{secure} = bongo
+
 JMachine = require './computeproviders/machine'
 
 
