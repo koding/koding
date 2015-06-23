@@ -1297,7 +1297,7 @@ module.exports = class JUser extends jraphical.Module
         # uses 'HS256' as default for signing
         token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
 
-        Analytics.identify username, { jwtToken: token }
+        Analytics.identify username, { jwtToken: token, email: email }
         Analytics.track username, 'registered'
     ]
 
