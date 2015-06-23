@@ -41,3 +41,10 @@ module.exports = class MachineShareManager extends kd.Object
   bindEvents: ->
 
     kd.singletons.notificationController
+
+      .on 'SharedMachineInvitation', @bound 'handleSharedMachineInvitation'
+
+
+  handleSharedMachineInvitation: (data) ->
+
+    @set data.uid, type: 'shared machine'
