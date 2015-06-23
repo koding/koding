@@ -3,7 +3,8 @@
 google       = require 'googleapis'
 google_utils = require 'koding-googleapis'
 
-JMachine = require './computeproviders/machine'
+JMachine   = require './computeproviders/machine'
+JWorkspace = require './workspace'
 
 
 module.exports = class Collaboration extends Base
@@ -64,3 +65,14 @@ module.exports = class Collaboration extends Base
       if (Date.now() - lastSeen.getTime()) > timeout
       then unshareMachine workspace, callback
       else callback 'host is alive'
+
+
+  setUsers = (client, workspaceId, options, callback) ->
+
+    JWorkspace.one _id: workspaceId, (err, workspace) ->
+
+      return callback err  if err
+      return callback 'Workspace is not found'  unless workspace
+
+      options.permanent = no
+      JMachine.shareByUId client, workspace.machineUId, options, callback
