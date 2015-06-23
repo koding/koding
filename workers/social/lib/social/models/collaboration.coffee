@@ -67,6 +67,13 @@ module.exports = class Collaboration extends Base
       else callback 'host is alive'
 
 
+  @add = secure (client, workspaceId, target, callback) ->
+
+    asUser  = yes
+    options = {target, asUser}
+    setUsers client, workspaceId, options, callback
+
+
   setUsers = (client, workspaceId, options, callback) ->
 
     JWorkspace.one _id: workspaceId, (err, workspace) ->
