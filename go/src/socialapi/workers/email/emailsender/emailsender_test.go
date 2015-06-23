@@ -2,6 +2,7 @@ package emailsender
 
 import (
 	"testing"
+	"socialapi/config"
 
 	"github.com/koding/eventexporter"
 	"github.com/koding/runner"
