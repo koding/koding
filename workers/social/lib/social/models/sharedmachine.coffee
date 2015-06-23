@@ -17,6 +17,13 @@ module.exports = class SharedMachine extends bongo.Base
     setUsers client, uid, options, callback
 
 
+  @kick = secure (client, uid, target, callback) ->
+
+    asUser  = no
+    options = {target, asUser}
+    setUsers client, uid, options, callback
+
+
   setUsers = (client, uid, options, callback) ->
 
     options.permanent = yes
