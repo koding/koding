@@ -21,7 +21,9 @@ sidebarTextShadow()
 
 #main-sidebar
 
-  size            sidebarWidth 100%
+  // + 1 is required for devices which has decimal point
+  // devicePixelRatio (e.g 1.25 on samsung chromebook).
+  size            (sidebarWidth + 1) 100%
   z-index         100
   bg              color #323232
   top             0
@@ -729,7 +731,7 @@ sidebarTextShadow()
     .avatarview
       margin-right    14px
       fl()
-      
+
       cite.staff
         hidden()
 
