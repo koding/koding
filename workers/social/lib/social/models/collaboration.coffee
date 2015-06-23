@@ -75,7 +75,13 @@ module.exports = class Collaboration extends Base
 
     asUser  = yes
     options = {target, asUser}
-    setUsers client, workspaceId, options, callback
+    setUsers client, workspaceId, options, (err, machine) ->
+      callback err
+
+      machineUId = machine.uid
+      data =  {machineUId, workspaceId}
+
+      notifyByUsernames options.target, 'CollaborationInvitation', data
 
 
   @kick = secure (client, workspaceId, target, callback) ->
