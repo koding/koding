@@ -14,6 +14,7 @@ module.exports = class Collaboration extends Base
     sharedMethods :
       static      :
         stop      : (signature String, Object, Function)
+        add       : (signature String, Object, Function)
 
 
   drive = null
