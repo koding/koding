@@ -1,8 +1,14 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"labix.org/v2/mgo"
@@ -22,12 +28,8 @@ func init() {
 }
 
 func TestRunningMachine(t *testing.T) {
-	var machine *models.Machine
-
 	Convey("Given running machine", t, func() {
-		var err error
-
-		machine, err = insertRunningMachine()
+		machine, err := insertRunningMachine()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return the machine", func() {
@@ -38,18 +40,14 @@ func TestRunningMachine(t *testing.T) {
 		})
 
 		Reset(func() {
-			removeUserMachine(testUsername)
+			removeUserMachine(machine.Credential)
 		})
 	})
 }
 
 func TestOverlimitMachines(t *testing.T) {
-	var machine *models.Machine
-
 	Convey("Given queued machine", t, func() {
-		var err error
-
-		machine, err = insertRunningMachine()
+		machine, err := insertRunningMachine()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should queue & pop the machine", func() {
@@ -64,23 +62,19 @@ func TestOverlimitMachines(t *testing.T) {
 		})
 
 		Reset(func() {
-			removeUserMachine(testUsername)
+			removeUserMachine(machine.Credential)
 		})
 	})
 }
 
 func TestStoppingMachines(t *testing.T) {
-	var machine *models.Machine
-
 	Convey("Given running machines that is over limit", t, func() {
-		var err error
-
-		machine, err = insertRunningMachine()
+		machine, err := insertRunningMachine()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return machine", func() {
 			networkOutMetric := metricsToSave[0]
-			err := storage.SaveScore(networkOutMetric.GetName(), testUsername, NetworkOutLimit*3)
+			err := storage.SaveScore(networkOutMetric.GetName(), machine.Credential, NetworkOutLimit*3)
 			So(err, ShouldBeNil)
 
 			for _, metric := range metricsToSave {
@@ -92,7 +86,7 @@ func TestStoppingMachines(t *testing.T) {
 		})
 
 		Reset(func() {
-			removeUserMachine(testUsername)
+			removeUserMachine(machine.Credential)
 		})
 	})
 }
@@ -102,29 +96,28 @@ func TestStoppingMachines(t *testing.T) {
 //----------------------------------------------------------
 
 func insertRunningMachine() (*models.Machine, error) {
-	user := &models.User{
-		Name: testUsername, ObjectId: bson.NewObjectId(),
+	user, err := modeltesthelper.CreateUserWithMachine("indianajones")
+	if err != nil {
+		return nil, err
 	}
 
-	users := []models.MachineUser{
-		models.MachineUser{
-			Id: user.ObjectId, Sudo: true,
-		},
+	machines, err := modelhelper.GetMachinesByUsername(user.Name)
+	if err != nil {
+		return nil, err
 	}
 
-	modelhelper.CreateUser(user)
-
-	machine := &models.Machine{
-		ObjectId:   bson.NewObjectId(),
-		Credential: user.Name,
-		Meta: map[string]string{
-			"instance_id": magicInstanceId, "region": usEastRegion,
-		},
-		Users:  users,
-		Status: models.MachineStatus{State: modelhelper.MachineStateRunning},
+	if len(machines) == 0 {
+		return nil, errors.New("no machines")
 	}
 
-	return machine, modelhelper.CreateMachine(machine)
+	for _, machine := range machines {
+		err := modelhelper.ChangeMachineState(machine.ObjectId, modelhelper.MachineStateRunning)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return machines[0], nil
 }
 
 func removeUserMachine(username string) {
@@ -134,5 +127,17 @@ func removeUserMachine(username string) {
 		return c.Remove(bson.M{"credential": username})
 	}
 
-	modelhelper.Mongo.Run(modelhelper.MachineColl, query)
+	modelhelper.Mongo.Run(modelhelper.MachinesColl, query)
+}
+
+func buildPaymentServer(planTitle string) (string, *httptest.Server) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, fmt.Sprintf(`{"planTitle":"%s"}`, planTitle))
+	})
+
+	server := httptest.NewServer(mux)
+	url, _ := url.Parse(server.URL)
+
+	return url.String(), server
 }

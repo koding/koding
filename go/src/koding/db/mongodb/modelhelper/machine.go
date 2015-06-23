@@ -233,6 +233,17 @@ func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 	return Mongo.Run(MachinesColl, query)
 }
 
+func ChangeMachineState(machineId bson.ObjectId, state string) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{"_id": machineId},
+			bson.M{"$set": bson.M{"status.state": state}},
+		)
+	}
+
+	return Mongo.Run(MachinesColl, query)
+}
+
 func CreateMachine(m *models.Machine) error {
 	query := func(c *mgo.Collection) error {
 		return c.Insert(m)
