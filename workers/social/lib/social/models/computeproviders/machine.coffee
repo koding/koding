@@ -700,3 +700,15 @@ module.exports = class JMachine extends Module
 
     @shareWith options, (err)->
       callback err
+
+
+  @shareByUId = secure (client, uid, options, callback) ->
+
+    JMachine.one {uid}, (err, machine) ->
+
+      return callback err  if err
+      return callback 'Machine is not found'  unless machine
+
+      machine.shareWith$ client, options, (err) ->
+
+        callback err, machine
