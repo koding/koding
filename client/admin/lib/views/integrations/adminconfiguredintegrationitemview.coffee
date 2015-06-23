@@ -1,4 +1,6 @@
 kd                       = require 'kd'
+remote                   = require('app/remote').getInstance()
+showError                = require 'app/util/showError'
 KDButtonView             = kd.ButtonView
 KDTimeAgoView            = kd.TimeAgoView
 KDCustomHTMLView         = kd.CustomHTMLView
@@ -10,33 +12,61 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
 
   createButton: (data) ->
 
-    @button = new KDButtonView
+    @button    = new KDButtonView
       cssClass : 'solid compact outline configure'
       title    : "#{data.channelIntegrations.length} Configured"
+      loader   : color: '#4a4e52', diameter: 16
       callback : =>
-        @toggleClass 'list-visible'
-        if @listView then @listView.toggleClass 'hidden' else @createList()
+        if @listView
+          @listView.toggleClass 'hidden'
+          @toggleClass 'list-visible'
+          @button.hideLoader()
+        else
+          @button.showLoader()
+          @createList()
 
 
   createList: ->
 
-    @listView = new KDCustomHTMLView cssClass: 'configured-list'
+    batch        = []
+    jAccounts    = {}
+    integrations = @getData().channelIntegrations
 
-    @getData().channelIntegrations.forEach (item) =>
-      @listView.addSubView subview = new kd.CustomHTMLView
-        cssClass : 'integration'
-        partial  : """
-          <p>posts to ##{item.channelId} channel</p>
-          <p class="by">added by #{item.creatorId}</p>
-        """
+    for item in integrations
+      batch.push constructorName: 'JAccount', id: item.accountOldId
 
-      subview.addSubView new KDTimeAgoView {}, item.createdAt
-      subview.addSubView new KDCustomHTMLView
-        cssClass : 'edit'
-        partial  : 'Customize <span></span>'
-        click    : => kd.log '..........'
+    remote.cacheable batch, (err, accounts) =>
+      if err
+        @button.hideLoader()
+        return showError err
 
-    @addSubView @listView
+      for account in accounts
+        jAccounts[account.getId()] = account
+
+      @listView = new KDCustomHTMLView cssClass: 'configured-list'
+
+      integrations.forEach (item) =>
+        @createSubItem item, jAccounts[item.accountOldId]
+        @addSubView @listView
+
+      @button.hideLoader()
+      @toggleClass 'list-visible'
+
+
+  createSubItem: (data, account) ->
+
+    @listView.addSubView subview = new KDCustomHTMLView
+      cssClass : 'integration'
+      partial  : """
+        <p>posts to ##{data.channel.name} channel</p>
+        <p class="by">added by #{account.profile.nickname}</p>
+      """
+
+    subview.addSubView new KDTimeAgoView {}, data.channelIntegration.createdAt
+    subview.addSubView new KDCustomHTMLView
+      cssClass : 'edit'
+      partial  : 'Customize <span></span>'
+      click    : => kd.log '..........'
 
 
   pistachio: ->
