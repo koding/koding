@@ -304,7 +304,7 @@ func TestKeys(t *testing.T) {
 }
 
 func TestHashSet(t *testing.T) {
-	err := session.HashSet("mayhem", "janice", "guitar")
+	_, err := session.HashSet("mayhem", "janice", "guitar")
 	if err != nil {
 		t.Errorf("Could create hash set: %v", err)
 		return
