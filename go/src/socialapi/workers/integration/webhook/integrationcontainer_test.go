@@ -37,7 +37,7 @@ func TestIntegrationContainersPopulate(t *testing.T) {
 			So(testInt.Name, ShouldEqual, integration.Name)
 			So(len((*ics)[0].ChannelIntegrations), ShouldEqual, 1)
 			testCi := (*ics)[0].ChannelIntegrations[0]
-			So(testCi.Id, ShouldEqual, ci.Id)
+			So(testCi.ChannelIntegration.Id, ShouldEqual, ci.Id)
 
 			// test for 2 channel integrations created from 1 integration
 			ci.Id = 0

@@ -303,6 +303,25 @@ func TestKeys(t *testing.T) {
 	session.Del("electricmayhem")
 }
 
+func TestHashSet(t *testing.T) {
+	_, err := session.HashSet("mayhem", "janice", "guitar")
+	if err != nil {
+		t.Errorf("Could create hash set: %v", err)
+		return
+	}
+	defer session.Del("mayhem")
+
+	reply, err := session.GetHashSetField("mayhem", "janice")
+	if err != nil {
+		t.Errorf("Could not get hash set length: %v", err)
+		return
+	}
+
+	if reply != "guitar" {
+		t.Errorf("Wrong hashset value of the element: %s", reply)
+	}
+}
+
 func TestHashMultipleSet(t *testing.T) {
 	item := map[string]interface{}{
 		"janice":  "guitar",

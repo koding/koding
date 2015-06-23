@@ -1,7 +1,7 @@
 box: koding/base@0.0.20
 no-response-timeout: 10
 services:
-  - wercker/postgresql@0.0.4
+  - userminddeployer/postgresql9.3@0.0.7-usermind-9.3-1
   - wercker/rabbitmq@1.0.1
   - wercker/redis@0.0.8
   - wercker/mongodb@1.0.1
@@ -140,6 +140,10 @@ build:
         name: test koding mongo models
         code: |
           go test ./go/src/koding/db/mongodb/modelhelper/*go
+    - script:
+        name: test vmwatcher
+        code: |
+          ./run vmwatchertests
     # - script:
     #     name: test koding kites
     #     code: |

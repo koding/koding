@@ -7,7 +7,10 @@ import (
 	"time"
 )
 
-var KloudTimeout = time.Second * 2
+var (
+	KloudTimeout  = time.Second * 2
+	DefaultReason = "NetworkOut limit reached"
+)
 
 // request arguments
 type requestArgs struct {
@@ -24,7 +27,7 @@ func stopVm(machineId, username, reason string) error {
 
 	_, err := controller.Klient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
 		MachineId: machineId,
-		Reason:    reason,
+		Reason:    DefaultReason,
 		Provider:  "koding",
 	})
 
@@ -39,7 +42,7 @@ func stopVm(machineId, username, reason string) error {
 }
 
 func blockUserAndDestroyVm(machineId, username, reason string) error {
-	err := modelhelper.BlockUser(username, reason, BlockDuration)
+	err := modelhelper.BlockUser(username, DefaultReason, BlockDuration)
 	if err != nil {
 		return err
 	}
