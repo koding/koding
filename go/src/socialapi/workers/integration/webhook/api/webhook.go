@@ -166,7 +166,7 @@ func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.Cha
 		return response.NewBadRequest(err)
 	}
 
-	if i.GroupName != ctx.GroupName {
+	if ci.GroupName != ctx.GroupName {
 		return response.NewBadRequest(ErrInvalidGroup)
 	}
 
