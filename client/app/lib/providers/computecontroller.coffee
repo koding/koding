@@ -520,8 +520,8 @@ module.exports = class ComputeController extends KDController
 
       # If the snapshot does not exist in mongo, remove it from
       # the machine after confirming with the user
-      askFor 'reinitNoSnapshot', =>
-        jMachine.removeSnapshot (err) =>
+      askFor 'reinitNoSnapshot', ->
+        jMachine.removeSnapshot (err) ->
           return kd.error  if err
           startReinit()
 
