@@ -81,18 +81,21 @@ func New(c *Config) *kontrol.Kontrol {
 // 		sqlQuery, args, err := psql.
 // 			Select("id", "public", "private").
 // 			From("kite.key").
-// 			Where(map[string]interface{}{
-// 			"deleted_at": nil,
-// 		}).ToSql()
+// 			Where(map[string]interface{}{"deleted_at": nil}).
+// 			OrderBy("created_at desc").
+// 			ToSql()
 // 		if err != nil {
 // 			return nil, err
 // 		}
 //
-// 		keyPair := &KeyPair{}
-// 		err = p.DB.QueryRow(sqlQuery, args...).Scan(&keyPair.ID, &keyPair.Public, &keyPair.Private)
+// 		fmt.Printf("sqlQuery = %+v\n", sqlQuery)
+// 		fmt.Printf("args = %+v\n", args)
+//
+// 		keyPair := &kontrol.KeyPair{}
+// 		err = pg.DB.QueryRow(sqlQuery, args...).Scan(&keyPair.ID, &keyPair.Public, &keyPair.Private)
 // 		if err != nil {
 // 			if err == sql.ErrNoRows {
-// 				return nil, ErrNoKeyFound
+// 				return nil, kontrol.ErrNoKeyFound
 // 			}
 // 			return nil, err
 // 		}

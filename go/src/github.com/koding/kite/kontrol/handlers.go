@@ -50,11 +50,14 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 
 	// check if the key is valid and is stored in the key pair storage, if not
 	// check if there is a new key we can use.
+	k.log.Info("Trying to retrieve key %s", publicKey)
 	keyPair, err = k.keyPair.GetKeyFromPublic(publicKey)
 	if err != nil {
+		k.log.Error("GetKeyFromPublic returned an erro: %s", err.Error())
 		newKey = true
 		keyPair, err = k.pickKey(r)
 		if err != nil {
+			k.log.Error("PickKey returned too!!!: %s", err.Error())
 			return nil, err // nothing to do here ..
 		}
 	}
