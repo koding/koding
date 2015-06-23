@@ -1425,8 +1425,8 @@ a.action-link.verify-email
 
 // onboarding throbbers
 .throbber
-  width                   20px
-  height                  20px
+  width                   32px
+  height                  32px
   z-index                 1000
   display                 block
   position                absolute
@@ -1435,31 +1435,36 @@ a.action-link.verify-email
     z-index               10001
 
   .throbber-marker
-    left                  6px
-    top                   6px
-    width                 8px
-    height                8px
+    left                  10px
+    top                   10px
+    width                 12px
+    height                12px
     background            #00ab51
-    border-radius         4px
+    border-radius         50%
 
-  .throbber-rays
+  .throbber-ray
     margin                0 auto
     position              absolute
-    right                 -7px
-    top                   -7px
+    right                 -10px
+    top                   -10px
     background-color      transparent
     opacity               0.1
-    width                 18px
-    height                18px
-    border                2px solid rgba(0, 128, 64, 1)
-    -webkit-border-radius 10px
-    -moz-border-radius    10px
-    -o-border-radius      10px
-    -ms-border-radius     10px
-    border-radius         10px
-    -webkit-animation     pulse 2s linear infinite
-    -moz-animation        pulse 2s linear infinite
+    width                 28px
+    height                28px
+    border                2px solid #00ab51
+    -webkit-border-radius 50%
+    -moz-border-radius    50%
+    -o-border-radius      50%
+    -ms-border-radius     50%
+    border-radius         50%
+    -webkit-animation     pulse 2.4s linear infinite
+    -moz-animation        pulse 2.4s linear infinite
     border-image          initial
+
+  .second-ray
+    -webkit-animation     pulse 2.4s linear 1.2s infinite
+    -moz-animation        pulse 2.4s linear 1.2s infinite
+
 
   &.green
 
