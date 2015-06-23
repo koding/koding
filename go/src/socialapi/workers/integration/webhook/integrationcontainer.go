@@ -1,17 +1,17 @@
 package webhook
 
 type IntegrationContainer struct {
-	Integration         *Integration         `json:"integration"`
-	ChannelIntegrations []ChannelIntegration `json:"channelIntegrations"`
+	Integration         *Integration                  `json:"integration"`
+	ChannelIntegrations []ChannelIntegrationContainer `json:"channelIntegrations"`
 }
 
 func NewIntegrationContainer() *IntegrationContainer {
 	return &IntegrationContainer{
-		ChannelIntegrations: make([]ChannelIntegration, 0),
+		ChannelIntegrations: make([]ChannelIntegrationContainer, 0),
 	}
 }
 
-func (ic *IntegrationContainer) PushChannelIntegration(ci ChannelIntegration) {
+func (ic *IntegrationContainer) Push(ci ChannelIntegrationContainer) {
 	ic.ChannelIntegrations = append(ic.ChannelIntegrations, ci)
 }
 
@@ -21,7 +21,7 @@ func NewIntegrationContainers() *IntegrationContainers {
 	return &IntegrationContainers{}
 }
 
-func (ics *IntegrationContainers) PushIntegrationContainer(i IntegrationContainer) {
+func (ics *IntegrationContainers) Push(i IntegrationContainer) {
 	*ics = append(*ics, i)
 }
 
@@ -41,7 +41,12 @@ func (ics *IntegrationContainers) Populate(groupName string) error {
 			integration = NewIntegrationContainer()
 			containers[channelIntegration.IntegrationId] = integration
 		}
-		integration.PushChannelIntegration(channelIntegration)
+		cic := NewChannelIntegrationContainer(&channelIntegration)
+		if err := cic.Populate(); err != nil {
+			return err
+		}
+
+		integration.Push(*cic)
 	}
 
 	// fetch related integrations
@@ -58,7 +63,7 @@ func (ics *IntegrationContainers) Populate(groupName string) error {
 	for _, integration := range ints {
 		ic := containers[integration.Id]
 		ic.Integration = &integration
-		ics.PushIntegrationContainer(*ic)
+		ics.Push(*ic)
 	}
 
 	return nil
