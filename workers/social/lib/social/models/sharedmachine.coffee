@@ -1,6 +1,6 @@
 bongo = require 'bongo'
 
-{secure} = bongo
+{secure, signature} = bongo
 
 JMachine = require './computeproviders/machine'
 
