@@ -968,7 +968,7 @@ module.exports = CollaborationController =
 
     {setMachineUser} = envHelpers
 
-    setMachineUser @mountedMachine, usernames, share, (err) =>
+    setMachineUser @mountedMachine, @workspaceData, usernames, share, (err) =>
       return callback err  if err
 
       @emit 'SetMachineUser', usernames, share
