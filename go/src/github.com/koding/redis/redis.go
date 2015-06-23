@@ -316,6 +316,12 @@ func (r *RedisSession) SortedSetReverseRange(key string, rest ...interface{}) ([
 	return redis.Values(r.Do("ZREVRANGE", prefixedReq...))
 }
 
+// HashSet sets a single element at key with given field and value.
+// Returns error state of this operation
+func (r *RedisSession) HashSet(key, member string, value interface{}) (int, error) {
+	return redis.Int(r.Do("HSET", r.AddPrefix(key), member, value))
+}
+
 // HashMultipleSet sets multiple hashset elements stored at key with given field values.
 // Returns error state of this operation
 func (r *RedisSession) HashMultipleSet(key string, item map[string]interface{}) error {

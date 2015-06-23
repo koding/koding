@@ -1,19 +1,14 @@
 package main
 
 import (
-	"koding/db/models"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestQueueUsernamesForMetricsGet(t *testing.T) {
-	var machine *models.Machine
-
 	Convey("Given running machine", t, func() {
-		var err error
-
-		machine, err = insertRunningMachine()
+		machine, err := insertRunningMachine()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should queue & pop the machine", func() {
@@ -21,6 +16,7 @@ func TestQueueUsernamesForMetricsGet(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			queuedMachines, err := popMachinesForMetricGet(NetworkOut)
+
 			So(err, ShouldBeNil)
 			So(len(queuedMachines), ShouldEqual, 1)
 
@@ -28,23 +24,19 @@ func TestQueueUsernamesForMetricsGet(t *testing.T) {
 		})
 
 		Reset(func() {
-			removeUserMachine(testUsername)
+			removeUserMachine(machine.Credential)
 		})
 	})
 }
 
 func TestQueueOverLimitUsers(t *testing.T) {
-	var machine *models.Machine
-
 	Convey("Given users that are overlimit", t, func() {
-		var err error
-
-		machine, err = insertRunningMachine()
+		machine, err := insertRunningMachine()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should queue machine for stopping", func() {
 			networkOutMetric := metricsToSave[0]
-			err := storage.SaveScore(networkOutMetric.GetName(), testUsername, NetworkOutLimit*5)
+			err := storage.SaveScore(networkOutMetric.GetName(), machine.Credential, NetworkOutLimit*5)
 			So(err, ShouldBeNil)
 
 			queueOverlimitUsers()
@@ -59,7 +51,7 @@ func TestQueueOverLimitUsers(t *testing.T) {
 		})
 
 		Reset(func() {
-			removeUserMachine(testUsername)
+			removeUserMachine(machine.Credential)
 		})
 	})
 }
