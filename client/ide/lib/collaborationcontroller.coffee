@@ -241,7 +241,7 @@ module.exports = CollaborationController =
 
   setCollaborativeReferences: ->
 
-    initialSnapshot = if @amIHost then @getWorkspaceSnapshot() else {}
+    initialSnapshot = if @amIHost then @getHostSnapshot() else {}
 
     refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), initialSnapshot
 
@@ -514,44 +514,12 @@ module.exports = CollaborationController =
     @mountMachine @mountedMachine
 
 
-  ###*
-   * Filter snapshot data for plain panes's array
-   *
-   * @param {Object} snapshot
-   * @return {Array} panes
-  ###
-  filterSnapshot: (snapshot) ->
-
-    panes = []
-
-    ###*
-     *
-     * <Recursive>
-     * @param {Object} item
-    ###
-    findPanes = (item) ->
-
-      if item.views.length
-        if item.views.first.context # if items are a pane
-          for pane in item.views    # collect panes
-            panes.push pane
-        else
-          for subView in item.views
-            findPanes subView       # recall function
-
-
-    for item in snapshot when item.type is 'split'
-      findPanes item
-
-    return panes
-
-
   resurrectSnapshot: ->
 
     return  if @fakeTabView
 
     snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
-    snapshot = @filterSnapshot @appendHostSnapshot snapshot  unless @amIHost
+    snapshot = @appendHostSnapshot snapshot  unless @amIHost
 
     @removeInitialViews()
 
@@ -563,8 +531,7 @@ module.exports = CollaborationController =
 
   appendHostSnapshot: (snapshot) ->
 
-    if snapshot.length or @myWatchMap.values().length
-      return snapshot
+    return snapshot  if snapshot.length
 
     key = "#{@collaborationHost}Snapshot"
 
@@ -1113,7 +1080,53 @@ module.exports = CollaborationController =
           @stateMachine.transition 'Loading'
 
 
+  getHostSnapshot: ->
+
+    return @filterSnapshot @getWorkspaceSnapshot()
+
+
   updateWorkspaceSnapshotModel: ->
 
-    for hash, change of @getWorkspaceSnapshot()
-      @mySnapshot.set hash, change
+    ## Prevent data duplications.
+    @mySnapshot.clear()
+
+    for item in @getHostSnapshot()
+      { context } = item
+      @mySnapshot.set context.hash, item
+
+
+  ###*
+   * With the current implementation we won't redraw host's layout on
+   * participants when they joined a session. With latest changes host snapshot
+   * became a structural data however participant snapshots should be a flat
+   * array to make it backward compatible with  old collaboration code. So we
+   * are converting structural snapshot to flat array here.
+   *
+   * @param {Object} snapshot
+   * @return {Array} panes
+  ###
+  filterSnapshot: (snapshot) ->
+
+    panes = []
+
+    ###*
+     *
+     * <Recursive>
+     * @param {Object} item
+    ###
+    findPanes = (item) ->
+
+      if item.views.length
+        if item.views.first.context # if items are a pane
+          for pane in item.views    # collect panes
+            panes.push pane
+        else
+          for subView in item.views
+            findPanes subView       # recall function
+
+
+    for item in snapshot when item.type is 'split'
+      findPanes item
+
+    return panes
+

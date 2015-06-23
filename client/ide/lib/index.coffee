@@ -784,7 +784,8 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
-    return  if @isDestroyed or not @isMachineRunning() or @isInSession
+    ## Only host can write snapshot to Kite
+    return  if @isDestroyed or not @isMachineRunning() or not @amIHost
 
     name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
@@ -1150,7 +1151,6 @@ class IDEAppController extends AppController
         if change.type is 'NewPaneCreated'
 
           {content, path} = context.file
-
           string = @rtm.getFromModel path
 
           unless string

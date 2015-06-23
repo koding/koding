@@ -8,7 +8,7 @@ IDEView           = require '../views/tabview/ideview'
 
 
 ###*
-  This class creates the layout map for to remember tabs layout.
+  This class creates a layout map for remembering the tab layout.
 
   Splitted Case:
     - KDSplitViewPanel
@@ -30,7 +30,7 @@ IDEView           = require '../views/tabview/ideview'
                - KDTabPaneView
                  - IDETerminalPanel
 
-  For example JSON Data:
+  Sample JSON Data:
 
     [
       {
@@ -142,7 +142,7 @@ module.exports = class IDELayoutManager extends KDObject
      * <Recursive>
      * @param {Object} items
     ###
-    findLastSplitObject = (items = subViews) ->
+    findLastSplitView = (items = subViews) ->
 
       return  if _.isEmpty items
       return  if items.last.context
@@ -152,7 +152,7 @@ module.exports = class IDELayoutManager extends KDObject
       if lastViews.length is 0 or (lastViews.length > 0 and lastViews.last.context)
         return items.last
       else
-        findLastSplitObject lastViews
+        findLastSplitView lastViews
 
 
     ###*
@@ -173,10 +173,10 @@ module.exports = class IDELayoutManager extends KDObject
         { panels } = target
 
         if panels.length is 2
-          splitObject = findLastSplitObject()
+          splitView = findLastSplitView()
 
-          createSplitView panels.first, yes,  splitObject
-          createSplitView panels.last,  no,   splitObject
+          createSplitView panels.first, yes,  splitView
+          createSplitView panels.last,  no,   splitView
         else
           getSubLevel panels.first
 
@@ -189,7 +189,7 @@ module.exports = class IDELayoutManager extends KDObject
         return  unless target.view.serialize
 
         pane = context : target.view.serialize()
-        last = findLastSplitObject()
+        last = findLastSplitView()
 
         if last
         then last.views.push pane
@@ -201,6 +201,11 @@ module.exports = class IDELayoutManager extends KDObject
     return subViews
 
 
+  ###*
+   *
+   *
+   * @param {Array} snapshot
+  ###
   resurrectSnapshot: (snapshot) ->
 
     if snapshot.length is 1
