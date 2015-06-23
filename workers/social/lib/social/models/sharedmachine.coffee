@@ -13,6 +13,7 @@ module.exports = class SharedMachine extends bongo.Base
     sharedMethods  :
       static       :
         add        : (signature String, Object, Function)
+        kick       : (signature String, Object, Function)
 
 
   @add = secure (client, uid, target, callback) ->
