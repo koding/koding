@@ -43,8 +43,17 @@ module.exports = class MachineShareManager extends kd.Object
     kd.singletons.notificationController
 
       .on 'SharedMachineInvitation', @bound 'handleSharedMachineInvitation'
+      .on 'CollaborationInvitation', @bound 'handleCollaborationInvitation'
 
 
   handleSharedMachineInvitation: (data) ->
 
     @set data.uid, type: 'shared machine'
+
+
+  handleCollaborationInvitation: (data) ->
+
+    {machineUId, workspaceId} = data
+
+    type = 'collaboration'
+    @set machineUId, {type, workspaceId}
