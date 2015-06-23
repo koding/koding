@@ -45,6 +45,20 @@ END
 $body$
 ;
 
+DO
+$body$
+BEGIN
+   IF NOT EXISTS (
+      SELECT *
+      FROM   pg_catalog.pg_roles
+      WHERE  rolname = 'kontrol') THEN
+
+      CREATE ROLE kontrol;
+   END IF;
+END
+$body$
+;
+
 GRANT kontrol TO kontrolapp201506;
 
 
