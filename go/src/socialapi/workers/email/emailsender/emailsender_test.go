@@ -33,7 +33,9 @@ func TestBongoName(t *testing.T) {
 func TestNew(t *testing.T) {
 	r := startRunner()
 	defer r.Close()
-
+        
+        appConfig := config.MustRead(r.Conf.Path)
+        
 	Convey("Given an exporter client", t, func() {
 		Convey("Then it should call it", func() {
 			mail := &Mail{
@@ -45,7 +47,7 @@ func TestNew(t *testing.T) {
 			}
 
 			exporter := eventexporter.NewFakeExporter()
-			c := New(exporter, r.Log)
+			c := New(exporter, r.Log, appConfig.Config)
 
 			err := c.Process(mail)
 			So(err, ShouldBeNil)
