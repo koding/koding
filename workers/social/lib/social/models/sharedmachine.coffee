@@ -2,6 +2,8 @@ bongo = require 'bongo'
 
 {secure, signature} = bongo
 
+{notifyByUsernames} = require './notify'
+
 JMachine = require './computeproviders/machine'
 
 
