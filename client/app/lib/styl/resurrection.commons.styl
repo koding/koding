@@ -1425,8 +1425,7 @@ a.action-link.verify-email
 
 // onboarding throbbers
 .throbber
-  width                   32px
-  height                  32px
+  size                    32px, 32px
   z-index                 1000
   display                 block
   position                absolute
@@ -1437,74 +1436,64 @@ a.action-link.verify-email
   .throbber-marker
     left                  10px
     top                   10px
-    width                 12px
-    height                12px
-    background            #00ab51
-    border-radius         50%
+    size                  12px, 12px
+    bg                    color, #00ab51
+    rounded               50%
 
   .throbber-ray
     margin                0 auto
     position              absolute
     right                 -10px
     top                   -10px
-    background-color      transparent
     opacity               0.1
-    width                 28px
-    height                28px
+    size                  28px, 28px
     border                2px solid #00ab51
-    -webkit-border-radius 50%
-    -moz-border-radius    50%
-    -o-border-radius      50%
-    -ms-border-radius     50%
-    border-radius         50%
-    -webkit-animation     pulse 2.4s linear infinite
-    -moz-animation        pulse 2.4s linear infinite
-    border-image          initial
+    rounded               50%
+    vendor                animation, pulse 2.4s linear infinite
 
   .second-ray
-    -webkit-animation     pulse 2.4s linear 1.2s infinite
-    -moz-animation        pulse 2.4s linear 1.2s infinite
-
+    vendor                animation, pulse 2.4s linear 1.2s infinite
 
   &.green
 
-    .throbber-rays
+    .throbber-ray
       border-color        #00ab51
 
     .throbber-marker
-      background          #00ab51
+      bg                  color, #00ab51
 
   &.red
 
-    .throbber-rays
+    .throbber-ray
       border-color        #ff6a58
 
     .throbber-marker
-      background          #ff6a58
+      bg                  color, #ff6a58
 
   &.blue
 
-    .throbber-rays
+    .throbber-ray
       border-color        #4c9fff
 
     .throbber-marker
-      background          #4c9fff
+      bg                  color, #4c9fff
 
   &.yellow
 
-    .throbber-rays
+    .throbber-ray
       border-color        #f9e900
 
     .throbber-marker
-      background          #f9e900
+      bg                  color, #f9e900
 
   &.gray
 
-    .throbber-rays
+    .throbber-ray
       border-color        #7f7f81
 
     .throbber-marker
-      background          #7f7f81
+      bg                  color, #7f7f81
+
 
 .throbber-tooltip
 
