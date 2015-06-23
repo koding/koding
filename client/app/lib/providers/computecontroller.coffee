@@ -495,8 +495,9 @@ module.exports = class ComputeController extends KDController
         (@errorHandler call, 'reinit', machine) err
 
     # A shorthand for ComputeController_UI Askfor
-    askFor = (type, callback = kd.noop) =>
-      ComputeController_UI.askFor type, {machine, force: @_force}, callback
+    askFor = (action, callback = kd.noop) =>
+      ComputeController_UI.askFor action, {machine, force: @_force},
+        callback
 
     { JSnapshot }     = remote.api
     jMachine          = machine.data
