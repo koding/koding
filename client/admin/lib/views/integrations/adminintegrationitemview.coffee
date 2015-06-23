@@ -25,10 +25,7 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
       cssClass : 'solid compact green add'
       title    : if @integrationType is 'new' then 'Add' else 'Configure'
       loader   : yes
-      callback : =>
-        if      @integrationType is 'new' then @fetchIntegrationChannels()
-        else if @integrationType is 'configured'
-          @fetchIntegrationDetails()
+      callback : @bound 'fetchIntegrationChannels'
 
 
   fetchIntegrationChannels: ->
