@@ -232,11 +232,11 @@ module.exports = class LoginView extends JView
         @resetForm.reset()
         @headBanner.hide()
 
-        new KDNotificationView title : 'Password changed, you can login now'
+        new KDNotificationView
+          title: 'Password changed, you can login now'
 
-        { config: { entryPoint }, singletons: { router } } = KD
-        router.handleRoute '/Login', { entryPoint }
-        
+        KD.singletons.router.handleRoute '/Login'
+
 
   doRecover:({ email })->
     $.ajax
