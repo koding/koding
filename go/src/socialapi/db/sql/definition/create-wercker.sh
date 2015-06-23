@@ -19,11 +19,6 @@ psql $WERCKER_POSTGRESQL_URL < $1/definition/004-table.sql
 # create constraints
 psql $WERCKER_POSTGRESQL_URL < $1/definition/005-constraint.sql
 
-
-# KONTROL
-psql $WERCKER_POSTGRESQL_URL < $1/kontrol/001-schema.sql
-psql $WERCKER_POSTGRESQL_URL < $1/kontrol/002-table.sql
-
 # NOTIFICATION WORKER SQL IMPORTS
 
 # create sequences
