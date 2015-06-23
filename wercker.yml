@@ -153,9 +153,9 @@ build:
         name: check connectivity
         code: scripts/wercker/check-connectivity $(pwd)/INSTANCE_DATA
     - script:
-        name: test social worker
+        name: test nodejs
         code: |
-          echo "testing social worker"
+          echo "testing nodejs (social worker, nodejs web server)"
           scripts/node-testing/run-tests $(pwd)/INSTANCE_DATA
     - script:
         name: testing client started
