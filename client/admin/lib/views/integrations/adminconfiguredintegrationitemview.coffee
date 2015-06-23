@@ -66,7 +66,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     subview.addSubView new KDCustomHTMLView
       cssClass : 'edit'
       partial  : 'Customize <span></span>'
-      click    : => kd.log '..........'
+      click    : => @emit 'IntegrationCustomizeRequested', @getData().integration
 
 
   pistachio: ->
