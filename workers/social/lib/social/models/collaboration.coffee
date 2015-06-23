@@ -74,6 +74,13 @@ module.exports = class Collaboration extends Base
     setUsers client, workspaceId, options, callback
 
 
+  @kick = secure (client, workspaceId, target, callback) ->
+
+    asUser  = no
+    options = {target, asUser}
+    setUsers client, workspaceId, options, callback
+
+
   setUsers = (client, workspaceId, options, callback) ->
 
     JWorkspace.one _id: workspaceId, (err, workspace) ->
