@@ -231,7 +231,11 @@ module.exports = class LoginView extends JView
         @resetForm.button.hideLoader()
         @resetForm.reset()
         @headBanner.hide()
-        @doLogin {username, password}
+
+        new KDNotificationView
+          title: 'Password changed, you can login now'
+
+        KD.singletons.router.handleRoute '/Login'
 
 
   doRecover:({ email })->
