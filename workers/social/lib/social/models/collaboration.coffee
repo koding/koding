@@ -15,6 +15,7 @@ module.exports = class Collaboration extends Base
       static      :
         stop      : (signature String, Object, Function)
         add       : (signature String, Object, Function)
+        kick      : (signature String, Object, Function)
 
 
   drive = null
