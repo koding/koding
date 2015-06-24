@@ -112,6 +112,40 @@ class TeamHandlerHelper
     return data
 
 
+  @generateJoinTeamRequestBody = (opts = {}) ->
+
+    username = generateRandomUsername()
+
+    defaultBodyObject =
+      email          :  generateRandomEmail()
+      token          :  ''
+      alreadyMember  :  'false'
+      slug           :  "testcompany#{generateRandomString(10)}"
+      allow          :  'true'
+      newsletter     :  'true'
+      username       :  username
+      password       :  'testpass'
+      agree          :  'on'
+      passwordConfirm:  'testpass'
+      redirect       :  ''
+
+
+  @generateJoinTeamRequestParams = (opts = {}) ->
+
+    url  = generateUrl
+      route : '-/teams/join'
+
+    body = TeamHandlerHelper.generateCreateTeamRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
   @generateCreateTeamRequestBody = (opts = {}) ->
 
     companyName = "testcompany#{generateRandomString(10)}"
@@ -130,7 +164,7 @@ class TeamHandlerHelper
       password       :  'testpass'
       agree          :  'on'
       passwordConfirm:  'testpass'
-      redirect       :  "#{generateUrl()}?username=#{username}"
+      redirect       :  ''
 
 
     deepObjectExtend defaultBodyObject, opts
