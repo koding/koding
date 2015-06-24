@@ -208,8 +208,10 @@ module.exports = class IDELayoutManager extends KDObject
   ###
   resurrectSnapshot: (snapshot) ->
 
-    if snapshot.length is 1
-      @delegate.mergeSplitView()
+    # if has the fake view
+    @delegate.mergeSplitView()  if @delegate.ideViews.length > 1
+
+    @delegate.splitTabView snapshot[1].direction  if snapshot[1]
 
     for key, value of snapshot
       tabView = @delegate.ideViews[key]?.tabView
@@ -227,7 +229,7 @@ module.exports = class IDELayoutManager extends KDObject
       if value.type is 'split'
 
         if value.isFirst isnt yes
-          @delegate.splitTabView value.direction, createNewEditor : no
+          @delegate.splitTabView value.direction
           tabView = @delegate.ideViews.last.tabView
 
         if value.views.length

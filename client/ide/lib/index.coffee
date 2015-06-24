@@ -421,8 +421,6 @@ class IDEAppController extends AppController
 
     kd.utils.defer =>
 
-      @splitTabView 'horizontal', no, createNewEditor: no
-
       @getMountedMachine (err, machine) =>
 
         return unless machine
@@ -437,6 +435,8 @@ class IDEAppController extends AppController
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
 
+          @splitTabView 'horizontal', no, createNewEditor: no
+
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
           fakeTerminalView  = new KDCustomHTMLView partial: splashes.getTerminal nickname
@@ -450,6 +450,8 @@ class IDEAppController extends AppController
 
           @fetchSnapshot (snapshot) =>
             return @resurrectLocalSnapshot snapshot  if snapshot
+
+            @splitTabView 'horizontal', no, createNewEditor: no
 
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
