@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform/config"
@@ -2201,6 +2202,152 @@ func TestSchemaMap_Diff(t *testing.T) {
 
 			Err: false,
 		},
+
+		// #57 - Computed map without config that's known to be empty does not
+		//       generate diff
+		{
+			Schema: map[string]*Schema{
+				"tags": &Schema{
+					Type:     TypeMap,
+					Computed: true,
+				},
+			},
+
+			Config: nil,
+
+			State: &terraform.InstanceState{
+				Attributes: map[string]string{
+					"tags.#": "0",
+				},
+			},
+
+			Diff: nil,
+
+			Err: false,
+		},
+
+		// #58 Set with hyphen keys
+		{
+			Schema: map[string]*Schema{
+				"route": &Schema{
+					Type:     TypeSet,
+					Optional: true,
+					Elem: &Resource{
+						Schema: map[string]*Schema{
+							"index": &Schema{
+								Type:     TypeInt,
+								Required: true,
+							},
+
+							"gateway-name": &Schema{
+								Type:     TypeString,
+								Optional: true,
+							},
+						},
+					},
+					Set: func(v interface{}) int {
+						m := v.(map[string]interface{})
+						return m["index"].(int)
+					},
+				},
+			},
+
+			State: nil,
+
+			Config: map[string]interface{}{
+				"route": []map[string]interface{}{
+					map[string]interface{}{
+						"index":        "1",
+						"gateway-name": "hello",
+					},
+				},
+			},
+
+			Diff: &terraform.InstanceDiff{
+				Attributes: map[string]*terraform.ResourceAttrDiff{
+					"route.#": &terraform.ResourceAttrDiff{
+						Old: "0",
+						New: "1",
+					},
+					"route.1.index": &terraform.ResourceAttrDiff{
+						Old: "",
+						New: "1",
+					},
+					"route.1.gateway-name": &terraform.ResourceAttrDiff{
+						Old: "",
+						New: "hello",
+					},
+				},
+			},
+
+			Err: false,
+		},
+
+		// #59: StateFunc in nested set (#1759)
+		{
+			Schema: map[string]*Schema{
+				"service_account": &Schema{
+					Type:     TypeList,
+					Optional: true,
+					ForceNew: true,
+					Elem: &Resource{
+						Schema: map[string]*Schema{
+							"scopes": &Schema{
+								Type:     TypeSet,
+								Required: true,
+								ForceNew: true,
+								Elem: &Schema{
+									Type: TypeString,
+									StateFunc: func(v interface{}) string {
+										return v.(string) + "!"
+									},
+								},
+								Set: func(v interface{}) int {
+									i, err := strconv.Atoi(v.(string))
+									if err != nil {
+										t.Fatalf("err: %s", err)
+									}
+									return i
+								},
+							},
+						},
+					},
+				},
+			},
+
+			State: nil,
+
+			Config: map[string]interface{}{
+				"service_account": []map[string]interface{}{
+					{
+						"scopes": []interface{}{"123"},
+					},
+				},
+			},
+
+			Diff: &terraform.InstanceDiff{
+				Attributes: map[string]*terraform.ResourceAttrDiff{
+					"service_account.#": &terraform.ResourceAttrDiff{
+						Old:         "0",
+						New:         "1",
+						RequiresNew: true,
+					},
+					"service_account.0.scopes.#": &terraform.ResourceAttrDiff{
+						Old:         "0",
+						New:         "1",
+						RequiresNew: true,
+					},
+					"service_account.0.scopes.123": &terraform.ResourceAttrDiff{
+						Old:         "",
+						New:         "123!",
+						NewExtra:    "123",
+						RequiresNew: true,
+					},
+				},
+			},
+
+			Err: false,
+		},
 	}
 
 	for i, tc := range cases {
@@ -2227,7 +2374,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(tc.Diff, d) {
-			t.Fatalf("#%d: bad:\n\n%#v", i, d)
+			t.Fatalf("#%d:\n\nexpected: %#v\n\ngot:\n\n%#v", i, tc.Diff, d)
 		}
 	}
 }
@@ -2555,6 +2702,66 @@ func TestSchemaMap_InternalValidate(t *testing.T) {
 			true,
 		},
 
+		// Conflicting attributes cannot be required
+		{
+			map[string]*Schema{
+				"blacklist": &Schema{
+					Type:     TypeBool,
+					Required: true,
+				},
+				"whitelist": &Schema{
+					Type:          TypeBool,
+					Optional:      true,
+					ConflictsWith: []string{"blacklist"},
+				},
+			},
+			true,
+		},
+
+		// Attribute with conflicts cannot be required
+		{
+			map[string]*Schema{
+				"whitelist": &Schema{
+					Type:          TypeBool,
+					Required:      true,
+					ConflictsWith: []string{"blacklist"},
+				},
+			},
+			true,
+		},
+
+		// ConflictsWith cannot be used w/ Computed
+		{
+			map[string]*Schema{
+				"blacklist": &Schema{
+					Type:     TypeBool,
+					Computed: true,
+				},
+				"whitelist": &Schema{
+					Type:          TypeBool,
+					Optional:      true,
+					ConflictsWith: []string{"blacklist"},
+				},
+			},
+			true,
+		},
+
+		// ConflictsWith cannot be used w/ ComputedWhen
+		{
+			map[string]*Schema{
+				"blacklist": &Schema{
+					Type:         TypeBool,
+					ComputedWhen: []string{"foor"},
+				},
+				"whitelist": &Schema{
+					Type:          TypeBool,
+					Required:      true,
+					ConflictsWith: []string{"blacklist"},
+				},
+			},
+			true,
+		},
+
 		// Sub-resource invalid
 		{
 			map[string]*Schema{
@@ -2592,9 +2799,12 @@ func TestSchemaMap_InternalValidate(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		err := schemaMap(tc.In).InternalValidate()
+		err := schemaMap(tc.In).InternalValidate(schemaMap{})
 		if (err != nil) != tc.Err {
-			t.Fatalf("%d: bad: %s\n\n%#v", i, err, tc.In)
+			if tc.Err {
+				t.Fatalf("%d: Expected error did not occur:\n\n%#v", i, tc.In)
+			}
+			t.Fatalf("%d: Unexpected error occured:\n\n%#v", i, tc.In)
 		}
 	}
 
@@ -2842,6 +3052,27 @@ func TestSchemaMap_Validate(t *testing.T) {
 
 			Config: map[string]interface{}{
 				"foo": "bar",
+			},
+
+			Err: true,
+		},
+
+		"Invalid/unknown field with computed value": {
+			Schema: map[string]*Schema{
+				"availability_zone": &Schema{
+					Type:     TypeString,
+					Optional: true,
+					Computed: true,
+					ForceNew: true,
+				},
+			},
+
+			Config: map[string]interface{}{
+				"foo": "${var.foo}",
+			},
+
+			Vars: map[string]string{
+				"var.foo": config.UnknownVariableValue,
 			},
 
 			Err: true,
@@ -3102,6 +3333,74 @@ func TestSchemaMap_Validate(t *testing.T) {
 			},
 
 			Err: false,
+		},
+
+		"Conflicting attributes generate error": {
+			Schema: map[string]*Schema{
+				"whitelist": &Schema{
+					Type:     TypeString,
+					Optional: true,
+				},
+				"blacklist": &Schema{
+					Type:          TypeString,
+					Optional:      true,
+					ConflictsWith: []string{"whitelist"},
+				},
+			},
+
+			Config: map[string]interface{}{
+				"whitelist": "white-val",
+				"blacklist": "black-val",
+			},
+
+			Err: true,
+			Errors: []error{
+				fmt.Errorf("\"blacklist\": conflicts with whitelist (\"white-val\")"),
+			},
+		},
+
+		"Required attribute & undefined conflicting optional are good": {
+			Schema: map[string]*Schema{
+				"required_att": &Schema{
+					Type:     TypeString,
+					Required: true,
+				},
+				"optional_att": &Schema{
+					Type:          TypeString,
+					Optional:      true,
+					ConflictsWith: []string{"required_att"},
+				},
+			},
+
+			Config: map[string]interface{}{
+				"required_att": "required-val",
+			},
+
+			Err: false,
+		},
+
+		"Required conflicting attribute & defined optional generate error": {
+			Schema: map[string]*Schema{
+				"required_att": &Schema{
+					Type:     TypeString,
+					Required: true,
+				},
+				"optional_att": &Schema{
+					Type:          TypeString,
+					Optional:      true,
+					ConflictsWith: []string{"required_att"},
+				},
+			},
+
+			Config: map[string]interface{}{
+				"required_att": "required-val",
+				"optional_att": "optional-val",
+			},
+
+			Err: true,
+			Errors: []error{
+				fmt.Errorf("\"optional_att\": conflicts with required_att (\"required-val\")"),
+			},
 		},
 	}
 

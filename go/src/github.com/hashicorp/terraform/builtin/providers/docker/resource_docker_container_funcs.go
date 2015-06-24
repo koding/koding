@@ -85,6 +85,7 @@ func resourceDockerContainerCreate(d *schema.ResourceData, meta interface{}) err
 	d.SetId(retContainer.ID)
 
 	hostConfig := &dc.HostConfig{
+		Privileged: d.Get("privileged").(bool),
 		PublishAllPorts: d.Get("publish_all_ports").(bool),
 	}
 
@@ -101,6 +102,10 @@ func resourceDockerContainerCreate(d *schema.ResourceData, meta interface{}) err
 
 	if v, ok := d.GetOk("dns"); ok {
 		hostConfig.DNS = stringSetToStringSlice(v.(*schema.Set))
+	}
+
+	if v, ok := d.GetOk("links"); ok {
+		hostConfig.Links = stringSetToStringSlice(v.(*schema.Set))
 	}
 
 	if err := client.StartContainer(retContainer.ID, hostConfig); err != nil {
@@ -132,6 +137,14 @@ func resourceDockerContainerRead(d *schema.ResourceData, meta interface{}) error
 
 	if d.Get("must_run").(bool) && !container.State.Running {
 		return resourceDockerContainerDelete(d, meta)
+	}
+
+	// Read Network Settings
+	if container.NetworkSettings != nil {
+		d.Set("ip_address", container.NetworkSettings.IPAddress)
+		d.Set("ip_prefix_length", container.NetworkSettings.IPPrefixLen)
+		d.Set("gateway", container.NetworkSettings.Gateway)
+		d.Set("bridge", container.NetworkSettings.Bridge)
 	}
 
 	return nil
