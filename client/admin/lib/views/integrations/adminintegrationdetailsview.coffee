@@ -1,5 +1,7 @@
 kd                   = require 'kd'
 JView                = require 'app/jview'
+globals              = require 'globals'
+showError            = require 'app/util/showError'
 applyMarkdown        = require 'app/util/applyMarkdown'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDFormViewWithFields = kd.FormViewWithFields
@@ -45,6 +47,12 @@ module.exports = class AdminIntegrationDetailsView extends JView
           label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{data.title}.</span>"
           defaultValue  : data.webhookUrl
           attributes    : readonly: 'readonly'
+          nextElement   :
+            regenerate  :
+              itemClass : KDCustomHTMLView
+              partial   : 'Regenerate'
+              cssClass  : 'link'
+              click     : @bound 'regenerateToken'
         label           :
           type          : 'input'
           cssClass      : 'text'
@@ -84,6 +92,29 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
           @settingsForm.buttons.Save.hideLoader()
           @emit 'NewIntegrationSaved'
+
+
+  regenerateToken: ->
+
+    return  if @regenerateLock
+
+    @regenerateLock = yes
+    { id, name }    = @getData()
+
+    kd.singletons.socialapi.integrations.regenerateToken { id }, (err, res) =>
+      return showError  if err
+
+      { url, regenerate } = @settingsForm.inputs
+
+      url.setValue "#{globals.config.integration.url}/#{name}/#{res.token}"
+
+      regenerate.updatePartial 'Webhook url has been updated!'
+      regenerate.setClass 'label'
+
+      kd.utils.wait 4000, =>
+        regenerate.updatePartial 'Regenerate'
+        regenerate.unsetClass 'label'
+        @regenerateLock = no
 
 
   pistachio: ->
