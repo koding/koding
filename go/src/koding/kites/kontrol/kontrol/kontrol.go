@@ -154,18 +154,23 @@ func authenticateMachine(authType string, r *kite.Request) error {
 			return errors.New("token is empty")
 		}
 
+		// Try to fetch the token and remove it. If it doesn't exist it'll will
+		// return an error. If it's exist it'll be deleted and a nil error
+		// (means success) will be returned. The underlying implementation uses
+		// findAndModify so it's consistent across each kontrol.
 		session, err := modelhelper.GetSessionFromToken(args.Token)
 		if err != nil {
 			return err
 		}
 
-		if session.Username != r.Client.Kite.Username {
-			return errors.New("user is not validated to use this token")
+		if err := modelhelper.RemoveToken(session.ClientId); err != nil {
+			return err
 		}
 
-		// everything seems to be ok, try to delete the token before we return an
-		// OK. Don't return the error, because we already validated the user.
-		modelhelper.RemoveToken(session.ClientId)
+		// prevent using a wrong username
+		r.Client.Kite.Username = session.Username
+		r.Client.Username = session.Username
+		return nil
 	default:
 		return errors.New("authentication type for machine registration is not defined")
 	}
