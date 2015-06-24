@@ -75,6 +75,8 @@ module.exports = class NavigationMachineItem extends JView
       .on "public-#{@machine._id}", (event)=>
         @handleMachineEvent event
 
+    @subscribeMachineShareEvent()
+
 
   createSettingsIcon: ->
 
@@ -172,6 +174,15 @@ module.exports = class NavigationMachineItem extends JView
 
     options.position = @getPopupPosition 20
     new SidebarMachineSharePopup options, @machine
+
+
+  subscribeMachineShareEvent: ->
+
+    {machineShareManager} = kd.singletons
+    machineShareManager.subscribe @machine.uid, @bound 'showSharePopup'
+
+    @once 'KDObjectWillBeDestroyed', =>
+      machineShareManager.unsubscribe @machine.uid, @bound 'showSharePopup'
 
 
   click: (e) ->
