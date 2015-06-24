@@ -75,6 +75,9 @@ module.exports = class NavigationMachineItem extends JView
       .on "public-#{@machine._id}", (event)=>
         @handleMachineEvent event
 
+    if not @machine.isMine() and not @machine.isApproved()
+      @showSharePopup()
+
     @subscribeMachineShareEvent()
 
 
