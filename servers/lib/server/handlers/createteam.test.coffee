@@ -22,6 +22,7 @@ JName                               = null
 JGroup                              = null
 JAccount                            = null
 JSession                            = null
+JInvitation                         = null
 JDomainAlias                        = null
 
 
@@ -37,6 +38,7 @@ runTests = -> describe 'server.handlers.createteam', ->
       JGroup
       JAccount
       JSession
+      JInvitation
       JDomainAlias } = koding.models
 
     done()
@@ -57,7 +59,10 @@ runTests = -> describe 'server.handlers.createteam', ->
   # creating team with an unregistered user
   it 'should handle team creation correctly when valid data provided', (done) ->
 
-    createTeamRequestParams = generateCreateTeamRequestParams()
+    inviteeEmail            = generateRandomEmail()
+    createTeamRequestParams = generateCreateTeamRequestParams
+      body        :
+        invitees  : inviteeEmail
 
     { slug
       email
@@ -124,6 +129,19 @@ runTests = -> describe 'server.handlers.createteam', ->
           queue.next()
 
       ->
+        # expecting invitation to be created with correct data
+        params = { email : inviteeEmail }
+
+        JInvitation.one params, (err, invitation) ->
+          expect(err)                   .to.not.exist
+          expect(invitation)            .to.exist
+          expect(invitation.code)       .to.exist
+          expect(invitation.email)      .to.be.equal inviteeEmail
+          expect(invitation.status)     .to.be.equal 'pending'
+          expect(invitation.groupName)  .to.be.equal slug
+          queue.next()
+
+      ->
         # expecting session to be created
         params = { username }
 
@@ -131,6 +149,106 @@ runTests = -> describe 'server.handlers.createteam', ->
           expect(err)               .to.not.exist
           expect(session)           .to.exist
           expect(session.username)  .to.be.equal username
+          queue.next()
+
+      -> done()
+
+    ]
+
+    daisy queue
+
+
+  it 'should save relationships correctly', (done) ->
+
+    slug                    = generateRandomString()
+    userId                  = ''
+    groupId                 = ''
+    username                = generateRandomString()
+    accountId               = ''
+    createTeamRequestParams = generateCreateTeamRequestParams
+      body        :
+        username  : username
+        slug      : slug
+
+    queue = [
+
+      ->
+        # expecting HTTP 200 status code
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        # expecting user to be saved and holding userId
+        params = { username }
+
+        JUser.one params, (err, user) ->
+          expect(err)   .to.not.exist
+          expect(user)  .to.exist
+          userId = user._id
+          queue.next()
+
+      ->
+        # expecting account to be saved and holding accountId
+        params = { 'profile.nickname' : username }
+
+        JAccount.one params, (err, account) ->
+          expect(err)     .to.not.exist
+          expect(account) .to.exist
+          accountId = account._id
+          queue.next()
+
+      ->
+        # expecting group to be saved and holding groupId
+        params = { slug }
+
+        JGroup.one params, (err, group) ->
+          expect(err)     .to.not.exist
+          expect(group)   .to.exist
+          groupId = group._id
+          queue.next()
+
+      ->
+        # expecting owner account of the group to be saved
+        params =
+          $and : [
+            { as       : 'owner' }
+            { sourceId : groupId }
+            { targetId : accountId }
+          ]
+
+        Relationship.one params, (err, relationship) ->
+          expect(err)          .to.not.exist
+          expect(relationship) .to.exist
+          queue.next()
+
+      ->
+        # expecting account also to be saved as a member
+        params =
+          $and : [
+            { as       : 'member' }
+            { sourceId : groupId }
+            { targetId : accountId }
+          ]
+
+        Relationship.one params, (err, relationship) ->
+          expect(err)          .to.not.exist
+          expect(relationship) .to.exist
+          queue.next()
+
+      ->
+        # expecting user to be saved as the owner of the account
+        params =
+          $and : [
+            { as       : 'owner' }
+            { sourceId : userId }
+            { targetId : accountId }
+          ]
+
+        Relationship.one params, (err, relationship) ->
+          expect(err)          .to.not.exist
+          expect(relationship) .to.exist
           queue.next()
 
       -> done()
