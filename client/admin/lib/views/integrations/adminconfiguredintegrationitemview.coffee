@@ -101,12 +101,12 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
 
 
   pistachio: ->
-    data = @getData()
-    { title, summary, iconPath } = @getData().integration
+
+    { integration } = @getData()
 
     return """
-      <img src="#{iconPath}" />
-      <p>#{title}</p>
-      <span>#{summary}</span>
+      <img src="#{integration.iconPath}" />
+      {p{ #(integration.title)}}
+      {span{ #(integration.summary)}}
       {{> @button}}
     """
