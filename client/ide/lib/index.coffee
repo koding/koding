@@ -1033,8 +1033,8 @@ class IDEAppController extends AppController
 
         if snapshot
           @resurrectLocalSnapshot snapshot
-        else if not @initialViewsReady
-          @addInitialViews()
+        else
+          @addInitialViews()  unless @initialViewsReady
 
 
       { mainView } = kd.singletons
