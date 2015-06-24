@@ -1424,14 +1424,10 @@ module.exports = class JAccount extends jraphical.Module
       if err or not session
         return errorCallback()
 
-      if session.otaToken?
-        callback null, session.otaToken
-      else
-        otaToken = createId().split '-'
-        otaToken = "#{otaToken[0]}-#{otaToken[3]}"
-        session.update $set: {otaToken}, (err)->
-          if err then errorCallback()
-          else callback null, otaToken
+      [otaToken] = createId().split '-'
+      session.update $set: {otaToken}, (err)->
+        if err then errorCallback()
+        else callback null, otaToken
 
 
   ###*

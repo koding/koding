@@ -4,9 +4,6 @@ KodingError = require '../error'
 {argv} = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-Analytics   = require('analytics-node')
-analytics   = new Analytics(KONFIG.segment)
-
 module.exports = class DataDog extends Base
 
   dogapi = require 'dogapi'
@@ -115,7 +112,8 @@ module.exports = class DataDog extends Base
       text += "\n #{ev.notify}"
 
     if ev.sendToSegment?
-      analytics.track userId: nickname, event: ev.text, properties: data.tags
+      Analytics  = require './analytics'
+      Analytics.track nickname, ev.text, data.tags
 
     DogApi.add_event {title, text, tags}, (err, res, status)->
 

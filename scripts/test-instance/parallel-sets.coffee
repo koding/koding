@@ -29,9 +29,9 @@ module.exports = [
   ]
 
   [
-    'staticpages loggedout'
     'pricing payment'
     'activity post'
+    'staticpages loggedout'
   ]
 
   [

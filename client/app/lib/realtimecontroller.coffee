@@ -51,6 +51,7 @@ module.exports = class RealtimeController extends KDController
       subscribe_key : subscribekey
       uuid          : whoami()._id
       ssl           : if globals.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
+      noleave       : yes
 
     @pubnub = PUBNUB.init options
 

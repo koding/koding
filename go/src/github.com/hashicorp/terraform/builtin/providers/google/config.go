@@ -14,6 +14,9 @@ import (
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/compute/v1"
+	computeBeta "google.golang.org/api/compute/v0.beta"
+	"google.golang.org/api/dns/v1"
+	"google.golang.org/api/storage/v1"
 )
 
 // Config is the configuration structure used to instantiate the Google
@@ -24,6 +27,9 @@ type Config struct {
 	Region      string
 
 	clientCompute *compute.Service
+	clientComputeBeta *computeBeta.Service
+	clientDns     *dns.Service
+	clientStorage *storage.Service
 }
 
 func (c *Config) loadAndValidate() error {
@@ -50,7 +56,11 @@ func (c *Config) loadAndValidate() error {
 				err)
 		}
 
-		clientScopes := []string{"https://www.googleapis.com/auth/compute"}
+		clientScopes := []string{
+			"https://www.googleapis.com/auth/compute",
+			"https://www.googleapis.com/auth/ndev.clouddns.readwrite",
+			"https://www.googleapis.com/auth/devstorage.full_control",
+		}
 
 		// Get the token for use in our requests
 		log.Printf("[INFO] Requesting Google token...")
@@ -83,23 +93,45 @@ func (c *Config) loadAndValidate() error {
 
 	}
 
-	log.Printf("[INFO] Instantiating GCE client...")
-	var err error
-	c.clientCompute, err = compute.New(client)
-
-	// Set UserAgent
+	// Build UserAgent
 	versionString := "0.0.0"
 	// TODO(dcunnin): Use Terraform's version code from version.go
 	// versionString := main.Version
 	// if main.VersionPrerelease != "" {
 	// 	versionString = fmt.Sprintf("%s-%s", versionString, main.VersionPrerelease)
 	// }
-	c.clientCompute.UserAgent = fmt.Sprintf(
+	userAgent := fmt.Sprintf(
 		"(%s %s) Terraform/%s", runtime.GOOS, runtime.GOARCH, versionString)
 
+	var err error
+
+	log.Printf("[INFO] Instantiating GCE client...")
+	c.clientCompute, err = compute.New(client)
 	if err != nil {
 		return err
 	}
+	c.clientCompute.UserAgent = userAgent
+
+	log.Printf("[INFO] Instantiating Beta GCE client...")
+	c.clientComputeBeta, err = computeBeta.New(client)
+	if err != nil {
+		return err
+	}
+	c.clientComputeBeta.UserAgent = userAgent
+
+	log.Printf("[INFO] Instantiating Google Cloud DNS client...")
+	c.clientDns, err = dns.New(client)
+	if err != nil {
+		return err
+	}
+	c.clientDns.UserAgent = userAgent
+
+	log.Printf("[INFO] Instantiating Google Storage Client...")
+	c.clientStorage, err = storage.New(client)
+	if err != nil {
+		return err
+	}
+	c.clientStorage.UserAgent = userAgent
 
 	return nil
 }

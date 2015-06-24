@@ -43,18 +43,24 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    channelSelector = '.activity-sidebar .followed .sidebar-title'
-    searchSelector  = '.kdmodal-inner .kdmodal-content input.search-input'
+    titleSelector  = '.activity-sidebar .followed .sidebar-title'
+    plusSelector   = "#{titleSelector} .add-icon"
+    modalSelector  = '.kdmodal-inner .kdmodal-content'
+    searchSelector = "#{modalSelector} input.search-input"
+    loaderSelector = "#{modalSelector} .lazy-loader"
 
     hashtag = helpers.sendHashtagActivity(browser)
 
     browser
-      .waitForElementVisible  channelSelector, 20000
-      .click                  channelSelector
-      .waitForElementVisible  '.more-channels', 20000
-      .waitForElementVisible  searchSelector, 20000
-      .setValue               searchSelector, hashtag + '\n'
-      .waitForElementVisible  ".listview-wrapper [testpath=\"public-feed-link/Activity/Topic/#{hashtag.replace '#', ''}\"]", 20000 # Assertion
+      .waitForElementVisible     titleSelector, 20000
+      .moveToElement             titleSelector, 5, 10
+      .waitForElementVisible     plusSelector, 20000
+      .click                     plusSelector
+      .waitForElementVisible     '.topic-search', 20000
+      .waitForElementVisible     searchSelector, 20000
+      .waitForElementNotVisible  loaderSelector, 25000
+      .setValue                  searchSelector, hashtag + '\n'
+      .waitForElementVisible     ".listview-wrapper [testpath=\"public-feed-link/Activity/Topic/#{hashtag.replace '#', ''}\"]", 20000 # Assertion
       .end()
 
 
