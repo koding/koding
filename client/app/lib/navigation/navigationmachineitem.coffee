@@ -173,10 +173,15 @@ module.exports = class NavigationMachineItem extends JView
     return data.workspaces.first?.channelId
 
 
+  popups = {}
+
   showSharePopup: (options = {}) ->
 
     options.position = @getPopupPosition 20
-    new SidebarMachineSharePopup options, @machine
+
+    popup = popups[@machine.uid]
+    kd.utils.defer -> popup?.destroy()
+    popups[@machine.uid] = new SidebarMachineSharePopup options, @machine
 
 
   subscribeMachineShareEvent: ->
