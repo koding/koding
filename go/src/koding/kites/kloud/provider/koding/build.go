@@ -290,13 +290,13 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 
 		// If it does not exist, and the SnapshotId was user supplied,
 		// return an error.
-		if !exists && args.SnapshotId != "" {
-			return nil, errors.New("no snapshot found for the given user")
-		}
-
 		// If the snapshotId does not exist, and it was not user supplied,
 		// safely unset it from this Machine.
 		if !exists {
+			if args.SnapshotId != "" {
+				return nil, errors.New("no snapshot found for the given user")
+			}
+
 			m.Log.Debug("SnapshotId '%s' not found, Removing it from the Machine",
 				m.Meta.SnapshotId)
 			if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
