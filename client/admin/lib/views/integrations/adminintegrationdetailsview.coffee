@@ -122,16 +122,16 @@ module.exports = class AdminIntegrationDetailsView extends JView
     kd.singletons.socialapi.integrations.regenerateToken { id }, (err, res) =>
       return showError  if err
 
-      { url, regenerate } = @settingsForm.inputs
+      { url, Regenerate } = @settingsForm.inputs
 
       url.setValue "#{globals.config.integration.url}/#{name}/#{res.token}"
 
-      regenerate.updatePartial 'Webhook url has been updated!'
-      regenerate.setClass 'label'
+      Regenerate.updatePartial 'Webhook url has been updated!'
+      Regenerate.setClass 'label'
 
       kd.utils.wait 4000, =>
-        regenerate.updatePartial 'Regenerate'
-        regenerate.unsetClass 'label'
+        Regenerate.updatePartial 'Regenerate'
+        Regenerate.unsetClass 'label'
         @regenerateLock = no
 
 
