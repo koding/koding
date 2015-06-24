@@ -91,7 +91,7 @@ module.exports = class NavigationMachineItem extends JView
         return  unless @settingsEnabled()
 
         if @machine.isMine() then @handleMachineSettingsClick()
-        else if @machine.isApproved() then @showSidebarSharePopup()
+        else if @machine.isApproved() then @showSharePopup()
 
 
   moveSettingsIconLeft : ->
@@ -168,7 +168,7 @@ module.exports = class NavigationMachineItem extends JView
     return data.workspaces.first?.channelId
 
 
-  showSidebarSharePopup: (options = {}) ->
+  showSharePopup: (options = {}) ->
 
     options.position  = @getPopupPosition 20
     options.channelId = @getChannelId @getData()
@@ -182,7 +182,7 @@ module.exports = class NavigationMachineItem extends JView
 
     if not m.isMine() and not m.isApproved()
       kd.utils.stopDOMEvent e
-      @showSidebarSharePopup()
+      @showSharePopup()
 
     super
 
