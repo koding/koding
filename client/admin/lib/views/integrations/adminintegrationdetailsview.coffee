@@ -4,6 +4,7 @@ globals              = require 'globals'
 showError            = require 'app/util/showError'
 KDButtonView         = kd.ButtonView
 applyMarkdown        = require 'app/util/applyMarkdown'
+CustomLinkView       = require 'app/customlinkview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDFormViewWithFields = kd.FormViewWithFields
 
@@ -49,8 +50,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
           attributes    : readonly: 'readonly'
           nextElement   :
             regenerate  :
-              itemClass : KDCustomHTMLView
-              partial   : 'Regenerate'
+              itemClass : CustomLinkView
+              title     : 'Regenerate'
               cssClass  : 'link'
               click     : @bound 'regenerateToken'
         label           :
