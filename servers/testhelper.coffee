@@ -129,6 +129,10 @@ class TeamHandlerHelper
       passwordConfirm:  'testpass'
       redirect       :  ''
 
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
 
   @generateJoinTeamRequestParams = (opts = {}) ->
 
@@ -165,7 +169,6 @@ class TeamHandlerHelper
       agree          :  'on'
       passwordConfirm:  'testpass'
       redirect       :  ''
-
 
     deepObjectExtend defaultBodyObject, opts
 
