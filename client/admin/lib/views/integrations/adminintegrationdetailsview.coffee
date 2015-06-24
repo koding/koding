@@ -35,6 +35,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     @settingsForm       = new KDFormViewWithFields
       cssClass          : 'AppModal-form details-form'
+      callback          : @bound 'handleFormCallback'
       fields            :
         channels        :
           type          : 'select'
@@ -74,24 +75,26 @@ module.exports = class AdminIntegrationDetailsView extends JView
           cssClass      : 'solid green medium red'
           callback      : => @emit 'IntegrationCancelled'
 
-      callback          : (formData) =>
-        data = @getData()
-        { name, label, channels } = formData
-        options =
-          id          : data.id
-          channelId   : channels
 
-        if label isnt data.summary
-          options.description = label
+  handleFormCallback: (formData) ->
 
-        if name isnt data.title
-          options.settings = customName : name
+    data = @getData()
+    { name, label, channels } = formData
+    options       =
+      id          : data.id
+      channelId   : channels
 
-        kd.singletons.socialapi.integrations.update options, (err) =>
-          return kd.warn err  if err
+    if label isnt data.summary
+      options.description = label
 
-          @settingsForm.buttons.Save.hideLoader()
-          @emit 'NewIntegrationSaved'
+    if name isnt data.title
+      options.settings = customName : name
+
+    kd.singletons.socialapi.integrations.update options, (err) =>
+      return kd.warn err  if err
+
+      @settingsForm.buttons.Save.hideLoader()
+      @emit 'NewIntegrationSaved'
 
 
   regenerateToken: ->
