@@ -1,6 +1,5 @@
 
 kd    = require 'kd'
-nick  = require 'app/util/nick'
 
 addTo = (parent, views)->
   map = {}
@@ -20,7 +19,7 @@ kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
 
 contents  =
   install : """#{kontrolUrl}
-    $ curl -sSL s3.amazonaws.com/koding-klient/install.sh | bash -s %%TOKEN%% %%USERNAME%%
+    $ curl -sSL s3.amazonaws.com/koding-klient/install.sh | bash -s %%TOKEN%%
   """
 
 module.exports   = view =
@@ -48,7 +47,6 @@ module.exports   = view =
     content      = contents[content] ? content
     if view._otatoken
       content    = content.replace '%%TOKEN%%',    view._otatoken
-      content    = content.replace '%%USERNAME%%', nick()
     container    = new kd.View
     addTo container,
       header     : 'Instructions'
