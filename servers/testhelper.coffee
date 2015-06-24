@@ -176,6 +176,21 @@ class TeamHandlerHelper
     return requestParams
 
 
+  @generateGetTeamRequestParams = (opts = {}) ->
+
+    { groupSlug } = opts
+    url  = generateUrl
+      route : "-/teams/#{groupSlug}"
+
+    params               = { url }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
   @generateCreateTeamRequestBody = (opts = {}) ->
 
     companyName = "testcompany#{generateRandomString(10)}"
