@@ -114,6 +114,9 @@ type Schema struct {
 	// NOTE: This currently does not work.
 	ComputedWhen []string
 
+	// ConflictsWith is a set of schema keys that conflict with this schema
+	ConflictsWith []string
+
 	// When Deprecated is set, this attribute is deprecated.
 	//
 	// A deprecated field still works, but will probably stop working in near
@@ -128,6 +131,14 @@ type Schema struct {
 	// This string is the message shown to the user with instructions on
 	// what do to about the removed attribute.
 	Removed string
+
+	// ValidateFunc allows individual fields to define arbitrary validation
+	// logic. It is yielded the provided config value as an interface{} that is
+	// guaranteed to be of the proper Schema type, and it can yield warnings or
+	// errors based on inspection of that value.
+	//
+	// ValidateFunc currently only works for primitive types.
+	ValidateFunc SchemaValidateFunc
 }
 
 // SchemaDefaultFunc is a function called to return a default value for
@@ -169,6 +180,10 @@ type SchemaSetFunc func(interface{}) int
 // SchemaStateFunc is a function used to convert some type to a string
 // to be stored in the state.
 type SchemaStateFunc func(interface{}) string
+
+// SchemaValidateFunc is a function used to validate a single field in the
+// schema.
+type SchemaValidateFunc func(interface{}) ([]string, []error)
 
 func (s *Schema) GoString() string {
 	return fmt.Sprintf("*%#v", *s)
@@ -375,12 +390,8 @@ func (m schemaMap) Input(
 
 		var value interface{}
 		switch v.Type {
-		case TypeBool:
-			fallthrough
-		case TypeInt:
-			fallthrough
-		case TypeFloat:
-			fallthrough
+		case TypeBool, TypeInt, TypeFloat, TypeSet:
+			continue
 		case TypeString:
 			value, err = m.inputString(input, k, v)
 		default:
@@ -406,7 +417,10 @@ func (m schemaMap) Validate(c *terraform.ResourceConfig) ([]string, []error) {
 // InternalValidate validates the format of this schema. This should be called
 // from a unit test (and not in user-path code) to verify that a schema
 // is properly built.
-func (m schemaMap) InternalValidate() error {
+func (m schemaMap) InternalValidate(topSchemaMap schemaMap) error {
+	if topSchemaMap == nil {
+		topSchemaMap = m
+	}
 	for k, v := range m {
 		if v.Type == TypeInvalid {
 			return fmt.Errorf("%s: Type must be specified", k)
@@ -436,6 +450,43 @@ func (m schemaMap) InternalValidate() error {
 			return fmt.Errorf("%s: ComputedWhen can only be set with Computed", k)
 		}
 
+		if len(v.ConflictsWith) > 0 && v.Required {
+			return fmt.Errorf("%s: ConflictsWith cannot be set with Required", k)
+		}
+
+		if len(v.ConflictsWith) > 0 {
+			for _, key := range v.ConflictsWith {
+				parts := strings.Split(key, ".")
+				sm := topSchemaMap
+				var target *Schema
+				for _, part := range parts {
+					// Skip index fields
+					if _, err := strconv.Atoi(part); err == nil {
+						continue
+					}
+
+					var ok bool
+					if target, ok = sm[part]; !ok {
+						return fmt.Errorf("%s: ConflictsWith references unknown attribute (%s)", k, key)
+					}
+
+					if subResource, ok := target.Elem.(*Resource); ok {
+						sm = schemaMap(subResource.Schema)
+					}
+				}
+				if target == nil {
+					return fmt.Errorf("%s: ConflictsWith cannot find target attribute (%s), sm: %#v", k, key, sm)
+				}
+				if target.Required {
+					return fmt.Errorf("%s: ConflictsWith cannot contain Required attribute (%s)", k, key)
+				}
+
+				if target.Computed || len(target.ComputedWhen) > 0 {
+					return fmt.Errorf("%s: ConflictsWith cannot contain Computed(When) attribute (%s)", k, key)
+				}
+			}
+		}
+
 		if v.Type == TypeList || v.Type == TypeSet {
 			if v.Elem == nil {
 				return fmt.Errorf("%s: Elem must be set for lists", k)
@@ -453,7 +504,7 @@ func (m schemaMap) InternalValidate() error {
 
 			switch t := v.Elem.(type) {
 			case *Resource:
-				if err := t.InternalValidate(); err != nil {
+				if err := t.InternalValidate(topSchemaMap); err != nil {
 					return err
 				}
 			case *Schema:
@@ -462,6 +513,13 @@ func (m schemaMap) InternalValidate() error {
 					return fmt.Errorf(
 						"%s: Elem must have only Type set", k)
 				}
+			}
+		}
+
+		if v.ValidateFunc != nil {
+			switch v.Type {
+			case TypeList, TypeSet, TypeMap:
+				return fmt.Errorf("ValidateFunc is only supported on primitives.")
 			}
 		}
 	}
@@ -477,13 +535,7 @@ func (m schemaMap) diff(
 	all bool) error {
 	var err error
 	switch schema.Type {
-	case TypeBool:
-		fallthrough
-	case TypeInt:
-		fallthrough
-	case TypeFloat:
-		fallthrough
-	case TypeString:
+	case TypeBool, TypeInt, TypeFloat, TypeString:
 		err = m.diffString(k, schema, diff, d, all)
 	case TypeList:
 		err = m.diffList(k, schema, diff, d, all)
@@ -626,7 +678,7 @@ func (m schemaMap) diffMap(
 
 	// First get all the values from the state
 	var stateMap, configMap map[string]string
-	o, n, _, _ := d.diffChange(k)
+	o, n, _, nComputed := d.diffChange(k)
 	if err := mapstructure.WeakDecode(o, &stateMap); err != nil {
 		return fmt.Errorf("%s: %s", k, err)
 	}
@@ -634,28 +686,40 @@ func (m schemaMap) diffMap(
 		return fmt.Errorf("%s: %s", k, err)
 	}
 
+	// Keep track of whether the state _exists_ at all prior to clearing it
+	stateExists := o != nil
+
 	// Delete any count values, since we don't use those
 	delete(configMap, "#")
 	delete(stateMap, "#")
 
-	// Check if the number of elements has changed. If we're computing
-	// a list and there isn't a config, then it hasn't changed.
+	// Check if the number of elements has changed.
 	oldLen, newLen := len(stateMap), len(configMap)
 	changed := oldLen != newLen
 	if oldLen != 0 && newLen == 0 && schema.Computed {
 		changed = false
 	}
-	computed := oldLen == 0 && newLen == 0 && schema.Computed
-	if changed || computed {
+
+	// It is computed if we have no old value, no new value, the schema
+	// says it is computed, and it didn't exist in the state before. The
+	// last point means: if it existed in the state, even empty, then it
+	// has already been computed.
+	computed := oldLen == 0 && newLen == 0 && schema.Computed && !stateExists
+
+	// If the count has changed or we're computed, then add a diff for the
+	// count. "nComputed" means that the new value _contains_ a value that
+	// is computed. We don't do granular diffs for this yet, so we mark the
+	// whole map as computed.
+	if changed || computed || nComputed {
 		countSchema := &Schema{
 			Type:     TypeInt,
-			Computed: schema.Computed,
+			Computed: schema.Computed || nComputed,
 			ForceNew: schema.ForceNew,
 		}
 
 		oldStr := strconv.FormatInt(int64(oldLen), 10)
 		newStr := ""
-		if !computed {
+		if !computed && !nComputed {
 			newStr = strconv.FormatInt(int64(newLen), 10)
 		} else {
 			oldStr = ""
@@ -779,12 +843,18 @@ func (m schemaMap) diffSet(
 	}
 
 	for _, code := range ns.listCode() {
+		// If the code is negative (first character is -) then
+		// replace it with "~" for our computed set stuff.
+		codeStr := strconv.Itoa(code)
+		if codeStr[0] == '-' {
+			codeStr = string('~') + codeStr[1:]
+		}
+
 		switch t := schema.Elem.(type) {
 		case *Resource:
 			// This is a complex resource
 			for k2, schema := range t.Schema {
-				subK := fmt.Sprintf("%s.%d.%s", k, code, k2)
-				subK = strings.Replace(subK, "-", "~", -1)
+				subK := fmt.Sprintf("%s.%s.%s", k, codeStr, k2)
 				err := m.diff(subK, schema, diff, d, true)
 				if err != nil {
 					return err
@@ -798,8 +868,7 @@ func (m schemaMap) diffSet(
 
 			// This is just a primitive element, so go through each and
 			// just diff each.
-			subK := fmt.Sprintf("%s.%d", k, code)
-			subK = strings.Replace(subK, "-", "~", -1)
+			subK := fmt.Sprintf("%s.%s", k, codeStr)
 			err := m.diff(subK, &t2, diff, d, true)
 			if err != nil {
 				return err
@@ -913,7 +982,31 @@ func (m schemaMap) validate(
 			"%q: this field cannot be set", k)}
 	}
 
+	err := m.validateConflictingAttributes(k, schema, c)
+	if err != nil {
+		return nil, []error{err}
+	}
+
 	return m.validateType(k, raw, schema, c)
+}
+
+func (m schemaMap) validateConflictingAttributes(
+	k string,
+	schema *Schema,
+	c *terraform.ResourceConfig) error {
+
+	if len(schema.ConflictsWith) == 0 {
+		return nil
+	}
+
+	for _, conflicting_key := range schema.ConflictsWith {
+		if value, ok := c.Get(conflicting_key); ok {
+			return fmt.Errorf(
+				"%q: conflicts with %s (%#v)", k, conflicting_key, value)
+		}
+	}
+
+	return nil
 }
 
 func (m schemaMap) validateList(
@@ -1021,7 +1114,7 @@ func (m schemaMap) validateObject(
 	}
 
 	// Detect any extra/unknown keys and report those as errors.
-	raw, _ := c.Get(k)
+	raw, _ := c.GetRaw(k)
 	if m, ok := raw.(map[string]interface{}); ok {
 		for subk, _ := range m {
 			if _, ok := schema[subk]; !ok {
@@ -1044,6 +1137,7 @@ func (m schemaMap) validatePrimitive(
 		return nil, nil
 	}
 
+	var decoded interface{}
 	switch schema.Type {
 	case TypeBool:
 		// Verify that we can parse this as the correct type
@@ -1051,26 +1145,34 @@ func (m schemaMap) validatePrimitive(
 		if err := mapstructure.WeakDecode(raw, &n); err != nil {
 			return nil, []error{err}
 		}
+		decoded = n
 	case TypeInt:
 		// Verify that we can parse this as an int
 		var n int
 		if err := mapstructure.WeakDecode(raw, &n); err != nil {
 			return nil, []error{err}
 		}
+		decoded = n
 	case TypeFloat:
 		// Verify that we can parse this as an int
 		var n float64
 		if err := mapstructure.WeakDecode(raw, &n); err != nil {
 			return nil, []error{err}
 		}
+		decoded = n
 	case TypeString:
 		// Verify that we can parse this as a string
 		var n string
 		if err := mapstructure.WeakDecode(raw, &n); err != nil {
 			return nil, []error{err}
 		}
+		decoded = n
 	default:
 		panic(fmt.Sprintf("Unknown validation type: %#v", schema.Type))
+	}
+
+	if schema.ValidateFunc != nil {
+		return schema.ValidateFunc(decoded)
 	}
 
 	return nil, nil
@@ -1084,9 +1186,7 @@ func (m schemaMap) validateType(
 	var ws []string
 	var es []error
 	switch schema.Type {
-	case TypeSet:
-		fallthrough
-	case TypeList:
+	case TypeSet, TypeList:
 		ws, es = m.validateList(k, raw, schema, c)
 	case TypeMap:
 		ws, es = m.validateMap(k, raw, schema, c)

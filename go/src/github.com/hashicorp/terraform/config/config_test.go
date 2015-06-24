@@ -175,6 +175,13 @@ func TestConfigValidate_moduleVarMap(t *testing.T) {
 	}
 }
 
+func TestConfigValidate_moduleVarSelf(t *testing.T) {
+	c := testConfig(t, "validate-module-var-self")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should be invalid")
+	}
+}
+
 func TestConfigValidate_nil(t *testing.T) {
 	var c Config
 	if err := c.Validate(); err != nil {
@@ -198,6 +205,34 @@ func TestConfigValidate_pathVar(t *testing.T) {
 
 func TestConfigValidate_pathVarInvalid(t *testing.T) {
 	c := testConfig(t, "validate-path-var-invalid")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_providerMulti(t *testing.T) {
+	c := testConfig(t, "validate-provider-multi")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_providerMultiGood(t *testing.T) {
+	c := testConfig(t, "validate-provider-multi-good")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid: %s", err)
+	}
+}
+
+func TestConfigValidate_providerMultiRefGood(t *testing.T) {
+	c := testConfig(t, "validate-provider-multi-ref-good")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid: %s", err)
+	}
+}
+
+func TestConfigValidate_providerMultiRefBad(t *testing.T) {
+	c := testConfig(t, "validate-provider-multi-ref-bad")
 	if err := c.Validate(); err == nil {
 		t.Fatal("should not be valid")
 	}
@@ -415,7 +450,7 @@ func TestVariableDefaultsMap(t *testing.T) {
 }
 
 func testConfig(t *testing.T, name string) *Config {
-	c, err := Load(filepath.Join(fixtureDir, name, "main.tf"))
+	c, err := LoadFile(filepath.Join(fixtureDir, name, "main.tf"))
 	if err != nil {
 		t.Fatalf("file: %s\n\nerr: %s", name, err)
 	}

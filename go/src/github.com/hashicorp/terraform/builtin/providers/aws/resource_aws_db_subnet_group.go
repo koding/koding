@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/awslabs/aws-sdk-go/service/rds"
-	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -37,9 +37,7 @@ func resourceAwsDbSubnetGroup() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set: func(v interface{}) int {
-					return hashcode.String(v.(string))
-				},
+				Set:      schema.HashString,
 			},
 		},
 	}
@@ -80,7 +78,7 @@ func resourceAwsDbSubnetGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	describeResp, err := rdsconn.DescribeDBSubnetGroups(&describeOpts)
 	if err != nil {
-		if ec2err, ok := err.(aws.APIError); ok && ec2err.Code == "DBSubnetGroupNotFoundFault" {
+		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "DBSubnetGroupNotFoundFault" {
 			// Update state to indicate the db subnet no longer exists.
 			d.SetId("")
 			return nil
@@ -106,7 +104,7 @@ func resourceAwsDbSubnetGroupRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Unable to find DB Subnet Group: %#v", describeResp.DBSubnetGroups)
 	}
 
-	d.Set("name", *subnetGroup.DBSubnetGroupName)
+	d.Set("name", d.Id())
 	d.Set("description", *subnetGroup.DBSubnetGroupDescription)
 
 	subnets := make([]string, 0, len(subnetGroup.Subnets))
@@ -142,12 +140,12 @@ func resourceAwsDbSubnetGroupDeleteRefreshFunc(
 		}
 
 		if _, err := rdsconn.DeleteDBSubnetGroup(&deleteOpts); err != nil {
-			rdserr, ok := err.(aws.APIError)
+			rdserr, ok := err.(awserr.Error)
 			if !ok {
 				return d, "error", err
 			}
 
-			if rdserr.Code != "DBSubnetGroupNotFoundFault" {
+			if rdserr.Code() != "DBSubnetGroupNotFoundFault" {
 				return d, "error", err
 			}
 		}

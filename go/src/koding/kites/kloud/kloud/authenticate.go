@@ -10,8 +10,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/awslabs/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/koding/kite"
 )
 
@@ -61,7 +62,7 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		}
 
 		svc := ec2.New(&aws.Config{
-			Credentials: aws.Creds(accessKey, secretKey, ""),
+			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
 			Region:      authRegion,
 		})
 
