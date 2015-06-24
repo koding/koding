@@ -34,8 +34,15 @@ type TestCase struct {
 	// acceptance tests, such as verifying that keys are setup.
 	PreCheck func()
 
-	// Provider is the ResourceProvider that will be under test.
-	Providers map[string]terraform.ResourceProvider
+	// Providers is the ResourceProvider that will be under test.
+	//
+	// Alternately, ProviderFactories can be specified for the providers
+	// that are valid. This takes priority over Providers.
+	//
+	// The end effect of each is the same: specifying the providers that
+	// are used within the tests.
+	Providers         map[string]terraform.ResourceProvider
+	ProviderFactories map[string]terraform.ResourceProviderFactory
 
 	// CheckDestroy is called after the resource is finally destroyed
 	// to allow the tester to test that the resource is truly gone.
@@ -102,9 +109,12 @@ func Test(t TestT, c TestCase) {
 	}
 
 	// Build our context options that we can
-	ctxProviders := make(map[string]terraform.ResourceProviderFactory)
-	for k, p := range c.Providers {
-		ctxProviders[k] = terraform.ResourceProviderFactoryFixed(p)
+	ctxProviders := c.ProviderFactories
+	if ctxProviders == nil {
+		ctxProviders = make(map[string]terraform.ResourceProviderFactory)
+		for k, p := range c.Providers {
+			ctxProviders[k] = terraform.ResourceProviderFactoryFixed(p)
+		}
 	}
 	opts := terraform.ContextOpts{Providers: ctxProviders}
 
@@ -193,13 +203,16 @@ func testStep(
 	opts.Destroy = step.Destroy
 	ctx := terraform.NewContext(&opts)
 	if ws, es := ctx.Validate(); len(ws) > 0 || len(es) > 0 {
-		estrs := make([]string, len(es))
-		for i, e := range es {
-			estrs[i] = e.Error()
+		if len(es) > 0 {
+			estrs := make([]string, len(es))
+			for i, e := range es {
+				estrs[i] = e.Error()
+			}
+			return state, fmt.Errorf(
+				"Configuration is invalid.\n\nWarnings: %#v\n\nErrors: %#v",
+				ws, estrs)
 		}
-		return state, fmt.Errorf(
-			"Configuration is invalid.\n\nWarnings: %#v\n\nErrors: %#v",
-			ws, estrs)
+		log.Printf("[WARN] Config warnings: %#v", ws)
 	}
 
 	// Refresh!
@@ -225,12 +238,13 @@ func testStep(
 
 	// Check! Excitement!
 	if step.Check != nil {
-		if err = step.Check(state); err != nil {
-			err = fmt.Errorf("Check failed: %s", err)
+		if err := step.Check(state); err != nil {
+			return state, fmt.Errorf("Check failed: %s", err)
 		}
 	}
 
-	// Verify that Plan is now empty and we don't have a perpetual diff issue
+	// Now, verify that Plan is now empty and we don't have a perpetual diff issue
+	// We do this with TWO plans. One without a refresh.
 	if p, err := ctx.Plan(); err != nil {
 		return state, fmt.Errorf("Error on follow-up plan: %s", err)
 	} else {
@@ -240,7 +254,23 @@ func testStep(
 		}
 	}
 
-	return state, err
+	// And another after a Refresh.
+	state, err = ctx.Refresh()
+	if err != nil {
+		return state, fmt.Errorf(
+			"Error on follow-up refresh: %s", err)
+	}
+	if p, err := ctx.Plan(); err != nil {
+		return state, fmt.Errorf("Error on second follow-up plan: %s", err)
+	} else {
+		if p.Diff != nil && !p.Diff.Empty() {
+			return state, fmt.Errorf(
+				"After applying this step and refreshing, the plan was not empty:\n\n%s", p)
+		}
+	}
+
+	// Made it here? Good job test step!
+	return state, nil
 }
 
 // ComposeTestCheckFunc lets you compose multiple TestCheckFuncs into
