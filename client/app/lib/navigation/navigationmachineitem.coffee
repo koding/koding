@@ -9,6 +9,7 @@ KDCustomHTMLView         = kd.CustomHTMLView
 KDProgressBarView        = kd.ProgressBarView
 MachineSettingsModal     = require '../providers/machinesettingsmodal'
 SidebarMachineSharePopup = require 'app/activity/sidebar/sidebarmachinesharepopup'
+userEnvironmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class NavigationMachineItem extends JView
@@ -177,11 +178,55 @@ module.exports = class NavigationMachineItem extends JView
 
   showSharePopup: (options = {}) ->
 
-    options.position = @getPopupPosition 20
+    show = (options) =>
+      kd.utils.wait 733, =>
+        options.position = @getPopupPosition 20
+        popup = popups[@machine.uid]
+        kd.utils.defer -> popup?.destroy()
+        popups[@machine.uid] = new SidebarMachineSharePopup options, @machine
 
-    popup = popups[@machine.uid]
-    kd.utils.defer -> popup?.destroy()
-    popups[@machine.uid] = new SidebarMachineSharePopup options, @machine
+    {machineShareManager} = kd.singletons
+
+    if invitation = machineShareManager.get @machine.uid
+      {type} = invitation
+
+      options.type = type
+
+      switch type
+        when 'collaboration'
+          options.isApproved = no
+
+          return userEnvironmentDataProvider.fetchMachineByUId @machine.uid, (machine, workspaces) ->
+            for workspace in workspaces when workspace.getId() is invitation.workspaceId
+              break
+
+            options.channelId = workspace.channelId
+            show options
+
+    else if @machine.isPermanent()
+      options.type = 'shared machine'
+      options.isApproved = @machine.isApproved()
+      show options
+
+    else if not @machine.isPermanent()
+      options.type = 'collaboration'
+
+      return userEnvironmentDataProvider.fetchMachineByUId @machine.uid, (machine, workspaces) ->
+        for workspace in workspaces
+          if options.workspaceId and workspace.getId() isnt options.workspaceId
+            continue
+          else if not options.workspaceId and not workspace.channelId
+            continue
+
+          {channelId} = workspace
+          break
+
+        return  unless options.channelId = channelId
+        kd.singletons.socialapi.channel.byId id: channelId, (err, channel) ->
+          return console.error err  if err
+          options.isApproved = channel.isParticipant
+          show options
+
 
 
   subscribeMachineShareEvent: ->
