@@ -129,6 +129,8 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
     machine = @getData()
 
+    kd.singletons.machineShareManager.unset machine.uid
+
     @approveButton.showLoader()
 
     machine.jMachine.approve (err) =>
@@ -178,6 +180,8 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
   deny: ->
 
     machine = @getData()
+
+    kd.singletons.machineShareManager.unset machine.uid
 
     @denyButton.showLoader()
     machine.jMachine.deny (err) =>
