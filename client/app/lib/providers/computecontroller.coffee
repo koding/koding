@@ -516,17 +516,14 @@ module.exports = class ComputeController extends KDController
 
     # We need to validate that the machineSnapshotId still exists
     JSnapshot.one machineSnapshotId, (err, snapshot) =>
+      kd.error err  if err
+
       # If the snapshot exists in mongo, askFor a normal reinit
-      return askFor 'reinit', startReinit  if snapshot
-
-      # If the snapshot does not exist in mongo, remove it from
-      # the machine after confirming with the user
-      askFor 'reinitNoSnapshot', ->
-        jMachine.removeSnapshot (err) ->
-          return kd.error  if err
-          startReinit()
-
-
+      # otherwise, make sure they understand that they are
+      # reinitializing to a base image.
+      if snapshot
+      then askFor 'reinit', startReinit
+      else askFor 'reinitNoSnapshot', startReinit
 
 
   resize: (machine, resizeTo = 10)->

@@ -49,8 +49,6 @@ module.exports = class JMachine extends Module
           (signature String, Function)
         setLabel        :
           (signature String, Function)
-        removeSnapshot  :
-          (signature Function)
         share           :
           (signature Object, Function)
         unshare         :
@@ -69,7 +67,6 @@ module.exports = class JMachine extends Module
       'set provisioner' : ['member']
       'set domain'      : ['member']
       'set label'       : ['member']
-      'remove snapshot' : ['member']
 
     schema              :
 
@@ -645,31 +642,6 @@ module.exports = class JMachine extends Module
     if users.length is 1 and users[0] is nickname
     then @shareWith options, callback
     else @shareWith$ client, options, callback
-
-
-  ###*
-   * Remove a snapshotId from this Machine's meta object, so that when
-   * the machine is reinitialized/built, it is not built from that
-   * snapshot.
-   *
-   * @param {Function(Error)} callback
-  ###
-  removeSnapshot: permit 'remove snapshot',
-
-    success: revive
-
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
-
-    , (client, callback)->
-
-      { r: { user } } = client
-
-      unless isOwner user, this
-        return callback new KodingError 'Access denied'
-
-      @update $unset: { 'meta.snapshotId': '' }, callback
-
 
 
   # setting owner disabled for now ~ GG
