@@ -10,7 +10,7 @@
 				<a href="/intro/use-cases.html">Use Cases</a>
 				</li>
 
-				<li<%= sidebar_current("vs-other") %>>
+				<li<%= sidebar_current(/^vs-other/) %>>
 				<a href="/intro/vs/index.html">Terraform vs. Other Software</a>
 				<ul class="nav">
 					<li<%= sidebar_current("vs-other-chef") %>>
@@ -31,7 +31,7 @@
 				</ul>
 				</li>
 
-				<li<%= sidebar_current("gettingstarted") %>>
+				<li<%= sidebar_current(/^gettingstarted/) %>>
 				<a href="/intro/getting-started/install.html">Getting Started</a>
 				<ul class="nav">
 					<li<%= sidebar_current("gettingstarted-install") %>>
@@ -48,6 +48,10 @@
 
 					<li<%= sidebar_current("gettingstarted-destroy") %>>
 					<a href="/intro/getting-started/destroy.html">Destroy Infrastructure</a>
+					</li>
+
+					<li<%= sidebar_current("gettingstarted-remote") %>>
+					<a href="/intro/getting-started/remote.html">Terraform Remote</a>
 					</li>
 
 					<li<%= sidebar_current("gettingstarted-deps") %>>
@@ -76,7 +80,7 @@
 				</ul>
 				</li>
 
-				<li<%= sidebar_current("examples") %>>
+				<li<%= sidebar_current(/^examples/) %>>
 				<a href="/intro/examples/index.html">Example Configurations</a>
 				<ul class="nav">
 					<li<%= sidebar_current("examples-aws") %>>
@@ -95,6 +99,10 @@
 					<a href="/intro/examples/consul.html">Consul</a>
 					</li>
 				</ul>
+				</li>
+
+				<li<%= sidebar_current("hashicorp-ecosystem") %>>
+				<a href="/intro/hashicorp-ecosystem.html">Terraform and the HashiCorp Ecosystem</a>
 				</li>
 			</ul>
 		</div>

@@ -21,13 +21,7 @@ func (r *MapFieldReader) ReadField(address []string) (FieldReadResult, error) {
 
 	schema := schemaList[len(schemaList)-1]
 	switch schema.Type {
-	case TypeBool:
-		fallthrough
-	case TypeInt:
-		fallthrough
-	case TypeFloat:
-		fallthrough
-	case TypeString:
+	case TypeBool, TypeInt, TypeFloat, TypeString:
 		return r.readPrimitive(address, schema)
 	case TypeList:
 		return readListField(r, address, schema)
@@ -56,10 +50,11 @@ func (r *MapFieldReader) readMap(k string) (FieldReadResult, error) {
 	prefix := k + "."
 	r.Map.Range(func(k, v string) bool {
 		if strings.HasPrefix(k, prefix) {
+			resultSet = true
+
 			key := k[len(prefix):]
 			if key != "#" {
 				result[key] = v
-				resultSet = true
 			}
 		}
 

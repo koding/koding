@@ -89,6 +89,7 @@ func (t *OrphanTransformer) Transform(g *Graph) error {
 			resourceVertexes[i] = g.Add(&graphNodeOrphanResource{
 				ResourceName: k,
 				ResourceType: rs.Type,
+				Provider:     rs.Provider,
 				dependentOn:  rs.Dependencies,
 			})
 		}
@@ -162,6 +163,7 @@ func (n *graphNodeOrphanModule) Expand(b GraphBuilder) (GraphNodeSubgraph, error
 type graphNodeOrphanResource struct {
 	ResourceName string
 	ResourceType string
+	Provider     string
 
 	dependentOn []string
 }
@@ -174,12 +176,19 @@ func (n *graphNodeOrphanResource) DependentOn() []string {
 	return n.dependentOn
 }
 
+func (n *graphNodeOrphanResource) Flatten(p []string) (dag.Vertex, error) {
+	return &graphNodeOrphanResourceFlat{
+		graphNodeOrphanResource: n,
+		PathValue:               p,
+	}, nil
+}
+
 func (n *graphNodeOrphanResource) Name() string {
 	return fmt.Sprintf("%s (orphan)", n.ResourceName)
 }
 
 func (n *graphNodeOrphanResource) ProvidedBy() []string {
-	return []string{resourceProvider(n.ResourceName)}
+	return []string{resourceProvider(n.ResourceName, n.Provider)}
 }
 
 // GraphNodeEvalable impl.
@@ -215,6 +224,7 @@ func (n *graphNodeOrphanResource) EvalTree() EvalNode {
 				&EvalWriteState{
 					Name:         n.ResourceName,
 					ResourceType: n.ResourceType,
+					Provider:     n.Provider,
 					Dependencies: n.DependentOn(),
 					State:        &state,
 				},
@@ -272,6 +282,7 @@ func (n *graphNodeOrphanResource) EvalTree() EvalNode {
 				&EvalWriteState{
 					Name:         n.ResourceName,
 					ResourceType: n.ResourceType,
+					Provider:     n.Provider,
 					Dependencies: n.DependentOn(),
 					State:        &state,
 				},
@@ -285,4 +296,20 @@ func (n *graphNodeOrphanResource) EvalTree() EvalNode {
 
 func (n *graphNodeOrphanResource) dependableName() string {
 	return n.ResourceName
+}
+
+// Same as graphNodeOrphanResource, but for flattening
+type graphNodeOrphanResourceFlat struct {
+	*graphNodeOrphanResource
+
+	PathValue []string
+}
+
+func (n *graphNodeOrphanResourceFlat) Name() string {
+	return fmt.Sprintf(
+		"%s.%s", modulePrefixStr(n.PathValue), n.graphNodeOrphanResource.Name())
+}
+
+func (n *graphNodeOrphanResourceFlat) Path() []string {
+	return n.PathValue
 }

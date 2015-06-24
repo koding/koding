@@ -9,9 +9,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/awslabs/aws-sdk-go/service/autoscaling"
-	"github.com/awslabs/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -76,9 +77,7 @@ func resourceAwsLaunchConfiguration() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set: func(v interface{}) int {
-					return hashcode.String(v.(string))
-				},
+				Set:      schema.HashString,
 			},
 
 			"associate_public_ip_address": &schema.Schema{
@@ -364,16 +363,13 @@ func resourceAwsLaunchConfigurationCreate(d *schema.ResourceData, meta interface
 		createLaunchConfigurationOpts.BlockDeviceMappings = blockDevices
 	}
 
-	var id string
+	var lcName string
 	if v, ok := d.GetOk("name"); ok {
-		id = v.(string)
+		lcName = v.(string)
 	} else {
-		hash := sha1.Sum([]byte(fmt.Sprintf("%#v", createLaunchConfigurationOpts)))
-		configName := fmt.Sprintf("terraform-%s", base64.URLEncoding.EncodeToString(hash[:]))
-		log.Printf("[DEBUG] Computed Launch config name: %s", configName)
-		id = configName
+		lcName = resource.UniqueId()
 	}
-	createLaunchConfigurationOpts.LaunchConfigurationName = aws.String(id)
+	createLaunchConfigurationOpts.LaunchConfigurationName = aws.String(lcName)
 
 	log.Printf(
 		"[DEBUG] autoscaling create launch configuration: %#v", createLaunchConfigurationOpts)
@@ -382,7 +378,7 @@ func resourceAwsLaunchConfigurationCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error creating launch configuration: %s", err)
 	}
 
-	d.SetId(id)
+	d.SetId(lcName)
 	log.Printf("[INFO] launch configuration ID: %s", d.Id())
 
 	// We put a Retry here since sometimes eventual consistency bites
@@ -445,8 +441,8 @@ func resourceAwsLaunchConfigurationDelete(d *schema.ResourceData, meta interface
 			LaunchConfigurationName: aws.String(d.Id()),
 		})
 	if err != nil {
-		autoscalingerr, ok := err.(aws.APIError)
-		if ok && autoscalingerr.Code == "InvalidConfiguration.NotFound" {
+		autoscalingerr, ok := err.(awserr.Error)
+		if ok && autoscalingerr.Code() == "InvalidConfiguration.NotFound" {
 			return nil
 		}
 
@@ -491,6 +487,11 @@ func readBlockDevicesFromLaunchConfiguration(d *schema.ResourceData, lc *autosca
 	rootDeviceName, err := fetchRootDeviceName(d.Get("image_id").(string), ec2conn)
 	if err != nil {
 		return nil, err
+	}
+	if rootDeviceName == nil {
+		// We do this so the value is empty so we don't have to do nil checks later
+		var blank string
+		rootDeviceName = &blank
 	}
 	for _, bdm := range lc.BlockDeviceMappings {
 		bd := make(map[string]interface{})

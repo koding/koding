@@ -5,14 +5,16 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/awslabs/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAWSInstance_normal(t *testing.T) {
+func TestAccAWSInstance_basic(t *testing.T) {
 	var v ec2.Instance
 	var vol *ec2.Volume
 
@@ -124,6 +126,11 @@ func TestAccAWSInstance_blockDevices(t *testing.T) {
 				fmt.Errorf("block device doesn't exist: /dev/sdc")
 			}
 
+			// Check if the encrypted block device exists
+			if _, ok := blockDevices["/dev/sdd"]; !ok {
+				fmt.Errorf("block device doesn't exist: /dev/sdd")
+			}
+
 			return nil
 		}
 	}
@@ -145,7 +152,7 @@ func TestAccAWSInstance_blockDevices(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_instance.foo", "root_block_device.0.volume_type", "gp2"),
 					resource.TestCheckResourceAttr(
-						"aws_instance.foo", "ebs_block_device.#", "2"),
+						"aws_instance.foo", "ebs_block_device.#", "3"),
 					resource.TestCheckResourceAttr(
 						"aws_instance.foo", "ebs_block_device.2576023345.device_name", "/dev/sdb"),
 					resource.TestCheckResourceAttr(
@@ -160,6 +167,12 @@ func TestAccAWSInstance_blockDevices(t *testing.T) {
 						"aws_instance.foo", "ebs_block_device.2554893574.volume_type", "io1"),
 					resource.TestCheckResourceAttr(
 						"aws_instance.foo", "ebs_block_device.2554893574.iops", "100"),
+					resource.TestCheckResourceAttr(
+						"aws_instance.foo", "ebs_block_device.2634515331.device_name", "/dev/sdd"),
+					resource.TestCheckResourceAttr(
+						"aws_instance.foo", "ebs_block_device.2634515331.encrypted", "true"),
+					resource.TestCheckResourceAttr(
+						"aws_instance.foo", "ebs_block_device.2634515331.volume_size", "12"),
 					resource.TestCheckResourceAttr(
 						"aws_instance.foo", "ephemeral_block_device.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -218,6 +231,51 @@ func TestAccAWSInstance_sourceDestCheck(t *testing.T) {
 	})
 }
 
+func TestAccAWSInstance_disableApiTermination(t *testing.T) {
+	var v ec2.Instance
+
+	checkDisableApiTermination := func(expected bool) resource.TestCheckFunc {
+		return func(*terraform.State) error {
+			conn := testAccProvider.Meta().(*AWSClient).ec2conn
+			r, err := conn.DescribeInstanceAttribute(&ec2.DescribeInstanceAttributeInput{
+				InstanceID: v.InstanceID,
+				Attribute:  aws.String("disableApiTermination"),
+			})
+			if err != nil {
+				return err
+			}
+			got := *r.DisableAPITermination.Value
+			if got != expected {
+				return fmt.Errorf("expected: %t, got: %t", expected, got)
+			}
+			return nil
+		}
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccInstanceConfigDisableAPITermination(true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists("aws_instance.foo", &v),
+					checkDisableApiTermination(true),
+				),
+			},
+
+			resource.TestStep{
+				Config: testAccInstanceConfigDisableAPITermination(false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists("aws_instance.foo", &v),
+					checkDisableApiTermination(false),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSInstance_vpc(t *testing.T) {
 	var v ec2.Instance
 
@@ -231,6 +289,38 @@ func TestAccAWSInstance_vpc(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(
 						"aws_instance.foo", &v),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_multipleRegions(t *testing.T) {
+	var v ec2.Instance
+
+	// record the initialized providers so that we can use them to
+	// check for the instances in each region
+	var providers []*schema.Provider
+	providerFactories := map[string]terraform.ResourceProviderFactory{
+		"aws": func() (terraform.ResourceProvider, error) {
+			p := Provider()
+			providers = append(providers, p.(*schema.Provider))
+			return p, nil
+		},
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckInstanceDestroyWithProviders(&providers),
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccInstanceConfigMultipleRegions,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExistsWithProviders(
+						"aws_instance.foo", &v, &providers),
+					testAccCheckInstanceExistsWithProviders(
+						"aws_instance.bar", &v, &providers),
 				),
 			},
 		},
@@ -269,6 +359,10 @@ func TestAccAWSInstance_NetworkInstanceVPCSecurityGroupIDs(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(
 						"aws_instance.foo_instance", &v),
+					resource.TestCheckResourceAttr(
+						"aws_instance.foo_instance", "security_groups.#", "0"),
+					resource.TestCheckResourceAttr(
+						"aws_instance.foo_instance", "vpc_security_group_ids.#", "1"),
 				),
 			},
 		},
@@ -287,9 +381,9 @@ func TestAccAWSInstance_tags(t *testing.T) {
 				Config: testAccCheckInstanceConfigTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("aws_instance.foo", &v),
-					testAccCheckTagsSDK(&v.Tags, "foo", "bar"),
+					testAccCheckTags(&v.Tags, "foo", "bar"),
 					// Guard against regression of https://github.com/hashicorp/terraform/issues/914
-					testAccCheckTagsSDK(&v.Tags, "#", ""),
+					testAccCheckTags(&v.Tags, "#", ""),
 				),
 			},
 
@@ -297,8 +391,8 @@ func TestAccAWSInstance_tags(t *testing.T) {
 				Config: testAccCheckInstanceConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("aws_instance.foo", &v),
-					testAccCheckTagsSDK(&v.Tags, "foo", ""),
-					testAccCheckTagsSDK(&v.Tags, "bar", "baz"),
+					testAccCheckTags(&v.Tags, "foo", ""),
+					testAccCheckTags(&v.Tags, "bar", "baz"),
 				),
 			},
 		},
@@ -363,8 +457,80 @@ func TestAccAWSInstance_associatePublicIPAndPrivateIP(t *testing.T) {
 	})
 }
 
+// Guard against regression with KeyPairs
+// https://github.com/hashicorp/terraform/issues/2302
+func TestAccAWSInstance_keyPairCheck(t *testing.T) {
+	var v ec2.Instance
+
+	testCheckKeyPair := func(keyName string) resource.TestCheckFunc {
+		return func(*terraform.State) error {
+			if v.KeyName == nil {
+				return fmt.Errorf("No Key Pair found, expected(%s)", keyName)
+			}
+			if *v.KeyName != keyName {
+				return fmt.Errorf("Bad key name, expected (%s), got (%s)", keyName, awsutil.StringValue(v.KeyName))
+			}
+
+			return nil
+		}
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccInstanceConfigKeyPair,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists("aws_instance.foo", &v),
+					testCheckKeyPair("tmp-key"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_rootBlockDeviceMismatch(t *testing.T) {
+	var v ec2.Instance
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccInstanceConfigRootBlockDeviceMismatch,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists("aws_instance.foo", &v),
+					resource.TestCheckResourceAttr(
+						"aws_instance.foo", "root_block_device.0.volume_size", "13"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckInstanceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).ec2conn
+	return testAccCheckInstanceDestroyWithProvider(s, testAccProvider)
+}
+
+func testAccCheckInstanceDestroyWithProviders(providers *[]*schema.Provider) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, provider := range *providers {
+			if provider.Meta() == nil {
+				continue
+			}
+			if err := testAccCheckInstanceDestroyWithProvider(s, provider); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
+	conn := provider.Meta().(*AWSClient).ec2conn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_instance" {
@@ -372,6 +538,7 @@ func testAccCheckInstanceDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the resource
+		var err error
 		resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
 			InstanceIDs: []*string{aws.String(rs.Primary.ID)},
 		})
@@ -384,11 +551,11 @@ func testAccCheckInstanceDestroy(s *terraform.State) error {
 		}
 
 		// Verify the error is what we want
-		ec2err, ok := err.(aws.APIError)
+		ec2err, ok := err.(awserr.Error)
 		if !ok {
 			return err
 		}
-		if ec2err.Code != "InvalidInstanceID.NotFound" {
+		if ec2err.Code() != "InvalidInstanceID.NotFound" {
 			return err
 		}
 	}
@@ -397,6 +564,11 @@ func testAccCheckInstanceDestroy(s *terraform.State) error {
 }
 
 func testAccCheckInstanceExists(n string, i *ec2.Instance) resource.TestCheckFunc {
+	providers := []*schema.Provider{testAccProvider}
+	return testAccCheckInstanceExistsWithProviders(n, i, &providers)
+}
+
+func testAccCheckInstanceExistsWithProviders(n string, i *ec2.Instance, providers *[]*schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -406,21 +578,25 @@ func testAccCheckInstanceExists(n string, i *ec2.Instance) resource.TestCheckFun
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No ID is set")
 		}
+		for _, provider := range *providers {
+			conn := provider.Meta().(*AWSClient).ec2conn
+			resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
+				InstanceIDs: []*string{aws.String(rs.Primary.ID)},
+			})
+			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
+				continue
+			}
+			if err != nil {
+				return err
+			}
 
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-			InstanceIDs: []*string{aws.String(rs.Primary.ID)},
-		})
-		if err != nil {
-			return err
+			if len(resp.Reservations) > 0 {
+				*i = *resp.Reservations[0].Instances[0]
+				return nil
+			}
 		}
-		if len(resp.Reservations) == 0 {
-			return fmt.Errorf("Instance not found")
-		}
 
-		*i = *resp.Reservations[0].Instances[0]
-
-		return nil
+		return fmt.Errorf("Instance not found")
 	}
 }
 
@@ -482,7 +658,11 @@ const testAccInstanceConfigBlockDevices = `
 resource "aws_instance" "foo" {
 	# us-west-2
 	ami = "ami-55a7ea65"
-	instance_type = "m1.small"
+
+	# In order to attach an encrypted volume to an instance you need to have an
+	# m3.medium or larger. See "Supported Instance Types" in:
+	# http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
+	instance_type = "m3.medium"
 
 	root_block_device {
 		volume_type = "gp2"
@@ -498,6 +678,14 @@ resource "aws_instance" "foo" {
 		volume_type = "io1"
 		iops = 100
 	}
+
+	# Encrypted ebs block device
+	ebs_block_device {
+		device_name = "/dev/sdd"
+		volume_size = 12
+		encrypted = true
+	}
+
 	ephemeral_block_device {
 		device_name = "/dev/sde"
 		virtual_name = "ephemeral0"
@@ -520,7 +708,6 @@ resource "aws_instance" "foo" {
 	ami = "ami-4fccb37f"
 	instance_type = "m1.small"
 	subnet_id = "${aws_subnet.foo.id}"
-	source_dest_check = true
 }
 `
 
@@ -543,6 +730,27 @@ resource "aws_instance" "foo" {
 }
 `
 
+func testAccInstanceConfigDisableAPITermination(val bool) string {
+	return fmt.Sprintf(`
+	resource "aws_vpc" "foo" {
+		cidr_block = "10.1.0.0/16"
+	}
+
+	resource "aws_subnet" "foo" {
+		cidr_block = "10.1.1.0/24"
+		vpc_id = "${aws_vpc.foo.id}"
+	}
+
+	resource "aws_instance" "foo" {
+		# us-west-2
+		ami = "ami-4fccb37f"
+		instance_type = "m1.small"
+		subnet_id = "${aws_subnet.foo.id}"
+		disable_api_termination = %t
+	}
+	`, val)
+}
+
 const testAccInstanceConfigVPC = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
@@ -560,6 +768,32 @@ resource "aws_instance" "foo" {
 	subnet_id = "${aws_subnet.foo.id}"
 	associate_public_ip_address = true
 	tenancy = "dedicated"
+}
+`
+
+const testAccInstanceConfigMultipleRegions = `
+provider "aws" {
+	alias = "west"
+	region = "us-west-2"
+}
+
+provider "aws" {
+	alias = "east"
+	region = "us-east-1"
+}
+
+resource "aws_instance" "foo" {
+	# us-west-2
+	provider = "aws.west"
+	ami = "ami-4fccb37f"
+	instance_type = "m1.small"
+}
+
+resource "aws_instance" "bar" {
+	# us-east-1
+	provider = "aws.east"
+	ami = "ami-8c6ea9e4"
+	instance_type = "m1.small"
 }
 `
 
@@ -708,5 +942,43 @@ resource "aws_eip" "foo_eip" {
   instance = "${aws_instance.foo_instance.id}"
   vpc = true
 	depends_on = ["aws_internet_gateway.gw"]
+}
+`
+
+const testAccInstanceConfigKeyPair = `
+provider "aws" {
+	region = "us-east-1"
+}
+
+resource "aws_key_pair" "debugging" {
+	key_name = "tmp-key"
+	public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
+
+resource "aws_instance" "foo" {
+  ami = "ami-408c7f28"
+  instance_type = "t1.micro"
+  key_name = "${aws_key_pair.debugging.key_name}"
+}
+`
+
+const testAccInstanceConfigRootBlockDeviceMismatch = `
+resource "aws_vpc" "foo" {
+	cidr_block = "10.1.0.0/16"
+}
+
+resource "aws_subnet" "foo" {
+	cidr_block = "10.1.1.0/24"
+	vpc_id = "${aws_vpc.foo.id}"
+}
+
+resource "aws_instance" "foo" {
+	// This is an AMI with RootDeviceName: "/dev/sda1"; actual root: "/dev/sda"
+	ami = "ami-ef5b69df"
+	instance_type = "t1.micro"
+	subnet_id = "${aws_subnet.foo.id}"
+	root_block_device {
+		volume_size = 13
+	}
 }
 `

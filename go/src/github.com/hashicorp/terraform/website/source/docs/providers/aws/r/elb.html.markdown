@@ -43,6 +43,13 @@ resource "aws_elb" "bar" {
 
   instances = ["${aws_instance.foo.id}"]
   cross_zone_load_balancing = true
+  idle_timeout = 400
+  connection_draining = true
+  connection_draining_timeout = 400
+
+  tags {
+    Name = "foobar-terraform-elb"
+  }
 }
 ```
 
@@ -59,6 +66,10 @@ The following arguments are supported:
 * `listener` - (Required) A list of listener blocks. Listeners documented below.
 * `health_check` - (Optional) A health_check block. Health Check documented below.
 * `cross_zone_load_balancing` - (Optional) Enable cross-zone load balancing.
+* `idle_timeout` - (Optional) The time in seconds that the connection is allowed to be idle. Default: 60.
+* `connection_draining` - (Optional) Boolean to enable connection draining.
+* `connection_draining_timeout` - (Optional) The time in seconds to allow for connections to drain. 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 Exactly one of `availability_zones` or `subnets` must be specified: this
 determines if the ELB exists in a VPC or in EC2-classic.
@@ -66,7 +77,7 @@ determines if the ELB exists in a VPC or in EC2-classic.
 Listeners support the following:
 
 * `instance_port` - (Required) The port on the instance to route to
-* `instance_protocol` - (Required) The the protocol to use to the instance.
+* `instance_protocol` - (Required) The protocol to use to the instance.
 * `lb_port` - (Required) The port to listen on for the load balancer
 * `lb_protocol` - (Required) The protocol to listen on.
 * `ssl_certificate_id` - (Optional) The id of an SSL certificate you have uploaded to AWS IAM.
@@ -87,3 +98,7 @@ The following attributes are exported:
 * `name` - The name of the ELB
 * `dns_name` - The DNS name of the ELB
 * `instances` - The list of instances in the ELB
+* `source_security_group` - The name of the security group that you can use as
+  part of your inbound rules for your load balancer's back-end application
+  instances.
+* `zone_id` - The canonical hosted zone ID of the ELB (to be used in a Route 53 Alias record)

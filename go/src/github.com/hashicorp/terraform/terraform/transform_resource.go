@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/dag"
@@ -43,6 +44,7 @@ func (t *ResourceCountTransformer) Transform(g *Graph) error {
 		var node dag.Vertex = &graphNodeExpandedResource{
 			Index:    index,
 			Resource: t.Resource,
+			Path:     g.Path,
 		}
 		if t.Destroy {
 			node = &graphNodeExpandedResourceDestroy{
@@ -92,6 +94,7 @@ func (t *ResourceCountTransformer) nodeIsTargeted(node dag.Vertex) bool {
 type graphNodeExpandedResource struct {
 	Index    int
 	Resource *config.Resource
+	Path     []string
 }
 
 func (n *graphNodeExpandedResource) Name() string {
@@ -111,8 +114,8 @@ func (n *graphNodeExpandedResource) ResourceAddress() *ResourceAddress {
 		index = 0
 	}
 	return &ResourceAddress{
-		Index: index,
-		// TODO: kjkjkj
+		Path:         n.Path[1:],
+		Index:        index,
 		InstanceType: TypePrimary,
 		Name:         n.Resource.Name,
 		Type:         n.Resource.Type,
@@ -134,13 +137,60 @@ func (n *graphNodeExpandedResource) DependableName() []string {
 
 // GraphNodeDependent impl.
 func (n *graphNodeExpandedResource) DependentOn() []string {
-	config := &GraphNodeConfigResource{Resource: n.Resource}
-	return config.DependentOn()
+	configNode := &GraphNodeConfigResource{Resource: n.Resource}
+	result := configNode.DependentOn()
+
+	// Walk the variables to find any count-specific variables we depend on.
+	configNode.VarWalk(func(v config.InterpolatedVariable) {
+		rv, ok := v.(*config.ResourceVariable)
+		if !ok {
+			return
+		}
+
+		// We only want ourselves
+		if rv.ResourceId() != n.Resource.Id() {
+			return
+		}
+
+		// If this isn't a multi-access (which shouldn't be allowed but
+		// is verified elsewhere), then we depend on the specific count
+		// of this resource, ignoring ourself (which again should be
+		// validated elsewhere).
+		if rv.Index > -1 {
+			id := fmt.Sprintf("%s.%d", rv.ResourceId(), rv.Index)
+			if id != n.stateId() && id != n.stateId()+".0" {
+				result = append(result, id)
+			}
+		}
+	})
+
+	return result
 }
 
 // GraphNodeProviderConsumer
 func (n *graphNodeExpandedResource) ProvidedBy() []string {
-	return []string{resourceProvider(n.Resource.Type)}
+	return []string{resourceProvider(n.Resource.Type, n.Resource.Provider)}
+}
+
+func (n *graphNodeExpandedResource) StateDependencies() []string {
+	depsRaw := n.DependentOn()
+	deps := make([]string, 0, len(depsRaw))
+	for _, d := range depsRaw {
+		// Ignore any variable dependencies
+		if strings.HasPrefix(d, "var.") {
+			continue
+		}
+
+		// This is sad. The dependencies are currently in the format of
+		// "module.foo.bar" (the full field). This strips the field off.
+		if strings.HasPrefix(d, "module.") {
+			parts := strings.SplitN(d, ".", 3)
+			d = strings.Join(parts[0:2], ".")
+		}
+		deps = append(deps, d)
+	}
+
+	return deps
 }
 
 // GraphNodeEvalable impl.
@@ -230,7 +280,8 @@ func (n *graphNodeExpandedResource) EvalTree() EvalNode {
 				&EvalWriteState{
 					Name:         n.stateId(),
 					ResourceType: n.Resource.Type,
-					Dependencies: n.DependentOn(),
+					Provider:     n.Resource.Provider,
+					Dependencies: n.StateDependencies(),
 					State:        &state,
 				},
 			},
@@ -270,7 +321,8 @@ func (n *graphNodeExpandedResource) EvalTree() EvalNode {
 				&EvalWriteState{
 					Name:         n.stateId(),
 					ResourceType: n.Resource.Type,
-					Dependencies: n.DependentOn(),
+					Provider:     n.Resource.Provider,
+					Dependencies: n.StateDependencies(),
 					State:        &state,
 				},
 				&EvalDiffTainted{
@@ -416,7 +468,8 @@ func (n *graphNodeExpandedResource) EvalTree() EvalNode {
 				&EvalWriteState{
 					Name:         n.stateId(),
 					ResourceType: n.Resource.Type,
-					Dependencies: n.DependentOn(),
+					Provider:     n.Resource.Provider,
+					Dependencies: n.StateDependencies(),
 					State:        &state,
 				},
 				&EvalApplyProvisioners{
@@ -459,7 +512,8 @@ func (n *graphNodeExpandedResource) EvalTree() EvalNode {
 							&EvalWriteStateTainted{
 								Name:         n.stateId(),
 								ResourceType: n.Resource.Type,
-								Dependencies: n.DependentOn(),
+								Provider:     n.Resource.Provider,
+								Dependencies: n.StateDependencies(),
 								State:        &state,
 								Index:        -1,
 							},
@@ -476,7 +530,8 @@ func (n *graphNodeExpandedResource) EvalTree() EvalNode {
 					Else: &EvalWriteState{
 						Name:         n.stateId(),
 						ResourceType: n.Resource.Type,
-						Dependencies: n.DependentOn(),
+						Provider:     n.Resource.Provider,
+						Dependencies: n.StateDependencies(),
 						State:        &state,
 					},
 				},
@@ -586,7 +641,8 @@ func (n *graphNodeExpandedResourceDestroy) EvalTree() EvalNode {
 				&EvalWriteState{
 					Name:         n.stateId(),
 					ResourceType: n.Resource.Type,
-					Dependencies: n.DependentOn(),
+					Provider:     n.Resource.Provider,
+					Dependencies: n.StateDependencies(),
 					State:        &state,
 				},
 				&EvalApplyPost{
