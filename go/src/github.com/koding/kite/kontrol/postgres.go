@@ -20,6 +20,7 @@ import (
 
 var (
 	ErrQueryFieldsEmpty = errors.New("all query fields are empty")
+	ErrNoKeyFound       = errors.New("no key pair found")
 )
 
 // Postgres holds Postgresql database related configuration
@@ -174,6 +175,7 @@ func (p *Postgres) Get(query *protocol.KontrolQuery) (Kites, error) {
 		url         string
 		updated_at  time.Time
 		created_at  time.Time
+		keyId       string
 	)
 
 	kites := make(Kites, 0)
@@ -190,6 +192,7 @@ func (p *Postgres) Get(query *protocol.KontrolQuery) (Kites, error) {
 			&url,
 			&updated_at,
 			&created_at,
+			&keyId,
 		)
 		if err != nil {
 			return nil, err
@@ -205,7 +208,8 @@ func (p *Postgres) Get(query *protocol.KontrolQuery) (Kites, error) {
 				Hostname:    hostname,
 				ID:          id,
 			},
-			URL: url,
+			URL:   url,
+			KeyID: keyId,
 		})
 	}
 
@@ -235,6 +239,10 @@ func (p *Postgres) Upsert(kiteProt *protocol.Kite, value *kontrolprotocol.Regist
 	_, err = url.Parse(value.URL)
 	if err != nil {
 		return err
+	}
+
+	if value.KeyID == "" {
+		return errors.New("postgres: keyId is empty. Aborting upsert")
 	}
 
 	// we are going to try an UPDATE, if it's not successfull we are going to
@@ -269,7 +277,7 @@ func (p *Postgres) Upsert(kiteProt *protocol.Kite, value *kontrolprotocol.Regist
 		return nil
 	}
 
-	insertSQL, args, err := insertQuery(kiteProt, value.URL)
+	insertSQL, args, err := insertKiteQuery(kiteProt, value.URL, value.KeyID)
 	if err != nil {
 		return err
 	}
@@ -285,7 +293,7 @@ func (p *Postgres) Add(kiteProt *protocol.Kite, value *kontrolprotocol.RegisterV
 		return err
 	}
 
-	sqlQuery, args, err := insertQuery(kiteProt, value.URL)
+	sqlQuery, args, err := insertKiteQuery(kiteProt, value.URL, value.KeyID)
 	if err != nil {
 		return err
 	}
@@ -346,8 +354,8 @@ func selectQuery(query *protocol.KontrolQuery) (string, []interface{}, error) {
 	return kites.Where(andQuery).ToSql()
 }
 
-// inseryQuery
-func insertQuery(kiteProt *protocol.Kite, url string) (string, []interface{}, error) {
+// inseryKiteQuery inserts the given kite, url and key to the kite.kite table
+func insertKiteQuery(kiteProt *protocol.Kite, url, keyId string) (string, []interface{}, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	kiteValues := kiteProt.Values()
@@ -358,6 +366,7 @@ func insertQuery(kiteProt *protocol.Kite, url string) (string, []interface{}, er
 	}
 
 	values = append(values, url)
+	values = append(values, keyId)
 
 	return psql.Insert("kite.kite").Columns(
 		"username",
@@ -368,5 +377,99 @@ func insertQuery(kiteProt *protocol.Kite, url string) (string, []interface{}, er
 		"hostname",
 		"id",
 		"url",
+		"key_id",
 	).Values(values...).ToSql()
+}
+
+/*
+
+--- Key Pair -----------------
+
+*/
+
+func (p *Postgres) AddKey(keyPair *KeyPair) error {
+	if err := keyPair.Validate(); err != nil {
+		return err
+	}
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sqlQuery, args, err := psql.Insert("kite.key").Columns(
+		"id",
+		"public",
+		"private",
+	).Values(keyPair.ID, keyPair.Public, keyPair.Private).ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = p.DB.Exec(sqlQuery, args...)
+	return err
+}
+
+func (p *Postgres) DeleteKey(keyPair *KeyPair) error {
+	res, err := p.DB.Exec(`UPDATE kite.key SET deleted_at = (now() at time zone 'utc') WHERE id = $1`,
+		keyPair.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = res.RowsAffected()
+	return err
+}
+
+func (p *Postgres) IsValid(public string) error {
+	// for us valid means if deleted_at is not set. Because the gey keys
+	// doesn't if  deleted_at row is set, we just check if we can fetch it.
+	_, err := p.GetKeyFromPublic(public)
+	return err
+}
+
+func (p *Postgres) GetKeyFromID(id string) (*KeyPair, error) {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sqlQuery, args, err := psql.
+		Select("id", "public", "private").
+		From("kite.key").
+		Where(map[string]interface{}{
+		"id":         id,
+		"deleted_at": nil,
+	}).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	keyPair := &KeyPair{}
+	err = p.DB.QueryRow(sqlQuery, args...).Scan(&keyPair.ID, &keyPair.Public, &keyPair.Private)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNoKeyFound
+		}
+		return nil, err
+	}
+
+	return keyPair, nil
+}
+
+func (p *Postgres) GetKeyFromPublic(public string) (*KeyPair, error) {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	sqlQuery, args, err := psql.
+		Select("id", "public", "private").
+		From("kite.key").
+		Where(map[string]interface{}{
+		"public":     public,
+		"deleted_at": nil,
+	}).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	keyPair := &KeyPair{}
+	err = p.DB.QueryRow(sqlQuery, args...).Scan(&keyPair.ID, &keyPair.Public, &keyPair.Private)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNoKeyFound
+		}
+		return nil, err
+	}
+
+	return keyPair, nil
 }

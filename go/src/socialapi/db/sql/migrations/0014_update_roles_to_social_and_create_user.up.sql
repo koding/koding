@@ -61,5 +61,4 @@ $body$
 
 GRANT kontrol TO kontrolapp201506;
 
-
 ALTER USER paymentro with password 'N8bG8ZVjp2y87Zxfi3';
