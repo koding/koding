@@ -1355,7 +1355,7 @@ Admin main styles
         bg                  color, #FFF
         margin-top          26px
 
-  .formline.url
+  .formline
     .link
       color                 #00b057
       display               inline-block
@@ -1365,3 +1365,20 @@ Admin main styles
 
       &.label
         cursor              default
+
+    .status
+      display               inline-block
+      padding               0 10px
+      text-transform        uppercase
+      height                29px
+      line-height           29px
+      color                 #FFF
+      margin-top            20px
+      rounded               3px
+      pointer()
+
+      &.disable
+        bg                  color, #d75b5b
+
+      &.enable
+        bg                  color, #61c17f

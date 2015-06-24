@@ -95,6 +95,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
         integrationId   : channelIntegration.integrationId
         selectedChannel : channelIntegration.channelId
         webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
+        integrationType : 'configured'
 
       @emit 'IntegrationCustomizeRequested', data
 

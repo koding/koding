@@ -2,6 +2,7 @@ kd                   = require 'kd'
 JView                = require 'app/jview'
 globals              = require 'globals'
 showError            = require 'app/util/showError'
+KDButtonView         = kd.ButtonView
 applyMarkdown        = require 'app/util/applyMarkdown'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDFormViewWithFields = kd.FormViewWithFields
@@ -33,7 +34,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     items = ({ title: channel.name, value: channel.id } for channel in data.channels)
 
-    @settingsForm       = new KDFormViewWithFields
+    formOptions         =
       cssClass          : 'AppModal-form details-form'
       callback          : @bound 'handleFormCallback'
       fields            :
@@ -74,6 +75,25 @@ module.exports = class AdminIntegrationDetailsView extends JView
           title         : 'Cancel'
           cssClass      : 'solid green medium red'
           callback      : => @emit 'IntegrationCancelled'
+
+    { integrationType, isDisabled } = @getData()
+
+    if integrationType is 'configured'
+      cssClass = 'disable status'
+      title    = 'Disable Integration'
+
+      if isDisabled
+        cssClass = 'enable status'
+        title    = 'Enable Integration'
+
+      formOptions.fields.status =
+        label     : '<p>Integration Status</p><span>You can enable/disable your integration here.</span>'
+        itemClass : KDCustomHTMLView
+        partial   : title
+        cssClass  : cssClass
+        click     : @bound 'handleStatusChange'
+
+    @settingsForm = new KDFormViewWithFields formOptions
 
 
   handleFormCallback: (formData) ->
@@ -118,6 +138,32 @@ module.exports = class AdminIntegrationDetailsView extends JView
         regenerate.updatePartial 'Regenerate'
         regenerate.unsetClass 'label'
         @regenerateLock = no
+
+
+  handleStatusChange: ->
+
+    { id, selectedChannel, isDisabled } = @getData()
+    newState     = not isDisabled
+    data         =
+      id         : id
+      channelId  : selectedChannel
+      isDisabled : newState
+
+    kd.singletons.socialapi.integrations.update data, (err, res) =>
+
+      return showError  if err
+
+      @getData().isDisabled = newState
+      { status } = @settingsForm.inputs
+
+      if newState # this means disabled
+        status.setClass      'enable'
+        status.unsetClass    'disable'
+        status.updatePartial 'Enable Integration'
+      else
+        status.setClass      'disable'
+        status.unsetClass    'enable'
+        status.updatePartial 'Disable Integration'
 
 
   pistachio: ->
