@@ -86,7 +86,7 @@ module.exports = class IDELayoutManager extends KDObject
       @createParentSplitViews splitViews
     else
 
-      for panel in splitViews.panels
+      for panel in splitViews.panels when panel
         @createParentSplitViews panel
 
     return @map
