@@ -174,13 +174,12 @@ func (m *Machine) deleteSnapshotData(snapshotId string) error {
 }
 
 func (m *Machine) checkSnapshotExistence() (bool, error) {
-	var exists bool
 	var account *models.Account
 	if err := m.Session.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": m.Username}).One(&account)
 	}); err != nil {
 		m.Log.Error("Could not fetch account %v: err: %v", m.Username, err)
-		return exists, errors.New("could not fetch account from DB")
+		return false, errors.New("could not fetch account from DB")
 	}
 
 	var err error
@@ -196,12 +195,8 @@ func (m *Machine) checkSnapshotExistence() (bool, error) {
 
 	if err != nil {
 		m.Log.Error("Could not fetch %v: err: %v", m.Meta.SnapshotId, err)
-		return exists, errors.New("could not check Snapshot existency")
+		return false, errors.New("could not check Snapshot existency")
 	}
 
-	if count != 0 {
-		exists = true
-	}
-
-	return exists, nil
+	return count != 0, nil
 }
