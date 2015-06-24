@@ -1,5 +1,6 @@
 kd                       = require 'kd'
 remote                   = require('app/remote').getInstance()
+globals                  = require 'globals'
 showError                = require 'app/util/showError'
 KDButtonView             = kd.ButtonView
 KDTimeAgoView            = kd.TimeAgoView
@@ -66,7 +67,36 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     subview.addSubView new KDCustomHTMLView
       cssClass : 'edit'
       partial  : 'Customize <span></span>'
-      click    : => @emit 'IntegrationCustomizeRequested', @getData().integration
+      click    : => @handleCustomize data
+
+
+  handleCustomize: (integrationData) ->
+
+    { integration } = @getData()
+    { channelIntegration } = integrationData
+
+    @fetchChannels (err, channels) =>
+      return showError err  if err
+
+      data              =
+        channels        : channels
+        id              : channelIntegration.id
+        name            : integration.name
+        title           : integration.title
+        token           : channelIntegration.token
+        summary         : integration.summary
+        settings        : channelIntegration.settings
+        createdAt       : channelIntegration.createdAt
+        iconPath        : integration.iconPath
+        updatedAt       : channelIntegration.updatedAt
+        description     : integration.description
+        instructions    : integration.instructions
+        typeConstant    : integration.typeConstant
+        integrationId   : channelIntegration.integrationId
+        selectedChannel : channelIntegration.channelId
+        webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
+
+      @emit 'IntegrationCustomizeRequested', data
 
 
   pistachio: ->
