@@ -57,6 +57,8 @@ type (
 		Geoipdbpath string
 
 		DisabledFeatures DisabledFeatures
+
+		Github Github
 	}
 
 	// Email holds Email Workers' config
@@ -162,5 +164,11 @@ type (
 	DisabledFeatures struct {
 		Moderation bool
 		BotChannel bool
+	}
+
+	Github struct {
+		ClientId     string `env:"key=KONFIG_SOCIALAPI_GITHUB_CLIENTID"`
+		ClientSecret string `env:"key=KONFIG_SOCIALAPI_GITHUB_CLIENTSECRET"`
+		RedirectUri  string `env:"key=KONFIG_SOCIALAPI_GITHUB_REDIRECTURI"`
 	}
 )
