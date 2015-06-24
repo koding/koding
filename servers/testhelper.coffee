@@ -112,6 +112,32 @@ class TeamHandlerHelper
     return data
 
 
+  @generateCheckTokenRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      token :  generateRandomString()
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateCheckTokenRequestParams = (opts = {}) ->
+
+    url  = generateUrl
+      route : '-/teams/validate-token'
+
+    body = TeamHandlerHelper.generateCheckTokenRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
   @generateJoinTeamRequestBody = (opts = {}) ->
 
     username = generateRandomUsername()
