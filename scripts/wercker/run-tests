@@ -4,6 +4,7 @@ fs = require 'fs'
 path = require 'path'
 child_process = require 'child_process'
 
+_ = require 'underscore'
 async = require 'async'
 
 monitor = require './monitor-test'
@@ -62,7 +63,7 @@ runTestScript = path.join __dirname, '../test-instance/run-test'
 
 runTest = (job, next) ->
 
-  {instance, test} = job
+  {setId, instance, test} = job
 
   args = [instance.publicIpAddress, test]
 
@@ -81,13 +82,15 @@ runTest = (job, next) ->
     else
       next()
 
-  monitor child
+  monitor child, _.debounce ->
+    console.log "Set:#{setId} is progressing"
+  , 30000
 
 
 startTest = (setId, instance, test, next) ->
 
   begin = Date.now() - start
-  stopwatch[setId].push job = {test, instance, begin}
+  stopwatch[setId].push job = {setId, test, instance, begin}
   runTest job, next
 
 

@@ -4,32 +4,26 @@
 package ecs
 
 import (
-	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-var oprw sync.Mutex
+const opCreateCluster = "CreateCluster"
 
 // CreateClusterRequest generates a request for the CreateCluster operation.
 func (c *ECS) CreateClusterRequest(input *CreateClusterInput) (req *aws.Request, output *CreateClusterOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opCreateCluster == nil {
-		opCreateCluster = &aws.Operation{
-			Name:       "CreateCluster",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opCreateCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &CreateClusterInput{}
 	}
 
-	req = c.newRequest(opCreateCluster, input, output)
+	req = c.newRequest(op, input, output)
 	output = &CreateClusterOutput{}
 	req.Data = output
 	return
@@ -44,26 +38,21 @@ func (c *ECS) CreateCluster(input *CreateClusterInput) (*CreateClusterOutput, er
 	return out, err
 }
 
-var opCreateCluster *aws.Operation
+const opCreateService = "CreateService"
 
 // CreateServiceRequest generates a request for the CreateService operation.
 func (c *ECS) CreateServiceRequest(input *CreateServiceInput) (req *aws.Request, output *CreateServiceOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opCreateService == nil {
-		opCreateService = &aws.Operation{
-			Name:       "CreateService",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opCreateService,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &CreateServiceInput{}
 	}
 
-	req = c.newRequest(opCreateService, input, output)
+	req = c.newRequest(op, input, output)
 	output = &CreateServiceOutput{}
 	req.Data = output
 	return
@@ -78,26 +67,21 @@ func (c *ECS) CreateService(input *CreateServiceInput) (*CreateServiceOutput, er
 	return out, err
 }
 
-var opCreateService *aws.Operation
+const opDeleteCluster = "DeleteCluster"
 
 // DeleteClusterRequest generates a request for the DeleteCluster operation.
 func (c *ECS) DeleteClusterRequest(input *DeleteClusterInput) (req *aws.Request, output *DeleteClusterOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDeleteCluster == nil {
-		opDeleteCluster = &aws.Operation{
-			Name:       "DeleteCluster",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDeleteCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DeleteClusterInput{}
 	}
 
-	req = c.newRequest(opDeleteCluster, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DeleteClusterOutput{}
 	req.Data = output
 	return
@@ -112,26 +96,21 @@ func (c *ECS) DeleteCluster(input *DeleteClusterInput) (*DeleteClusterOutput, er
 	return out, err
 }
 
-var opDeleteCluster *aws.Operation
+const opDeleteService = "DeleteService"
 
 // DeleteServiceRequest generates a request for the DeleteService operation.
 func (c *ECS) DeleteServiceRequest(input *DeleteServiceInput) (req *aws.Request, output *DeleteServiceOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDeleteService == nil {
-		opDeleteService = &aws.Operation{
-			Name:       "DeleteService",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDeleteService,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DeleteServiceInput{}
 	}
 
-	req = c.newRequest(opDeleteService, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DeleteServiceOutput{}
 	req.Data = output
 	return
@@ -144,26 +123,21 @@ func (c *ECS) DeleteService(input *DeleteServiceInput) (*DeleteServiceOutput, er
 	return out, err
 }
 
-var opDeleteService *aws.Operation
+const opDeregisterContainerInstance = "DeregisterContainerInstance"
 
 // DeregisterContainerInstanceRequest generates a request for the DeregisterContainerInstance operation.
 func (c *ECS) DeregisterContainerInstanceRequest(input *DeregisterContainerInstanceInput) (req *aws.Request, output *DeregisterContainerInstanceOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDeregisterContainerInstance == nil {
-		opDeregisterContainerInstance = &aws.Operation{
-			Name:       "DeregisterContainerInstance",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDeregisterContainerInstance,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DeregisterContainerInstanceInput{}
 	}
 
-	req = c.newRequest(opDeregisterContainerInstance, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DeregisterContainerInstanceOutput{}
 	req.Data = output
 	return
@@ -177,61 +151,57 @@ func (c *ECS) DeregisterContainerInstance(input *DeregisterContainerInstanceInpu
 	return out, err
 }
 
-var opDeregisterContainerInstance *aws.Operation
+const opDeregisterTaskDefinition = "DeregisterTaskDefinition"
 
 // DeregisterTaskDefinitionRequest generates a request for the DeregisterTaskDefinition operation.
 func (c *ECS) DeregisterTaskDefinitionRequest(input *DeregisterTaskDefinitionInput) (req *aws.Request, output *DeregisterTaskDefinitionOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDeregisterTaskDefinition == nil {
-		opDeregisterTaskDefinition = &aws.Operation{
-			Name:       "DeregisterTaskDefinition",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDeregisterTaskDefinition,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DeregisterTaskDefinitionInput{}
 	}
 
-	req = c.newRequest(opDeregisterTaskDefinition, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DeregisterTaskDefinitionOutput{}
 	req.Data = output
 	return
 }
 
-// NOT YET IMPLEMENTED.
+// Deregisters the specified task definition by family and revision. Upon deregistration,
+// the task definition is marked as INACTIVE. Existing tasks and services that
+// reference an INACTIVE task definition continue to run without disruption.
+// Existing services that reference an INACTIVE task definition can still scale
+// up or down by modifying the service's desired count.
 //
-// Deregisters the specified task definition. You will no longer be able to
-// run tasks from this definition after deregistration.
+// You cannot use an INACTIVE task definition to run new tasks or create new
+// services, and you cannot update an existing service to reference an INACTIVE
+// task definition (although there may be up to a 10 minute window following
+// deregistration where these restrictions have not yet taken effect).
 func (c *ECS) DeregisterTaskDefinition(input *DeregisterTaskDefinitionInput) (*DeregisterTaskDefinitionOutput, error) {
 	req, out := c.DeregisterTaskDefinitionRequest(input)
 	err := req.Send()
 	return out, err
 }
 
-var opDeregisterTaskDefinition *aws.Operation
+const opDescribeClusters = "DescribeClusters"
 
 // DescribeClustersRequest generates a request for the DescribeClusters operation.
 func (c *ECS) DescribeClustersRequest(input *DescribeClustersInput) (req *aws.Request, output *DescribeClustersOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDescribeClusters == nil {
-		opDescribeClusters = &aws.Operation{
-			Name:       "DescribeClusters",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDescribeClusters,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DescribeClustersInput{}
 	}
 
-	req = c.newRequest(opDescribeClusters, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DescribeClustersOutput{}
 	req.Data = output
 	return
@@ -244,26 +214,21 @@ func (c *ECS) DescribeClusters(input *DescribeClustersInput) (*DescribeClustersO
 	return out, err
 }
 
-var opDescribeClusters *aws.Operation
+const opDescribeContainerInstances = "DescribeContainerInstances"
 
 // DescribeContainerInstancesRequest generates a request for the DescribeContainerInstances operation.
 func (c *ECS) DescribeContainerInstancesRequest(input *DescribeContainerInstancesInput) (req *aws.Request, output *DescribeContainerInstancesOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDescribeContainerInstances == nil {
-		opDescribeContainerInstances = &aws.Operation{
-			Name:       "DescribeContainerInstances",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDescribeContainerInstances,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DescribeContainerInstancesInput{}
 	}
 
-	req = c.newRequest(opDescribeContainerInstances, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DescribeContainerInstancesOutput{}
 	req.Data = output
 	return
@@ -277,26 +242,21 @@ func (c *ECS) DescribeContainerInstances(input *DescribeContainerInstancesInput)
 	return out, err
 }
 
-var opDescribeContainerInstances *aws.Operation
+const opDescribeServices = "DescribeServices"
 
 // DescribeServicesRequest generates a request for the DescribeServices operation.
 func (c *ECS) DescribeServicesRequest(input *DescribeServicesInput) (req *aws.Request, output *DescribeServicesOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDescribeServices == nil {
-		opDescribeServices = &aws.Operation{
-			Name:       "DescribeServices",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDescribeServices,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DescribeServicesInput{}
 	}
 
-	req = c.newRequest(opDescribeServices, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DescribeServicesOutput{}
 	req.Data = output
 	return
@@ -309,26 +269,21 @@ func (c *ECS) DescribeServices(input *DescribeServicesInput) (*DescribeServicesO
 	return out, err
 }
 
-var opDescribeServices *aws.Operation
+const opDescribeTaskDefinition = "DescribeTaskDefinition"
 
 // DescribeTaskDefinitionRequest generates a request for the DescribeTaskDefinition operation.
 func (c *ECS) DescribeTaskDefinitionRequest(input *DescribeTaskDefinitionInput) (req *aws.Request, output *DescribeTaskDefinitionOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDescribeTaskDefinition == nil {
-		opDescribeTaskDefinition = &aws.Operation{
-			Name:       "DescribeTaskDefinition",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDescribeTaskDefinition,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DescribeTaskDefinitionInput{}
 	}
 
-	req = c.newRequest(opDescribeTaskDefinition, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DescribeTaskDefinitionOutput{}
 	req.Data = output
 	return
@@ -336,33 +291,31 @@ func (c *ECS) DescribeTaskDefinitionRequest(input *DescribeTaskDefinitionInput) 
 
 // Describes a task definition. You can specify a family and revision to find
 // information on a specific task definition, or you can simply specify the
-// family to find the latest revision in that family.
+// family to find the latest ACTIVE revision in that family.
+//
+//  You can only describe INACTIVE task definitions while an active task or
+// service references them.
 func (c *ECS) DescribeTaskDefinition(input *DescribeTaskDefinitionInput) (*DescribeTaskDefinitionOutput, error) {
 	req, out := c.DescribeTaskDefinitionRequest(input)
 	err := req.Send()
 	return out, err
 }
 
-var opDescribeTaskDefinition *aws.Operation
+const opDescribeTasks = "DescribeTasks"
 
 // DescribeTasksRequest generates a request for the DescribeTasks operation.
 func (c *ECS) DescribeTasksRequest(input *DescribeTasksInput) (req *aws.Request, output *DescribeTasksOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDescribeTasks == nil {
-		opDescribeTasks = &aws.Operation{
-			Name:       "DescribeTasks",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDescribeTasks,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DescribeTasksInput{}
 	}
 
-	req = c.newRequest(opDescribeTasks, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DescribeTasksOutput{}
 	req.Data = output
 	return
@@ -375,26 +328,21 @@ func (c *ECS) DescribeTasks(input *DescribeTasksInput) (*DescribeTasksOutput, er
 	return out, err
 }
 
-var opDescribeTasks *aws.Operation
+const opDiscoverPollEndpoint = "DiscoverPollEndpoint"
 
 // DiscoverPollEndpointRequest generates a request for the DiscoverPollEndpoint operation.
 func (c *ECS) DiscoverPollEndpointRequest(input *DiscoverPollEndpointInput) (req *aws.Request, output *DiscoverPollEndpointOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opDiscoverPollEndpoint == nil {
-		opDiscoverPollEndpoint = &aws.Operation{
-			Name:       "DiscoverPollEndpoint",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opDiscoverPollEndpoint,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &DiscoverPollEndpointInput{}
 	}
 
-	req = c.newRequest(opDiscoverPollEndpoint, input, output)
+	req = c.newRequest(op, input, output)
 	output = &DiscoverPollEndpointOutput{}
 	req.Data = output
 	return
@@ -411,32 +359,27 @@ func (c *ECS) DiscoverPollEndpoint(input *DiscoverPollEndpointInput) (*DiscoverP
 	return out, err
 }
 
-var opDiscoverPollEndpoint *aws.Operation
+const opListClusters = "ListClusters"
 
 // ListClustersRequest generates a request for the ListClusters operation.
 func (c *ECS) ListClustersRequest(input *ListClustersInput) (req *aws.Request, output *ListClustersOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opListClusters == nil {
-		opListClusters = &aws.Operation{
-			Name:       "ListClusters",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-			Paginator: &aws.Paginator{
-				InputTokens:     []string{"nextToken"},
-				OutputTokens:    []string{"nextToken"},
-				LimitToken:      "maxResults",
-				TruncationToken: "",
-			},
-		}
+	op := &aws.Operation{
+		Name:       opListClusters,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &aws.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
 		input = &ListClustersInput{}
 	}
 
-	req = c.newRequest(opListClusters, input, output)
+	req = c.newRequest(op, input, output)
 	output = &ListClustersOutput{}
 	req.Data = output
 	return
@@ -456,32 +399,27 @@ func (c *ECS) ListClustersPages(input *ListClustersInput, fn func(p *ListCluster
 	})
 }
 
-var opListClusters *aws.Operation
+const opListContainerInstances = "ListContainerInstances"
 
 // ListContainerInstancesRequest generates a request for the ListContainerInstances operation.
 func (c *ECS) ListContainerInstancesRequest(input *ListContainerInstancesInput) (req *aws.Request, output *ListContainerInstancesOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opListContainerInstances == nil {
-		opListContainerInstances = &aws.Operation{
-			Name:       "ListContainerInstances",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-			Paginator: &aws.Paginator{
-				InputTokens:     []string{"nextToken"},
-				OutputTokens:    []string{"nextToken"},
-				LimitToken:      "maxResults",
-				TruncationToken: "",
-			},
-		}
+	op := &aws.Operation{
+		Name:       opListContainerInstances,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &aws.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
 		input = &ListContainerInstancesInput{}
 	}
 
-	req = c.newRequest(opListContainerInstances, input, output)
+	req = c.newRequest(op, input, output)
 	output = &ListContainerInstancesOutput{}
 	req.Data = output
 	return
@@ -501,32 +439,27 @@ func (c *ECS) ListContainerInstancesPages(input *ListContainerInstancesInput, fn
 	})
 }
 
-var opListContainerInstances *aws.Operation
+const opListServices = "ListServices"
 
 // ListServicesRequest generates a request for the ListServices operation.
 func (c *ECS) ListServicesRequest(input *ListServicesInput) (req *aws.Request, output *ListServicesOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opListServices == nil {
-		opListServices = &aws.Operation{
-			Name:       "ListServices",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-			Paginator: &aws.Paginator{
-				InputTokens:     []string{"nextToken"},
-				OutputTokens:    []string{"nextToken"},
-				LimitToken:      "maxResults",
-				TruncationToken: "",
-			},
-		}
+	op := &aws.Operation{
+		Name:       opListServices,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &aws.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
 		input = &ListServicesInput{}
 	}
 
-	req = c.newRequest(opListServices, input, output)
+	req = c.newRequest(op, input, output)
 	output = &ListServicesOutput{}
 	req.Data = output
 	return
@@ -546,39 +479,35 @@ func (c *ECS) ListServicesPages(input *ListServicesInput, fn func(p *ListService
 	})
 }
 
-var opListServices *aws.Operation
+const opListTaskDefinitionFamilies = "ListTaskDefinitionFamilies"
 
 // ListTaskDefinitionFamiliesRequest generates a request for the ListTaskDefinitionFamilies operation.
 func (c *ECS) ListTaskDefinitionFamiliesRequest(input *ListTaskDefinitionFamiliesInput) (req *aws.Request, output *ListTaskDefinitionFamiliesOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opListTaskDefinitionFamilies == nil {
-		opListTaskDefinitionFamilies = &aws.Operation{
-			Name:       "ListTaskDefinitionFamilies",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-			Paginator: &aws.Paginator{
-				InputTokens:     []string{"nextToken"},
-				OutputTokens:    []string{"nextToken"},
-				LimitToken:      "maxResults",
-				TruncationToken: "",
-			},
-		}
+	op := &aws.Operation{
+		Name:       opListTaskDefinitionFamilies,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &aws.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
 		input = &ListTaskDefinitionFamiliesInput{}
 	}
 
-	req = c.newRequest(opListTaskDefinitionFamilies, input, output)
+	req = c.newRequest(op, input, output)
 	output = &ListTaskDefinitionFamiliesOutput{}
 	req.Data = output
 	return
 }
 
-// Returns a list of task definition families that are registered to your account.
-// You can filter the results with the familyPrefix parameter.
+// Returns a list of task definition families that are registered to your account
+// (which may include task definition families that no longer have any ACTIVE
+// task definitions). You can filter the results with the familyPrefix parameter.
 func (c *ECS) ListTaskDefinitionFamilies(input *ListTaskDefinitionFamiliesInput) (*ListTaskDefinitionFamiliesOutput, error) {
 	req, out := c.ListTaskDefinitionFamiliesRequest(input)
 	err := req.Send()
@@ -592,39 +521,35 @@ func (c *ECS) ListTaskDefinitionFamiliesPages(input *ListTaskDefinitionFamiliesI
 	})
 }
 
-var opListTaskDefinitionFamilies *aws.Operation
+const opListTaskDefinitions = "ListTaskDefinitions"
 
 // ListTaskDefinitionsRequest generates a request for the ListTaskDefinitions operation.
 func (c *ECS) ListTaskDefinitionsRequest(input *ListTaskDefinitionsInput) (req *aws.Request, output *ListTaskDefinitionsOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opListTaskDefinitions == nil {
-		opListTaskDefinitions = &aws.Operation{
-			Name:       "ListTaskDefinitions",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-			Paginator: &aws.Paginator{
-				InputTokens:     []string{"nextToken"},
-				OutputTokens:    []string{"nextToken"},
-				LimitToken:      "maxResults",
-				TruncationToken: "",
-			},
-		}
+	op := &aws.Operation{
+		Name:       opListTaskDefinitions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &aws.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
 		input = &ListTaskDefinitionsInput{}
 	}
 
-	req = c.newRequest(opListTaskDefinitions, input, output)
+	req = c.newRequest(op, input, output)
 	output = &ListTaskDefinitionsOutput{}
 	req.Data = output
 	return
 }
 
 // Returns a list of task definitions that are registered to your account. You
-// can filter the results by family name with the familyPrefix parameter.
+// can filter the results by family name with the familyPrefix parameter or
+// by status with the status parameter.
 func (c *ECS) ListTaskDefinitions(input *ListTaskDefinitionsInput) (*ListTaskDefinitionsOutput, error) {
 	req, out := c.ListTaskDefinitionsRequest(input)
 	err := req.Send()
@@ -638,32 +563,27 @@ func (c *ECS) ListTaskDefinitionsPages(input *ListTaskDefinitionsInput, fn func(
 	})
 }
 
-var opListTaskDefinitions *aws.Operation
+const opListTasks = "ListTasks"
 
 // ListTasksRequest generates a request for the ListTasks operation.
 func (c *ECS) ListTasksRequest(input *ListTasksInput) (req *aws.Request, output *ListTasksOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opListTasks == nil {
-		opListTasks = &aws.Operation{
-			Name:       "ListTasks",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-			Paginator: &aws.Paginator{
-				InputTokens:     []string{"nextToken"},
-				OutputTokens:    []string{"nextToken"},
-				LimitToken:      "maxResults",
-				TruncationToken: "",
-			},
-		}
+	op := &aws.Operation{
+		Name:       opListTasks,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &aws.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
 		input = &ListTasksInput{}
 	}
 
-	req = c.newRequest(opListTasks, input, output)
+	req = c.newRequest(op, input, output)
 	output = &ListTasksOutput{}
 	req.Data = output
 	return
@@ -685,26 +605,21 @@ func (c *ECS) ListTasksPages(input *ListTasksInput, fn func(p *ListTasksOutput, 
 	})
 }
 
-var opListTasks *aws.Operation
+const opRegisterContainerInstance = "RegisterContainerInstance"
 
 // RegisterContainerInstanceRequest generates a request for the RegisterContainerInstance operation.
 func (c *ECS) RegisterContainerInstanceRequest(input *RegisterContainerInstanceInput) (req *aws.Request, output *RegisterContainerInstanceOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opRegisterContainerInstance == nil {
-		opRegisterContainerInstance = &aws.Operation{
-			Name:       "RegisterContainerInstance",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opRegisterContainerInstance,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &RegisterContainerInstanceInput{}
 	}
 
-	req = c.newRequest(opRegisterContainerInstance, input, output)
+	req = c.newRequest(op, input, output)
 	output = &RegisterContainerInstanceOutput{}
 	req.Data = output
 	return
@@ -721,26 +636,21 @@ func (c *ECS) RegisterContainerInstance(input *RegisterContainerInstanceInput) (
 	return out, err
 }
 
-var opRegisterContainerInstance *aws.Operation
+const opRegisterTaskDefinition = "RegisterTaskDefinition"
 
 // RegisterTaskDefinitionRequest generates a request for the RegisterTaskDefinition operation.
 func (c *ECS) RegisterTaskDefinitionRequest(input *RegisterTaskDefinitionInput) (req *aws.Request, output *RegisterTaskDefinitionOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opRegisterTaskDefinition == nil {
-		opRegisterTaskDefinition = &aws.Operation{
-			Name:       "RegisterTaskDefinition",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opRegisterTaskDefinition,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &RegisterTaskDefinitionInput{}
 	}
 
-	req = c.newRequest(opRegisterTaskDefinition, input, output)
+	req = c.newRequest(op, input, output)
 	output = &RegisterTaskDefinitionOutput{}
 	req.Data = output
 	return
@@ -757,26 +667,21 @@ func (c *ECS) RegisterTaskDefinition(input *RegisterTaskDefinitionInput) (*Regis
 	return out, err
 }
 
-var opRegisterTaskDefinition *aws.Operation
+const opRunTask = "RunTask"
 
 // RunTaskRequest generates a request for the RunTask operation.
 func (c *ECS) RunTaskRequest(input *RunTaskInput) (req *aws.Request, output *RunTaskOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opRunTask == nil {
-		opRunTask = &aws.Operation{
-			Name:       "RunTask",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opRunTask,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &RunTaskInput{}
 	}
 
-	req = c.newRequest(opRunTask, input, output)
+	req = c.newRequest(op, input, output)
 	output = &RunTaskOutput{}
 	req.Data = output
 	return
@@ -793,26 +698,21 @@ func (c *ECS) RunTask(input *RunTaskInput) (*RunTaskOutput, error) {
 	return out, err
 }
 
-var opRunTask *aws.Operation
+const opStartTask = "StartTask"
 
 // StartTaskRequest generates a request for the StartTask operation.
 func (c *ECS) StartTaskRequest(input *StartTaskInput) (req *aws.Request, output *StartTaskOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opStartTask == nil {
-		opStartTask = &aws.Operation{
-			Name:       "StartTask",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opStartTask,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &StartTaskInput{}
 	}
 
-	req = c.newRequest(opStartTask, input, output)
+	req = c.newRequest(op, input, output)
 	output = &StartTaskOutput{}
 	req.Data = output
 	return
@@ -829,26 +729,21 @@ func (c *ECS) StartTask(input *StartTaskInput) (*StartTaskOutput, error) {
 	return out, err
 }
 
-var opStartTask *aws.Operation
+const opStopTask = "StopTask"
 
 // StopTaskRequest generates a request for the StopTask operation.
 func (c *ECS) StopTaskRequest(input *StopTaskInput) (req *aws.Request, output *StopTaskOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opStopTask == nil {
-		opStopTask = &aws.Operation{
-			Name:       "StopTask",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opStopTask,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &StopTaskInput{}
 	}
 
-	req = c.newRequest(opStopTask, input, output)
+	req = c.newRequest(op, input, output)
 	output = &StopTaskOutput{}
 	req.Data = output
 	return
@@ -861,26 +756,21 @@ func (c *ECS) StopTask(input *StopTaskInput) (*StopTaskOutput, error) {
 	return out, err
 }
 
-var opStopTask *aws.Operation
+const opSubmitContainerStateChange = "SubmitContainerStateChange"
 
 // SubmitContainerStateChangeRequest generates a request for the SubmitContainerStateChange operation.
 func (c *ECS) SubmitContainerStateChangeRequest(input *SubmitContainerStateChangeInput) (req *aws.Request, output *SubmitContainerStateChangeOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opSubmitContainerStateChange == nil {
-		opSubmitContainerStateChange = &aws.Operation{
-			Name:       "SubmitContainerStateChange",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opSubmitContainerStateChange,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &SubmitContainerStateChangeInput{}
 	}
 
-	req = c.newRequest(opSubmitContainerStateChange, input, output)
+	req = c.newRequest(op, input, output)
 	output = &SubmitContainerStateChangeOutput{}
 	req.Data = output
 	return
@@ -896,26 +786,21 @@ func (c *ECS) SubmitContainerStateChange(input *SubmitContainerStateChangeInput)
 	return out, err
 }
 
-var opSubmitContainerStateChange *aws.Operation
+const opSubmitTaskStateChange = "SubmitTaskStateChange"
 
 // SubmitTaskStateChangeRequest generates a request for the SubmitTaskStateChange operation.
 func (c *ECS) SubmitTaskStateChangeRequest(input *SubmitTaskStateChangeInput) (req *aws.Request, output *SubmitTaskStateChangeOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opSubmitTaskStateChange == nil {
-		opSubmitTaskStateChange = &aws.Operation{
-			Name:       "SubmitTaskStateChange",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opSubmitTaskStateChange,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &SubmitTaskStateChangeInput{}
 	}
 
-	req = c.newRequest(opSubmitTaskStateChange, input, output)
+	req = c.newRequest(op, input, output)
 	output = &SubmitTaskStateChangeOutput{}
 	req.Data = output
 	return
@@ -931,26 +816,21 @@ func (c *ECS) SubmitTaskStateChange(input *SubmitTaskStateChangeInput) (*SubmitT
 	return out, err
 }
 
-var opSubmitTaskStateChange *aws.Operation
+const opUpdateContainerAgent = "UpdateContainerAgent"
 
 // UpdateContainerAgentRequest generates a request for the UpdateContainerAgent operation.
 func (c *ECS) UpdateContainerAgentRequest(input *UpdateContainerAgentInput) (req *aws.Request, output *UpdateContainerAgentOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opUpdateContainerAgent == nil {
-		opUpdateContainerAgent = &aws.Operation{
-			Name:       "UpdateContainerAgent",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opUpdateContainerAgent,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &UpdateContainerAgentInput{}
 	}
 
-	req = c.newRequest(opUpdateContainerAgent, input, output)
+	req = c.newRequest(op, input, output)
 	output = &UpdateContainerAgentOutput{}
 	req.Data = output
 	return
@@ -963,26 +843,21 @@ func (c *ECS) UpdateContainerAgent(input *UpdateContainerAgentInput) (*UpdateCon
 	return out, err
 }
 
-var opUpdateContainerAgent *aws.Operation
+const opUpdateService = "UpdateService"
 
 // UpdateServiceRequest generates a request for the UpdateService operation.
 func (c *ECS) UpdateServiceRequest(input *UpdateServiceInput) (req *aws.Request, output *UpdateServiceOutput) {
-	oprw.Lock()
-	defer oprw.Unlock()
-
-	if opUpdateService == nil {
-		opUpdateService = &aws.Operation{
-			Name:       "UpdateService",
-			HTTPMethod: "POST",
-			HTTPPath:   "/",
-		}
+	op := &aws.Operation{
+		Name:       opUpdateService,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
 	}
 
 	if input == nil {
 		input = &UpdateServiceInput{}
 	}
 
-	req = c.newRequest(opUpdateService, input, output)
+	req = c.newRequest(op, input, output)
 	output = &UpdateServiceOutput{}
 	req.Data = output
 	return
@@ -1008,8 +883,6 @@ func (c *ECS) UpdateService(input *UpdateServiceInput) (*UpdateServiceOutput, er
 	err := req.Send()
 	return out, err
 }
-
-var opUpdateService *aws.Operation
 
 // A regional grouping of one or more container instances on which you can run
 // task requests. Each account receives a default cluster the first time you
@@ -1097,8 +970,20 @@ type ContainerDefinition struct {
 	// higher CPU usage if the other container was not using it, but if both tasks
 	// were 100% active all of the time, they would be limited to 512 CPU units.
 	//
-	// If this parameter is omitted, 0 CPU units are reserved for the container,
-	// and it will only receive CPU time when other containers are not using it.
+	// The Docker daemon on the container instance uses the CPU value to calculate
+	// the relative CPU share ratios for running containers. For more information,
+	// see CPU share constraint (https://docs.docker.com/reference/run/#cpu-share-constraint)
+	// in the Docker documentation. The minimum valid CPU share value that the Linux
+	// kernel will allow is 2; however, the CPU parameter is not required, and you
+	// can use CPU values below 2 in your container definitions. For CPU values
+	// below 2 (including null), the behavior varies based on your Amazon ECS container
+	// agent version:
+	//
+	//   Agent versions less than or equal to 1.1.0: Null and zero CPU values are
+	// passed to Docker as 0, which Docker then converts to 1,024 CPU shares. CPU
+	// values of 1 are passed to Docker as 1, which the Linux kernel converts to
+	// 2 CPU shares.  Agent versions greater than or equal to 1.2.0: Null, zero,
+	// and CPU values of 1 are passed to Docker as 2.
 	CPU *int64 `locationName:"cpu" type:"integer"`
 
 	// The CMD that is passed to the container. For more information on the Docker
@@ -1225,6 +1110,11 @@ type ContainerOverride struct {
 	// the Docker image or the task definition.
 	Command []*string `locationName:"command" type:"list"`
 
+	// The environment variables to send to the container. You can add new environment
+	// variables, which are added to the container at launch, or you can override
+	// the existing environment variables from the Docker image or the task definition.
+	Environment []*KeyValuePair `locationName:"environment" type:"list"`
+
 	// The name of the container that receives the override.
 	Name *string `locationName:"name" type:"string"`
 
@@ -1289,7 +1179,8 @@ type CreateServiceInput struct {
 	ServiceName *string `locationName:"serviceName" type:"string" required:"true"`
 
 	// The family and revision (family:revision) or full Amazon Resource Name (ARN)
-	// of the task definition that you want to run in your service.
+	// of the task definition that you want to run in your service. If a revision
+	// is not specified, the latest ACTIVE revision is used.
 	TaskDefinition *string `locationName:"taskDefinition" type:"string" required:"true"`
 
 	metadataCreateServiceInput `json:"-" xml:"-"`
@@ -1433,7 +1324,7 @@ type metadataDeregisterContainerInstanceOutput struct {
 
 type DeregisterTaskDefinitionInput struct {
 	// The family and revision (family:revision) or full Amazon Resource Name (ARN)
-	// of the task definition that you want to deregister.
+	// of the task definition that you want to deregister. You must specify a revision.
 	TaskDefinition *string `locationName:"taskDefinition" type:"string" required:"true"`
 
 	metadataDeregisterTaskDefinitionInput `json:"-" xml:"-"`
@@ -1538,7 +1429,7 @@ type metadataDescribeServicesOutput struct {
 }
 
 type DescribeTaskDefinitionInput struct {
-	// The family for the latest revision, family and revision (family:revision)
+	// The family for the latest ACTIVE revision, family and revision (family:revision)
 	// for a specific revision in the family, or full Amazon Resource Name (ARN)
 	// of the task definition that you want to describe.
 	TaskDefinition *string `locationName:"taskDefinition" type:"string" required:"true"`
@@ -1649,11 +1540,14 @@ type metadataHostVolumeProperties struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// A key and value pair object.
 type KeyValuePair struct {
-	// The name of the key value pair.
+	// The name of the key value pair. For environment variables, this is the name
+	// of the environment variable.
 	Name *string `locationName:"name" type:"string"`
 
-	// The value of the key value pair.
+	// The value of the key value pair. For environment variables, this is the value
+	// of the environment variable.
 	Value *string `locationName:"value" type:"string"`
 
 	metadataKeyValuePair `json:"-" xml:"-"`
@@ -1868,6 +1762,22 @@ type ListTaskDefinitionsInput struct {
 	// to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
+	// The order in which to sort the results. Valid values are ASC and DESC. By
+	// default (ASC), task definitions are listed lexicographically by family name
+	// and in ascending numerical order by revision so that the newest task definitions
+	// in a family are listed last. Setting this parameter to DESC reverses the
+	// sort order on family name and revision so that the newest task definitions
+	// in a family are listed first.
+	Sort *string `locationName:"sort" type:"string"`
+
+	// The task definition status that you want to filter the ListTaskDefinitions
+	// results with. By default, only ACTIVE task definitions are listed. By setting
+	// this parameter to INACTIVE, you can view task definitions that are INACTIVE
+	// as long as an active task or service still references them. If you paginate
+	// the resulting output, be sure to keep the status value constant in each subsequent
+	// request.
+	Status *string `locationName:"status" type:"string"`
+
 	metadataListTaskDefinitionsInput `json:"-" xml:"-"`
 }
 
@@ -2029,16 +1939,23 @@ type metadataNetworkBinding struct {
 type PortMapping struct {
 	// The port number on the container that is bound to the user-specified or automatically
 	// assigned host port. If you specify a container port and not a host port,
-	// your container will automatically receive a host port in the 49153 to 65535
-	// port range.
+	// your container will automatically receive a host port in the ephemeral port
+	// range (for more information, see hostPort).
 	ContainerPort *int64 `locationName:"containerPort" type:"integer"`
 
 	// The port number on the container instance to reserve for your container.
 	// You can specify a non-reserved host port for your container port mapping,
 	// or you can omit the hostPort (or set it to 0) while specifying a containerPort
-	// and your container will automatically receive a port in the 49153 to 65535
-	// port range. You should not attempt to specify a host port in the 49153 to
-	// 65535 port range, since these are reserved for automatic assignment.
+	// and your container will automatically receive a port in the ephemeral port
+	// range for your container instance operating system and Docker version.
+	//
+	// The default ephemeral port range is 49153 to 65535, and this range is used
+	// for Docker versions prior to 1.6.0. For Docker version 1.6.0 and later, the
+	// Docker daemon tries to read the ephemeral port range from /proc/sys/net/ipv4/ip_local_port_range;
+	// if this kernel parameter is unavailable, the default ephemeral port range
+	// is used. You should not attempt to specify a host port in the ephemeral port
+	// range, since these are reserved for automatic assignment. In general, ports
+	// below 32768 are outside of the ephemeral port range.
 	//
 	// The default reserved ports are 22 for SSH, the Docker ports 2375 and 2376,
 	// and the Amazon ECS Container Agent port 51678. Any host port that was previously
@@ -2049,7 +1966,8 @@ type PortMapping struct {
 	// reserved ports (automatically assigned ports do not count toward this limit).
 	HostPort *int64 `locationName:"hostPort" type:"integer"`
 
-	// The protocol used for the port mapping. The default is tcp.
+	// The protocol used for the port mapping. Valid values are tcp and udp. The
+	// default is tcp.
 	Protocol *string `locationName:"protocol" type:"string"`
 
 	metadataPortMapping `json:"-" xml:"-"`
@@ -2176,9 +2094,15 @@ type RunTaskInput struct {
 	Count *int64 `locationName:"count" type:"integer"`
 
 	// A list of container overrides in JSON format that specify the name of a container
-	// in the specified task definition and the command it should run instead of
-	// its default. A total of 8192 characters are allowed for overrides. This limit
-	// includes the JSON formatting characters of the override structure.
+	// in the specified task definition and the overrides it should receive. You
+	// can override the default command for a container (that is specified in the
+	// task definition or Docker image) with a command override. You can also override
+	// existing environment variables (that are specified in the task definition
+	// or Docker image) on a container or add new environment variables to it with
+	// an environment override.
+	//
+	//  A total of 8192 characters are allowed for overrides. This limit includes
+	// the JSON formatting characters of the override structure.
 	Overrides *TaskOverride `locationName:"overrides" type:"structure"`
 
 	// An optional tag specified when a task is started. For example if you automatically
@@ -2192,7 +2116,8 @@ type RunTaskInput struct {
 	StartedBy *string `locationName:"startedBy" type:"string"`
 
 	// The family and revision (family:revision) or full Amazon Resource Name (ARN)
-	// of the task definition that you want to run.
+	// of the task definition that you want to run. If a revision is not specified,
+	// the latest ACTIVE revision is used.
 	TaskDefinition *string `locationName:"taskDefinition" type:"string" required:"true"`
 
 	metadataRunTaskInput `json:"-" xml:"-"`
@@ -2303,9 +2228,15 @@ type StartTaskInput struct {
 	ContainerInstances []*string `locationName:"containerInstances" type:"list" required:"true"`
 
 	// A list of container overrides in JSON format that specify the name of a container
-	// in the specified task definition and the command it should run instead of
-	// its default. A total of 8192 characters are allowed for overrides. This limit
-	// includes the JSON formatting characters of the override structure.
+	// in the specified task definition and the overrides it should receive. You
+	// can override the default command for a container (that is specified in the
+	// task definition or Docker image) with a command override. You can also override
+	// existing environment variables (that are specified in the task definition
+	// or Docker image) on a container or add new environment variables to it with
+	// an environment override.
+	//
+	//  A total of 8192 characters are allowed for overrides. This limit includes
+	// the JSON formatting characters of the override structure.
 	Overrides *TaskOverride `locationName:"overrides" type:"structure"`
 
 	// An optional tag specified when a task is started. For example if you automatically
@@ -2319,7 +2250,8 @@ type StartTaskInput struct {
 	StartedBy *string `locationName:"startedBy" type:"string"`
 
 	// The family and revision (family:revision) or full Amazon Resource Name (ARN)
-	// of the task definition that you want to start.
+	// of the task definition that you want to start. If a revision is not specified,
+	// the latest ACTIVE revision is used.
 	TaskDefinition *string `locationName:"taskDefinition" type:"string" required:"true"`
 
 	metadataStartTaskInput `json:"-" xml:"-"`
@@ -2498,9 +2430,13 @@ type TaskDefinition struct {
 	// The revision of the task in a particular family. You can think of the revision
 	// as a version number of a task definition in a family. When you register a
 	// task definition for the first time, the revision is 1, and each time you
-	// register a task definition in the same family, the revision value increases
-	// by one.
+	// register a new revision of a task definition in the same family, the revision
+	// value always increases by one (even if you have deregistered previous revisions
+	// in this family).
 	Revision *int64 `locationName:"revision" type:"integer"`
+
+	// The status of the task definition.
+	Status *string `locationName:"status" type:"string"`
 
 	// The full Amazon Resource Name (ARN) of the of the task definition.
 	TaskDefinitionARN *string `locationName:"taskDefinitionArn" type:"string"`
@@ -2574,10 +2510,11 @@ type UpdateServiceInput struct {
 	Service *string `locationName:"service" type:"string" required:"true"`
 
 	// The family and revision (family:revision) or full Amazon Resource Name (ARN)
-	// of the task definition that you want to run in your service. If you modify
-	// the task definition with UpdateService, Amazon ECS spawns a task with the
-	// new version of the task definition and then stops an old task after the new
-	// version is running.
+	// of the task definition that you want to run in your service. If a revision
+	// is not specified, the latest ACTIVE revision is used. If you modify the task
+	// definition with UpdateService, Amazon ECS spawns a task with the new version
+	// of the task definition and then stops an old task after the new version is
+	// running.
 	TaskDefinition *string `locationName:"taskDefinition" type:"string"`
 
 	metadataUpdateServiceInput `json:"-" xml:"-"`

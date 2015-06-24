@@ -6,9 +6,11 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/management"
+	"github.com/Azure/azure-sdk-for-go/management/affinitygroup"
 	"github.com/Azure/azure-sdk-for-go/management/hostedservice"
 	"github.com/Azure/azure-sdk-for-go/management/networksecuritygroup"
 	"github.com/Azure/azure-sdk-for-go/management/osimage"
+	"github.com/Azure/azure-sdk-for-go/management/sql"
 	"github.com/Azure/azure-sdk-for-go/management/storageservice"
 	"github.com/Azure/azure-sdk-for-go/management/virtualmachine"
 	"github.com/Azure/azure-sdk-for-go/management/virtualmachinedisk"
@@ -30,11 +32,15 @@ type Config struct {
 type Client struct {
 	mgmtClient management.Client
 
+	affinityGroupClient affinitygroup.AffinityGroupClient
+
 	hostedServiceClient hostedservice.HostedServiceClient
 
 	secGroupClient networksecuritygroup.SecurityGroupClient
 
 	osImageClient osimage.OSImageClient
+
+	sqlClient sql.SQLDatabaseClient
 
 	storageServiceClient storageservice.StorageServiceClient
 
@@ -104,9 +110,11 @@ func (c *Config) NewClientFromSettingsFile() (*Client, error) {
 
 	return &Client{
 		mgmtClient:           mc,
+		affinityGroupClient:  affinitygroup.NewClient(mc),
 		hostedServiceClient:  hostedservice.NewClient(mc),
 		secGroupClient:       networksecuritygroup.NewClient(mc),
 		osImageClient:        osimage.NewClient(mc),
+		sqlClient:            sql.NewClient(mc),
 		storageServiceClient: storageservice.NewClient(mc),
 		vmClient:             virtualmachine.NewClient(mc),
 		vmDiskClient:         virtualmachinedisk.NewClient(mc),
@@ -126,9 +134,11 @@ func (c *Config) NewClient() (*Client, error) {
 
 	return &Client{
 		mgmtClient:           mc,
+		affinityGroupClient:  affinitygroup.NewClient(mc),
 		hostedServiceClient:  hostedservice.NewClient(mc),
 		secGroupClient:       networksecuritygroup.NewClient(mc),
 		osImageClient:        osimage.NewClient(mc),
+		sqlClient:            sql.NewClient(mc),
 		storageServiceClient: storageservice.NewClient(mc),
 		vmClient:             virtualmachine.NewClient(mc),
 		vmDiskClient:         virtualmachinedisk.NewClient(mc),

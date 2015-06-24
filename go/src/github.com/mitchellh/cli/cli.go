@@ -156,7 +156,7 @@ func (c *CLI) processArgs() {
 				continue
 			}
 
-			if arg[0] == '-' {
+			if arg != "" && arg[0] == '-' {
 				// Record the arg...
 				c.topFlags = append(c.topFlags, arg)
 			}
@@ -164,7 +164,7 @@ func (c *CLI) processArgs() {
 
 		// If we didn't find a subcommand yet and this is the first non-flag
 		// argument, then this is our subcommand. j
-		if c.subcommand == "" && arg[0] != '-' {
+		if c.subcommand == "" && arg != "" && arg[0] != '-' {
 			c.subcommand = arg
 
 			// The remaining args the subcommand arguments

@@ -166,7 +166,7 @@ func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.Cha
 		return response.NewBadRequest(err)
 	}
 
-	if i.GroupName != ctx.GroupName {
+	if ci.GroupName != ctx.GroupName {
 		return response.NewBadRequest(ErrInvalidGroup)
 	}
 
@@ -218,7 +218,19 @@ func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interf
 		return response.NewBadRequest(ErrInvalidGroup)
 	}
 
-	return response.NewOK(response.NewSuccessResponse(ci))
+	cic := webhook.NewChannelIntegrationContainer(ci)
+	cic.ChannelIntegration = ci
+	if err := cic.Populate(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	i, err := webhook.Cache.Integration.ById(ci.IntegrationId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+	cic.Integration = i
+
+	return response.NewOK(response.NewSuccessResponse(cic))
 }
 
 func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {

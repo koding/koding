@@ -3,6 +3,7 @@ package webhook
 import (
 	"fmt"
 	"socialapi/models"
+	"strconv"
 
 	"github.com/koding/cache"
 )
@@ -15,6 +16,7 @@ func init() {
 	Cache = &StaticCache{
 		Integration: &IntegrationCache{
 			name: cache.NewLRU(cacheSize),
+			id:   cache.NewLRU(cacheSize),
 		},
 		ChannelIntegration: &ChannelIntegrationCache{
 			token: cache.NewLRU(cacheSize),
@@ -33,6 +35,7 @@ type StaticCache struct {
 
 type IntegrationCache struct {
 	name cache.Cache
+	id   cache.Cache
 }
 
 func (i *IntegrationCache) ByName(name string) (*Integration, error) {
@@ -60,8 +63,37 @@ func (i *IntegrationCache) ByName(name string) (*Integration, error) {
 	return in, nil
 }
 
+func (i *IntegrationCache) ById(id int64) (*Integration, error) {
+	data, err := i.id.Get(strconv.FormatInt(id, 10))
+	if err == nil {
+		in, ok := data.(*Integration)
+		if ok {
+			return in, nil
+		}
+	}
+
+	if err != cache.ErrNotFound {
+		return nil, err
+	}
+
+	in := NewIntegration()
+	if err := in.ById(id); err != nil {
+		return nil, err
+	}
+
+	if err := i.SetToCache(in); err != nil {
+		return nil, err
+	}
+
+	return in, nil
+}
+
 func (i *IntegrationCache) SetToCache(in *Integration) error {
-	return i.name.Set(in.Name, in)
+	if err := i.name.Set(in.Name, in); err != nil {
+		return err
+	}
+
+	return i.id.Set(strconv.FormatInt(in.Id, 10), in)
 }
 
 //////////// ChannelIntegrationCache ///////////////
