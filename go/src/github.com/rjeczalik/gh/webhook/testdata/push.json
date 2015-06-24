@@ -1,28 +1,28 @@
 {
-  "ref": "refs/heads/gh-pages",
-  "before": "4d2ab4e76d0d405d17d1a0f2b8a6071394e3ab40",
-  "after": "7700ca29dd050d9adacc0803f866d9b539513535",
+  "ref": "refs/heads/changes",
+  "before": "9049f1265b7d61be4a8904a9a27120d2064dab3b",
+  "after": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
   "created": false,
   "deleted": false,
   "forced": false,
   "base_ref": null,
-  "compare": "https://github.com/baxterthehacker/public-repo/compare/4d2ab4e76d0d...7700ca29dd05",
+  "compare": "https://github.com/baxterthehacker/public-repo/compare/9049f1265b7d...0d1a26e67d8f",
   "commits": [
     {
-      "id": "7700ca29dd050d9adacc0803f866d9b539513535",
+      "id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
       "distinct": true,
-      "message": "Trigger pages build",
-      "timestamp": "2014-10-09T17:10:36-07:00",
-      "url": "https://github.com/baxterthehacker/public-repo/commit/7700ca29dd050d9adacc0803f866d9b539513535",
+      "message": "Update README.md",
+      "timestamp": "2015-05-05T19:40:15-04:00",
+      "url": "https://github.com/baxterthehacker/public-repo/commit/0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
       "author": {
-        "name": "Kyle Daigle",
-        "email": "kyle.daigle@github.com",
-        "username": "kdaigle"
+        "name": "baxterthehacker",
+        "email": "baxterthehacker@users.noreply.github.com",
+        "username": "baxterthehacker"
       },
       "committer": {
-        "name": "Kyle Daigle",
-        "email": "kyle.daigle@github.com",
-        "username": "kdaigle"
+        "name": "baxterthehacker",
+        "email": "baxterthehacker@users.noreply.github.com",
+        "username": "baxterthehacker"
       },
       "added": [
 
@@ -31,25 +31,25 @@
 
       ],
       "modified": [
-        "index.html"
+        "README.md"
       ]
     }
   ],
   "head_commit": {
-    "id": "7700ca29dd050d9adacc0803f866d9b539513535",
+    "id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
     "distinct": true,
-    "message": "Trigger pages build",
-    "timestamp": "2014-10-09T17:10:36-07:00",
-    "url": "https://github.com/baxterthehacker/public-repo/commit/7700ca29dd050d9adacc0803f866d9b539513535",
+    "message": "Update README.md",
+    "timestamp": "2015-05-05T19:40:15-04:00",
+    "url": "https://github.com/baxterthehacker/public-repo/commit/0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
     "author": {
-      "name": "Kyle Daigle",
-      "email": "kyle.daigle@github.com",
-      "username": "kdaigle"
+      "name": "baxterthehacker",
+      "email": "baxterthehacker@users.noreply.github.com",
+      "username": "baxterthehacker"
     },
     "committer": {
-      "name": "Kyle Daigle",
-      "email": "kyle.daigle@github.com",
-      "username": "kdaigle"
+      "name": "baxterthehacker",
+      "email": "baxterthehacker@users.noreply.github.com",
+      "username": "baxterthehacker"
     },
     "added": [
 
@@ -58,11 +58,11 @@
 
     ],
     "modified": [
-      "index.html"
+      "README.md"
     ]
   },
   "repository": {
-    "id": 20000106,
+    "id": 35129377,
     "name": "public-repo",
     "full_name": "baxterthehacker/public-repo",
     "owner": {
@@ -97,7 +97,7 @@
     "commits_url": "https://api.github.com/repos/baxterthehacker/public-repo/commits{/sha}",
     "git_commits_url": "https://api.github.com/repos/baxterthehacker/public-repo/git/commits{/sha}",
     "comments_url": "https://api.github.com/repos/baxterthehacker/public-repo/comments{/number}",
-    "issue_comment_url": "https://api.github.com/repos/baxterthehacker/public-repo/issues/comments/{number}",
+    "issue_comment_url": "https://api.github.com/repos/baxterthehacker/public-repo/issues/comments{/number}",
     "contents_url": "https://api.github.com/repos/baxterthehacker/public-repo/contents/{+path}",
     "compare_url": "https://api.github.com/repos/baxterthehacker/public-repo/compare/{base}...{head}",
     "merges_url": "https://api.github.com/repos/baxterthehacker/public-repo/merges",
@@ -109,15 +109,15 @@
     "notifications_url": "https://api.github.com/repos/baxterthehacker/public-repo/notifications{?since,all,participating}",
     "labels_url": "https://api.github.com/repos/baxterthehacker/public-repo/labels{/name}",
     "releases_url": "https://api.github.com/repos/baxterthehacker/public-repo/releases{/id}",
-    "created_at": 1400625583,
-    "updated_at": "2014-07-25T16:37:51Z",
-    "pushed_at": 1412899789,
+    "created_at": 1430869212,
+    "updated_at": "2015-05-05T23:40:12Z",
+    "pushed_at": 1430869217,
     "git_url": "git://github.com/baxterthehacker/public-repo.git",
     "ssh_url": "git@github.com:baxterthehacker/public-repo.git",
     "clone_url": "https://github.com/baxterthehacker/public-repo.git",
     "svn_url": "https://github.com/baxterthehacker/public-repo",
     "homepage": null,
-    "size": 665,
+    "size": 0,
     "stargazers_count": 0,
     "watchers_count": 0,
     "language": null,
@@ -127,9 +127,9 @@
     "has_pages": true,
     "forks_count": 0,
     "mirror_url": null,
-    "open_issues_count": 24,
+    "open_issues_count": 0,
     "forks": 0,
-    "open_issues": 24,
+    "open_issues": 0,
     "watchers": 0,
     "default_branch": "master",
     "stargazers": 0,
@@ -142,7 +142,7 @@
   "sender": {
     "login": "baxterthehacker",
     "id": 6752317,
-    "avatar_url": "https://avatars.githubusercontent.com/u/6752317?v=2",
+    "avatar_url": "https://avatars.githubusercontent.com/u/6752317?v=3",
     "gravatar_id": "",
     "url": "https://api.github.com/users/baxterthehacker",
     "html_url": "https://github.com/baxterthehacker",
