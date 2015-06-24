@@ -747,8 +747,6 @@ module.exports = CollaborationController =
     # attach realtime manager when a new editor pane is opened.
     @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
 
-    @updateWorkspaceSnapshotModel()
-
     @on 'SetMachineUser', @bound 'broadcastMachineUserChange'
 
 
@@ -1083,16 +1081,6 @@ module.exports = CollaborationController =
   getHostSnapshot: ->
 
     return @filterSnapshot @getWorkspaceSnapshot()
-
-
-  updateWorkspaceSnapshotModel: ->
-
-    ## Prevent data duplications.
-    @mySnapshot.clear()
-
-    for item in @getHostSnapshot()
-      { context } = item
-      @mySnapshot.set context.hash, item
 
 
   ###*
