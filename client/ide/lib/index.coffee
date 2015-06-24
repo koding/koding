@@ -1247,7 +1247,7 @@ class IDEAppController extends AppController
 
     return  if not paneType or not paneHash
 
-    @changeActiveTabView paneType  if isFromLocalStorage is no
+    @changeActiveTabView paneType  if isFromLocalStorage is no and not @amIHost
 
     switch paneType
       when 'terminal' then @createTerminalPaneFromChange change, paneHash
