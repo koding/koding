@@ -170,9 +170,7 @@ module.exports = class NavigationMachineItem extends JView
 
   showSharePopup: (options = {}) ->
 
-    options.position  = @getPopupPosition 20
-    options.channelId = @getChannelId @getData()
-
+    options.position = @getPopupPosition 20
     new SidebarMachineSharePopup options, @machine
 
 
