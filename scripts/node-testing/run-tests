@@ -49,10 +49,10 @@ start = ->
 
   # getting first test instance's data
   { publicIpAddress }   = getNthInstanceData instanceData, 0
-      
+
   shellScriptsArray     = shellScripts.asArray publicIpAddress
 
-  async.eachSeries [shellScriptsArray], iterator, (err) ->
+  async.eachSeries shellScriptsArray, iterator, (err) ->
     
     console.log err  if err
     process.exit()
