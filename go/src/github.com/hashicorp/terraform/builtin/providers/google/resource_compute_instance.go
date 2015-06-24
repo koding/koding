@@ -11,6 +11,15 @@ import (
 	"google.golang.org/api/googleapi"
 )
 
+func stringHashcode(v interface{}) int {
+	return hashcode.String(v.(string))
+}
+
+func stringScopeHashcode(v interface{}) int {
+	v = canonicalizeServiceScope(v.(string))
+	return hashcode.String(v.(string))
+}
+
 func resourceComputeInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceComputeInstanceCreate,
@@ -18,7 +27,7 @@ func resourceComputeInstance() *schema.Resource {
 		Update: resourceComputeInstanceUpdate,
 		Delete: resourceComputeInstanceDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		MigrateState:  resourceComputeInstanceMigrateState,
 
 		Schema: map[string]*schema.Schema{
@@ -72,6 +81,12 @@ func resourceComputeInstance() *schema.Resource {
 							ForceNew: true,
 						},
 
+						"scratch": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							ForceNew: true,
+						},
+
 						"auto_delete": &schema.Schema{
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -83,6 +98,11 @@ func resourceComputeInstance() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							ForceNew: true,
+						},
+
+						"device_name": &schema.Schema{
+							Type: schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -131,6 +151,7 @@ func resourceComputeInstance() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
+				Deprecated: "Please use network_interface",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"source": &schema.Schema{
@@ -189,7 +210,7 @@ func resourceComputeInstance() *schema.Resource {
 						},
 
 						"scopes": &schema.Schema{
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
@@ -198,6 +219,7 @@ func resourceComputeInstance() *schema.Resource {
 									return canonicalizeServiceScope(v.(string))
 								},
 							},
+							Set: stringScopeHashcode,
 						},
 					},
 				},
@@ -207,9 +229,7 @@ func resourceComputeInstance() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set: func(v interface{}) int {
-					return hashcode.String(v.(string))
-				},
+				Set: stringHashcode,
 			},
 
 			"metadata_fingerprint": &schema.Schema{
@@ -305,6 +325,15 @@ func resourceComputeInstanceCreate(d *schema.ResourceData, meta interface{}) err
 			}
 
 			disk.Source = diskData.SelfLink
+		} else {
+			// Create a new disk
+			disk.InitializeParams = &compute.AttachedDiskInitializeParams{ }
+		}
+
+		if v, ok := d.GetOk(prefix + ".scratch"); ok {
+			if v.(bool) {
+				disk.Type = "SCRATCH"
+			}
 		}
 
 		// Load up the image for this disk if specified
@@ -318,9 +347,7 @@ func resourceComputeInstanceCreate(d *schema.ResourceData, meta interface{}) err
 					imageName, err)
 			}
 
-			disk.InitializeParams = &compute.AttachedDiskInitializeParams{
-				SourceImage: imageUrl,
-			}
+			disk.InitializeParams.SourceImage = imageUrl
 		}
 
 		if v, ok := d.GetOk(prefix + ".type"); ok {
@@ -338,6 +365,10 @@ func resourceComputeInstanceCreate(d *schema.ResourceData, meta interface{}) err
 		if v, ok := d.GetOk(prefix + ".size"); ok {
 			diskSizeGb := v.(int)
 			disk.InitializeParams.DiskSizeGb = int64(diskSizeGb)
+		}
+
+		if v, ok := d.GetOk(prefix  + ".device_name"); ok {
+			disk.DeviceName = v.(string)
 		}
 
 		disks = append(disks, &disk)
@@ -424,11 +455,10 @@ func resourceComputeInstanceCreate(d *schema.ResourceData, meta interface{}) err
 	for i := 0; i < serviceAccountsCount; i++ {
 		prefix := fmt.Sprintf("service_account.%d", i)
 
-		scopesCount := d.Get(prefix + ".scopes.#").(int)
-		scopes := make([]string, 0, scopesCount)
-		for j := 0; j < scopesCount; j++ {
-			scope := d.Get(fmt.Sprintf(prefix+".scopes.%d", j)).(string)
-			scopes = append(scopes, canonicalizeServiceScope(scope))
+		scopesSet := d.Get(prefix + ".scopes").(*schema.Set)
+		scopes := make([]string, scopesSet.Len())
+		for i, v := range scopesSet.List() {
+			scopes[i] = canonicalizeServiceScope(v.(string))
 		}
 
 		serviceAccount := &compute.ServiceAccount{
@@ -494,14 +524,13 @@ func resourceComputeInstanceRead(d *schema.ResourceData, meta interface{}) error
 	// Set the service accounts
 	serviceAccounts := make([]map[string]interface{}, 0, 1)
 	for _, serviceAccount := range instance.ServiceAccounts {
-		scopes := make([]string, len(serviceAccount.Scopes))
+		scopes := make([]interface{}, len(serviceAccount.Scopes))
 		for i, scope := range serviceAccount.Scopes {
 			scopes[i] = scope
 		}
-
 		serviceAccounts = append(serviceAccounts, map[string]interface{}{
 			"email":  serviceAccount.Email,
-			"scopes": scopes,
+			"scopes": schema.NewSet(stringScopeHashcode, scopes),
 		})
 	}
 	d.Set("service_account", serviceAccounts)
