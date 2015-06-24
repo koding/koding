@@ -26,7 +26,7 @@ func main() {
 	defer modelhelper.Close()
 
 	exporter := eventexporter.NewSegmentIOExporter(appConfig.Segment, QueueLength)
-	constructor := emailsender.New(exporter, r.Log)
+	constructor := emailsender.New(exporter, r.Log, appConfig.Config)
 	r.ShutdownHandler = constructor.Close
 
 	r.SetContext(constructor)

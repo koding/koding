@@ -2,10 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"net"
 	"strconv"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/awslabs/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 func expandNetworkAclEntries(configured []interface{}, entryType string) ([]*ec2.NetworkACLEntry, error) {
@@ -13,11 +14,15 @@ func expandNetworkAclEntries(configured []interface{}, entryType string) ([]*ec2
 	for _, eRaw := range configured {
 		data := eRaw.(map[string]interface{})
 		protocol := data["protocol"].(string)
-		_, ok := protocolIntegers()[protocol]
-		if !ok {
-			return nil, fmt.Errorf("Invalid Protocol %s for rule %#v", protocol, data)
+		p, err := strconv.Atoi(protocol)
+		if err != nil {
+			var ok bool
+			p, ok = protocolIntegers()[protocol]
+			if !ok {
+				return nil, fmt.Errorf("Invalid Protocol %s for rule %#v", protocol, data)
+			}
 		}
-		p := extractProtocolInteger(data["protocol"].(string))
+
 		e := &ec2.NetworkACLEntry{
 			Protocol: aws.String(strconv.Itoa(p)),
 			PortRange: &ec2.PortRange{
@@ -29,6 +34,18 @@ func expandNetworkAclEntries(configured []interface{}, entryType string) ([]*ec2
 			RuleNumber: aws.Long(int64(data["rule_no"].(int))),
 			CIDRBlock:  aws.String(data["cidr_block"].(string)),
 		}
+
+		// Specify additional required fields for ICMP
+		if p == 1 {
+			e.ICMPTypeCode = &ec2.ICMPTypeCode{}
+			if v, ok := data["icmp_code"]; ok {
+				e.ICMPTypeCode.Code = aws.Long(int64(v.(int)))
+			}
+			if v, ok := data["icmp_type"]; ok {
+				e.ICMPTypeCode.Type = aws.Long(int64(v.(int)))
+			}
+		}
+
 		entries = append(entries, e)
 	}
 	return entries, nil
@@ -52,19 +69,6 @@ func flattenNetworkAclEntries(list []*ec2.NetworkACLEntry) []map[string]interfac
 
 }
 
-func extractProtocolInteger(protocol string) int {
-	return protocolIntegers()[protocol]
-}
-
-func extractProtocolString(protocol int) string {
-	for key, value := range protocolIntegers() {
-		if value == protocol {
-			return key
-		}
-	}
-	return ""
-}
-
 func protocolIntegers() map[string]int {
 	var protocolIntegers = make(map[string]int)
 	protocolIntegers = map[string]int{
@@ -74,4 +78,34 @@ func protocolIntegers() map[string]int {
 		"all":  -1,
 	}
 	return protocolIntegers
+}
+
+// expectedPortPair stores a pair of ports we expect to see together.
+type expectedPortPair struct {
+	to_port   int64
+	from_port int64
+}
+
+// validatePorts ensures the ports and protocol match expected
+// values.
+func validatePorts(to int64, from int64, expected expectedPortPair) bool {
+	if to != expected.to_port || from != expected.from_port {
+		return false
+	}
+
+	return true
+}
+
+// validateCIDRBlock ensures the passed CIDR block represents an implied
+// network, and not an overly-specified IP address.
+func validateCIDRBlock(cidr string) error {
+	_, ipnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return err
+	}
+	if ipnet.String() != cidr {
+		return fmt.Errorf("%s is not a valid mask; did you mean %s?", cidr, ipnet)
+	}
+
+	return nil
 }
