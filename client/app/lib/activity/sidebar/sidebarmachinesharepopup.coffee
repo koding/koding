@@ -128,6 +128,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
   approve: ->
 
     machine = @getData()
+    wasApproved = machine.isApproved()
 
     kd.singletons.machineShareManager.unset machine.uid
 
@@ -154,6 +155,9 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
           @destroy()
 
       callback = =>
+
+        return @destroy()  if wasApproved
+
         envDataProvider.fetch =>
           # if there is an ide instance this means user landed to ide with direct url
           ideApp = envDataProvider.getIDEFromUId machine.uid
