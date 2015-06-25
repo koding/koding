@@ -53,9 +53,9 @@ generateDefaultHeadersObject = (opts = {}) ->
 
   defaultHeadersObject  =
     accept            : '*/*'
-    'x-requested-with': 'XMLHttpRequest'
     'user-agent'      : userAgent
     'content-type'    : 'application/x-www-form-urlencoded; charset=UTF-8'
+    'x-requested-with': 'XMLHttpRequest'
 
   defaultHeadersObject = deepObjectExtend defaultHeadersObject, opts
 
@@ -143,17 +143,17 @@ class TeamHandlerHelper
     username = generateRandomUsername()
 
     defaultBodyObject =
+      slug           :  "testcompany#{generateRandomString(10)}"
       email          :  generateRandomEmail()
       token          :  ''
-      alreadyMember  :  'false'
-      slug           :  "testcompany#{generateRandomString(10)}"
       allow          :  'true'
-      newsletter     :  'true'
+      agree          :  'on'
       username       :  username
       password       :  'testpass'
-      agree          :  'on'
-      passwordConfirm:  'testpass'
       redirect       :  ''
+      newsletter     :  'true'
+      alreadyMember  :  'false'
+      passwordConfirm:  'testpass'
 
     deepObjectExtend defaultBodyObject, opts
 
@@ -193,23 +193,23 @@ class TeamHandlerHelper
 
   @generateCreateTeamRequestBody = (opts = {}) ->
 
-    companyName = "testcompany#{generateRandomString(10)}"
     username    = generateRandomUsername()
+    companyName = "testcompany#{generateRandomString(10)}"
 
     defaultBodyObject =
-      email          :  generateRandomEmail()
-      companyName    :  companyName
-      alreadyMember  :  'false'
       slug           :  companyName
+      email          :  generateRandomEmail()
+      agree          :  'on'
       allow          :  'true'
       domains        :  'koding.com, kd.io'
       invitees       :  'test@koding.com,test@test.com,'
-      newsletter     :  'true'
+      redirect       :  ''
       username       :  username
       password       :  'testpass'
-      agree          :  'on'
+      newsletter     :  'true'
+      companyName    :  companyName
+      alreadyMember  :  'false'
       passwordConfirm:  'testpass'
-      redirect       :  ''
 
     deepObjectExtend defaultBodyObject, opts
 
@@ -239,11 +239,11 @@ class RegisterHandlerHelper
 
     defaultBodyObject =
       email             : generateRandomEmail()
+      agree             : 'on'
+      username          : generateRandomUsername()
       password          : 'testpass'
       inviteCode        : ''
-      username          : generateRandomUsername()
       passwordConfirm   : 'testpass'
-      agree             : 'on'
 
     deepObjectExtend defaultBodyObject, opts
 
