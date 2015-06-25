@@ -78,29 +78,37 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     @fetchChannels (err, channels) =>
       return showError err  if err
 
-      data              =
-        channels        : channels
-        id              : channelIntegration.id
-        name            : integration.name
-        title           : integration.title
-        token           : channelIntegration.token
-        summary         : integration.summary
-        settings        : channelIntegration.settings
-        createdAt       : channelIntegration.createdAt
-        iconPath        : integration.iconPath
-        updatedAt       : channelIntegration.updatedAt
-        description     : integration.description
-        instructions    : integration.instructions
-        typeConstant    : integration.typeConstant
-        integrationId   : channelIntegration.integrationId
-        selectedChannel : channelIntegration.channelId
-        webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
-        integrationType : 'configured'
+      kd.singletons.socialapi.integrations.fetch {id: channelIntegration.id}, (err, response) =>
 
-      # DUMMY DATA
-      data.selectedEvents = [ 'added_comment', 'edited_feature' ]
+        return showError err  if err
 
-      @emit 'IntegrationCustomizeRequested', data
+        { channelIntegration } = response
+
+        data              =
+          channels        : channels
+          id              : channelIntegration.id
+          name            : integration.name
+          title           : integration.title
+          token           : channelIntegration.token
+          summary         : integration.summary
+          settings        : channelIntegration.settings
+          createdAt       : channelIntegration.createdAt
+          iconPath        : integration.iconPath
+          updatedAt       : channelIntegration.updatedAt
+          description     : channelIntegration.description or integration.summary
+          instructions    : integration.instructions
+          typeConstant    : integration.typeConstant
+          integrationId   : channelIntegration.integrationId
+          selectedChannel : channelIntegration.channelId
+          webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
+          integrationType : 'configured'
+          isDisabled      : channelIntegration.isDisabled
+
+
+        # DUMMY DATA
+        data.selectedEvents = [ 'added_comment', 'edited_feature' ]
+
+        @emit 'IntegrationCustomizeRequested', data
 
 
   pistachio: ->
