@@ -2,7 +2,6 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"koding/vmwatcher/secretkey"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -22,6 +21,7 @@ type Vmwatcher struct {
 	AwsSecret       string `required:"true"`
 	KloudAddr       string `required:"true"`
 	Port            string `required:"true"`
+	SecretKey       string `required:"true"`
 	Debug           bool
 	ConnectToKlient bool
 }
@@ -44,9 +44,6 @@ var (
 
 	AWS_KEY    = conf.AwsKey
 	AWS_SECRET = conf.AwsSecret
-
-	KloudSecretKey = secretkey.KloudSecretKey
-	KloudAddr      = conf.KloudAddr
 
 	controller *VmController
 	storage    Storage
@@ -124,10 +121,10 @@ func initializeKlient(c *VmController) {
 	k.Config = config
 
 	// create a new connection to the cloud
-	kiteClient := k.NewClient(KloudAddr)
+	kiteClient := k.NewClient(conf.KloudAddr)
 	kiteClient.Auth = &kite.Auth{
 		Type: WorkerName,
-		Key:  KloudSecretKey,
+		Key:  conf.SecretKey,
 	}
 	kiteClient.Reconnect = true
 
@@ -140,7 +137,7 @@ func initializeKlient(c *VmController) {
 		Log.Fatal("%s. Is kloud/kontrol running?", err.Error())
 	}
 
-	Log.Info("Connected to klient: %s", KloudAddr)
+	Log.Info("Connected to klient: %s", conf.KloudAddr)
 
 	c.Klient = kiteClient
 }

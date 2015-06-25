@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
-	"koding/workers/janitor/secretkey"
 	"log"
 	"net"
 	"net/http"
@@ -27,8 +26,6 @@ var (
 
 	KiteClient *kite.Client
 
-	KloudSecretKey = secretkey.KloudSecretKey
-
 	// Warnings contains list of warnings to be iterated upon in a certain
 	// interval.
 	Warnings = []*Warning{
@@ -49,9 +46,11 @@ func main() {
 	port := conf.Janitor.Port
 	konf := conf.Kloud
 
+	kloudSecretKey := conf.Janitor.SecretKey
+
 	go r.Listen()
 
-	KiteClient, err = initializeKiteClient(KloudSecretKey, konf.Address)
+	KiteClient, err = initializeKiteClient(kloudSecretKey, konf.Address)
 	if err != nil {
 		Log.Fatal("Error initializing kite: %s", err.Error())
 	}

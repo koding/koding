@@ -31,9 +31,6 @@ import (
 	"koding/kites/kloud/kloud"
 
 	"koding/kites/kloud/kloudctl/command"
-	vmwatcher "koding/vmwatcher/secretkey"
-	janitor "koding/workers/janitor/secretkey"
-	paymentwebhook "socialapi/workers/payment/paymentwebhook/secretkey"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -101,6 +98,10 @@ type Config struct {
 
 	AWSAccessKeyId     string
 	AWSSecretAccessKey string
+
+	JanitorSecretKey        string
+	VmwatcherSecretKey      string
+	PaymentwebhookSecretKey string
 }
 
 func main() {
@@ -313,9 +314,9 @@ func newKite(conf *Config) *kite.Kite {
 
 	authenticators := map[string]string{
 		"kloudctl":       command.KloudSecretKey,
-		"janitor":        janitor.KloudSecretKey,
-		"vmwatcher":      vmwatcher.KloudSecretKey,
-		"paymentwebhook": paymentwebhook.KloudSecretKey,
+		"janitor":        conf.JanitorSecretKey,
+		"vmwatcher":      conf.VmwatcherSecretKey,
+		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
 	for w, s := range authenticators {

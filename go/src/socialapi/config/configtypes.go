@@ -150,8 +150,9 @@ type (
 	}
 
 	PaymentWebhook struct {
-		Port  string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
-		Debug bool   `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_DEBUG"`
+		Port      string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
+		Debug     bool   `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_DEBUG"`
+		SecretKey string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_SECRETKEY"`
 	}
 
 	GoogleapiServiceAccount struct {
@@ -167,6 +168,7 @@ type (
 	}
 
 	Janitor struct {
-		Port string
+		Port      string `env:"key=KONFIG_SOCIALAPI_JANITOR_PORT"`
+		SecretKey string `env:"key=KONFIG_SOCIALAPI_JANITOR_SECRETKEY"`
 	}
 )

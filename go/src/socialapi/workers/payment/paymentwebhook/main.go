@@ -9,7 +9,6 @@ import (
 	"socialapi/config"
 	"socialapi/workers/payment"
 	"socialapi/workers/payment/paymentmodels"
-	"socialapi/workers/payment/paymentwebhook/secretkey"
 	"time"
 
 	"github.com/koding/kite"
@@ -17,9 +16,8 @@ import (
 )
 
 var (
-	WorkerName     = "paymentwebhook"
-	KloudSecretKey = secretkey.KloudSecretKey
-	Log            = runner.CreateLogger(WorkerName, false)
+	WorkerName = "paymentwebhook"
+	Log        = runner.CreateLogger(WorkerName, false)
 )
 
 type Controller struct {
@@ -37,13 +35,14 @@ func main() {
 	}()
 
 	conf := config.MustRead(r.Conf.Path)
-
 	kloud := conf.Kloud
+
+	kloudSecretKey := conf.PaymentWebhook.SecretKey
 
 	Log = runner.CreateLogger(WorkerName, conf.PaymentWebhook.Debug)
 
 	// initialize client to talk to kloud
-	kiteClient := initializeKiteClient(r.Kite, KloudSecretKey, kloud.Address)
+	kiteClient := initializeKiteClient(r.Kite, kloudSecretKey, kloud.Address)
 	defer kiteClient.Close()
 
 	// initialize controller to inject dependencies
