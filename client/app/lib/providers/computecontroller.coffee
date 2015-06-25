@@ -515,7 +515,7 @@ module.exports = class ComputeController extends KDController
       return askFor 'reinit', startReinit
 
     # We need to validate that the machineSnapshotId still exists
-    JSnapshot.one machineSnapshotId, (err, snapshot) =>
+    JSnapshot.one machineSnapshotId, (err, snapshot) ->
       kd.error err  if err
 
       # If the snapshot exists in mongo, askFor a normal reinit
