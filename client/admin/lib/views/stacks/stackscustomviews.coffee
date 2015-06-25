@@ -437,7 +437,6 @@ module.exports = class StacksCustomViews extends CustomViews
         stepsHeaderView   :
           steps           : STEPS.REPO_FLOW
           selected        : 2
-        text              : "Github: Select a repository from your account"
         repoListView      :
           users           : ['gokmen', 'koding']
         navCancelButton   :
@@ -523,19 +522,20 @@ module.exports = class StacksCustomViews extends CustomViews
       { users } = options
 
       container    = @views.container 'repo-listview'
-      views        = @addTo container,
+      loader       = @addTo container,
         mainLoader : 'Fetching repositories list...'
-        repoList   : options
 
-      {controller, __view: repoList} = views.repoList
+      GitHub.fetchUsersRepos users, (err, response) =>
+        loader.hide()
 
-      repoList.hide()
-      GitHub.fetchUsersRepos users, (err, response) ->
-        views.mainLoader.hide()
+        views        = @addTo container,
+          text       : "Github: Select a repository from your account"
+          repoList   : options
+
+        {controller, __view: repoList} = views.repoList
+
         controller.replaceAllItems response
-        repoList.show()
-
-      container.forwardEvent repoList, 'RepoSelected'
+        container.forwardEvent repoList, 'RepoSelected'
 
       return container
 
