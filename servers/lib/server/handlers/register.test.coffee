@@ -38,7 +38,8 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 200 if GET request sent to Register hadler url', (done) ->
 
-    request.get generateRequestParams().url, (err, res, body) ->
+    requestParams = generateRequestParams()
+    request.get requestParams, (err, res, body) ->
       expect(err)             .to.not.exist
       expect(res.statusCode)  .to.be.equal 200
       done()
