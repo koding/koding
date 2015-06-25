@@ -39,8 +39,9 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	//		6b. Delete old volume (not needed anymore)
 	// 7. Attach new volume to current stopped instance
 	// 8. Start the stopped instance with the new larger volume
-	// 9. Update Default Domain record with the new IP (stopping/starting changes the IP)
-	// 11 Update Domain aliases with the new IP (stopping/starting changes the IP)
+	// 9. SSH into the machine and run "resize2fs" to sync the storage with the file system
+	// 10. Update Default Domain record with the new IP (stopping/starting changes the IP)
+	// 11. Update Domain aliases with the new IP (stopping/starting changes the IP)
 	// 12. Check if Klient is running
 
 	if err := m.UpdateState("Machine is resizing", machinestate.Pending); err != nil {
