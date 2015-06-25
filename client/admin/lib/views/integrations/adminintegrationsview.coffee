@@ -3,7 +3,8 @@ KDView        = kd.View
 KDTabView     = kd.TabView
 KDTabPaneView = kd.TabPaneView
 
-AdminIntegrationsListView = require './adminintegrationslistview'
+AdminIntegrationsListView           = require './adminintegrationslistview'
+AdminConfiguredIntegrationsListView = require './adminconfiguredintegrationslistview'
 
 
 module.exports = class AdminMembersView extends KDView
@@ -19,13 +20,19 @@ module.exports = class AdminMembersView extends KDView
 
   createTabView: ->
 
-    tabView = new KDTabView hideHandleCloseIcons: yes
+    @addSubView tabView = new KDTabView hideHandleCloseIcons: yes
 
     tabView.addPane all        = new KDTabPaneView name: 'All Services'
     tabView.addPane configured = new KDTabPaneView name: 'Configured Integrations'
 
-    all.addSubView        new AdminIntegrationsListView integrationType: 'new'
-    configured.addSubView new AdminIntegrationsListView integrationType: 'configured'
+    allListView        = new AdminIntegrationsListView           integrationType: 'new'
+    configuredListView = new AdminConfiguredIntegrationsListView integrationType: 'configured'
+
+    all.addSubView allListView
+    configured.addSubView configuredListView
 
     tabView.showPaneByIndex 0
-    @addSubView tabView
+
+    allListView.on 'ShowConfiguredTab', =>
+      tabView.showPaneByIndex 1
+      configuredListView.refresh()

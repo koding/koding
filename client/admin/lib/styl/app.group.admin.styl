@@ -362,8 +362,8 @@ Admin main styles
           r-sprite        "admin", "coming-soon"
           display         inline-block
           margin-right    22px
-          position        relative
           top             4px
+          rel()
 
       .policy-language-image-wrapper
         fr()
@@ -624,10 +624,10 @@ Admin main styles
     margin-top              0
 
   .warning-text
-    position                relative
     font-size               12px
     color                   #afafaf
     top                     -24px
+    rel()
 
   .kdinput[disabled]
     opacity                 .5
@@ -1169,20 +1169,58 @@ Admin main styles
 
 .AppModal--admin .integrations
 
-  // .all-integrations .listview-wrapper
-  //   vendor                  transition, margin-left .33s ease-in
-
-  //   &.left
-  //     margin-left           -800px
-
   .kdtabhandle
     max-width               230px !important // override element style
+
+  .configured-list
+    margin-top              20px
+
+    .integration
+      border-top            1px solid #dedede
+      margin-left           60px
+      padding               15px 0
+      rel()
+      borderBox()
+
+      &:hover
+        .edit
+          visible()
+
+      .by
+        fl()
+        color               #8d8d8d
+        font-size           12px
+        line-height         25px
+
+      time
+        color               #8d8d8d
+        margin-left         4px
+        font-size           12px
+        line-height         25px
+
+      .edit
+        abs()
+        pointer()
+        hidden()
+        line-height         78px
+        right               15px
+        top                 0
+        vendor              user-select, none
+
+        span
+          r-sprite          'app', 'sidebar-toggle'
+          display           inline-block
+          vendor            transform, rotate(180deg)
+
 
   .integration-view
     border-top              1px solid #dedede
     padding                 15px 0
     font-size               14px
     color                   #4c4c4c
+
+    &.list-visible
+      padding-bottom        0
 
     img
       size                  48px, 48px
@@ -1194,9 +1232,14 @@ Admin main styles
       font-size             15px
 
     .kdbutton.add
+    .kdbutton.configure
       abs()
-      right                 0
+      right                 15px
       top                   22px
+
+      .kdloader
+        margin              0 !important
+        padding             0
 
   .integration-channels
     font-size               14px
@@ -1272,6 +1315,9 @@ Admin main styles
       border                none
 
   section.settings
+
+    margin-bottom           100px
+
     .AppModal-form
       margin                0
       padding               0
@@ -1279,15 +1325,15 @@ Admin main styles
     .formline
       overflow              hidden
       margin-bottom         30px
-      padding-right         0
+      padding-right         5px
 
       &.button-field
        border-top           none !important
-       padding              0 !important
+       padding              5px !important
 
     label
       fl()
-      width                 260px
+      width                 255px
       margin-right          40px
 
       p
@@ -1308,3 +1354,31 @@ Admin main styles
         size                367px, 34px
         bg                  color, #FFF
         margin-top          26px
+
+  .formline
+    .link
+      color                 #00b057
+      display               inline-block
+      padding               5px 0 0 10px
+      pointer()
+      fr()
+
+      &.label
+        cursor              default
+
+    .status
+      display               inline-block
+      padding               0 10px
+      text-transform        uppercase
+      height                29px
+      line-height           29px
+      color                 #FFF
+      margin-top            20px
+      rounded               3px
+      pointer()
+
+      &.disable
+        bg                  color, #d75b5b
+
+      &.enable
+        bg                  color, #61c17f
