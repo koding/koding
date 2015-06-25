@@ -56,7 +56,7 @@ module.exports = class StackRepoItem extends kd.ListItemView
 
   click: (event) ->
 
-    return  if (event.target.className.indexOf 'repo-item') <= 0
+    return  unless event.target.classList.contains 'repo-item'
 
     @toggleClass 'active'
     @toggleSelectView()

@@ -409,7 +409,7 @@ module.exports = class StacksCustomViews extends CustomViews
           steps           : STEPS.REPO_FLOW
           selected        : 1
         text              : "We need to locate your configuration file first so
-                             so that we can understand what we are going to do
+                             that we can understand what we are going to do
                              when a user joins to your team.<br />
                              So please tell us where your stack configuration
                              file is."
@@ -477,8 +477,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
         outputView.setContent template ? err?.statusText ? 'Something went wrong!'
 
-
-      console.log { data }
 
       return container
 

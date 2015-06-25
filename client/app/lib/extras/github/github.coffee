@@ -164,8 +164,6 @@ module.exports = class GitHub
 
       remaining = if remaining > 1
                     "#{remaining} minutes"
-                  else if remaining is 1
-                    "#{remaining} minute"
                   else
                     "a minute."
 
