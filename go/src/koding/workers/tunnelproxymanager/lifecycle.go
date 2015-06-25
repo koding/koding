@@ -131,7 +131,7 @@ func (l *LifeCycle) listenFunc(recordManager *RecordManager) func(body *string) 
 				continue
 			}
 
-			log.Debug("Autoscaling operating IPs %s", awsutil.StringValue(res))
+			l.log.Debug("Autoscaling operating IPs %s", awsutil.StringValue(res))
 
 			if err = recordManager.UpsertRecordSet(res); err != nil {
 				l.log.Error("Upserting records failed, will retry... err: %s", err.Error())

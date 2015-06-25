@@ -68,7 +68,7 @@ func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
 		return nil, errAutoscalingNotSet
 	}
 
-	// get the instances of our autoscaling group
+	// get instances of our autoscaling group
 	asResp, err := l.autoscaling.DescribeAutoScalingGroups(
 		&autoscaling.DescribeAutoScalingGroupsInput{
 			AutoScalingGroupNames: []*string{l.asgName},
@@ -82,16 +82,7 @@ func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
 		return nil, errors.New("describe asg response is malformed")
 	}
 
-	healthyInstances := make([]*string, 0)
-	for _, asg := range asResp.AutoScalingGroups {
-		for _, instance := range asg.Instances {
-			if *instance.HealthStatus == healthy &&
-				*instance.LifecycleState == inService {
-				healthyInstances = append(healthyInstances, instance.InstanceID)
-			}
-		}
-	}
-
+	healthyInstances := filterHealthyInstances(asResp)
 	if len(healthyInstances) == 0 {
 		return nil, errors.New("no instances are healthy and in service")
 	}
@@ -109,12 +100,29 @@ func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
 		return nil, errors.New("describe instances response is malformed")
 	}
 
+	return mapPublicIps(insResp), nil
+}
+
+func filterHealthyInstances(asResp *autoscaling.DescribeAutoScalingGroupsOutput) []*string {
+	healthyInstances := make([]*string, 0)
+	for _, asg := range asResp.AutoScalingGroups {
+		for _, instance := range asg.Instances {
+			if *instance.HealthStatus == healthy &&
+				*instance.LifecycleState == inService {
+				healthyInstances = append(healthyInstances, instance.InstanceID)
+			}
+		}
+	}
+
+	return healthyInstances
+}
+
+func mapPublicIps(insResp *ec2.DescribeInstancesOutput) []*string {
 	publicIps := make([]*string, 0)
 	for _, reservation := range insResp.Reservations {
 		for _, instance := range reservation.Instances {
 			publicIps = append(publicIps, instance.PublicIPAddress)
 		}
 	}
-
-	return publicIps, nil
+	return publicIps
 }
