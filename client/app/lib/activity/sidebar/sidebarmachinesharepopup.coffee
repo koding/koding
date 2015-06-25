@@ -192,10 +192,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
         { channelId } = @getOptions()
         kd.singletons.socialapi.channel.rejectInvite { channelId }, (err) =>
           return showError err  if err
-
-          envHelpers.setMachineUser machine, [ nick() ], no, (err) =>
-            return showError err  if err
-            @handleDeny()
+          @handleDeny()
 
 
   handleDeny: ->
