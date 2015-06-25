@@ -70,7 +70,6 @@ func (r *RecordManager) ensureHostedZone() error {
 	}
 
 	if err != errHostedZoneNotFound {
-		hostedZoneLogger.Debug("ne isin var burada")
 		return err
 	}
 
