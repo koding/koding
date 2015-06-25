@@ -47,7 +47,7 @@ func main() {
 		log,
 		conf.AutoScalingName,
 	)
-	if err := l.Init(queueName); err != nil {
+	if err := l.Configure(queueName); err != nil {
 		log.Fatal(err.Error())
 	}
 

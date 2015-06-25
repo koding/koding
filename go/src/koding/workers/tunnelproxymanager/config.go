@@ -10,6 +10,7 @@ import (
 	"github.com/koding/multiconfig"
 )
 
+// Config holds configuration parameters for tunnelproxymanager
 type Config struct {
 	EBEnvName string
 	Region    string // optional

@@ -38,7 +38,7 @@ type RecordManager struct {
 	log logging.Logger
 }
 
-// New creates a RecordManager
+// NewRecordManager creates a RecordManager
 func NewRecordManager(config *aws.Config, log logging.Logger, region string) *RecordManager {
 	return &RecordManager{
 		route53: route53.New(config),
@@ -187,6 +187,7 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 	return nil
 }
 
+// UpsertRecordSet updates record set for current ResourceRecordSet
 func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 	if r.hostedZone == nil {
 		return errors.New("hosted zone is not set")

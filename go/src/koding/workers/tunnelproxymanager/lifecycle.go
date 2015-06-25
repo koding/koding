@@ -64,10 +64,10 @@ func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeC
 	}
 
 	return l
-
 }
 
-func (l *LifeCycle) Init(name string) error {
+// Configure configures lifecycle, upserts SNS, SQS, Subscriptions, Notification
+func (l *LifeCycle) Configure(name string) error {
 	l.log.Debug("Configuring...")
 
 	if err := l.EnureSNS(name); err != nil {
@@ -125,8 +125,6 @@ func (l *LifeCycle) Listen(f func(*string) error) error {
 			}
 		}
 	}
-
-	return nil
 }
 
 // process gets one mesage from notification queue, passes it to given callback
@@ -138,7 +136,7 @@ func (l *LifeCycle) process(f func(*string) error) error {
 	}
 
 	if l.queueURL == nil {
-		return errors.New("QueueURL is not set")
+		return errors.New("queueURL is not set")
 	}
 
 	// try to get messages from qeueue, will longpoll for 20 secs

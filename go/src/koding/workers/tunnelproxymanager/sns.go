@@ -47,6 +47,7 @@ func (l *LifeCycle) EnureSNS(name string) error {
 	return nil
 }
 
+// MakeSureSubscriptions upserts subscription between sns and sqs
 func (l *LifeCycle) MakeSureSubscriptions() error {
 	if l.topicARN == nil {
 		return errTopicARNNotSet
