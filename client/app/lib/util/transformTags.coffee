@@ -1,6 +1,7 @@
-getGroup = require './getGroup'
-getBlockquoteRanges = require './getBlockquoteRanges'
-groupifyLink = require './groupifyLink'
+getGroup              = require './getGroup'
+getBlockquoteRanges   = require './getBlockquoteRanges'
+groupifyLink          = require './groupifyLink'
+twitter               = require 'twitter-text'
 
 module.exports = (text = '') ->
 
@@ -12,20 +13,11 @@ module.exports = (text = '') ->
       return yes  if start <= position <= end
     return no
 
-  return text.replace /#(\w+)/g, (match, tag, offset) ->
+  hashtags = twitter.extractHashtags text
+  for hashtag in hashtags
+    href = groupifyLink "/Activity/Topic/#{hashtag}", no
+    url =  "[##{hashtag}](#{href})"
 
-    return match  if inSkipRange offset
-
-    pre  = text[offset - 1]
-    post = text[offset + match.length]
-
-    switch
-      when (pre?.match /\S/) and offset isnt 0
-        return match
-      when post?.match /[,.;:!?]/
-        break
-      when (post?.match /\S/) and (offset + match.length) isnt text.length
-        return match
-
-    href = groupifyLink "/Activity/Topic/#{tag}", no
-    return "[##{tag}](#{href})"
+    text = text.replace "##{hashtag}", url
+  
+  return text
