@@ -1074,10 +1074,6 @@ module.exports = CollaborationController =
 
       if update.isParticipant
       then @stateMachine.transition 'Loading'
-      else
-        socialHelpers.acceptChannel update.channel, (err) =>
-          return throwError err  if err
-          @stateMachine.transition 'Loading'
 
 
   getHostSnapshot: -> IDELayoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
