@@ -185,7 +185,7 @@ module.exports = class JMachine extends Module
     for u in users
       unless userId.equals u.id
         newUsers.push u
-      else if not permanent? and u.permanent
+      else if not permanent and u.permanent
         newUsers.push u
 
     return newUsers
