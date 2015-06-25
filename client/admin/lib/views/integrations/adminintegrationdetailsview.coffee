@@ -142,6 +142,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     options       =
       id          : data.id
       channelId   : channels
+      isDisabled  : data.isDisabled
 
     if label isnt data.summary
       options.description = label
