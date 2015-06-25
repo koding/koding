@@ -13,13 +13,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/cenkalti/backoff"
 	"github.com/koding/logging"
 )
 
 func main() {
 	conf, err := tunnelproxymanager.Configure()
 	if err != nil {
-		log.Fatal(err.Error()) // exit if we get any error
+		log.Fatal("Reading config failed: %s", err.Error()) // exit if we get any error
 	}
 
 	log := common.CreateLogger("tunnelproxymanager", conf.Debug)
@@ -57,13 +58,32 @@ func main() {
 
 	err = l.Listen(func(body *string) error {
 		log.Debug("got event %s", *body)
-		res, err := l.GetAutoScalingOperatingIPs()
-		if err != nil {
-			return err
+
+		ticker := backoff.NewTicker(backoff.NewExponentialBackOff())
+
+		var res []*string
+		var err error
+
+		for _ = range ticker.C {
+			if res, err = l.GetAutoScalingOperatingIPs(); err != nil {
+				log.Error("Getting autoscaling operating IPs failed, will retry... err: %s", err.Error())
+				continue
+			}
+
+			log.Debug("Autoscaling operating IPs %s", awsutil.StringValue(res))
+
+			if err = recordManager.UpsertRecordSet(res); err != nil {
+				log.Error("Upserting records failed, will retry... err: %s", err.Error())
+				continue
+
+			}
+
+			ticker.Stop()
+			break
 		}
 
-		log.Debug("new servers %s", awsutil.StringValue(res))
-		return recordManager.UpsertRecordSet(res)
+		return err
+
 	})
 	if err != nil {
 		panic(err)
@@ -91,19 +111,4 @@ func registerSignalHandler(l *tunnelproxymanager.LifeCycle, log logging.Logger, 
 			}
 		}
 	}()
-
-	// fake data generator
-	// go func() {
-	//  for {
-	//      params := &sns.PublishInput{
-	//          Message:  aws.String("bu benim mesajin bodysi"), // Required
-	//          TopicARN: l.topicARN,
-	//      }
-	//      _, err := l.sns.Publish(params)
-	//      if err != nil {
-	//          fmt.Println(err.Error())
-	//      }
-	//      time.Sleep(time.Second * 3)
-	//  }
-	// }()
 }

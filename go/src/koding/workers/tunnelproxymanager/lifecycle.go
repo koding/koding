@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/cenkalti/backoff"
 	"github.com/coreos/go-log/log"
 	"github.com/koding/logging"
 )
@@ -108,19 +107,7 @@ func (l *LifeCycle) Listen(f func(*string) error) error {
 			close(c)
 			return nil
 		default:
-			ticker := backoff.NewTicker(backoff.NewExponentialBackOff())
-
-			var err error
-			for _ = range ticker.C {
-				if err = l.process(f); err != nil {
-					l.log.Error("will retry... err: %s", err.Error())
-					continue
-				}
-
-				ticker.Stop()
-				break
-			}
-			if err != nil {
+			if err := l.process(f); err != nil {
 				return err
 			}
 		}
