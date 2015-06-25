@@ -42,7 +42,7 @@ module.exports = class IDEFinderPane extends IDEPane
           return (IDEHelpers.showPermissionErrorOnOpeningFile err) or
             showError 'File could not be opened'
 
-        mgr.tell 'IDE', 'openFile', file, contents
+        mgr.tell 'IDE', 'openFile', file: file, contents: contents
         kd.getSingleton('windowController').setKeyView null
 
     tc.on 'TerminalRequested', (machine) ->

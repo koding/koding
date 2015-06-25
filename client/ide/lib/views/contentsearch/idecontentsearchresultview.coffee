@@ -46,7 +46,9 @@ module.exports = class IDEContentSearchResultView extends KDScrollView
         previousLine = line
 
   click: (event) ->
-    {target} = event
+
+    { target } = event
+
     return unless  target.classList.contains 'match'
 
     path       = target.getAttribute 'data-file-path'
@@ -54,9 +56,11 @@ module.exports = class IDEContentSearchResultView extends KDScrollView
     file       = FSHelper.createFileInstance { path, @machine }
 
     file.fetchContents (err, contents) ->
+
       if err
         console.error err
         return (IDEHelpers.showPermissionErrorOnOpeningFile err) or showError err
 
-      kd.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->
+      params = file: file, contents: contents
+      kd.getSingleton('appManager').tell 'IDE', 'openFile', params, (editorPane) ->
         editorPane?.goToLine lineNumber
