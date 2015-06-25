@@ -126,7 +126,7 @@ func TestWebhookListen(t *testing.T) {
 				So(s, ShouldEqual, http.StatusBadRequest)
 			})
 
-			Convey("users should not be able to send any message when their request does not include body or channel name", func() {
+			Convey("users should not be able to send any message when their request does not include body", func() {
 
 				tk, err := uuid.NewV4()
 				So(err, ShouldBeNil)
@@ -138,15 +138,6 @@ func TestWebhookListen(t *testing.T) {
 				)
 				So(err.Error(), ShouldEqual, ErrBodyNotSet.Error())
 				So(s, ShouldEqual, http.StatusBadRequest)
-
-				s, _, _, err = h.Push(
-					mocking.URL(m, "POST", "/push/"+token),
-					mocking.Header(nil),
-					newRequest("hey", 0, "koding"),
-				)
-				So(err.Error(), ShouldEqual, ErrChannelNotSet.Error())
-				So(s, ShouldEqual, http.StatusBadRequest)
-
 			})
 
 			Convey("users should be able to send message when token is valid", func() {

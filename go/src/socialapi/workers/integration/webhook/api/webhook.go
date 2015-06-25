@@ -57,8 +57,7 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 	}
 
 	r.Message.ChannelIntegrationId = channelIntegration.Id
-
-	// TODO check for group name match here
+	r.Message.ChannelId = channelIntegration.ChannelId
 
 	if err := h.bot.SendMessage(&r.Message); err != nil {
 		return response.NewBadRequest(err)
