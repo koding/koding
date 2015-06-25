@@ -16,8 +16,9 @@ module.exports = (text = '') ->
   hashtags = twitter.extractHashtags text
   for hashtag in hashtags
     href = groupifyLink "/Activity/Topic/#{hashtag}", no
-    url =  "[##{hashtag}](#{href})"
+    tag = "##{hashtag}"
+    url =  "[#{tag}](#{href})"
 
-    text = text.replace "##{hashtag}", url
+    text = text.replace "#{tag}", url
   
   return text
