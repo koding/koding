@@ -69,6 +69,9 @@ func (l *LifeCycle) MakeSureSQS(name string) error {
 }
 
 func (l *LifeCycle) createQueue(sqsLogger logging.Logger, queueName string) error {
+	if l.sqs == nil {
+		return errSQSNotSet
+	}
 
 	// CreateQueue is idempotent, if it is already created returns existing one
 	// all Attributes should be same with consecutive calls
@@ -91,33 +94,13 @@ func (l *LifeCycle) createQueue(sqsLogger logging.Logger, queueName string) erro
 }
 
 func (l *LifeCycle) configureQueue(sqsLogger logging.Logger) error {
-	if l.queueURL == nil {
-		return errQueueURLNotSet
-	}
-
-	resp, err := l.sqs.GetQueueAttributes(
-		&sqs.GetQueueAttributesInput{
-			QueueURL: l.queueURL, // Required
-			AttributeNames: []*string{
-				aws.String("QueueArn"),
-				aws.String("Policy"),
-			},
-		},
-	)
+	// get attributes of queue
+	resp, err := l.getQueueAttributes()
 	if err != nil {
 		return err
 	}
 
-	if resp == nil {
-		return errors.New("malformed response for GetQueueAttributes")
-	}
-
-	queueARN, ok := resp.Attributes["QueueArn"]
-	if !ok || queueARN == nil {
-		return errors.New("QueueArn not exists in Attributes")
-	}
-	l.queueARN = queueARN
-
+	// create our custom policy for access management
 	b, err := newDefaultPolicy(*l.topicARN, *l.queueARN)
 	if err != nil {
 		return err
@@ -127,12 +110,13 @@ func (l *LifeCycle) configureQueue(sqsLogger logging.Logger) error {
 	//   QueueArn: "arn:aws:sqs:us-east-1:616271189586:SQS-ElasticBeanstalkNotifications-Environment-cihangir",
 	//   Policy: "{\"Version\":\"2012-10-17\",\"Id\":\"arn:aws:sqs:us-east-1:616271189586:SQS-ElasticBeanstalkNotifications-Environment-cihangir/SQSDefaultPolicy\",\"Statement\":[{\"Sid\":\"tunnelproxy_dev_1\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"*\"},\"Action\":\"SQS:SendMessage\",\"Resource\":\"arn:aws:sqs:us-east-1:616271189586:SQS-ElasticBeanstalkNotifications-Environment-cihangir\",\"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:sns:us-east-1:616271189586:tunnelproxymanager_test\"}}}]}"
 	// }
-	// If it is valid, nothing to do here
-	if isValid(resp.Attributes, b) {
+	// check if current policy is valid
+	if isPolicyValid(resp.Attributes, b) {
 		return nil
 	}
 
 	sqsLogger.Debug("Queue Policy is not correct, fixing it...")
+
 	_, err = l.sqs.SetQueueAttributes(&sqs.SetQueueAttributesInput{
 		Attributes: map[string]*string{
 			"Policy": aws.String(b),
@@ -146,6 +130,43 @@ func (l *LifeCycle) configureQueue(sqsLogger logging.Logger) error {
 	sqsLogger.Debug("Queue Policy is configured properly")
 
 	return nil
+}
+
+func (l *LifeCycle) getQueueAttributes() (*sqs.GetQueueAttributesOutput, error) {
+	if l.queueURL == nil {
+		return nil, errQueueURLNotSet
+	}
+
+	if l.sqs == nil {
+		return nil, errSQSNotSet
+	}
+
+	resp, err := l.sqs.GetQueueAttributes(
+		&sqs.GetQueueAttributesInput{
+			QueueURL: l.queueURL, // Required
+			AttributeNames: []*string{
+				// specify which ones you need in response
+				aws.String("QueueArn"),
+				aws.String("Policy"),
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp == nil || resp.Attributes == nil {
+		return nil, errors.New("malformed response for GetQueueAttributes")
+	}
+
+	queueARN, ok := resp.Attributes["QueueArn"]
+	if !ok || queueARN == nil {
+		return nil, errors.New("QueueArn not exists in Attributes")
+	}
+
+	l.queueARN = queueARN
+
+	return resp, nil
 }
 
 type policy struct {
@@ -163,6 +184,8 @@ type statement struct {
 	Condition map[string]interface{} `json:"Condition"`
 }
 
+// newDefaultPolicy creates a new pplicy for giving access to SNS publish
+// requests to our SNS queue
 func newDefaultPolicy(topicARN, queueARN string) (string, error) {
 	p := &policy{
 		Version: "2012-10-17",
@@ -193,7 +216,8 @@ func newDefaultPolicy(topicARN, queueARN string) (string, error) {
 	return string(b), nil
 }
 
-func isValid(attr map[string]*string, b string) bool {
+// isPolicyValid checks of given policies are same or not
+func isPolicyValid(attr map[string]*string, b string) bool {
 	if attr == nil {
 		return false
 	}
