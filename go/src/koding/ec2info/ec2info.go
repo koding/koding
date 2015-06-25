@@ -65,8 +65,7 @@ func Get() (*EC2Info, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		err = fmt.Errorf("code (%d) returned for endpoint %s", resp.StatusCode, endpoint)
-		return nil, err
+		return nil, fmt.Errorf("err: status code (%d)", resp.StatusCode)
 	}
 
 	identity := &EC2Info{}
