@@ -4,7 +4,7 @@ koding          = require './../bongo'
 module.exports = (req, res) ->
 
   { JUser }           = koding.models
-  { password, email } = req.body
+  { password, email, tfcode } = req.body
 
   return res.status(400).send 'Bad request'  unless email?
 
@@ -14,11 +14,17 @@ module.exports = (req, res) ->
 
   if clientId
 
-    JUser.login clientId, { username : email, password }, (err, info) ->
+    JUser.login clientId, { username : email, password, tfcode }, (err, info) ->
 
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
-      if err and isEmail
+      if err?.name is 'VERIFICATION_CODE_NEEDED'
+        return res.status(400).send 'TwoFactor auth Enabled'
+
+      else if err?.message is 'Access denied!'
+        return res.status(400).send 'Bad request'
+
+      else if err and isEmail
         JUser.emailAvailable email, (err_, response) ->
           return res.status(400).send 'Bad request'  if err_
 
