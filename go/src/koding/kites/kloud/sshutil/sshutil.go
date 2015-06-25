@@ -86,14 +86,13 @@ func ConnectSSH(ip string, config *ssh.ClientConfig) (*SSHClient, error) {
 		case <-time.Tick(sshConnectRetryInterval):
 			client, err := dialFunc()
 			if err != nil {
-				fmt.Printf("ConnectSSH err: %+v\n", err)
 				dialError = err
 				continue
 			}
 			return client, nil
 		case <-timeout:
 			if dialError != nil {
-				return nil, fmt.Errorf("cannot connect with ssh %s", dialError)
+				return nil, fmt.Errorf("cannot connect with ssh: %s", dialError)
 			}
 
 			return nil, errors.New("cannot connect with ssh. timeout")
