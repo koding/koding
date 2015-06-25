@@ -1124,9 +1124,7 @@ class IDEAppController extends AppController
     tabView.removePane paneView
 
 
-  getWorkspaceSnapshot: ->
-
-    return @layoutManager.createMap()
+  getWorkspaceSnapshot: -> @layoutManager.createLayoutData()
 
 
   changeActiveTabView: (paneType) ->

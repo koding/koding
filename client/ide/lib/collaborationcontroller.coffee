@@ -531,7 +531,7 @@ module.exports = CollaborationController =
 
   appendHostSnapshot: (snapshot) ->
 
-    return snapshot  if snapshot.length
+    return snapshot  if snapshot?.length
 
     key = "#{@collaborationHost}Snapshot"
 
@@ -1078,9 +1078,7 @@ module.exports = CollaborationController =
           @stateMachine.transition 'Loading'
 
 
-  getHostSnapshot: ->
-
-    return @filterSnapshot @getWorkspaceSnapshot()
+  getHostSnapshot: -> @filterSnapshot @getWorkspaceSnapshot()
 
 
   ###*
@@ -1098,19 +1096,21 @@ module.exports = CollaborationController =
     panes = []
 
     ###*
+     * Find panes
      *
      * <Recursive>
      * @param {Object} item
     ###
     findPanes = (item) ->
 
-      if item.views.length
-        if item.views.first.context # if items are a pane
-          for pane in item.views    # collect panes
-            panes.push pane
-        else
-          for subView in item.views
-            findPanes subView       # recall function
+      return  unless item.views.length
+
+      if item.views.first.context # if items are a pane
+        for pane in item.views    # collect panes
+          panes.push pane
+      else
+        for subView in item.views
+          findPanes subView       # recall itself
 
 
     for item in snapshot when item.type is 'split'

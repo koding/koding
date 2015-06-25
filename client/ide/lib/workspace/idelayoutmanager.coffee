@@ -7,76 +7,20 @@ KDTabPaneView     = kd.TabPaneView
 IDEView           = require '../views/tabview/ideview'
 
 
-###*
-  This class creates a layout map for remembering the tab layout.
-
-  Splitted Case:
-    - KDSplitViewPanel
-       - KDSplitView
-         - KDSplitViewPanel
-           - IDEView
-             - IDEApplicationTabView
-               - KDTabPaneView
-                 - IDETerminalPanel
-         - KDSplitViewPanel
-         ....
-
-  Unsplitted Case:
-    - KDSplitViewPanel
-       - IDEView
-         - IDEApplicationTabView
-           - KDTabPaneView
-             - IDETerminalPane
-               - KDTabPaneView
-                 - IDETerminalPanel
-
-  Sample JSON Data:
-
-    [
-      {
-        "type": "split",
-        "direction": "horizontal",
-        "views": [
-          {
-            "type": "split",
-            "direction": "vertical",
-            "isFirst": true,
-            "views": [
-              { "context": ... }
-              { "context": ... }
-            ]
-          },
-          {
-            "type": "split",
-            "direction": "vertical",
-            "views": []
-          }
-        ]
-      },
-      {
-        "type": "split",
-        "direction": "horizontal",
-        "views": [
-          {
-            "type": "split",
-            "direction": "vertical",
-            "views": []
-          }
-        ]
-      }
-    ]
-###
+## This class creates a layout map for remembering the tab layout.
+## You can see `/client/ide/docs/idelayoutmanager.markdown` for more information
+## about this.
 module.exports = class IDELayoutManager extends KDObject
 
 
   ###*
    * Create the layout map.
    *
-   * @return {Array}
+   * @return {Array} @layout
   ###
-  createMap: ->
+  createLayoutData: ->
 
-    @map          = [] # Reset and create an array.
+    @layout       = [] # Reset and create an array.
 
     workspaceView = @getDelegate().workspace.getView()
     baseSplitView = workspaceView.layout.getSplitViewByName 'BaseSplit'
@@ -89,7 +33,7 @@ module.exports = class IDELayoutManager extends KDObject
       for panel in splitViews.panels when panel
         @createParentSplitViews panel
 
-    return @map
+    return @layout
 
 
   ###*
@@ -99,14 +43,14 @@ module.exports = class IDELayoutManager extends KDObject
   ###
   createParentSplitViews: (parent) ->
 
-    @map.push
-      type        : 'split',
-      direction   : if parent.vertical is true then 'vertical' else 'horizontal'
-      views       : @getSubLevels parent
+    @layout.push
+      type      : 'split',
+      direction : if parent.vertical is true then 'vertical' else 'horizontal'
+      views     : @getSubLevels parent
 
 
   ###*
-   *
+   * Seach in each dom structure.
    *
    * @param {KDSplitViewPanel} splitViewPanel
   ###
@@ -115,7 +59,7 @@ module.exports = class IDELayoutManager extends KDObject
     subViews = []
 
     ###*
-     * Create a split view object item
+     * Create a split view object item.
      *
      * @param {string} direction
      * @param {boolean} isFirst
@@ -137,7 +81,7 @@ module.exports = class IDELayoutManager extends KDObject
 
 
     ###*
-     * Get / find last split object in data structure.
+     * Get/find last split object in data structure.
      *
      * <Recursive>
      * @param {Object} items
@@ -161,7 +105,7 @@ module.exports = class IDELayoutManager extends KDObject
      * <Recursive>
      * @param {(KDSplitViewPanel|KDSplitView|IDEView|KDTabPaneView|IDEApplicationTabView)} target
      * @param {KDSplitViewPanel} nextSplitViewPanel
-     * @return {Array}
+     * @return {Array} subViews
     ###
     getSubLevel = (target) ->
 
@@ -202,7 +146,7 @@ module.exports = class IDELayoutManager extends KDObject
 
 
   ###*
-   *
+   * Resurrect saved snapshot from server.
    *
    * @param {Array} snapshot
   ###
@@ -238,6 +182,6 @@ module.exports = class IDELayoutManager extends KDObject
 
       else
         # Don't use `active tab view` logic for new pane creation.
-        # Because `The Editors` ( saved editors ) are loading async.
+        # Because `The Editors` (saved editors) are loading async.
         value.targetTabView = tabView  if value.context.paneType is 'editor'
         @delegate.createPaneFromChange value, yes
