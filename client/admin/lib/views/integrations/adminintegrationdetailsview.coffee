@@ -35,6 +35,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     items = ({ title: channel.name, value: channel.id } for channel in data.channels)
 
+    { customName } = data.settings  if data.settings
     formOptions         =
       cssClass          : 'AppModal-form details-form'
       callback          : @bound 'handleFormCallback'
@@ -56,10 +57,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
               click     : @bound 'regenerateToken'
         label           :
           label         : '<p>Descriptive Label</p><span>Use this label to provide extra context in your list of integrations (optional).</span>'
-          defaultValue  : data.summary
+          defaultValue  : data.description
         name            :
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
-          defaultValue  : data.title
+          defaultValue  : customName or data.title
       buttons           :
         Save            :
           title         : 'Save Integration'
