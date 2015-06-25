@@ -7,6 +7,7 @@ import (
 	"socialapi/workers/common/mux"
 
 	"github.com/koding/integration"
+	"github.com/koding/integration/services"
 	"github.com/koding/runner"
 )
 
@@ -26,15 +27,20 @@ func main() {
 	workerConfig := appConfig.WebhookMiddleware
 	mc := mux.NewConfig(Name, workerConfig.Host, workerConfig.Port)
 	m := mux.New(mc, r.Log, r.Metrics)
-	path := appConfig.CustomDomain.Local
-
-	h := integration.NewHandler(r.Log, path)
+	conf := &services.ServiceConfig{
+		IntegrationAddr: appConfig.CustomDomain.Local + "/api/integration",
+		PublicUrl:       appConfig.CustomDomain.Public + "/api/webhook",
+		Log:             r.Log,
+	}
+	conf.Github.Secret = appConfig.Github.ClientSecret
 
 	if r.Conf.Environment == "dev" || r.Conf.Environment == "test" {
-		h.RootPath =
+		conf.IntegrationAddr =
 			fmt.Sprintf("http://%s:%s", appConfig.Integration.Host,
 				appConfig.Integration.Port)
 	}
+
+	h := integration.NewHandler(r.Log, conf)
 
 	addHandlers(m, h)
 
@@ -47,12 +53,22 @@ func main() {
 }
 
 func addHandlers(m *mux.Mux, h *integration.Handler) {
-	m.AddSessionlessHandler(
+
+	//m.HandleFunc(handler.PostRequest, "/push/{name}/{token}", h)
+	m.AddUnscopedHandler(
 		handler.Request{
-			Handler:  h.Push,
-			Name:     "webhook-middleware-push",
+			Handler:  h.ServeHTTP,
 			Type:     handler.PostRequest,
 			Endpoint: "/push/{name}/{token}",
+		},
+	)
+
+	m.AddUnscopedHandler(
+		handler.Request{
+			Handler:  h.Configure,
+			Name:     "webhook-middleware-configure",
+			Type:     handler.PostRequest,
+			Endpoint: "/configure/{name}",
 		},
 	)
 }
