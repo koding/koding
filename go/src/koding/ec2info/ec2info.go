@@ -1,17 +1,35 @@
+// Package ec2info gets ec2 metadata for the current running host, if it is an ec2 instance
 package ec2info
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 )
 
-const url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
+const endpoint = "http://169.254.169.254/latest/dynamic/instance-identity/document"
 
-var DialTimeout = time.Second * 5
+var (
+	// DialTimeout holds timeout value for ec2 metadata calls
+	DialTimeout = time.Second * 5
+)
 
+// Err wraps any possible errors for api call
+type Err struct {
+	Err      error
+	Original error
+}
+
+// Error implements the error interface.
+func (e *Err) Error() string {
+	return e.Err.Error()
+}
+
+// EC2Info holds metadata about current ec2 host
 type EC2Info struct {
 	InstanceID         string      `json:"instanceId"`
 	BillingProducts    interface{} `json:"billingProducts"`
@@ -40,14 +58,14 @@ func Get() (*EC2Info, error) {
 		},
 	}
 
-	resp, err := client.Get(url)
+	resp, err := client.Get(endpoint)
 	if err != nil {
-		return nil, err
+		return nil, wrapEC2Error(err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		err = fmt.Errorf("Code %d returned for url %s", resp.StatusCode, url)
+		err = fmt.Errorf("code (%d) returned for endpoint %s", resp.StatusCode, endpoint)
 		return nil, err
 	}
 
@@ -57,4 +75,14 @@ func Get() (*EC2Info, error) {
 	}
 
 	return identity, nil
+}
+
+func wrapEC2Error(err error) error {
+	if uerr, ok := err.(*url.Error); ok {
+		if _, ok := uerr.Err.(*net.OpError); ok {
+			return &Err{Original: err, Err: errors.New("not an ec2 instance")}
+		}
+	}
+
+	return err
 }

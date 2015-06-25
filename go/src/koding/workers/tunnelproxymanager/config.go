@@ -3,8 +3,6 @@ package tunnelproxymanager
 import (
 	"fmt"
 	"koding/ec2info"
-	"net"
-	"net/url"
 	"os"
 
 	"github.com/koding/multiconfig"
@@ -53,11 +51,6 @@ func getRegion(conf *Config) (string, error) {
 	}
 
 	info, err := ec2info.Get()
-	if uerr, ok := err.(*url.Error); ok {
-		if _, ok := uerr.Err.(*net.OpError); ok {
-			return "", fmt.Errorf("info call in non-ec2 machine")
-		}
-	}
 	if err != nil {
 		return "", fmt.Errorf("couldn't get region. Err: %s", err.Error())
 	}
