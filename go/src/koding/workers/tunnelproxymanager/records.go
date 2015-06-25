@@ -200,17 +200,29 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 	}
 	params := &route53.ChangeResourceRecordSetsInput{
 		ChangeBatch: &route53.ChangeBatch{
+			// contains one Change element for each resource record set that you
+			// want to create or delete.
 			Changes: []*route53.Change{
 				&route53.Change{
 					Action: aws.String("UPSERT"),
 					ResourceRecordSet: &route53.ResourceRecordSet{
-						Name:            aws.String(hostedZoneName),
-						Type:            aws.String("A"),
-						Region:          aws.String(r.region),
+						// The domain name of the current resource record set.
+						Name: aws.String(hostedZoneName),
+						// The type of the current resource record set.
+						Type: aws.String("A"),
+						// Latency-based resource record sets only: Among
+						// resource record sets that have the same combination
+						// of DNS name and type, a value that specifies the AWS
+						// region for the current resource record set.
+						Region: aws.String(r.region),
+						// that contains the resource records for the current
+						// resource record set.
 						ResourceRecords: resourceRecords,
+						// Weighted, Latency, Geo, and Failover resource record sets only
 						// use region name as identifer
 						SetIdentifier: aws.String(r.region),
-						TTL:           aws.Long(1),
+						// The cache time to live for the current resource record set.
+						TTL: aws.Long(1),
 					},
 				},
 			},
