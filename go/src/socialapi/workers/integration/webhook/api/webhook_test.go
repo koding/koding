@@ -86,9 +86,8 @@ func TestWebhookListen(t *testing.T) {
 			t.Fatalf("could not create test account: %s", err)
 		}
 
-		channelIntegration := webhook.CreateTestChannelIntegration(t)
-
 		Convey("while testing incoming webhook", t, func() {
+			channelIntegration, _ := webhook.CreateTestChannelIntegration(t)
 
 			groupName := models.RandomGroupName()
 
@@ -281,9 +280,8 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 func TestWebhookGroupBotChannel(t *testing.T) {
 
 	tearUp(func(h *Handler, m *mux.Mux) {
-
-		channelIntegration := webhook.CreateTestChannelIntegration(t)
 		Convey("while checking group bot channels", t, func() {
+			channelIntegration, _ := webhook.CreateTestChannelIntegration(t)
 			Convey("we should be able to validate request", func() {
 				token := ""
 				username := ""

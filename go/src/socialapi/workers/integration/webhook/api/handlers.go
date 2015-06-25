@@ -18,7 +18,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Type:     handler.PostRequest,
 			Endpoint: "/push/{token}",
 			Ratelimit: throttled.RateLimit(
-				throttled.Q{Requests: 101, Window: time.Minute},
+				throttled.Q{Requests: 100, Window: time.Minute},
 				&throttled.VaryBy{Path: true},
 				st,
 			),

@@ -39,10 +39,12 @@ func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger
 	}, nil
 }
 
+// Push fetches the channel integration with given token, and pushes messages to channels defined in related channel integrations
 func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, http.Header, interface{}, error) {
 	val := u.Query().Get("token")
 	r.Token = val
 
+	// validate against empty message body or token
 	if err := r.validate(); err != nil {
 		return response.NewInvalidRequest(err)
 	}
