@@ -5,10 +5,12 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/cenkalti/backoff"
 	"github.com/coreos/go-log/log"
 	"github.com/koding/logging"
 )
@@ -111,6 +113,37 @@ func (l *LifeCycle) Listen(f func(*string) error) error {
 				return err
 			}
 		}
+	}
+}
+
+func (l *LifeCycle) listenFunc(recordManager *RecordManager) func(body *string) error {
+	return func(body *string) error {
+		l.log.Debug("got event %s", *body)
+
+		ticker := backoff.NewTicker(backoff.NewExponentialBackOff())
+
+		var res []*string
+		var err error
+
+		for _ = range ticker.C {
+			if res, err = l.GetAutoScalingOperatingIPs(); err != nil {
+				l.log.Error("Getting autoscaling operating IPs failed, will retry... err: %s", err.Error())
+				continue
+			}
+
+			log.Debug("Autoscaling operating IPs %s", awsutil.StringValue(res))
+
+			if err = recordManager.UpsertRecordSet(res); err != nil {
+				l.log.Error("Upserting records failed, will retry... err: %s", err.Error())
+				continue
+
+			}
+
+			ticker.Stop()
+			break
+		}
+
+		return err
 	}
 }
 

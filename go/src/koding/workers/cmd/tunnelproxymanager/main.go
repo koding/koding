@@ -7,13 +7,10 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/cenkalti/backoff"
 	"github.com/koding/logging"
 )
 
@@ -48,52 +45,22 @@ func main() {
 		log,
 		conf.AutoScalingName,
 	)
+
 	if err := l.Configure(queueName); err != nil {
 		log.Fatal(err.Error())
 	}
 
-	var wg sync.WaitGroup
+	done := registerSignalHandler(l, log)
 
-	registerSignalHandler(l, log, wg)
-
-	err = l.Listen(func(body *string) error {
-		log.Debug("got event %s", *body)
-
-		ticker := backoff.NewTicker(backoff.NewExponentialBackOff())
-
-		var res []*string
-		var err error
-
-		for _ = range ticker.C {
-			if res, err = l.GetAutoScalingOperatingIPs(); err != nil {
-				log.Error("Getting autoscaling operating IPs failed, will retry... err: %s", err.Error())
-				continue
-			}
-
-			log.Debug("Autoscaling operating IPs %s", awsutil.StringValue(res))
-
-			if err = recordManager.UpsertRecordSet(res); err != nil {
-				log.Error("Upserting records failed, will retry... err: %s", err.Error())
-				continue
-
-			}
-
-			ticker.Stop()
-			break
-		}
-
-		return err
-
-	})
-	if err != nil {
-		panic(err)
+	if err := l.Listen(recordManager); err != nil {
+		log.Fatal(err.Error())
 	}
 
-	wg.Wait()
+	<-done
 }
 
-func registerSignalHandler(l *tunnelproxymanager.LifeCycle, log logging.Logger, wg sync.WaitGroup) {
-	wg.Add(1)
+func registerSignalHandler(l *tunnelproxymanager.LifeCycle, log logging.Logger) chan struct{} {
+	done := make(chan struct{}, 1)
 
 	go func() {
 		signals := make(chan os.Signal, 1)
@@ -107,8 +74,9 @@ func registerSignalHandler(l *tunnelproxymanager.LifeCycle, log logging.Logger, 
 				if err != nil {
 					log.Critical(err.Error())
 				}
-				wg.Done()
+				close(done)
 			}
 		}
 	}()
+	return done
 }
