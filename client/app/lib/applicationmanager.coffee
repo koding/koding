@@ -128,7 +128,7 @@ class ApplicationManager extends KDObject
 
 
   openFileWithApplication: (appName, file) ->
-    @open appName, => kd.utils.defer => @getFrontApp().openFile file
+    @open appName, => kd.utils.defer => @getFrontApp().openFile file: file
 
 
   promptOpenFileWith:(file)->
