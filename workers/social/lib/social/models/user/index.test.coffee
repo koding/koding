@@ -41,23 +41,23 @@ beforeTests = -> before (done) ->
     root   : __dirname
     mongo  : mongo
     models : '../../models'
-    
+
   bongo.once 'dbClientReady', ->
-    
+
     # creating a session before running tests
     JSession.createSession (err, { session, account }) ->
       clientId                  = session.clientId
       dummyClient.sessionToken  = session.token
       done()
-      
-      
+
+
 # this function will be called after all tests are executed
 afterTests = -> after ->
-  
+
 
 # here we have actual tests
 runTests = -> describe 'workers.social.user.index', ->
-  
+
   it 'should be able to make mongodb connection', (done) ->
 
     { serverConfig : { _serverState } } = bongo.getClient()
@@ -689,6 +689,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           JUser.convert client, userFormData, (err) ->
+            console.log err
             expect(err).to.not.exist
             queue.next()
 
@@ -716,6 +717,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           JUser.convert client, userFormData, (err) ->
+            console.log err
             expect(err).to.not.exist
             queue.next()
 
@@ -749,5 +751,5 @@ runTests()
 
 afterTests()
 
-    
-        
+
+
