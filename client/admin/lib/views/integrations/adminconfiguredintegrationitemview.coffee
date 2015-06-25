@@ -78,26 +78,33 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     @fetchChannels (err, channels) =>
       return showError err  if err
 
-      data              =
-        channels        : channels
-        id              : channelIntegration.id
-        name            : integration.name
-        title           : integration.title
-        token           : channelIntegration.token
-        summary         : integration.summary
-        settings        : channelIntegration.settings
-        createdAt       : channelIntegration.createdAt
-        iconPath        : integration.iconPath
-        updatedAt       : channelIntegration.updatedAt
-        description     : integration.description
-        instructions    : integration.instructions
-        typeConstant    : integration.typeConstant
-        integrationId   : channelIntegration.integrationId
-        selectedChannel : channelIntegration.channelId
-        webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
-        integrationType : 'configured'
+      kd.singletons.socialapi.integrations.fetch {id: channelIntegration.id}, (err, response) =>
 
-      @emit 'IntegrationCustomizeRequested', data
+        return showError err  if err
+
+        { channelIntegration } = response
+
+        data              =
+          channels        : channels
+          id              : channelIntegration.id
+          name            : integration.name
+          title           : integration.title
+          token           : channelIntegration.token
+          summary         : integration.summary
+          settings        : channelIntegration.settings
+          createdAt       : channelIntegration.createdAt
+          iconPath        : integration.iconPath
+          updatedAt       : channelIntegration.updatedAt
+          description     : channelIntegration.description or integration.summary
+          instructions    : integration.instructions
+          typeConstant    : integration.typeConstant
+          integrationId   : channelIntegration.integrationId
+          selectedChannel : channelIntegration.channelId
+          webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
+          integrationType : 'configured'
+          isDisabled      : channelIntegration.isDisabled
+
+        @emit 'IntegrationCustomizeRequested', data
 
 
   pistachio: ->
