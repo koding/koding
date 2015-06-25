@@ -164,6 +164,56 @@ body.home
               &.puff
                 opacity   1
 
+  .two-factor-code-modal
+
+    .closeModal
+      hidden()
+
+    .kdmodal-title span.title
+      rel()
+      top               -6px
+      font-size         14px !important
+
+      a
+        noTextDeco()
+        fr()
+        color             #555
+        border-bottom     1px dotted
+
+    .kdmodal-content
+      overflow          visible
+
+      .login-input-view
+        margin            0 0 17px 0
+
+        input
+          text-align        center
+
+        .kdinput.text.medium
+          bg                color, transparent
+          rounded           3px
+
+        .placeholder-helper
+          abs()
+          top               11px
+          font-size         14px
+          text-align        center
+          size              100%, auto
+          color             #53585C
+          vendor            transition, top .1s ease\,\
+                                        opacity .3s .3s ease\,\
+                                        font-size .1s ease
+
+          &.out
+            top               -23px
+            font-size         12px
+
+      .kdbutton.solid.green
+        size              100% auto
+        bg                color, #1aaf5d
+
+        .button-title
+          font-weight       600
 
 
   //Introduction section
