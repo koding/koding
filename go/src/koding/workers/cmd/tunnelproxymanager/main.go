@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"fmt"
 	"koding/common"
 	"koding/workers/tunnelproxymanager"
 	"log"
@@ -9,49 +9,40 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/logging"
 )
 
+const Name = "tunnelproxymanager"
+
 func main() {
-	conf, err := tunnelproxymanager.Configure()
+	conf, awsconfig, err := tunnelproxymanager.Configure()
 	if err != nil {
-		log.Fatal("Reading config failed: %s", err.Error()) // exit if we get any error
+		log.Fatal("Reading config failed: ", err.Error()) // exit if we get any error
 	}
 
-	log := common.CreateLogger("tunnelproxymanager", conf.Debug)
+	// system name defines all resource names
+	systemName := fmt.Sprintf("%s-%s", "tunnelproxymanager", conf.EBEnvName)
+
+	log := common.CreateLogger(Name, conf.Debug)
 	log.SetCallDepth(1)
 
-	awsconfig := &aws.Config{
-		Credentials: credentials.NewStaticCredentials(
-			conf.AccessKeyID,
-			conf.SecretAccessKey,
-			"",
-		),
-		Region:     conf.Region,
-		Logger:     ioutil.Discard, // we are not using aws logger
-		MaxRetries: 5,
-	}
-
+	// create record manager
 	recordManager := tunnelproxymanager.NewRecordManager(awsconfig, log, conf.Region)
 	if err := recordManager.Init(); err != nil {
 		log.Fatal(err.Error())
 	}
 
-	queueName := "tunnelproxymanager-" + conf.EBEnvName
-	l := tunnelproxymanager.NewLifeCycle(
-		awsconfig,
-		log,
-		conf.AutoScalingName,
-	)
+	// create lifecycle
+	l := tunnelproxymanager.NewLifeCycle(awsconfig, log, conf.AutoScalingName)
 
-	if err := l.Configure(queueName); err != nil {
+	// configure lifecycle with system name
+	if err := l.Configure(systemName); err != nil {
 		log.Fatal(err.Error())
 	}
 
 	done := registerSignalHandler(l, log)
 
+	// listen to lifecycle events
 	if err := l.Listen(recordManager); err != nil {
 		log.Fatal(err.Error())
 	}
