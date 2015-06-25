@@ -78,7 +78,7 @@ func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
 		return nil, err
 	}
 
-	if asResp == nil {
+	if asResp == nil || asResp.AutoScalingGroups == nil {
 		return nil, errors.New("describe asg response is malformed")
 	}
 
@@ -96,7 +96,7 @@ func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
 		return nil, err
 	}
 
-	if insResp == nil {
+	if insResp == nil || insResp.Reservations == nil {
 		return nil, errors.New("describe instances response is malformed")
 	}
 

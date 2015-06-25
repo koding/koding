@@ -32,11 +32,9 @@ func (l *LifeCycle) EnureSNS(name string) error {
 	snsLogger.Debug("Preparing SNS Topic")
 
 	// CreateTopic is idempotent
-	topic, err := l.sns.CreateTopic(
-		&sns.CreateTopicInput{
-			Name: aws.String(topicName),
-		},
-	)
+	topic, err := l.sns.CreateTopic(&sns.CreateTopicInput{
+		Name: aws.String(topicName),
+	})
 	if err != nil {
 		return err
 	}

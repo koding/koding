@@ -103,7 +103,7 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 			return err
 		}
 
-		if listHostedZonesResp == nil {
+		if listHostedZonesResp == nil || listHostedZonesResp.HostedZones == nil {
 			return errors.New("malformed response")
 		}
 
@@ -143,7 +143,7 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 		return err
 	}
 
-	if resp == nil {
+	if resp == nil || resp.ChangeInfo == nil {
 		return errors.New("malformed response, resp is nil")
 	}
 
@@ -171,7 +171,7 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 				return err
 			}
 
-			if getChangeResp == nil {
+			if getChangeResp == nil || getChangeResp.ChangeInfo == nil {
 				return errors.New("malformed response, getChangeResp is nil")
 			}
 
