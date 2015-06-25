@@ -40,7 +40,7 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
     @tfcode = new LoginInputView
       inputOptions    :
         name          : 'tfcode'
-        placeholder   : '2factor verification code'
+        placeholder   : 'Two-Factor Authentication Code'
         testPath      : 'login-form-tfcode'
         attributes    :
           testpath    : 'login-form-tfcode'
