@@ -91,7 +91,6 @@ checkApiTermination = (instance, callback) ->
 
 error = (err) ->
   console.error "error: #{JSON.stringify err}"  if err
-  process.exit 1
 
 
 printHelp = ->
