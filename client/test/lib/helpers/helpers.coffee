@@ -222,7 +222,7 @@ module.exports =
   sendHashtagActivity: (browser) ->
 
     paragraph = @getFakeText()
-    hashtag   = '#' + paragraph.split(' ')[0]
+    hashtag   = '#' + paragraph.split(' ')[0] + Date.now()
     post      = paragraph + ' ' + hashtag
 
     @doPostActivity(browser, post)
