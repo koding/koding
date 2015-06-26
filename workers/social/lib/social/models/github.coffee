@@ -20,15 +20,9 @@ module.exports = class Github extends Base
 
   @set
     permissions           :
-      'list repos'        : ['member','moderator']
-      'fetch content'     : ['member','moderator']
 
     sharedMethods         :
       static              :
-        listRepos         :
-          (signature Object, Function)
-        fetchContent      :
-          (signature Object, Function)
 
   initGithubFor = (client) ->
 
@@ -44,37 +38,3 @@ module.exports = class Github extends Base
     gh.authenticate { type: 'oauth', token }
 
     return gh
-
-
-  @listRepos = permit 'list repos', success: revive
-
-    shouldReviveProvider : no
-    shouldHaveOauth      : OAUTH_PROVIDER
-
-  , (client, options, callback) ->
-
-    initGithubFor client
-
-      .repos.getAll {}, (err, res) ->
-        callback err, res
-
-
-  @fetchContent = permit 'fetch content', success: revive
-
-    shouldReviveProvider : no
-    shouldHaveOauth      : OAUTH_PROVIDER
-
-  , (client, options, callback) ->
-
-    { oauth }  = client.r
-
-    reqOptions =
-      user     : oauth.username
-      repo     : options.repo
-      path     : options.path
-      ref      : options.ref ? 'master'
-
-    initGithubFor client
-
-      .repos.getContent reqOptions, (err, res) ->
-        callback err, res
