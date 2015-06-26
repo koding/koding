@@ -29,21 +29,25 @@ run = ->
     unless data or data.Reservations
       return error 'Reservations not found'
 
-    InstanceIds = []
+    instances = []
 
     data.Reservations.forEach ({Instances}) ->
       return  unless Instances
 
-      Instances.forEach ({InstanceId, LaunchTime, State}) ->
+      Instances.forEach (instance) ->
+        {InstanceId, LaunchTime, State} = instance
+
         return  if State.Name is 'terminated'
         return  if ExpirationTime <= LaunchTime
 
-        InstanceIds.push InstanceId
+        instances.push instance
 
-    return process.exit 0  unless InstanceIds.length
+    return process.exit 0  unless instances.length
 
-    async.filter InstanceIds, checkApiTermination, (InstanceIds) ->
-      return process.exit 0  unless InstanceIds.length
+    async.filter instances, checkApiTermination, (Instances) ->
+      return process.exit 0  unless Instances.length
+
+      InstanceIds = Instances.map (instance) -> instance.InstanceId
 
       EC2.terminateInstances {DryRun, InstanceIds}, (err) ->
         return error err  if err
@@ -65,7 +69,8 @@ getExpirationTime = (argv) ->
   return new Date Date.now() - (minutes * 60 * 1000)
 
 
-checkApiTermination = (InstanceId, callback) ->
+checkApiTermination = (instance, callback) ->
+  {InstanceId} = instance
 
   Attribute = 'disableApiTermination'
 
