@@ -91,6 +91,10 @@ func (ms *memberSet) Add(m member) {
 				(*ms)[i].Typ = "Time"
 				break
 			}
+			if m.Name == "Assignee" {
+				(*ms)[i].Typ = "User"
+				break
+			}
 			(*ms)[i].Typ = "interface{}"
 			fmt.Fprintf(os.Stderr, "different types for %s member: %s and %s, using interface{}\n", m.Name, typ, m.Typ)
 		}
@@ -233,27 +237,29 @@ var tmplTypes = template.Must(template.New("payloads").Parse(types))
 // Those keys that are assigned to null in example JSON payloads lack type
 // information. Instead the value types are mapped here by hand.
 var hardcodedTypes = map[string]string{
-	"user":        "User",
-	"position":    "int",
-	"code":        "int",
-	"line":        "int",
-	"closed_at":   "Time",
-	"merged_at":   "Time",
-	"body":        "string",
-	"path":        "string",
-	"homepage":    "string",
-	"language":    "string",
-	"mirror_url":  "string",
-	"assignee":    "string",
-	"milestone":   "string",
-	"message":     "string",
-	"merged_by":   "string",
-	"base_ref":    "string",
-	"summary":     "string",
-	"name":        "string",
-	"target_url":  "string",
-	"description": "string",
-	"label":       "string",
+	"user":             "User",
+	"assignee":         "User",
+	"position":         "int",
+	"code":             "int",
+	"line":             "int",
+	"closed_at":        "Time",
+	"merged_at":        "Time",
+	"body":             "string",
+	"path":             "string",
+	"homepage":         "string",
+	"language":         "string",
+	"mirror_url":       "string",
+	"milestone":        "string",
+	"message":          "string",
+	"mergeable":        "bool",
+	"merged_by":        "User",
+	"merge_commit_sha": "string",
+	"base_ref":         "string",
+	"summary":          "string",
+	"name":             "string",
+	"target_url":       "string",
+	"description":      "string",
+	"label":            "string",
 }
 
 // File is a value of gist's Files map, it's handled separately as
