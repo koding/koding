@@ -46,7 +46,7 @@ module.exports = class IDELayoutManager extends KDObject
     @layout.push
       type      : 'split',
       direction : if parent.vertical is true then 'vertical' else 'horizontal'
-      views     : @getSubLevels parent
+      views     : @drillDown parent
 
 
   ###*
@@ -54,95 +54,91 @@ module.exports = class IDELayoutManager extends KDObject
    *
    * @param {KDSplitViewPanel} splitViewPanel
   ###
-  getSubLevels: (splitViewPanel) ->
+  drillDown: (splitViewPanel) ->
 
-    subViews = []
-
-    ###*
-     * Create a split view object item.
-     *
-     * @param {string} direction
-     * @param {boolean} isFirst
-     * @param {Object} parentView
-    ###
-    createSplitView = (panel, isFirst = no, parentView) ->
-
-      item =
-        type      : 'split'
-        direction : if panel.vertical then 'vertical' else 'horizontal'
-        isFirst   : isFirst
-        views     : []
-
-      if parentView
-      then parentView.views.push item
-      else subViews.push item
-
-      getSubLevel panel
+    @subViews = []
+    @getSubLevel splitViewPanel
+    return @subViews
 
 
-    ###*
-     * Get/find last split object in data structure.
-     *
-     * <Recursive>
-     * @param {Object} items
-    ###
-    findLastSplitView = (items = subViews) ->
+  ###*
+   * Get/find last split object in data structure.
+   *
+   * <Recursive>
+   * @param {Object} items
+  ###
+  findLastSplitView: (items) ->
 
-      return  if _.isEmpty items
-      return  if items.last.context
+    return  if _.isEmpty(items) or items.last.context
 
-      lastViews = items.last.views
+    lastViews = items.last.views
 
-      if lastViews.length is 0 or (lastViews.length > 0 and lastViews.last.context)
-        return items.last
+    if lastViews.length is 0 or (lastViews.length > 0 and lastViews.last.context)
+      return items.last
+    else
+      @findLastSplitView lastViews
+
+
+  ###*
+   * Search in views and create sub levels.
+   *
+   * <Recursive>
+   * @param {(KDSplitViewPanel|KDSplitView|IDEView|KDTabPaneView|IDEApplicationTabView)} target
+   * @return {Array} subViews
+  ###
+  getSubLevel: (target) ->
+
+    if target instanceof KDSplitViewPanel
+      @getSubLevel target.getSubViews().first
+
+    else if target instanceof KDSplitView
+
+      { panels } = target
+
+      if panels.length is 2
+        splitView = @findLastSplitView @subViews
+
+        @createSplitView panels.first, splitView, yes
+        @createSplitView panels.last,  splitView
       else
-        findLastSplitView lastViews
+        @getSubLevel panels.first
+
+    else if target instanceof IDEView
+
+      for pane in target.tabView.panes
+        @getSubLevel pane
+
+    else if target instanceof KDTabPaneView
+      return  unless target.view.serialize
+
+      pane = context : target.view.serialize()
+      last = @findLastSplitView @subViews
+
+      if last
+      then last.views.push pane
+      else @subViews.push pane
 
 
-    ###*
-     * Search in views and create sub levels.
-     *
-     * <Recursive>
-     * @param {(KDSplitViewPanel|KDSplitView|IDEView|KDTabPaneView|IDEApplicationTabView)} target
-     * @param {KDSplitViewPanel} nextSplitViewPanel
-     * @return {Array} subViews
-    ###
-    getSubLevel = (target) ->
+  ###*
+   * Create a split view object item.
+   *
+   * @param {string} direction
+   * @param {Object} parentView
+   * @param {boolean} isFirst
+  ###
+  createSplitView: (panel, parentView, isFirst = no) ->
 
-      if target instanceof KDSplitViewPanel
-        getSubLevel target.getSubViews().first
+    item =
+      type      : 'split'
+      direction : if panel.vertical then 'vertical' else 'horizontal'
+      isFirst   : isFirst
+      views     : []
 
-      else if target instanceof KDSplitView
+    if parentView
+    then parentView.views.push item
+    else @subViews.push item
 
-        { panels } = target
-
-        if panels.length is 2
-          splitView = findLastSplitView()
-
-          createSplitView panels.first, yes,  splitView
-          createSplitView panels.last,  no,   splitView
-        else
-          getSubLevel panels.first
-
-      else if target instanceof IDEView
-
-        for pane in target.tabView.panes
-          getSubLevel pane
-
-      else if target instanceof KDTabPaneView
-        return  unless target.view.serialize
-
-        pane = context : target.view.serialize()
-        last = findLastSplitView()
-
-        if last
-        then last.views.push pane
-        else subViews.push pane
-
-
-    getSubLevel splitViewPanel
-
-    return subViews
+    @getSubLevel panel
 
 
   ###*
@@ -152,29 +148,33 @@ module.exports = class IDELayoutManager extends KDObject
   ###
   resurrectSnapshot: (snapshot) ->
 
-    # if has the fake view
-    @delegate.mergeSplitView()  if @delegate.ideViews.length > 1
+    delegate = @getDelegate()
 
-    @delegate.splitTabView snapshot[1].direction  if snapshot[1]
+    # if has the fake view
+    delegate.mergeSplitView()  if delegate.ideViews.length > 1
+
+    delegate.splitTabView snapshot[1].direction  if snapshot[1]
 
     for key, value of snapshot
-      tabView = @delegate.ideViews[key]?.tabView
+      tabView = delegate.ideViews[key]?.tabView
       @resurrectPanes_ value.views, tabView
 
-    @delegate.isLocalSnapshotRestored = yes
+    delegate.isLocalSnapshotRestored = yes
 
 
   resurrectPanes_: (items, tabView) ->
 
+    delegate = @getDelegate()
+
     for key, value of items
 
-      @delegate.setActiveTabView tabView
+      delegate.setActiveTabView tabView
 
       if value.type is 'split'
 
         if value.isFirst isnt yes
-          @delegate.splitTabView value.direction
-          tabView = @delegate.ideViews.last.tabView
+          delegate.splitTabView value.direction
+          tabView = delegate.ideViews.last.tabView
 
         if value.views.length
           do (value, tabView) =>
@@ -184,7 +184,7 @@ module.exports = class IDELayoutManager extends KDObject
         # Don't use `active tab view` logic for new pane creation.
         # Because `The Editors` (saved editors) are loading async.
         value.targetTabView = tabView  if value.context.paneType is 'editor'
-        @delegate.createPaneFromChange value, yes
+        delegate.createPaneFromChange value, yes
 
 
   ###*
