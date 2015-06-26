@@ -1,4 +1,6 @@
 kd            = require 'kd'
+remote        = require('app/remote').getInstance()
+
 JView         = require 'app/jview'
 StackRepoItem = require './stackrepoitem'
 
@@ -13,24 +15,29 @@ module.exports = class StackRepoUserItem extends kd.ListItemView
 
     super options, data
 
-    {repos} = @getData()
+    {repos, avatar_url} = @getData()
 
-    gravatarUrl   = repos.first?.owner.avatar_url
+    avatar_url   ?= repos.first?.owner.avatar_url
 
     @gravatarView = new kd.CustomHTMLView
       tagName     : 'img'
       attributes  :
-        src       : gravatarUrl
+        src       : avatar_url
       cssClass    : 'gravatar'
 
-    @gravatarView.hide()  unless gravatarUrl
+    @gravatarView.hide()  unless avatar_url
+
+    @loader       = new kd.LoaderView
+      size        :
+        width     : 40
+        height    : 40
+      cssClass    : 'hidden'
 
 
   toggleRepoListView: ->
 
     return @repoListView.toggleClass 'hidden'  if @repoListView
 
-    { repos, err } = @getData()
     delegate       = @getDelegate()
 
     controller    = new kd.ListViewController
@@ -43,11 +50,36 @@ module.exports = class StackRepoUserItem extends kd.ListItemView
 
     @addSubView @repoListView = controller.getView()
 
-    if err?
-      @repoListView.addSubView new kd.CustomHTMLView
-        partial: err.message
-    else
+    @fetchRepos (repos) ->
       controller.replaceAllItems repos
+
+
+  fetchRepos: (callback) ->
+
+    { repos, err, login } = @getData()
+
+    @addErrorView err      if err
+    return callback repos  if repos
+
+    @repoListView.hide()
+    @loader.show()
+
+    remote.api.Github.api
+      method  : 'repos.getFromOrg'
+      options :
+        org   : login
+    , (err, repos) =>
+
+      @loader.hide()
+      @repoListView.show()
+
+      if err then @addErrorView err
+      else callback repos
+
+
+  addErrorView: (err) ->
+    @repoListView.addSubView new kd.CustomHTMLView
+      partial: err.message
 
 
   click: (event) ->
@@ -59,4 +91,4 @@ module.exports = class StackRepoUserItem extends kd.ListItemView
 
 
   pistachio: ->
-    "{{> @gravatarView}}{div.user-title{#(username)}}{span.active-link{}}"
+    "{{> @gravatarView}}{div.user-title{#(login)}}{span.active-link{}}{{> @loader}}"
