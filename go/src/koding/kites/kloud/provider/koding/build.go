@@ -236,7 +236,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	})
 }
 
-func (m *Machine) imageData() (*ImageData, error) {
+func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 	m.Log.Debug("Fetching image which is tagged with '%s'", DefaultCustomAMITag)
 	image, err := m.Session.AWSClient.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
@@ -261,13 +261,60 @@ func (m *Machine) imageData() (*ImageData, error) {
 		Encrypted:           false,
 	}
 
+	// Before using the snapshot, Check if it exists. If it does not,
+	// unset it.
 	if m.Meta.SnapshotId != "" {
 		m.Log.Debug("checking for snapshot permissions")
-		// check first if the snapshot belongs to the user, it might belong to someone else!
-		if err := m.checkSnapshotExistence(); err != nil {
+		// If the querying the snapshot returns an error, it may not exist,
+		// or it may not be owned by the Machine's owner.
+		exists, err := m.checkSnapshotExistence()
+		if err != nil {
 			return nil, err
 		}
 
+		// We need to know if the SnapshotId was populated from this
+		// request, or if it was pre-existing in the JMachine document
+		req, ok := request.FromContext(ctx)
+		if !ok {
+			return nil, errors.New("request context is not available")
+		}
+
+		var args struct {
+			SnapshotId string
+		}
+
+		err = req.Args.One().Unmarshal(&args)
+		if err != nil {
+			return nil, err
+		}
+
+		// If the snapshotId does not exist, and it was not user supplied,
+		// safely unset it from this Machine.
+		if !exists {
+			// If the SnapshotId was user supplied,
+			// return an error.
+			if args.SnapshotId != "" {
+				return nil, errors.New("no snapshot found for the given user")
+			}
+
+			m.Log.Debug("SnapshotId '%s' not found, Removing it from the Machine",
+				m.Meta.SnapshotId)
+			if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+				return c.UpdateId(
+					m.Id,
+					bson.M{"$unset": bson.M{
+						"meta.snapshotId": "",
+					}},
+				)
+			}); err != nil {
+				return nil, err
+			}
+			m.Meta.SnapshotId = ""
+		}
+	}
+
+	// The snapshot exists, create an AMI from it
+	if m.Meta.SnapshotId != "" {
 		m.Log.Debug("creating AMI from the snapshot '%s'", m.Meta.SnapshotId)
 
 		blockDeviceMapping.SnapshotId = m.Meta.SnapshotId
@@ -354,7 +401,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		return nil, err
 	}
 
-	imageData, err := m.imageData()
+	imageData, err := m.imageData(ctx)
 	if err != nil {
 		return nil, err
 	}
