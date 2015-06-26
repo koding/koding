@@ -52,7 +52,7 @@ log = (message) ->
   fs.appendFileSync 'TEST_SUITE_TIMELINE', "#{message}\n"
 
 
-logWithtime = (message) ->
+logWithTime = (message) ->
 
   time = (Date.now() - start) / 1000
   log "#{time}\t#{message}"
@@ -115,7 +115,7 @@ finishSet = (id, instance, callback, error) ->
   else
     console.log "Finished Set:#{id}"
 
-  logWithtime "Set:#{id} on #{instance.instanceId} #{instance.publicIpAddress}"
+  logWithTime "Set:#{id} on #{instance.instanceId} #{instance.publicIpAddress}"
 
   for job in stopwatch[id]
     {test, begin, end} = job
