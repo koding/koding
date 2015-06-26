@@ -111,6 +111,11 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   createEventCheckboxes: ->
 
+    selectedEvents = {}
+
+    for event in @getData().selectedEvents
+      selectedEvents[event.name] = event
+
     mainWrapper = new KDCustomHTMLView cssClass: 'event-cbes'
 
     for item in @data.settings?.events
@@ -121,9 +126,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
         title : item.description
 
       wrapper.addSubView new KDInputView
-        type  : 'checkbox'
-        name  : item.name
-        label : label
+        type         : 'checkbox'
+        name         : item.name
+        label        : label
+        defaultValue : if selectedEvents[item.name] then yes else ''
 
       wrapper.addSubView label
       mainWrapper.addSubView wrapper
