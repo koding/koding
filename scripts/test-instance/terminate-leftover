@@ -89,6 +89,18 @@ checkApiTermination = (instance, callback) ->
     callback state
 
 
+disableApiTermination = (instance, callback) ->
+
+  {InstanceId} = instance
+
+  Attribute = 'disableApiTermination'
+  Value = 'false'
+
+  params = {InstanceId, Attribute, Value}
+
+  EC2.modifyInstanceAttribute params, callback
+
+
 error = (err) ->
   console.error "error: #{JSON.stringify err}"  if err
 
