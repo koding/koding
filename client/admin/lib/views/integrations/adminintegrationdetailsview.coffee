@@ -2,6 +2,8 @@ kd                   = require 'kd'
 JView                = require 'app/jview'
 globals              = require 'globals'
 showError            = require 'app/util/showError'
+KDInputView          = kd.InputView
+KDLabelView          = kd.LabelView
 KDButtonView         = kd.ButtonView
 applyMarkdown        = require 'app/util/applyMarkdown'
 CustomLinkView       = require 'app/customlinkview'
@@ -18,6 +20,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
     super options, data
 
     { instructions } = data
+    @eventCheckboxes = {}
+
     # DUMMY DATA
     data.settings =
       events: [
@@ -68,6 +72,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
         name            :
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
           defaultValue  : data.title
+        events          :
+          label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
+          type          : 'hidden'
+          cssClass      : unless data.settings?.events?.length then 'hidden'
       buttons           :
         Save            :
           title         : 'Save Integration'
@@ -97,6 +105,30 @@ module.exports = class AdminIntegrationDetailsView extends JView
         click     : @bound 'handleStatusChange'
 
     @settingsForm = new KDFormViewWithFields formOptions
+
+    @createEventCheckboxes()
+
+
+  createEventCheckboxes: ->
+
+    mainWrapper = new KDCustomHTMLView cssClass: 'event-cbes'
+
+    for item in @data.settings?.events
+
+      wrapper = new KDCustomHTMLView cssClass: 'event-cb'
+
+      label   = new KDLabelView
+        title : item.description
+
+      wrapper.addSubView new KDInputView
+        type  : 'checkbox'
+        name  : item.name
+        label : label
+
+      wrapper.addSubView label
+      mainWrapper.addSubView wrapper
+
+    @settingsForm.fields.events.addSubView mainWrapper
 
 
   handleFormCallback: (formData) ->
