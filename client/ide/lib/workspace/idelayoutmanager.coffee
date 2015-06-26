@@ -1,20 +1,20 @@
-kd                = require 'kd'
-_                 = require 'lodash'
-KDObject          = kd.Object
-KDSplitView       = kd.SplitView
-KDSplitViewPanel  = kd.SplitViewPanel
-KDTabPaneView     = kd.TabPaneView
-IDEView           = require '../views/tabview/ideview'
+_                = require 'lodash'
+kd               = require 'kd'
+IDEView          = require '../views/tabview/ideview'
+KDObject         = kd.Object
+KDSplitView      = kd.SplitView
+KDTabPaneView    = kd.TabPaneView
+KDSplitViewPanel = kd.SplitViewPanel
 
 
-## This class creates a layout map for remembering the tab layout.
-## You can see `/client/ide/docs/idelayoutmanager.markdown` for more information
+## This class creates a layout data for remembering the tab layout.
+## You can see `/client/ide/docs/idelayoutmanager.md` for more information
 ## about this.
 module.exports = class IDELayoutManager extends KDObject
 
 
   ###*
-   * Create the layout map.
+   * Create layout data.
    *
    * @return {Array} @layout
   ###
@@ -69,8 +69,8 @@ module.exports = class IDELayoutManager extends KDObject
 
       item =
         type      : 'split'
-        direction : if panel.vertical then 'vertical' else 'horizontal',
-        isFirst   : isFirst,
+        direction : if panel.vertical then 'vertical' else 'horizontal'
+        isFirst   : isFirst
         views     : []
 
       if parentView
@@ -185,3 +185,41 @@ module.exports = class IDELayoutManager extends KDObject
         # Because `The Editors` (saved editors) are loading async.
         value.targetTabView = tabView  if value.context.paneType is 'editor'
         @delegate.createPaneFromChange value, yes
+
+
+  ###*
+   * With the current implementation we won't redraw host's layout on
+   * participants when they joined a session. With latest changes host snapshot
+   * became a structural data however participant snapshots should be a flat
+   * array to make it backward compatible with  old collaboration code. So we
+   * are converting structural snapshot to flat array here.
+   *
+   * @param {Object} snapshot
+   * @return {Array} panes
+  ###
+  convertSnapshotToFlatArray: (snapshot) ->
+
+    panes = []
+
+    for item in snapshot when item.type is 'split'
+      IDELayoutManager.findPanesFromArray panes, item
+
+    return panes
+
+
+  ###*
+   * Find panes from array.
+   *
+   * @param {Array} panes  Referenced parameter
+   * @param {Object} item
+  ###
+  @findPanesFromArray: (panes, item) ->
+
+    return  unless item.views.length
+
+    if item.views.first.context # if items are a pane
+      for pane in item.views    # collect panes
+        panes.push pane
+    else
+      for subView in item.views
+        IDELayoutManager.findPanesFromArray panes, subView # recall itself

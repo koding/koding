@@ -19,6 +19,8 @@ envHelpers                    = require './collaboration/helpers/environment'
 CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
+IDELayoutManager              = require './workspace/idelayoutmanager'
+
 
 {warn} = kd
 
@@ -524,7 +526,7 @@ module.exports = CollaborationController =
     @removeInitialViews()
 
     for change in snapshot when change.context
-      @createPaneFromChange change, no
+      @createPaneFromChange change
 
     @changeActiveTabView change?.context?.paneType
 
@@ -1078,43 +1080,5 @@ module.exports = CollaborationController =
           @stateMachine.transition 'Loading'
 
 
-  getHostSnapshot: -> @filterSnapshot @getWorkspaceSnapshot()
-
-
-  ###*
-   * With the current implementation we won't redraw host's layout on
-   * participants when they joined a session. With latest changes host snapshot
-   * became a structural data however participant snapshots should be a flat
-   * array to make it backward compatible with  old collaboration code. So we
-   * are converting structural snapshot to flat array here.
-   *
-   * @param {Object} snapshot
-   * @return {Array} panes
-  ###
-  filterSnapshot: (snapshot) ->
-
-    panes = []
-
-    ###*
-     * Find panes
-     *
-     * <Recursive>
-     * @param {Object} item
-    ###
-    findPanes = (item) ->
-
-      return  unless item.views.length
-
-      if item.views.first.context # if items are a pane
-        for pane in item.views    # collect panes
-          panes.push pane
-      else
-        for subView in item.views
-          findPanes subView       # recall itself
-
-
-    for item in snapshot when item.type is 'split'
-      findPanes item
-
-    return panes
+  getHostSnapshot: -> @layoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
 

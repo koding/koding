@@ -234,7 +234,7 @@ class IDEAppController extends AppController
     kd.utils.defer -> pane.setFocus? state
 
 
-  splitTabView: (type = 'vertical', saveSnapshot = yes, ideViewOptions) ->
+  splitTabView: (type = 'vertical', ideViewOptions, saveSnapshot = yes) ->
 
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
@@ -435,7 +435,7 @@ class IDEAppController extends AppController
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
 
-          @splitTabView 'horizontal', no, createNewEditor: no
+          @splitTabView 'horizontal', createNewEditor: no, no
 
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
@@ -451,7 +451,7 @@ class IDEAppController extends AppController
           @fetchSnapshot (snapshot) =>
             return @resurrectLocalSnapshot snapshot  if snapshot
 
-            @splitTabView 'horizontal', no, createNewEditor: no
+            @splitTabView 'horizontal', createNewEditor: no, no
 
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
@@ -1190,7 +1190,7 @@ class IDEAppController extends AppController
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
-        @createPaneFromChange change, no
+        @createPaneFromChange change
 
       else if type in ['TabChanged', 'PaneRemoved']
         paneView = targetPane?.parent
@@ -1247,7 +1247,7 @@ class IDEAppController extends AppController
 
     return  if not paneType or not paneHash
 
-    @changeActiveTabView paneType  if isFromLocalStorage is no and not @amIHost
+    @changeActiveTabView paneType  if not isFromLocalStorage and not @amIHost
 
     switch paneType
       when 'terminal' then @createTerminalPaneFromChange change, paneHash
