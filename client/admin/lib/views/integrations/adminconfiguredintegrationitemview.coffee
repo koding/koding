@@ -98,10 +98,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
         integrationType : 'configured'
 
       # DUMMY DATA
-      data.selectedEvents = [
-        { name: 'added_comment',  description: 'Added comment'  }
-        { name: 'edited_feature', description: 'Edited feature' }
-      ]
+      data.selectedEvents = [ 'added_comment', 'edited_feature' ]
 
       @emit 'IntegrationCustomizeRequested', data
 
