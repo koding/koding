@@ -152,35 +152,6 @@ func (i *Integration) FetchByIds(ids []int64) ([]Integration, error) {
 
 ///////////////   Section   //////////////////
 
-// Section is used for defining integration specific fields
-type Section struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	// Endpoint used for when the data needs to be fetched from external resource
-	Endpoint string      `json:"endpoint"`
-	Values   interface{} `json:"values"`
-}
-
-func NewSection(name, description string) Section {
-	return Section{
-		Name:        name,
-		Description: description,
-	}
-}
-
-type Sections []Section
-
-func NewSections(s ...Section) Sections {
-	sections := Sections{}
-	sections = append(sections, s...)
-
-	return sections
-}
-
-func (i *Integration) AddSections(s Sections) error {
-	return i.AddSettings("sections", s)
-}
-
 func (i *Integration) AddSettings(name string, value interface{}) error {
 	if i.Settings == nil {
 		i.Settings = gorm.Hstore{}
@@ -196,13 +167,6 @@ func (i *Integration) AddSettings(name string, value interface{}) error {
 	i.Settings[name] = &settingsStr
 
 	return nil
-}
-
-func (i *Integration) GetSections() (Sections, error) {
-	sections := Sections{}
-	err := i.GetSettings("sections", &sections)
-
-	return sections, err
 }
 
 func (i *Integration) GetSettings(name string, value interface{}) error {

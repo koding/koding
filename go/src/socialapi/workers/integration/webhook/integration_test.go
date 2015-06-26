@@ -94,26 +94,26 @@ func TestIntegrationSettings(t *testing.T) {
 	defer r.Close()
 
 	Convey("while applying setting to an integration", t, func() {
-		Convey("it should able to store sections", func() {
+		Convey("it should able to store events", func() {
 			i := NewIntegration()
 			i.Name = models.RandomGroupName()
 			i.Title = i.Name
-			s1 := NewSection("repositories", "Very nice repositories")
-			s2 := NewSection("behaviors", "Some behaviors are strange")
-			sections := NewSections(s1, s2)
-			i.AddSections(sections)
+			e1 := NewEvent("jumping", "Everybody jump")
+			e2 := NewEvent("feeding", "Feed me twice")
+			events := NewEvents(e1, e2)
+			i.AddEvents(events)
 			err := i.Create()
 			So(err, ShouldBeNil)
 
 			expectedIntegration := NewIntegration()
 			err = expectedIntegration.ByName(i.Name)
 			So(err, ShouldBeNil)
-			expectedSections := &Sections{}
-			err = expectedIntegration.GetSettings("sections", expectedSections)
+			expectedEvents := &Events{}
+			err = expectedIntegration.GetSettings("events", expectedEvents)
 			So(err, ShouldBeNil)
-			sectionArr := []Section(*expectedSections)
-			So(len(sectionArr), ShouldEqual, 2)
-			So(sectionArr[0].Name, ShouldEqual, "repositories")
+			eventsArr := []Event(*expectedEvents)
+			So(len(eventsArr), ShouldEqual, 2)
+			So(eventsArr[0].Name, ShouldEqual, "jumping")
 		})
 	})
 }
