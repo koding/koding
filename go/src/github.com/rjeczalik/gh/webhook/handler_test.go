@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 const secret = "dupa.8"
@@ -29,12 +31,13 @@ func (Bar) Other()              {}
 
 type Baz struct{}
 
-func (Baz) All(string, interface{})   {}
-func (Baz) Delete(*DeleteEvent)       {}
-func (Baz) ForkApply(*ForkApplyEvent) {}
-func (Baz) Gollum(*GollumEvent)       {}
-func (Baz) gollum(*GollumEvent)       {}
-func (Baz) Add(int, int) int          { return 0 }
+func (Baz) All(string, interface{})              {}
+func (Baz) Delete(*DeleteEvent)                  {}
+func (Baz) ForkApply(*ForkApplyEvent)            {}
+func (Baz) Gollum(*GollumEvent)                  {}
+func (Baz) gollum(*GollumEvent)                  {}
+func (Baz) Create(context.Context, *CreateEvent) {}
+func (Baz) Add(int, int) int                     { return 0 }
 
 func TestPayloadMethods(t *testing.T) {
 	cases := [...]struct {
@@ -54,7 +57,7 @@ func TestPayloadMethods(t *testing.T) {
 		// i=2
 		{
 			Baz{},
-			[]string{"*", "delete", "fork_apply", "gollum"},
+			[]string{"*", "create", "delete", "fork_apply", "gollum"},
 		},
 	}
 	for i, cas := range cases {
