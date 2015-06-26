@@ -41,7 +41,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
             return  unless newTitle.length
 
-            @emit 'TitleUpdateRequested', newTitle, title
+            @emit 'RenamingRequested', newTitle, title
 
     @titleInput.hide()
     view.addSubView @titleInput

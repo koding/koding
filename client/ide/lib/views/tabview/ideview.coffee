@@ -246,8 +246,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     paneView = @createPane_ terminalPane, { name: 'Terminal' }
     terminalHandle = @tabView.getHandleByPane paneView
 
-    terminalPane.once 'WebtermCreated', @lazyBound 'handleWebtermCreated', paneView, options
-    terminalHandle.on 'TitleUpdateRequested', @lazyBound 'handleTerminalTitleUpdateRequested', paneView, options
+    webtermCallback = @lazyBound 'handleWebtermCreated', paneView, options
+    terminalPane.once 'WebtermCreated', webtermCallback
+
+    handleCallback = @lazyBound 'handleTerminalRenamingRequested', paneView, options
+    terminalHandle.on 'RenamingRequested', handleCallback
 
     terminalHandle.makeEditable()
 
@@ -612,7 +615,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     terminalHandle.setTitle session  unless session.length is DEFAULT_SESSION_NAME_LENGTH
 
 
-  handleTerminalTitleUpdateRequested: (paneView, options, newTitle) ->
+  handleTerminalRenamingRequested: (paneView, options, newTitle) ->
 
     terminalPane = paneView.view
 
@@ -628,7 +631,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     .then ->
       kite.webtermRename request
     .then =>
-      @setTerminalTitle paneView, machine, newTitle
+      @renameTerminal paneView, machine, newTitle
 
       @emit 'UpdateWorkspaceSnapshot'
 
@@ -638,13 +641,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           machine :
             uid   : machine.uid
 
-      @emitChange terminalPane, change, 'TerminalTitleChanged'
+      @emitChange terminalPane, change, 'TerminalRenamed'
 
     .catch (err) ->
       showErrorNotification err
 
 
-  setTerminalTitle: (paneView, machine, newTitle) ->
+  renameTerminal: (paneView, machine, newTitle) ->
 
     terminalPane = paneView.view
     terminalHandle = @tabView.getHandleByPane paneView

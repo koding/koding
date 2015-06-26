@@ -1204,8 +1204,8 @@ class IDEAppController extends AppController
         switch type
           when 'TabChanged'  then tabView.showPane paneView
           when 'PaneRemoved' then tabView.removePane paneView
-          when 'TerminalTitleChanged'
-            ideView.setTerminalTitle paneView, @mountedMachine, context.session
+          when 'TerminalRenamed'
+            ideView.renameTerminal paneView, @mountedMachine, context.session
 
         ideView.suppressChangeHandlers = no
 
