@@ -102,7 +102,8 @@ func (l *LifeCycle) Configure(name string) error {
 }
 
 // Listen listens for messages that are put into lifecycle queues
-func (l *LifeCycle) Listen(f func(*string) error) error {
+func (l *LifeCycle) Listen(recordManager *RecordManager) error {
+	f := l.listenFunc(recordManager)
 	for {
 		select {
 		case c := <-l.closeChan:
