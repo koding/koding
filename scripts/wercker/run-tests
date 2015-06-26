@@ -63,27 +63,32 @@ runTestScript = path.join __dirname, '../test-instance/run-test'
 
 runTest = (job, next) ->
 
+  job.lap ?= 0
+
   {setId, instance, test} = job
 
   args = [instance.publicIpAddress, test]
 
-  child = child_process.execFile runTestScript, args, (error, stdout, stderr) ->
+  child = child_process.execFile runTestScript, args, do (job) ->
 
-    job.lap ?= 0
-    job.end = Date.now() - start
+    (error, stdout, stderr) ->
 
-    if error and ++job.lap is RETRY_COUNT
-      error.job    = job
-      error.stdout = stdout
-      error.stderr = stderr
-      next error
-    else if error
-      runTest job, next
-    else
-      next()
+      job.end = Date.now() - start
 
-  monitor child, _.debounce ->
-    console.log "Set:#{setId} is progressing"
+      if error and ++job.lap is RETRY_COUNT
+        error.job    = job
+        error.stdout = stdout
+        error.stderr = stderr
+        next error
+      else if error
+        runTest job, next
+      else
+        next()
+
+  monitor child, _.debounce do (job) ->
+    ->
+      {setId} = job
+      console.log "Set:#{setId} is progressing"
   , 30000
 
 
