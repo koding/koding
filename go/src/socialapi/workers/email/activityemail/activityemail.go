@@ -50,10 +50,9 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, conf *config.Config, redis 
 }
 
 var Subjects = map[string]string{
-	notificationmodels.NotificationContent_TYPE_LIKE:    "received liked on a post",
+	notificationmodels.NotificationContent_TYPE_LIKE:    "received like on a post",
 	notificationmodels.NotificationContent_TYPE_COMMENT: "received comment on a post",
 	notificationmodels.NotificationContent_TYPE_MENTION: "was mentioned",
-	notificationmodels.NotificationContent_TYPE_PM:      "received private message",
 }
 
 func (n *Controller) SendInstantEmail(notification *notificationmodels.Notification) error {
