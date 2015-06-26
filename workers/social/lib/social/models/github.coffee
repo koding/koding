@@ -20,9 +20,13 @@ module.exports = class Github extends Base
 
   @set
     permissions           :
+      'api access'        : ['member','moderator']
 
     sharedMethods         :
       static              :
+        api               :
+          (signature Object, Function)
+
 
   initGithubFor = (client) ->
 
@@ -38,3 +42,24 @@ module.exports = class Github extends Base
     gh.authenticate { type: 'oauth', token }
 
     return gh
+
+
+  @api = permit 'api access', success: revive
+
+    shouldReviveProvider : no
+    shouldHaveOauth      : OAUTH_PROVIDER
+
+  , (client, _options, callback) ->
+
+    { method, options } = _options
+    [ base, method ]    = method.split '.'
+
+    # Forcing `per_page` option to max 10 because of max_call_stack_size issue ~ GG
+    (options ?= {}).per_page = 10
+
+    gh = initGithubFor client
+
+    try
+      gh[base][method] options, callback
+    catch err
+      callback err
