@@ -470,8 +470,7 @@ module.exports = class ComputeController extends KDController
 
     return if methodNotSupportedBy machine
 
-    ComputeController_UI.askFor 'reinit', {machine, force: @_force}, =>
-
+    startReinit = =>
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
         percentage  : 0
@@ -494,6 +493,37 @@ module.exports = class ComputeController extends KDController
       .catch (err)=>
 
         (@errorHandler call, 'reinit', machine) err
+
+    # A shorthand for ComputeController_UI Askfor
+    askFor = (action, callback = kd.noop) =>
+      ComputeController_UI.askFor action, {machine, force: @_force},
+        callback
+
+    { JSnapshot }     = remote.api
+    jMachine          = machine.data
+    machineSnapshotId = jMachine?.meta?.snapshotId
+
+    # If a machineSnapshotId exists, we need to validate that the
+    # actual *snapshot* belonging to that Id still exists.
+    # If the caller supplied a snapshotId, we don't need to bother
+    # validating it.
+    validateMachineSnapshot = machineSnapshotId and not snapshotId
+
+    # If we don't need to validate the Machine Snapshot,
+    # askFor a normal reinit
+    unless validateMachineSnapshot
+      return askFor 'reinit', startReinit
+
+    # We need to validate that the machineSnapshotId still exists
+    JSnapshot.one machineSnapshotId, (err, snapshot) ->
+      kd.error err  if err
+
+      # If the snapshot exists in mongo, askFor a normal reinit
+      # otherwise, make sure they understand that they are
+      # reinitializing to a base image.
+      if snapshot
+      then askFor 'reinit', startReinit
+      else askFor 'reinitNoSnapshot', startReinit
 
 
   resize: (machine, resizeTo = 10)->
