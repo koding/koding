@@ -58,6 +58,10 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 		return response.NewBadRequest(err)
 	}
 
+	if channelIntegration.IsDisabled {
+		return response.NewOK(response.NewSuccessResponse(nil))
+	}
+
 	r.Message.ChannelIntegrationId = channelIntegration.Id
 	r.Message.ChannelId = channelIntegration.ChannelId
 

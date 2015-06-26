@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"socialapi/config"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
@@ -87,13 +88,13 @@ func TestWebhookListen(t *testing.T) {
 		}
 
 		Convey("while testing incoming webhook", t, func() {
-			channelIntegration, _ := webhook.CreateTestChannelIntegration(t)
+			channelIntegration, topicChannel := webhook.CreateTestChannelIntegration(t)
 
 			groupName := models.RandomGroupName()
 
 			channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
 
-			Convey("users should not be able to send any message when they don't have valid token", func() {
+			Convey("integrations should not be able to send any message when they don't have valid token", func() {
 				token := "123123"
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
@@ -125,7 +126,7 @@ func TestWebhookListen(t *testing.T) {
 				So(s, ShouldEqual, http.StatusBadRequest)
 			})
 
-			Convey("users should not be able to send any message when their request does not include body", func() {
+			Convey("integrations should not be able to send any message when their request does not include body", func() {
 
 				tk, err := uuid.NewV4()
 				So(err, ShouldBeNil)
@@ -139,7 +140,7 @@ func TestWebhookListen(t *testing.T) {
 				So(s, ShouldEqual, http.StatusBadRequest)
 			})
 
-			Convey("users should be able to send message when token is valid", func() {
+			Convey("integrations should be able to send message when token is valid", func() {
 
 				Convey("related integrations must be created", func() {
 
@@ -164,6 +165,28 @@ func TestWebhookListen(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(s, ShouldEqual, http.StatusOK)
 				})
+			})
+
+			Convey("User should not be able to send any message when channel integration is disabled", func() {
+				channelIntegration.IsDisabled = true
+				err := channelIntegration.Update()
+				So(err, ShouldBeNil)
+
+				token := channelIntegration.Token
+				s, _, _, err := h.Push(
+					mocking.URL(m, "POST", "/push/"+token),
+					mocking.Header(nil),
+					newRequest("hha", channel.Id, "koding"),
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				cml := models.NewChannelMessageList()
+				cml.ChannelId = topicChannel.Id
+				hr, err := cml.List(&request.Query{}, false)
+				So(err, ShouldBeNil)
+				So(len(hr.MessageList), ShouldEqual, 0)
 			})
 
 		})
