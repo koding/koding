@@ -17,14 +17,13 @@ module.exports = class Email
   EVENT_TYPE = 'api.mail_send'
 
   @types =
-    WELCOME          : 'started to register'
-    CONFIRM_EMAIL    : 'started to register'
-    UPDATED_EMAIL    : 'updated email'
-    INVITE           : 'was invited to a group'
-    FEEDBACK         : 'sent feedback'
-    EMAIL_CHANGED    : 'email was changed'
-    PASSWORD_CHANGED : 'password was changed'
-    PASSWORD_RECOVER : 'requested a new password'
+    START_REGISTER       : 'started to register'
+    INVITED_GROUP        : 'was invited to a group'
+    SENT_FEEDBACK        : 'sent feedback'
+    REQUEST_NEW_PASSWORD : 'requested a new password'
+    CHANGED_PASSWORD     : 'changed their password'
+    REQUEST_EMAIL_CHANGE : 'requested pin to change email'
+    CHANGED_EMAIL        : 'changed their email'
 
   @setMqClient = (m)-> mqClient = m
 

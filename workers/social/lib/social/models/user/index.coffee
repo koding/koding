@@ -1507,7 +1507,7 @@ module.exports = class JUser extends jraphical.Module
 
       callback null
 
-      Analytics.track username, 'confirmed email'
+      Analytics.track username, 'finished register'
 
 
   block:(blockedUntil, callback)->
