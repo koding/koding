@@ -106,6 +106,34 @@ module.exports = class StacksCustomViews extends CustomViews
     return out.machines
 
 
+  fetchGithubRepos = (options, callback) ->
+
+    { oauth_data } = options
+    { Github }     = remote.api
+
+    Github.api method: 'user.getOrgs', (err, orgs) ->
+
+      kd.warn err  if err
+
+      orgs ?= []
+
+      # to make identical users and orgs assigning
+      # username to login field as well
+      oauth_data.login = oauth_data.username
+      users = [oauth_data]
+
+      Github.api
+        method  : 'repos.getFromUser'
+        options :
+          user  : users.first.username
+      , (err, repos) ->
+
+        users.first.err   = err
+        users.first.repos = repos ? []
+
+        callback null, {orgs, users}
+
+
   handleCheckTemplate = (options, callback) ->
 
     { stackTemplate } = options
@@ -530,7 +558,10 @@ module.exports = class StacksCustomViews extends CustomViews
       loader       = @addTo container,
         mainLoader : 'Fetching repositories list...'
 
-      GitHub.fetchUsersRepos users, (err, response) =>
+      fetchGithubRepos options, (err, repo_data) =>
+
+        showError err
+
         loader.hide()
 
         views        = @addTo container,
@@ -539,7 +570,9 @@ module.exports = class StacksCustomViews extends CustomViews
 
         {controller, __view: repoList} = views.repoList
 
-        controller.replaceAllItems response
+        {orgs, users} = repo_data
+        controller.replaceAllItems users.concat orgs
+
         container.forwardEvent repoList, 'RepoSelected'
 
       return container
