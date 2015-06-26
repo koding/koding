@@ -87,8 +87,8 @@ runTest = (job, next) ->
 
   monitor child, _.debounce do (job) ->
     ->
-      {setId} = job
-      console.log "Set:#{setId} is progressing"
+      {setId, test, lap} = job
+      console.log "Set:#{setId} #{test} (#{lap}) is progressing"
   , 30000
 
 
