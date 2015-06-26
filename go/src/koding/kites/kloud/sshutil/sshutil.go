@@ -11,8 +11,7 @@ import (
 	"log"
 	"time"
 
-	"code.google.com/p/go.crypto/ssh"
-	"github.com/pkg/sftp"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -22,15 +21,6 @@ const (
 
 type SSHClient struct {
 	*ssh.Client
-}
-
-func (s *SSHClient) Create(path string) (*sftp.File, error) {
-	sftp, err := sftp.NewClient(s.Client)
-	if err != nil {
-		return nil, err
-	}
-
-	return sftp.Create(path)
 }
 
 func (s *SSHClient) StartCommand(command string) (string, error) {
@@ -88,20 +78,21 @@ func ConnectSSH(ip string, config *ssh.ClientConfig) (*SSHClient, error) {
 		return client, nil
 	}
 
+	timeout := time.After(sshConnectMaxWait)
+
 	var dialError error
 	for {
 		select {
 		case <-time.Tick(sshConnectRetryInterval):
 			client, err := dialFunc()
 			if err != nil {
-				fmt.Printf("ConnectSSH err: %+v\n", err)
 				dialError = err
 				continue
 			}
 			return client, nil
-		case <-time.After(sshConnectMaxWait):
+		case <-timeout:
 			if dialError != nil {
-				return nil, fmt.Errorf("cannot connect with ssh %s", dialError)
+				return nil, fmt.Errorf("cannot connect with ssh: %s", dialError)
 			}
 
 			return nil, errors.New("cannot connect with ssh. timeout")

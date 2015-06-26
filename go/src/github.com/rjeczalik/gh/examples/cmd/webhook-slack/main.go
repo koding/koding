@@ -29,6 +29,14 @@ func (s slack) Push(e *webhook.PushEvent) {
 	}
 }
 
+func (s slack) PullRequest(e *webhook.PullRequest) {
+	const format = "https://slack.com/api/chat.postMessage?token=%s&channel=%s&text=%s"
+	text := url.QueryEscape(fmt.Sprintf("%v sent pull request on: %s", e.User, e.HTMLURL))
+	if _, err := http.Get(fmt.Sprintf(format, *token, *channel, text)); err != nil {
+		log.Println(err)
+	}
+}
+
 func main() {
 	flag.Parse()
 	log.Fatal(http.ListenAndServe(*addr, webhook.New(*secret, slack{})))
