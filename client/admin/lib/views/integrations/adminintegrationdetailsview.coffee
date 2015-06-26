@@ -33,7 +33,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     else
       @instructionsView = new KDCustomHTMLView cssClass: 'hidden'
 
-    items = ({ title: channel.name, value: channel.id } for channel in data.channels)
+    channels = ({ title: channel.name, value: channel.id } for channel in data.channels)
 
     formOptions         =
       cssClass          : 'AppModal-form details-form'
@@ -42,7 +42,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         channels        :
           type          : 'select'
           label         : '<p>Post to Channel</p><span>Which channel should we post exceptions to?</span>'
-          selectOptions : items
+          selectOptions : channels
           defaultValue  : data.selectedChannel
         url             :
           label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{data.title}.</span>"
