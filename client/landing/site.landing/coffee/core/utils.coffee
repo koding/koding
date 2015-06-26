@@ -400,7 +400,7 @@ utils.extend utils,
             return container.emit 'TwoFactorEnabled'  if /TwoFactor/i.test responseText
 
             container.emit 'EmailIsNotAvailable'
-            input.setValidationResult 'available', """Sorry, #{email} is already in use!"""
+            input.setValidationResult 'available', "Sorry, #{email} is already in use!"
 
 
   checkedPasswords: {}
