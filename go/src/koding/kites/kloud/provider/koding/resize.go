@@ -3,7 +3,9 @@ package koding
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/sshutil"
 	"strconv"
 	"time"
 
@@ -37,8 +39,9 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	//		6b. Delete old volume (not needed anymore)
 	// 7. Attach new volume to current stopped instance
 	// 8. Start the stopped instance with the new larger volume
-	// 9. Update Default Domain record with the new IP (stopping/starting changes the IP)
-	// 11 Update Domain aliases with the new IP (stopping/starting changes the IP)
+	// 9. SSH into the machine and run "resize2fs" to sync the storage with the file system
+	// 10. Update Default Domain record with the new IP (stopping/starting changes the IP)
+	// 11. Update Domain aliases with the new IP (stopping/starting changes the IP)
 	// 12. Check if Klient is running
 
 	if err := m.UpdateState("Machine is resizing", machinestate.Pending); err != nil {
@@ -210,8 +213,44 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	if err != nil {
 		return err
 	}
-
 	m.IpAddress = instance.PublicIpAddress
+
+	// optionally, we execute resize2fs to reclaim the underlying storage. This
+	// needs to be called because for some instances it doesn't get reclaimed
+	// and the user ends up having a file system which still reflects the old
+	// storage size.
+	reclaimSize := func() error {
+		keys, ok := publickeys.FromContext(ctx)
+		if !ok {
+			return errors.New("public keys are not available")
+		}
+
+		sshConfig, err := sshutil.SshConfig("root", keys.PrivateKey)
+		if err != nil {
+			return err
+		}
+
+		m.Log.Debug("Connecting to machine with ip '%s' via ssh", m.IpAddress)
+		sshClient, err := sshutil.ConnectSSH(m.IpAddress+":22", sshConfig)
+		if err != nil {
+			return err
+		}
+
+		m.Log.Debug("Executing resize2fs command")
+		output, err := sshClient.StartCommand("resize2fs /dev/xvda1")
+		if err != nil {
+			return err
+		}
+
+		m.Log.Debug("Resize2fs output:\n%s", output)
+		return nil
+	}
+
+	// we don't return because this is totally optional. It might that the user
+	// alread have the correct size. So it's better to be on the safe side.
+	if err := reclaimSize(); err != nil {
+		m.Log.Warning("Couldn't reclaim size: %s", err)
+	}
 
 	m.push("Updating domain", 85, machinestate.Pending)
 

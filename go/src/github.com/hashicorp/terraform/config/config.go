@@ -63,6 +63,7 @@ type Module struct {
 // resource provider.
 type ProviderConfig struct {
 	Name      string
+	Alias     string
 	RawConfig *RawConfig
 }
 
@@ -75,6 +76,7 @@ type Resource struct {
 	RawCount     *RawConfig
 	RawConfig    *RawConfig
 	Provisioners []*Provisioner
+	Provider     string
 	DependsOn    []string
 	Lifecycle    ResourceLifecycle
 }
@@ -237,6 +239,20 @@ func (c *Config) Validate() error {
 		}
 	}
 
+	// Check that providers aren't declared multiple times.
+	providerSet := make(map[string]struct{})
+	for _, p := range c.ProviderConfigs {
+		name := p.FullName()
+		if _, ok := providerSet[name]; ok {
+			errs = append(errs, fmt.Errorf(
+				"provider.%s: declared multiple times, you can only declare a provider once",
+				name))
+			continue
+		}
+
+		providerSet[name] = struct{}{}
+	}
+
 	// Check that all references to modules are valid
 	modules := make(map[string]*Module)
 	dupped := make(map[string]struct{})
@@ -293,9 +309,13 @@ func (c *Config) Validate() error {
 
 		// Check for invalid count variables
 		for _, v := range m.RawConfig.Variables {
-			if _, ok := v.(*CountVariable); ok {
+			switch v.(type) {
+			case *CountVariable:
 				errs = append(errs, fmt.Errorf(
 					"%s: count variables are only valid within resources", m.Name))
+			case *SelfVariable:
+				errs = append(errs, fmt.Errorf(
+					"%s: self variables are only valid within resources", m.Name))
 			}
 		}
 
@@ -411,6 +431,15 @@ func (c *Config) Validate() error {
 				errs = append(errs, fmt.Errorf(
 					"%s: resource depends on non-existent resource '%s'",
 					n, d))
+			}
+		}
+
+		// Verify provider points to a provider that is configured
+		if r.Provider != "" {
+			if _, ok := providerSet[r.Provider]; !ok {
+				errs = append(errs, fmt.Errorf(
+					"%s: resource depends on non-configured provider '%s'",
+					n, r.Provider))
 			}
 		}
 
@@ -541,6 +570,11 @@ func (c *Config) InterpolatedVariables() map[string][]InterpolatedVariable {
 // a human-friendly source.
 func (c *Config) rawConfigs() map[string]*RawConfig {
 	result := make(map[string]*RawConfig)
+	for _, m := range c.Modules {
+		source := fmt.Sprintf("module '%s'", m.Name)
+		result[source] = m.RawConfig
+	}
+
 	for _, pc := range c.ProviderConfigs {
 		source := fmt.Sprintf("provider config '%s'", pc.Name)
 		result[source] = pc.RawConfig
@@ -647,6 +681,14 @@ func (o *Output) mergerMerge(m merger) merger {
 	result.RawConfig = result.RawConfig.merge(o2.RawConfig)
 
 	return &result
+}
+
+func (c *ProviderConfig) FullName() string {
+	if c.Alias == "" {
+		return c.Name
+	}
+
+	return fmt.Sprintf("%s.%s", c.Name, c.Alias)
 }
 
 func (c *ProviderConfig) mergerName() string {

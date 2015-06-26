@@ -5,13 +5,14 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/config/lang"
 	"github.com/hashicorp/terraform/config/lang/ast"
 )
 
-func TestInterpolateFuncConcat(t *testing.T) {
+func TestInterpolateFuncDeprecatedConcat(t *testing.T) {
 	testFunction(t, testFunctionConfig{
 		Cases: []testFunctionCase{
 			{
@@ -30,6 +31,86 @@ func TestInterpolateFuncConcat(t *testing.T) {
 				`${concat()}`,
 				nil,
 				true,
+			},
+		},
+	})
+}
+
+func TestInterpolateFuncConcat(t *testing.T) {
+	testFunction(t, testFunctionConfig{
+		Cases: []testFunctionCase{
+			// String + list
+			{
+				`${concat("a", split(",", "b,c"))}`,
+				fmt.Sprintf(
+					"%s%s%s%s%s",
+					"a",
+					InterpSplitDelim,
+					"b",
+					InterpSplitDelim,
+					"c"),
+				false,
+			},
+
+			// List + string
+			{
+				`${concat(split(",", "a,b"), "c")}`,
+				fmt.Sprintf(
+					"%s%s%s%s%s",
+					"a",
+					InterpSplitDelim,
+					"b",
+					InterpSplitDelim,
+					"c"),
+				false,
+			},
+
+			// Single list
+			{
+				`${concat(split(",", ",foo,"))}`,
+				fmt.Sprintf(
+					"%s%s%s",
+					InterpSplitDelim,
+					"foo",
+					InterpSplitDelim),
+				false,
+			},
+			{
+				`${concat(split(",", "a,b,c"))}`,
+				fmt.Sprintf(
+					"%s%s%s%s%s",
+					"a",
+					InterpSplitDelim,
+					"b",
+					InterpSplitDelim,
+					"c"),
+				false,
+			},
+
+			// Two lists
+			{
+				`${concat(split(",", "a,b,c"), split(",", "d,e"))}`,
+				strings.Join([]string{
+					"a", "b", "c", "d", "e",
+				}, InterpSplitDelim),
+				false,
+			},
+			// Two lists with different separators
+			{
+				`${concat(split(",", "a,b,c"), split(" ", "d e"))}`,
+				strings.Join([]string{
+					"a", "b", "c", "d", "e",
+				}, InterpSplitDelim),
+				false,
+			},
+
+			// More lists
+			{
+				`${concat(split(",", "a,b"), split(",", "c,d"), split(",", "e,f"), split(",", "0,1"))}`,
+				strings.Join([]string{
+					"a", "b", "c", "d", "e", "f", "0", "1",
+				}, InterpSplitDelim),
+				false,
 			},
 		},
 	})
@@ -101,6 +182,59 @@ func TestInterpolateFuncFormat(t *testing.T) {
 				`${format("hello %05d", 12345)}`,
 				"hello 12345",
 				false,
+			},
+		},
+	})
+}
+
+func TestInterpolateFuncFormatList(t *testing.T) {
+	testFunction(t, testFunctionConfig{
+		Cases: []testFunctionCase{
+			// formatlist requires at least one list
+			{
+				`${formatlist("hello")}`,
+				nil,
+				true,
+			},
+			{
+				`${formatlist("hello %s", "world")}`,
+				nil,
+				true,
+			},
+			// formatlist applies to each list element in turn
+			{
+				`${formatlist("<%s>", split(",", "A,B"))}`,
+				"<A>" + InterpSplitDelim + "<B>",
+				false,
+			},
+			// formatlist repeats scalar elements
+			{
+				`${join(", ", formatlist("%s=%s", "x", split(",", "A,B,C")))}`,
+				"x=A, x=B, x=C",
+				false,
+			},
+			// Multiple lists are walked in parallel
+			{
+				`${join(", ", formatlist("%s=%s", split(",", "A,B,C"), split(",", "1,2,3")))}`,
+				"A=1, B=2, C=3",
+				false,
+			},
+			// formatlist of lists of length zero/one are repeated, just as scalars are
+			{
+				`${join(", ", formatlist("%s=%s", split(",", ""), split(",", "1,2,3")))}`,
+				"=1, =2, =3",
+				false,
+			},
+			{
+				`${join(", ", formatlist("%s=%s", split(",", "A"), split(",", "1,2,3")))}`,
+				"A=1, A=2, A=3",
+				false,
+			},
+			// Mismatched list lengths generate an error
+			{
+				`${formatlist("%s=%2s", split(",", "A,B,C,D"), split(",", "1,2,3"))}`,
+				nil,
+				true,
 			},
 		},
 	})
@@ -331,6 +465,104 @@ func TestInterpolateFuncLookup(t *testing.T) {
 	})
 }
 
+func TestInterpolateFuncKeys(t *testing.T) {
+	testFunction(t, testFunctionConfig{
+		Vars: map[string]ast.Variable{
+			"var.foo.bar": ast.Variable{
+				Value: "baz",
+				Type:  ast.TypeString,
+			},
+			"var.foo.qux": ast.Variable{
+				Value: "quack",
+				Type:  ast.TypeString,
+			},
+			"var.str": ast.Variable{
+				Value: "astring",
+				Type:  ast.TypeString,
+			},
+		},
+		Cases: []testFunctionCase{
+			{
+				`${keys("foo")}`,
+				fmt.Sprintf(
+					"bar%squx",
+					InterpSplitDelim),
+				false,
+			},
+
+			// Invalid key
+			{
+				`${keys("not")}`,
+				nil,
+				true,
+			},
+
+			// Too many args
+			{
+				`${keys("foo", "bar")}`,
+				nil,
+				true,
+			},
+
+			// Not a map
+			{
+				`${keys("str")}`,
+				nil,
+				true,
+			},
+		},
+	})
+}
+
+func TestInterpolateFuncValues(t *testing.T) {
+	testFunction(t, testFunctionConfig{
+		Vars: map[string]ast.Variable{
+			"var.foo.bar": ast.Variable{
+				Value: "quack",
+				Type:  ast.TypeString,
+			},
+			"var.foo.qux": ast.Variable{
+				Value: "baz",
+				Type:  ast.TypeString,
+			},
+			"var.str": ast.Variable{
+				Value: "astring",
+				Type:  ast.TypeString,
+			},
+		},
+		Cases: []testFunctionCase{
+			{
+				`${values("foo")}`,
+				fmt.Sprintf(
+					"quack%sbaz",
+					InterpSplitDelim),
+				false,
+			},
+
+			// Invalid key
+			{
+				`${values("not")}`,
+				nil,
+				true,
+			},
+
+			// Too many args
+			{
+				`${values("foo", "bar")}`,
+				nil,
+				true,
+			},
+
+			// Not a map
+			{
+				`${values("str")}`,
+				nil,
+				true,
+			},
+		},
+	})
+}
+
 func TestInterpolateFuncElement(t *testing.T) {
 	testFunction(t, testFunctionConfig{
 		Cases: []testFunctionCase{
@@ -381,12 +613,12 @@ func testFunction(t *testing.T, config testFunctionConfig) {
 	for i, tc := range config.Cases {
 		ast, err := lang.Parse(tc.Input)
 		if err != nil {
-			t.Fatalf("%d: err: %s", i, err)
+			t.Fatalf("Case #%d: input: %#v\nerr: %s", i, tc.Input, err)
 		}
 
 		out, _, err := lang.Eval(ast, langEvalConfig(config.Vars))
 		if (err != nil) != tc.Error {
-			t.Fatalf("%d: err: %s", i, err)
+			t.Fatalf("Case #%d:\ninput: %#v\nerr: %s", i, tc.Input, err)
 		}
 
 		if !reflect.DeepEqual(out, tc.Result) {

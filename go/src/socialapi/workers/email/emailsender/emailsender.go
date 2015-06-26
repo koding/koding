@@ -7,6 +7,7 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
+	"github.com/koding/runner"
 	"github.com/streadway/amqp"
 )
 
@@ -17,13 +18,17 @@ type Controller struct {
 	log             logging.Logger
 	emailer         eventexporter.Exporter
 	forcedRecipient string
+	env             string
+	host            string
 }
 
 // New Creates a new controller for mail worker
-func New(exporter eventexporter.Exporter, log logging.Logger) *Controller {
+func New(exporter eventexporter.Exporter, log logging.Logger, conf runner.Config) *Controller {
 	return &Controller{
 		emailer: exporter,
 		log:     log,
+		env:     conf.Environment,
+		host:    conf.Hostname,
 	}
 }
 
@@ -51,6 +56,10 @@ func (c *Controller) Process(m *Mail) error {
 
 	user.Username = m.Properties.Username
 	m.SetOption("subject", m.Subject)
+
+	// set default properties
+	m.SetOption("env", c.env)
+	m.SetOption("host", c.host)
 
 	escapedBody := template.HTMLEscapeString(m.HTML)
 	event := &eventexporter.Event{

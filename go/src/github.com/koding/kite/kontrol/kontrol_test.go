@@ -2,6 +2,7 @@ package kontrol
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"net/url"
 	"os"
@@ -17,6 +18,7 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
+	"github.com/nu7hatch/gouuid"
 )
 
 var (
@@ -34,16 +36,20 @@ func init() {
 	conf.ReadEnvironmentVariables()
 
 	DefaultPort = 5555
-	kon = New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
+	kon = New(conf.Copy(), "0.0.1")
 
 	switch os.Getenv("KONTROL_STORAGE") {
 	case "etcd":
 		kon.SetStorage(NewEtcd(nil, kon.Kite.Log))
 	case "postgres":
-		kon.SetStorage(NewPostgres(nil, kon.Kite.Log))
+		p := NewPostgres(nil, kon.Kite.Log)
+		kon.SetStorage(p)
+		kon.SetKeyPairStorage(p)
 	default:
 		kon.SetStorage(NewEtcd(nil, kon.Kite.Log))
 	}
+
+	kon.AddKeyPair("", testkeys.Public, testkeys.Private)
 
 	go kon.Run()
 	<-kon.Kite.ServerReadyNotify()
@@ -52,7 +58,7 @@ func init() {
 }
 
 func TestRegisterMachine(t *testing.T) {
-	key, err := kon.registerUser("foo")
+	key, err := kon.registerUser("foo", testkeys.Public, testkeys.Private)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -77,14 +83,12 @@ func TestTokenInvalidation(t *testing.T) {
 	TokenTTL = time.Millisecond * 500
 	TokenLeeway = 0
 
-	t.Log("Setting up mathworker6")
 	testName := "mathworker6"
 	testVersion := "1.1.1"
 	m := kite.New(testName, testVersion)
 	m.Config = conf.Copy()
 	m.Config.Port = 6666
 
-	t.Log("Registering mathworker6")
 	kiteURL := &url.URL{Scheme: "http", Host: "localhost:6666", Path: "/mathworker6"}
 	_, err := m.Register(kiteURL)
 	if err != nil {
@@ -137,7 +141,6 @@ func TestMultiple(t *testing.T) {
 	// number of clients that will query example kites
 	clientNumber := 10
 
-	fmt.Printf("Creating %d example kites\n", kiteNumber)
 	for i := 0; i < kiteNumber; i++ {
 		m := kite.New("example"+strconv.Itoa(i), "0.1."+strconv.Itoa(i))
 		m.Config = conf.Copy()
@@ -150,7 +153,6 @@ func TestMultiple(t *testing.T) {
 		defer m.Close()
 	}
 
-	fmt.Printf("Creating %d clients\n", clientNumber)
 	clients := make([]*kite.Kite, clientNumber)
 	for i := 0; i < clientNumber; i++ {
 		c := kite.New("client"+strconv.Itoa(i), "0.0.1")
@@ -161,7 +163,6 @@ func TestMultiple(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	fmt.Printf("Querying for example kites with %d conccurent clients randomly\n", clientNumber)
 	timeout := time.After(testDuration)
 
 	// every one second
@@ -190,12 +191,11 @@ func TestMultiple(t *testing.T) {
 						fmt.Printf("[%d] aborted, elapsed %f sec err: %s\n",
 							i, elapsedTime.Seconds(), err)
 					} else {
-						fmt.Printf("[%d] finished, elapsed %f sec\n", i, elapsedTime.Seconds())
+						// fmt.Printf("[%d] finished, elapsed %f sec\n", i, elapsedTime.Seconds())
 					}
 				}(i)
 			}
 		case <-timeout:
-			fmt.Println("test stopped")
 			t.SkipNow()
 		}
 
@@ -205,14 +205,11 @@ func TestMultiple(t *testing.T) {
 }
 
 func TestGetKites(t *testing.T) {
-	t.Log("Setting up mathworker4")
-
 	testName := "mathworker4"
 	testVersion := "1.1.1"
 	m := kite.New(testName, testVersion)
 	m.Config = conf.Copy()
 
-	t.Log("Registering ", testName)
 	kiteURL := &url.URL{Scheme: "http", Host: "localhost:4444", Path: "/kite"}
 	_, err := m.Register(kiteURL)
 	if err != nil {
@@ -228,7 +225,6 @@ func TestGetKites(t *testing.T) {
 	}
 
 	// exp2 queries for mathkite
-	t.Log("Querying for mathworker4")
 	exp3 := kite.New("exp3", "0.0.1")
 	exp3.Config = conf.Copy()
 	kites, err := exp3.GetKites(query)
@@ -254,14 +250,12 @@ func TestGetKites(t *testing.T) {
 }
 
 func TestGetToken(t *testing.T) {
-	t.Log("Setting up mathworker5")
 	testName := "mathworker5"
 	testVersion := "1.1.1"
 	m := kite.New(testName, testVersion)
 	m.Config = conf.Copy()
 	m.Config.Port = 6666
 
-	t.Log("Registering mathworker5")
 	kiteURL := &url.URL{Scheme: "http", Host: "localhost:6666", Path: "/kite"}
 	_, err := m.Register(kiteURL)
 	if err != nil {
@@ -275,13 +269,11 @@ func TestGetToken(t *testing.T) {
 	}
 }
 
-func TestRegister(t *testing.T) {
-	t.Log("Setting up mathworker3")
+func TestRegisterKite(t *testing.T) {
 	kiteURL := &url.URL{Scheme: "http", Host: "localhost:4444", Path: "/kite"}
 	m := kite.New("mathworker3", "1.1.1")
 	m.Config = conf.Copy()
 
-	t.Log("Registering mathworker")
 	res, err := m.Register(kiteURL)
 	if err != nil {
 		t.Error(err)
@@ -295,7 +287,6 @@ func TestRegister(t *testing.T) {
 
 func TestKontrol(t *testing.T) {
 	// Start mathworker
-	t.Log("Setting up mathworker")
 	mathKite := kite.New("mathworker", "1.2.3")
 	mathKite.Config = conf.Copy()
 	mathKite.Config.Port = 6161
@@ -307,7 +298,6 @@ func TestKontrol(t *testing.T) {
 	<-mathKite.KontrolReadyNotify()
 
 	// exp2 kite is the mathworker client
-	t.Log("Setting up exp2 kite")
 	exp2Kite := kite.New("exp2", "0.0.1")
 	exp2Kite.Config = conf.Copy()
 
@@ -319,7 +309,6 @@ func TestKontrol(t *testing.T) {
 	}
 
 	// exp2 queries for mathkite
-	t.Log("Querying for mathworkers")
 	kites, err := exp2Kite.GetKites(query)
 	if err != nil {
 		t.Fatal(err)
@@ -337,12 +326,11 @@ func TestKontrol(t *testing.T) {
 	}
 
 	// Test Kontrol.GetToken
-	t.Logf("oldToken: %s", remoteMathWorker.Auth.Key)
-	newToken, err := exp2Kite.GetToken(&remoteMathWorker.Kite)
+	tokenCache = make(map[string]string) // empty it
+	_, err = exp2Kite.GetToken(&remoteMathWorker.Kite)
 	if err != nil {
 		t.Error(err)
 	}
-	t.Logf("newToken: %s", newToken)
 
 	// Run "square" method
 	response, err := remoteMathWorker.TellWithTimeout("square", 4*time.Second, 2)
@@ -370,9 +358,6 @@ func Square(r *kite.Request) (interface{}, error) {
 	}
 
 	result := a * a
-
-	fmt.Printf("Kite call, sending result '%f' back\n", result)
-
 	return result, nil
 }
 
@@ -415,5 +400,107 @@ func TestGetQueryKey(t *testing.T) {
 	}
 	if key != "" {
 		t.Errorf("Key is not expected: %s", key)
+	}
+}
+
+func TestKontrolMultiKey(t *testing.T) {
+	i, _ := uuid.NewV4()
+	secondID := i.String()
+	// add so we can use it as key
+	if err := kon.AddKeyPair(secondID, testkeys.PublicSecond, testkeys.PrivateSecond); err != nil {
+		t.Fatal(err)
+	}
+
+	// Start mathworker
+	mathKite := kite.New("mathworker2", "2.0.0")
+	mathKite.Config = conf.Copy()
+	mathKite.Config.Port = 6162
+	mathKite.HandleFunc("square", Square)
+	go mathKite.Run()
+	<-mathKite.ServerReadyNotify()
+
+	go mathKite.RegisterForever(&url.URL{Scheme: "http", Host: "127.0.0.1:" + strconv.Itoa(mathKite.Config.Port), Path: "/kite"})
+	<-mathKite.KontrolReadyNotify()
+
+	// exp3 kite is the mathworker client. However it uses a different public
+	// key
+	exp3Kite := kite.New("exp3", "0.0.1")
+	exp3Kite.Config = conf.Copy()
+	exp3Kite.Config.KiteKey = testutil.NewKiteKeyWithKeyPair(testkeys.PrivateSecond, testkeys.PublicSecond).Raw
+	exp3Kite.Config.KontrolKey = testkeys.PublicSecond
+
+	query := &protocol.KontrolQuery{
+		Username:    exp3Kite.Kite().Username,
+		Environment: exp3Kite.Kite().Environment,
+		Name:        "mathworker2",
+		Version:     "2.0.0",
+	}
+
+	// exp3 queries for mathkite
+	kites, err := exp3Kite.GetKites(query)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(kites) == 0 {
+		t.Fatal("No mathworker available")
+	}
+
+	// exp3 connectes to mathworker
+	remoteMathWorker := kites[0]
+	err = remoteMathWorker.Dial()
+	if err != nil {
+		t.Fatal("Cannot connect to remote mathworker", err)
+	}
+
+	// Test Kontrol.GetToken
+	tokenCache = make(map[string]string) // empty it
+	newToken, err := exp3Kite.GetToken(&remoteMathWorker.Kite)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if remoteMathWorker.Auth.Key == newToken {
+		t.Errorf("Token renew failed. Tokens should be different after renew")
+	}
+
+	// Run "square" method
+	response, err := remoteMathWorker.TellWithTimeout("square", 4*time.Second, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var result int
+	err = response.Unmarshal(&result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Result must be "4"
+	if result != 4 {
+		t.Fatalf("Invalid result: %d", result)
+	}
+
+	// now invalidate the second key
+	log.Printf("Invalidating %s\n", secondID)
+	if err := kon.DeleteKeyPair(secondID, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	// try to get a new key, this should replace exp3Kite.Config.KontrolKey
+	// with the new (in our case because PublicSecond is invalidated, it's
+	// going to use Public (the first key). Also it should return the new Key.
+	publicKey, err := exp3Kite.GetKey()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if publicKey != testkeys.Public {
+		t.Errorf("Key renew failed\n\twant:%s\n\tgot :%s\n", testkeys.Public, publicKey)
+	}
+
+	if exp3Kite.Config.KontrolKey != publicKey {
+		t.Errorf("Key renew should replace config.KontrolKey\n\twant:%s\n\tgot :%s\n",
+			testkeys.Public, publicKey)
 	}
 }
