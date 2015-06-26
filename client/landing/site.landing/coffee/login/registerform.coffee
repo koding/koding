@@ -38,6 +38,9 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             minLength     : "Passwords should be at least 8 characters."
         decorateValidation: no
 
+    @tfcode = @create2FAInput()
+    @tfcode.hide()
+
     @email?.destroy()
     @email = new LoginInputViewWithLoader
       inputOptions        :
@@ -48,6 +51,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         validate          : KD.utils.getEmailValidator
           container       : this
           password        : @password
+          tfcode          : @tfcode
         decorateValidation: no
         focus             : => @email.icon.unsetTooltip()
         keydown           : (event) => @submitForm event  if event.which is ENTER
@@ -81,12 +85,32 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
       @button.hideLoader()
 
+    @bind2FAEvents()
+
     KD.singletons.router.on 'RouteInfoHandled', =>
       @email.icon.unsetTooltip()
       @password.icon.unsetTooltip()
 
 
-  reset:->
+  create2FAInput: ->
+    return new LoginInputView
+      inputOptions    :
+        name          : 'tfcode'
+        placeholder   : 'Two-Factor Authentication Code'
+        testPath      : 'register-form-tfcode'
+        attributes    :
+          testpath    : 'register-form-tfcode'
+
+
+  bind2FAEvents: ->
+
+    @on 'TwoFactorEnabled', =>
+      @button.hideLoader()
+      @tfcode.show()
+      @tfcode.setFocus()
+
+
+  reset: ->
 
     inputs = KDFormView.findChildInputs this
     input.clearValidationFeedback() for input in inputs
@@ -163,6 +187,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     <section class='main-part'>
       <div class='email'>{{> @email}}</div>
       <div class='password'>{{> @password}}</div>
+      <div class='tfcode'>{{> @tfcode}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:

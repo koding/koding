@@ -357,7 +357,7 @@ utils.extend utils,
 
   getEmailValidator: (options = {}) ->
 
-    { container, password } = options
+    { container, password, tfcode } = options
 
     container   : container
     event       : 'submit'
@@ -376,15 +376,16 @@ utils.extend utils,
         return  if required or minLength
 
         input.setValidationResult 'available', null
-        email = input.getValue()
-        if password
-          passInput = password.input
-          passValue = passInput.getValue()
+
+        email         = input.getValue()
+        passValue     = password.input.getValue()  if password
+        tfcodeValue   = tfcode.input.getValue()  if tfcode
+
         container.emit 'EmailIsNotAvailable'
 
         return  unless input.valid
 
-        KD.utils.validateEmail { password : passValue, email },
+        KD.utils.validateEmail { email, tfcode: tfcodeValue, password : passValue },
           success : (res) ->
 
             return location.replace '/'  if res is 'User is logged in!'
@@ -394,9 +395,13 @@ utils.extend utils,
 
             container.emit 'EmailValidationPassed'  if res is yes
 
-          error : ({responseJSON}) ->
+          error : ({responseText}) ->
+
+            return container.emit 'TwoFactorEnabled'  if /TwoFactor/i.test responseText
+
             container.emit 'EmailIsNotAvailable'
-            input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
+            input.setValidationResult 'available', "Sorry, #{email} is already in use!"
+
 
   checkedPasswords: {}
   checkPasswordStrength: KD.utils.debounce 300, (password, callback) ->

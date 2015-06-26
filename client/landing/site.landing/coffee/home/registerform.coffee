@@ -43,6 +43,51 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
     @on 'EmailError', @bound 'showEmailError'
 
 
+  bind2FAEvents: ->
+
+    @on 'TwoFactorEnabled', =>
+      modal = new KDModalView
+        title     : 'Two-Factor Authentication <a href="http://learn.koding.com/guides/2-factor-auth/" target="_blank">What is 2FA?</a>'
+        width     : 400
+        overlay   : yes
+        cssClass  : 'two-factor-code-modal'
+
+      modal.addSubView form = new KDFormView
+      form.addSubView @tfcode = @create2FAInput()
+      form.addSubView @createPost2FACodeButton()
+
+
+  createPost2FACodeButton: ->
+
+    return @post2FACodeButton = new KDButtonView
+      title         : 'SIGN IN'
+      type          : 'submit'
+      style         : 'solid green medium'
+      attributes    :
+        testpath    : 'signup-button'
+      loader        : yes
+      callback      : @bound 'submit2FACode'
+
+
+  submit2FACode: ->
+
+    data =
+      email     : @email.input.getValue()
+      password  : @password.input.getValue()
+      tfcode    : @tfcode.input.getValue()
+
+    if data.tfcode then KD.utils.validateEmail data,
+      success : (res) ->
+        return location.replace '/'  if res is 'User is logged in!'
+
+      error   : ({responseText}) =>
+        @post2FACodeButton.hideLoader()
+        title = if /Bad Request/i.test responseText then 'Access Denied!' else responseText
+        new KDNotificationView { title }
+    else
+       @post2FACodeButton.hideLoader()
+
+
   handleOauthData: (oauthData) ->
 
     @oauthData = oauthData
