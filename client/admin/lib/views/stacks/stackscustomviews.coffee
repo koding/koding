@@ -7,6 +7,7 @@ hljs                            = require 'highlight.js'
 Encoder                         = require 'htmlencode'
 dateFormat                      = require 'dateformat'
 
+whoami                          = require 'app/util/whoami'
 FSHelper                        = require 'app/util/fs/fshelper'
 showError                       = require 'app/util/showError'
 applyMarkdown                   = require 'app/util/applyMarkdown'
@@ -420,8 +421,16 @@ module.exports = class StacksCustomViews extends CustomViews
           callback        : cancelCallback
 
       views.providersView.on 'ItemSelected', (provider) ->
-        data.repo_provider = provider
-        callback data
+
+        whoami().fetchOAuthInfo (err, services) ->
+          return  if showError err
+
+          unless services?[provider]?
+            showError "You need to authenticate with #{provider} first."
+            kd.singletons.router.handleRoute '/Admin/Integrations'
+          else
+            data.repo_provider = provider
+            callback data
 
       return container
 
