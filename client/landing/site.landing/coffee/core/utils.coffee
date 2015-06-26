@@ -385,7 +385,7 @@ utils.extend utils,
 
         return  unless input.valid
 
-        KD.utils.validateEmail { email,tfcode: tfcodeValue, password : passValue },
+        KD.utils.validateEmail { email, tfcode: tfcodeValue, password : passValue },
           success : (res) ->
 
             return location.replace '/'  if res is 'User is logged in!'
