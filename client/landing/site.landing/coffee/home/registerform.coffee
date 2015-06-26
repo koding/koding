@@ -58,6 +58,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
 
   createPost2FACodeButton: ->
+
     return @post2FACodeButton = new KDButtonView
       title         : 'SIGN IN'
       type          : 'submit'
@@ -69,6 +70,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
 
   submit2FACode: ->
+
     data =
       email     : @email.input.getValue()
       password  : @password.input.getValue()
@@ -81,8 +83,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       error   : ({responseText}) =>
         @post2FACodeButton.hideLoader()
         title = if /Bad Request/i.test responseText then 'Access Denied!' else responseText
-        new KDNotificationView
-          title : title
+        new KDNotificationView { title }
     else
        @post2FACodeButton.hideLoader()
 
