@@ -20,8 +20,15 @@ type Config struct {
 
 	AutoScalingName string
 	AccessKeyID     string `required:"true" default:""`
-	SecretAccessKey string `required:"true" default:""`
+	SecretAccessKey string
 	Debug           bool
+
+	HostedZone HostedZone
+}
+
+type HostedZone struct {
+	Name            string `default:"tunnelproxy.koding.com"`
+	CallerReference string `default:"tunnelproxy_dev_2"`
 }
 
 // Configure prepares configuration data for tunnelproxy manager

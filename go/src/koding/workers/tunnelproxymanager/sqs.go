@@ -192,7 +192,7 @@ func newDefaultPolicy(topicARN, queueARN string) (string, error) {
 		ID:      fmt.Sprintf("%s/SQSDefaultPolicy", queueARN),
 		Statement: []statement{
 			statement{
-				Sid:    callerReferance,
+				Sid:    "koding-sns-sqs-tunnel-proxy-policy",
 				Effect: "Allow",
 				Principal: map[string]interface{}{
 					"AWS": "*",

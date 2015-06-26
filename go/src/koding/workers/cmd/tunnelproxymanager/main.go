@@ -27,7 +27,7 @@ func main() {
 	log.SetCallDepth(1)
 
 	// create record manager
-	recordManager := tunnelproxymanager.NewRecordManager(awsconfig, log, conf.Region)
+	recordManager := tunnelproxymanager.NewRecordManager(awsconfig, log, conf.Region, conf.HostedZone)
 	if err := recordManager.Init(); err != nil {
 		log.Fatal(err.Error())
 	}

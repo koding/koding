@@ -11,9 +11,6 @@ import (
 )
 
 const (
-	// callerReferance is used as unique id for idempotency on aws side
-	callerReferance         = "tunnelproxy_dev_2"
-	hostedZoneName          = "tunnelproxy.koding.com"
 	hostedZoneComment       = "Hosted zone for tunnel proxies"
 	validStateForHostedZone = "INSYNC" // taken from aws response
 
@@ -34,16 +31,19 @@ type RecordManager struct {
 	hostedZone *route53.HostedZone
 	region     string
 
+	hostedZoneConf HostedZone
+
 	// general usage
 	log logging.Logger
 }
 
 // NewRecordManager creates a RecordManager
-func NewRecordManager(config *aws.Config, log logging.Logger, region string) *RecordManager {
+func NewRecordManager(config *aws.Config, log logging.Logger, region string, hostedZoneConf HostedZone) *RecordManager {
 	return &RecordManager{
-		route53: route53.New(config),
-		log:     log.New("recordmanager"),
-		region:  region,
+		route53:        route53.New(config),
+		log:            log.New("recordmanager"),
+		region:         region,
+		hostedZoneConf: hostedZoneConf,
 	}
 }
 
@@ -60,7 +60,7 @@ func (r *RecordManager) Init() error {
 }
 
 func (r *RecordManager) ensureHostedZone() error {
-	hostedZoneLogger := r.log.New("HostedZone").New("name", hostedZoneName)
+	hostedZoneLogger := r.log.New("HostedZone").New("name", r.hostedZoneConf.Name)
 	hostedZoneLogger.Debug("Trying to get existing Hosted Zone")
 
 	err := r.getHostedZone(hostedZoneLogger)
@@ -108,7 +108,7 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 		}
 
 		for _, hostedZone := range listHostedZonesResp.HostedZones {
-			if *hostedZone.CallerReference == callerReferance {
+			if *hostedZone.CallerReference == r.hostedZoneConf.CallerReference {
 				r.hostedZone = hostedZone
 				return nil
 			}
@@ -133,8 +133,8 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 	// CreateHostedZone is not idempotent, multiple calls to this function
 	// result in duplicate records, fyi
 	resp, err := r.route53.CreateHostedZone(&route53.CreateHostedZoneInput{
-		CallerReference: aws.String(callerReferance),
-		Name:            aws.String(hostedZoneName),
+		CallerReference: aws.String(r.hostedZoneConf.CallerReference),
+		Name:            aws.String(r.hostedZoneConf.Name),
 		HostedZoneConfig: &route53.HostedZoneConfig{
 			Comment: aws.String(hostedZoneComment),
 		},
@@ -207,7 +207,7 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 					Action: aws.String("UPSERT"),
 					ResourceRecordSet: &route53.ResourceRecordSet{
 						// The domain name of the current resource record set.
-						Name: aws.String(hostedZoneName),
+						Name: aws.String(r.hostedZoneConf.Name),
 						// The type of the current resource record set.
 						Type: aws.String("A"),
 						// Latency-based resource record sets only: Among
@@ -229,7 +229,7 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 			Comment: aws.String(
 				fmt.Sprintf(
 					"Record set for zone: %s region: %s",
-					hostedZoneName,
+					r.hostedZoneConf.Name,
 					r.region,
 				),
 			),
