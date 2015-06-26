@@ -613,8 +613,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @emitChange terminalPane, change
 
     ###
-    rename terminal tab to terminal session name only if terminal has not been
-    renamed yet, i.e. session name is auto generated string which lenght is 24 symbols
+    Rename terminal tab to terminal session name only if terminal has already been
+    renamed before, i.e. session name isn't auto generated string which lenght is 24 symbols.
+    If session name is auto generated string, leave terminal tab name with its default value 'Terminal'
     ###
     unless session.length is DEFAULT_SESSION_NAME_LENGTH
       terminalHandle.setTitle session
