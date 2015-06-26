@@ -2,7 +2,6 @@ package tunnelproxymanager
 
 import (
 	"fmt"
-	"io/ioutil"
 	"koding/common"
 	"path/filepath"
 	"reflect"
@@ -11,28 +10,16 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 func createLifeCycle(t *testing.T) *LifeCycle {
-	config, err := Configure()
+	config, awsconfig, err := Configure()
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
 	log := common.CreateLogger("tunnelproxymanager-test", config.Debug)
 	log.SetCallDepth(1)
-
-	awsconfig := &aws.Config{
-		Credentials: credentials.NewStaticCredentials(
-			config.AccessKeyID,
-			config.SecretAccessKey,
-			"",
-		),
-		Region:     config.Region,
-		Logger:     ioutil.Discard, // we are not using aws logger
-		MaxRetries: 5,
-	}
 
 	l := NewLifeCycle(
 		awsconfig,

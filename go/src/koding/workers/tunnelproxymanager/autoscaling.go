@@ -124,5 +124,6 @@ func mapPublicIps(insResp *ec2.DescribeInstancesOutput) []*string {
 			publicIps = append(publicIps, instance.PublicIPAddress)
 		}
 	}
+
 	return publicIps
 }

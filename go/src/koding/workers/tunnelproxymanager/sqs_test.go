@@ -20,6 +20,6 @@ func TestMakeSureSQS(t *testing.T) {
 func TestNewDefaultPolicy(t *testing.T) {
 	p, err := newDefaultPolicy("topicARN", "queueARN")
 	equals(t, nil, err)
-	const exp = `{"Version":"2012-10-17","Id":"queueARN/SQSDefaultPolicy","Statement":[{"Sid":"tunnelproxy_dev_2","Effect":"Allow","Principal":{"AWS":"*"},"Action":"SQS:SendMessage","Resource":"queueARN","Condition":{"ArnEquals":{"aws:SourceArn":"topicARN"}}}]}`
+	const exp = `{"Version":"2012-10-17","Id":"queueARN/SQSDefaultPolicy","Statement":[{"Sid":"koding-sns-sqs-tunnel-proxy-policy","Effect":"Allow","Principal":{"AWS":"*"},"Action":"SQS:SendMessage","Resource":"queueARN","Condition":{"ArnEquals":{"aws:SourceArn":"topicARN"}}}]}`
 	equals(t, exp, p)
 }

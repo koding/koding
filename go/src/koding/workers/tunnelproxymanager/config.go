@@ -15,15 +15,18 @@ import (
 
 // Config holds configuration parameters for tunnelproxymanager
 type Config struct {
-	EBEnvName string
-	Region    string // optional
+	// required
+	AccessKeyID     string `required:"true"`
+	SecretAccessKey string `required:"true"`
 
+	// can be overriden
+	Region          string
+	EBEnvName       string
 	AutoScalingName string
-	AccessKeyID     string `required:"true" default:""`
-	SecretAccessKey string
-	Debug           bool
+	HostedZone      HostedZone // defaults are in struct tags
 
-	HostedZone HostedZone
+	// optional
+	Debug bool
 }
 
 type HostedZone struct {
