@@ -18,6 +18,14 @@ module.exports = class AdminIntegrationDetailsView extends JView
     super options, data
 
     { instructions } = data
+    # DUMMY DATA
+    data.settings =
+      events: [
+        { name: 'added_feature',  description: 'Added feature'  }
+        { name: 'added_comment',  description: 'Added comment'  }
+        { name: 'edited_feature', description: 'Edited feature' }
+        { name: 'moved_feature',  description: 'Moved feature'  }
+      ]
 
     if instructions
       @instructionsView = new KDCustomHTMLView
