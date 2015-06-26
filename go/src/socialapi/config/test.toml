@@ -24,6 +24,8 @@ Port     = 5672
 Login    = "guest"
 Password = "guest"
 Vhost    = "/"
+componentUser = "guest"
+heartbeat = 10
 
 [redis]
 URL = "localhost:6379"
@@ -34,9 +36,7 @@ Host            = "lvh.me:8090"
 Protocol        = "http:"
 DefaultFromMail = "hello@koding.com"
 DefaultFromName = "Koding"
-ForcedRecipient = "canthefason@gmail.com"
-Username        = "koding"
-Password        = "DEQl7_Dr"
+ForcedRecipient = "ctf@koding.com"
 
 [sitemap]
 RedisDB = 2
@@ -46,10 +46,6 @@ AppId            = "DYVV81J2S1"
 ApiSecretKey     = "682e02a34e2a65dc774f5ec355ceca33"
 IndexSuffix      = ".test"
 ApiSearchOnlyKey = "8dc0b0dc39282effe9305981d427fec7"
-
-[mixpanel]
-Enabled       = false
-Token         = "113c2731b47a5151f4be44ddd5af0e7a"
 
 [limits]
 MessageBodyMinLen    = 1
@@ -108,3 +104,14 @@ serviceAccountEmail = "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0@developer.
 serviceAccountKeyFile = "/pipeline/build/keys/KodingCollaborationDev201506.pem"
 
 geoipdbpath = "/pipeline/build/go/data/geoipdb"
+
+[github]
+clientId = "f8e440b796d953ea01e5"
+clientSecret = "b72e2576926a5d67119d5b440107639c6499ed42"
+redirectUri = "http://lvh.me:8090/-/oauth/github/callback"
+
+[disabledFeatures]
+moderation = false
+teams = false
+botchannel = false
+
