@@ -111,28 +111,25 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   createEventCheckboxes: ->
 
-    selectedEvents = {}
-
-    for event in @getData().selectedEvents
-      selectedEvents[event.name] = event
-
-    mainWrapper = new KDCustomHTMLView cssClass: 'event-cbes'
+    { selectedEvents } = @getData()
+    mainWrapper        = new KDCustomHTMLView cssClass: 'event-cbes'
 
     for item in @data.settings?.events
 
-      wrapper = new KDCustomHTMLView cssClass: 'event-cb'
-
-      label   = new KDLabelView
-        title : item.description
-
-      wrapper.addSubView new KDInputView
+      { name } = item
+      wrapper  = new KDCustomHTMLView cssClass: 'event-cb'
+      label    = new KDLabelView title: item.description
+      checkbox = new KDInputView
         type         : 'checkbox'
-        name         : item.name
+        name         : name
         label        : label
-        defaultValue : if selectedEvents[item.name] then yes else ''
+        defaultValue : selectedEvents.indexOf(name) > -1
 
+      wrapper.addSubView checkbox
       wrapper.addSubView label
       mainWrapper.addSubView wrapper
+
+      @eventCheckboxes[name] = checkbox
 
     @settingsForm.fields.events.addSubView mainWrapper
 
@@ -140,6 +137,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
   handleFormCallback: (formData) ->
 
     data = @getData()
+    data.selectedEvents = []
     { name, label, channels } = formData
     options       =
       id          : data.id
@@ -150,6 +148,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     if name isnt data.title
       options.settings = customName : name
+
+    for name, checkbox of @eventCheckboxes when checkbox.getValue()
+      data.selectedEvents.push name
 
     kd.singletons.socialapi.integrations.update options, (err) =>
       return kd.warn err  if err
