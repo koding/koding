@@ -145,6 +145,13 @@ iterator = (id, callback) ->
   async.eachSeries parallelSets[id], testIterator, setCompleter
 
 
+parallelSets.forEach (set, index) ->
+
+  console.log "Set:#{index}", set
+
+console.log ""
+
+
 async.eachLimit Object.keys(parallelSets), limit, iterator, (error) ->
 
   if error
