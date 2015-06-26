@@ -40,6 +40,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
             newTitle  = @titleInput.getValue()
 
             return  unless newTitle.length
+            return @setTitleEditMode no  if newTitle is title
 
             @emit 'RenamingRequested', newTitle, title
 
@@ -65,7 +66,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
   dblClick: ->
 
-    return  unless @isEditable and @getWidth() > MIN_EDIT_WIDTH
+    return  unless @isEditable and @getWidth() >= MIN_EDIT_WIDTH
     return  unless @titleInput.hasClass 'hidden'
 
     @setTitleEditMode yes
