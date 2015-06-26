@@ -18,7 +18,8 @@ IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
 
-HANDLE_PROXIMITY_DISTANCE = 100
+HANDLE_PROXIMITY_DISTANCE   = 100
+DEFAULT_SESSION_NAME_LENGTH = 24
 
 module.exports = class IDEView extends IDEWorkspaceTabView
 
@@ -241,27 +242,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       if rootPath and not isDefault
         options.path = frontApp.workspaceData.rootPath
 
-    { machine, joinUser, fitToWindow } = options
-
     terminalPane = new IDETerminalPane options
-    @createPane_ terminalPane, { name: 'Terminal' }
+    paneView = @createPane_ terminalPane, { name: 'Terminal' }
+    terminalHandle = @tabView.getHandleByPane paneView
 
-    terminalPane.once 'WebtermCreated', =>
-      terminalPane.webtermView.on 'click', @bound 'click'
+    terminalPane.once 'WebtermCreated', @lazyBound 'handleWebtermCreated', paneView, options
+    terminalHandle.on 'TitleUpdateRequested', @lazyBound 'handleTerminalTitleUpdateRequested', paneView, options
 
-      if fitToWindow
-        kd.utils.defer -> terminalPane.webtermView.triggerFitToWindow()
-
-      @emit 'UpdateWorkspaceSnapshot'
-
-      unless joinUser
-        change        =
-          context     :
-            session   : terminalPane.remote.session
-            machine   :
-              uid     : machine.uid
-
-        @emitChange terminalPane, change
+    terminalHandle.makeEditable()
 
 
   emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
@@ -594,6 +582,77 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     index = null  if index < 0
 
     kd.singletons.appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
+
+
+  handleWebtermCreated: (paneView, options) ->
+
+    terminalPane   = paneView.view
+    terminalHandle = @tabView.getHandleByPane paneView
+
+    { machine, joinUser, fitToWindow } = options
+
+    terminalPane.webtermView.on 'click', @bound 'click'
+
+    if fitToWindow
+      kd.utils.defer -> terminalPane.webtermView.triggerFitToWindow()
+
+    @emit 'UpdateWorkspaceSnapshot'
+
+    { remote : { session } } = terminalPane
+
+    unless joinUser
+      change =
+        context   :
+          session : session
+          machine :
+            uid   : machine.uid
+
+      @emitChange terminalPane, change
+
+    terminalHandle.setTitle session  unless session.length is DEFAULT_SESSION_NAME_LENGTH
+
+
+  handleTerminalTitleUpdateRequested: (paneView, options, newTitle) ->
+
+    terminalPane = paneView.view
+
+    { machine } = options
+    { remote : { session } } = terminalPane
+
+    kite    = machine.getBaseKite()
+    request =
+      newName : newTitle
+      oldName : session
+
+    kite.init()
+    .then ->
+      kite.webtermRename request
+    .then =>
+      @setTerminalTitle paneView, machine, newTitle
+
+      @emit 'UpdateWorkspaceSnapshot'
+
+      change =
+        context   :
+          session : newTitle
+          machine :
+            uid   : machine.uid
+
+      @emitChange terminalPane, change, 'TerminalTitleChanged'
+
+    .catch (err) ->
+      showErrorNotification err
+
+
+  setTerminalTitle: (paneView, machine, newTitle) ->
+
+    terminalPane = paneView.view
+    terminalHandle = @tabView.getHandleByPane paneView
+
+    terminalPane.setSession newTitle
+    terminalHandle.setTitle newTitle
+
+    machine.getBaseKite().fetchTerminalSessions()
 
 
 toggleVisibility = (handle, state) ->

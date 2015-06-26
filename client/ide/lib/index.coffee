@@ -1192,7 +1192,7 @@ class IDEAppController extends AppController
       if type is 'NewPaneCreated'
         @createPaneFromChange change
 
-      else if type in ['TabChanged', 'PaneRemoved']
+      else if type in ['TabChanged', 'PaneRemoved', 'TerminalTabTitleChanged']
         paneView = targetPane?.parent
         tabView  = paneView?.parent
         ideView  = tabView?.parent
@@ -1201,10 +1201,11 @@ class IDEAppController extends AppController
 
         ideView.suppressChangeHandlers = yes
 
-        if type is 'TabChanged'
-          tabView.showPane paneView
-        else
-          tabView.removePane paneView
+        switch type
+          when 'TabChanged'  then tabView.showPane paneView
+          when 'PaneRemoved' then tabView.removePane paneView
+          when 'TerminalTitleChanged'
+            ideView.setTerminalTitle paneView, @mountedMachine, context.session
 
         ideView.suppressChangeHandlers = no
 

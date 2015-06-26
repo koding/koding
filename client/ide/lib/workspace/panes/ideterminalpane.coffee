@@ -133,3 +133,9 @@ module.exports = class IDETerminalPane extends IDEPane
 
 
   makeReadOnly: -> @setEditMode no
+
+
+  setSession: (session) ->
+
+    @session = session
+    @remote?.session = session
