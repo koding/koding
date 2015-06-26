@@ -97,6 +97,12 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
         webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
         integrationType : 'configured'
 
+      # DUMMY DATA
+      data.selectedEvents = [
+        { name: 'added_comment',  description: 'Added comment'  }
+        { name: 'edited_feature', description: 'Edited feature' }
+      ]
+
       @emit 'IntegrationCustomizeRequested', data
 
 
