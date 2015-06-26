@@ -163,8 +163,7 @@ class IDEFileFinder extends KDCustomHTMLView
 
       @destroy()
 
-      params = file: file, contents: contents
-      kd.getSingleton('appManager').tell 'IDE', 'openFile', params
+      kd.getSingleton('appManager').tell 'IDE', 'openFile', {file, contents}
 
 
   showWarning: (text) ->
