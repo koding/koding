@@ -82,13 +82,19 @@ checkApiTermination = (instance, callback) ->
   params = {InstanceId, Attribute}
 
   EC2.describeInstanceAttribute params, (err, data) ->
-    return callback false  if err
+    return callback no  if err or not data
 
-    state = if data \
-      then not data.DisableApiTermination.Value
-      else false
+    return callback yes  if not data.DisableApiTermination.Value
 
-    callback state
+    lifetime = Date.now() - instance.LaunchTime
+    return callback no  if lifetime < LIFETIME_HARD_LIMIT
+
+    disableApiTermination instance, (err) ->
+      if err
+        error err
+        callback no
+      else
+        callback yes
 
 
 disableApiTermination = (instance, callback) ->
