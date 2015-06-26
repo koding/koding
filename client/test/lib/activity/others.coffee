@@ -60,6 +60,7 @@ module.exports =
       .waitForElementVisible     searchSelector, 20000
       .waitForElementNotVisible  loaderSelector, 25000
       .setValue                  searchSelector, hashtag + '\n'
+      .pause 3000
       .waitForElementVisible     ".listview-wrapper [testpath=\"public-feed-link/Activity/Topic/#{hashtag.replace '#', ''}\"]", 20000 # Assertion
       .end()
 
