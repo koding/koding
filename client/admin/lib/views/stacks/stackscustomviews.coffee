@@ -425,11 +425,12 @@ module.exports = class StacksCustomViews extends CustomViews
         whoami().fetchOAuthInfo (err, services) ->
           return  if showError err
 
-          unless services?[provider]?
+          unless oauth = services?[provider]
             showError "You need to authenticate with #{provider} first."
             kd.singletons.router.handleRoute '/Admin/Integrations'
           else
             data.repo_provider = provider
+            data.oauth_data    = oauth
             callback data
 
       return container
@@ -438,7 +439,7 @@ module.exports = class StacksCustomViews extends CustomViews
     stepLocateFile: (options) =>
 
       { callback, cancelCallback, data } = options
-      { repo_provider } = data
+      { repo_provider, oauth_data } = data
 
       container = @views.container 'step-locate-file'
 
@@ -446,8 +447,7 @@ module.exports = class StacksCustomViews extends CustomViews
         stepsHeaderView   :
           steps           : STEPS.REPO_FLOW
           selected        : 2
-        repoListView      :
-          users           : ['gokmen', 'koding']
+        repoListView      : { oauth_data }
         navCancelButton   :
           title           : '< Select another provider'
           callback        : cancelCallback
@@ -515,18 +515,16 @@ module.exports = class StacksCustomViews extends CustomViews
 
     repoList: (options) =>
 
-      controller          = new kd.ListViewController
-        viewOptions       :
-          itemClass       : StackRepoUserItem
-          cssClass        : 'repo-user-list'
+      controller    = new kd.ListViewController
+        viewOptions :
+          itemClass : StackRepoUserItem
+          cssClass  : 'repo-user-list'
 
       __view = controller.getListView()
       return { __view, controller }
 
 
     repoListView: (options) =>
-
-      { users } = options
 
       container    = @views.container 'repo-listview'
       loader       = @addTo container,
