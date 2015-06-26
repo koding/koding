@@ -24,7 +24,7 @@ module.exports = class IDELayoutManager extends KDObject
 
     workspaceView = @getDelegate().workspace.getView()
     baseSplitView = workspaceView.layout.getSplitViewByName 'BaseSplit'
-    splitViews    = baseSplitView.panels.last.subViews.first.subViews.first
+    splitViews    = baseSplitView.panels.last.getSubViews().first.getSubViews().first
 
     if splitViews instanceof IDEView
       @createParentSplitViews splitViews
