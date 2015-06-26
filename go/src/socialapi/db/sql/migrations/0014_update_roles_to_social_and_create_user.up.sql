@@ -45,7 +45,20 @@ END
 $body$
 ;
 
-GRANT kontrol TO kontrolapp201506;
+DO
+$body$
+BEGIN
+   IF NOT EXISTS (
+      SELECT *
+      FROM   pg_catalog.pg_roles
+      WHERE  rolname = 'kontrol') THEN
 
+      CREATE ROLE kontrol;
+   END IF;
+END
+$body$
+;
+
+GRANT kontrol TO kontrolapp201506;
 
 ALTER USER paymentro with password 'N8bG8ZVjp2y87Zxfi3';

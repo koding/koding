@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+
+	"golang.org/x/net/context"
 )
 
 const maxPayloadLen = 1024 * 1024 // 1MiB
@@ -27,6 +29,7 @@ var (
 )
 
 var empty = reflect.TypeOf(func(interface{}) {}).In(0)
+var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
 
 // payloadMethods loosly bases around suitableMethods from $GOROOT/src/net/rpc/server.go.
 func payloadMethods(typ reflect.Type) map[string]reflect.Method {
@@ -56,6 +59,19 @@ LoopMethods:
 			}
 			methods[event] = method
 		case 3:
+			if mtype.In(1).Implements(contextType) && mtype.In(2).Kind() == reflect.Ptr {
+				eventType := mtype.In(2)
+				event, ok := payloads.Name(eventType.Elem())
+				if !ok {
+					log.Println("method", mname, "takes wrong type of event:", eventType)
+					continue LoopMethods
+				}
+				if _, ok = methods[event]; ok {
+					panic(fmt.Sprintf("there is more than one method handling %v event", eventType))
+				}
+				methods[event] = method
+				continue
+			}
 			if mtype.In(1).Kind() != reflect.String || mtype.In(2) != empty {
 				log.Println("wildcard method", mname, "takes wrong types of arguments")
 				continue LoopMethods
@@ -83,6 +99,9 @@ type Handler struct {
 	// ErrorLog specifies an optional logger for errors serving requests.
 	// If nil, logging goes to os.Stderr via the log package's standard logger.
 	ErrorLog *log.Logger
+	// ContextFunc generates context with given http.Request
+	// If nil, event handlers creates empty context objects
+	ContextFunc func(*http.Request) context.Context
 
 	secret string                    // value for X-Hub-Signature
 	rcvr   reflect.Value             // receiver of methods for the service
@@ -144,12 +163,25 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	go h.call(req.RemoteAddr, event, v.Interface())
+	go h.call(req.RemoteAddr, event, v.Interface(), req)
 }
 
-func (h *Handler) call(remote, event string, payload interface{}) {
+func (h *Handler) call(remote, event string, payload interface{}, req *http.Request) {
 	if method, ok := h.method[event]; ok {
-		method.Func.Call([]reflect.Value{h.rcvr, reflect.ValueOf(payload)})
+		mtype := method.Type
+		switch mtype.NumIn() {
+		case 2: // without context
+			method.Func.Call([]reflect.Value{h.rcvr, reflect.ValueOf(payload)})
+		case 3: // with context
+			var ctx context.Context
+			if h.ContextFunc != nil {
+				ctx = h.ContextFunc(req)
+			} else {
+				ctx = context.Background()
+			}
+			method.Func.Call([]reflect.Value{h.rcvr, reflect.ValueOf(ctx), reflect.ValueOf(payload)})
+		}
+
 		h.logf("INFO %s: Status=200 X-GitHub-Event=%q Type=%T", remote, event, payload)
 		return
 	}

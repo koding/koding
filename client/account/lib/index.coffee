@@ -31,9 +31,10 @@ module.exports = class AccountAppController extends AppController
     personal :
       title  : 'Personal'
       items  : [
-        { slug : 'Profile',   title : 'User profile',        listType: 'username' }
-        { slug : 'Email',     title : 'Email notifications', listType: 'emailNotifications' }
-        { slug : 'Externals', title : 'Linked accounts',     listType: 'linkedAccounts' }
+        { slug : 'Profile',       title : 'User profile',        listType: 'username' }
+        { slug : 'TwoFactorAuth', title : '2-Factor Auth',       listType: 'twofactorauth', listHeader: 'Two-Factor Authentication' }
+        { slug : 'Email',         title : 'Email notifications', listType: 'emailNotifications' }
+        { slug : 'Externals',     title : 'Linked accounts',     listType: 'linkedAccounts' }
       ]
     billing :
       title : 'Billing'
@@ -43,10 +44,10 @@ module.exports = class AccountAppController extends AppController
     develop :
       title : 'Develop'
       items : [
-        { slug : 'SSH',         title : 'SSH keys',           listHeader: 'Your SSH Keys',          listType: 'keys' }
-        # { slug : 'Keys',        title : 'Koding Keys',        listHeader: 'Your Koding Keys',       listType: 'kodingKeys' }
-        { slug : 'Referral',    title : 'Referrals',    listHeader: 'Your Referral Options',  listType: 'referralSystem' }
-        { slug : 'Shortcuts', title : 'Shortcuts',           listType: 'shortcuts' }
+        { slug : 'SSH',       title : 'SSH keys',    listHeader: 'Your SSH Keys',          listType: 'keys' }
+        # { slug : 'Keys',      title : 'Koding Keys', listHeader: 'Your Koding Keys',       listType: 'kodingKeys' }
+        { slug : 'Referral',  title : 'Referrals',   listHeader: 'Your Referral Options',  listType: 'referralSystem' }
+        { slug : 'Shortcuts', title : 'Shortcuts',   listType: 'shortcuts' }
       ]
     danger  :
       title : 'Danger'
@@ -154,7 +155,6 @@ module.exports = class AccountAppController extends AppController
     # Temporary solution to hide this from other users ~ GG
     if checkFlag 'super-admin'
       items.push { slug : 'Credentials',   title : 'Credentials',   listHeader: 'Your Credentials',          listType: 'credentials'   }
-      items.push { slug : 'TwoFactorAuth', title : '2-Factor Auth', listHeader: 'Two-Factor Authentication', listType: 'twofactorauth' }
 
     @navController.instantiateListItems items
 

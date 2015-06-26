@@ -236,8 +236,8 @@ func main() {
 		fmt.Fprintln(os.Stderr, usage)
 	}
 	flag.Parse()
-	if flag.NArg() != 1 || flag.Arg(0) == "" {
-		die("invalid number of arguments")
+	if flag.NArg() == 0 || flag.Arg(0) == "" {
+		die("missing script file")
 	}
 	if (*cert == "") != (*key == "") {
 		die("both -cert and -key flags must be provided")

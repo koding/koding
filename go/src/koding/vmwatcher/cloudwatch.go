@@ -170,13 +170,9 @@ func (c *Cloudwatch) IsUserOverLimit(username, limitKey string) (*LimitResponse,
 		planTitle = PaidPlan
 	}
 
-	var limit float64
-
-	switch planTitle {
-	case FreePlan:
-		limit = c.Limits[limitKey]
-	default:
-		limit = c.Limits[limitKey] * PaidPlanMultiplier
+	limit, err := c.getUserLimit(username, limitKey, planTitle)
+	if err != nil {
+		return nil, err
 	}
 
 	lr := &LimitResponse{
@@ -187,6 +183,28 @@ func (c *Cloudwatch) IsUserOverLimit(username, limitKey string) (*LimitResponse,
 	}
 
 	return lr, nil
+}
+
+func (c *Cloudwatch) getUserLimit(username, limitKey, planTitle string) (float64, error) {
+	var limit float64
+
+	switch planTitle {
+	case FreePlan:
+		limit = c.Limits[limitKey]
+	default:
+		limit = c.Limits[limitKey] * PaidPlanMultiplier
+	}
+
+	userLimit, err := getUserLimit(username)
+	if err != nil && !isRedisRecordNil(err) {
+		return 0, err
+	}
+
+	if !isRedisRecordNil(err) {
+		return userLimit, nil
+	}
+
+	return limit, nil
 }
 
 func isRedisRecordNil(err error) bool {

@@ -18,10 +18,15 @@ type Storage interface {
 	Pop(string, string) (string, error)
 	Exists(string, string, string) (bool, error)
 
-	//zset
+	//zset for per user score
 	GetScore(string, string) (float64, error)
 	SaveScore(string, string, float64) error
 	GetFromScore(string, float64) ([]string, error)
+
+	//hash for per user limit
+	SaveUserLimit(string, float64) error
+	GetUserLimit(string) (float64, error)
+	RemoveUserLimit(string) error
 }
 
 type RedisStorage struct {
@@ -111,9 +116,37 @@ func (r *RedisStorage) GetFromScore(key string, from float64) ([]string, error) 
 	return members, nil
 }
 
+func (r *RedisStorage) SaveUserLimit(member string, limit float64) error {
+	_, err := r.Client.HashSet(r.userLimitPrefix(), member, limit)
+	return err
+}
+
+func (r *RedisStorage) GetUserLimit(member string) (float64, error) {
+	limitStr, err := r.Client.GetHashSetField(r.userLimitPrefix(), member)
+	if err != nil {
+		return 0, err
+	}
+
+	limit, err := strconv.ParseFloat(limitStr, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return limit, nil
+}
+
+func (r *RedisStorage) RemoveUserLimit(member string) error {
+	_, err := r.Client.DeleteHashSetField(r.userLimitPrefix(), member)
+	return err
+}
+
 //----------------------------------------------------------
 // Prefix helpers
 //----------------------------------------------------------
+
+func (r *RedisStorage) userLimitPrefix() string {
+	return r.prefix("users", "limit")
+}
 
 func (r *RedisStorage) usersPrefix(key string) string {
 	return r.weekPrefix(key + ":users")

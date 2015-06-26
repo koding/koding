@@ -31,8 +31,11 @@ The following arguments are supported:
 
 * `ami` - (Required) The AMI to use for the instance.
 * `availability_zone` - (Optional) The AZ to start the instance in.
+* `placement_group` - (Optional) The Placement Group to start the instance in.
 * `ebs_optimized` - (Optional) If true, the launched EC2 instance will be
      EBS-optimized.
+* `disable_api_termination` - (Optional) If true, enables [EC2 Instance
+     Termination Protection](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#Using_ChangingDisableAPITermination)
 * `instance_type` - (Required) The type of instance to start
 * `key_name` - (Optional) The key name to use for the instance.
 * `security_groups` - (Optional) A list of security group names to associate with.
@@ -92,7 +95,7 @@ Each `ebs_block_device` supports the following:
   on instance termination (Default: `true`).
 * `encrypted` - (Optional) Enables [EBS
   encryption](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
-  on the volume (Default: `false`).
+  on the volume (Default: `false`). Cannot be used with `snapshot_id`.
 
 Modifying any `ebs_block_device` currently requires resource replacement.
 
@@ -120,6 +123,7 @@ The following attributes are exported:
 
 * `id` - The instance ID.
 * `availability_zone` - The availability zone of the instance.
+* `placement_group` - The placement group of the instance.
 * `key_name` - The key name of the instance
 * `private_dns` - The Private DNS name of the instance
 * `private_ip` - The private IP address.

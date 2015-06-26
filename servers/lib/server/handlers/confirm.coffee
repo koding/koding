@@ -2,9 +2,7 @@
 KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 {secret}  = KONFIG.jwt
 
-Analytics = require('analytics-node')
-analytics = new Analytics(KONFIG.segment)
-
+Analytics = require '../../../../workers/social/lib/social/models/analytics.coffee'
 Jwt       = require 'jsonwebtoken'
 
 module.exports = (req, res, next) ->
@@ -39,4 +37,4 @@ module.exports = (req, res, next) ->
           res.cookie 'clientId', session.clientId, path: '/'
           res.redirect redirect_uri or '/'
 
-          analytics.track userId: username, event: 'confirmed & logged in using token'
+          Analytics.track username, 'confirmed & logged in using token'
