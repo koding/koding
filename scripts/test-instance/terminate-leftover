@@ -11,6 +11,8 @@ if argv.help
 AWS = require './aws'
 EC2 = new AWS.EC2()
 
+LIFETIME_HARD_LIMIT = 2 * 60 * 60 * 1000 # 2 hours
+
 run = ->
   unless argv.hours or argv.minutes
     console.error "error: Please specify an expiration time\n"
