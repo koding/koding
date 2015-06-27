@@ -13,9 +13,7 @@ import (
 
 const (
 	GithubServerURL  = "https://api.github.com"
-	OrgEndpoint      = "/users/%s/orgs"
 	UserRepoEndpoint = "/user/repos"
-	OrgRepoEndpoint  = "/orgs/%s/repos"
 )
 
 type Client struct {
@@ -30,7 +28,11 @@ type Organization struct {
 type Repos map[string][]string
 
 type Repo struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
+	FullName string `json:"full_name"`
+	Owner    struct {
+		Login string `json:"login"`
+	} `json:"owner"`
 }
 
 // FetchRepositories returns user repositories by grouping them with the organizations
@@ -51,12 +53,8 @@ func (h *Handler) FetchRepositories(u *url.URL, header http.Header, _ interface{
 		client:  new(http.Client),
 		baseUrl: GithubServerURL,
 	}
-	orgs, err := c.fetchOrganizations(githubUsername, token)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
 
-	repos, err := c.fetchUserRepos(githubUsername, token, orgs)
+	repos, err := c.fetchRepos(githubUsername, token)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -68,57 +66,10 @@ func (c *Client) getUrl(path string) string {
 	return fmt.Sprintf("%s%s", c.baseUrl, path)
 }
 
-func (c *Client) fetchOrganizations(nick, token string) ([]Organization, error) {
-	endpoint := fmt.Sprintf(OrgEndpoint, nick)
-	req, err := http.NewRequest("GET", c.getUrl(endpoint), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	headerAuth := fmt.Sprintf("token %s", token)
-	req.Header.Add("Authorization", headerAuth)
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, errors.New(resp.Status)
-	}
-
-	orgs := new([]Organization)
-	err = json.NewDecoder(resp.Body).Decode(orgs)
-
-	return *orgs, err
-}
-
-func (c *Client) fetchUserRepos(nick, token string, orgs []Organization) (Repos, error) {
-	repos, err := c.fetchRepos(nick, token, UserRepoEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	userRepos := Repos{}
-	userRepos[nick] = repos
-
-	for _, org := range orgs {
-		endpoint := fmt.Sprintf(OrgRepoEndpoint, org.Name)
-		repos, err := c.fetchRepos(nick, token, endpoint)
-		if err != nil {
-			continue
-		}
-
-		userRepos[org.Name] = repos
-	}
-
-	return userRepos, nil
-}
-
-func (c *Client) fetchRepos(nick, token, endpoint string) ([]string, error) {
-	var doRequest func(repoArr []string, page int) ([]string, error)
-	doRequest = func(repoArr []string, page int) ([]string, error) {
-		repoUrl := fmt.Sprintf("%s?page=%d", c.getUrl(endpoint), page)
+func (c *Client) fetchRepos(nick, token string) ([]string, error) {
+	var doRequest func(userRepos []string, page int) ([]string, error)
+	doRequest = func(userRepos []string, page int) ([]string, error) {
+		repoUrl := fmt.Sprintf("%s?page=%d", c.getUrl(UserRepoEndpoint), page)
 		req, err := http.NewRequest("GET", repoUrl, nil)
 		if err != nil {
 			return nil, err
@@ -144,15 +95,18 @@ func (c *Client) fetchRepos(nick, token, endpoint string) ([]string, error) {
 		}
 
 		for _, repo := range *repos {
-			repoArr = append(repoArr, repo.Name)
+			//if _, ok := userRepos[repo.Owner.Login]; !ok {
+			//userRepos[repo.Owner.Login] = make([]string, 0)
+			//}
+			userRepos = append(userRepos, repo.FullName)
 		}
 
 		if len(*repos) != 0 {
 			page++
-			return doRequest(repoArr, page)
+			return doRequest(userRepos, page)
 		}
 
-		return repoArr, nil
+		return userRepos, nil
 	}
 
 	return doRequest(make([]string, 0), 1)
