@@ -166,14 +166,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         return callback UNKNOWN_ERROR  if err or not user
         user.confirmEmail (err)->
           return callback UNKNOWN_ERROR  if err
-          certificate.update {$set: status: 'redeemed'}, (err) ->
-            return callback err if err
-
-            # Email.queue user.username, {
-            #   to       : certificate.email
-            #   subject  : Email.types.WELCOME
-            # }, {firstName: user.username}, (err)->
-            #   console.error err  if err
+          certificate.update {$set: status: 'redeemed'}, callback
 
   @invalidate =(query, callback)->
     query.status = 'active'
