@@ -58,6 +58,7 @@ module.exports = class IDELayoutManager extends KDObject
 
     @subViews = []
     @getSubLevel splitViewPanel
+
     return @subViews
 
 
@@ -73,10 +74,11 @@ module.exports = class IDELayoutManager extends KDObject
 
     lastViews = items.last.views
 
+    ## If don't have more sub views in data structe.
     if lastViews.length is 0 or (lastViews.length > 0 and lastViews.last.context)
       return items.last
     else
-      @findLastSplitView lastViews
+      @findLastSplitView lastViews  ## if have recall itself
 
 
   ###*
@@ -114,9 +116,9 @@ module.exports = class IDELayoutManager extends KDObject
       pane = context : target.view.serialize()
       last = @findLastSplitView @subViews
 
-      if last
-      then last.views.push pane
-      else @subViews.push pane
+      if last                     ## If have last view
+      then last.views.push pane   ## add `pane` to last view of tree
+      else @subViews.push pane    ## else add `pane` to plain array.
 
 
   ###*
@@ -134,9 +136,9 @@ module.exports = class IDELayoutManager extends KDObject
       isFirst   : isFirst
       views     : []
 
-    if parentView
-    then parentView.views.push item
-    else @subViews.push item
+    if parentView                     ## If have last view
+    then parentView.views.push item   ## add `item` to last view of tree
+    else @subViews.push item          ## else add `item` to plain array.
 
     @getSubLevel panel
 
@@ -148,43 +150,45 @@ module.exports = class IDELayoutManager extends KDObject
   ###
   resurrectSnapshot: (snapshot) ->
 
-    delegate = @getDelegate()
+    ## The `ideApp` is an `IDEAppController`s instance
+    ideApp = @getDelegate()
 
     # if has the fake view
-    delegate.mergeSplitView()  if delegate.ideViews.length > 1
+    ideApp.mergeSplitView()  if ideApp.ideViews.length > 1
 
-    delegate.splitTabView snapshot[1].direction  if snapshot[1]
+    ideApp.splitTabView snapshot[1].direction  if snapshot[1]
 
-    for key, value of snapshot
-      tabView = delegate.ideViews[key]?.tabView
-      @resurrectPanes_ value.views, tabView
+    for index, item of snapshot
+      tabView = ideApp.ideViews[index]?.tabView
+      @resurrectPanes_ item.views, tabView
 
-    delegate.isLocalSnapshotRestored = yes
+    ideApp.isLocalSnapshotRestored = yes
 
 
   resurrectPanes_: (items, tabView) ->
 
-    delegate = @getDelegate()
+    ## The `ideApp` is an `IDEAppController`s instane
+    ideApp = @getDelegate()
 
-    for key, value of items
+    for own index, item of items
 
-      delegate.setActiveTabView tabView
+      ideApp.setActiveTabView tabView
 
-      if value.type is 'split'
+      if item.type is 'split'
 
-        if value.isFirst isnt yes
-          delegate.splitTabView value.direction
-          tabView = delegate.ideViews.last.tabView
+        if item.isFirst isnt yes
+          ideApp.splitTabView item.direction
+          tabView = ideApp.ideViews.last.tabView
 
-        if value.views.length
-          do (value, tabView) =>
-            kd.utils.defer => @resurrectPanes_ value.views, tabView
+        if item.views.length
+          do (item, tabView) =>
+            kd.utils.defer => @resurrectPanes_ item.views, tabView
 
       else
         # Don't use `active tab view` logic for new pane creation.
         # Because `The Editors` (saved editors) are loading async.
-        value.targetTabView = tabView  if value.context.paneType is 'editor'
-        delegate.createPaneFromChange value, yes
+        item.targetTabView = tabView  if item.context.paneType is 'editor'
+        ideApp.createPaneFromChange item, yes
 
 
   ###*
@@ -197,7 +201,7 @@ module.exports = class IDELayoutManager extends KDObject
    * @param {Object} snapshot
    * @return {Array} panes
   ###
-  convertSnapshotToFlatArray: (snapshot) ->
+  @convertSnapshotToFlatArray: (snapshot) ->
 
     panes = []
 

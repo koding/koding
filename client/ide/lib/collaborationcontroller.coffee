@@ -1080,5 +1080,5 @@ module.exports = CollaborationController =
           @stateMachine.transition 'Loading'
 
 
-  getHostSnapshot: -> @layoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
+  getHostSnapshot: -> IDELayoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
 
