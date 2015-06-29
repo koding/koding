@@ -58,5 +58,5 @@ module.exports =
 
     browser
       .pause 4000
-      .waitForElementVisible   '.drawing-pane .drawing-board-toolbar', 20000 # Assertion
+      .waitForElementVisible   '.pane-wrapper .kdsplitview-panel.panel-1 .drawing-pane .drawing-board-toolbar', 20000 # Assertion
       .end()
