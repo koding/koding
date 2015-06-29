@@ -35,17 +35,18 @@ func (ics *IntegrationContainers) Populate(groupName string) error {
 
 	// group channel integrations by integration id
 	containers := make(map[int64]*IntegrationContainer)
-	for _, channelIntegration := range channelIntegrations {
-		integration, ok := containers[channelIntegration.IntegrationId]
-		if !ok {
-			integration = NewIntegrationContainer()
-			containers[channelIntegration.IntegrationId] = integration
-		}
+	for k := range channelIntegrations {
+		channelIntegration := channelIntegrations[k]
 		cic := NewChannelIntegrationContainer(&channelIntegration)
 		if err := cic.Populate(); err != nil {
 			return err
 		}
 
+		integration, ok := containers[channelIntegration.IntegrationId]
+		if !ok {
+			integration = NewIntegrationContainer()
+			containers[channelIntegration.IntegrationId] = integration
+		}
 		integration.Push(*cic)
 	}
 
@@ -60,7 +61,8 @@ func (ics *IntegrationContainers) Populate(groupName string) error {
 		return err
 	}
 
-	for _, integration := range ints {
+	for k := range ints {
+		integration := ints[k]
 		ic := containers[integration.Id]
 		ic.Integration = &integration
 		ics.Push(*ic)
