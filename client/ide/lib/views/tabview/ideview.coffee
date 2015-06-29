@@ -636,6 +636,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     kite.init()
     .then ->
       kite.webtermRename request
+
     .then =>
       @renameTerminal paneView, machine, newTitle
 

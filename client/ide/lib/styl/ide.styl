@@ -61,14 +61,34 @@ body.ide
         top                 14px
 
       .kdtabhandle
-        b
+        .tab-handle-text
           width             90%
 
-        input.kdinput.text
-          border-radius     3px
-          padding           0px 3px
-          font-size         12px
+        .tab-handle-input
+          border-radius     1px
+          border            1px solid #4e4e4e
+          color             #b2b2b2
+          padding           0px 7px
+          font-family       'Proxima Nova'
+          font-size         14px
+          background-color  #121212
+          background-image  none
+          height            24px
+          display           none
 
+        &.edit-mode
+          padding           7px
+          box-sizing        border-box
+          line-height       14px
+
+          .tab-handle-text
+            display         none
+
+          .close-tab
+            display         none
+
+          .tab-handle-input
+            display         inline
 
   #kdmaincontainer .kdsplitcomboview .kdtabview
     bg                      color, dark-panel-bg

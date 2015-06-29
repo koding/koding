@@ -1192,7 +1192,7 @@ class IDEAppController extends AppController
       if type is 'NewPaneCreated'
         @createPaneFromChange change
 
-      else if type in ['TabChanged', 'PaneRemoved', 'TerminalTabTitleChanged']
+      else if type in ['TabChanged', 'PaneRemoved', 'TerminalRenamed']
         paneView = targetPane?.parent
         tabView  = paneView?.parent
         ideView  = tabView?.parent

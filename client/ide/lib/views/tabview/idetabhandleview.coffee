@@ -1,13 +1,10 @@
-kd              = require 'kd'
-KDView          = kd.View
-KDInputView     = kd.InputView
-KDTabHandleView = kd.TabHandleView
+kd                  = require 'kd'
+KDView              = kd.View
+KDHitEnterInputView = kd.HitEnterInputView
+KDTabHandleView     = kd.TabHandleView
 
 
 module.exports = class IDETabHandleView extends KDTabHandleView
-
-  ENTER = 13
-  ESC   = 27
 
   MIN_EDIT_WIDTH = 100
 
@@ -27,24 +24,27 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     { view, title }    = @getOptions()
 
-    @titleText  = new KDView { tagName : 'b', partial : title }
+    @titleText  = new KDView
+      tagName  : 'b'
+      cssClass : 'tab-handle-text'
+      partial  : title
     view.addSubView @titleText
 
-    @titleInput = new KDInputView
-      type    : 'text'
-      keydown : (event) =>
-        switch event.which
-          when ESC then @setTitleEditMode no
-          when ENTER
-            { title } = @getOptions()
-            newTitle  = @titleInput.getValue()
+    @titleInput = new KDHitEnterInputView
+      type     : 'text'
+      cssClass : 'tab-handle-input'
+    @titleInput.on 'EnterPerformed', =>
+      { title } = @getOptions()
+      newTitle  = @titleInput.getValue()
 
-            return  unless newTitle.length
-            return @setTitleEditMode no  if newTitle is title
+      return  unless newTitle.length
+      return @setTitleEditMode no  if newTitle is title
 
-            @emit 'RenamingRequested', newTitle, title
+      @emit 'RenamingRequested', newTitle, title
 
-    @titleInput.hide()
+    @titleInput.on 'EscapePerformed', =>
+      @setTitleEditMode no
+
     view.addSubView @titleInput
 
 
@@ -67,7 +67,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
   dblClick: ->
 
     return  unless @isEditable and @getWidth() >= MIN_EDIT_WIDTH
-    return  unless @titleInput.hasClass 'hidden'
+    return  if @hasClass 'edit-mode'
 
     @setTitleEditMode yes
 
@@ -76,13 +76,11 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     { title } = @getOptions()
     if isEditMode
-      @titleText.hide()
+      @setClass 'edit-mode'
       @titleInput.setValue title
-      @titleInput.show()
       @titleInput.setFocus()
     else
-      @titleText.show()
-      @titleInput.hide()
+      @unsetClass 'edit-mode'
 
 
   setTitle: (newTitle) ->
