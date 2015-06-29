@@ -305,7 +305,7 @@ your instance.
 * They should start with "igt", followed by vpc name
 eg: igw-koding-eb-deployment-prod : igw-<vpc_name>
 
-* they should be be attached to one VPC
+* they should be attached to one VPC
 
 ### Elastic IPs
 
