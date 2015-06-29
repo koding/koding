@@ -206,7 +206,7 @@ module.exports = class IDELayoutManager extends KDObject
     panes = []
 
     for item in snapshot when item.type is 'split'
-      IDELayoutManager.findPanesFromArray panes, item
+      IDELayoutManager.findPanesFromArray panes, item.views
 
     return panes
 
@@ -215,15 +215,15 @@ module.exports = class IDELayoutManager extends KDObject
    * Find panes from array.
    *
    * @param {Array} panes  Referenced parameter
-   * @param {Object} item
+   * @param {Array} views
   ###
-  @findPanesFromArray: (panes, item) ->
+  @findPanesFromArray: (panes, views) ->
 
-    return  unless item.views.length
+    return  unless views?.length
 
-    if item.views.first.context # if items are a pane
-      for pane in item.views    # collect panes
+    if views.first.context # if items are a pane
+      for pane in views    # collect panes
         panes.push pane
     else
-      for subView in item.views
+      for subView in views
         IDELayoutManager.findPanesFromArray panes, subView # recall itself
