@@ -10,6 +10,7 @@ remote           = require('app/remote').getInstance()
 envDataProvider  = require 'app/userenvironmentdataprovider'
 envHelpers       = require 'ide/collaboration/helpers/environment'
 nick             = require 'app/util/nick'
+sinkrow          = require 'sinkrow'
 
 
 module.exports = class SidebarMachineSharePopup extends KDModalView
@@ -188,30 +189,45 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
     kd.singletons.machineShareManager.unset machine.uid
 
     @denyButton.showLoader()
-    machine.jMachine.deny (err) =>
-      return showError err  if err
 
-      if machine.isPermanent() then @handleDeny()
-      else @rejectChannel @bound 'handleDeny'
+    {type, isApproved, channelId} = @getOptions()
+    isPermanent = machine.isPermanent()
 
+    denyMachine = switch type
+      when 'shared machine' then isPermanent
+      when 'collaboration' then not isPermanent
 
-  rejectChannel: (callback) ->
+    queue = [
+      ->
+        if denyMachine
+        then machine.jMachine.deny (err) ->
+          return showError err  if err
+          queue.next()
+        else queue.next()
+      =>
+        return queue.next()  unless channelId
 
-    { channelId } = @getOptions()
-    return  unless channelId
-    kd.singletons.socialapi.channel.rejectInvite { channelId }, callback
+        {channel} = kd.singletons.socialapi
 
+        method = if isApproved then 'leave' else 'rejectInvite'
 
-  handleDeny: ->
+        channel[method] {channelId}, (err) ->
+          showError err
+          queue.next()
+      ->
+        if denyMachine
+          envDataProvider.getIDEFromUId(machine.uid)?.quit()
+        queue.next()
+      ->
+        envDataProvider.fetch ->
+          kd.singletons.mainView.activitySidebar.redrawMachineList()
+          queue.next()
+      =>
+        @destroy()
+        queue.next()
+    ]
 
-    # fetch the data and redraw the sidebar to remove the denied machine.
-    envDataProvider.fetch =>
-      kd.singletons.mainView.activitySidebar.redrawMachineList()
-
-      if @isApproved # quit IDE if exists
-        envDataProvider.getIDEFromUId(@getData().uid)?.quit()
-
-      @destroy()
+    sinkrow.daisy queue
 
 
   destroy: ->
