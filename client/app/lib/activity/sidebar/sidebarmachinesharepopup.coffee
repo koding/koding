@@ -192,11 +192,14 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       return showError err  if err
 
       if machine.isPermanent() then @handleDeny()
-      else # remove user from chat and unshare machine for collaboration
-        { channelId } = @getOptions()
-        kd.singletons.socialapi.channel.rejectInvite { channelId }, (err) =>
-          return showError err  if err
-          @handleDeny()
+      else @rejectChannel @bound 'handleDeny'
+
+
+  rejectChannel: (callback) ->
+
+    { channelId } = @getOptions()
+    return  unless channelId
+    kd.singletons.socialapi.channel.rejectInvite { channelId }, callback
 
 
   handleDeny: ->
