@@ -36,6 +36,7 @@ CollaborationController       = require './collaborationcontroller'
 VideoCollaborationController  = require './videocollaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
+IDELayoutManager              = require './workspace/idelayoutmanager'
 
 
 require('./routes')()
@@ -93,8 +94,10 @@ class IDEAppController extends AppController
     @layout = ndpane(16)
     @layoutMap = new Array(16*16)
 
-    {windowController, appManager} = kd.singletons
+    { windowController, appManager } = kd.singletons
     windowController.addFocusListener @bound 'handleWindowFocus'
+
+    @layoutManager = new IDELayoutManager delegate : this
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
@@ -231,7 +234,7 @@ class IDEAppController extends AppController
     kd.utils.defer -> pane.setFocus? state
 
 
-  splitTabView: (type = 'vertical', ideViewOptions) ->
+  splitTabView: (type = 'vertical', ideViewOptions, saveSnapshot = yes) ->
 
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
@@ -272,6 +275,7 @@ class IDEAppController extends AppController
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
 
     @recalculateHandles()
+    @writeSnapshot()  if saveSnapshot
 
 
   recalculateHandles: ->
@@ -314,6 +318,7 @@ class IDEAppController extends AppController
     splitView.merge()
 
     @recalculateHandles()
+    @writeSnapshot()
 
 
   handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
@@ -343,11 +348,13 @@ class IDEAppController extends AppController
       parentSplitView.panels[panelIndexInParent]        = ideView.parent
 
 
-  openFile: (file, contents, callback = noop, emitChange) ->
+  openFile: (file, contents, callback = noop, emitChange, targetTabView) ->
 
     kallback = (pane) =>
       @emit 'EditorPaneDidOpen', pane  if pane?.options.paneType is 'editor'
       callback pane
+
+    @setActiveTabView targetTabView  if targetTabView
 
     @activeTabView.emit 'FileNeedsToBeOpened', file, contents, kallback, emitChange
 
@@ -413,7 +420,7 @@ class IDEAppController extends AppController
   createInitialView: (withFakeViews) ->
 
     kd.utils.defer =>
-      @splitTabView 'horizontal', createNewEditor: no
+
       @getMountedMachine (err, machine) =>
 
         return unless machine
@@ -428,6 +435,8 @@ class IDEAppController extends AppController
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
 
+          @splitTabView 'horizontal', createNewEditor: no, no
+
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
           fakeTerminalView  = new KDCustomHTMLView partial: splashes.getTerminal nickname
@@ -439,12 +448,16 @@ class IDEAppController extends AppController
 
         else
 
-          @fetchSnapshot (snapshot)=>
+          @fetchSnapshot (snapshot) =>
             return @resurrectLocalSnapshot snapshot  if snapshot
+
+            @splitTabView 'horizontal', createNewEditor: no, no
 
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
             @setActiveTabView @ideViews.first.tabView
+            @initialViewsReady = yes
+
             @forEachSubViewInIDEViews_ (pane) ->
               pane.isInitial = yes
 
@@ -773,7 +786,8 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
-    return  if @isDestroyed or not @isMachineRunning()
+    ## Only host can write snapshot to Kite
+    return  if @isDestroyed or not @isMachineRunning() or not @amIHost
 
     name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
@@ -1017,10 +1031,13 @@ class IDEAppController extends AppController
         @removeFakeViews()
         @fakeViewsDestroyed = yes
 
-      if snapshot
-        @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
-      else
-        @addInitialViews()
+      unless @isLocalSnapshotRestored
+
+        if snapshot
+          @resurrectLocalSnapshot snapshot
+        else
+          @addInitialViews()  unless @initialViewsReady
+
 
       { mainView } = kd.singletons
 
@@ -1044,20 +1061,15 @@ class IDEAppController extends AppController
     @ideViews.first.createEditor()
     @ideViews.last.createTerminal machine: @mountedMachine
     @setActiveTabView @ideViews.first.tabView
+    @initialViewsReady = yes
 
 
   resurrectLocalSnapshot: (snapshot) ->
 
-    resurrect = (snapshot)=>
-      for key, value of snapshot when value
-        @createPaneFromChange value, yes
-
-      @isLocalSnapshotRestored = yes
-
-    return  if snapshot then resurrect snapshot
+    return  if snapshot then @layoutManager.resurrectSnapshot snapshot
 
     @fetchSnapshot (snapshot)->
-      resurrect snapshot  if snapshot
+      @layoutManager.resurrectSnapshot snapshot  if snapshot
 
 
   toggleFullscreenIDEView: ->
@@ -1112,20 +1124,7 @@ class IDEAppController extends AppController
     tabView.removePane paneView
 
 
-  getWorkspaceSnapshot: ->
-
-    panes = {}
-
-    @forEachSubViewInIDEViews_ (pane) ->
-      return  unless pane
-      return  if not pane.serialize or (@isInSession and pane.isInitial)
-
-      data = pane.serialize()
-      panes[data.hash] =
-        type    : 'NewPaneCreated'
-        context : data
-
-    return panes
+  getWorkspaceSnapshot: -> @layoutManager.createLayoutData()
 
 
   changeActiveTabView: (paneType) ->
@@ -1152,7 +1151,6 @@ class IDEAppController extends AppController
         if change.type is 'NewPaneCreated'
 
           {content, path} = context.file
-
           string = @rtm.getFromModel path
 
           unless string
@@ -1244,16 +1242,12 @@ class IDEAppController extends AppController
     return  unless context
 
     paneHash = context.paneHash or context.hash
-    currentSnapshot = @getWorkspaceSnapshot()
-
-    if paneInfo = currentSnapshot[paneHash]
-      return @switchToPane paneInfo
 
     { paneType } = context
 
     return  if not paneType or not paneHash
 
-    @changeActiveTabView paneType
+    @changeActiveTabView paneType  if not isFromLocalStorage and not @amIHost
 
     switch paneType
       when 'terminal' then @createTerminalPaneFromChange change, paneHash
@@ -1276,12 +1270,12 @@ class IDEAppController extends AppController
 
   createEditorPaneFromChange: (change, hash) ->
 
-    { context }        = change
-    { file, paneType } = context
-    { path }           = file
-    options            = { path, machine : @mountedMachine }
-    file               = FSHelper.createFileInstance options
-    file.paneHash      = hash
+    { context, targetTabView }  = change
+    { file, paneType }          = context
+    { path }                    = file
+    options                     = { path, machine : @mountedMachine }
+    file                        = FSHelper.createFileInstance options
+    file.paneHash               = hash
 
     if @rtm?.realtimeDoc
       content = @rtm.getFromModel(path)?.getText() or ''
@@ -1293,8 +1287,7 @@ class IDEAppController extends AppController
     else
       file.fetchContents (err, contents = '') =>
         return showError err  if err
-        @changeActiveTabView paneType
-        @openFile file, contents, noop, no
+        @openFile file, contents, noop, no, targetTabView
 
 
   createDrawingPaneFromChange: (change, hash) ->

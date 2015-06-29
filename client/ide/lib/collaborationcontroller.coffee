@@ -19,6 +19,8 @@ envHelpers                    = require './collaboration/helpers/environment'
 CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
+IDELayoutManager              = require './workspace/idelayoutmanager'
+
 
 {warn} = kd
 
@@ -241,7 +243,7 @@ module.exports = CollaborationController =
 
   setCollaborativeReferences: ->
 
-    initialSnapshot = if @amIHost then @getWorkspaceSnapshot() else {}
+    initialSnapshot = if @amIHost then @getHostSnapshot() else {}
 
     refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), initialSnapshot
 
@@ -531,8 +533,7 @@ module.exports = CollaborationController =
 
   appendHostSnapshot: (snapshot) ->
 
-    if snapshot.length or @myWatchMap.values().length
-      return snapshot
+    return snapshot  if snapshot?.length
 
     key = "#{@collaborationHost}Snapshot"
 
@@ -747,8 +748,6 @@ module.exports = CollaborationController =
 
     # attach realtime manager when a new editor pane is opened.
     @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
-
-    @updateWorkspaceSnapshotModel()
 
     @on 'SetMachineUser', @bound 'broadcastMachineUserChange'
 
@@ -1081,7 +1080,5 @@ module.exports = CollaborationController =
           @stateMachine.transition 'Loading'
 
 
-  updateWorkspaceSnapshotModel: ->
+  getHostSnapshot: -> IDELayoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
 
-    for hash, change of @getWorkspaceSnapshot()
-      @mySnapshot.set hash, change
