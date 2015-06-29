@@ -176,6 +176,34 @@ module.exports = class NavigationMachineItem extends JView
 
   popups = {}
 
+  ###
+
+  This function determines what sort of machine share popup should be
+  displayed based on given options and registered invitations in
+  `MachineShareManager`.
+
+  If an invitation found for machine given to `NavigationMachineItem`
+  instance then share popup is displayed in invitation type for the
+  shared workspace attached in invitation object.
+
+  Default behavior of `SidebarMachineSharePopup` instance satisfies
+  `shared machine` invitations.
+
+  If an invitation is not found then state of invitations deduced by
+  checking related properties.
+
+  If user is a permanent user then approve state of `JMachine`
+  determines type of share popup.
+
+  If user is not a permanent user then share popup type is set to
+  `collaboration`.  If a workspace identifier is given in options then
+  associated `JWorkspace` is found.  Channel identifier is set from
+  matching workspace object.
+
+  Collaboration invitation is displayed if user is not a participant
+  of associated channel.
+
+  ###
   showSharePopup: (options = {}) ->
 
     show = (options) =>
