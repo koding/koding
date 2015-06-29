@@ -181,6 +181,8 @@ module.exports = class IDELayoutManager extends KDObject
           tabView = ideApp.ideViews.last.tabView
 
         if item.views.length
+          # since we are in a for loop to be able to preserve item and tabview
+          # for the defer, we are creating a scope and passing them into there.
           do (item, tabView) =>
             kd.utils.defer => @resurrectPanes_ item.views, tabView
 
