@@ -175,7 +175,7 @@ Configuration = (options={}) ->
     mongo                          : mongo
     kiteHome                       : kiteHome
     redis                          : redis.url
-    monitoringRedis                : "10.0.0.123:#{redis.port}"
+    monitoringRedis                : "#{prod_simulation_server}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
