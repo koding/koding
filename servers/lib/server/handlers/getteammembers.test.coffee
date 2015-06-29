@@ -1,0 +1,267 @@
+Bongo                                   = require 'bongo'
+koding                                  = require './../bongo'
+
+{ daisy }                               = Bongo
+{ expect }                              = require 'chai'
+{ Relationship }                        = require 'jraphical'
+{ generateUrl
+  TeamHandlerHelper
+  generateRandomEmail
+  generateRandomString
+  RegisterHandlerHelper }               = require '../../../testhelper'
+
+{ generateJoinTeamRequestParams
+  generateCreateTeamRequestParams
+  generateGetTeamMembersRequestParams } = TeamHandlerHelper
+
+request                                 = require 'request'
+querystring                             = require 'querystring'
+
+JGroup                                  = null
+JInvitation                             = null
+
+
+# here we have actual tests
+runTests = -> describe 'server.handlers.getteammembers', ->
+
+  beforeEach (done) ->
+
+    # including models before each test case, requiring them outside of
+    # tests suite is causing undefined errors
+    { JGroup
+      JInvitation } = koding.models
+
+    done()
+
+
+  it 'should send HTTP 404 if group does not exist', (done) ->
+
+    getTeamMembersRequestParams = generateGetTeamMembersRequestParams
+      groupSlug : 'someInvalidGroup'
+
+    request.post getTeamMembersRequestParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 404
+      expect(body)            .to.be.equal 'no group found'
+      done()
+
+
+  it 'should send HTTP 403 when token is not set', (done) ->
+
+    groupSlug = generateRandomString()
+
+    queue = [
+
+      ->
+        createTeamRequestParams = generateCreateTeamRequestParams
+          body    :
+            slug  : groupSlug
+
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        getTeamMembersRequestParams = generateGetTeamMembersRequestParams
+          groupSlug : groupSlug
+          body      :
+            token   : ''
+
+        request.get getTeamMembersRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 403
+          expect(body)            .to.be.equal 'not authorized'
+          queue.next()
+
+      -> done()
+
+    ]
+
+    daisy queue
+
+
+  it 'should send HTTP 403 when token is invalid', (done) ->
+
+    groupSlug = generateRandomString()
+
+    queue = [
+
+      ->
+        createTeamRequestParams = generateCreateTeamRequestParams
+          body    :
+            slug  : groupSlug
+
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        getTeamMembersRequestParams = generateGetTeamMembersRequestParams
+          groupSlug : groupSlug
+          body      :
+            token   : 'someInvalidToken'
+
+        request.post getTeamMembersRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 403
+          expect(body)            .to.be.equal 'not authorized'
+          queue.next()
+
+      -> done()
+
+    ]
+
+    daisy queue
+
+
+  it 'should send HTTP 200 when valid data provided with unregistered user', (done) ->
+
+    token         = ''
+    groupSlug     = generateRandomString()
+    inviteeEmail  = generateRandomEmail()
+
+    queue = [
+
+      ->
+        # expecting team to be created
+        createTeamRequestParams = generateCreateTeamRequestParams
+          body       :
+            slug     : groupSlug
+            invitees : inviteeEmail
+
+
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        # expecting group to be crated
+        JGroup.one { slug :groupSlug }, (err, group) ->
+          expect(err)         .to.not.exist
+          expect(group)       .to.exist
+          queue.next()
+
+      ->
+        # expecting invitation to be created with correct data
+        params = { email : inviteeEmail }
+
+        JInvitation.one params, (err, invitation) ->
+          expect(err)                   .to.not.exist
+          expect(invitation)            .to.exist
+          expect(invitation.code)       .to.exist
+          expect(invitation.email)      .to.be.equal inviteeEmail
+          expect(invitation.status)     .to.be.equal 'pending'
+          expect(invitation.groupName)  .to.be.equal groupSlug
+
+          token = invitation.code
+          queue.next()
+
+      ->
+        # expecting to be able to get team members data
+        url = generateUrl
+          route : "-/teams/#{groupSlug}/members?token=#{token}&limit=10"
+
+        getTeamMembersRequestParams = generateGetTeamMembersRequestParams
+          url     : url
+          body    :
+            token : token
+
+        request.get getTeamMembersRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      -> done()
+
+    ]
+
+    daisy queue
+
+
+  it 'should send HTTP 200 when valid data provided with registered user', (done) ->
+
+    token        = ''
+    username     = generateRandomString()
+    password     = 'testpass'
+    groupSlug    = generateRandomString()
+    inviteeEmail = generateRandomEmail()
+
+    queue = [
+
+      ->
+        # expecting user to be registered
+        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+          body       :
+            email    : inviteeEmail
+            username : username
+            password : password
+
+        # registering a new user
+        request.post registerRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        # expecting team to be created
+        createTeamRequestParams = generateCreateTeamRequestParams
+          body       :
+            slug     : groupSlug
+            invitees : inviteeEmail
+
+
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        # expecting group to be crated
+        JGroup.one { slug :groupSlug }, (err, group) ->
+          expect(err)         .to.not.exist
+          expect(group)       .to.exist
+          queue.next()
+
+      ->
+        # expecting invitation to be created with correct data
+        params = { email : inviteeEmail }
+
+        JInvitation.one params, (err, invitation) ->
+          expect(err)                   .to.not.exist
+          expect(invitation)            .to.exist
+          expect(invitation.code)       .to.exist
+          expect(invitation.email)      .to.be.equal inviteeEmail
+          expect(invitation.status)     .to.be.equal 'pending'
+          expect(invitation.groupName)  .to.be.equal groupSlug
+
+          token = invitation.code
+          queue.next()
+
+      ->
+        # expecting to be able to get team members data
+        url = generateUrl
+          route : "-/teams/#{groupSlug}/members?token=#{token}&limit=10"
+
+        getTeamMembersRequestParams = generateGetTeamMembersRequestParams
+          url     : url
+          body    :
+            token : token
+
+        request.get getTeamMembersRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      -> done()
+
+    ]
+
+    daisy queue
+
+
+
+runTests()
+

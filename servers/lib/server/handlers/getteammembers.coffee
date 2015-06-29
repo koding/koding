@@ -41,7 +41,6 @@ handleTokenedRequest = (params, res, next) ->
       group.fetchMembers {}, options, (err, members) ->
         return res.status(500).send 'an error occured'  if err
         return res.status(200).send members
-        queue.next()
 
   ]
 
@@ -94,8 +93,6 @@ module.exports = (req, res, next) ->
           return res.status(500).send 'an error occured'
         else
           return res.status(200).send members
-
-        queue.next()
 
   ]
 
