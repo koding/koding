@@ -1527,7 +1527,7 @@ class IDEAppController extends AppController
     panel = tabView.parent.parent
     return  unless panel instanceof KDSplitViewPanel
 
-    { pane }      = tabView.removePane tabView.getActivePane(), yes
+    { pane }      = tabView.removePane tabView.getActivePane(), yes, yes
     targetTabView = targetPanel.subViews.first.tabView
 
     if index?
