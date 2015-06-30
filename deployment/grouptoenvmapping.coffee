@@ -20,7 +20,6 @@ groupToEnv =
   "proxy"       : proxies
 
 module.exports.isAllowed = (group, env)->
-  console.log group, env
   # if group name is not in groupToEnv
   unless groupToEnv[group]
     console.error "#{group} is not defined in groupToEnv map"
