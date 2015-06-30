@@ -1,8 +1,11 @@
-fs = require 'fs'
+fs            = require 'fs'
+{ isAllowed } = require './grouptoenvmapping'
 
-createUpstreams = (workers={}) ->
+createUpstreams = (KONFIG) ->
+
   upstreams = "# add global upstreams\n"
-  for name, options of workers when options.ports?.incoming?
+  for name, options of KONFIG.workers when options.ports?.incoming?
+
     servers = ""
     { incoming: port } = options.ports
     options.instances or= 1
@@ -90,9 +93,8 @@ createLocations = (KONFIG) ->
 
     # some of the locations can be limited to some environments, while creating
     # nginx locations filter with this info
-    if options.limitedToEBEnvs
-      if KONFIG.ebEnvName not in options.limitedToEBEnvs
-        continue
+    unless isAllowed options.group, KONFIG.ebEnvName
+      continue
 
     for location in options.nginx.locations
       location.proxyPass or= "http://#{name}"
@@ -181,7 +183,7 @@ module.exports.create = (KONFIG, environment)->
     # for proper content type setting, include mime.types
     #{mime_types}
 
-    #{createUpstreams(workers)}
+    #{createUpstreams(KONFIG)}
 
     # we're in the http context here
     map $http_upgrade $connection_upgrade {
