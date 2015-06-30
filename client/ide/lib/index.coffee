@@ -930,14 +930,16 @@ class IDEAppController extends AppController
     status.updatePartial text
 
 
-  showStatusBarMenu: (ideView, button) ->
+  showStatusBarMenu: (tabHandle, button) ->
+
+    @setActiveTabView tabHandle.getDelegate()
 
     paneView = @getActivePaneView()
     paneType = paneView?.getOptions().paneType or null
     delegate = button
     menu     = new IDEStatusBarMenu { paneType, paneView, delegate }
 
-    ideView.menu = menu
+    tabHandle.menu = menu
 
     menu.on 'viewAppended', ->
       if paneType is 'editor' and paneView
@@ -947,6 +949,17 @@ class IDEAppController extends AppController
         syntaxSelector.select.setValue ace.getSyntax() or 'text'
         syntaxSelector.on 'SelectionMade', (value) =>
           ace.setSyntax value
+
+
+  showRenameTerminalView: ->
+
+    paneView = @getActivePaneView()
+    paneType = paneView?.getOptions().paneType
+    tabView  = paneView?.parent
+
+    return  unless paneType is 'terminal'
+
+    tabView.tabHandle.dblClick()
 
 
   showFileFinder: ->

@@ -2,6 +2,7 @@ kd                  = require 'kd'
 KDView              = kd.View
 KDHitEnterInputView = kd.HitEnterInputView
 KDTabHandleView     = kd.TabHandleView
+KDCustomHTMLView    = kd.CustomHTMLView
 
 
 module.exports = class IDETabHandleView extends KDTabHandleView
@@ -92,3 +93,24 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     @getElement().setAttribute 'title', newTitle  if addTitleAttribute
 
     @setTitleEditMode no
+
+
+  enableContextMenu: ->
+
+    icon = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'options'
+      click    : => @createMenu icon
+
+    @addSubView icon, null, yes
+
+
+  createMenu: (icon) ->
+
+    @setClass 'menu-visible'
+    menu = kd.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', this, icon
+
+    kd.utils.defer =>
+      @menu.once 'KDObjectWillBeDestroyed', =>
+        @unsetClass 'menu-visible'
+        delete @menu

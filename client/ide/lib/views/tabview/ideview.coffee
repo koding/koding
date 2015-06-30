@@ -76,16 +76,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       @ensureSplitHandlers()  if addSplitHandlers
 
-      return unless pane.options.editor
-
-      {tabHandle} = pane
-
-      icon = new KDCustomHTMLView
-        tagName  : 'span'
-        cssClass : 'options'
-        click    : => @createEditorMenu tabHandle, icon
-
-      tabHandle.addSubView icon, null, yes
+      { tabHandle } = pane
+      { paneType }  = pane.view.getOptions()
+      tabHandle.enableContextMenu()  if paneType in [ 'editor', 'terminal' ]
 
 
     # This is a custom event for IDEApplicationTabView
@@ -515,17 +508,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       callback            : @bound 'toggleFullscreen'
 
     return items
-
-
-  createEditorMenu: (tabHandle, icon) ->
-
-    tabHandle.setClass 'menu-visible'
-    kd.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', this, icon
-
-    kd.utils.defer =>
-      @menu.once 'KDObjectWillBeDestroyed', =>
-        tabHandle.unsetClass 'menu-visible'
-        delete @menu
 
 
   createPlusContextMenu: ->
