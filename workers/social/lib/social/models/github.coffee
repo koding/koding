@@ -1,5 +1,4 @@
 { Base, signature } = require 'bongo'
-KodingError         = require '../error'
 
 { argv }  = require 'optimist'
 GithubAPI = require 'github'
@@ -28,6 +27,13 @@ module.exports = class Github extends Base
           (signature Object, Function)
 
 
+  ###*
+   * Inline hepler to initialize GithubAPI instance for provided `client`
+   *
+   * @param  {Object} client - Revived client object which includes required
+   *                           oauth info in `client.r.oauth.token`
+   * @return {Object}        - GithubAPI instance
+  ###
   initGithubFor = (client) ->
 
     { oauth: {token} } = client.r
@@ -44,6 +50,20 @@ module.exports = class Github extends Base
     return gh
 
 
+  ###*
+   * Provides a bridge between node-gitub api with Koding client
+   * In the revive it checks and verifies the oauth requirements
+   * for provided `OAUTH_PROVIDER`. If fails it will return callback
+   * with missing oauth error.
+   *
+   * _param {Object} client     - this will be injected
+   * @param {Object} _options   - includes `method` and `options`
+   *                          	 	method will consist of `base.method` string
+   *                             	api: http://mikedeboer.github.io/node-github/
+   * @param {Function} callback - function to call when the request is
+   *                            	finished with an error as first argument
+   *                            	and result data as second argument.
+  ###
   @api = permit 'api access', success: revive
 
     shouldReviveProvider : no
@@ -51,8 +71,17 @@ module.exports = class Github extends Base
 
   , (client, _options, callback) ->
 
+    cbErr = (message) -> callback {
+      message: message or 'Insufficient parameters provided'
+    }
+
+    # Make sure all required parameteres provided
     { method, options } = _options
+    return cbErr()  if not method
+
     [ base, method ]    = method.split '.'
+    return cbErr()  if not base or not method
+
     # Callback wrapper to add some more
     # functionality to default callback
     cb = (err, response) ->
@@ -77,7 +106,13 @@ module.exports = class Github extends Base
     # Requires extensive debugging on Bongo.Base ~ GG
     (options ?= {}).per_page = 10
 
+    # Initialize Github api with client object
+    # client object includes required token
     gh = initGithubFor client
+
+    # Make sure provided base and method exists
+    unless gh[base]?[method]?
+      return cbErr "No such base:'#{base}' or method:'#{method}'"
 
     try
       # TODO We can add a whitelist of accepted methods/bases
