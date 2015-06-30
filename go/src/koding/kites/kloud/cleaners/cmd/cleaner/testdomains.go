@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/pkg/dnsclient"
+
+	"github.com/mitchellh/goamz/route53"
 )
 
 type TestDomains struct {
 	DNS     *dnsclient.Route53
-	records map[string]*dnsclient.Record
+	records []*dnsclient.Record
 	err     error
 }
 
@@ -16,7 +18,7 @@ func (t *TestDomains) Process() {
 
 	prevRecord := ""
 	lastRecord := ""
-	t.records = make(map[string]*dnsclient.Record, 0)
+	t.records = make([]*dnsclient.Record, 0)
 
 	for {
 		records, err := t.DNS.GetAll(lastRecord)
@@ -30,17 +32,20 @@ func (t *TestDomains) Process() {
 			break
 		}
 
+		prevRecord = lastRecord
+
 		// do not include the first record, because it's alread included in the
 		// previous round
 		for _, record := range records[1:] {
 			// do not add NS records
-			if record.Name == "dev.koding.io." {
-				continue
+			if record.Name != "dev.koding.io." {
+				t.records = append(t.records, record)
 			}
-
-			t.records[record.Name] = record
 		}
+
 	}
+
+	fmt.Printf("Fetched '%d' domains\n", len(t.records))
 }
 
 func (t *TestDomains) Run() {
@@ -48,7 +53,46 @@ func (t *TestDomains) Run() {
 		return
 	}
 
-	fmt.Println("Removing '%d' test domains", len(t.records))
+	fmt.Printf("Removing '%d' test domains\n", len(t.records))
+
+	for _, records := range splittedRecords(t.records, 100) {
+		changes := make([]route53.Change, len(records))
+		for i, r := range records {
+			changes[i] = route53.Change{
+				Action: "DELETE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    r.Name,
+					TTL:     r.TTL,
+					Records: []string{r.IP},
+				},
+			}
+		}
+	}
+
+	// return
+
+	// change := &route53.ChangeResourceRecordSetsRequest{
+	// 	Comment: "Deleting domain",
+	// 	Changes: []route53.Change{
+	// 		route53.Change{
+	// 			Action: "DELETE",
+	// 			Record: route53.ResourceRecordSet{
+	// 				Type:    "A",
+	// 				Name:    r.Name,
+	// 				TTL:     r.TTL,
+	// 				Records: []string{r.IP},
+	// 			},
+	// 		},
+	// 	},
+	// }
+	//
+	// r.Log.Debug("deleting domain name: %s which was associated to following ip: %v", domain, record.IP)
+	// _, err = r.ChangeResourceRecordSets(r.ZoneId, change)
+	// if err != nil {
+	// 	r.Log.Error(err.Error())
+	// 	return errors.New("could not delete domain")
+	// }
 }
 
 func (t *TestDomains) Result() string {
@@ -65,4 +109,21 @@ func (t *TestDomains) Info() *taskInfo {
 		Title: "TestDomains",
 		Desc:  "Delete domains belonging to development and sandbox environment.",
 	}
+}
+
+func splittedRecords(records []*dnsclient.Record, split int) [][]*dnsclient.Record {
+	if split == 0 {
+		panic("split number must be greater than 0")
+	}
+
+	// we split the records because AWS doesn't allow us to remove more than 100
+	// records, so for example if we have 350 records, we'll going to make four
+	// API calls with records of 100, 100, 100 and 50
+	var splitted [][]*dnsclient.Record
+	for len(records) >= split {
+		splitted = append(splitted, records[:split])
+		records = records[split:]
+	}
+	splitted = append(splitted, records) // remaining
+	return splitted
 }
