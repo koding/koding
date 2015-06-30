@@ -5,6 +5,6 @@
     "./lib/sprites"
   ],
   "styles": [
-    "./lib/styl"
+    "./lib/styl/*.styl"
   ]
 }
