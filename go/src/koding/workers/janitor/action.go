@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
@@ -10,12 +9,18 @@ import (
 	"time"
 )
 
-var currentVersion = "v1"
-
 type Action func(*models.User, string) error
 
+var subjects = map[string]string{
+	"vmDeletionWarning-1": "received 1st VM deletion warning",
+	"vmDeletionWarning-2": "received 2nd VM deletion warning",
+}
+
 func SendEmail(user *models.User, warningID string) error {
-	subject := fmt.Sprintf("%s %s", warningID, currentVersion)
+	subject, ok := subjects[warningID]
+	if !ok {
+		subject = "unknown warning"
+	}
 
 	account, err := modelhelper.GetAccount(user.Name)
 	if err != nil {

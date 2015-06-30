@@ -12,8 +12,8 @@ var (
 	DeleteVMLimitPerRun = 5000
 )
 
-var ComebackEmail = &Warning{
-	ID: "comebackEmail",
+var VMDeletionWarning1 = &Warning{
+	ID: "vmDeletionWarning-1",
 
 	Description: "Find users inactive for > 20 days, send email",
 
@@ -27,18 +27,18 @@ var ComebackEmail = &Warning{
 	Action: SendEmail,
 }
 
-var VMDeletionEmail = &Warning{
-	ID: "vmDeletionEmail",
+var VMDeletionWarning2 = &Warning{
+	ID: "vmDeletionWarning-2",
 
 	Description: "Find users inactive for > 24 days, send email",
 
-	PreviousWarning: ComebackEmail,
+	PreviousWarning: VMDeletionWarning1,
 
 	IntervalSinceLastWarning: time.Hour * 24 * 4, // 4 days since last warning
 
 	Select: []bson.M{
 		bson.M{"lastLoginDate": moreThanDaysQuery(24)},
-		bson.M{"inactive.warning": ComebackEmail.ID},
+		bson.M{"inactive.warning": VMDeletionWarning1.ID},
 	},
 
 	ExemptCheckers: []*ExemptChecker{
@@ -53,13 +53,13 @@ var DeleteInactiveUserVM = &Warning{
 
 	Description: "Find users inactive for > 29 days, deleted ALL their vms",
 
-	PreviousWarning: VMDeletionEmail,
+	PreviousWarning: VMDeletionWarning2,
 
 	IntervalSinceLastWarning: time.Hour * 24 * 4, // 4 days since last warning
 
 	Select: []bson.M{
 		bson.M{"lastLoginDate": moreThanDaysQuery(29)},
-		bson.M{"inactive.warning": VMDeletionEmail.ID},
+		bson.M{"inactive.warning": VMDeletionWarning2.ID},
 	},
 
 	ExemptCheckers: []*ExemptChecker{IsTooSoon, IsUserPaid, IsUserVMsEmpty},

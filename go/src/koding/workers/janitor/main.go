@@ -29,7 +29,7 @@ var (
 	// Warnings contains list of warnings to be iterated upon in a certain
 	// interval.
 	Warnings = []*Warning{
-		ComebackEmail, VMDeletionEmail, DeleteInactiveUserVM, DeleteBlockedUserVM,
+		VMDeletionWarning1, VMDeletionWarning2, DeleteInactiveUserVM, DeleteBlockedUserVM,
 	}
 
 	// DailyAtEightAM specifies interval; cron runs at utc, 3pm UTC is 8am PST
