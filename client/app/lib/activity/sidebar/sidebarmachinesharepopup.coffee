@@ -10,6 +10,7 @@ remote           = require('app/remote').getInstance()
 envDataProvider  = require 'app/userenvironmentdataprovider'
 envHelpers       = require 'ide/collaboration/helpers/environment'
 nick             = require 'app/util/nick'
+sinkrow          = require 'sinkrow'
 
 
 module.exports = class SidebarMachineSharePopup extends KDModalView
@@ -24,9 +25,8 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
     super options, data
 
-    if @getData().isApproved()
-      @isApproved = yes
-      @setClass 'approved'
+    {@isApproved} = options
+    @setClass 'approved'  if @isApproved
 
     @createArrow()
     @createElements()
@@ -57,24 +57,23 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
   createElements: ->
 
-    text       = 'wants to share their VM with you.'
-    titleFirst = no
-
-    if @isApproved
-      text       = 'Shared with you by'
-      titleFirst = yes
-
     @createAvatarView @getData().getOwner()
-    @createTitle text, titleFirst
+    @createTitle()
     @createButtons()
 
 
-  createTitle: (text, prepend) ->
+  createTitle: ->
+
+    prepend = @isApproved
+
+    titleKey = if @isApproved
+    then 'approved'
+    else @getOption 'type'
 
     view = new KDCustomHTMLView
       tagName  : 'p'
       cssClass : 'title'
-      partial  : text
+      partial  : TITLES[titleKey]
 
     @addSubView view, null, prepend
 
@@ -130,6 +129,9 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
   approve: ->
 
     machine = @getData()
+    wasApproved = machine.isApproved()
+
+    kd.singletons.machineShareManager.unset machine.uid
 
     @approveButton.showLoader()
 
@@ -154,6 +156,9 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
           @destroy()
 
       callback = =>
+
+        return @destroy()  if wasApproved
+
         envDataProvider.fetch =>
           # if there is an ide instance this means user landed to ide with direct url
           ideApp = envDataProvider.getIDEFromUId machine.uid
@@ -181,31 +186,48 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
     machine = @getData()
 
+    kd.singletons.machineShareManager.unset machine.uid
+
     @denyButton.showLoader()
-    machine.jMachine.deny (err) =>
-      return showError err  if err
 
-      if machine.isPermanent() then @handleDeny()
-      else # remove user from chat and unshare machine for collaboration
-        { channelId } = @getOptions()
-        kd.singletons.socialapi.channel.rejectInvite { channelId }, (err) =>
+    {type, isApproved, channelId} = @getOptions()
+    isPermanent = machine.isPermanent()
+
+    denyMachine = switch type
+      when 'shared machine' then isPermanent
+      when 'collaboration' then not isPermanent
+
+    queue = [
+      ->
+        if denyMachine
+        then machine.jMachine.deny (err) ->
           return showError err  if err
+          queue.next()
+        else queue.next()
+      =>
+        return queue.next()  unless channelId
 
-          envHelpers.setMachineUser machine, [ nick() ], no, (err) =>
-            return showError err  if err
-            @handleDeny()
+        {channel} = kd.singletons.socialapi
 
+        method = if isApproved then 'leave' else 'rejectInvite'
 
-  handleDeny: ->
+        channel[method] {channelId}, (err) ->
+          showError err
+          queue.next()
+      ->
+        if denyMachine
+          envDataProvider.getIDEFromUId(machine.uid)?.quit()
+        queue.next()
+      ->
+        envDataProvider.fetch ->
+          kd.singletons.mainView.activitySidebar.redrawMachineList()
+          queue.next()
+      =>
+        @destroy()
+        queue.next()
+    ]
 
-    # fetch the data and redraw the sidebar to remove the denied machine.
-    envDataProvider.fetch =>
-      kd.singletons.mainView.activitySidebar.redrawMachineList()
-
-      if @isApproved # quit IDE if exists
-        envDataProvider.getIDEFromUId(@getData().uid)?.quit()
-
-      @destroy()
+    sinkrow.daisy queue
 
 
   destroy: ->
@@ -213,3 +235,9 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
     @overlay?.destroy()
 
     super
+
+
+  TITLES =
+    'shared machine' : 'wants to share their VM with you.'
+    'collaboration'  : 'wants to collaborate with you on their VM.'
+    'approved'       : 'Shared with you by'

@@ -29,6 +29,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
     webtermKillSessions: 'webterm.killSessions'
     webtermGetSessions : 'webterm.getSessions'
     webtermPing        : 'webterm.ping'
+    webtermRename      : 'webterm.rename'
 
     klientShare        : 'klient.share'
     klientUnshare      : 'klient.unshare'

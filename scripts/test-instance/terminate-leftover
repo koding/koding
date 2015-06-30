@@ -11,6 +11,8 @@ if argv.help
 AWS = require './aws'
 EC2 = new AWS.EC2()
 
+LIFETIME_HARD_LIMIT = 2 * 60 * 60 * 1000 # 2 hours
+
 run = ->
   unless argv.hours or argv.minutes
     console.error "error: Please specify an expiration time\n"
@@ -20,7 +22,10 @@ run = ->
   {DryRun, ExpirationTime} = getOptions argv
   imageIds = (require './instance-ami').list
 
-  Filters = [{ Name: 'image-id', Values: imageIds }]
+  Filters = [
+    { Name: 'image-id', Values: imageIds }
+    { Name: 'instance-state-name', Values: ['running'] }
+  ]
 
   EC2.describeInstances {Filters}, (err, data) ->
 
@@ -29,21 +34,25 @@ run = ->
     unless data or data.Reservations
       return error 'Reservations not found'
 
-    InstanceIds = []
+    instances = []
 
     data.Reservations.forEach ({Instances}) ->
       return  unless Instances
 
-      Instances.forEach ({InstanceId, LaunchTime, State}) ->
+      Instances.forEach (instance) ->
+        {InstanceId, LaunchTime, State} = instance
+
         return  if State.Name is 'terminated'
         return  if ExpirationTime <= LaunchTime
 
-        InstanceIds.push InstanceId
+        instances.push instance
 
-    return process.exit 0  unless InstanceIds.length
+    return process.exit 0  unless instances.length
 
-    async.filter InstanceIds, checkApiTermination, (InstanceIds) ->
-      return process.exit 0  unless InstanceIds.length
+    async.filter instances, checkApiTermination, (Instances) ->
+      return process.exit 0  unless Instances.length
+
+      InstanceIds = Instances.map (instance) -> instance.InstanceId
 
       EC2.terminateInstances {DryRun, InstanceIds}, (err) ->
         return error err  if err
@@ -65,25 +74,43 @@ getExpirationTime = (argv) ->
   return new Date Date.now() - (minutes * 60 * 1000)
 
 
-checkApiTermination = (InstanceId, callback) ->
+checkApiTermination = (instance, callback) ->
+  {InstanceId} = instance
 
   Attribute = 'disableApiTermination'
 
   params = {InstanceId, Attribute}
 
   EC2.describeInstanceAttribute params, (err, data) ->
-    return callback false  if err
+    return callback no  if err or not data
 
-    state = if data \
-      then not data.DisableApiTermination.Value
-      else false
+    return callback yes  if not data.DisableApiTermination.Value
 
-    callback state
+    lifetime = Date.now() - instance.LaunchTime
+    return callback no  if lifetime < LIFETIME_HARD_LIMIT
+
+    disableApiTermination instance, (err) ->
+      if err
+        error err
+        callback no
+      else
+        callback yes
+
+
+disableApiTermination = (instance, callback) ->
+
+  {InstanceId} = instance
+
+  Attribute = 'disableApiTermination'
+  Value = 'false'
+
+  params = {InstanceId, Attribute, Value}
+
+  EC2.modifyInstanceAttribute params, callback
 
 
 error = (err) ->
   console.error "error: #{JSON.stringify err}"  if err
-  process.exit 1
 
 
 printHelp = ->

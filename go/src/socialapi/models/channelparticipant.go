@@ -382,11 +382,11 @@ func (c *ChannelParticipant) FetchParticipatedTypedChannelIds(a *Account, q *req
 		Limit(q.Limit).
 		Offset(q.Skip).
 		Rows()
-
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+
+	defer rows.Close()
 
 	if rows == nil {
 		return nil, nil

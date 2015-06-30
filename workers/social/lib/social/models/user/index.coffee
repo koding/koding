@@ -715,6 +715,7 @@ module.exports = class JUser extends jraphical.Module
 
             if session.foreignAuth
               { foreignAuth } = user
+              foreignAuth or= {}
               foreignAuth = extend foreignAuth, session.foreignAuth
               options.foreignAuth = foreignAuth
 
