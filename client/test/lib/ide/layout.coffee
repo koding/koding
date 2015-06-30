@@ -11,7 +11,7 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    layoutHelpers.split(browser, 'li.split-vertically')
+    layoutHelpers.split(browser, 'vertical')
     browser.end()
 
 
@@ -20,7 +20,7 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    layoutHelpers.split(browser, 'li.split-horizontally')
+    layoutHelpers.split(browser, 'horizontal')
     browser.end()
 
 
@@ -29,34 +29,47 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    browser
     layoutHelpers.undoSplit(browser)
     browser.end()
 
 
-  undoSplitPanesNotShowOnScreen: (browser) ->
+  # undoSplitPanesNotShowOnScreen: (browser) ->
 
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  #   helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
+  #   newPaneSelector = '.kdsplitcomboview .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
-    newPaneSelector   = '.kdsplitcomboview .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+  #   fn = ->
+  #     browser.elements 'css selector', newPaneSelector, (result) =>
+  #       if result.value.length is 1
+  #         browser
+  #           .waitForElementPresent '.panel-1 .general-handles .close-handle.hidden', 20000 # Assertion
+  #           .end()
+  #       else
+  #         layoutHelpers.undoSplit(browser, no)
+  #         fn()
 
-    layoutHelpers.undoSplit(browser)
-
-    browser
-      .waitForElementVisible   newPaneSelector, 20000
-      .waitForElementPresent   newPaneSelector + ' .general-handles .close-handle.hidden', 20000 # Assertion
-      .end()
+  #   fn()
 
 
   openDrawingBoard: (browser) ->
 
+    handleSelector     = '.kdtabhandle.drawing'
+    activePaneSelector = '.kdtabpaneview.drawing.active .drawing-pane'
+
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
+    browser.elements 'css selector', handleSelector, (result) ->
+      if result.value.length > 0
+        console.log(' ✔ A drawing board is already opened. Ending test...')
+        browser.end()
+      else
+        layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
 
-    browser
-      .pause 4000
-      .waitForElementVisible   '.drawing-pane .drawing-board-toolbar', 20000 # Assertion
-      .end()
+        browser
+          .pause 4000
+          .waitForElementVisible handleSelector + '.active', 20000
+          .waitForElementVisible activePaneSelector, 20000 # Assertion
+          .waitForElementVisible activePaneSelector + ' .drawing-board-toolbar', 20000 # Assertion
+          .end()

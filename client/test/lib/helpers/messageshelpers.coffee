@@ -15,7 +15,7 @@ module.exports =
     messageSelector     = "#{sidebarTextSelector} [href='/#{users[0].userName}']"
     message           or= 'Hello World!'
     sendMessage         = (browser, users, message, purpose) ->
-      console.log "✔  Creating a new message with user #{users[0].userName}..."
+      console.log " ✔ Creating a new message with user #{users[0].userName}..."
       browser
         .waitForElementVisible   '[testpath=main-sidebar]', 20000
         .waitForElementVisible   elementSelector, 20000
@@ -56,13 +56,13 @@ module.exports =
 
     browser.element 'css selector', messageSelector, (result) =>
       if result.status is 0
-        console.log "✔  A message thread with the same user is already exists. Ending test."
+        console.log " ✔ A message thread with the same user is already exists. Ending test."
         return yes
       else
         if purpose
           browser.element 'css selector', purposeSelector, (result) =>
             if result.status is 0
-              console.log "✔  A message thread with the same purpose is already exists. Ending test."
+              console.log " ✔ A message thread with the same purpose is already exists. Ending test."
               return yes
             else
               sendMessage browser, users, message, purpose
