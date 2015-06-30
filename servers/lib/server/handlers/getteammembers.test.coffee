@@ -118,19 +118,23 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
   it 'should send HTTP 200 when valid data provided with unregistered user', (done) ->
 
-    token         = ''
-    groupSlug     = generateRandomString()
-    inviteeEmail  = generateRandomEmail()
+    token              = ''
+    groupSlug          = generateRandomString()
+    inviteeEmail       = generateRandomEmail()
+    groupOwnerUsername = generateRandomString()
+    groupOwnerPassword = generateRandomEmail()
 
     queue = [
 
       ->
         # expecting team to be created
         createTeamRequestParams = generateCreateTeamRequestParams
-          body       :
-            slug     : groupSlug
-            invitees : inviteeEmail
-
+          body              :
+            slug            : groupSlug
+            invitees        : inviteeEmail
+            username        : groupOwnerUsername
+            password        : groupOwnerPassword
+            passwordConfirm : groupOwnerPassword
 
         request.post createTeamRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
@@ -172,6 +176,8 @@ runTests = -> describe 'server.handlers.getteammembers', ->
         request.get getTeamMembersRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
           expect(res.statusCode)  .to.be.equal 200
+          expect(body)            .not.to.be.empty
+          expect(body)            .to.contain groupOwnerUsername
           queue.next()
 
       -> done()
@@ -183,11 +189,13 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
   it 'should send HTTP 200 when valid data provided with registered user', (done) ->
 
-    token        = ''
-    username     = generateRandomString()
-    password     = 'testpass'
-    groupSlug    = generateRandomString()
-    inviteeEmail = generateRandomEmail()
+    token              = ''
+    groupSlug          = generateRandomString()
+    inviteeEmail       = generateRandomEmail()
+    inviteeUsername    = generateRandomString()
+    groupOwnerEmail    = generateRandomEmail()
+    groupOwnerUsername = generateRandomString()
+    groupOwnerPassword = 'testpass'
 
     queue = [
 
@@ -196,8 +204,8 @@ runTests = -> describe 'server.handlers.getteammembers', ->
         registerRequestParams = RegisterHandlerHelper.generateRequestParams
           body       :
             email    : inviteeEmail
-            username : username
-            password : password
+            username : groupOwnerUsername
+            password : groupOwnerPassword
 
         # registering a new user
         request.post registerRequestParams, (err, res, body) ->
@@ -208,9 +216,14 @@ runTests = -> describe 'server.handlers.getteammembers', ->
       ->
         # expecting team to be created
         createTeamRequestParams = generateCreateTeamRequestParams
-          body       :
-            slug     : groupSlug
-            invitees : inviteeEmail
+          body              :
+            slug            : groupSlug
+            email           : groupOwnerEmail
+            invitees        : inviteeEmail
+            username        : groupOwnerUsername
+            password        : groupOwnerPassword
+            alreadyMember   : 'true'
+            passwordConfirm : groupOwnerPassword
 
 
         request.post createTeamRequestParams, (err, res, body) ->
@@ -219,8 +232,20 @@ runTests = -> describe 'server.handlers.getteammembers', ->
           queue.next()
 
       ->
+        joinTeamRequestParams = generateJoinTeamRequestParams
+          body       :
+            slug     : groupSlug
+            token    : token
+            username : inviteeUsername
+
+        request.post joinTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
         # expecting group to be crated
-        JGroup.one { slug :groupSlug }, (err, group) ->
+        JGroup.one { slug : groupSlug }, (err, group) ->
           expect(err)         .to.not.exist
           expect(group)       .to.exist
           queue.next()
@@ -250,9 +275,13 @@ runTests = -> describe 'server.handlers.getteammembers', ->
           body    :
             token : token
 
+        # expecting groupOwner's username to exist in the body
         request.get getTeamMembersRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
           expect(res.statusCode)  .to.be.equal 200
+          expect(body)            .not.to.be.empty
+          expect(body)            .to.contain groupOwnerUsername
+          expect(body)            .to.contain inviteeUsername
           queue.next()
 
       -> done()
