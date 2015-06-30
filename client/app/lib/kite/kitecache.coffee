@@ -6,7 +6,7 @@ kd = require 'kd'
 module.exports = class KiteCache
 
   storage   = LocalStorage.getStorage()
-  signature = 'KITE_'
+  signature = 'KITE_v2_'
 
   @generateQueryString = (options) ->
 

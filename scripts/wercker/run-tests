@@ -52,7 +52,7 @@ log = (message) ->
   fs.appendFileSync 'TEST_SUITE_TIMELINE', "#{message}\n"
 
 
-logWithtime = (message) ->
+logWithTime = (message) ->
 
   time = (Date.now() - start) / 1000
   log "#{time}\t#{message}"
@@ -63,27 +63,32 @@ runTestScript = path.join __dirname, '../test-instance/run-test'
 
 runTest = (job, next) ->
 
+  job.lap ?= 0
+
   {setId, instance, test} = job
 
   args = [instance.publicIpAddress, test]
 
-  child = child_process.execFile runTestScript, args, (error, stdout, stderr) ->
+  child = child_process.execFile runTestScript, args, do (job) ->
 
-    job.lap ?= 0
-    job.end = Date.now() - start
+    (error, stdout, stderr) ->
 
-    if error and ++job.lap is RETRY_COUNT
-      error.job    = job
-      error.stdout = stdout
-      error.stderr = stderr
-      next error
-    else if error
-      runTest job, next
-    else
-      next()
+      job.end = Date.now() - start
 
-  monitor child, _.debounce ->
-    console.log "Set:#{setId} is progressing"
+      if error and ++job.lap is RETRY_COUNT
+        error.job    = job
+        error.stdout = stdout
+        error.stderr = stderr
+        next error
+      else if error
+        runTest job, next
+      else
+        next()
+
+  monitor child, _.debounce do (job) ->
+    ->
+      {setId, test, lap} = job
+      console.log "Set:#{setId} #{test} (#{lap}) is progressing"
   , 30000
 
 
@@ -110,7 +115,7 @@ finishSet = (id, instance, callback, error) ->
   else
     console.log "Finished Set:#{id}"
 
-  logWithtime "Set:#{id} on #{instance.instanceId} #{instance.publicIpAddress}"
+  logWithTime "Set:#{id} on #{instance.instanceId} #{instance.publicIpAddress}"
 
   for job in stopwatch[id]
     {test, begin, end} = job
@@ -138,6 +143,13 @@ iterator = (id, callback) ->
   setCompleter = finishSet.bind null, id, instance, callback
 
   async.eachSeries parallelSets[id], testIterator, setCompleter
+
+
+parallelSets.forEach (set, index) ->
+
+  console.log "Set:#{index}", set
+
+console.log ""
 
 
 async.eachLimit Object.keys(parallelSets), limit, iterator, (error) ->

@@ -3,7 +3,10 @@
 google       = require 'googleapis'
 google_utils = require 'koding-googleapis'
 
-JMachine = require './computeproviders/machine'
+{notifyByUsernames} = require './notify'
+
+JMachine   = require './computeproviders/machine'
+JWorkspace = require './workspace'
 
 
 module.exports = class Collaboration extends Base
@@ -13,6 +16,8 @@ module.exports = class Collaboration extends Base
     sharedMethods :
       static      :
         stop      : (signature String, Object, Function)
+        add       : (signature String, Object, Function)
+        kick      : (signature String, Object, Function)
 
 
   drive = null
@@ -64,3 +69,34 @@ module.exports = class Collaboration extends Base
       if (Date.now() - lastSeen.getTime()) > timeout
       then unshareMachine workspace, callback
       else callback 'host is alive'
+
+
+  @add = secure (client, workspaceId, target, callback) ->
+
+    asUser  = yes
+    options = {target, asUser}
+    setUsers client, workspaceId, options, (err, machine) ->
+      return callback err  if err
+
+      machineUId = machine.uid
+      data =  {machineUId, workspaceId}
+
+      notifyByUsernames options.target, 'CollaborationInvitation', data
+
+
+  @kick = secure (client, workspaceId, target, callback) ->
+
+    asUser  = no
+    options = {target, asUser}
+    setUsers client, workspaceId, options, callback
+
+
+  setUsers = (client, workspaceId, options, callback) ->
+
+    JWorkspace.one _id: workspaceId, (err, workspace) ->
+
+      return callback err  if err
+      return callback 'Workspace is not found'  unless workspace
+
+      options.permanent = no
+      JMachine.shareByUId client, workspace.machineUId, options, callback

@@ -54,9 +54,9 @@ module.exports =
 
     browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
       if result.status is 0
-        console.log "✔  Successfully logged in with username: #{user.username} and password: #{user.password}"
+        console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password}"
       else
-        console.log '✔  User is not registered yet. Registering...'
+        console.log ' ✔ User is not registered yet. Registering...'
         @doRegister browser, user
 
 
@@ -480,6 +480,6 @@ module.exports =
 
   getUrl: ->
 
-    return 'http://lvh.me:8090'
+    return 'http://dev.koding.com:8090'
     # return 'http://54.165.211.40:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'

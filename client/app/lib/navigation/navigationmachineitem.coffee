@@ -9,6 +9,7 @@ KDCustomHTMLView         = kd.CustomHTMLView
 KDProgressBarView        = kd.ProgressBarView
 MachineSettingsModal     = require '../providers/machinesettingsmodal'
 SidebarMachineSharePopup = require 'app/activity/sidebar/sidebarmachinesharepopup'
+userEnvironmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class NavigationMachineItem extends JView
@@ -75,6 +76,11 @@ module.exports = class NavigationMachineItem extends JView
       .on "public-#{@machine._id}", (event)=>
         @handleMachineEvent event
 
+    if not @machine.isMine() and not @machine.isApproved()
+      @showSharePopup()
+
+    @subscribeMachineShareEvent()
+
 
   createSettingsIcon: ->
 
@@ -91,7 +97,7 @@ module.exports = class NavigationMachineItem extends JView
         return  unless @settingsEnabled()
 
         if @machine.isMine() then @handleMachineSettingsClick()
-        else if @machine.isApproved() then @showSidebarSharePopup()
+        else if @machine.isApproved() then @showSharePopup()
 
 
   moveSettingsIconLeft : ->
@@ -168,12 +174,98 @@ module.exports = class NavigationMachineItem extends JView
     return data.workspaces.first?.channelId
 
 
-  showSidebarSharePopup: (options = {}) ->
+  popups = {}
 
-    options.position  = @getPopupPosition 20
-    options.channelId = @getChannelId @getData()
+  ###
 
-    new SidebarMachineSharePopup options, @machine
+  This function determines what sort of machine share popup should be
+  displayed based on given options and registered invitations in
+  `MachineShareManager`.
+
+  If an invitation found for machine given to `NavigationMachineItem`
+  instance then share popup is displayed in invitation type for the
+  shared workspace attached in invitation object.
+
+  Default behavior of `SidebarMachineSharePopup` instance satisfies
+  `shared machine` invitations.
+
+  If an invitation is not found then state of invitations deduced by
+  checking related properties.
+
+  If user is a permanent user then approve state of `JMachine`
+  determines type of share popup.
+
+  If user is not a permanent user then share popup type is set to
+  `collaboration`.  If a workspace identifier is given in options then
+  associated `JWorkspace` is found.  Channel identifier is set from
+  matching workspace object.
+
+  Collaboration invitation is displayed if user is not a participant
+  of associated channel.
+
+  ###
+  showSharePopup: (options = {}) ->
+
+    show = (options) =>
+      kd.utils.wait 733, =>
+        options.position = @getPopupPosition 20
+        popup = popups[@machine.uid]
+        kd.utils.defer -> popup?.destroy()
+        popups[@machine.uid] = new SidebarMachineSharePopup options, @machine
+
+    {machineShareManager} = kd.singletons
+
+    if invitation = machineShareManager.get @machine.uid
+      {type} = invitation
+
+      options.type = type
+
+      switch type
+        when 'collaboration'
+          options.isApproved = no
+
+          return userEnvironmentDataProvider.fetchMachineByUId @machine.uid, (machine, workspaces) ->
+            for workspace in workspaces when workspace.getId() is invitation.workspaceId
+              break
+
+            options.channelId = workspace.channelId
+            show options
+
+      return show options
+
+    else if @machine.isPermanent()
+      options.type = 'shared machine'
+      options.isApproved = @machine.isApproved()
+      show options
+
+    else if not @machine.isPermanent()
+      options.type = 'collaboration'
+
+      return userEnvironmentDataProvider.fetchMachineByUId @machine.uid, (machine, workspaces) ->
+        for workspace in workspaces
+          if options.workspaceId and workspace.getId() isnt options.workspaceId
+            continue
+          else if not options.workspaceId and not workspace.channelId
+            continue
+
+          {channelId} = workspace
+          break
+
+        return  unless options.channelId = channelId
+        kd.singletons.socialapi.channel.byId id: channelId, (err, channel) ->
+          return console.error err  if err
+          options.isApproved = channel.isParticipant
+          show options
+
+
+
+  subscribeMachineShareEvent: ->
+
+    {machineShareManager} = kd.singletons
+    machineShareManager.subscribe @machine.uid, @bound 'showSharePopup'
+
+    @once 'KDObjectWillBeDestroyed', =>
+      machineShareManager.unsubscribe @machine.uid, @bound 'showSharePopup'
 
 
   click: (e) ->
@@ -182,7 +274,7 @@ module.exports = class NavigationMachineItem extends JView
 
     if not m.isMine() and not m.isApproved()
       kd.utils.stopDOMEvent e
-      @showSidebarSharePopup()
+      @showSharePopup()
 
     super
 

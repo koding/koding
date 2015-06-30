@@ -73,9 +73,9 @@ methods =
     s3.createBucket ->
       s3.upload Body: string, (err, res) ->
         if err
-          console.log '✖ Unable to write test times to S3.'
+          console.log ' ✖ Unable to write test times to S3.'
         else
-          console.log '✔ Test data saved to S3.'
+          console.log ' ✔ Test data saved to S3.'
 
 
 module.exports =

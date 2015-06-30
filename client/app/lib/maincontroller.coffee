@@ -45,6 +45,7 @@ WidgetController         = require './widgetcontroller'
 PageTitleController      = require './pagetitlecontroller'
 ShortcutsController      = require './shortcutscontroller'
 MarketingController      = require './marketing/marketingcontroller'
+MachineShareManager      = require './machinesharemanager'
 
 module.exports =
 
@@ -142,6 +143,7 @@ class MainController extends KDController
     kd.registerSingleton 'shortcuts',     shortcuts = new ShortcutsController
     kd.registerSingleton 'marketingController',       new MarketingController
     kd.registerSingleton 'onboarding',                new OnboardingController
+    kd.registerSingleton 'machineShareManager',       new MachineShareManager
 
     shortcuts.addEventListeners()
 
@@ -410,5 +412,3 @@ class MainController extends KDController
       for src in images
         image     = new Image
         image.src = src
-
-
