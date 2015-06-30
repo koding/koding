@@ -38,48 +38,101 @@ module.exports = class StackRepoUserItem extends kd.ListItemView
 
     return @repoListView.toggleClass 'hidden'  if @repoListView
 
-    delegate       = @getDelegate()
+    { repos, err, login } = @getData()
 
-    controller    = new kd.ListViewController
-      viewOptions :
-        itemClass : StackRepoItem
+    controller = @createListController()
+    listView   = controller.getListView()
 
-    listView      = controller.getListView()
-
+    delegate   = @getDelegate()
     delegate.forwardEvent listView, 'RepoSelected'
 
     @addSubView @repoListView = controller.getView()
+    @setErrorView err  if err
 
-    @fetchRepos (repos) ->
+    @_page = 1
+
+    if repos
       controller.replaceAllItems repos
+    else
+      controller.showLazyLoader()
+
+      @fetchRepos (err, repos) =>
+        kd.utils.defer controller.bound 'hideLazyLoader'
+
+        if err then @setErrorView err
+        else controller.replaceAllItems repos
+
+
+    @followLazyLoad controller
 
 
   fetchRepos: (callback) ->
 
-    { repos, err, login } = @getData()
+    { repos, login } = @getData()
 
-    @addErrorView err      if err
-    return callback repos  if repos
+    options     =
+      page      : @_page
+      sort      : 'pushed'
+      direction : 'desc'
 
-    @repoListView.hide()
-    @loader.show()
+    if repos
+      method = 'repos.getFromUser'
+      options.user = login
+    else
+      method = 'repos.getFromOrg'
+      options.org  = login
 
-    remote.api.Github.api
-      method  : 'repos.getFromOrg'
-      options :
-        org   : login
-    , (err, repos) =>
-
-      @loader.hide()
-      @repoListView.show()
-
-      if err then @addErrorView err
-      else callback repos
+    remote.api.Github.api {method, options}, callback
 
 
-  addErrorView: (err) ->
-    @repoListView.addSubView new kd.CustomHTMLView
-      partial: err.message
+  createListController: ->
+
+    new kd.ListViewController
+      itemClass           : StackRepoItem
+      useCustomScrollView : yes
+      lazyLoadThreshold   : 10
+      lazyLoaderOptions   :
+        spinnerOptions    :
+          loaderOptions   : shape: 'spiral', color: '#a4a4a4'
+          size            : width: 20, height: 20
+        partial           : ''
+
+
+  followLazyLoad: (controller) ->
+
+    busy = no
+
+    controller.on 'LazyLoadThresholdReached', kd.utils.debounce 300, =>
+
+      return  if busy
+
+      busy = yes
+      @_page++
+
+      @fetchRepos (err, items) =>
+
+        kd.utils.defer controller.bound 'hideLazyLoader'
+
+        busy = no
+
+        return @setErrorView err  if err
+        return  if items.length is 0
+
+        @_errorView?.hide()
+        controller.instantiateListItems items
+
+
+
+  setErrorView: (err) ->
+
+    if @_errorView
+      @_errorView.updatePartial err.message
+      @_errorView.show()
+      return
+
+    @repoListView.addSubView @_errorView = new kd.CustomHTMLView
+      partial  : err.message
+      cssClass : 'error-view'
 
 
   click: (event) ->

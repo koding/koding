@@ -1174,12 +1174,18 @@ Admin main styles
   .repo-listview
     margin-top              20px
     height                  calc(100% \- 60px)
-    overflow-y              auto
 
     .repo-user-list
       border                1px solid #ccc
+      max-height            calc(100% \- 50px)
+      overflow              auto
       margin-top            20px
       borderBox()
+
+      .error-view
+        padding-left        10px
+        font-size           12px
+        background          lightyellow
 
   .repo-item
   .repo-user-item
@@ -1233,8 +1239,8 @@ Admin main styles
     .listview-wrapper
       margin-top            40px
       clear                 both
-      max-height            300px
-      overflow-y            auto
+      height                300px
+      // overflow-y            auto
       padding-left          42px
       borderBox()
 
