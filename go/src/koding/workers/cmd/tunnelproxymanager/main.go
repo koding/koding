@@ -17,13 +17,14 @@ const Name = "tunnelproxymanager"
 func main() {
 	conf, awsconfig, err := tunnelproxymanager.Configure()
 	if err != nil {
-		log.Fatal("Reading config failed: ", err.Error()) // exit if we get any error
+		log.Fatal("Reading config failed: ", err.Error())
 	}
 
 	// system name defines all resource names
 	systemName := fmt.Sprintf("%s-%s", "tunnelproxymanager", conf.EBEnvName)
 
 	log := common.CreateLogger(Name, conf.Debug)
+	// remove formatting from call stack and output correct line
 	log.SetCallDepth(1)
 
 	// create record manager

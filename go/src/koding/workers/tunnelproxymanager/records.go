@@ -13,8 +13,6 @@ import (
 const (
 	hostedZoneComment       = "Hosted zone for tunnel proxies"
 	validStateForHostedZone = "INSYNC" // taken from aws response
-
-	maxIterationCount = 100
 )
 
 var (
@@ -77,8 +75,15 @@ func (r *RecordManager) ensureHostedZone() error {
 	return r.createHostedZone(hostedZoneLogger)
 }
 
+// getHostedZone fetches all hosted zones from account and iterates over them
+// until it finds the respective one
 func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
+	const maxIterationCount = 100
 	iteration := 0
+
+	// for pagination
+	var nextMarker *string
+
 	// try to get our hosted zone
 	for {
 		// just be paranoid about remove api calls, dont harden too much
@@ -89,9 +94,6 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 		log := hostedZoneLogger.New("iteration", iteration)
 
 		iteration++
-
-		// for pagination
-		var nextMarker *string
 
 		log.Debug("Fetching hosted zone")
 		listHostedZonesResp, err := r.route53.ListHostedZones(
@@ -104,17 +106,21 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 		}
 
 		if listHostedZonesResp == nil || listHostedZonesResp.HostedZones == nil {
-			return errors.New("malformed response")
+			return errors.New("malformed response - reponse or hosted zone is nil")
 		}
 
 		for _, hostedZone := range listHostedZonesResp.HostedZones {
+			if hostedZone == nil || hostedZone.CallerReference == nil {
+				continue
+			}
+
 			if *hostedZone.CallerReference == r.hostedZoneConf.CallerReference {
 				r.hostedZone = hostedZone
 				return nil
 			}
 		}
 
-		// if our result set is truncated we can try to fecth again, but if we
+		// if our result set is truncated we can try to fetch again, but if we
 		// reach to end, nothing to do left
 		if !*listHostedZonesResp.IsTruncated {
 			return errHostedZoneNotFound
@@ -153,7 +159,7 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 	// make sure it propagated
 	for {
 		// if our change propagated, we can return
-		if *changeInfo.Status == validStateForHostedZone {
+		if changeInfo.Status != nil && *changeInfo.Status == validStateForHostedZone {
 			hostedZoneLogger.Debug("hosted zone status is valid")
 			break
 		}
