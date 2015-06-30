@@ -110,4 +110,4 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     kd.utils.defer =>
       @menu.once 'KDObjectWillBeDestroyed', =>
         @unsetClass 'menu-visible'
-        delete @menu
+        @menu = null
