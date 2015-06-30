@@ -136,6 +136,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
       cssClass          : 'AppModal-form'
       fields            :
         statusToggle    :
+          cssClass      : if @machine.isManaged() then 'hidden'
           label         : 'On/Off'
           defaultValue  : running
           itemClass     : KodingSwitch
