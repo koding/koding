@@ -737,6 +737,7 @@ body.home
         > div
           padding-right   20px
           padding-left    20px
+          z-index         initial
 
       section.introduction
         padding-top       102px
@@ -773,9 +774,18 @@ body.home
             padding       0
             border        none
 
+        .dots-extra
+          abs             160px 100px 0 0
+          width           5px
+
+        .buttons-extra
+          abs             240px 0px 0 0
+          z-index         5
+          margin          0
+
         a.gh
-          abs             198px 0 0 0px
-          background      rgba(0,0,0,.3)
+        a.go
+        a.fb
           width           100% !important
           height          40px !important
           bg              image, none !important
@@ -796,11 +806,32 @@ body.home
           .title:before
             content       ''
             display       inline-block
-            r-sprite      home 'gh-home-white'
             vendor        transform, scale(0.7)
             vertical-align middle
             margin-top    -2px
             margin-right  6px
+
+        a.gh
+          abs             198px 0 0 0px
+          bg              color rgba(0,0,0,.3)
+
+          .title:before
+            r-sprite      home 'gh-home-white'
+
+        a.go
+          position        static
+          margin-bottom   3px
+          bg              color rgba(0,0,0,.7);
+
+          .title:before
+            r-sprite      home 'go-home-white'
+            
+        a.fb
+          position        static
+          bg              color rgba(0,0,0,.7);
+
+          .title:before
+            r-sprite      home 'fb-home-white'
 
       section.screenshots
         top               479px
