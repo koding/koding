@@ -50,12 +50,22 @@ module.exports =
 
   openDrawingBoard: (browser) ->
 
+    handleSelector     = '.kdtabhandle.drawing'
+    activePaneSelector = '.kdtabpaneview.drawing.active .drawing-pane'
+
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
+    browser.elements 'css selector', handleSelector, (result) ->
+      if result.value.length > 0
+        console.log(' ✔ A drawing board is already opened. Ending test...')
+        browser.end()
+      else
+        layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
 
-    browser
-      .pause 4000
-      .waitForElementVisible   '.pane-wrapper .kdsplitview-panel.panel-1 .drawing-pane .drawing-board-toolbar', 20000 # Assertion
-      .end()
+        browser
+          .pause 4000
+          .waitForElementVisible handleSelector + '.active', 20000
+          .waitForElementVisible activePaneSelector, 20000 # Assertion
+          .waitForElementVisible activePaneSelector + ' .drawing-board-toolbar', 20000 # Assertion
+          .end()
