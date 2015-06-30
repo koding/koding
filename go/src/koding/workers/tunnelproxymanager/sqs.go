@@ -81,7 +81,6 @@ func (l *LifeCycle) createQueue(sqsLogger logging.Logger, queueName string) erro
 			Attributes: attributes,
 		},
 	)
-
 	if err != nil {
 		return err
 	}
@@ -181,7 +180,7 @@ type statement struct {
 	Condition map[string]interface{} `json:"Condition"`
 }
 
-// newDefaultPolicy creates a new pplicy for giving access to SNS publish
+// newDefaultPolicy creates a new policy for giving access to SNS publish
 // requests to our SNS queue
 func newDefaultPolicy(topicARN, queueARN string) (string, error) {
 	p := &policy{

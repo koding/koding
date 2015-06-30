@@ -61,7 +61,7 @@ func (r *RecordManager) ensureHostedZone() error {
 	hostedZoneLogger := r.log.New("HostedZone").New("name", r.hostedZoneConf.Name)
 	hostedZoneLogger.Debug("Trying to get existing Hosted Zone")
 
-	err := r.getHostedZone(hostedZoneLogger)
+	err := r.fetchHostedZone(hostedZoneLogger)
 	if err == nil {
 		hostedZoneLogger.Debug("Hosted Zone exists..")
 		return nil
@@ -75,9 +75,9 @@ func (r *RecordManager) ensureHostedZone() error {
 	return r.createHostedZone(hostedZoneLogger)
 }
 
-// getHostedZone fetches all hosted zones from account and iterates over them
+// fetchHostedZone fetches all hosted zones from account and iterates over them
 // until it finds the respective one
-func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
+func (r *RecordManager) fetchHostedZone(hostedZoneLogger logging.Logger) error {
 	const maxIterationCount = 100
 	iteration := 0
 
@@ -153,25 +153,17 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 		return errors.New("malformed response, resp is nil")
 	}
 
-	changeInfo := resp.ChangeInfo
 	deadline := time.After(time.Minute * 5) // at most i've seen ~3min
+	check := time.NewTicker(time.Second * 3)
 
-	// make sure it propagated
 	for {
-		// if our change propagated, we can return
-		if changeInfo.Status != nil && *changeInfo.Status == validStateForHostedZone {
-			hostedZoneLogger.Debug("hosted zone status is valid")
-			break
-		}
-
 		select {
 		case <-deadline:
 			return errDeadlineReachedForChangeInfo
-		default:
-			time.Sleep(time.Second * 3) // poor man's throttling
-			hostedZoneLogger.New("changeInfoID", *changeInfo.ID).Debug("fetching latest status")
+		case <-check.C:
+			hostedZoneLogger.New("changeInfoID", *resp.ChangeInfo.ID).Debug("fetching latest status")
 			getChangeResp, err := r.route53.GetChange(&route53.GetChangeInput{
-				ID: changeInfo.ID,
+				ID: resp.ChangeInfo.ID,
 			})
 			if err != nil {
 				return err
@@ -181,13 +173,13 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 				return errors.New("malformed response, getChangeResp is nil")
 			}
 
-			changeInfo = getChangeResp.ChangeInfo
+			if getChangeResp.ChangeInfo.Status != nil && *getChangeResp.ChangeInfo.Status == validStateForHostedZone {
+				r.hostedZone = resp.HostedZone
+				hostedZoneLogger.Debug("create hosted finished successfully")
+				return nil
+			}
 		}
 	}
-
-	r.hostedZone = resp.HostedZone
-	hostedZoneLogger.Debug("create hosted finished successfully")
-	return nil
 }
 
 // UpsertRecordSet updates record set for current ResourceRecordSet
@@ -196,12 +188,13 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 		return errors.New("hosted zone is not set")
 	}
 
-	resourceRecords := make([]*route53.ResourceRecord, 0)
-	for _, instance := range instances {
-		resourceRecords = append(resourceRecords, &route53.ResourceRecord{
-			Value: instance,
-		})
+	resourceRecords := make([]*route53.ResourceRecord, len(instances))
+	for i := range instances {
+		resourceRecords[i] = &route53.ResourceRecord{
+			Value: instances[i],
+		}
 	}
+
 	params := &route53.ChangeResourceRecordSetsInput{
 		ChangeBatch: &route53.ChangeBatch{
 			// contains one Change element for each resource record set that you

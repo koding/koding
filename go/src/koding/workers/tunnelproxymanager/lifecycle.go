@@ -15,6 +15,8 @@ import (
 	"github.com/koding/logging"
 )
 
+var errAlreadyClosed = errors.New("already closed")
+
 // LifeCycle handles AWS resource managements
 type LifeCycle struct {
 	// lifecycle management properties
@@ -38,6 +40,8 @@ type LifeCycle struct {
 	// general usage
 	log logging.Logger
 }
+
+type processFunc func(*string) error
 
 // NewLifeCycle creates a new lifecycle management system, everything begins
 // with an autoscaling resource, we are listening to any change on that
@@ -102,21 +106,21 @@ func (l *LifeCycle) Configure(name string) error {
 
 // Listen listens for messages that are put into lifecycle queues
 func (l *LifeCycle) Listen(recordManager *RecordManager) error {
-	f := l.listenFunc(recordManager)
+	f := l.newProcessFunc(recordManager)
 	for {
 		select {
 		case c := <-l.closeChan:
 			close(c)
 			return nil
 		default:
-			if err := l.process(f); err != nil {
+			if err := l.fetchMessage(f); err != nil {
 				return err
 			}
 		}
 	}
 }
 
-func (l *LifeCycle) listenFunc(recordManager *RecordManager) func(body *string) error {
+func (l *LifeCycle) newProcessFunc(recordManager *RecordManager) func(body *string) error {
 	return func(body *string) error {
 		l.log.Debug("got event %s", *body)
 
@@ -149,7 +153,7 @@ func (l *LifeCycle) listenFunc(recordManager *RecordManager) func(body *string) 
 // process gets one mesage from notification queue, passes it to given callback
 // function, if it returns an error, puts the message back to queue eventually,
 // if returns nil, deletes from notification queue
-func (l *LifeCycle) process(f func(*string) error) error {
+func (l *LifeCycle) fetchMessage(f processFunc) error {
 	if l.sqs == nil {
 		return errors.New("SQS service is not set")
 	}
@@ -188,8 +192,6 @@ func (l *LifeCycle) process(f func(*string) error) error {
 	}
 	return nil
 }
-
-var errAlreadyClosed = errors.New("already closed")
 
 // Close closes lifecycle management system for proxy machines, it doesn't
 // cleanup anything
