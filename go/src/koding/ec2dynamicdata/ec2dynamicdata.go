@@ -1,5 +1,5 @@
-// Package ec2info gets ec2 metadata for the current running host, if it is an ec2 instance
-package ec2info
+// Package ec2dynamicdata gets ec2 dynamic data for the current running ec2 host
+package ec2dynamicdata
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 const endpoint = "http://169.254.169.254/latest/dynamic/instance-identity/document"
 
 var (
-	// DialTimeout holds timeout value for ec2 metadata calls
+	// DialTimeout holds timeout value for ec2 dynamic data calls
 	DialTimeout = time.Second * 5
 )
 
@@ -29,8 +29,8 @@ func (e *Err) Error() string {
 	return e.Err.Error()
 }
 
-// EC2Info holds metadata about current ec2 host
-type EC2Info struct {
+// Data holds dynamic data about current ec2 host
+type Data struct {
 	InstanceID         string      `json:"instanceId"`
 	BillingProducts    interface{} `json:"billingProducts"`
 	ImageID            string      `json:"imageId"`
@@ -47,8 +47,8 @@ type EC2Info struct {
 	DevpayProductCodes interface{} `json:"devpayProductCodes"`
 }
 
-// Get returns EC2 metadata
-func Get() (*EC2Info, error) {
+// Get returns EC2 dynamic data
+func Get() (*Data, error) {
 	client := http.Client{
 		Transport: &http.Transport{
 			// timeout only for dialing, because if we are not in ec2, this will timeout
@@ -68,7 +68,7 @@ func Get() (*EC2Info, error) {
 		return nil, fmt.Errorf("err: status code (%d)", resp.StatusCode)
 	}
 
-	identity := &EC2Info{}
+	identity := &Data{}
 	if err := json.NewDecoder(resp.Body).Decode(&identity); err != nil {
 		return nil, err
 	}

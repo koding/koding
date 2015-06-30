@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"koding/ec2info"
+	"koding/ec2dynamicdata"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -84,7 +84,7 @@ func getRegion(conf *Config) (string, error) {
 		return conf.Region, nil
 	}
 
-	info, err := ec2info.Get()
+	info, err := ec2dynamicdata.Get()
 	if err != nil {
 		return "", fmt.Errorf("couldn't get region. Err: %s", err.Error())
 	}
@@ -119,7 +119,7 @@ func getAutoScalingName(conf *Config, awsconfig *aws.Config) (string, error) {
 		return conf.AutoScalingName, nil
 	}
 
-	info, err := ec2info.Get()
+	info, err := ec2dynamicdata.Get()
 	if err != nil {
 		return "", fmt.Errorf("couldn't get info. Err: %s", err.Error())
 	}
