@@ -159,6 +159,7 @@ Configuration = (options={}) ->
     configName                     : configName
     environment                    : environment
     ebEnvName                      : options.ebEnvName
+    runGoWatcher                   : options.runGoWatcher
     regions                        : regions
     region                         : region
     hostname                       : hostname
@@ -630,6 +631,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/eventsender -c #{socialapi.configFilePath}"
 
     contentrotator      :
+      group             : "webserver"
       nginx             :
         locations       : [
           {
@@ -640,12 +642,7 @@ Configuration = (options={}) ->
         ]
 
     userproxies         :
-      limitedToEBEnvs   : [
-        "koding-proxy-ap-s-e-1"
-        "koding-proxy-us-east-1"
-        "koding-proxy-eu-west-1"
-        "koding-proxy-us-west-2"
-      ]
+      group             : "proxy"
       nginx             :
         websocket       : yes
         locations       : [
