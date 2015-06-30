@@ -1,8 +1,8 @@
-whoami               = require 'app/util/whoami'
-actionTypes          = require '../actions/actiontypes'
-toImmutable          = require 'app/util/toImmutable'
-KodingFluxStore      = require 'app/flux/store'
-{ createFakeMessage } = require '../helper'
+whoami                   = require 'app/util/whoami'
+actionTypes              = require '../actions/actiontypes'
+toImmutable              = require 'app/util/toImmutable'
+KodingFluxStore          = require 'app/flux/store'
+MessageCollectionHelpers = require '../helpers/messagecollection'
 
 
 ###*
@@ -56,6 +56,8 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###
   handleCreateMessageBegin: (currentState, { body, clientRequestId }) ->
 
+    { createFakeMessage, addMessage } = MessageCollectionHelpers
+
     message = createFakeMessage clientRequestId, body
 
     nextState = addMessage currentState, toImmutable message
@@ -76,6 +78,8 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###
   handleCreateMessageSuccess: (currentState, { clientRequestId, message }) ->
 
+    { addMessage, removeFakeMessage } = MessageCollectionHelpers
+
     if clientRequestId
       currentState = removeFakeMessage currentState, clientRequestId
 
@@ -95,6 +99,8 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###
   handleCreateMessageFail: (currentState, { channelId, clientRequestId }) ->
 
+    { removeFakeMessage } = MessageCollectionHelpers
+
     nextState = removeFakeMessage currentState, clientRequestId
 
     return nextState
@@ -112,6 +118,8 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###
   handleRemoveMessageBegin: (currentState, { messageId }) ->
 
+    { markMessageRemoved } = MessageCollectionHelpers
+
     nextState = markMessageRemoved currentState, messageId
 
     return nextState
@@ -127,6 +135,8 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @return {MessageCollection} nextState
   ###
   handleRemoveMessageFail: (currentState, { messageId }) ->
+
+    { unmarkMessageRemoved } = MessageCollectionHelpers
 
     nextState = unmarkMessageRemoved currentState, messageId
 
@@ -144,6 +154,8 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###
   handleRemoveMessageSuccess: (currentState, { messageId }) ->
 
+    { removeMessage } = MessageCollectionHelpers
+
     nextState = removeMessage currentState, messageId
 
     return nextState
@@ -159,6 +171,8 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @return {MessageCollection} nextState
   ###
   handleLikeMessageBegin: (currentState, { messageId }) ->
+
+    { setIsLiked, addLiker } = MessageCollectionHelpers
 
     nextState = currentState.withMutations (messages) ->
       messages.update messageId, (message) ->
@@ -180,7 +194,9 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###
   handleLikeMessageSuccess: (currentState, { messageId, message }) ->
 
-    nextState = currentState.set messageId, toImmutable message
+    { addMessage } = MessageCollectionHelpers
+
+    nextState = addMessage currentState, toImmutable message
 
     return nextState
 
@@ -195,6 +211,8 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @return {MessageCollection} nextState
   ###
   handleLikeMessageFail: (currentState, { messageId }) ->
+
+    { setIsLiked, removeLiker } = MessageCollectionHelpers
 
     nextState = currentState.withMutations (messages) ->
       messages.update messageId, (message) ->
@@ -214,6 +232,8 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @return {MessageCollection} nextState
   ###
   handleUnlikeMessageBegin: (currentState, { messageId }) ->
+
+    { setIsLiked, removeLiker } = MessageCollectionHelpers
 
     nextState = currentState.withMutations (messages) ->
       messages.update messageId, (message) ->
@@ -235,7 +255,9 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###
   handleUnlikeMessageSuccess: (currentState, { messageId, message }) ->
 
-    nextState = currentState.set messageId, toImmutable message
+    { addMessage } = MessageCollectionHelpers
+
+    nextState = addMessage currentState, toImmutable message
 
     return nextState
 
@@ -250,6 +272,8 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @return {MessageCollection} nextState
   ###
   handleUnlikeMessageFail: (currentState, { messageId }) ->
+
+    { setIsLiked, addLiker } = MessageCollectionHelpers
 
     nextState = currentState.withMutations (messages) ->
       messages.update messageId, (message) ->

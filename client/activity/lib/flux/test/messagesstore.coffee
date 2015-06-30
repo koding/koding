@@ -6,7 +6,7 @@ whoami = require 'app/util/whoami'
 MessagesStore = require '../stores/messagesstore'
 actionTypes = require '../actions/actiontypes'
 
-helper = require '../helper'
+MessageCollectionHelpers = require '../helpers/messagecollection'
 
 describe 'MessagesStore', ->
 
@@ -40,7 +40,7 @@ describe 'MessagesStore', ->
       reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, {clientRequestId, body}
 
       # mock serverside response
-      mockMessage = helper.createFakeMessage messageId, body
+      mockMessage = MessageCollectionHelpers.createFakeMessage messageId, body
       reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, {
         clientRequestId, message: mockMessage
       }
@@ -76,7 +76,7 @@ describe 'MessagesStore', ->
     message = null
     before ->
       messageId = 'test'
-      message = helper.createFakeMessage messageId, 'hello world'
+      message = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
 
     it 'marks message as __removed', ->
 
@@ -96,7 +96,7 @@ describe 'MessagesStore', ->
     message = null
     before ->
       messageId = 'test'
-      message = helper.createFakeMessage messageId, 'hello world'
+      message = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
 
     it 'unmarks message as __removed', ->
 
@@ -117,7 +117,7 @@ describe 'MessagesStore', ->
     message = null
     before ->
       messageId = 'test'
-      message = helper.createFakeMessage messageId, 'hello world'
+      message = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
 
     it 'removes message', ->
 
@@ -135,7 +135,7 @@ describe 'MessagesStore', ->
     message = null
     before ->
       messageId = 'test'
-      message = helper.createFakeMessage messageId, 'hello world'
+      message = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
 
     it 'optimistically adds a like to message', ->
 
@@ -160,7 +160,7 @@ describe 'MessagesStore', ->
     message = null
     before ->
       messageId = 'test'
-      message = helper.createFakeMessage messageId, 'hello world'
+      message = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
 
     it 'removes optimistically added like from begin action', ->
 
@@ -187,7 +187,7 @@ describe 'MessagesStore', ->
     message = null
     before ->
       messageId = 'test'
-      message = helper.createFakeMessage messageId, 'hello world'
+      message = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
 
     it 'updates message with given id', ->
 
@@ -267,7 +267,7 @@ describe 'MessagesStore', ->
       expect(message.__fromServer).to.not.be.defined
 
       # mock a message as a server response and dispatch that.
-      _message = markAsFromServer helper.createFakeMessage messageId, 'hello world'
+      _message = markAsFromServer MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
       reactor.dispatch actionTypes.UNLIKE_MESSAGE_SUCCESS, { messageId, message: _message }
 
       storeState = reactor.evaluate ['messages']
@@ -291,7 +291,7 @@ getLikedMessage = (id) ->
 
   toImmutable = require 'app/util/toImmutable'
 
-  message = helper.createFakeMessage id, 'hello world'
+  message = MessageCollectionHelpers.createFakeMessage id, 'hello world'
 
   message.interactions.like.isInteracted = yes
   message.interactions.like.actorsPreview.push whoami()._id
