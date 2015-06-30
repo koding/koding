@@ -485,6 +485,8 @@ class Haydar extends events.EventEmitter
       @on '_updated-sprites', bunldeAllStyles
       copyKd bunldeAllStyles
 
+      return  unless opts.watchCss
+
       commonsWatcher = chokidar.watch includes, persistent: yes
       commonRaw = (e, file) ->
 
