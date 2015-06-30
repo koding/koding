@@ -53,13 +53,35 @@ module.exports = class Github extends Base
 
     { method, options } = _options
     [ base, method ]    = method.split '.'
+    # Callback wrapper to add some more
+    # functionality to default callback
+    cb = (err, response) ->
 
-    # Forcing `per_page` option to max 10 because of max_call_stack_size issue ~ GG
+      if err and err.toJSON?
+
+        err = err.toJSON()
+
+        # Unifying error object, original Error object includes
+        # err.message as another object but stringified, so we are
+        # making it ready for the client side here. If anything
+        # goes wrong it will be send to client as is
+        try
+          err.details = JSON.parse err.message
+          err.message = err.details.message
+          delete err.details.message
+
+      callback err, response
+
+    # FIXME Forcing `per_page` option to max 10
+    # because of max_call_stack_size issue in Bongo
+    # Requires extensive debugging on Bongo.Base ~ GG
     (options ?= {}).per_page = 10
 
     gh = initGithubFor client
 
     try
-      gh[base][method] options, callback
+      # TODO We can add a whitelist of accepted methods/bases
+      # and check them before we try to execute them ~ CS, GG
+      gh[base][method] options, cb
     catch err
-      callback err
+      cb err
