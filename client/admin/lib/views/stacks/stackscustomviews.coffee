@@ -479,10 +479,11 @@ module.exports = class StacksCustomViews extends CustomViews
         repoListView      : { oauth_data }
         navCancelButton   :
           title           : '< Select another provider'
-          callback        : cancelCallback
+          callback        : ->
+            cancelCallback data
 
       views.repoListView.on 'RepoSelected', (selected_repo) ->
-        callback { repo_provider, selected_repo }
+        callback { repo_provider, selected_repo, oauth_data }
 
       return container
 
@@ -503,17 +504,26 @@ module.exports = class StacksCustomViews extends CustomViews
           cssClass        : 'hidden'
         navCancelButton   :
           title           : '< Select another repo'
-          callback        : cancelCallback
+          callback        : ->
+            cancelCallback data
 
       { outputView, mainLoader } = views
 
-
-      fetchTemplate selected_repo, (err, template) ->
+      fetchRepoFile selected_repo, (err, template) ->
 
         mainLoader.hide()
         outputView.show()
 
-        outputView.setContent template ? err?.statusText ? 'Something went wrong!'
+        console.log err, template
+
+        if err
+          content = err?.message
+        else if template?.content?
+          content = atob template.content
+        else
+          content = 'Something went wrong, please try again.'
+
+        outputView.setContent content
 
 
       return container
