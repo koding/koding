@@ -1,7 +1,7 @@
 helpers = require './helpers.js'
 assert  = require 'assert'
 
-paneSelector      = '.pane-wrapper .panel-1 .application-tab-handle-holder'
+paneSelector      = '.panel-1 .application-tab-handle-holder'
 plusSelector      = paneSelector + ' .visible-tab-handle.plus'
 undoSplitSelector = paneSelector + ' .general-handles .close-handle'
 newPaneSelector   = '.kdsplitcomboview .kdsplitview-panel.panel-1 .application-tab-handle-holder'
@@ -13,7 +13,7 @@ module.exports =
 
     browser
       .pause                   5000
-      .waitForElementVisible   '.panel-1 .panel-0 .application-tab-handle-holder', 20000
+      .waitForElementVisible   paneSelector, 20000
       .moveToElement           plusSelector, 60, 17
       .click                   plusSelector
       .waitForElementVisible   '.context-list-wrapper', 20000
@@ -25,15 +25,13 @@ module.exports =
     browser
       .waitForElementVisible '.panel-1', 20000
       .elements 'css selector', '.panel-1', (result) =>
-        assert.equal result.value.length, 2
+        oldLength = result.value.length
 
         browser
           .waitForElementVisible    paneSelector, 20000
           .click                    undoSplitSelector
-          .waitForElementNotPresent '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder', 20000
-
-        browser.elements 'css selector', newPaneSelector, (result) =>
-          assert.equal result.value.length, 1
+          .elements 'css selector', newPaneSelector, (result) =>
+            assert.equal result.value.length, oldLength - 1
 
 
   split: (browser, direction) ->
