@@ -959,7 +959,7 @@ class IDEAppController extends AppController
 
     return  unless paneType is 'terminal'
 
-    tabView.tabHandle.dblClick()
+    tabView.tabHandle.setTitleEditMode yes
 
 
   showFileFinder: ->

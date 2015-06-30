@@ -23,7 +23,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     super
 
-    { view, title }    = @getOptions()
+    { view, title } = @getOptions()
 
     @titleText  = new KDView
       tagName  : 'b'
@@ -43,10 +43,11 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
       @emit 'RenamingRequested', newTitle, title
 
-    @titleInput.on 'EscapePerformed', =>
-      @setTitleEditMode no
+    @titleInput.on 'EscapePerformed', @lazyBound 'setTitleEditMode', no
 
     view.addSubView @titleInput
+
+    @on 'dblclick', @lazyBound 'setTitleEditMode', yes
 
 
   setDraggable: ->
@@ -65,18 +66,14 @@ module.exports = class IDETabHandleView extends KDTabHandleView
   makeEditable: -> @isEditable = yes
 
 
-  dblClick: ->
-
-    return  unless @isEditable and @getWidth() >= MIN_EDIT_WIDTH
-    return  if @hasClass 'edit-mode'
-
-    @setTitleEditMode yes
-
-
   setTitleEditMode: (isEditMode) ->
 
     { title } = @getOptions()
+
     if isEditMode
+      return  unless @isEditable and @getWidth() >= MIN_EDIT_WIDTH
+      return  if @hasClass 'edit-mode'
+
       @setClass 'edit-mode'
       @titleInput.setValue title
       @titleInput.setFocus()
