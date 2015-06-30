@@ -46,10 +46,10 @@ module.exports =
       if result.value.length > 1
         console.log result.value
 
-        console.log '✔  Another domain is already added. Ending test...'
+        console.log ' ✔ Another domain is already added. Ending test...'
         browser.end()
       else
-        console.log '✔  Creating a new domain...'
+        console.log ' ✔ Creating a new domain...'
         environmentHelpers.addDomain(browser, user)
         browser.end()
 

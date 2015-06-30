@@ -24,7 +24,7 @@ module.exports =
       .click                   indexSelector + ' + .chevron'
       .waitForElementVisible   'li.open-file', 20000
       .click                   'li.open-file'
-      .waitForElementVisible   '.indexhtml', 20000 # Assertion
+      .waitForElementVisible   '.pane-wrapper .kdsplitview-panel .indexhtml', 20000 # Assertion
       .waitForElementVisible   '.kdtabpaneview.indexhtml', 20000 # Assertion
       .assert.containsText     '.kdtabpaneview.indexhtml', 'Hello World from HTML by Koding' # Assertion
       .end()

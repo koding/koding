@@ -107,6 +107,7 @@ module.exports =
 
     browser
       .refresh()
+      .waitForElementVisible   '[testpath=ActivityListItemView]', 20000
       .click                   '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible   '[testpath=ActivityInputView]', 10000
       .waitForElementVisible   mostLikeSelector, 20000
