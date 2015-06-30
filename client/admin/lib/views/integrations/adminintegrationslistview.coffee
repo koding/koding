@@ -8,11 +8,14 @@ AdminIntegrationItemView    = require './adminintegrationitemview'
 AdminIntegrationSetupView   = require './adminintegrationsetupview'
 AdminIntegrationDetailsView = require './adminintegrationdetailsview'
 
+
 module.exports = class AdminIntegrationsListView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'all-integrations'
+    options.cssClass            = 'all-integrations'
+    options.listItemClass     or= AdminIntegrationItemView
+    options.fetcherMethodName or= 'list'
 
     super options, data
 
@@ -23,12 +26,13 @@ module.exports = class AdminIntegrationsListView extends KDView
 
     @addSubView @subContentView = new KDCustomScrollView
 
+
   createListController: ->
 
     @listController       = new KDListViewController
       viewOptions         :
         wrapper           : yes
-        itemClass         : AdminIntegrationItemView
+        itemClass         : @getOptions().listItemClass
       useCustomScrollView : yes
       noItemFoundWidget   : new KDCustomHTMLView
         cssClass          : 'hidden no-item-found'
@@ -43,19 +47,33 @@ module.exports = class AdminIntegrationsListView extends KDView
 
   fetchIntegrations: ->
 
-    kd.singletons.socialapi.integrations.list (err, data) =>
+    methodName = @getOption 'fetcherMethodName'
+
+    kd.singletons.socialapi.integrations[methodName] (err, data) =>
 
       return @handleNoItem err  if err
 
-      if @integrationType is 'configured' # dummy code.
-        data = data.first
+      @listItems data
 
-      for item in data
-        item.integrationType = @integrationType
-        listItem = @listController.addItem item
-        @registerListItem listItem
 
-      @listController.lazyLoader.hide()
+  refresh: ->
+
+    @listController.removeAllItems()
+    @listController.lazyLoader.show()
+    @fetchIntegrations()
+
+
+  listItems: (items) ->
+
+    if not items or items.length is 0
+      return @handleNoItem()
+
+    for item in items
+      item.integrationType = @integrationType
+      listItem = @listController.addItem item
+      @registerListItem listItem
+
+    @listController.lazyLoader.hide()
 
 
   registerListItem: (item) ->
@@ -85,11 +103,17 @@ module.exports = class AdminIntegrationsListView extends KDView
 
   showIntegrationDetails: (data) ->
 
-    @showView new AdminIntegrationDetailsView {}, data
+    detailsView = new AdminIntegrationDetailsView {}, data
+    detailsView.once 'IntegrationCancelled', @bound 'showList'
+    detailsView.once 'NewIntegrationSaved', =>
+      @showList()
+      @emit 'ShowConfiguredTab'
+
+    @showView detailsView
 
 
   handleNoItem: (err) ->
 
-    kd.warn err
+    kd.warn err  if err
     @listController.lazyLoader.hide()
     @listController.noItemView.show()
