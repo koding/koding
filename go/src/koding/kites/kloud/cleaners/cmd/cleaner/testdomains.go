@@ -1,12 +1,27 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"koding/kites/kloud/pkg/dnsclient"
+	"log"
+)
 
 type TestDomains struct {
+	DNS *dnsclient.Route53
 }
 
 func (t *TestDomains) Process() {
 	fmt.Println("Processing TestDomains")
+
+	records, err := t.DNS.GetAll()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	for _, record := range records {
+		fmt.Printf("%+v\n", record.Name)
+	}
 }
 
 func (t *TestDomains) Run() {

@@ -114,6 +114,34 @@ func (r *Route53) Get(domain string) (*Record, error) {
 	return nil, ErrNoRecord
 }
 
+// GetAll retrieves all records from the hostedzone. Because of the limitation
+// of Route53 it only returns up to 100 records. Subsequent calls retrieve the
+// first 100.
+func (r *Route53) GetAll() ([]*Record, error) {
+	r.Log.Debug("Fetching domain records")
+	resp, err := r.ListResourceRecordSets(r.ZoneId, nil)
+	if err != nil {
+		r.Log.Error(err.Error())
+		return nil, errors.New("could not fetch domain")
+	}
+
+	if len(resp.Records) == 0 {
+		return nil, ErrNoRecord
+	}
+
+	records := make([]*Record, len(resp.Records))
+
+	for i, r := range resp.Records {
+		records[i] = &Record{
+			Name: r.Name,
+			IP:   r.Records[0],
+			TTL:  r.TTL,
+		}
+	}
+
+	return records, nil
+}
+
 // Rename changes the domain from oldDomain to newDomain in a single transaction
 func (r *Route53) Rename(oldDomain, newDomain string) error {
 	record, err := r.Get(oldDomain)

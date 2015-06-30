@@ -140,7 +140,9 @@ func (c *Cleaner) collectAndProcess() error {
 		// &TestVMS{
 		// 	Instances: artifacts.Instances,
 		// },
-		&TestDomains{},
+		&TestDomains{
+			DNS: c.DNSDev,
+		},
 		// &AlwaysOn{
 		// 	MongoDB:          c.MongoDB,
 		// 	IsPaid:           artifacts.IsPaid,
