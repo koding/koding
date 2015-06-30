@@ -45,8 +45,7 @@ SPRITESMITH_CSS_NAME_PREFIX = 'sprite@'
 SPRITES_TMPDIR              = '.sprites'
 STYLES_KDJS_MODULE_NAME     = 'kd.js'
 STYLES_KDJS_CSS_FILE        = 'dist/kd.css'
-STYLES_COMMONS_GLOB         = 'app/lib/styl/commons/*.styl'
-STYLES_EXTENSION            = 'styl'
+STYLES_COMMONS_GLOB         = 'app/styl/**/*.styl'
 THROTTLE_WAIT               = 500
 
 module.exports =
@@ -369,9 +368,9 @@ class Haydar extends events.EventEmitter
     timeEnd = @_timeEnd.bind this
     notify  = @_notify.bind this
 
-    manifests  = opts.manifests
-    watchingKd = no
-    watchingDirs = []
+    manifests    = opts.manifests
+    watchingKd   = no
+    watchedGlobs = {}
 
     commons  = path.join opts.basedir, STYLES_COMMONS_GLOB
     includes = [ commons ]
@@ -450,48 +449,64 @@ class Haydar extends events.EventEmitter
 
     bundle = (manifest)->
       start = Date.now()
+      globs = []
+      manifest.styles.forEach (glob) ->
 
-      manifest.styles.forEach (basename) ->
-        dir = path.join manifest.basedir, basename
+        glob  = path.join manifest.basedir, glob
+        globs.push glob
 
-        globs = [ path.join dir, '**', '*.' + STYLES_EXTENSION ]
-        globs.push "!#{commons}"
+      onRaw = (e, file) ->
 
-        onRaw = (e, file) ->
-          return  unless file
-          if e in ['change','modified','deleted']
-            console.log "updated #{dir}"
-            start = Date.now()
-            styl manifest, globs
+        return  unless file
 
-        onRaw = throttle onRaw, THROTTLE_WAIT
+        if e in ['change','modified','deleted']
+          console.log "updated #{globs}"
+          start = Date.now()
+          styl manifest, globs
 
-        styl manifest, globs
+      onRaw = throttle onRaw, THROTTLE_WAIT
 
-        if opts.watchCss and ~watchingDirs.indexOf(dir) is 0
-          watchingDirs.push dir
-          w = chokidar.watch dir, persistent: yes
-          w.on 'ready', ->
-            w.on 'raw', onRaw
+      styl manifest, globs
 
+
+      if opts.watchCss and not watchedGlobs[globs.join()]
+        watchedGlobs[globs.join()] = yes
+        console.log "watching #{globs}"
+        w = chokidar.watch globs, persistent: yes
+        w.on 'ready', -> w.on 'raw', onRaw
+
+
+    bunldeAllStyles = ->
+      manifests.forEach (manifest) ->
+        return  unless Array.isArray manifest.styles
+        bundle manifest
 
     init = =>
-      fn = ->
-        manifests.forEach (manifest) ->
-          return  unless Array.isArray manifest.styles
-          bundle manifest
-      @on '_updated-sprites', -> fn()
-      copyKd -> fn()
+      @on '_updated-sprites', bunldeAllStyles
+      copyKd bunldeAllStyles
+
+      return  unless opts.watchCss
+
+      commonsWatcher = chokidar.watch includes, persistent: yes
+      commonRaw = (e, file) ->
+
+        return  unless file
+
+        if e in ['change','modified','deleted']
+          console.log "updating all styles because common styles has changed!"
+          bunldeAllStyles()
+
+      commonsWatcher.on 'ready', -> commonsWatcher.on 'raw', throttle commonRaw, THROTTLE_WAIT
 
 
     if opts.sprites
       spriteSheets = path.join opts.spriteTmpCssOutdir, '*', \
         SPRITESMITH_CSS_NAME_PREFIX + '*x.' + SPRITESMITH_CSS_EXTENSION
       includes.push spriteSheets
-      @once '_updated-sprites', ->
-        init()
+      @once '_updated-sprites', init
     else
       init()
+
 
 
   _thirdparty: (done) ->
