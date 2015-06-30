@@ -127,47 +127,48 @@ func (c *Cleaner) Run() {
 
 // collectAndRun collects any necessary resource and processes all task
 func (c *Cleaner) collectAndProcess() error {
-	artifacts, err := c.Collect()
-	if err != nil {
-		return err
-	}
+	// artifacts, err := c.Collect()
+	// if err != nil {
+	// 	return err
+	// }
 
 	c.process(
-		&TagInstances{
-			Instances: artifacts.Instances,
-			Machines:  artifacts.MongodbUsers,
-		},
-		&TestVMS{
-			Instances: artifacts.Instances,
-		},
-		&AlwaysOn{
-			MongoDB:          c.MongoDB,
-			IsPaid:           artifacts.IsPaid,
-			AlwaysOnMachines: artifacts.AlwaysOnMachines,
-		},
-		&LongRunning{
-			MongoDB:   c.MongoDB,
-			IsPaid:    artifacts.IsPaid,
-			Instances: artifacts.Instances,
-			Cleaner:   c,
-		},
-		&GhostVMs{
-			Instances: artifacts.Instances,
-			Ids:       artifacts.MongodbUsers,
-		},
-		&MultipleVMs{
-			Instances:     artifacts.Instances,
-			UsersMultiple: artifacts.UsersMultiple,
-			IsPaid:        artifacts.IsPaid,
-			Cleaner:       c,
-		},
-		&Volumes{
-			MongoDB:   c.MongoDB,
-			IsPaid:    artifacts.IsPaid,
-			Instances: artifacts.Instances,
-			Volumes:   artifacts.Volumes,
-			Cleaner:   c,
-		},
+		// &TagInstances{
+		// 	Instances: artifacts.Instances,
+		// 	Machines:  artifacts.MongodbUsers,
+		// },
+		// &TestVMS{
+		// 	Instances: artifacts.Instances,
+		// },
+		&TestDomains{},
+		// &AlwaysOn{
+		// 	MongoDB:          c.MongoDB,
+		// 	IsPaid:           artifacts.IsPaid,
+		// 	AlwaysOnMachines: artifacts.AlwaysOnMachines,
+		// },
+		// &LongRunning{
+		// 	MongoDB:   c.MongoDB,
+		// 	IsPaid:    artifacts.IsPaid,
+		// 	Instances: artifacts.Instances,
+		// 	Cleaner:   c,
+		// },
+		// &GhostVMs{
+		// 	Instances: artifacts.Instances,
+		// 	Ids:       artifacts.MongodbUsers,
+		// },
+		// &MultipleVMs{
+		// 	Instances:     artifacts.Instances,
+		// 	UsersMultiple: artifacts.UsersMultiple,
+		// 	IsPaid:        artifacts.IsPaid,
+		// 	Cleaner:       c,
+		// },
+		// &Volumes{
+		// 	MongoDB:   c.MongoDB,
+		// 	IsPaid:    artifacts.IsPaid,
+		// 	Instances: artifacts.Instances,
+		// 	Volumes:   artifacts.Volumes,
+		// 	Cleaner:   c,
+		// },
 	)
 
 	return nil
