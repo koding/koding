@@ -53,21 +53,22 @@ module.exports = class MachineSettingsDiskUsageView extends KDView
         <span>#{format usage} of #{format total}</span>
       """
 
-    @addSubView new KDCustomHTMLView
-      cssClass : 'footline'
-      partial  : "If you have a paid plan or storage through referrals, you can <a href='#' class='resize'>resize your VM</a>.<br>Share Koding and <a href='#' class='share'>get more storage for free</a>!"
-      click    : (e) =>
-        if e.target.tagName is 'A'
+    unless @getData().isManaged()
+      @addSubView new KDCustomHTMLView
+        cssClass : 'footline'
+        partial  : "If you have a paid plan or storage through referrals, you can <a href='#' class='resize'>resize your VM</a>.<br>Share Koding and <a href='#' class='share'>get more storage for free</a>!"
+        click    : (e) =>
+          if e.target.tagName is 'A'
 
-          { classList } = e.target
+            { classList } = e.target
 
-          if classList.contains 'share'
-            kd.singletons.router.handleRoute '/Account/Referral'
+            if classList.contains 'share'
+              kd.singletons.router.handleRoute '/Account/Referral'
 
-          else if classList.contains 'resize'
-            @handleResizeRequest()
+            else if classList.contains 'resize'
+              @handleResizeRequest()
 
-          @emit 'ModalDestroyRequested'
+            @emit 'ModalDestroyRequested'
 
 
   handleResizeRequest: ->
