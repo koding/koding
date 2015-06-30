@@ -968,7 +968,7 @@ module.exports = CollaborationController =
 
     {setMachineUser} = envHelpers
 
-    setMachineUser @mountedMachine, usernames, share, (err) =>
+    setMachineUser @mountedMachine, @workspaceData, usernames, share, (err) =>
       return callback err  if err
 
       @emit 'SetMachineUser', usernames, share
@@ -1074,10 +1074,6 @@ module.exports = CollaborationController =
 
       if update.isParticipant
       then @stateMachine.transition 'Loading'
-      else
-        socialHelpers.acceptChannel update.channel, (err) =>
-          return throwError err  if err
-          @stateMachine.transition 'Loading'
 
 
   getHostSnapshot: -> IDELayoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()

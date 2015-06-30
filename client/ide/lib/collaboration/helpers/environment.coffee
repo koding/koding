@@ -34,15 +34,16 @@ updateWorkspace = (workspaceData, options = {}) ->
  * Shares or unshares given machine with given users.
  *
  * @param {object} machine
+ * @param {object} workspace
  * @param {array.<string>} usernames
  * @param {boolean} share
  * @param {function(err: object)}
 ###
-setMachineUser = (machine, usernames, share, callback) ->
+setMachineUser = (machine, workspace, usernames, share, callback) ->
 
-  method   = if share then 'share' else 'unshare'
-  jMachine = machine.getData()
-  jMachine[method] usernames, (err) ->
+  method = if share then 'add' else 'kick'
+
+  remote.api.Collaboration[method] workspace.getId(), usernames, (err) ->
     return callback err  if err
 
     kite   = machine.getBaseKite()

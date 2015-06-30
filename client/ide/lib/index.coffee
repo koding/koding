@@ -506,7 +506,7 @@ class IDEAppController extends AppController
       if not machineItem.isMine() and not machineItem.isApproved()
         { activitySidebar } = kd.singletons.mainView
         box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
-        box.machineItem.showSidebarSharePopup sticky: yes
+        box.machineItem.showSharePopup sticky: yes, workspaceId: @workspaceData.getId()
         withFakeViews = yes
 
       @setMountedMachine machineItem
