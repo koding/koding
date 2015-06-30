@@ -16,6 +16,7 @@
     "./lib/sprites"
   ],
   "styles": [
-    "./lib/styl/*.styl"
+    "./lib/styl/*.styl",
+    "./lib/styl/terminal/*.styl"
   ]
 }
