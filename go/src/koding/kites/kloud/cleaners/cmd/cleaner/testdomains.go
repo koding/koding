@@ -13,7 +13,7 @@ type TestDomains struct {
 func (t *TestDomains) Process() {
 	fmt.Println("Processing TestDomains")
 
-	records, err := t.DNS.GetAll()
+	records, err := t.DNS.GetAll("")
 	if err != nil {
 		log.Println(err)
 		return

@@ -117,9 +117,13 @@ func (r *Route53) Get(domain string) (*Record, error) {
 // GetAll retrieves all records from the hostedzone. Because of the limitation
 // of Route53 it only returns up to 100 records. Subsequent calls retrieve the
 // first 100.
-func (r *Route53) GetAll() ([]*Record, error) {
+func (r *Route53) GetAll(name string) ([]*Record, error) {
+	lopts := &route53.ListOpts{
+		Name: name,
+	}
+
 	r.Log.Debug("Fetching domain records")
-	resp, err := r.ListResourceRecordSets(r.ZoneId, nil)
+	resp, err := r.ListResourceRecordSets(r.ZoneId, lopts)
 	if err != nil {
 		r.Log.Error(err.Error())
 		return nil, errors.New("could not fetch domain")
