@@ -186,9 +186,7 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 	}
 
 	r.hostedZone = resp.HostedZone
-
 	hostedZoneLogger.Debug("create hosted finished successfully")
-
 	return nil
 }
 
@@ -244,9 +242,5 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 	}
 
 	_, err := r.route53.ChangeResourceRecordSets(params)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

@@ -89,7 +89,6 @@ func (l *LifeCycle) createQueue(sqsLogger logging.Logger, queueName string) erro
 	l.queueURL = createQueueResp.QueueURL // dont forget to assign queue url
 
 	sqsLogger.Debug("SQS Queue is created")
-
 	return nil
 }
 
@@ -128,7 +127,6 @@ func (l *LifeCycle) configureQueue(sqsLogger logging.Logger) error {
 	}
 
 	sqsLogger.Debug("Queue Policy is configured properly")
-
 	return nil
 }
 
@@ -165,7 +163,6 @@ func (l *LifeCycle) getQueueAttributes() (*sqs.GetQueueAttributesOutput, error) 
 	}
 
 	l.queueARN = queueARN
-
 	return resp, nil
 }
 
@@ -227,9 +224,5 @@ func isPolicyValid(attr map[string]*string, b string) bool {
 		return false
 	}
 
-	if b != *attr["Policy"] {
-		return false
-	}
-
-	return true
+	return b == *attr["Policy"]
 }

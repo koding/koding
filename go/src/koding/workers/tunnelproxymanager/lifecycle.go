@@ -50,7 +50,7 @@ type LifeCycle struct {
 // particular message. Manager is idempotent, if any given resource doesnt exist
 // in the given AWS system, it will create or re-use the previous ones
 func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeCycle {
-	l := &LifeCycle{
+	return &LifeCycle{
 		closed:    false,
 		closeChan: make(chan chan struct{}),
 
@@ -63,8 +63,6 @@ func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeC
 
 		log: log.New("lifecycle"),
 	}
-
-	return l
 }
 
 // Configure configures lifecycle, upserts SNS, SQS, Subscriptions, Notification
@@ -143,7 +141,6 @@ func (l *LifeCycle) listenFunc(recordManager *RecordManager) func(body *string) 
 			ticker.Stop()
 			break
 		}
-
 		return err
 	}
 }
@@ -188,7 +185,6 @@ func (l *LifeCycle) process(f func(*string) error) error {
 			return err
 		}
 	}
-
 	return nil
 }
 
