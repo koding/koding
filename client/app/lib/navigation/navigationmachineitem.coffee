@@ -231,6 +231,8 @@ module.exports = class NavigationMachineItem extends JView
             options.channelId = workspace.channelId
             show options
 
+      return show options
+
     else if @machine.isPermanent()
       options.type = 'shared machine'
       options.isApproved = @machine.isApproved()
