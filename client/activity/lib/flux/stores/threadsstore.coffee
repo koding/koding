@@ -52,9 +52,7 @@ module.exports = class ThreadsStore extends Nuclear.Store
   ###
   handleCreateMessageBegin: (currentState, { channelId, clientRequestId }) ->
 
-    nextState = addMessage currentState, channelId, clientRequestId
-
-    return nextState
+    return addMessage currentState, channelId, clientRequestId
 
 
   ###*
@@ -74,9 +72,7 @@ module.exports = class ThreadsStore extends Nuclear.Store
     if clientRequestId
       currentState = removeMessage currentState, channelId, clientRequestId
 
-    nextState = addMessage currentState, channelId, message.id
-
-    return nextState
+    return addMessage currentState, channelId, message.id
 
 
   ###*
@@ -91,9 +87,7 @@ module.exports = class ThreadsStore extends Nuclear.Store
   ###
   handleCreateMessageFail: (currentState, { channelId, clientRequestId }) ->
 
-    nextState = removeMessage currentState, channelId, clientRequestId
-
-    return nextState
+    return removeMessage currentState, channelId, clientRequestId
 
 
   ###*
@@ -108,9 +102,7 @@ module.exports = class ThreadsStore extends Nuclear.Store
   ###
   handleRemoveMessageSuccess: (currentState, { channelId, messageId }) ->
 
-    nextState = removeMessage currentState, messageId
-
-    return nextState
+    return removeMessage currentState, messageId
 
 
 ###*
@@ -143,11 +135,9 @@ addMessage = (threads, channelId, messageId) ->
 removeMessage = (threads, messageId) ->
 
   # for each thread
-  threads = threads.map (thread) ->
+  return threads.map (thread) ->
     # update messages list with filtering out given messageId.
     thread.update 'messages', (messages) -> messages.filter (id) -> id isnt messageId
-
-  return threads
 
 
 ###*

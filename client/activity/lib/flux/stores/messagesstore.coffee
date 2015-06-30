@@ -60,9 +60,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     message = createFakeMessage clientRequestId, body
 
-    nextState = addMessage currentState, toImmutable message
-
-    return nextState
+    return addMessage currentState, toImmutable message
 
 
   ###*
@@ -83,9 +81,7 @@ module.exports = class MessagesStore extends KodingFluxStore
     if clientRequestId
       currentState = removeFakeMessage currentState, clientRequestId
 
-    nextState = addMessage currentState, toImmutable message
-
-    return nextState
+    return addMessage currentState, toImmutable message
 
 
   ###*
@@ -101,9 +97,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { removeFakeMessage } = MessageCollectionHelpers
 
-    nextState = removeFakeMessage currentState, clientRequestId
-
-    return nextState
+    return removeFakeMessage currentState, clientRequestId
 
 
   ###*
@@ -120,9 +114,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { markMessageRemoved } = MessageCollectionHelpers
 
-    nextState = markMessageRemoved currentState, messageId
-
-    return nextState
+    return markMessageRemoved currentState, messageId
 
 
   ###*
@@ -138,9 +130,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { unmarkMessageRemoved } = MessageCollectionHelpers
 
-    nextState = unmarkMessageRemoved currentState, messageId
-
-    return nextState
+    return unmarkMessageRemoved currentState, messageId
 
 
   ###*
@@ -156,9 +146,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { removeMessage } = MessageCollectionHelpers
 
-    nextState = removeMessage currentState, messageId
-
-    return nextState
+    return removeMessage currentState, messageId
 
 
   ###*
@@ -174,12 +162,10 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { setIsLiked, addLiker } = MessageCollectionHelpers
 
-    nextState = currentState.withMutations (messages) ->
+    return currentState.withMutations (messages) ->
       messages.update messageId, (message) ->
         message = setIsLiked message, yes
         message = addLiker message, whoami()._id
-
-    return nextState
 
 
   ###*
@@ -196,9 +182,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { addMessage } = MessageCollectionHelpers
 
-    nextState = addMessage currentState, toImmutable message
-
-    return nextState
+    return addMessage currentState, toImmutable message
 
 
   ###*
@@ -214,12 +198,10 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { setIsLiked, removeLiker } = MessageCollectionHelpers
 
-    nextState = currentState.withMutations (messages) ->
+    return currentState.withMutations (messages) ->
       messages.update messageId, (message) ->
         message = setIsLiked message, no
         message = removeLiker message, whoami()._id
-
-    return nextState
 
 
   ###*
@@ -235,12 +217,10 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { setIsLiked, removeLiker } = MessageCollectionHelpers
 
-    nextState = currentState.withMutations (messages) ->
+    return currentState.withMutations (messages) ->
       messages.update messageId, (message) ->
         message = setIsLiked message, no
         message = removeLiker message, whoami()._id
-
-    return nextState
 
 
   ###*
@@ -257,9 +237,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { addMessage } = MessageCollectionHelpers
 
-    nextState = addMessage currentState, toImmutable message
-
-    return nextState
+    return addMessage currentState, toImmutable message
 
 
   ###*
@@ -275,11 +253,9 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { setIsLiked, addLiker } = MessageCollectionHelpers
 
-    nextState = currentState.withMutations (messages) ->
+    return currentState.withMutations (messages) ->
       messages.update messageId, (message) ->
         message = setIsLiked message, yes
         message = addLiker message, whoami()._id
-
-    return nextState
 
 
