@@ -11,7 +11,7 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    layoutHelpers.split(browser, 'li.split-vertically')
+    layoutHelpers.split(browser, 'vertical')
     browser.end()
 
 
@@ -20,7 +20,7 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    layoutHelpers.split(browser, 'li.split-horizontally')
+    layoutHelpers.split(browser, 'horizontal')
     browser.end()
 
 
@@ -29,7 +29,6 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    browser
     layoutHelpers.undoSplit(browser)
     browser.end()
 
