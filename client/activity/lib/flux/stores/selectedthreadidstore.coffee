@@ -2,17 +2,17 @@ actionTypes     = require '../actions/actiontypes'
 toImmutable     = require 'app/util/toImmutable'
 KodingFluxStore = require 'app/flux/store'
 
-module.exports = class SelectedChannelStore extends KodingFluxStore
+module.exports = class SelectedThreadIdStore extends KodingFluxStore
 
   getInitialState: -> null
 
   initialize: ->
 
-    @on actionTypes.CHANGE_SELECTED_CHANNEL, @handleChangeSelectedChannel
+    @on actionTypes.CHANGE_SELECTED_THREAD, @handleChangeSelectedThread
 
 
   ###*
-   * Handler for `CHANGE_SELECTED_CHANNEL` action.
+   * Handler for `CHANGE_SELECTED_THREAD` action.
    * It sets state's value as given given channelId.
    *
    * @param {null|string} currentState
@@ -20,5 +20,6 @@ module.exports = class SelectedChannelStore extends KodingFluxStore
    * @param {string} payload.channelId
    * @return {null|string} nextState
   ###
-  handleChangeSelectedChannel: (currentState, { channelId }) -> channelId
+  handleChangeSelectedThread: (currentState, { channelId }) -> channelId
+
 

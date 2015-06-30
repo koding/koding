@@ -1,3 +1,3 @@
 require './messagesstore'
-require './selectedchannelidstore'
+require './selectedthreadidstore'
 require './threadsstore'
