@@ -6,8 +6,6 @@ whoami = require 'app/util/whoami'
 ThreadsStore = require '../stores/threadsstore'
 actionTypes = require '../actions/actiontypes'
 
-helper = require '../helper'
-
 describe 'ThreadsStore', ->
 
   channelId = null
@@ -75,8 +73,6 @@ describe 'ThreadsStore', ->
       storeState = reactor.evaluate ['threads']
 
       expect(storeState.hasIn [channelId, 'messages', 'mock']).to.equal yes
-
-
 
 
 markAsFromServer = (message) ->
