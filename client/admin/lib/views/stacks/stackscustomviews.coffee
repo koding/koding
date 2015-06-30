@@ -123,9 +123,13 @@ module.exports = class StacksCustomViews extends CustomViews
       users = [oauth_data]
 
       Github.api
-        method  : 'repos.getFromUser'
-        options :
-          user  : users.first.username
+        method      : 'repos.getFromUser'
+        options     :
+          user      : users.first.username
+          type      : 'owner'
+          sort      : 'pushed'
+          direction : 'desc'
+
       , (err, repos) ->
 
         users.first.err   = err
