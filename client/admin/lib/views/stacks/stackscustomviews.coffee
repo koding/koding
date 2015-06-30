@@ -144,19 +144,20 @@ module.exports = class StacksCustomViews extends CustomViews
       .nodeify callback
 
 
-  fetchTemplate = (repo, callback) ->
+  fetchRepoFile = (options, callback) ->
 
-    {repoData: {full_name}, name, location} = repo
+    { Github } = remote.api
+    { repo, location, ref } = options
 
-    req_url   = "https://raw.githubusercontent.com/#{full_name}/#{name}#{location}"
-    req       =
-      url     : req_url
-      success : (rest...) -> callback null, rest...
-      error   : (rest...) -> callback rest...
+    Github.api
+      method  : 'repos.getContent'
+      options :
+        repo  : repo.name
+        user  : repo.owner.login
+        path  : location
+        ref   : ref
 
-    $.ajax req
-
-    return
+    , callback
 
 
   updateStackTemplate = (data, callback) ->
