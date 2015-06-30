@@ -122,7 +122,7 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 
 		// if our result set is truncated we can try to fetch again, but if we
 		// reach to end, nothing to do left
-		if !*listHostedZonesResp.IsTruncated {
+		if listHostedZonesResp.IsTruncated == nil || !*listHostedZonesResp.IsTruncated {
 			return errHostedZoneNotFound
 		}
 

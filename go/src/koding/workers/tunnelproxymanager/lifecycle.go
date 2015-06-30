@@ -20,7 +20,7 @@ type LifeCycle struct {
 	// lifecycle management properties
 	closed    bool
 	closeChan chan chan struct{}
-	mu        sync.Mutex
+	closeMu   sync.Mutex // for syncing close operation
 
 	// aws services
 	ec2         *ec2.EC2
@@ -39,16 +39,17 @@ type LifeCycle struct {
 	log logging.Logger
 }
 
-// NewLifeCycle creates a new lifecycle management system, everyting begins with
-// an autoscaling resource, we are listening to any change on that resource, to
-// be able to listen them we are attaching a notification configuration to given
-// autoscaling resource, notification configuration works with a TopicARN, which
-// is basically a SNS Topic, to be able to listen from a Topic ARN we need a
-// SQS, SQS is attached to Notification Topic and configured to pass events as
-// soon as they occur, it also has re- try mechanism. One event only be handled
-// by one manager, there wont be any race condition on processing that
-// particular message. Manager is idempotent, if any given resource doesnt exist
-// in the given AWS system, it will create or re-use the previous ones
+// NewLifeCycle creates a new lifecycle management system, everything begins
+// with an autoscaling resource, we are listening to any change on that
+// resource, to be able to listen them we are attaching a notification
+// configuration to given autoscaling resource, notification configuration works
+// with a TopicARN, which is basically a SNS Topic, to be able to listen from a
+// Topic ARN we need a SQS, SQS is attached to Notification Topic and configured
+// to pass events as soon as they occur, it also has re- try mechanism. One
+// event only be handled by one manager, there wont be any race condition on
+// processing that particular message. Manager is idempotent, if any given
+// resource doesnt exist in the given AWS system, it will create or re-use the
+// previous ones
 func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeCycle {
 	return &LifeCycle{
 		closed:    false,
@@ -193,16 +194,16 @@ var errAlreadyClosed = errors.New("already closed")
 // Close closes lifecycle management system for proxy machines, it doesn't
 // cleanup anything
 func (l *LifeCycle) Close() error {
-	l.mu.Lock()
+	l.closeMu.Lock()
 	if l.closed {
-		l.mu.Unlock()
+		l.closeMu.Unlock()
 		return errAlreadyClosed
 	}
 
 	l.closed = true
 	c := make(chan struct{})
 	l.closeChan <- c
-	l.mu.Unlock()
+	l.closeMu.Unlock()
 
 	l.log.Info("waiting for listener to exit")
 	<-c

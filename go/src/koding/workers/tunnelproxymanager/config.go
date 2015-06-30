@@ -73,12 +73,11 @@ func Configure() (*Config, *aws.Config, error) {
 	}
 
 	c.AutoScalingName = name
-
 	return c, awsconfig, nil
 }
 
 // getRegion checks if region name is given in config, if not tries to get it
-// from ec2metadata endpoint
+// from ec2dynamicdata endpoint
 func getRegion(conf *Config) (string, error) {
 	if conf.Region != "" {
 		return conf.Region, nil
@@ -90,9 +89,8 @@ func getRegion(conf *Config) (string, error) {
 	}
 
 	if info.Region == "" {
-		return "", fmt.Errorf("got malformed data from ec2metadata service")
+		return "", fmt.Errorf("malformed ec2dynamicdata response: %#v", info)
 	}
-
 	return info.Region, nil
 }
 
@@ -106,14 +104,13 @@ func getEBEnvName(conf *Config) (string, error) {
 	// get EB_ENV_NAME param
 	ebEnvName := os.Getenv("EB_ENV_NAME")
 	if ebEnvName == "" {
-		return "", fmt.Errorf("EB Env Name can not be empty")
+		return "", fmt.Errorf("EB_ENV_NAME can not be empty")
 	}
-
 	return ebEnvName, nil
 }
 
 // getAutoScalingName tries to get autoscaling name from system, first gets from
-// config var, if not set then tries ec2metadata service
+// config var, if not set then tries ec2dynamicdata service
 func getAutoScalingName(conf *Config, awsconfig *aws.Config) (string, error) {
 	if conf.AutoScalingName != "" {
 		return conf.AutoScalingName, nil
@@ -145,6 +142,5 @@ func getAutoScalingName(conf *Config, awsconfig *aws.Config) (string, error) {
 			return *instance.AutoScalingGroupName, nil
 		}
 	}
-
 	return "", errors.New("couldn't find autoscaling name")
 }
