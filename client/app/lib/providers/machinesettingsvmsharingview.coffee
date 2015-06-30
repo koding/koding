@@ -1,5 +1,6 @@
 kd                               = require 'kd'
 nick                             = require 'app/util/nick'
+remote                           = require('app/remote').getInstance()
 KDView                           = kd.View
 Machine                          = require 'app/providers/machine'
 UserItem                         = require 'app/useritem'
@@ -82,12 +83,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
     {profile: {nickname} } = user
 
-    @machine.jMachine.shareWith
-      target    : [nickname]
-      permanent : yes
-      asUser    : task is 'add'
-
-    , (err) =>
+    remote.api.SharedMachine[task] @machine.uid, [nickname], (err) =>
 
       return @showNotification err  if err
 

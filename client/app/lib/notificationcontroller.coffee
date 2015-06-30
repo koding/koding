@@ -85,8 +85,6 @@ module.exports = class NotificationController extends KDObject
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
     @on 'MachineListUpdated', ({machineUId, action}) ->
-      envDataProvider.setLastUpdatedMachineUId machineUId
-
       switch action
         when 'removed'
           if ideInstance = envDataProvider.getIDEFromUId machineUId
