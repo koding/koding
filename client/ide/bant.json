@@ -10,9 +10,9 @@
     "./lib/sprites"
   ],
   "styles": [
-    "./lib/styl"
+    "./lib/styl/*.styl"
   ],
-  "shortcuts": [ 
+  "shortcuts": [
     "workspace"
   ]
 }
