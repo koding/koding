@@ -81,7 +81,6 @@ func (l *LifeCycle) createQueue(sqsLogger logging.Logger, queueName string) erro
 			Attributes: attributes,
 		},
 	)
-
 	if err != nil {
 		return err
 	}
@@ -89,7 +88,6 @@ func (l *LifeCycle) createQueue(sqsLogger logging.Logger, queueName string) erro
 	l.queueURL = createQueueResp.QueueURL // dont forget to assign queue url
 
 	sqsLogger.Debug("SQS Queue is created")
-
 	return nil
 }
 
@@ -128,7 +126,6 @@ func (l *LifeCycle) configureQueue(sqsLogger logging.Logger) error {
 	}
 
 	sqsLogger.Debug("Queue Policy is configured properly")
-
 	return nil
 }
 
@@ -165,7 +162,6 @@ func (l *LifeCycle) getQueueAttributes() (*sqs.GetQueueAttributesOutput, error) 
 	}
 
 	l.queueARN = queueARN
-
 	return resp, nil
 }
 
@@ -184,7 +180,7 @@ type statement struct {
 	Condition map[string]interface{} `json:"Condition"`
 }
 
-// newDefaultPolicy creates a new pplicy for giving access to SNS publish
+// newDefaultPolicy creates a new policy for giving access to SNS publish
 // requests to our SNS queue
 func newDefaultPolicy(topicARN, queueARN string) (string, error) {
 	p := &policy{
@@ -227,9 +223,5 @@ func isPolicyValid(attr map[string]*string, b string) bool {
 		return false
 	}
 
-	if b != *attr["Policy"] {
-		return false
-	}
-
-	return true
+	return b == *attr["Policy"]
 }

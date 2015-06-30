@@ -15,12 +15,14 @@ import (
 	"github.com/koding/logging"
 )
 
+var errAlreadyClosed = errors.New("already closed")
+
 // LifeCycle handles AWS resource managements
 type LifeCycle struct {
 	// lifecycle management properties
 	closed    bool
 	closeChan chan chan struct{}
-	mu        sync.Mutex
+	closeMu   sync.Mutex // for syncing close operation
 
 	// aws services
 	ec2         *ec2.EC2
@@ -39,18 +41,21 @@ type LifeCycle struct {
 	log logging.Logger
 }
 
-// NewLifeCycle creates a new lifecycle management system, everyting begins with
-// an autoscaling resource, we are listening to any change on that resource, to
-// be able to listen them we are attaching a notification configuration to given
-// autoscaling resource, notification configuration works with a TopicARN, which
-// is basically a SNS Topic, to be able to listen from a Topic ARN we need a
-// SQS, SQS is attached to Notification Topic and configured to pass events as
-// soon as they occur, it also has re- try mechanism. One event only be handled
-// by one manager, there wont be any race condition on processing that
-// particular message. Manager is idempotent, if any given resource doesnt exist
-// in the given AWS system, it will create or re-use the previous ones
+type processFunc func(*string) error
+
+// NewLifeCycle creates a new lifecycle management system, everything begins
+// with an autoscaling resource, we are listening to any change on that
+// resource, to be able to listen them we are attaching a notification
+// configuration to given autoscaling resource, notification configuration works
+// with a TopicARN, which is basically a SNS Topic, to be able to listen from a
+// Topic ARN we need a SQS, SQS is attached to Notification Topic and configured
+// to pass events as soon as they occur, it also has re- try mechanism. One
+// event only be handled by one manager, there wont be any race condition on
+// processing that particular message. Manager is idempotent, if any given
+// resource doesnt exist in the given AWS system, it will create or re-use the
+// previous ones
 func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeCycle {
-	l := &LifeCycle{
+	return &LifeCycle{
 		closed:    false,
 		closeChan: make(chan chan struct{}),
 
@@ -63,8 +68,6 @@ func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeC
 
 		log: log.New("lifecycle"),
 	}
-
-	return l
 }
 
 // Configure configures lifecycle, upserts SNS, SQS, Subscriptions, Notification
@@ -103,21 +106,21 @@ func (l *LifeCycle) Configure(name string) error {
 
 // Listen listens for messages that are put into lifecycle queues
 func (l *LifeCycle) Listen(recordManager *RecordManager) error {
-	f := l.listenFunc(recordManager)
+	f := l.newProcessFunc(recordManager)
 	for {
 		select {
 		case c := <-l.closeChan:
 			close(c)
 			return nil
 		default:
-			if err := l.process(f); err != nil {
+			if err := l.fetchMessage(f); err != nil {
 				return err
 			}
 		}
 	}
 }
 
-func (l *LifeCycle) listenFunc(recordManager *RecordManager) func(body *string) error {
+func (l *LifeCycle) newProcessFunc(recordManager *RecordManager) func(body *string) error {
 	return func(body *string) error {
 		l.log.Debug("got event %s", *body)
 
@@ -143,7 +146,6 @@ func (l *LifeCycle) listenFunc(recordManager *RecordManager) func(body *string) 
 			ticker.Stop()
 			break
 		}
-
 		return err
 	}
 }
@@ -151,7 +153,7 @@ func (l *LifeCycle) listenFunc(recordManager *RecordManager) func(body *string) 
 // process gets one mesage from notification queue, passes it to given callback
 // function, if it returns an error, puts the message back to queue eventually,
 // if returns nil, deletes from notification queue
-func (l *LifeCycle) process(f func(*string) error) error {
+func (l *LifeCycle) fetchMessage(f processFunc) error {
 	if l.sqs == nil {
 		return errors.New("SQS service is not set")
 	}
@@ -188,25 +190,22 @@ func (l *LifeCycle) process(f func(*string) error) error {
 			return err
 		}
 	}
-
 	return nil
 }
-
-var errAlreadyClosed = errors.New("already closed")
 
 // Close closes lifecycle management system for proxy machines, it doesn't
 // cleanup anything
 func (l *LifeCycle) Close() error {
-	l.mu.Lock()
+	l.closeMu.Lock()
 	if l.closed {
-		l.mu.Unlock()
+		l.closeMu.Unlock()
 		return errAlreadyClosed
 	}
 
 	l.closed = true
 	c := make(chan struct{})
 	l.closeChan <- c
-	l.mu.Unlock()
+	l.closeMu.Unlock()
 
 	l.log.Info("waiting for listener to exit")
 	<-c

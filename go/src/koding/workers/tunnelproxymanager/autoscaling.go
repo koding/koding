@@ -99,7 +99,6 @@ func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
 	if insResp == nil || insResp.Reservations == nil {
 		return nil, errors.New("describe instances response is malformed")
 	}
-
 	return mapPublicIps(insResp), nil
 }
 
@@ -113,7 +112,6 @@ func filterHealthyInstances(asResp *autoscaling.DescribeAutoScalingGroupsOutput)
 			}
 		}
 	}
-
 	return healthyInstances
 }
 
@@ -124,6 +122,5 @@ func mapPublicIps(insResp *ec2.DescribeInstancesOutput) []*string {
 			publicIps = append(publicIps, instance.PublicIPAddress)
 		}
 	}
-
 	return publicIps
 }

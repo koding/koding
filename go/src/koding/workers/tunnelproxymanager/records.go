@@ -13,8 +13,6 @@ import (
 const (
 	hostedZoneComment       = "Hosted zone for tunnel proxies"
 	validStateForHostedZone = "INSYNC" // taken from aws response
-
-	maxIterationCount = 100
 )
 
 var (
@@ -63,7 +61,7 @@ func (r *RecordManager) ensureHostedZone() error {
 	hostedZoneLogger := r.log.New("HostedZone").New("name", r.hostedZoneConf.Name)
 	hostedZoneLogger.Debug("Trying to get existing Hosted Zone")
 
-	err := r.getHostedZone(hostedZoneLogger)
+	err := r.fetchHostedZone(hostedZoneLogger)
 	if err == nil {
 		hostedZoneLogger.Debug("Hosted Zone exists..")
 		return nil
@@ -77,8 +75,15 @@ func (r *RecordManager) ensureHostedZone() error {
 	return r.createHostedZone(hostedZoneLogger)
 }
 
-func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
+// fetchHostedZone fetches all hosted zones from account and iterates over them
+// until it finds the respective one
+func (r *RecordManager) fetchHostedZone(hostedZoneLogger logging.Logger) error {
+	const maxIterationCount = 100
 	iteration := 0
+
+	// for pagination
+	var nextMarker *string
+
 	// try to get our hosted zone
 	for {
 		// just be paranoid about remove api calls, dont harden too much
@@ -89,9 +94,6 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 		log := hostedZoneLogger.New("iteration", iteration)
 
 		iteration++
-
-		// for pagination
-		var nextMarker *string
 
 		log.Debug("Fetching hosted zone")
 		listHostedZonesResp, err := r.route53.ListHostedZones(
@@ -104,19 +106,23 @@ func (r *RecordManager) getHostedZone(hostedZoneLogger logging.Logger) error {
 		}
 
 		if listHostedZonesResp == nil || listHostedZonesResp.HostedZones == nil {
-			return errors.New("malformed response")
+			return errors.New("malformed response - reponse or hosted zone is nil")
 		}
 
 		for _, hostedZone := range listHostedZonesResp.HostedZones {
+			if hostedZone == nil || hostedZone.CallerReference == nil {
+				continue
+			}
+
 			if *hostedZone.CallerReference == r.hostedZoneConf.CallerReference {
 				r.hostedZone = hostedZone
 				return nil
 			}
 		}
 
-		// if our result set is truncated we can try to fecth again, but if we
+		// if our result set is truncated we can try to fetch again, but if we
 		// reach to end, nothing to do left
-		if !*listHostedZonesResp.IsTruncated {
+		if listHostedZonesResp.IsTruncated == nil || !*listHostedZonesResp.IsTruncated {
 			return errHostedZoneNotFound
 		}
 
@@ -147,25 +153,17 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 		return errors.New("malformed response, resp is nil")
 	}
 
-	changeInfo := resp.ChangeInfo
 	deadline := time.After(time.Minute * 5) // at most i've seen ~3min
+	check := time.NewTicker(time.Second * 3)
 
-	// make sure it propagated
 	for {
-		// if our change propagated, we can return
-		if *changeInfo.Status == validStateForHostedZone {
-			hostedZoneLogger.Debug("hosted zone status is valid")
-			break
-		}
-
 		select {
 		case <-deadline:
 			return errDeadlineReachedForChangeInfo
-		default:
-			time.Sleep(time.Second * 3) // poor man's throttling
-			hostedZoneLogger.New("changeInfoID", *changeInfo.ID).Debug("fetching latest status")
+		case <-check.C:
+			hostedZoneLogger.New("changeInfoID", *resp.ChangeInfo.ID).Debug("fetching latest status")
 			getChangeResp, err := r.route53.GetChange(&route53.GetChangeInput{
-				ID: changeInfo.ID,
+				ID: resp.ChangeInfo.ID,
 			})
 			if err != nil {
 				return err
@@ -175,15 +173,13 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 				return errors.New("malformed response, getChangeResp is nil")
 			}
 
-			changeInfo = getChangeResp.ChangeInfo
+			if getChangeResp.ChangeInfo.Status != nil && *getChangeResp.ChangeInfo.Status == validStateForHostedZone {
+				r.hostedZone = resp.HostedZone
+				hostedZoneLogger.Debug("create hosted finished successfully")
+				return nil
+			}
 		}
 	}
-
-	r.hostedZone = resp.HostedZone
-
-	hostedZoneLogger.Debug("create hosted finished successfully")
-
-	return nil
 }
 
 // UpsertRecordSet updates record set for current ResourceRecordSet
@@ -192,12 +188,13 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 		return errors.New("hosted zone is not set")
 	}
 
-	resourceRecords := make([]*route53.ResourceRecord, 0)
-	for _, instance := range instances {
-		resourceRecords = append(resourceRecords, &route53.ResourceRecord{
-			Value: instance,
-		})
+	resourceRecords := make([]*route53.ResourceRecord, len(instances))
+	for i := range instances {
+		resourceRecords[i] = &route53.ResourceRecord{
+			Value: instances[i],
+		}
 	}
+
 	params := &route53.ChangeResourceRecordSetsInput{
 		ChangeBatch: &route53.ChangeBatch{
 			// contains one Change element for each resource record set that you
@@ -238,9 +235,5 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 	}
 
 	_, err := r.route53.ChangeResourceRecordSets(params)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
