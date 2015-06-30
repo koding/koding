@@ -1,6 +1,4 @@
-keyMirror = require 'keymirror'
-
-module.exports = keyMirror({
+module.exports = {
   'LOAD_MESSAGES_BEGIN'
   'LOAD_MESSAGES_FAIL'
   'LOAD_MESSAGE_SUCCESS'
@@ -22,6 +20,5 @@ module.exports = keyMirror({
   'UNLIKE_MESSAGE_FAIL'
 
   'CHANGE_SELECTED_CHANNEL'
-
-})
+}
 
