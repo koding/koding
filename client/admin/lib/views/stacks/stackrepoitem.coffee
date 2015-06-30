@@ -29,13 +29,15 @@ module.exports = class StackRepoItem extends kd.ListItemView
         { title: 'Tag',    value: 'tag' }
       ]
 
-    @selectView.addSubView nameInput = new kd.InputView
-      placeholder : 'Branch/Tag Name'
-      required    : yes
+    @selectView.addSubView refInput = new kd.InputView
+      placeholder  : 'Branch/Tag Name'
+      required     : yes
+      defaultValue : 'master'
 
     @selectView.addSubView locationInput = new kd.InputView
-      placeholder : '/file/location.json'
-      required    : yes
+      placeholder  : '/file/location.json'
+      required     : yes
+      defaultValue : '/koding.json'
 
     @selectView.addSubView addButton = new kd.ButtonView
       title       : 'ADD'
@@ -43,12 +45,12 @@ module.exports = class StackRepoItem extends kd.ListItemView
       type        : 'submit'
       callback    : ->
 
-        name      = nameInput.getValue()
+        ref       = refInput.getValue()
         type      = branchOrTagInput.getValue()
         location  = locationInput.getValue()
 
         delegate.emit 'RepoSelected', {
-          name, type, location, repoData
+          ref, type, location, repo: repoData
         }
 
     @addSubView @selectView
