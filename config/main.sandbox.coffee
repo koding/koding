@@ -158,6 +158,7 @@ Configuration = (options={}) ->
   KONFIG              =
     configName                     : configName
     environment                    : environment
+    ebEnvName                      : options.ebEnvName
     regions                        : regions
     region                         : region
     hostname                       : hostname
@@ -638,7 +639,13 @@ Configuration = (options={}) ->
           }
         ]
 
-    userproxies      :
+    userproxies         :
+      limitedToEBEnvs   : [
+        "koding-proxy-ap-s-e-1"
+        "koding-proxy-us-east-1"
+        "koding-proxy-eu-west-1"
+        "koding-proxy-us-west-2"
+      ]
       nginx             :
         websocket       : yes
         locations       : [

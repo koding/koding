@@ -33,6 +33,7 @@ options = o =
   supervisor       : argv.supervisor     or no
   deploy           : argv.deploy         or no
   host             : argv.host
+  ebEnvName        : argv.ebEnvName
 
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"

@@ -94,6 +94,11 @@ module.exports.create = (KONFIG)->
 
   # for every worker create their section configs under group name
   for name, options of KONFIG.workers  when options.supervisord?.command?
+    # some of the locations can be limited to some environments, while creating
+    # nginx locations filter with this info
+    if options.limitedToEBEnvs
+      if KONFIG.ebEnvName not in options.limitedToEBEnvs
+        continue
 
     groupConfigs[options.group]       or= {}
     groupConfigs[options.group][name] or= {}

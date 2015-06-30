@@ -88,6 +88,12 @@ createLocations = (KONFIG) ->
 
     continue if options.nginx?.disableLocation?
 
+    # some of the locations can be limited to some environments, while creating
+    # nginx locations filter with this info
+    if options.limitedToEBEnvs
+      if KONFIG.ebEnvName not in options.limitedToEBEnvs
+        continue
+
     for location in options.nginx.locations
       location.proxyPass or= "http://#{name}"
       # if this is a websocket proxy, add required configs
