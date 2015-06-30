@@ -76,7 +76,7 @@ module.exports = class Collaboration extends Base
     asUser  = yes
     options = {target, asUser}
     setUsers client, workspaceId, options, (err, machine) ->
-      callback err
+      return callback err  if err
 
       machineUId = machine.uid
       data =  {machineUId, workspaceId}
