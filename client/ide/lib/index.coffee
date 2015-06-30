@@ -930,14 +930,16 @@ class IDEAppController extends AppController
     status.updatePartial text
 
 
-  showStatusBarMenu: (ideView, button) ->
+  showStatusBarMenu: (tabHandle, button) ->
+
+    @setActiveTabView tabHandle.getDelegate()
 
     paneView = @getActivePaneView()
     paneType = paneView?.getOptions().paneType or null
     delegate = button
     menu     = new IDEStatusBarMenu { paneType, paneView, delegate }
 
-    ideView.menu = menu
+    tabHandle.menu = menu
 
     menu.on 'viewAppended', ->
       if paneType is 'editor' and paneView
@@ -947,6 +949,17 @@ class IDEAppController extends AppController
         syntaxSelector.select.setValue ace.getSyntax() or 'text'
         syntaxSelector.on 'SelectionMade', (value) =>
           ace.setSyntax value
+
+
+  showRenameTerminalView: ->
+
+    paneView = @getActivePaneView()
+    paneType = paneView?.getOptions().paneType
+    tabView  = paneView?.parent
+
+    return  unless paneType is 'terminal'
+
+    tabView.tabHandle.setTitleEditMode yes
 
 
   showFileFinder: ->
@@ -1192,7 +1205,7 @@ class IDEAppController extends AppController
       if type is 'NewPaneCreated'
         @createPaneFromChange change
 
-      else if type in ['TabChanged', 'PaneRemoved']
+      else if type in ['TabChanged', 'PaneRemoved', 'TerminalRenamed']
         paneView = targetPane?.parent
         tabView  = paneView?.parent
         ideView  = tabView?.parent
@@ -1201,10 +1214,11 @@ class IDEAppController extends AppController
 
         ideView.suppressChangeHandlers = yes
 
-        if type is 'TabChanged'
-          tabView.showPane paneView
-        else
-          tabView.removePane paneView
+        switch type
+          when 'TabChanged'  then tabView.showPane paneView
+          when 'PaneRemoved' then tabView.removePane paneView
+          when 'TerminalRenamed'
+            ideView.renameTerminal paneView, @mountedMachine, context.session
 
         ideView.suppressChangeHandlers = no
 

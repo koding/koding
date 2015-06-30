@@ -1,15 +1,53 @@
-kd              = require 'kd'
-KDTabHandleView = kd.TabHandleView
+kd                  = require 'kd'
+KDView              = kd.View
+KDHitEnterInputView = kd.HitEnterInputView
+KDTabHandleView     = kd.TabHandleView
+KDCustomHTMLView    = kd.CustomHTMLView
 
 
 module.exports = class IDETabHandleView extends KDTabHandleView
 
+  MIN_EDIT_WIDTH = 100
+
   constructor: (options = {}, data) ->
 
     options.draggable ?= yes
-    options.bind       = 'dragstart'
+    options.bind       = 'dragstart dblclick'
+
+    options.view = new KDView { tagName : 'span' }
 
     super options, data
+
+
+  viewAppended: ->
+
+    super
+
+    { view, title } = @getOptions()
+
+    @titleText  = new KDView
+      tagName  : 'b'
+      cssClass : 'tab-handle-text'
+      partial  : title
+    view.addSubView @titleText
+
+    @titleInput = new KDHitEnterInputView
+      type     : 'text'
+      cssClass : 'tab-handle-input'
+    @titleInput.on 'EnterPerformed', =>
+      { title } = @getOptions()
+      newTitle  = @titleInput.getValue()
+
+      return  unless newTitle.length
+      return @setTitleEditMode no  if newTitle is title
+
+      @emit 'RenamingRequested', newTitle, title
+
+    @titleInput.on 'EscapePerformed', @lazyBound 'setTitleEditMode', no
+
+    view.addSubView @titleInput
+
+    @on 'dblclick', @lazyBound 'setTitleEditMode', yes
 
 
   setDraggable: ->
@@ -23,3 +61,53 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     event.originalEvent.dataTransfer.setData 'text/plain', ' '
 
     kd.singletons.appManager.tell 'IDE', 'setTargetTabView', @getDelegate()
+
+
+  makeEditable: -> @isEditable = yes
+
+
+  setTitleEditMode: (isEditMode) ->
+
+    { title } = @getOptions()
+
+    if isEditMode
+      return  unless @isEditable and @getWidth() >= MIN_EDIT_WIDTH
+      return  if @hasClass 'edit-mode'
+
+      @setClass 'edit-mode'
+      @titleInput.setValue title
+      @titleInput.setFocus()
+    else
+      @unsetClass 'edit-mode'
+
+
+  setTitle: (newTitle) ->
+
+    { addTitleAttribute } = @getOptions()
+
+    @setOption 'title', newTitle
+    @titleText.updatePartial newTitle
+    @getElement().setAttribute 'title', newTitle  if addTitleAttribute
+
+    @setTitleEditMode no
+
+
+  enableContextMenu: ->
+
+    icon = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'options'
+      click    : => @createMenu icon
+
+    @addSubView icon, null, yes
+
+
+  createMenu: (icon) ->
+
+    @setClass 'menu-visible'
+    menu = kd.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', this, icon
+
+    kd.utils.defer =>
+      @menu.once 'KDObjectWillBeDestroyed', =>
+        @unsetClass 'menu-visible'
+        @menu = null

@@ -18,7 +18,8 @@ IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
 
-HANDLE_PROXIMITY_DISTANCE = 100
+HANDLE_PROXIMITY_DISTANCE   = 100
+DEFAULT_SESSION_NAME_LENGTH = 24
 
 module.exports = class IDEView extends IDEWorkspaceTabView
 
@@ -75,16 +76,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       @ensureSplitHandlers()  if addSplitHandlers
 
-      return unless pane.options.editor
-
-      {tabHandle} = pane
-
-      icon = new KDCustomHTMLView
-        tagName  : 'span'
-        cssClass : 'options'
-        click    : => @createEditorMenu tabHandle, icon
-
-      tabHandle.addSubView icon, null, yes
+      { tabHandle } = pane
+      { paneType }  = pane.view.getOptions()
+      tabHandle.enableContextMenu()  if paneType in [ 'editor', 'terminal' ]
 
 
     # This is a custom event for IDEApplicationTabView
@@ -241,27 +235,17 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       if rootPath and not isDefault
         options.path = frontApp.workspaceData.rootPath
 
-    { machine, joinUser, fitToWindow } = options
-
     terminalPane = new IDETerminalPane options
-    @createPane_ terminalPane, { name: 'Terminal' }
+    paneView = @createPane_ terminalPane, { name: 'Terminal' }
+    terminalHandle = @tabView.getHandleByPane paneView
 
-    terminalPane.once 'WebtermCreated', =>
-      terminalPane.webtermView.on 'click', @bound 'click'
+    webtermCallback = @lazyBound 'handleWebtermCreated', paneView, options
+    terminalPane.once 'WebtermCreated', webtermCallback
 
-      if fitToWindow
-        kd.utils.defer -> terminalPane.webtermView.triggerFitToWindow()
+    handleCallback = @lazyBound 'handleTerminalRenamingRequested', paneView, options
+    terminalHandle.on 'RenamingRequested', handleCallback
 
-      @emit 'UpdateWorkspaceSnapshot'
-
-      unless joinUser
-        change        =
-          context     :
-            session   : terminalPane.remote.session
-            machine   :
-              uid     : machine.uid
-
-        @emitChange terminalPane, change
+    terminalHandle.makeEditable()
 
 
   emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
@@ -526,17 +510,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     return items
 
 
-  createEditorMenu: (tabHandle, icon) ->
-
-    tabHandle.setClass 'menu-visible'
-    kd.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', this, icon
-
-    kd.utils.defer =>
-      @menu.once 'KDObjectWillBeDestroyed', =>
-        tabHandle.unsetClass 'menu-visible'
-        delete @menu
-
-
   createPlusContextMenu: ->
 
     return  if @isReadOnly
@@ -594,6 +567,84 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     index = null  if index < 0
 
     kd.singletons.appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
+
+
+  handleWebtermCreated: (paneView, options) ->
+
+    terminalPane   = paneView.view
+    terminalHandle = @tabView.getHandleByPane paneView
+
+    { machine, joinUser, fitToWindow } = options
+
+    terminalPane.webtermView.on 'click', @bound 'click'
+
+    if fitToWindow
+      kd.utils.defer -> terminalPane.webtermView.triggerFitToWindow()
+
+    @emit 'UpdateWorkspaceSnapshot'
+
+    { remote : { session } } = terminalPane
+
+    unless joinUser
+      change =
+        context   :
+          session : session
+          machine :
+            uid   : machine.uid
+
+      @emitChange terminalPane, change
+
+    ###
+    Rename terminal tab to terminal session name only if terminal has already been
+    renamed before, i.e. session name isn't auto generated string which lenght is 24 symbols.
+    If session name is auto generated string, leave terminal tab name with its default value 'Terminal'
+    ###
+    unless session.length is DEFAULT_SESSION_NAME_LENGTH
+      terminalHandle.setTitle session
+
+
+  handleTerminalRenamingRequested: (paneView, options, newTitle) ->
+
+    terminalPane = paneView.view
+
+    { machine } = options
+    { remote : { session } } = terminalPane
+
+    kite    = machine.getBaseKite()
+    request =
+      newName : newTitle
+      oldName : session
+
+    kite.init()
+    .then ->
+      kite.webtermRename request
+
+    .then =>
+      @renameTerminal paneView, machine, newTitle
+
+      @emit 'UpdateWorkspaceSnapshot'
+
+      change =
+        context   :
+          session : newTitle
+          machine :
+            uid   : machine.uid
+
+      @emitChange terminalPane, change, 'TerminalRenamed'
+
+    .catch (err) ->
+      showErrorNotification err
+
+
+  renameTerminal: (paneView, machine, newTitle) ->
+
+    terminalPane = paneView.view
+    terminalHandle = @tabView.getHandleByPane paneView
+
+    terminalPane.setSession newTitle
+    terminalHandle.setTitle newTitle
+
+    machine.getBaseKite().fetchTerminalSessions()
 
 
 toggleVisibility = (handle, state) ->

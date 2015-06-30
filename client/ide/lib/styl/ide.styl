@@ -60,8 +60,35 @@ body.ide
         r-sprite            'ide', 'tab-close'
         top                 14px
 
-      .kdtabhandle b
-        width               90%
+      .kdtabhandle
+        .tab-handle-text
+          width             90%
+
+        .tab-handle-input
+          border-radius     1px
+          border            1px solid #4e4e4e
+          color             #b2b2b2
+          padding           0px 7px
+          font-family       'Proxima Nova'
+          font-size         14px
+          background-color  #121212
+          background-image  none
+          height            24px
+          display           none
+
+        &.edit-mode
+          padding           6px 7px
+          box-sizing        border-box
+          line-height       14px
+
+          .tab-handle-text
+            display         none
+
+          .close-tab
+            display         none
+
+          .tab-handle-input
+            display         inline
 
   #kdmaincontainer .kdsplitcomboview .kdtabview
     bg                      color, dark-panel-bg
@@ -700,6 +727,12 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
 
 
   .status-bar-menu
+    &.editor-context-menu
+      width                 220px!important
+
+    &.terminal-context-menu
+      width                 130px!important
+
     ul
       bg                    color, dark-tab-header-bg !important
       padding               2px !important
