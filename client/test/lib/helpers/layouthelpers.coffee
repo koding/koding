@@ -20,7 +20,7 @@ module.exports =
       .click                   '.context-list-wrapper ' + selector
 
 
-  undoSplit: (browser) ->
+  undoSplit: (browser, shouldAssert = yes) ->
 
     browser
       .waitForElementVisible '.panel-1', 20000
@@ -30,8 +30,10 @@ module.exports =
         browser
           .waitForElementVisible    paneSelector, 20000
           .click                    undoSplitSelector
-          .elements 'css selector', newPaneSelector, (result) =>
-            assert.equal result.value.length, oldLength - 1
+
+          if shouldAssert
+            browser.elements 'css selector', newPaneSelector, (result) =>
+              assert.equal result.value.length, oldLength - 1
 
 
   split: (browser, direction) ->
