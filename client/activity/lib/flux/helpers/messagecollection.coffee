@@ -73,8 +73,8 @@ setIsLiked = (message, state) ->
 ###
 addLiker = (message, userId) ->
 
-  message.updateIn ['interactions', 'like'], (likeInteraction) ->
-    likeInteraction
+  message.updateIn ['interactions', 'like'], (like) ->
+    like
       # add logged in user to actors preview.
       .update 'actorsPreview', (preview) -> preview.unshift userId
       # increase actors count by one.
@@ -90,8 +90,8 @@ addLiker = (message, userId) ->
 ###
 removeLiker = (message, userId) ->
 
-  message.updateIn ['interactions', 'like'], (likeInteraction) ->
-    likeInteraction
+  message.updateIn ['interactions', 'like'], (like) ->
+    like
       # filter out given userId from actorsPreview list.
       .update 'actorsPreview', (preview) -> preview.filterNot (id) -> id is userId
       # decrease actors count by one.
