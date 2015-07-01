@@ -33,7 +33,6 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @on 'CollaborationNotInitialized', => @everyone.destroySubViews()
     @on 'ParticipantJoined', @bound 'addParticipant'
     @on 'ParticipantLeft',   @bound 'removeParticipant'
-    @on 'PermissionChanged', @bound 'handlePermissionChange'
 
     @on 'CollaborationEnded', =>
       @toggleButtons 'ended'
@@ -206,20 +205,14 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     {nickname}        = account.profile
     watchList         = @rtm.getFromModel("#{nick()}WatchMap").keys()
     isWatching        = watchList.indexOf(nickname) > -1
-    permissionsMap    = @rtm.getFromModel 'permissions'
-    defaultPermission = permissionsMap.get 'default'
-    permission        = permissionsMap.get(nickname) or defaultPermission
     channel           = @getData()
-    options           = { isOnline, @isInSession, isWatching, permission }
+    options           = { isOnline, @isInSession, isWatching }
     data              = { account, channel }
     participantView   = new IDEChatParticipantView options, data
 
     @participantViews[nickname] = participantView
     @everyone.addSubView participantView, null, isOnline
     @onboarding?.destroy()
-
-    participantView.on 'ParticipantPermissionChanged', (permission) =>
-      @rtm.getFromModel('permissions').set nickname, permission
 
 
   removeParticipant: (username, unshare) ->
@@ -241,29 +234,6 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
 
     remote.cacheable nickname, (err, account) =>
       @createParticipantView account.first, yes
-
-
-  updateDefaultPermissions: ->
-
-    permissions = @rtm.getFromModel 'permissions'
-    @defaultPermission.setValue permissions.get 'default'
-
-
-  setDefaultPermission: (value) ->
-
-    @rtm.getFromModel('permissions').set 'default', value
-
-
-  handlePermissionChange: (event) ->
-
-    {newValue, property} = event
-
-    return  unless newValue in ['edit', 'read']
-
-    if property is 'default'
-      @defaultPermission.setValue newValue
-    else
-      @participantViews[property]?.permissions.setValue newValue
 
 
   viewAppended: JView::viewAppended
