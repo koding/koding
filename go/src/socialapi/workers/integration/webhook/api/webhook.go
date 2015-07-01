@@ -266,9 +266,18 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 		return response.NewBadRequest(err)
 	}
 
-	ci.ChannelId = i.ChannelId
-	ci.Settings = i.Settings
-	ci.Description = i.Description
+	if i.ChannelId != 0 {
+		ci.ChannelId = i.ChannelId
+	}
+
+	if i.Settings != nil {
+		ci.Settings = i.Settings
+	}
+
+	if i.Description != "" {
+		ci.Description = i.Description
+	}
+
 	ci.IsDisabled = i.IsDisabled
 
 	if err := ci.Update(); err != nil {
