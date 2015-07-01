@@ -43,6 +43,11 @@ for INSTANCE in $INSTANCES; do
 done
 
 INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')
+
+if [ -z "$INSTANCE_IDS" ]; then
+  exit 1
+fi
+
 INSTANCE_COUNT=$(echo $INSTANCE_IDS | wc -l)
 
 if [ $INSTANCE_COUNT -eq 0 ]; then
