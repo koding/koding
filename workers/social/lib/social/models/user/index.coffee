@@ -393,7 +393,7 @@ module.exports = class JUser extends jraphical.Module
      return """
       This account has been put on suspension due to a violation of our acceptable use policy. The ban will be in effect until <b>#{toDate}.</b><br><br>
 
-      If you have any questions, please email ban@koding.com and allow 2-3 business days for a reply. Even though your account is banned, all your data is safe.<br><br>
+      If you have any questions, please email <a class="ban" href='mailto:ban@koding.com'>ban@koding.com</a> and allow 2-3 business days for a reply. Even though your account is banned, all your data is safe.<br><br>
 
       Please note, repeated violations of our acceptable use policy will result in the permanent deletion of your account.<br><br>
 
