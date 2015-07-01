@@ -2,25 +2,25 @@
 
 Reactor = require 'app/flux/reactor'
 
-SelectedThreadIdStore = require '../stores/selectedthreadidstore'
+SelectedChannelThreadIdStore = require '../stores/selectedchannelthreadidstore'
 actionTypes = require '../actions/actiontypes'
 
-describe 'SelectedThreadIdStore', ->
+describe 'SelectedChannelThreadIdStore', ->
 
   beforeEach ->
     @reactor = new Reactor
-    @reactor.registerStores selectedThreadId: SelectedThreadIdStore
+    @reactor.registerStores selectedThreadId: SelectedChannelThreadIdStore
 
-  describe '#handleChangeSelectedThread', ->
+  describe '#setSelectedChannelId', ->
 
     it 'sets selected thread id to given channel id', ->
 
-      @reactor.dispatch actionTypes.CHANGE_SELECTED_THREAD, { channelId: '1' }
+      @reactor.dispatch actionTypes.SET_SELECTED_CHANNEL_THREAD, channelId: '1'
       selectedId = @reactor.evaluate ['selectedThreadId']
 
       expect(selectedId).to.equal '1'
 
-      @reactor.dispatch actionTypes.CHANGE_SELECTED_THREAD, { channelId: '2' }
+      @reactor.dispatch actionTypes.SET_SELECTED_CHANNEL_THREAD, channelId: '2'
       selectedId = @reactor.evaluate ['selectedThreadId']
 
       expect(selectedId).to.equal '2'

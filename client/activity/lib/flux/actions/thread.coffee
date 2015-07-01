@@ -8,9 +8,9 @@ actionTypes = require '../actions/actiontypes'
 ###
 changeSelectedThread = (channelId) ->
 
-  { CHANGE_SELECTED_THREAD } = actionTypes
+  { SET_SELECTED_CHANNEL_THREAD } = actionTypes
 
-  dispatch CHANGE_SELECTED_THREAD, { channelId }
+  dispatch SET_SELECTED_CHANNEL_THREAD, { channelId }
 
 
 dispatch = (args...) -> kd.singletons.reactor args...
