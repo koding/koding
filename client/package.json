@@ -39,6 +39,7 @@
     "nuclear-js": "1.0.5",
     "raf": "2.0.4",
     "react": "0.13.3",
+    "react-autosize-textarea": "0.2.4",
     "record-shortcuts": "0.1.4",
     "shortcuts": "0.5.7",
     "sinkrow": "git+ssh://git@github.com:koding/sinkrow#v0.1.2",
