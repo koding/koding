@@ -36,7 +36,7 @@ touch $INSTANCE_DATA_FILE
 
 IFS=$'\n'
 for INSTANCE in $INSTANCES; do
-  check $INSTANCE 8090 1m 1 || continue # nginx
+  check $INSTANCE 8090 3m 1 || continue # nginx
   check $INSTANCE 4444 3m 1 || continue # selenium-server
   echo $INSTANCE >> $INSTANCE_DATA_FILE
   echo
