@@ -70,13 +70,18 @@ module.exports = class MachineSettingsModal extends KDModalView
 
   createPanes: ->
 
-    isMachineRunning = @getData().status.state is Machine.State.Running
-    disabledTabs     = [ 'Disk Usage', 'Domains', 'VM Sharing', 'Snapshots' ]
+    machine                     = @getData()
+    isMachineRunning            = machine.status.state is Machine.State.Running
+    disabledTabsForNotRunningVM = [ 'Disk Usage', 'Domains', 'VM Sharing', 'Snapshots' ]
+    disabledTabsForManagedVM    = [ 'Specs', 'Domains', 'Snapshots' ]
 
     for item in PANE_CONFIG when item.title and item.viewClass
 
-      subView    = new item.viewClass item.viewOptions, @getData()
-      isDisabled = not isMachineRunning and disabledTabs.indexOf(item.title) > -1
+      subView    = new item.viewClass item.viewOptions, machine
+      isDisabled = not isMachineRunning and disabledTabsForNotRunningVM.indexOf(item.title) > -1
+
+      if machine.isManaged()
+        isDisabled = disabledTabsForManagedVM.indexOf(item.title) > -1
 
       @tabView.addPane pane = new KDTabPaneView
         name     : item.title
