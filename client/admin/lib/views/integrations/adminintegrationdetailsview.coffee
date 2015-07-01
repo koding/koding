@@ -21,7 +21,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
     super options, data
     { integration } = data
     { instructions } = integration
+    data.repositories or= []
 
+    repositories = ({ title: repository, value: repository } for repository in data.repositories)
 
     @eventCheckboxes = {}
 
@@ -224,6 +226,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
     if selectedEvents.length
       options.settings or= {}
       options.settings.events = JSON.stringify selectedEvents
+
+    if repository
+      options.settings or= {}
+      options.settings.repository = repository
 
     kd.singletons.socialapi.integrations.update options, (err) =>
       return kd.warn err  if err

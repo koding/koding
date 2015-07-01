@@ -884,3 +884,13 @@ module.exports = class SocialApiController extends KDController
 
         return callback null, response.data
 
+    fetchGithubRepos : (callback) ->
+
+      doXhrRequest
+        endPoint : "/api/integration/github/branch"
+        type     : 'GET'
+      , (err, response) ->
+        return callback err  if err
+
+        return callback null, response
+

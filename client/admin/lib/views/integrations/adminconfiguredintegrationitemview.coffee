@@ -109,9 +109,17 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
           catch e then null
           data.settings = { events }
 
+        unless integration.name is 'github'
+          @emit 'IntegrationCustomizeRequested', data
+          return
 
+        kd.singletons.socialapi.integrations.fetchGithubRepos (err, repositories) =>
 
-        @emit 'IntegrationCustomizeRequested', data
+          return showError err  if err
+          data.repositories = repositories
+
+          @emit 'IntegrationCustomizeRequested', data
+
 
 
   pistachio: ->
