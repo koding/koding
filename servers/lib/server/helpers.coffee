@@ -159,8 +159,42 @@ redirectOauth = (err, req, res, options)->
   { returnUrl, provider } = options
 
   redirectUrl = "/Account/Oauth?provider=#{provider}&error=#{err}"
-  redirectUrl = "#{redirectUrl}&returnUrl=#{returnUrl}"  if returnUrl
-  res.redirect(redirectUrl)
+
+  # when returnUrl does not exist, handle oauth authentication in client side
+  # this is temporary solution for authenticating registered users
+  return res.redirect(redirectUrl)  unless returnUrl
+
+  return res.Status(400).send err  if err
+
+  isLoggedIn req, res, (err, isUserLoggedIn, account) ->
+
+    return res.Status(400).send err  if err
+
+    # here session belongs to koding domain (not subdomain)
+    sessionToken = req.cookies.clientId
+
+    username = account?.profile?.nickname
+    client =
+      context       :
+        user        : username
+      connection    :
+        delegate    : account
+      sessionToken  : sessionToken
+
+    {JUser}= koding.models
+    return JUser.authenticateWithOauth client, {provider, isUserLoggedIn}, (err, response) ->
+
+        return res.Status(400).send err  if err
+
+        # user is logged in and session data exists
+        return res.redirect returnUrl  unless response.userInfo
+
+        # if user is not logged in persist oauth information
+        JUser.persistOauthInfo username, sessionToken, (err) ->
+
+          return res.Status(400).send err  if err
+
+          return res.redirect returnUrl
 
 getAlias = do->
   caseSensitiveAliases = ['auth']
