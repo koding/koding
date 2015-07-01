@@ -134,7 +134,6 @@ unlikeMessage = (messageId) ->
 module.exports = {
   loadMessages
   createMessage
-  changeSelectedChannel
   likeMessage
   unlikeMessage
   removeMessage
