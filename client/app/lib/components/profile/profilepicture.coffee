@@ -23,6 +23,6 @@ module.exports = class ProfilePicture extends React.Component
 
 
   render: ->
-    <img {...@getImageProps()} />
+    <img className="ProfilePicture" {...@getImageProps()} />
 
 
