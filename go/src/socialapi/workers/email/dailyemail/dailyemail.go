@@ -24,7 +24,7 @@ const (
 	RECIPIENTSKEY = "recipients"
 	SCHEDULE      = "0 0 0 * * *"
 
-	Subject     = "DailyDigest"
+	Subject     = "received digest of today's activity"
 	Information = "Here is what happened on Koding.com today!"
 )
 
@@ -157,7 +157,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 		FirstName:        uc.FirstName,
 		Username:         uc.Username,
 		Email:            uc.Email,
-		MessageType:      "dailydigest",
+		MessageType:      Subject,
 		Messages:         messages,
 		UnsubscribeToken: uc.Token,
 	}
