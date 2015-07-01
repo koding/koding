@@ -1,4 +1,4 @@
-actionTypes     = require '../actions/actiontypes'
+actions         = require '../actions/actiontypes'
 toImmutable     = require 'app/util/toImmutable'
 KodingFluxStore = require 'app/flux/store'
 
@@ -8,7 +8,7 @@ module.exports = class SelectedThreadIdStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actionTypes.CHANGE_SELECTED_THREAD, @handleChangeSelectedThread
+    @on actions.CHANGE_SELECTED_THREAD, @handleChangeSelectedThread
 
 
   ###*

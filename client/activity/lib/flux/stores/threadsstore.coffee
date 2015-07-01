@@ -1,7 +1,7 @@
 Nuclear              = require 'nuclear-js'
 whoami               = require 'app/util/whoami'
 toImmutable          = require 'app/util/toImmutable'
-actionTypes          = require '../actions/actiontypes'
+actions              = require '../actions/actiontypes'
 generateDummyMessage = require 'app/util/generateDummyMessage'
 
 ###*
@@ -33,11 +33,11 @@ module.exports = class ThreadsStore extends Nuclear.Store
 
   initialize: ->
 
-    @on actionTypes.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
-    @on actionTypes.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
-    @on actionTypes.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
+    @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
+    @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
+    @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
 
-    @on actionTypes.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
+    @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
 
 
   ###*

@@ -1,5 +1,5 @@
 whoami                   = require 'app/util/whoami'
-actionTypes              = require '../actions/actiontypes'
+actions                  = require '../actions/actiontypes'
 toImmutable              = require 'app/util/toImmutable'
 KodingFluxStore          = require 'app/flux/store'
 MessageCollectionHelpers = require '../helpers/messagecollection'
@@ -26,21 +26,21 @@ module.exports = class MessagesStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actionTypes.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
-    @on actionTypes.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
-    @on actionTypes.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
+    @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
+    @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
+    @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
 
-    @on actionTypes.REMOVE_MESSAGE_BEGIN, @handleRemoveMessageBegin
-    @on actionTypes.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
-    @on actionTypes.REMOVE_MESSAGE_FAIL, @handleRemoveMessageFail
+    @on actions.REMOVE_MESSAGE_BEGIN, @handleRemoveMessageBegin
+    @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
+    @on actions.REMOVE_MESSAGE_FAIL, @handleRemoveMessageFail
 
-    @on actionTypes.LIKE_MESSAGE_BEGIN, @handleLikeMessageBegin
-    @on actionTypes.LIKE_MESSAGE_SUCCESS, @handleLikeMessageSuccess
-    @on actionTypes.LIKE_MESSAGE_FAIL, @handleLikeMessageFail
+    @on actions.LIKE_MESSAGE_BEGIN, @handleLikeMessageBegin
+    @on actions.LIKE_MESSAGE_SUCCESS, @handleLikeMessageSuccess
+    @on actions.LIKE_MESSAGE_FAIL, @handleLikeMessageFail
 
-    @on actionTypes.UNLIKE_MESSAGE_BEGIN, @handleUnlikeMessageBegin
-    @on actionTypes.UNLIKE_MESSAGE_SUCCESS, @handleUnlikeMessageSuccess
-    @on actionTypes.UNLIKE_MESSAGE_FAIL, @handleUnlikeMessageFail
+    @on actions.UNLIKE_MESSAGE_BEGIN, @handleUnlikeMessageBegin
+    @on actions.UNLIKE_MESSAGE_SUCCESS, @handleUnlikeMessageSuccess
+    @on actions.UNLIKE_MESSAGE_FAIL, @handleUnlikeMessageFail
 
 
   ###*
