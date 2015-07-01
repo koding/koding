@@ -70,19 +70,15 @@ module.exports = class StackRepoUserItem extends kd.ListItemView
 
     { repos, login } = @getData()
 
-    options     =
-      page      : @_page
-      sort      : 'pushed'
-      direction : 'desc'
+    method  = 'search.repos'
+    options =
+      q     : "user:#{login}+fork:true"
+      page  : @_page
+      sort  : 'updated'
+      order : 'desc'
 
-    if repos
-      method = 'repos.getFromUser'
-      options.user = login
-    else
-      method = 'repos.getFromOrg'
-      options.org  = login
-
-    remote.api.Github.api {method, options}, callback
+    remote.api.Github.api {method, options}, (err, res) ->
+      callback err, res?.items
 
 
   createListController: ->

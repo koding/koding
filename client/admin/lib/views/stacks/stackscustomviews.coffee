@@ -123,17 +123,17 @@ module.exports = class StacksCustomViews extends CustomViews
       users = [oauth_data]
 
       Github.api
-        method      : 'repos.getFromUser'
-        options     :
-          user      : users.first.username
-          type      : 'owner'
-          sort      : 'pushed'
-          direction : 'desc'
+        method  : 'search.repos'
+        options :
+          q     : "user:#{oauth_data.login}+fork:true"          
+          type  : 'all'
+          sort  : 'updated'
+          order : 'desc'
 
       , (err, repos) ->
 
         users.first.err   = err
-        users.first.repos = repos ? []
+        users.first.repos = repos?.items ? []
 
         callback null, {orgs, users}
 
