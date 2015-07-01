@@ -57,18 +57,18 @@ func registerSignalHandler(l *tunnelproxymanager.LifeCycle, log logging.Logger) 
 	go func() {
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals)
-		for {
-			signal := <-signals
-			switch signal {
-			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
-				log.Info("recieved exit signal, closing...")
-				err := l.Close()
-				if err != nil {
-					log.Critical(err.Error())
-				}
-				close(done)
+
+		signal := <-signals
+		switch signal {
+		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
+			log.Info("recieved exit signal, closing...")
+			err := l.Close()
+			if err != nil {
+				log.Critical(err.Error())
 			}
+			close(done)
 		}
+
 	}()
 	return done
 }
