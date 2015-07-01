@@ -34,19 +34,24 @@ module.exports = class AdminIntegrationSetupView extends JView
 
   setIntegration: ->
 
-    data = @getData()
     options =
-      integrationId : data.id
+      integrationId : @getData().id
       channelId     : @channelSelect.getValue()
 
     kd.singletons.socialapi.integrations.create options, (err, response) =>
       return console.warn "couldnt create integration", err  if err
 
-      data.token           = response.token
-      data.id              = response.id
-      data.integrationId   = response.integrationId
-      data.selectedChannel = response.channelId
-      data.webhookUrl      = "#{globals.config.integration.url}/#{data.name}/#{data.token}"
+      integration = @getData()
+
+      data =
+        id              : response.id
+        integration     : @getData()
+        token           : response.token
+        integrationId   : response.integrationId
+        selectedChannel : response.channelId
+        channels        : integration.channels
+        webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{response.token}"
+      delete integration.channels
 
       @destroy()
       @emit 'NewIntegrationAdded', data

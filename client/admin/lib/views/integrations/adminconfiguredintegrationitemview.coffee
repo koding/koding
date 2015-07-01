@@ -87,17 +87,11 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
         data              =
           channels        : channels
           id              : channelIntegration.id
-          name            : integration.name
-          title           : integration.title
+          integration     : integration
           token           : channelIntegration.token
-          summary         : integration.summary
-          settings        : channelIntegration.settings
           createdAt       : channelIntegration.createdAt
-          iconPath        : integration.iconPath
           updatedAt       : channelIntegration.updatedAt
           description     : channelIntegration.description or integration.summary
-          instructions    : integration.instructions
-          typeConstant    : integration.typeConstant
           integrationId   : channelIntegration.integrationId
           selectedChannel : channelIntegration.channelId
           webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"

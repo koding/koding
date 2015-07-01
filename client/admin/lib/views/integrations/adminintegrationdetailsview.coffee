@@ -19,6 +19,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
     options.cssClass = 'integration-details'
 
     super options, data
+    { integration } = data
+    { instructions } = integration
 
     { instructions } = data
     @eventCheckboxes = {}
@@ -38,7 +40,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         cssClass : 'has-markdown instructions container'
         partial  : """
           <h4 class='title'>Setup Instructions</h4>
-          <p class='subtitle'>Here are the steps necessary to add the #{data.title} integration.</p>
+          <p class='subtitle'>Here are the steps necessary to add the #{integration.title} integration.</p>
           <hr />
         """
       @instructionsView.addSubView new KDCustomHTMLView
@@ -70,10 +72,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
               click     : @bound 'regenerateToken'
         label           :
           label         : '<p>Descriptive Label</p><span>Use this label to provide extra context in your list of integrations (optional).</span>'
-          defaultValue  : data.description
+          defaultValue  : data.description  or integration.summary
         name            :
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
-          defaultValue  : customName or data.title
+          defaultValue  : customName or integration.title
         events          :
           label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
           type          : 'hidden'
@@ -205,11 +207,12 @@ module.exports = class AdminIntegrationDetailsView extends JView
       channelId   : channels
       isDisabled  : data.isDisabled
 
-    if label isnt data.summary
+    if label isnt integration.summary
       options.description = label
 
-    if name isnt data.title
-      options.settings = customName : name
+    if name isnt integration.title
+      options.settings or= {}
+      options.settings.customName = name
 
     for name, checkbox of @eventCheckboxes when checkbox.getValue()
       data.selectedEvents.push name
@@ -272,15 +275,17 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   pistachio: ->
 
-    { title, description, summary, iconPath } = @getData()
+    { integration: {title, description, summary, iconPath} } = @getData()
 
     return """
       <header class="integration-view">
         <img src="#{iconPath}" />
-        {p{ #(title)}}
-        {{ #(summary)}}
+        <p>#{title}</p>
+         #{summary}
       </header>
-      {section.description{ #(description)}}
+      <section class="description">
+        #{description}
+      </section>
       {{> @instructionsView}}
       <section class="settings container">
         <h4 class='title'>Integration Settings</h4>
