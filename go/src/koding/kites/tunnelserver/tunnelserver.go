@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"koding/ec2dynamicdata"
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"os"
@@ -26,7 +27,7 @@ type tunnelServer struct {
 	BaseVirtualHost string `required:"true"`
 
 	// ServerAddr is public Address of the running server. Like an assigned Elastic IP
-	ServerAddr string `required:"true"`
+	ServerAddr string
 
 	HostedZone string
 	AccessKey  string
@@ -47,6 +48,16 @@ func main() {
 	auth := aws.Auth{
 		AccessKey: t.AccessKey,
 		SecretKey: t.SecretKey,
+	}
+
+	// get from ec2 meta-data if it's not passed explicitly
+	if t.ServerAddr == "" {
+		var err error
+		t.ServerAddr, err = ec2dynamicdata.GetMetadata(ec2dynamicdata.PublicIPv4)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error())
+			os.Exit(1)
+		}
 	}
 
 	var err error
