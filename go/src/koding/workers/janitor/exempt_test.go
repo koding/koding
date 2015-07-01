@@ -198,3 +198,49 @@ func TestIsTooSoon(t *testing.T) {
 		})
 	})
 }
+
+func TestIsUserKodingEmployee(t *testing.T) {
+	warning := &Warning{}
+
+	Convey("Given user who has koding email", t, func() {
+		username := "not-employee"
+		user := &models.User{
+			Name: username, ObjectId: bson.NewObjectId(), Status: "confirmed",
+			Email: "indiana@gmail.com",
+		}
+
+		err := modelhelper.CreateUser(user)
+		So(err, ShouldBeNil)
+
+		Convey("Then it returns true for check", func() {
+			isEmployee, err := IsUserKodingEmployeeFn(user, warning)
+			So(err, ShouldBeNil)
+			So(isEmployee, ShouldBeFalse)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
+	})
+
+	Convey("Given user who has koding email", t, func() {
+		username := "koding-employee"
+		user := &models.User{
+			Name: username, ObjectId: bson.NewObjectId(), Status: "confirmed",
+			Email: "indiana@koding.com",
+		}
+
+		err := modelhelper.CreateUser(user)
+		So(err, ShouldBeNil)
+
+		Convey("Then it returns true for check", func() {
+			isEmployee, err := IsUserKodingEmployeeFn(user, warning)
+			So(err, ShouldBeNil)
+			So(isEmployee, ShouldBeTrue)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
+	})
+}

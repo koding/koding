@@ -22,7 +22,9 @@ var VMDeletionWarning1 = &Warning{
 		bson.M{"inactive.warning": bson.M{"$exists": false}},
 	},
 
-	ExemptCheckers: []*ExemptChecker{IsUserPaid, IsUserNotConfirmed},
+	ExemptCheckers: []*ExemptChecker{
+		IsUserPaid, IsUserNotConfirmed, IsUserVMsEmpty, IsUserKodingEmployee,
+	},
 
 	Action: SendEmail,
 }
@@ -42,7 +44,7 @@ var VMDeletionWarning2 = &Warning{
 	},
 
 	ExemptCheckers: []*ExemptChecker{
-		IsTooSoon, IsUserPaid, IsUserNotConfirmed, IsUserVMsEmpty,
+		IsTooSoon, IsUserPaid, IsUserNotConfirmed, IsUserVMsEmpty, IsUserKodingEmployee,
 	},
 
 	Action: SendEmail,
@@ -62,7 +64,9 @@ var DeleteInactiveUserVM = &Warning{
 		bson.M{"inactive.warning": VMDeletionWarning2.ID},
 	},
 
-	ExemptCheckers: []*ExemptChecker{IsTooSoon, IsUserPaid, IsUserVMsEmpty},
+	ExemptCheckers: []*ExemptChecker{
+		IsTooSoon, IsUserPaid, IsUserVMsEmpty, IsUserKodingEmployee,
+	},
 
 	Action: DeleteVMs,
 }

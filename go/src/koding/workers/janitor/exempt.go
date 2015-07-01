@@ -4,6 +4,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/payment/paymentapi"
+	"strings"
 )
 
 type ExemptChecker struct {
@@ -19,10 +20,11 @@ func NewChecker(name string, fn func(*models.User, *Warning) (bool, error)) *Exe
 }
 
 var (
-	IsUserPaid         = NewChecker("IsUserPaid", IsUserPaidFn)
-	IsUserVMsEmpty     = NewChecker("IsUserVMsEmpty", IsUserVMsEmptyFn)
-	IsTooSoon          = NewChecker("IsTooSoon", IsTooSoonFn)
-	IsUserNotConfirmed = NewChecker("IsUserNotConfirmed", IsUserNotConfirmedFn)
+	IsUserPaid           = NewChecker("IsUserPaid", IsUserPaidFn)
+	IsUserVMsEmpty       = NewChecker("IsUserVMsEmpty", IsUserVMsEmptyFn)
+	IsTooSoon            = NewChecker("IsTooSoon", IsTooSoonFn)
+	IsUserNotConfirmed   = NewChecker("IsUserNotConfirmed", IsUserNotConfirmedFn)
+	IsUserKodingEmployee = NewChecker("IsKodingEmployee", IsUserKodingEmployeeFn)
 )
 
 // IsUserPaidFn checks if user is paid or not. All paid users are exempt.
@@ -53,7 +55,7 @@ func IsUserVMsEmptyFn(user *models.User, _ *Warning) (bool, error) {
 	return len(machines) == 0, nil
 }
 
-// IsTooSoonFn check make sure enough time has elapsed between emails to user.
+// IsTooSoonFn checks enough time has elapsed between emails to user.
 func IsTooSoonFn(user *models.User, w *Warning) (bool, error) {
 	if w.PreviousWarning == nil {
 		return false, nil
@@ -70,4 +72,9 @@ func IsTooSoonFn(user *models.User, w *Warning) (bool, error) {
 
 	tooSoon := lastWarned.Add(w.IntervalSinceLastWarning).UTC().After(timeNow())
 	return tooSoon, nil
+}
+
+// IsUserKodingEmployee checks if user is a Koding employee based on email.
+func IsUserKodingEmployeeFn(user *models.User, w *Warning) (bool, error) {
+	return strings.HasSuffix(user.Email, "@koding.com"), nil
 }
