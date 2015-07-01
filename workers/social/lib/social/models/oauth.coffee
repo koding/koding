@@ -2,6 +2,7 @@ bongo    = require 'bongo'
 {secure, signature} = bongo
 crypto   = require 'crypto'
 oauth    = require "oauth"
+parser   = require 'url'
 
 module.exports = class OAuth extends bongo.Base
   @share()
@@ -58,9 +59,9 @@ module.exports = class OAuth extends bongo.Base
         @saveTokensAndReturnUrl client, "twitter", callback
 
   @prependGroupName = (url, groupName) ->
-    protocol = if url.indexOf("https://") is 0 then "https://" else "http://"
+    url = parser.parse url
 
-    return url.replace protocol, "#{protocol}#{groupName}."
+    return "#{url.protocol}//#{groupName}.#{url.host}#{url.path}"
 
   @saveTokensAndReturnUrl = (client, provider, callback)->
     @getTokens provider, (err, {requestToken, requestTokenSecret, url})=>
