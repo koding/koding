@@ -773,65 +773,32 @@ body.home
             width         100%
             padding       0
             border        none
+            content       'OR SIGNUP USING'
 
         .dots-extra
-          abs             160px 100px 0 0
-          width           5px
+          hidden()
 
         .buttons-extra
-          abs             240px 0px 0 0
+          abs             185px 0 0 50%
+          width           100px
+          margin          0px 0px 0px -22px
           z-index         5
-          margin          0
-
-        a.gh
-        a.go
-        a.fb
-          width           100% !important
-          height          40px !important
-          bg              image, none !important
-          margin          0
-          padding         0
           opacity         1
-          z-index         10
-          rounded         3px
-
-          .title
-            line-height   40px
-            display       inline-block
-            visibility    initial
-            font-size     12px
-            font-weight   600
-            color         #fff
-
-          .title:before
-            content       ''
-            display       inline-block
-            vendor        transform, scale(0.7)
-            vertical-align middle
-            margin-top    -2px
-            margin-right  6px
+          bg              color, transparent
+          &:before
+            hidden()
 
         a.gh
-          abs             198px 0 0 0px
-          bg              color rgba(0,0,0,.3)
+        a.go
+        a.fb
+          opacity         1
 
-          .title:before
-            r-sprite      home 'gh-home-white'
+        a.gh
+          abs             185px 0 0 50%
+          margin          2px 0 0 -72px
 
         a.go
-          position        static
-          margin-bottom   3px
-          bg              color rgba(0,0,0,.7);
-
-          .title:before
-            r-sprite      home 'go-home-white'
-            
-        a.fb
-          position        static
-          bg              color rgba(0,0,0,.7);
-
-          .title:before
-            r-sprite      home 'fb-home-white'
+          margin-right    17px
 
       section.screenshots
         top               479px
