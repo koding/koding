@@ -2,7 +2,6 @@ package eventsender
 
 import (
 	"errors"
-	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
@@ -24,18 +23,15 @@ const (
 	CreateWSBody    = "First rule of creating workspace is..."
 
 	cacheSize = 10000
-
-	sendMessageVersion = "v1"
-	startCollVersion   = "v1"
-	createWSVersion    = "v1"
 )
 
 var (
-	ErrUserNotFound  = errors.New("user not found")
-	ErrDisabled      = errors.New("feature disabled")
-	sendMessageEvent = fmt.Sprintf("sendmessage %s", sendMessageVersion)
-	startCollEvent   = fmt.Sprintf("startcollaboration %s", startCollVersion)
-	createWSEvent    = fmt.Sprintf("createworkspace %s", createWSVersion)
+	ErrUserNotFound = errors.New("user not found")
+	ErrDisabled     = errors.New("feature disabled")
+
+	sendMessageEvent = "sendmessage"
+	startCollEvent   = "startcollaboration"
+	createWSEvent    = "createworkspace"
 )
 
 type Controller struct {

@@ -72,7 +72,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
 
     Email.queue nickname, {
       to         : @email
-      subject    : Email.types.INVITE
+      subject    : Email.types.INVITED_GROUP
     }, { firstName, lastName, shareUrl }, (err) =>
       return callback err  if err
       @update $set: invited: true, callback
