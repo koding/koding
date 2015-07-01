@@ -99,16 +99,16 @@ removeLiker = (message, userId) ->
 
 
 ###*
- * Create a fake message. Assigns given clientRequestId as fake message's id.
+ * Create a fake message.
  *
- * @param {string} clientRequestId
+ * @param {string} id
  * @param {string} body
  * @return {object} message
 ###
-createFakeMessage = (clientRequestId, body) ->
+createFakeMessage = (id, body) ->
 
   message    = generateDummyMessage body
-  message.id = clientRequestId
+  message.id = id
 
   return message
 
@@ -117,12 +117,12 @@ createFakeMessage = (clientRequestId, body) ->
  * Removes fake message.
  *
  * @param {MessageCollection} messages
- * @param {string} clientRequestId
+ * @param {string} id
  * @return {MessageCollection} _messages
 ###
-removeFakeMessage = (messages, clientRequestId) ->
+removeFakeMessage = (messages, id) ->
 
-  messages.remove clientRequestId
+  messages.remove id
 
 
 module.exports = {
