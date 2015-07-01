@@ -17,13 +17,13 @@ generateDummyMessage = require 'app/util/generateDummyMessage'
  *     # imagine a map: Immutable.Map({messageId, messageId2, messageId3})
  *     map = map.remove messageId
  *
- * @typedef {Immutable.Map} Thread
+ * @typedef {Immutable.Map} IMThread
  * @property {string} channelId
  * @property {Immutable.Map<string, string>} messages
 ###
 
 ###*
- * @typedef {Immutable.Map<string, Thread>} ThreadCollection
+ * @typedef {Immutable.Map<string, IMThread>} IMThreadCollection
 ###
 
 module.exports = class ThreadsStore extends Nuclear.Store
@@ -44,11 +44,11 @@ module.exports = class ThreadsStore extends Nuclear.Store
    * Handler for `CREATE_MESSAGE_BEGIN` action.
    * It adds given clientRequestId to messages map.
    *
-   * @param {ThreadCollection} threads
+   * @param {IMThreadCollection} threads
    * @param {object} payload
    * @param {string} channelId
    * @param {string} clientRequestId
-   * @return {ThreadCollection} nextState
+   * @return {IMThreadCollection} nextState
   ###
   handleCreateMessageBegin: (threads, { channelId, clientRequestId }) ->
 
@@ -60,12 +60,12 @@ module.exports = class ThreadsStore extends Nuclear.Store
    * It first removes fake message id if it exists, then adds message's id to
    * thread.
    *
-   * @param {ThreadCollection} threads
+   * @param {IMThreadCollection} threads
    * @param {object} payload
    * @param {string} channelId
    * @param {string} clientRequestId
    * @param {SocialMessage} message
-   * @return {ThreadCollection} nextState
+   * @return {IMThreadCollection} nextState
   ###
   handleCreateMessageSuccess: (threads, { channelId, clientRequestId, message }) ->
 
@@ -79,11 +79,11 @@ module.exports = class ThreadsStore extends Nuclear.Store
    * Handler for `CREATE_MESSAGE_FAIL` action.
    * It removes fake message id with from thread.
    *
-   * @param {ThreadCollection} threads
+   * @param {IMThreadCollection} threads
    * @param {object} payload
    * @param {string} channelId
    * @param {string} clientRequestId
-   * @return {ThreadCollection} nextState
+   * @return {IMThreadCollection} nextState
   ###
   handleCreateMessageFail: (threads, { channelId, clientRequestId }) ->
 
@@ -94,11 +94,11 @@ module.exports = class ThreadsStore extends Nuclear.Store
    * Handler for `REMOVE_MESSAGE_SUCCESS` action.
    * It removes given messageId from thread's message list.
    *
-   * @param {ThreadCollection} threads
+   * @param {IMThreadCollection} threads
    * @param {object} payload
    * @param {string} channelId
    * @param {string} messageId
-   * @param {TreadCollection} nextState
+   * @param {IMTreadCollection} nextState
   ###
   handleRemoveMessageSuccess: (threads, { channelId, messageId }) ->
 
@@ -108,10 +108,10 @@ module.exports = class ThreadsStore extends Nuclear.Store
 ###*
  * Adds given messageId to thread with given channelId.
  *
- * @param {ThreadCollection} threads
+ * @param {IMThreadCollection} threads
  * @param {string} channelId
  * @param {string} messageId
- * @return {ThreadCollection} _threads
+ * @return {IMThreadCollection} _threads
 ###
 addMessage = (threads, channelId, messageId) ->
 
@@ -128,9 +128,9 @@ addMessage = (threads, channelId, messageId) ->
  * Since a message may belong to many threads, it removes given messageId from
  * each thread.
  *
- * @param {ThreadCollection} threads
+ * @param {IMThreadCollection} threads
  * @param {string} messageId
- * @return {ThreadCollection} _threads
+ * @return {IMThreadCollection} _threads
 ###
 removeMessage = (threads, messageId) ->
 
@@ -143,9 +143,9 @@ removeMessage = (threads, messageId) ->
 ###*
  * Initialize a channel record in channels collection.
  *
- * @param {ThreadCollection} threads
+ * @param {IMThreadCollection} threads
  * @param {string} channelId
- * @return {ThreadCollection} _threads
+ * @return {IMThreadCollection} _threads
 ###
 initThread = (threads, channelId) ->
 
@@ -156,7 +156,7 @@ initThread = (threads, channelId) ->
  * Returns an empty thread.
  *
  * @param {string} channelId
- * @return {Thread} thread
+ * @return {IMThread} thread
 ###
 createThread = (channelId) ->
 

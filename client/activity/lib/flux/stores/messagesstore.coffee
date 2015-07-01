@@ -8,15 +8,15 @@ MessageCollectionHelpers = require '../helpers/messagecollection'
 ###*
  * Immutable version of a social message. see toImmutable util.
  *
- * @typedef ImmutableSocialMessage
+ * @typedef IMSocialMessage
 ###
 
 ###*
- * MessagesStore state represents a MessageCollection, in which keys are
+ * MessagesStore state represents a IMMessageCollection, in which keys are
  * messageIds and values are immutable version of associated SocialMessage
  * instances.
  *
- * @typedef {Immutable.Map<string, ImmutableSocialMessage>} MessageCollection
+ * @typedef {Immutable.Map<string, IMSocialMessage>} IMMessageCollection
 ###
 
 module.exports = class MessagesStore extends KodingFluxStore
@@ -48,11 +48,11 @@ module.exports = class MessagesStore extends KodingFluxStore
    * It creates a fake message and pushes it to given channel's thread.
    * Latency compensation first step.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.body
    * @param {string} payload.clientRequestId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleCreateMessageBegin: (messages, { body, clientRequestId }) ->
 
@@ -68,11 +68,11 @@ module.exports = class MessagesStore extends KodingFluxStore
    * It first removes fake message if it exists, and then pushes given message
    * from payload.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.clientRequestId
    * @param {SocialMessage} payload.message
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleCreateMessageSuccess: (messages, { clientRequestId, message }) ->
 
@@ -88,10 +88,10 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `CREATE_MESSAGE_FAIL` action.
    * It removes fake message associated with given clientRequestId.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.clientRequestId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleCreateMessageFail: (messages, { channelId, clientRequestId }) ->
 
@@ -105,10 +105,10 @@ module.exports = class MessagesStore extends KodingFluxStore
    * It marks message with given messageId as removed, so that views/components
    * can have a way to differentiate.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleRemoveMessageBegin: (messages, { messageId }) ->
 
@@ -121,10 +121,10 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `REMOVE_MESSAGE_FAIL` action.
    * It unmarks removed flag from the message with given messageId.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleRemoveMessageFail: (messages, { messageId }) ->
 
@@ -137,10 +137,10 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `REMOVE_MESSAGE_SUCCESS` action.
    * It removes message with given messageId.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleRemoveMessageSuccess: (messages, { messageId }) ->
 
@@ -153,10 +153,10 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `LIKE_MESSAGE_BEGIN` action.
    * It optimistically adds a like from logged in user.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleLikeMessageBegin: (messages, { messageId }) ->
 
@@ -172,11 +172,11 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `LIKE_MESSAGE_SUCCESS` action.
    * It updates the message with message id with given message.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @param {SocialMessage} payload.message
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleLikeMessageSuccess: (messages, { messageId, message }) ->
 
@@ -189,10 +189,10 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `LIKE_MESSAGE_FAIL` action.
    * It removes optimistically added like in `LIKE_MESSAGE_BEGIN` action.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleLikeMessageFail: (messages, { messageId }) ->
 
@@ -208,10 +208,10 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `UNLIKE_MESSAGE_BEGIN` action.
    * It optimistically removes a like from message.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleUnlikeMessageBegin: (messages, { messageId }) ->
 
@@ -227,11 +227,11 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `UNLIKE_MESSAGE_SUCCESS` action.
    * It updates the message with message id with given message.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @param {SocialMessage} payload.message
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleUnlikeMessageSuccess: (messages, { messageId, message }) ->
 
@@ -244,10 +244,10 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `UNLIKE_MESSAGE_FAIL` action.
    * It adds back optimistically removed like in `UNLIKE_MESSAGE_BEGIN` action.
    *
-   * @param {MessageCollection} messages
+   * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
-   * @return {MessageCollection} nextState
+   * @return {IMMessageCollection} nextState
   ###
   handleUnlikeMessageFail: (messages, { messageId }) ->
 

@@ -7,7 +7,7 @@ LIKE_INTERACTION_KEYPATH = ['interactions', 'like']
  * Adds given message to given messages map.
  *
  * @param {MessageCollection} messages
- * @param {ImmutableSocialMessage} message
+ * @param {IMSocialMessage} message
  * @return {MessageCollection} _messages
 ###
 addMessage = (messages, message) -> messages.set message.get('id'), message
@@ -58,9 +58,9 @@ unmarkMessageRemoved = (messages, messageId) ->
 ###*
  * Sets isLiked status of given message to given state.
  *
- * @param {ImmutableSocialMessage} message
+ * @param {IMSocialMessage} message
  * @param {boolean} state
- * @return {ImmutableSocialMessage} _message
+ * @return {IMSocialMessage} _message
 ###
 setIsLiked = (message, state) -> message.setIn IS_LIKED_KEYPATH, state
 
@@ -68,9 +68,9 @@ setIsLiked = (message, state) -> message.setIn IS_LIKED_KEYPATH, state
 ###*
  * Adds an actor (given userId) to like interaction of given message.
  *
- * @param {ImmutableSocialMessage} message
- * @param {boolean} state
- * @return {ImmutableSocialMessage} _message
+ * @param {IMSocialMessage} message
+ * @param {string} userId
+ * @return {IMSocialMessage} _message
 ###
 addLiker = (message, userId) ->
 
@@ -85,9 +85,9 @@ addLiker = (message, userId) ->
 ###*
  * Removes actor (given userId) from like interaction of given message.
  *
- * @param {ImmutableSocialMessage} message
+ * @param {IMSocialMessage} message
  * @param {boolean} state
- * @return {ImmutableSocialMessage} _message
+ * @return {IMSocialMessage} _message
 ###
 removeLiker = (message, userId) ->
 
