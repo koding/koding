@@ -18,16 +18,18 @@ module.exports = class OAuth extends bongo.Base
         {clientId, redirectUri} = KONFIG.github
         {scope, returnUrl} = options
         scope = "user:email"  unless scope
+        redirectUri = @prependGroupName "#{redirectUri}", client.context.group
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
         callback null, url
       when "facebook"
         {clientId, redirectUri} = KONFIG.facebook
+        redirectUri = @prependGroupName redirectUri, client.context.group
         url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}"
         callback null, url
       when "google"
         {client_id, redirect_uri} = KONFIG.google
-
+        redirect_uri = @prependGroupName redirect_uri, client.context.group
         url  = "https://accounts.google.com/o/oauth2/auth?"
         url += "scope=https://www.google.com/m8/feeds "
         url += "https://www.googleapis.com/auth/userinfo.profile "
@@ -40,6 +42,7 @@ module.exports = class OAuth extends bongo.Base
         callback null, url
       when "linkedin"
         {client_id, redirect_uri} = KONFIG.linkedin
+        redirect_uri = @prependGroupName redirect_uri, client.context.group
         state = crypto.createHash("md5").update((new Date).toString()).digest("hex")
 
         url  = "https://www.linkedin.com/uas/oauth2/authorization?"
@@ -53,6 +56,11 @@ module.exports = class OAuth extends bongo.Base
         @saveTokensAndReturnUrl client, "odesk", callback
       when "twitter"
         @saveTokensAndReturnUrl client, "twitter", callback
+
+  @prependGroupName = (url, groupName) ->
+    protocol = if url.indexOf("https://") is 0 then "https://" else "http://"
+
+    return url.replace protocol, "#{protocol}#{groupName}."
 
   @saveTokensAndReturnUrl = (client, provider, callback)->
     @getTokens provider, (err, {requestToken, requestTokenSecret, url})=>
