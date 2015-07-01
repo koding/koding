@@ -51,6 +51,12 @@ module.exports = class AdminIntegrationSetupView extends JView
         selectedChannel : response.channelId
         channels        : integration.channels
         webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{response.token}"
+
+      if integration.settings?.events
+        events = try JSON.parse integration.settings.events
+        catch e then []
+        data.settings = {events}
+
       delete integration.channels
 
       @destroy()

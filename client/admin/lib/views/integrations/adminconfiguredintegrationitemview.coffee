@@ -97,10 +97,19 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
           webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
           integrationType : 'configured'
           isDisabled      : channelIntegration.isDisabled
+          selectedEvents  : []
 
 
-        # DUMMY DATA
-        data.selectedEvents = [ 'added_comment', 'edited_feature' ]
+        if channelIntegration.settings
+          data.selectedEvents = try JSON.parse channelIntegration.settings.events
+          catch e then []
+
+        if integration.settings?.events
+          events = try JSON.parse integration.settings.events
+          catch e then null
+          data.settings = { events }
+
+
 
         @emit 'IntegrationCustomizeRequested', data
 

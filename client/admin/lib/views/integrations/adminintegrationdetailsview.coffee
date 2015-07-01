@@ -22,17 +22,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { integration } = data
     { instructions } = integration
 
-    { instructions } = data
-    @eventCheckboxes = {}
 
-    # DUMMY DATA
-    data.settings =
-      events: [
-        { name: 'added_feature',  description: 'Added feature'  }
-        { name: 'added_comment',  description: 'Added comment'  }
-        { name: 'edited_feature', description: 'Edited feature' }
-        { name: 'moved_feature',  description: 'Moved feature'  }
-      ]
+    @eventCheckboxes = {}
 
     if instructions
       @instructionsView = new KDCustomHTMLView
@@ -73,6 +64,15 @@ module.exports = class AdminIntegrationDetailsView extends JView
         label           :
           label         : '<p>Descriptive Label</p><span>Use this label to provide extra context in your list of integrations (optional).</span>'
           defaultValue  : data.description  or integration.summary
+        repository      :
+          label         : '<p>Repository</p><span>Choose the repository that you would like to listen.</span>'
+          type          : 'select'
+          selectOptions : repositories
+          cssClass      : unless repositories.length then 'hidden'
+        events          :
+          label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
+          type          : 'hidden'
+          cssClass      : unless data.settings?.events?.length then 'hidden'
         name            :
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
           defaultValue  : customName or integration.title
@@ -177,7 +177,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
     selectedEvents = @getData().selectedEvents or []
     mainWrapper    = new KDCustomHTMLView cssClass: 'event-cbes'
 
-    for item in @data.settings?.events
+    return  unless @data.settings?.events
+
+    for item in @data.settings.events
 
       { name } = item
       wrapper  = new KDCustomHTMLView cssClass: 'event-cb'
@@ -200,8 +202,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
   handleFormCallback: (formData) ->
 
     data = @getData()
-    data.selectedEvents = []
-    { name, label, channels } = formData
+    { integration } = data
+    selectedEvents = []
+
+    { name, label, channels, repository } = formData
     options       =
       id          : data.id
       channelId   : channels
@@ -215,7 +219,11 @@ module.exports = class AdminIntegrationDetailsView extends JView
       options.settings.customName = name
 
     for name, checkbox of @eventCheckboxes when checkbox.getValue()
-      data.selectedEvents.push name
+      selectedEvents.push name
+
+    if selectedEvents.length
+      options.settings or= {}
+      options.settings.events = JSON.stringify selectedEvents
 
     kd.singletons.socialapi.integrations.update options, (err) =>
       return kd.warn err  if err
