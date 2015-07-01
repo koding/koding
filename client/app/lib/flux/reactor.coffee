@@ -11,7 +11,7 @@ module.exports = class KodingFluxReactor extends Nuclear.Reactor
   ###
   registerStores: (storeClasses) ->
 
-    stores = _.mapValues storeClasses, (StoreClass) => new StoreClass
+    stores = _.mapValues storeClasses, (StoreClass) -> new StoreClass
 
     # we injected reactor instance to our stores,
     # leave the rest to Nuclear.
