@@ -106,6 +106,15 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       cssClass : 'label'
       partial  : 'Fetching participants'
 
+    @createSettingsElements()
+
+
+  createSettingsElements: ->
+
+    @settings  = new KDCustomHTMLView
+      tagName  : 'div'
+      cssClass : 'session-settings'
+
 
   setUnwatch: (state) ->
 
@@ -247,6 +256,7 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       <div class="warning">
         <span>Have sessions with people <strong>you trust</strong>, they can view and edit <strong>all your files</strong>.</span>
       </div>
+      {{> @settings}}
       <div class='buttons'>
         {{> @startSession}} {{> @endSession}}
       </div>
