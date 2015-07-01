@@ -155,8 +155,9 @@ saveOauthToSession = (oauthInfo, clientId, provider, callback)->
 
   JSession.update {clientId}, $set:query, callback
 
-redirectOauth = (res, options, err)->
+redirectOauth = (err, req, res, options)->
   { returnUrl, provider } = options
+
   redirectUrl = "/Account/Oauth?provider=#{provider}&error=#{err}"
   redirectUrl = "#{redirectUrl}&returnUrl=#{returnUrl}"  if returnUrl
   res.redirect(redirectUrl)
