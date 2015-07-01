@@ -93,15 +93,6 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       cssClass : 'chat-link'
       click    : => @getDelegate().showChatPane()
 
-    @defaultPermission = new KDSelectBox
-      defaultValue  : 'edit'
-      callback      : (value) => @setDefaultPermission value
-      disabled      : not @amIHost
-      selectOptions : [
-        { title : 'CAN READ', value : 'read'}
-        { title : 'CAN EDIT', value : 'edit'}
-      ]
-
     @everyone  = new KDCustomHTMLView
       tagName  : 'ul'
       cssClass : 'settings everyone loading'
@@ -247,9 +238,6 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       <header class='chat-settings'>
         {{> @back}}
       </header>
-      <ul class='settings default'>
-        <li><label>Anyone who joins</label>{{> @defaultPermission}}</li>
-      </ul>
       {{> @everyone}}
       <div class="warning">
         <span>Have sessions with people <strong>you trust</strong>, they can view and edit <strong>all your files</strong>.</span>

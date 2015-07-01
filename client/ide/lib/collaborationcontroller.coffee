@@ -759,7 +759,6 @@ module.exports = CollaborationController =
 
     {settingsPane} = @chat
     settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
-    settingsPane.updateDefaultPermissions()
 
     @chat.emit 'CollaborationStarted'
     @statusBar.emit 'CollaborationStarted'
