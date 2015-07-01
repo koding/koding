@@ -14,17 +14,16 @@ module.exports = class Email
 
   {forcedRecipient, defaultFromMail} = KONFIG.email
 
-  VERSION_1  = ' v1'
   EVENT_TYPE = 'api.mail_send'
 
   @types =
-    WELCOME          : 'welcome'          + VERSION_1
-    INVITE           : 'invite'           + VERSION_1
-    FEEDBACK         : 'feedback'         + VERSION_1
-    EMAIL_CHANGED    : 'email changed'    + VERSION_1
-    PASSWORD_CHANGED : 'password changed' + VERSION_1
-    CONFIRM_EMAIL    : 'confirm email'    + VERSION_1
-    PASSWORD_RECOVER : 'password recover' + VERSION_1
+    START_REGISTER       : 'started to register'
+    INVITED_GROUP        : 'was invited to a group'
+    SENT_FEEDBACK        : 'sent feedback'
+    REQUEST_NEW_PASSWORD : 'requested a new password'
+    CHANGED_PASSWORD     : 'changed their password'
+    REQUEST_EMAIL_CHANGE : 'requested pin to change email'
+    CHANGED_EMAIL        : 'changed their email'
 
   @setMqClient = (m)-> mqClient = m
 

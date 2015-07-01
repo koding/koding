@@ -114,7 +114,6 @@ func (l *LongRunning) Result() string {
 
 	return fmt.Sprintf("stopped '%d' free user instances. users: '%s'",
 		l.longRunningInstances.Total(), strings.Join(usernames, ","))
-
 }
 
 func (l *LongRunning) Info() *taskInfo {

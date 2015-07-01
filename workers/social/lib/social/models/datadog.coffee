@@ -45,7 +45,7 @@ module.exports = class DataDog extends Base
 
     MachineTurnedOn:
       title         : "machine.turnedon"
-      text          : "turn on machine"
+      text          : "turned on VM"
       sendToSegment : true
       tags          : []
 

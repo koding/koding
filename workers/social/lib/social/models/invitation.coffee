@@ -202,7 +202,7 @@ module.exports = class JInvitation extends jraphical.Module
 
     options =
       to      : invitation.email,
-      subject : Email.types.INVITE
+      subject : Email.types.INVITED_GROUP
 
     properties =
       groupName: invitation.groupName

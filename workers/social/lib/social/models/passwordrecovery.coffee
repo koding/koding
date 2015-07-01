@@ -58,8 +58,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @expiryPeriod = 1000 * 60 * 90 # 90 min
 
   @getEmailSubject = ({resetPassword})->
-    if resetPassword then Email.types.PASSWORD_RECOVER
-    else Email.types.CONFIRM_EMAIL
+    if resetPassword then Email.types.REQUEST_NEW_PASSWORD
+    else Email.types.REQUEST_EMAIL_CHANGE
 
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
@@ -166,14 +166,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         return callback UNKNOWN_ERROR  if err or not user
         user.confirmEmail (err)->
           return callback UNKNOWN_ERROR  if err
-          certificate.update {$set: status: 'redeemed'}, (err) ->
-            return callback err if err
-
-            Email.queue user.username, {
-              to       : certificate.email
-              subject  : Email.types.WELCOME
-            }, {firstName: user.username}, (err)->
-              console.error err  if err
+          certificate.update {$set: status: 'redeemed'}, callback
 
   @invalidate =(query, callback)->
     query.status = 'active'

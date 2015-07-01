@@ -11,7 +11,7 @@
     "bant": "0.2.3",
     "bundle-collapser": "1.1.4",
     "chalk": "1.0.0",
-    "chokidar": "1.0.0-rc4",
+    "chokidar": "1.0.3",
     "coffeeify": "1.0.0",
     "defined": "0.0.0",
     "exorcist": "0.1.6",

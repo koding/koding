@@ -53,6 +53,11 @@ Configuration = (options={}) ->
       accessKeyId     : "AKIAJRNT55RTV2MHD4VA"
       secretAccessKey : "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"
 
+    # TunnelProxyPolicy
+    worker_tunnelproxymanager: # Name worker_tunnelproxymanager_dev
+      accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
+      secretAccessKey : "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"
+
   publicPort     = options.publicPort          = "80"
   hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
   protocol       = options.protocol            or "https:"
@@ -107,7 +112,7 @@ Configuration = (options={}) ->
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
-  segment                 = 'kb2hfdgf20'
+  segment                 = 'swZaC1nE4sYPLjkGTKsNpmGAkYmPcFtx'
 
 
   disabledFeatures =
@@ -158,6 +163,8 @@ Configuration = (options={}) ->
   KONFIG              =
     configName                     : configName
     environment                    : environment
+    ebEnvName                      : options.ebEnvName
+    runGoWatcher                   : options.runGoWatcher
     regions                        : regions
     region                         : region
     hostname                       : hostname
@@ -629,6 +636,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/eventsender -c #{socialapi.configFilePath}"
 
     contentrotator      :
+      group             : "webserver"
       nginx             :
         locations       : [
           {
@@ -638,7 +646,13 @@ Configuration = (options={}) ->
           }
         ]
 
-    userproxies      :
+    tunnelproxymanager  :
+      group             : "proxy"
+      supervisord       :
+        command         : "#{GOBIN}/tunnelproxymanager -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey}"
+
+    userproxies         :
+      group             : "proxy"
       nginx             :
         websocket       : yes
         locations       : [
