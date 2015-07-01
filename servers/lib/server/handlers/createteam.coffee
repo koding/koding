@@ -9,59 +9,77 @@ KONFIG                                  = require('koding-config-manager').load 
 module.exports = (req, res, next) ->
 
   { body }                       = req
+  { # slug is team slug, unique name. Can not be changed
+    slug
+    email
+    # newsletter holds announcements config.
+    newsletter
+    # is group creator already a member
+    alreadyMember }              = body
   { JUser, JGroup, JInvitation } = koding.models
 
-
-  redirect     ?= '/'
-  context       = { group: slug }
-  clientId      = getClientId req, res
-  alreadyMember = alreadyMember is 'true'
+  clientId                       = getClientId req, res
 
   return handleClientIdNotFound res, req  unless clientId
 
-  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  client              = {}
+  context             = { group: slug }
+  clientIPAddress     = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  # parsing booling from string
+  alreadyMember       = alreadyMember is 'true'
+  # this function will be bound with necessary data in the queue later
+  handleGroupCreation = ->
 
-  koding.fetchClient clientId, context, (client) ->
+  queue = [
 
-    # when there is an error in the fetchClient, it returns message in it
-    if client.message
-      console.error JSON.stringify {req, client}
-      return res.status(500).send client.message
+    ->
+      koding.fetchClient clientId, context, (client_) ->
 
-    client.clientIP = (clientIPAddress.split ',')[0]
+        client = client_
+        # when there is an error in the fetchClient, it returns message in it
+        if client.message
+          console.error JSON.stringify {req, client}
+          return res.status(500).send client.message
 
-    # subscribe to koding marketing mailings or not
-    body.emailFrequency         or= {}
-    body.emailFrequency.marketing = newsletter is 'true' # convert string boolean to boolean
+        client.clientIP = (clientIPAddress.split ',')[0]
 
-    handleGroupCreation = createGroup.bind null, body
+        # subscribe to koding marketing mailings or not
+        body.emailFrequency         or= {}
+        # convert string boolean to boolean
+        body.emailFrequency.marketing = newsletter is 'true'
+        queue.next()
 
-    queue = [
+    ->
+      # checking if group slug was already used
+      JGroup.one { slug }, (err, group) ->
+        return res.status(500).send 'an error occured'  if err
+        return res.status(403).send "Sorry,
+          Team URL '#{slug}.koding.com' is already in use"  if group
+        queue.next()
 
-      ->
-        JGroup.one { slug }, (err, group) ->
-          return res.status(500).send 'an error occured'  if err
-          return res.status(403).send "Sorry,
-            Team URL '#{slug}.koding.com' is already in use"  if group
-          queue.next()
+    ->
+      # checking if user exists by email
+      JUser.one { email }, (err, user) ->
+        return res.status(500).send 'an error occured'  if err
+        alreadyMember = true  if user
+        queue.next()
 
-      ->
-        JUser.one { email }, (err, user) ->
-          return res.status(500).send 'an error occured'  if err
-          alreadyMember = true  if user
-          queue.next()
+    ->
+      # binding createGroup function to be used as callback in both login and convert
+      handleGroupCreation = createGroup.bind null, client, req, res, body
+      queue.next()
 
-      ->
-        if alreadyMember
-        then JUser.login client.sessionToken, body, handleGroupCreation
-        else JUser.convert client, body, handleGroupCreation
+    ->
+      if alreadyMember
+      then JUser.login client.sessionToken, body, handleGroupCreation
+      else JUser.convert client, body, handleGroupCreation
 
-    ]
+  ]
 
-    daisy queue
+  daisy queue
 
 
-createGroup = (body, err, result) ->
+createGroup = (client, req, res, body, err, result) ->
 
   return res.status(400).send getErrorMessage err  if err?
 
@@ -74,13 +92,8 @@ createGroup = (body, err, result) ->
     invitees
     # domains holds allowed domains for signinup without invitation, comma separated
     domains
-    # newsletter holds announcements config.
-    newsletter
-    # is group creator already a member
-    alreadyMember
     # username of the user, can be already registered or a new one for creation
     username
-    email
   } = body
 
   { JUser, JGroup, JInvitation } = koding.models
@@ -93,17 +106,20 @@ createGroup = (body, err, result) ->
   # res.cookie 'clientId', result.newToken, path : '/'
 
   # set session token for later usage down the line
-  client.sessionToken         = result.newToken
-  owner                       = result.account
-  client.connection.delegate  = result.account
+  owner                      = result.account
+  redirect                  ?= '/'
+  client.sessionToken        = result.newToken
+  client.connection.delegate = result.account
+
+  return  if validateGroupData(body, res) isnt yes
 
   JGroup.create client,
-    title           : companyName
     slug            : slug
+    title           : companyName
     visibility      : 'hidden'
-    defaultChannels : []
     initialData     : body
     allowedDomains  : convertToArray domains # clear & convert domains into array
+    defaultChannels : []
   , owner, (err, group) ->
 
     if err or not group
@@ -111,11 +127,14 @@ createGroup = (body, err, result) ->
       return res.status(500).send "Couldn't create the group."
 
     queue = [
+
       # add other parallel operations here
       -> createInvitations client, invitees, (err) ->
           console.error "Err while creating invitations", err  if err
           queue.fin()
+
     ]
+
     dash queue, (err)->
       # do not block group creation
       console.error "Error while creating group artifacts", body, err if err
@@ -132,6 +151,16 @@ createGroup = (body, err, result) ->
       # handle the request with an HTTP redirect:
       res.redirect 301, redirect
 
+
+validateGroupData = (body, res) ->
+
+  if not body.slug
+    return res.status(400).send 'Group slug can not be empty.'
+
+  else if not body.companyName
+    return res.status(400).send 'Company name can not be empty.'
+
+  else true
 
 # convertToArray converts given comma separated string value into cleaned,
 # trimmed, lowercased, unified array of string
