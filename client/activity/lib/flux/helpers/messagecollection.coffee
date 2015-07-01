@@ -1,8 +1,5 @@
 generateDummyMessage = require 'app/util/generateDummyMessage'
 
-IS_LIKED_KEYPATH = ['interactions', 'like', 'isInteracted']
-LIKE_INTERACTION_KEYPATH = ['interactions', 'like']
-
 ###*
  * Adds given message to given messages map.
  *
@@ -62,7 +59,9 @@ unmarkMessageRemoved = (messages, messageId) ->
  * @param {boolean} state
  * @return {IMSocialMessage} _message
 ###
-setIsLiked = (message, state) -> message.setIn IS_LIKED_KEYPATH, state
+setIsLiked = (message, state) ->
+
+  message.setIn ['interactions', 'like', 'isInteracted'], state
 
 
 ###*
@@ -74,7 +73,7 @@ setIsLiked = (message, state) -> message.setIn IS_LIKED_KEYPATH, state
 ###
 addLiker = (message, userId) ->
 
-  message.updateIn LIKE_INTERACTION_KEYPATH, (likeInteraction) ->
+  message.updateIn ['interactions', 'like'], (likeInteraction) ->
     likeInteraction
       # add logged in user to actors preview.
       .update 'actorsPreview', (preview) -> preview.unshift userId
@@ -91,7 +90,7 @@ addLiker = (message, userId) ->
 ###
 removeLiker = (message, userId) ->
 
-  message.updateIn LIKE_INTERACTION_KEYPATH, (likeInteraction) ->
+  message.updateIn ['interactions', 'like'], (likeInteraction) ->
     likeInteraction
       # filter out given userId from actorsPreview list.
       .update 'actorsPreview', (preview) -> preview.filterNot (id) -> id is userId
