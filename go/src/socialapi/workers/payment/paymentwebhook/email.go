@@ -18,12 +18,12 @@ const (
 )
 
 var EmailSubjects = map[Action]string{
-	SubscriptionCreated: "SubscriptionCreated",
-	SubscriptionDeleted: "SubscriptionDeleted",
-	SubscriptionChanged: "SubscriptionChanged",
-	PaymentCreated:      "PaymentCreated",
-	PaymentRefunded:     "PaymentRefunded",
-	PaymentFailed:       "PaymentFailed",
+	SubscriptionCreated: "bought a subscription",
+	SubscriptionDeleted: "canceled their subscription",
+	SubscriptionChanged: "changed their subscription",
+	PaymentCreated:      "received an invoice",
+	PaymentRefunded:     "received a refuned",
+	PaymentFailed:       "failed to pay",
 }
 
 var ErrEmailActionNotFound = errors.New("action not found")

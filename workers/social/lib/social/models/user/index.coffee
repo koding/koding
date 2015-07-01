@@ -1074,6 +1074,7 @@ module.exports = class JUser extends jraphical.Module
     user           = null
     quotaExceedErr = null
     error          = null
+    pin            = null
 
     # TODO this can cause problems
     aNewRegister   = yes
@@ -1266,27 +1267,20 @@ module.exports = class JUser extends jraphical.Module
             console.warn err  if err?
             queue.next()
         else
-          user.verifyByPin resendIfExists: yes, (err)->
-            console.warn "Failed to send verification token:", err  if err
+          options = {username, email, action: "verify-account"}
+
+          JVerificationToken = require '../verificationtoken'
+          JVerificationToken.createNewPin options, (err, confirmation)->
+            if err
+              console.warn "Failed to send verification token:", err
+            else
+              pin = confirmation.pin
+
             queue.next()
 
       ->
-        callback error, {account, newToken}
-        queue.next()
-
-      ->
         # don't block register
-
-        {username, email} = user
-        subject           = Email.types.WELCOME
-        Email.queue username, { to : email, subject }, {}, ->
-
-        queue.next()
-
-      ->
-        SiftScience = require "../siftscience"
-        SiftScience.createAccount client, referrer, ->
-
+        callback error, {account, newToken}
         queue.next()
 
       ->
@@ -1298,8 +1292,19 @@ module.exports = class JUser extends jraphical.Module
         # uses 'HS256' as default for signing
         token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
 
-        Analytics.identify username, { jwtToken: token, email: email }
-        Analytics.track username, 'registered'
+        Analytics.identify username, { jwtToken: token, email, pin }
+        queue.next()
+
+      ->
+        {username, email} = user
+        subject           = Email.types.START_REGISTER
+        Email.queue username, { to : email, subject }, {}, ->
+        queue.next()
+
+      ->
+        SiftScience = require "../siftscience"
+        SiftScience.createAccount client, referrer, ->
+
     ]
 
     daisy queue
@@ -1352,8 +1357,8 @@ module.exports = class JUser extends jraphical.Module
 
   sendChangedEmail = (username, firstName, to, type, callback) ->
 
-    subject = if type is 'email' then Email.types.EMAIL_CHANGED
-    else Email.types.PASSWORD_CHANGED
+    subject = if type is 'email' then Email.types.CHANGED_EMAIL
+    else Email.types.CHANGED_PASSWORD
 
     Email.queue username, {to, subject}, {firstName}, callback
 
@@ -1502,7 +1507,7 @@ module.exports = class JUser extends jraphical.Module
 
       callback null
 
-      Analytics.track username, 'confirmed email'
+      Analytics.track username, 'finished register'
 
 
   block:(blockedUntil, callback)->

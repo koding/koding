@@ -138,6 +138,6 @@ module.exports = class JSystemStatus extends Model
 
       Email.queue delegate.profile.nickname, {
         to      : recipientEmail
-        subject : Email.types.FEEDBACK
+        subject : Email.types.SENT_FEEDBACK
       }, {status, userAgent, feedback, userEmail:email}, (err)->
         console.error err  if err
