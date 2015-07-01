@@ -88,7 +88,7 @@ module.exports = class MainControllerLoggedOut extends KDController
       success     : -> location.replace "/#{redirectTo}#{query}"
       error       : ({responseText}) =>
 
-        if /suspended/i.test responseText
+        if /suspension/i.test responseText
           handleBanned responseText
         else if /TwoFactor/i.test responseText
           @emit 'TwoFactorEnabled'
@@ -101,7 +101,7 @@ module.exports = class MainControllerLoggedOut extends KDController
 
   handleBanned = (responseText) ->
     new KDModalView
-      title        : "You've been banned!"
+      title        : "Account banned due to policy violation(s)."
       content      : responseText
       overlay      : yes
       cancelable   : no
