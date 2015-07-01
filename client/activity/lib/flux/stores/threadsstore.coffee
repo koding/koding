@@ -44,15 +44,15 @@ module.exports = class ThreadsStore extends Nuclear.Store
    * Handler for `CREATE_MESSAGE_BEGIN` action.
    * It adds given clientRequestId to messages map.
    *
-   * @param {ThreadCollection} currentState
+   * @param {ThreadCollection} threads
    * @param {object} payload
    * @param {string} channelId
    * @param {string} clientRequestId
    * @return {ThreadCollection} nextState
   ###
-  handleCreateMessageBegin: (currentState, { channelId, clientRequestId }) ->
+  handleCreateMessageBegin: (threads, { channelId, clientRequestId }) ->
 
-    return addMessage currentState, channelId, clientRequestId
+    return addMessage threads, channelId, clientRequestId
 
 
   ###*
@@ -60,49 +60,49 @@ module.exports = class ThreadsStore extends Nuclear.Store
    * It first removes fake message id if it exists, then adds message's id to
    * thread.
    *
-   * @param {ThreadCollection} currentState
+   * @param {ThreadCollection} threads
    * @param {object} payload
    * @param {string} channelId
    * @param {string} clientRequestId
    * @param {SocialMessage} message
    * @return {ThreadCollection} nextState
   ###
-  handleCreateMessageSuccess: (currentState, { channelId, clientRequestId, message }) ->
+  handleCreateMessageSuccess: (threads, { channelId, clientRequestId, message }) ->
 
     if clientRequestId
-      currentState = removeMessage currentState, channelId, clientRequestId
+      threads = removeMessage threads, channelId, clientRequestId
 
-    return addMessage currentState, channelId, message.id
+    return addMessage threads, channelId, message.id
 
 
   ###*
    * Handler for `CREATE_MESSAGE_FAIL` action.
    * It removes fake message id with from thread.
    *
-   * @param {ThreadCollection} currentState
+   * @param {ThreadCollection} threads
    * @param {object} payload
    * @param {string} channelId
    * @param {string} clientRequestId
    * @return {ThreadCollection} nextState
   ###
-  handleCreateMessageFail: (currentState, { channelId, clientRequestId }) ->
+  handleCreateMessageFail: (threads, { channelId, clientRequestId }) ->
 
-    return removeMessage currentState, channelId, clientRequestId
+    return removeMessage threads, channelId, clientRequestId
 
 
   ###*
    * Handler for `REMOVE_MESSAGE_SUCCESS` action.
    * It removes given messageId from thread's message list.
    *
-   * @param {ThreadCollection} currentState
+   * @param {ThreadCollection} threads
    * @param {object} payload
    * @param {string} channelId
    * @param {string} messageId
    * @param {TreadCollection} nextState
   ###
-  handleRemoveMessageSuccess: (currentState, { channelId, messageId }) ->
+  handleRemoveMessageSuccess: (threads, { channelId, messageId }) ->
 
-    return removeMessage currentState, messageId
+    return removeMessage threads, messageId
 
 
 ###*

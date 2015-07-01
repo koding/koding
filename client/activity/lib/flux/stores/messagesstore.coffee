@@ -48,19 +48,19 @@ module.exports = class MessagesStore extends KodingFluxStore
    * It creates a fake message and pushes it to given channel's thread.
    * Latency compensation first step.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.body
    * @param {string} payload.clientRequestId
    * @return {MessageCollection} nextState
   ###
-  handleCreateMessageBegin: (currentState, { body, clientRequestId }) ->
+  handleCreateMessageBegin: (messages, { body, clientRequestId }) ->
 
     { createFakeMessage, addMessage } = MessageCollectionHelpers
 
     message = createFakeMessage clientRequestId, body
 
-    return addMessage currentState, toImmutable message
+    return addMessage messages, toImmutable message
 
 
   ###*
@@ -68,36 +68,36 @@ module.exports = class MessagesStore extends KodingFluxStore
    * It first removes fake message if it exists, and then pushes given message
    * from payload.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.clientRequestId
    * @param {SocialMessage} payload.message
    * @return {MessageCollection} nextState
   ###
-  handleCreateMessageSuccess: (currentState, { clientRequestId, message }) ->
+  handleCreateMessageSuccess: (messages, { clientRequestId, message }) ->
 
     { addMessage, removeFakeMessage } = MessageCollectionHelpers
 
     if clientRequestId
-      currentState = removeFakeMessage currentState, clientRequestId
+      messages = removeFakeMessage messages, clientRequestId
 
-    return addMessage currentState, toImmutable message
+    return addMessage messages, toImmutable message
 
 
   ###*
    * Handler for `CREATE_MESSAGE_FAIL` action.
    * It removes fake message associated with given clientRequestId.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.clientRequestId
    * @return {MessageCollection} nextState
   ###
-  handleCreateMessageFail: (currentState, { channelId, clientRequestId }) ->
+  handleCreateMessageFail: (messages, { channelId, clientRequestId }) ->
 
     { removeFakeMessage } = MessageCollectionHelpers
 
-    return removeFakeMessage currentState, clientRequestId
+    return removeFakeMessage messages, clientRequestId
 
 
   ###*
@@ -105,64 +105,64 @@ module.exports = class MessagesStore extends KodingFluxStore
    * It marks message with given messageId as removed, so that views/components
    * can have a way to differentiate.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @return {MessageCollection} nextState
   ###
-  handleRemoveMessageBegin: (currentState, { messageId }) ->
+  handleRemoveMessageBegin: (messages, { messageId }) ->
 
     { markMessageRemoved } = MessageCollectionHelpers
 
-    return markMessageRemoved currentState, messageId
+    return markMessageRemoved messages, messageId
 
 
   ###*
    * Handler for `REMOVE_MESSAGE_FAIL` action.
    * It unmarks removed flag from the message with given messageId.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @return {MessageCollection} nextState
   ###
-  handleRemoveMessageFail: (currentState, { messageId }) ->
+  handleRemoveMessageFail: (messages, { messageId }) ->
 
     { unmarkMessageRemoved } = MessageCollectionHelpers
 
-    return unmarkMessageRemoved currentState, messageId
+    return unmarkMessageRemoved messages, messageId
 
 
   ###*
    * Handler for `REMOVE_MESSAGE_SUCCESS` action.
    * It removes message with given messageId.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @return {MessageCollection} nextState
   ###
-  handleRemoveMessageSuccess: (currentState, { messageId }) ->
+  handleRemoveMessageSuccess: (messages, { messageId }) ->
 
     { removeMessage } = MessageCollectionHelpers
 
-    return removeMessage currentState, messageId
+    return removeMessage messages, messageId
 
 
   ###*
    * Handler for `LIKE_MESSAGE_BEGIN` action.
    * It optimistically adds a like from logged in user.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @return {MessageCollection} nextState
   ###
-  handleLikeMessageBegin: (currentState, { messageId }) ->
+  handleLikeMessageBegin: (messages, { messageId }) ->
 
     { setIsLiked, addLiker } = MessageCollectionHelpers
 
-    return currentState.withMutations (messages) ->
+    return messages.withMutations (messages) ->
       messages.update messageId, (message) ->
         message = setIsLiked message, yes
         message = addLiker message, whoami()._id
@@ -172,33 +172,33 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `LIKE_MESSAGE_SUCCESS` action.
    * It updates the message with message id with given message.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @param {SocialMessage} payload.message
    * @return {MessageCollection} nextState
   ###
-  handleLikeMessageSuccess: (currentState, { messageId, message }) ->
+  handleLikeMessageSuccess: (messages, { messageId, message }) ->
 
     { addMessage } = MessageCollectionHelpers
 
-    return addMessage currentState, toImmutable message
+    return addMessage messages, toImmutable message
 
 
   ###*
    * Handler for `LIKE_MESSAGE_FAIL` action.
    * It removes optimistically added like in `LIKE_MESSAGE_BEGIN` action.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @return {MessageCollection} nextState
   ###
-  handleLikeMessageFail: (currentState, { messageId }) ->
+  handleLikeMessageFail: (messages, { messageId }) ->
 
     { setIsLiked, removeLiker } = MessageCollectionHelpers
 
-    return currentState.withMutations (messages) ->
+    return messages.withMutations (messages) ->
       messages.update messageId, (message) ->
         message = setIsLiked message, no
         message = removeLiker message, whoami()._id
@@ -208,16 +208,16 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `UNLIKE_MESSAGE_BEGIN` action.
    * It optimistically removes a like from message.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @return {MessageCollection} nextState
   ###
-  handleUnlikeMessageBegin: (currentState, { messageId }) ->
+  handleUnlikeMessageBegin: (messages, { messageId }) ->
 
     { setIsLiked, removeLiker } = MessageCollectionHelpers
 
-    return currentState.withMutations (messages) ->
+    return messages.withMutations (messages) ->
       messages.update messageId, (message) ->
         message = setIsLiked message, no
         message = removeLiker message, whoami()._id
@@ -227,33 +227,33 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `UNLIKE_MESSAGE_SUCCESS` action.
    * It updates the message with message id with given message.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @param {SocialMessage} payload.message
    * @return {MessageCollection} nextState
   ###
-  handleUnlikeMessageSuccess: (currentState, { messageId, message }) ->
+  handleUnlikeMessageSuccess: (messages, { messageId, message }) ->
 
     { addMessage } = MessageCollectionHelpers
 
-    return addMessage currentState, toImmutable message
+    return addMessage messages, toImmutable message
 
 
   ###*
    * Handler for `UNLIKE_MESSAGE_FAIL` action.
    * It adds back optimistically removed like in `UNLIKE_MESSAGE_BEGIN` action.
    *
-   * @param {MessageCollection} currentState
+   * @param {MessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @return {MessageCollection} nextState
   ###
-  handleUnlikeMessageFail: (currentState, { messageId }) ->
+  handleUnlikeMessageFail: (messages, { messageId }) ->
 
     { setIsLiked, addLiker } = MessageCollectionHelpers
 
-    return currentState.withMutations (messages) ->
+    return messages.withMutations (messages) ->
       messages.update messageId, (message) ->
         message = setIsLiked message, yes
         message = addLiker message, whoami()._id
