@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/kloud/pkg/dnsclient"
 
@@ -14,25 +15,33 @@ type TestDomains struct {
 }
 
 func (t *TestDomains) Process() {
-	fmt.Println("Processing TestDomains")
-
-	prevRecord := ""
-	lastRecord := ""
 	t.records = make([]*dnsclient.Record, 0)
 
+	prevRecordName := ""
+	lastRecordName := ""
+
+	currentIter := 0
+	maxIteration := 100 //  10,000 records is our upper limit already, more than this is not good
+
 	for {
-		records, err := t.DNS.GetAll(lastRecord)
+		currentIter++
+		if currentIter == maxIteration {
+			t.err = errors.New("aborting test domains removal. max iteration reached")
+			return
+		}
+
+		records, err := t.DNS.GetAll(lastRecordName)
 		if err != nil {
 			t.err = err
 			return
 		}
 
-		lastRecord = records[len(records)-1].Name
-		if lastRecord == prevRecord {
+		lastRecordName = records[len(records)-1].Name
+		if lastRecordName == prevRecordName {
 			break
 		}
 
-		prevRecord = lastRecord
+		prevRecordName = lastRecordName
 
 		// do not include the first record, because it's alread included in the
 		// previous round
@@ -45,7 +54,7 @@ func (t *TestDomains) Process() {
 
 	}
 
-	fmt.Printf("Fetched '%d' domains\n", len(t.records))
+	// fmt.Printf("Fetched '%d' domains\n", len(t.records))
 }
 
 func (t *TestDomains) Run() {
@@ -53,7 +62,7 @@ func (t *TestDomains) Run() {
 		return
 	}
 
-	fmt.Printf("Removing '%d' test domains\n", len(t.records))
+	// fmt.Printf("Removing '%d' test domains\n", len(t.records))
 
 	for _, records := range splittedRecords(t.records, 100) {
 		changes := make([]route53.Change, len(records))
