@@ -22,7 +22,7 @@ module.exports =
 
   openContextMenu: (browser) ->
 
-    fileSelector    = "#{tabHandleSelector} .active"
+    fileSelector    = "#{tabHandleSelector} .kdtabhandle.active"
     optionsSelector = "#{fileSelector} span.options"
 
     browser
