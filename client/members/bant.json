@@ -2,6 +2,6 @@
   "name": "members",
   "main": "./lib/index.coffee",
   "styles": [
-    "./lib/styl"
+    "./lib/styl/*.styl"
   ]
 }

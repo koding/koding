@@ -5,6 +5,6 @@
     "/:name?/Kites?/:username?/:kite?": "home"
   },
   "styles": [
-    "./lib/styl"
+    "./lib/styl/*.styl"
   ]
 }

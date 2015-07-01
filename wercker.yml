@@ -62,7 +62,7 @@ build:
         code: ./scripts/copy-prod-creds.sh
     - script:
         name: configure build
-        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
+        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
@@ -236,7 +236,7 @@ deploy:
         code: |
           cd $WERCKER_ROOT
 
-          ./configure --config $CONFIG --projectRoot /opt/koding
+          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME
 
           rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
