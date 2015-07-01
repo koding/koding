@@ -1,4 +1,5 @@
-fs = require 'fs'
+fs            = require 'fs'
+{ isAllowed } = require './grouptoenvmapping'
 
 generateMainConf = (supervisorEnvironmentStr ="")->
   """
@@ -94,6 +95,17 @@ module.exports.create = (KONFIG)->
 
   # for every worker create their section configs under group name
   for name, options of KONFIG.workers  when options.supervisord?.command?
+    # some of the locations can be limited to some environments, while creating
+    # nginx locations filter with this info
+    unless isAllowed options.group, KONFIG.ebEnvName
+      continue
+
+    # some of the workers can have multiple command input, one for watch the
+    # other on normal. if we want to watch go files use previous one.
+    command = options.supervisord.command
+    if typeof command is 'object'
+      {run, watch} = command
+      options.supervisord.command = if KONFIG.runGoWatcher then watch else run
 
     groupConfigs[options.group]       or= {}
     groupConfigs[options.group][name] or= {}

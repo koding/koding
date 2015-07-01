@@ -122,7 +122,6 @@ func getAutoScalingName(conf *Config, awsconfig *aws.Config) (string, error) {
 	}
 
 	instanceID := info.InstanceID
-	// instanceID = "i-7ed898d7"
 
 	asg := autoscaling.New(awsconfig)
 

@@ -54,6 +54,11 @@ Configuration = (options={}) ->
       accessKeyId     : "AKIAJRNT55RTV2MHD4VA"
       secretAccessKey : "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"
 
+    # TunnelProxyPolicy
+    worker_tunnelproxymanager: # Name worker_tunnelproxymanager_dev
+      accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
+      secretAccessKey : "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"
+
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "lvh.me"
   protocol            = options.protocol       or "http:"
@@ -171,6 +176,8 @@ Configuration = (options={}) ->
   KONFIG              =
     configName                     : configName
     environment                    : environment
+    ebEnvName                      : options.ebEnvName
+    runGoWatcher                   : options.runGoWatcher
     regions                        : regions
     region                         : region
     hostname                       : host
@@ -689,6 +696,7 @@ Configuration = (options={}) ->
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/eventsender -watch socialapi/workers/eventsender -c #{socialapi.configFilePath}"
 
     contentrotator      :
+      group             : "webserver"
       nginx             :
         locations       : [
           {
@@ -698,7 +706,13 @@ Configuration = (options={}) ->
           }
         ]
 
-    userproxies      :
+    tunnelproxymanager  :
+      group             : "proxy"
+      supervisord       :
+        command         : "#{GOBIN}/tunnelproxymanager -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey}"
+
+    userproxies         :
+      group             : "proxy"
       nginx             :
         websocket       : yes
         locations       : [
