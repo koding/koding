@@ -20,8 +20,8 @@ var cronJob *cron.Cron
 
 const (
 	Schedule     = "0 * * * * *"
+	Subject      = "received a private message"
 	MessageLimit = 3
-	Subject      = "Chat notifications"
 	MAXROUTINES  = 4
 )
 
@@ -174,7 +174,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 			FirstName:        recipient.FirstName,
 			Username:         recipient.Username,
 			Email:            recipient.Email,
-			MessageType:      "chat",
+			MessageType:      Subject,
 			Messages:         privatemsgchannels,
 			UnsubscribeToken: recipient.Token,
 		}

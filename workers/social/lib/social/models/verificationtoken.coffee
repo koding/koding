@@ -45,7 +45,7 @@ module.exports = class JVerificationToken extends Module
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName, resendIfExists} = options
-    subject   or= Email.types.CONFIRM_EMAIL
+    subject   or= Email.types.REQUEST_EMAIL_CHANGE
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
     firstName or= username
@@ -69,23 +69,17 @@ module.exports = class JVerificationToken extends Module
           return
 
         # Remove all waiting pins for given action and email
-        @remove {username, action}, (err, count)->
+        @remove {username, action}, (err, count)=>
 
           return console.warn err  if err
 
           if count > 0 then console.log "#{count} expired PIN removed."
           else console.log "No such waiting PIN found."
 
-          # Create a random pin
-          pin = hat 16
+          @createNewPin {username, action, email}, (err, confirmation)->
+            return callback err  if err
 
-          # Create and send new pin
-          confirmation = new JVerificationToken {username, action, email, pin}
-          confirmation.save (err)->
-            if err
-              callback err
-            else
-              confirmation.sendEmail {username, subject, firstName, action}, callback
+            confirmation.sendEmail {username, subject, firstName, action}, callback
 
 
   @confirmByPin = (options, callback)->
@@ -119,3 +113,11 @@ module.exports = class JVerificationToken extends Module
       return callback new KodingError "token not found" unless verify
       verify.remove()
       callback null
+
+
+  @createNewPin = (options, callback)->
+    {username, action, email} = options
+    pin = hat 16
+
+    confirmation = new JVerificationToken {username, action, email, pin}
+    confirmation.save (err)-> callback err, confirmation

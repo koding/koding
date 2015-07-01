@@ -19,7 +19,8 @@ type Cleaner struct {
 	AWS      *lookup.Lookup
 	MongoDB  *lookup.MongoDB
 	Postgres *lookup.Postgres
-	DNS      dnsclient.Client
+	DNS      *dnsclient.Route53
+	DNSDev   *dnsclient.Route53
 	Domains  dnsstorage.Storage
 	DryRun   bool
 	Debug    bool
@@ -55,6 +56,7 @@ func NewCleaner(conf *Config) *Cleaner {
 	l := lookup.NewAWS(auth)
 	m := lookup.NewMongoDB(conf.MongoURL)
 	dns := dnsclient.NewRoute53Client(conf.HostedZone, auth)
+	dnsdev := dnsclient.NewRoute53Client("dev.koding.io", auth)
 	domains := dnsstorage.NewMongodbStorage(m.DB)
 	p := lookup.NewPostgres(&lookup.PostgresConfig{
 		Host:     conf.Postgres.Host,
@@ -80,6 +82,7 @@ func NewCleaner(conf *Config) *Cleaner {
 		MongoDB:  m,
 		Postgres: p,
 		DNS:      dns,
+		DNSDev:   dnsdev,
 		Domains:  domains,
 		Hook:     hook,
 		Log:      logging.NewLogger("cleaner"),

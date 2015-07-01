@@ -49,6 +49,12 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, conf *config.Config, redis 
 	}
 }
 
+var Subjects = map[string]string{
+	notificationmodels.NotificationContent_TYPE_LIKE:    "received like on a post",
+	notificationmodels.NotificationContent_TYPE_COMMENT: "received comment on a post",
+	notificationmodels.NotificationContent_TYPE_MENTION: "was mentioned",
+}
+
 func (n *Controller) SendInstantEmail(notification *notificationmodels.Notification) error {
 	channel, err := n.rmqConn.Channel()
 	if err != nil {
@@ -101,6 +107,12 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 
 	hostname := n.conf.Protocol + "//" + n.conf.Hostname
 
+	subject := mc.Content.TypeConstant
+	humanReadable, ok := Subjects[mc.Content.TypeConstant]
+	if ok {
+		subject = humanReadable
+	}
+
 	notifmessage := &emailmodels.NotificationMessage{
 		Actor:          actor.FirstName,
 		ActorSlug:      actor.Username,
@@ -119,7 +131,7 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 		FirstName:        uc.FirstName,
 		Username:         uc.Username,
 		Email:            uc.Email,
-		MessageType:      mc.Content.TypeConstant,
+		MessageType:      subject,
 		Messages:         []emailmodels.Message{notifmessage},
 		UnsubscribeToken: actor.Token,
 	}
