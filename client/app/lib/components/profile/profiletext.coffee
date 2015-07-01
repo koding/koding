@@ -1,4 +1,4 @@
-React = require 'app/react'
+React = require 'kd-react'
 
 module.exports = class ProfileText extends React.Component
 
