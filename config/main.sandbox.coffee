@@ -53,6 +53,11 @@ Configuration = (options={}) ->
       accessKeyId     : "AKIAJRNT55RTV2MHD4VA"
       secretAccessKey : "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"
 
+    # TunnelProxyPolicy
+    worker_tunnelproxymanager: # Name worker_tunnelproxymanager_dev
+      accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
+      secretAccessKey : "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"
+
   publicPort     = options.publicPort          = "80"
   hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
   protocol       = options.protocol            or "https:"
@@ -640,6 +645,11 @@ Configuration = (options={}) ->
             extraParams : [ "resolver 8.8.8.8;" ]
           }
         ]
+
+    tunnelproxymanager  :
+      group             : "proxy"
+      supervisord       :
+        command         : "#{GOBIN}/tunnelproxymanager -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey}"
 
     userproxies         :
       group             : "proxy"
