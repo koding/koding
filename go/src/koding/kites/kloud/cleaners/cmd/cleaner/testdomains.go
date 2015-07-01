@@ -67,32 +67,20 @@ func (t *TestDomains) Run() {
 					Records: []string{r.IP},
 				},
 			}
+
+		}
+
+		changeResourceSet := &route53.ChangeResourceRecordSetsRequest{
+			Comment: "Deleting domain",
+			Changes: changes,
+		}
+
+		_, err := t.DNS.ChangeResourceRecordSets(t.DNS.ZoneId, changeResourceSet)
+		if err != nil {
+			t.err = err
+			return
 		}
 	}
-
-	// return
-
-	// change := &route53.ChangeResourceRecordSetsRequest{
-	// 	Comment: "Deleting domain",
-	// 	Changes: []route53.Change{
-	// 		route53.Change{
-	// 			Action: "DELETE",
-	// 			Record: route53.ResourceRecordSet{
-	// 				Type:    "A",
-	// 				Name:    r.Name,
-	// 				TTL:     r.TTL,
-	// 				Records: []string{r.IP},
-	// 			},
-	// 		},
-	// 	},
-	// }
-	//
-	// r.Log.Debug("deleting domain name: %s which was associated to following ip: %v", domain, record.IP)
-	// _, err = r.ChangeResourceRecordSets(r.ZoneId, change)
-	// if err != nil {
-	// 	r.Log.Error(err.Error())
-	// 	return errors.New("could not delete domain")
-	// }
 }
 
 func (t *TestDomains) Result() string {
