@@ -60,6 +60,11 @@ services=(
   socialapi/workers/algoliaconnector/contentmigrator
   socialapi/workers/cmd/integration/eventsender
   socialapi/workers/cmd/integration/webhookmiddleware
+
+  github.com/alecthomas/gocyclo
+  github.com/remyoudompheng/go-misc/deadcode
+  github.com/opennota/check/cmd/varcheck
+  github.com/barakmich/go-nyet
 )
 
 
