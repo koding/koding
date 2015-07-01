@@ -4,7 +4,7 @@ Nuclear = require 'nuclear-js'
 module.exports = class KodingFluxReactor extends Nuclear.Reactor
 
   ###*
-   * Extend Neclear.Reactor::registerStores to accept classes rather than
+   * Extend Nuclear.Reactor::registerStores to accept classes rather than
    * singleton stores.
    *
    * @param {object<string, KodingFluxStore::constructor>} storeClasses
