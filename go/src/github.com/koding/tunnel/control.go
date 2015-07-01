@@ -7,6 +7,10 @@ import (
 	"sync"
 )
 
+var (
+	errControlClosed = errors.New("control connection is closed")
+)
+
 type control struct {
 	// enc and dec are responsible for encoding and decoding json values forth
 	// and back
@@ -18,6 +22,9 @@ type control struct {
 
 	// identifier associated with this control
 	identifier string
+
+	mu     sync.Mutex // guards the following
+	closed bool       // if Close() and quits
 }
 
 func newControl(nc net.Conn) *control {
@@ -35,6 +42,13 @@ func (c *control) send(v interface{}) error {
 		return errors.New("encoder is not initialized")
 	}
 
+	c.mu.Lock()
+	if c.closed {
+		c.mu.Unlock()
+		return errControlClosed
+	}
+	c.mu.Unlock()
+
 	return c.enc.Encode(v)
 }
 
@@ -43,15 +57,26 @@ func (c *control) recv(v interface{}) error {
 		return errors.New("decoder is not initialized")
 	}
 
+	c.mu.Lock()
+	if c.closed {
+		c.mu.Unlock()
+		return errControlClosed
+	}
+	c.mu.Unlock()
+
 	return c.dec.Decode(v)
 }
 
 func (c *control) Close() error {
-	if c.nc != nil {
-		return c.nc.Close()
+	if c.nc == nil {
+		return nil
 	}
 
-	return nil
+	c.mu.Lock()
+	c.closed = true
+	c.mu.Unlock()
+
+	return c.nc.Close()
 }
 
 type controls struct {
