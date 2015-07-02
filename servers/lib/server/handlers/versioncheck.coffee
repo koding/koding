@@ -1,10 +1,15 @@
-request  = require 'request'
-{ dash } = require 'bongo'
+request       = require 'request'
+{ dash }      = require 'bongo'
+{ isAllowed } = require '../../../../deployment/grouptoenvmapping'
 
 module.exports = (req, res) ->
   errs = []
   urls = []
   for own key, val of KONFIG.workers
+    # some of the locations can be limited to some environments, respect.
+    unless isAllowed val.group, KONFIG.ebEnvName
+      continue
+
     urls.push {name: key, url: val.versionURL}  if val?.versionURL?
 
   urlFns = urls.map ({name, url})->->
