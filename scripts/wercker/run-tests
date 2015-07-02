@@ -69,7 +69,7 @@ runTest = (job, next) ->
   { NIGHTWATCH_OPTIONS }    = test
 
   args  = [instance.publicIpAddress, test.name]
-  opts  = if test.options then { env: { NIGHTWATCH_OPTIONS } }
+  opts  = if NIGHTWATCH_OPTIONS then { env: { NIGHTWATCH_OPTIONS } }
   child = child_process.execFile runTestScript, args, opts, do (job) ->
 
     (error, stdout, stderr) ->
