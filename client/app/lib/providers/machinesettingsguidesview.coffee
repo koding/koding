@@ -35,6 +35,13 @@ module.exports = class MachineSettingsGuidesView extends KDView
 
     super options, data
 
+    if @getData().isManaged()
+      Guides[0] =
+        title : 'Learn more about connecting your own VM'
+        link  : 'http://learn.koding.com/guides/connect-your-vm/'
+
+      Guides.splice 1, 2
+
     for guide in Guides
       @addSubView new KDCustomHTMLView
         cssClass : 'guide formline'

@@ -83,6 +83,8 @@ module.exports = class Collaboration extends Base
 
       notifyByUsernames options.target, 'CollaborationInvitation', data
 
+      callback()
+
 
   @kick = secure (client, workspaceId, target, callback) ->
 

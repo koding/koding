@@ -1,4 +1,5 @@
-// Package ec2dynamicdata gets ec2 dynamic data for the current running ec2 host
+// Package ec2dynamicdata gets ec2 dynamic data  or meta data for the current
+// running ec2 host
 package ec2dynamicdata
 
 import (

@@ -29,5 +29,5 @@ const (
 type controlMsg struct {
 	Action    action            `json:"action"`
 	Protocol  transportProtocol `json:"transportProtocol"`
-	LocalPort string            `json:"localPort"`
+	LocalPort int               `json:"localPort"`
 }
