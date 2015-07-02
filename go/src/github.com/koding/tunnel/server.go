@@ -12,12 +12,17 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/hashicorp/yamux"
 	"github.com/koding/logging"
+)
+
+var (
+	errNoClientSession = errors.New("no client session established")
 )
 
 // Server is responsible for proxying public connections to the client over a
@@ -77,7 +82,7 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 		log = cfg.Log
 	}
 
-	s := &Server{
+	return &Server{
 		pending:      make(map[string]chan net.Conn),
 		sessions:     make(map[string]*yamux.Session),
 		onDisconnect: make(map[string]func() error),
@@ -85,10 +90,7 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 		controls:     newControls(),
 		yamuxConfig:  yamuxConfig,
 		log:          log,
-	}
-
-	http.Handle(controlPath, s.checkConnect(s.controlHandler))
-	return s, nil
+	}, nil
 }
 
 // ServeHTTP is a tunnel that creates an http/websocket tunnel between a
@@ -127,7 +129,7 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 	// then grab the control connection that is associated with this identifier
 	control, ok := s.getControl(identifier)
 	if !ok {
-		return fmt.Errorf("no control available for %s", host)
+		return errNoClientSession
 	}
 
 	session, err := s.getSession(identifier)
@@ -138,7 +140,14 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 	// if someoone hits foo.example.com:8080, this should be proxied to
 	// localhost:8080, so send the port to the client so it knows how to proxy
 	// correctly. If no port is available, it's up to client how to intepret it
-	_, port, _ := net.SplitHostPort(r.Host)
+	_, netPort, _ := net.SplitHostPort(r.Host)
+	port, err := strconv.Atoi(netPort)
+	if err != nil {
+		// no need to return, just continue lazily, port will be 0, which in
+		// our case will be proxied to client's localservers port 80
+		s.log.Warning("couldn't convert '%s' to integer: %s", netPort, err)
+	}
+
 	msg := controlMsg{
 		Action:    requestClientSession,
 		Protocol:  httpTransport,
@@ -149,12 +158,19 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 
 	// ask client to open a session to us, so we can accept it
 	if err := control.send(msg); err != nil {
-		return err
+		// we might have several issues here, either the stream is closed, or
+		// the session is going be shut down, the underlying connection might
+		// be broken. In all cases, it's not reliable anymore having a client
+		// session.
+		control.Close()
+		s.deleteControl(identifier)
+		return errNoClientSession
 	}
 
 	var stream net.Conn
 	defer func() {
 		if stream != nil {
+			s.log.Debug("Closing stream")
 			stream.Close()
 		}
 	}()
@@ -179,23 +195,31 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	s.log.Debug("Session opened to client, writing request to client")
 	resp, err := http.ReadResponse(bufio.NewReader(stream), r)
-	defer func() {
-		if resp.Body != nil {
-			resp.Body.Close()
-		}
-	}()
-
 	if err != nil {
 		return fmt.Errorf("read from tunnel: %s", err.Error())
 	}
 
+	defer func() {
+		if resp.Body != nil {
+			if err := resp.Body.Close(); err != nil {
+				s.log.Error("resp.Body Close error: %s", err.Error())
+			}
+		}
+	}()
+
+	s.log.Debug("Response received, writing back to public connection")
+	s.log.Debug("%+v", resp)
+
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
+
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		s.log.Error("copy err: %s", err) // do not return, because we might write multipe headers
 	}
 
+	s.log.Debug("Response copy is finished")
 	return nil
 }
 
@@ -211,11 +235,13 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 	ct, ok := s.getControl(identifier)
 	if ok {
 		ct.Close()
+		s.deleteControl(identifier)
 		s.log.Warning("Control connection for '%s' already exists. This is a race condition and needs to be fixed on client implementation", identifier)
 		return fmt.Errorf("control conn for %s already exist. \n", identifier)
 	}
 
-	s.log.Debug("tunnel with identifier %s", identifier)
+	s.log.Debug("Tunnel with identifier %s", identifier)
+
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		return errors.New("webserver doesn't support hijacking")
@@ -230,6 +256,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 
 	conn.SetDeadline(time.Time{})
 
+	s.log.Debug("Creating control session")
 	session, err := yamux.Server(conn, s.yamuxConfig)
 	if err != nil {
 		return err
@@ -263,6 +290,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 		return errors.New("timeout getting session")
 	}
 
+	s.log.Debug("Initiating handshake protocol")
 	buf := make([]byte, len(ctHandshakeRequest))
 	if _, err := stream.Read(buf); err != nil {
 		return err
@@ -281,6 +309,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 	s.addControl(identifier, ct)
 	go s.listenControl(ct)
 
+	s.log.Debug("Control connection is setup")
 	return nil
 }
 
@@ -297,7 +326,9 @@ func (s *Server) listenControl(ct *control) {
 				s.log.Error("onDisconnect (%s) err: %s", ct.identifier, err)
 			}
 
-			s.log.Error("decode err: %s", err)
+			if err != io.EOF {
+				s.log.Error("decode err: %s", err)
+			}
 			return
 		}
 
@@ -324,7 +355,7 @@ func (s *Server) callOnDisconect(identifier string) error {
 
 	fn, ok := s.onDisconnect[identifier]
 	if !ok {
-		return fmt.Errorf("no onDisconncet function available for '%s'", identifier)
+		return nil
 	}
 
 	// delete after we are finished with it
@@ -390,8 +421,9 @@ func (s *Server) addSession(identifier string, session *yamux.Session) {
 
 func (s *Server) deleteSession(identifier string) {
 	s.sessionsMu.Lock()
+	defer s.sessionsMu.Unlock()
+
 	session, ok := s.sessions[identifier]
-	s.sessionsMu.Unlock()
 
 	if !ok {
 		return // nothing to delete

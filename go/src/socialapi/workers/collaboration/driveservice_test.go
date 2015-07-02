@@ -19,6 +19,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const TestTimeout = 15 * time.Second
+
 func TestCollaborationDriveService(t *testing.T) {
 	r := runner.New("collaboration-drive-tests")
 	err := r.Init()
@@ -83,14 +85,24 @@ func TestCollaborationDriveService(t *testing.T) {
 						}
 
 						Convey("should not be able to get the deleted file", func() {
-							f2, err = handler.getFile(f.Id)
-							if err != nil {
-								t.Skip("Err happened, skipping: %s", err.Error())
-							}
+							deadLine := time.After(TestTimeout)
+							tick := time.Tick(time.Millisecond * 100)
+							for {
+								select {
+								case <-tick:
+									f2, err := handler.getFile(f.Id)
+									if err != nil {
+										t.Skip("Err happened, skipping: %s", err.Error())
+									}
 
-							So(f2, ShouldBeNil)
+									So(f2, ShouldBeNil)
+								case <-deadLine:
+									t.Skip("Could not get file after %s", TestTimeout)
+								}
+							}
 						})
 						Convey("deleting the deleted file should not give error", func() {
+							err = handler.deleteFile(req.FileId)
 							if err != nil {
 								t.Skip("Err happened, skipping: %s", err.Error())
 							}

@@ -18,9 +18,7 @@ module.exports = (req, res) ->
     redirect_uri
   }            = google
 
-  unless code
-    redirectOauth res, {provider}, "No code in query"
-    return
+  return redirectOauth "No code in query", req, res, {provider}  unless code
 
   # Get user info with access token
   fetchUserInfo = (userInfoResp)->
@@ -31,7 +29,7 @@ module.exports = (req, res) ->
         response = JSON.parse rawResp
         {id, email, given_name, family_name} = response
       catch e
-        redirectOauth res, {provider}, "Error getting id"
+        redirectOauth "Error getting id", req, res, {provider}
 
       if id
         googleResp = {
@@ -47,10 +45,9 @@ module.exports = (req, res) ->
 
         saveOauthToSession googleResp, clientId, provider, (err)->
           if err
-            redirectOauth res, {provider}, "Error saving oauth info"
-            return
+            return redirectOauth "Error saving oauth info", req, res, {provider}
 
-          redirectOauth res, {provider}, null
+          redirectOauth null, req, res, {provider}
 
   authorizeUser = (authUserResp)->
     rawResp = ""
@@ -60,7 +57,7 @@ module.exports = (req, res) ->
       try
         tokenInfo = JSON.parse rawResp
       catch e
-        redirectOauth res, {provider}, "Error getting access token"
+        redirectOauth "Error getting access token", req, res, {provider}
 
       {access_token, refresh_token} = tokenInfo
       if access_token
@@ -71,7 +68,7 @@ module.exports = (req, res) ->
         r = http.request options, fetchUserInfo
         r.end()
       else
-        redirectOauth res, {provider}, "No access token"
+        redirectOauth "No access token", req, res, {provider}
 
   postData   = querystring.stringify {
     code,
