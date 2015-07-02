@@ -251,6 +251,7 @@ module.exports = CollaborationController =
     # TODO: keep this until CollaborationModel abstraction. ~Umut
     @participants      = refs.participants
     @changes           = refs.changes
+    @settings          = refs.settings
     @permissions       = refs.permissions
     @broadcastMessages = refs.broadcastMessages
     @myWatchMap        = refs.watchMap
@@ -259,6 +260,7 @@ module.exports = CollaborationController =
     @rtm.once 'RealtimeManagerDidDispose', =>
       @participants      = null
       @changes           = null
+      @settings          = null
       @permissions       = null
       @broadcastMessages = null
       @myWatchMap        = null
