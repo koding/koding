@@ -513,36 +513,67 @@ module.exports = class StacksCustomViews extends CustomViews
       { repo_provider, selected_repo }   = data
 
       container = @views.container 'step-fetch-template'
+      container.setClass 'has-markdown'
 
       views     = @addTo container,
         stepsHeaderView   :
           steps           : STEPS.REPO_FLOW
           selected        : 3
         mainLoader        : 'Fetching template...'
-        outputView        :
-          cssClass        : 'hidden'
+        container         : 'output-container'
         navCancelButton   :
-          title           : '< Select another repo'
+          title           : '< Select another template'
           callback        : ->
             cancelCallback data
 
-      { outputView, mainLoader } = views
+      {mainLoader} = views
 
-      fetchRepoFile selected_repo, (err, template) ->
+      fetchRepoFile selected_repo, (err, template) =>
 
-        mainLoader.hide()
-        outputView.show()
+        mainLoader.setTitle 'Parsing template...'
 
         console.log err, template
 
         if err
           content = err?.message
+          message  = "We've failed to fetch the template, from given branch/tag
+                      with given file name. Please make sure you are providing
+                      a valid template path like described
+                      <a href=learn.koding.com target=_blank>here</a>."
+
         else if template?.content?
+
           content = atob template.content
+
+          try
+            template = JSON.parse content
+          catch e
+            message  = "We've failed to parse the template, please make sure
+                        you are providing a valid template like described
+                        <a href=learn.koding.com target=_blank>here</a>."
+
+          if template
+            list      = ''
+            providers = Object.keys template.provider
+            list     += "<li>#{pr}\n" for pr in providers
+
+            message   = "Based on the template you will need to enter
+                         credetentials for the following providers; <br/>
+                         #{list}"
+
         else
           content = 'Something went wrong, please try again.'
 
+
+        {outputView} = @addTo views.container,
+
+          container_top :
+            text        : message
+          outputView    :
+            cssClass    : 'template-output'
+
         outputView.setContent content
+        mainLoader.hide()
 
 
       return container
