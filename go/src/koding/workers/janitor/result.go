@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"time"
-
-	"github.com/kr/pretty"
 )
 
 type strToInf map[string]interface{}
@@ -40,8 +38,6 @@ func NewResult(desc string) *Result {
 }
 
 func (r *Result) String() string {
-	pretty.Println(r)
-
 	return fmt.Sprintf(
 		"Started: %v, Ran %v. Success: %v, Exempt: %v Ended: %v",
 		r.StartedAt, r.Desc, len(r.Successful), len(r.Exempt), r.EndedAt,
