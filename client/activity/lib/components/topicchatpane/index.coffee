@@ -18,7 +18,9 @@ module.exports = class TopicChatPane extends React.Component
 
 
   getDataBindings: ->
+    return {
       messages: ActivityFlux.getters.selectedChannelThreadMessages
+    }
 
 
   componentDidMount: ->
