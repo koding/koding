@@ -7,11 +7,11 @@
 http     = require "https"
 provider = "github"
 
-saveOauthAndRedirect = (resp, res, clientId)->
+saveOauthAndRedirect = (resp, res, clientId, req)->
   {returnUrl} = resp
   saveOauthToSession resp, clientId, provider, (err)->
     options = {provider, returnUrl}
-    redirectOauth res, options, err
+    redirectOauth err, req, res, options
 
 module.exports = (req, res) ->
   {code, returnUrl} = req.query
@@ -20,7 +20,7 @@ module.exports = (req, res) ->
   scope             = null
 
   unless code
-    redirectOauth res, {provider}, "No code"
+    redirectOauth "No code", req, res, {provider}
     return
 
   headers =
@@ -36,7 +36,7 @@ module.exports = (req, res) ->
       try
         authResponse = JSON.parse rawResp
       catch e
-        return redirectOauth res, {provider}, "could not parse github response"
+        return redirectOauth "could not parse github response", req, res, {provider}
 
       {access_token, scope} = authResponse
 
@@ -58,7 +58,7 @@ module.exports = (req, res) ->
       try
         userInfo = JSON.parse rawResp
       catch e
-        return redirectOauth res, {provider}, "could not parse github response"
+        return redirectOauth "could not parse github response", req, res, {provider}
 
       {login, id, email, name} = userInfo
 
@@ -91,7 +91,7 @@ module.exports = (req, res) ->
         r = http.request options, (newResp)-> fetchUserEmail newResp, resp
         r.end()
       else
-        saveOauthAndRedirect resp, res, clientId
+        saveOauthAndRedirect resp, res, clientId, req
 
   fetchUserEmail = (userEmailResp, originalResp)->
     rawResp = ""
@@ -100,12 +100,12 @@ module.exports = (req, res) ->
       try
         emails = JSON.parse(rawResp)
       catch e
-        return redirectOauth res, {provider}, "could not parse github response"
+        return redirectOauth "could not parse github response", req, res, {provider}
 
       for email in emails when email.verified and email.primary
         originalResp.email = email.email
 
-      saveOauthAndRedirect originalResp, res, clientId
+      saveOauthAndRedirect originalResp, res, clientId, req
 
   path = "/login/oauth/access_token?"
   path += "client_id=#{github.clientId}&"

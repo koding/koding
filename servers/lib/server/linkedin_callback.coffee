@@ -21,7 +21,7 @@ module.exports = (req, res) ->
   }              = linkedin
 
   unless code
-    redirectOauth res, {provider}, "No code in query"
+    redirectOauth "No code in query", req, res, {provider}
     return
 
   # Get user info with access token
@@ -32,14 +32,14 @@ module.exports = (req, res) ->
       try
         parseString rawResp, (err, result) ->
           if err
-            redirectOauth res, {provider}, "Error parsing user info"
+            redirectOauth "Error parsing user info", req, res, {provider}
             return
 
           try
             profileUrl = result.person['site-standard-profile-request'][0].url[0]
             {id} = querystring.decode(url.parse(profileUrl).query)
           catch e
-            redirectOauth res, {provider}, "Error parsing user id"
+            redirectOauth "Error parsing user id", req, res, {provider}
             return
 
           linkedInResp =
@@ -50,12 +50,12 @@ module.exports = (req, res) ->
 
           saveOauthToSession linkedInResp, clientId, provider, (err)->
             if err
-              redirectOauth res, {provider}, err
+              redirectOauth err, req, res, {provider}
               return
 
-            redirectOauth res, {provider}, null
+            redirectOauth null, req, res, {provider}
       catch e
-        redirectOauth res, {provider}, "Error parsing user info"
+        redirectOauth "Error parsing user info", req, res, {provider}
 
   # Get access token with code
   authorizeUser = (authUserResp)->
@@ -65,7 +65,7 @@ module.exports = (req, res) ->
       try
         tokenInfo = JSON.parse rawResp
       catch e
-        redirectOauth res, {provider}, "Error getting access token"
+        redirectOauth "Error getting access token", req, res, {provider}
 
       {access_token, expires_in} = tokenInfo
       if access_token
@@ -76,7 +76,7 @@ module.exports = (req, res) ->
         re = http.request options, fetchUserInfo
         re.end()
       else
-        redirectOauth res, {provider}, "No access token"
+        redirectOauth "No access token", req, res, {provider}
 
   path  = "/uas/oauth2/accessToken?"
   path += "grant_type=authorization_code&"

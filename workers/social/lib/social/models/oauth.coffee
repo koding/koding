@@ -2,6 +2,7 @@ bongo    = require 'bongo'
 {secure, signature} = bongo
 crypto   = require 'crypto'
 oauth    = require "oauth"
+parser   = require 'url'
 
 module.exports = class OAuth extends bongo.Base
   @share()
@@ -13,46 +14,54 @@ module.exports = class OAuth extends bongo.Base
 
   @getUrl = secure (client, options, callback)->
     { provider } = options
+    redirectUri = KONFIG[provider].redirectUri or KONFIG[provider].redirect_uri
+    if redirectUri
+      redirectUri = @prependGroupName redirectUri, client.context.group
+
     switch provider
       when "github"
-        {clientId, redirectUri} = KONFIG.github
+        {clientId} = KONFIG.github
         {scope, returnUrl} = options
         scope = "user:email"  unless scope
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
         callback null, url
       when "facebook"
-        {clientId, redirectUri} = KONFIG.facebook
+        {clientId} = KONFIG.facebook
         url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}"
         callback null, url
       when "google"
-        {client_id, redirect_uri} = KONFIG.google
-
+        {client_id} = KONFIG.google
         url  = "https://accounts.google.com/o/oauth2/auth?"
         url += "scope=https://www.google.com/m8/feeds "
         url += "https://www.googleapis.com/auth/userinfo.profile "
         url += "https://www.googleapis.com/auth/userinfo.email&"
-        url += "redirect_uri=#{redirect_uri}&"
+        url += "redirect_uri=#{redirectUri}&"
         url += "response_type=code&"
         url += "client_id=#{client_id}&"
         url += "access_type=offline"
 
         callback null, url
       when "linkedin"
-        {client_id, redirect_uri} = KONFIG.linkedin
+        {client_id} = KONFIG.linkedin
         state = crypto.createHash("md5").update((new Date).toString()).digest("hex")
 
         url  = "https://www.linkedin.com/uas/oauth2/authorization?"
         url += "response_type=code&"
         url += "client_id=#{client_id}&"
         url += "state=#{state}&"
-        url += "redirect_uri=#{redirect_uri}"
+        url += "redirect_uri=#{redirectUri}"
 
         callback null, url
       when "odesk"
         @saveTokensAndReturnUrl client, "odesk", callback
       when "twitter"
         @saveTokensAndReturnUrl client, "twitter", callback
+
+  @prependGroupName = (url, groupName) ->
+    url = parser.parse url
+
+    return "#{url.protocol}//#{groupName}.#{url.host}#{url.path}"
 
   @saveTokensAndReturnUrl = (client, provider, callback)->
     @getTokens provider, (err, {requestToken, requestTokenSecret, url})=>
