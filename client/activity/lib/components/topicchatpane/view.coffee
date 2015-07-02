@@ -21,12 +21,3 @@ module.exports = class TopicChatPaneView extends kd.TabPaneView
     <TopicChatPane channel={@data} />
 
 
-
-class ChatView extends ReactView
-
-  constructor: (options = {}, data) ->
-    options.cssClass = 'ChatView'
-    super options, data
-
-
-
