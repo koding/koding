@@ -1332,11 +1332,14 @@ class IDEAppController extends AppController
 
   quit: ->
 
+    return  if @getView().isDestroyed
+
     @emit 'IDEWillQuit'
 
     @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
 
-    kd.singletons.appManager.quit this
+    @stopCollaborationSession =>
+      kd.singletons.appManager.quit this
 
     kd.utils.defer ->
       kd.singletons.router.handleRoute '/IDE'
