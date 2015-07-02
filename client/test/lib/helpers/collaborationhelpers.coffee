@@ -78,3 +78,14 @@ module.exports =
       .click                  messagePane + ' .general-header'
       .waitForElementVisible  chatSettingsIcon, 20000
       .click                  chatSettingsIcon
+
+
+  inviteUser: (browser, username) ->
+
+    browser
+      .waitForElementVisible '.ParticipantHeads-button--new', 20000
+      .click '.ParticipantHeads-button--new'
+      .waitForElementVisible '.kdautocompletewrapper input', 20000
+      .setValue '.kdautocompletewrapper input', username
+      .pause 5000
+      .click "span.profile[href='/#{username}']"
