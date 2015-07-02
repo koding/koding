@@ -136,6 +136,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
       cssClass          : 'AppModal-form'
       fields            :
         statusToggle    :
+          cssClass      : if @machine.isManaged() then 'hidden'
           label         : 'On/Off'
           defaultValue  : running
           itemClass     : KodingSwitch
@@ -155,7 +156,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
           label         : 'Keep VM always on'
           defaultValue  : @machine.alwaysOn
           itemClass     : KodingSwitch
-          cssClass      : 'statustoggle'
+          cssClass      : if @machine.isManaged() then 'statustoggle hidden' else 'statustoggle'
           disabled      : @machine.isPermanent()
           callback      : @bound 'handleAlwaysOnStateChanged'
         nickname        :
@@ -177,7 +178,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
           partial       : @machine.ipAddress or 'N/A'
         accessUri       :
           label         : 'Assigned URL'
-          cssClass      : 'assigned-url'
+          cssClass      : if @machine.isManaged() then 'assigned-url hidden' else 'assigned-url'
           itemClass     : CustomLinkView
           title         : @machine.domain
           href          : accessUri

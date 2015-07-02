@@ -36,6 +36,7 @@
     "marked": "0.3.2",
     "ndpane": "0.1.2",
     "node-uuid": "1.4.2",
+    "nuclear-js": "1.0.5",
     "raf": "2.0.4",
     "react": "0.13.3",
     "record-shortcuts": "0.1.4",

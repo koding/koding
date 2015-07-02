@@ -391,20 +391,11 @@ module.exports = class JUser extends jraphical.Module
   @getBlockedMessage = (toDate) ->
 
      return """
-      Account suspended due to violation of our acceptable use policy.
+      This account has been put on suspension due to a violation of our acceptable use policy. The ban will be in effect until <b>#{toDate}.</b><br><br>
 
-      Hello,
+      If you have any questions, please email <a class="ban" href='mailto:ban@koding.com'>ban@koding.com</a> and allow 2-3 business days for a reply. Even though your account is banned, all your data is safe.<br><br>
 
-      This account has been put on suspension by Koding moderators due
-      to a violation of our acceptable use policy. The ban will be in
-      effect until #{toDate} at which time you will be able to log back
-      in again. Should you have any questions regarding this ban, please
-      write to ban@koding.com and allow 2-3 business days for us to
-      research and reply. Even though your account is banned, all your
-      data is safe and will be accessible once the ban lifts.
-
-      Please note, repeated violations of our acceptable use policy
-      will result in the permanent deletion of your account.
+      Please note, repeated violations of our acceptable use policy will result in the permanent deletion of your account.<br><br>
 
       Team Koding
     """
