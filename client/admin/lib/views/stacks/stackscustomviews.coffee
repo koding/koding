@@ -125,7 +125,7 @@ module.exports = class StacksCustomViews extends CustomViews
       Github.api
         method  : 'search.repos'
         options :
-          q     : "user:#{oauth_data.login}+fork:true"          
+          q     : "user:#{oauth_data.login}+fork:true"
           type  : 'all'
           sort  : 'updated'
           order : 'desc'
@@ -667,6 +667,7 @@ module.exports = class StacksCustomViews extends CustomViews
       credential.isBootstrapped (err, state) =>
 
         views.container.destroySubViews()
+        views.container.setClass 'output-container'
 
         {outputView} = @addTo views.container,
 
