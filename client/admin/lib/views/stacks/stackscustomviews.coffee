@@ -208,20 +208,16 @@ module.exports = class StacksCustomViews extends CustomViews
     outputView.addContent 'Fetching latest data...'
 
     credential.fetchData (err, data) ->
+
       if err
         outputView.addContent 'Failed: ', err.message
-      else
+        return
 
-        try
-          cred = JSON.stringify data.meta, null, 2
-        catch e
-          outputView.addContent 'Failed to parse:', e
-          return
-
-        outputView
-          .addContent cred
-          .addContent 'You can continue to next step.'
-          .emit 'BootstrappingDone'
+      cred = JSON.stringify data.meta, null, 2
+      outputView
+        .addContent cred
+        .addContent 'You can continue to next step.'
+        .emit 'BootstrappingDone'
 
 
   handleBootstrap = (outputView, credential, button) ->
