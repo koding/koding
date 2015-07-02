@@ -1332,6 +1332,8 @@ class IDEAppController extends AppController
 
   quit: ->
 
+    return  if @getView().isDestroyed
+
     @emit 'IDEWillQuit'
 
     @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
