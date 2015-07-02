@@ -17,6 +17,8 @@ import (
 	"github.com/mitchellh/goamz/aws"
 )
 
+const Name = "tunnelserver"
+
 type registerResult struct {
 	VirtualHost string
 	Identifier  string
@@ -73,7 +75,7 @@ func main() {
 	t.Dns = dnsclient.NewRoute53Client(t.HostedZone, auth)
 	t.Log = common.NewLogger("tunnelkite", t.Debug)
 
-	k := kite.New("tunnelserver", "0.0.1")
+	k := kite.New(Name, "0.0.1")
 	k.Config.DisableAuthentication = true
 	k.Config.Port = t.Port
 
