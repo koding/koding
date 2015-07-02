@@ -180,7 +180,6 @@ createRootLocation = (KONFIG) ->
       }"""
 
 module.exports.create = (KONFIG, environment)->
-  console.log "environment", environment
   workers = KONFIG.workers
 
   event_mechanism = switch process.platform
