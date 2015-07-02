@@ -47,7 +47,7 @@ module.exports = VideoCollaborationController =
     @videoModel.on participantEvents, @bound 'handleVideoParticipantAction'
 
     @on 'CollaborationDidCleanup', =>
-      @videoModel.session.disconnect()
+      @videoModel.session?.disconnect()
 
 
   fetchVideoParticipants: (callback) ->
