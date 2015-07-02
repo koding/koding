@@ -139,7 +139,6 @@ module.exports = class ActivityAppView extends KDView
             global.location.href = location
             return
 
-          console.log {type_, slug}
           router.handleNotFound router.getCurrentPath()
         else
           { typeConstant } = data
