@@ -261,8 +261,8 @@ Configuration = (options={}) ->
     uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
-    embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    github               : {clientId     : "d3b586defd01c24bb294" }
+    embedly              : {apiKey       : KONFIG.embedly.apiKey}
+    github               : {clientId     : KONFIG.github.clientId}
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
