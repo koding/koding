@@ -3,6 +3,7 @@ proxies =  [
   "koding-proxy-us-east-1"
   "koding-proxy-eu-west-1"
   "koding-proxy-us-west-2"
+  "koding-proxy-dev-us-e-1"
 ]
 
 envs =  [
