@@ -37,21 +37,21 @@ module.exports =
     return password
 
 
-  getUser: (createNewUserData) ->
+  getUser: (createNewUserData, index = 0) ->
 
     if createNewUserData
       users = @generateUsers()
-      return users[0]
+      return users[index]
 
     try
       usersFile = fs.readFileSync('users.json')
       users = JSON.parse(usersFile)
 
-      console.log ' ✔ users.json found, returning first user'
-      return users[0]
+      console.log " ✔ users.json found, returning #{index}. user"
+      return users[index]
 
     catch
       console.log ' ✔ users.json does not exist, creating new user data'
 
       users = @generateUsers()
-      return users[0]
+      return users[index]
