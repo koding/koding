@@ -53,6 +53,7 @@ func SendEmail(user *models.User, warningID string) error {
 
 type requestArgs struct {
 	MachineID string `json:"machineId"`
+	Provider  string `json:"provider"`
 }
 
 func DeleteVMs(user *models.User, _ string) error {
@@ -73,6 +74,7 @@ func DeleteVMs(user *models.User, _ string) error {
 
 		_, err := KiteClient.Tell("destroy", &requestArgs{
 			MachineID: machine.ObjectId.Hex(),
+			Provider:  "koding",
 		})
 
 		if err != nil {
