@@ -303,7 +303,8 @@ module.exports = class StacksCustomViews extends CustomViews
           width    : 40
           height   : 40
 
-      @addTo container, text: message
+      textView = @addTo container, text: message
+      container.setTitle = textView.bound 'updatePartial'
 
       return container
 
