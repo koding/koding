@@ -1,5 +1,5 @@
-fs            = require 'fs'
-{ isAllowed } = require './grouptoenvmapping'
+fs                     = require 'fs'
+{ isAllowed, isProxy } = require './grouptoenvmapping'
 
 createUpstreams = (KONFIG) ->
 
@@ -132,7 +132,55 @@ createStubLocation = (env)->
 
   return stub
 
+createRootLocation = (KONFIG) ->
+  return "" if isProxy KONFIG.ebEnvName
+
+  environment = KONFIG.environment
+  return """
+      location = / {
+          proxy_set_header      X-Real-IP       $remote_addr;
+          proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_next_upstream   error timeout   invalid_header http_500;
+          proxy_connect_timeout 1;
+
+          proxy_set_header      X-Prerender-Token #{KONFIG.prerenderToken};
+
+          set $prerender 0;
+          if ($http_user_agent ~* "baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator") {
+            set $prerender 1;
+          }
+          if ($request_uri !~ "(^(\/)?$)|(\/(Pricing|About|Legal|Features)(\/[A-Za-z]*$|$))") {
+            set $prerender 0;
+          }
+          if ($args ~ "^_escaped_fragment_=($|(\/(Pricing|About|Legal|Features)(\/[A-Za-z]*$|$)))") {
+            set $prerender 1;
+          }
+          if ($http_user_agent ~ "Prerender") {
+            set $prerender 0;
+          }
+
+          #resolve using Google's DNS server to force DNS resolution and prevent caching of IPs
+          resolver 8.8.8.8;
+
+          if ($prerender = 1) {
+
+            #setting prerender as a variable forces DNS resolution since nginx caches IPs and doesnt play well with load balancing
+            set $prerender "service.prerender.io";
+            rewrite .* /#{if environment is "dev" then "http" else "https"}://$host#{if KONFIG.publicPort is "80" then "" else ":"+KONFIG.publicPort}?$args? break;
+            proxy_pass http://$prerender;
+          }
+
+          if ($prerender = 0) {
+            # we dont want to use gowebserver on teams product just because the code
+            # is not written for it yet, it is currently node only... - SY
+            proxy_pass http://#{if KONFIG.disabledFeatures.teams then 'go' else ''}webserver;
+          }
+
+          #{if environment is "sandbox" then basicAuth else ""}
+      }"""
+
 module.exports.create = (KONFIG, environment)->
+  console.log "environment", environment
   workers = KONFIG.workers
 
   event_mechanism = switch process.platform
@@ -232,10 +280,12 @@ module.exports.create = (KONFIG, environment)->
 
     # start server
     server {
-
+      # we should not timeout on proxy connections
+      #{if isProxy KONFIG.ebEnvName then "" else "
       # close alive connections after 20 seconds
-      # http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout
-      keepalive_timeout 20s;
+      # http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout\n
+      \t\tkeepalive_timeout 20s;
+      "}
 
       # do not add hostname here!
       listen #{if environment is "dev" then 8090 else 80};
@@ -271,49 +321,7 @@ module.exports.create = (KONFIG, environment)->
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
       }
-
-      location = / {
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-
-        proxy_set_header      X-Prerender-Token #{KONFIG.prerenderToken};
-
-        set $prerender 0;
-        if ($http_user_agent ~* "baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator") {
-          set $prerender 1;
-        }
-        if ($request_uri !~ "(^(\/)?$)|(\/(Pricing|About|Legal|Features)(\/[A-Za-z]*$|$))") {
-          set $prerender 0;
-        }
-        if ($args ~ "^_escaped_fragment_=($|(\/(Pricing|About|Legal|Features)(\/[A-Za-z]*$|$)))") {
-          set $prerender 1;
-        }
-        if ($http_user_agent ~ "Prerender") {
-          set $prerender 0;
-        }
-
-        #resolve using Google's DNS server to force DNS resolution and prevent caching of IPs
-        resolver 8.8.8.8;
-
-        if ($prerender = 1) {
-
-          #setting prerender as a variable forces DNS resolution since nginx caches IPs and doesnt play well with load balancing
-          set $prerender "service.prerender.io";
-          rewrite .* /#{if environment is "dev" then "http" else "https"}://$host#{if KONFIG.publicPort is "80" then "" else ":"+KONFIG.publicPort}?$args? break;
-          proxy_pass http://$prerender;
-        }
-
-        if ($prerender = 0) {
-          # we dont want to use gowebserver on teams product just because the code
-          # is not written for it yet, it is currently node only... - SY
-          proxy_pass http://#{if KONFIG.disabledFeatures.teams then 'go' else ''}webserver;
-        }
-
-        #{if environment is "sandbox" then basicAuth else ""}
-      }
-
+      #{createRootLocation(KONFIG)}
       #{createLocations(KONFIG)}
 
     # close server

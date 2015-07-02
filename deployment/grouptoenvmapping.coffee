@@ -26,3 +26,6 @@ module.exports.isAllowed = (group, env)->
     process.exit 1
 
   return env in groupToEnv[group]
+
+# isProxy returns true if given env is in proxies
+module.exports.isProxy = (env)-> return env in proxies
