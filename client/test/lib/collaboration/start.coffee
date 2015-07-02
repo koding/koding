@@ -41,7 +41,7 @@ joinSession = (browser, firstUser, secondUser) ->
   helpers.beginTest browser, secondUser
 
   browser
-    .waitForElementVisible     shareModal, 60000
+    .waitForElementVisible     shareModal, 200000 # wait for vm turn on for host
     .waitForElementVisible     fullName, 20000
     .assert.containsText       shareModal, firstUserName
     .waitForElementVisible     acceptButton, 20000
