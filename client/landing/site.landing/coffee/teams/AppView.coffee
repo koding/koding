@@ -2,11 +2,13 @@ CustomLinkView  = require './../core/customlinkview'
 MainHeaderView  = require './../core/mainheaderview'
 JView           = require './../core/jview'
 FooterView      = require './../home/footerview'
+MiddleSection   = require './partials/middlesection'
 TeamsSignupForm = require './teamssignupform'
 TeamsLaunchForm = require './teamslaunchform'
 
 
 module.exports = class TeamsView extends JView
+
 
   constructor:(options = {}, data)->
 
@@ -14,16 +16,21 @@ module.exports = class TeamsView extends JView
 
     { mainController, router } = KD.singletons
 
-    @header = new MainHeaderView
-      navItems : [
-        { title : 'Blog',            href : 'http://blog.koding.com',   name : 'blog' }
-        { title : 'Teams',           href : '/Teams',                   name : 'teams' }
-        { title : 'SIGN IN',         href : '/Team/Login',              name : 'buttonized white login',  attributes : testpath : 'login-link' }
-      ]
+    teamsLogo = new KDCustomHTMLView
+      tagName   : 'a'
+      cssClass  : 'teams-header-logo'
+      partial   : '<cite>Koding</cite> Teams'
+      click     : (event) ->
+        KD.utils.stopDOMEvent event
+        KD.singletons.router.handleRoute '/'
 
-    @soon = new KDCustomHTMLView
-      cssClass : 'ribbon'
-      partial  : '<span>Coming Soon!</span>'
+    @header = new MainHeaderView
+      headerLogo : teamsLogo
+      navItems : [
+        { title : 'Success Stories',  href : 'http://blog.koding.com',  name : 'stories' }
+        { title : 'Learn More',       href : '/Teams',                  name : 'learn' }
+        { title : 'SIGN IN',          href : '/Team/Login',             name : 'buttonized yellow login',  attributes : testpath : 'login-link' }
+      ]
 
     @thanks = new KDCustomHTMLView
       cssClass : 'ribbon hidden'
@@ -36,8 +43,9 @@ module.exports = class TeamsView extends JView
         partial : "Koding for Teams!"
 
       @subTitle = new KDCustomHTMLView
-        tagName : 'h2'
-        partial : 'Onboard, develop, deploy, test and work together with your team right away, without a setup!'
+        tagName   : 'p'
+        cssClass  : 'intro'
+        partial   : 'Onboard, develop, deploy, test and work together with your team right away, without a setup!'
 
       @form = new TeamsSignupForm
         cssClass : 'TeamsModal--middle login-form'
@@ -51,7 +59,15 @@ module.exports = class TeamsView extends JView
             success : -> formData.alreadyMember = no; go()
             error   : -> formData.alreadyMember = yes; go()
 
-      @features = new KDCustomHTMLView
+      @playVideoIcon = new KDCustomHTMLView
+        tagName  : 'span'
+        cssClass : 'icon play'
+        click    : ->
+          alert 'clicked'
+
+      @middleSection = new MiddleSection
+
+      @footer = new FooterView
 
     else
       @title = new KDCustomHTMLView
@@ -82,7 +98,6 @@ module.exports = class TeamsView extends JView
           <li style='list-style-type:none;'>Learn more on our <a href='http://blog.koding.com/teams' target='_blank'>blog</a>.</li>
           """
 
-      @soon.show()
       @animateTargets()
 
 
@@ -92,7 +107,6 @@ module.exports = class TeamsView extends JView
     if responseText is 'Already applied!'
       responseText = 'Thank you! We\'ll let you know when we launch it!'
       @form.hide()
-      @soon.hide()
       @thanks.show()
 
     new KDNotificationView
@@ -103,7 +117,6 @@ module.exports = class TeamsView extends JView
   earlyAccessSuccess: ->
 
     @form.hide()
-    @soon.hide()
     @thanks.show()
     new KDNotificationView
       title    : "We'll let you know when we launch it!"
@@ -128,8 +141,14 @@ module.exports = class TeamsView extends JView
       {{> @title}}
       {{> @subTitle}}
       {{> @form}}
-      {{> @soon}}
-      {{> @thanks}}
-      {{> @features}}
+      <div class='embed-info'>
+          <img src='/a/site.landing/images/teams/text.png' alt='' />
+          <span class='icon'></span>
+      </div>
+      <div class='embed-box'>
+        {{> @playVideoIcon}}
+      </div>
     </section>
+    {{> @middleSection}}
+    {{> @footer}}
     """
