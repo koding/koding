@@ -1081,3 +1081,8 @@ module.exports = CollaborationController =
 
   getHostSnapshot: -> IDELayoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
 
+
+  setInitialSessionSetting: (name, value) ->
+
+    @initialSettings ?= {}
+    @initialSettings[name] = value
