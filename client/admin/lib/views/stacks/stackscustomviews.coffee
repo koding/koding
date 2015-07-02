@@ -277,6 +277,24 @@ module.exports = class StacksCustomViews extends CustomViews
         view.show()
 
 
+  # Pass string or an object to show it in a modal ~ GG
+  showJSON = (options = {}, json) ->
+
+    unless typeof json is 'string'
+      json = JSON.stringify json, null, 2
+
+    json = hljs.highlight('json', json).value
+
+    options.cssClass = kd.utils.curry 'has-markdown', options.cssClass
+
+    if options.overlay
+      options.overlayOptions = cssClass: 'second-overlay'
+
+    options.content = "<pre><code>#{json}</code></pre>"
+
+    return new kd.ModalView options
+
+
   _.assign @views,
 
 
