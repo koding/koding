@@ -70,7 +70,7 @@ module.exports = class ThreadsStore extends Nuclear.Store
   handleCreateMessageSuccess: (threads, { channelId, clientRequestId, message }) ->
 
     if clientRequestId
-      threads = removeMessage threads, channelId, clientRequestId
+      threads = removeMessage threads, clientRequestId
 
     return addMessage threads, channelId, message.id
 
@@ -87,7 +87,7 @@ module.exports = class ThreadsStore extends Nuclear.Store
   ###
   handleCreateMessageFail: (threads, { channelId, clientRequestId }) ->
 
-    return removeMessage threads, channelId, clientRequestId
+    return removeMessage threads, clientRequestId
 
 
   ###*
