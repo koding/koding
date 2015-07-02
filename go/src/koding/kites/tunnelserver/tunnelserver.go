@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"koding/artifact"
 	"koding/ec2dynamicdata"
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -77,6 +78,8 @@ func main() {
 	k.Config.Port = t.Port
 
 	k.HandleFunc("register", t.Register)
+	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 	k.HandleHTTP("/{rest:.*}", t.Server)
 
 	k.Run()
