@@ -107,6 +107,11 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       partial  : 'Fetching participants'
 
 
+  setUnwatch: (state) ->
+
+    kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'unwatch', state
+
+
   initiateSession: ->
 
     kd.utils.wait 500,  => @startSession.updateProgress 5
