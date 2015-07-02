@@ -16,6 +16,10 @@ type Channel struct {
 }
 
 func (c *Channel) IsPrivateChannel() bool {
+	if c.Group != socialapimodels.Channel_KODING_NAME {
+		return true
+	}
+
 	return c.Type == "privatemessage" ||
 		c.Type == "pinnedactivity" ||
 		c.Type == "collaboration" ||
