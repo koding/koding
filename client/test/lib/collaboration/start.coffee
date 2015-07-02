@@ -62,8 +62,6 @@ joinSession = (browser, firstUser, secondUser) ->
 
 module.exports =
 
-  before: -> utils.generateUsers()
-
   start: (browser) ->
 
     firstUser    = utils.getUser no, 0
