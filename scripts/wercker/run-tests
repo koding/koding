@@ -65,11 +65,12 @@ runTest = (job, next) ->
 
   job.lap ?= 0
 
-  {setId, instance, test} = job
+  { setId, instance, test } = job
+  { NIGHTWATCH_OPTIONS }    = test
 
-  args = [instance.publicIpAddress, test]
-
-  child = child_process.execFile runTestScript, args, do (job) ->
+  args  = [instance.publicIpAddress, test.name]
+  opts  = if test.options then { env: { NIGHTWATCH_OPTIONS } }
+  child = child_process.execFile runTestScript, args, opts, do (job) ->
 
     (error, stdout, stderr) ->
 
@@ -88,7 +89,7 @@ runTest = (job, next) ->
   monitor child, _.debounce do (job) ->
     ->
       {setId, test, lap} = job
-      console.log "Set:#{setId} #{test} (#{lap}) is progressing"
+      console.log "Set:#{setId} #{test.name} (#{lap}) is progressing"
   , 30000
 
 
@@ -107,7 +108,7 @@ finishSet = (id, instance, callback, error) ->
     {job, code, signal, stdout, stderr} = error
     {test, lap} = job
     console.log ""
-    console.log "Set:#{id} is failed at #{test} (#{lap})"
+    console.log "Set:#{id} is failed at #{test.name} (#{lap})"
     console.log "Exit code: #{code} signal: #{signal}"
     console.log ""
     console.log "Stderr\n#{stderr}"
@@ -120,7 +121,7 @@ finishSet = (id, instance, callback, error) ->
   for job in stopwatch[id]
     {test, begin, end} = job
     duration = (end - begin) / 1000
-    log "#{duration}\t#{test}"
+    log "#{duration}\t#{test.name}"
 
   log ""
 
