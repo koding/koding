@@ -6,12 +6,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-// Sane defaults to prevent spamming the system.
-var (
-	EmailLimitPerRun    = 5000
-	DeleteVMLimitPerRun = 5000
-)
-
 var VMDeletionWarning1 = &Warning{
 	ID: "vmDeletionWarning-1",
 
