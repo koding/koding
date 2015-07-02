@@ -17,7 +17,7 @@ var VMDeletionWarning1 = &Warning{
 	},
 
 	ExemptCheckers: []*ExemptChecker{
-		IsUserPaid, IsUserNotConfirmed, IsUserVMsEmpty, IsUserKodingEmployee,
+		IsUserPaid, IsUserVMsEmpty, IsUserKodingEmployee,
 	},
 
 	Action: SendEmail,
@@ -38,7 +38,7 @@ var VMDeletionWarning2 = &Warning{
 	},
 
 	ExemptCheckers: []*ExemptChecker{
-		IsTooSoon, IsUserPaid, IsUserNotConfirmed, IsUserVMsEmpty, IsUserKodingEmployee,
+		IsTooSoon, IsUserPaid, IsUserVMsEmpty, IsUserKodingEmployee,
 	},
 
 	Action: SendEmail,
