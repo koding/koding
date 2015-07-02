@@ -303,4 +303,4 @@ module.exports = class PaymentWorkflow extends KDController
           @modal.emit 'PaymentSucceeded'
 
     @modal.emit 'DestroyingMachinesStarted'
-    ComputeHelpers.destroyExistingMachines callback, yes
+    ComputeHelpers.destroyExistingResources callback, yes
