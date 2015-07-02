@@ -22,8 +22,8 @@
 module.exports = [
 
   [
-    { name: 'register'  }
-    { name: 'login'
+    { name: 'register' }
+    { name: 'login' }
     { name: 'logout' }
     { name: 'activity likeunlike' }
   ]
