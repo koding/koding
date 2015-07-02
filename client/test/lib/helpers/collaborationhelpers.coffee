@@ -12,9 +12,6 @@ module.exports =
     chatViewSelector    = '.chat-view.onboarding'
     startButtonSelector = '.chat-view.onboarding .buttons button.start-session'
 
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
     browser
       .waitForElementVisible   shareButtonSelector, 20000
       .pause   4000
