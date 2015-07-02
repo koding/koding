@@ -23,6 +23,11 @@ module.exports = class TimeAgo extends React.Component
     @_interval = kd.utils.repeat 60000, => @setState { lastUpdated: new Date }
 
 
+  componentWillUnmount: ->
+
+    kd.utils.killRepeat @_interval
+
+
   render: -> <time>{timeago @state.from}</time>
 
 
