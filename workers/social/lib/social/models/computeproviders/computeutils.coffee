@@ -335,27 +335,36 @@ checkUsage = (usage, plan, storage)->
 
 fetchUsage = (client, options, callback)->
 
-  JMachine = require './machine'
+  JMachine  = require './machine'
+  JSnapshot = require './snapshot'
 
   { r: { user } } = client
   { provider }    = options
+  # Need to get the delegate, to get the jAccount
+  # originId, which is apparently what snapshots uses.
+  { connection: { delegate } } = client
 
-  selector        = { provider }
-  selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
+  selector         = { provider }
+  selector.users   = $elemMatch: id: user.getId(), sudo: yes, owner: yes
+  snapshotSelector = { originId: delegate.getId() }
 
-  JMachine.some selector, limit: 30, (err, machines)->
-
+  JSnapshot.some snapshotSelector, {}, (err, snapshots = [])->
     return callback err  if err?
 
-    total    = machines.length
-    alwaysOn = 0
-    storage  = 0
+    snapshots = snapshots.length
 
-    machines.forEach (machine)->
-      alwaysOn++  if machine.meta?.alwaysOn
-      storage += machine.meta?.storage_size ? 3
+    JMachine.some selector, limit: 30, (err, machines)->
+      return callback err  if err?
 
-    callback null, { total, alwaysOn, storage }
+      total    = machines.length
+      alwaysOn = 0
+      storage  = 0
+
+      machines.forEach (machine)->
+        alwaysOn++  if machine.meta?.alwaysOn
+        storage += machine.meta?.storage_size ? 3
+
+      callback null, { total, alwaysOn, storage, snapshots }
 
 
 module.exports = {
