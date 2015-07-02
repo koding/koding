@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"koding/artifact"
 	"koding/ec2dynamicdata"
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -15,6 +16,8 @@ import (
 	"github.com/koding/tunnel"
 	"github.com/mitchellh/goamz/aws"
 )
+
+const Name = "tunnelserver"
 
 type registerResult struct {
 	VirtualHost string
@@ -72,11 +75,13 @@ func main() {
 	t.Dns = dnsclient.NewRoute53Client(t.HostedZone, auth)
 	t.Log = common.NewLogger("tunnelkite", t.Debug)
 
-	k := kite.New("tunnelserver", "0.0.1")
+	k := kite.New(Name, "0.0.1")
 	k.Config.DisableAuthentication = true
 	k.Config.Port = t.Port
 
 	k.HandleFunc("register", t.Register)
+	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 	k.HandleHTTP("/{rest:.*}", t.Server)
 
 	k.Run()

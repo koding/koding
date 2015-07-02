@@ -1,15 +1,20 @@
-request  = require 'request'
-{ dash } = require 'bongo'
-_        = require 'underscore'
+request       = require 'request'
+{ dash }      = require 'bongo'
+_             = require 'underscore'
+{ isAllowed } = require '../../../../deployment/grouptoenvmapping'
 
 module.exports = (req, res) ->
 
-  { workers, publicPort } = KONFIG
+  { workers, publicPort, ebEnvName } = KONFIG
 
   errs = []
   urls = []
 
   for own _, worker of workers
+    # some of the locations can be limited to some environments, respect.
+    unless isAllowed worker.group, ebEnvName
+      continue
+
     urls.push worker.healthCheckURL  if worker.healthCheckURL
 
   urls.push("http://localhost:#{publicPort}/-/versionCheck")
