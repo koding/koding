@@ -173,6 +173,11 @@ Configuration = (options={}) ->
   socialQueueName     = "koding-social-#{configName}"
   autoConfirmAccounts = yes
 
+  tunnelserver =
+    port            : 4444
+    basevirtualhost : "koding.me"
+    hostedzone      : "koding.me"
+
   KONFIG              =
     configName                     : configName
     environment                    : environment
@@ -709,7 +714,24 @@ Configuration = (options={}) ->
     tunnelproxymanager  :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey}"
+        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey} -hostedzone-name devtunnelproxy.koding.com -hostedzone-callerreference devtunnelproxy_hosted_zone_v0"
+
+    tunnelserver        :
+      group             : "proxy"
+      supervisord       :
+        command         : "#{GOBIN}/tunnelserver -accesskey #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretkey #{awsKeys.worker_tunnelproxymanager.secretAccessKey} -port #{tunnelserver.port} -basevirtualhost #{tunnelserver.basevirtualhost} -hostedzone #{tunnelserver.hostedzone}"
+      ports             :
+        incoming        : "#{tunnelserver.port}"
+      healthCheckURL    : "http://tunnelserver/healthCheck"
+      versionURL        : "http://tunnelserver/version"
+      nginx             :
+        websocket       : yes
+        locations       : [
+          {
+            location    : "/(.*)"
+            proxyPass   : "http://tunnelserver/$1"
+          }
+        ]
 
     userproxies         :
       group             : "proxy"
