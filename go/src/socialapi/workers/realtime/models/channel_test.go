@@ -44,3 +44,23 @@ func TestChannelPrepareName(t *testing.T) {
 		})
 	})
 }
+
+func TestIsPrivateChannel(t *testing.T) {
+	Convey("While making private channel check", t, func() {
+		Convey("it should return false for group, topic and announcement channels in koding", func() {
+			c := &Channel{}
+			c.Group = models.Channel_KODING_NAME
+			c.Type = models.Channel_TYPE_TOPIC
+			isPrivate := c.IsPrivateChannel()
+			So(isPrivate, ShouldBeFalse)
+		})
+
+		Convey("it should return true for all the channels for teams", func() {
+			c := &Channel{}
+			c.Group = "testteam"
+			c.Type = models.Channel_TYPE_TOPIC
+			isPrivate := c.IsPrivateChannel()
+			So(isPrivate, ShouldBeTrue)
+		})
+	})
+}
