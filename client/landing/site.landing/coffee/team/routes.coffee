@@ -18,5 +18,5 @@ do ->
 
       { router } = KD.singletons
       router.openSection 'Team', null, null, (app) ->
-        app.jumpTo step, query  if step
+        app.jumpTo step.toLowerCase(), query  if step
 

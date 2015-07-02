@@ -11,7 +11,8 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     { storeNewTeamData, createTeam, joinTeam, getTeamData } = KD.utils
     { join } = getTeamData().signup
     storeNewTeamData 'username', formData
-    if join then joinTeam() else createTeam()
+    if join then joinTeam() else do ->
+      createTeam success : -> KD.singletons.router.handleRoute '/Team/Stacks'
 
   constructor:(options = {}, data)->
 
@@ -19,9 +20,8 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
     super options, data
 
-    teamData                = KD.utils.getTeamData()
-    { alreadyMember, join } = teamData.signup
-    { mainController }      = KD.singletons
+    teamData          = KD.utils.getTeamData()
+    { alreadyMember } = teamData.signup
 
     @header = new MainHeaderView
       cssClass : 'team'

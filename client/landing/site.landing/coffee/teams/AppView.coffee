@@ -44,7 +44,7 @@ module.exports = class TeamsView extends JView
         callback : (formData) ->
           go = ->
             KD.utils.storeNewTeamData 'signup', formData
-            KD.singletons.router.handleRoute '/Team/domain'
+            KD.singletons.router.handleRoute '/Team/Domain'
 
           { email } = formData
           KD.utils.validateEmail { email },
