@@ -678,6 +678,8 @@ module.exports = CollaborationController =
 
   onCollaborationCreated: ->
 
+    @setInitialSettings()
+
     @chat.settingsPane.startSession.updateProgress 100
 
     kd.utils.wait 500, => @stateMachine.transition 'Active'
@@ -1086,3 +1088,9 @@ module.exports = CollaborationController =
 
     @initialSettings ?= {}
     @initialSettings[name] = value
+
+
+  setInitialSettings: ->
+
+    for own key, value of @initialSettings
+      @settings.set key, value
