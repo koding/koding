@@ -873,9 +873,11 @@ module.exports = CollaborationController =
       when 'NotStarted' then @stateMachine.transition 'Preparing'
 
 
-  stopCollaborationSession: ->
+  stopCollaborationSession: (callback = kd.noop) ->
 
-    return  unless @stateMachine
+    return callback()  unless @stateMachine
+
+    @once 'CollaborationDidCleanup', callback
 
     switch @stateMachine.state
       when 'Active' then @stateMachine.transition 'Ending'
