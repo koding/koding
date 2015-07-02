@@ -113,7 +113,10 @@ func main() {
 	k := newKite(conf)
 
 	if conf.DebugMode {
-		k.SetLogLevel(kite.DEBUG)
+		// This should be actually debug level 2. It outputs every single Kite
+		// message and enables the kite debugging system. So enable it only if
+		// you need it.
+		// k.SetLogLevel(kite.DEBUG)
 		k.Log.Info("Debug mode enabled")
 	}
 
