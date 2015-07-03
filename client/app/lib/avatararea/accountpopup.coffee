@@ -14,8 +14,8 @@ module.exports = class AccountPopup extends AvatarPopup
 
     { groupsController } = kd.singletons
 
-    @avatarPopupContent.addSubView new CustomLinkView
-      title      : 'Upgrade plan'
+    @avatarPopupContent.addSubView @paymentActionLabel = new CustomLinkView
+      title      : 'Upgrade Plan'
       href       : '/Pricing'
       cssClass   : 'bottom-separator'
       click      : @bound 'goToPricing'
