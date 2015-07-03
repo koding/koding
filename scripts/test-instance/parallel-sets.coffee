@@ -70,9 +70,9 @@ module.exports = [
     'ide layout'
   ]
 
-  # [
-  #   'collaboration collaboration'
-  # ]
+  [
+    'collaboration collaboration'
+  ]
 
   [
     'environments vm'
