@@ -67,7 +67,14 @@ module.exports = class AccountPopup extends AvatarPopup
 
     @updatePaymentTitle()
 
-    kd.singletons.paymentController.on 'UserPlanUpdated', @bound 'updatePaymentTitle'
+    { paymentController } = kd.singletons
+
+    paymentFinishedEvents = [
+      'UserPlanUpdated'
+      'PaypalRequestFinished'
+    ]
+
+    paymentController.on paymentFinishedEvents, @bound 'updatePaymentTitle'
 
 
   updatePaymentTitle: ->
