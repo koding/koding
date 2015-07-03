@@ -737,6 +737,7 @@ body.home
         > div
           padding-right   20px
           padding-left    20px
+          z-index         initial
 
       section.introduction
         padding-top       102px
@@ -772,35 +773,32 @@ body.home
             width         100%
             padding       0
             border        none
+            content       'OR SIGNUP USING'
+
+        .dots-extra
+          hidden()
+
+        .buttons-extra
+          abs             185px 0 0 50%
+          width           100px
+          margin          0px 0px 0px -22px
+          z-index         5
+          opacity         1
+          bg              color, transparent
+          &:before
+            hidden()
 
         a.gh
-          abs             198px 0 0 0px
-          background      rgba(0,0,0,.3)
-          width           100% !important
-          height          40px !important
-          bg              image, none !important
-          margin          0
-          padding         0
-          opacity         1
-          z-index         10
-          rounded         3px
+        a.go
+        a.fb
+          opacity         .8
 
-          .title
-            line-height   40px
-            display       inline-block
-            visibility    initial
-            font-size     12px
-            font-weight   600
-            color         #fff
+        a.gh
+          abs             185px 0 0 50%
+          margin          2px 0 0 -72px
 
-          .title:before
-            content       ''
-            display       inline-block
-            r-sprite      home 'gh-home-white'
-            vendor        transform, scale(0.7)
-            vertical-align middle
-            margin-top    -2px
-            margin-right  6px
+        a.go
+          margin-right    17px
 
       section.screenshots
         top               479px
