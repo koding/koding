@@ -63,6 +63,19 @@ module.exports = class AccountPopup extends AvatarPopup
         adminLink.show()
 
 
+  updatePaymentTitle: ->
+    { paymentController } = kd.singletons
+
+    paymentController.subscriptions (err, subscription) =>
+      title = if err or not subscription
+      then 'Upgrade Plan'
+      else
+        if subscription.planTitle is 'free'
+        then 'Upgrade Plan'
+        else 'Change Plan'
+
+      @paymentActionLabel.updatePartial title
+
 
   hide:->
 
