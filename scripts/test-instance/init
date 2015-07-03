@@ -12,7 +12,6 @@ export CI="true"
 export WERCKER="true"
 
 export CONFIG_DEBUGMODE="true"
-export NIGHTWATCH_OPTIONS="--verbose"
 
 service nginx stop
 
@@ -47,6 +46,11 @@ sleep 15
 x11vnc -passwd secret -display $DISPLAY -N -forever &
 sleep 10
 
-su nightwatch -c 'selenium-standalone start &'
+export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
+
+java -jar $TEST_VENDOR/selenium-server-standalone-2.46.0.jar \
+     -host 127.0.0.1 \
+     -port 42424 \
+     -Dwebdriver.chrome.driver=$TEST_VENDOR/chromedriver/linux64/chromedriver &
 
 exit 0
