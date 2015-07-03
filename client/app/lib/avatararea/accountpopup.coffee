@@ -63,6 +63,11 @@ module.exports = class AccountPopup extends AvatarPopup
         adminLink.show()
 
 
+  viewAppended: ->
+
+    @updatePaymentTitle()
+
+
   updatePaymentTitle: ->
     { paymentController } = kd.singletons
 
