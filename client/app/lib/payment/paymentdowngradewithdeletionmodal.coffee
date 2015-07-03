@@ -24,7 +24,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
     { state: { planTitle } } = @getOptions()
 
     return """
-      You are currently using more resources than <strong>#{planTitle.capitalize()}</strong> plan allows.
+      You are currently using more resources than the <strong>#{planTitle.capitalize()}</strong> plan allows.
       Downgrading will <strong>delete your existing VM(s), Snapshots, and all the data inside them</strong> and give you
       new default VM. <strong>This action cannot be undone!</strong>
       <br /><br />
