@@ -3,6 +3,7 @@ proxies =  [
   "koding-proxy-us-east-1"
   "koding-proxy-eu-west-1"
   "koding-proxy-us-west-2"
+  "koding-proxy-dev-us-e-1"
 ]
 
 envs =  [
@@ -26,3 +27,6 @@ module.exports.isAllowed = (group, env)->
     process.exit 1
 
   return env in groupToEnv[group]
+
+# isProxy returns true if given env is in proxies
+module.exports.isProxy = (env)-> return env in proxies

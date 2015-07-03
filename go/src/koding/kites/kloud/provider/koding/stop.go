@@ -35,7 +35,7 @@ func (m *Machine) stop(ctx context.Context) (err error) {
 
 	m.push("Changing domain to sleeping mode", 85, machinestate.Stopping)
 	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
-		m.Log.Warning("couldn't upsert domain %s", err)
+		m.Log.Warning("couldn't delete domain %s", err)
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
@@ -46,7 +46,7 @@ func (m *Machine) stop(ctx context.Context) (err error) {
 
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Delete(domain.Name); err != nil {
-			m.Log.Warning("couldn't upsert domain %s", err)
+			m.Log.Warning("couldn't delete domain %s", err)
 		}
 	}
 

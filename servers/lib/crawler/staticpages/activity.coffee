@@ -1,11 +1,11 @@
-{argv}              = require 'optimist'
-{uri, client}       = require('koding-config-manager').load("main.#{argv.c}")
+{argv}        = require 'optimist'
+{uri, client} = require('koding-config-manager').load("main.#{argv.c}")
 
 
 getAvatarImageUrl = (hash, avatar, size = 38)->
   imgURL   = "//gravatar.com/avatar/#{hash}?size=#{size}&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
   if avatar
-    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=#{size}&height=#{size}&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
+    imgURL = "/-/image/cache?endpoint=crop&grow=false&width=#{size}&height=#{size}&url=#{encodeURIComponent avatar}"
   return imgURL
 
 createAvatarImage = (hash, avatar, size = 38)=>
@@ -37,7 +37,7 @@ prepareComments = (activityContent)->
     commentsList +=
       """
       <div class="kdview kdlistitemview kdlistitemview-comment">
-        <a class="avatarview" href="/#{comment.authorNickname}" style="background-image: none; background-size: 38px 38px;">
+        <a class="avatarview" href="/#{nickname}" style="background-image: none; background-size: 38px 38px;">
           #{avatarImage}
         </a>
         <div class="comment-contents clearfix">

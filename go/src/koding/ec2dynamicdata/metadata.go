@@ -84,7 +84,7 @@ func GetMetadata(item Item) (string, error) {
 		},
 	}
 
-	resp, err := client.Get(endpoint + item.String())
+	resp, err := client.Get(metaDataEndpoint + item.String())
 	if err != nil {
 		return "", wrapEC2Error(err)
 	}
