@@ -273,6 +273,43 @@ module.exports = class StacksCustomViews extends CustomViews
         view.show()
 
 
+  analyzeTemplate = (content) ->
+
+    valid       =  yes
+
+    try
+      obj       = JSON.parse content
+      providers = Object.keys obj.provider
+    catch e
+      message   = "We've failed to parse the template, please make sure
+                   you are providing a valid template like described
+                   <a href=learn.koding.com target=_blank>here</a>."
+      valid     = no
+
+    if valid
+      list      = ''
+      list     += "<li>#{pr}\n" for pr in providers
+
+      message   = "Based on the template you will need to enter
+                   credetentials for the following providers; <br/>
+                   #{list}"
+
+    return { message, valid, providers, obj }
+
+
+  analyzeError = (err) ->
+
+    return 'An unknown error occured'  unless err
+
+    if err.code is 404
+      return 'Template file not found at provided tag/branch'
+
+    if err.message?
+      details = "with following error: #{err.message}"
+
+    return "Failed to fetch template #{details ? ''}"
+
+
   # Pass string or an object to show it in a modal ~ GG
   showJSON = (options = {}, json) ->
 
@@ -529,33 +566,31 @@ module.exports = class StacksCustomViews extends CustomViews
         console.log err, template
 
         if err
-          content = err?.message
-          message  = "We've failed to fetch the template, from given branch/tag
-                      with given file name. Please make sure you are providing
-                      a valid template path like described
-                      <a href=learn.koding.com target=_blank>here</a>."
+          content = analyzeError err
+          message = "We've failed to fetch the template, from given branch/tag
+                     with given file name. Please make sure you are providing
+                     a valid template path like described
+                     <a href=learn.koding.com target=_blank>here</a>."
 
         else if template?.content?
 
-          content = atob template.content
+          content   = atob template.content
+          template  = analyzeTemplate content
+          {message} = template
 
-          try
-            template = JSON.parse content
-          catch e
-            message  = "We've failed to parse the template, please make sure
-                        you are providing a valid template like described
-                        <a href=learn.koding.com target=_blank>here</a>."
+          if template.valid then @addTo container,
+            button        :
+              title       : 'Continue'
+              cssClass    : 'solid compact green nav next'
+              callback    : =>
 
-          if template
-            list      = ''
-            providers = Object.keys template.provider
-            list     += "<li>#{pr}\n" for pr in providers
-
-            message   = "Based on the template you will need to enter
-                         credetentials for the following providers; <br/>
-                         #{list}"
+                callback {
+                  selected_repo, template
+                  provider: 'aws' # Use the only supported provider for now ~ GG
+                }
 
         else
+
           content = 'Something went wrong, please try again.'
 
 
