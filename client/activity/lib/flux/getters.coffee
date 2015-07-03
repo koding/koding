@@ -1,4 +1,6 @@
-threadsMap = ['channelsMessages']
+immutable = require 'immutable'
+
+threadsMap = ['threads']
 messagesMap = ['messages']
 
 threads = [
@@ -11,23 +13,33 @@ threads = [
       thread.set 'messages', messages
 ]
 
-selectedThreadId = ['selectedChannelId']
+selectedChannelThreadId = ['selectedChannelThreadId']
 
 messages = [
   threadsMap
   (threadsMap) -> threadsMap.toList()
 ]
 
-selectedThread = [
-  selectedThreadId
+selectedChannelThread = [
+  selectedChannelThreadId
   threads
-  (selectedThreadId, threads) -> threads.get selectedThreadId
+  (selectedChannelThreadId, threads) -> threads.get selectedChannelThreadId
+]
+
+selectedChannelThreadMessages = [
+  selectedChannelThread
+  (selectedChannelThread) ->
+    if selectedChannelThread?.has 'messages'
+      selectedChannelThread.get 'messages'
+    else
+      immutable.List()
 ]
 
 module.exports = {
   threadsMap
-  selectedThreadId
-  selectedThread
+  selectedChannelThreadId
+  selectedChannelThread
+  selectedChannelThreadMessages
   messages
 }
 

@@ -9,6 +9,8 @@ module.exports =
 
   openNewFile: (browser) ->
 
+    @closeAllTabs browser
+
     activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
     plusSelector         = tabHandleSelector + ' .visible-tab-handle.plus'
 
@@ -20,9 +22,30 @@ module.exports =
       .waitForElementVisible  activeEditorSelector, 20000 # Assertion
 
 
+  closeAllTabs: (browser) ->
+
+    handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
+
+    doClose = ->
+      browser
+        .moveToElement handleSelector, 5, 5
+        .click         handleSelector + ' .close-tab'
+        .pause         300
+
+
+    close = ->
+      browser.elements 'css selector', handleSelector, (result) ->
+        length = result.value.length
+
+        if result.value.length isnt 0 then doClose()
+        if length - 1 > 0 then close()
+
+    close()
+
+
   openContextMenu: (browser) ->
 
-    fileSelector    = "#{tabHandleSelector} .active"
+    fileSelector    = "#{tabHandleSelector} .kdtabhandle.active"
     optionsSelector = "#{fileSelector} span.options"
 
     browser

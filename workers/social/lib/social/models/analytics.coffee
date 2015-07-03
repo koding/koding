@@ -19,8 +19,14 @@ module.exports = class Analytics
     analytics.flush (err, batch)-> console.error err  if err
 
 
+  @identifyAndTrack = (userId, event, eventProperties = {}) ->
+    @identify userId
+    @track userId, event, eventProperties
+
+
   @addDefaults = (opts) ->
     opts["env"]      = KONFIG.environment
     opts["hostname"] = KONFIG.hostname
 
     opts
+
