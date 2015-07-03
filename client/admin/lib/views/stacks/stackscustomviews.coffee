@@ -48,7 +48,7 @@ module.exports = class StacksCustomViews extends CustomViews
   }
   """
 
-  STEPS          =
+  @STEPS         =
     CUSTOM_STACK : [
         { title  : 'Select Provider' }
         { title  : 'Credentials' }
@@ -450,13 +450,11 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepSelectRepo: (options) =>
 
-      {callback, cancelCallback, data} = options
+      {callback, cancelCallback, data, index, steps} = options
       container = @views.container 'step-select-repo'
 
       views     = @addTo container,
-        stepsHeaderView   :
-          steps           : STEPS.REPO_FLOW
-          selected        : 1
+        stepsHeaderView   : {steps, selected: index}
         text              : "We need to locate your configuration file first so
                              that we can understand what we are going to do
                              when a user joins to your team.<br />
@@ -486,15 +484,13 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepLocateFile: (options) =>
 
-      { callback, cancelCallback, data } = options
+      { callback, cancelCallback, data, steps, index } = options
       { repo_provider, oauth_data } = data
 
       container = @views.container 'step-locate-file'
 
       views     = @addTo container,
-        stepsHeaderView   :
-          steps           : STEPS.REPO_FLOW
-          selected        : 2
+        stepsHeaderView   : {steps, selected: index}
         repoListView      : { oauth_data }
         navCancelButton   :
           title           : '< Select another provider'
@@ -509,16 +505,14 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepFetchTemplate: (options) =>
 
-      { callback, cancelCallback, data } = options
+      { callback, cancelCallback, data, steps, index } = options
       { repo_provider, selected_repo }   = data
 
       container = @views.container 'step-fetch-template'
       container.setClass 'has-markdown'
 
       views     = @addTo container,
-        stepsHeaderView   :
-          steps           : STEPS.REPO_FLOW
-          selected        : 3
+        stepsHeaderView   : {steps, selected: index}
         mainLoader        : 'Fetching template...'
         container         : 'output-container'
         navCancelButton   :
@@ -581,13 +575,11 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepSelectProvider: (options) =>
 
-      {callback, cancelCallback, data} = options
+      {callback, cancelCallback, data, steps, index} = options
       container = @views.container 'step-provider'
 
       views     = @addTo container,
-        stepsHeaderView :
-          steps         : STEPS.CUSTOM_STACK
-          selected      : 1
+        stepsHeaderView : {steps, selected: index}
         text            : "You need to select a provider first"
         providersView   :
           providers     : Object.keys globals.config.providers
@@ -659,14 +651,12 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepSetupCredentials: (options) =>
 
-      { data, callback, cancelCallback } = options
+      { data, callback, cancelCallback, steps, index } = options
       { provider, stackTemplate } = data
 
       container  = @views.container 'step-creds'
       views      = @addTo container,
-        stepsHeaderView :
-          steps         : STEPS.CUSTOM_STACK
-          selected      : 2
+        stepsHeaderView : {steps, selected: index}
         container_top   :
           text_intro    : "To be able to use this provider <strong>you need to
                            select a verified credential</strong> below, if you
@@ -693,7 +683,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepBootstrap: (options) =>
 
-      {callback, cancelCallback, data} = options
+      {callback, cancelCallback, data, steps, index} = options
       {provider, credential, stackTemplate} = data
 
       container = @views.container 'step-bootstrap'
@@ -701,9 +691,7 @@ module.exports = class StacksCustomViews extends CustomViews
       container.setClass 'has-markdown'
 
       views     = @addTo container,
-        stepsHeaderView :
-          steps         : STEPS.CUSTOM_STACK
-          selected      : 3
+        stepsHeaderView : {steps, selected: index}
         container       :
           mainLoader    : 'Checking bootstrap status...'
         navCancelButton :
@@ -752,15 +740,13 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepDefineStack: (options) =>
 
-      {callback, cancelCallback, data}      = options
+      {callback, cancelCallback, data, steps, index} = options
       {provider, credential, stackTemplate} = data or {}
 
       container = @views.container 'step-define-stack'
       content   = stackTemplate?.template?.content or DEFAULT_TEMPLATE
       views     = @addTo container,
-        stepsHeaderView :
-          steps         : STEPS.CUSTOM_STACK
-          selected      : 4
+        stepsHeaderView : {steps, selected: index}
         input_title     :
           label         : 'Stack Template Title'
           value         : stackTemplate?.title or 'Default Template'
@@ -790,7 +776,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepComplete: (options) =>
 
-      {callback, cancelCallback, data}      = options
+      {callback, cancelCallback, data, steps, index} = options
       {stackTemplate, credential, provider} = data
 
       container = @views.container 'step-complete'
@@ -798,9 +784,7 @@ module.exports = class StacksCustomViews extends CustomViews
       container.setClass 'has-markdown'
 
       views = @addTo container,
-        stepsHeaderView :
-          steps         : STEPS.CUSTOM_STACK
-          selected      : 5
+        stepsHeaderView : {steps, selected: index}
         container       :
           mainLoader    : 'Processing template...'
 
