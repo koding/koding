@@ -1,16 +1,23 @@
 helpers = require '../helpers/helpers.js'
+utils   = require '../utils/utils.js'
 assert  = require 'assert'
 messagesHelpers = require '../helpers/messageshelpers.js'
 
 
 module.exports =
 
+  before: (browser) ->
+
+    @users = utils.getUser(no, yes).slice 0, 6
+
+    for user in @users
+      helpers.beginTest(browser, user)
+      helpers.doLogout(browser)
+
 
   startConversation: (browser) ->
 
-    users = [
-      { userName: 'kodingtester', fullName: 'Koding Tester' }
-    ]
+    users = [ @users[0] ]
 
     helpers.beginTest(browser)
 
@@ -20,9 +27,7 @@ module.exports =
 
   startConversationWithPurpose: (browser) ->
 
-    users = [
-      { userName: 'testuser1', fullName: 'Test1 User1' }
-    ]
+    users = [ @users[1] ]
 
     helpers.beginTest(browser)
 
@@ -32,9 +37,7 @@ module.exports =
 
   refreshPageAndSeeTheConversationInSidebar: (browser) ->
 
-    users = [
-      { userName: 'qatester', fullName: 'QA Tester' }
-    ]
+    users = [ @users[2] ]
 
     helpers.beginTest(browser)
 
@@ -51,9 +54,7 @@ module.exports =
 
   leaveConversation: (browser) ->
 
-    users = [
-      { userName: 'kodingtester', fullName: 'Koding Tester' }
-    ]
+    users = [ @users[0] ]
 
     helpers.beginTest(browser)
 
@@ -73,9 +74,7 @@ module.exports =
   startConversationWithMultiplePeople: (browser) ->
 
     users = [
-      { userName: 'testuser2', fullName: 'Test2 User2' }
-      { userName: 'testuser3', fullName: 'Test3 User3' }
-      { userName: 'testuser4', fullName: 'Test4 User4' }
+      @users[3], @users[4], @users[5]
     ]
 
     helpers.beginTest(browser)
