@@ -59,6 +59,8 @@ module.exports = class OAuth extends bongo.Base
         @saveTokensAndReturnUrl client, "twitter", callback
 
   @prependGroupName = (url, groupName) ->
+    return url  if groupName is 'koding'
+
     url = parser.parse url
 
     return "#{url.protocol}//#{groupName}.#{url.host}#{url.path}"

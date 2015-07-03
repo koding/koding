@@ -45,7 +45,7 @@ describe 'ThreadsStore', ->
 
       storeState = reactor.evaluate ['threads']
 
-      expect(storeState.has clientRequestId).to.equal no
+      expect(storeState.hasIn [channelId, 'messages', clientRequestId]).to.equal no
 
 
   describe '#handleCreateMessageSuccess', ->
@@ -60,7 +60,7 @@ describe 'ThreadsStore', ->
 
       storeState = reactor.evaluate ['threads']
 
-      expect(storeState.has clientRequestId).to.equal no
+      expect(storeState.hasIn [channelId, 'messages', clientRequestId]).to.equal no
 
 
     it 'adds real message to store', ->

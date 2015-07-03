@@ -13,7 +13,7 @@ changeSelectedThread = (channelId) ->
   dispatch SET_SELECTED_CHANNEL_THREAD, { channelId }
 
 
-dispatch = (args...) -> kd.singletons.reactor args...
+dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
 module.exports = {

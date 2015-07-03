@@ -25,6 +25,7 @@ module.exports = class SharedMachine extends bongo.Base
     setUsers client, uid, options, (err) ->
       return callback err  if err
       notifyByUsernames options.target, 'SharedMachineInvitation', {uid}
+      callback()
 
 
   @kick = secure (client, uid, target, callback) ->
