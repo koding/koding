@@ -67,6 +67,8 @@ module.exports = class AccountPopup extends AvatarPopup
 
     @updatePaymentTitle()
 
+    kd.singletons.paymentController.on 'UserPlanUpdated', @bound 'updatePaymentTitle'
+
 
   updatePaymentTitle: ->
     { paymentController } = kd.singletons
