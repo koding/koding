@@ -487,7 +487,7 @@ module.exports = class StacksCustomViews extends CustomViews
       { callback, cancelCallback, data, steps, index } = options
       { repo_provider, oauth_data } = data
 
-      container = @views.container 'step-locate-file'
+      container = @views.container 'step-view'
 
       views     = @addTo container,
         stepsHeaderView   : {steps, selected: index}
@@ -508,7 +508,7 @@ module.exports = class StacksCustomViews extends CustomViews
       { callback, cancelCallback, data, steps, index } = options
       { repo_provider, selected_repo }   = data
 
-      container = @views.container 'step-fetch-template'
+      container = @views.container 'step-view'
       container.setClass 'has-markdown'
 
       views     = @addTo container,
@@ -686,7 +686,7 @@ module.exports = class StacksCustomViews extends CustomViews
       {callback, cancelCallback, data, steps, index} = options
       {provider, credential, stackTemplate} = data
 
-      container = @views.container 'step-bootstrap'
+      container = @views.container 'step-view'
 
       container.setClass 'has-markdown'
 
