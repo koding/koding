@@ -15,7 +15,7 @@ module.exports = class AccountPopup extends AvatarPopup
     { groupsController } = kd.singletons
 
     @avatarPopupContent.addSubView @paymentActionLabel = new CustomLinkView
-      title      : 'Upgrade Plan'
+      title      : 'Upgrade plan'
       href       : '/Pricing'
       cssClass   : 'bottom-separator'
       click      : @bound 'goToPricing'
@@ -82,11 +82,11 @@ module.exports = class AccountPopup extends AvatarPopup
 
     paymentController.subscriptions (err, subscription) =>
       title = if err or not subscription
-      then 'Upgrade Plan'
+      then 'Upgrade plan'
       else
         if subscription.planTitle is 'free'
-        then 'Upgrade Plan'
-        else 'Change Plan'
+        then 'Upgrade plan'
+        else 'Change plan'
 
       @paymentActionLabel.updatePartial title
 
