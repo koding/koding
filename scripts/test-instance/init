@@ -12,7 +12,6 @@ export CI="true"
 export WERCKER="true"
 
 export CONFIG_DEBUGMODE="true"
-export NIGHTWATCH_OPTIONS="--verbose"
 
 service nginx stop
 
