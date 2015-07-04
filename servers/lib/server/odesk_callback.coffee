@@ -28,7 +28,7 @@ module.exports = (req, res)->
 
   JSession.one {clientId}, (err, session)->
     if err or not session
-      redirectOauth res, {provider}, err
+      redirectOauth err, req, res, {provider}
       return
 
     {foreignAuth}        = session
@@ -46,7 +46,7 @@ module.exports = (req, res)->
     client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,\
       (err, accessToken, accessTokenSecret) ->
         if err
-          redirectOauth res, {provider}, err
+          redirectOauth err, req, res, {provider}
           return
 
         client.get 'https://www.odesk.com/api/auth/v1/info',
@@ -54,7 +54,7 @@ module.exports = (req, res)->
             try
               response = JSON.parse data
             catch e
-              redirectOauth res, {provider}, "Error parsing user info"
+              redirectOauth "Error parsing user info", req, res, {provider}
               return
 
             odesk                   = session.foreignAuth.odesk
@@ -66,7 +66,7 @@ module.exports = (req, res)->
 
             saveOauthToSession odesk, clientId, provider, (err)->
               if err
-                redirectOauth res, {provider}, err
+                redirectOauth err, req, res, {provider}
                 return
 
-              redirectOauth res, {provider}, null
+              redirectOauth null, req, res, {provider}

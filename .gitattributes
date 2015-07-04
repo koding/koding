@@ -1,0 +1,10 @@
+go/src/github.com/* linguist-vendored
+go/src/bitbucket.com/* linguist-vendored
+go/src/code.google.com/* linguist-vendored
+go/src/golang.org/* linguist-vendored
+go/src/google.golang.org/* linguist-vendored
+go/src/gopkg.in/* linguist-vendored
+go/src/honnef.co/go/* linguist-vendored
+go/src/labix.org/* linguist-vendored
+go/src/launchpad.net/* linguist-vendored
+node_modules_koding/* linguist-vendored

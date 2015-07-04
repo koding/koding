@@ -173,6 +173,11 @@ Configuration = (options={}) ->
   socialQueueName     = "koding-social-#{configName}"
   autoConfirmAccounts = yes
 
+  tunnelserver =
+    port            : 4444
+    basevirtualhost : "koding.me"
+    hostedzone      : "koding.me"
+
   KONFIG              =
     configName                     : configName
     environment                    : environment
@@ -225,12 +230,12 @@ Configuration = (options={}) ->
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
-    github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"   , redirectUri  : "http://lvh.me:8090/-/oauth/github/callback"}
+    github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"   , redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"}
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
-    facebook                       : {clientId      : "1408510959475637"                             , clientSecret  : "bf837bc719dc63c870ac77f9c76fe26d"           , redirectUri  : "#{customDomain.public}:#{customDomain.port}/-/oauth/facebook/callback"}
-    google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback" }
-    twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
-    linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
+    facebook                       : {clientId      : "1408510959475637"                             , clientSecret  : "bf837bc719dc63c870ac77f9c76fe26d"           , redirectUri  : "http://dev.koding.com:8090/-/oauth/facebook/callback"}
+    google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "http://dev.koding.com:8090/-/oauth/google/callback" }
+    twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "http://dev.koding.com:8090/-/oauth/twitter/callback"                  , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
+    linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "http://dev.koding.com:8090/-/oauth/linkedin/callback"}
     datadog                        : {api_key       : "1daadb1d4e69d1ae0006b73d404e527b"             , app_key       : "aecf805ae46ec49bdd75e8866e61e382918e2ee5"}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
     aws                            : {key           : ""                                             , secret        : ''}
@@ -270,8 +275,8 @@ Configuration = (options={}) ->
     uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
-    embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    github               : {clientId     : "f8e440b796d953ea01e5" }
+    embedly              : {apiKey       : KONFIG.embedly.apiKey}
+    github               : {clientId     : KONFIG.github.clientId}
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
@@ -709,7 +714,24 @@ Configuration = (options={}) ->
     tunnelproxymanager  :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelproxymanager -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey}"
+        command         : "#{GOBIN}/tunnelproxymanager -ebenvname #{options.ebEnvName} -accesskeyid #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretaccesskey #{awsKeys.worker_tunnelproxymanager.secretAccessKey} -hostedzone-name devtunnelproxy.koding.com -hostedzone-callerreference devtunnelproxy_hosted_zone_v0"
+
+    tunnelserver        :
+      group             : "proxy"
+      supervisord       :
+        command         : "#{GOBIN}/tunnelserver -accesskey #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretkey #{awsKeys.worker_tunnelproxymanager.secretAccessKey} -port #{tunnelserver.port} -basevirtualhost #{tunnelserver.basevirtualhost} -hostedzone #{tunnelserver.hostedzone}"
+      ports             :
+        incoming        : "#{tunnelserver.port}"
+      healthCheckURL    : "http://tunnelserver/healthCheck"
+      versionURL        : "http://tunnelserver/version"
+      nginx             :
+        websocket       : yes
+        locations       : [
+          {
+            location    : "/(.*)"
+            proxyPass   : "http://tunnelserver/$1"
+          }
+        ]
 
     userproxies         :
       group             : "proxy"

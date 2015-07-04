@@ -27,7 +27,7 @@ module.exports = (options, callback) ->
   avatar  = profile.avatar or no
   bgImg   = "//gravatar.com/avatar/#{hash}?size=90&d=#{encodeURIComponent '//a/images/defaultavatar/default.avatar.90.png'}"
   if avatar
-    bgImg = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
+    bgImg = "/-/image/cache?endpoint=crop&grow=false&width=90&height=90&url=#{encodeURIComponent avatar}"
 
   entryPoint = { slug : profile.nickname, type: "profile" }
 

@@ -2,13 +2,14 @@ package tunnel
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
-	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -30,8 +31,11 @@ type Client struct {
 	yamuxConfig *yamux.Config
 	log         logging.Logger
 
-	closed   bool
-	closedMu sync.Mutex
+	mu          sync.Mutex // guards the following
+	closed      bool       // if client calls Close() and quits
+	startNotify chan bool  // notifies if client established a conn to server
+
+	reqWg sync.WaitGroup
 
 	// redialBackoff is used to reconnect in exponential backoff intervals
 	redialBackoff backoff.BackOff
@@ -113,6 +117,7 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 		log:           log,
 		yamuxConfig:   yamuxConfig,
 		redialBackoff: forever,
+		startNotify:   make(chan bool, 1),
 	}
 
 	return client, nil
@@ -121,7 +126,8 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 // Start starts the client and connects to the server with the identifier.
 // client.FetchIdentifier() will be used if it's not nil. It's supports
 // reconnecting with exponential backoff intervals when the connection to the
-// server disconnects. Call client.Close() to shutdown the client completely.
+// server disconnects. Call client.Close() to shutdown the client completely. A
+// successfull connection will cause StartNotify() to receive a value.
 func (c *Client) Start() {
 	id := func() (string, error) {
 		if c.config.FetchIdentifier != nil {
@@ -140,18 +146,36 @@ func (c *Client) Start() {
 			continue
 		}
 
+		// mark it as not closed. Also empty the value inside the chan by
+		// retrieving it (if any), so it doesn't block during connect, when the
+		// client was closed and started again, and startNotify was never
+		// listened to.
+		c.mu.Lock()
+		c.closed = false
+		select {
+		case <-c.startNotify:
+		default:
+		}
+		c.mu.Unlock()
+
 		if err := c.connect(identifier); err != nil {
-			c.log.Critical("client connect err: %s", err.Error())
+			c.log.Debug("client connect err: %s", err.Error())
 		}
 
 		// exit if closed
-		c.closedMu.Lock()
+		c.mu.Lock()
 		if c.closed {
-			c.closedMu.Unlock()
+			c.mu.Unlock()
 			return
 		}
-		c.closedMu.Unlock()
+		c.mu.Unlock()
 	}
+}
+
+// StartNotify returns a channel that receives a single value when the client
+// established a successfull connection to the server.
+func (c *Client) StartNotify() <-chan bool {
+	return c.startNotify
 }
 
 // Close closes the client and shutdowns the connection to the tunnel server
@@ -164,10 +188,11 @@ func (c *Client) Close() error {
 		return err
 	}
 
-	c.closedMu.Lock()
+	c.mu.Lock()
 	c.closed = true
-	c.closedMu.Unlock()
+	c.mu.Unlock()
 
+	c.reqWg.Wait() // wait until all connections are finished
 	if err := c.session.Close(); err != nil {
 		return err
 	}
@@ -252,8 +277,22 @@ func (c *Client) connect(identifier string) error {
 
 	ct := newControl(stream)
 	c.log.Debug("client has started successfully.")
-
 	c.redialBackoff.Reset() // we successfully connected, so we can reset the backoff
+
+	c.mu.Lock()
+	if c.startNotify != nil && !c.closed {
+		c.log.Debug("sending ok to startNotify chan")
+		select {
+		case c.startNotify <- true:
+		default:
+			// reaching here is a race condition, because it indicates
+			// startNotify has already a value. We panic because it's library
+			// level problem that needs immediate attention
+			panic("startNotify chan is already full")
+		}
+	}
+	c.mu.Unlock()
+
 	return c.listenControl(ct)
 }
 
@@ -262,76 +301,106 @@ func (c *Client) listenControl(ct *control) error {
 		var msg controlMsg
 		err := ct.dec.Decode(&msg)
 		if err != nil {
+			c.reqWg.Wait() // wait until all requests are finished
+
 			c.session.GoAway()
 			c.session.Close()
-			return fmt.Errorf("decode err: '%s'", err)
+			return err
 		}
 
-		c.log.Debug("controlMsg: %+v", msg)
+		c.log.Debug("Received control msg %+v", msg)
 
 		switch msg.Action {
 		case requestClientSession:
+			c.log.Debug("Received request to open a session to server")
 			go func() {
 				if err := c.proxy(msg.LocalPort); err != nil {
-					fmt.Fprintf(os.Stderr, "proxy err: '%s'\n", err)
+					c.log.Error("Proxy err between remote and local: '%s'", err)
 				}
 			}()
 		}
 	}
 }
 
-func (c *Client) proxy(port string) error {
-	conn, err := c.session.Open()
+func (c *Client) proxy(port int) error {
+	c.log.Debug("Opening a new stream from server session")
+	remote, err := c.session.Open()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer remote.Close()
 
-	if port == "0" {
-		port = "80"
+	if port == 0 {
+		port = 80
 	}
 
-	localAddr := "127.0.0.1:" + port
+	localAddr := "127.0.0.1:" + strconv.Itoa(port)
 	if c.config.LocalAddr != "" {
 		localAddr = c.config.LocalAddr
 	}
 
-	local, err := newLocalDial(localAddr)
+	c.log.Debug("Dialing local server %s", localAddr)
+	local, err := net.Dial("tcp", localAddr)
 	if err != nil {
-		return err
+		c.log.Debug("Dialing local server(%s) failed: %s", localAddr, err)
+
+		// send a response instead of canceling it on the server side. at least
+		// the public connection will know what's happening or not
+		body := bytes.NewBufferString("no local server")
+		resp := &http.Response{
+			Status:        http.StatusText(http.StatusServiceUnavailable),
+			StatusCode:    http.StatusServiceUnavailable,
+			Proto:         "HTTP/1.1",
+			ProtoMajor:    1,
+			ProtoMinor:    1,
+			Body:          ioutil.NopCloser(body),
+			ContentLength: int64(body.Len()),
+		}
+
+		buf := new(bytes.Buffer)
+		resp.Write(buf)
+		if _, err := io.Copy(remote, buf); err != nil {
+			c.log.Debug("copy in-mem response error: %s\n", err.Error())
+		}
+		return nil
 	}
 
-	return <-c.join(local, conn)
+	c.log.Debug("Starting to proxy between remote and local server")
+	c.reqWg.Add(1)
+	c.join(local, remote)
+	c.reqWg.Done()
+
+	c.log.Debug("Proxing between remote and local server finished")
+	return nil
 }
 
-func newLocalDial(addr string) (net.Conn, error) {
-	c, err := net.Dial("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
+func (c *Client) join(local, remote io.ReadWriteCloser) {
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	c.SetDeadline(time.Time{})
-	return c, nil
-}
-
-func (c *Client) join(local, remote net.Conn) chan error {
-	errc := make(chan error, 2)
-
-	transfer := func(dst, src net.Conn) {
+	transfer := func(side string, dst, src io.ReadWriteCloser) {
 		_, err := io.Copy(dst, src)
 		if err != nil {
-			c.log.Error("copy error: %s", err.Error())
+			c.log.Debug("copy error: %s\n", err.Error())
 		}
 
 		if err := src.Close(); err != nil {
-			c.log.Error("Close error: %s", err.Error())
+			c.log.Debug("%s: close error: %s\n", side, err.Error())
 		}
 
-		errc <- err
+		// not for yamux streams, but for client to local server connections
+		if d, ok := dst.(*net.TCPConn); ok {
+			if err := d.CloseWrite(); err != nil {
+				c.log.Debug("%s: closeWrite error: %s\n", side, err.Error())
+			}
+		}
+
+		wg.Done()
 	}
 
-	go transfer(local, remote)
-	go transfer(remote, local)
+	go transfer("remote to local", local, remote)
+	go transfer("local to remote", remote, local)
 
-	return errc
+	wg.Wait()
+	return
 }

@@ -200,20 +200,19 @@ module.exports = class JInvitation extends jraphical.Module
   @sendInvitationEmail: (client, invitation, callback) ->
     invitee      = getName client.connection.delegate
 
-    options =
-      to      : invitation.email,
-      subject : Email.types.INVITED_GROUP
-
     properties =
       groupName: invitation.groupName
       invitee  : invitee
       link     : "#{protocol}//#{invitation.groupName}.#{hostname}/Invitation/#{encodeURIComponent invitation.code}"
 
-    Email.queue invitation.email, options, properties, callback
+    Analytics = require './analytics.coffee'
+    Analytics.identifyAndTrack invitation.email, Email.types.INVITED_GROUP, properties
+
+    callback null
 
 
   getName = (delegate) ->
-    { nickname, firstName, lastName } = delegate.profile.nickname
+    { nickname, firstName, lastName } = delegate.profile
 
     name = nickname
 

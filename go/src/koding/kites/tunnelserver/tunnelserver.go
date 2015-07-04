@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"koding/artifact"
+	"koding/ec2dynamicdata"
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"os"
@@ -14,6 +16,8 @@ import (
 	"github.com/koding/tunnel"
 	"github.com/mitchellh/goamz/aws"
 )
+
+const Name = "tunnelserver"
 
 type registerResult struct {
 	VirtualHost string
@@ -26,7 +30,7 @@ type tunnelServer struct {
 	BaseVirtualHost string `required:"true"`
 
 	// ServerAddr is public Address of the running server. Like an assigned Elastic IP
-	ServerAddr string `required:"true"`
+	ServerAddr string
 
 	HostedZone string
 	AccessKey  string
@@ -49,6 +53,16 @@ func main() {
 		SecretKey: t.SecretKey,
 	}
 
+	// get from ec2 meta-data if it's not passed explicitly
+	if t.ServerAddr == "" {
+		var err error
+		t.ServerAddr, err = ec2dynamicdata.GetMetadata(ec2dynamicdata.PublicIPv4)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+	}
+
 	var err error
 	t.Server, err = tunnel.NewServer(&tunnel.ServerConfig{
 		Debug: t.Debug,
@@ -61,11 +75,13 @@ func main() {
 	t.Dns = dnsclient.NewRoute53Client(t.HostedZone, auth)
 	t.Log = common.NewLogger("tunnelkite", t.Debug)
 
-	k := kite.New("tunnelserver", "0.0.1")
+	k := kite.New(Name, "0.0.1")
 	k.Config.DisableAuthentication = true
 	k.Config.Port = t.Port
 
 	k.HandleFunc("register", t.Register)
+	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 	k.HandleHTTP("/{rest:.*}", t.Server)
 
 	k.Run()
