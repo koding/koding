@@ -747,3 +747,10 @@ headsListSelectedBgColor   = #7a7a7a
       r-sprite          'activity', 'new-participant-plus'
       -webkit-transition -webkit-transform .2s ease
       -moz-transition    -moz-transform .2s ease
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)
+  .kdlistview-collaboration
+    .avatarview
+      cite.staff
+        &:before
+          border-color  #fbfbfb
