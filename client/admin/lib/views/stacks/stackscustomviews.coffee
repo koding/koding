@@ -167,19 +167,20 @@ module.exports = class StacksCustomViews extends CustomViews
 
   updateStackTemplate = (data, callback) ->
 
-    { template, credential, title, stackTemplate, machines } = data
+    { template, templateDetails, credential
+      title, stackTemplate, machines } = data
 
     title     or= 'Default stack template'
     credentials = [credential.publicKey]  if credential
 
     if stackTemplate
       dataToUpdate = if machines \
-        then {machines} else {title, template, credentials}
+        then {machines} else {title, template, credentials, templateDetails}
       stackTemplate.update dataToUpdate, (err) ->
         callback err, stackTemplate
     else
       remote.api.JStackTemplate.create {
-        title, template, credentials
+        title, template, credentials, templateDetails
       }, callback
 
 
@@ -675,7 +676,7 @@ module.exports = class StacksCustomViews extends CustomViews
 
       {mainLoader} = views
 
-      fetchRepoFile selected_repo, (err, template) =>
+      fetchRepoFile selected_repo, (err, res) =>
 
         mainLoader.setTitle 'Parsing template...'
 
@@ -686,11 +687,12 @@ module.exports = class StacksCustomViews extends CustomViews
                      a valid template path like described
                      <a href=learn.koding.com target=_blank>here</a>."
 
-        else if template?.content?
+        else if res?.content?
 
-          content   = atob template.content
+          content   = atob res.content
           template  = analyzeTemplate content
           {message} = template
+          template.details = res
 
           if template.valid then @addTo container,
             button        :
@@ -835,14 +837,30 @@ module.exports = class StacksCustomViews extends CustomViews
       {provider, credential, stackTemplate, template} = data or {}
 
       container = @views.container 'step-define-stack'
-      content   = stackTemplate?.template?.content or \
-                  template?.content or DEFAULT_TEMPLATE
+
+      if data.selected_repo? and template?
+        {repo}          = data.selected_repo
+        title           = repo.description
+        content         = template?.content
+        templateDetails =
+          fileSha       : template.details.sha
+          fileName      : template.details.name
+          fileRepo      : repo.full_name
+          fileRepoRef   : data.selected_repo.ref
+          fileRepoPath  : data.selected_repo.location
+
+      else
+        title   = stackTemplate?.title or 'Default Template'
+        content = stackTemplate?.template?.content
+        templateDetails = null
+
+      content or= DEFAULT_TEMPLATE
 
       views     = @addTo container,
         stepsHeaderView : {steps, selected: index}
         input_title     :
           label         : 'Stack Template Title'
-          value         : stackTemplate?.title or 'Default Template'
+          value         : title
         editorView      : {content}
         navCancelButton :
           title         : '< Boostrap Credential'
@@ -852,17 +870,17 @@ module.exports = class StacksCustomViews extends CustomViews
           cssClass      : 'solid compact green nav next'
           callback      : ->
 
-            {title}  = views.input_title.getData()
-            template = views.editorView.getValue()
+            {title} = views.input_title.getData()
+            templateContent = views.editorView.getValue()
 
             updateStackTemplate {
-              title, template, credential, stackTemplate
+              template: templateContent, templateDetails
+              credential, stackTemplate, title
             }, (err, _stackTemplate) ->
               return  if showError err
 
-              callback {
-                stackTemplate: _stackTemplate, credential, provider
-              }
+              data.stackTemplate = _stackTemplate
+              callback data
 
       return container
 
