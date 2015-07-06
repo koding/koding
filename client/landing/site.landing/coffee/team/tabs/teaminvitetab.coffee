@@ -8,11 +8,10 @@ module.exports = class TeamInviteTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'invite'
-
     super options, data
 
     { mainController } = KD.singletons
+    name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -20,7 +19,7 @@ module.exports = class TeamInviteTab extends KDTabPaneView
 
     @form = new TeamInviteTabForm
       callback: (formData) ->
-        KD.utils.storeNewTeamData 'invitees', formData
+        KD.utils.storeNewTeamData name, formData
         KD.singletons.router.handleRoute '/Team/Username'
 
   pistachio: ->

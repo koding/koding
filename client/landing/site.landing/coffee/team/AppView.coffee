@@ -31,4 +31,4 @@ module.exports = class TeamView extends KDView
 
     if tab = @tabView.getPaneByName step
     then @tabView.showPane tab
-    else @tabView.addPane new TABS[step] { query }
+    else @tabView.addPane new TABS[step] { query, name : step }

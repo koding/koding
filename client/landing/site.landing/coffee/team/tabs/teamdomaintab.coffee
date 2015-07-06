@@ -8,11 +8,10 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'domain'
-
     super options, data
 
     { mainController } = KD.singletons
+    name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -20,8 +19,8 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
     @form = new TeamDomainTabForm
       callback: (formData) ->
-        KD.utils.storeNewTeamData 'domain', formData
         KD.singletons.router.handleRoute '/Team/Email-domains'
+            KD.utils.storeNewTeamData name, formData
 
 
   pistachio: ->

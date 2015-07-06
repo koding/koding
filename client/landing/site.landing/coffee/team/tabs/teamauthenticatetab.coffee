@@ -8,8 +8,6 @@ module.exports = class TeamAuthenticateTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'authenticate'
-
     super options, data
 
     { mainController } = KD.singletons
