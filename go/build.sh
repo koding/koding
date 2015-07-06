@@ -78,6 +78,7 @@ cp bin/broker build/broker/broker
 terraformservices=(
   github.com/hashicorp/terraform/builtin/bins/provider-aws
   github.com/hashicorp/terraform/builtin/bins/provider-terraform
+  github.com/koding/terraform-provider-github/cmd/provider-github
 
   github.com/hashicorp/terraform/builtin/bins/provisioner-file
   github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
