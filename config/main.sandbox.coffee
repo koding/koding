@@ -668,7 +668,7 @@ Configuration = (options={}) ->
         websocket       : yes
         locations       : [
           {
-            location    : "/(.*)"
+            location    : "~ /(.*)"
             proxyPass   : "http://tunnelserver/$1"
           }
         ]
