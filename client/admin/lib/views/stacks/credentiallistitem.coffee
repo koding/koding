@@ -43,9 +43,6 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
     @warningView = new kd.CustomHTMLView
       cssClass : 'warning-message hidden'
-      partial  : "We couldn't verify these credentials, please check the
-                  ones you used or add new credentials to be able to continue
-                  to the next step."
 
 
   setVerified: (state, reason) ->
@@ -53,11 +50,15 @@ module.exports = class CredentialListItem extends kd.ListItemView
     if state
       @warningView.hide()
       @getDelegate().emit 'ItemSelected', @getData()
-      return
+    else
+      @warningView.updatePartial if reason
+        "Failed to verify: #{reason}"
+      else
+        "We couldn't verify this credential, please check the ones you
+         used or add a new credential to be able to continue to the
+         next step."
 
-    @warningView.show()
-
-    console.warn 'Failed to verify:', reason  if reason
+      @warningView.show()
 
 
   verifyCredential: ->
