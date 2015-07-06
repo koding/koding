@@ -10,7 +10,9 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
 
     super options, data
 
-    @addCustomData 'username', KD.utils.getTeamData().signup.email
+    { username, email } = KD.utils.getTeamData().signup
+
+    @addCustomData 'username', email or username
     @password = new KDInputView
       type          : 'password'
       name          : 'password'
