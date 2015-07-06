@@ -187,7 +187,7 @@ module.exports = class HomeView extends KDView
         <article>
           <h1>#{@imageSets[1][0].getOption 'slogan'}</h1>
           <h2>
-            Develop in Go, Python, Node, Ruby, PHP, etc or play with Docker, Wordpress, Django, Laravel or create Android, IOS/iPhone, HTML5 apps. All for FREE!
+            Develop in Go, Python, Node, Ruby, PHP, etc or play with Docker, WordPress, Django, Laravel or create Android, IOS/iPhone, HTML5 apps. All for FREE!
           </h2>
         </article>
       </div>
