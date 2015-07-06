@@ -37,7 +37,9 @@ module.exports = class Tracker
 
 
   @identify = (userId, traits={}) ->
+    userId = forcedRecipient or userId
     traits = @addDefaults traits
+
     analytics.identify {userId, traits}
 
     # force flush so identify call doesn't sit in queue, while events
