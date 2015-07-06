@@ -7,7 +7,9 @@ querystring = require 'querystring'
 generateRandomString = (length = 20) -> hat().slice(32 - length)
 
 
-generateRandomEmail = -> "testuser+#{generateRandomString()}@koding.com"
+generateRandomEmail = (domain = 'koding.com') ->
+
+  return "testuser+#{generateRandomString()}@#{domain}"
 
 
 generateRandomUsername = -> generateRandomString()
@@ -224,6 +226,7 @@ class TeamHandlerHelper
   @generateCreateTeamRequestBody = (opts = {}) ->
 
     username    = generateRandomUsername()
+    invitees    = "#{generateRandomEmail('koding.com')},#{generateRandomEmail('gmail.com')}"
     companyName = "testcompany#{generateRandomString(10)}"
 
     defaultBodyObject =
@@ -231,8 +234,8 @@ class TeamHandlerHelper
       email          :  generateRandomEmail()
       agree          :  'on'
       allow          :  'true'
-      domains        :  'koding.com, kd.io'
-      invitees       :  'test@koding.com,test@test.com,'
+      domains        :  'koding.com, gmail.com'
+      invitees       :  invitees
       redirect       :  ''
       username       :  username
       password       :  'testpass'
