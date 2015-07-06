@@ -2,11 +2,7 @@ package main
 
 import (
 	"fmt"
-	"socialapi/config"
-	"socialapi/workers/common/handler"
-	"socialapi/workers/common/mux"
 
-	"github.com/koding/integration"
 	"github.com/koding/runner"
 )
 
@@ -22,37 +18,37 @@ func main() {
 	}
 	defer r.Close()
 
-	appConfig := config.MustRead(r.Conf.Path)
-	workerConfig := appConfig.WebhookMiddleware
-	mc := mux.NewConfig(Name, workerConfig.Host, workerConfig.Port)
-	m := mux.New(mc, r.Log, r.Metrics)
-	path := appConfig.CustomDomain.Local
+	// appConfig := config.MustRead(r.Conf.Path)
+	// workerConfig := appConfig.WebhookMiddleware
+	// mc := mux.NewConfig(Name, workerConfig.Host, workerConfig.Port)
+	// m := mux.New(mc, r.Log, r.Metrics)
+	// path := appConfig.CustomDomain.Local
 
-	h := integration.NewHandler(r.Log, path)
+	// h := integration.NewHandler(r.Log, path)
 
-	if r.Conf.Environment == "dev" || r.Conf.Environment == "test" {
-		h.RootPath =
-			fmt.Sprintf("http://%s:%s", appConfig.Integration.Host,
-				appConfig.Integration.Port)
-	}
+	// if r.Conf.Environment == "dev" || r.Conf.Environment == "test" {
+	// 	h.RootPath =
+	// 		fmt.Sprintf("http://%s:%s", appConfig.Integration.Host,
+	// 			appConfig.Integration.Port)
+	// }
 
-	addHandlers(m, h)
+	// addHandlers(m, h)
 
 	go r.Listen()
 
-	m.Listen()
-	r.ShutdownHandler = m.Close
+	// m.Listen()
+	// r.ShutdownHandler = m.Close
 
 	r.Wait()
 }
 
-func addHandlers(m *mux.Mux, h *integration.Handler) {
-	m.AddSessionlessHandler(
-		handler.Request{
-			Handler:  h.Push,
-			Name:     "webhook-middleware-push",
-			Type:     handler.PostRequest,
-			Endpoint: "/push/{name}/{token}",
-		},
-	)
-}
+// func addHandlers(m *mux.Mux, h *integration.Handler) {
+// 	m.AddSessionlessHandler(
+// 		handler.Request{
+// 			Handler:  h.Push,
+// 			Name:     "webhook-middleware-push",
+// 			Type:     handler.PostRequest,
+// 			Endpoint: "/push/{name}/{token}",
+// 		},
+// 	)
+// }
