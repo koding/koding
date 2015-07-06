@@ -6,15 +6,19 @@
 package github
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 var (
@@ -38,7 +42,9 @@ func setup() {
 
 	// github client configured to use test server
 	client = NewClient(nil)
-	client.BaseURL, _ = url.Parse(server.URL)
+	url, _ := url.Parse(server.URL)
+	client.BaseURL = url
+	client.UploadURL = url
 }
 
 // teardown closes the test HTTP server.
@@ -46,19 +52,56 @@ func teardown() {
 	server.Close()
 }
 
+// openTestFile creates a new file with the given name and content for testing.
+// In order to ensure the exact file name, this function will create a new temp
+// directory, and create the file in that directory.  It is the caller's
+// responsibility to remove the directy and its contents when no longer needed.
+func openTestFile(name, content string) (file *os.File, dir string, err error) {
+	dir, err = ioutil.TempDir("", "go-github")
+	if err != nil {
+		return nil, dir, err
+	}
+
+	file, err = os.OpenFile(path.Join(dir, name), os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		return nil, dir, err
+	}
+
+	fmt.Fprint(file, content)
+
+	// close and re-open the file to keep file.Stat() happy
+	file.Close()
+	file, err = os.Open(file.Name())
+	if err != nil {
+		return nil, dir, err
+	}
+
+	return file, dir, err
+}
+
 func testMethod(t *testing.T, r *http.Request, want string) {
-	if want != r.Method {
-		t.Errorf("Request method = %v, want %v", r.Method, want)
+	if got := r.Method; got != want {
+		t.Errorf("Request method: %v, want %v", got, want)
 	}
 }
 
 type values map[string]string
 
 func testFormValues(t *testing.T, r *http.Request, values values) {
-	for key, want := range values {
-		if v := r.FormValue(key); v != want {
-			t.Errorf("Request parameter %v = %v, want %v", key, v, want)
-		}
+	want := url.Values{}
+	for k, v := range values {
+		want.Add(k, v)
+	}
+
+	r.ParseForm()
+	if got := r.Form; !reflect.DeepEqual(got, want) {
+		t.Errorf("Request parameters: %v, want %v", got, want)
+	}
+}
+
+func testHeader(t *testing.T, r *http.Request, header string, want string) {
+	if got := r.Header.Get(header); got != want {
+		t.Errorf("Header.Get(%q) returned %s, want %s", header, got, want)
 	}
 }
 
@@ -71,14 +114,52 @@ func testURLParseError(t *testing.T, err error) {
 	}
 }
 
+func testBody(t *testing.T, r *http.Request, want string) {
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		t.Errorf("Error reading request body: %v", err)
+	}
+	if got := string(b); got != want {
+		t.Errorf("request Body is %s, want %s", got, want)
+	}
+}
+
+// Helper function to test that a value is marshalled to JSON as expected.
+func testJSONMarshal(t *testing.T, v interface{}, want string) {
+	j, err := json.Marshal(v)
+	if err != nil {
+		t.Errorf("Unable to marshal JSON for %v", v)
+	}
+
+	w := new(bytes.Buffer)
+	err = json.Compact(w, []byte(want))
+	if err != nil {
+		t.Errorf("String is not valid json: %s", want)
+	}
+
+	if w.String() != string(j) {
+		t.Errorf("json.Marshal(%q) returned %s, want %s", v, j, w)
+	}
+
+	// now go the other direction and make sure things unmarshal as expected
+	u := reflect.ValueOf(v).Interface()
+	if err := json.Unmarshal([]byte(want), u); err != nil {
+		t.Errorf("Unable to unmarshal JSON for %v", want)
+	}
+
+	if !reflect.DeepEqual(v, u) {
+		t.Errorf("json.Unmarshal(%q) returned %s, want %s", want, u, v)
+	}
+}
+
 func TestNewClient(t *testing.T) {
 	c := NewClient(nil)
 
-	if c.BaseURL.String() != defaultBaseURL {
-		t.Errorf("NewClient BaseURL = %v, want %v", c.BaseURL.String(), defaultBaseURL)
+	if got, want := c.BaseURL.String(), defaultBaseURL; got != want {
+		t.Errorf("NewClient BaseURL is %v, want %v", got, want)
 	}
-	if c.UserAgent != userAgent {
-		t.Errorf("NewClient UserAgent = %v, want %v", c.UserAgent, userAgent)
+	if got, want := c.UserAgent, userAgent; got != want {
+		t.Errorf("NewClient UserAgent is %v, want %v", got, want)
 	}
 }
 
@@ -86,24 +167,23 @@ func TestNewRequest(t *testing.T) {
 	c := NewClient(nil)
 
 	inURL, outURL := "/foo", defaultBaseURL+"foo"
-	inBody, outBody := &User{Login: "l"}, `{"login":"l"}`+"\n"
+	inBody, outBody := &User{Login: String("l")}, `{"login":"l"}`+"\n"
 	req, _ := c.NewRequest("GET", inURL, inBody)
 
 	// test that relative URL was expanded
-	if req.URL.String() != outURL {
-		t.Errorf("NewRequest(%v) URL = %v, want %v", inURL, req.URL, outURL)
+	if got, want := req.URL.String(), outURL; got != want {
+		t.Errorf("NewRequest(%q) URL is %v, want %v", inURL, got, want)
 	}
 
 	// test that body was JSON encoded
 	body, _ := ioutil.ReadAll(req.Body)
-	if string(body) != outBody {
-		t.Errorf("NewRequest(%v) Body = %v, want %v", inBody, string(body), outBody)
+	if got, want := string(body), outBody; got != want {
+		t.Errorf("NewRequest(%q) Body is %v, want %v", inBody, got, want)
 	}
 
 	// test that default user-agent is attached to the request
-	userAgent := req.Header.Get("User-Agent")
-	if c.UserAgent != userAgent {
-		t.Errorf("NewRequest() User-Agent = %v, want %v", userAgent, c.UserAgent)
+	if got, want := req.Header.Get("User-Agent"), c.UserAgent; got != want {
+		t.Errorf("NewRequest() User-Agent is %v, want %v", got, want)
 	}
 }
 
@@ -127,6 +207,102 @@ func TestNewRequest_badURL(t *testing.T) {
 	c := NewClient(nil)
 	_, err := c.NewRequest("GET", ":", nil)
 	testURLParseError(t, err)
+}
+
+// ensure that no User-Agent header is set if the client's UserAgent is empty.
+// This caused a problem with Google's internal http client.
+func TestNewRequest_emptyUserAgent(t *testing.T) {
+	c := NewClient(nil)
+	c.UserAgent = ""
+	req, err := c.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatalf("NewRequest returned unexpected error: %v", err)
+	}
+	if _, ok := req.Header["User-Agent"]; ok {
+		t.Fatal("constructed request contains unexpected User-Agent header")
+	}
+}
+
+// If a nil body is passed to github.NewRequest, make sure that nil is also
+// passed to http.NewRequest.  In most cases, passing an io.Reader that returns
+// no content is fine, since there is no difference between an HTTP request
+// body that is an empty string versus one that is not set at all.  However in
+// certain cases, intermediate systems may treat these differently resulting in
+// subtle errors.
+func TestNewRequest_emptyBody(t *testing.T) {
+	c := NewClient(nil)
+	req, err := c.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatalf("NewRequest returned unexpected error: %v", err)
+	}
+	if req.Body != nil {
+		t.Fatalf("constructed request contains a non-nil Body")
+	}
+}
+
+func TestResponse_populatePageValues(t *testing.T) {
+	r := http.Response{
+		Header: http.Header{
+			"Link": {`<https://api.github.com/?page=1>; rel="first",` +
+				` <https://api.github.com/?page=2>; rel="prev",` +
+				` <https://api.github.com/?page=4>; rel="next",` +
+				` <https://api.github.com/?page=5>; rel="last"`,
+			},
+		},
+	}
+
+	response := newResponse(&r)
+	if got, want := response.FirstPage, 1; got != want {
+		t.Errorf("response.FirstPage: %v, want %v", got, want)
+	}
+	if got, want := response.PrevPage, 2; want != got {
+		t.Errorf("response.PrevPage: %v, want %v", got, want)
+	}
+	if got, want := response.NextPage, 4; want != got {
+		t.Errorf("response.NextPage: %v, want %v", got, want)
+	}
+	if got, want := response.LastPage, 5; want != got {
+		t.Errorf("response.LastPage: %v, want %v", got, want)
+	}
+}
+
+func TestResponse_populatePageValues_invalid(t *testing.T) {
+	r := http.Response{
+		Header: http.Header{
+			"Link": {`<https://api.github.com/?page=1>,` +
+				`<https://api.github.com/?page=abc>; rel="first",` +
+				`https://api.github.com/?page=2; rel="prev",` +
+				`<https://api.github.com/>; rel="next",` +
+				`<https://api.github.com/?page=>; rel="last"`,
+			},
+		},
+	}
+
+	response := newResponse(&r)
+	if got, want := response.FirstPage, 0; got != want {
+		t.Errorf("response.FirstPage: %v, want %v", got, want)
+	}
+	if got, want := response.PrevPage, 0; got != want {
+		t.Errorf("response.PrevPage: %v, want %v", got, want)
+	}
+	if got, want := response.NextPage, 0; got != want {
+		t.Errorf("response.NextPage: %v, want %v", got, want)
+	}
+	if got, want := response.LastPage, 0; got != want {
+		t.Errorf("response.LastPage: %v, want %v", got, want)
+	}
+
+	// more invalid URLs
+	r = http.Response{
+		Header: http.Header{
+			"Link": {`<https://api.github.com/%?page=2>; rel="first"`},
+		},
+	}
+
+	response = newResponse(&r)
+	if got, want := response.FirstPage, 0; got != want {
+		t.Errorf("response.FirstPage: %v, want %v", got, want)
+	}
 }
 
 func TestDo(t *testing.T) {
@@ -199,28 +375,35 @@ func TestDo_rateLimit(t *testing.T) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(headerRateLimit, "60")
 		w.Header().Add(headerRateRemaining, "59")
+		w.Header().Add(headerRateReset, "1372700873")
 	})
 
-	var want int
-
-	if want = 0; client.Rate.Limit != want {
-		t.Errorf("Client rate limit = %v, want %v", client.Rate.Limit, want)
+	if got, want := client.Rate.Limit, 0; got != want {
+		t.Errorf("Client rate limit = %v, want %v", got, want)
 	}
-	if want = 0; client.Rate.Limit != want {
-		t.Errorf("Client rate remaining, got %v", client.Rate.Remaining, want)
+	if got, want := client.Rate.Limit, 0; got != want {
+		t.Errorf("Client rate remaining = %v, got %v", got, want)
+	}
+	if !client.Rate.Reset.IsZero() {
+		t.Errorf("Client rate reset not initialized to zero value")
 	}
 
 	req, _ := client.NewRequest("GET", "/", nil)
 	client.Do(req, nil)
 
-	if want = 60; client.Rate.Limit != want {
-		t.Errorf("Client rate limit = %v, want %v", client.Rate.Limit, want)
+	if got, want := client.Rate.Limit, 60; got != want {
+		t.Errorf("Client rate limit = %v, want %v", got, want)
 	}
-	if want = 59; client.Rate.Remaining != want {
-		t.Errorf("Client rate remaining = %v, want %v", client.Rate.Remaining, want)
+	if got, want := client.Rate.Remaining, 59; got != want {
+		t.Errorf("Client rate remaining = %v, want %v", got, want)
+	}
+	reset := time.Date(2013, 7, 1, 17, 47, 53, 0, time.UTC)
+	if client.Rate.Reset.UTC() != reset {
+		t.Errorf("Client rate reset = %v, want %v", client.Rate.Reset, reset)
 	}
 }
 
+// ensure rate limit is still parsed, even for error responses
 func TestDo_rateLimit_errorResponse(t *testing.T) {
 	setup()
 	defer teardown()
@@ -228,19 +411,41 @@ func TestDo_rateLimit_errorResponse(t *testing.T) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(headerRateLimit, "60")
 		w.Header().Add(headerRateRemaining, "59")
+		w.Header().Add(headerRateReset, "1372700873")
 		http.Error(w, "Bad Request", 400)
 	})
-
-	var want int
 
 	req, _ := client.NewRequest("GET", "/", nil)
 	client.Do(req, nil)
 
-	if want = 60; client.Rate.Limit != want {
-		t.Errorf("Client rate limit = %v, want %v", client.Rate.Limit, want)
+	if got, want := client.Rate.Limit, 60; got != want {
+		t.Errorf("Client rate limit = %v, want %v", got, want)
 	}
-	if want = 59; client.Rate.Remaining != want {
-		t.Errorf("Client rate remaining = %v, want %v", client.Rate.Remaining, want)
+	if got, want := client.Rate.Remaining, 59; got != want {
+		t.Errorf("Client rate remaining = %v, want %v", got, want)
+	}
+	reset := time.Date(2013, 7, 1, 17, 47, 53, 0, time.UTC)
+	if client.Rate.Reset.UTC() != reset {
+		t.Errorf("Client rate reset = %v, want %v", client.Rate.Reset, reset)
+	}
+}
+
+func TestSanitizeURL(t *testing.T) {
+	tests := []struct {
+		in, want string
+	}{
+		{"/?a=b", "/?a=b"},
+		{"/?a=b&client_secret=secret", "/?a=b&client_secret=REDACTED"},
+		{"/?a=b&client_id=id&client_secret=secret", "/?a=b&client_id=id&client_secret=REDACTED"},
+	}
+
+	for _, tt := range tests {
+		inURL, _ := url.Parse(tt.in)
+		want, _ := url.Parse(tt.want)
+
+		if got := sanitizeURL(inURL); !reflect.DeepEqual(got, want) {
+			t.Errorf("sanitizeURL(%v) returned %v, want %v", tt.in, got, want)
+		}
 	}
 }
 
@@ -260,15 +465,14 @@ func TestCheckResponse(t *testing.T) {
 	want := &ErrorResponse{
 		Response: res,
 		Message:  "m",
-		Errors:   []Error{Error{Resource: "r", Field: "f", Code: "c"}},
+		Errors:   []Error{{Resource: "r", Field: "f", Code: "c"}},
 	}
 	if !reflect.DeepEqual(err, want) {
 		t.Errorf("Error = %#v, want %#v", err, want)
 	}
 }
 
-// ensure that we properly handle API errors that do not contain a response
-// body
+// ensure that we properly handle API errors that do not contain a response body
 func TestCheckResponse_noBody(t *testing.T) {
 	res := &http.Response{
 		Request:    &http.Request{},
@@ -350,17 +554,61 @@ func TestRateLimit(t *testing.T) {
 		if m := "GET"; m != r.Method {
 			t.Errorf("Request method = %v, want %v", r.Method, m)
 		}
-		fmt.Fprint(w, `{"rate":{"limit":2,"remaining":1}}`)
+		//fmt.Fprint(w, `{"resources":{"core": {"limit":2,"remaining":1,"reset":1372700873}}}`)
+		fmt.Fprint(w, `{"resources":{
+			"core": {"limit":2,"remaining":1,"reset":1372700873},
+			"search": {"limit":3,"remaining":2,"reset":1372700874}
+		}}`)
 	})
 
-	rate, err := client.RateLimit()
+	rate, _, err := client.RateLimit()
 	if err != nil {
 		t.Errorf("Rate limit returned error: %v", err)
 	}
 
-	want := &Rate{Limit: 2, Remaining: 1}
+	want := &Rate{
+		Limit:     2,
+		Remaining: 1,
+		Reset:     Timestamp{time.Date(2013, 7, 1, 17, 47, 53, 0, time.UTC).Local()},
+	}
 	if !reflect.DeepEqual(rate, want) {
 		t.Errorf("RateLimit returned %+v, want %+v", rate, want)
+	}
+}
+
+func TestRateLimits(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/rate_limit", func(w http.ResponseWriter, r *http.Request) {
+		if m := "GET"; m != r.Method {
+			t.Errorf("Request method = %v, want %v", r.Method, m)
+		}
+		fmt.Fprint(w, `{"resources":{
+			"core": {"limit":2,"remaining":1,"reset":1372700873},
+			"search": {"limit":3,"remaining":2,"reset":1372700874}
+		}}`)
+	})
+
+	rate, _, err := client.RateLimits()
+	if err != nil {
+		t.Errorf("RateLimits returned error: %v", err)
+	}
+
+	want := &RateLimits{
+		Core: &Rate{
+			Limit:     2,
+			Remaining: 1,
+			Reset:     Timestamp{time.Date(2013, 7, 1, 17, 47, 53, 0, time.UTC).Local()},
+		},
+		Search: &Rate{
+			Limit:     3,
+			Remaining: 2,
+			Reset:     Timestamp{time.Date(2013, 7, 1, 17, 47, 54, 0, time.UTC).Local()},
+		},
+	}
+	if !reflect.DeepEqual(rate, want) {
+		t.Errorf("RateLimits returned %+v, want %+v", rate, want)
 	}
 }
 

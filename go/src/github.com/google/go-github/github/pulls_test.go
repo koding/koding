@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestPullRequestsService_List(t *testing.T) {
@@ -21,28 +20,31 @@ func TestPullRequestsService_List(t *testing.T) {
 	mux.HandleFunc("/repos/o/r/pulls", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
-			"state": "closed",
-			"head":  "h",
-			"base":  "b",
+			"state":     "closed",
+			"head":      "h",
+			"base":      "b",
+			"sort":      "created",
+			"direction": "desc",
+			"page":      "2",
 		})
 		fmt.Fprint(w, `[{"number":1}]`)
 	})
 
-	opt := &PullRequestListOptions{"closed", "h", "b"}
-	pulls, err := client.PullRequests.List("o", "r", opt)
+	opt := &PullRequestListOptions{"closed", "h", "b", "created", "desc", ListOptions{Page: 2}}
+	pulls, _, err := client.PullRequests.List("o", "r", opt)
 
 	if err != nil {
 		t.Errorf("PullRequests.List returned error: %v", err)
 	}
 
-	want := []PullRequest{PullRequest{Number: 1}}
+	want := []PullRequest{{Number: Int(1)}}
 	if !reflect.DeepEqual(pulls, want) {
 		t.Errorf("PullRequests.List returned %+v, want %+v", pulls, want)
 	}
 }
 
 func TestPullRequestsService_List_invalidOwner(t *testing.T) {
-	_, err := client.PullRequests.List("%", "r", nil)
+	_, _, err := client.PullRequests.List("%", "r", nil)
 	testURLParseError(t, err)
 }
 
@@ -55,20 +57,74 @@ func TestPullRequestsService_Get(t *testing.T) {
 		fmt.Fprint(w, `{"number":1}`)
 	})
 
-	pull, err := client.PullRequests.Get("o", "r", 1)
+	pull, _, err := client.PullRequests.Get("o", "r", 1)
 
 	if err != nil {
 		t.Errorf("PullRequests.Get returned error: %v", err)
 	}
 
-	want := &PullRequest{Number: 1}
+	want := &PullRequest{Number: Int(1)}
+	if !reflect.DeepEqual(pull, want) {
+		t.Errorf("PullRequests.Get returned %+v, want %+v", pull, want)
+	}
+}
+
+func TestPullRequestsService_Get_headAndBase(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/repos/o/r/pulls/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, `{"number":1,"head":{"ref":"r2","repo":{"id":2}},"base":{"ref":"r1","repo":{"id":1}}}`)
+	})
+
+	pull, _, err := client.PullRequests.Get("o", "r", 1)
+
+	if err != nil {
+		t.Errorf("PullRequests.Get returned error: %v", err)
+	}
+
+	want := &PullRequest{
+		Number: Int(1),
+		Head: &PullRequestBranch{
+			Ref:  String("r2"),
+			Repo: &Repository{ID: Int(2)},
+		},
+		Base: &PullRequestBranch{
+			Ref:  String("r1"),
+			Repo: &Repository{ID: Int(1)},
+		},
+	}
+	if !reflect.DeepEqual(pull, want) {
+		t.Errorf("PullRequests.Get returned %+v, want %+v", pull, want)
+	}
+}
+
+func TestPullRequestService_Get_DiffURLAndPatchURL(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/repos/o/r/pulls/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, `{"number":1, 
+			"diff_url": "https://github.com/octocat/Hello-World/pull/1347.diff", 
+			"patch_url": "https://github.com/octocat/Hello-World/pull/1347.patch"}`)
+	})
+
+	pull, _, err := client.PullRequests.Get("o", "r", 1)
+
+	if err != nil {
+		t.Errorf("PullRequests.Get returned error: %v", err)
+	}
+
+	want := &PullRequest{Number: Int(1), DiffURL: String("https://github.com/octocat/Hello-World/pull/1347.diff"), PatchURL: String("https://github.com/octocat/Hello-World/pull/1347.patch")}
 	if !reflect.DeepEqual(pull, want) {
 		t.Errorf("PullRequests.Get returned %+v, want %+v", pull, want)
 	}
 }
 
 func TestPullRequestsService_Get_invalidOwner(t *testing.T) {
-	_, err := client.PullRequests.Get("%", "r", 1)
+	_, _, err := client.PullRequests.Get("%", "r", 1)
 	testURLParseError(t, err)
 }
 
@@ -76,10 +132,10 @@ func TestPullRequestsService_Create(t *testing.T) {
 	setup()
 	defer teardown()
 
-	input := &PullRequest{Title: "t"}
+	input := &NewPullRequest{Title: String("t")}
 
 	mux.HandleFunc("/repos/o/r/pulls", func(w http.ResponseWriter, r *http.Request) {
-		v := new(PullRequest)
+		v := new(NewPullRequest)
 		json.NewDecoder(r.Body).Decode(v)
 
 		testMethod(t, r, "POST")
@@ -90,19 +146,19 @@ func TestPullRequestsService_Create(t *testing.T) {
 		fmt.Fprint(w, `{"number":1}`)
 	})
 
-	pull, err := client.PullRequests.Create("o", "r", input)
+	pull, _, err := client.PullRequests.Create("o", "r", input)
 	if err != nil {
 		t.Errorf("PullRequests.Create returned error: %v", err)
 	}
 
-	want := &PullRequest{Number: 1}
+	want := &PullRequest{Number: Int(1)}
 	if !reflect.DeepEqual(pull, want) {
 		t.Errorf("PullRequests.Create returned %+v, want %+v", pull, want)
 	}
 }
 
 func TestPullRequestsService_Create_invalidOwner(t *testing.T) {
-	_, err := client.PullRequests.Create("%", "r", nil)
+	_, _, err := client.PullRequests.Create("%", "r", nil)
 	testURLParseError(t, err)
 }
 
@@ -110,7 +166,7 @@ func TestPullRequestsService_Edit(t *testing.T) {
 	setup()
 	defer teardown()
 
-	input := &PullRequest{Title: "t"}
+	input := &PullRequest{Title: String("t")}
 
 	mux.HandleFunc("/repos/o/r/pulls/1", func(w http.ResponseWriter, r *http.Request) {
 		v := new(PullRequest)
@@ -124,188 +180,186 @@ func TestPullRequestsService_Edit(t *testing.T) {
 		fmt.Fprint(w, `{"number":1}`)
 	})
 
-	pull, err := client.PullRequests.Edit("o", "r", 1, input)
+	pull, _, err := client.PullRequests.Edit("o", "r", 1, input)
 	if err != nil {
 		t.Errorf("PullRequests.Edit returned error: %v", err)
 	}
 
-	want := &PullRequest{Number: 1}
+	want := &PullRequest{Number: Int(1)}
 	if !reflect.DeepEqual(pull, want) {
 		t.Errorf("PullRequests.Edit returned %+v, want %+v", pull, want)
 	}
 }
 
 func TestPullRequestsService_Edit_invalidOwner(t *testing.T) {
-	_, err := client.PullRequests.Edit("%", "r", 1, nil)
+	_, _, err := client.PullRequests.Edit("%", "r", 1, nil)
 	testURLParseError(t, err)
 }
 
-func TestPullRequestsService_ListComments_allPulls(t *testing.T) {
+func TestPullRequestsService_ListCommits(t *testing.T) {
 	setup()
 	defer teardown()
 
-	mux.HandleFunc("/repos/o/r/pulls/comments", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/repos/o/r/pulls/1/commits", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		testFormValues(t, r, values{
-			"sort":      "updated",
-			"direction": "desc",
-			"since":     "2002-02-10T15:30:00Z",
-		})
-		fmt.Fprint(w, `[{"id":1}]`)
+		testFormValues(t, r, values{"page": "2"})
+		fmt.Fprint(w, `
+			[
+			  {
+			    "sha": "3",
+			    "parents": [
+			      {
+			        "sha": "2"
+			      }
+			    ]
+			  },
+			  {
+			    "sha": "2",
+			    "parents": [
+			      {
+			        "sha": "1"
+			      }
+			    ]
+			  }
+			]`)
 	})
 
-	opt := &PullRequestListCommentsOptions{"updated", "desc",
-		time.Date(2002, time.February, 10, 15, 30, 0, 0, time.UTC),
-	}
-	pulls, err := client.PullRequests.ListComments("o", "r", 0, opt)
-
+	opt := &ListOptions{Page: 2}
+	commits, _, err := client.PullRequests.ListCommits("o", "r", 1, opt)
 	if err != nil {
-		t.Errorf("PullRequests.ListComments returned error: %v", err)
+		t.Errorf("PullRequests.ListCommits returned error: %v", err)
 	}
 
-	want := []PullRequestComment{PullRequestComment{ID: 1}}
-	if !reflect.DeepEqual(pulls, want) {
-		t.Errorf("PullRequests.ListComments returned %+v, want %+v", pulls, want)
+	want := []RepositoryCommit{
+		{
+			SHA: String("3"),
+			Parents: []Commit{
+				{
+					SHA: String("2"),
+				},
+			},
+		},
+		{
+			SHA: String("2"),
+			Parents: []Commit{
+				{
+					SHA: String("1"),
+				},
+			},
+		},
+	}
+	if !reflect.DeepEqual(commits, want) {
+		t.Errorf("PullRequests.ListCommits returned %+v, want %+v", commits, want)
 	}
 }
 
-func TestPullRequestsService_ListComments_specificPull(t *testing.T) {
+func TestPullRequestsService_ListFiles(t *testing.T) {
 	setup()
 	defer teardown()
 
-	mux.HandleFunc("/repos/o/r/pulls/1/comments", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/repos/o/r/pulls/1/files", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, `[{"id":1}]`)
+		testFormValues(t, r, values{"page": "2"})
+		fmt.Fprint(w, `
+			[
+			  {
+			    "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+			    "filename": "file1.txt",
+			    "status": "added",
+			    "additions": 103,
+			    "deletions": 21,
+			    "changes": 124,
+			    "patch": "@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@ module Test"
+			  },
+			  {
+			    "sha": "f61aebed695e2e4193db5e6dcb09b5b57875f334",
+			    "filename": "file2.txt",
+			    "status": "modified",
+			    "additions": 5,
+			    "deletions": 3,
+			    "changes": 103,
+			    "patch": "@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@ module Test"
+			  }
+			]`)
 	})
 
-	pulls, err := client.PullRequests.ListComments("o", "r", 1, nil)
-
+	opt := &ListOptions{Page: 2}
+	commitFiles, _, err := client.PullRequests.ListFiles("o", "r", 1, opt)
 	if err != nil {
-		t.Errorf("PullRequests.ListComments returned error: %v", err)
+		t.Errorf("PullRequests.ListFiles returned error: %v", err)
 	}
 
-	want := []PullRequestComment{PullRequestComment{ID: 1}}
-	if !reflect.DeepEqual(pulls, want) {
-		t.Errorf("PullRequests.ListComments returned %+v, want %+v", pulls, want)
+	want := []CommitFile{
+		{
+			SHA:       String("6dcb09b5b57875f334f61aebed695e2e4193db5e"),
+			Filename:  String("file1.txt"),
+			Additions: Int(103),
+			Deletions: Int(21),
+			Changes:   Int(124),
+			Status:    String("added"),
+			Patch:     String("@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@ module Test"),
+		},
+		{
+			SHA:       String("f61aebed695e2e4193db5e6dcb09b5b57875f334"),
+			Filename:  String("file2.txt"),
+			Additions: Int(5),
+			Deletions: Int(3),
+			Changes:   Int(103),
+			Status:    String("modified"),
+			Patch:     String("@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@ module Test"),
+		},
+	}
+
+	if !reflect.DeepEqual(commitFiles, want) {
+		t.Errorf("PullRequests.ListFiles returned %+v, want %+v", commitFiles, want)
 	}
 }
 
-func TestPullRequestsService_ListComments_invalidOwner(t *testing.T) {
-	_, err := client.PullRequests.ListComments("%", "r", 1, nil)
-	testURLParseError(t, err)
-}
-
-func TestPullRequestsService_GetComment(t *testing.T) {
+func TestPullRequestsService_IsMerged(t *testing.T) {
 	setup()
 	defer teardown()
 
-	mux.HandleFunc("/repos/o/r/pulls/comments/1", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/repos/o/r/pulls/1/merge", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, `{"id":1}`)
+		w.WriteHeader(http.StatusNoContent)
 	})
 
-	comment, err := client.PullRequests.GetComment("o", "r", 1)
-
+	isMerged, _, err := client.PullRequests.IsMerged("o", "r", 1)
 	if err != nil {
-		t.Errorf("PullRequests.GetComment returned error: %v", err)
+		t.Errorf("PullRequests.IsMerged returned error: %v", err)
 	}
 
-	want := &PullRequestComment{ID: 1}
-	if !reflect.DeepEqual(comment, want) {
-		t.Errorf("PullRequests.GetComment returned %+v, want %+v", comment, want)
+	want := true
+	if !reflect.DeepEqual(isMerged, want) {
+		t.Errorf("PullRequests.IsMerged returned %+v, want %+v", isMerged, want)
 	}
 }
 
-func TestPullRequestsService_GetComment_invalidOwner(t *testing.T) {
-	_, err := client.PullRequests.GetComment("%", "r", 1)
-	testURLParseError(t, err)
-}
-
-func TestPullRequestsService_CreateComment(t *testing.T) {
+func TestPullRequestsService_Merge(t *testing.T) {
 	setup()
 	defer teardown()
 
-	input := &PullRequestComment{Body: "b"}
-
-	mux.HandleFunc("/repos/o/r/pulls/1/comments", func(w http.ResponseWriter, r *http.Request) {
-		v := new(PullRequestComment)
-		json.NewDecoder(r.Body).Decode(v)
-
-		testMethod(t, r, "POST")
-		if !reflect.DeepEqual(v, input) {
-			t.Errorf("Request body = %+v, want %+v", v, input)
-		}
-
-		fmt.Fprint(w, `{"id":1}`)
+	mux.HandleFunc("/repos/o/r/pulls/1/merge", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "PUT")
+		fmt.Fprint(w, `
+			{
+			  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+			  "merged": true,
+			  "message": "Pull Request successfully merged"
+			}`)
 	})
 
-	comment, err := client.PullRequests.CreateComment("o", "r", 1, input)
-
+	merge, _, err := client.PullRequests.Merge("o", "r", 1, "merging pull request")
 	if err != nil {
-		t.Errorf("PullRequests.CreateComment returned error: %v", err)
+		t.Errorf("PullRequests.Merge returned error: %v", err)
 	}
 
-	want := &PullRequestComment{ID: 1}
-	if !reflect.DeepEqual(comment, want) {
-		t.Errorf("PullRequests.CreateComment returned %+v, want %+v", comment, want)
+	want := &PullRequestMergeResult{
+		SHA:     String("6dcb09b5b57875f334f61aebed695e2e4193db5e"),
+		Merged:  Bool(true),
+		Message: String("Pull Request successfully merged"),
 	}
-}
-
-func TestPullRequestsService_CreateComment_invalidOwner(t *testing.T) {
-	_, err := client.PullRequests.CreateComment("%", "r", 1, nil)
-	testURLParseError(t, err)
-}
-
-func TestPullRequestsService_EditComment(t *testing.T) {
-	setup()
-	defer teardown()
-
-	input := &PullRequestComment{Body: "b"}
-
-	mux.HandleFunc("/repos/o/r/pulls/comments/1", func(w http.ResponseWriter, r *http.Request) {
-		v := new(PullRequestComment)
-		json.NewDecoder(r.Body).Decode(v)
-
-		testMethod(t, r, "PATCH")
-		if !reflect.DeepEqual(v, input) {
-			t.Errorf("Request body = %+v, want %+v", v, input)
-		}
-
-		fmt.Fprint(w, `{"id":1}`)
-	})
-
-	comment, err := client.PullRequests.EditComment("o", "r", 1, input)
-
-	if err != nil {
-		t.Errorf("PullRequests.EditComment returned error: %v", err)
+	if !reflect.DeepEqual(merge, want) {
+		t.Errorf("PullRequests.Merge returned %+v, want %+v", merge, want)
 	}
-
-	want := &PullRequestComment{ID: 1}
-	if !reflect.DeepEqual(comment, want) {
-		t.Errorf("PullRequests.EditComment returned %+v, want %+v", comment, want)
-	}
-}
-
-func TestPullRequestsService_EditComment_invalidOwner(t *testing.T) {
-	_, err := client.PullRequests.EditComment("%", "r", 1, nil)
-	testURLParseError(t, err)
-}
-
-func TestPullRequestsService_DeleteComment(t *testing.T) {
-	setup()
-	defer teardown()
-
-	mux.HandleFunc("/repos/o/r/pulls/comments/1", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "DELETE")
-	})
-
-	err := client.PullRequests.DeleteComment("o", "r", 1)
-	if err != nil {
-		t.Errorf("PullRequests.DeleteComment returned error: %v", err)
-	}
-}
-
-func TestPullRequestsService_DeleteComment_invalidOwner(t *testing.T) {
-	err := client.PullRequests.DeleteComment("%", "r", 1)
-	testURLParseError(t, err)
 }
