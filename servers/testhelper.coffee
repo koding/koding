@@ -191,6 +191,36 @@ class TeamHandlerHelper
     return requestParams
 
 
+  @generateGetTeamMembersRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      limit : '10'
+      token : ''
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateGetTeamMembersRequestParams = (opts = {}) ->
+
+    { groupSlug } = opts
+    delete opts.groupSlug
+
+    url  = generateUrl
+      route : "-/teams/#{groupSlug}/members"
+
+    body = TeamHandlerHelper.generateGetTeamMembersRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
   @generateCreateTeamRequestBody = (opts = {}) ->
 
     username    = generateRandomUsername()
@@ -268,6 +298,7 @@ class RegisterHandlerHelper
 
 
 module.exports = {
+  generateUrl
   TeamHandlerHelper
   generateRandomEmail
   generateRandomString
