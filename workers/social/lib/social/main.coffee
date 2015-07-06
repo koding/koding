@@ -122,8 +122,8 @@ koding.connect ->
       require './models/app'
     ]
 
-  Email = require "./models/email"
-  Email.setMqClient broker.connection
+  Tracker = require "./models/tracker"
+  Tracker.setMqClient broker.connection
 
 
 console.info "Koding Social Worker #{process.pid} has started."
