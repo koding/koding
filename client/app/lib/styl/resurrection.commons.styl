@@ -1966,7 +1966,21 @@ footer.main-footer
         margin-top      18px
         border-top      1px solid rgba(255,255,255,.05)
 
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)
+  .avatarview
+    cite.staff
+      border            none
+      margin            2px
+      rounded           0
+      size              17px 17px
 
+      &:before
+        content         ''
+        display         block
+        size            15px 15px
+        border          2px solid #fff
+        rounded         3px
+        abs             -1px 0 0 -1px
 
 // autocomplete base styling
 
