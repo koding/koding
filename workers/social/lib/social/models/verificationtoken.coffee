@@ -13,7 +13,7 @@ module.exports = class JVerificationToken extends Module
   {secure} = require 'bongo'
   crypto   = require 'crypto'
   hat      = require 'hat'
-  Email    = require './email'
+  Tracker  = require './tracker'
 
   @share()
 
@@ -46,7 +46,7 @@ module.exports = class JVerificationToken extends Module
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName, resendIfExists} = options
-    subject   or= Email.types.REQUEST_EMAIL_CHANGE
+    subject   or= Tracker.types.REQUEST_EMAIL_CHANGE
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
     firstName or= username
@@ -104,7 +104,7 @@ module.exports = class JVerificationToken extends Module
 
   sendEmail: ({subject, firstName, username, action}, callback)->
 
-    Email.queue username, {to:@email, subject}, {firstName, @pin, action}, callback
+    Tracker.track username, {to:@email, subject}, {firstName, @pin, action}, callback
 
 
   @invalidatePin = (options, callback)->

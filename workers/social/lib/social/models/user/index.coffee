@@ -21,8 +21,7 @@ module.exports = class JUser extends jraphical.Module
   JPaymentPlan         = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
   ComputeProvider      = require '../computeproviders/computeprovider'
-  Email                = require '../email'
-  Analytics            = require '../analytics'
+  Tracker              = require '../tracker'
 
   @bannedUserList = ['abrt','amykhailov','apache','about','visa','shared-',
                      'cthorn','daemon','dbus','dyasar','ec2-user','http',
@@ -726,7 +725,7 @@ module.exports = class JUser extends jraphical.Module
               JUser.clearOauthFromSession session, ->
                 callback null, { account, replacementToken, returnUrl: session.returnUrl }
 
-                Analytics.track username, 'logged in'
+                Tracker.track username, { subject : Tracker.types.LOGGED_IN }
 
 
   @logout = secure (client, callback)->
@@ -1286,13 +1285,13 @@ module.exports = class JUser extends jraphical.Module
         # uses 'HS256' as default for signing
         token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
 
-        Analytics.identify username, { jwtToken: token, email, pin }
+        Tracker.identify username, { jwtToken: token, email, pin }
         queue.next()
 
       ->
         {username, email} = user
-        subject           = Email.types.START_REGISTER
-        Email.queue username, { to : email, subject }, {}, ->
+        subject           = Tracker.types.START_REGISTER
+        Tracker.track username, { to : email, subject }, {}, ->
         queue.next()
 
       ->
@@ -1351,10 +1350,10 @@ module.exports = class JUser extends jraphical.Module
 
   sendChangedEmail = (username, firstName, to, type, callback) ->
 
-    subject = if type is 'email' then Email.types.CHANGED_EMAIL
-    else Email.types.CHANGED_PASSWORD
+    subject = if type is 'email' then Tracker.types.CHANGED_EMAIL
+    else Tracker.types.CHANGED_PASSWORD
 
-    Email.queue username, {to, subject}, {firstName}, callback
+    Tracker.track username, {to, subject}, {firstName}, callback
 
 
   @changeEmail = secure (client,options,callback)->
@@ -1501,7 +1500,7 @@ module.exports = class JUser extends jraphical.Module
 
       callback null
 
-      Analytics.track username, 'finished register'
+      Tracker.track username, { subject : Tracker.types.FINISH_REGISTER }
 
 
   block:(blockedUntil, callback)->
