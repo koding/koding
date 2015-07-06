@@ -444,16 +444,10 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		return nil, err
 	}
 
-	keys, ok := publickeys.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("public keys are not available")
-	}
-
 	ec2Data := &ec2.RunInstances{
 		ImageId:                  imageData.imageId,
 		MinCount:                 1,
 		MaxCount:                 1,
-		KeyName:                  keys.KeyName,
 		InstanceType:             m.Session.AWSClient.Builder.InstanceType,
 		AssociatePublicIpAddress: true,
 		SubnetId:                 subnet.SubnetId,
@@ -461,6 +455,12 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		AvailZone:                subnet.AvailabilityZone,
 		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
 		UserData:                 userdata,
+	}
+
+	// pass publicKey if only it's available
+	keys, ok := publickeys.FromContext(ctx)
+	if ok {
+		ec2Data.KeyName = keys.KeyName
 	}
 
 	return &BuildData{
