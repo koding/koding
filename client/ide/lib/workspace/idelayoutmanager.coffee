@@ -154,7 +154,7 @@ module.exports = class IDELayoutManager extends KDObject
     ideApp = @getDelegate()
 
     # if has the fake view
-    ideApp.mergeSplitView()  if ideApp.ideViews.length > 1
+    ideApp.mergeSplitView()  unless ideApp.fakeViewsDestroyed
 
     ideApp.splitTabView snapshot[1].direction  if snapshot[1]
 
@@ -162,6 +162,7 @@ module.exports = class IDELayoutManager extends KDObject
       tabView = ideApp.ideViews[index]?.tabView
       @resurrectPanes_ item.views, tabView
 
+    ideApp.recalculateHandles()
     ideApp.isLocalSnapshotRestored = yes
 
 
