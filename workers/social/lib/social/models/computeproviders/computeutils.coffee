@@ -12,6 +12,10 @@ PROVIDERS =
 
 PLANS          = require './plans'
 
+# When adding up the storage usage totals, the DEFAULT_STORAGE_USAGE is
+# the default value to add, if no storage is defined.
+DEFAULT_STORAGE_USAGE = 3
+
 reviveProvisioners = (client, provisioners, callback, revive = no)->
 
   if not revive or not provisioners or provisioners.length is 0
@@ -362,7 +366,7 @@ fetchUsage = (client, options, callback)->
 
       machines.forEach (machine)->
         alwaysOn++  if machine.meta?.alwaysOn
-        storage += machine.meta?.storage_size ? 3
+        storage += machine.meta?.storage_size ? DEFAULT_STORAGE_USAGE
 
       callback null, { total, alwaysOn, storage, snapshots }
 
