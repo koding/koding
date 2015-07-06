@@ -7,7 +7,7 @@ var Header = `
 
     <meta name="description"             content="{{.Description}}" />
     <meta name="author"                  content="Koding">
-    <meta name="keywords"                content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, Wordpress, Django, Programming, virtual machines">
+    <meta name="keywords"                content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, WordPress, Django, Programming, virtual machines">
 
     <!-- Schema.org for Google+ -->
     <meta itemprop="name"                content="{{.Title}}">
