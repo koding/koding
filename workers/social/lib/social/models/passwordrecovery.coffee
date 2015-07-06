@@ -146,7 +146,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             Tracker.track username, {
               to         : email
               subject    : @getEmailSubject messageOptions
-            }, {tokenUrl, firstName:username}, callback
+            }, {tokenUrl, firstName:username}
+
+            callback null
 
 
   @validate = (token, callback)->

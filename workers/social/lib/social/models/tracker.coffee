@@ -48,18 +48,18 @@ module.exports = class Tracker
     analytics.flush (err, batch)-> console.error err  if err
 
 
-  @track = (username, mail, options, callback)->
+  @track = (username, mail, options={})->
     mail.to           = forcedRecipient or mail.to
     mail.from       or= defaultFromMail
     mail.properties   = @addDefaults { options, username }
 
     unless mqClient
-      return callback new KodingError 'RabbitMQ client not found in Email'
+      return console.error 'RabbitMQ client not found for class `Tracker` @sent-hil'
 
     sendMessage =->
       mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) =>
         unless exchange
-          return console.error "Exchange not found to queue Email!: #{exchangeName} @sent-hil"
+          return console.error "Exchange not found to queue: #{exchangeName} @sent-hil"
 
         exchange.publish '', mail, type:EVENT_TYPE
         exchange.close()
@@ -67,12 +67,10 @@ module.exports = class Tracker
     if mqClient.readyEmitted then sendMessage()
     else mqClient.on 'ready', -> sendMessage()
 
-    callback null
-
 
   @addDefaults = (opts) ->
-    opts["env"]      = KONFIG.environment
-    opts["hostname"] = KONFIG.hostname
+    opts['env']      = KONFIG.environment
+    opts['hostname'] = KONFIG.hostname
 
     opts
 

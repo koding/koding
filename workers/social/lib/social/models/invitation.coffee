@@ -205,7 +205,7 @@ module.exports = class JInvitation extends jraphical.Module
       invitee  : invitee
       link     : "#{protocol}//#{invitation.groupName}.#{hostname}/Invitation/#{encodeURIComponent invitation.code}"
 
-    Tracker.identifyAndTrack invitation.email, Tracker.types.INVITED_GROUP, properties
+    Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties
 
     callback null
 

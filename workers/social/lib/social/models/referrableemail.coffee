@@ -73,9 +73,9 @@ module.exports = class JReferrableEmail extends jraphical.Module
     Tracker.track nickname, {
       to         : @email
       subject    : Tracker.types.INVITED_GROUP
-    }, { firstName, lastName, shareUrl }, (err) =>
-      return callback err  if err
-      @update $set: invited: true, callback
+    }, { firstName, lastName, shareUrl }
+
+    @update $set: invited: true, callback
 
   @invite: secure (client, email, callback) ->
     {connection: {delegate: {profile: {nickname}}}} = client

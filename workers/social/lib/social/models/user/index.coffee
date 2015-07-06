@@ -1291,7 +1291,7 @@ module.exports = class JUser extends jraphical.Module
       ->
         {username, email} = user
         subject           = Tracker.types.START_REGISTER
-        Tracker.track username, { to : email, subject }, {}, ->
+        Tracker.track username, { to : email, subject }
         queue.next()
 
       ->
@@ -1353,7 +1353,9 @@ module.exports = class JUser extends jraphical.Module
     subject = if type is 'email' then Tracker.types.CHANGED_EMAIL
     else Tracker.types.CHANGED_PASSWORD
 
-    Tracker.track username, {to, subject}, {firstName}, callback
+    Tracker.track username, {to, subject}, {firstName}
+
+    callback null
 
 
   @changeEmail = secure (client,options,callback)->

@@ -104,7 +104,8 @@ module.exports = class JVerificationToken extends Module
 
   sendEmail: ({subject, firstName, username, action}, callback)->
 
-    Tracker.track username, {to:@email, subject}, {firstName, @pin, action}, callback
+    Tracker.track username, {to:@email, subject}, {firstName, @pin, action}
+    callback null
 
 
   @invalidatePin = (options, callback)->

@@ -139,5 +139,6 @@ module.exports = class JSystemStatus extends Model
       Tracker.track delegate.profile.nickname, {
         to      : recipientEmail
         subject : Tracker.types.SENT_FEEDBACK
-      }, {status, userAgent, feedback, userEmail:email}, (err)->
-        console.error err  if err
+      }, {status, userAgent, feedback, userEmail:email}
+
+      callback null
