@@ -55,8 +55,11 @@ module.exports = class AccountPopup extends AvatarPopup
       attributes : testpath : 'logout-link'
 
     # FIXME:
-    groupsController.ready ->
+    groupsController.ready =>
       group = groupsController.getCurrentGroup()
+      if group.slug isnt 'koding'
+        @paymentActionLabel.hide()
+
       group.canEditGroup (err, success) ->
         return  unless success
         dashboardLink.show()
