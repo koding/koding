@@ -25,7 +25,7 @@ module.exports = class ComputeHelpers
    *  destroyed.
    * @returns {Promise}
   ###
-  @destroyExistingResources = (callback = kd.noop, waitForCompleteDeletion = no)->
+  @destroyExistingResources = (callback = kd.noop, waitForCompleteDeletion = no) ->
     destroyPromises = []
 
     # Creating a promise here, because @destroyExistingMachines does
@@ -49,7 +49,7 @@ module.exports = class ComputeHelpers
     return result
 
 
-  @destroyExistingMachines = (callback = kd.noop, waitForCompleteDeletion = no)->
+  @destroyExistingMachines = (callback = kd.noop, waitForCompleteDeletion = no) ->
 
     { computeController } = kd.singletons
 
