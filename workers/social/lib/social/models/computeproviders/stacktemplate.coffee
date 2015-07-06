@@ -93,17 +93,20 @@ module.exports = class JStackTemplate extends jraphical.Module
       template        :
         content       : String
         sum           : String
+        details       : Object
 
       # Public keys of JCredentials
       credentials     : [ String ]
 
 
-  generateTemplateObject = (content)->
+  generateTemplateObject = (content, details) ->
 
-    content = ''  unless typeof content is 'string'
+    content  = ''  unless typeof content is 'string'
+    details ?= {}
 
     return {
       content
+      details
       sum: crypto.createHash 'sha1'
         .update content
         .digest 'hex'
@@ -113,7 +116,7 @@ module.exports = class JStackTemplate extends jraphical.Module
 
   @create = permit 'create stack template',
 
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
 
       { delegate } = client.connection
 
@@ -132,7 +135,7 @@ module.exports = class JStackTemplate extends jraphical.Module
         extras      : data.extras      ? []
         connections : data.connections ? []
         accessLevel : data.accessLevel ? 'private'
-        template    : generateTemplateObject data.template
+        template    : generateTemplateObject data.template, data.templateDetails
         credentials : data.credentials ? []
 
       stackTemplate.save (err)->
