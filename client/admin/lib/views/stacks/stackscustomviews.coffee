@@ -62,6 +62,7 @@ module.exports = class StacksCustomViews extends CustomViews
         { title  : 'Fetch Template' }
         { title  : 'Credentials' }
         { title  : 'Bootstrap' }
+        { title  : 'Stack Details' }
         { title  : 'Complete' }
       ]
 
@@ -294,7 +295,7 @@ module.exports = class StacksCustomViews extends CustomViews
                    credetentials for the following providers; <br/>
                    #{list}"
 
-    return { message, valid, providers, obj }
+    return { message, valid, providers, obj, content }
 
 
   analyzeError = (err) ->
@@ -649,7 +650,8 @@ module.exports = class StacksCustomViews extends CustomViews
             cancelCallback data
 
       views.repoListView.on 'RepoSelected', (selected_repo) ->
-        callback { repo_provider, selected_repo, oauth_data }
+        data.selected_repo = selected_repo
+        callback data
 
       return container
 
@@ -677,8 +679,6 @@ module.exports = class StacksCustomViews extends CustomViews
 
         mainLoader.setTitle 'Parsing template...'
 
-        console.log err, template
-
         if err
           content = analyzeError err
           message = "We've failed to fetch the template, from given branch/tag
@@ -696,12 +696,10 @@ module.exports = class StacksCustomViews extends CustomViews
             button        :
               title       : 'Continue'
               cssClass    : 'solid compact green nav next'
-              callback    : =>
-
-                callback {
-                  selected_repo, template
-                  provider: 'aws' # Use the only supported provider for now ~ GG
-                }
+              callback    : ->
+                data.provider = 'aws' # Use the only supported provider for now ~ GG
+                data.template = template
+                callback data
 
         else
 
@@ -821,8 +819,7 @@ module.exports = class StacksCustomViews extends CustomViews
           button        :
             title       : 'Continue'
             cssClass    : 'solid compact green nav next'
-            callback    : ->
-              callback {provider, credential, stackTemplate}
+            callback    : -> callback data
 
         if state
           outputView.show()
@@ -835,10 +832,12 @@ module.exports = class StacksCustomViews extends CustomViews
     stepDefineStack: (options) =>
 
       {callback, cancelCallback, data, steps, index} = options
-      {provider, credential, stackTemplate} = data or {}
+      {provider, credential, stackTemplate, template} = data or {}
 
       container = @views.container 'step-define-stack'
-      content   = stackTemplate?.template?.content or DEFAULT_TEMPLATE
+      content   = stackTemplate?.template?.content or \
+                  template?.content or DEFAULT_TEMPLATE
+
       views     = @addTo container,
         stepsHeaderView : {steps, selected: index}
         input_title     :

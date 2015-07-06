@@ -63,6 +63,7 @@ module.exports     = class GroupStackSettings extends kd.View
       'stepFetchTemplate'
       'stepSetupCredentials'
       'stepBootstrap'
+      'stepDefineStack'
       'stepComplete'
     ], StacksCustomViews.STEPS.REPO_FLOW
 
