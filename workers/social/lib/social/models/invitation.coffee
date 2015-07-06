@@ -153,28 +153,33 @@ module.exports = class JInvitation extends jraphical.Module
       name                = getName delegate
 
       queue = invitations.map (invitation) -> ->
+
         { email, firstName, lastName } = invitation
 
-        hash = JUser.getHash email
+        JInvitation.one { email, groupName }, (err, invitation) ->
+          return callback err  if err
+          return               if invitation
 
-        # eg: VJPj9gUQ
-        code = shortid.generate()
+          hash = JUser.getHash email
 
-        data = {
-          code
-          email
-          groupName
-          hash
-        }
-        # firstName and lastName are optional
-        data.firstName = firstName  if firstName
-        data.lastName  = lastName  if lastName
+          # eg: VJPj9gUQ
+          code = shortid.generate()
 
-        invite = new JInvitation data
-        invite.save (err) ->
-          return callback err   if err
+          data =   {
+            code
+            hash
+            email
+            groupName
+          }
+          # firstName and lastName are optional
+          data.firstName = firstName  if firstName
+          data.lastName  = lastName  if lastName
 
-          JInvitation.sendInvitationEmail client, invite, -> queue.fin()
+          invite = new JInvitation data
+          invite.save (err) ->
+            return callback err   if err
+
+            JInvitation.sendInvitationEmail client, invite, -> queue.fin()
 
       dash queue, callback
 
