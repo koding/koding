@@ -1,10 +1,13 @@
-Bongo                                   = require "bongo"
+_                                       = require 'underscore'
+Bongo                                   = require 'bongo'
 koding                                  = require './../bongo'
 { argv }                                = require 'optimist'
+KONFIG                                  = require('koding-config-manager').load "main.#{argv.c}"
+
 { uniq }                                = require 'underscore'
+{ hostname }                            = KONFIG
 { dash, daisy }                         = Bongo
 { getClientId, handleClientIdNotFound } = require './../helpers'
-KONFIG                                  = require('koding-config-manager').load "main.#{argv.c}"
 
 module.exports = (req, res, next) ->
 
@@ -54,14 +57,22 @@ module.exports = (req, res, next) ->
       JGroup.one { slug }, (err, group) ->
         return res.status(500).send 'an error occured'  if err
         return res.status(403).send "Sorry,
-          Team URL '#{slug}.koding.com' is already in use"  if group
+          Team URL '#{slug}.#{hostname}' is already in use"  if group
         queue.next()
 
     ->
-      # checking if user exists by email
-      JUser.one { email }, (err, user) ->
-        return res.status(500).send 'an error occured'  if err
-        alreadyMember = true  if user
+      # checking if user exists by trying to login the user
+      JUser.login client.sessionToken, body, (err, result) ->
+        errorMessage          = err?.message
+        unknownUsernameError  = 'Unknown user name'
+
+        # send HTTP 400 if somehow alreadyMember is true but user doesnt exist
+        if alreadyMember and errorMessage is unknownUsernameError
+          return res.status(400).send unknownUsernameError
+
+        # setting alreadyMember to true if error is not unknownUsernameError
+        # ignoring other errors here since our only concern is checking if user exists
+        alreadyMember = errorMessage isnt unknownUsernameError
         queue.next()
 
     ->
