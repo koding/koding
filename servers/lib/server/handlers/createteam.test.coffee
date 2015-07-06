@@ -1,8 +1,11 @@
 Bongo                               = require "bongo"
 koding                              = require './../bongo'
+{ argv }                            = require 'optimist'
+KONFIG                              = require('koding-config-manager').load "main.#{argv.c}"
 
 { daisy }                           = Bongo
 { expect }                          = require "chai"
+{ hostname }                        = KONFIG
 { Relationship }                    = require 'jraphical'
 { TeamHandlerHelper
   generateRandomEmail
@@ -400,7 +403,7 @@ runTests = -> describe 'server.handlers.createteam', ->
       body   :
         slug : 'koding'
 
-    expectedBody = 'Sorry, Team URL \'koding.koding.com\' is already in use'
+    expectedBody = "Sorry, Team URL 'koding.#{hostname}' is already in use"
     request.post createTeamRequestParams, (err, res, body) ->
       expect(err)             .to.not.exist
       expect(res.statusCode)  .to.be.equal 403
@@ -426,7 +429,7 @@ runTests = -> describe 'server.handlers.createteam', ->
 
       ->
         # expecting second team crete request with the same slug to fail
-        expectedBody = "Sorry, Team URL '#{slug}.koding.com' is already in use"
+        expectedBody = "Sorry, Team URL '#{slug}.#{hostname}' is already in use"
         request.post createTeamRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
           expect(res.statusCode)  .to.be.equal 403
@@ -445,6 +448,7 @@ runTests = -> describe 'server.handlers.createteam', ->
     email                   = generateRandomEmail()
     username                = generateRandomString()
     password                = 'testpass'
+
     registerRequestParams   = RegisterHandlerHelper.generateRequestParams
       body              :
         email           : email
@@ -483,6 +487,20 @@ runTests = -> describe 'server.handlers.createteam', ->
     daisy queue
 
 
+  it 'should send HTTP 400 when user is unregistered but alreadyMember set to true', (done) ->
+
+    createTeamRequestParams = generateCreateTeamRequestParams
+      body            :
+        alreadyMember : 'true'
+
+    # expecting user to create team when alreadyMember has wrong value
+    request.post createTeamRequestParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 400
+      expect(body)            .to.be.equal 'Unknown user name'
+      done()
+
+
   # TODO: this somehow returns 200, needs to be investigated
   it.skip 'should send HTTP 400 when email is not valid', (done) ->
 
@@ -497,16 +515,21 @@ runTests = -> describe 'server.handlers.createteam', ->
       done()
 
 
-  it 'should send HTTP 400 when username is in use', (done) ->
+  it 'should send HTTP 400 when email is in use and username is not in use', (done) ->
 
+    email                   = generateRandomEmail()
     username                = generateRandomString()
+    anotherUsername         = generateRandomString()
+
     registerRequestParams   = RegisterHandlerHelper.generateRequestParams
       body        :
+        email     : email
         username  : username
 
     createTeamRequestParams = generateCreateTeamRequestParams
       body        :
-        username  : username
+        email     : email
+        username  : anotherUsername
 
     queue = [
 
@@ -518,8 +541,8 @@ runTests = -> describe 'server.handlers.createteam', ->
           queue.next()
 
       ->
-        # expecting HTTP 400 using already registered username
-        expectedBody = 'Errors were encountered during validation: username'
+        # expecting HTTP 400 from juser.convert
+        expectedBody = 'Email is already in use!'
         request.post createTeamRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
           expect(res.statusCode)  .to.be.equal 400
