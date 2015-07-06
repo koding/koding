@@ -98,11 +98,9 @@ module.exports = class ComputeHelpers
 
     # call deleteSnapshot for all snapshots, and return a promise
     result = result.then (snapshots = []) ->
-      destroyPromises = []
-      snapshots.forEach (snapshot) ->
+      return Promise.all snapshots.map (snapshot) ->
         { machineId, snapshotId } = snapshot
-        destroyPromises.push kloud.deleteSnapshot { machineId, snapshotId }
-      return Promise.all destroyPromises
+        return kloud.deleteSnapshot { machineId, snapshotId }
 
     # Callback if needed, and return the resulting promise.
     result.then        -> callback null  if callback
