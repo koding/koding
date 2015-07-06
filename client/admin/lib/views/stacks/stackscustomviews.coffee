@@ -443,6 +443,119 @@ module.exports = class StacksCustomViews extends CustomViews
         fields: input: {name, label, defaultValue: value}
 
 
+    repoList: (options) =>
+
+      controller    = new kd.ListViewController
+        viewOptions :
+          itemClass : StackRepoUserItem
+          cssClass  : 'repo-user-list'
+
+      __view = controller.getListView()
+      return { __view, controller }
+
+
+    repoListView: (options) =>
+
+      container    = @views.container 'repo-listview'
+      loader       = @addTo container,
+        mainLoader : 'Fetching repositories list...'
+
+      fetchGithubRepos options, (err, repo_data) =>
+
+        showError err
+
+        loader.hide()
+
+        views        = @addTo container,
+          text       : "Github: Select a repository from your account"
+          repoList   : options
+
+        {controller, __view: repoList} = views.repoList
+
+        {orgs, users} = repo_data
+        controller.replaceAllItems users.concat orgs
+
+        container.forwardEvent repoList, 'RepoSelected'
+
+      return container
+
+
+    credentialList: (options) =>
+
+      { provider, stackTemplate } = options
+
+      listView   = new AccountCredentialList
+        itemClass   : CredentialListItem
+        itemOptions : { stackTemplate }
+
+      controller = new AccountCredentialListController
+        view        : listView
+        wrapper     : no
+        scrollView  : no
+        provider    : provider
+
+      __view = controller.getView()
+      return { __view, controller }
+
+
+    providersView: (options) =>
+
+      {providers, enabled} = options
+      enabled  ?= providers
+
+      container = @views.container 'providers'
+
+      providers.forEach (provider) =>
+
+        return  if provider in ['custom', 'managed']
+
+        name = globals.config.providers[provider]?.name or provider
+
+        @addTo container,
+          button     :
+            title    : name
+            cssClass : provider
+            disabled : provider not in enabled
+            callback : ->
+              container.emit 'ItemSelected', provider
+
+      return container
+
+
+    stepsHeader: (options) =>
+
+      { title, index, selected } = options
+
+      container = @views.container "#{if selected then 'selected' else ''}"
+
+      @addTo container,
+        text_step  : index
+        text_title : title
+
+      return container
+
+
+    stepsHeaderView: (options) =>
+
+      { steps, selected } = options
+
+      container = @views.container 'steps-view'
+
+      @addTo container, view :
+        cssClass : 'vline'
+        tagName  : 'cite'
+
+      steps = steps.slice 0
+      steps.forEach (step, index) =>
+
+        step.index    = index + 1
+        step.selected = selected? and selected is step.index
+
+        @addTo container, stepsHeader: step
+
+      return container
+
+
     initialView: (callback) =>
 
       container = @views.container 'stacktemplates'
@@ -484,6 +597,7 @@ module.exports = class StacksCustomViews extends CustomViews
       __view = controller.getView()
       return { __view, controller }
 
+    # STEPS --------------------------------------------------------------------
 
     stepSelectRepo: (options) =>
 
@@ -627,61 +741,6 @@ module.exports = class StacksCustomViews extends CustomViews
         callback data
 
       return container
-
-
-    repoList: (options) =>
-
-      controller    = new kd.ListViewController
-        viewOptions :
-          itemClass : StackRepoUserItem
-          cssClass  : 'repo-user-list'
-
-      __view = controller.getListView()
-      return { __view, controller }
-
-
-    repoListView: (options) =>
-
-      container    = @views.container 'repo-listview'
-      loader       = @addTo container,
-        mainLoader : 'Fetching repositories list...'
-
-      fetchGithubRepos options, (err, repo_data) =>
-
-        showError err
-
-        loader.hide()
-
-        views        = @addTo container,
-          text       : "Github: Select a repository from your account"
-          repoList   : options
-
-        {controller, __view: repoList} = views.repoList
-
-        {orgs, users} = repo_data
-        controller.replaceAllItems users.concat orgs
-
-        container.forwardEvent repoList, 'RepoSelected'
-
-      return container
-
-
-    credentialList: (options) =>
-
-      { provider, stackTemplate } = options
-
-      listView   = new AccountCredentialList
-        itemClass   : CredentialListItem
-        itemOptions : { stackTemplate }
-
-      controller = new AccountCredentialListController
-        view        : listView
-        wrapper     : no
-        scrollView  : no
-        provider    : provider
-
-      __view = controller.getView()
-      return { __view, controller }
 
 
     stepSetupCredentials: (options) =>
@@ -862,63 +921,5 @@ module.exports = class StacksCustomViews extends CustomViews
                 }, (err, stackTemplate) ->
                   return  if showError err
                   callback stackTemplate
-
-      return container
-
-
-    providersView: (options) =>
-
-      {providers, enabled} = options
-      enabled  ?= providers
-
-      container = @views.container 'providers'
-
-      providers.forEach (provider) =>
-
-        return  if provider in ['custom', 'managed']
-
-        name = globals.config.providers[provider]?.name or provider
-
-        @addTo container,
-          button     :
-            title    : name
-            cssClass : provider
-            disabled : provider not in enabled
-            callback : ->
-              container.emit 'ItemSelected', provider
-
-      return container
-
-
-    stepsHeader: (options) =>
-
-      { title, index, selected } = options
-
-      container = @views.container "#{if selected then 'selected' else ''}"
-
-      @addTo container,
-        text_step  : index
-        text_title : title
-
-      return container
-
-
-    stepsHeaderView: (options) =>
-
-      { steps, selected } = options
-
-      container = @views.container 'steps-view'
-
-      @addTo container, view :
-        cssClass : 'vline'
-        tagName  : 'cite'
-
-      steps = steps.slice 0
-      steps.forEach (step, index) =>
-
-        step.index    = index + 1
-        step.selected = selected? and selected is step.index
-
-        @addTo container, stepsHeader: step
 
       return container
