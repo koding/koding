@@ -26,6 +26,10 @@ module.exports = class ComputeHelpers
    * @returns {Promise}
   ###
   @destroyExistingResources = (callback = kd.noop, waitForCompleteDeletion = no) ->
+    # destroyPromises is a list of all the promises returned by the destroy
+    # functions that @destroyExistingResources will call. The name of this
+    # list (and it's existence) match the other destroy functions, for
+    # consistency.
     destroyPromises = []
 
     # Creating a promise here, because @destroyExistingMachines does
