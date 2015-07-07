@@ -36,8 +36,9 @@ module.exports = class ComputeHelpers
     # not return a promise.
     destroyPromises.push new Promise (resolve, reject) ->
       machineCallback = (err) ->
-        return reject err  if err
-        resolve()
+        if err
+        then reject err
+        else resolve()
       ComputeHelpers.destroyExistingMachines waitForCompleteDeletion, machineCallback
 
     # Add the destroy Snapshots promise
@@ -95,8 +96,9 @@ module.exports = class ComputeHelpers
     # Fetch snapshots
     result = new Promise (resolve, reject) ->
       JSnapshot.some {}, {}, (err, snapshots) ->
-        return reject err  if err
-        resolve snapshots
+        if err
+        then reject err
+        else resolve snapshots
 
     # call deleteSnapshot for all snapshots, and return a promise
     result = result.then (snapshots = []) ->
