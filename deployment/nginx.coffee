@@ -258,7 +258,8 @@ module.exports.create = (KONFIG, environment)->
     # i have added  to koding-sandbox, koding-load, koding-prod and koding-prod-deployment-sg
     server {
       # just a random port
-      listen #{if environment is "dev" then 8091 else 81};
+
+      listen #{parseInt(KONFIG.publicPort)+1+''};
 
       # why we have 2 different if checks? because www redirector block catches
       # all the requests, we should be more precise with the host
@@ -287,7 +288,7 @@ module.exports.create = (KONFIG, environment)->
       "}
 
       # do not add hostname here!
-      listen #{if environment is "dev" then 8090 else 80};
+      listen #{KONFIG.publicPort};
       # root /usr/share/nginx/html;
       index index.html index.htm;
       location = /healthcheck {
