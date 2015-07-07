@@ -64,9 +64,10 @@ func (c *Client) GetByAccount(account *models.Account) (*payment.SubscriptionsRe
 		return nil, err
 	}
 
+	defer resp.Body.Close()
+
 	var subscription *payment.SubscriptionsResponse
-	e := json.NewDecoder(resp.Body)
-	if err := e.Decode(&subscription); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&subscription); err != nil {
 		return nil, err
 	}
 
