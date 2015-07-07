@@ -128,7 +128,7 @@ module.exports = class AvatarView extends LinkView
 
     @cite.setClass flags
 
-    @cite.hide() if width and height < minAvatarSize
+    @cite.hide() if height < minAvatarSize
 
     kd.getSingleton("groupsController").ready =>
       {slug} = kd.getSingleton("groupsController").getCurrentGroup()
