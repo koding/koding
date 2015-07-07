@@ -48,7 +48,8 @@ module.exports = class Tracker
 
     # force flush so identify call doesn't sit in queue, while events
     # from Go/other systems are being sent
-    analytics.flush (err, batch)-> console.error err  if err
+    analytics.flush (err, batch)->
+      console.error "flushing identify failed: #{err} @sent-hil"  if err
 
 
   @track = (username, mail, options={})->
@@ -78,7 +79,6 @@ module.exports = class Tracker
   @addDefaults = (opts) ->
     opts['env']      = KONFIG.environment
     opts['hostname'] = KONFIG.hostname
-
     opts
 
 
