@@ -97,13 +97,4 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 		},
 	)
 
-	m.AddHandler(
-		handler.Request{
-			Handler:  h.FetchRepositories,
-			Name:     "webhook-github-repositories",
-			Type:     handler.GetRequest,
-			Endpoint: "/github/branch",
-		},
-	)
-
 }
