@@ -221,7 +221,7 @@ func TestTerraformBootstrap(t *testing.T) {
 
 	_, err = remote.Tell("bootstrap", args)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	// should be return true always if resource exists
