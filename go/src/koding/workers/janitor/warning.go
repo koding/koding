@@ -96,6 +96,9 @@ func (w *Warning) FindAndLockUser() (*models.User, error) {
 		ReturnNew: true,
 	}
 
+	// mongo indexes requrie query order to be in same order of index
+	// however go map doesn't preserve ordering, so we accumulate queries
+	// with a slice and turn them into a map right before query time
 	selectQuery := bson.M{}
 	for _, query := range selector {
 		for k, v := range query {
