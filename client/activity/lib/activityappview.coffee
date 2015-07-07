@@ -34,6 +34,9 @@ module.exports = class ActivityAppView extends KDView
     options.cssClass   = 'content-page activity clearfix'
     options.domId      = 'content-page-activity'
 
+    if isReactEnabled()
+      options.cssClass = kd.utils.curry 'Reactivity', options.cssClass
+
     super options, data
 
     {
