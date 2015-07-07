@@ -32,9 +32,9 @@ module.exports = class Tracker
     SENT_FEEDBACK        : 'sent feedback'
 
 
-  @identifyAndTrack = (userId, event, eventProperties = {}) ->
-    @identify userId
-    @track userId, event, eventProperties
+  @identifyAndTrack = (username, event, eventProperties = {}) ->
+    @identify username
+    @track username, event, eventProperties
 
 
   @identify = (username, traits={}) ->
@@ -44,7 +44,7 @@ module.exports = class Tracker
       traits.email = forcedRecipient
 
     traits = @addDefaults traits
-    analytics.identify {userId, traits}
+    analytics.identify { userId: username, traits }
 
     # force flush so identify call doesn't sit in queue, while events
     # from Go/other systems are being sent
