@@ -18,23 +18,18 @@ import (
 	"github.com/koding/kite"
 )
 
-var (
+const (
 	WorkerName    = "janitor"
 	WorkerVersion = "0.0.1"
-
-	Log logging.Logger
-
-	KiteClient *kite.Client
-
-	// Warnings contains list of warnings to be iterated upon in a certain
-	// interval.
-	Warnings = []*Warning{
-		VMDeletionWarning1, VMDeletionWarning2, DeleteInactiveUserVM, DeleteBlockedUserVM,
-	}
 
 	// DailyAtEightAM specifies interval; cron runs at utc, 3pm UTC is 8am PST
 	// with daylight savings time
 	DailyAtEightAM = "0 0 3 * * *"
+)
+
+var (
+	Log        logging.Logger
+	KiteClient *kite.Client
 )
 
 func main() {
@@ -55,9 +50,15 @@ func main() {
 		Log.Fatal("Error initializing kite: %s", err.Error())
 	}
 
+	// warnings contains list of warnings to be iterated upon in a certain
+	// interval.
+	warnings := []*Warning{
+		VMDeletionWarning1, VMDeletionWarning2, DeleteInactiveUserVM, DeleteBlockedUserVM,
+	}
+
 	c := cron.New()
 	c.AddFunc(DailyAtEightAM, func() {
-		for _, w := range Warnings {
+		for _, w := range warnings {
 
 			// clone warning so local changes don't affect next run
 			warning := *w

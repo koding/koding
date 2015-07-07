@@ -12,7 +12,7 @@ import (
 
 func TestWarningsQuery(t *testing.T) {
 	Convey("Given user who is inactive & not warned", t, func() {
-		warning := Warnings[0]
+		warning := VMDeletionWarning1
 
 		user, err := createInactiveUser(21)
 		So(err, ShouldBeNil)
@@ -30,7 +30,7 @@ func TestWarningsQuery(t *testing.T) {
 	})
 
 	Convey("Given user who is inactive & warned", t, func() {
-		warning := Warnings[1]
+		warning := VMDeletionWarning2
 
 		user, err := createInactiveUserWithWarning(25, warning.ID)
 		So(err, ShouldBeNil)
@@ -48,7 +48,7 @@ func TestWarningsQuery(t *testing.T) {
 	})
 
 	Convey("Given user who is inactive & warned twice", t, func() {
-		warning := Warnings[2]
+		warning := DeleteInactiveUserVM
 
 		user, err := createInactiveUserWithWarning(30, warning.ID)
 		So(err, ShouldBeNil)
@@ -73,7 +73,7 @@ func TestWarningsFull(t *testing.T) {
 
 		resetFakeEmails()
 
-		warning := Warnings[0]
+		warning := VMDeletionWarning1
 		warning.ExemptCheckers = []*ExemptChecker{}
 		warning.Action = fakeEmailActionFn()
 		warning.Run()
@@ -94,7 +94,7 @@ func TestWarningsFull(t *testing.T) {
 
 		resetFakeEmails()
 
-		warning := Warnings[0]
+		warning := VMDeletionWarning1
 		warning.ExemptCheckers = []*ExemptChecker{}
 		warning.Action = fakeEmailActionFn()
 		warning.Run()
@@ -120,7 +120,7 @@ func TestWarningsFull(t *testing.T) {
 
 				resetFakeEmails()
 
-				warning := Warnings[1]
+				warning := VMDeletionWarning2
 				warning.ExemptCheckers = []*ExemptChecker{}
 				warning.Action = fakeEmailActionFn()
 				warning.Run()
