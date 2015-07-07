@@ -110,8 +110,9 @@ module.exports = class AvatarView extends LinkView
     height          = width unless height
     avatarURI       = @getGravatarUri()
 
-    width  = width * @dpr
-    height = height * @dpr
+    width         = width * @dpr
+    height        = height * @dpr
+    minAvatarSize = 30 * @dpr 
 
     if profile.avatar?.match regexps.webProtocolRegExp
       resizedAvatar = proxifyUrl profile.avatar, {crop: yes, width, height}
@@ -126,6 +127,8 @@ module.exports = class AvatarView extends LinkView
     else ""
 
     @cite.setClass flags
+    
+    @cite.hide() if width and height < minAvatarSize
 
     kd.getSingleton("groupsController").ready =>
       {slug} = kd.getSingleton("groupsController").getCurrentGroup()
