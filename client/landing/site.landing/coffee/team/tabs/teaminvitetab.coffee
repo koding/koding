@@ -22,6 +22,7 @@ module.exports = class TeamInviteTab extends KDTabPaneView
         KD.utils.storeNewTeamData name, formData
         KD.singletons.router.handleRoute '/Team/Username'
 
+
   pistachio: ->
 
     """

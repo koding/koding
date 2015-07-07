@@ -75,7 +75,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
         KD.utils.checkPasswordStrength pass, (err, report) ->
           oldPass = pass
 
-          return if pass isnt report.password  #to avoid late responded ajax calls
+          return if pass isnt report.password  # to avoid late responded ajax calls
 
           ps.unsetClass strength.join ' '
           ps.setClass strength[report.score]
