@@ -445,6 +445,7 @@ module.exports = class JUser extends jraphical.Module
     user                  = null
     account               = null
     invitation            = null
+    groupIsBeingCreated   = no
     groupName            ?= 'koding'
 
     queue = [ =>
@@ -550,8 +551,12 @@ module.exports = class JUser extends jraphical.Module
     , =>
       # check for membership
       JGroup.one { slug: groupName }, (err, group) =>
-        if not group or err
+        if err
           return callback { message: "group doesnt exist"}
+
+        if not group
+          groupIsBeingCreated = yes
+          return queue.next()
 
         group.isMember account, (err , isMember)=>
           return callback err  if err
@@ -562,6 +567,7 @@ module.exports = class JUser extends jraphical.Module
             return callback err  if err
             return queue.next()
     , ->
+      return queue.next()  if groupIsBeingCreated
       # we are sure that user can access to the group, set group name into
       # cookie while logging in
       session.update { $set : {groupName} }, (err) ->
