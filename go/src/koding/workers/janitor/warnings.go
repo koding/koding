@@ -35,6 +35,7 @@ var VMDeletionWarning2 = &Warning{
 	Select: []bson.M{
 		bson.M{"lastLoginDate": moreThanDaysQuery(24)},
 		bson.M{"inactive.warning": VMDeletionWarning1.ID},
+		bson.M{"inactive.workedCount": bson.M{"$lte": MaxWorkedCount}},
 	},
 
 	ExemptCheckers: []*ExemptChecker{
@@ -56,6 +57,7 @@ var DeleteInactiveUserVM = &Warning{
 	Select: []bson.M{
 		bson.M{"lastLoginDate": moreThanDaysQuery(29)},
 		bson.M{"inactive.warning": VMDeletionWarning2.ID},
+		bson.M{"inactive.workedCount": bson.M{"$lte": MaxWorkedCount}},
 	},
 
 	ExemptCheckers: []*ExemptChecker{

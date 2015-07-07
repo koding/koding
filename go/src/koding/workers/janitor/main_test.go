@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	initializeRunner()
+	j.initializeRunner()
 }
 
 //----------------------------------------------------------

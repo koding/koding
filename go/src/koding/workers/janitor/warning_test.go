@@ -26,7 +26,7 @@ func TestReleaseUser(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("When it releases user", func() {
-			err = warning.ReleaseUser(user.ObjectId)
+			err = warning.ReleaseUser(user)
 			So(err, ShouldBeNil)
 
 			updatedUser, err := modelhelper.GetUser(user.Name)
@@ -36,6 +36,10 @@ func TestReleaseUser(t *testing.T) {
 				veryRecently := timeNow().Add(-1 * time.Second)
 				So(updatedUser.Inactive.ModifiedAt.UTC(), ShouldHappenAfter,
 					veryRecently)
+			})
+
+			Convey("Then it updates number of warnings was processed", func() {
+				So(updatedUser.Inactive.WorkedCount, ShouldEqual, 1)
 			})
 		})
 

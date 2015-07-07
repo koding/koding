@@ -66,11 +66,11 @@ func (w *Warning) RunSingle() error {
 	// update the warning for user since in the future user might become
 	// unexempt.
 	if err != nil || isExempt {
-		return w.ReleaseUser(user.ObjectId)
+		return w.ReleaseUser(user)
 	}
 
 	if err := w.Act(user); err != nil {
-		return w.ReleaseUser(user.ObjectId)
+		return w.ReleaseUser(user)
 	}
 
 	return w.UpdateAndReleaseUser(user.ObjectId)
@@ -179,14 +179,22 @@ func (w *Warning) UpdateAndReleaseUser(userID bson.ObjectId) error {
 	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
 }
 
-// ReleaseUser releases the lock on the user so another worker can try
-// it out, however it sets `modifiedAt` time so it's only acted once a day.
-func (w *Warning) ReleaseUser(userID bson.ObjectId) error {
+// ReleaseUser releases the lock on the user so another worker can try it out,
+// however it sets `modifiedAt` time so it's only processed once a day.
+func (w *Warning) ReleaseUser(user *models.User) error {
+	userID := user.ObjectId
+
+	// update number of times user was processed
+	workedCount := 1
+	if user.Inactive != nil {
+		workedCount = user.Inactive.WorkedCount + 1
+	}
+
 	var query = func(c *mgo.Collection) error {
 		find := bson.M{"_id": userID}
 		update := bson.M{
 			"$unset": bson.M{"inactive.assigned": 1, "inactive.assignedAt": 1},
-			"$set":   bson.M{"inactive.modifiedAt": timeNow()},
+			"$set":   bson.M{"inactive.modifiedAt": timeNow(), "inactive.workedCount": workedCount},
 		}
 
 		return c.Update(find, update)

@@ -22,6 +22,9 @@ const (
 	WorkerName    = "janitor"
 	WorkerVersion = "0.0.1"
 
+	// Defines the max number of times an user should be processed.
+	MaxWorkedCount = 3
+
 	// DailyAtEightAM specifies interval; cron runs at utc, 3pm UTC is 8am PST
 	// with daylight savings time
 	DailyAtEightAM = "0 0 3 * * *"
