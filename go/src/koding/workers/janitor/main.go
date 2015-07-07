@@ -22,6 +22,9 @@ const (
 	WorkerName    = "janitor"
 	WorkerVersion = "0.0.1"
 
+	// DefaultRangeForQuery defines the range of interval for the queries.
+	DefaultRangeForQuery = 3
+
 	// DailyAtEightAM specifies interval; cron runs at utc, 3pm UTC is 8am PST
 	// with daylight savings time
 	DailyAtEightAM = "0 0 3 * * *"

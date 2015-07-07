@@ -12,7 +12,7 @@ var VMDeletionWarning1 = &Warning{
 	Description: "Find users inactive for > 20 days, send email",
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": moreThanDaysQuery(20)},
+		bson.M{"lastLoginDate": dayRangeQuery(20, DefaultRangeForQuery)},
 		bson.M{"inactive.warning": bson.M{"$exists": false}},
 	},
 
@@ -33,7 +33,7 @@ var VMDeletionWarning2 = &Warning{
 	IntervalSinceLastWarning: time.Hour * 24 * 4, // 4 days since last warning
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": moreThanDaysQuery(24)},
+		bson.M{"lastLoginDate": dayRangeQuery(24, DefaultRangeForQuery)},
 		bson.M{"inactive.warning": VMDeletionWarning1.ID},
 	},
 
@@ -54,7 +54,7 @@ var DeleteInactiveUserVM = &Warning{
 	IntervalSinceLastWarning: time.Hour * 24 * 4, // 4 days since last warning
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": moreThanDaysQuery(29)},
+		bson.M{"lastLoginDate": dayRangeQuery(29, DefaultRangeForQuery)},
 		bson.M{"inactive.warning": VMDeletionWarning2.ID},
 	},
 
@@ -71,7 +71,7 @@ var DeleteBlockedUserVM = &Warning{
 	Description: "Find blocked users inactive > 14 days, delete ALL their vms",
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": moreThanDaysQuery(14)},
+		bson.M{"lastLoginDate": dayRangeQuery(14, DefaultRangeForQuery)},
 		bson.M{"inactive.warning": bson.M{"$exists": false}},
 		bson.M{"status": "blocked"},
 	},

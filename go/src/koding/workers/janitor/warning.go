@@ -208,8 +208,11 @@ func timeNow() time.Time {
 	return time.Now().UTC()
 }
 
-func moreThanDaysQuery(days int) bson.M {
-	return bson.M{"$lt": timeNow().Add(-time.Hour * 24 * time.Duration(days))}
+func dayRangeQuery(days, interval int) bson.M {
+	return bson.M{
+		"$lt":  timeNow().Add(-time.Hour * 24 * time.Duration(days)),
+		"$gte": timeNow().Add(-time.Hour * 24 * time.Duration(days+interval)),
+	}
 }
 
 func isErrNotFound(err error) bool {
