@@ -182,7 +182,7 @@ class TeamHandlerHelper
 
     { groupSlug } = opts
     url  = generateUrl
-      route : "-/teams/#{groupSlug}"
+      route : "-/team/#{groupSlug}"
 
     params               = { url }
     defaultRequestParams = generateDefaultParams params
@@ -210,7 +210,7 @@ class TeamHandlerHelper
     delete opts.groupSlug
 
     url  = generateUrl
-      route : "-/teams/#{groupSlug}/members"
+      route : "-/team/#{groupSlug}/members"
 
     body = TeamHandlerHelper.generateGetTeamMembersRequestBody()
 

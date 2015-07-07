@@ -166,7 +166,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
       ->
         # expecting to be able to get team members data
         url = generateUrl
-          route : "-/teams/#{groupSlug}/members?token=#{token}&limit=10"
+          route : "-/team/#{groupSlug}/members?token=#{token}&limit=10"
 
         getTeamMembersRequestParams = generateGetTeamMembersRequestParams
           url     : url
@@ -268,7 +268,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
       ->
         # expecting to be able to get team members data
         url = generateUrl
-          route : "-/teams/#{groupSlug}/members?token=#{token}&limit=10"
+          route : "-/team/#{groupSlug}/members?token=#{token}&limit=10"
 
         getTeamMembersRequestParams = generateGetTeamMembersRequestParams
           url     : url
