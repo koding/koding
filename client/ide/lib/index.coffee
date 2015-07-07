@@ -293,24 +293,23 @@ class IDEAppController extends AppController
 
   mergeSplitView: ->
 
-    panes       = []
-    tabView     = @activeTabView
-    panel       = tabView.parent.parent
-    splitView   = panel.parent
-    { parent }  = splitView
+    panes      = []
+    tabView    = @activeTabView
+    panel      = tabView.parent.parent
+    splitView  = panel.parent
+    { parent } = splitView
 
     return  unless panel instanceof KDSplitViewPanel
 
-    index       = @ideViews.indexOf tabView.parent
-    @ideViews.splice index, 1
+    @ideViews.splice (@ideViews.indexOf tabView.parent), 1
 
     index = if index < @ideViews.length - 1 then index++ else @ideViews.length - 1
     targetIdeView = @ideViews[index]
 
     return  unless targetIdeView
 
-    for p in tabView.panes
-      panes.push p
+    for pane in tabView.panes
+      panes.push pane
 
     for pane in panes
       tabView.removePane pane, yes, (yes if tabView instanceof IDEApplicationTabView)
@@ -318,19 +317,21 @@ class IDEAppController extends AppController
 
     panel.destroy() # Remove panel.
 
-    splitView.panels = _.compact splitView.panels   # Remove destroyed panel from array.
+    # Remove destroyed panel from array.
+    splitView.panels = _.compact splitView.panels
     splitView.detach()  # Detach `splitView` from DOM.
 
     # Point shot.
-    # `targetView` can be a `KDSplitView` or an `IDEView`
+    # `targetView` can be a `KDSplitView` or an `IDEView`.
     targetView = splitView.panels.first.getSubViews().first
     targetView.unsetParent()  # Remove `parent` of `targetView`.
 
-    parent.attach targetView
+    parent.attach targetView  # Attach again.
 
     @updateLayoutMap_ splitView, targetView.parent
 
     # I'm not sure about the usage of private method. I had to...
+    # Is it the best way for view resizing?
     targetView._windowDidResize()
 
     @doResize()
@@ -1574,7 +1575,9 @@ class IDEAppController extends AppController
 
     { subViews } = parent
 
-    if not subViews.first instanceof KDSplitView
+    if subViews.first instanceof KDSplitView
+      @mergeLayoutMap_ splitView
+    else
       @mergeLayoutMap_ splitView
       @layoutMap[splitView._layout.data.offset] = parent
 
