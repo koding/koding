@@ -24,7 +24,9 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
       style      : 'TeamsModal-button TeamsModal-button--green'
       callback   : ->
         KD.utils.clearTeamData()
-        location.href = "https://#{slug}.koding.com"
+        { protocol, host } = location
+        location.href      = "#{protocol}//#{slug}.#{host}"
+
     @on 'PaneDidShow', (pane) => @button.setFocus()
 
 
