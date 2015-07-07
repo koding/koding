@@ -104,7 +104,9 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	ctx := request.NewContext(context.Background(), r)
 	// add publicKeys to be deployed to the machine, the machine provider is
 	// responsible of deploying it to the machine while building it.
-	ctx = publickeys.NewContext(ctx, k.PublicKeys)
+	if k.PublicKeys != nil {
+		ctx = publickeys.NewContext(ctx, k.PublicKeys)
+	}
 
 	if k.ContextCreator != nil {
 		ctx = k.ContextCreator(ctx)

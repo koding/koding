@@ -62,7 +62,6 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
-	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
@@ -145,8 +144,11 @@ func init() {
 
 	// Power up our own kontrol kite for self-contained tests
 	kontrol.DefaultPort = 4099
-	kntrl := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
-	kntrl.SetStorage(kontrol.NewPostgres(nil, kntrl.Kite.Log))
+	kntrl := kontrol.New(conf.Copy(), "0.1.0")
+	p := kontrol.NewPostgres(nil, kntrl.Kite.Log)
+	kntrl.SetKeyPairStorage(p)
+	kntrl.SetStorage(p)
+	kntrl.AddKeyPair("", testkeys.Public, testkeys.Private)
 
 	go kntrl.Run()
 	<-kntrl.Kite.ServerReadyNotify()
@@ -187,7 +189,7 @@ func init() {
 
 func TestTerraformAuthenticate(t *testing.T) {
 	username := "testuser12"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +208,7 @@ func TestTerraformAuthenticate(t *testing.T) {
 
 func TestTerraformBootstrap(t *testing.T) {
 	username := "testuser11"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,7 +241,7 @@ func TestTerraformBootstrap(t *testing.T) {
 func TestTerraformPlan(t *testing.T) {
 	t.Parallel()
 	username := "testuser0"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -285,7 +287,7 @@ func TestTerraformPlan(t *testing.T) {
 func TestTerraformApplyAndDestroy(t *testing.T) {
 	t.Parallel()
 	username := "testuser10"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -321,7 +323,7 @@ func TestTerraformApplyAndDestroy(t *testing.T) {
 func TestTerraformStack(t *testing.T) {
 	t.Parallel()
 	username := "testuser13"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -402,7 +404,7 @@ func TestTerraformStack(t *testing.T) {
 func TestBuild(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -473,7 +475,7 @@ func checkSSHKey(id, privateKey string) error {
 func TestStop(t *testing.T) {
 	t.Parallel()
 	username := "testuser2"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -504,7 +506,7 @@ func TestStop(t *testing.T) {
 func TestStart(t *testing.T) {
 	t.Parallel()
 	username := "testuser3"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -535,7 +537,7 @@ func TestStart(t *testing.T) {
 func TestSnapshot(t *testing.T) {
 	t.Parallel()
 	username := "testuser4"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -581,7 +583,7 @@ func TestSnapshot(t *testing.T) {
 func TestResize(t *testing.T) {
 	t.Parallel()
 	username := "testuser5"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -635,7 +637,7 @@ func TestResize(t *testing.T) {
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
-func createUser(username string) (*singleUser, error) {
+func createUser(username, region string) (*singleUser, error) {
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
@@ -713,7 +715,7 @@ func createUser(username string) (*singleUser, error) {
 		Meta: bson.M{
 			"access_key": "",
 			"secret_key": "",
-			"region":     "ap-northeast-1",
+			"region":     region,
 		},
 	}
 
@@ -765,7 +767,7 @@ func createUser(username string) (*singleUser, error) {
 			Groups:     make([]models.Permissions, 0),
 		}
 
-		machine.Meta.Region = "ap-northeast-1"
+		machine.Meta.Region = region
 		machine.Meta.InstanceType = "t2.micro"
 		machine.Meta.StorageSize = 3
 		machine.Meta.AlwaysOn = false
@@ -1145,8 +1147,8 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 
 func kodingProvider() *koding.Provider {
 	auth := aws.Auth{
-		AccessKey: "",
-		SecretKey: "",
+		AccessKey: os.Getenv("KLOUD_ACCESSKEY"),
+		SecretKey: os.Getenv("KLOUD_SECRETKEY"),
 	}
 
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
@@ -1199,7 +1201,7 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	kld.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}
-	kld.PublicKeys = publickeys.NewKeys()
+	// kld.PublicKeys = publickeys.NewKeys()
 	kld.Log = kloudLogger
 	kld.DomainStorage = p.DNSStorage
 	kld.Domainer = p.DNSClient
