@@ -25,6 +25,8 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
       callback   : ->
         KD.utils.clearTeamData()
         location.href = "https://#{slug}.koding.com"
+    @on 'PaneDidShow', (pane) => @button.setFocus()
+
 
   pistachio: ->
 
