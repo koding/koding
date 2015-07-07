@@ -145,17 +145,18 @@ class TeamHandlerHelper
     username = generateRandomUsername()
 
     defaultBodyObject =
-      slug           :  "testcompany#{generateRandomString(10)}"
-      email          :  generateRandomEmail()
-      token          :  ''
-      allow          :  'true'
-      agree          :  'on'
-      username       :  username
-      password       :  'testpass'
-      redirect       :  ''
-      newsletter     :  'true'
-      alreadyMember  :  'false'
-      passwordConfirm:  'testpass'
+      slug                : "testcompany#{generateRandomString(10)}"
+      email               : generateRandomEmail()
+      token               : ''
+      allow               : 'true'
+      agree               : 'on'
+      username            : username
+      password            : 'testpass'
+      redirect            : ''
+      newsletter          : 'true'
+      alreadyMember       : 'false'
+      passwordConfirm     : 'testpass'
+      groupIsBeingCreated : yes
 
     deepObjectExtend defaultBodyObject, opts
 
