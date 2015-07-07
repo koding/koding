@@ -668,11 +668,10 @@ Configuration = (options={}) ->
         websocket       : yes
         locations       : [
           {
-            location    : "~ /(.*)"
+            location    : "~ /tunnelserver/(.*)"
             proxyPass   : "http://tunnelserver/$1"
           }
         ]
-
 
     userproxies         :
       group             : "proxy"
