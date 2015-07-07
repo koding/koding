@@ -55,6 +55,19 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       testPath    : 'landing-recover-password'
       href        : '/Recover'
 
+    @inviteDesc = new KDCustomHTMLView
+      tagName : 'p'
+      partial : "<p>To be able to login to <a href='/'>#{KD.config.groupName}.koding.com</a>, you need to be invited by team administrators.</p>"
+
+    domains = group.allowedDomains
+
+    return  unless domains
+
+    @inviteDesc.updatePartial if domains.length > 1
+      domainsPartial = ('<i>' + d + '</i>, ' for d in domains).join('').replace(/,\s$/, '.')
+      "<a href='/Register'>Click here to register</a> if you have an email address from one of the following domains: #{domainsPartial}"
+    else "<a href='/Register'>Click here to register</a> if you have an email address from <i>#{domains.first}</i>"
+
 
   pistachio: ->
 
@@ -66,12 +79,8 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       {{> @form}}
     </div>
     <section>
-      <p>
-      To be able to login to <a href="/">#{KD.config.groupName}.koding.com</a>, you need to be invited by team administrators.
-      </p>
-      <p>
-      Trying to create a team? <a href="/Teams">Sign up on the home page</a> to get started.
-      </p>
+      {{> @inviteDesc}}
+      <p>Trying to create a team? <a href="/Teams">Sign up on the home page</a> to get started.</p>
     </section>
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
