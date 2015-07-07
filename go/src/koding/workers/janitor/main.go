@@ -27,27 +27,28 @@ const (
 	DailyAtEightAM = "0 0 3 * * *"
 )
 
-var (
-	Log        logging.Logger
-	KiteClient *kite.Client
-)
+type janitor struct {
+	runner     *runner.Runner
+	log        logging.Logger
+	kiteClient *kite.Client
+}
+
+var j = &janitor{}
 
 func main() {
-	var err error
+	j.initializeRunner()
 
-	r := initializeRunner()
-
-	conf := config.MustRead(r.Conf.Path)
+	conf := config.MustRead(j.runner.Conf.Path)
 	port := conf.Janitor.Port
 	konf := conf.Kloud
 
 	kloudSecretKey := conf.Janitor.SecretKey
 
-	go r.Listen()
+	go j.runner.Listen()
 
-	KiteClient, err = initializeKiteClient(r, kloudSecretKey, konf.Address)
+	err := j.initializeKiteClient(kloudSecretKey, konf.Address)
 	if err != nil {
-		Log.Fatal("Error initializing kite: %s", err.Error())
+		j.log.Fatal("Error initializing kite: %s", err.Error())
 	}
 
 	// warnings contains list of warnings to be iterated upon in a certain
@@ -64,7 +65,7 @@ func main() {
 			warning := *w
 
 			result := warning.Run()
-			Log.Info(result.String())
+			j.log.Info(result.String())
 		}
 	})
 
@@ -76,23 +77,23 @@ func main() {
 
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		Log.Fatal("Error opening tcp connection: %s", err.Error())
+		j.log.Fatal("Error opening tcp connection: %s", err.Error())
 	}
 
-	Log.Info("Listening on port: %s", port)
+	j.log.Info("Listening on port: %s", port)
 
-	r.ShutdownHandler = func() {
+	j.runner.ShutdownHandler = func() {
 		listener.Close()
-		KiteClient.Close()
+		j.runner.Kite.Close()
 		modelhelper.Close()
 	}
 
 	if err := http.Serve(listener, mux); err != nil {
-		Log.Fatal("Error starting http server: %s", err.Error())
+		j.log.Fatal("Error starting http server: %s", err.Error())
 	}
 }
 
-func initializeRunner() *runner.Runner {
+func (j *janitor) initializeRunner() {
 	r := runner.New(WorkerName)
 	if err := r.Init(); err != nil {
 		log.Fatal("Error starting runner: %s", err.Error())
@@ -101,16 +102,17 @@ func initializeRunner() *runner.Runner {
 	appConfig := config.MustRead(r.Conf.Path)
 	modelhelper.Initialize(appConfig.Mongo)
 
-	Log = r.Log
-
-	return r
+	j.runner = r
+	j.log = r.Log
 }
 
-func initializeKiteClient(r *runner.Runner, kloudKey, kloudAddr string) (*kite.Client, error) {
+func (j *janitor) initializeKiteClient(kloudKey, kloudAddr string) error {
 	config, err := kiteConfig.Get()
 	if err != nil {
-		return nil, err
+		return err
 	}
+
+	r := j.runner
 
 	// set skeleton config
 	r.Kite.Config = config
@@ -122,10 +124,12 @@ func initializeKiteClient(r *runner.Runner, kloudKey, kloudAddr string) (*kite.C
 
 	// dial the kloud address
 	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
-		return nil, fmt.Errorf("%s. Is kloud running?", err.Error())
+		return fmt.Errorf("%s. Is kloud running?", err.Error())
 	}
 
-	Log.Debug("Connected to klient: %s", kloudAddr)
+	j.log.Debug("Connected to klient: %s", kloudAddr)
 
-	return kiteClient, nil
+	j.kiteClient = kiteClient
+
+	return nil
 }

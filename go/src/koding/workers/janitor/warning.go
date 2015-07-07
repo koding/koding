@@ -61,9 +61,6 @@ func (w *Warning) RunSingle() error {
 	}
 
 	isExempt, err := w.IsUserExempt(user)
-	if err != nil {
-		Log.Error("Error checking exemption for user: %s, %s", user.Name, err)
-	}
 
 	// release the user if err or if user is exempt; note how we don't
 	// update the warning for user since in the future user might become

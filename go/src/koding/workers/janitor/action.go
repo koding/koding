@@ -57,7 +57,7 @@ func SendEmail(user *models.User, warningID string) error {
 }
 
 func DeleteVMs(user *models.User, _ string) error {
-	if KiteClient == nil {
+	if j.kiteClient == nil {
 		return ErrKloudKlientNotInitialized
 	}
 
@@ -72,15 +72,13 @@ func DeleteVMs(user *models.User, _ string) error {
 		// avoid spamming kloud
 		time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
 
-		_, err := KiteClient.Tell("destroy", &requestArgs{
+		_, err := j.kiteClient.Tell("destroy", &requestArgs{
 			MachineID: machine.ObjectId.Hex(),
 			Provider:  "koding",
 		})
 
 		if err != nil {
 			topErr = err
-			Log.Error("Error destroying machine:%s for username: %s, %v", user.Name,
-				machine.ObjectId, err)
 		}
 	}
 
