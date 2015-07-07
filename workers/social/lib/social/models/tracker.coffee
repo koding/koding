@@ -37,10 +37,13 @@ module.exports = class Tracker
     @track userId, event, eventProperties
 
 
-  @identify = (userId, traits={}) ->
-    userId = forcedRecipient or userId
-    traits = @addDefaults traits
+  @identify = (username, traits={}) ->
+    # use `forcedRecipient` for both username and email
+    if forcedRecipient
+      username     = forcedRecipient
+      traits.email = forcedRecipient
 
+    traits = @addDefaults traits
     analytics.identify {userId, traits}
 
     # force flush so identify call doesn't sit in queue, while events
@@ -49,7 +52,11 @@ module.exports = class Tracker
 
 
   @track = (username, mail, options={})->
-    mail.to           = forcedRecipient or mail.to
+    # use `forcedRecipient` for both username and email
+    if forcedRecipient
+      username = forcedRecipient
+      mail.to  = forcedRecipient
+
     mail.from       or= defaultFromMail
     mail.properties   = @addDefaults { options, username }
 
