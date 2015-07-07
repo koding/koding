@@ -25,6 +25,9 @@ const (
 	// DefaultRangeForQuery defines the range of interval for the queries.
 	DefaultRangeForQuery = 3
 
+	// DefaultLimitPerRun defines how many users to be processed in a day by one worker.
+	DefaultLimitPerRun = 500
+
 	// DailyAtEightAM specifies interval; cron runs at utc, 3pm UTC is 8am PST
 	// with daylight savings time
 	DailyAtEightAM = "0 0 3 * * *"

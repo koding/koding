@@ -12,8 +12,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var defaultLimitPerRun = 10000
-
 type Warning struct {
 	// Identifier.
 	ID string
@@ -44,7 +42,7 @@ type Warning struct {
 func (w *Warning) Run() *Result {
 	w.Result = NewResult(w.Description)
 
-	for limit := defaultLimitPerRun; limit >= 0; limit-- {
+	for limit := DefaultLimitPerRun; limit >= 0; limit-- {
 		if isErrNotFound(w.RunSingle()) {
 			break
 		}
