@@ -20,6 +20,9 @@ module.exports = (req, res, next) ->
     # is group creator already a member
     alreadyMember }              = body
   { JUser, JGroup, JInvitation } = koding.models
+  body.groupName                 = slug
+  # needed for JUser.login to know that it is a regular login or group creation
+  body.groupIsBeingCreated       = yes
 
   clientId                       = getClientId req, res
 
@@ -27,6 +30,7 @@ module.exports = (req, res, next) ->
 
   client              = {}
   context             = { group: slug }
+  client.context      = context
   clientIPAddress     = req.headers['x-forwarded-for'] || req.connection.remoteAddress
   # parsing booling from string
   alreadyMember       = alreadyMember is 'true'
@@ -119,7 +123,7 @@ createGroup = (client, req, res, body, err, result) ->
   # set session token for later usage down the line
   owner                      = result.account
   redirect                  ?= '/'
-  client.sessionToken        = result.newToken
+  client.sessionToken        = result.newToken or result.replacementToken
   client.connection.delegate = result.account
 
   return  if validateGroupData(body, res) isnt yes

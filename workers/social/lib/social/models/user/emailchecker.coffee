@@ -224,6 +224,10 @@ syncWithRedis = (callback)->
 
 module.exports = (email, callback = ->)->
 
+  unless email
+    callback no
+    return no
+
   syncWithRedis -> callback check email
 
   return check email

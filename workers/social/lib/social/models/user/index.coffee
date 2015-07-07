@@ -436,7 +436,7 @@ module.exports = class JUser extends jraphical.Module
 
   @login = (clientId, credentials, callback)->
 
-    { username: loginId, password,
+    { username: loginId, password, groupIsBeingCreated
       groupName, tfcode, invitationToken } = credentials
 
     bruteForceControlData = {}
@@ -548,10 +548,12 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
     , =>
+      return queue.next()  if groupIsBeingCreated
       # check for membership
       JGroup.one { slug: groupName }, (err, group) =>
-        if not group or err
-          return callback { message: "group doesnt exist"}
+
+        return callback createKodingError err                   if err
+        return callback createKodingError 'group doesnt exist'  if not group
 
         group.isMember account, (err , isMember)=>
           return callback err  if err
@@ -562,6 +564,7 @@ module.exports = class JUser extends jraphical.Module
             return callback err  if err
             return queue.next()
     , ->
+      return queue.next()  if groupIsBeingCreated
       # we are sure that user can access to the group, set group name into
       # cookie while logging in
       session.update { $set : {groupName} }, (err) ->
