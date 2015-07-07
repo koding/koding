@@ -45,8 +45,8 @@ module.exports = class ComputeHelpers
 
     result = Promise
       .all destroyPromises
-      .then        -> callback null  if callback
-      .catch (err) -> callback err   if callback
+      .then        -> callback? null
+      .catch (err) -> callback? err
     result.timeout globals.COMPUTECONTROLLER_TIMEOUT  unless waitForCompleteDeletion
     return result
 
@@ -105,8 +105,8 @@ module.exports = class ComputeHelpers
         return kloud.deleteSnapshot { machineId, snapshotId }
 
     # Callback if needed, and return the resulting promise.
-    result.then        -> callback null  if callback
-    result.catch (err) -> callback err   if callback
+    result.then        -> callback? null
+    result.catch (err) -> callback? err
     result.timeout globals.COMPUTECONTROLLER_TIMEOUT  unless waitForCompleteDeletion
     return result
 
