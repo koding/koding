@@ -1,4 +1,3 @@
 globals = require 'globals'
 
-module.exports = () ->
-  globals.userAccount
+module.exports = -> globals.userAccount

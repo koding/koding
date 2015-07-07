@@ -81,4 +81,3 @@ module.exports = class AdminAppController extends AppController
       if previousRoutes.length > 0
       then router.handleRoute previousRoutes.last
       else router.handleRoute router.getDefaultRoute()
-

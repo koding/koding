@@ -245,7 +245,7 @@ Configuration = (options={}) ->
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : '2b62c0cbea188dc6'
-    prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
+    prerenderToken                 : 'rmhVl6TMAbAO4GQJyAI3'
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
@@ -728,7 +728,7 @@ Configuration = (options={}) ->
         websocket       : yes
         locations       : [
           {
-            location    : "/(.*)"
+            location    : "~ /(.*)"
             proxyPass   : "http://tunnelserver/$1"
           }
         ]

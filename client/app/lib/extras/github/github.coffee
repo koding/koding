@@ -21,9 +21,20 @@ module.exports = class GitHub
     $.ajax req
     null
 
-  @fetchUserRepos = (username, callback = kd.noop, force)->
 
-    if force then @resetCache username
+  @fetchUsersRepos = (usernames, callback = kd.noop) ->
+    response = []
+
+    usernames.forEach (username, index) =>
+      @fetchUserRepos username, (err, repos = []) ->
+        response.push {username, err, repos}
+        callback null, response  if index is usernames.length - 1
+
+
+  @fetchUserRepos = (username, callback = kd.noop, force) ->
+
+    @resetCache username  if force
+
     if @_repoCache[username]?.length > 0
       callback null, @_repoCache[username]
       return
@@ -153,13 +164,10 @@ module.exports = class GitHub
 
       remaining = if remaining > 1
                     "#{remaining} minutes"
-                  if remaining is 1
-                    "#{remaining} minute"
-                  if remaining is 0
+                  else
                     "a minute."
 
       options.message = """You reached the rate limit for GitHub
                            api calls, try again in #{remaining}."""
 
     callback options
-
