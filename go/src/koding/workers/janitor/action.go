@@ -9,11 +9,16 @@ import (
 	"time"
 )
 
-type Action func(*models.User, string) error
-
 var subjects = map[string]string{
 	"vmDeletionWarning-1": "received 1st VM deletion warning",
 	"vmDeletionWarning-2": "received 2nd VM deletion warning",
+}
+
+type Action func(*models.User, string) error
+
+type requestArgs struct {
+	MachineID string `json:"machineId"`
+	Provider  string `json:"provider"`
 }
 
 func SendEmail(user *models.User, warningID string) error {
@@ -49,11 +54,6 @@ func SendEmail(user *models.User, warningID string) error {
 	}
 
 	return emailsender.Send(mail)
-}
-
-type requestArgs struct {
-	MachineID string `json:"machineId"`
-	Provider  string `json:"provider"`
 }
 
 func DeleteVMs(user *models.User, _ string) error {

@@ -5,13 +5,11 @@ import (
 	"time"
 )
 
-type strToInf map[string]interface{}
-
 type UserResult struct {
 	Level         int
 	Username      string
 	ExemptReson   string
-	LastLoginDate string
+	LastLoginDate time.Time
 }
 
 func NewUserResults() []*UserResult {
@@ -23,7 +21,7 @@ type Result struct {
 	Successful []*UserResult
 	Failure    []*UserResult
 	Exempt     []*UserResult
-	StartedAt  string
+	StartedAt  time.Time
 	EndedAt    string
 }
 
@@ -33,13 +31,13 @@ func NewResult(desc string) *Result {
 		Successful: NewUserResults(),
 		Failure:    NewUserResults(),
 		Exempt:     NewUserResults(),
-		StartedAt:  time.Now().String(),
+		StartedAt:  time.Now(),
 	}
 }
 
 func (r *Result) String() string {
 	return fmt.Sprintf(
-		"Started: %v, Ran %v. Success: %v, Exempt: %v Ended: %v",
+		"Started: %s, Ran %v. Success: %v, Exempt: %v Ended: %v",
 		r.StartedAt, r.Desc, len(r.Successful), len(r.Exempt), r.EndedAt,
 	)
 }

@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+var (
+	IsUserPaid           = NewChecker("IsUserPaid", IsUserPaidFn)
+	IsUserVMsEmpty       = NewChecker("IsUserVMsEmpty", IsUserVMsEmptyFn)
+	IsTooSoon            = NewChecker("IsTooSoon", IsTooSoonFn)
+	IsUserNotConfirmed   = NewChecker("IsUserNotConfirmed", IsUserNotConfirmedFn)
+	IsUserKodingEmployee = NewChecker("IsKodingEmployee", IsUserKodingEmployeeFn)
+)
+
 type ExemptChecker struct {
 	Name     string
 	IsExempt func(*models.User, *Warning) (bool, error)
@@ -18,14 +26,6 @@ func NewChecker(name string, fn func(*models.User, *Warning) (bool, error)) *Exe
 		IsExempt: fn,
 	}
 }
-
-var (
-	IsUserPaid           = NewChecker("IsUserPaid", IsUserPaidFn)
-	IsUserVMsEmpty       = NewChecker("IsUserVMsEmpty", IsUserVMsEmptyFn)
-	IsTooSoon            = NewChecker("IsTooSoon", IsTooSoonFn)
-	IsUserNotConfirmed   = NewChecker("IsUserNotConfirmed", IsUserNotConfirmedFn)
-	IsUserKodingEmployee = NewChecker("IsKodingEmployee", IsUserKodingEmployeeFn)
-)
 
 // IsUserPaidFn checks if user is paid or not. All paid users are exempt.
 func IsUserPaidFn(user *models.User, _ *Warning) (bool, error) {

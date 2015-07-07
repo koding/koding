@@ -129,7 +129,7 @@ func (w *Warning) IsUserExempt(user *models.User) (bool, error) {
 		if isExempt {
 			userResult := &UserResult{
 				Username:      user.Name,
-				LastLoginDate: user.LastLoginDate.String(),
+				LastLoginDate: user.LastLoginDate,
 				ExemptReson:   checker.Name,
 			}
 
@@ -150,7 +150,7 @@ func (w *Warning) IsUserExempt(user *models.User) (bool, error) {
 func (w *Warning) Act(user *models.User) error {
 	userResult := &UserResult{
 		Username:      user.Name,
-		LastLoginDate: user.LastLoginDate.String(),
+		LastLoginDate: user.LastLoginDate,
 	}
 
 	if w.Result != nil {
