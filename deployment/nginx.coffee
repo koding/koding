@@ -305,6 +305,19 @@ module.exports.create = (KONFIG, environment)->
     # close server
     }
 
+    #{createRedirections(KONFIG)}
+
+  # close http
+  }
+  """
+  return config
+
+
+createRedirections = (KONFIG) ->
+  return "" if isProxy KONFIG.ebEnvName
+
+  return """
+  \t\t\t
     # redirect www to non-www
     server {
        server_name "~^www.(.*)$" ;
@@ -315,9 +328,4 @@ module.exports.create = (KONFIG, environment)->
     server {
        server_name "~^old.koding.com" ;
        return 301 $scheme://koding.com$request_uri ;
-    }
-
-  # close http
-  }
-  """
-  return config
+    }"""
