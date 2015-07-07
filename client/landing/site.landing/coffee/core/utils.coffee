@@ -280,6 +280,15 @@ utils.extend utils,
       url         : "/-/validate/username"
       type        : 'POST'
       data        : { username }
-      xhrFields   : withCredentials : yes
+      success     : callbacks.success
+      error       : callbacks.error
+
+
+  verifySlug : (name, callbacks = {}) ->
+
+    $.ajax
+      url         : "/-/teams/verify-domain"
+      type        : 'POST'
+      data        : { name }
       success     : callbacks.success
       error       : callbacks.error
