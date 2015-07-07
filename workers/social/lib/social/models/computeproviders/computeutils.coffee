@@ -342,15 +342,12 @@ fetchUsage = (client, options, callback)->
   JMachine  = require './machine'
   JSnapshot = require './snapshot'
 
-  { r: { user } } = client
+  { r: { user, account } } = client
   { provider }    = options
-  # Need to get the delegate, to get the jAccount
-  # originId, which is apparently what snapshots uses.
-  { connection: { delegate } } = client
 
   selector         = { provider }
   selector.users   = $elemMatch: id: user.getId(), sudo: yes, owner: yes
-  snapshotSelector = { originId: delegate.getId() }
+  snapshotSelector = { originId: account.getId() }
 
   JSnapshot.some snapshotSelector, {}, (err, snapshots = [])->
     return callback err  if err?
