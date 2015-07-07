@@ -33,8 +33,6 @@ module.exports = (req, res, next) ->
   return handleClientIdNotFound res, req  unless clientId
 
   client          = {}
-  # this function will be bound with necessary data in the queue later
-  kallback        = ->
   clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
 
   queue = [
@@ -67,33 +65,34 @@ module.exports = (req, res, next) ->
         queue.next()
 
     ->
-      kallback = joinTeamkallback.bind null, res, body
-      queue.next()
+      # generating callback function to be used in both login and convert
+      joinTeamKallback = generateJoinTeamKallback res, body
 
-    ->
       if alreadyMember
-      then JUser.login client.sessionToken, body, kallback
-      else JUser.convert client, body, kallback
+      then JUser.login client.sessionToken, body, joinTeamKallback
+      else JUser.convert client, body, joinTeamKallback
 
   ]
 
   daisy queue
 
 
-joinTeamkallback = (res, body, err, result) ->
+generateJoinTeamKallback = (res, body) ->
 
-  { redirect } = body
+  # returning a callback function
+  return (err, result) ->
+    { redirect } = body
 
-  # return if we got error from join/register
-  return res.status(400).send getErrorMessage err  if err?
-  # set clientId
-  res.cookie 'clientId', result.newToken, path : '/'
+    # return if we got error from join/register
+    return res.status(400).send getErrorMessage err  if err?
+    # set clientId
+    res.cookie 'clientId', result.newToken, path : '/'
 
-  # handle the request with an HTTP redirect:
-  return res.redirect 301, redirect if redirect
+    # handle the request with an HTTP redirect:
+    return res.redirect 301, redirect if redirect
 
-  # handle the request as an XHR response:
-  return res.status(200).end()
+    # handle the request as an XHR response:
+    return res.status(200).end()
 
 
 getErrorMessage = (err) ->
