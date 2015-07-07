@@ -37,10 +37,6 @@ func TestReleaseUser(t *testing.T) {
 				So(updatedUser.Inactive.ModifiedAt.UTC(), ShouldHappenAfter,
 					veryRecently)
 			})
-
-			Convey("Then it updates number of warnings was processed", func() {
-				So(updatedUser.Inactive.WorkedCount, ShouldEqual, 1)
-			})
 		})
 
 		Reset(func() {

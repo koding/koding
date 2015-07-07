@@ -50,10 +50,9 @@ type EmailFrequency struct {
 }
 
 type UserInactive struct {
-	Warning     string               `bson:"warning" json:"warning"`
-	Assigned    bool                 `bson:"assigned" json:"assigned"`
-	AssignedAt  time.Time            `bson:"assignedAt" json:"assignedAt"`
-	ModifiedAt  time.Time            `bson:"modifiedAt" json:"modifiedAt"`
-	Warnings    map[string]time.Time `bson:"warnings,omitempty" json:"warnings"`
-	WorkedCount int                  `bson:"workedCount" json:"workedCount"`
+	Warning    string               `bson:"warning" json:"warning"`
+	Assigned   bool                 `bson:"assigned" json:"assigned"`
+	AssignedAt time.Time            `bson:"assignedAt" json:"assignedAt"`
+	ModifiedAt time.Time            `bson:"modifiedAt" json:"modifiedAt"`
+	Warnings   map[string]time.Time `bson:"warnings,omitempty" json:"warnings"`
 }

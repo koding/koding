@@ -187,17 +187,11 @@ func (w *Warning) UpdateAndReleaseUser(userID bson.ObjectId) error {
 func (w *Warning) ReleaseUser(user *models.User) error {
 	userID := user.ObjectId
 
-	// update number of times user was processed
-	workedCount := 1
-	if user.Inactive != nil {
-		workedCount = user.Inactive.WorkedCount + 1
-	}
-
 	var query = func(c *mgo.Collection) error {
 		find := bson.M{"_id": userID}
 		update := bson.M{
 			"$unset": bson.M{"inactive.assigned": 1, "inactive.assignedAt": 1},
-			"$set":   bson.M{"inactive.modifiedAt": timeNow(), "inactive.workedCount": workedCount},
+			"$set":   bson.M{"inactive.modifiedAt": timeNow()},
 		}
 
 		return c.Update(find, update)
