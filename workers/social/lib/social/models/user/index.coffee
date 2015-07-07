@@ -146,7 +146,14 @@ module.exports = class JUser extends jraphical.Module
       lastLoginDate :
         type        : Date
         default     : -> new Date
+
+      # store fields for janitor worker. see go/src/koding/db/models/user.go for more details.
+      inactive      : Object
+
+      # stores user preference for how often email should be sent.
+      # see go/src/koding/db/models/user.go for more details.
       emailFrequency: Object
+
       onlineStatus  :
         actual      :
           type      : String
@@ -713,7 +720,7 @@ module.exports = class JUser extends jraphical.Module
               foreignAuth = extend foreignAuth, session.foreignAuth
               options.foreignAuth = foreignAuth
 
-            user.update { $set: options }, (err) ->
+            user.update { $set: options, $unset: { inactive: 1 } }, (err) ->
               return callback err  if err
 
               # This should be called after login and this
@@ -1466,7 +1473,7 @@ module.exports = class JUser extends jraphical.Module
           account.save (err)=>
             return callback err  if err
 
-            {firstName} = account.profile
+              {firstName} = account.profile
 
             # send EmailChanged event
             @constructor.emit 'EmailChanged', {

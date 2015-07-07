@@ -179,3 +179,13 @@ func UpdateUser(selector, update bson.M) error {
 
 	return Mongo.Run(UserColl, query)
 }
+
+func GetUserByQuery(selector bson.M) (*models.User, error) {
+	var user *models.User
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(selector).One(&user)
+	}
+
+	return user, Mongo.Run(UserColl, query)
+}
