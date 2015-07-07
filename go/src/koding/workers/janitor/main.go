@@ -45,7 +45,7 @@ func main() {
 
 	go r.Listen()
 
-	KiteClient, err = initializeKiteClient(kloudSecretKey, konf.Address)
+	KiteClient, err = initializeKiteClient(r, kloudSecretKey, konf.Address)
 	if err != nil {
 		Log.Fatal("Error initializing kite: %s", err.Error())
 	}
@@ -106,19 +106,17 @@ func initializeRunner() *runner.Runner {
 	return r
 }
 
-func initializeKiteClient(kloudKey, kloudAddr string) (*kite.Client, error) {
-	// create new kite
-	k := kite.New(WorkerName, WorkerVersion)
+func initializeKiteClient(r *runner.Runner, kloudKey, kloudAddr string) (*kite.Client, error) {
 	config, err := kiteConfig.Get()
 	if err != nil {
 		return nil, err
 	}
 
 	// set skeleton config
-	k.Config = config
+	r.Kite.Config = config
 
 	// create a new connection to the cloud
-	kiteClient := k.NewClient(kloudAddr)
+	kiteClient := r.Kite.NewClient(kloudAddr)
 	kiteClient.Auth = &kite.Auth{Type: WorkerName, Key: kloudKey}
 	kiteClient.Reconnect = true
 
