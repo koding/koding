@@ -161,7 +161,7 @@ Configuration = (options={}) ->
   kloudPort           = 5500
 
   tunnelserver =
-    port            : 4444
+    port            : 80
     basevirtualhost : "koding.me"
     hostedzone      : "koding.me"
 
