@@ -584,7 +584,8 @@ module.exports = class StacksCustomViews extends CustomViews
           group           : currentGroup
 
       templateList = views.stackTemplateList.__view
-      templateList.on 'ItemSelected', callback
+      templateList.on 'ItemSelected', (stackTemplate) ->
+        callback 'edit-template', stackTemplate
 
       return container
 
