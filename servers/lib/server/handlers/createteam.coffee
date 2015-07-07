@@ -21,6 +21,8 @@ module.exports = (req, res, next) ->
     alreadyMember }              = body
   { JUser, JGroup, JInvitation } = koding.models
   body.groupName                 = slug
+  # needed for JUser.login to know that it is a regular login or group creation
+  body.groupIsBeingCreated       = yes
 
   clientId                       = getClientId req, res
 
