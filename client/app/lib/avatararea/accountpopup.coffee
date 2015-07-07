@@ -14,7 +14,7 @@ module.exports = class AccountPopup extends AvatarPopup
 
     { groupsController } = kd.singletons
 
-    @avatarPopupContent.addSubView new CustomLinkView
+    @avatarPopupContent.addSubView @paymentActionLabel = new CustomLinkView
       title      : 'Upgrade plan'
       href       : '/Pricing'
       cssClass   : 'bottom-separator'
@@ -62,6 +62,33 @@ module.exports = class AccountPopup extends AvatarPopup
         dashboardLink.show()
         adminLink.show()
 
+
+  viewAppended: ->
+
+    @updatePaymentTitle()
+
+    { paymentController } = kd.singletons
+
+    paymentFinishedEvents = [
+      'UserPlanUpdated'
+      'PaypalRequestFinished'
+    ]
+
+    paymentController.on paymentFinishedEvents, @bound 'updatePaymentTitle'
+
+
+  updatePaymentTitle: ->
+    { paymentController } = kd.singletons
+
+    paymentController.subscriptions (err, subscription) =>
+      title = if err or not subscription
+      then 'Upgrade plan'
+      else
+        if subscription.planTitle is 'free'
+        then 'Upgrade plan'
+        else 'Change plan'
+
+      @paymentActionLabel.updatePartial title
 
 
   hide:->

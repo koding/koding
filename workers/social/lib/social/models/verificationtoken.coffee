@@ -26,6 +26,7 @@ module.exports = class JVerificationToken extends Module
       email       :
         type      : String
         email     : yes
+        set       : (value) -> value.toLowerCase()
       pin         : String
       createdAt   :
         type      : Date
