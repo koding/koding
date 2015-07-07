@@ -1126,12 +1126,8 @@ class IDEAppController extends AppController
 
   resizeActiveTerminalPane: ->
 
-    for ideView in @ideViews
-
-      { panes } = ideView.tabView
-
-      for pane in panes when pane and pane.view instanceof IDETerminalPane
-        pane.view.webtermView.terminal?.updateSize()
+    @forEachSubViewInIDEViews_ 'terminal', (tl) ->
+      tl.webtermView.terminal?.updateSize()
 
 
   removePaneFromTabView: (pane, shouldDetach = no) ->
