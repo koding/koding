@@ -249,35 +249,6 @@ module.exports.create = (KONFIG, environment)->
     gzip_http_version 1.1;
     gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript image/jpeg image/jpg image/png;
 
-    # listen for http requests at port 81
-    # this port will be only used for http->https redirection
-    #
-    # do not forget to allow communication via port 81 at security groups(ELB SecGroup)
-    # like : koding-latest,
-
-    # i have added  to koding-sandbox, koding-load, koding-prod and koding-prod-deployment-sg
-    server {
-      # just a random port
-
-      listen #{parseInt(KONFIG.publicPort)+1+''};
-
-      # why we have 2 different if checks? because www redirector block catches
-      # all the requests, we should be more precise with the host
-
-      # redirect http://kodingen.com to https://koding.com
-      if ($host = "kodingen.com") {
-        return 301 https://koding.com;
-      }
-
-      # redirect http://www.kodingen.com to https://koding.com
-      if ($host = "www.kodingen.com") {
-        return 301 https://koding.com;
-      }
-
-      # use generic names, do not hardcode values
-      return 301 https://$host$request_uri;
-    }
-
     # start server
     server {
       # we should not timeout on proxy connections
@@ -288,7 +259,14 @@ module.exports.create = (KONFIG, environment)->
       "}
 
       # do not add hostname here!
-      listen #{KONFIG.publicPort};
+      #
+      # ELB listens on 80+443 and proxies those
+      # requests to our instance, our instance listens on port 79
+      #
+      # There is another service listening on 80, tunnelserver, that one is
+      # reached from outside directly, not over ELB
+      #
+      listen #{if isProxy KONFIG.ebEnvName then 79 else KONFIG.publicPort};
       # root /usr/share/nginx/html;
       index index.html index.htm;
       location = /healthcheck {
