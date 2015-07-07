@@ -213,6 +213,12 @@ func dayRangeQuery(days, interval int) bson.M {
 	}
 }
 
+func moreThanDaysQuery(days int) bson.M {
+	return bson.M{
+		"$lt": timeNow().Add(-time.Hour * 24 * time.Duration(days)),
+	}
+}
+
 func isErrNotFound(err error) bool {
 	return err != nil && err == mgo.ErrNotFound
 }

@@ -71,7 +71,7 @@ var DeleteBlockedUserVM = &Warning{
 	Description: "Find blocked users inactive > 14 days, delete ALL their vms",
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": dayRangeQuery(14, DefaultRangeForQuery)},
+		bson.M{"lastLoginDate": moreThanDaysQuery(14)},
 		bson.M{"inactive.warning": bson.M{"$exists": false}},
 		bson.M{"status": "blocked"},
 	},
