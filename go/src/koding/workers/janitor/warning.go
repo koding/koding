@@ -123,7 +123,7 @@ func (w *Warning) IsUserExempt(user *models.User) (bool, error) {
 	for _, checker := range w.ExemptCheckers {
 		isExempt, err := checker.IsExempt(user, w)
 		if err != nil {
-			return true, err
+			return false, err
 		}
 
 		if isExempt {
@@ -137,7 +137,7 @@ func (w *Warning) IsUserExempt(user *models.User) (bool, error) {
 				w.Result.Exempt = append(w.Result.Exempt, userResult)
 			}
 
-			return true, err
+			return true, nil
 		}
 	}
 
