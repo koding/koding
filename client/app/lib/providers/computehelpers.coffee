@@ -25,7 +25,7 @@ module.exports = class ComputeHelpers
    *  destroyed.
    * @returns {Promise}
   ###
-  @destroyExistingResources = (callback = kd.noop, waitForCompleteDeletion = no) ->
+  @destroyExistingResources = (waitForCompleteDeletion = no, callback = kd.noop) ->
     # destroyPromises is a list of all the promises returned by the destroy
     # functions that @destroyExistingResources will call. The name of this
     # list (and it's existence) match the other destroy functions, for
@@ -38,12 +38,10 @@ module.exports = class ComputeHelpers
       machineCallback = (err) ->
         return reject err  if err
         resolve()
-      ComputeHelpers.destroyExistingMachines machineCallback,
-        waitForCompleteDeletion
+      ComputeHelpers.destroyExistingMachines waitForCompleteDeletion, machineCallback
 
     # Add the destroy Snapshots promise
-    destroyPromises.push ComputeHelpers.destroyExistingSnapshots null,
-      waitForCompleteDeletion
+    destroyPromises.push ComputeHelpers.destroyExistingSnapshots waitForCompleteDeletion
 
     result = Promise
       .all destroyPromises
@@ -53,7 +51,7 @@ module.exports = class ComputeHelpers
     return result
 
 
-  @destroyExistingMachines = (callback = kd.noop, waitForCompleteDeletion = no) ->
+  @destroyExistingMachines = (waitForCompleteDeletion = no, callback = kd.noop) ->
 
     { computeController } = kd.singletons
 
@@ -88,7 +86,7 @@ module.exports = class ComputeHelpers
    *  used on the Promise.
    * @returns {Promise}
   ###
-  @destroyExistingSnapshots = (callback = kd.noop, waitForCompleteDeletion = no) ->
+  @destroyExistingSnapshots = (waitForCompleteDeletion = no, callback = kd.noop) ->
 
     { computeController } = kd.singletons
     { JSnapshot }         = remote.api
