@@ -67,7 +67,7 @@ utils.extend utils,
   checkIfGroupExists: (groupName, callback) ->
 
     $.ajax
-      url     : "/-/teams/#{groupName}"
+      url     : "/-/team/#{groupName}"
       type    : 'post'
       success : (group) -> callback null, group
       error   : (err)   -> callback err
@@ -218,7 +218,7 @@ utils.extend utils,
   fetchTeamMembers: (teamName, callback) ->
 
     $.ajax
-      url       : "/-/teams/#{teamName}/members?limit=4"
+      url       : "/-/team/#{teamName}/members?limit=4"
       # data      : { limit : 5 }
       type      : 'POST'
       success   : (members) -> callback null, members
