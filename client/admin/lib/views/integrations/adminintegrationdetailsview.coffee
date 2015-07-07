@@ -23,7 +23,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { instructions } = integration
     data.repositories or= []
 
-    repositories = ({ title: repository, value: repository } for repository in data.repositories)
+    repositories = ({ title: repository.full_name, value: repository.full_name } for repository in data.repositories)
 
     @eventCheckboxes = {}
 

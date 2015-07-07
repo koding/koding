@@ -886,11 +886,28 @@ module.exports = class SocialApiController extends KDController
 
     fetchGithubRepos : (callback) ->
 
-      doXhrRequest
-        endPoint : "/api/integration/github/branch"
-        type     : 'GET'
-      , (err, response) ->
-        return callback err  if err
+      page = 1
+      result = []
 
-        return callback null, response
+      fetch = ->
+        _options =
+          method     : "repos.getAll"
+          pluck      : ['full_name']
+          options    :
+            per_page : 100
+            page     : page
+
+        remote.api.Github.api _options, (err, response) ->
+
+          return callback err  if err
+
+          result = result.concat response
+
+          return callback null, result if response.length < 100
+
+          page++
+
+          fetch()
+
+      fetch()
 
