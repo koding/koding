@@ -48,6 +48,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     view.addSubView @titleInput
 
     @on 'dblclick', @lazyBound 'setTitleEditMode', yes
+    @on 'ReceivedClickElsewhere', @lazyBound 'setTitleEditMode', no
 
 
   setDraggable: ->
@@ -69,6 +70,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
   setTitleEditMode: (isEditMode) ->
 
     { title } = @getOptions()
+    { windowController } = kd.singletons
 
     if isEditMode
       return  unless @isEditable and @getWidth() >= MIN_EDIT_WIDTH
@@ -77,8 +79,10 @@ module.exports = class IDETabHandleView extends KDTabHandleView
       @setClass 'edit-mode'
       @titleInput.setValue title
       @titleInput.setFocus()
+      windowController.addLayer this
     else
       @unsetClass 'edit-mode'
+      windowController.removeLayer this
 
 
   setTitle: (newTitle) ->
