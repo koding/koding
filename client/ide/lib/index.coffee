@@ -276,6 +276,7 @@ class IDEAppController extends AppController
 
     @recalculateHandles()
     @writeSnapshot()  if saveSnapshot
+    @resizeActiveTerminalPane()
 
 
   recalculateHandles: ->
@@ -319,6 +320,7 @@ class IDEAppController extends AppController
 
     @recalculateHandles()
     @writeSnapshot()
+    @resizeActiveTerminalPane()
 
 
   handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
@@ -1124,10 +1126,8 @@ class IDEAppController extends AppController
 
   resizeActiveTerminalPane: ->
 
-    for ideView in @ideViews
-      pane = ideView.tabView.getActivePane()
-      if pane and pane.view instanceof IDETerminalPane
-        pane.view.webtermView.terminal?.updateSize()
+    @forEachSubViewInIDEViews_ 'terminal', (tl) ->
+      tl.webtermView.terminal?.updateSize()
 
 
   removePaneFromTabView: (pane, shouldDetach = no) ->
