@@ -95,7 +95,7 @@ module.exports = class ComputeHelpers
 
     # Fetch snapshots
     result = new Promise (resolve, reject) ->
-      JSnapshot.some {}, {}, (err, snapshots) ->
+      JSnapshot.some {}, { limit: 20 }, (err, snapshots) ->
         if err
         then reject err
         else resolve snapshots
