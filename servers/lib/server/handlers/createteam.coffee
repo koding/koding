@@ -125,7 +125,8 @@ generateCreateGroupKallback = (client, req, res, body) ->
     client.sessionToken        = result.newToken
     client.connection.delegate = result.account
 
-    return  if validateGroupData(body, res) isnt yes
+    if (validationResult = validateGroupData body, res) isnt yes
+      return res.status(400).send(validationResult)
 
     JGroup.create client,
       slug            : slug
@@ -169,10 +170,10 @@ generateCreateGroupKallback = (client, req, res, body) ->
 validateGroupData = (body, res) ->
 
   if not body.slug
-    return res.status(400).send 'Group slug can not be empty.'
+    return 'Group slug can not be empty.'
 
   else if not body.companyName
-    return res.status(400).send 'Company name can not be empty.'
+    return 'Company name can not be empty.'
 
   else true
 
