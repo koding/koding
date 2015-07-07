@@ -16,7 +16,10 @@ globals                = require 'globals'
 isChannelCollaborative = require 'app/util/isChannelCollaborative'
 isKoding               = require 'app/util/isKoding'
 isGroup                = require 'app/util/isGroup'
+isReactEnabled         = require 'app/util/isReactEnabled'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
+
+TopicChatPaneView = require './components/topicchatpane/view'
 
 
 module.exports = class ActivityAppView extends KDView
@@ -30,6 +33,9 @@ module.exports = class ActivityAppView extends KDView
 
     options.cssClass   = 'content-page activity clearfix'
     options.domId      = 'content-page-activity'
+
+    if isReactEnabled()
+      options.cssClass = kd.utils.curry 'Reactivity', options.cssClass
 
     super options, data
 
@@ -197,10 +203,13 @@ module.exports = class ActivityAppView extends KDView
     type      = data.typeConstant
 
     paneClass = switch type
-      when 'topic'          then TopicMessagePane
       when 'bot'            then KodingBotMessagePane
       when 'privatemessage' then PrivateMessagePane
       when 'post'           then SingleActivityPane
+      when 'topic'
+        if isReactEnabled()
+        then TopicChatPaneView
+        else TopicMessagePane
       else
         if name is 'announcement-changelog'
         then AnnouncementPane
