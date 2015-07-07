@@ -320,7 +320,8 @@ module.exports = class StacksCustomViews extends CustomViews
 
     json = hljs.highlight('json', json).value
 
-    options.cssClass = kd.utils.curry 'has-markdown', options.cssClass
+    { curry } = kd.utils
+    options.cssClass = curry 'has-markdown content-modal', options.cssClass
 
     if options.overlay
       options.overlayOptions = cssClass: 'second-overlay'
