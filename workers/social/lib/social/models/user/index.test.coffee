@@ -576,7 +576,7 @@ runTests = -> describe 'workers.social.user.index', ->
         groupName : 'someinvalidgroupName'
 
       JUser.login clientId, loginCredentials, (err) ->
-        expect(err).to.not.exist
+        expect(err.message).to.be.equal 'group doesnt exist'
         done()
 
 
