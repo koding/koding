@@ -127,6 +127,8 @@ module.exports = class AvatarView extends LinkView
 
     @cite.setClass flags
 
+    if width and height < 30 then @cite.hide()
+
     kd.getSingleton("groupsController").ready =>
       {slug} = kd.getSingleton("groupsController").getCurrentGroup()
       href = if slug is "koding" then "/#{profile.nickname}" else "/#{slug}/#{profile.nickname}"
