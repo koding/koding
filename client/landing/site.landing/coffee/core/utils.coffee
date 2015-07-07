@@ -168,15 +168,17 @@ utils.extend utils,
 
   createFormData = (teamData) ->
 
-    teamData = KD.utils.getTeamData()
-    formData = {}
-    for key, value of teamData
-      for k, v of value
-        if k.search('invitee') >= 0
-          formData['invitees'] ?= v
-          formData['invitees'] += ",#{v}"
+    teamData ?= KD.utils.getTeamData()
+    formData  = {}
+
+    for own step, fields of teamData when not ('boolean' is typeof fields)
+      for own field, value of fields
+        if field is 'invite'
+          unless formData.invitees
+          then formData.invitees  = value
+          else formData.invitees += ",#{value}"
         else
-          formData[k] = v
+          formData[field] = value
 
     return formData
 
