@@ -301,7 +301,8 @@ class IDEAppController extends AppController
     return  unless panel instanceof KDSplitViewPanel
 
     # Remove merged `ideView` from `ideViews`
-    @ideViews.splice (@ideViews.indexOf tabView.parent), 1
+    index = @ideViews.indexOf tabView.parent
+    @ideViews.splice index, 1
 
     # Detect the next `ideView`.
     index = if index < @ideViews.length - 1 then index++ else @ideViews.length - 1
