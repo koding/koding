@@ -30,7 +30,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:  h.List,
 			Name:     "webhook-list",
 			Type:     handler.GetRequest,
-			Endpoint: "/list",
+			Endpoint: "/",
 		},
 	)
 

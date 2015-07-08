@@ -5,7 +5,7 @@ list = (callback) ->
 
   doXhrRequest
     type     : 'GET'
-    endPoint : "/api/integration/list"
+    endPoint : "/api/integration/"
   , (err, response) ->
 
     return callback err  if err

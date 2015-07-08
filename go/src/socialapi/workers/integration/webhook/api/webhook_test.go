@@ -372,7 +372,7 @@ func TestWebhookIntegrationList(t *testing.T) {
 			Convey("it should only list public integrations", func() {
 
 				_, _, res, err := h.List(
-					mocking.URL(m, "GET", "/list"),
+					mocking.URL(m, "GET", "/"),
 					mocking.Header(nil),
 					nil,
 				)
