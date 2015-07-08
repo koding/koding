@@ -1,9 +1,10 @@
-kd           = require 'kd'
-globals      = require 'globals'
-JView        = require 'app/jview'
-remote       = require('app/remote').getInstance()
-KDSelectBox  = kd.SelectBox
-KDButtonView = kd.ButtonView
+kd                 = require 'kd'
+globals            = require 'globals'
+JView              = require 'app/jview'
+remote             = require('app/remote').getInstance()
+KDSelectBox        = kd.SelectBox
+KDButtonView       = kd.ButtonView
+integrationHelpers = require '../../helpers/integration'
 
 module.exports = class AdminIntegrationSetupView extends JView
 
@@ -38,7 +39,7 @@ module.exports = class AdminIntegrationSetupView extends JView
       integrationId : @getData().id
       channelId     : @channelSelect.getValue()
 
-    kd.singletons.socialapi.integrations.create options, (err, response) =>
+    integrationHelpers.create options, (err, response) =>
       return console.warn "couldnt create integration", err  if err
 
       integration = @getData()

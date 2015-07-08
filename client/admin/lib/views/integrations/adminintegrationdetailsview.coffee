@@ -10,6 +10,7 @@ applyMarkdown        = require 'app/util/applyMarkdown'
 CustomLinkView       = require 'app/customlinkview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDFormViewWithFields = kd.FormViewWithFields
+integrationHelpers   = require '../../helpers/integration'
 
 
 module.exports = class AdminIntegrationDetailsView extends JView
@@ -231,7 +232,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       options.settings or= {}
       options.settings.repository = repository
 
-    kd.singletons.socialapi.integrations.update options, (err) =>
+    integrationHelpers.update options, (err) =>
       return kd.warn err  if err
 
       @settingsForm.buttons.Save.hideLoader()
@@ -245,7 +246,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     @regenerateLock = yes
     { id, name }    = @getData()
 
-    kd.singletons.socialapi.integrations.regenerateToken { id }, (err, res) =>
+    integrationHelpers.regenerateToken { id }, (err, res) =>
       return showError  if err
 
       { url, Regenerate } = @settingsForm.inputs
@@ -270,7 +271,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       channelId  : selectedChannel
       isDisabled : newState
 
-    kd.singletons.socialapi.integrations.update data, (err, res) =>
+    integrationHelpers.update data, (err, res) =>
 
       return showError  if err
 

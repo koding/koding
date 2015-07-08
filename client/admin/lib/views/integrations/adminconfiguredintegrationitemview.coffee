@@ -6,6 +6,7 @@ KDButtonView             = kd.ButtonView
 KDTimeAgoView            = kd.TimeAgoView
 KDCustomHTMLView         = kd.CustomHTMLView
 AdminIntegrationItemView = require './adminintegrationitemview'
+integrationHelpers       = require '../../helpers/integration'
 
 
 module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrationItemView
@@ -78,7 +79,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     @fetchChannels (err, channels) =>
       return showError err  if err
 
-      kd.singletons.socialapi.integrations.fetch {id: channelIntegration.id}, (err, response) =>
+      integrationHelpers.fetch {id: channelIntegration.id}, (err, response) =>
 
         return showError err  if err
 
@@ -113,7 +114,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
           @emit 'IntegrationCustomizeRequested', data
           return
 
-        kd.singletons.socialapi.integrations.fetchGithubRepos (err, repositories) =>
+        integrationHelpers.fetchGithubRepos (err, repositories) =>
 
           return showError err  if err
           data.repositories = repositories
