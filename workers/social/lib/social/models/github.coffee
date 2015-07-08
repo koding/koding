@@ -29,6 +29,7 @@ module.exports = class Github extends Base
 
   ###*
    * Inline hepler to initialize GithubAPI instance for provided `client`
+   * ps. debug, timeout and user-agent options are reading from config.
    *
    * @param  {Object} client - Revived client object which includes required
    *                           oauth info in `client.r.oauth.token`
@@ -36,14 +37,14 @@ module.exports = class Github extends Base
   ###
   initGithubFor = (client) ->
 
-    { oauth: {token} } = client.r
+    { oauth: { token } } = client.r
+    { debug, timeout, userAgent } = KONFIG.githubapi
 
-    gh = new GithubAPI
-      version        : '3.0.0'
-      debug          : true
-      timeout        : 5000
-      headers        :
-        'user-agent' : USER_AGENT
+    gh = new GithubAPI {
+      version : '3.0.0' # API version, not configurable
+      headers : 'user-agent': userAgent
+      debug, timeout
+    }
 
     gh.authenticate { type: 'oauth', token }
 
