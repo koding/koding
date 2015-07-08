@@ -329,9 +329,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if destroyVMs
 
           @showBusy "Deleting your VM(s)..."
-          ComputeHelpers.destroyExistingMachines (err)=>
+          ComputeHelpers.destroyExistingResources yes, (err)=>
             @buildExpiredView subscription, "downgrade"
-          , yes
 
         else
 
