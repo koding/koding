@@ -14,12 +14,15 @@ module.exports = (url)->
   #           or
   #      http://localhost:8090/-/userproxy/54.164.243.111/kite
 
-  proxy = {
-    dev        : 'devproxy'
-    production : 'prodproxy'
-    sandbox    : 'sandboxproxy'
-  }[globals.config.environment] or 'devproxy'
-
   {protocol} = global.document.location
 
-  return "#{protocol}//p.koding.com/-/#{proxy}/#{parser.hostname}/kite"
+
+  proxy = if globals.config.environment is 'production'
+  then 'prodproxy'
+  else 'devproxy'
+
+  subdomain = if globals.config.environment is 'production'
+  then 'p'
+  else 'dev-p'
+
+  return "#{protocol}//#{subdomain}.koding.com/-/#{proxy}/#{parser.hostname}/kite"
