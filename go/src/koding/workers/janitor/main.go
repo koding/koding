@@ -28,9 +28,9 @@ const (
 	// DefaultLimitPerRun defines how many users to be processed in a day by one worker.
 	DefaultLimitPerRun = 500
 
-	// DailyAtEightAM specifies interval; cron runs at utc, 3pm UTC is 8am PST
+	// DailyAtFourPM specifies interval; cron runs at utc, 11 UTC is 4pm PST
 	// with daylight savings time
-	DailyAtEightAM = "0 0 3 * * *"
+	DailyAtFourPM = "0 11 * * * *"
 )
 
 type janitor struct {
@@ -64,7 +64,7 @@ func main() {
 	}
 
 	c := cron.New()
-	c.AddFunc(DailyAtEightAM, func() {
+	c.AddFunc(DailyAtFourPM, func() {
 		for _, w := range warnings {
 
 			// clone warning so local changes don't affect next run
