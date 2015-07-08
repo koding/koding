@@ -76,8 +76,9 @@ module.exports = class AdminAppView extends kd.ModalView
 
       pane._isViewAdded = yes
       pane.addSubView new viewClass
-        cssClass : slug
-        delegate : this
+        cssClass     : slug
+        delegate     : this
+        routerParams : pane.routerParams or {}
       , data
 
     items.forEach (item, i) =>
