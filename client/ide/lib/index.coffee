@@ -293,7 +293,6 @@ class IDEAppController extends AppController
 
   mergeSplitView: ->
 
-    panes      = []
     tabView    = @activeTabView
     panel      = tabView.parent.parent
     splitView  = panel.parent
@@ -301,17 +300,16 @@ class IDEAppController extends AppController
 
     return  unless panel instanceof KDSplitViewPanel
 
+    # Remove merged `ideView` from `ideViews`
     @ideViews.splice (@ideViews.indexOf tabView.parent), 1
 
+    # Detect the next `ideView`.
     index = if index < @ideViews.length - 1 then index++ else @ideViews.length - 1
     targetIdeView = @ideViews[index]
 
     return  unless targetIdeView
 
-    for pane in tabView.panes
-      panes.push pane
-
-    for pane in panes
+    for pane in tabView.panes.slice 0
       tabView.removePane pane, yes, (yes if tabView instanceof IDEApplicationTabView)
       targetIdeView.tabView.addPane pane
 
