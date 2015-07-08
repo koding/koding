@@ -59,8 +59,7 @@ module.exports = class TopicItemView extends KDListItemView
 
   createAllTopicView : (data) ->
       @settings.addSubView deleteButton = new KDButtonView
-        cssClass : 'solid compact outline'
-        title    : 'DELETE CHANNEL'
+        cssClass : 'delete-topic'
         callback :=>
           options = 
             rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
