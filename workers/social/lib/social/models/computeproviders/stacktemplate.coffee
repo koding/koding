@@ -207,8 +207,14 @@ module.exports = class JStackTemplate extends jraphical.Module
       delete data.originId
       delete data.group
 
-      if data.template?
-        data.template = generateTemplateObject data.template
+      # Update template sum if template update requested
+      { template, templateDetails } = data
+      if template?
+        data.template = generateTemplateObject template, templateDetails
+
+        # Keep the existing template details if not provided
+        if not templateDetails?
+          data.template.details = @getAt 'template.details'
 
       @update $set: data, (err)-> callback err
 
