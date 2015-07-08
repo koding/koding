@@ -183,11 +183,7 @@ module.exports = class KodingRouter extends kd.Router
                 else onError()
           else onError()
 
-  clear: (route, replaceState = yes) ->
-    unless route
-      {entryPoint} = globals.config
-      route = if isLoggedIn() and isGroup() and not isKoding()
-      then "/#{globals.config.entryPoint?.slug}"
-      else '/'
+
+  clear: (route = '/', replaceState = yes) ->
 
     super route, replaceState

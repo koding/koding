@@ -60,9 +60,11 @@ app.post '/-/teams/validate-token'               , require './handlers/checktoke
 app.post '/-/teams/create'                       , require './handlers/createteam'
 app.post '/-/teams/join'                         , require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
+app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
+
 # fetches last members of team
-app.all  '/-/teams/:name/members'                , require './handlers/getteammembers'
-app.all  '/-/teams/:name'                        , require './handlers/getteam'
+app.all  '/-/team/:name/members'                , require './handlers/getteammembers'
+app.all  '/-/team/:name'                        , require './handlers/getteam'
 # temp endpoints ends
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'

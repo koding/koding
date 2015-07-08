@@ -17,6 +17,7 @@
   ],
   "styles": [
     "./lib/styl/*.styl",
+    "./lib/styl/reactivity/*.styl",
     "./lib/styl/terminal/*.styl"
   ]
 }

@@ -1,0 +1,54 @@
+$green                      = #1aaf5d
+$red                        = #e94835
+$yellow                     = #ffb500
+$orange                     = #ff9200
+$light-blue                 = #7dbef1
+$blue                       = #3282d3
+$dark-blue                  = #2c3e51
+$black                      = #000
+$gray-1                     = lighten($black, 5%) //Darkest gray
+$gray-2                     = lighten($black, 10%)
+$gray-3                     = lighten($black, 15%)
+$gray-4                     = lighten($black, 20%)
+$gray-5                     = lighten($black, 25%)
+$gray-6                     = lighten($black, 30%)
+$gray-7                     = lighten($black, 35%)
+$gray-8                     = lighten($black, 40%)
+$gray-9                     = lighten($black, 45%)
+$gray-10                    = lighten($black, 50%)
+$gray-11                    = lighten($black, 55%)
+$gray-12                    = lighten($black, 60%)
+$gray-13                    = lighten($black, 65%)
+$gray-14                    = lighten($black, 70%)
+$gray-15                    = lighten($black, 75%)
+$gray-16                    = lighten($black, 80%)
+$gray-17                    = lighten($black, 85%)
+$gray-18                    = lighten($black, 90%)
+$gray-19                    = lighten($black, 95%) // Lightest gray
+$white                      = lighten($black, 100%)
+$application-tab-bg-color   = $1b2224
+
+
+// Functions
+
+getAlternateColor(color = @background-color or @background or $white, method = 'lighten')
+  if method is 'lighten'
+    lighten(color, 20%)
+  else
+    darken(color, 20%)
+
+getTextColor(bgColor = @background-color or @background or $white, rate = 60%)
+  if dark(bgColor)
+    lighten(bgColor, rate)
+  else
+    darken(bgColor, rate)
+
+getBorderColor(bgColor = @background-color or @background or $white, rate = 10%)
+  darken(bgColor, rate)
+
+generateColorClasses(colorName)
+  .u-{colorName}
+    color                   $+colorName
+  .u-bg-{colorName}
+    background-color        $+colorName
+

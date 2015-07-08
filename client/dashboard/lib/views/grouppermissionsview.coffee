@@ -8,7 +8,7 @@ JView = require 'app/jview'
 module.exports = class GroupPermissionsView extends JView
 
   constructor: (options={}, data)->
-    options.cssClass = "permissions-view"
+    options.cssClass = "permissions-view-old"
     super options, data
 
     @loader     = new KDLoaderView

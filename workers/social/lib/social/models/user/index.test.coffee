@@ -356,25 +356,6 @@ runTests = -> describe 'workers.social.user.index', ->
       daisy queue
 
 
-    it 'should handle groups correctly', (done) ->
-
-      loginCredentials = generateCredentials
-        groupName : 'invalidgroupName'
-
-      queue = [
-
-        ->
-          JUser.login clientId, loginCredentials, (err)->
-            expect(err.message).to.be.equal 'group doesnt exist'
-            queue.next()
-
-        -> done()
-
-      ]
-
-      daisy queue
-
-
     it 'should pass error if account is not found', (done) ->
 
       { username, password } = userInfo = generateUserInfo()
@@ -589,7 +570,7 @@ runTests = -> describe 'workers.social.user.index', ->
         done()
 
 
-    it 'should pass error if groupName is not valid', (done) ->
+    it 'should be able to login with non-existent group name', (done) ->
 
       loginCredentials = generateCredentials
         groupName : 'someinvalidgroupName'

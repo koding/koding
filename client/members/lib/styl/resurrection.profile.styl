@@ -136,3 +136,19 @@ body.profile
     margin                0 auto 0
     position              static
     overflow              visible
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)
+  body.profile .app-sidebar
+    .avatarview
+      cite.staff
+        border            none
+        margin            3px
+        rounded           0
+
+        &:before
+          content         ''
+          display         block
+          size            47px 47px
+          border          3px solid #e1e1e1
+          rounded         7px
+          abs             -2px 0 0 -2px

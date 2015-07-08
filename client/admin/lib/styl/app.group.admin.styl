@@ -186,7 +186,7 @@ Admin main styles
 
     &.permissions
 
-      .permissions-view
+      .permissions-view.kdcustomscrollview
         borderBox()
         overflow                auto
         font-size               14px
@@ -985,35 +985,45 @@ Admin main styles
         opacity             .5
         vendor              filter, grayscale(100%)
 
+      &.github
+        bg image,           url("/a/images/vendors/github.png")
+        bg size,            auto 100px
+        bg position,        50px -2px
+
+      &.bitbucket
+        bg image,           url("/a/images/vendors/bitbucket.png")
+        bg size,            auto 100px
+        bg position,        47px -3px
+
       &.aws
-        background          url("/a/images/vendors/amazon.png")
-        background-size     auto 40px
-        background-position 38px 22px
+        bg image,           url("/a/images/vendors/amazon.png")
+        bg size,            auto 40px
+        bg position,        38px 22px
 
       &.koding
-        background          url("/a/images/vendors/koding.png")
-        background-size     auto 40px
-        background-position 26px
+        bg image,           url("/a/images/vendors/koding.png")
+        bg size,            auto 40px
+        bg position,        26px
 
       &.digitalocean
-        background          url("/a/images/vendors/digitalocean.png")
-        background-size     180px
-        background-position 7px 33px
+        bg image,           url("/a/images/vendors/digitalocean.png")
+        bg size,            180px
+        bg position,        7px 33px
 
       &.rackspace
-        background          url("/a/images/vendors/rackspace.png")
-        background-size     180px
-        background-position 8px 25px
+        bg image,           url("/a/images/vendors/rackspace.png")
+        bg size,            180px
+        bg position,        8px 25px
 
       &.engineyard
-        background          url("/a/images/vendors/engineyard.png")
-        background-size     auto 40px
-        background-position 25px 28px
+        bg image,           url("/a/images/vendors/engineyard.png")
+        bg size,            auto 40px
+        bg position,        25px 28px
 
       &.google
-        background          url("/a/images/vendors/google.png")
-        background-size     200px
-        background-position 0 23px
+        bg image,           url("/a/images/vendors/google.png")
+        bg size,            200px
+        bg position,        0 23px
 
   .top
     display                 flex
@@ -1157,6 +1167,128 @@ Admin main styles
           background        #02A74D
         .title
           color             #02A74D
+
+  .step-view
+  .output-container
+    height                  calc(100% \- 80px)
+
+  pre.output-view
+    height                  calc(100% \- 80px)
+    overflow                auto
+
+  .repo-listview
+    margin-top              20px
+    height                  calc(100% \- 60px)
+
+    .repo-user-list
+      border                1px solid #ccc
+      max-height            calc(100% \- 50px)
+      overflow              auto
+      margin-top            20px
+      borderBox()
+
+      .error-view
+        padding-left        10px
+        font-size           12px
+        background          lightyellow
+
+  .repo-item
+  .repo-user-item
+
+    padding                 10px 0
+    box-sizing              border-box
+    pointer()
+
+    a
+      color                 #333
+      noTextDeco()
+
+    span.add-link
+    span.active-link
+      r-sprite              'app', 'sidebar-toggle'
+      vendor                transform, rotate(180deg)
+      display               block
+      margin-top            6px
+      margin-right          6px
+      pointer()
+      fr()
+
+    span.active-link
+      margin-top            12px
+
+  .repo-user-item
+    span.active-link
+      margin-right          15px
+
+
+  .repo-item
+    border-bottom           1px solid #DDD
+    padding                 10px
+
+    &.active
+      border-bottom         none
+      bg                    color, #eee
+      span.add-link
+        vendor              transform, rotate(270deg)
+
+  .repo-user-item
+
+    background              #F3F3F3
+    overflow                hidden
+    padding                 20px
+    border-bottom           1px solid #ccc
+
+    &:last-child
+      border-bottom         none
+
+    .listview-wrapper
+      margin-top            40px
+      clear                 both
+      height                300px
+      // overflow-y            auto
+      padding-left          42px
+      borderBox()
+
+    .gravatar
+      width                 32px
+      fl()
+
+    .user-title
+      line-height           32px
+      margin-left           20px
+      fl()
+
+    &.active
+      background            white
+
+      span.active-link
+        vendor              transform, rotate(270deg)
+
+  .select-view
+
+    display                 flex
+    display                 -webkit-flex
+
+    margin-top              20px
+    borderBox()
+
+    .kdselectbox
+      min-width             130px
+      padding-top           2px
+      border-radius         3px
+      borderBox()
+
+      .arrows
+        top                 12px
+
+    div, input, button
+      margin                auto !important
+      margin-right          10px !important
+      height                40px
+      min-width             80px
+
+    button
+      margin-right          0 !important
 
 
 .AppModal--admin .members
