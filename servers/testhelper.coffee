@@ -99,6 +99,35 @@ deepObjectExtend = (target, source) ->
   return target
 
 
+class ValidationHandlerHelper
+
+  @generateValidateUsernameRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      username : generateRandomUsername()
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateValidateUsernameRequestParams = (opts = {}) ->
+
+    url  = generateUrl
+      route : '-/validate/username'
+
+    body = TeamHandlerHelper.generateCheckTokenRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
+
 class TeamHandlerHelper
 
   @convertToArray = (commaSeparatedData = '')->
@@ -117,7 +146,7 @@ class TeamHandlerHelper
   @generateCheckTokenRequestBody = (opts = {}) ->
 
     defaultBodyObject =
-      token :  generateRandomString()
+      token : generateRandomString()
 
     deepObjectExtend defaultBodyObject, opts
 
