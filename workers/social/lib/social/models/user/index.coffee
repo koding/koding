@@ -7,7 +7,10 @@ KodingError = require '../../error'
 { extend, uniq }  = require 'underscore'
 
 module.exports = class JUser extends jraphical.Module
+
   {secure, signature, daisy, dash} = require 'bongo'
+  { v4: createId }     = require 'node-uuid'
+  {Relationship}       = jraphical
 
   JAccount             = require '../account'
   JSession             = require '../session'
@@ -20,9 +23,6 @@ module.exports = class JUser extends jraphical.Module
   ComputeProvider      = require '../computeproviders/computeprovider'
   Email                = require '../email'
   Analytics            = require '../analytics'
-
-  { v4: createId } = require 'node-uuid'
-  {Relationship}   = jraphical
 
   createKodingError =(err)->
     if 'string' is typeof err
@@ -50,7 +50,6 @@ module.exports = class JUser extends jraphical.Module
                      'groups','blogs','forums','topics','develop','terminal',
                      'term','twitter','facebook','google','framework', 'kite'
                      'landing','hello','dev', 'sandbox', 'latest']
-
 
   hashPassword = (value, salt)->
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
