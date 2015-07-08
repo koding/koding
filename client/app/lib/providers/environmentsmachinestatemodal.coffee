@@ -15,7 +15,7 @@ ComputeHelpers          = require './computehelpers'
 ComputeController       = require './computecontroller'
 
 BaseModalView           = require './views/basemodalview'
-HelpSupportModal        = '../commonviews/helpsupportmodal'
+HelpSupportModal        = require '../commonviews/helpsupportmodal'
 
 EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
