@@ -28,9 +28,9 @@ const (
 	// DefaultLimitPerRun defines how many users to be processed in a day by one worker.
 	DefaultLimitPerRun = 500
 
-	// DailyAtFourPM specifies interval; cron runs at utc, 11 UTC is 4pm PST
+	// DailyAtFourPM specifies interval; cron runs at utc, 23 UTC is 4pm PST
 	// with daylight savings time
-	DailyAtFourPM = "0 0 11 * * *"
+	DailyAtFourPM = "0 0 23 * * *"
 )
 
 type janitor struct {
