@@ -1,4 +1,4 @@
-{ Base, signature } = require 'bongo'
+{ Base, signature, JsPath:{getAt, setAt} } = require 'bongo'
 
 { argv }  = require 'optimist'
 GithubAPI = require 'github'
@@ -69,8 +69,10 @@ module.exports = class Github extends Base
    * newResp = pluckProperties(response, pluck)
    *
    * newResp = [{
-   *  full_name   : "canthefason/koding",
-   *  owner.login : "canthefason"
+   *  full_name : "canthefason/koding",
+   *  owner     : {
+   *    login   : "canthefason"
+   *  }
    * }]
    *
    *
@@ -86,12 +88,8 @@ module.exports = class Github extends Base
       filteredItem = {}
 
       for selection in pluck
-        attrs = selection.split '.'
-        tempItem = item
-
-        tempItem = tempItem[attr]  for attr in attrs
-
-        filteredItem[selection] = tempItem
+        value = getAt item, selection
+        filteredItem = setAt filteredItem, selection, value
 
       filteredResponse.push filteredItem
 
