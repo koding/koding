@@ -383,7 +383,7 @@ class IDEAppController extends AppController
       file = FSHelper.createFileInstance { path, machine: @mountedMachine }
       file.fetchContents yes, (err, contents) =>
         return kd.error err  if err
-        @openFile {file, contents}
+        @openFile { file, contents }
 
 
   openMachineTerminal: (machineData) ->
@@ -677,7 +677,7 @@ class IDEAppController extends AppController
       file     = FSHelper.createFileInstance { path, machine: @mountedMachine }
       contents = ''
 
-      @openFile {file, contents}
+      @openFile { file, contents }
 
 
   createNewTerminal: (options={}) ->
@@ -1301,15 +1301,15 @@ class IDEAppController extends AppController
 
     if @rtm?.realtimeDoc
       contents = @rtm.getFromModel(path)?.getText() or ''
-      @openFile {file, contents, emitChange: no}
+      @openFile { file, contents, emitChange: no }
 
     else if file.isDummyFile()
-      @openFile {file, contents: file.content, emitChange: no}
+      @openFile { file, contents: file.content, emitChange: no }
 
     else
       file.fetchContents (err, contents = '') =>
         return showError err  if err
-        @openFile {file, contents, emitChange: no, targetTabView}
+        @openFile { file, contents, emitChange: no, targetTabView }
 
 
   createDrawingPaneFromChange: (change, hash) ->
@@ -1469,7 +1469,7 @@ class IDEAppController extends AppController
           return kd.warn err  if err # no need to do anything if there is an error.
 
           @setActiveTabView @ideViews.first.tabView
-          @openFile {file, contents}
+          @openFile { file, contents }
 
 
   fetchSnapshot: (callback) ->

@@ -61,5 +61,5 @@ module.exports = class IDEContentSearchResultView extends KDScrollView
         console.error err
         return (IDEHelpers.showPermissionErrorOnOpeningFile err) or showError err
 
-      kd.getSingleton('appManager').tell 'IDE', 'openFile', {file, contents}, (editorPane) ->
+      kd.getSingleton('appManager').tell 'IDE', 'openFile', { file, contents }, (editorPane) ->
         editorPane?.goToLine lineNumber
