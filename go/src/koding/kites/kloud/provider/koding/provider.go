@@ -11,7 +11,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
@@ -40,7 +39,7 @@ type Provider struct {
 	PaymentFetcher plans.PaymentFetcher
 	CheckerFetcher plans.CheckerFetcher
 
-	AuthorizedUsers []string
+	AuthorizedUsers map[string]string
 }
 
 type Credential struct {
@@ -232,15 +231,12 @@ func (p *Provider) getOwner(requesterName string, users []models.Permissions) (*
 func (p *Provider) validate(m *Machine, r *kite.Request) error {
 	m.Log.Debug("validating for method '%s'", r.Method)
 
-	// give access to kloudctl immediately
-	if r.Auth != nil {
-		if r.Auth.Key == command.KloudSecretKey {
-			return nil
-		}
+	// give access to authorized users immediately
+	if _, authorized := p.AuthorizedUsers[r.Auth.Type]; authorized {
+		return nil
 	}
 
-	// check if request user is authorized to make requests
-	if authorized := p.isUserAuthorized(r.Username, r.Auth.Type, m.User.Name); !authorized {
+	if r.Username != m.User.Name {
 		return errors.New("username is not permitted to make any action")
 	}
 
@@ -254,23 +250,6 @@ func (p *Provider) validate(m *Machine, r *kite.Request) error {
 	}
 
 	return nil
-}
-
-// isUserAuthorized checks if VM belongs to requester or from an authorized user
-func (p *Provider) isUserAuthorized(requestUser, authKey, machineUser string) bool {
-	// if VM belongs to user making request, authorize
-	if requestUser == machineUser {
-		return true
-	}
-
-	// if request is coming from an authorized user, authorize
-	for _, username := range p.AuthorizedUsers {
-		if authKey == username {
-			return true
-		}
-	}
-
-	return false
 }
 
 // checkUser checks whether the given username is available in the users list
