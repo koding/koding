@@ -430,12 +430,15 @@ module.exports = class JGroup extends Module
     create = (client, groupData, owner, callback) ->
       JPermissionSet        = require './permissionset'
       JMembershipPolicy     = require './membershippolicy'
+      JSession              = require '../session'
       JName                 = require '../name'
       group                 = new this groupData
       group.privacy         = 'private'
       defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
+      { sessionToken }      = client
 
       queue = [
+
         -> group.useSlug group.slug, (err, slug)->
           if err then callback err
           else unless slug?
@@ -450,6 +453,10 @@ module.exports = class JGroup extends Module
              JName.release group.slug, -> callback err
            else
              queue.next()
+        -> JSession.update { clientId : sessionToken }, { $set : { groupName : group.slug } }, (err) ->
+           return callback err  if err
+           queue.next()
+
         -> group.addMember owner, (err)->
             if err then callback err
             else

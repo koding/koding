@@ -35,13 +35,14 @@ func main() {
 	}()
 
 	conf := config.MustRead(r.Conf.Path)
-
 	kloud := conf.Kloud
+
+	kloudSecretKey := conf.PaymentWebhook.SecretKey
 
 	Log = runner.CreateLogger(WorkerName, conf.PaymentWebhook.Debug)
 
 	// initialize client to talk to kloud
-	kiteClient := initializeKiteClient(r.Kite, kloud.SecretKey, kloud.Address)
+	kiteClient := initializeKiteClient(r.Kite, kloudSecretKey, kloud.Address)
 	defer kiteClient.Close()
 
 	// initialize controller to inject dependencies
