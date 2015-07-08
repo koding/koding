@@ -3,7 +3,8 @@
   "main": "./lib/index.coffee",
   "routes": {
     "/:name?/Admin": "home",
-    "/:name?/Admin/:section": "section"
+    "/:name?/Admin/:section": "section",
+    "/:name?/Admin/:section/:action/:identifier": "action"
   },
   "sprites": [
     "./lib/sprites"
