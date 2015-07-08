@@ -4,7 +4,7 @@ JView              = require 'app/jview'
 remote             = require('app/remote').getInstance()
 KDSelectBox        = kd.SelectBox
 KDButtonView       = kd.ButtonView
-integrationHelpers = require '../../helpers/integration'
+integrationHelpers = require 'app/helpers/integration'
 
 module.exports = class AdminIntegrationSetupView extends JView
 

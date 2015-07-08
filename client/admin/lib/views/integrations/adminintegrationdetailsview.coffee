@@ -10,7 +10,7 @@ applyMarkdown        = require 'app/util/applyMarkdown'
 CustomLinkView       = require 'app/customlinkview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDFormViewWithFields = kd.FormViewWithFields
-integrationHelpers   = require '../../helpers/integration'
+integrationHelpers   = require 'app/helpers/integration'
 
 
 module.exports = class AdminIntegrationDetailsView extends JView

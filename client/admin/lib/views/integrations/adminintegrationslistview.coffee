@@ -7,7 +7,7 @@ KDListViewController        = kd.ListViewController
 AdminIntegrationItemView    = require './adminintegrationitemview'
 AdminIntegrationSetupView   = require './adminintegrationsetupview'
 AdminIntegrationDetailsView = require './adminintegrationdetailsview'
-integrationHelpers          = require '../../helpers/integration'
+integrationHelpers          = require 'app/helpers/integration'
 
 
 module.exports = class AdminIntegrationsListView extends KDView

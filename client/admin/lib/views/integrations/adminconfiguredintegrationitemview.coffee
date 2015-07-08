@@ -6,7 +6,7 @@ KDButtonView             = kd.ButtonView
 KDTimeAgoView            = kd.TimeAgoView
 KDCustomHTMLView         = kd.CustomHTMLView
 AdminIntegrationItemView = require './adminintegrationitemview'
-integrationHelpers       = require '../../helpers/integration'
+integrationHelpers       = require 'app/helpers/integration'
 
 
 module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrationItemView
