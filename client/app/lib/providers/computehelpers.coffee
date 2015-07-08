@@ -46,8 +46,8 @@ module.exports = class ComputeHelpers
 
     result = Promise.all destroyPromises
     result.timeout globals.COMPUTECONTROLLER_TIMEOUT  unless waitForCompleteDeletion
-      .then        -> callback? null
-      .catch (err) -> callback? err
+    result.then        -> callback? null
+    result.catch (err) -> callback? err
     return result
 
 
@@ -107,8 +107,8 @@ module.exports = class ComputeHelpers
 
     # Callback if needed, and return the resulting promise.
     result.timeout globals.COMPUTECONTROLLER_TIMEOUT  unless waitForCompleteDeletion
-      .then        -> callback? null
-      .catch (err) -> callback? err
+    result.then        -> callback? null
+    result.catch (err) -> callback? err
     return result
 
 
