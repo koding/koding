@@ -146,7 +146,14 @@ module.exports = class JUser extends jraphical.Module
       lastLoginDate :
         type        : Date
         default     : -> new Date
+
+      # store fields for janitor worker. see go/src/koding/db/models/user.go for more details.
+      inactive      : Object
+
+      # stores user preference for how often email should be sent.
+      # see go/src/koding/db/models/user.go for more details.
       emailFrequency: Object
+
       onlineStatus  :
         actual      :
           type      : String
@@ -436,7 +443,7 @@ module.exports = class JUser extends jraphical.Module
 
   @login = (clientId, credentials, callback)->
 
-    { username: loginId, password,
+    { username: loginId, password, groupIsBeingCreated
       groupName, tfcode, invitationToken } = credentials
 
     bruteForceControlData = {}
@@ -548,10 +555,12 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
     , =>
+      return queue.next()  if groupIsBeingCreated
       # check for membership
       JGroup.one { slug: groupName }, (err, group) =>
-        if not group or err
-          return callback { message: "group doesnt exist"}
+
+        return callback createKodingError err                   if err
+        return callback createKodingError 'group doesnt exist'  if not group
 
         group.isMember account, (err , isMember)=>
           return callback err  if err
@@ -562,6 +571,7 @@ module.exports = class JUser extends jraphical.Module
             return callback err  if err
             return queue.next()
     , ->
+      return queue.next()  if groupIsBeingCreated
       # we are sure that user can access to the group, set group name into
       # cookie while logging in
       session.update { $set : {groupName} }, (err) ->
@@ -710,7 +720,7 @@ module.exports = class JUser extends jraphical.Module
               foreignAuth = extend foreignAuth, session.foreignAuth
               options.foreignAuth = foreignAuth
 
-            user.update { $set: options }, (err) ->
+            user.update { $set: options, $unset: { inactive: 1 } }, (err) ->
               return callback err  if err
 
               # This should be called after login and this
@@ -1463,7 +1473,7 @@ module.exports = class JUser extends jraphical.Module
           account.save (err)=>
             return callback err  if err
 
-            {firstName} = account.profile
+              {firstName} = account.profile
 
             # send EmailChanged event
             @constructor.emit 'EmailChanged', {

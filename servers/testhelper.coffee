@@ -145,17 +145,18 @@ class TeamHandlerHelper
     username = generateRandomUsername()
 
     defaultBodyObject =
-      slug           :  "testcompany#{generateRandomString(10)}"
-      email          :  generateRandomEmail()
-      token          :  ''
-      allow          :  'true'
-      agree          :  'on'
-      username       :  username
-      password       :  'testpass'
-      redirect       :  ''
-      newsletter     :  'true'
-      alreadyMember  :  'false'
-      passwordConfirm:  'testpass'
+      slug                : "testcompany#{generateRandomString(10)}"
+      email               : generateRandomEmail()
+      token               : ''
+      allow               : 'true'
+      agree               : 'on'
+      username            : username
+      password            : 'testpass'
+      redirect            : ''
+      newsletter          : 'true'
+      alreadyMember       : 'false'
+      passwordConfirm     : 'testpass'
+      groupIsBeingCreated : yes
 
     deepObjectExtend defaultBodyObject, opts
 
@@ -182,7 +183,7 @@ class TeamHandlerHelper
 
     { groupSlug } = opts
     url  = generateUrl
-      route : "-/teams/#{groupSlug}"
+      route : "-/team/#{groupSlug}"
 
     params               = { url }
     defaultRequestParams = generateDefaultParams params
@@ -210,7 +211,7 @@ class TeamHandlerHelper
     delete opts.groupSlug
 
     url  = generateUrl
-      route : "-/teams/#{groupSlug}/members"
+      route : "-/team/#{groupSlug}/members"
 
     body = TeamHandlerHelper.generateGetTeamMembersRequestBody()
 

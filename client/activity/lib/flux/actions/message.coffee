@@ -21,7 +21,7 @@ loadMessages = (channelId) ->
       dispatch LOAD_MESSAGES_FAIL, { err, channelId }
       return
 
-    result.forEach (message) -> kd.utils.defer ->
+    result.forEach (message) ->
       dispatch CREATE_MESSAGE_SUCCESS, { channelId, message }
 
 

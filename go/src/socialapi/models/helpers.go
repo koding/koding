@@ -250,7 +250,7 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 			Salt:           accHex,
 			Name:           nick,
 			Email:          accHex + "@koding.com",
-			EmailFrequency: kodingmodels.EmailFrequency{},
+			EmailFrequency: &kodingmodels.EmailFrequency{},
 		}
 
 		err = modelhelper.CreateUser(oldUser)

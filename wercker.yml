@@ -119,6 +119,11 @@ build:
           tail -n 100 /var/log/koding/social-webhookmiddleware.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
+    - script:
+        name: test janitor
+        code: |
+          cd go/src/koding/workers/janitor
+          ./test.sh
     - script: # todo generalize this part when we have more tests
         name: test koding mongo models
         code: |

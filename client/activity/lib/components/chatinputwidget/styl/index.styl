@@ -1,0 +1,38 @@
+.ChatInputWidget
+  bottom                    0
+  right                     0
+  width                     calc(100% \- 258px)
+  height                    auto
+  min-height                44px
+  padding                   0
+  bg                        color white
+  border-top                1px solid #f2f2f2
+  z-index                   100
+  cursor                    text
+  font-size                 0
+  borderBox()
+  fix()
+
+  &:before
+    content                 ""
+    r-sprite                activity widget-icon
+    z-index                 2
+    abs                     15px 0 0 21px
+
+  > textarea
+    bg                      color transparent
+    bg                      image none
+    border                  none
+    margin                  0
+    width                   100%
+    font-size               14px
+    line-height             19px
+    min-height              44px
+    padding                 13px 14px 12px 54px
+    font-weight             400
+    rounded                 0
+    resize                  none
+    &:focus
+      outline               none
+      shadow                none
+

@@ -46,6 +46,7 @@ PageTitleController      = require './pagetitlecontroller'
 ShortcutsController      = require './shortcutscontroller'
 MarketingController      = require './marketing/marketingcontroller'
 MachineShareManager      = require './machinesharemanager'
+KodingFluxReactor        = require './flux/reactor'
 
 module.exports =
 
@@ -144,6 +145,7 @@ class MainController extends KDController
     kd.registerSingleton 'marketingController',       new MarketingController
     kd.registerSingleton 'onboarding',                new OnboardingController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
+    kd.registerSingleton 'reactor',                   new KodingFluxReactor { debug: yes }
 
     shortcuts.addEventListeners()
 
