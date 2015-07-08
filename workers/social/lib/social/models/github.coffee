@@ -155,7 +155,7 @@ module.exports = class Github extends Base
     # because of max_call_stack_size issue in Bongo
     # Requires extensive debugging on Bongo.Base ~ GG
     # When used with Pluck array we are able to fetch more ~ CtF
-    options.per_page or= 10
+    options.per_page = 10  unless pluck?.length
 
     # Initialize Github api with client object
     # client object includes required token
