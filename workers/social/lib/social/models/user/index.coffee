@@ -422,7 +422,7 @@ module.exports = class JUser extends jraphical.Module
 
         cursor.nextObject (err, data) ->
           return callback err  if err?
-          return callback { message: 'Unrecognized email' }  unless data?
+          return callback errorize 'Unrecognized email'  unless data?
 
           callback null, data.username
     else
@@ -464,7 +464,7 @@ module.exports = class JUser extends jraphical.Module
         session = fetchedSession
         unless session
           console.error "login: session not found", username
-          return callback { message: "Couldn't restore your session!" }
+          return callback errorize "Couldn't restore your session!"
 
         bruteForceControlData =
           ip        : session.clientIP
@@ -517,7 +517,7 @@ module.exports = class JUser extends jraphical.Module
     , ->
       # fetch account of the user, we will use it later
       JAccount.one { "profile.nickname": username }, (err, account_)->
-        return callback { message: "couldn't find account!" }  if err
+        return callback errorize "couldn't find account!"  if err
         account = account_
         queue.next()
 
@@ -535,7 +535,7 @@ module.exports = class JUser extends jraphical.Module
       JInvitation = require '../invitation'
       JInvitation.byCode invitationToken, (err, invitation_) =>
         return callback err  if err
-        return callback { message: "invitation is not valid" }  unless invitation_
+        return callback errorize "invitation is not valid"  unless invitation_
         invitation = invitation_
         queue.next()
 
@@ -1020,7 +1020,7 @@ module.exports = class JUser extends jraphical.Module
   @removeFromGuestsGroup = (account, callback) ->
     JGroup.one { slug: 'guests' }, (err, guestsGroup) ->
       return callback err  if err?
-      return callback message: "Guests group not found!"  unless guestsGroup?
+      return callback errorize "Guests group not found!"  unless guestsGroup?
       guestsGroup.removeMember account, callback
 
   createGroupStack = (account, groupName, callback)->
