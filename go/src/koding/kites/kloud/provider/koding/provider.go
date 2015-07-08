@@ -232,8 +232,10 @@ func (p *Provider) validate(m *Machine, r *kite.Request) error {
 	m.Log.Debug("validating for method '%s'", r.Method)
 
 	// give access to authorized users immediately
-	if _, authorized := p.AuthorizedUsers[r.Auth.Type]; authorized {
-		return nil
+	if r.Auth != nil {
+		if _, authorized := p.AuthorizedUsers[r.Auth.Type]; authorized {
+			return nil
+		}
 	}
 
 	if r.Username != m.User.Name {
