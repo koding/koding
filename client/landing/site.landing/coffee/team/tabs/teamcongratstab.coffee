@@ -7,11 +7,10 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'congrats'
-
     super options, data
 
     { mainController } = KD.singletons
+    name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -25,7 +24,11 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
       style      : 'TeamsModal-button TeamsModal-button--green'
       callback   : ->
         KD.utils.clearTeamData()
-        location.href = "https://#{slug}.koding.com"
+        { protocol, host } = location
+        location.href      = "#{protocol}//#{slug}.#{host}"
+
+    @on 'PaneDidShow', (pane) => @button.setFocus()
+
 
   pistachio: ->
 

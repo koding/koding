@@ -7,8 +7,6 @@ module.exports = class TeamBannedTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'congratz'
-
     super options, data
 
     @header = new MainHeaderView

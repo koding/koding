@@ -7,11 +7,10 @@ module.exports = class TeamStacksTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'stacks'
-
     super options, data
 
     { mainController } = KD.singletons
+    name = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -20,8 +19,11 @@ module.exports = class TeamStacksTab extends KDTabPaneView
     @next = new KDButtonView
       title      : 'Next'
       style      : 'TeamsModal-button TeamsModal-button--green'
-      callback   : -> KD.singletons.router.handleRoute '/Team/Congrats'
+      callback   : ->
+        KD.utils.storeNewTeamData name, yes
+        KD.singletons.router.handleRoute '/Team/Congrats'
 
+    @on 'PaneDidShow', (pane) => @next.setFocus()
 
   pistachio: ->
 

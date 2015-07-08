@@ -8,8 +8,6 @@ module.exports = class TeamAllowedDomainTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'alloweddomain'
-
     super options, data
 
     { mainController } = KD.singletons
@@ -18,9 +16,10 @@ module.exports = class TeamAllowedDomainTab extends KDTabPaneView
       cssClass : 'team'
       navItems : []
 
+    name = @getOption 'name'
     @form = new TeamAllowedDomainTabForm
       callback : (formData) ->
-        KD.utils.storeNewTeamData 'alloweddomain', formData
+        KD.utils.storeNewTeamData name, formData
         KD.singletons.router.handleRoute '/Team/Invite'
 
 

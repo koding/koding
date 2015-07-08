@@ -20,8 +20,6 @@ module.exports = class TeamDomainTab extends KDFormView
       placeholder  : 'your-team'
       defaultValue : teamName  if teamName
       name         : 'slug'
-      # change      : @bound 'verifySlug'
-      # keyUp       : KD.utils.debounce 300, @bound 'verifySlug'
 
     @button = new KDButtonView
       title      : 'NEXT'

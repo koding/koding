@@ -67,7 +67,7 @@ utils.extend utils,
   checkIfGroupExists: (groupName, callback) ->
 
     $.ajax
-      url     : "/-/teams/#{groupName}"
+      url     : "/-/team/#{groupName}"
       type    : 'post'
       success : (group) -> callback null, group
       error   : (err)   -> callback err
@@ -168,15 +168,17 @@ utils.extend utils,
 
   createFormData = (teamData) ->
 
-    teamData = KD.utils.getTeamData()
-    formData = {}
-    for key, value of teamData
-      for k, v of value
-        if k.search('invitee') >= 0
-          formData['invitees'] ?= v
-          formData['invitees'] += ",#{v}"
+    teamData ?= KD.utils.getTeamData()
+    formData  = {}
+
+    for own step, fields of teamData when not ('boolean' is typeof fields)
+      for own field, value of fields
+        if field is 'invite'
+          unless formData.invitees
+          then formData.invitees  = value
+          else formData.invitees += ",#{value}"
         else
-          formData[k] = v
+          formData[field] = value
 
     return formData
 
@@ -218,7 +220,7 @@ utils.extend utils,
   fetchTeamMembers: (teamName, callback) ->
 
     $.ajax
-      url       : "/-/teams/#{teamName}/members?limit=4"
+      url       : "/-/team/#{teamName}/members?limit=4"
       # data      : { limit : 5 }
       type      : 'POST'
       success   : (members) -> callback null, members
@@ -280,6 +282,15 @@ utils.extend utils,
       url         : "/-/validate/username"
       type        : 'POST'
       data        : { username }
-      xhrFields   : withCredentials : yes
+      success     : callbacks.success
+      error       : callbacks.error
+
+
+  verifySlug : (name, callbacks = {}) ->
+
+    $.ajax
+      url         : "/-/teams/verify-domain"
+      type        : 'POST'
+      data        : { name }
       success     : callbacks.success
       error       : callbacks.error

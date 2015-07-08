@@ -12,19 +12,17 @@ createAvatar = (profile) ->
   return el
 
 
-
 module.exports = class TeamWelcomeTab extends KDTabPaneView
 
   JView.mixin @prototype
 
   constructor:(options = {}, data)->
 
-    options.name = 'welcome'
-
     super options, data
 
     { mainController } = KD.singletons
     teamData           = KD.utils.getTeamData()
+    name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -36,6 +34,7 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
       callback   : ->
         go = ->
           KD.utils.storeNewTeamData 'signup', formData
+          KD.utils.storeNewTeamData name, yes
           KD.singletons.router.handleRoute '/Join'
 
         formData          = {}

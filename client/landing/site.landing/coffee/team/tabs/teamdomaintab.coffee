@@ -8,20 +8,29 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
   constructor:(options = {}, data)->
 
-    options.name = 'domain'
-
     super options, data
 
     { mainController } = KD.singletons
+    name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : []
 
     @form = new TeamDomainTabForm
-      callback: (formData) ->
-        KD.utils.storeNewTeamData 'domain', formData
-        KD.singletons.router.handleRoute '/Team/Email-domains'
+      callback: (formData) =>
+
+        KD.utils.verifySlug formData.slug,
+          success : =>
+            @form.input.unsetClass 'validation-error'
+            KD.utils.storeNewTeamData name, formData
+            KD.singletons.router.handleRoute '/Team/Email-domains'
+
+          error    : =>
+            @form.input.setClass 'validation-error'
+            new KDNotificationView title : 'That domain is taken, please try another one.'
+
+
 
 
   pistachio: ->
