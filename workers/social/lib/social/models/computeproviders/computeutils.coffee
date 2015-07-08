@@ -12,6 +12,10 @@ PROVIDERS =
 
 PLANS          = require './plans'
 
+# When adding up the storage usage totals, the DEFAULT_STORAGE_USAGE is
+# the default value to add, if no storage is defined.
+DEFAULT_STORAGE_USAGE = 3
+
 reviveProvisioners = (client, provisioners, callback, revive = no)->
 
   if not revive or not provisioners or provisioners.length is 0
@@ -335,27 +339,33 @@ checkUsage = (usage, plan, storage)->
 
 fetchUsage = (client, options, callback)->
 
-  JMachine = require './machine'
+  JMachine  = require './machine'
+  JSnapshot = require './snapshot'
 
-  { r: { user } } = client
+  { r: { user, account } } = client
   { provider }    = options
 
-  selector        = { provider }
-  selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
+  selector         = { provider }
+  selector.users   = $elemMatch: id: user.getId(), sudo: yes, owner: yes
+  snapshotSelector = { originId: account.getId() }
 
-  JMachine.some selector, limit: 30, (err, machines)->
-
+  JSnapshot.some snapshotSelector, {}, (err, snapshots = [])->
     return callback err  if err?
 
-    total    = machines.length
-    alwaysOn = 0
-    storage  = 0
+    snapshots = snapshots.length
 
-    machines.forEach (machine)->
-      alwaysOn++  if machine.meta?.alwaysOn
-      storage += machine.meta?.storage_size ? 3
+    JMachine.some selector, limit: 30, (err, machines)->
+      return callback err  if err?
 
-    callback null, { total, alwaysOn, storage }
+      total    = machines.length
+      alwaysOn = 0
+      storage  = 0
+
+      machines.forEach (machine)->
+        alwaysOn++  if machine.meta?.alwaysOn
+        storage += machine.meta?.storage_size ? DEFAULT_STORAGE_USAGE
+
+      callback null, { total, alwaysOn, storage, snapshots }
 
 
 module.exports = {

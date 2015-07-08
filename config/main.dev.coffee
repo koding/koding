@@ -70,7 +70,10 @@ Configuration = (options={}) ->
   version             = options.version        or "2.0" # TBD
   branch              = options.branch         or "cake-rewrite"
   build               = options.build          or "1111"
-  githubuser          = options.githubuser     or "koding"
+  githubapi           =
+    debug             : yes
+    timeout           : 5000
+    userAgent         : 'Koding-Bridge'
 
   mongo               = "#{boot2dockerbox}:27017/koding"
   etcd                = "#{boot2dockerbox}:4001"
@@ -203,6 +206,7 @@ Configuration = (options={}) ->
     redis                          : redis.url
     monitoringRedis                : redis.url
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
+    githubapi                      : githubapi
 
     # -- WORKER CONFIGURATION -- #
 

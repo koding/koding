@@ -15,7 +15,7 @@ ComputeHelpers          = require './computehelpers'
 ComputeController       = require './computecontroller'
 
 BaseModalView           = require './views/basemodalview'
-HelpSupportModal        = '../commonviews/helpsupportmodal'
+HelpSupportModal        = require '../commonviews/helpsupportmodal'
 
 EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
@@ -329,9 +329,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if destroyVMs
 
           @showBusy "Deleting your VM(s)..."
-          ComputeHelpers.destroyExistingMachines (err)=>
+          ComputeHelpers.destroyExistingResources yes, (err)=>
             @buildExpiredView subscription, "downgrade"
-          , yes
 
         else
 

@@ -321,7 +321,8 @@ module.exports = class StacksCustomViews extends CustomViews
 
     json = hljs.highlight('json', json).value
 
-    options.cssClass = kd.utils.curry 'has-markdown', options.cssClass
+    { curry } = kd.utils
+    options.cssClass = curry 'has-markdown content-modal', options.cssClass
 
     if options.overlay
       options.overlayOptions = cssClass: 'second-overlay'
@@ -584,7 +585,8 @@ module.exports = class StacksCustomViews extends CustomViews
           group           : currentGroup
 
       templateList = views.stackTemplateList.__view
-      templateList.on 'ItemSelected', callback
+      templateList.on 'ItemSelected', (stackTemplate) ->
+        callback 'edit-template', stackTemplate
 
       return container
 
