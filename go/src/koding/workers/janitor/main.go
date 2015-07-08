@@ -30,7 +30,7 @@ const (
 
 	// DailyAtFourPM specifies interval; cron runs at utc, 11 UTC is 4pm PST
 	// with daylight savings time
-	DailyAtFourPM = "0 11 * * * *"
+	DailyAtFourPM = "0 0 11 * * *"
 )
 
 type janitor struct {
