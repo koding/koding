@@ -715,6 +715,14 @@ Admin main styles
 
   .search
     margin                  25px 0
+    position                relative
+
+    &:before
+      display               block
+      abs                   0 0 11px 200px
+      content               ''
+      z-index               5
+      r-sprite              'admin', 'search'
 
     .label
       font-size             14px
