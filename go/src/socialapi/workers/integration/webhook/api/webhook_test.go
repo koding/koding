@@ -422,7 +422,7 @@ func TestWebhookIntegrationCreate(t *testing.T) {
 				c.GroupName = groupName
 
 				s, _, _, err := h.CreateChannelIntegration(
-					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.URL(m, "POST", "/channelintegration"),
 					mocking.Header(nil),
 					ci,
 					c,
@@ -441,7 +441,7 @@ func TestWebhookIntegrationCreate(t *testing.T) {
 				c.GroupName = groupName
 
 				s, _, _, err := h.CreateChannelIntegration(
-					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.URL(m, "POST", "/channelintegration"),
 					mocking.Header(nil),
 					ci,
 					c,
@@ -464,7 +464,7 @@ func TestWebhookIntegrationCreate(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				s, _, res, err := h.CreateChannelIntegration(
-					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.URL(m, "POST", "/channelintegration"),
 					mocking.Header(nil),
 					ci,
 					c,
@@ -535,7 +535,7 @@ func TestWebhookRegenerateToken(t *testing.T) {
 				testCi := webhook.NewChannelIntegration()
 				testCi.Id = ci.Id
 				s, _, res, err := h.RegenerateToken(
-					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.URL(m, "POST", "/channelintegration"),
 					mocking.Header(nil),
 					testCi,
 					c,
@@ -637,7 +637,7 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 				c := &models.Context{}
 				c.Client = &models.Client{Account: acc}
 				c.GroupName = groupName
-				endpoint := fmt.Sprintf("/channelintegration/%d/update", ci.Id)
+				endpoint := fmt.Sprintf("/channelintegration/%d", ci.Id)
 
 				s, _, _, err := h.UpdateChannelIntegration(
 					mocking.URL(m, "POST", endpoint),
@@ -659,7 +659,7 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 				c := &models.Context{}
 				c.Client = &models.Client{Account: acc}
 				c.GroupName = groupName
-				endpoint := fmt.Sprintf("/channelintegration/%d/update", ci.Id)
+				endpoint := fmt.Sprintf("/channelintegration/%d", ci.Id)
 				newChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
 				ci.ChannelId = newChannel.Id
 

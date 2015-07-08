@@ -28,7 +28,7 @@ fetch = (options, callback) ->
 create = (options, callback) ->
 
   doXhrRequest
-    endPoint : "/api/integration/channelintegration/create"
+    endPoint : "/api/integration/channelintegration"
     type     : 'POST'
     data     : options
   , (err, response) ->
@@ -42,7 +42,7 @@ update = (options, callback) ->
 
   { id } = options
   doXhrRequest
-    endPoint : "/api/integration/channelintegration/#{id}/update"
+    endPoint : "/api/integration/channelintegration/#{id}"
     type     : 'POST'
     data     : options
   , callback
@@ -51,7 +51,7 @@ update = (options, callback) ->
 fetchChannelIntegrations = (callback) ->
 
   doXhrRequest
-    endPoint : "/api/integration/channelintegrations"
+    endPoint : "/api/integration/channelintegration"
     type     : 'GET'
   , (err, response) ->
     return callback err  if err
