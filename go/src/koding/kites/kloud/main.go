@@ -223,6 +223,9 @@ func newKite(conf *Config) *kite.Kite {
 		CheckerFetcher: &plans.KodingChecker{
 			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		},
+		AuthorizedUsers: []string{
+			"kloudctl", "vmwatcher", "janitor", "paymentwebhook",
+		},
 	}
 
 	go kodingProvider.RunChecker(checkInterval)

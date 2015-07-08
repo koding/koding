@@ -39,6 +39,8 @@ type Provider struct {
 
 	PaymentFetcher plans.PaymentFetcher
 	CheckerFetcher plans.CheckerFetcher
+
+	AuthorizedUsers []string
 }
 
 type Credential struct {
@@ -237,7 +239,8 @@ func (p *Provider) validate(m *Machine, r *kite.Request) error {
 		}
 	}
 
-	if r.Username != m.User.Name {
+	// check if request user is authorized to make requests
+	if authorized := p.isUserAuthorized(r.Username, r.Auth.Type, m.User.Name); !authorized {
 		return errors.New("username is not permitted to make any action")
 	}
 
@@ -251,6 +254,23 @@ func (p *Provider) validate(m *Machine, r *kite.Request) error {
 	}
 
 	return nil
+}
+
+// isUserAuthorized checks if VM belongs to requester or from an authorized user
+func (p *Provider) isUserAuthorized(requestUser, authKey, machineUser string) bool {
+	// if VM belongs to user making request, authorize
+	if requestUser == machineUser {
+		return true
+	}
+
+	// if request is coming from an authorized user, authorize
+	for _, username := range p.AuthorizedUsers {
+		if authKey == username {
+			return true
+		}
+	}
+
+	return false
 }
 
 // checkUser checks whether the given username is available in the users list
