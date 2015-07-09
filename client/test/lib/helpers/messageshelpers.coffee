@@ -19,7 +19,7 @@ module.exports =
       browser
         .waitForElementVisible   '[testpath=main-sidebar]', 20000
         .waitForElementVisible   elementSelector, 20000
-        .moveToElement           elementSelector + ' a.add-icon', 10, 10
+        .moveToElement           elementSelector + ' a.add-     icon', 10, 10
         .click                   elementSelector + ' a.add-icon'
         .waitForElementVisible   '.new-message-form.with-fields' , 20000
         .waitForElementVisible   formSelector, 20000
