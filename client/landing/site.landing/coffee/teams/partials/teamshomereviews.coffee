@@ -1,4 +1,4 @@
-module.exports = class Reviews extends KDView
+module.exports = class TeamsHomeReviews extends KDView
 
   IMAGEPATH = '/a/site.landing/images/teams/reviewers'
   ITEMS     = [
@@ -43,35 +43,31 @@ module.exports = class Reviews extends KDView
 
   constructor: (options = {}, data) ->
 
-    super options, data
+    options.tagName  = 'ul'
+    options.cssClass = 'reviews'
 
-    @setPartial @partial()
+    super options, data
 
     @prepareReviews()
 
 
   prepareReviews: ->
 
+    reviews = ''
+
     for item in ITEMS
 
-      review = new KDCustomHTMLView
-        tagName : 'li'
-        partial : "
+      reviews += """
+        <li>
           <div class='review-content'>
             <div class='photo' style='background-image: url(#{IMAGEPATH}/#{item.who.photo})'></div>
             <p>#{ item.text }</p>
             <span class='who'>#{ item.who.name }</span>
             <span class='title'>#{ item.who.title }</span>
           </div>
-        "
+          </li>
+        """
 
-      @addSubView review, 'ul.reviews'
-
-
-  partial: ->
-
-    """
-    <ul class='reviews'></ul>
-    """
+    @setPartial reviews
 
 
