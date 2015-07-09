@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 JView                = require 'app/jview'
+remote               = require('app/remote').getInstance()
 globals              = require 'globals'
 showError            = require 'app/util/showError'
 KDInputView          = kd.InputView
@@ -34,7 +35,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     if instructions
       @instructionsView = new KDCustomHTMLView
         tagName  : 'section'
-        cssClass : 'has-markdown instructions'
+        cssClass : 'has-markdown instructions container'
         partial  : """
           <h4 class='title'>Setup Instructions</h4>
           <p class='subtitle'>Here are the steps necessary to add the #{data.title} integration.</p>
@@ -109,11 +110,70 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     @createEventCheckboxes()
 
+    @createAuthView()
+
+
+  createAuthView: ->
+
+    @getData().authorizable = yes # DUMMY_DATA
+    @getData().isAuthorized = yes  # DUMMY_DATA
+
+    { authorizable, isAuthorized } = @getData()
+
+    if authorizable
+      @setClass 'authorizable'
+
+      @authView = new KDCustomHTMLView
+        tagName  : 'section'
+        cssClass : 'auth container'
+        partial  : """
+          <h4 class='title'>Authorization</h4>
+          <hr />
+          <p class='info-text'>You can setup authorization for your integration here.</p>
+        """
+
+      buttonTitle = 'Authorize with your own account'
+      buttonClass = 'green'
+
+      if isAuthorized
+        buttonTitle = 'Remove your authorization'
+        buttonClass = 'red'
+
+      @authButton = new KDButtonView
+        title     : buttonTitle
+        cssClass  : "solid compact #{buttonClass}"
+        loader    : yes
+        callback  : =>
+          if @getData().isAuthorized then @unauth() else @auth()
+
+      @authView.addSubView @authButton
+
+      # hide unnecessary views.
+      @instructionsView?.hide()
+      @settingsForm.fields.url.hide()
+
+
+  auth: ->
+
+    options     =
+      provider  : 'github'
+      scope     : 'repo'
+      returnUrl : document.location.href
+
+    remote.api.OAuth.getUrl options, (err, res) =>
+      return showError err  if err
+      document.location = res # navigate to GitHub page
+
+
+  unauth: ->
+
+    kd.warn 'Unhandled method, @canthefason'
+
 
   createEventCheckboxes: ->
 
-    { selectedEvents } = @getData()
-    mainWrapper        = new KDCustomHTMLView cssClass: 'event-cbes'
+    selectedEvents = @getData().selectedEvents or []
+    mainWrapper    = new KDCustomHTMLView cssClass: 'event-cbes'
 
     for item in @data.settings?.events
 
@@ -222,9 +282,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
       </header>
       {section.description{ #(description)}}
       {{> @instructionsView}}
-      <section class="settings">
+      <section class="settings container">
         <h4 class='title'>Integration Settings</h4>
         <hr />
         {{> @settingsForm}}
       </section>
+      {{> @authView}}
     """

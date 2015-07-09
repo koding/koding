@@ -207,6 +207,13 @@ func newKite(conf *Config) *kite.Kite {
 		"eu-west-1",
 	})
 
+	authorizedUsers := map[string]string{
+		"kloudctl":       command.KloudSecretKey,
+		"janitor":        conf.JanitorSecretKey,
+		"vmwatcher":      conf.VmwatcherSecretKey,
+		"paymentwebhook": conf.PaymentwebhookSecretKey,
+	}
+
 	/// KODING PROVIDER ///
 
 	kodingProvider := &koding.Provider{
@@ -223,6 +230,7 @@ func newKite(conf *Config) *kite.Kite {
 		CheckerFetcher: &plans.KodingChecker{
 			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		},
+		AuthorizedUsers: authorizedUsers,
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
@@ -312,14 +320,7 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
-	authenticators := map[string]string{
-		"kloudctl":       command.KloudSecretKey,
-		"janitor":        conf.JanitorSecretKey,
-		"vmwatcher":      conf.VmwatcherSecretKey,
-		"paymentwebhook": conf.PaymentwebhookSecretKey,
-	}
-
-	for w, s := range authenticators {
+	for w, s := range authorizedUsers {
 		func(worker, secretKey string) {
 			k.Authenticators[worker] = func(r *kite.Request) error {
 				if r.Auth.Key != secretKey {

@@ -1301,6 +1301,14 @@ Admin main styles
 
 .AppModal--admin .integrations
 
+  .integration-details
+    &.authorizable
+      section.settings
+        margin-bottom       0
+
+    .auth.container
+      margin-bottom         100px
+
   .kdtabhandle
     max-width               230px !important // override element style
 
@@ -1420,8 +1428,12 @@ Admin main styles
     .cancel
       margin-right          10px
 
-  section.instructions
-  section.settings
+  .info-text
+    font-size               14px
+    color                   #8d8d8d
+    margin-bottom           20px
+
+  section.container
     border                  1px solid #e8e8e8
     rounded                 6px
     margin                  30px 0
@@ -1532,3 +1544,17 @@ Admin main styles
         width               auto
         top                 1px
         rel()
+
+
+.kdmodal.content-modal
+
+  padding                   15px
+  borderBox()
+
+  .kdmodal-inner
+    margin                  0 !important
+    height                  100%
+    overflow                hidden
+
+  .kdmodal-content
+    height                  calc(100% \- 50px)
