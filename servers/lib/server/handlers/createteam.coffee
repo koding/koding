@@ -170,10 +170,10 @@ generateCreateGroupKallback = (client, req, res, body) ->
 
 validateGroupDataAndReturnError = (body) ->
 
-  if not body.slug
+  unless body.slug
     return { statusCode : 400, errorMessage : 'Group slug can not be empty.' }
 
-  else if not body.companyName
+  else unless body.companyName
     return { statusCode : 400, errorMessage : 'Company name can not be empty.' }
 
   else null
