@@ -49,7 +49,7 @@ sleep 10
 export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
 
 java -jar $TEST_VENDOR/selenium-server-standalone-2.46.0.jar \
-     -host 127.0.0.1 \
+     -host 0.0.0.0 \
      -port 42424 \
      -Dwebdriver.chrome.driver=$TEST_VENDOR/chromedriver/linux64/chromedriver &
 

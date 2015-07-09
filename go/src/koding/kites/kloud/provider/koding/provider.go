@@ -11,7 +11,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
@@ -39,6 +38,8 @@ type Provider struct {
 
 	PaymentFetcher plans.PaymentFetcher
 	CheckerFetcher plans.CheckerFetcher
+
+	AuthorizedUsers map[string]string
 }
 
 type Credential struct {
@@ -230,9 +231,9 @@ func (p *Provider) getOwner(requesterName string, users []models.Permissions) (*
 func (p *Provider) validate(m *Machine, r *kite.Request) error {
 	m.Log.Debug("validating for method '%s'", r.Method)
 
-	// give access to kloudctl immediately
+	// give access to authorized users immediately
 	if r.Auth != nil {
-		if r.Auth.Key == command.KloudSecretKey {
+		if _, authorized := p.AuthorizedUsers[r.Auth.Type]; authorized {
 			return nil
 		}
 	}

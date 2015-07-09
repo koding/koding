@@ -69,7 +69,10 @@ Configuration = (options={}) ->
   version        = options.tag
   tag            = options.tag
   publicIP       = options.publicIP            or "*"
-  githubuser     = options.githubuser          or "koding"
+  githubapi      =
+    debug        : no
+    timeout      : 5000
+    userAgent    : 'Koding-Bridge'
 
   mongo               = "#{prod_simulation_server}:27017/koding"
   etcd                = "#{prod_simulation_server}:4001"
@@ -162,7 +165,7 @@ Configuration = (options={}) ->
   kloudPort           = 5500
 
   tunnelserver =
-    port            : 4444
+    port            : 80
     basevirtualhost : "koding.me"
     hostedzone      : "koding.me"
 
@@ -190,6 +193,7 @@ Configuration = (options={}) ->
     redis                          : redis.url
     monitoringRedis                : "#{prod_simulation_server}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
+    githubapi                      : githubapi
 
     # -- WORKER CONFIGURATION -- #
     vmwatcher                      : {port          : "6400"                      , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey   , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-sandbox" }
@@ -683,11 +687,10 @@ Configuration = (options={}) ->
         websocket       : yes
         locations       : [
           {
-            location    : "~ /(.*)"
+            location    : "~ /tunnelserver/(.*)"
             proxyPass   : "http://tunnelserver/$1"
           }
         ]
-
 
     userproxies         :
       group             : "proxy"

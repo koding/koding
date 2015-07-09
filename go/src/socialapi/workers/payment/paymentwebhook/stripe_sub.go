@@ -26,7 +26,7 @@ func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
 
 	err = stopMachinesForUser(sub.CustomerId, c.Kite)
 	if err != nil {
-		Log.Error(fmt.Sprintf("Error stopping machines for customer:%s, %s",
+		Log.Debug(fmt.Sprintf("Error stopping machines for customer:%s, %s",
 			sub.CustomerId, err,
 		))
 	}
