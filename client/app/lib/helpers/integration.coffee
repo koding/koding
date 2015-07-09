@@ -1,6 +1,7 @@
 remote       = require('app/remote').getInstance()
 doXhrRequest = require 'app/util/doXhrRequest'
 
+
 list = (callback) ->
 
   doXhrRequest
@@ -11,6 +12,25 @@ list = (callback) ->
     return callback err  if err
 
     return callback null, response.data
+
+
+find = (query, callback) ->
+
+  list (err, items) ->
+
+    return callback err  if err
+
+    for item in items when item.name is query or item.title is query
+      integration = item
+
+    return callback { message: 'Not found' }  unless integration
+
+    fetchChannels (err, channels) =>
+      return callback err  if err
+
+      integration.channels = channels
+
+      callback null, integration
 
 
 fetchChannels = (callback) ->
@@ -119,6 +139,7 @@ fetchGithubRepos = (callback) ->
 
 module.exports = {
   list
+  find
   fetch
   create
   update
