@@ -152,6 +152,41 @@ func TestMultipleLatencyRequest(t *testing.T) {
 	tenv.Close()
 }
 
+func TestReconnectClient(t *testing.T) {
+	tenv, err := singleTestEnvironment(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tenv.Close()
+
+	msg := "hello"
+	res, err := makeRequest(tenv.remoteListener.Addr().String(), msg)
+	if err != nil {
+		t.Errorf("make request: %s", err)
+	}
+
+	if res != msg {
+		t.Errorf("expecting '%s', got '%s'", msg, res)
+	}
+
+	// close client, and start it again
+	tenv.client.Close()
+
+	go tenv.client.Start()
+	<-tenv.client.StartNotify()
+
+	msg = "helloagain"
+	res, err = makeRequest(tenv.remoteListener.Addr().String(), msg)
+	if err != nil {
+		t.Errorf("make request: %s", err)
+	}
+
+	if res != msg {
+		t.Errorf("expecting '%s', got '%s'", msg, res)
+	}
+
+}
+
 func TestNoClient(t *testing.T) {
 	tenv, err := singleTestEnvironment(nil)
 	if err != nil {

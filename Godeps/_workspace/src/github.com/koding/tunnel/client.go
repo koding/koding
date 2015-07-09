@@ -146,6 +146,18 @@ func (c *Client) Start() {
 			continue
 		}
 
+		// mark it as not closed. Also empty the value inside the chan by
+		// retrieving it (if any), so it doesn't block during connect, when the
+		// client was closed and started again, and startNotify was never
+		// listened to.
+		c.mu.Lock()
+		c.closed = false
+		select {
+		case <-c.startNotify:
+		default:
+		}
+		c.mu.Unlock()
+
 		if err := c.connect(identifier); err != nil {
 			c.log.Debug("client connect err: %s", err.Error())
 		}
@@ -269,13 +281,14 @@ func (c *Client) connect(identifier string) error {
 
 	c.mu.Lock()
 	if c.startNotify != nil && !c.closed {
+		c.log.Debug("sending ok to startNotify chan")
 		select {
 		case c.startNotify <- true:
 		default:
-			// reaching here is a race condition, because it indicates
-			// startNotify has already a value. We panic because it's library
-			// level problem that needs immediate attention
-			panic("startNotify chan is already full")
+			// reaching here means the client never read the signal via
+			// StartNotify(). This is OK, we shouldn't except it the consumer
+			// to read from this channel. It's optional, so we just drop the
+			// signal.
 		}
 	}
 	c.mu.Unlock()
