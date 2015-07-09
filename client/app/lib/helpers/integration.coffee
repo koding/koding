@@ -12,6 +12,25 @@ list = (callback) ->
 
     return callback null, response.data
 
+
+fetchChannels = (callback) ->
+
+  kd.singletons.socialapi.account.fetchChannels (err, channels) ->
+
+    return callback err  if err
+
+    decoratedChannels = []
+
+    for channel in channels
+      { id, typeConstant, name, purpose, participantsPreview } = channel
+
+      # TODO after refactoring the private channels, we also need to add them here
+      if typeConstant is 'topic' or typeConstant is 'group'
+        decoratedChannels.push { name:"##{name}", id }
+
+    callback null, decoratedChannels
+
+
 fetch = (options, callback) ->
   { id } = options
 
@@ -103,7 +122,8 @@ module.exports = {
   fetch
   create
   update
-  fetchChannelIntegrations
+  fetchChannels
   regenerateToken
   fetchGithubRepos
+  fetchChannelIntegrations
 }
