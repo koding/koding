@@ -52,7 +52,14 @@ module.exports = class FinderController extends KDController
       hoverDetect : no
       delegate    : controller
 
-    onDrag = ->
+    onDrag = (args...) ->
+
+      mouseEvent = args.filter (arg) -> arg instanceof KDView is no
+
+      if mouseEvent.length
+        { files, items }  = mouseEvent[0].originalEvent.dataTransfer
+
+        return  if items?[0].kind is 'string' and not files.length
 
       unless controller.treeController.internalDragging
         uploaderPlaceholder.show()
