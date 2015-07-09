@@ -63,7 +63,12 @@ module.exports = class AdminAppView extends kd.ModalView
       if sectionKey is 'koding' and currentGroup.slug isnt 'koding'
         continue
 
-      items = items.concat section.items
+      for item in section.items
+        items.push item
+
+        if item.subTabs
+          for subTab in item.subTabs
+            items.push subTab
 
 
     @tabs.on 'PaneDidShow', (pane) ->
