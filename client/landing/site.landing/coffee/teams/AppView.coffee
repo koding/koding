@@ -1,10 +1,10 @@
-CustomLinkView  = require './../core/customlinkview'
-MainHeaderView  = require './../core/mainheaderview'
-JView           = require './../core/jview'
-FooterView      = require './../home/footerview'
-MiddleSection   = require './partials/middlesection'
-TeamsSignupForm = require './teamssignupform'
-TeamsLaunchForm = require './teamslaunchform'
+CustomLinkView             = require './../core/customlinkview'
+MainHeaderView             = require './../core/mainheaderview'
+JView                      = require './../core/jview'
+FooterView                 = require './../home/footerview'
+TeamsHomeFeaturesSection   = require './partials/teamshomefeaturessection'
+TeamsSignupForm            = require './teamssignupform'
+TeamsLaunchForm            = require './teamslaunchform'
 
 
 module.exports = class TeamsView extends JView
@@ -65,7 +65,7 @@ module.exports = class TeamsView extends JView
         click    : ->
           alert 'clicked'
 
-      @middleSection = new MiddleSection
+      @teamsHomeFeaturesSection = new TeamsHomeFeaturesSection
 
       @footer = new FooterView
 
@@ -149,6 +149,6 @@ module.exports = class TeamsView extends JView
         {{> @playVideoIcon}}
       </div>
     </section>
-    {{> @middleSection}}
+    {{> @teamsHomeFeaturesSection}}
     {{> @footer}}
     """
