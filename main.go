@@ -98,20 +98,9 @@ func realMain() int {
 	a := app.NewKlient(conf)
 	defer a.Close()
 
-	// Change tunnel server based on environment
-	tunnelServerAddr := *flagTunnelServerAddr
-	if tunnelServerAddr == "" {
-		switch protocol.Environment {
-		case "development":
-			tunnelServerAddr = "devtunnelproxy.koding.com:80"
-		case "production":
-			tunnelServerAddr = "tunnelproxy.koding.com:80"
-		}
-	}
-
 	// Open Pandora's box
 	if err := klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
-		ServerAddr: tunnelServerAddr,
+		ServerAddr: *flagTunnelServerAddr,
 		LocalAddr:  *flagTunnelLocalAddr,
 		Debug:      *flagDebug,
 	}); err != nil {

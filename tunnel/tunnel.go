@@ -5,6 +5,7 @@ import (
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
+	"github.com/koding/klient/protocol"
 )
 
 type registerResult struct {
@@ -13,6 +14,16 @@ type registerResult struct {
 }
 
 func Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
+	// Change tunnel server based on environment
+	if conf.ServerAddr == "" {
+		switch protocol.Environment {
+		case "development":
+			conf.ServerAddr = "devtunnelproxy.koding.com:80"
+		case "production":
+			conf.ServerAddr = "tunnelproxy.koding.com:80"
+		}
+	}
+
 	tunnelkite := kite.New("tunnelclient", "0.0.1")
 	tunnelkite.Config = k.Config.Copy()
 
