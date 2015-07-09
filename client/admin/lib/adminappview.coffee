@@ -1,6 +1,7 @@
 kd                   = require 'kd'
-KDTabPaneView        = kd.TabPaneView
 globals              = require 'globals'
+KDTabPaneView        = kd.TabPaneView
+KDCustomHTMLView     = kd.CustomHTMLView
 AdminMainTabPaneView = require './views/adminmaintabpaneview'
 
 
@@ -74,15 +75,26 @@ module.exports = class AdminAppView extends kd.ModalView
     @tabs.on 'PaneDidShow', (pane) ->
       return  if pane._isViewAdded
 
-      slug = pane.getOption 'slug'
+      slug       = pane.getOption 'slug'
+      action     = pane.getOption 'action'
+      identifier = pane.getOption 'identifier'
+      targetItem = viewClass: KDCustomHTMLView
 
-      for item in items when item.slug is slug
-        {viewClass} = item
+      for item in items
+        if item.action is action
+          targetItem = item
+          break
+        else if item.slug is slug
+          targetItem = item
+          break
+
+      { viewClass } = targetItem
 
       pane._isViewAdded = yes
       pane.addSubView new viewClass
-        cssClass     : slug
-        delegate     : this
+        cssClass : slug or action
+        delegate : this
+        action   : action
       , data
 
     items.forEach (item, i) =>
