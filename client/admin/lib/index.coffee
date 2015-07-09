@@ -79,7 +79,6 @@ module.exports = class AdminAppController extends AppController
       @mainView.tabs.panes.forEach (pane) ->
         if pane.getOption('slug') is section
           targetPane = pane
-          targetPane.routerParams = { action, identifier }  if action
 
       if   targetPane then @mainView.tabs.showPane targetPane
       else kd.singletons.router.handleRoute '/Admin/Settings'
