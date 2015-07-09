@@ -125,8 +125,9 @@ generateCreateGroupKallback = (client, req, res, body) ->
     client.sessionToken        = result.newToken
     client.connection.delegate = result.account
 
-    if (validationResult = validateGroupData body, res) isnt yes
-      return res.status(400).send(validationResult)
+    if validationError = validateGroupDataAndReturnError body
+      { statusCode, errorMessage } = validationError
+      return res.status(statusCode).send errorMessage
 
     JGroup.create client,
       slug            : slug
@@ -167,15 +168,15 @@ generateCreateGroupKallback = (client, req, res, body) ->
         res.redirect 301, redirect
 
 
-validateGroupData = (body, res) ->
+validateGroupDataAndReturnError = (body) ->
 
   if not body.slug
-    return 'Group slug can not be empty.'
+    return { statusCode : 400, errorMessage : 'Group slug can not be empty.' }
 
   else if not body.companyName
-    return 'Company name can not be empty.'
+    return { statusCode : 400, errorMessage : 'Company name can not be empty.' }
 
-  else true
+  else null
 
 # convertToArray converts given comma separated string value into cleaned,
 # trimmed, lowercased, unified array of string
