@@ -101,15 +101,15 @@ module.exports = class TopicItemView extends KDListItemView
   createLeafChannelSetting: (data) ->
     
     @settings.addSubView @removeLabel = new KDCustomHTMLView
-      cssClass: 'solid compact hidden'
-      partial : '<span class="label">Leaf Channels</span>'
+      cssClass: 'topics-connected'
+      partial : '<span class="label">CONNECTED CHANNELS</span>'
 
     @createLeafChannelsListController()
     @settings.addSubView @leafChannelsListController.getView()
     @createLeafItemViews @getData()
 
     @settings.addSubView @removeButton = new KDButtonView
-      cssClass : 'solid compact outline hidden'
+      cssClass : 'solid compact hidden remove-topic'
       title    : 'REMOVE LINK'
       callback : =>
         listItems = @leafChannelsListController.getListItems()
@@ -127,17 +127,16 @@ module.exports = class TopicItemView extends KDListItemView
   createSimilarChannelSetting: (data) ->
          
     @settings.addSubView new KDCustomHTMLView
-      cssClass: 'solid compact'
-      partial : '<span class="label">Similar Channels</span>'
+      cssClass: 'topics-similar'
+      partial : '<span class="label">SIMILAR CHANNELS</span>'
 
 
     @settings.addSubView @searchContainer = new KDCustomHTMLView
       cssClass: 'search'
-      partial : '<span class="label">Find similar channels</span>'
 
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
       type        : 'text'
-      placeholder : @getData().name
+      placeholder : 'Find similar channels'
       callback    : @bound 'searchSimilarChannels'
     
     @createSimilarChannelsListController()
@@ -241,7 +240,10 @@ module.exports = class TopicItemView extends KDListItemView
         itemClass         : SelectableItemView
         cssClass          : 'leaf-channel-list'
         itemOptions       : {}
-      noItemFoundWidget   : new KDCustomHTMLView  { partial: "Doesn't have linked channel" }
+      noItemFoundWidget   : new KDCustomHTMLView  {
+          cssClass        : 'topics-empty'
+          partial         : "Doesn't have linked channels" 
+      }
       startWithLazyLoader : no
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
@@ -257,7 +259,10 @@ module.exports = class TopicItemView extends KDListItemView
         itemClass         : SelectableItemView
         cssClass          : 'similar-item-list'
         itemOptions       : {}
-      noItemFoundWidget   : new KDCustomHTMLView { partial: "Doesn't have similar channel" }
+      noItemFoundWidget   : new KDCustomHTMLView { 
+          cssClass        : 'topics-empty'
+          partial         : "Doesn't have similar channels" 
+      }
       startWithLazyLoader : yes
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
