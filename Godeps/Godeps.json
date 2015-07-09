@@ -93,7 +93,7 @@
 		},
 		{
 			"ImportPath": "github.com/hashicorp/yamux",
-			"Rev": "b2e55852ddaf823a85c67f798080eb7d08acd71d"
+			"Rev": "8e00b30457b1486b012f204b82ec92ae6b547de8"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/go-update",
@@ -121,7 +121,7 @@
 		},
 		{
 			"ImportPath": "github.com/koding/tunnel",
-			"Rev": "e79d43a5f147e12972abf94c8b7ef07f9d0d1ee2"
+			"Rev": "20e915faf47ddebd562383f1abccd31aac510533"
 		},
 		{
 			"ImportPath": "github.com/kr/binarydist",

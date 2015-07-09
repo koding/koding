@@ -421,8 +421,9 @@ func (s *Server) addSession(identifier string, session *yamux.Session) {
 
 func (s *Server) deleteSession(identifier string) {
 	s.sessionsMu.Lock()
+	defer s.sessionsMu.Unlock()
+
 	session, ok := s.sessions[identifier]
-	s.sessionsMu.Unlock()
 
 	if !ok {
 		return // nothing to delete
