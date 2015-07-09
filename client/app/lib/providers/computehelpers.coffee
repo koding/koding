@@ -4,6 +4,7 @@ KDNotificationView    = kd.NotificationView
 globals               = require 'globals'
 Promise               = require 'bluebird'
 
+remote                = require('app/remote').getInstance()
 nick                  = require 'app/util/nick'
 showError             = require 'app/util/showError'
 
@@ -15,8 +16,42 @@ ComputePlansModalFree = require './computeplansmodalfree'
 
 module.exports = class ComputeHelpers
 
+  ###*
+   * Destroy Machines and Snapshots
+   *
+   * @param {Function(err:Error)} callback
+   * @param {bool} waitForCompleteDeletion - If true, this method will
+   *  not callback until all machines have fully completed being
+   *  destroyed.
+   * @returns {Promise}
+  ###
+  @destroyExistingResources = (waitForCompleteDeletion = no, callback = kd.noop) ->
+    # destroyPromises is a list of all the promises returned by the destroy
+    # functions that @destroyExistingResources will call. The name of this
+    # list (and it's existence) match the other destroy functions, for
+    # consistency.
+    destroyPromises = []
 
-  @destroyExistingMachines = (callback = kd.noop(), waitForCompleteDeletion = no)->
+    # Creating a promise here, because @destroyExistingMachines does
+    # not return a promise.
+    destroyPromises.push new Promise (resolve, reject) ->
+      machineCallback = (err) ->
+        if err
+        then reject err
+        else resolve()
+      ComputeHelpers.destroyExistingMachines waitForCompleteDeletion, machineCallback
+
+    # Add the destroy Snapshots promise
+    destroyPromises.push ComputeHelpers.destroyExistingSnapshots waitForCompleteDeletion
+
+    result = Promise.all destroyPromises
+    result.timeout globals.COMPUTECONTROLLER_TIMEOUT  unless waitForCompleteDeletion
+    result.then        -> callback? null
+    result.catch (err) -> callback? err
+    return result
+
+
+  @destroyExistingMachines = (waitForCompleteDeletion = no, callback = kd.noop) ->
 
     { computeController } = kd.singletons
 
@@ -41,6 +76,40 @@ module.exports = class ComputeHelpers
           callback null
       result.timeout globals.COMPUTECONTROLLER_TIMEOUT  unless waitForCompleteDeletion
       return result
+
+
+  ###*
+   * Destroy existing snapshots.
+   *
+   * @param {Function(err:Error)} callback
+   * @param {bool} waitForCompleteDeletion - If true, no timeout will be
+   *  used on the Promise.
+   * @returns {Promise}
+  ###
+  @destroyExistingSnapshots = (waitForCompleteDeletion = no, callback = kd.noop) ->
+
+    { computeController } = kd.singletons
+    { JSnapshot }         = remote.api
+    kloud                 = computeController.getKloud()
+
+    # Fetch snapshots
+    result = new Promise (resolve, reject) ->
+      JSnapshot.some {}, { limit: 20 }, (err, snapshots) ->
+        if err
+        then reject err
+        else resolve snapshots
+
+    # call deleteSnapshot for all snapshots, and return a promise
+    result = result.then (snapshots = []) ->
+      return Promise.all snapshots.map (snapshot) ->
+        { machineId, snapshotId } = snapshot
+        return kloud.deleteSnapshot { machineId, snapshotId }
+
+    # Callback if needed, and return the resulting promise.
+    result.timeout globals.COMPUTECONTROLLER_TIMEOUT  unless waitForCompleteDeletion
+    result.then        -> callback? null
+    result.catch (err) -> callback? err
+    return result
 
 
   @handleNewMachineRequest = (options = {}, callback = kd.noop)->
@@ -270,3 +339,5 @@ module.exports = class ComputeHelpers
       tester (res, failed)->
         console.timeEnd 'via kloud.info'
         log 'All completed:', res, failed
+
+
