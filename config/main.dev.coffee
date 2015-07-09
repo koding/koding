@@ -3,6 +3,7 @@ log                   = console.log
 fs                    = require 'fs'
 os                    = require 'os'
 path                  = require 'path'
+{ isAllowed }         = require '../deployment/grouptoenvmapping'
 
 Configuration = (options={}) ->
 
@@ -178,7 +179,7 @@ Configuration = (options={}) ->
   autoConfirmAccounts = yes
 
   tunnelserver =
-    port            : 4444
+    port            : 80
     basevirtualhost : "koding.me"
     hostedzone      : "koding.me"
 
@@ -741,7 +742,7 @@ Configuration = (options={}) ->
         websocket       : yes
         locations       : [
           {
-            location    : "~ /(.*)"
+            location    : "~ /tunnelserver/(.*)"
             proxyPass   : "http://tunnelserver/$1"
           }
         ]
@@ -806,7 +807,11 @@ Configuration = (options={}) ->
 
     killlist = ->
       str = "kill -KILL "
-      str += "$#{key}pid " for key,val of KONFIG.workers
+      for key, worker of KONFIG.workers
+        unless isAllowed worker.group, KONFIG.ebEnvName
+          continue
+
+        str += "$#{key}pid "
 
       return str
 
@@ -826,6 +831,10 @@ Configuration = (options={}) ->
     workersRunList = ->
       workers = ""
       for name, worker of KONFIG.workers when worker.supervisord
+        # some of the locations can be limited to some environments, while creating
+        # nginx locations filter with this info
+        unless isAllowed worker.group, KONFIG.ebEnvName
+          continue
 
         {command} = worker.supervisord
 
