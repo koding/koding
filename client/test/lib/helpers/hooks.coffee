@@ -75,7 +75,7 @@ methods =
         if err
           console.log ' ✖ Unable to write test times to S3.'
         else
-          console.log ' ✔ Test data saved to S3.'
+          console.log " ✔ Test data saved to S3. https://koding-test-data.s3.amazonaws.com/#{filename}"
 
 
 module.exports =
