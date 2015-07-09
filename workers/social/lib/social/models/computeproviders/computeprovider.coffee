@@ -8,7 +8,7 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 module.exports = class ComputeProvider extends Base
 
   {
-    PLANS, PROVIDERS, fetchStackTemplate, revive,
+    PLANS, PROVIDERS, fetchGroupStackTemplate, revive,
     fetchUsage, checkTemplateUsage
   } = require './computeutils'
 
