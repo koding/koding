@@ -1,12 +1,14 @@
-kd                 = require 'kd'
-globals            = require 'globals'
-JView              = require 'app/jview'
-remote             = require('app/remote').getInstance()
-KDSelectBox        = kd.SelectBox
-KDButtonView       = kd.ButtonView
-integrationHelpers = require 'app/helpers/integration'
+kd                         = require 'kd'
+globals                    = require 'globals'
+JView                      = require 'app/jview'
+remote                     = require('app/remote').getInstance()
+KDSelectBox                = kd.SelectBox
+KDButtonView               = kd.ButtonView
+integrationHelpers         = require 'app/helpers/integration'
+AdminIntegrationCommonView = require './adminintegrationcommonview'
 
-module.exports = class AdminIntegrationSetupView extends JView
+
+module.exports = class AdminIntegrationSetupView extends AdminIntegrationCommonView
 
   constructor: (options = {}, data) ->
 
