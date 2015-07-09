@@ -13,6 +13,9 @@ GroupPermissionsView      = require './views/grouppermissionsview'
 GroupsBlockedUserView     = require './views/groupsblockeduserview'
 AdminIntegrationsView     = require './views/integrations/adminintegrationsview'
 GroupGeneralSettingsView  = require './views/groupgeneralsettingsview'
+AdminIntegrationSetupView = require './views/integrations/adminintegrationsetupview'
+AdminIntegrationsDetailsView = require './views/integrations/adminintegrationdetailsview'
+
 
 require('./routehandler')()
 
@@ -31,7 +34,15 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
         { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
-        { slug : 'Integrations',   title : 'Integrations',      viewClass : AdminIntegrationsView    }
+        {
+          slug      : 'Integrations'
+          title     : 'Integrations'
+          viewClass : AdminIntegrationsView,
+          subTabs   : [
+            { title : 'Add',        action: 'Add',              viewClass : AdminIntegrationSetupView    }
+            { title : 'Configure',  action: 'Configure',        viewClass : AdminIntegrationsDetailsView }
+          ]
+        }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
       ]
     koding     :
