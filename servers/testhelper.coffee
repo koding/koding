@@ -332,8 +332,11 @@ class RegisterHandlerHelper
 
 module.exports = {
   generateUrl
-  TeamHandlerHelper
   generateRandomEmail
   generateRandomString
+  generateRandomUsername
+
+  TeamHandlerHelper
   RegisterHandlerHelper
+  ValidationHandlerHelper
 }
