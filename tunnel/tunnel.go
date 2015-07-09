@@ -13,11 +13,21 @@ type registerResult struct {
 }
 
 func Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
+	tunnelkite := kite.New("tunnelclient", "0.0.1")
+	tunnelkite.Config = k.Config.Copy()
+
+	if conf.Debug {
+		tunnelkite.SetLogLevel(kite.DEBUG)
+	}
+
 	if conf.ServerAddr == "" {
 		return errors.New("Tunnel server addr is empty")
 	}
 
-	tunnelserver := k.NewClient("http://" + conf.ServerAddr + "/kite")
+	tunnelserver := tunnelkite.NewClient("http://" + conf.ServerAddr + "/kite")
+	// Enable it later if needed
+	// tunnelserver.LocalKite.Config.Transport = config.XHRPolling
+
 	connected, err := tunnelserver.DialForever()
 	if err != nil {
 		return err

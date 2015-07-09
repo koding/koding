@@ -103,18 +103,21 @@ func realMain() int {
 	if tunnelServerAddr == "" {
 		switch protocol.Environment {
 		case "development":
-			tunnelServerAddr = "devtunnelproxy.koding.com"
+			tunnelServerAddr = "devtunnelproxy.koding.com:80"
 		case "production":
-			tunnelServerAddr = "tunnelproxy.koding.com"
+			tunnelServerAddr = "tunnelproxy.koding.com:80"
 		}
 	}
 
 	// Open Pandora's box
-	go klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
+	if err := klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
 		ServerAddr: tunnelServerAddr,
 		LocalAddr:  *flagTunnelLocalAddr,
 		Debug:      *flagDebug,
-	})
+	}); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		return 1
+	}
 
 	// run inital fix commands
 	if err := fix.Run(u.Username); err != nil {
