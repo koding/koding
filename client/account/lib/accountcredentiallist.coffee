@@ -13,6 +13,7 @@ module.exports = class AccountCredentialList extends KDListView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass   = kd.utils.curry 'credential-list', options.cssClass
     options.itemClass ?= AccountCredentialListItem
 
     super options, data
