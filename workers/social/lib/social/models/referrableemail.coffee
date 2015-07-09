@@ -1,7 +1,7 @@
 jraphical = require "jraphical"
 module.exports = class JReferrableEmail extends jraphical.Module
   JAccount = require "./account"
-  Email    = require "./email"
+  Tracker  = require "./tracker"
 
   {ObjectId, secure, signature} = require "bongo"
   {ObjectId, secure} = require "bongo"
@@ -70,12 +70,12 @@ module.exports = class JReferrableEmail extends jraphical.Module
 
     shareUrl  = "https://koding.com/R/#{@username}"
 
-    Email.queue nickname, {
+    Tracker.track nickname, {
       to         : @email
-      subject    : Email.types.INVITED_GROUP
-    }, { firstName, lastName, shareUrl }, (err) =>
-      return callback err  if err
-      @update $set: invited: true, callback
+      subject    : Tracker.types.INVITED_GROUP
+    }, { firstName, lastName, shareUrl }
+
+    @update $set: invited: true, callback
 
   @invite: secure (client, email, callback) ->
     {connection: {delegate: {profile: {nickname}}}} = client
