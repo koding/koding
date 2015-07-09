@@ -34,8 +34,6 @@ module.exports = (req, res, next) ->
   clientIPAddress     = req.headers['x-forwarded-for'] || req.connection.remoteAddress
   # parsing booling from string
   alreadyMember       = alreadyMember is 'true'
-  # this function will be bound with necessary data in the queue later
-  handleGroupCreation = ->
 
   queue = [
 
@@ -80,102 +78,105 @@ module.exports = (req, res, next) ->
         queue.next()
 
     ->
-      # binding createGroup function to be used as callback in both login and convert
-      handleGroupCreation = createGroup.bind null, client, req, res, body
-      queue.next()
+      # generating callback function to be used in both login and convert
+      createGroupKallback = generateCreateGroupKallback client, req, res, body
 
-    ->
       if alreadyMember
-      then JUser.login client.sessionToken, body, handleGroupCreation
-      else JUser.convert client, body, handleGroupCreation
+      then JUser.login client.sessionToken, body, createGroupKallback
+      else JUser.convert client, body, createGroupKallback
 
   ]
 
   daisy queue
 
 
-createGroup = (client, req, res, body, err, result) ->
+generateCreateGroupKallback = (client, req, res, body) ->
 
-  return res.status(400).send getErrorMessage err  if err?
+  # returning a callback function
+  return (err, result) ->
 
-  { # companyName, team name, basically a title, can be changed
-    companyName
-    # slug is team slug, unique name. Can not be changed
-    slug
-    redirect
-    # invitees are comma separated emails which will be invited to that team
-    invitees
-    # domains holds allowed domains for signinup without invitation, comma separated
-    domains
-    # username of the user, can be already registered or a new one for creation
-    username
-  } = body
+    return res.status(400).send getErrorMessage err  if err?
 
-  { JUser, JGroup, JInvitation } = koding.models
+    { # companyName, team name, basically a title, can be changed
+      companyName
+      # slug is team slug, unique name. Can not be changed
+      slug
+      redirect
+      # invitees are comma separated emails which will be invited to that team
+      invitees
+      # domains holds allowed domains for signinup without invitation, comma separated
+      domains
+      # username of the user, can be already registered or a new one for creation
+      username
+    } = body
 
-  # don't set the cookie we don't want that
-  # bc we're going to redirect the page to the
-  # group subdomain, if you can set the cookie for
-  # the subdomain - SY cc/ @cihangir
+    { JUser, JGroup, JInvitation } = koding.models
 
-  # res.cookie 'clientId', result.newToken, path : '/'
+    # don't set the cookie we don't want that
+    # bc we're going to redirect the page to the
+    # group subdomain, if you can set the cookie for
+    # the subdomain - SY cc/ @cihangir
 
-  # set session token for later usage down the line
-  owner                      = result.account
-  redirect                  ?= '/'
-  client.sessionToken        = result.newToken or result.replacementToken
-  client.connection.delegate = result.account
+    # res.cookie 'clientId', result.newToken, path : '/'
 
-  return  if validateGroupData(body, res) isnt yes
+    # set session token for later usage down the line
+    owner                      = result.account
+    redirect                  ?= '/'
+    client.sessionToken        = result.newToken
+    client.connection.delegate = result.account
 
-  JGroup.create client,
-    slug            : slug
-    title           : companyName
-    visibility      : 'hidden'
-    initialData     : body
-    allowedDomains  : convertToArray domains # clear & convert domains into array
-    defaultChannels : []
-  , owner, (err, group) ->
+    if validationError = validateGroupDataAndReturnError body
+      { statusCode, errorMessage } = validationError
+      return res.status(statusCode).send errorMessage
 
-    if err or not group
-      console.error 'Error while creating the group', err
-      return res.status(500).send "Couldn't create the group."
+    JGroup.create client,
+      slug            : slug
+      title           : companyName
+      visibility      : 'hidden'
+      initialData     : body
+      allowedDomains  : convertToArray domains # clear & convert domains into array
+      defaultChannels : []
+    , owner, (err, group) ->
 
-    queue = [
+      if err or not group
+        console.error 'Error while creating the group', err
+        return res.status(500).send "Couldn't create the group."
 
-      # add other parallel operations here
-      -> createInvitations client, invitees, (err) ->
-          console.error "Err while creating invitations", err  if err
-          queue.fin()
+      queue = [
 
-    ]
+        # add other parallel operations here
+        -> createInvitations client, invitees, (err) ->
+            console.error "Err while creating invitations", err  if err
+            queue.fin()
 
-    dash queue, (err)->
-      # do not block group creation
-      console.error "Error while creating group artifacts", body, err if err
+      ]
 
-      # temp code for creating the team-access cookie for development
-      # sandbox and latest share the same config file
-      # so sandbox.koding.com covers both cases ಠ_ಠ - SY
-      if /ngrok|sandbox\.koding/.test KONFIG.hostname
-        console.log "setting cookie for #{slug}.dev.koding.com"
-        res.cookie 'team-access', 'yes', domain : ".dev.koding.com"
+      dash queue, (err)->
+        # do not block group creation
+        console.error "Error while creating group artifacts", body, err if err
 
-      # handle the request as an XHR response:
-      return res.status(200).end() if req.xhr
-      # handle the request with an HTTP redirect:
-      res.redirect 301, redirect
+        # temp code for creating the team-access cookie for development
+        # sandbox and latest share the same config file
+        # so sandbox.koding.com covers both cases ಠ_ಠ - SY
+        if /ngrok|sandbox\.koding/.test KONFIG.hostname
+          console.log "setting cookie for #{slug}.dev.koding.com"
+          res.cookie 'team-access', 'yes', domain : ".dev.koding.com"
+
+        # handle the request as an XHR response:
+        return res.status(200).end() if req.xhr
+        # handle the request with an HTTP redirect:
+        res.redirect 301, redirect
 
 
-validateGroupData = (body, res) ->
+validateGroupDataAndReturnError = (body) ->
 
-  if not body.slug
-    return res.status(400).send 'Group slug can not be empty.'
+  unless body.slug
+    return { statusCode : 400, errorMessage : 'Group slug can not be empty.' }
 
-  else if not body.companyName
-    return res.status(400).send 'Company name can not be empty.'
+  else unless body.companyName
+    return { statusCode : 400, errorMessage : 'Company name can not be empty.' }
 
-  else true
+  else null
 
 # convertToArray converts given comma separated string value into cleaned,
 # trimmed, lowercased, unified array of string
