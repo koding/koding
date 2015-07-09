@@ -85,3 +85,35 @@ func TestIntegrationList(t *testing.T) {
 		})
 	})
 }
+
+func TestIntegrationSettings(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err)
+	}
+	defer r.Close()
+
+	Convey("while applying setting to an integration", t, func() {
+		Convey("it should able to store events", func() {
+			i := NewIntegration()
+			i.Name = models.RandomGroupName()
+			i.Title = i.Name
+			e1 := NewEvent("jumping", "Everybody jump")
+			e2 := NewEvent("feeding", "Feed me twice")
+			events := NewEvents(e1, e2)
+			i.AddEvents(events)
+			err := i.Create()
+			So(err, ShouldBeNil)
+
+			expectedIntegration := NewIntegration()
+			err = expectedIntegration.ByName(i.Name)
+			So(err, ShouldBeNil)
+			expectedEvents := &Events{}
+			err = expectedIntegration.GetSettings("events", expectedEvents)
+			So(err, ShouldBeNil)
+			eventsArr := []Event(*expectedEvents)
+			So(len(eventsArr), ShouldEqual, 2)
+			So(eventsArr[0].Name, ShouldEqual, "jumping")
+		})
+	})
+}

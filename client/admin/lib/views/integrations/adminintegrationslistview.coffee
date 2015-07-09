@@ -7,6 +7,7 @@ KDListViewController        = kd.ListViewController
 AdminIntegrationItemView    = require './adminintegrationitemview'
 AdminIntegrationSetupView   = require './adminintegrationsetupview'
 AdminIntegrationDetailsView = require './adminintegrationdetailsview'
+integrationHelpers          = require 'app/helpers/integration'
 
 
 module.exports = class AdminIntegrationsListView extends KDView
@@ -49,7 +50,7 @@ module.exports = class AdminIntegrationsListView extends KDView
 
     methodName = @getOption 'fetcherMethodName'
 
-    kd.singletons.socialapi.integrations[methodName] (err, data) =>
+    integrationHelpers[methodName] (err, data) =>
 
       return @handleNoItem err  if err
 

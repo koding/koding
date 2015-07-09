@@ -29,10 +29,6 @@ func (r *PushRequest) validate() error {
 		return ErrBodyNotSet
 	}
 
-	if r.ChannelId == 0 {
-		return ErrChannelNotSet
-	}
-
 	return nil
 }
 

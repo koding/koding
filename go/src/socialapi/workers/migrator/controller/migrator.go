@@ -8,6 +8,7 @@ import (
 	webhookmodels "socialapi/workers/integration/webhook"
 	realtimemodels "socialapi/workers/realtime/models"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/logging"
 	"github.com/robfig/cron"
 )
@@ -120,20 +121,34 @@ func (mwc *Controller) CreateIntegrations() {
 	githubInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/github.png"
 	githubInt.Description = "GitHub offers online source code hosting for Git projects, with powerful collaboration, code review, and issue tracking. \n \n This integration will post commits, pull requests, and activity on GitHub Issues to a channel in Koding."
 	githubInt.Instructions = `
-    #### Step 1
+#### Step 1
 
-    In your GitHub account, go to the repository that you'd like to monitor. Click on the **Settings** tab in the right navigation.
+In your GitHub account, go to the repository that you'd like to monitor. Click on the **Settings** tab in the right navigation.
 
-    ![github_step1.png](https://koding-cdn.s3.amazonaws.com/temp-images/airbrake_step1.png)
+![github_step1.png](https://koding-cdn.s3.amazonaws.com/temp-images/airbrake_step1.png)
 
 
-    #### Step 2
+#### Step 2
 
-    Click on **Webhooks & Services** in the left navigation, and then press the **Add webhook** button.
+Click on **Webhooks & Services** in the left navigation, and then press the **Add webhook** button.
 
-    ![airbrake_step2.png](https://koding-cdn.s3.amazonaws.com/temp-images/airbrake_step2.png)
+![airbrake_step2.png](https://koding-cdn.s3.amazonaws.com/temp-images/airbrake_step2.png)
 
-    `
+`
+	githubInt.Settings = gorm.Hstore{}
+
+	events := webhookmodels.NewEvents(
+		webhookmodels.NewEvent("push", "Commits pushed to the repository"),
+		webhookmodels.NewEvent("commit_comment", "New comment on commit"),
+		webhookmodels.NewEvent("pull_request", "Pull request opened or closed"),
+		webhookmodels.NewEvent("issues", "Issues opened or closed"),
+		webhookmodels.NewEvent("issue_comment", "New comment on issue or pull request"),
+		webhookmodels.NewEvent("deployment_status", "Show deployment statuses"),
+		webhookmodels.NewEvent("create", "Branch or tag created"),
+		webhookmodels.NewEvent("delete", "Branch or tag deleted"),
+	)
+
+	githubInt.AddEvents(events)
 
 	if err := githubInt.Create(); err != nil {
 		mwc.log.Error("Could not create integration: %s", err)

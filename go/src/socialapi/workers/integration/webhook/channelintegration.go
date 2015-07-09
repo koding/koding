@@ -54,6 +54,9 @@ type ChannelIntegration struct {
 
 	// Deletion date of the integration
 	DeletedAt time.Time `json:"deletedAt" sql:"NOT NULL"`
+
+	// Options is used for providing optional data
+	Options map[string]interface{} `json:"optional" sql:"-"`
 }
 
 func NewChannelIntegration() *ChannelIntegration {

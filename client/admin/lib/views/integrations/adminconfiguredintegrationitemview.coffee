@@ -6,6 +6,7 @@ KDButtonView             = kd.ButtonView
 KDTimeAgoView            = kd.TimeAgoView
 KDCustomHTMLView         = kd.CustomHTMLView
 AdminIntegrationItemView = require './adminintegrationitemview'
+integrationHelpers       = require 'app/helpers/integration'
 
 
 module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrationItemView
@@ -78,7 +79,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     @fetchChannels (err, channels) =>
       return showError err  if err
 
-      kd.singletons.socialapi.integrations.fetch {id: channelIntegration.id}, (err, response) =>
+      integrationHelpers.fetch {id: channelIntegration.id}, (err, response) =>
 
         return showError err  if err
 
@@ -87,28 +88,39 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
         data              =
           channels        : channels
           id              : channelIntegration.id
-          name            : integration.name
-          title           : integration.title
+          integration     : integration
           token           : channelIntegration.token
-          summary         : integration.summary
-          settings        : channelIntegration.settings
           createdAt       : channelIntegration.createdAt
-          iconPath        : integration.iconPath
           updatedAt       : channelIntegration.updatedAt
           description     : channelIntegration.description or integration.summary
-          instructions    : integration.instructions
-          typeConstant    : integration.typeConstant
           integrationId   : channelIntegration.integrationId
           selectedChannel : channelIntegration.channelId
           webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
           integrationType : 'configured'
           isDisabled      : channelIntegration.isDisabled
+          selectedEvents  : []
 
 
-        # DUMMY DATA
-        data.selectedEvents = [ 'added_comment', 'edited_feature' ]
+        if channelIntegration.settings
+          data.selectedEvents = try JSON.parse channelIntegration.settings.events
+          catch e then []
 
-        @emit 'IntegrationCustomizeRequested', data
+        if integration.settings?.events
+          events = try JSON.parse integration.settings.events
+          catch e then null
+          data.settings = { events }
+
+        unless integration.name is 'github'
+          @emit 'IntegrationCustomizeRequested', data
+          return
+
+        integrationHelpers.fetchGithubRepos (err, repositories) =>
+
+          return showError err  if err
+          data.repositories = repositories
+
+          @emit 'IntegrationCustomizeRequested', data
+
 
 
   pistachio: ->
