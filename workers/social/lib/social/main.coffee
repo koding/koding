@@ -125,6 +125,9 @@ koding.connect ->
   Tracker = require "./models/tracker"
   Tracker.setMqClient broker.connection
 
+  { forcedRecipient } = KONFIG.email
+  Tracker.identify forcedRecipient  if forcedRecipient
+
 
 console.info "Koding Social Worker #{process.pid} has started."
 
