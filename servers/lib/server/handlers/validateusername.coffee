@@ -2,8 +2,8 @@ koding  = require './../bongo'
 
 module.exports = (req, res) ->
 
-  { JUser } = koding.models
-  { username } = req.body
+  { JUser }     = koding.models
+  { username }  = req.body
 
   return res.status(400).send 'Bad request'  unless username?
 
@@ -11,7 +11,7 @@ module.exports = (req, res) ->
 
     return res.status(400).send 'Bad request'  if err
 
-    {kodingUser, forbidden} = response
+    { kodingUser, forbidden } = response
 
     if not kodingUser and not forbidden
     then res.status(200).send response
