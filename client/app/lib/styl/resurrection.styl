@@ -617,14 +617,8 @@ paymentGrayLighter  = #f8f8f8
         padding-right   10px
 
       .plan-price
-        color           paymentGreen
+        color           paymentGrayDarker
         display         inline
-        font-weight     600
-
-        span
-          color         paymentGrayDark
-          font-size     14px
-          font-weight   normal
 
         &:before
           content       '$'
@@ -805,9 +799,16 @@ paymentGrayLighter  = #f8f8f8
       font-size         14px
       color             paymentGrayDarker
       line-height       19px
-      margin            20px 0 0px
+      width             60%
+      padding           10px 30px
+      border            1px solid #E5E5E5
+      bg                color, #fffde9
+      margin            20px auto 0px
       opacity           .99
       text-align        center
+
+      b
+        font-weight     600
 
 
     .security-note

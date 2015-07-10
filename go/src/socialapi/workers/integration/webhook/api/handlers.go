@@ -18,7 +18,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Type:     handler.PostRequest,
 			Endpoint: "/push/{token}",
 			Ratelimit: throttled.RateLimit(
-				throttled.Q{Requests: 101, Window: time.Minute},
+				throttled.Q{Requests: 100, Window: time.Minute},
 				&throttled.VaryBy{Path: true},
 				st,
 			),
@@ -30,7 +30,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:  h.List,
 			Name:     "webhook-list",
 			Type:     handler.GetRequest,
-			Endpoint: "/list",
+			Endpoint: "/",
 		},
 	)
 
@@ -39,7 +39,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:  h.ListChannelIntegrations,
 			Name:     "webhook-list-channel-integrations",
 			Type:     handler.GetRequest,
-			Endpoint: "/channelintegrations",
+			Endpoint: "/channelintegration",
 		},
 	)
 
@@ -66,7 +66,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:  h.CreateChannelIntegration,
 			Name:     "channel-integration-create",
 			Type:     handler.PostRequest,
-			Endpoint: "/channelintegration/create",
+			Endpoint: "/channelintegration",
 		},
 	)
 
@@ -75,7 +75,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:  h.UpdateChannelIntegration,
 			Name:     "channel-integration-update",
 			Type:     handler.PostRequest,
-			Endpoint: "/channelintegration/{id}/update",
+			Endpoint: "/channelintegration/{id}",
 		},
 	)
 

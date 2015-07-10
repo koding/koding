@@ -19,9 +19,10 @@ import (
 const RevProxyPath = "/api/integration"
 
 type Handler struct {
-	log   logging.Logger
-	bot   *webhook.Bot
-	redis *redis.RedisSession
+	log      logging.Logger
+	bot      *webhook.Bot
+	redis    *redis.RedisSession
+	rootPath string
 }
 
 func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger) (*Handler, error) {
@@ -31,16 +32,19 @@ func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger
 	}
 
 	return &Handler{
-		log:   l,
-		bot:   bot,
-		redis: redis,
+		log:      l,
+		bot:      bot,
+		redis:    redis,
+		rootPath: conf.CustomDomain.Local,
 	}, nil
 }
 
+// Push fetches the channel integration with given token, and pushes messages to channels defined in related channel integrations
 func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, http.Header, interface{}, error) {
 	val := u.Query().Get("token")
 	r.Token = val
 
+	// validate against empty message body or token
 	if err := r.validate(); err != nil {
 		return response.NewInvalidRequest(err)
 	}
@@ -54,9 +58,12 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 		return response.NewBadRequest(err)
 	}
 
-	r.Message.ChannelIntegrationId = channelIntegration.Id
+	if channelIntegration.IsDisabled {
+		return response.NewOK(response.NewSuccessResponse(nil))
+	}
 
-	// TODO check for group name match here
+	r.Message.ChannelIntegrationId = channelIntegration.Id
+	r.Message.ChannelId = channelIntegration.ChannelId
 
 	if err := h.bot.SendMessage(&r.Message); err != nil {
 		return response.NewBadRequest(err)
@@ -177,6 +184,8 @@ func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.Cha
 	return response.NewOK(response.NewSuccessResponse(ci))
 }
 
+// CreateChannelIntegration creates the channel integration with creatorId, groupName, channelId, and integrationId. It generates a random
+// token and saves id. Optional parameters are assigned via UpdateChannelIntegration handler.
 func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
@@ -199,6 +208,7 @@ func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *we
 	return response.NewOK(response.NewSuccessResponse(i))
 }
 
+// GetChannelIntegration returns the channel integration with given id. Also it fetches the external data if it is needed
 func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -256,9 +266,18 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 		return response.NewBadRequest(err)
 	}
 
-	ci.ChannelId = i.ChannelId
-	ci.Settings = i.Settings
-	ci.Description = i.Description
+	if i.ChannelId != 0 {
+		ci.ChannelId = i.ChannelId
+	}
+
+	if i.Settings != nil {
+		ci.Settings = i.Settings
+	}
+
+	if i.Description != "" {
+		ci.Description = i.Description
+	}
+
 	ci.IsDisabled = i.IsDisabled
 
 	if err := ci.Update(); err != nil {

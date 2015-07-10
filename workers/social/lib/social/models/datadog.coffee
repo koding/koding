@@ -112,8 +112,8 @@ module.exports = class DataDog extends Base
       text += "\n #{ev.notify}"
 
     if ev.sendToSegment?
-      Analytics  = require './analytics'
-      Analytics.track nickname, ev.text, data.tags
+      Tracker  = require './tracker'
+      Tracker.track nickname, { subject : ev.text }, data.tags
 
     DogApi.add_event {title, text, tags}, (err, res, status)->
 

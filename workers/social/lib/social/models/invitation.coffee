@@ -3,7 +3,7 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
 shortid     = require('shortid');
 Bongo       = require "bongo"
-Email       = require './email'
+Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
 
@@ -205,8 +205,7 @@ module.exports = class JInvitation extends jraphical.Module
       invitee  : invitee
       link     : "#{protocol}//#{invitation.groupName}.#{hostname}/Invitation/#{encodeURIComponent invitation.code}"
 
-    Analytics = require './analytics.coffee'
-    Analytics.identifyAndTrack invitation.email, Email.types.INVITED_GROUP, properties
+    Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties
 
     callback null
 

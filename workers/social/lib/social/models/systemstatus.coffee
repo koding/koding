@@ -3,7 +3,7 @@ KodingError = require '../error'
 
 module.exports = class JSystemStatus extends Model
 
-  Email = require './email'
+  Tracker = require './tracker'
 
   @share()
 
@@ -136,8 +136,9 @@ module.exports = class JSystemStatus extends Model
     delegate.fetchEmail client, (err, email) ->
       return callback err  if err
 
-      Email.queue delegate.profile.nickname, {
+      Tracker.track delegate.profile.nickname, {
         to      : recipientEmail
-        subject : Email.types.SENT_FEEDBACK
-      }, {status, userAgent, feedback, userEmail:email}, (err)->
-        console.error err  if err
+        subject : Tracker.types.SENT_FEEDBACK
+      }, {status, userAgent, feedback, userEmail:email}
+
+      callback null

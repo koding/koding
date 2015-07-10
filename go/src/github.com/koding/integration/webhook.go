@@ -2,54 +2,79 @@ package integration
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/koding/integration/services"
 	"github.com/koding/logging"
 )
 
-const (
-	proxyUrl = "/api/integration"
-)
-
 type Handler struct {
-	RootPath string
-	log      logging.Logger
-	sf       *services.ServiceFactory
+	log  logging.Logger
+	sf   *services.ServiceFactory
+	conf *services.ServiceConfig
 }
 
-func NewHandler(l logging.Logger, rootPath string) *Handler {
+func NewHandler(l logging.Logger, conf *services.ServiceConfig) *Handler {
 	return &Handler{
-		log:      l,
-		sf:       services.NewServiceFactory(),
-		RootPath: fmt.Sprintf("%s%s", rootPath, proxyUrl),
+		log:  l,
+		sf:   services.NewServiceFactory(),
+		conf: conf,
 	}
 }
 
-func (h *Handler) Push(u *url.URL, header http.Header, request services.ServiceInput) (int, http.Header, interface{}, error) {
-	token := u.Query().Get("token")
-	name := u.Query().Get("name")
+func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	token := req.URL.Query().Get("token")
+	name := req.URL.Query().Get("name")
 
 	if err := h.validate(name, token); err != nil {
-		return NewBadRequest(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	pr, err := h.prepareRequest(name, token, &request)
+	service, err := h.sf.Create(name, h.conf)
 	if err == services.ErrServiceNotFound {
-		return NewNotFound(services.ErrServiceNotFound)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	if err != nil {
-		return NewBadRequest(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	if err := h.push(token, pr); err != nil {
-		return NewBadRequest(err)
+	service.ServeHTTP(w, req)
+}
+
+// Configure is used for configuring given services, like updating the url, selected events etc.
+func (h *Handler) Configure(w http.ResponseWriter, req *http.Request) {
+	serviceName := req.URL.Query().Get("name")
+	// get service
+	service, err := h.sf.Create(serviceName, h.conf)
+	if err != nil {
+		h.NewBadRequest(w, err)
+		return
 	}
 
-	return NewOK(nil)
+	// send configure request
+	res, err := service.Configure(req)
+	if err != nil {
+		h.NewBadRequest(w, err)
+		return
+	}
+
+	// return success response
+	w.WriteHeader(http.StatusOK)
+	bRes, err := json.Marshal(res)
+	if err != nil {
+		h.log.Error("Could not marshal response: %s", err)
+		return
+	}
+	w.Write(bRes)
+}
+
+func (h *Handler) NewBadRequest(w http.ResponseWriter, err error) {
+	h.log.Error("Bad request: %s", err)
+	http.Error(w, err.Error(), http.StatusBadRequest)
 }
 
 func (h *Handler) validate(name, token string) error {
@@ -59,80 +84,6 @@ func (h *Handler) validate(name, token string) error {
 
 	if name == "" {
 		return ErrNameNotSet
-	}
-
-	return nil
-}
-
-// prepareRequests prepare the push request with given input data. When input data
-// contains Username, it fetches the related bot channel id for that user
-func (h *Handler) prepareRequest(name, token string, si *services.ServiceInput) (*PushRequest, error) {
-
-	service, err := h.sf.Create(name, si)
-	if err != nil {
-		return nil, err
-	}
-
-	message, err := service.PrepareMessage(si)
-	if err != nil {
-		return nil, err
-	}
-
-	pr := new(PushRequest)
-	pr.Body = message
-
-	so := service.Output(si)
-	pr.GroupName = so.GroupName
-
-	// when username is given, it is directly sent to user as a KodingBot message
-	if so.Username != "" {
-		channelId, err := h.fetchBotChannelId(so.Username, token)
-		if err != nil {
-			return nil, err
-		}
-		pr.ChannelId = channelId
-	}
-
-	return pr, nil
-}
-
-// fetchBotChannelId retrieves the user's bot channel id within the given
-// group context
-func (h *Handler) fetchBotChannelId(username, token string) (int64, error) {
-
-	endpoint := fmt.Sprintf("%s/botchannel/%s/user/%s", h.RootPath, token, username)
-	resp, err := http.Get(endpoint)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == 200 {
-		var r BotChannelResponse
-		err = json.NewDecoder(resp.Body).Decode(&r)
-
-		return r.Data.ChannelId, err
-	}
-
-	return 0, parseError(resp)
-}
-
-func (h *Handler) push(token string, pr *PushRequest) error {
-
-	endpoint := fmt.Sprintf("%s/push/%s", h.RootPath, token)
-	reader, err := pr.Buffered()
-	if err != nil {
-		return err
-	}
-
-	resp, err := http.Post(endpoint, "application/json", reader)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return parseError(resp)
 	}
 
 	return nil
