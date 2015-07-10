@@ -1,21 +1,44 @@
 package tunnel
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strings"
 
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/protocol"
 )
+
+const (
+	// dbBucket is the bucket name used to retrieve and store the resolved
+	// address
+	dbBucket = "klienttunnel"
+
+	// dbKey is the key value to retrieve the value from the bucket
+	dbKey = "resolved_addr"
+)
+
+var ErrKeyNotFound = errors.New("key not found")
 
 type registerResult struct {
 	VirtualHost string
 	Identifier  string
 }
 
-func Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
+type TunnelClient struct {
+	db *bolt.DB
+}
+
+func NewClient(db *bolt.DB) *TunnelClient {
+	return &TunnelClient{
+		db: db,
+	}
+}
+
+func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 	tunnelkite := kite.New("tunnelclient", "0.0.1")
 	tunnelkite.Config = k.Config.Copy()
 	if conf.Debug {
@@ -83,6 +106,60 @@ func Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 
 	go client.Start()
 	return nil
+}
+
+// addressFromConfig reads the resolvedAddress from the config.
+func (t *TunnelClient) addressFromConfig() (string, error) {
+	if t.db == nil {
+		return "", errors.New("klienttunnel: boltDB reference is nil (addressFromConfig)")
+	}
+
+	// don't forget to create the bucket for the first time
+	if err := t.db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(dbBucket))
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return "", err
+	}
+
+	var res string
+	if err := t.db.View(func(tx *bolt.Tx) error {
+		// retrieve bucket first
+		bucket := tx.Bucket([]byte(dbBucket))
+
+		// retrieve val, it might be non existent (possible for the first
+		// retrieve). We don't return an error because it might be non nil but
+		// still an empty valu. That's why we check it below for emptiness
+		res = string(bucket.Get([]byte(dbKey)))
+		return nil
+	}); err != nil {
+		return "", err
+	}
+
+	if res == "" {
+		return "", ErrKeyNotFound
+	}
+
+	return res, nil
+}
+
+// saveToConfig saves the given resolved address to the locally stored configuration
+func (t *TunnelClient) saveToConfig(resolvedAddr string) error {
+	if resolvedAddr == "" {
+		return errors.New("klienttunnel: can't save to config, resolved address is empty")
+	}
+
+	if t.db == nil {
+		return errors.New("klienttunnel: boltDB reference is nil (saveToConfig)")
+	}
+
+	return t.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(dbBucket))
+		return b.Put([]byte(dbKey), []byte(resolvedAddr))
+	})
 }
 
 func callRegister(tunnelserver *kite.Client) (*registerResult, error) {

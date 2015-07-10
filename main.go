@@ -33,7 +33,7 @@ var (
 	flagKontrolURL = flag.String("kontrol-url", "",
 		"Change kontrol URL to be used for registration")
 
-	// update parameters
+	// Update parameters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
 		"Change interval for checking for new updates")
 	flagUpdateURL = flag.String("update-url",

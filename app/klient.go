@@ -51,6 +51,8 @@ type Klient struct {
 	// that return those informations
 	usage *usage.Usage
 
+	tunnelclient *klienttunnel.TunnelClient
+
 	log kite.Logger
 
 	// disconnectTimer is used track disconnected users and eventually remove
@@ -136,9 +138,10 @@ func NewKlient(conf *KlientConfig) *Klient {
 	}
 
 	kl := &Klient{
-		kite:    k,
-		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
-		storage: storage.New(db),       // nil is ok, fallbacks to in memory storage
+		kite:         k,
+		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
+		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
+		tunnelclient: klienttunnel.NewClient(db),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,
@@ -313,7 +316,7 @@ func (k *Klient) RegisterMethods() {
 // necessary workers in the background.
 func (k *Klient) Run() {
 	// Open Pandora's box
-	if err := klienttunnel.Start(k.kite, &tunnel.ClientConfig{
+	if err := k.tunnelclient.Start(k.kite, &tunnel.ClientConfig{
 		ServerAddr: k.config.TunnelServerAddr,
 		LocalAddr:  k.config.TunnelLocalAddr,
 		Debug:      k.config.Debug,
