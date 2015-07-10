@@ -83,7 +83,7 @@ func CreateUnpublishedIntegration(t *testing.T) *Integration {
 	i := NewIntegration()
 	i.Title = models.RandomName()
 	i.Name = i.Title
-	i.IsPublished = true
+	i.IsPublished = false
 
 	err := i.Create()
 	if err != nil {
