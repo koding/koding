@@ -404,6 +404,66 @@ func TestWebhookIntegrationList(t *testing.T) {
 	})
 }
 
+func TestWebhookIntegrationGet(t *testing.T) {
+
+	tearUp(func(h *Handler, m *mux.Mux) {
+
+		Convey("while getting integration", t, func() {
+			firstInt := webhook.CreateUnpublishedIntegration(t)
+
+			Convey("it should return not found if integration does not exist or not published", func() {
+				name := models.RandomName()
+				s, _, _, err := h.Get(
+					mocking.URL(m, "GET", "/"+name),
+					mocking.Header(nil),
+					nil,
+				)
+
+				So(err, ShouldNotBeNil)
+				So(s, ShouldEqual, http.StatusNotFound)
+
+				s, _, _, err = h.Get(
+					mocking.URL(m, "GET", "/"+firstInt.Name),
+					mocking.Header(nil),
+					nil,
+				)
+
+				So(err, ShouldNotBeNil)
+				So(s, ShouldEqual, http.StatusNotFound)
+			})
+
+			Convey("it should return integration when it exists", func() {
+				firstInt.IsPublished = true
+				err := firstInt.Update()
+				So(err, ShouldBeNil)
+
+				s, _, res, err := h.Get(
+					mocking.URL(m, "GET", "/"+firstInt.Name),
+					mocking.Header(nil),
+					nil,
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				So(res, ShouldNotBeNil)
+				r, ok := res.(*response.SuccessResponse)
+				So(ok, ShouldBeTrue)
+
+				integration, ok := r.Data.(*webhook.Integration)
+				So(ok, ShouldBeTrue)
+				So(integration.Name, ShouldEqual, firstInt.Name)
+			})
+
+			Reset(func() {
+
+				err := firstInt.Delete()
+				So(err, ShouldBeNil)
+			})
+		})
+	})
+}
+
 func TestWebhookIntegrationCreate(t *testing.T) {
 	tearUp(func(h *Handler, m *mux.Mux) {
 		Convey("while creating integrations", t, func() {
