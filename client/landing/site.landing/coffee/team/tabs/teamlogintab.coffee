@@ -39,12 +39,6 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       @form.username.input.setValue decodeURIComponent username  # decode in case it is an email
       @form.username.inputReceivedKeyup()
 
-    @invitationLink = new CustomLinkView
-      cssClass    : 'invitation-link'
-      title       : 'Ask for an invite'
-      testPath    : 'landing-recover-password'
-      href        : '/Recover'
-
     @inviteDesc = new KDCustomHTMLView
       tagName : 'p'
       partial : "<p>To be able to login to <a href='/'>#{KD.config.groupName}.koding.com</a>, you need to be invited by team administrators.</p>"
