@@ -82,7 +82,7 @@ reviveOauth = (client, oauthProvider, callback) ->
   if not foreignAuth
   then callback new KodingError "Authentication not found for #{oauthProvider}"
   else callback null, foreignAuth
- 
+
 
 locks = []
 
@@ -206,21 +206,21 @@ revive = do -> ({
     , shouldReviveClient
 
 
-checkTemplateUsage = (template, account, callback)->
+checkTemplateUsage = (template, account, callback) ->
 
   {Relationship} = require 'jraphical'
   Relationship.count
     targetId   : template.getId()
     targetName : "JStackTemplate"
     sourceId   : account.getId()
-  , (err, count)->
+  , (err, count) ->
 
     if err or count > 0
     then callback new KodingError "Template in use", "InUse", err
     else callback null
 
 
-fetchStackTemplate = (client, callback)->
+fetchGroupStackTemplate = (client, callback) ->
 
   reviveClient client, (err, res)->
 
@@ -369,7 +369,7 @@ fetchUsage = (client, options, callback)->
 
 
 module.exports = {
-  fetchUserPlan, fetchStackTemplate, fetchUsage
+  fetchUserPlan, fetchGroupStackTemplate, fetchUsage
   PLANS, PROVIDERS, guessNextLabel, checkUsage
   revive, reviveClient, reviveCredential
   checkTemplateUsage

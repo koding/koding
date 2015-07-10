@@ -8,7 +8,7 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 module.exports = class ComputeProvider extends Base
 
   {
-    PLANS, PROVIDERS, fetchStackTemplate, revive,
+    PLANS, PROVIDERS, fetchGroupStackTemplate, revive,
     fetchUsage, checkTemplateUsage
   } = require './computeutils'
 
@@ -50,6 +50,8 @@ module.exports = class ComputeProvider extends Base
           (signature Function)
         createGroupStack  :
           (signature Function)
+        createStackFromTemplate :
+          (signature Object, Function)
 
 
   @providers      = PROVIDERS
@@ -193,12 +195,99 @@ module.exports = class ComputeProvider extends Base
     provider.remove client, options, callback
 
 
+  @createStackFromTemplate = permit 'create machines', success: revive
+
+    shouldReviveClient   : yes
+    shouldReviveProvider : no
+
+  , (client, options, callback) ->
+
+    { account, user, group } = client.r
+    { template } = options
+
+    ComputeProvider.generateStackFromTemplate {
+      account, user, group, template, client
+    }, {}, callback
+
+
+  @generateStackFromTemplate = (data, options, callback) ->
+
+    { account, user, group, template, client } = data
+
+    stackRevision = template.template?.sum or ''
+
+    JComputeStack = require '../stack'
+
+    # Create a new JComputeStack based on the template details
+    # We will then add machines and other information into it.
+    JComputeStack.create {
+      title         : template.title
+      config        : template.config
+      baseStackId   : template._id
+      groupSlug     : group.slug
+      account, stackRevision
+    }, (err, stack) ->
+
+      return callback err  if err
+
+      queue         = []
+      results       =
+        machines    : []
+
+      # Create JMachine documents based on the data
+      # provided in template's machines array ~ GG
+      template.machines?.forEach (machineInfo) ->
+
+        queue.push ->
+
+          # Set the stack as newly create JComputeStack
+          machineInfo.stack         = stack
+
+          # We are passing the provided credential for the template
+          # Provider implementation can override this value like we
+          # did in Koding Provider ~ GG
+          machineInfo.credential    = template.credentials?.first
+          machineInfo.generatedFrom =
+            templateId : template._id
+            revision   : stackRevision
+
+          # Inline create helper
+          create = (machineInfo) ->
+            ComputeProvider.create client, machineInfo, (err, machine) ->
+              results.machines.push { err, obj: machine }
+              queue.next()
+
+          # This is optional, since for koding group for example
+          # we don't want to add our admins into users machines ~ GG
+          unless options.addGroupAdminToMachines
+            return create machineInfo
+
+          # TODO Do we need all admins or only some of them? ~ GG
+          # Maybe some of them as admin some of them as user etc.
+          group.fetchAdmin (err, admin) ->
+
+            if not err and admin and not admin.getId().equals account.getId()
+              admin.fetchUser (err, adminUser) ->
+                if not err and adminUser
+                  machineInfo.users = [
+                    { id: adminUser.getId(), sudo: yes, owner: yes }
+                  ]
+                create machineInfo
+            else
+              create machineInfo
+
+      queue.push ->
+
+        callback null, {stack, results}
+
+      daisy queue
+
 
   # Auto create stack operations ###
 
   @createGroupStack$ = permit 'create machines',
 
-    success: (client, callback)->
+    success: (client, callback) ->
 
       ComputeProvider.createGroupStack client, callback
 
@@ -209,145 +298,25 @@ module.exports = class ComputeProvider extends Base
     callback ?= ->
     options  ?= {}
 
-    fetchStackTemplate client, (err, res)->
+    fetchGroupStackTemplate client, (err, res) ->
 
       return callback err  if err
 
-      { account, user, group, template } = res
-
-      stackRevision = template.template?.sum or ''
-
-      JComputeStack = require '../stack'
-      JComputeStack.create {
-        title         : template.title
-        config        : template.config
-        baseStackId   : template._id
-        groupSlug     : group.slug
-        account, stackRevision
-      }, (err, stack)->
-
+      {template, account} = res
+      checkTemplateUsage template, account, (err) ->
         return callback err  if err
 
-        queue         = []
-        results       =
-          rules       : []
-          machines    : []
-          domains     : []
-          connections : []
+        account.addStackTemplate template, (err) ->
+          return callback err  if err
 
-        queue.push ->
-
-          checkTemplateUsage template, account, (err)->
-            return callback err  if err
-
-            account.addStackTemplate template, (err)->
-              if err then callback err else queue.next()
-
-        template.machines?.forEach (machineInfo)->
-
-          queue.push ->
-
-            machineInfo.stack         = stack
-
-            # We are passing the provided credential for the template
-            # Provider implementation can override this value like we
-            # did in Koding Provider ~ GG
-            machineInfo.credential    = template.credentials?.first
-            machineInfo.generatedFrom =
-              templateId : template._id
-              revision   : stackRevision
-
-            create = (machineInfo) ->
-              ComputeProvider.create client, machineInfo, (err, machine)->
-                results.machines.push { err, obj: machine }
-                queue.next()
-
-            # This is optional, since for koding group for example
-            # we don't want to add our admins into users machines ~ GG
-            unless options.addGroupAdminToMachines
-              return create machineInfo
-
-            # TODO Do we need all admins or only some of them? ~ GG
-            # Maybe some of them as admin some of them as user etc.
-            group.fetchAdmin (err, admin)->
-
-              if not err and admin and not admin.getId().equals account.getId()
-                admin.fetchUser (err, adminUser)->
-                  if not err and adminUser
-                    machineInfo.users = [
-                      { id: adminUser.getId(), sudo: yes, owner: yes }
-                    ]
-                  create machineInfo
-              else
-                create machineInfo
-
-
-        template.domains?.forEach (domainInfo)->
-
-          queue.push ->
-            domain = domainInfo.domain.replace "${username}", user.username
-            JProposedDomain.createDomain {
-              domain, account,
-              stack : stack._id
-              group : group.slug
-            }, (err, r)->
-              console.warn err  if err?
-              results.domains.push { err, obj: r }
-              queue.next()
-
-        template.connections?.forEach (c)->
-
-          queue.push ->
-
-            # Assign rule to domain
-            if c.rules? and c.domains?
-
-              rule   = results.rules[c.rules]
-              domain = results.domains[c.domains]
-
-              if not rule?.err and not domain?.err
-                results.connections.push
-                  err : new KodingError "Not implemented"
-                  obj : null
-              else
-                results.connections.push
-                  err : new KodingError "Missing edge"
-                  obj : null
-
-              queue.next()
-
-            # Assign a domain to machine
-            else if c.machines? and c.domains?
-
-              domain  = results.domains[c.domains]
-              machine = results.machines[c.machines]
-
-              if not domain?.err and not machine?.err
-
-                domain.obj.bindMachine machine.obj.getId(), (err)->
-                  results.connections.push { err, obj: ok: !err? }
-                  queue.next()
-
-              else
-                results.connections.push
-                  err : new KodingError "Missing edge"
-                  obj : null
-                queue.next()
-
-            else
-              queue.next()
-
-        queue.push ->
-
-          callback null, {stack, results}
-
-        daisy queue
+          res.client = client
+          ComputeProvider.generateStackFromTemplate res, options, callback
 
 
   do ->
 
     JGroup = require '../group'
-    JGroup.on 'MemberAdded', ({group, member})->
+    JGroup.on 'MemberAdded', ({group, member}) ->
 
       # No need to try creating group stacks for guests or koding group members
       return  if group.slug in ['guests', 'koding']
@@ -359,7 +328,7 @@ module.exports = class ComputeProvider extends Base
 
       ComputeProvider.createGroupStack client,
         addGroupAdminToMachines: yes
-      , (err, res = {})->
+      , (err, res = {}) ->
 
         {stack, results} = res
 
@@ -369,7 +338,7 @@ module.exports = class ComputeProvider extends Base
 
 
     JAccount = require '../account'
-    JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
+    JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration }) ->
 
       return  unless oldUsername and username
       return  if isRegistration
