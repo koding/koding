@@ -30,7 +30,6 @@ module.exports = class ComputeProvider extends Base
       'delete machines'   : ['member','moderator']
       'update machines'   : ['member','moderator']
       'list own machines' : ['member','moderator']
-      'execute templates' : ['member','moderator']
     sharedMethods         :
       static              :
         ping              :
@@ -196,14 +195,19 @@ module.exports = class ComputeProvider extends Base
     provider.remove client, options, callback
 
 
-  @createStackFromTemplate = permit 'execute templates', success: revive
+  @createStackFromTemplate = permit 'create machines', success: revive
 
     shouldReviveClient   : yes
     shouldReviveProvider : no
 
   , (client, options, callback) ->
 
-    callback null, 'Coming soon.'
+    { account, user, group } = client.r
+    { template } = options
+
+    ComputeProvider.generateStackFromTemplate {
+      account, user, group, template, client
+    }, {}, callback
 
 
   @generateStackFromTemplate = (data, options, callback) ->
