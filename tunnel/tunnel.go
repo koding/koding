@@ -45,21 +45,30 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 		tunnelkite.SetLogLevel(kite.DEBUG)
 	}
 
-	// Change tunnel server based on environment
+	// Nothing is passed via command line flag, fallback to default values
 	if conf.ServerAddr == "" {
-		switch protocol.Environment {
-		case "development":
-			conf.ServerAddr = "devtunnelproxy.koding.com"
-		case "production":
-			conf.ServerAddr = "tunnelproxy.koding.com"
-		default:
-			return fmt.Errorf("Tunnel server address is empty. No env found: %s",
-				protocol.Environment)
+		// first try to get a resolved addr from local config storage
+		resolvedAddr, err := t.addressFromConfig()
+		if err != nil {
+			k.Log.Warning("couldn't retrieve resolved address from config: '%s'", err)
+
+			switch protocol.Environment {
+			case "development":
+				conf.ServerAddr = "devtunnelproxy.koding.com"
+			case "production":
+				conf.ServerAddr = "tunnelproxy.koding.com"
+			default:
+				return fmt.Errorf("Tunnel server address is empty. No env found: %s",
+					protocol.Environment)
+			}
+		} else {
+			k.Log.Debug("Resolved address is retrieved from the config '%s'", resolvedAddr)
+			conf.ServerAddr = resolvedAddr
 		}
 	}
 
 	// Check if the addr is valid IP, the user might pass to us a valid IP.  If
-	// it's not valid, we're going to resolve to the first addr we get.
+	// it's not valid, we're going to resolve it first.
 	if net.ParseIP(conf.ServerAddr) == nil {
 		k.Log.Debug("Resolving '%s'", conf.ServerAddr)
 		resolved, err := resolvedAddr(conf.ServerAddr)
@@ -72,7 +81,9 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 		}
 	}
 
-	// TODO(arslan): store resolved IP to boltdb and use it
+	if err := t.saveToConfig(conf.ServerAddr); err != nil {
+		k.Log.Warning("coulnd't save resolved addres to config: '%s'", err)
+	}
 
 	// append port if absent
 	conf.ServerAddr = addPort(conf.ServerAddr, "80")
