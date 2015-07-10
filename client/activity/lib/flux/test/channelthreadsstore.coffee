@@ -3,16 +3,16 @@
 Reactor = require 'app/flux/reactor'
 whoami = require 'app/util/whoami'
 
-ThreadsStore = require '../stores/threadsstore'
+ChannelThreadsStore = require '../stores/channelthreadsstore'
 actionTypes = require '../actions/actiontypes'
 
-describe 'ThreadsStore', ->
+describe 'ChannelThreadsStore', ->
 
   channelId = null
   reactor = null
   beforeEach ->
     reactor = new Reactor
-    reactor.registerStores threads: ThreadsStore
+    reactor.registerStores channelThreads: ChannelThreadsStore
     channelId = '123'
 
   describe '#handleCreateMessageBegin', ->
@@ -21,7 +21,7 @@ describe 'ThreadsStore', ->
       clientRequestId = 'test'
       reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, { channelId, clientRequestId }
 
-      storeState = reactor.evaluate ['threads']
+      storeState = reactor.evaluate ['channelThreads']
 
       expect(storeState.has channelId).to.equal yes
 
@@ -30,7 +30,7 @@ describe 'ThreadsStore', ->
       clientRequestId = 'test'
       reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, { channelId, clientRequestId }
 
-      storeState = reactor.evaluate ['threads']
+      storeState = reactor.evaluate ['channelThreads']
 
       expect(storeState.hasIn [channelId, 'messages', clientRequestId]).to.equal yes
 
@@ -43,7 +43,7 @@ describe 'ThreadsStore', ->
       reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, { channelId, clientRequestId }
       reactor.dispatch actionTypes.CREATE_MESSAGE_FAIL, { channelId, clientRequestId }
 
-      storeState = reactor.evaluate ['threads']
+      storeState = reactor.evaluate ['channelThreads']
 
       expect(storeState.hasIn [channelId, 'messages', clientRequestId]).to.equal no
 
@@ -58,7 +58,7 @@ describe 'ThreadsStore', ->
         channelId, clientRequestId, message: { id: 'mock' }
       }
 
-      storeState = reactor.evaluate ['threads']
+      storeState = reactor.evaluate ['channelThreads']
 
       expect(storeState.hasIn [channelId, 'messages', clientRequestId]).to.equal no
 
@@ -70,7 +70,7 @@ describe 'ThreadsStore', ->
         channelId, clientRequestId, message: { id: 'mock' }
       }
 
-      storeState = reactor.evaluate ['threads']
+      storeState = reactor.evaluate ['channelThreads']
 
       expect(storeState.hasIn [channelId, 'messages', 'mock']).to.equal yes
 

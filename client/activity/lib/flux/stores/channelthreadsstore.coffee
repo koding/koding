@@ -26,7 +26,7 @@ generateDummyMessage = require 'app/util/generateDummyMessage'
  * @typedef {Immutable.Map<string, IMThread>} IMThreadCollection
 ###
 
-module.exports = class ThreadsStore extends Nuclear.Store
+module.exports = class ChannelThreadsStore extends Nuclear.Store
 
   getInitialState: -> toImmutable {}
 
