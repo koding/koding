@@ -294,3 +294,20 @@ utils.extend utils,
       data        : { name }
       success     : callbacks.success
       error       : callbacks.error
+
+
+  getGroupLogo : ->
+
+    { group } = KD.config
+    logo      = new KDCustomHTMLView tagName : 'figure'
+
+    if group.customize?.logo
+      logo.setCss 'background-image', "url(#{group.customize.logo})"
+      logo.setCss 'background-size', 'cover'
+    else
+      geoPattern = require 'geopattern'
+      pattern    = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
+      logo.setCss 'background-image', pattern
+      logo.setCss 'background-size', 'inherit'
+
+    return logo

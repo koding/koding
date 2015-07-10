@@ -2,7 +2,6 @@ JView           = require './../../core/jview'
 CustomLinkView  = require './../../core/customlinkview'
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
-geoPattern      = require 'geopattern'
 
 module.exports = class TeamLoginTab extends KDTabPaneView
 
@@ -13,6 +12,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     super options, data
 
     { mainController } = KD.singletons
+    { group }          = KD.config
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -21,17 +21,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
         { title : 'Features',    href : '/Features',                name : 'features' }
       ]
 
-    @logo = new KDCustomHTMLView tagName : 'figure'
-
-    { group } = KD.config
-    if group.customize?.logo
-      @logo.setCss 'background-image', "url(#{group.customize.logo})"
-      @logo.setCss 'background-size', 'cover'
-    else
-      pattern = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
-      @logo.setCss 'background-image', pattern
-      @logo.setCss 'background-size', 'inherit'
-
+    @logo = KD.utils.getGroupLogo()
 
     # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
     @form = new LoginInlineForm
