@@ -4,7 +4,8 @@ TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
 
 module.exports = class TeamUsernameTab extends KDTabPaneView
 
-  callback = (formData) ->
+  kallback = (formData) ->
+
     { storeNewTeamData, createTeam, joinTeam, getTeamData } = KD.utils
     { join } = getTeamData().signup
 
@@ -45,7 +46,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
         tagName : 'h5'
         partial : 'please enter your Koding password'
 
-      wrapper.addSubView @form = new TeamLoginAndCreateTabForm { callback }
+      wrapper.addSubView @form = new TeamLoginAndCreateTabForm { callback : kallback }
 
     else
 
@@ -84,7 +85,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
       return new KDNotificationView title : "Sorry, your group domain and your username can not be the same!"
 
     KD.utils.usernameCheck username,
-      success : -> callback formData
+      success : -> kallback formData
       error   : ({responseJSON}) =>
 
         {forbidden, kodingUser} = responseJSON
