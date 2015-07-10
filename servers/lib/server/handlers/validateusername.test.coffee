@@ -95,8 +95,8 @@ runTests = -> describe 'server.handlers.validateusername', ->
         # registering a new user
         request.post registerRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
-          expect(body)            .to.be.equal ''
           expect(res.statusCode)  .to.be.equal 200
+          expect(body)            .to.be.equal ''
           queue.next()
 
       ->
