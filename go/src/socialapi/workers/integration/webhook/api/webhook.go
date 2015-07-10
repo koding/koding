@@ -163,6 +163,25 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 	return response.NewOK(response.NewSuccessResponse(ints))
 }
 
+func (h *Handler) Get(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	name := u.Query().Get("name")
+	i := webhook.NewIntegration()
+	err := i.ByName(name)
+	if err == webhook.ErrIntegrationNotFound {
+		return response.NewNotFound()
+	}
+
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !i.IsPublished {
+		return response.NewNotFound()
+	}
+
+	return response.NewOK(response.NewSuccessResponse(i))
+}
+
 func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
