@@ -42,7 +42,7 @@ module.exports = class TopicItemView extends KDListItemView
         @moderationLabel.toggleClass 'active'
     
     @typeLabel = new KDCustomHTMLView
-      cssClass : 'type-label'
+      cssClass : 'type-label hidden'
 
 
   createSettingsView : (data) ->
@@ -85,6 +85,7 @@ module.exports = class TopicItemView extends KDListItemView
             text = "#" + "#{rootChannel.name}"
           
         @typeLabel.setPartial "#{text}"
+        @typeLabel.show()
         
         @settings.addSubView whitelistButton = new KDButtonView
           cssClass : 'solid compact outline whitelist-topic'

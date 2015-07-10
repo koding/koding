@@ -779,10 +779,10 @@ Admin main styles
     line-height             40px
 
     &:before
-      r-sprite              'admin', 'link-topic'
-      content               ''
       display               block
-      abs                   20px 0 0 200px
+      abs                   22px 0 0 220px
+      r-sprite              'admin', 'linked'
+      content               ''
 
   .moderate-role
     abs()
@@ -845,6 +845,9 @@ Admin main styles
     bg                      color, #FF6B5D
     margin-top              12px
     
+    &:focus
+      box-shadow            0 0 10px -2px #FF6B5D
+
     span
       color                 #FFFFFF
 
