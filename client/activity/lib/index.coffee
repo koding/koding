@@ -30,6 +30,7 @@ module.exports = class ActivityAppController extends AppController
 
     kd.singletons.reactor.registerStores [
       require './flux/stores/messagesstore'
+      require './flux/stores/channelsstore'
       require './flux/stores/channelthreadsstore'
       require './flux/stores/selectedchannelthreadidstore'
     ]
