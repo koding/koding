@@ -23,7 +23,7 @@ module.exports = class TeamStacksTab extends KDTabPaneView
         KD.utils.storeNewTeamData name, yes
         KD.singletons.router.handleRoute '/Team/Congrats'
 
-    @on 'PaneDidShow', (pane) => @next.setFocus()
+    @on 'PaneDidShow', => @next.setFocus()
 
   pistachio: ->
 
