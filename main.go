@@ -8,12 +8,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/app"
 	"github.com/koding/klient/fix"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
-	klienttunnel "github.com/koding/klient/tunnel"
 )
 
 var (
@@ -80,35 +78,27 @@ func realMain() int {
 	}
 
 	conf := &app.KlientConfig{
-		Name:           protocol.Name,
-		Version:        protocol.Version,
-		IP:             *flagIP,
-		Port:           *flagPort,
-		Environment:    *flagEnvironment,
-		Region:         *flagRegion,
-		RegisterURL:    *flagRegisterURL,
-		KontrolURL:     *flagKontrolURL,
-		Debug:          *flagDebug,
-		UpdateInterval: *flagUpdateInterval,
-		UpdateURL:      *flagUpdateURL,
-		ScreenrcPath:   *flagScreenrc,
-		DBPath:         dbPath,
+		Name:             protocol.Name,
+		Version:          protocol.Version,
+		DBPath:           dbPath,
+		IP:               *flagIP,
+		Port:             *flagPort,
+		Environment:      *flagEnvironment,
+		Region:           *flagRegion,
+		RegisterURL:      *flagRegisterURL,
+		KontrolURL:       *flagKontrolURL,
+		Debug:            *flagDebug,
+		UpdateInterval:   *flagUpdateInterval,
+		UpdateURL:        *flagUpdateURL,
+		ScreenrcPath:     *flagScreenrc,
+		TunnelServerAddr: *flagTunnelServerAddr,
+		TunnelLocalAddr:  *flagTunnelLocalAddr,
 	}
 
 	a := app.NewKlient(conf)
 	defer a.Close()
 
-	// Open Pandora's box
-	if err := klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
-		ServerAddr: *flagTunnelServerAddr,
-		LocalAddr:  *flagTunnelLocalAddr,
-		Debug:      *flagDebug,
-	}); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		return 1
-	}
-
-	// run inital fix commands
+	// run inital fix commands, only for Ubuntu
 	if err := fix.Run(u.Username); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
