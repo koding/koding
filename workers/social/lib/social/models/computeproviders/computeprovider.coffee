@@ -208,7 +208,7 @@ module.exports = class ComputeProvider extends Base
 
   @generateStackFromTemplate = (data, options, callback) ->
 
-    { account, user, group, template } = data
+    { account, user, group, template, client } = data
 
     stackRevision = template.template?.sum or ''
 
@@ -305,6 +305,7 @@ module.exports = class ComputeProvider extends Base
         account.addStackTemplate template, (err) ->
           return callback err  if err
 
+          res.client = client
           ComputeProvider.generateStackFromTemplate res, options, callback
 
 
