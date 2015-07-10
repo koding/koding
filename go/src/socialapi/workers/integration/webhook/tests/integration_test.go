@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"errors"
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
@@ -9,27 +11,18 @@ import (
 	"socialapi/workers/integration/webhook"
 	"socialapi/workers/integration/webhook/api"
 	"testing"
+	"time"
 
-	"github.com/koding/integration/services"
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newMiddlewareRequest(username, groupName string) *services.ServiceInput {
-	return &services.ServiceInput{
-		"username":  username,
-		"eventName": "emailOpen",
-		"message":   "testing it",
-		"groupName": groupName,
-	}
-}
-
-func newPushRequest(channelId int64, groupName string) *api.PushRequest {
+func newPushRequest(body string) *api.PushRequest {
 	wr := &api.PushRequest{
-		GroupName: groupName,
+		Message: webhook.Message{
+			Body: body,
+		},
 	}
-	wr.Body = "hey"
-	wr.ChannelId = channelId
 
 	return wr
 }
@@ -52,27 +45,23 @@ func TestWebhook(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	channelIntegration := webhook.CreateTestChannelIntegration(t)
-
-	webhook.CreateIterableIntegration(t)
-
 	Convey("We should be able to successfully push message", t, func() {
+		channelIntegration, topicChannel := webhook.CreateTestChannelIntegration(t)
 
 		account, err := models.CreateAccountInBothDbsWithNick("sinan")
 		So(err, ShouldBeNil)
 
-		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, channelIntegration.GroupName)
-		_, err = channel.AddParticipant(account.Id)
+		_, err = topicChannel.AddParticipant(account.Id)
 		So(err, ShouldBeNil)
 
-		err = rest.DoPushRequest(newPushRequest(channel.Id, channelIntegration.GroupName), channelIntegration.Token)
+		err = rest.DoPushRequest(newPushRequest(models.RandomName()), channelIntegration.Token)
 		So(err, ShouldBeNil)
 
 		ses, err := models.FetchOrCreateSession(account.Nick, channelIntegration.GroupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
-		resp, err := rest.GetHistory(channel.Id,
+		resp, err := rest.GetHistory(channelIntegration.ChannelId,
 			&request.Query{
 				AccountId: account.Id,
 			},
@@ -101,42 +90,50 @@ func TestWebhook(t *testing.T) {
 		So(channelId, ShouldNotEqual, 0)
 	})
 
-	Convey("We should be able to successfully push messages via prepare endpoint", t, func() {
+	Convey("We should be able to successfully receive github push messages via middleware", t, func() {
+		channelIntegration, topicChannel := webhook.CreateTestChannelIntegration(t)
 
 		account, err := models.CreateAccountInBothDbsWithNick(models.RandomName())
 		So(err, ShouldBeNil)
 
 		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, channelIntegration.GroupName)
+
 		_, err = channel.AddParticipant(account.Id)
+		So(err, ShouldBeNil)
+		_, err = topicChannel.AddParticipant(account.Id)
+		So(err, ShouldBeNil)
 
-		pr := newMiddlewareRequest("xxx", channelIntegration.GroupName)
-		err = rest.DoPrepareRequest(pr, channelIntegration.Token)
-		So(err, ShouldNotBeNil)
-
-		pr = newMiddlewareRequest(account.Nick, channelIntegration.GroupName)
-		err = rest.DoPrepareRequest(pr, channelIntegration.Token)
+		err = rest.DoGithubPush(githubPushEventData, channelIntegration.Token)
 		So(err, ShouldBeNil)
 
 		ses, err := models.FetchOrCreateSession(account.Nick, channelIntegration.GroupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
-		channelId, err := rest.DoBotChannelRequest(ses.ClientId)
-		So(err, ShouldBeNil)
+		tick := time.Tick(time.Millisecond * 200)
+		deadLine := time.After(10 * time.Second)
+		for {
+			select {
+			case <-tick:
+				resp, err := rest.GetHistory(topicChannel.Id,
+					&request.Query{},
+					ses.ClientId,
+				)
+				So(err, ShouldBeNil)
+				if len(resp.MessageList) > 0 {
+					So(len(resp.MessageList), ShouldEqual, 1)
+					So(resp.MessageList[0].Message.Body, ShouldStartWith, "[canthefason](https://github.com/canthefason) [pushed]")
+					return
+				}
+			case <-deadLine:
+				So(errors.New("Could not fetch messages"), ShouldBeNil)
+			}
+		}
 
-		resp, err := rest.GetHistory(channelId,
-			&request.Query{
-				AccountId: account.Id,
-			},
-			ses.ClientId,
-		)
-
-		So(err, ShouldBeNil)
-		So(len(resp.MessageList), ShouldEqual, 1)
-		So(resp.MessageList[0].Message.Body, ShouldEqual, "testing it")
 	})
 
 	Convey("We should not be able to send more than 100 requests per minute", t, func() {
+		channelIntegration, _ := webhook.CreateTestChannelIntegration(t)
 
 		account, err := models.CreateAccountInBothDbsWithNick("sinan")
 		So(err, ShouldBeNil)
@@ -145,12 +142,16 @@ func TestWebhook(t *testing.T) {
 		_, err = channel.AddParticipant(account.Id)
 		So(err, ShouldBeNil)
 
-		for i := 0; i < 99; i++ {
-			err = rest.DoPushRequest(newPushRequest(channel.Id, channelIntegration.GroupName), channelIntegration.Token)
+		name := models.RandomName()
+		for i := 0; i < 100; i++ {
+			err = rest.DoPushRequest(newPushRequest(name), channelIntegration.Token)
+			if err != nil {
+				fmt.Println("i ver", i)
+			}
 			So(err, ShouldBeNil)
 		}
 
-		err = rest.DoPushRequest(newPushRequest(channel.Id, channelIntegration.GroupName), channelIntegration.Token)
+		err = rest.DoPushRequest(newPushRequest(name), channelIntegration.Token)
 		So(err, ShouldNotBeNil)
 
 	})
