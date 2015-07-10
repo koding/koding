@@ -140,8 +140,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               resetPassword : options.resetPassword
               requestedAt   : certificate.getAt('requestedAt')
 
-            Analytics = require './analytics'
-            Analytics.identify username
+            Tracker = require './tracker'
+            Tracker.identify username
 
             Tracker.track username, {
               to         : email
