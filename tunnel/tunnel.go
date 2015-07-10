@@ -50,7 +50,11 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 		// first try to get a resolved addr from local config storage
 		resolvedAddr, err := t.addressFromConfig()
 		if err != nil {
-			k.Log.Warning("couldn't retrieve resolved address from config: '%s'", err)
+			// show errors different than ErrKeyNotFound, because this will be
+			// showed %100 of the times for every user.
+			if err != ErrKeyNotFound {
+				k.Log.Warning("couldn't retrieve resolved address from config: '%s' ", err)
+			}
 
 			switch protocol.Environment {
 			case "development":
@@ -81,6 +85,7 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 		}
 	}
 
+	k.Log.Debug("Saving resolved address '%s' to config", conf.ServerAddr)
 	if err := t.saveToConfig(conf.ServerAddr); err != nil {
 		k.Log.Warning("coulnd't save resolved addres to config: '%s'", err)
 	}
