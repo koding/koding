@@ -16,7 +16,7 @@ module.exports = (req, res) ->
 
     JUser.login clientId, { username : email, password, tfcode }, (err, info) ->
 
-      {isValid : isEmail} = JUser.validateAt 'email', email, yes
+      { isValid : isEmail } = JUser.validateAt 'email', email, yes
 
       if err?.name is 'VERIFICATION_CODE_NEEDED'
         return res.status(400).send 'TwoFactor auth Enabled'
@@ -26,6 +26,7 @@ module.exports = (req, res) ->
 
       else if err and isEmail
         JUser.emailAvailable email, (err_, response) ->
+
           return res.status(400).send 'Bad request'  if err_
 
           return if response
@@ -37,5 +38,5 @@ module.exports = (req, res) ->
       unless info
         return res.status(500).send 'An error occurred'
 
-      res.cookie 'clientId', info.replacementToken, path : '/'
+      res.cookie 'clientId', info.replacementToken, { path : '/' }
       return res.status(200).send 'User is logged in!'
