@@ -40,6 +40,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -75,6 +76,7 @@ import (
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/userdata"
+	"koding/kites/terraformer"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
@@ -143,6 +145,7 @@ func init() {
 	conf.KiteKey = testutil.NewKiteKey().Raw
 
 	// Power up our own kontrol kite for self-contained tests
+	log.Println("Starting Kontrol Test Instance")
 	kontrol.DefaultPort = 4099
 	kntrl := kontrol.New(conf.Copy(), "0.1.0")
 	p := kontrol.NewPostgres(nil, kntrl.Kite.Log)
@@ -154,6 +157,7 @@ func init() {
 	<-kntrl.Kite.ServerReadyNotify()
 
 	// Power up kloud kite
+	log.Println("Starting Kloud Test Instance")
 	kloudKite = kite.New("kloud", "0.0.1")
 	kloudKite.Config = conf.Copy()
 	kloudKite.Config.Port = 4002
@@ -185,6 +189,42 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
+
+	// Power up our terraformer kite
+	log.Println("Starting Terraform Test Instance")
+	tConf := &terraformer.Config{
+		Port:        2300,
+		Region:      "dev",
+		Environment: "dev",
+		AWS: terraformer.AWS{
+			Key:    os.Getenv("TERRAFORMER_KEY"),
+			Secret: os.Getenv("TERRAFORMER_SECRET"),
+			Bucket: "koding-terraformer-state-dev",
+		},
+		LocalStorePath: "/Users/fatih/Code/koding/go/data/terraformer",
+	}
+
+	t, err := terraformer.New(tConf, common.NewLogger("terraformer", false))
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	terraformerKite, err := terraformer.NewKite(t, tConf)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// no need to register to kontrol, kloud talks directly via a secret key
+	terraformerKite.Config = conf.Copy()
+	terraformerKite.Config.Port = 2300
+
+	go terraformerKite.Run()
+	<-terraformerKite.ServerReadyNotify()
+
+	log.Println("=== Test instances are up and ready!. Executing now the tests... ===")
+
+	// hashicorp.terraform outputs many logs, discard them
+	log.SetOutput(ioutil.Discard)
 }
 
 func TestTerraformAuthenticate(t *testing.T) {
@@ -282,42 +322,6 @@ func TestTerraformPlan(t *testing.T) {
 	}
 
 	fmt.Printf("result = %+v\n", result)
-}
-
-func TestTerraformApplyAndDestroy(t *testing.T) {
-	t.Parallel()
-	username := "testuser10"
-	userData, err := createUser(username, "ap-northeast-1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	remote := userData.Remote
-	args := &kloud.TerraformApplyRequest{
-		StackId: userData.StackId,
-	}
-
-	resp, err := remote.Tell("apply", args)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var result kloud.ControlResult
-	err = resp.Unmarshal(&result)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
-			EventId: userData.StackId,
-			Type:    "apply",
-		},
-	})
-
-	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
-		t.Error(err)
-	}
 }
 
 func TestTerraformStack(t *testing.T) {

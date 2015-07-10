@@ -145,7 +145,7 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		// no need to return, just continue lazily, port will be 0, which in
 		// our case will be proxied to client's localservers port 80
-		s.log.Warning("couldn't convert '%s' to integer: %s", netPort, err)
+		s.log.Debug("No port available for '%s', sending port 80 to client", r.Host)
 	}
 
 	msg := controlMsg{
@@ -203,7 +203,7 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 
 	defer func() {
 		if resp.Body != nil {
-			if err := resp.Body.Close(); err != nil {
+			if err := resp.Body.Close(); err != nil && err != io.ErrUnexpectedEOF {
 				s.log.Error("resp.Body Close error: %s", err.Error())
 			}
 		}
@@ -216,7 +216,11 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 	w.WriteHeader(resp.StatusCode)
 
 	if _, err := io.Copy(w, resp.Body); err != nil {
-		s.log.Error("copy err: %s", err) // do not return, because we might write multipe headers
+		if err == io.ErrUnexpectedEOF {
+			s.log.Debug("Client closed the connection, couldn't copy response")
+		} else {
+			s.log.Error("copy err: %s", err) // do not return, because we might write multipe headers
+		}
 	}
 
 	s.log.Debug("Response copy is finished")
@@ -319,7 +323,13 @@ func (s *Server) listenControl(ct *control) {
 		var msg map[string]interface{}
 		err := ct.dec.Decode(&msg)
 		if err != nil {
+			host, _ := s.getHost(ct.identifier)
+			s.log.Debug("Closing client connection: '%s', %s'", host, ct.identifier)
+
+			// close client connection so it reconnects again
 			ct.Close()
+
+			// don't forget to cleanup anything
 			s.deleteControl(ct.identifier)
 			s.deleteSession(ct.identifier)
 			if err := s.callOnDisconect(ct.identifier); err != nil {

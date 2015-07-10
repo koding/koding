@@ -9,7 +9,7 @@ generateRandomString = (length = 20) -> hat().slice(32 - length)
 
 generateRandomEmail = (domain = 'koding.com') ->
 
-  return "testuser+#{generateRandomString()}@#{domain}"
+  return "kodingtestuser+#{generateRandomString()}@#{domain}"
 
 
 generateRandomUsername = -> generateRandomString()
