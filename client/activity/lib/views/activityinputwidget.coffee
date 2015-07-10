@@ -13,6 +13,8 @@ generateDummyMessage    = require 'app/util/generateDummyMessage'
 generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
 showErrorNotification   = require 'app/util/showErrorNotification'
 isLoggedIn              = require 'app/util/isLoggedIn'
+SuggestionMenuView      = require 'activity/components/suggestionmenu/view'
+ActivityFlux            = require 'activity/flux'
 
 module.exports = class ActivityInputWidget extends KDView
 
@@ -35,6 +37,7 @@ module.exports = class ActivityInputWidget extends KDView
     data = @getData()
 
     @input        = new inputViewClass {defaultValue, placeholder}
+    @suggestions  = new SuggestionMenuView()
     @helperView   = new ActivityInputHelperView
     @embedBox     = new EmbedBoxWidget delegate: @input, data
     @icon         = new KDCustomHTMLView tagName : 'figure'
@@ -66,6 +69,7 @@ module.exports = class ActivityInputWidget extends KDView
     @input.on 'Enter',    @bound 'submit'
     @input.on 'Tab',      @bound 'focusSubmit'
     @input.on 'keypress', @bound 'updatePreview'
+    @input.on 'keydown',  kd.utils.debounce 300, @bound 'updateSuggestionQuery'
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
 
@@ -241,6 +245,7 @@ module.exports = class ActivityInputWidget extends KDView
 
     @addSubView @icon
     @addSubView @input
+    @addSubView @suggestions
     @addSubView @embedBox
     @addSubView @buttonBar
     @addSubView @helperView
@@ -249,3 +254,9 @@ module.exports = class ActivityInputWidget extends KDView
     @hide()  unless isLoggedIn()
 
 
+  updateSuggestionQuery: ->
+
+    query = @input.getValue()
+    { actions } = ActivityFlux
+    actions.suggestionQuery.changeCurrentQuery query
+    actions.messageSearch.fetchSuggestions query

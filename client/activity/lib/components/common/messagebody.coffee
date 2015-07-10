@@ -4,4 +4,8 @@ formatContent = require 'app/util/formatContent'
 module.exports = class MessageBody extends React.Component
 
   render: ->
-    <article dangerouslySetInnerHTML={__html: formatContent @props.source} />
+
+    <article className="has-markdown" dangerouslySetInnerHTML={__html: @formatSource()} />
+
+
+  formatSource: -> formatContent @props.source

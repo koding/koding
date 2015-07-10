@@ -1,7 +1,8 @@
 immutable           = require 'immutable'
 isPublicChatChannel = require 'activity/util/isPublicChatChannel'
 
-withEmptyMap = (storeData) -> storeData or immutable.Map()
+withEmptyMap  = (storeData) -> storeData or immutable.Map()
+withEmptyList = (storeData) -> storeData or immutable.List()
 
 # Store Data getters
 # Main purpose of these getters are fetching data from stores, some of them
@@ -14,6 +15,9 @@ ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
+Suggestions                    = [['Suggestions'], withEmptyList]
+SuggestionsQuery               = ['SuggestionsQuery']
+SuggestionsState               = [['SuggestionsState'], withEmptyMap]
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -111,6 +115,8 @@ selectedChannelThreadMessages = [
     else immutable.List()
 ]
 
+currentSuggestionsQuery = SuggestionsQuery
+
 
 module.exports = {
   followedFeedThreads
@@ -120,5 +126,6 @@ module.exports = {
   selectedChannelThreadId
   selectedChannelThread
   selectedChannelThreadMessages
-}
 
+  currentSuggestionsQuery
+}

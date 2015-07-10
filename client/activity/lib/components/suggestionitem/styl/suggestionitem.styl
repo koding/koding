@@ -1,0 +1,48 @@
+.ActivitySuggestionItem
+  padding               13px 18px 15px 48px
+  border-bottom         1px solid #e4e4e4
+  line-height           20px
+  cursor                pointer
+  box-sizing            border-box
+  position              relative
+
+  &:last-child
+    border-bottom       0px
+
+.ActivitySuggestionItem-authorAvatar
+  abs()
+  width                 20px
+  height                20px
+  left                  18px
+  top                   13px
+
+.ActivitySuggestionItem-messageBody
+  font-size             14px
+  color                 #7d7d89
+
+  p:first-child
+    padding-top         0px
+
+  p:last-child
+    padding-bottom      2px!important
+
+.ActivitySuggestionItem-info
+  font-size             12px
+  color                 #a1a1a1
+
+  &~.ActivitySuggestionItem-info:before
+    content               ""
+    display               inline-block
+    width                 3px
+    height                3px
+    -webkit-border-radius 50%
+    -moz-border-radius    50%
+    border-radius         50%
+    background            #d3d3d3
+    font-size             8px
+    margin                0 3px 0 5px
+    vertical-align        middle
+
+.ActivitySuggestionItem-profileLink a
+  color                 #a1a1a1
+  text-decoration       none
