@@ -390,7 +390,7 @@ func TestWebhookIntegrationList(t *testing.T) {
 				So(len(integrations), ShouldBeGreaterThanOrEqualTo, 1)
 
 				for _, integration := range integrations {
-					So(integration.IsPublished, ShouldBeFalse)
+					So(integration.IsPublished, ShouldBeTrue)
 					So(integration.Name, ShouldNotEqual, firstInt.Name)
 				}
 			})

@@ -160,7 +160,7 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 	i := webhook.NewIntegration()
 	q := &request.Query{
 		Exclude: map[string]interface{}{
-			"isPublished": true,
+			"isPublished": false,
 		},
 	}
 
