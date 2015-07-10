@@ -8,7 +8,7 @@ module.exports = class AdminConfiguredIntegrationsListView extends AdminIntegrat
   constructor: (options = {}, data) ->
 
     options.listItemClass     = AdminConfiguredIntegrationItemView
-    options.fetcherMethodName = 'fetchChannelIntegrations'
+    options.fetcherMethodName = 'listChannelIntegrations'
 
     super options, data
 
