@@ -9,6 +9,7 @@ FLOW_ROUTES  =
   'stacks'        : '/Team/Stacks'
   'welcome'       : '/Team/Welcome'
   'join'          : '/Team/Join'
+  'register'      : '/Team/Register'
   'congrats'      : '/Team/Congrats'
 
 CREATION_FLOW = [ 'signup', 'domain', 'email-domains', 'invite'
