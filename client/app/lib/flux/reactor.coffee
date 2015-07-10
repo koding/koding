@@ -31,7 +31,7 @@ module.exports = class KodingFluxReactor extends Nuclear.Reactor
 mapWithClassName = (classes) ->
 
   return classes.reduce (result, klass) ->
-    result[klass.name] = klass
+    result[klass.getterPath] = klass
     return result
   , {}
 
