@@ -79,7 +79,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     @fetchChannels (err, channels) =>
       return showError err  if err
 
-      integrationHelpers.fetch {id: channelIntegration.id}, (err, response) =>
+      integrationHelpers.fetchChannelIntegration {id: channelIntegration.id}, (err, response) =>
 
         return showError err  if err
 
@@ -114,7 +114,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
           @emit 'IntegrationCustomizeRequested', data
           return
 
-        integrationHelpers.fetchGithubRepos (err, repositories) =>
+        integrationHelpers.fetchAllGithubRepos (err, repositories) =>
 
           return showError err  if err
           data.repositories = repositories
