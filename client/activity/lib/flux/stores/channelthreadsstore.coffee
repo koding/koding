@@ -28,6 +28,8 @@ generateDummyMessage = require 'app/util/generateDummyMessage'
 
 module.exports = class ChannelThreadsStore extends Nuclear.Store
 
+  @getterPath = 'ChannelThreadsStore'
+
   getInitialState: -> toImmutable {}
 
 

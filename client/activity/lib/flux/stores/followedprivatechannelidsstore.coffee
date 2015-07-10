@@ -5,6 +5,8 @@ KodingFluxStore = require 'app/flux/store'
 
 module.exports = class FollowedPrivateChannelIdsStore extends KodingFluxStore
 
+  @getterPath = 'FollowedPrivateChannelIdsStore'
+
   getInitialState: -> immutable.Map()
 
   initialize: ->

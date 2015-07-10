@@ -5,6 +5,8 @@ immutable       = require 'immutable'
 
 module.exports = class ChannelsStore extends KodingFluxStore
 
+  @getterPath = 'ChannelsStore'
+
   getInitialState: -> immutable.Map()
 
   initialize: ->
