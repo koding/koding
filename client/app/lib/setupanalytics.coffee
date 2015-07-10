@@ -1,6 +1,7 @@
-kd          = require 'kd'
-globals     = require 'globals'
+kd         = require 'kd'
+globals    = require 'globals'
 isLoggedIn = require './util/isLoggedIn'
+identified = false
 
 setupIdentify = ->
 
@@ -9,6 +10,9 @@ setupIdentify = ->
     kd.utils.defer -> identifyUser account
 
 identifyUser = (account)->
+
+  return  if identified
+  identified = true
 
   {_id, meta, profile} = account
   return  unless profile

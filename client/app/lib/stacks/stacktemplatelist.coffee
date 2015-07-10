@@ -13,6 +13,7 @@ module.exports = class StackTemplateList extends KDListView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass   = kd.utils.curry 'stack-template-list', options.cssClass
     options.itemClass ?= StackTemplateListItem
 
     super options, data

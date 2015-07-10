@@ -1,5 +1,8 @@
 kd                        = require 'kd'
 showError                 = require 'app/util/showError'
+checkFlag                 = require 'app/util/checkFlag'
+
+StacksModal               = require 'app/stacks/stacksmodal'
 
 EnvironmentList           = require './environmentlist'
 EnvironmentListController = require './environmentlistcontroller'
@@ -26,6 +29,18 @@ module.exports = class EnvironmentsModal extends kd.ModalView
       view       : listView
       wrapper    : no
       scrollView : no
+
+
+    if checkFlag 'super-admin'
+
+      stackEditorButton = new kd.ButtonView
+        title    : 'Open Stack Editor'
+        cssClass : 'compact solid green'
+        callback : -> new StacksModal
+
+      # Hack to add button outside of modal container
+      @addSubView stackEditorButton, '.kdmodal-inner'
+
 
     @addSubView controller.getView()
 
