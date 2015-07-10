@@ -75,6 +75,18 @@ describe 'ChannelThreadsStore', ->
       expect(storeState.hasIn [channelId, 'messages', 'mock']).to.equal yes
 
 
+  describe '#addNewThread', ->
+
+    it 'creates inits a new thread in store', ->
+      mockChannel = { id: '123' }
+      reactor.dispatch actionTypes.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, {
+        channel: mockChannel
+      }
+
+      storeState = reactor.evaluateToJS ['channelThreads']
+      expect(storeState['123']).to.be.ok
+
+
 markAsFromServer = (message) ->
 
   if typeof message.get is 'function'

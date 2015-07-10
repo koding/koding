@@ -39,6 +39,21 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
 
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
 
+    @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @addNewThread
+    @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @addNewThread
+
+  ###*
+   * Generic handler for initiating a thread with given channel.
+   *
+   * @param {IMThreadCollection} threads
+   * @param {object} payload
+   * @param {SocialChannel} channel
+   * @return {IMThreadCollection} nextState
+  ###
+  addNewThread: (threads, { channel }) ->
+
+    return initThread threads, channel.id
+
 
   ###*
    * Handler for `CREATE_MESSAGE_BEGIN` action.
