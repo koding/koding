@@ -16,7 +16,7 @@ module.exports = class SelectableItemView extends KDListItemView
     { name } = @data
 
     @label = new KDLabelView
-      title : name
+      title : "#" + name
     @switcher = new KDCheckBox
       defaultValue : false
       disabled     : false

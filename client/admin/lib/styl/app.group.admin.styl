@@ -778,6 +778,12 @@ Admin main styles
     float                   left
     line-height             40px
 
+    &:before
+      r-sprite              'admin', 'link-topic'
+      content               ''
+      display               block
+      abs                   20px 0 0 200px
+
   .moderate-role
     abs()
     right                   0
@@ -841,11 +847,26 @@ Admin main styles
     
     span
       color                 #FFFFFF
-  
+
+  .link-topic
+    bg                      color, #00B057
+    margin-top              12px
+    margin-right            15px
+
+    span
+      color                 #FFFFFF
+
+  .whitelist-topic
+    margin-top              12px
+    border-color            #00B057
+    
+    span
+      color                 #00B057
+
   .topics-empty
     color                   #A9A9A9
     text-align              center
-    padding                 30px 0
+    padding                 30px 0 43px 0
 
 
 .AppModal--admin

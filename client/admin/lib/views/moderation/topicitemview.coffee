@@ -82,12 +82,12 @@ module.exports = class TopicItemView extends KDListItemView
         if rootChannel
           text = "Blacklisted"
           if kd.singletons.groupsController.getCurrentGroup().socialApiChannelId isnt rootChannel.id 
-            text = "linked to #{rootChannel.name}"
+            text = "#" + "#{rootChannel.name}"
           
         @typeLabel.setPartial "#{text}"
         
         @settings.addSubView whitelistButton = new KDButtonView
-          cssClass : 'solid compact outline'
+          cssClass : 'solid compact outline whitelist-topic'
           title    : 'WHITELIST CHANNEL'
           callback : -> 
             options = 
@@ -144,7 +144,7 @@ module.exports = class TopicItemView extends KDListItemView
     @fetchSimilarChannels(@getData().name)
     
     @settings.addSubView linkButton = new KDButtonView
-      cssClass : 'solid compact outline'
+      cssClass : 'solid compact link-topic'
       title    : 'LINK CHANNEL'
       callback : =>
         listItems = @similarChannelsListController.getListItems()
@@ -275,7 +275,7 @@ module.exports = class TopicItemView extends KDListItemView
     
     return """
       <div class="details">
-        <p class="topicname">{{#(name)}}</p>
+        <p class="topicname">\#{{#(name)}}</p>
       </div>
       {{> @typeLabel}}
       {{> @moderationLabel}}
