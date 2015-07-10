@@ -285,10 +285,10 @@ func (c *Client) connect(identifier string) error {
 		select {
 		case c.startNotify <- true:
 		default:
-			// reaching here is a race condition, because it indicates
-			// startNotify has already a value. We panic because it's library
-			// level problem that needs immediate attention
-			panic("startNotify chan is already full")
+			// reaching here means the client never read the signal via
+			// StartNotify(). This is OK, we shouldn't except it the consumer
+			// to read from this channel. It's optional, so we just drop the
+			// signal.
 		}
 	}
 	c.mu.Unlock()
