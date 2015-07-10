@@ -34,6 +34,7 @@ module.exports = class ActivityAppController extends AppController
       require './flux/stores/channelthreadsstore'
       require './flux/stores/selectedchannelthreadidstore'
       require './flux/stores/followedpublicchannelidsstore'
+      require './flux/stores/followedprivatechannelidsstore'
     ]
 
 
