@@ -276,7 +276,7 @@ var awsBootstrap = `{
         "aws_key_pair": {
             "koding_key_pair": {
                 "key_name": "${var.key_name}",
-                "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com"
+                "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwAxo9snzynloid3J1pif7obIYHqWcjr1Q2/QTHkjDP3sC/4wMhIGxBAs07YkaUEZ0je1cH9IIU07KbFsOg4Rx9MlOVouhJ8GsjxuYTSGs1WzeLJ4oGLrMIwipEK+RhiA8kEyGKyKGQLTbrbHSzXYF4S8lxJaitE7Vfg4yNZEb8x5G1Wysi/GewanvQDytn5UhOBUqVU4PTeVi/D1YeVrXKtol7hTNRtsw1aRUIGnqskEp4LkuQKCY71rcfbIkjfa/GsaF04/4My0+DBIZAYOkgghDA8ROZPFyvB75JDrJGVG/keh3DtX4sl/XjGjTvOBosRVesCK13RtDpEe6sYS0rtg1iCqv5bimxbKAqBqHJkOjPB7Xo+7I5k1dvVm49Ktq6hFHMzGA/2cnotIYE9KHeAjnnYdBxjygSb7f8pnV4FfFkJ9m42GdRXy+lYewEXHz99GT84ExdpuNrI1mDobDyRDPmBJqmvlq6U8mxwBz0pXjRbpYJxe4iyCkEqTbCK5T8YHSBp4OE201Fkub4Z/bOlhG0WTBq2otHxx61AcscH+cSPZHaDSi8ebUGwWM4E8E5Hu0DXuCP3+1tcvct9FQxpvMVHG2zo+jHTlxSkfzvzPhGjWJbFloEG0Ri2cJAkfO0q7H/i2aPPyC4Ez8brRz+eoNujGBVk+KZG2a4ITfEQ== hello@koding.com"
             }
         }
     },
