@@ -13,7 +13,7 @@ module.exports = class SuggestionItem extends React.Component
   render: ->
 
     { message, query } = @props
-    <div className="ActivitySuggestionItem">
+    <div className="ActivitySuggestionItem" onClick={@bound 'handleClick'}>
       <div className="ActivitySuggestionItem-authorAvatar">
         {makeAvatar message.account}
       </div>
@@ -32,6 +32,14 @@ module.exports = class SuggestionItem extends React.Component
         </span>
       </div>
     </div>
+
+
+  handleClick: ->
+
+    { router } = kd.singletons
+    { message : { slug } }   = @props
+
+    router.handleRoute groupifyLink "/Activity/Post/#{slug}"
 
 
 makeProfileLink = (account) ->

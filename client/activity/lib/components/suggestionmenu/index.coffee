@@ -19,16 +19,41 @@ module.exports = class SuggestionMenu extends React.Component
 
   getDataBindings: ->
 
+    { getters } = ActivityFlux
     return {
-      messages : ActivityFlux.getters.currentSuggestionMessages
-      query    : ActivityFlux.getters.currentSuggestionQuery
+      messages : getters.currentSuggestionMessages
+      query    : getters.currentSuggestionQuery
     }
+
+
+  handleClose: (e) ->
+
+    e.preventDefault()
+    ActivityFlux.actions.suggestions.changeAccess no
+
+
+  isVisible: -> @state.messages?.length > 0
+
+
+  checkVisibility: -> @props.checkVisibility? @isVisible()
+
+
+  componentDidMount: -> @checkVisibility()
+
+
+  componentDidUpdate: -> @checkVisibility()
 
 
   render: ->
 
     { messages, query } = @state
-    <div className="ActivitySuggestionMenu">
+    className = "ActivitySuggestionMenu #{ unless @isVisible() then 'hidden' }"
+
+    <div className={className}>
+      <div className="ActivitySuggestionMenu-header">
+        Searching for one of these?
+        <a href="#" className="ActivitySuggestionMenu-closeIcon" onClick={@handleClose} />
+      </div>
       <SuggestionList messages={messages} query={query} />
     </div>
 

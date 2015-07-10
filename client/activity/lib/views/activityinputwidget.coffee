@@ -69,7 +69,8 @@ module.exports = class ActivityInputWidget extends KDView
     @input.on 'Enter',    @bound 'submit'
     @input.on 'Tab',      @bound 'focusSubmit'
     @input.on 'keypress', @bound 'updatePreview'
-    @input.on 'keydown',  kd.utils.debounce 300, @bound 'updateSuggestionQuery'
+    @input.on 'keydown',  kd.utils.debounce 300, @bound 'updateSuggestions'
+    @input.on 'focus',    @bound 'handleInputFocus'
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
 
@@ -254,9 +255,16 @@ module.exports = class ActivityInputWidget extends KDView
     @hide()  unless isLoggedIn()
 
 
-  updateSuggestionQuery: ->
+  handleInputFocus: ->
+
+    query = @input.getValue()
+    ActivityFlux.actions.suggestions.changeVisibility no
+
+
+  updateSuggestions: ->
 
     query = @input.getValue()
     { actions } = ActivityFlux
-    actions.suggestionQuery.changeCurrentQuery query
+    actions.suggestions.changeCurrentQuery query
+    actions.suggestions.changeAccess yes  unless query
     actions.messageSearch.fetchSuggestions query
