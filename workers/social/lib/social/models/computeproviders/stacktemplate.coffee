@@ -53,12 +53,7 @@ module.exports = class JStackTemplate extends Module
 
     schema            :
 
-      rules           : [ Object ]
-      domains         : [ Object ]
       machines        : [ Object ]
-      extras          : [ Object ]
-
-      connections     : [ Object ]
 
       title           :
         type          : String
@@ -121,11 +116,7 @@ module.exports = class JStackTemplate extends Module
         title       : data.title
         config      : data.config      ? {}
         description : data.description ? ''
-        rules       : data.rules       ? []
-        domains     : data.domains     ? []
         machines    : data.machines    ? []
-        extras      : data.extras      ? []
-        connections : data.connections ? []
         accessLevel : data.accessLevel ? 'private'
         template    : generateTemplateObject data.template, data.templateDetails
         credentials : data.credentials ? []
@@ -223,8 +214,6 @@ KD.remote.api.JStackTemplate.create({
      "KODING_BASE_PACKAGES" : "mc nodejs python sl screen",
      "DEBIAN_FRONTEND" : "noninteractive"
   },
-  rules: [],
-  domains: [],
   machines: [
     {
       "label" : "koding-vm-0",
@@ -237,7 +226,6 @@ KD.remote.api.JStackTemplate.create({
       "source_ami" : "ami-a6926dce"
     }
   ],
-  connections: []
 }, function(err, template) {
   return console.log(err, template);
 });
@@ -259,21 +247,6 @@ Default Template ---
         "KODING_BASE_PACKAGES" : "mc nodejs python sl",
         "DEBIAN_FRONTEND" : "noninteractive"
     },
-    "rules" : [],
-    "domains" : [
-        {
-            "domain" : "${username}.kd.io"
-        },
-        {
-            "domain" : "aws.${username}.kd.io"
-        },
-        {
-            "domain" : "rs.${username}.kd.io"
-        },
-        {
-            "domain" : "do.${username}.kd.io"
-        }
-    ],
     "machines" : [
         {
             "label" : "VM1 from Koding",
@@ -308,25 +281,6 @@ Default Template ---
             "image" : "ubuntu-13-10-x64",
             "region" : "sfo1",
             "size" : "512mb"
-        }
-    ],
-    "extras" : [],
-    "connections" : [
-        {
-            "domains" : 0,
-            "machines" : 0
-        },
-        {
-            "domains" : 1,
-            "machines" : 0
-        },
-        {
-            "domains" : 2,
-            "machines" : 1
-        },
-        {
-            "domains" : 3,
-            "machines" : 2
         }
     ],
     "group" : "koding",
