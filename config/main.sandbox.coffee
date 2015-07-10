@@ -466,7 +466,7 @@ Configuration = (options={}) ->
       group             : "environment"
       instances         : 1
       supervisord       :
-        command         : "#{GOBIN}/janitor -kite-init=true"
+        command         : "#{GOBIN}/janitor -c #{socialapi.configFilePath} -kite-init=true"
       healthCheckURL    : "http://localhost:#{socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapi.janitor.port}/version"
 
