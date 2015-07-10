@@ -54,8 +54,8 @@ runTests = -> describe 'server.handlers.validateemail', ->
 
   it 'should send HTTP 400 if email is not set', (done) ->
 
-    validateEmailRequestParams = generateValidateEmailRequestParams
-      body : {}
+    validateEmailRequestParams      = generateValidateEmailRequestParams()
+    validateEmailRequestParams.body = null
 
     request.post validateEmailRequestParams, (err, res, body) ->
       expect(err)             .to.not.exist

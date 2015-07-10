@@ -53,8 +53,8 @@ runTests = -> describe 'server.handlers.validateusername', ->
 
   it 'should send HTTP 400 if username is not set', (done) ->
 
-    validateUsernameRequestParams = generateValidateUsernameRequestParams
-      body : {}
+    validateUsernameRequestParams       = generateValidateUsernameRequestParams()
+    validateUsernameRequestParams.body  = null
 
     request.post validateUsernameRequestParams, (err, res, body) ->
       expect(err)             .to.not.exist

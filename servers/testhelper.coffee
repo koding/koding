@@ -101,6 +101,34 @@ deepObjectExtend = (target, source) ->
 
 class ValidationHandlerHelper
 
+  @generateValidateRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      fields     :
+        username : ''
+        email    : ''
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateValidateRequestParams = (opts = {}) ->
+
+    url  = generateUrl
+      route : '-/validate'
+
+    body = ValidationHandlerHelper.generateValidateRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
   @generateValidateUsernameRequestBody = (opts = {}) ->
 
     defaultBodyObject =
@@ -116,7 +144,7 @@ class ValidationHandlerHelper
     url  = generateUrl
       route : '-/validate/username'
 
-    body = TeamHandlerHelper.generateCheckTokenRequestBody()
+    body = ValidationHandlerHelper.generateValidateUsernameRequestBody()
 
     params               = { url, body }
     defaultRequestParams = generateDefaultParams params
@@ -144,7 +172,7 @@ class ValidationHandlerHelper
     url  = generateUrl
       route : '-/validate/email'
 
-    body = TeamHandlerHelper.generateCheckTokenRequestBody()
+    body = ValidationHandlerHelper.generateValidateEmailRequestBody()
 
     params               = { url, body }
     defaultRequestParams = generateDefaultParams params
