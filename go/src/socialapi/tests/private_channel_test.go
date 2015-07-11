@@ -197,10 +197,6 @@ func TestPrivateMesssages(t *testing.T) {
 		})
 
 		Convey("private message should be listed by all recipients", func() {
-			// use a different group name
-			// in order not to interfere with another request
-			// groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
-
 			body := "hi @devrim this is a body for private message also for @sinan"
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
