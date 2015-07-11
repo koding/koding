@@ -17,7 +17,7 @@ teams.styl
 .content-page.teams
   overflow                  auto
   color                     white
-  padding-top               242px
+  padding-top               132px
   bg                        image, url('/a/images/teams/landing-bg.jpg')
   bg                        color, #2D5EAB
   bg                        position, center center
@@ -26,6 +26,17 @@ teams.styl
   header
     top                     71px
     padding                 0 10px
+
+    &.hasNotTeamAccess
+      top                 48px
+
+      nav.full-menu
+        a
+          margin-left     15px
+
+        .buttonized.yellow
+          right           0
+          margin-left     15px
 
     nav.full-menu
       rel()
@@ -77,6 +88,9 @@ teams.styl
     line-height             20px
     text-align              center
     borderBox()
+
+    h1
+      margin-top            90px !important
 
     h1
     h2
@@ -147,6 +161,50 @@ teams.styl
         margin              0 auto
         top                 95px
         rel()
+
+    &.hasNotTeamAccess
+      h1
+        margin-top          20px !important
+
+      h2
+        font-size           22px
+        font-weight         400
+
+      .TeamsModal--middle
+        margin              0 auto 50px auto
+        padding             8px
+
+        section
+          div.submit
+            padding-right   0
+
+          div.email
+            padding-right   10px
+
+            .login-input-view
+              rounded       4px
+
+              input.kdinput
+                color       #3E4F55
+
+              .placeholder-helper
+                top         4px
+
+                &.out
+                  font-size 12px
+                  top       -36px
+
+          .kdbutton.solid.medium
+            bg              color, #F6E556
+            rounded         4px
+            color           #000
+            display         block
+            height          40px
+            line-height     40px
+
+            .button-title
+              color         #39473E
+
 
     &.middle
       background            #F5F5F5
@@ -453,13 +511,17 @@ teams.styl
       padding               50px 0 0 0
       box-shadow            none
 
+      &.hasNotTeamAccess
+        nav.full-menu
+          .buttonized.yellow
+            margin-left     0px
+
       .teams-header-logo
         abs()
         top                 0
         left                20px
         margin              0
         font-size           24px
-        width               100%
         text-align          left
 
       nav.full-menu
@@ -621,6 +683,23 @@ teams.styl
 
             img
               width         75%
+
+      &.hasNotTeamAccess
+        h1
+          margin-top        100px !important
+          font-size         24px !important
+
+        h2
+          font-size         20px !important
+
+        .TeamsModal--middle
+          margin            20px auto 40px !important
+
+          section
+            .email
+              padding-right 0 !important
+              margin-bottom 10px
+
 
     .TeamsModal--middle
       margin                30px auto 50px
