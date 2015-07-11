@@ -1,20 +1,19 @@
-kd                         = require 'kd'
-JView                      = require 'app/jview'
-remote                     = require('app/remote').getInstance()
-globals                    = require 'globals'
-showError                  = require 'app/util/showError'
-KDInputView                = kd.InputView
-KDLabelView                = kd.LabelView
-KDButtonView               = kd.ButtonView
-applyMarkdown              = require 'app/util/applyMarkdown'
-CustomLinkView             = require 'app/customlinkview'
-KDCustomHTMLView           = kd.CustomHTMLView
-integrationHelpers         = require 'app/helpers/integration'
-KDFormViewWithFields       = kd.FormViewWithFields
-AdminIntegrationCommonView = require './adminintegrationcommonview'
+kd                   = require 'kd'
+JView                = require 'app/jview'
+remote               = require('app/remote').getInstance()
+globals              = require 'globals'
+showError            = require 'app/util/showError'
+KDInputView          = kd.InputView
+KDLabelView          = kd.LabelView
+KDButtonView         = kd.ButtonView
+applyMarkdown        = require 'app/util/applyMarkdown'
+CustomLinkView       = require 'app/customlinkview'
+KDCustomHTMLView     = kd.CustomHTMLView
+integrationHelpers   = require 'app/helpers/integration'
+KDFormViewWithFields = kd.FormViewWithFields
 
 
-module.exports = class AdminIntegrationDetailsView extends AdminIntegrationCommonView
+module.exports = class AdminIntegrationDetailsView extends JView
 
   constructor: (options = {}, data) ->
 
