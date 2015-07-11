@@ -3,12 +3,11 @@ package main
 import (
 	"encoding/json"
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
-	"strconv"
+	"socialapi/workers/common/tests"
 	"testing"
 
 	"github.com/koding/runner"
@@ -27,30 +26,43 @@ func TestCollaborationChannels(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	CreatePrivateChannelUser("devrim")
-	CreatePrivateChannelUser("sinan")
-	CreatePrivateChannelUser("chris")
-
 	Convey("while testing collaboration channel", t, func() {
-		account := models.NewAccount()
-		account.OldId = AccountOldId.Hex()
-		account, err := rest.CreateAccount(account)
-		So(err, ShouldBeNil)
-		So(account, ShouldNotBeNil)
 
-		recipient := models.NewAccount()
-		recipient.OldId = AccountOldId2.Hex()
-		recipient, err = rest.CreateAccount(recipient)
+		devrim, err := models.CreateAccountInBothDbsWithNick("devrim")
 		So(err, ShouldBeNil)
-		So(recipient, ShouldNotBeNil)
-
-		recipient2 := models.NewAccount()
-		recipient2.OldId = AccountOldId3.Hex()
-		recipient2, err = rest.CreateAccount(recipient2)
+		So(devrim, ShouldNotBeNil)
+		sinan, err := models.CreateAccountInBothDbsWithNick("sinan")
 		So(err, ShouldBeNil)
-		So(recipient2, ShouldNotBeNil)
+		So(sinan, ShouldNotBeNil)
 
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+		groupName := models.RandomGroupName()
+
+		// cretae admin user
+		account, err := models.CreateAccountInBothDbs()
+		tests.ResultedWithNoErrorCheck(account, err)
+		// fetch admin's session
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		groupChannel, err := rest.CreateChannelByGroupNameAndType(
+			account.Id,
+			groupName,
+			models.Channel_TYPE_GROUP,
+			ses.ClientId,
+		)
+		tests.ResultedWithNoErrorCheck(groupChannel, err)
+
+		_, err = groupChannel.AddParticipant(devrim.Id)
+		So(err, ShouldBeNil)
+		_, err = groupChannel.AddParticipant(sinan.Id)
+		So(err, ShouldBeNil)
+
+		recipient, err := models.CreateAccountInBothDbs()
+		tests.ResultedWithNoErrorCheck(recipient, err)
+
+		recipient2, err := models.CreateAccountInBothDbs()
+		tests.ResultedWithNoErrorCheck(recipient2, err)
 
 		Convey("one can send initiate the collaboration channel with only him", func() {
 			pmr := models.PrivateChannelRequest{}
@@ -69,9 +81,9 @@ func TestCollaborationChannels(t *testing.T) {
 		Convey("one can send initiate the collaboration channel with 2 participants", func() {
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
-			pmr.Body = "this is a body message for private message @chris @devrim @sinan"
+			pmr.Body = "this is a body message for private message @devrim @sinan"
 			pmr.GroupName = groupName
-			pmr.Recipients = []string{"chris", "devrim", "sinan"}
+			pmr.Recipients = []string{"devrim", "sinan"}
 			pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
 			cmc, err := rest.SendPrivateChannelRequest(pmr)
