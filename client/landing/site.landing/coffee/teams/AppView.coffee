@@ -24,20 +24,25 @@ module.exports = class TeamsView extends JView
         KD.utils.stopDOMEvent event
         KD.singletons.router.handleRoute '/'
 
-    @header = new MainHeaderView
-      headerLogo : teamsLogo
-      navItems : [
-        { title : 'Success Stories',  href : 'http://blog.koding.com',  name : 'stories' }
-        { title : 'Learn More',       href : '/Teams',                  name : 'learn' }
-        { title : 'SIGN IN',          href : '/Team/Login',             name : 'buttonized yellow login',  attributes : testpath : 'login-link' }
-      ]
-
     @thanks = new KDCustomHTMLView
       cssClass : 'ribbon hidden'
       partial  : '<span>Thank You!</span>'
 
+    @comingSoon = new KDCustomHTMLView
+      cssClass : 'ribbon hidden'
+      partial  : '<span>Coming Soon!</span>'
+
 
     if KD.config.hasTeamAccess
+
+      @header = new MainHeaderView
+        headerLogo : teamsLogo
+        navItems : [
+          { title : 'Success Stories',  href : 'http://blog.koding.com',  name : 'stories' }
+          { title : 'Learn More',       href : '/Teams',                  name : 'learn' }
+          { title : 'SIGN IN',          href : '/Team/Login',             name : 'buttonized yellow login',  attributes : testpath : 'login-link' }
+        ]
+
       @title = new KDCustomHTMLView
         tagName : 'h1'
         partial : "Koding for Teams!"
@@ -67,9 +72,22 @@ module.exports = class TeamsView extends JView
 
       @teamsHomeFeaturesSection = new TeamsHomeFeaturesSection
 
+      @features = new KDCustomHTMLView
+        cssClass : 'hidden'
+
       @footer = new FooterView
 
     else
+
+      @header = new MainHeaderView
+        headerLogo : teamsLogo
+        cssClass   : 'hasNotTeamAccess'
+        navItems  : [
+          { title : 'Blog',     href : 'http://blog.koding.com',  name : 'stories' }
+          { title : 'Teams',    href : '/Teams',                  name : 'learn' }
+          { title : 'SIGN IN',  href : '/Team/Login',             name : 'buttonized yellow login',  attributes : testpath : 'login-link' }
+        ]
+
       @title = new KDCustomHTMLView
         tagName : 'h1'
         partial : 'Announcing Koding for Teams!'
@@ -98,7 +116,17 @@ module.exports = class TeamsView extends JView
           <li style='list-style-type:none;'>Learn more on our <a href='http://blog.koding.com/teams' target='_blank'>blog</a>.</li>
           """
 
+      @playVideoIcon = new KDCustomHTMLView
+        cssClass : 'hidden'
+
+      @footer = new KDCustomHTMLView
+        cssClass : 'hidden'
+
+      @teamsHomeFeaturesSection = new KDCustomHTMLView
+        cssClass : 'hidden'
+
       @animateTargets()
+      @comingSoon.show()
 
 
 
@@ -107,6 +135,7 @@ module.exports = class TeamsView extends JView
     if responseText is 'Already applied!'
       responseText = 'Thank you! We\'ll let you know when we launch it!'
       @form.hide()
+      @comingSoon.hide()
       @thanks.show()
 
     new KDNotificationView
@@ -117,6 +146,7 @@ module.exports = class TeamsView extends JView
   earlyAccessSuccess: ->
 
     @form.hide()
+    @comingSoon.hide()
     @thanks.show()
     new KDNotificationView
       title    : "We'll let you know when we launch it!"
@@ -135,17 +165,23 @@ module.exports = class TeamsView extends JView
 
   pistachio: ->
 
+    hasTeamAccess = unless KD.config.hasTeamAccess then 'hasNotTeamAccess' else ''
+    hiddenClass   = unless KD.config.hasTeamAccess then 'hidden' else ''
+
     """
     {{> @header }}
-    <section class='main-wrapper'>
+    <section class='main-wrapper #{hasTeamAccess}'>
       {{> @title}}
       {{> @subTitle}}
       {{> @form}}
-      <div class='embed-info'>
+      {{> @thanks}}
+      {{> @comingSoon}}
+      {{> @features}}
+      <div class='embed-info #{hiddenClass}'>
           <img src='/a/site.landing/images/teams/text.png' alt='' />
           <span class='icon'></span>
       </div>
-      <div class='embed-box'>
+      <div class='embed-box #{hiddenClass}'>
         {{> @playVideoIcon}}
       </div>
     </section>
