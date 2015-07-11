@@ -100,9 +100,10 @@ module.exports = class AdminAppView extends kd.ModalView
     items.forEach (item, i) =>
 
       { slug, title, action } = item
+      name         = slug or action
       hiddenHandle = if action then yes
 
-      pane = new KDTabPaneView { slug, action, hiddenHandle, title }
+      pane = new KDTabPaneView { name, slug, action, hiddenHandle, title }
       @tabs.addPane pane, i is 0
 
     @emit 'ready'
