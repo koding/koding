@@ -91,7 +91,7 @@ module.exports = class AdminAppView extends kd.ModalView
       { viewClass } = targetItem
 
       pane._isViewAdded = yes
-      pane.addSubView new viewClass
+      pane.setMainView new viewClass
         cssClass : slug or action
         delegate : this
         action   : action
