@@ -85,8 +85,11 @@ module.exports = class AdminAppController extends AppController
         else if paneSlug is section
           targetPane = pane
 
-      if   targetPane then @mainView.tabs.showPane targetPane
-      else kd.singletons.router.handleRoute '/Admin/Settings'
+      if targetPane
+        @mainView.tabs.showPane pane
+        pane.getMainView().handleIdentifier? identifier  if identifier
+      else
+        kd.singletons.router.handleRoute '/Admin/Settings'
 
 
   loadView: (modal) ->
