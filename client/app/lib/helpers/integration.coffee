@@ -1,3 +1,4 @@
+kd           = require 'kd'
 remote       = require('app/remote').getInstance()
 doXhrRequest = require 'app/util/doXhrRequest'
 
@@ -19,6 +20,8 @@ find = (query, callback) ->
   list (err, items) ->
 
     return callback err  if err
+
+    query = decodeURIComponent query
 
     for item in items when item.name is query or item.title is query
       integration = item
