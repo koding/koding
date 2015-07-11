@@ -63,6 +63,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
@@ -1205,7 +1206,17 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	kld.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}
-	// kld.PublicKeys = publickeys.NewKeys()
+
+	userPrivateKey, userPublicKey := userMachinesKeys(
+		os.Getenv("KLOUD_USER_PUBLICKEY"),
+		os.Getenv("KLOUD_USER_PRIVATEKEY"),
+	)
+
+	kld.PublicKeys = &publickeys.Keys{
+		KeyName:    publickeys.DeployKeyName,
+		PrivateKey: userPrivateKey,
+		PublicKey:  userPublicKey,
+	}
 	kld.Log = kloudLogger
 	kld.DomainStorage = p.DNSStorage
 	kld.Domainer = p.DNSClient
