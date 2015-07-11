@@ -1409,8 +1409,13 @@ module.exports = class JGroup extends Module
         @createGroupChannel client, options, (err, groupChannelId) =>
           return callback err if err?
 
-          @createAnnouncementChannel client, options, (err, announcementChannelId) ->
+          # announcement channel will only be created for koding channel
+          if @slug isnt "koding"
+            return callback null, { socialApiChannelId: groupChannelId }
+
+          @createAnnouncementChannel client, options, (err, announcementChannelId) =>
             return callback err if err?
+
 
             return callback null, {
               # channel id for #public - used as group channel
@@ -1420,10 +1425,10 @@ module.exports = class JGroup extends Module
             }
 
 
-  createGroupChannel:(client, options, callback) ->
-    options.name = 'public'
-    options.varName = 'socialApiChannelId'
-    options.typeConstant = 'group'
+  createGroupChannel:(client, options, callback)->
+    options.name = if @slug is "koding" then "public" else @slug
+    options.varName = "socialApiChannelId"
+    options.typeConstant = "group"
 
     return @createSocialAPIChannel client, options, callback
 
