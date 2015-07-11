@@ -82,7 +82,14 @@ var (
 				return ""
 			}
 
-			return fmt.Sprintf("  - '%s'\n", strings.TrimSpace(cmd))
+			lines := strings.Split(cmd, "\n")
+			fmt.Printf("lines = %+v\n", lines)
+			c := "  - |\n"
+			for _, line := range lines {
+				c += fmt.Sprintf("    %s\n", line)
+			}
+			fmt.Printf("c = %+v\n", c)
+			return c
 		},
 	}
 
