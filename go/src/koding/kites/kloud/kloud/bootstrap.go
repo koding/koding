@@ -74,7 +74,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		finalBootstrap, err := cred.appendAWSVariable(awsBootstrap)
+		finalBootstrap, err := cred.appendAWSVariable(fmt.Sprintf(awsBootstrap, k.PublicKeys.PublicKey))
 		if err != nil {
 			return nil, err
 		}
@@ -253,13 +253,18 @@ var awsBootstrap = `{
             "allow_all": {
                 "description": "Allow all inbound and outbound traffic",
                 "ingress": {
-                    "cidr_blocks": [
-                        "0.0.0.0/0"
-                    ],
                     "from_port": 0,
+                    "to_port": 0,
+                    "protocol": "-1",
+                    "cidr_blocks": ["0.0.0.0/0"],
+                    "self": true
+                },
+                "egress": {
+                    "from_port": 0,
+                    "to_port": 0,
                     "protocol": "-1",
                     "self": true,
-                    "to_port": 0
+                    "cidr_blocks": ["0.0.0.0/0"]
                 },
                 "name": "allow_all",
                 "tags": {
@@ -271,7 +276,7 @@ var awsBootstrap = `{
         "aws_key_pair": {
             "koding_key_pair": {
                 "key_name": "${var.key_name}",
-                "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com"
+                "public_key": "%s"
             }
         }
     },
