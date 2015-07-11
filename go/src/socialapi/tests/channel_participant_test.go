@@ -56,9 +56,34 @@ func TestChannelParticipantOperations(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(forthAccount, ShouldNotBeNil)
 
-			CreatePrivateChannelUser("devrim")
+			devrim, err := models.CreateAccountInBothDbsWithNick("devrim")
+			So(err, ShouldBeNil)
+			So(devrim, ShouldNotBeNil)
 
-			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+			groupName := models.RandomGroupName()
+
+			ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			groupChannel, err := rest.CreateChannelByGroupNameAndType(
+				ownerAccount.Id,
+				groupName,
+				models.Channel_TYPE_GROUP,
+				ses.ClientId,
+			)
+			tests.ResultedWithNoErrorCheck(groupChannel, err)
+			_, err = groupChannel.AddParticipant(secondAccount.Id)
+			So(err, ShouldBeNil)
+
+			_, err = groupChannel.AddParticipant(thirdAccount.Id)
+			So(err, ShouldBeNil)
+
+			_, err = groupChannel.AddParticipant(forthAccount.Id)
+			So(err, ShouldBeNil)
+
+			_, err = groupChannel.AddParticipant(devrim.Id)
+			So(err, ShouldBeNil)
 
 			pmr := models.PrivateChannelRequest{}
 
