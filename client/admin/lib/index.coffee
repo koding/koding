@@ -1,20 +1,19 @@
-kd                        = require 'kd'
-AppController             = require 'app/appcontroller'
-
-AdminAppView              = require './adminappview'
-AdminMembersView          = require './views/members/adminmembersview'
-AdministrationView        = require './views/administrationview'
-CustomViewsManager        = require './views/customviews/customviewsmanager'
-TopicModerationView       = require './views/moderation/topicmoderationview'
-GroupStackSettings        = require './views/groupstacksettings'
-OnboardingAdminView       = require './views/onboarding/onboardingadminview'
-AdminInvitationsView      = require './views/invitations/admininvitationsview'
-GroupPermissionsView      = require './views/grouppermissionsview'
-GroupsBlockedUserView     = require './views/groupsblockeduserview'
-AdminIntegrationsView     = require './views/integrations/adminintegrationsview'
-GroupGeneralSettingsView  = require './views/groupgeneralsettingsview'
-AdminIntegrationSetupView = require './views/integrations/adminintegrationsetupview'
-AdminIntegrationsDetailsView = require './views/integrations/adminintegrationdetailsview'
+kd                              = require 'kd'
+AppController                   = require 'app/appcontroller'
+AdminAppView                    = require './adminappview'
+AdminMembersView                = require './views/members/adminmembersview'
+AdministrationView              = require './views/administrationview'
+CustomViewsManager              = require './views/customviews/customviewsmanager'
+TopicModerationView             = require './views/moderation/topicmoderationview'
+GroupStackSettings              = require './views/groupstacksettings'
+OnboardingAdminView             = require './views/onboarding/onboardingadminview'
+AdminInvitationsView            = require './views/invitations/admininvitationsview'
+GroupPermissionsView            = require './views/grouppermissionsview'
+GroupsBlockedUserView           = require './views/groupsblockeduserview'
+AdminIntegrationsView           = require './views/integrations/adminintegrationsview'
+GroupGeneralSettingsView        = require './views/groupgeneralsettingsview'
+AdminIntegrationsDetailsView    = require './views/integrations/adminintegrationdetailsview'
+AdminIntegrationSetupParentView = require './views/integrations/adminintegrationsetupparentview'
 
 
 require('./routehandler')()
@@ -39,7 +38,7 @@ module.exports = class AdminAppController extends AppController
           title     : 'Integrations'
           viewClass : AdminIntegrationsView,
           subTabs   : [
-            { title : 'Add',        action: 'Add',              viewClass : AdminIntegrationSetupView    }
+            { title : 'Add',        action: 'Add',              viewClass : AdminIntegrationSetupParentView    }
             { title : 'Configure',  action: 'Configure',        viewClass : AdminIntegrationsDetailsView }
           ]
         }
