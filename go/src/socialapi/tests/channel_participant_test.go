@@ -2,11 +2,10 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
+	"socialapi/workers/common/tests"
 	"strings"
 	"testing"
 	"time"
