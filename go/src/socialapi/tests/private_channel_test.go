@@ -52,6 +52,7 @@ func TestPrivateMesssages(t *testing.T) {
 			ses.ClientId,
 		)
 		tests.ResultedWithNoErrorCheck(groupChannel, err)
+
 		recipient := models.NewAccount()
 		recipient.OldId = AccountOldId2.Hex()
 		recipient, err = rest.CreateAccount(recipient)
