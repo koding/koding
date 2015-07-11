@@ -106,7 +106,7 @@ var (
 				"count": %d,
                 "instance_type": "t2.micro",
                 "ami": "ami-936d9d93",
-                "user_data": "sudo apt-get install sl -y"
+                "user_data": "sudo apt-get install sl -y\ntouch /tmp/arslan.txt"
             }
         }
     }
@@ -379,6 +379,9 @@ func TestTerraformStack(t *testing.T) {
 	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
 		t.Error(err)
 	}
+
+	fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
+	time.Sleep(time.Minute * 5)
 
 	destroyArgs := &kloud.TerraformApplyRequest{
 		StackId: userData.StackId,
