@@ -60,8 +60,23 @@ func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 		return nil, err
 	}
 
+	groupChannel, err := Cache.Channel.ByGroupName(c.GroupName)
+	if err != nil {
+		return nil, err
+	}
+
 	// add participants to tha channel
 	for _, participantId := range participantIds {
+		// added accounts should be a member of parent channel
+		isParticipant, err := groupChannel.IsParticipant(participantId)
+		if err != nil {
+			return nil, err
+		}
+
+		if !isParticipant {
+			return nil, ErrCannotOpenChannel
+		}
+
 		cp, err := c.AddParticipant(participantId)
 		if err != nil {
 			continue
