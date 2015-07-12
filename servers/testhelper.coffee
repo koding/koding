@@ -99,6 +99,36 @@ deepObjectExtend = (target, source) ->
   return target
 
 
+class RecoverHandlerHelper
+
+  @generateRecoverRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      email : ''
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateRecoverRequestParams = (opts = {}) ->
+
+    { body : email } = opts
+
+    url  = generateUrl
+      route : "#{email}/Recover"
+
+    body = RecoverHandlerHelper.generateRecoverRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
 class ValidationHandlerHelper
 
   @generateVerifyTokenRequestBody = (opts = {}) ->
@@ -421,6 +451,7 @@ module.exports = {
   generateRandomUsername
 
   TeamHandlerHelper
+  RecoverHandlerHelper
   RegisterHandlerHelper
   ValidationHandlerHelper
 }
