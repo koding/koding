@@ -10,7 +10,7 @@ koding                                    = require './../bongo'
   RegisterHandlerHelper
   ValidationHandlerHelper }               = require '../../../testhelper'
 
-{ generateValidateEmailRequestParams } = ValidationHandlerHelper
+{ generateValidateEmailRequestParams }    = ValidationHandlerHelper
 
 request                                   = require 'request'
 JUser                                     = null
