@@ -123,6 +123,11 @@ Configuration = (options={}) ->
     teams      : yes
     botchannel : yes
 
+  github =
+    clientId      : "d3b586defd01c24bb294"
+    clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"
+    redirectUri   : "https://sandbox.koding.com/-/oauth/github/callback"
+
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
@@ -155,6 +160,7 @@ Configuration = (options={}) ->
     segment                 : segment
     disabledFeatures        : disabledFeatures
     janitor                 : { port: "6700", secretKey: "janitorsecretkey-sandbox" }
+    github                  : github
 
   userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -222,7 +228,7 @@ Configuration = (options={}) ->
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
-    github                         : {clientId      : "d3b586defd01c24bb294"                         , clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"   , redirectUri : "https://sandbox.koding.com/-/oauth/github/callback"}
+    github                         : github
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://sandbox.koding.com/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "650676665033389"                              , clientSecret  : "6771ee1f5aa28e5cd13d3465bacffbdc"           , redirectUri  : "https://sandbox.koding.com/-/oauth/facebook/callback"}
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "https://sandbox.koding.com/-/oauth/google/callback" }
@@ -267,7 +273,7 @@ Configuration = (options={}) ->
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
     embedly              : {apiKey       : KONFIG.embedly.apiKey}
-    github               : {clientId     : KONFIG.github.clientId}
+    github               : {clientId     : github.clientId }
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
@@ -460,7 +466,7 @@ Configuration = (options={}) ->
       group             : "environment"
       instances         : 1
       supervisord       :
-        command         : "#{GOBIN}/janitor -kite-init=true"
+        command         : "#{GOBIN}/janitor -c #{socialapi.configFilePath} -kite-init=true"
       healthCheckURL    : "http://localhost:#{socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapi.janitor.port}/version"
 
@@ -504,6 +510,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/moderation/(.*)"
             proxyPass   : "http://socialapi/moderation/$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/account/channels"
+            proxyPass   : "http://socialapi/account/channels$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"

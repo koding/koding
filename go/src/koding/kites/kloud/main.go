@@ -10,6 +10,7 @@ import (
 	_ "net/http/pprof"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -267,7 +268,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 	kld.Metrics = stats
 
-	userPrivateKey, userPublicKey := userMachinesKeys(conf)
+	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
@@ -334,20 +335,20 @@ func newKite(conf *Config) *kite.Kite {
 	return k
 }
 
-func userMachinesKeys(conf *Config) (string, string) {
-	pubKey, err := ioutil.ReadFile(conf.UserPublicKey)
+func userMachinesKeys(publicPath, privatePath string) (string, string) {
+	pubKey, err := ioutil.ReadFile(publicPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	publicKey := string(pubKey)
 
-	privKey, err := ioutil.ReadFile(conf.UserPrivateKey)
+	privKey, err := ioutil.ReadFile(privatePath)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	privateKey := string(privKey)
 
-	return privateKey, publicKey
+	return strings.TrimSpace(privateKey), strings.TrimSpace(publicKey)
 }
 
 func kontrolKeys(conf *Config) (string, string) {

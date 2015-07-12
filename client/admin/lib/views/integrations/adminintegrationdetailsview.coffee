@@ -10,6 +10,7 @@ applyMarkdown        = require 'app/util/applyMarkdown'
 CustomLinkView       = require 'app/customlinkview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDFormViewWithFields = kd.FormViewWithFields
+integrationHelpers   = require 'app/helpers/integration'
 
 
 module.exports = class AdminIntegrationDetailsView extends JView
@@ -19,18 +20,13 @@ module.exports = class AdminIntegrationDetailsView extends JView
     options.cssClass = 'integration-details'
 
     super options, data
+    { integration } = data
+    { instructions } = integration
+    data.repositories or= []
 
-    { instructions } = data
+    repositories = ({ title: repository.full_name, value: repository.full_name } for repository in data.repositories)
+
     @eventCheckboxes = {}
-
-    # DUMMY DATA
-    data.settings =
-      events: [
-        { name: 'added_feature',  description: 'Added feature'  }
-        { name: 'added_comment',  description: 'Added comment'  }
-        { name: 'edited_feature', description: 'Edited feature' }
-        { name: 'moved_feature',  description: 'Moved feature'  }
-      ]
 
     if instructions
       @instructionsView = new KDCustomHTMLView
@@ -38,7 +34,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         cssClass : 'has-markdown instructions container'
         partial  : """
           <h4 class='title'>Setup Instructions</h4>
-          <p class='subtitle'>Here are the steps necessary to add the #{data.title} integration.</p>
+          <p class='subtitle'>Here are the steps necessary to add the #{integration.title} integration.</p>
           <hr />
         """
       @instructionsView.addSubView new KDCustomHTMLView
@@ -70,10 +66,19 @@ module.exports = class AdminIntegrationDetailsView extends JView
               click     : @bound 'regenerateToken'
         label           :
           label         : '<p>Descriptive Label</p><span>Use this label to provide extra context in your list of integrations (optional).</span>'
-          defaultValue  : data.description
+          defaultValue  : data.description  or integration.summary
+        repository      :
+          label         : '<p>Repository</p><span>Choose the repository that you would like to listen.</span>'
+          type          : 'select'
+          selectOptions : repositories
+          cssClass      : unless repositories.length then 'hidden'
+        events          :
+          label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
+          type          : 'hidden'
+          cssClass      : unless data.settings?.events?.length then 'hidden'
         name            :
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
-          defaultValue  : customName or data.title
+          defaultValue  : customName or integration.title
         events          :
           label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
           type          : 'hidden'
@@ -175,7 +180,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
     selectedEvents = @getData().selectedEvents or []
     mainWrapper    = new KDCustomHTMLView cssClass: 'event-cbes'
 
-    for item in @data.settings?.events
+    return  unless @data.settings?.events
+
+    for item in @data.settings.events
 
       { name } = item
       wrapper  = new KDCustomHTMLView cssClass: 'event-cb'
@@ -198,23 +205,34 @@ module.exports = class AdminIntegrationDetailsView extends JView
   handleFormCallback: (formData) ->
 
     data = @getData()
-    data.selectedEvents = []
-    { name, label, channels } = formData
+    { integration } = data
+    selectedEvents = []
+
+    { name, label, channels, repository } = formData
     options       =
       id          : data.id
       channelId   : channels
       isDisabled  : data.isDisabled
 
-    if label isnt data.summary
+    if label isnt integration.summary
       options.description = label
 
-    if name isnt data.title
-      options.settings = customName : name
+    if name isnt integration.title
+      options.settings or= {}
+      options.settings.customName = name
 
     for name, checkbox of @eventCheckboxes when checkbox.getValue()
-      data.selectedEvents.push name
+      selectedEvents.push name
 
-    kd.singletons.socialapi.integrations.update options, (err) =>
+    if selectedEvents.length
+      options.settings or= {}
+      options.settings.events = JSON.stringify selectedEvents
+
+    if repository
+      options.settings or= {}
+      options.settings.repository = repository
+
+    integrationHelpers.update options, (err) =>
       return kd.warn err  if err
 
       @settingsForm.buttons.Save.hideLoader()
@@ -228,7 +246,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     @regenerateLock = yes
     { id, name }    = @getData()
 
-    kd.singletons.socialapi.integrations.regenerateToken { id }, (err, res) =>
+    integrationHelpers.regenerateToken { id }, (err, res) =>
       return showError  if err
 
       { url, Regenerate } = @settingsForm.inputs
@@ -253,7 +271,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       channelId  : selectedChannel
       isDisabled : newState
 
-    kd.singletons.socialapi.integrations.update data, (err, res) =>
+    integrationHelpers.update data, (err, res) =>
 
       return showError  if err
 
@@ -272,15 +290,17 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   pistachio: ->
 
-    { title, description, summary, iconPath } = @getData()
+    { integration: {title, description, summary, iconPath} } = @getData()
 
     return """
       <header class="integration-view">
         <img src="#{iconPath}" />
-        {p{ #(title)}}
-        {{ #(summary)}}
+        <p>#{title}</p>
+         #{summary}
       </header>
-      {section.description{ #(description)}}
+      <section class="description">
+        #{description}
+      </section>
       {{> @instructionsView}}
       <section class="settings container">
         <h4 class='title'>Integration Settings</h4>

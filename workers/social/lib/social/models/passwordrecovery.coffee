@@ -10,7 +10,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   KodingError = require '../error'
   JUser       = require './user'
-  Email       = require './email'
+  Tracker     = require './tracker'
 
 
   UNKNOWN_ERROR = { message: "Error occurred. Please try again." }
@@ -58,8 +58,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @expiryPeriod = 1000 * 60 * 90 # 90 min
 
   @getEmailSubject = ({resetPassword})->
-    if resetPassword then Email.types.REQUEST_NEW_PASSWORD
-    else Email.types.REQUEST_EMAIL_CHANGE
+    if resetPassword then Tracker.types.REQUEST_NEW_PASSWORD
+    else Tracker.types.REQUEST_EMAIL_CHANGE
 
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
@@ -140,13 +140,15 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               resetPassword : options.resetPassword
               requestedAt   : certificate.getAt('requestedAt')
 
-            Analytics = require './analytics'
-            Analytics.identify username
+            Tracker = require './tracker'
+            Tracker.identify username
 
-            Email.queue username, {
-              to          : email
+            Tracker.track username, {
+              to         : email
               subject    : @getEmailSubject messageOptions
-            }, {tokenUrl, firstName:username}, callback
+            }, {tokenUrl, firstName:username}
+
+            callback null
 
 
   @validate = (token, callback)->

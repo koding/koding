@@ -1,4 +1,4 @@
-{ Base, signature } = require 'bongo'
+{ Base, signature, JsPath:{getAt, setAt} } = require 'bongo'
 
 { argv }  = require 'optimist'
 GithubAPI = require 'github'
@@ -50,6 +50,51 @@ module.exports = class Github extends Base
 
     return gh
 
+  ###*
+   * Plucks given properties of the response and returns a new one. When pluck
+   * is not defined, it returns response as-is.
+   * i.e.
+   * response = [{
+   *  full_name : "canthefason/koding",
+   *  fork      : false,
+   *  name      : "koding",
+   *  owner     : {
+   *    id      : 12345,
+   *    login   : "canthefason"
+   *    },
+   *  }]
+   *
+   * pluck = ["full_name", "owner.login"]
+   *
+   * newResp = pluckProperties(response, pluck)
+   *
+   * newResp = [{
+   *  full_name : "canthefason/koding",
+   *  owner     : {
+   *    login   : "canthefason"
+   *  }
+   * }]
+   *
+   *
+   * @param {Object} response   - response of github api call
+   * @param {Array}  pluck      - array of properties that need to be plucked
+  ###
+  pluckProperties = (response, pluck) ->
+
+    return response  unless response?.length and pluck?.length
+
+    filteredResponse = []
+    for item in response
+      filteredItem = {}
+
+      for selection in pluck
+        value = getAt item, selection
+        filteredItem = setAt filteredItem, selection, value
+
+      filteredResponse.push filteredItem
+
+    return filteredResponse
+
 
   ###*
    * Provides a bridge between node-gitub api with Koding client
@@ -77,8 +122,10 @@ module.exports = class Github extends Base
     }
 
     # Make sure all required parameteres provided
-    { method, options } = _options
+    { method, options, pluck } = _options
     return cbErr()  if not method
+
+    options ?= {}
 
     [ base, method ]    = method.split '.'
     return cbErr()  if not base or not method
@@ -100,12 +147,15 @@ module.exports = class Github extends Base
           err.message = err.details.message
           delete err.details.message
 
+      response = pluckProperties response, pluck
+
       callback err, response
 
     # FIXME Forcing `per_page` option to max 10
     # because of max_call_stack_size issue in Bongo
     # Requires extensive debugging on Bongo.Base ~ GG
-    (options ?= {}).per_page = 10
+    # When used with Pluck array we are able to fetch more ~ CtF
+    options.per_page = 10  unless pluck?.length
 
     # Initialize Github api with client object
     # client object includes required token

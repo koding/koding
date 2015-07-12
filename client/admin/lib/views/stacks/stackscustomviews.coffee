@@ -15,14 +15,15 @@ applyMarkdown                   = require 'app/util/applyMarkdown'
 GitHub                          = require 'app/extras/github/github'
 CustomViews                     = require 'app/commonviews/customviews'
 IDEEditorPane                   = require 'ide/workspace/panes/ideeditorpane'
-CredentialListItem              = require './credentiallistitem'
 ComputeController_UI            = require 'app/providers/computecontroller.ui'
+
+CredentialListItem              = require 'app/stacks/credentiallistitem'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
-StackRepoUserItem               = require './stackrepouseritem'
-StackTemplateList               = require './stacktemplatelist'
-StackTemplateListController     = require './stacktemplatelistcontroller'
+StackRepoUserItem               = require 'app/stacks/stackrepouseritem'
+StackTemplateList               = require 'app/stacks/stacktemplatelist'
+StackTemplateListController     = require 'app/stacks/stacktemplatelistcontroller'
 
 
 module.exports = class StacksCustomViews extends CustomViews
