@@ -158,7 +158,7 @@ module.exports = class JInvitation extends jraphical.Module
 
         JInvitation.one { email, groupName }, (err, invitation) ->
           return callback err  if err
-          return               if invitation
+          queue.fin()          if invitation
 
           hash = JUser.getHash email
 
