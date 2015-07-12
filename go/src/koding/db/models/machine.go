@@ -51,7 +51,7 @@ type Machine struct {
 	Meta          interface{}          `bson:"meta" json:"meta"`
 	Assignee      MachineAssignee      `bson:"assignee" json:"assignee"`
 	UserDeleted   bool                 `bson:"userDeleted" json:"userDeleted"`
-	GeneratedFrom MachineGeneratedFrom `bson:"generatedFrom" json:"generatedFrom"`
+	GeneratedFrom MachineGeneratedFrom `bson:"generatedFrom,omitempty" json:"generatedFrom,omitempty"`
 }
 
 // Owner returns the owner of a machine
