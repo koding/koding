@@ -204,11 +204,7 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []st
 	}
 
 	count, err := modelhelper.RelationshipCount(selector)
-	if err != nil {
-		return nil, fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
-	}
-
-	if count == 0 {
+	if err != nil || count == 0 {
 		return nil, fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
 	}
 
@@ -232,13 +228,8 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []st
 		}
 
 		count, err := modelhelper.RelationshipCount(selector)
-		if err != nil {
+		if err != nil || count == 0 {
 			// we return for any not validated public key.
-			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.PublicKey)
-		}
-
-		// does this ever happen ?
-		if count == 0 {
 			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.PublicKey)
 		}
 
