@@ -97,13 +97,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       isWatching  = watchMap.indexOf(@nickname) > -1
       menuWidth   = 172
 
-      unless @hasClass 'offline'
-        menuItems.Watch =
-          type         : 'customView'
-          view         : new IDEChatHeadWatchItemView
-            isWatching : isWatching
-            nickname   : @nickname
-            delegate   : this
+      @createWatchToggle menuItems, isWatching
 
       if amIHost
         menuItems.Kick =
@@ -136,6 +130,19 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
         MENU.positionContextMenu()
 
       MENU.once 'KDObjectWillBeDestroyed', => MENU = null
+
+
+  createWatchToggle: (menuItems, isWatching) ->
+
+    return  unless menuItems
+    return  if @hasClass 'offline'
+
+    menuItems.Watch =
+      type          : 'customView'
+      view          : new IDEChatHeadWatchItemView
+        isWatching  : isWatching
+        nickname    : @nickname
+        delegate    : this
 
 
   setWatchState: (shouldWatch, nickname) ->
