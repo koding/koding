@@ -97,7 +97,12 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		groupName := "koding"
 		awsOutput := &AwsBootstrapOutput{}
 
+		// this is custom because we need to remove the fields if we get a
+		// destroy. So the operator changes from $set to $unset.
+		mongodDBOperator := "$set"
+
 		if args.Destroy {
+			mongodDBOperator = "$unset"
 			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
@@ -124,7 +129,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 
 		k.Log.Debug("[%s] Aws Output: %+v", cred.PublicKey, awsOutput)
 		if err := modelhelper.UpdateCredentialData(cred.PublicKey, bson.M{
-			"$set": bson.M{
+			mongodDBOperator: bson.M{
 				"meta.acl":        awsOutput.ACL,
 				"meta.cidr_block": awsOutput.CidrBlock,
 				"meta.igw":        awsOutput.IGW,
