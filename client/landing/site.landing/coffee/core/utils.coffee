@@ -173,7 +173,7 @@ utils.extend utils,
 
     for own step, fields of teamData when not ('boolean' is typeof fields)
       for own field, value of fields
-        if field is 'invite'
+        if step is 'invite'
           unless formData.invitees
           then formData.invitees  = value
           else formData.invitees += ",#{value}"
@@ -217,11 +217,10 @@ utils.extend utils,
         KD.singletons.router.handleRoute '/'
 
 
-  fetchTeamMembers: (teamName, callback) ->
+  fetchTeamMembers: ({name, limit, token}, callback) ->
 
     $.ajax
-      url       : "/-/team/#{teamName}/members?limit=4"
-      # data      : { limit : 5 }
+      url       : "/-/team/#{name}/members?limit=#{limit ? 4}&token=#{token}"
       type      : 'POST'
       success   : (members) -> callback null, members
       error     : ({responseText}) -> callback msg : responseText
@@ -294,3 +293,23 @@ utils.extend utils,
       data        : { name }
       success     : callbacks.success
       error       : callbacks.error
+
+
+  getGroupLogo : ->
+
+    { group } = KD.config
+    logo      = new KDCustomHTMLView tagName : 'figure'
+
+    if group.customize?.logo
+      logo.setCss 'background-image', "url(#{group.customize.logo})"
+      logo.setCss 'background-size', 'cover'
+    else
+      geoPattern = require 'geopattern'
+      pattern    = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
+      logo.setCss 'background-image', pattern
+      logo.setCss 'background-size', 'inherit'
+
+    return logo
+
+
+  getAllowedDomainsPartial: (domains) -> ('<i>@' + d + '</i>, ' for d in domains).join('').replace(/,\s$/, '')

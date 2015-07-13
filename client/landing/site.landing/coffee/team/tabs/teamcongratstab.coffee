@@ -27,7 +27,7 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
         { protocol, host } = location
         location.href      = "#{protocol}//#{slug}.#{host}"
 
-    @on 'PaneDidShow', (pane) => @button.setFocus()
+    @on 'PaneDidShow', => @button.setFocus()
 
 
   pistachio: ->

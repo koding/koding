@@ -28,6 +28,8 @@ team.group.creation.styl
         text-align          left
         bg                  color transparent
         borderBox()
+        &.validation-error
+          border-color      #FF6B5D
 
       > span
         bg                  color #EAEAEA
@@ -121,6 +123,15 @@ team.group.creation.styl
       margin                15px 0 0
       display               block
       width                 auto
+
+  // JOIN TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.join .TeamsModal
+    margin-bottom           0
+
+    > h5
+      i
+        color               #00B057
 
   // USERNAME TAB STYLE CUSTOMIZATIONS
 

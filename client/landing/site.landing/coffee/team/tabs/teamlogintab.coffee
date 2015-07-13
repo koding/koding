@@ -2,7 +2,6 @@ JView           = require './../../core/jview'
 CustomLinkView  = require './../../core/customlinkview'
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
-geoPattern      = require 'geopattern'
 
 module.exports = class TeamLoginTab extends KDTabPaneView
 
@@ -13,6 +12,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     super options, data
 
     { mainController } = KD.singletons
+    { group }          = KD.config
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -21,17 +21,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
         { title : 'Features',    href : '/Features',                name : 'features' }
       ]
 
-    @logo = new KDCustomHTMLView tagName : 'figure'
-
-    { group } = KD.config
-    if group.customize?.logo
-      @logo.setCss 'background-image', "url(#{group.customize.logo})"
-      @logo.setCss 'background-size', 'cover'
-    else
-      pattern = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
-      @logo.setCss 'background-image', pattern
-      @logo.setCss 'background-size', 'inherit'
-
+    @logo = KD.utils.getGroupLogo()
 
     # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
     @form = new LoginInlineForm
@@ -49,12 +39,6 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       @form.username.input.setValue decodeURIComponent username  # decode in case it is an email
       @form.username.inputReceivedKeyup()
 
-    @invitationLink = new CustomLinkView
-      cssClass    : 'invitation-link'
-      title       : 'Ask for an invite'
-      testPath    : 'landing-recover-password'
-      href        : '/Recover'
-
     @inviteDesc = new KDCustomHTMLView
       tagName : 'p'
       partial : "<p>To be able to login to <a href='/'>#{KD.config.groupName}.koding.com</a>, you need to be invited by team administrators.</p>"
@@ -64,9 +48,9 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     return  unless domains
 
     @inviteDesc.updatePartial if domains.length > 1
-      domainsPartial = ('<i>' + d + '</i>, ' for d in domains).join('').replace(/,\s$/, '.')
-      "<a href='/Register'>Click here to register</a> if you have an email address from one of the following domains: #{domainsPartial}"
-    else "<a href='/Register'>Click here to register</a> if you have an email address from <i>#{domains.first}</i>"
+      domainsPartial = KD.utils.getAllowedDomainsPartial domains
+      "If you have an email address from one of these domains #{domainsPartial}, you can <a href='/Team/Join'>join here</a>."
+    else "If you have a <i>#{domains.first}</i> email address, you can <a href='/Team/Join'>join here</a>."
 
 
   pistachio: ->

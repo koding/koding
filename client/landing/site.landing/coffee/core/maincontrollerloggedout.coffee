@@ -17,9 +17,7 @@ module.exports = class MainControllerLoggedOut extends KDController
     @appStorages = {}
 
     @createSingletons()
-
     @startCachingAssets()
-
     @setupPageAnalyticsEvent()
 
     KD.utils.defer =>
