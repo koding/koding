@@ -14,12 +14,12 @@ FLOW_ROUTES  =
 
 CREATION_FLOW = [ 'signup', 'domain', 'email-domains', 'invite'
                   'username', 'stacks', 'congrats' ]
-JOIN_FLOW     = [ 'welcome', 'join' ]
+# JOIN_FLOW     = [ 'welcome', 'join' ]
 
 
 getFlow = (step) ->
 
-  return JOIN_FLOW     if JOIN_FLOW.indexOf(step) > -1
+  # return JOIN_FLOW     if JOIN_FLOW.indexOf(step) > -1
   return CREATION_FLOW if CREATION_FLOW.indexOf(step) > -1
   return no
 
