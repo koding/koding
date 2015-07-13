@@ -1094,3 +1094,10 @@ module.exports = CollaborationController =
 
     for own key, value of @initialSettings
       @settings.set key, value
+
+
+  getSettings: ->
+
+    rval = {}
+    rval[key] = value  for [key, value] in @settings.items()
+    return rval
