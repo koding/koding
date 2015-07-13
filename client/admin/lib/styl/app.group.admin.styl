@@ -818,11 +818,14 @@ Admin main styles
     border                  1px solid #E4E4E4
 
   .delete-topic
-    r-sprite                'admin', 'delete-topic'
-    bg                      color, transparent
-    padding                 8px
-    border                  none
-    abs                     16px 100px 0 0
+    abs                     8px 100px 0 0
+    size                    32px 32px
+    
+    &:before
+      abs                   8px 0 0 8px 
+      content               ''
+      display               block
+      r-sprite              'admin', 'delete-topic'
 
   .topics-connected
   .topics-similar

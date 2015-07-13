@@ -58,9 +58,10 @@ module.exports = class TopicItemView extends KDListItemView
 
 
   createAllTopicView : (data) ->
-      @settings.addSubView deleteButton = new KDButtonView
+      @settings.addSubView deleteButton = new KDCustomHTMLView
+        tagName  : 'a'
         cssClass : 'delete-topic'
-        callback :=>
+        click    :=>
           options = 
             rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
             leafId  : data.id
@@ -82,7 +83,7 @@ module.exports = class TopicItemView extends KDListItemView
         if rootChannel
           text = "Blacklisted"
           if kd.singletons.groupsController.getCurrentGroup().socialApiChannelId isnt rootChannel.id 
-            text = "#" + "#{rootChannel.name}"
+            text = "##{rootChannel.name}"
           
         @typeLabel.setPartial "#{text}"
         @typeLabel.show()
