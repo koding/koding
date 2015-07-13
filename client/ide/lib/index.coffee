@@ -350,7 +350,15 @@ class IDEAppController extends AppController
       parentSplitView.panels[panelIndexInParent]        = ideView.parent
 
 
-  openFile: (file, contents, callback = noop, emitChange, targetTabView) ->
+  ###*
+   * Open new file with options
+   *
+   * @param {Object} options
+   * @param {Function=} callback  is optional parameter
+  ###
+  openFile: (options, callback = kd.noop) ->
+
+    { file, contents, emitChange, targetTabView } = options
 
     kallback = (pane) =>
       @emit 'EditorPaneDidOpen', pane  if pane?.options.paneType is 'editor'
@@ -373,9 +381,9 @@ class IDEAppController extends AppController
 
     files.forEach (path) =>
       file = FSHelper.createFileInstance { path, machine: @mountedMachine }
-      file.fetchContents yes, (err, content) =>
+      file.fetchContents yes, (err, contents) =>
         return kd.error err  if err
-        @openFile file, content
+        @openFile { file, contents }
 
 
   openMachineTerminal: (machineData) ->
@@ -669,7 +677,7 @@ class IDEAppController extends AppController
       file     = FSHelper.createFileInstance { path, machine: @mountedMachine }
       contents = ''
 
-      @openFile file, contents
+      @openFile { file, contents }
 
 
   createNewTerminal: (options={}) ->
@@ -1292,16 +1300,16 @@ class IDEAppController extends AppController
     file.paneHash               = hash
 
     if @rtm?.realtimeDoc
-      content = @rtm.getFromModel(path)?.getText() or ''
-      @openFile file, content, noop, no
+      contents = @rtm.getFromModel(path)?.getText() or ''
+      @openFile { file, contents, emitChange: no }
 
     else if file.isDummyFile()
-      @openFile file, file.content, noop, no
+      @openFile { file, contents: file.content, emitChange: no }
 
     else
       file.fetchContents (err, contents = '') =>
         return showError err  if err
-        @openFile file, contents, noop, no, targetTabView
+        @openFile { file, contents, emitChange: no, targetTabView }
 
 
   createDrawingPaneFromChange: (change, hash) ->
@@ -1461,7 +1469,7 @@ class IDEAppController extends AppController
           return kd.warn err  if err # no need to do anything if there is an error.
 
           @setActiveTabView @ideViews.first.tabView
-          @openFile file, contents
+          @openFile { file, contents }
 
 
   fetchSnapshot: (callback) ->

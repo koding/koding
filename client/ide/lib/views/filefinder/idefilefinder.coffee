@@ -162,7 +162,8 @@ class IDEFileFinder extends KDCustomHTMLView
       return @showWarning 'An error occurred, please try again.'  if err
 
       @destroy()
-      kd.getSingleton('appManager').tell 'IDE', 'openFile', file, contents
+
+      kd.getSingleton('appManager').tell 'IDE', 'openFile', { file, contents }
 
 
   showWarning: (text) ->
