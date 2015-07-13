@@ -117,7 +117,6 @@ selectedChannelThreadMessages = [
 
 currentSuggestionsQuery = SuggestionsQuery
 
-
 module.exports = {
   followedFeedThreads
   followedPublicThreads

@@ -8,15 +8,14 @@ SuggestionItem = require 'activity/components/suggestionitem'
 module.exports = class SuggestionList extends React.Component
 
   @defaultProps =
-    messages: []
+    suggestions: immutable.List()
 
 
   renderChildren: ->
 
-    { messages, query } = @props
-    messages ?= []
-    messages.map (message) ->
-      <SuggestionItem message={message} query={query} />
+    { suggestions, query } = @props
+    suggestions.map (suggestion) ->
+      <SuggestionItem suggestion={suggestion} query={query} />
 
 
   render: ->

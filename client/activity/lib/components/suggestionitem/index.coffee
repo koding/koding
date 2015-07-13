@@ -12,23 +12,23 @@ module.exports = class SuggestionItem extends React.Component
 
   render: ->
 
-    { message, query } = @props
+    { suggestion, query } = @props
     <div className="ActivitySuggestionItem" onClick={@bound 'handleClick'}>
       <div className="ActivitySuggestionItem-authorAvatar">
-        {makeAvatar message.account}
+        {makeAvatar suggestion.get('account')}
       </div>
       <div className="ActivitySuggestionItem-messageBody">
-        <SuggestionMessageBody source={message.body} query={query} />
+        <SuggestionMessageBody source={suggestion.get('body')} query={query} />
       </div>
       <div>
         <span className="ActivitySuggestionItem-info ActivitySuggestionItem-profileLink">
-          by {makeProfileLink message.account}
+          by {makeProfileLink suggestion.get('account')}
         </span>
         <span className="ActivitySuggestionItem-info">
-          {makeInfoText message.interactions.like.actorsCount, 'Like'}
+          {makeInfoText suggestion.get('interactions').toJS().like.actorsCount, 'Like'}
         </span>
         <span className="ActivitySuggestionItem-info">
-          {makeInfoText message.repliesCount, 'Comment'}
+          {makeInfoText suggestion.get('repliesCount'), 'Comment'}
         </span>
       </div>
     </div>
@@ -37,19 +37,19 @@ module.exports = class SuggestionItem extends React.Component
   handleClick: ->
 
     { router } = kd.singletons
-    { message : { slug } }   = @props
+    slug       = @props.suggestion.get('slug')
 
     router.handleRoute groupifyLink "/Activity/Post/#{slug}"
 
 
 makeProfileLink = (account) ->
-  <ProfileLinkContainer origin={account}>
+  <ProfileLinkContainer origin={account.toJS()}>
     <ProfileText />
   </ProfileLinkContainer>
 
 
 makeAvatar = (account) ->
-  <ProfileLinkContainer origin={account} >
+  <ProfileLinkContainer origin={account.toJS()} >
     <Avatar width={20} height={20} />
   </ProfileLinkContainer>
 

@@ -1,12 +1,10 @@
 kd               = require 'kd'
 React            = require 'kd-react'
 ReactView        = require 'app/react/reactview'
-KDCustomHTMLView = kd.CustomHTMLView
 ActivityFlux     = require 'activity/flux'
 SuggestionMenu   = require './index'
 
-
-module.exports = class SuggestionMenuView extends KDCustomHTMLView
+module.exports = class SuggestionMenuView extends ReactView
 
   constructor: (options, data) ->
 
@@ -16,11 +14,9 @@ module.exports = class SuggestionMenuView extends KDCustomHTMLView
     @on 'ReceivedClickElsewhere', @bound 'handleClickElsewhere'
 
 
-  viewAppended: ReactView::viewAppended
-
-
   renderReact: ->
-    <SuggestionMenu checkVisibility={@bound 'checkVisibility'} />
+
+    <SuggestionMenu checkVisibility={@bound 'checkVisibility'} onSubmit={@bound 'handleSubmit'} />
 
 
   checkVisibility: (isVisible) ->
@@ -35,4 +31,10 @@ module.exports = class SuggestionMenuView extends KDCustomHTMLView
       @isListeningToWindow = no
 
 
-  handleClickElsewhere: -> ActivityFlux.actions.suggestions.changeVisibility yes
+  handleClickElsewhere: -> ActivityFlux.actions.suggestions.setVisibility no
+
+
+  handleSubmit: (e) ->
+
+    e.preventDefault()
+    @emit 'SubmitRequested'

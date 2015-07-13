@@ -69,8 +69,10 @@ module.exports = class ActivityInputWidget extends KDView
     @input.on 'Enter',    @bound 'submit'
     @input.on 'Tab',      @bound 'focusSubmit'
     @input.on 'keypress', @bound 'updatePreview'
-    @input.on 'keydown',  kd.utils.debounce 300, @bound 'updateSuggestions'
+    @input.on 'keydown',  kd.utils.debounce 300, @bound 'updateSuggestionsQuery'
     @input.on 'focus',    @bound 'handleInputFocus'
+
+    @suggestions.on 'SubmitRequested', @bound 'handleSubmitRequested'
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
 
@@ -78,6 +80,12 @@ module.exports = class ActivityInputWidget extends KDView
   focusSubmit: ->
 
     @submitButton.focus()
+
+
+  handleSubmitRequested: ->
+
+    ActivityFlux.actions.suggestions.setVisibility no
+    @submitButton.click()
 
 
   submit: (value) ->
@@ -176,6 +184,8 @@ module.exports = class ActivityInputWidget extends KDView
     if unlock then @unlockSubmit()
     else kd.utils.wait 8000, @bound 'unlockSubmit'
 
+    ActivityFlux.actions.suggestions.reset()
+
 
   getEmbedBoxPayload: -> return @embedBox.getData()
 
@@ -257,14 +267,10 @@ module.exports = class ActivityInputWidget extends KDView
 
   handleInputFocus: ->
 
+    ActivityFlux.actions.suggestions.setVisibility yes
+
+
+  updateSuggestionsQuery: ->
+
     query = @input.getValue()
-    ActivityFlux.actions.suggestions.changeVisibility no
-
-
-  updateSuggestions: ->
-
-    query = @input.getValue()
-    { actions } = ActivityFlux
-    actions.suggestions.changeCurrentQuery query
-    actions.suggestions.changeAccess yes  unless query
-    actions.messageSearch.fetchSuggestions query
+    ActivityFlux.actions.suggestions.setQuery query

@@ -4,9 +4,7 @@ immutable = require 'immutable'
 
 ActivityFlux   = require 'activity/flux'
 KDReactorMixin = require 'app/flux/reactormixin'
-
 SuggestionList = require 'activity/components/suggestionlist'
-
 
 module.exports = class SuggestionMenu extends React.Component
 
@@ -14,25 +12,30 @@ module.exports = class SuggestionMenu extends React.Component
 
     super props
 
-    @state = { messages : [], query : '' }
+    @state = { suggestions : immutable.List(), query : '', state : immutable.Map() }
 
 
   getDataBindings: ->
 
     { getters } = ActivityFlux
     return {
-      messages : getters.currentSuggestionMessages
-      query    : getters.currentSuggestionQuery
+      suggestions : getters.suggestions
+      query       : getters.suggestionsQuery
+      state       : getters.suggestionsState
     }
 
 
   handleClose: (e) ->
 
     e.preventDefault()
-    ActivityFlux.actions.suggestions.changeAccess no
+    ActivityFlux.actions.suggestions.setAccess no
 
 
-  isVisible: -> @state.messages?.length > 0
+  isVisible: ->
+
+    { suggestions, state } = @state
+    return suggestions.size > 0 and state.get('accessible') and state.get('visible')
+
 
 
   checkVisibility: -> @props.checkVisibility? @isVisible()
@@ -46,15 +49,21 @@ module.exports = class SuggestionMenu extends React.Component
 
   render: ->
 
-    { messages, query } = @state
-    className = "ActivitySuggestionMenu #{ unless @isVisible() then 'hidden' }"
+    { suggestions, query } = @state
+    return <div className="hidden" />  unless @isVisible()
 
-    <div className={className}>
+    <div className="ActivitySuggestionMenu">
       <div className="ActivitySuggestionMenu-header">
         Searching for one of these?
         <a href="#" className="ActivitySuggestionMenu-closeIcon" onClick={@handleClose} />
       </div>
-      <SuggestionList messages={messages} query={query} />
+      <SuggestionList suggestions={suggestions} query={query} />
+      <div className="ActivitySuggestionMenu-footer">
+        None of the above answers your questions? Post yours
+        <button type="submit" className="kdbutton solid green small" onClick={@props.onSubmit}>
+          <span className="button-title">SEND</span>
+        </button>
+      </div>
     </div>
 
 
