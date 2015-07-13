@@ -263,7 +263,8 @@ module.exports = class ComputeController extends KDController
 
   findStackFromMachineId: (machineId)->
     for stack in @stacks
-      return stack  if machineId in stack.machines
+      for machine in stack.machines
+        return stack  if machine._id is machineId
 
   findMachineFromQueryString: (queryString)->
 

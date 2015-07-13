@@ -41,6 +41,8 @@ type Stack struct {
 type TerraformApplyRequest struct {
 	StackId string `json:"stackId"`
 
+	GroupName string `json:"groupName"`
+
 	// Destroy, if enabled, destroys the terraform tempalte associated with the
 	// given StackId.
 	Destroy bool
@@ -58,6 +60,10 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 	if args.StackId == "" {
 		return nil, errors.New("stackId is not passed")
+	}
+
+	if args.GroupName == "" {
+		return nil, errors.New("group name is not passed")
 	}
 
 	// create context with the given request
@@ -97,10 +103,10 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		if args.Destroy {
 			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
-			err = destroy(ctx, r.Username, args.StackId)
+			err = destroy(ctx, r.Username, args.GroupName, args.StackId)
 		} else {
 			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
-			err = apply(ctx, r.Username, args.StackId)
+			err = apply(ctx, r.Username, args.GroupName, args.StackId)
 			if err != nil {
 				finalEvent.Status = machinestate.NotInitialized
 			}
@@ -129,7 +135,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	}, nil
 }
 
-func destroy(ctx context.Context, username, stackId string) error {
+func destroy(ctx context.Context, username, groupname, stackId string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
@@ -164,7 +170,7 @@ func destroy(ctx context.Context, username, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
-	creds, err := fetchCredentials(username, sess.DB, stack.PublicKeys)
+	creds, err := fetchCredentials(username, groupname, sess.DB, stack.PublicKeys)
 	if err != nil {
 		return err
 	}
@@ -182,6 +188,12 @@ func destroy(ctx context.Context, username, stackId string) error {
 			return err
 		}
 	}
+
+	buildData, err := injectKodingData(ctx, stack.Template, username, creds)
+	if err != nil {
+		return err
+	}
+	stack.Template = buildData.Template
 
 	sess.Log.Debug("Calling terraform.destroy method with context:")
 	sess.Log.Debug(stack.Template)
@@ -209,7 +221,7 @@ func destroy(ctx context.Context, username, stackId string) error {
 	return modelhelper.DeleteComputeStack(stackId)
 }
 
-func apply(ctx context.Context, username, stackId string) error {
+func apply(ctx context.Context, username, groupname, stackId string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
@@ -244,7 +256,7 @@ func apply(ctx context.Context, username, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
-	creds, err := fetchCredentials(username, sess.DB, stack.PublicKeys)
+	creds, err := fetchCredentials(username, groupname, sess.DB, stack.PublicKeys)
 	if err != nil {
 		return err
 	}
