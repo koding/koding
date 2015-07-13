@@ -8,8 +8,6 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
-	"strconv"
-	"time"
 
 	"labix.org/v2/mgo/bson"
 
@@ -81,7 +79,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		keyName := "koding-deployment-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		keyName := "koding-deployment-" + r.Username
 		finalBootstrap, err = appendKeyName(finalBootstrap, keyName)
 		if err != nil {
 			return nil, err
