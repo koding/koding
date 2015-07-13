@@ -11,14 +11,17 @@ KDNotificationView = kd.NotificationView
 module.exports = UserEnvironmentDataProvider =
 
 
-  fetch: (callback) ->
+  fetch: (callback, ensureDefaultWorkspace = no) ->
 
     remote.api.Sidebar.fetchEnvironment (err, data) =>
-      return new KDNotificationView title : 'Couldn\'t fetch your VMs'  if err
+      return new KDNotificationView title : "Couldn't fetch your VMs"  if err
 
       data = @setDefaults_ data
       globals.userEnvironmentData = data
-      callback data
+
+      if ensureDefaultWorkspace
+      then @ensureDefaultWorkspace -> callback data
+      else callback data
 
 
   get: ->
