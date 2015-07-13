@@ -104,8 +104,7 @@ var (
         "aws_instance": {
             "example": {
 				"count": %d,
-                "instance_type": "t2.micro",
-                "ami": "ami-9e5cff9e"
+                "instance_type": "t2.micro"
             }
         }
     }
