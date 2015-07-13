@@ -153,6 +153,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
       # hide unnecessary views.
       @instructionsView?.hide()
       @settingsForm.fields.url.hide()
+    else
+      @authView = new KDCustomHTMLView cssClass: 'hidden'
 
 
   auth: ->
