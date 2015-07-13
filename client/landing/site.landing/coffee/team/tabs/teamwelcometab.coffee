@@ -6,7 +6,7 @@ createAvatar = (profile) ->
   { hash, firstName, lastName, nickname } = profile
   defaultImg = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.38.png"
   src        = "//gravatar.com/avatar/#{hash}?size=38&d=#{defaultImg}&r=g"
-  name       = (firstName + ' ' + lastName) or nickname
+  name       = "#{firstName} #{lastName}" or nickname
   el         = "<li><img src=\"#{src}\" alt=\"#{name}'s avatar\" title=\"#{name}\" /></li>"
 
   return el
