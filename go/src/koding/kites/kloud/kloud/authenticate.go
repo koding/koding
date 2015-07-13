@@ -19,6 +19,8 @@ import (
 type AuthenticateRequest struct {
 	// PublicKeys contains publicKeys to be authenticated
 	PublicKeys []string `json:"publicKeys"`
+
+	GroupName string `json:"groupName"`
 }
 
 func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
@@ -35,13 +37,17 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("publicKeys are not passed")
 	}
 
+	if args.GroupName == "" {
+		return nil, errors.New("group name is not passed")
+	}
+
 	ctx := k.ContextCreator(context.Background())
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, sess.DB, args.PublicKeys)
+	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.PublicKeys)
 	if err != nil {
 		return nil, err
 	}

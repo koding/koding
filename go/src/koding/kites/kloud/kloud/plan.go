@@ -20,6 +20,8 @@ import (
 
 type TerraformPlanRequest struct {
 	StackTemplateId string `json:"stackTemplateId"`
+
+	GroupName string `json:"groupName"`
 }
 
 type terraformCredentials struct {
@@ -120,6 +122,10 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("stackIdTemplate is not passed")
 	}
 
+	if args.GroupName == "" {
+		return nil, errors.New("group name is not passed")
+	}
+
 	ctx := k.ContextCreator(context.Background())
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -131,7 +137,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	creds, err := fetchCredentials(r.Username, sess.DB, stackTemplate.Credentials)
+	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, stackTemplate.Credentials)
 	if err != nil {
 		return nil, err
 	}
@@ -175,11 +181,31 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	return machines, nil
 }
 
-func fetchCredentials(username string, db *mongodb.MongoDB, keys []string) (*terraformCredentials, error) {
-	// 1- fetch jaccount from username
+func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []string) (*terraformCredentials, error) {
+	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
 		return nil, err
+	}
+
+	// fetch jGroup from group slug name
+	group, err := modelhelper.GetGroup(groupname)
+	if err != nil {
+		return nil, err
+	}
+
+	// validate if username belongs to groupname
+	selector := modelhelper.Selector{
+		"targetId": account.Id,
+		"sourceId": group.Id,
+		"as": bson.M{
+			"$in": []string{"member"},
+		},
+	}
+
+	count, err := modelhelper.RelationshipCount(selector)
+	if err != nil || count == 0 {
+		return nil, fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
 	}
 
 	// 2- fetch credential from publickey via args
@@ -202,13 +228,8 @@ func fetchCredentials(username string, db *mongodb.MongoDB, keys []string) (*ter
 		}
 
 		count, err := modelhelper.RelationshipCount(selector)
-		if err != nil {
+		if err != nil || count == 0 {
 			// we return for any not validated public key.
-			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.PublicKey)
-		}
-
-		// does this ever happen ?
-		if count == 0 {
 			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.PublicKey)
 		}
 

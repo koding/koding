@@ -75,7 +75,6 @@ func UpdateGroupPartial(selector, options Selector) error {
 }
 
 func CreateGroup(m *models.Group) error {
-
 	query := func(c *mgo.Collection) error {
 		return c.Insert(m)
 	}
