@@ -361,7 +361,7 @@ module.exports = class ComputeController extends KDController
       @reset yes, -> callback null, machine
 
 
-  createDefaultStack: ->
+  createDefaultStack: (force) ->
 
     return  unless isLoggedIn()
 
@@ -374,7 +374,7 @@ module.exports = class ComputeController extends KDController
 
     mainController.ready =>
 
-      if groupsController.currentGroupHasStack()
+      if force or groupsController.currentGroupHasStack()
         create()  if @stacks.length is 0
       else
         currentGroup = groupsController.getCurrentGroup()

@@ -90,6 +90,7 @@ module.exports     = class GroupStackSettings extends kd.View
         title : "Group (#{slug}) stack has been saved!"
         type  : 'mini'
 
+      computeController.createDefaultStack yes
       computeController.checkStackRevisions()
 
       @initiateInitialView()
