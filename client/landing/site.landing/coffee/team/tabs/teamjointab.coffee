@@ -21,10 +21,13 @@ module.exports = class TeamJoinTab extends KDTabPaneView
       tagName : 'h4'
       partial : 'Join with your email'
 
-
+    teamData = KD.utils.getTeamData()
+    { @alreadyMember } = teamData.signup
     domains = KD.config.group.allowedDomains
 
-    desc = if domains?.length > 1
+    desc = if @alreadyMember
+      "Please enter your <i>Koding.com</i> password."
+    else if domains?.length > 1
       domainsPartial = KD.utils.getAllowedDomainsPartial domains
       "You must have an email address from one of these domains #{domainsPartial} to join."
     else "You must have a <i>#{domains.first}</i> email address to join."
@@ -46,17 +49,19 @@ module.exports = class TeamJoinTab extends KDTabPaneView
   joinTeam: (formData) ->
 
     { username } = formData
+    success      = ->
+      KD.utils.storeNewTeamData 'join', formData
+      KD.utils.joinTeam()
 
-    KD.utils.usernameCheck username,
-      success : ->
-        KD.utils.storeNewTeamData 'join', formData
-        KD.utils.joinTeam()
+    if @alreadyMember then success()
+    else
+      KD.utils.usernameCheck username,
+        success : success
+        error   : ({responseJSON}) =>
 
-      error   : ({responseJSON}) =>
+          {forbidden, kodingUser} = responseJSON
+          msg = if forbidden then "Sorry, \"#{username}\" is forbidden to use!"
+          else if kodingUser then "Sorry, \"#{username}\" is already taken!"
+          else                    "Sorry, there is a problem with \"#{username}\"!"
 
-        {forbidden, kodingUser} = responseJSON
-        msg = if forbidden then "Sorry, \"#{username}\" is forbidden to use!"
-        else if kodingUser then "Sorry, \"#{username}\" is already taken!"
-        else                    "Sorry, there is a problem with \"#{username}\"!"
-
-        new KDNotificationView title : msg
+          new KDNotificationView title : msg
