@@ -3,7 +3,7 @@ integrationHelpers        = require 'app/helpers/integration'
 AdminIntegrationSetupView = require './adminintegrationsetupview'
 
 
-module.exports = class AdminIntegrationSetupParentView extends JView
+module.exports = class AdminIntegrationParentView extends JView
 
 
   handleIdentifier: (identifier) ->
