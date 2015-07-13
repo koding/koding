@@ -97,7 +97,8 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       isWatching  = watchMap.indexOf(@nickname) > -1
       menuWidth   = 172
 
-      @createWatchToggle menuItems, isWatching
+      if settings.unwatch
+        @createWatchToggle menuItems, isWatching
 
       if amIHost
         menuItems.Kick =
