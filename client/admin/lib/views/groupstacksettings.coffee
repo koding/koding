@@ -72,7 +72,7 @@ module.exports     = class GroupStackSettings extends kd.View
 
   setGroupTemplate: (stackTemplate) ->
 
-    { groupsController } = kd.singletons
+    { computeController, groupsController } = kd.singletons
 
     currentGroup = groupsController.getCurrentGroup()
     { slug }     = currentGroup
@@ -89,5 +89,8 @@ module.exports     = class GroupStackSettings extends kd.View
       new kd.NotificationView
         title : "Group (#{slug}) stack has been saved!"
         type  : 'mini'
+
+      computeController.createDefaultStack yes
+      computeController.checkStackRevisions()
 
       @initiateInitialView()
