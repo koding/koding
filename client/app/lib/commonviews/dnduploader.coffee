@@ -1,16 +1,17 @@
-kd = require 'kd'
-KDView = kd.View
-KDModalView = kd.ModalView
-KDCustomHTMLView = kd.CustomHTMLView
-nick = require '../util/nick'
-notify_ = require '../util/notify_'
-getPathInfo = require '../util/getPathInfo'
-FSHelper = require '../util/fs/fshelper'
-FSItem = require '../util/fs/fsitem'
-showError = require '../util/showError'
+kd                = require 'kd'
+KDView            = kd.View
+KDModalView       = kd.ModalView
+KDCustomHTMLView  = kd.CustomHTMLView
+nick              = require '../util/nick'
+notify_           = require '../util/notify_'
+getPathInfo       = require '../util/getPathInfo'
+FSHelper          = require '../util/fs/fshelper'
+FSItem            = require '../util/fs/fsitem'
+showError         = require '../util/showError'
 
 
 module.exports = class DNDUploader extends KDView
+
 
   constructor: (options={}, data)->
 
@@ -32,7 +33,7 @@ module.exports = class DNDUploader extends KDView
 
   reset: ->
 
-    {uploadToVM, defaultPath, title} = @getOptions()
+    { uploadToVM, defaultPath, title } = @getOptions()
 
     defaultPath or= "/home/#{nick()}/Uploads"
 
@@ -46,7 +47,7 @@ module.exports = class DNDUploader extends KDView
     @_uploaded = {}
 
 
-  showGenericError: (message)->
+  showGenericError: (message) ->
 
     message or= "
       <p>
@@ -71,16 +72,20 @@ module.exports = class DNDUploader extends KDView
           callback : -> modal.destroy()
 
 
-  drop: (event)->
+  drop: (event) ->
 
     super
 
-    {files, items}  = event.originalEvent.dataTransfer
+    { files, items }  = event.originalEvent.dataTransfer
 
-    if files.length >= 20
-      @showGenericError()
+    @showGenericError()   if files.length >= 20
 
     if items?[0].webkitGetAsEntry?
+
+      if items[0].kind is 'string'
+        showError 'Something went wrong.'
+
+        return
 
       for item in items
         entry = item.webkitGetAsEntry()
@@ -107,7 +112,7 @@ module.exports = class DNDUploader extends KDView
       @uploadFiles files, event
 
 
-  uploadFiles: (files, event)->
+  uploadFiles: (files, event) ->
 
     @_uploaded or= {}
 
@@ -167,7 +172,8 @@ module.exports = class DNDUploader extends KDView
 
         @reset() if item is lastItem
 
-  walkDirectory: (dirEntry, callback, error)->
+
+  walkDirectory: (dirEntry, callback, error) ->
 
     dirReader = dirEntry.createReader()
     relative  = FSHelper.convertToRelative dirEntry.fullPath
@@ -188,6 +194,7 @@ module.exports = class DNDUploader extends KDView
 
     , error
 
+
   setPath: (path) ->
 
     {uploadToVM, defaultPath, title} = @getOptions()
@@ -205,6 +212,7 @@ module.exports = class DNDUploader extends KDView
     if uploadToVM and @finder
       @finder.expandFolders @path
 
+
   showCancel: ->
     @addSubView new KDCustomHTMLView
       tagName   : "a"
@@ -212,6 +220,7 @@ module.exports = class DNDUploader extends KDView
       cssClass  : "cancel"
       attributes: href: "#"
       click     : => @emit "cancel"
+
 
   saveFile: (fsFile, data) ->
 
@@ -234,7 +243,7 @@ module.exports = class DNDUploader extends KDView
         @emit 'uploadProgress', { file: fsFile, progress }
 
 
-  upload: (fileName, contents, relativePath)->
+  upload: (fileName, contents, relativePath) ->
 
     machine = @getMachine()
     folder  = if relativePath and relativePath isnt fileName
@@ -302,6 +311,7 @@ module.exports = class DNDUploader extends KDView
           do upload  unless showError err
 
     return fsFileItem
+
 
   getMachine: ->
 
