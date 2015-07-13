@@ -20,6 +20,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     options.cssClass = 'integration-details'
 
     super options, data
+
     { integration } = data
     { instructions } = integration
     data.repositories or= []
@@ -53,13 +54,13 @@ module.exports = class AdminIntegrationDetailsView extends JView
           selectOptions : channels
           defaultValue  : data.selectedChannel
         url             :
-          label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{data.title}.</span>"
+          label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{integration.title}.</span>"
           defaultValue  : data.webhookUrl
           attributes    : readonly: 'readonly'
           nextElement   :
             regenerate  :
-              itemClass : CustomLinkView
-              title     : 'Regenerate'
+              itemClass : KDCustomHTMLView
+              partial   : 'Regenerate'
               cssClass  : 'link'
               click     : @bound 'regenerateToken'
         label           :
@@ -243,7 +244,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     return  if @regenerateLock
 
     @regenerateLock = yes
-    { id, name }    = @getData()
+    { id, integration: { name } } = @getData()
 
     integrationHelpers.regenerateToken { id }, (err, res) =>
       return showError  if err
