@@ -310,3 +310,6 @@ utils.extend utils,
       logo.setCss 'background-size', 'inherit'
 
     return logo
+
+
+  getAllowedDomainsPartial: (domains) -> ('<i>@' + d + '</i>, ' for d in domains).join('').replace(/,\s$/, '')

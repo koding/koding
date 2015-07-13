@@ -48,9 +48,9 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     return  unless domains
 
     @inviteDesc.updatePartial if domains.length > 1
-      domainsPartial = ('<i>' + d + '</i>, ' for d in domains).join('').replace(/,\s$/, '')
       "If you have an email address from one of these domains #{domainsPartial}, you can <a href='/Team/Register'>join here</a>."
     else "If you have an email address from <i>#{domains.first}</i>, you can <a href='/Team/Register'>join here</a>."
+      domainsPartial = KD.utils.getAllowedDomainsPartial domains
 
 
   pistachio: ->
