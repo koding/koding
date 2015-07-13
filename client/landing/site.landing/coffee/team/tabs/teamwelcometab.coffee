@@ -52,7 +52,10 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
 
   decorateTeamMembers: ->
 
-    KD.utils.fetchTeamMembers KD.config.groupName, (err, members) =>
+    name      = KD.config.groupName
+    { token } = KD.utils.getTeamData().invitation
+
+    KD.utils.fetchTeamMembers { name, token }, (err, members) =>
 
       return  if err or not members
 

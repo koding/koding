@@ -217,11 +217,10 @@ utils.extend utils,
         KD.singletons.router.handleRoute '/'
 
 
-  fetchTeamMembers: (teamName, callback) ->
+  fetchTeamMembers: ({name, limit, token}, callback) ->
 
     $.ajax
-      url       : "/-/team/#{teamName}/members?limit=4"
-      # data      : { limit : 5 }
+      url       : "/-/team/#{name}/members?limit=#{limit ? 4}&token=#{token}"
       type      : 'POST'
       success   : (members) -> callback null, members
       error     : ({responseText}) -> callback msg : responseText
