@@ -1,7 +1,7 @@
-kd = require 'kd'
-nick = require 'app/util/nick'
+kd      = require 'kd'
+nick    = require 'app/util/nick'
 globals = require 'globals'
-remote = require('app/remote').getInstance()
+remote  = require('app/remote').getInstance()
 Machine = require 'app/providers/machine'
 sinkrow = require 'sinkrow'
 
@@ -58,7 +58,7 @@ module.exports = UserEnvironmentDataProvider =
           obj.workspaces[i] = remote.revive ws
 
 
-  getMyMachines: -> return @get().own
+  getMyMachines: -> @get().own
 
 
   getSharedMachines: ->
@@ -93,7 +93,7 @@ module.exports = UserEnvironmentDataProvider =
       @fetchMachineByLabel identifier, (machine) =>
         return  callback new Machine { machine }  if machine
 
-        @fetchMachineByUId identifier, (machine) =>
+        @fetchMachineByUId identifier, (machine) ->
           machine = if machine then new Machine { machine } else null
 
           callback machine
