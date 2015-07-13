@@ -117,6 +117,7 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       tagName  : 'div'
       cssClass : 'session-settings'
 
+    @createReadOnlySettingElements()
     @createUnwatchSettingElements()
 
 
@@ -150,6 +151,29 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
   setUnwatch: (state) ->
 
     kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'unwatch', state
+
+
+  createReadOnlySettingElements: ->
+
+    @readOnlyWrapper = new KDCustomHTMLView cssClass: 'wrapper read-only'
+
+    @readOnlyWrapper.addSubView toggle = new KodingSwitch
+      size         : 'tiny'
+      defaultValue : off
+      callback     : @bound 'setReadOnly'
+
+    @readOnlyWrapper.addSubView new KDLabelView
+      title     : 'Read-only session'
+      mousedown : toggle.bound 'mouseDown'
+
+    @settings.addSubView @readOnlyWrapper
+
+    @setReadOnly off  # set default value
+
+
+  setReadOnly: (state) ->
+
+    kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'readOnly', state
 
 
   initiateSession: ->
