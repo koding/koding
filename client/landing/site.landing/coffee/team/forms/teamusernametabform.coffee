@@ -92,7 +92,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
     """
     <div class='login-input-view'><span>Username</span>{{> @username}}</div>
     <div class='login-input-view'><span>Password</span>{{> @password}}{{> @passwordStrength}}</div>
-    <p class='dim'>Your username  is how you will appear to other people on your team. Pick something others will recignize.</p>
+    <p class='dim'>Your username is how you will appear to other people on your team. Pick something others will recognize.</p>
     <div class='login-input-view tr'>{{> @checkbox}}{{> @label}}</div>
     {{> @button}}
     """
