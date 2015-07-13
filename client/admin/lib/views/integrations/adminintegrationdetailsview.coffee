@@ -24,8 +24,6 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { instructions } = integration
     data.repositories or= []
 
-    repositories = ({ title: repository.full_name, value: repository.full_name } for repository in data.repositories)
-
     @eventCheckboxes = {}
 
     if instructions
@@ -42,9 +40,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
     else
       @instructionsView = new KDCustomHTMLView cssClass: 'hidden'
 
-    channels = ({ title: channel.name, value: channel.id } for channel in data.channels)
+    repositories = ({ title: repository.full_name, value: repository.full_name } for repository in data.repositories)
+    channels     = ({ title: channel.name, value: channel.id } for channel in data.channels)
 
-    { customName } = data.settings  if data.settings
     formOptions         =
       cssClass          : 'AppModal-form details-form'
       callback          : @bound 'handleFormCallback'
@@ -72,17 +70,14 @@ module.exports = class AdminIntegrationDetailsView extends JView
           type          : 'select'
           selectOptions : repositories
           cssClass      : unless repositories.length then 'hidden'
+          defaultValue  : data.selectedRepository # DUMMY_DATA @canthefason
         events          :
           label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
           type          : 'hidden'
           cssClass      : unless data.settings?.events?.length then 'hidden'
         name            :
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
-          defaultValue  : customName or integration.title
-        events          :
-          label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
-          type          : 'hidden'
-          cssClass      : unless data.settings?.events?.length then 'hidden'
+          defaultValue  : data.settings?.customName or integration.title
       buttons           :
         Save            :
           title         : 'Save Integration'
@@ -93,6 +88,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
           title         : 'Cancel'
           cssClass      : 'solid green medium red'
           callback      : => @emit 'IntegrationCancelled'
+
+    delete formOptions.fields.repository  unless repositories.length
 
     { integrationType, isDisabled } = @getData()
 
@@ -296,7 +293,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       <header class="integration-view">
         <img src="#{iconPath}" />
         <p>#{title}</p>
-         #{summary}
+        #{summary}
       </header>
       <section class="description">
         #{description}
