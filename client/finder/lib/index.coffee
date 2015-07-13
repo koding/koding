@@ -12,11 +12,16 @@ module.exports = class FinderController extends KDController
     name         : 'Finder'
     background   : yes
 
+
   constructor: (options, data) ->
 
     options.appInfo = name : "Finder"
 
     super options, data
+
+    { frontApp } = kd.singletons.appManager
+    frontApp.on 'IDETabDropped', @bound 'hideFakeHolder'
+
 
   create: (options = {}) ->
 
@@ -31,6 +36,10 @@ module.exports = class FinderController extends KDController
 
     finderView.addSubView @getAppTitleView()  if options.addAppTitle
     finderView.addSubView @createUploader controller
+
+    @fakeHolder = new KDCustomHTMLView cssClass : 'hidden fake-holder'
+
+    finderView.addSubView @fakeHolder
 
     return controller
 
@@ -52,16 +61,17 @@ module.exports = class FinderController extends KDController
       hoverDetect : no
       delegate    : controller
 
-    onDrag = (args...) ->
+    onDrag = (args...) =>
 
-      mouseEvent = args.filter (arg) -> arg instanceof KDView is no
+      { internalDragging }  = controller.treeController
+      mouseEvent            = args.filter (arg) -> arg instanceof KDView is no
 
       if mouseEvent.length
-        { files, items }  = mouseEvent[0].originalEvent.dataTransfer
+        { items }  = mouseEvent[0].originalEvent.dataTransfer
 
-        return  if items?[0].kind is 'string' and not files.length
+        return @fakeHolder.show()  if items?[0].kind is 'string' and not internalDragging
 
-      unless controller.treeController.internalDragging
+      unless internalDragging
         uploaderPlaceholder.show()
         uploader.unsetClass 'hover'
 
@@ -77,6 +87,7 @@ module.exports = class FinderController extends KDController
     finderView = controller.getView()
     finderView.on 'dragenter', onDrag
     finderView.on 'dragover' , onDrag
+    finderView.on 'drop', @bound 'hideFakeHolder'
 
     uploader
       .on 'dragleave', ->
@@ -97,3 +108,8 @@ module.exports = class FinderController extends KDController
         uploaderPlaceholder.hide()
 
     return uploaderPlaceholder
+
+
+  hideFakeHolder: ->
+
+    @fakeHolder.hide()
