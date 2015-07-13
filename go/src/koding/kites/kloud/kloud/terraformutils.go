@@ -216,13 +216,21 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		}
 
 		kiteId := kiteUUID.String()
-
-		userdata, err := sess.Userdata.Create(&userdata.CloudInitConfig{
+		userCfg := &userdata.CloudInitConfig{
 			Username: username,
 			Groups:   []string{"sudo"},
 			Hostname: username, // no typo here. hostname = username
 			KiteId:   kiteId,
-		})
+		}
+
+		// prepend custom script if available
+		if c, ok := instance["user_data"]; ok {
+			if customCMD, ok := c.(string); ok {
+				userCfg.CustomCMD = customCMD
+			}
+		}
+
+		userdata, err := sess.Userdata.Create(userCfg)
 		if err != nil {
 			return nil, err
 		}

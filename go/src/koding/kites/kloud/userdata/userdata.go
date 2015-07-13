@@ -47,6 +47,12 @@ type CloudInitConfig struct {
 	// can't be accessed from the instance
 	DisableEC2MetaData bool
 
+	// CustomCMD is appended to the user_data if given to be executed. It
+	// will be passed as a plain string to the `runcmd` directive, so what this
+	// means it the whole content wil be saves to a file by cloud-init and then
+	// executed with `sh`
+	CustomCMD string
+
 	// KodingSetup setups koding specific changes, such as Apache config,
 	// custom bashrc, custom directories... These files are only available in
 	// the KodingAMI
@@ -71,6 +77,20 @@ var (
 			return c
 		},
 		"join": strings.Join,
+		"custom_cmd": func(cmd string) string {
+			if cmd == "" {
+				return ""
+			}
+
+			lines := strings.Split(cmd, "\n")
+			fmt.Printf("lines = %+v\n", lines)
+			c := "  - |\n"
+			for _, line := range lines {
+				c += fmt.Sprintf("    %s\n", line)
+			}
+			fmt.Printf("c = %+v\n", c)
+			return c
+		},
 	}
 
 	cloudInitTemplate = template.Must(template.New("cloudinit").Funcs(funcMap).Parse(cloudInit))
@@ -182,6 +202,7 @@ runcmd:
   - service apache2 restart
 {{end}}
 
+{{ custom_cmd .CustomCMD }}
 
 final_message: "All done!"
 `

@@ -275,6 +275,9 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
+	sess.Log.Debug("Stack template before injecting Koding data:")
+	sess.Log.Debug(stack.Template)
+
 	buildData, err := injectKodingData(ctx, stack.Template, username, creds)
 	if err != nil {
 		return err
@@ -307,8 +310,9 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}()
 
-	sess.Log.Debug("Calling terraform.apply method with context:")
+	sess.Log.Debug("Final stack template. Calling terraform.apply method:")
 	sess.Log.Debug(stack.Template)
+
 	state, err := tfKite.Apply(&tf.TerraformRequest{
 		Content:   stack.Template,
 		ContentID: username + "-" + stackId,
