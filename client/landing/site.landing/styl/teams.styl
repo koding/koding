@@ -2,7 +2,7 @@
 @import "lib/core.fn"
 
 greenLink                   = #27ae60
-titleYellow                 = #F4E327
+yellowColor                 = #FCE521
 
 @css {
 /*
@@ -17,15 +17,72 @@ teams.styl
 .content-page.teams
   overflow                  auto
   color                     white
-  bg                        image url('/a/images/teams/landing-bg.jpg')
-  bg                        color #2D5EAB
-  bg                        size cover
+  padding-top               132px
+  bg                        image, url('/a/images/teams/landing-bg.jpg')
+  bg                        color, #2D5EAB
   bg                        position, center center
   min-height                100%
 
+  header
+    top                     71px
+    padding                 0 10px
+
+    &.hasNotTeamAccess
+      top                   48px
+
+      nav.full-menu
+        a
+          margin-left       15px
+
+        .buttonized.yellow
+          right             0
+          margin-left       15px
+
+    nav.full-menu
+      rel()
+      right                 10px
+      top                   -5px
+
+      a
+        margin-left         31px
+        font-size           18px
+        font-family         "Source Sans Pro"
+        font-weight         300
+
+        &:first-child
+          margin-left       0
+
+    .buttonized.yellow
+      rel()
+      right                 -4px
+      margin-left           32px
+      border                1px solid yellowColor
+      size                  67px 31px
+      padding               0
+      line-height           30px
+      text-align            center
+      display               inline-block
+
+      span
+        color               yellowColor
+        font-size           14px
+        font-weight         600
+        font-family         "Source Sans Pro"
+
+    .teams-header-logo
+      noTextDeco()
+      font-family           "Source Sans Pro"
+      font-size             25px
+      font-weight           300
+      color                 #F5F5F5
+      margin-left           15px
+
+      cite
+        font-weight         700
+
+
   section.main-wrapper
     min-height              600px
-    padding                 20px 0
     font-family             adelleSans
     font-size               14px
     line-height             20px
@@ -33,23 +90,35 @@ teams.styl
     borderBox()
 
     h1
+      margin-top            90px !important
+
+    h1
     h2
+    > p
       width                 60%
       max-width             800px
       margin                0 auto
 
+    p.intro
+      font-size             28px
+      margin-top            16px
+      max-width             675px
+      line-height           37px
+      font-family           "Source Sans Pro"
+      font-weight           300
+
     h1
-      margin-top            130px
-      font-family           adelle
-      font-weight           400
-      font-size             42px
+      font-family           Oxygen
+      font-weight           600
+      font-size             44px
       line-height           50px
-      color                 titleYellow
+      color                 yellowColor
 
     h2
-      font-size             22px
+      font-size             32px
       line-height           28px
       margin                20px auto
+      font-weight           600
       rel()
       span
         display             inline-block
@@ -67,10 +136,234 @@ teams.styl
       span > i:first-child
         opacity             1
 
+    .embed-info
+      fl()
+      width                 100%
+      margin-bottom         10px
+
+      .icon
+        display             block
+        margin              5px auto
+        r-sprite            'teams', 'yellow-arrow'
+
+    .embed-box
+      clear                 both
+      size                  640px, 240px
+      margin                0 auto
+      bg                    color, rgba(50,50,50,.9)
+      border-radius         10px 10px 0 0
+      shadow                0 0 30px rgba(0,0,0,.5)
+
+      .icon.play
+        r-sprite            'teams', 'play'
+        display             block
+        cursor              pointer
+        margin              0 auto
+        top                 95px
+        rel()
+
+    &.hasNotTeamAccess
+      h1
+        margin-top          20px !important
+
+      h2
+        font-size           22px
+        font-weight         400
+
+      .TeamsModal--middle
+        margin              0 auto 50px auto
+        padding             8px
+
+        section
+          div.submit
+            padding-right   0
+
+          div.email
+            padding-right   10px
+
+            .login-input-view
+              rounded       4px
+
+              input.kdinput
+                color       #3E4F55
+
+              .placeholder-helper
+                top         4px
+
+                &.out
+                  font-size 12px
+                  top       -36px
+
+          .kdbutton.solid.medium
+            bg              color, #F6E556
+            rounded         4px
+            color           #000
+            display         block
+            height          40px
+            line-height     40px
+
+            .button-title
+              color         #39473E
+
+
+    &.middle
+      background            #F5F5F5
+      padding               97px 0
+
+      h2
+        color               #2A5CA8
+        font-weight         400
+        font-family         Oxygen
+        font-size           30px
+
+      > p
+        color               #2C373A
+        font-size           24px
+        line-height         38px
+        font-weight         400
+        font-family         "Source Sans Pro"
+
+
+      .setting-up-steps
+        rel()
+        size                874px 390px
+        margin              155px auto 65px
+        bg                  image, url('/a/site.landing/images/teams/settingUpEnvironments.png')
+        bg                  repeat, no-repeat
+
+        span
+          color             #2C373A
+          font-size         16px
+          font-weight       400
+          font-family       "Source Sans Pro"
+          line-height       18px
+
+          b
+            font-weight     700
+
+          &:first-child
+            abs             -22px auto auto 4px
+
+          &:nth-child(2)
+            abs             217px 318px
+
+          &:last-child
+            abs             352px 12px
+
+            b
+              display       block
+
+      .reviews
+        display             table
+        max-width           1050px
+        margin-top          120px
+
+        li
+          display           table-cell
+          text-align        center
+          padding           0 10px
+
+        .photo
+          size              180px 180px
+          bg                position, center center
+          border-radius     50%
+          margin-bottom     30px
+          display           inline-block
+
+        p
+        span
+          font-family       "Source Sans Pro"
+          font-weight       400
+          font-size         16px
+
+        p
+          margin            0 auto
+          color             #18335B
+          width             95%
+          margin-bottom     10px
+          overflow          hidden
+
+        span
+          color             #919698
+
+          &.who
+            display         block
+
+      .more-stories.kdbutton
+        margin-top          105px
+        bg                  color, #F5F5F5
+        border              2px solid #2C5FAF
+        border-radius       10px
+        height              62px
+
+        .button-title
+          color             #2C5FAF
+          font-weight       400
+          font-family       Oxygen
+          font-size         20px
+
+        .icon
+          fr()
+          r-sprite          'teams', 'more-stories'
+          padding           0
+          margin            15px 0 0 73px
+
+      .line
+        size                65px 3px
+        bg                  color, #D9D9D9
+        margin              60px auto
+
+      .browser
+        overflow            hidden
+        text-align          center
+        margin-top          50px
+
+        img
+          width             80%
+
+      .third-party
+        margin-top          110px
+
+        > a:first-child
+          margin-left       0
+
+        > a
+          display           inline-block
+          margin            0 30px 30px 30px
+
+
   .TeamsModal--middle
-    margin-top              30px
+    padding                 4px
+    margin-top              85px
+    margin-bottom           70px
+    background              #1D437D
+
+    div.email
+      .login-input-view
+        border-radius       4px 0 0 4px
 
     section > div
+      padding-right         3px
+
+      .kdbutton.solid.medium
+        height              56px
+        background-color    #1D437D
+        line-height         62px
+
+        .icon
+          fr()
+          rel()
+          r-sprite          'teams', 'sign-up-arrow'
+          top               10px
+          right             8px
+          padding           0
+
+        .button-title
+          color             yellowColor
+          font-family       "Source Sans Pro"
+          font-weight       600
+          font-size         14px
+
       &.email
       &.company-name
         width               calc(50% - 54px)
@@ -82,13 +375,28 @@ teams.styl
         hidden()
 
       .login-input-view
+        border-radius       0
+        background          #FFFFFF
+
         .placeholder-helper
+          top               13px
           padding           0
+          font-size         16px
+          font-weight       300
+          font-family       "Source Sans Pro"
           text-align        center
+          color             #53585C
+
+          &.out
+            top             -30px
+            color           #FFFFFF
 
         input.kdinput
           text-align        center
-          padding           8px 0
+          padding           17px 0
+          border            none
+          color             #18335B
+          border-radius     0
 
     &.pre-launch
 
@@ -119,9 +427,9 @@ teams.styl
       i
         font-style          italic
         font-family         adelle
-        color               titleYellow
+        color               yellowColor
       a
-        color               titleYellow
+        color               yellowColor
 
       &:last-child
         padding-top         .5em
@@ -176,28 +484,225 @@ teams.styl
         right               0
         border-width        .5em .5em 0 0
 
+  footer
+    padding                 81px 0
+    border-top              none
+    background              #464D52
+
+    .footer-block
+      text-align            center
+      width                 100%
+
+    nav a
+      color                 #F5F5F5
+      font-family           "Source Sans Pro"
+      font-size             14px
+      font-weight           600
+
 // Smartphones
 
 @media only screen and (min-width : 320px) and (max-width : 767px)
 
   .content-page.teams
+    padding-top             0
+
+    header.main-header
+      top                   0
+      padding               50px 0 0 0
+      box-shadow            none
+
+      &.hasNotTeamAccess
+        nav.full-menu
+          .buttonized.yellow
+            margin-left     0px
+
+      .teams-header-logo
+        abs()
+        top                 0
+        left                20px
+        margin              0
+        font-size           24px
+        text-align          left
+
+      nav.full-menu
+        abs()
+        z-index             1
+        padding-top         0
+        top                 0
+        left                0
+        right               auto
+        bg                  color, #19417F
+        display             block
+        overflow            hidden
+        size                100%, 0
+        vendor              transition, height .3s ease
+
+        .login
+          color             #FCE521
+          border            none
+          width             100%
+          right             auto
+
+          .title
+            border-bottom   none
+
+        a
+          margin            0
+          display           block
+          line-height       44px
+
+          &:after
+            display         none
+
+          &:first-child
+            margin-top      50px !important
+
+          .title
+            display         block
+            width           90%
+            text-align      left
+            font-size       16px
+            margin          0 auto
+            border-bottom   1px solid #34568C
+
+      &.mobile-menu-active
+        top                 0
+        bg                  color, #19417F
+
+        nav.mobile-menu
+          display           none
+
+        nav.full-menu
+          height            190px
+
+      .hamburger-menu
+        left                auto
+        right               0
+        z-index             1
+
+        span
+          width             22px
+
+          &:before
+              top           -6px
+
+          &:after
+              top           6px
+
+        &.active
+          bg                color, transparent
+
+        .icon
+          bg                color, #F7E200
+          opacity           1
+
     section.main-wrapper
       h1
       h2
         width               80%
 
       h1
-        margin-top          130px
-        font-size           32px
-        line-height         40px
+        margin-top          110px
+        font-size           22px
+        line-height         26px
 
       h2
-        font-size           18px
+        font-size           22px !important
         line-height         30px
         margin              10px auto
 
+      p.intro
+        font-size           18px
+        line-height         28px
+        width               80%
+
+      .embed-box
+        size                90%, 168px
+
+        .icon.play
+          top               64px
+
+      &.middle
+        padding             30px 0
+
+        .line
+          margin:           30px auto;
+
+        > p
+          width             80%
+          font-size         18px
+          line-height       30px
+
+        .setting-up-steps
+          size              180px 863px
+          margin            70px auto 90px
+          bg                image, url('/a/site.landing/images/teams/settingUpEnvironmentsMobile.png')
+
+          span
+            font-size       11px
+            width           100%
+
+            &:first-child
+              top           -36px
+
+            &:nth-child(2)
+              top           525px
+              right         0
+
+            &:last-child
+              top           875px
+              right         0
+
+        .reviews
+          margin-top        60px
+
+          li
+            width           100%
+            display         block
+            margin-bottom   50px
+            padding         0
+
+            &:last-child
+              display       none
+
+          .photo
+            margin-bottom   20px
+
+            p
+              max-height    none
+
+        .more-stories.kdbutton
+          margin            0 auto 10px
+
+        .third-party
+          margin-top        40px
+
+          > a
+            width           50%
+            margin          10px 0 0
+
+            img
+              width         75%
+
+      &.hasNotTeamAccess
+        h1
+          margin-top        100px !important
+          font-size         24px !important
+
+        h2
+          font-size         20px !important
+
+        .TeamsModal--middle
+          margin            20px auto 40px !important
+
+          section
+            .email
+              padding-right 0 !important
+              margin-bottom 10px
+
+
     .TeamsModal--middle
-      margin                20px auto 40px
+      margin                30px auto 50px
       width                 90%
 
       &.pre-launch section
@@ -214,6 +719,30 @@ teams.styl
         > div .login-input-view .placeholder-helper
           text-align        center
 
+      &.login-form
+
+        section > div
+          padding           0
+
+          .placeholder-helper
+            &.out
+              top           -32px
+              font-size     14px
+
+        div.email
+        div.company-name
+          width             100%
+
+        div.submit
+          float             none
+          margin            0 auto
+
+        div.email
+          margin-bottom     5px
+
+          .login-input-view
+            border-radius   4px 4px 0 0
+
     ul
       width                 90%
       li
@@ -223,6 +752,13 @@ teams.styl
       padding               .34em 1em
       margin                0 0 60px 0
       font                  22px adelle
+
+    footer
+      .inner-container
+        padding             0 20px
+
+      nav a:first-child
+        display             block
 
 
 // Tablets
@@ -236,7 +772,7 @@ teams.styl
         width               80%
 
       h1
-        margin-top          130px
+        margin-top          20px
         font-size           38px
         line-height         50px
 
@@ -245,14 +781,52 @@ teams.styl
         line-height         38px
         margin              10px auto
 
+      .embed-box
+        top                 12px
+
+      &.middle
+        .third-party
+          width             60%
+          margin            110px auto 0
+          padding           0 110px
+
+          a
+            margin          20px auto
+            width           50%
+            text-align      center
+            display         inline-block
+
+        .setting-up-steps
+          margin-top        60px
+          size              679px 262px
+          bg                image, url('/a/site.landing/images/teams/settingUpEnvironmentsTablets.png')
+
+          span
+            font-size       11px
+
+            &:first-child
+              top           -19px
+              left          5px
+
+            &:nth-child(2)
+              width         200px
+              top           168px
+              left          255px
+
+            &:last-child
+              top           272px
+
     .TeamsModal--middle
-      margin                20px auto 40px
+      margin                80px auto 70px
       width                 80%
 
     ul
       width                 90%
       li
         font-size           16px
+
+        &:last-child
+          display           none !important
 
     .ribbon
       padding               .34em 1em

@@ -15,7 +15,7 @@ module.exports = class MainHeaderView extends KDView
 
     @addSubView @mobileMenu = new TopNavigation cssClass : 'mobile-menu'
 
-    { navItems } = @getOptions()
+    { navItems, headerLogo } = @getOptions()
     @addSubView new TopNavigation { navItems, cssClass : 'full-menu' }
 
     @addSubView @hamburgerMenu = new KDButtonView
@@ -31,7 +31,7 @@ module.exports = class MainHeaderView extends KDView
           @hamburgerMenu.toggleClass 'active'
           @mobileMenu.toggleClass 'active'
 
-    @addSubView @logo = new KDCustomHTMLView
+    @addSubView @logo = headerLogo or new KDCustomHTMLView
       tagName   : 'a'
       cssClass  : 'koding-header-logo'
       partial   : '<cite></cite>'
