@@ -85,7 +85,8 @@ module.exports = class AdminAppController extends AppController
 
       if targetPane
         @mainView.tabs.showPane targetPane
-        targetPane.getMainView().handleIdentifier? identifier  if identifier
+        if identifier
+          targetPane.getMainView().handleIdentifier? identifier, action
       else
         kd.singletons.router.handleRoute '/Admin/Settings'
 
