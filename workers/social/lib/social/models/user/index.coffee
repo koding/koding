@@ -1046,7 +1046,7 @@ module.exports = class JUser extends jraphical.Module
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
 
-    # only unreigstered accounts can be "converted"
+    # only unregistered accounts can be "converted"
     if account.type is "registered"
       return callback new KodingError "This account is already registered."
 
