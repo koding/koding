@@ -63,7 +63,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, sess.DB, args.PublicKeys)
+	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.PublicKeys)
 	if err != nil {
 		return nil, err
 	}

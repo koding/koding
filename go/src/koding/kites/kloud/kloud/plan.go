@@ -137,7 +137,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	creds, err := fetchCredentials(r.Username, sess.DB, stackTemplate.Credentials)
+	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, stackTemplate.Credentials)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	return machines, nil
 }
 
-func fetchCredentials(username string, db *mongodb.MongoDB, keys []string) (*terraformCredentials, error) {
+func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []string) (*terraformCredentials, error) {
 	// 1- fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {

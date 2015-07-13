@@ -103,10 +103,10 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		if args.Destroy {
 			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
-			err = destroy(ctx, r.Username, args.StackId)
+			err = destroy(ctx, r.Username, args.GroupName, args.StackId)
 		} else {
 			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
-			err = apply(ctx, r.Username, args.StackId)
+			err = apply(ctx, r.Username, args.GroupName, args.StackId)
 			if err != nil {
 				finalEvent.Status = machinestate.NotInitialized
 			}
@@ -135,7 +135,7 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	}, nil
 }
 
-func destroy(ctx context.Context, username, stackId string) error {
+func destroy(ctx context.Context, username, groupname, stackId string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
@@ -170,7 +170,7 @@ func destroy(ctx context.Context, username, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
-	creds, err := fetchCredentials(username, sess.DB, stack.PublicKeys)
+	creds, err := fetchCredentials(username, groupname, sess.DB, stack.PublicKeys)
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func destroy(ctx context.Context, username, stackId string) error {
 	return modelhelper.DeleteComputeStack(stackId)
 }
 
-func apply(ctx context.Context, username, stackId string) error {
+func apply(ctx context.Context, username, groupname, stackId string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
@@ -250,7 +250,7 @@ func apply(ctx context.Context, username, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
-	creds, err := fetchCredentials(username, sess.DB, stack.PublicKeys)
+	creds, err := fetchCredentials(username, groupname, sess.DB, stack.PublicKeys)
 	if err != nil {
 		return err
 	}
