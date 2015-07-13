@@ -638,6 +638,11 @@ pmLinkColor   = #B6B6B6
 
 .chat-view .chat-settings
 
+  span
+    color                 #777
+    font-size             14px
+    line-height           1.4em
+
   .progressbar-container
     size                    293px, 34px
     border                  none
@@ -664,6 +669,25 @@ pmLinkColor   = #B6B6B6
       top:                  -3px
       z-index               2
 
+  .session-settings
+
+    .wrapper
+
+      text-align            center
+
+    .koding-on-off
+
+      display               inline-block
+
+      &.on
+        bg                  color #52A840
+
+      &.unwatch
+
+        a
+          color             #00b057
+          text-decoration   none
+
 
 .chat-view .chat-settings .warning
 
@@ -678,11 +702,8 @@ pmLinkColor   = #B6B6B6
     text-align              center
 
     span
-      color                 #777
-      font-size             14px
       display               inline-block
       margin-top            22px
-      line-height           1.4em
 
     p
       margin-top            10px

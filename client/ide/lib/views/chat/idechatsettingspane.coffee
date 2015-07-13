@@ -1,6 +1,7 @@
 kd                          = require 'kd'
 KDButtonView                = kd.ButtonView
 KDCustomHTMLView            = kd.CustomHTMLView
+KDLabelView                 = kd.LabelView
 KDLoaderView                = kd.LoaderView
 KDSelectBox                 = kd.SelectBox
 KDTabPaneView               = kd.TabPaneView
@@ -8,6 +9,7 @@ remote                      = require('app/remote').getInstance()
 whoami                      = require 'app/util/whoami'
 nick                        = require 'app/util/nick'
 JView                       = require 'app/jview'
+KodingSwitch                = require 'app/commonviews/kodingswitch'
 CustomLinkView              = require 'app/customlinkview'
 IDEChatParticipantView      = require './idechatparticipantview'
 ButtonViewWithProgressBar   = require 'app/commonviews/buttonviewwithprogressbar'
@@ -114,6 +116,35 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @settings  = new KDCustomHTMLView
       tagName  : 'div'
       cssClass : 'session-settings'
+
+    @createUnwatchSettingElements()
+
+
+  GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
+
+  createUnwatchSettingElements: ->
+
+    @unwatchWrapper = new KDCustomHTMLView cssClass: 'wrapper unwatch'
+
+    @unwatchWrapper.addSubView toggle = new KodingSwitch
+      size         : 'tiny'
+      defaultValue : on
+      callback     : @bound 'setUnwatch'
+
+    @unwatchWrapper.addSubView new KDLabelView
+      title     : 'Allow participants to unwatch'
+      mousedown : toggle.bound 'mouseDown'
+
+    @unwatchWrapper.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes :
+        href     : GUIDE_LINK
+        target   : '_blank'
+      partial    : '(?)'
+
+    @settings.addSubView @unwatchWrapper
+
+    @setUnwatch on  # set default value
 
 
   setUnwatch: (state) ->
