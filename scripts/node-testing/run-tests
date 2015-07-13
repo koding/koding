@@ -8,39 +8,39 @@
 { getNthInstanceData } = require './helper'
 
 async                  = require 'async'
-shellScripts           = require './shell-scripts'
+shellCommands          = require './shell-commands'
 
 
 unless instanceData = process.argv[2]
   console.error 'error: instance data file is not specified'
   process.exit 1
-  
-  
+
+
 addEventListenersToChildProcess = (child) ->
-  
+
   child.stdout.on 'data', (data) ->
     process.stdout.write  data
 
   child.stderr.on 'data', (data) ->
     process.stdout.write  data
-  
+
   child.on 'exit', (code) ->
-  
+
     # if child exits with a non-zero code, exit the main process as well
     if code isnt 0
       console.log "exited child process with code #{code}"
       process.exit code
-  
+
 
 iterator = (item, cb) ->
-  
+
   child = exec item, (err, stdout, stderr) ->
-    
-    if err then console.log '---------exec error: ---------\n[' + err + ']'
-    
+
+    console.log "---------exec error: ---------\n[#{err}]"  if err
+
     # passing err parameter null
     cb(null)
-    
+
   addEventListenersToChildProcess child
 
 
@@ -50,15 +50,14 @@ start = ->
   # getting first test instance's data
   { publicIpAddress }   = getNthInstanceData instanceData, 0
 
-  shellScriptsArray     = shellScripts.asArray publicIpAddress
+  shellCommandsArray     = shellCommands.asArray publicIpAddress
 
-  async.eachSeries shellScriptsArray, iterator, (err) ->
-    
+  async.eachSeries shellCommandsArray, iterator, (err) ->
     console.log err  if err
     process.exit()
-    
-    
+
+
 start()
-        
-    
+
+
 
