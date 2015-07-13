@@ -1627,16 +1627,18 @@ Configuration = (options={}) ->
         sh -c scripts/validate-npm.sh
         run $1
 
-      elif [ "$1" == "socialworkertests" ]; then
-
-        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
-
       elif [ "$1" == "vmwatchertests" ]; then
         go test koding/vmwatcher -test.v=true
 
-      elif [ "$1" == "nodeservertests" ]; then
+      elif [ "$1" == "socialworkertests" ]; then
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
 
+      elif [ "$1" == "nodeservertests" ]; then
         #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers"
+
+      # To run specific test directory or a single test file
+      elif [ "$1" == "nodetestfiles" ]; then
+        #{projectRoot}/scripts/node-testing/mocha-runner $2
 
       else
         echo "Unknown command: $1"
