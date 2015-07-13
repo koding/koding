@@ -105,7 +105,7 @@ var (
             "example": {
 				"count": %d,
                 "instance_type": "t2.micro",
-                "ami": "ami-936d9d93"
+                "ami": "ami-9e5cff9e"
             }
         }
     }
