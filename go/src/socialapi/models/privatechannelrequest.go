@@ -65,16 +65,11 @@ func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 		return nil, err
 	}
 
-	// add participants to tha channel
+	// add participants to the channel
 	for _, participantId := range participantIds {
-		// added accounts should be a member of parent channel
-		isParticipant, err := groupChannel.IsParticipant(participantId)
-		if err != nil {
+		// users should be in regarding group channel
+		if err := checkForGroupParticipation(groupChannel, participantId); err != nil {
 			return nil, err
-		}
-
-		if !isParticipant {
-			return nil, ErrCannotOpenChannel
 		}
 
 		cp, err := c.AddParticipant(participantId)
@@ -96,6 +91,24 @@ func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 	}
 
 	return p.buildInitContainer(c, participantIds)
+}
+
+func checkForGroupParticipation(groupChannel *Channel, participantId int64) error {
+	// everyone is a member of koding group
+	if groupChannel.GroupName == Channel_KODING_NAME {
+		return nil
+	}
+
+	isParticipant, err := groupChannel.IsParticipant(participantId)
+	if err != nil {
+		return nil
+	}
+
+	if !isParticipant {
+		return ErrCannotOpenChannel
+	}
+
+	return nil
 }
 
 func (p *PrivateChannelRequest) buildInitContainer(c *Channel, participantIds []int64) (*ChannelContainer, error) {
