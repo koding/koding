@@ -14,7 +14,7 @@ module.exports = class TopicLeafItemView extends KDListItemView
     
     return """
       <div class="details">
-        <p class="nickname">{{#(name)}}</p>
+        <p class="nickname">\#{{#(name)}}</p>
       </div>
       <div class='clear'></div>
 
