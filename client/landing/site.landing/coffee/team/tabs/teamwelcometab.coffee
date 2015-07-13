@@ -70,20 +70,18 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
     <div class="TeamsModal TeamsModal--onboarding">
       <h4>Welcome</h4>
       <p>You are about to join to <i>#{KD.config.group.title}</i> on Koding</p>
-      <div class='team-members hidden'>
+      <div class='team-members clearfix hidden'>
         <ul></ul>
         <span>and 34 of your team members are already here.</span>
       </div>
       <p>
         Your invitation was sent to:
-        <email>#{KD.utils.getTeamData().invitation.email}<email>
+        <address>#{KD.utils.getTeamData().invitation.email}</address>
       </p>
-      <br/>
       <p>
         Is the email address above correct?<br/>
         {{> @correct}}
       </p>
-      <br/>
       <p>If that's not right please contact the team administrators to get a new invitation.</p>
     </div>
     """
