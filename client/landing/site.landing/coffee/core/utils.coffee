@@ -173,7 +173,7 @@ utils.extend utils,
 
     for own step, fields of teamData when not ('boolean' is typeof fields)
       for own field, value of fields
-        if field is 'invite'
+        if step is 'invite'
           unless formData.invitees
           then formData.invitees  = value
           else formData.invitees += ",#{value}"
