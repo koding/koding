@@ -4,30 +4,17 @@ TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
 
 module.exports = class TeamUsernameTab extends KDTabPaneView
 
-  kallback = (formData) ->
-
-    { storeNewTeamData, createTeam, joinTeam, getTeamData } = KD.utils
-    { join } = getTeamData().signup
-
-    if join
-      storeNewTeamData 'join', formData
-      joinTeam()
-    else do ->
-      storeNewTeamData 'username', formData
-      createTeam success : -> KD.singletons.router.handleRoute '/Team/Stacks'
-
-
   constructor:(options = {}, data)->
 
     super options, data
-
-    teamData = KD.utils.getTeamData()
-    { @alreadyMember } = teamData.signup
 
     @createSubViews()
 
 
   createSubViews: ->
+
+    teamData = KD.utils.getTeamData()
+    { @alreadyMember } = teamData.signup
 
     @addSubView new MainHeaderView
       cssClass : 'team'
@@ -46,7 +33,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
         tagName : 'h5'
         partial : 'please enter your Koding password'
 
-      wrapper.addSubView @form = new TeamLoginAndCreateTabForm { callback : kallback }
+      wrapper.addSubView @form = new TeamLoginAndCreateTabForm callback : @bound 'createTeam'
 
     else
 
@@ -59,7 +46,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
         partial : '...or login with your existing Koding account.'
 
       wrapper.addSubView @form = new TeamUsernameTabForm
-        callback : @bound 'createTeam'
+        callback    : @bound 'createTeam'
 
 
   show: ->
@@ -67,7 +54,6 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     teamData = KD.utils.getTeamData()
     { alreadyMember } = teamData.signup
     if alreadyMember isnt @alreadyMember
-      @alreadyMember = alreadyMember
       @form = null
       @destroySubViews()
       @createSubViews()
@@ -85,7 +71,10 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
       return new KDNotificationView title : "Sorry, your group domain and your username can not be the same!"
 
     KD.utils.usernameCheck username,
-      success : -> kallback formData
+      success : ->
+        KD.utils.storeNewTeamData 'username', formData
+        KD.utils.createTeam success : -> KD.singletons.router.handleRoute '/Team/Stacks'
+
       error   : ({responseJSON}) =>
 
         {forbidden, kodingUser} = responseJSON
