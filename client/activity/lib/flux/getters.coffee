@@ -1,31 +1,42 @@
-immutable = require 'immutable'
+immutable           = require 'immutable'
 isPublicChatChannel = require 'activity/util/isPublicChatChannel'
 
-createDefaultGetter = (collection) -> (keypath) -> [keypath, (t) -> t or collection]
+withEmptyMap = (storeData) -> storeData or immutable.Map()
 
-# `withGetter` is a function acceptiong a keypath, returning a getter that will
-# return an immutable map if there isn't any data in reactor in given keypath.
-withDefault = createDefaultGetter immutable.Map()
+# Store Data getters
+# Main purpose of these getters are fetching data from stores, some of them
+# the ones with `withEmptyMap` will return an empty immutable map if data from
+# the store is falsy.
 
+ChannelsStore                  = [['ChannelsStore'], withEmptyMap]
+MessagesStore                  = [['MessagesStore'], withEmptyMap]
+ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
+FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
+FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
+SelectedChannelThreadId        = ['SelectedChannelThreadId'] # no need for default
+
+# Computed Data getters.
+# Following will be transformations of the store datas for other parts (mainly
+# visual components) to use.
 
 # Maps followed public channel ids with relevant channel instances.
 followedPublicChannels = [
-  withDefault ['FollowedPublicChannelIdsStore']
-  withDefault ['ChannelsStore']
+  FollowedPublicChannelIdsStore
+  ChannelsStore
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
 
 # Maps followed private channel ids with relevant channel instances.
 followedPrivateChannels = [
-  withDefault ['FollowedPrivateChannelIdsStore']
-  withDefault ['ChannelsStore']
+  FollowedPrivateChannelIdsStore
+  ChannelsStore
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
 
 # Maps channels message ids with relevant message instances.
 channelThreads = [
-  withDefault ['ChannelThreadsStore']
-  withDefault ['MessagesStore']
+  ChannelThreadsStore
+  MessagesStore
   (threads, messages) ->
     threads.map (thread) ->
       # replace messageIds in list with message instances.
@@ -34,13 +45,13 @@ channelThreads = [
 ]
 
 # Returns data from SelectedChannelThreadIdStore
-# simply providing a better name for outside access.
-selectedChannelThreadId = ['SelectedChannelThreadIdStore']
+# Alias for providing a consistent api.
+selectedChannelThreadId = SelectedChannelThreadId
 
 # Returns selected channel instance.
 selectedChannel = [
-  withDefault ['ChannelsStore']
-  withDefault ['SelectedChannelThreadIdStore']
+  ChannelsStore
+  selectedChannelThreadId
   (channels, id) -> if id then channels.get id else null
 ]
 
