@@ -47,6 +47,9 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
           success : -> formData.alreadyMember = no; go()
           error   : -> formData.alreadyMember = yes; go()
 
+    @membersDesc = new KDCustomHTMLView
+      tagName: 'span'
+
     @decorateTeamMembers()
 
 
@@ -58,6 +61,11 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
     KD.utils.fetchTeamMembers { name, token }, (err, members) =>
 
       return  if err or not members
+
+      if memberCount = KD.config.group.counts?.members
+        @membersDesc.updatePartial "#{memberCount} of your team members are<br/>already here."
+      else
+        @membersDesc.updatePartial "<i>@#{members.first.profile.nickname}</i> has invited you to join."
 
       @$('.team-members ul').append createAvatar profile  for { profile } in members
       @$('.team-members').removeClass 'hidden'
@@ -72,7 +80,7 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
       <p>You are about to join to <i>#{KD.config.group.title}</i> on Koding</p>
       <div class='team-members clearfix hidden'>
         <ul></ul>
-        <span>and 34 of your team members are already here.</span>
+        {{> @membersDesc}}
       </div>
       <p>
         Your invitation was sent to:
