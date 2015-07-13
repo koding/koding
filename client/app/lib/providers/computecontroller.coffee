@@ -83,11 +83,15 @@ module.exports = class ComputeController extends KDController
     @plans        = null
     @_trials      = {}
 
-    if render then @fetchStacks =>
-      @info machine for machine in @machines
-      @emit "RenderMachines", @machines
-      @emit "RenderStacks",   @stacks
-      callback null
+    if render
+      environmentDataProvider = require 'app/userenvironmentdataprovider'
+      environmentDataProvider.fetch =>
+        @fetchStacks =>
+          @info machine for machine in @machines
+          @emit "RenderMachines", @machines
+          @emit "RenderStacks",   @stacks
+          callback null
+      , yes
 
     return this
 
@@ -434,8 +438,7 @@ module.exports = class ComputeController extends KDController
           remote.api.JWorkspace.deleteByUid machine.uid, (err)->
             console.warn "couldn't delete workspace:", err  if err
 
-          environmentDataProvider = require 'app/userenvironmentdataprovider'
-          environmentDataProvider.fetch => @reset yes, ->
+          @reset yes, ->
             kd.singletons.appManager.tell 'IDE', 'quit'
 
         return
