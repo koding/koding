@@ -26,6 +26,7 @@ type AwsBootstrapOutput struct {
 	SG        string `json:"sg" mapstructure:"sg"`
 	Subnet    string `json:"subnet" mapstructure:"subnet"`
 	VPC       string `json:"vpc" mapstructure:"vpc"`
+	AMI       string `json:"ami" mapstructure:"ami"`
 }
 
 type TerraformBootstrapRequest struct {
@@ -142,6 +143,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				"meta.sg":         awsOutput.SG,
 				"meta.subnet":     awsOutput.Subnet,
 				"meta.vpc":        awsOutput.VPC,
+				"meta.ami":        awsOutput.AMI,
 			},
 		}); err != nil {
 			return nil, err
@@ -204,6 +206,9 @@ var awsBootstrap = `{
         },
         "sg": {
             "value": "${aws_security_group.allow_all.id}"
+        },
+        "ami": {
+            "value": "${lookup(var.aws_amis, var.region)}"
         },
         "key_pair": {
             "value": "${aws_key_pair.koding_key_pair.key_name}"
@@ -307,6 +312,19 @@ var awsBootstrap = `{
                 "us-east-1": "us-east-1b",
                 "us-west-1": "us-west-1b",
                 "us-west-2": "us-west-2b"
+            }
+        },
+        "aws_amis": {
+            "default": {
+                "ap-northeast-1": "ami-9e5cff9e",
+                "ap-southeast-1": "ami-ec7879be",
+                "ap-southeast-2": "ami-2fce8b15",
+                "eu-central-1": "ami-60f9c27d",
+                "eu-west-1": "ami-7c4b0a0b",
+                "sa-east-1": "ami-cd9518d0",
+                "us-east-1": "ami-cf35f3a4",
+                "us-west-1": "ami-b33dccf7",
+                "us-west-2": "ami-8d5b5dbd"
             }
         }
     }

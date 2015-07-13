@@ -189,6 +189,12 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
+	buildData, err := injectKodingData(ctx, stack.Template, username, creds)
+	if err != nil {
+		return err
+	}
+	stack.Template = buildData.Template
+
 	sess.Log.Debug("Calling terraform.destroy method with context:")
 	sess.Log.Debug(stack.Template)
 	_, err = tfKite.Destroy(&tf.TerraformRequest{

@@ -231,6 +231,15 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		instance["user_data"] = string(userdata)
 		instance["key_name"] = awsOutput.KeyPair
 
+		// if nothing is provided or the ami is empty use default Ubuntu AMI's
+		if a, ok := instance["ami"]; !ok {
+			instance["ami"] = awsOutput.AMI
+		} else {
+			if ami, ok := a.(string); ok && ami == "" {
+				instance["ami"] = awsOutput.AMI
+			}
+		}
+
 		// only ovveride if the user doesn't provider it's own subnet_id
 		if instance["subnet_id"] == nil {
 			instance["subnet_id"] = awsOutput.Subnet
