@@ -76,7 +76,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     { integration } = @getData()
     { channelIntegration } = integrationData
 
-    @fetchChannels (err, channels) =>
+    integrationHelpers.fetchChannels (err, channels) =>
       return showError err  if err
 
       integrationHelpers.fetch {id: channelIntegration.id}, (err, response) =>
@@ -111,8 +111,7 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
           data.settings = { events }
 
         unless integration.name is 'github'
-          @emit 'IntegrationCustomizeRequested', data
-          return
+          return @emit 'IntegrationCustomizeRequested', data
 
         integrationHelpers.fetchGithubRepos (err, repositories) =>
 
