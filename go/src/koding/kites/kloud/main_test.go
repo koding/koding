@@ -230,7 +230,8 @@ func init() {
 
 func TestTerraformAuthenticate(t *testing.T) {
 	username := "testuser12"
-	userData, err := createUser(username, "koding", "ap-northeast-1")
+	groupname := "koding"
+	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,6 +240,7 @@ func TestTerraformAuthenticate(t *testing.T) {
 
 	args := &kloud.AuthenticateRequest{
 		PublicKeys: []string{userData.CredentialPublicKey},
+		GroupName:  groupname,
 	}
 
 	_, err = remote.Tell("authenticate", args)
@@ -249,7 +251,8 @@ func TestTerraformAuthenticate(t *testing.T) {
 
 func TestTerraformBootstrap(t *testing.T) {
 	username := "testuser11"
-	userData, err := createUser(username, "koding", "ap-northeast-1")
+	groupname := "koding"
+	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -258,6 +261,7 @@ func TestTerraformBootstrap(t *testing.T) {
 
 	args := &kloud.TerraformBootstrapRequest{
 		PublicKeys: []string{userData.CredentialPublicKey},
+		GroupName:  groupname,
 	}
 
 	_, err = remote.Tell("bootstrap", args)
@@ -282,7 +286,9 @@ func TestTerraformBootstrap(t *testing.T) {
 func TestTerraformPlan(t *testing.T) {
 	t.Parallel()
 	username := "testuser0"
-	userData, err := createUser(username, "koding", "ap-northeast-1")
+	groupname := "koding"
+
+	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -291,6 +297,7 @@ func TestTerraformPlan(t *testing.T) {
 
 	args := &kloud.TerraformPlanRequest{
 		StackTemplateId: userData.StackTemplateId,
+		GroupName:       groupname,
 	}
 
 	resp, err := remote.Tell("plan", args)
@@ -328,7 +335,8 @@ func TestTerraformPlan(t *testing.T) {
 func TestTerraformStack(t *testing.T) {
 	t.Parallel()
 	username := "testuser13"
-	userData, err := createUser(username, "koding", "ap-northeast-1")
+	groupname := "koding"
+	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -337,6 +345,7 @@ func TestTerraformStack(t *testing.T) {
 
 	args := &kloud.TerraformBootstrapRequest{
 		PublicKeys: []string{userData.CredentialPublicKey},
+		GroupName:  groupname,
 	}
 
 	_, err = remote.Tell("bootstrap", args)
@@ -657,6 +666,10 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 		return c.Remove(bson.M{"profile.nickname": username})
 	})
 
+	provider.DB.Run("jGroups", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"slug": groupname})
+	})
+
 	// jAccounts
 	accountId := bson.NewObjectId()
 	account := &models.Account{
@@ -680,6 +693,12 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 		Slug:  groupname,
 	}
 
+	if err := provider.DB.Run("jGroups", func(c *mgo.Collection) error {
+		return c.Insert(&group)
+	}); err != nil {
+		return nil, err
+	}
+
 	// add relation between use and group
 	relationship := &models.Relationship{
 		Id:         bson.NewObjectId(),
@@ -692,12 +711,6 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 
 	if err := provider.DB.Run("relationships", func(c *mgo.Collection) error {
 		return c.Insert(&relationship)
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := provider.DB.Run("jGroups", func(c *mgo.Collection) error {
-		return c.Insert(&group)
 	}); err != nil {
 		return nil, err
 	}
