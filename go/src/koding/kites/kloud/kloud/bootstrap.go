@@ -85,7 +85,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		keyName := "kloud-deployment-" + r.Username
+		keyName := "koding-deployment-" + r.Username
 		finalBootstrap, err = appendKeyName(finalBootstrap, keyName)
 		if err != nil {
 			return nil, err
@@ -99,8 +99,6 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
 
-		// TODO(arslan): change this once we have group context name
-		groupName := "koding"
 		awsOutput := &AwsBootstrapOutput{}
 
 		// this is custom because we need to remove the fields if we get a
@@ -112,7 +110,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: groupName + "-" + cred.PublicKey,
+				ContentID: args.GroupName + "-" + cred.PublicKey,
 			})
 			if err != nil {
 				return nil, err
@@ -121,7 +119,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: groupName + "-" + cred.PublicKey,
+				ContentID: args.GroupName + "-" + cred.PublicKey,
 			})
 			if err != nil {
 				return nil, err
