@@ -19,6 +19,8 @@ import (
 type AuthenticateRequest struct {
 	// PublicKeys contains publicKeys to be authenticated
 	PublicKeys []string `json:"publicKeys"`
+
+	GroupName string `json:"groupName"`
 }
 
 func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
@@ -33,6 +35,10 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 
 	if len(args.PublicKeys) == 0 {
 		return nil, errors.New("publicKeys are not passed")
+	}
+
+	if args.GroupName == "" {
+		return nil, errors.New("group name is not passed")
 	}
 
 	ctx := k.ContextCreator(context.Background())

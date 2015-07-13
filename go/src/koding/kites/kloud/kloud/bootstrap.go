@@ -32,6 +32,8 @@ type TerraformBootstrapRequest struct {
 	// PublicKeys contains publicKeys to be used with terraform
 	PublicKeys []string `json:"publicKeys"`
 
+	GroupName string `json:"groupName"`
+
 	// Destroy destroys the bootstrap resource associated with the given public
 	// keys
 	Destroy bool
@@ -49,6 +51,10 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 
 	if len(args.PublicKeys) == 0 {
 		return nil, errors.New("publicKeys are not passed")
+	}
+
+	if args.GroupName == "" {
+		return nil, errors.New("group name is not passed")
 	}
 
 	ctx := k.ContextCreator(context.Background())

@@ -41,6 +41,8 @@ type Stack struct {
 type TerraformApplyRequest struct {
 	StackId string `json:"stackId"`
 
+	GroupName string `json:"groupName"`
+
 	// Destroy, if enabled, destroys the terraform tempalte associated with the
 	// given StackId.
 	Destroy bool
@@ -58,6 +60,10 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 	if args.StackId == "" {
 		return nil, errors.New("stackId is not passed")
+	}
+
+	if args.GroupName == "" {
+		return nil, errors.New("group name is not passed")
 	}
 
 	// create context with the given request

@@ -20,6 +20,8 @@ import (
 
 type TerraformPlanRequest struct {
 	StackTemplateId string `json:"stackTemplateId"`
+
+	GroupName string `json:"groupName"`
 }
 
 type terraformCredentials struct {
@@ -118,6 +120,10 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 
 	if args.StackTemplateId == "" {
 		return nil, errors.New("stackIdTemplate is not passed")
+	}
+
+	if args.GroupName == "" {
+		return nil, errors.New("group name is not passed")
 	}
 
 	ctx := k.ContextCreator(context.Background())
