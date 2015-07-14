@@ -14,7 +14,7 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
 
     options.cssClass = 'integration-view'
 
-    { @integrationType } = data
+    { @integrationType, @name } = data
     @createButton data
 
     super options, data
@@ -25,6 +25,8 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
     @button    = new KDButtonView
       cssClass : 'solid compact green add'
       title    : if @integrationType is 'new' then 'Add' else 'Configure'
+      callback : =>
+        kd.singletons.router.handleRoute "/Admin/Integrations/Add/#{@name}"
 
 
   pistachio: ->

@@ -284,7 +284,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         Cancel          :
           title         : 'Cancel'
           cssClass      : 'solid green medium red'
-          callback      : => @emit 'IntegrationCancelled'
+          callback      : -> kd.singletons.router.handleRoute '/Admin/Integrations/Configure'
 
     delete formOptions.fields.repository  unless repositories.length
 
