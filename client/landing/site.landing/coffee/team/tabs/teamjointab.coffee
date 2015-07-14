@@ -22,8 +22,10 @@ module.exports = class TeamJoinTab extends KDTabPaneView
       partial : 'Join with your email'
 
     teamData = KD.utils.getTeamData()
-    { @alreadyMember } = teamData.signup
-    domains = KD.config.group.allowedDomains
+
+    alreadyMember  = teamData.signup?.alreadyMember
+    @alreadyMember = alreadyMember?
+    domains        = KD.config.group.allowedDomains
 
     desc = if @alreadyMember
       "Please enter your <i>Koding.com</i> password."
@@ -37,8 +39,10 @@ module.exports = class TeamJoinTab extends KDTabPaneView
       tagName : 'h5'
       partial : desc
 
-    wrapper.addSubView @form = new TeamJoinTabForm
+    wrapper.addSubView @form = new TeamJoinTabForm {
       callback    : @bound 'joinTeam'
+      @alreadyMember
+    }
 
     @addSubView new KDCustomHTMLView
       tagName : 'section'

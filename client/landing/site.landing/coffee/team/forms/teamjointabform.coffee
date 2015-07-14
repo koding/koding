@@ -6,17 +6,16 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
 
     super options, data
 
-    teamData = KD.utils.getTeamData()
-    { @alreadyMember } = teamData.signup
+    { @alreadyMember } = @getOptions()
 
     @button = new KDButtonView
       title      : "Join #{KD.config.groupName}!"
       style      : 'TeamsModal-button TeamsModal-button--green'
       type       : 'submit'
 
-    email = teamData.signup.username
 
     if @alreadyMember
+      email = teamData.signup.username
       @username.setValue email
       @password.destroy()
       @password = new KDInputView
