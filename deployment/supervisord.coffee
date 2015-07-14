@@ -1,11 +1,15 @@
 fs            = require 'fs'
 { isAllowed } = require './grouptoenvmapping'
 
-generateMainConf = (supervisorEnvironmentStr ="")->
+generateMainConf = (KONFIG) ->
+
+  environment = ""
+  environment += "#{key}='#{val}'," for key,val of KONFIG.ENV
+
   """
   [supervisord]
   ; environment variables
-  environment=#{supervisorEnvironmentStr}
+  environment=#{environment}
 
   pidfile=/var/run/supervisord.pid                ; pidfile location
 
@@ -85,14 +89,8 @@ generateSupervisorSectionForWorker = (app, options={})->
 
 
 module.exports.create = (KONFIG)->
-  # create environment variables for the supervisor
-  # we can remove this later?
-  supervisorEnvironmentStr = ""
-  supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
-
-
   # create supervisord main config
-  conf = generateMainConf supervisorEnvironmentStr
+  conf = generateMainConf KONFIG
 
   groupConfigs = {}
 
