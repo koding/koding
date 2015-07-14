@@ -115,7 +115,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if /NetworkOut/i.test error
 
           paymentController.subscriptions (err, subscription) =>
-            
+
             if subscription.planTitle is 'free'
               @customErrorMessage = "
                 <p>You've reached your outbound network usage
