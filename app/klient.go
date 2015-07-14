@@ -15,6 +15,7 @@ import (
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
 	"github.com/koding/klient/fs"
+	"github.com/koding/klient/info"
 	"github.com/koding/klient/sshkeys"
 	"github.com/koding/klient/storage"
 	"github.com/koding/klient/terminal"
@@ -177,6 +178,9 @@ func (k *Klient) RegisterMethods() {
 	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
 	k.kite.PreHandleFunc(k.usage.Counter) // we measure every incoming request
 	k.kite.HandleFunc("klient.usage", k.usage.Current)
+
+	// Klient Info method(s)
+	k.kite.HandleFunc("klient.info", info.Info)
 
 	// Collaboration, is used by our Koding.com browser client.
 	k.kite.HandleFunc("klient.share", k.collab.Share)
