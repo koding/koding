@@ -102,6 +102,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     {status, percentage, error} = event
 
+    { paymentController } = kd.singletons
+
     if status is @state
       @updatePercentage percentage  if percentage?
 
@@ -111,13 +113,25 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       if error
 
         if /NetworkOut/i.test error
-          @customErrorMessage = "
-            <p>You've reached your outbound network usage
-            limit for this week.</p><span>
-            Please upgrade your <a href='/Pricing'>plan</a> or
-            <span class='contact-support'>contact support</span> for further
-            assistance.</span>
-          "
+
+          paymentController.subscriptions (err, subscription) =>
+            
+            if subscription.planTitle is 'free'
+              @customErrorMessage = "
+                <p>You've reached your outbound network usage
+                limit for this week.</p><span>
+                Please upgrade your <a href='/Pricing'>plan</a> or
+                <span class='contact-support'>contact support</span> for further
+                assistance.</span>
+              "
+
+            else
+              @customErrorMessage = "
+                <p>You've reached your outbound network usage
+                limit for this week.</p><span>
+                Please <span class='contact-support'>contact support</span> 
+                for further assistance.</span>
+              "
 
         unless error.code is ComputeController.Error.NotVerified
           @hasError = yes
