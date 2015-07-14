@@ -76,3 +76,4 @@ client/test/output
 client/test/logs
 
 supervisor.html
+.supervisor/*
