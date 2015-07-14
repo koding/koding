@@ -81,6 +81,7 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
 
   # A callback wrapper, to help ensure clearInterval is always called
   kallback = (err) ->
+
     # It's expected that clearInterval gets called twice, but that
     # is not a problem in Chrome at least.
     clearInterval intervalId
