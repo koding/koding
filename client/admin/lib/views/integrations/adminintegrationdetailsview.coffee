@@ -171,7 +171,6 @@ module.exports = class AdminIntegrationDetailsView extends JView
       return kd.warn err  if err
 
       @settingsForm.buttons.Save.hideLoader()
-      @emit 'NewIntegrationSaved'
 
 
   regenerateToken: ->
