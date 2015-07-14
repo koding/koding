@@ -327,7 +327,8 @@ module.exports = class ComputeProvider extends Base
         context    : group : group.slug
 
       ComputeProvider.createGroupStack client,
-        addGroupAdminToMachines: yes
+        addGroupAdminToMachines: no # Marked this as no until
+                                    # we find a better solution ~ GG
       , (err, res = {}) ->
 
         {stack, results} = res
