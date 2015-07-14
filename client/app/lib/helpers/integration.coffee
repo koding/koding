@@ -157,7 +157,7 @@ fetchConfigureData = (options, callback) ->
 
       description     = description or integration.summary
       webhookUrl      = "#{globals.config.integration.url}/#{integration.name}/#{token}"
-      integrationType = 'confiured'
+      integrationType = 'configured'
       selectedEvents  = []
       data            = { channels, id, integration, token, createdAt,
                           updatedAt, description, integrationId, webhookUrl, isDisabled }
