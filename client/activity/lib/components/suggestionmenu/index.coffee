@@ -18,6 +18,7 @@ module.exports = class SuggestionMenu extends React.Component
   getDataBindings: ->
 
     { getters } = ActivityFlux
+
     return {
       suggestions : getters.currentSuggestions
       query       : getters.currentSuggestionsQuery

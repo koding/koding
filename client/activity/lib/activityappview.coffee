@@ -18,6 +18,7 @@ isKoding               = require 'app/util/isKoding'
 isGroup                = require 'app/util/isGroup'
 isReactEnabled         = require 'app/util/isReactEnabled'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
+isSuggestionEnabled    = require 'activity/util/isSuggestionEnabled'
 
 TopicChatPaneView = require './components/topicchatpane/view'
 
@@ -217,7 +218,7 @@ module.exports = class ActivityAppView extends KDView
         then AnnouncementPane
         else ActivityPane
 
-    paneOptions.suggestionsEnabled = yes  if paneClass is ActivityPane
+    paneOptions.isSuggestionEnabled = isSuggestionEnabled()  if paneClass is ActivityPane
 
     @tabs.addPane pane = new paneClass paneOptions, data
 
