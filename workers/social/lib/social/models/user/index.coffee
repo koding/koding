@@ -1381,17 +1381,22 @@ module.exports = class JUser extends jraphical.Module
     @count {email}, (err, count)-> callback err, count is 0
 
 
+  @getValidUsernameLengthRange = -> { minLength : 4, maxLength : 25 }
+
+
   @usernameAvailable = (username, callback)->
-    JName = require '../name'
+
+    JName     = require '../name'
 
     username += ''
-    res =
+    res       =
       kodingUser : no
       forbidden  : yes
 
     JName.count { name: username }, (err, count)=>
+      { minLength, maxLength } = JUser.getValidUsernameLengthRange()
 
-      if err or username.length < 4 or username.length > 25
+      if err or username.length < minLength or username.length > maxLength
         callback err, res
       else
         res.kodingUser = count is 1
