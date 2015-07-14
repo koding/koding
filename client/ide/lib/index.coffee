@@ -1536,6 +1536,7 @@ class IDEAppController extends AppController
   handleTabDropped: (event, splitView, index) ->
 
     @moveTabToPanel @targetTabView, splitView, index  if @targetTabView
+    @emit 'IDETabDropped'
 
 
   moveTabToPanel: (tabView, targetPanel, index) ->
