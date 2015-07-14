@@ -61,7 +61,7 @@ selectedChannelThread = [
   selectedChannel
   (threads, channel) ->
     return null  unless channel
-    thread = threads.get channel.id
+    thread = threads.get channel.get('id')
     return thread.set 'channel', channel
 ]
 
