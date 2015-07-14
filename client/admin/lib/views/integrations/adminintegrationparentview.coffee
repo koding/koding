@@ -1,5 +1,5 @@
+kd                          = require 'kd'
 JView                       = require 'app/jview'
-showError                   = require 'app/util/showError'
 integrationHelpers          = require 'app/helpers/integration'
 AdminIntegrationSetupView   = require './adminintegrationsetupview'
 AdminIntegrationDetailsView = require './adminintegrationdetailsview'
@@ -43,4 +43,11 @@ module.exports = class AdminIntegrationParentView extends JView
 
   handleError: (err) ->
 
-    showError err
+    kd.warn err
+
+    partial = 'There was an error please try again.'
+
+    if err.message is 'Not found'
+      partial = 'There is no integration related with this identifier.'
+
+    @addSubView @mainView = new kd.CustomHTMLView { partial, cssClass: 'error-view' }
