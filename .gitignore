@@ -77,3 +77,4 @@ client/test/logs
 
 supervisor.html
 .supervisor/*
+supervisord.conf
