@@ -653,8 +653,8 @@ module.exports = class LoginView extends JView
         @$('.login-footer').hide()
       when "login"
         @loginForm.username.input.setFocus()
-        @$('.inline-footer').show()
-        @$('.login-footer').show()
+        if @$('.inline-footer').is ':hidden' then @$('.inline-footer').show()
+        if @$('.login-footer').is ':hidden' then @$('.login-footer').show()
       when "recover"
         @$('.flex-wrapper').addClass 'one'
         @goToRecoverLink.hide()
