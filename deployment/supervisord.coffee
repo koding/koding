@@ -6,33 +6,47 @@ generateMainConf = (KONFIG) ->
   environment = ""
   environment += "#{key}='#{val}'," for key,val of KONFIG.ENV
 
+  {supervisord} = KONFIG
+
+  {
+    logdir
+    rundir
+    minfds
+    minprocs
+    unix_http_server
+  } = supervisord
+
   """
   [supervisord]
   ; environment variables
   environment=#{environment}
 
-  pidfile=/var/run/supervisord.pid                ; pidfile location
+  pidfile=#{rundir}/supervisord.pid
 
-  logfile=/var/log/supervisord/supervisord.log    ; supervisord log file
-  childlogdir=/var/log/supervisord/               ; where child log files will live
+  logfile=#{logdir}/supervisord.log
+  childlogdir=#{logdir}/
+
+  ; number of startup file descriptors
+  minfds=#{minfds}
+
+  ; number of process descriptors
+  minprocs=#{minprocs}
 
   logfile_maxbytes=50MB                           ; maximum size of logfile before rotation
   logfile_backups=10                              ; number of backed up logfiles
   loglevel=error                                  ; info, debug, warn, trace
 
   nodaemon=false                                  ; run supervisord as a daemon
-  minfds=10000                                    ; number of startup file descriptors
-  minprocs=200                                    ; number of process descriptors
   user=root                                       ; default user
 
   [unix_http_server]
-  file=/var/run/supervisor.sock                   ; path to your socket file
+  file=#{unix_http_server.file}
 
   [rpcinterface:supervisor]
   supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
   [supervisorctl]
-  serverurl=unix:///var/run/supervisor.sock       ; use a unix:// URL  for a unix socket
+  serverurl=unix://#{unix_http_server.file}       ; use a unix:// URL  for a unix socket
 
   [inet_http_server]
   port=0.0.0.0:9001
