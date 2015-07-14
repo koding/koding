@@ -113,10 +113,10 @@ class RecoverHandlerHelper
 
   @generateRecoverRequestParams = (opts = {}) ->
 
-    { body : email } = opts
+    email = opts?.body?.email or 'someEmail'
 
     url  = generateUrl
-      route : "#{email}/Recover"
+      route : "#{encodeURIComponent email}/Recover"
 
     body = RecoverHandlerHelper.generateRecoverRequestBody()
 
@@ -127,6 +127,34 @@ class RecoverHandlerHelper
     requestParams.body   = querystring.stringify requestParams.body
 
     return requestParams
+
+
+class ResetHandlerHelper
+
+  @generateResetRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      email : ''
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateResetRequestParams = (opts = {}) ->
+
+    email = opts?.body?.email or 'someEmail'
+
+    url  = generateUrl
+      route : "#{encodeURIComponent email}/Reset"
+
+    body = ResetHandlerHelper.generateResetRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
 
 
 class ValidationHandlerHelper

@@ -721,8 +721,8 @@ module.exports = class JUser extends jraphical.Module
           $set            :
             username      : username
             clientId      : replacementToken
-            lastAccess    : new Date
-          $unset:
+            lastLoginDate : new Date
+          $unset          :
             guestId       : 1
 
         session.update sessionUpdateOptions, (err)->
