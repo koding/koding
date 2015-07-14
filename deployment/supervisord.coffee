@@ -32,6 +32,7 @@ generateMainConf = (supervisorEnvironmentStr ="")->
   port=0.0.0.0:9001
   username=koding
   password=1q2w3e4r
+
   """
 
 # becareful while editing this function, any change will affect evey worker
