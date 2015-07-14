@@ -762,6 +762,10 @@ Configuration = (options={}) ->
   KONFIG.supervisord.unix_http_server =
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
 
+  KONFIG.supervisord.memmon =
+    limit : '3072MB'
+    email : 'sysops+supervisord-sandbox@koding.com'
+
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
