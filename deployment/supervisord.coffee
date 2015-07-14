@@ -35,7 +35,7 @@ generateMainConf = (supervisorEnvironmentStr ="")->
 
   """
 
-# becareful while editing this function, any change will affect evey worker
+# becareful while editing this function, any change will affect every worker
 generateSupervisorSectionForWorker = (app, options={})->
   section =
     command                 : "command"
