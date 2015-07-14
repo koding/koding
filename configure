@@ -80,6 +80,8 @@ rest = ->
     fs.writeFileSync "./deployment/generated_files/nginx.conf", KONFIG.nginxConf
     fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
 
+    if KONFIG.supervisord.output_path
+      fs.writeFileSync KONFIG.supervisord.output_path, KONFIG.supervisorConf
 
     log "Configuration done"
     log "------------------"
