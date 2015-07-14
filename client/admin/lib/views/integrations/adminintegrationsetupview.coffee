@@ -31,7 +31,7 @@ module.exports = class AdminIntegrationSetupView extends JView
     @cancelButton = new KDButtonView
       title    : 'Cancel'
       cssClass : 'solid red compact cancel'
-      callback : @bound 'destroy'
+      callback : -> kd.singletons.router.handleRoute '/Admin/Integrations'
 
 
   setIntegration: ->
@@ -43,26 +43,7 @@ module.exports = class AdminIntegrationSetupView extends JView
     integrationHelpers.create options, (err, response) =>
       return console.warn "couldnt create integration", err  if err
 
-      integration = @getData()
-
-      data =
-        id              : response.id
-        integration     : @getData()
-        token           : response.token
-        integrationId   : response.integrationId
-        selectedChannel : response.channelId
-        channels        : integration.channels
-        webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{response.token}"
-
-      if integration.settings?.events
-        events = try JSON.parse integration.settings.events
-        catch e then []
-        data.settings = {events}
-
-      delete integration.channels
-
-      @destroy()
-      @emit 'NewIntegrationAdded', data
+      kd.singletons.router.handleRoute "/Admin/Integrations/Configure/#{response.id}"
 
 
   pistachio: ->
