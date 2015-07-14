@@ -13,7 +13,10 @@ import (
 	"koding/tools/utils"
 	"socialapi/models"
 	"socialapi/workers/common/response"
+	"strconv"
 	"strings"
+
+	"koding/db/mongodb/modelhelper"
 
 	"github.com/PuerkitoBio/throttled"
 	"github.com/koding/bongo"
@@ -21,7 +24,6 @@ import (
 	kmetrics "github.com/koding/metrics"
 	"github.com/koding/redis"
 	"github.com/koding/runner"
-
 	tigertonic "github.com/rcrowley/go-tigertonic"
 
 	gometrics "github.com/rcrowley/go-metrics"
@@ -70,7 +72,7 @@ var throttleDenyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 })
 
 // todo add prooper logging
-func getAccount(r *http.Request) *models.Account {
+func getAccount(r *http.Request, groupName string) *models.Account {
 	cookie, err := r.Cookie("clientId")
 	if err != nil {
 		return models.NewAccount()
@@ -91,14 +93,89 @@ func getAccount(r *http.Request) *models.Account {
 		return models.NewAccount()
 	}
 
-	acc := models.NewAccount()
-	// err is ignored intentionally
-	err = acc.ByNick(session.Username)
-	if err != nil && err != bongo.RecordNotFound {
-		runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())
+	acc, err := makeSureAccount(groupName, session.Username)
+	if err != nil {
+		// log
+	}
+
+	groupChannel, err := models.Cache.Channel.ByGroupName(groupName)
+	if err != nil {
+		// log
+	}
+
+	if err := makeSureMembership(groupChannel, acc.Id); err != nil {
+		// log
 	}
 
 	return acc
+}
+
+// makeSureAccount checks if incoming account is in postgres, if not creates it
+// lazily and sets socialapi id of it in mongo
+func makeSureAccount(groupName string, username string) (*models.Account, error) {
+	// try to fetch account from postgres
+	acc, err := models.Cache.Account.ByNick(username)
+	if err == nil {
+		return acc, nil
+	}
+
+	if err != bongo.RecordNotFound {
+		return acc, err
+	}
+
+	// if account is not in postgres, try to create it
+
+	// we need account first
+	macc, err := modelhelper.GetAccount(username)
+	if err != nil {
+		return nil, err
+	}
+
+	acc = models.NewAccount() // account is nil, set it
+	acc.OldId = macc.Id.Hex()
+	acc.Nick = username
+	if err := acc.Create(); err != nil {
+		return nil, err
+	}
+
+	// set it to cache, in case we may need it
+	if err := models.Cache.Account.SetToCache(acc); err != nil {
+		return nil, err
+	}
+
+	// we just created the account in postgres, so update mongo with
+	// socialApiId
+	s := modelhelper.Selector{
+		"profile.nickname": username,
+	}
+	o := modelhelper.Selector{"$set": modelhelper.Selector{
+		"socialApiId": strconv.FormatInt(acc.Id, 10),
+	}}
+	if err := modelhelper.UpdateAccount(s, o); err != nil {
+		return nil, err
+	}
+
+	return acc, nil
+}
+
+// makeSureMembership checks if the incoming account is a member of the group
+// channel that is persisted within incoming session data
+func makeSureMembership(groupChannel *models.Channel, accountId int64) error {
+	isMember, err := models.Cache.Participant.ByChannelIdAndAccountId(groupChannel.Id, accountId)
+	if err != nil {
+		return err
+	}
+	// we dont need to do anything if the user is a member of group channel
+	if isMember {
+		return nil
+	}
+
+	cp, err := groupChannel.AddParticipant(accountId)
+	if err != nil {
+		return err
+	}
+
+	return models.Cache.Participant.SetToCache(cp.ChannelId, cp.AccountId)
 }
 
 func getGroupName(r *http.Request) string {
@@ -174,14 +251,10 @@ func BuildHandlerWithContext(handler http.Handler, redis *redis.RedisSession, lo
 	// add context
 	return tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
-			// this is an example
-			// set group name to context
-			//
-
 			context := models.NewContext(redis, log)
 			context.GroupName = getGroupName(r)
 			context.Client = &models.Client{
-				Account: getAccount(r),
+				Account: getAccount(r, context.GroupName),
 				IP:      net.ParseIP(utils.GetIpAddress(r)),
 			}
 
