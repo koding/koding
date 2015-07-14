@@ -30,7 +30,5 @@ module.exports = ->
     switch type
       when 'home'
         kd.singletons.router.handleRoute '/Admin/Settings'
-      when 'section'
-        handle info, path
-      when 'action'
+      when 'section', 'action', 'identifier'
         handle info, path

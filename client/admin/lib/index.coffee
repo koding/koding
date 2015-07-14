@@ -78,15 +78,18 @@ module.exports = class AdminAppController extends AppController
         paneAction = pane.getOption 'action'
         paneSlug   = pane.getOption 'slug'
 
-        if action is paneAction
+        if identifier and action is paneAction
           targetPane = pane
         else if paneSlug is section
           targetPane = pane
 
       if targetPane
         @mainView.tabs.showPane targetPane
+        targetPaneView = targetPane.getMainView()
         if identifier
-          targetPane.getMainView().handleIdentifier? identifier, action
+          targetPaneView.handleIdentifier? identifier, action
+        else
+          targetPaneView.handleAction? action
       else
         kd.singletons.router.handleRoute '/Admin/Settings'
 
