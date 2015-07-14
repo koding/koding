@@ -7,7 +7,8 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 # Store Data getters
 # Main purpose of these getters are fetching data from stores, some of them
 # the ones with `withEmptyMap` will return an empty immutable map if data from
-# the store is falsy.
+# the store is falsy. Another ones with `withEmptyList` will return an empty
+# immutable list if data from the store is falsy.
 
 ChannelsStore                  = [['ChannelsStore'], withEmptyMap]
 MessagesStore                  = [['MessagesStore'], withEmptyMap]
@@ -115,6 +116,7 @@ selectedChannelThreadMessages = [
     else immutable.List()
 ]
 
+# Aliases for providing consistent getter names for suggestion stores
 currentSuggestionsQuery = SuggestionsQuery
 currentSuggestions      = Suggestions
 currentSuggestionsState = SuggestionsState
