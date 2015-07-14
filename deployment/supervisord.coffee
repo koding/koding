@@ -105,6 +105,16 @@ generateWorkerSection = (app, options={}, KONFIG) ->
   return supervisordSection
 
 
+generateMemmonSection = (config) ->
+
+  {limit, email} = config
+
+  """
+  [eventlistener:memmon]
+  command=memmon -g environment=#{limit} -m #{email}
+  events=TICK_60
+  """
+
 
 module.exports.create = (KONFIG)->
   # create supervisord main config
@@ -142,11 +152,7 @@ module.exports.create = (KONFIG)->
     \n
     """
 
-  conf += """
-  [eventlistener:memmon]
-  command=memmon -g environment=3072MB -m sysops+supervisord@koding.com
-  events=TICK_60
-
-  """
+  {memmon} = KONFIG.supervisord
+  conf += generateMemmonSection memmon  if memmon
 
   return conf
