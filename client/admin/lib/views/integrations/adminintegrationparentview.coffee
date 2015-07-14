@@ -19,6 +19,7 @@ module.exports = class AdminIntegrationParentView extends JView
     @identifier = identifier
 
     @mainView?.destroy()
+    @createLoadingView()
 
     if action is 'Add' then @handleAdd() else @handleConfigure()
 
@@ -29,6 +30,7 @@ module.exports = class AdminIntegrationParentView extends JView
       return @handleError err  if err
 
       @addSubView @mainView = new AdminIntegrationSetupView {}, data
+      @loader.destroy()
 
 
   handleConfigure: ->
@@ -39,6 +41,7 @@ module.exports = class AdminIntegrationParentView extends JView
       return @handleError err  if err
 
       @addSubView @mainView = new AdminIntegrationDetailsView {}, data
+      @loader.destroy()
 
 
   handleError: (err) ->
@@ -51,3 +54,11 @@ module.exports = class AdminIntegrationParentView extends JView
       partial = 'There is no integration related with this identifier.'
 
     @addSubView @mainView = new kd.CustomHTMLView { partial, cssClass: 'error-view' }
+
+
+  createLoadingView: ->
+
+    @addSubView @loader = new kd.LoaderView
+      size       : width : 26
+      cssClass   : 'action-container'
+      showLoader : yes
