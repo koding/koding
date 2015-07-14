@@ -15,7 +15,7 @@ module.exports = class SuggestionList extends React.Component
 
     { suggestions, query } = @props
     suggestions.map (suggestion) ->
-      <SuggestionItem suggestion={suggestion} query={query} />
+      <SuggestionItem suggestion={suggestion} query={query} key={suggestion.get('id')} />
 
 
   render: ->

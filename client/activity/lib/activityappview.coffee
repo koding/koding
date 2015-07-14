@@ -202,6 +202,8 @@ module.exports = class ActivityAppView extends KDView
     channelId = data.id
     type      = data.typeConstant
 
+    paneOptions = { name, type, channelId }
+
     paneClass = switch type
       when 'bot'            then KodingBotMessagePane
       when 'privatemessage' then PrivateMessagePane
@@ -215,7 +217,9 @@ module.exports = class ActivityAppView extends KDView
         then AnnouncementPane
         else ActivityPane
 
-    @tabs.addPane pane = new paneClass {name, type, channelId}, data
+    paneOptions.suggestionsEnabled = yes  if paneClass is ActivityPane
+
+    @tabs.addPane pane = new paneClass paneOptions, data
 
     path = helper.sanitizePath kd.singletons.router.getCurrentPath()
 
