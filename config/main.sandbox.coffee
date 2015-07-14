@@ -752,6 +752,17 @@ Configuration = (options={}) ->
           }
         ]
 
+
+  KONFIG.supervisord =
+    logdir   : '/var/log/koding'
+    rundir   : '/var/run'
+    minfds   : 10000
+    minprocs : 200
+
+  KONFIG.supervisord.unix_http_server =
+    file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
+
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
