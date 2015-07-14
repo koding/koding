@@ -25,21 +25,6 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
     @button    = new KDButtonView
       cssClass : 'solid compact green add'
       title    : if @integrationType is 'new' then 'Add' else 'Configure'
-      loader   : yes
-      callback : @bound 'fetchIntegrationChannels'
-
-
-  fetchIntegrationChannels: ->
-
-    data = @getData()
-
-    integrationHelpers.fetchChannels (err, channels) =>
-      return  if err
-
-      data.channels = channels
-
-      @button.hideLoader()
-      @emit 'IntegrationGroupsFetched', data
 
 
   pistachio: ->

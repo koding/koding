@@ -72,45 +72,8 @@ module.exports = class AdminIntegrationsListView extends KDView
     for item in items
       item.integrationType = @integrationType
       listItem = @listController.addItem item
-      @registerListItem listItem
 
     @listController.lazyLoader.hide()
-
-
-  registerListItem: (item) ->
-
-    item.on 'IntegrationConfigureRequested', @bound 'showIntegrationDetails'
-
-    item.on 'IntegrationGroupsFetched', (data) =>
-      setupView = new AdminIntegrationSetupView {}, data
-      setupView.once 'KDObjectWillBeDestroyed', @bound 'showList'
-      setupView.once 'NewIntegrationAdded',     @bound 'showIntegrationDetails'
-
-      @showView setupView
-
-
-  showView: (view) ->
-
-    @listController.getView().hide()
-    @subContentView.wrapper.destroySubViews()
-    @subContentView.wrapper.addSubView view
-
-
-  showList: ->
-
-    @subContentView.wrapper.destroySubViews()
-    @listController.getView().show()
-
-
-  showIntegrationDetails: (data) ->
-
-    detailsView = new AdminIntegrationDetailsView {}, data
-    detailsView.once 'IntegrationCancelled', @bound 'showList'
-    detailsView.once 'NewIntegrationSaved', =>
-      @showList()
-      @emit 'ShowConfiguredTab'
-
-    @showView detailsView
 
 
   handleNoItem: (err) ->
