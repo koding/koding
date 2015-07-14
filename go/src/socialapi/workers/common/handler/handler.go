@@ -20,7 +20,6 @@ import (
 
 	"github.com/PuerkitoBio/throttled"
 	"github.com/koding/bongo"
-	"github.com/koding/cache"
 	"github.com/koding/logging"
 	kmetrics "github.com/koding/metrics"
 	"github.com/koding/redis"
@@ -96,12 +95,16 @@ func getAccount(r *http.Request, groupName string) *models.Account {
 
 	acc, err := makeSureAccount(groupName, session.Username)
 	if err != nil {
-		// log
+		if err != bongo.RecordNotFound {
+			runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())
+		}
+
+		return acc
 	}
 
 	groupChannel, err := models.Cache.Channel.ByGroupName(groupName)
 	if err != nil {
-		if err != cache.ErrNotFound {
+		if err != bongo.RecordNotFound {
 			runner.MustGetLogger().Error("Err while getting group channel: %s, err :%s", groupName, err.Error())
 		}
 
