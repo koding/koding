@@ -149,7 +149,7 @@ module.exports = class AccountAppController extends AppController
       items = items.concat mergeables
 
     # Temporary solution to hide this from other users ~ GG
-    if checkFlag 'super-admin'
+    if checkFlag('super-admin') or not isKoding()
       items.push { slug : 'Credentials',   title : 'Credentials',   listHeader: 'Your Credentials',          listType: 'credentials'   }
 
     @navController.instantiateListItems items
