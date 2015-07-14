@@ -299,7 +299,6 @@ class TeamHandlerHelper
       newsletter          : 'true'
       alreadyMember       : 'false'
       passwordConfirm     : 'testpass'
-      groupIsBeingCreated : yes
 
     deepObjectExtend defaultBodyObject, opts
 
@@ -415,12 +414,13 @@ class LoginHandlerHelper
   @generateLoginRequestBody = (opts = {}) ->
 
     defaultBodyObject =
-      token    : ''
-      tfcode   : ''
-      username : ''
-      password : ''
-      redirect : ''
-      groupName: 'koding'
+      token               : ''
+      tfcode              : ''
+      username            : generateRandomUsername()
+      password            : 'testpass'
+      redirect            : ''
+      groupName           : 'koding'
+      groupIsBeingCreated : 'false'
 
     deepObjectExtend defaultBodyObject, opts
 

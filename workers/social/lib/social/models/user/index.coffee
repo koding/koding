@@ -685,49 +685,86 @@ module.exports = class JUser extends jraphical.Module
     else
       callback null
 
+
   afterLogin = (user, clientId, session, callback)->
 
-    {username} = user
+    { username }      = user
 
-    user.fetchOwnAccount (err, account)->
-      if err then return callback err
-      checkLoginConstraints user, account, (err)->
-        if err then return callback err
+    account           = null
+    replacementToken  = null
+
+    queue = [
+
+      ->
+        # fetching account, will be used to check login constraints of user
+        user.fetchOwnAccount (err, account_)->
+          if err then return callback err
+          account = account_
+          queue.next()
+
+      ->
+        # checking login constraints
+        checkLoginConstraints user, account, (err)->
+          if err then return callback err
+          queue.next()
+
+      ->
+        # updating user passwordStatus if necessary
         updateUserPasswordStatus user, (err)->
           if err then return callback err
           replacementToken = createId()
-          session.update {
-            $set            :
-              username      : username
-              lastLoginDate : new Date
-              clientId      : replacementToken
-            $unset:
-              guestId       : 1
-          }, (err)->
-            return callback err  if err
+          queue.next()
 
-            options = lastLoginDate: new Date
+      ->
+        # updating session data after login
+        sessionUpdateOptions =
+          $set            :
+            username      : username
+            clientId      : replacementToken
+            lastAccess    : new Date
+          $unset:
+            guestId       : 1
 
-            if session.foreignAuth
-              { foreignAuth } = user
-              foreignAuth or= {}
-              foreignAuth = extend foreignAuth, session.foreignAuth
-              options.foreignAuth = foreignAuth
+        session.update sessionUpdateOptions, (err)->
+          return callback err  if err
+          queue.next()
 
-            user.update { $set: options, $unset: { inactive: 1 } }, (err) ->
-              return callback err  if err
+      ->
+        # updating user data after login
+        userUpdateData = { lastLoginDate : new Date }
 
-              # This should be called after login and this
-              # is not correct place to do it, FIXME GG
-              # p.s. we could do that in workers
-              account.updateCounts()
+        if session.foreignAuth
+          { foreignAuth }            = user
+          foreignAuth              or= {}
+          foreignAuth                = extend foreignAuth, session.foreignAuth
+          userUpdateData.foreignAuth = foreignAuth
 
-              JLog.log {type: "login", username , success: yes}
+        userUpdateOptions =
+          $set        : userUpdateData
+          $unset      :
+            inactive  : 1
 
-              JUser.clearOauthFromSession session, ->
-                callback null, { account, replacementToken, returnUrl: session.returnUrl }
+        user.update userUpdateOptions, (err) ->
+          return callback err  if err
 
-                Tracker.track username, { subject : Tracker.types.LOGGED_IN }
+          # This should be called after login and this
+          # is not correct place to do it, FIXME GG
+          # p.s. we could do that in workers
+          account.updateCounts()
+
+          JLog.log { type: "login", username , success: yes }
+          queue.next()
+
+      ->
+        JUser.clearOauthFromSession session, ->
+          callback null, { account, replacementToken, returnUrl: session.returnUrl }
+
+          Tracker.track username, { subject : Tracker.types.LOGGED_IN }
+          queue.next()
+
+    ]
+
+    daisy queue
 
 
   @logout = secure (client, callback)->
