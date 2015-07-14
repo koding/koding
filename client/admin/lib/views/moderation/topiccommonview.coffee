@@ -32,11 +32,10 @@ module.exports = class TopicCommonView extends KDView
   createSearchView: ->
     @addSubView @searchContainer = new KDCustomHTMLView
       cssClass : 'search'
-      partial  : '<span class="label">Search</span>'
 
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
       type        : 'text'
-      placeholder : 'Find by channel name'
+      placeholder : 'Search Channels'
       callback    : @bound 'search'
 
 

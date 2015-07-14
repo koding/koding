@@ -155,11 +155,14 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     @one {token}, (err, certificate)->
       return callback err  if err
 
-      unless certificate
+      if not certificate or (certificate?.status is 'invalidated')
         return callback { message: 'Invalid token.', short: 'invalid_token' }
 
       if certificate.status is 'redeemed'
         return callback { message: 'Already redeemed', short: 'redeemed_token' }
+
+      if certificate.status is 'expired'
+        return callback { message: 'The token has expired.', short: 'expired_token' }
 
       if certificate.getAt('expiresAt') < new Date
         certificate.expire (err)->
