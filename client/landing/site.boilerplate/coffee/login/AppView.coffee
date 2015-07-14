@@ -570,6 +570,8 @@ module.exports = class LoginView extends JView
         @formHeader.show()
         @formHeader.updatePartial @generateFormHeaderPartial()
         @loginForm.username.input.setFocus()
+        @goToRecoverLink.show()
+        @github.show()
       when "recover"
         @$('.flex-wrapper').addClass 'one'
         @github.hide()
