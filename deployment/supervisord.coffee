@@ -56,16 +56,20 @@ generateMainConf = (KONFIG) ->
   """
 
 # becareful while editing this function, any change will affect every worker
-generateSupervisorSectionForWorker = (app, options={})->
+generateWorkerSection = (app, options={}, KONFIG) ->
+
+  {projectRoot} = KONFIG
+  {supervisord: {logdir}} = KONFIG
+
   section =
     command                 : "command"
     stdout_logfile_maxbytes : "10MB"
     stdout_logfile_backups  : 50
-    stderr_logfile          : "/var/log/koding/#{app}.log"
-    stdout_logfile          : "/var/log/koding/#{app}.log"
+    stderr_logfile          : "#{logdir}/#{app}.log"
+    stdout_logfile          : "#{logdir}/#{app}.log"
     numprocs                : options.instances or 1
     numprocs_start          : 0
-    directory               : "/opt/koding"
+    directory               : projectRoot
     autostart               : yes
     autorestart             : yes
     startsecs               : 10
@@ -73,7 +77,7 @@ generateSupervisorSectionForWorker = (app, options={})->
     stopsignal              : "TERM"
     stopwaitsecs            : 10
     redirect_stderr         : yes
-    stdout_logfile          : "/var/log/koding/#{app}.log"
+    stdout_logfile          : "#{logdir}/#{app}.log"
     stdout_logfile_maxbytes : "1MB"
     stdout_logfile_backups  : 10
     stdout_capture_maxbytes : "1MB"
@@ -125,7 +129,7 @@ module.exports.create = (KONFIG)->
     groupConfigs[options.group]       or= {}
     groupConfigs[options.group][name] or= {}
 
-    conf += generateSupervisorSectionForWorker name, options
+    conf += generateWorkerSection name, options, KONFIG
 
 
   # add group sections
