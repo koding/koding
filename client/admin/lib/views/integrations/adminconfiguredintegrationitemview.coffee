@@ -68,58 +68,9 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     subview.addSubView new KDCustomHTMLView
       cssClass : 'edit'
       partial  : 'Customize <span></span>'
-      click    : => @handleCustomize data
-
-
-  handleCustomize: (integrationData) ->
-
-    { integration } = @getData()
-    { channelIntegration } = integrationData
-
-    integrationHelpers.fetchChannels (err, channels) =>
-      return showError err  if err
-
-      integrationHelpers.fetch {id: channelIntegration.id}, (err, response) =>
-
-        return showError err  if err
-
-        { channelIntegration } = response
-
-        data              =
-          channels        : channels
-          id              : channelIntegration.id
-          integration     : integration
-          token           : channelIntegration.token
-          createdAt       : channelIntegration.createdAt
-          updatedAt       : channelIntegration.updatedAt
-          description     : channelIntegration.description or integration.summary
-          integrationId   : channelIntegration.integrationId
-          selectedChannel : channelIntegration.channelId
-          webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
-          integrationType : 'configured'
-          isDisabled      : channelIntegration.isDisabled
-          selectedEvents  : []
-
-
-        if channelIntegration.settings
-          data.selectedEvents = try JSON.parse channelIntegration.settings.events
-          catch e then []
-
-        if integration.settings?.events
-          events = try JSON.parse integration.settings.events
-          catch e then null
-          data.settings = { events }
-
-        unless integration.name is 'github'
-          return @emit 'IntegrationCustomizeRequested', data
-
-        integrationHelpers.fetchGithubRepos (err, repositories) =>
-
-          return showError err  if err
-          data.repositories = repositories
-
-          @emit 'IntegrationCustomizeRequested', data
-
+      click    : =>
+        { id } = data.channelIntegration
+        kd.singletons.router.handleRoute "/Admin/Integrations/Configure/#{id}"
 
 
   pistachio: ->
