@@ -2,7 +2,7 @@ kd          = require 'kd'
 actionTypes = require '../actions/actiontypes'
 getGroup    = require 'app/util/getGroup'
 
-MAX_QUERY_LENGTH      = 50
+MAX_QUERY_LENGTH      = 10
 NUMBER_OF_SUGGESTIONS = 5
 
 ###*
