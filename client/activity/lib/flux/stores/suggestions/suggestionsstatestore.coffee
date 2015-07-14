@@ -4,6 +4,8 @@ toImmutable     = require 'app/util/toImmutable'
 
 module.exports = class SuggestionsStateStore extends KodingFluxStore
 
+  @getterPath = 'SuggestionsStateStore'
+
   getInitialState: -> toImmutable { accessible: yes, visible: yes }
 
   initialize: ->

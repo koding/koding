@@ -283,5 +283,5 @@ module.exports = class ActivityInputWidget extends KDView
     { reactor } = kd.singletons
     { getters, actions } = ActivityFlux
 
-    lastQuery = reactor.evaluate getters.suggestionsQuery
+    lastQuery = reactor.evaluate getters.currentSuggestionsQuery
     actions.suggestions.setQuery query  if query isnt lastQuery

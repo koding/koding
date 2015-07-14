@@ -5,6 +5,8 @@ toImmutable     = require 'app/util/toImmutable'
 
 module.exports = class SuggestionsStore extends KodingFluxStore
 
+  @getterPath = 'SuggestionsStore'
+
   getInitialState: -> toImmutable {}
 
 

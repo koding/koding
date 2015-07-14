@@ -19,9 +19,9 @@ module.exports = class SuggestionMenu extends React.Component
 
     { getters } = ActivityFlux
     return {
-      suggestions : getters.suggestions
-      query       : getters.suggestionsQuery
-      state       : getters.suggestionsState
+      suggestions : getters.currentSuggestions
+      query       : getters.currentSuggestionsQuery
+      state       : getters.currentSuggestionsState
     }
 
 

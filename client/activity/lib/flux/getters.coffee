@@ -116,6 +116,8 @@ selectedChannelThreadMessages = [
 ]
 
 currentSuggestionsQuery = SuggestionsQuery
+currentSuggestions      = Suggestions
+currentSuggestionsState = SuggestionsState
 
 module.exports = {
   followedFeedThreads
@@ -127,4 +129,6 @@ module.exports = {
   selectedChannelThreadMessages
 
   currentSuggestionsQuery
+  currentSuggestions
+  currentSuggestionsState
 }
