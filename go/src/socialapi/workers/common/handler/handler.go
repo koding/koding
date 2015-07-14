@@ -20,6 +20,7 @@ import (
 
 	"github.com/PuerkitoBio/throttled"
 	"github.com/koding/bongo"
+	"github.com/koding/cache"
 	"github.com/koding/logging"
 	kmetrics "github.com/koding/metrics"
 	"github.com/koding/redis"
@@ -100,11 +101,16 @@ func getAccount(r *http.Request, groupName string) *models.Account {
 
 	groupChannel, err := models.Cache.Channel.ByGroupName(groupName)
 	if err != nil {
-		// log
+		if err != cache.ErrNotFound {
+			runner.MustGetLogger().Error("Err while getting group channel: %s, err :%s", groupName, err.Error())
+		}
+
+		return acc
 	}
 
 	if err := makeSureMembership(groupChannel, acc.Id); err != nil {
-		// log
+		runner.MustGetLogger().Error("Err while making sure account: %s, err :%s", groupName, err.Error())
+		return acc
 	}
 
 	return acc
