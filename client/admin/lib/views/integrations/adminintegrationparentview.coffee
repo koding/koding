@@ -33,7 +33,13 @@ module.exports = class AdminIntegrationParentView extends JView
 
   handleConfigure: ->
 
-    @addSubView @mainView = new AdminIntegrationDetailsView {}, DUMMY_DATA
+    options = { id: @identifier }
+
+    integrationHelpers.fetchConfigureData options, (err, data) =>
+      return @handleError err  if err
+
+      @addSubView @mainView = new AdminIntegrationDetailsView {}, data
+
 
   handleError: (err) ->
 
