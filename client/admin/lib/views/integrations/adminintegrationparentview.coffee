@@ -13,6 +13,8 @@ module.exports = class AdminIntegrationParentView extends JView
 
     @setClass 'integrations'
 
+    @createFakeTabs()
+
 
   handleIdentifier: (identifier, action) ->
 
@@ -26,6 +28,9 @@ module.exports = class AdminIntegrationParentView extends JView
 
   handleAdd: ->
 
+    @addTab.setClass 'active'
+    @configureTab.unsetClass 'active'
+
     integrationHelpers.find @identifier, (err, data) =>
       return @handleError err  if err
 
@@ -34,6 +39,9 @@ module.exports = class AdminIntegrationParentView extends JView
 
 
   handleConfigure: ->
+
+    @addTab.unsetClass 'active'
+    @configureTab.setClass 'active'
 
     options = { id: @identifier }
 
@@ -62,3 +70,22 @@ module.exports = class AdminIntegrationParentView extends JView
       size       : width : 26
       cssClass   : 'action-container'
       showLoader : yes
+
+
+  createFakeTabs: ->
+
+    { router } = kd.singletons
+
+    @addSubView wrapper = new kd.CustomHTMLView
+      cssClass : 'kdtabhandlecontainer'
+      partial  : '<div class="kdview kdtabhandle-tabs clearfix"></div>'
+
+    wrapper.addSubView @addTab = new kd.CustomHTMLView
+      cssClass : 'kdtabhandle all-services'
+      partial  : '<b>All Services</b>'
+      click    : -> router.handleRoute '/Admin/Integrations/Add'
+
+    wrapper.addSubView @configureTab = new kd.CustomHTMLView
+      cssClass : 'kdtabhandle'
+      partial  : '<b>Configured Integrations</b>'
+      click    : -> router.handleRoute '/Admin/Integrations/Configure'
