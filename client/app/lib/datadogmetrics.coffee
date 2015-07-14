@@ -7,6 +7,29 @@ module.exports = class DatadogMetrics extends KDObject
   @buffer = kd.utils.dict()
 
 
+  @startTimer = (name, state = '') ->
+
+    key = "#{name}:#{state}:Timer"
+    @buffer[name] = Date.now()
+
+
+  @endTimer = (name, state = '') ->
+
+    key = "#{name}:#{state}:Timer"
+
+    return  unless startTime = @buffer[key]
+
+    now = Date.now()
+
+    # difference in milliseconds
+    difference = startTime - now
+
+    # duration in seconds
+    duration = Math.ceil(difference / 1000)
+
+    DatadogMetrics.collect name, state, duration
+
+
   @collect = (name, state, count = 1) ->
 
     key = "#{name}:#{state}"
@@ -30,10 +53,15 @@ module.exports = class DatadogMetrics extends KDObject
       metrics[key] = count
       data.push "#{key}:#{count}"
 
-    return  unless data.length
+    unless data.length
+      @inProgress = no
+      return
 
     remote.api.DataDog.sendMetrics data, (err) =>
-      return console.error 'Metrics:', err  if err
+      if err
+        console.error 'Metrics:', err
+        @inProgress = no
+        return
 
       for key in Object.keys metrics
         @buffer[key] -= metrics[key]

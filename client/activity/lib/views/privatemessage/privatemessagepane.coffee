@@ -392,7 +392,9 @@ module.exports = class PrivateMessagePane extends MessagePane
 
   toggleAutoCompleteInput: ->
 
-    @emit 'NewParticipantButtonClicked'
+    initialState = @autoCompleteForm.hasClass 'active'
+
+    @emit 'NewParticipantButtonClicked', not initialState
 
     @autoCompleteForm.toggleClass 'active'
     @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
