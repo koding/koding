@@ -144,6 +144,7 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
       heartbeat()
     .catch (err) =>
       kallback err
+  return
 
 
 module.exports = {
