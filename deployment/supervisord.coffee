@@ -7,16 +7,19 @@ generateMainConf = (supervisorEnvironmentStr ="")->
   ; environment variables
   environment=#{supervisorEnvironmentStr}
 
+  pidfile=/var/run/supervisord.pid                ; pidfile location
+
   logfile=/var/log/supervisord/supervisord.log    ; supervisord log file
+  childlogdir=/var/log/supervisord/               ; where child log files will live
+
   logfile_maxbytes=50MB                           ; maximum size of logfile before rotation
   logfile_backups=10                              ; number of backed up logfiles
   loglevel=error                                  ; info, debug, warn, trace
-  pidfile=/var/run/supervisord.pid                ; pidfile location
+
   nodaemon=false                                  ; run supervisord as a daemon
   minfds=10000                                    ; number of startup file descriptors
   minprocs=200                                    ; number of process descriptors
   user=root                                       ; default user
-  childlogdir=/var/log/supervisord/               ; where child log files will live
 
   [unix_http_server]
   file=/var/run/supervisor.sock                   ; path to your socket file
