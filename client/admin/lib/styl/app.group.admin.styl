@@ -186,7 +186,7 @@ Admin main styles
 
     &.permissions
 
-      .permissions-view.kdcustomscrollview
+      .permissions-view
         borderBox()
         overflow                auto
         font-size               14px
@@ -713,8 +713,19 @@ Admin main styles
   .listview-wrapper
     kalc                    height, (100% \- 91px)
 
+    .kdlistview
+      padding-right         20px
+
   .search
     margin                  25px 0
+    position                relative
+
+    &:before
+      display               block
+      abs                   0 0 11px 200px
+      content               ''
+      z-index               5
+      r-sprite              'admin', 'search'
 
     .label
       font-size             14px
@@ -742,7 +753,7 @@ Admin main styles
 
   .kdlistitemview-topic
     padding                 5px 0
-    border-top              1px solid #DEDEDE
+    border-top              1px solid #EFEFEF
     font-size               14px
     color                   #4c4c4c
 
@@ -759,7 +770,7 @@ Admin main styles
 
 
   .topicname
-    font-size               20px
+    font-size               14px
     color                   #434343
     font-weight             400
 
@@ -767,16 +778,25 @@ Admin main styles
     float                   left
     line-height             40px
 
+    &:before
+      display               block
+      abs                   22px 0 0 220px
+      r-sprite              'admin', 'linked'
+      content               ''
+
   .moderate-role
     abs()
     right                   0
     line-height             40px
     height                  40px
     font-size               14px
-    font-weight             bold
-    color                   #434343
+    color                   #D0D0D0
     vendor                  user-select, none
     pointer()
+
+    &:hover
+    &.active
+      color                 #00B057
 
   .moderate-role.active .settings-icon
     vendor                  transform, rotate(270deg)
@@ -793,10 +813,66 @@ Admin main styles
     margin-left             10px
 
   .settings
-    padding-top             15px
+    padding                 23px 18px
+    bg                      color, #F2F2F2
+    border                  1px solid #E4E4E4
 
+  .delete-topic
+    abs                     8px 100px 0 0
+    size                    32px 32px
+    
+    &:before
+      abs                   8px 0 0 8px 
+      content               ''
+      display               block
+      r-sprite              'admin', 'delete-topic'
 
+  .topics-connected
+  .topics-similar
+    color                   #B8B8B8
+    letter-spacing          0.8px
+    font-size               12px
 
+  .topics-similar
+    margin-top              26px
+
+  .similar-item
+    height                  34px
+    line-height             34px
+    border-top              1px solid #E2E2E2
+
+    &:first-child
+      border-top            none
+
+  .remove-topic
+    bg                      color, #FF6B5D
+    margin-top              12px
+
+    &:focus
+      box-shadow            0 0 10px -2px #FF6B5D
+
+    span
+      color                 #FFFFFF
+
+  .link-topic
+    bg                      color, #00B057
+    margin-top              12px
+    margin-right            15px
+
+    span
+      color                 #FFFFFF
+
+  .whitelist-topic
+    margin-top              12px
+    border-color            #00B057
+
+    span
+      color                 #00B057
+
+  .topics-empty
+    color                   #A9A9A9
+    text-align              center
+    padding                 30px 0 43px 0
 
 
 .AppModal--admin
@@ -1151,14 +1227,6 @@ Admin main styles
 
 .AppModal--admin .integrations
 
-  .integration-details
-    &.authorizable
-      section.settings
-        margin-bottom       0
-
-    .auth.container
-      margin-bottom         100px
-
   .kdtabhandle
     max-width               230px !important // override element style
 
@@ -1278,12 +1346,8 @@ Admin main styles
     .cancel
       margin-right          10px
 
-  .info-text
-    font-size               14px
-    color                   #8d8d8d
-    margin-bottom           20px
-
-  section.container
+  section.instructions
+  section.settings
     border                  1px solid #e8e8e8
     rounded                 6px
     margin                  30px 0
@@ -1394,17 +1458,3 @@ Admin main styles
         width               auto
         top                 1px
         rel()
-
-
-.kdmodal.content-modal
-
-  padding                   15px
-  borderBox()
-
-  .kdmodal-inner
-    margin                  0 !important
-    height                  100%
-    overflow                hidden
-
-  .kdmodal-content
-    height                  calc(100% \- 50px)

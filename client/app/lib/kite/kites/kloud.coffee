@@ -15,6 +15,10 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
   isManaged = (machineId)->
     (getProvider machineId) is 'managed'
 
+  getGroupName = ->
+    group = kd.singletons.groupsController?.getCurrentGroup()
+    return group?.slug ? 'koding'
+
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (payload) ->
 
@@ -29,6 +33,8 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
             message : 'Operation is not supported for this VM'
 
         payload.provider = provider
+
+      payload.groupName = getGroupName()
 
       @tell rpcMethod, payload
 
@@ -155,9 +161,10 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
     {kontrol, computeController} = kd.singletons
 
-    provider = getProvider machineId
+    provider  = getProvider machineId
+    groupName = getGroupName()
 
-    @tell 'info', { machineId, provider }
+    @tell 'info', { machineId, provider, groupName }
 
       .then (info) =>
 
@@ -210,5 +217,3 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       payload.provider = provider
 
     @tell 'deleteSnapshot', payload
-
-
