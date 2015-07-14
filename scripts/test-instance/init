@@ -35,9 +35,9 @@ docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
 ./run resetdb --yes
 ./run importusers
 
-supervisord -c $REPOSITORY_PATH/supervisord.conf
+sleep 60 # Wait time to let service processes settle
 
-sleep 60
+supervisord -c $REPOSITORY_PATH/supervisord.conf
 
 Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
 sleep 15
