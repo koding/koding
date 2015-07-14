@@ -4,6 +4,8 @@ KodingFluxStore = require 'app/flux/store'
 
 module.exports = class SelectedChannelThreadIdStore extends KodingFluxStore
 
+  @getterPath = 'SelectedChannelThreadIdStore'
+
   getInitialState: -> null
 
   initialize: ->

@@ -26,7 +26,9 @@ generateDummyMessage = require 'app/util/generateDummyMessage'
  * @typedef {Immutable.Map<string, IMThread>} IMThreadCollection
 ###
 
-module.exports = class ThreadsStore extends Nuclear.Store
+module.exports = class ChannelThreadsStore extends Nuclear.Store
+
+  @getterPath = 'ChannelThreadsStore'
 
   getInitialState: -> toImmutable {}
 
@@ -38,6 +40,21 @@ module.exports = class ThreadsStore extends Nuclear.Store
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
 
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
+
+    @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @addNewThread
+    @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @addNewThread
+
+  ###*
+   * Generic handler for initiating a thread with given channel.
+   *
+   * @param {IMThreadCollection} threads
+   * @param {object} payload
+   * @param {SocialChannel} channel
+   * @return {IMThreadCollection} nextState
+  ###
+  addNewThread: (threads, { channel }) ->
+
+    return initThread threads, channel.id
 
 
   ###*
