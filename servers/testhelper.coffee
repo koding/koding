@@ -410,6 +410,40 @@ class TeamHandlerHelper
     return requestParams
 
 
+class LoginHandlerHelper
+
+  @generateLoginRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      token    : ''
+      tfcode   : ''
+      username : ''
+      password : ''
+      redirect : ''
+      groupName: 'koding'
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  # overwrites given options in the default params
+  @generateLoginRequestParams = (opts = {}) ->
+
+    url  = generateUrl
+      route : 'Login'
+
+    body = LoginHandlerHelper.generateLoginRequestBody()
+
+    params                = { url, body }
+    defaultRequestParams  = generateDefaultParams params
+    requestParams         = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body    = querystring.stringify requestParams.body
+
+    return requestParams
+
+
 class RegisterHandlerHelper
 
   @generateRequestBody = (opts = {}) ->
@@ -451,6 +485,7 @@ module.exports = {
   generateRandomUsername
 
   TeamHandlerHelper
+  LoginHandlerHelper
   RecoverHandlerHelper
   RegisterHandlerHelper
   ValidationHandlerHelper
