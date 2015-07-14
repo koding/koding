@@ -69,7 +69,10 @@ updateMachineData = ({machine, kite}, callback)->
  * a kite is found.
  *
  * @param {Number} interval - The heartbeat interval (in seconds).
- * @param {Function(err:Error)} callback
+ * @param {Function(err:Error, info:Object)} callback - A callback for
+ *  when the new kite is connected. Info is the returned object from
+ *  the klient kite's `klient.info` method. This contains the
+ *  `providerName` key, among other things.
 ###
 heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
 
@@ -80,12 +83,12 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
   intervalId = null
 
   # A callback wrapper, to help ensure clearInterval is always called
-  kallback = (err) ->
+  kallback = (err, info) ->
 
     # It's expected that clearInterval gets called twice, but that
     # is not a problem in Chrome at least.
     clearInterval intervalId
-    callback err
+    callback err, info
 
   # Called on every interval, until canceled
   heartbeat = ->
@@ -122,10 +125,10 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
         # Get the klient kite, and the info from that klient so we
         # can popup a Provider specific modal
         # TODO: Is there a better way to get the klient kite?
-        # TODO: Uncomment, after klientInfo method is available.
-        #klient = computeController.machinesById[machine._id].getBaseKite()
-        #klient.klientInfo kallback
-        kallback null
+        klient = computeController.machinesById[machine._id].getBaseKite()
+        klient.klientInfo()
+          .then (payload) -> kallback null, payload
+          .catch    (err) -> kallback err
 
     queryPromise.catch (err) =>
         kallback err  if err
