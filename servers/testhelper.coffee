@@ -420,7 +420,6 @@ class LoginHandlerHelper
       password            : 'testpass'
       redirect            : ''
       groupName           : 'koding'
-      groupIsBeingCreated : 'false'
 
     deepObjectExtend defaultBodyObject, opts
 
