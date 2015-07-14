@@ -616,7 +616,7 @@ class IDEAppController extends AppController
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
-    @machineStateModal.once 'IDEBecameReady',          => @handleIDEBecameReady machineItem
+    @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'
 
 
   collapseSidebar: ->
@@ -1459,8 +1459,8 @@ class IDEAppController extends AppController
       kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
       # open README.md for the first time for newly registered users.
-      @machineStateModal.once 'IDEBecameReady', =>
-        machine = @mountedMachine
+      @machineStateModal.once 'IDEBecameReady', (machine) =>
+        machine or= @mountedMachine
         owner   = machine.getOwner()
         path    = "/home/#{owner}/README.md"
         file    = FSHelper.createFileInstance { path, machine }
