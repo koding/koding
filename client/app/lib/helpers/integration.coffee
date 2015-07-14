@@ -1,5 +1,6 @@
 kd           = require 'kd'
 remote       = require('app/remote').getInstance()
+globals      = require 'globals'
 doXhrRequest = require 'app/util/doXhrRequest'
 
 
@@ -140,6 +141,43 @@ fetchGithubRepos = (callback) ->
 
   fetch()
 
+
+fetchConfigureData = (options, callback) ->
+
+  fetchChannels (err, channels) ->
+    return callback err  if err
+
+    fetch options, (err, response) ->
+      return callback err  if err
+
+      { integration, channelIntegration } = response
+
+      { id, token, createdAt, updatedAt, description,
+        integrationId, channelId, isDisabled } = channelIntegration
+
+      description     = description or integration.summary
+      webhookUrl      = "#{globals.config.integration.url}/#{integration.name}/#{token}"
+      integrationType = 'confiured'
+      selectedEvents  = []
+      data            = { channels, id, integration, token, createdAt,
+                          updatedAt, description, integrationId, webhookUrl, isDisabled }
+
+      if channelIntegration.settings
+        data.selectedEvents = try JSON.parse channelIntegration.settings.events catch e then []
+
+      if integration.settings?.events
+        events = try JSON.parse integration.settings.events catch e then null
+        data.settings = { events }
+
+      if integration.name is 'github'
+        fetchGithubRepos (err, repositories) =>
+          return callback err  if err
+          data.repositories = repositories
+          callback null, data
+      else
+        callback null, data
+
+
 module.exports = {
   list
   find
@@ -149,5 +187,6 @@ module.exports = {
   fetchChannels
   regenerateToken
   fetchGithubRepos
+  fetchConfigureData
   fetchChannelIntegrations
 }
