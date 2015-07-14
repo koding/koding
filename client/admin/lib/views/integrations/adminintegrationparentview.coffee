@@ -35,7 +35,7 @@ module.exports = class AdminIntegrationParentView extends JView
       return @handleError err  if err
 
       @addSubView @mainView = new AdminIntegrationSetupView {}, data
-      @loader.destroy()
+      @loader?.destroy()
 
 
   handleConfigure: ->
@@ -49,7 +49,7 @@ module.exports = class AdminIntegrationParentView extends JView
       return @handleError err  if err
 
       @addSubView @mainView = new AdminIntegrationDetailsView {}, data
-      @loader.destroy()
+      @loader?.destroy()
 
 
   handleError: (err) ->
@@ -61,6 +61,7 @@ module.exports = class AdminIntegrationParentView extends JView
     if err.message is 'Not found'
       partial = 'There is no integration related with this identifier.'
 
+    @loader?.destroy()
     @addSubView @mainView = new kd.CustomHTMLView { partial, cssClass: 'error-view' }
 
 
