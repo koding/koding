@@ -334,7 +334,7 @@ func TestTerraformPlan(t *testing.T) {
 
 func TestTerraformStack(t *testing.T) {
 	t.Parallel()
-	username := "testuser13"
+	username := "testuser"
 	groupname := "koding"
 	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
@@ -363,12 +363,13 @@ func TestTerraformStack(t *testing.T) {
 	}()
 
 	applyArgs := &kloud.TerraformApplyRequest{
-		StackId: userData.StackId,
+		StackId:   userData.StackId,
+		GroupName: groupname,
 	}
 
 	resp, err := remote.Tell("apply", applyArgs)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	var result kloud.ControlResult
@@ -392,8 +393,9 @@ func TestTerraformStack(t *testing.T) {
 	time.Sleep(time.Minute * 5)
 
 	destroyArgs := &kloud.TerraformApplyRequest{
-		StackId: userData.StackId,
-		Destroy: true,
+		StackId:   userData.StackId,
+		Destroy:   true,
+		GroupName: groupname,
 	}
 
 	resp, err = remote.Tell("apply", destroyArgs)
@@ -599,7 +601,7 @@ func TestSnapshot(t *testing.T) {
 
 func TestResize(t *testing.T) {
 	t.Parallel()
-	username := "testuser5"
+	username := "testuser"
 	userData, err := createUser(username, "koding", "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
