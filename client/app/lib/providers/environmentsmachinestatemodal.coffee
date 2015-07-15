@@ -114,12 +114,16 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
         if /NetworkOut/i.test error
 
+          limitReachedNotice = "
+            <p>You've reached your outbound network 
+            usage limit for this week.</p>
+          "
+
           paymentController.subscriptions (err, subscription) =>
 
             if subscription.planTitle is 'free'
               @customErrorMessage = "
-                <p>You've reached your outbound network usage
-                limit for this week.</p><span>
+                #{limitReachedNotice}<span>
                 Please upgrade your <a href='/Pricing'>plan</a> or
                 <span class='contact-support'>contact support</span> for further
                 assistance.</span>
@@ -127,8 +131,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
             else
               @customErrorMessage = "
-                <p>You've reached your outbound network usage
-                limit for this week.</p><span>
+                #{limitReachedNotice}<span>
                 Please <span class='contact-support'>contact support</span> 
                 for further assistance.</span>
               "
