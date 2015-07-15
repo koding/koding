@@ -317,7 +317,8 @@ class IDEAppController extends AppController
     panel.destroy() # Remove panel.
 
     # Remove destroyed panel from array.
-    splitView.panels = _.compact splitView.panels
+    splitView.panels       = _.compact splitView.panels
+    splitView.beingResized = yes  # Mark as resized because DOM was deleted.
     splitView.detach()  # Detach `splitView` from DOM.
 
     # Point shot.
