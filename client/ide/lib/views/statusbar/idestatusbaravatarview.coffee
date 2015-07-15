@@ -184,6 +184,9 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     kd.singletons.appManager.tell 'IDE', methodName, @nickname, permission
 
+    if shouldWatch
+      kd.singletons.appManager.tell 'IDE', 'showConfirmToSyncLayout', nickname
+
 
   destroy: ->
 

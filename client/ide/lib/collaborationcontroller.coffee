@@ -5,6 +5,7 @@ sinkrow                       = require 'sinkrow'
 globals                       = require 'globals'
 kd                            = require 'kd'
 KDNotificationView            = kd.NotificationView
+KDModalView                   = kd.ModalView
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
@@ -286,6 +287,55 @@ module.exports = CollaborationController =
 
 
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
+
+
+  ###*
+   * Show confirm modal to revert layout to host's layout.
+   *
+   * @param {string} nickname
+  ###
+  showConfirmToSyncLayout: (nickname) ->
+
+    return  if nickname isnt @collaborationHost
+    return  if @amIHost
+
+    modal = new KDModalView
+      title         : "You won't lose your changes, if you have any."
+      cssClass      : "modal-with-text"
+      content       : """
+        Host's layout is updated since you last watched his changes, if you
+        click yes below we'll change your tabs layout to match host's layout.
+        Would you like to proceed?
+      """
+      overlay       : yes
+      buttons       :
+        "Yes"       :
+          cssClass  : "solid medium red"
+          callback  : =>
+            modal.destroy()
+            @syncParticipantToHost()
+        "Cancel"    :
+          cssClass  : "solid medium light-gray"
+          callback  : => modal.destroy()
+
+
+  syncParticipantToHost: ->
+
+    hostSnapshot    = @getHostSnapshotForParticipant()
+    recoveredPanes  = @layoutManager.clearWorkspace yes # Recover opened panes
+    @layoutManager.resurrectSnapshot hostSnapshot, yes
+
+    return  unless recoveredPanes.length
+
+    kd.utils.defer =>
+      for pane in recoveredPanes
+        isAdded = no
+
+        @forEachSubViewInIDEViews_ (p) ->
+          isAdded = yes  if p.hash is pane.view.hash
+
+        unless isAdded
+          @activeTabView.addPane pane
 
 
   bindSocialChannelEvents: ->
