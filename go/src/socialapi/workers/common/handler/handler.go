@@ -71,7 +71,8 @@ var throttleDenyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	writeJSONError(w, response.LimitRateExceededError{})
 })
 
-// todo add prooper logging
+// getAccount tries to retrieve account information from incoming request,
+// should always return a valid account, not nil
 func getAccount(r *http.Request, groupName string) *models.Account {
 	cookie, err := r.Cookie("clientId")
 	if err != nil {
@@ -99,7 +100,7 @@ func getAccount(r *http.Request, groupName string) *models.Account {
 			runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())
 		}
 
-		return acc
+		return models.NewAccount()
 	}
 
 	groupChannel, err := models.Cache.Channel.ByGroupName(groupName)
@@ -108,12 +109,12 @@ func getAccount(r *http.Request, groupName string) *models.Account {
 			runner.MustGetLogger().Error("Err while getting group channel: %s, err :%s", groupName, err.Error())
 		}
 
-		return acc
+		return models.NewAccount()
 	}
 
 	if err := makeSureMembership(groupChannel, acc.Id); err != nil {
 		runner.MustGetLogger().Error("Err while making sure account: %s, err :%s", groupName, err.Error())
-		return acc
+		return models.NewAccount()
 	}
 
 	return acc
