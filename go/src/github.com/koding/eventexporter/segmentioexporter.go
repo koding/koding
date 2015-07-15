@@ -41,10 +41,6 @@ func buildTrack(event *Event) (*analytics.Track, error) {
 		return nil, ErrSegmentIOUsernameEmpty
 	}
 
-	if event.User.Email == "" {
-		return nil, ErrSegmentIOEmailEmpty
-	}
-
 	if event.Name == "" {
 		return nil, ErrSegmentIOEventEmpty
 	}
