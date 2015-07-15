@@ -492,17 +492,19 @@ class IDEAppController extends AppController
         else
 
           @fetchSnapshot (snapshot) =>
-            return @resurrectLocalSnapshot snapshot  if snapshot
 
+            # Just resurrect snapshot for host or without collaboration.
+            # Because we need check the `@myWatchMap` and it is not possible here.
+            if snapshot and @amIHost
+              return @resurrectLocalSnapshot snapshot
 
-            @ideViews.first.createEditor()
-            @ideViews.last.createTerminal { machine }
-            @setActiveTabView @ideViews.first.tabView
-            @initialViewsReady = yes
+            # Be quite. Don't write initial views's changes to snapshot.
+            # After that, get participant's snapshot from collaboration data and build workspace.
+            @quite = yes  if @isInSession and not @amIHost
 
-            @forEachSubViewInIDEViews_ (pane) ->
-              pane.isInitial = yes
             @splitTabView type: 'horizontal', dontSave: yes
+
+            @addInitialViews()
 
 
   setMountedMachine: (machine) ->
@@ -1141,9 +1143,12 @@ class IDEAppController extends AppController
     @setActiveTabView @ideViews.first.tabView
     @initialViewsReady = yes
 
+    @forEachSubViewInIDEViews_ (pane) ->
+      pane.isInitial = yes
+
 
   resurrectLocalSnapshot: (snapshot) ->
-
+    return  if not @amIHost
     return  if snapshot then @layoutManager.resurrectSnapshot snapshot
 
     @fetchSnapshot (snapshot)->

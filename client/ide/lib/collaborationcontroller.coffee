@@ -579,19 +579,26 @@ module.exports = CollaborationController =
     @mountMachine @mountedMachine
 
 
+  ###*
+   * Resurrect snapshot for participant
+  ###
   resurrectSnapshot: ->
 
-    return  if @fakeTabView
+    @whenRealtimeReady =>
 
-    snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
-    snapshot = @appendHostSnapshot snapshot  unless @amIHost
+      @removeInitialViews()
 
-    @removeInitialViews()
+      mapLength = @myWatchMap?.values().length
 
-    for change in snapshot when change.context
-      @createPaneFromChange change
+      # Check it while `myWatchMap` is unfilled
+      # or the participant isn't following the host.
+      if not mapLength or (mapLength and @amIWatchingChangeOwner(@collaborationHost))
+        @layoutManager.resurrectSnapshot @getHostSnapshotForParticipant(), yes
+      else
+        @fetchSnapshot (snapshot) =>
+          @layoutManager.resurrectSnapshot snapshot  if snapshot
 
-    @changeActiveTabView change?.context?.paneType
+
   getHostSnapshotKey: ->
 
     return "#{@getCollaborationHost()}Snapshot"
