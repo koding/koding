@@ -156,32 +156,40 @@ module.exports = class IDELayoutManager extends KDObject
    * Resurrect saved snapshot from server.
    *
    * @param {Array} snapshot
+   * @param {boolean=} quite  Don't dispatch `SplitViewWasMerged` or `NewSplitViewCreated` event.
   ###
-  resurrectSnapshot: (snapshot) ->
+  resurrectSnapshot: (snapshot, quite = no) ->
 
     ## The `ideApp` is an `IDEAppController`s instance
     ideApp = @getDelegate()
 
+    ideApp.quite = no
+
     # if has the fake view
     if ideApp.fakeViewsDestroyed
-      ideApp.mergeSplitView()
+      ideApp.mergeSplitView quite
       ideApp.setActiveTabView ideApp.ideViews.first.tabView
 
     ideApp.splitTabView { type: snapshot[1].direction, quite }  if snapshot[1]
 
+    for index, item of snapshot when item.type is 'split'  # Defensive check.
+      ideView = ideApp.ideViews[index]
 
       if not item.views.length or item.views.first.context
         ideView.setHash item.hash
 
-    for index, item of snapshot
-      tabView = ideApp.ideViews[index]?.tabView
-      @resurrectPanes_ item.views, tabView
+      @resurrectPanes_ item.views, ideView.tabView, quite
 
     ideApp.recalculateHandles()
     ideApp.isLocalSnapshotRestored = yes
 
 
-  resurrectPanes_: (items, tabView) ->
+  ###*
+   * @param {Array} items
+   * @param {IDEApplicationTabView} tabView
+   * @param {boolean=} quite  Don't dispatch any event when "IDEView" is merged or splitted
+  ###
+  resurrectPanes_: (items, tabView, quite) ->
 
     ## The `ideApp` is an `IDEAppController`s instane
     ideApp = @getDelegate()
@@ -205,8 +213,8 @@ module.exports = class IDELayoutManager extends KDObject
         if item.views.length
           # since we are in a for loop to be able to preserve item and tabview
           # for the defer, we are creating a scope and passing them into there.
-          do (item, tabView) =>
-            kd.utils.defer => @resurrectPanes_ item.views, tabView
+          do (item, tabView, quite) =>
+            kd.utils.defer => @resurrectPanes_ item.views, tabView, quite
 
       else
         # Don't use `active tab view` logic for new pane creation.
