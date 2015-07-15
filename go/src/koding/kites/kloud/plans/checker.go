@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"koding/db/models"
 	"koding/kites/kloud/api/amazon"
@@ -32,7 +33,7 @@ func (k *KodingChecker) Fetch(ctx context.Context, planName string) (Checker, er
 		return nil, errors.New("Network usage endpoint is not set")
 	}
 
-	plan, ok := Plans[planName]
+	plan, ok := Plans[strings.ToLower(planName)]
 	if !ok {
 		return nil, fmt.Errorf("could not find plan. There is no plan called '%s'", planName)
 	}
