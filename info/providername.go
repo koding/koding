@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/koding/klient/info/publicip"
 )
 
 type ProviderName string
 
 const (
-	// The site PublicIP() uses to get the public IP from.
-	publicEcho string = "http://echoip.com"
-
 	// The whois server WhoisQuery uses by default.
 	whoisServer string = "whois.arin.net"
 
@@ -36,7 +34,7 @@ var DefaultProviderCheckers = map[ProviderName]ProviderChecker{
 // then feeds the whois to all DefaultProviderCheckers.
 func CheckProvider() (ProviderName, error) {
 	// Get the IP of this machine, to whois against
-	ip, err := PublicIP()
+	ip, err := publicip.PublicIP()
 	if err != nil {
 		return "", err
 	}
@@ -109,27 +107,4 @@ func WhoisQuery(query, server string, timeout time.Duration) (
 	}
 
 	return string(b), nil
-}
-
-// PublicIP returns an IP that is supposed to be Public.
-// Copied from app/register, because we can't import that package (import
-// cycle).
-func PublicIP() (net.IP, error) {
-	resp, err := http.Get(publicEcho)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	out, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	n := net.ParseIP(string(out))
-	if n == nil {
-		return nil, fmt.Errorf("cannot parse ip %s", string(out))
-	}
-
-	return n, nil
 }
