@@ -97,7 +97,11 @@ func WhoisQuery(query, server string, timeout time.Duration) (string, error) {
 	}
 	defer conn.Close()
 
-	conn.Write([]byte(fmt.Sprintf("%s\r\n", query)))
+	_, err = conn.Write([]byte(fmt.Sprintf("%s\r\n", query)))
+	if err != nil {
+		return "", err
+	}
+
 	b, err := ioutil.ReadAll(conn)
 	if err != nil {
 		return "", err
