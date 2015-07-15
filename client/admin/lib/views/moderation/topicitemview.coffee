@@ -62,13 +62,18 @@ module.exports = class TopicItemView extends KDListItemView
         tagName  : 'a'
         cssClass : 'delete-topic'
         click    :=>
+          @setClass 'hidden'
           options = 
             rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
             leafId  : data.id
           
           kd.singletons.socialapi.moderation.blacklist options, (err, data) =>
-            if err
-              return kd.warn err
+            return kd.warn err if err
+          
+          # TO-DO
+          # Send removed data into DELETED Topics
+          
+            
               
   createDeletedTopicView: (data) ->
       options = 
