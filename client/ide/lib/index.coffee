@@ -1172,6 +1172,7 @@ class IDEAppController extends AppController
   syncChange: (change) ->
 
     { context } = change
+
     return  if not @rtm or not @rtm.isReady or not context
 
     change.rtmHash = @rtm.hash

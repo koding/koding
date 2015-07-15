@@ -1,5 +1,6 @@
+_       = require 'lodash'
 getNick = require 'app/util/nick'
-_ = require 'lodash'
+
 
 ###*
  * Fetches collaboration file with given fileName and calls the callback with it.

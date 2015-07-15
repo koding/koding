@@ -18,10 +18,13 @@ IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
 
+
 HANDLE_PROXIMITY_DISTANCE   = 100
 DEFAULT_SESSION_NAME_LENGTH = 24
 
+
 module.exports = class IDEView extends IDEWorkspaceTabView
+
 
   constructor: (options = {}, data) ->
 
@@ -664,33 +667,33 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     machine.getBaseKite().fetchTerminalSessions()
 
 
-toggleVisibility = (handle, state) ->
-  el = handle.getElement()
-  if state
-  then el.classList.add 'in'
-  else el.classList.remove 'in'
+  toggleVisibility = (handle, state) ->
+    el = handle.getElement()
+    if state
+    then el.classList.add 'in'
+    else el.classList.remove 'in'
 
 
-setupSplitHandleNotifier = (handle) ->
+  setupSplitHandleNotifier = (handle) ->
 
-  splitTop = handle.getY()
-  splitLeft = handle.getX()
+    splitTop = handle.getY()
+    splitLeft = handle.getX()
 
-  notifier = new ProximityNotifier
-    handler: (event) ->
-      { pageX, pageY } = event
+    notifier = new ProximityNotifier
+      handler: (event) ->
+        { pageX, pageY } = event
 
-      distX = Math.pow splitLeft - pageX, 2
-      distY = Math.pow splitTop - pageY, 2
-      dist  = Math.sqrt distX + distY
+        distX = Math.pow splitLeft - pageX, 2
+        distY = Math.pow splitTop - pageY, 2
+        dist  = Math.sqrt distX + distY
 
-      return dist < HANDLE_PROXIMITY_DISTANCE
+        return dist < HANDLE_PROXIMITY_DISTANCE
 
-  notifier.on 'MouseInside', -> toggleVisibility handle, yes
-  notifier.on 'MouseOutside', -> toggleVisibility handle
+    notifier.on 'MouseInside', -> toggleVisibility handle, yes
+    notifier.on 'MouseOutside', -> toggleVisibility handle
 
-  handle.on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
+    handle.on 'KDObjectWillBeDestroyed', notifier.bound 'destroy'
 
-  return notifier
+    return notifier
 
 
