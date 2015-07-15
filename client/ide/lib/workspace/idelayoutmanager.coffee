@@ -39,13 +39,20 @@ module.exports = class IDELayoutManager extends KDObject
   ###*
    * Create first split panels.
    *
-   * @param {KDSplitViewPanel} parent
+   * @param {KDSplitViewPanel|IDEView} parent
   ###
   createParentSplitViews: (parent) ->
+
+    if parent instanceof IDEView
+      hash = parent.hash
+    else
+      ideView = parent.getSubViews().first
+      hash    = if ideView instanceof IDEView then ideView.hash else null
 
     @layout.push
       type      : 'split',
       direction : if parent.vertical is true then 'vertical' else 'horizontal'
+      hash      : hash
       views     : @drillDown parent
 
 
@@ -130,10 +137,13 @@ module.exports = class IDELayoutManager extends KDObject
   ###
   createSplitView: (panel, parentView, isFirst = no) ->
 
+    ideView = panel.getSubViews().first
+
     item =
       type      : 'split'
       direction : if panel.vertical then 'vertical' else 'horizontal'
       isFirst   : isFirst
+      hash      : ideView?.hash or null
       views     : []
 
     if parentView                     ## If have last view
@@ -158,7 +168,8 @@ module.exports = class IDELayoutManager extends KDObject
       ideApp.mergeSplitView()
       ideApp.setActiveTabView ideApp.ideViews.first.tabView
 
-    ideApp.splitTabView snapshot[1].direction  if snapshot[1]
+      if not item.views.length or item.views.first.context
+        ideView.setHash item.hash
 
     for index, item of snapshot
       tabView = ideApp.ideViews[index]?.tabView
@@ -180,8 +191,14 @@ module.exports = class IDELayoutManager extends KDObject
       if item.type is 'split'
 
         if item.isFirst isnt yes
-          ideApp.splitTabView item.direction
+          ideApp.splitTabView
+            type            : item.direction
+            newIDEViewHash  : item.hash
+            quite           : quite
+
           tabView = ideApp.ideViews.last.tabView
+        else
+          tabView.parent.setHash item.hash  if tabView
 
         if item.views.length
           # since we are in a for loop to be able to preserve item and tabview

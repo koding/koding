@@ -20,6 +20,7 @@ CollaborationStateMachine     = require './collaboration/collaborationstatemachi
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
 IDELayoutManager              = require './workspace/idelayoutmanager'
+IDEView                       = require './views/tabview/ideview'
 
 
 {warn} = kd

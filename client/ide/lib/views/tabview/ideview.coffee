@@ -11,6 +11,7 @@ KDTabPaneView         = kd.TabPaneView
 IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
 IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
 IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
+generatePassword      = require 'app/util/generatePassword'
 KDCustomHTMLView      = kd.CustomHTMLView
 KDSplitViewPanel      = kd.SplitViewPanel
 ProximityNotifier     = require './splithandleproximitynotifier'
@@ -34,6 +35,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     options.addSplitHandlers ?= yes
 
     super options, data
+
+    @setHash()
 
     @openFiles = []
     @bindListeners()
@@ -263,8 +266,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
 
-    change.context.paneType = pane.options?.paneType or null
-    change.context.paneHash = pane.hash or null
+    change.context.paneType     = pane.options?.paneType or null
+    change.context.paneHash     = pane.hash or null
+    change.context.ideViewHash  = @hash
 
     change.type   = type
     change.origin = nick()
@@ -697,3 +701,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     return notifier
 
 
+  setHash: (hash) ->
+
+    @hash = hash or generatePassword 64, no

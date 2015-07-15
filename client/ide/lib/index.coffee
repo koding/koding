@@ -240,6 +240,8 @@ class IDEAppController extends AppController
     ideParent      = ideView.parent
     newIDEView     = new IDEView ideViewOptions
 
+    newIDEView.setHash newIDEViewHash
+
     splitViewPanel = @activeTabView.parent.parent
     if splitViewPanel instanceof KDSplitViewPanel
     then layout = splitViewPanel._layout
@@ -249,9 +251,9 @@ class IDEAppController extends AppController
 
     ideView.detach()
 
-    splitView   = new KDSplitView
-      type      : type
-      views     : [ null, newIDEView ]
+    splitView = new KDSplitView
+      type  : type
+      views : [ null, newIDEView ]
 
     layout.split(type is 'vertical')
     splitView._layout = layout
@@ -293,10 +295,11 @@ class IDEAppController extends AppController
 
   mergeSplitView: ->
 
-    tabView    = @activeTabView
-    panel      = tabView.parent.parent
-    splitView  = panel.parent
-    { parent } = splitView
+    tabView     = @activeTabView
+    panel       = tabView.parent.parent
+    splitView   = panel.parent
+    ideViewHash = tabView.parent.hash
+    { parent }  = splitView
 
     return  unless panel instanceof KDSplitViewPanel
 
@@ -1175,10 +1178,9 @@ class IDEAppController extends AppController
 
     return  if not @rtm or not @rtm.isReady or not context
 
-    change.rtmHash = @rtm.hash
-
-    {paneHash} = context
-    nickname   = nick()
+    change.rtmHash              = @rtm.hash
+    { paneHash, ideViewHash }   = context
+    nickname                    = nick()
 
     if change.origin is nickname
 
@@ -1275,12 +1277,12 @@ class IDEAppController extends AppController
 
     return  if not @rtm and not isFromLocalStorage
 
-    { context } = change
+    { context, origin } = change
     return  unless context
 
     paneHash = context.paneHash or context.hash
 
-    { paneType } = context
+    { paneType, ideViewHash } = context
 
     return  if not paneType or not paneHash
 
@@ -1625,3 +1627,17 @@ class IDEAppController extends AppController
     view._layout.merge()
 
     @layoutMap[view._layout.data.offset] = view
+
+
+  ###*
+   * Get/find an `ideView` by `hash`
+   *
+   * @param {string} hash
+   * @return {IDEApplicationTabView}
+  ###
+  getTabViewByIDEViewHash: (hash) ->
+
+    target = @ideViews.filter (ideView) -> ideView.hash is hash
+
+    return target[0]?.tabView  if target.length
+    return null
