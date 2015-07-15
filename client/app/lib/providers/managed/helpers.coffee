@@ -130,8 +130,8 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
           .then (payload) -> kallback null, payload
           .catch    (err) -> kallback err
 
-    queryPromise.catch (err) =>
-        kallback err  if err
+    queryPromise.catch (err) ->
+      kallback err  if err
 
   # First, query for the kites to find the original kites
   # After that's done, start the heartbeat.
@@ -142,7 +142,7 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
       # Call the heartbeat immediately *after* setInterval,
       # so we can clear it if it is immediately available.
       heartbeat()
-    .catch (err) =>
+    .catch (err) ->
       kallback err
   return
 
