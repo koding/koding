@@ -121,7 +121,7 @@ module.exports = class PaymentForm extends JView
 
     @yearPriceMessage = new KDCustomHTMLView
       cssClass  : 'year-price-msg'
-      partial   : "You selected a <b>yearly plan</b> so you will be billed <b>$#{yearPrice}</b> today."
+      partial   : "You have selected a <b>yearly plan</b> so you will be billed <b>$#{yearPrice}</b> today."
 
     @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'
