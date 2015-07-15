@@ -102,6 +102,23 @@ func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 	return err
 }
 
+func (f *Controller) RemoveGuestAccounts() error {
+	index, err := f.indexes.GetIndex(IndexAccounts)
+	if err != nil {
+		return err
+	}
+
+	res, err := index.DeleteByQuery("guest-", map[string]interface{}{})
+	if err != nil {
+		if res != nil {
+			f.log.Error("Could not remove guest accounts from algolia: %+v \n", res)
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant) error {
 	if p.ChannelId == 0 {
 		return nil
