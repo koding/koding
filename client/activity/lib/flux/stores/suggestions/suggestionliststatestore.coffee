@@ -8,9 +8,9 @@ toImmutable     = require 'app/util/toImmutable'
  * It listens for SET_SUGGESTIONS_VISIBILITY and
  * SET_SUGGESTIONS_ACCESS actions to update those flags
 ###
-module.exports = class SuggestionsStateStore extends KodingFluxStore
+module.exports = class SuggestionListStateStore extends KodingFluxStore
 
-  @getterPath = 'SuggestionsStateStore'
+  @getterPath = 'SuggestionListStateStore'
 
   getInitialState: -> toImmutable { accessible: yes, visible: yes }
 

@@ -1,4 +1,5 @@
 kd              = require 'kd'
+immutable       = require 'immutable'
 actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 toImmutable     = require 'app/util/toImmutable'
@@ -13,7 +14,7 @@ module.exports = class SuggestionsStore extends KodingFluxStore
 
   @getterPath = 'SuggestionsStore'
 
-  getInitialState: -> toImmutable []
+  getInitialState: -> immutable.List()
 
 
   initialize: ->
@@ -56,4 +57,4 @@ module.exports = class SuggestionsStore extends KodingFluxStore
    * @param {Immutable} results
    * @return {Immutable} empty immutable list
   ###
-  handleReset: (results) -> results = toImmutable []
+  handleReset: (results) -> results = immutable.List()

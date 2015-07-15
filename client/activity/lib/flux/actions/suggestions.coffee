@@ -2,7 +2,8 @@ kd          = require 'kd'
 actionTypes = require '../actions/actiontypes'
 getGroup    = require 'app/util/getGroup'
 
-MAX_QUERY_LENGTH      = 10
+MIN_QUERY_LENGTH      = 10
+MAX_QUERY_LENGTH      = 500
 NUMBER_OF_SUGGESTIONS = 5
 
 ###*
@@ -53,20 +54,20 @@ setVisibility = (visible) ->
  * Action to load suggestions data from the server.
  *
  * @param {string} query
- * @param {string} channelId
 ###
-fetchData = (query, channelId) ->
+fetchData = (query) ->
 
-  canSearch = 0 < query.length <= MAX_QUERY_LENGTH
+  canSearch = MIN_QUERY_LENGTH <= query.length <= MAX_QUERY_LENGTH
   return resetData()  unless canSearch
 
   { socialApiChannelId } = getGroup()
 
   kd.singletons.search.searchChannel query, socialApiChannelId, { hitsPerPage : NUMBER_OF_SUGGESTIONS }
-  .then (data) ->
-    dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, { data }
-  .catch (err) ->
-    dispatch actionTypes.FETCH_SUGGESTIONS_FAIL, err
+    .then (data) ->
+      dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, { data }
+    .catch (err) ->
+      kd.log 'Error while fetching activity suggestions', err
+      dispatch actionTypes.FETCH_SUGGESTIONS_FAIL, { err }
 
 
 ###*

@@ -22,7 +22,7 @@ module.exports = class SuggestionMenu extends React.Component
     return {
       suggestions : getters.currentSuggestions
       query       : getters.currentSuggestionsQuery
-      state       : getters.currentSuggestionsState
+      state       : getters.suggestionListState
     }
 
 

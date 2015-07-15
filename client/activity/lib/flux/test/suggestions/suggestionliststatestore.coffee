@@ -2,10 +2,10 @@
 
 Reactor = require 'app/flux/reactor'
 
-SuggestionsStateStore = require 'activity/flux/stores/suggestions/suggestionsstatestore'
+SuggestionsStateStore = require 'activity/flux/stores/suggestions/suggestionliststatestore'
 actionTypes = require 'activity/flux/actions/actiontypes'
 
-describe 'SuggestionsStateStore', ->
+describe 'SuggestionListStateStore', ->
 
   beforeEach ->
 

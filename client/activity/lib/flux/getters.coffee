@@ -16,9 +16,9 @@ ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
-Suggestions                    = [['Suggestions'], withEmptyList]
-SuggestionsQuery               = ['SuggestionsQuery']
-SuggestionsState               = [['SuggestionsState'], withEmptyMap]
+SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
+SuggestionsQueryStore          = ['SuggestionsQueryStore']
+SuggestionListStateStore       = [['SuggestionListStateStore'], withEmptyMap]
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -117,9 +117,9 @@ selectedChannelThreadMessages = [
 ]
 
 # Aliases for providing consistent getter names for suggestion stores
-currentSuggestionsQuery = SuggestionsQuery
-currentSuggestions      = Suggestions
-currentSuggestionsState = SuggestionsState
+currentSuggestionsQuery = SuggestionsQueryStore
+currentSuggestions      = SuggestionsStore
+suggestionListState     = SuggestionListStateStore
 
 module.exports = {
   followedFeedThreads
@@ -132,5 +132,5 @@ module.exports = {
 
   currentSuggestionsQuery
   currentSuggestions
-  currentSuggestionsState
+  suggestionListState
 }

@@ -10,9 +10,19 @@ groupifyLink = require 'app/util/groupifyLink'
 
 module.exports = class SuggestionItem extends React.Component
 
+  handleClick: ->
+
+    { router } = kd.singletons
+    slug       = @props.suggestion.get('slug')
+
+    router.handleRoute groupifyLink "/Activity/Post/#{slug}"
+
+
   render: ->
 
     { suggestion, query } = @props
+    { makeAvatar, makeProfileLink, makeInfoText } = helper
+
     <div className="ActivitySuggestionItem" onClick={@bound 'handleClick'}>
       <div className="ActivitySuggestionItem-authorAvatar">
         {makeAvatar suggestion.get('account')}
@@ -25,7 +35,7 @@ module.exports = class SuggestionItem extends React.Component
           by {makeProfileLink suggestion.get('account')}
         </span>
         <span className="ActivitySuggestionItem-info">
-          {makeInfoText suggestion.get('interactions').toJS().like.actorsCount, 'Like'}
+          {makeInfoText suggestion.getIn(['interactions', 'like', 'actorsCount']), 'Like'}
         </span>
         <span className="ActivitySuggestionItem-info">
           {makeInfoText suggestion.get('repliesCount'), 'Comment'}
@@ -34,24 +44,23 @@ module.exports = class SuggestionItem extends React.Component
     </div>
 
 
-  handleClick: ->
+  #
+  # HELPER METHODS
+  #
+  helper =
 
-    { router } = kd.singletons
-    slug       = @props.suggestion.get('slug')
+    makeProfileLink: (account) ->
 
-    router.handleRoute groupifyLink "/Activity/Post/#{slug}"
-
-
-makeProfileLink = (account) ->
-  <ProfileLinkContainer origin={account.toJS()}>
-    <ProfileText />
-  </ProfileLinkContainer>
+      <ProfileLinkContainer origin={account.toJS()}>
+        <ProfileText />
+      </ProfileLinkContainer>
 
 
-makeAvatar = (account) ->
-  <ProfileLinkContainer origin={account.toJS()} >
-    <Avatar width={20} height={20} />
-  </ProfileLinkContainer>
+    makeAvatar: (account) ->
+
+      <ProfileLinkContainer origin={account.toJS()} >
+        <Avatar width={20} height={20} />
+      </ProfileLinkContainer>
 
 
-makeInfoText = (count, noun) -> formatPlural count, noun
+    makeInfoText: (count, noun) -> formatPlural count, noun

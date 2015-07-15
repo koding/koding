@@ -1,44 +1,38 @@
 .ActivitySuggestionMenu
   abs()
-  z-index                 100
-  border-radius           0px 0px 5px 5px
-  -webkit-border-radius   0px 0px 5px 5px
-  -moz-border-radius      0px 0px 5px 5px
-  border                  1px solid #e4e4e4
-  -webkit-box-shadow      0 5px 15px rgba(0,0,0,0.2)
-  -moz-box-shadow         0 5px 15px rgba(0,0,0,0.2)
-  box-shadow              0 5px 15px rgba(0,0,0,0.2)
-  color                   #a1a1a1
-  background-color        #fff
-  width                   100%
-  box-sizing              border-box
-  margin-top              -2px
-  border-top              0px
+  z-index            100
+  rounded            0px 0px 5px 5px
+  border             1px solid #e4e4e4
+  shadow             0 5px 15px rgba(0,0,0,0.2)
+  color              #a1a1a1
+  bg                 color, #fff
+  width              100%
+  borderBox()
+  margin-top         -2px
+  border-top         0px
 
 .ActivitySuggestionMenu-header
-  background-color        #f8f8f8
-  font-size               12px
-  padding                 7px 0px 7px 15px
-  border-bottom           1px solid #e4e4e4
+  bg                 color, #f8f8f8
+  font-size          12px
+  padding            7px 0px 7px 15px
+  border-bottom      1px solid #e4e4e4
 
   .ActivitySuggestionMenu-closeIcon
-    r-sprite              'ide', 'chat-close'
+    r-sprite         'ide', 'chat-close'
     abs()
-    right                 10px
-    top                   10px
+    right            10px
+    top              10px
 
 .ActivitySuggestionMenu-footer
-  position                relative
-  font-size               12px
-  text-align              right
-  padding                 25px 105px 27px 0px
+  rel()
+  font-size          12px
+  text-align         right
+  padding            25px 105px 27px 0px
 
   .kdbutton.solid.small
     abs()
-    top                   19px
-    right                 18px
-    width                 67px
-    padding               0px
-    -webkit-border-radius 3px
-    -moz-border-radius    3px
-    border-radius         3px
+    top              19px
+    right            18px
+    width            67px
+    padding          0px
+    rounded          3px
