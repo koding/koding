@@ -19,7 +19,7 @@ func Info(r *kite.Request) (interface{}, error) {
 	}
 
 	i := info{
-		ProviderName: string(providerName),
+		ProviderName: providerName.String(),
 	}
 
 	return i, nil

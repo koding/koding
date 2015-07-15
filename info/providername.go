@@ -11,7 +11,24 @@ import (
 	"github.com/koding/klient/info/publicip"
 )
 
-type ProviderName string
+type ProviderName int
+
+const (
+	// UnknownProvider is the zero value of the ProviderName type.
+	UnknownProvider ProviderName = iota
+
+	// A DigitalOcean virtual machine
+	DigitalOcean
+)
+
+func (pn ProviderName) String() string {
+	switch pn {
+	case DigitalOcean:
+		return "DigitalOcean"
+	default:
+		return "UnknownProvider"
+	}
+}
 
 const (
 	// The whois server WhoisQuery uses by default.
@@ -19,9 +36,6 @@ const (
 
 	// Default timeout for the whoisQuery
 	whoisTimeout time.Duration = 5 * time.Second
-
-	DigitalOcean    ProviderName = "DigitalOcean"
-	UnknownProvider ProviderName = "UnknownProvider"
 )
 
 // DefaultProviderCheckers is a map of each ProviderName and the
@@ -40,13 +54,13 @@ func CheckProvider() (ProviderName, error) {
 	// Get the IP of this machine, to whois against
 	ip, err := publicip.PublicIP()
 	if err != nil {
-		return "", err
+		return UnknownProvider, err
 	}
 
 	// Get the whois of the current vm's IP
 	whois, err := WhoisQuery(ip.String(), whoisServer, whoisTimeout)
 	if err != nil {
-		return "", err
+		return UnknownProvider, err
 	}
 
 	return checkProvider(whois, DefaultProviderCheckers)
@@ -62,7 +76,7 @@ func checkProvider(whois string,
 	for providerName, checker := range checkers {
 		isProvider, err = checker(whois)
 		if err != nil {
-			return "", err
+			return UnknownProvider, err
 		}
 
 		if isProvider == true {
