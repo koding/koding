@@ -90,6 +90,7 @@ runTests = -> describe 'server.handlers.login', ->
           queue.next()
 
       ->
+        # expecting login to fail when password is empty
         loginRequestParams = generateLoginRequestParams
           body        :
             username  : username
@@ -128,12 +129,14 @@ runTests = -> describe 'server.handlers.login', ->
           queue.next()
 
       ->
+        # updating user passwordStatus as needs reset
         options = { $set: passwordStatus: 'needs reset' }
         JUser.update { username }, options, (err) ->
           expect(err).to.not.exist
           queue.next()
 
       ->
+        # expecting login attempt to fail when passwordStatus is 'needs reset'
         loginRequestParams = generateLoginRequestParams
           body        :
             email     : ''
@@ -180,6 +183,7 @@ runTests = -> describe 'server.handlers.login', ->
           queue.next()
 
       ->
+        # expecting login attempt to fail when 2fa code is empty
         loginRequestParams = generateLoginRequestParams
           body        :
             email     : ''
@@ -200,7 +204,7 @@ runTests = -> describe 'server.handlers.login', ->
     daisy queue
 
 
-  it 'should send HTTP 403 if 2fa is activated and 2fa code is empty', (done) ->
+  it 'should send HTTP 403 if 2fa is activated and 2fa code is invalid', (done) ->
 
     username  = generateRandomUsername()
     password  = 'testpass'
@@ -226,6 +230,7 @@ runTests = -> describe 'server.handlers.login', ->
           queue.next()
 
       ->
+        # expecting login attempt to fail when 2fa code is invalid
         loginRequestParams = generateLoginRequestParams
           body        :
             email     : ''
@@ -357,6 +362,7 @@ runTests = -> describe 'server.handlers.login', ->
           queue.next()
 
       ->
+        # expecting login attempt to fail when invitation token is invalid
         loginRequestParams = generateLoginRequestParams
           body        :
             email     : ''
@@ -399,6 +405,7 @@ runTests = -> describe 'server.handlers.login', ->
           queue.next()
 
       ->
+        # expecting login attempt to fail when groupName is invalid
         loginRequestParams = generateLoginRequestParams
           body        :
             email     : ''
