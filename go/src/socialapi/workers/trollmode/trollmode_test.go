@@ -86,6 +86,19 @@ func TestMarkedAsTroll(t *testing.T) {
 		)
 		tests.ResultedWithNoErrorCheck(groupChannel, err)
 
+		sinan := models.NewAccount()
+		err = sinan.ByNick("sinan")
+		So(err, ShouldBeNil)
+
+		_, err = groupChannel.AddParticipant(sinan.Id)
+		So(err, ShouldBeNil)
+
+		_, err = groupChannel.AddParticipant(trollUser.Id)
+		So(err, ShouldBeNil)
+
+		_, err = groupChannel.AddParticipant(normalUser.Id)
+		So(err, ShouldBeNil)
+
 		controller := NewController(r.Log)
 
 		Convey("err should be nil", func() {

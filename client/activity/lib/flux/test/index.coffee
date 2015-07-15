@@ -1,3 +1,6 @@
 require './messagesstore'
 require './selectedchannelthreadidstore'
-require './threadsstore'
+require './channelthreadsstore'
+require './channelsstore'
+require './followedpublicchannelidsstore'
+require './followedprivatechannelidsstore'
