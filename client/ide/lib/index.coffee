@@ -321,8 +321,10 @@ class IDEAppController extends AppController
       view.holderView[closeHandleMethod]()
       view.ensureSplitHandlers()
 
-
-  mergeSplitView: ->
+  ###*
+   * @param {boolean=} quite  Don't dispatch the `SplitViewWasMerged` event if it is `yes`
+  ###
+  mergeSplitView: (quite = no) ->
 
     tabView     = @activeTabView
     panel       = tabView.parent.parent
@@ -1665,6 +1667,8 @@ class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ (pane) =>
       @removePaneFromTabView pane  if pane.isInitial
+
+    @mergeSplitView()
 
 
   setTargetTabView: (tabView) ->
