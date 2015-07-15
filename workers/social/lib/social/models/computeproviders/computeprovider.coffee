@@ -256,6 +256,8 @@ module.exports = class ComputeProvider extends Base
             ComputeProvider.create client, machineInfo, (err, machine) ->
               results.machines.push { err, obj: machine }
 
+              return queue.next()  unless machine
+
               # Create default workspace for the machine
               JWorkspace.createDefault client, machine.uid, (err) ->
 
