@@ -13,7 +13,7 @@ MessagesStore                  = [['MessagesStore'], withEmptyMap]
 ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
-SelectedChannelThreadId        = ['SelectedChannelThreadId'] # no need for default
+SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -46,7 +46,7 @@ channelThreads = [
 
 # Returns data from SelectedChannelThreadIdStore
 # Alias for providing a consistent api.
-selectedChannelThreadId = SelectedChannelThreadId
+selectedChannelThreadId = SelectedChannelThreadIdStore
 
 # Returns selected channel instance.
 selectedChannel = [
@@ -61,7 +61,7 @@ selectedChannelThread = [
   selectedChannel
   (threads, channel) ->
     return null  unless channel
-    thread = threads.get channel.id
+    thread = threads.get channel.get('id')
     return thread.set 'channel', channel
 ]
 
