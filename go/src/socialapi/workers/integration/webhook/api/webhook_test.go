@@ -22,13 +22,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newRequest(body string, channelId int64, groupName string) *PushRequest {
+func newRequest(body string, channelId int64) *PushRequest {
 	return &PushRequest{
 		Message: webhook.Message{
 			Body:      body,
 			ChannelId: channelId,
 		},
-		GroupName: groupName,
 	}
 }
 
@@ -99,7 +98,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("hey", channel.Id, "koding"),
+					newRequest("hey", channel.Id),
 				)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, ErrTokenNotValid.Error())
@@ -111,7 +110,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err = h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("hey", channel.Id, "koding"),
+					newRequest("hey", channel.Id),
 				)
 				So(err, ShouldNotBeNil)
 				So(s, ShouldEqual, http.StatusNotFound)
@@ -120,7 +119,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err = h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("hey", channel.Id, "koding"),
+					newRequest("hey", channel.Id),
 				)
 				So(err.Error(), ShouldEqual, ErrTokenNotSet.Error())
 				So(s, ShouldEqual, http.StatusBadRequest)
@@ -134,7 +133,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("", channel.Id, "koding"),
+					newRequest("", channel.Id),
 				)
 				So(err.Error(), ShouldEqual, ErrBodyNotSet.Error())
 				So(s, ShouldEqual, http.StatusBadRequest)
@@ -148,7 +147,7 @@ func TestWebhookListen(t *testing.T) {
 					s, _, _, err := h.Push(
 						mocking.URL(m, "POST", "/push/"+token),
 						mocking.Header(nil),
-						newRequest("hey", channel.Id, "koding"),
+						newRequest("hey", channel.Id),
 					)
 
 					So(err, ShouldBeNil)
@@ -159,7 +158,7 @@ func TestWebhookListen(t *testing.T) {
 					s, _, _, err = h.Push(
 						mocking.URL(m, "POST", "/push/"+token),
 						mocking.Header(nil),
-						newRequest("hey", channel.Id, "koding"),
+						newRequest("hey", channel.Id),
 					)
 
 					So(err, ShouldBeNil)
@@ -176,7 +175,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("hha", channel.Id, "koding"),
+					newRequest("hha", channel.Id),
 				)
 
 				So(err, ShouldBeNil)
@@ -706,10 +705,12 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 					c,
 				)
 
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
 				newCi := webhook.NewChannelIntegration()
 				err = newCi.ById(ci.Id)
 				So(err, ShouldBeNil)
-				So(s, ShouldEqual, http.StatusOK)
 				So(newCi.Token, ShouldEqual, currentToken)
 				So(newCi.Token, ShouldNotEqual, "123123123")
 			})

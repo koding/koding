@@ -10,8 +10,7 @@ import (
 // PushRequest is used as input data for /push endpoint
 type PushRequest struct {
 	webhook.Message
-	GroupName string `json:"groupName"`
-	Token     string `json:"token"`
+	Token string `json:"token"`
 }
 
 // tests are handled within webhook_test file
