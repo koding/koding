@@ -53,3 +53,12 @@ func isAddressNotFoundError(err error) bool {
 
 	return ec2Error.Code == "InvalidAddress.NotFound"
 }
+
+func isInvalidInstanceID(err error) bool {
+	ec2Error, ok := err.(*ec2.Error)
+	if !ok {
+		return false
+	}
+
+	return ec2Error.Code == "InvalidInstanceID.NotFound"
+}

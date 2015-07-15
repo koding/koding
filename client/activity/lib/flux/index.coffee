@@ -3,4 +3,5 @@ module.exports =
   actions   :
     message : require './actions/message'
     thread  : require './actions/thread'
+    channel : require './actions/channel'
 

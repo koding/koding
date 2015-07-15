@@ -141,7 +141,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               requestedAt   : certificate.getAt('requestedAt')
 
             Tracker = require './tracker'
-            Tracker.identify username
+            Tracker.identify username, { email }
 
             Tracker.track username, {
               to         : email

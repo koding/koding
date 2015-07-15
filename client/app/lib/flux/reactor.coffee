@@ -11,10 +11,28 @@ module.exports = class KodingFluxReactor extends Nuclear.Reactor
   ###
   registerStores: (storeClasses) ->
 
+    if Array.isArray storeClasses
+      storeClasses = mapWithClassName storeClasses
+
     stores = _.mapValues storeClasses, (StoreClass) -> new StoreClass
 
     # we injected reactor instance to our stores,
     # leave the rest to Nuclear.
     super stores
+
+
+###*
+ * Turns given store classes array into an object with keys as given class's
+ * name.
+ *
+ * @param {Array<KodingFluxStore::constructor>} classes
+ * @return {object<string, KodingFluxStore::constructor>} storeClasses
+###
+mapWithClassName = (classes) ->
+
+  return classes.reduce (result, klass) ->
+    result[klass.getterPath] = klass
+    return result
+  , {}
 
 

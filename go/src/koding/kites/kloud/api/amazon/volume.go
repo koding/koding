@@ -3,9 +3,44 @@ package amazon
 import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
+	"time"
 
 	"github.com/mitchellh/goamz/ec2"
 )
+
+// ExistingVolume retrieves the volume for the given existing volume ID. This
+// can be used instead of the plain a.Client.Volumes, because the plain method
+// returns "(InvalidVolume.NotFound)" even if the volume exists. This method
+// tries for one minute to get a successfull response(errors are neglected), so
+// try this only if the Volume exists.
+func (a *Amazon) ExistingVolume(volumeID string) (*ec2.Volume, error) {
+	volume := ec2.Volume{}
+	getVolume := func(currentPercentage int) (machinestate.State, error) {
+		resp, err := a.Client.Volumes([]string{volumeID}, ec2.NewFilter())
+		if err != nil {
+			return machinestate.Pending, nil // we don't return until we get a result
+		}
+
+		// shouldn't happen but let's check it anyway
+		if len(resp.Volumes) == 0 {
+			return machinestate.Pending, nil
+		}
+
+		volume = resp.Volumes[0]
+		return machinestate.Running, nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    getVolume,
+		DesiredState: machinestate.Running,
+		Timeout:      time.Minute,
+	}
+	if err := ws.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &volume, nil
+}
 
 // CreateVolume creates a new volume from the given snapshot id and size. It
 // waits until it's ready.
