@@ -89,6 +89,13 @@ func checkDigitalOcean(whois string) (bool, error) {
 	return re.MatchString(whois), nil
 }
 
+// WhoisQuery is a simple func to query a whois service with the (limited)
+// whois protocol.
+//
+// It's worth noting that because the whois protocol is so basic, the
+// response can be formatted in any way. Because of this, WhoisQuery has to
+// simply return the entire response to the caller - and is unable to
+// marshall/etc the response in any meaningful format.
 func WhoisQuery(query, server string, timeout time.Duration) (string, error) {
 	host := net.JoinHostPort(server, "43")
 	conn, err := net.DialTimeout("tcp", host, timeout)
@@ -97,11 +104,15 @@ func WhoisQuery(query, server string, timeout time.Duration) (string, error) {
 	}
 	defer conn.Close()
 
+	// Query the whois server with the ip or domain given to this func,
+	// as per Whois spec.
 	_, err = conn.Write([]byte(fmt.Sprintf("%s\r\n", query)))
 	if err != nil {
 		return "", err
 	}
 
+	// After the query, the server will respond with the unformatted data.
+	// Read it all and return it.
 	b, err := ioutil.ReadAll(conn)
 	if err != nil {
 		return "", err
