@@ -148,7 +148,10 @@ getReferences = (manager, channelId, initialSnapshot) ->
     broadcastMessages : getFromManager manager, 'broadcastMessages', 'list', []
     pingTime          : getFromManager manager, 'pingTime', 'list', []
     watchMap          : getFromManager manager, watchMapName, 'map', {}
-    snapshot          : getFromManager manager, snapshotName, 'map', initialSnapshot
+    snapshot          : getFromManager manager, 'snapshot', 'map', {}
+    hostSnapshot      : getFromManager manager, snapshotName, 'map', {}
+
+  refs.hostSnapshot.set 'layout', initialSnapshot
 
   manager.bindRealtimeListeners refs.changes, 'list'
   manager.bindRealtimeListeners refs.broadcastMessages, 'list'
@@ -156,7 +159,8 @@ getReferences = (manager, channelId, initialSnapshot) ->
   manager.bindRealtimeListeners refs.permissions, 'map'
 
   manager.once 'RealtimeManagerWillDispose', =>
-    refs.snapshot.clear()
+    refs.snapshot.clear()     # Clear all snapshot data of members
+    refs.hostSnapshot.clear() # Clear host's layout data.
     manager.unbindRealtimeListeners refs.changes, 'list'
     manager.unbindRealtimeListeners refs.broadcastMessages, 'list'
     manager.unbindRealtimeListeners refs.watchMap, 'map'

@@ -245,7 +245,7 @@ module.exports = CollaborationController =
 
   setCollaborativeReferences: ->
 
-    initialSnapshot = if @amIHost then @getHostSnapshot() else {}
+    initialSnapshot = if @amIHost then @getWorkspaceSnapshot() else {}
 
     refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), initialSnapshot
 
@@ -258,6 +258,7 @@ module.exports = CollaborationController =
     @broadcastMessages = refs.broadcastMessages
     @myWatchMap        = refs.watchMap
     @mySnapshot        = refs.snapshot
+    @hostSnapshot      = refs.hostSnapshot
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       @participants      = null
@@ -267,6 +268,7 @@ module.exports = CollaborationController =
       @broadcastMessages = null
       @myWatchMap        = null
       @mySnapshot        = null
+      @hostSnapshot      = null
 
 
   registerCollaborationSessionId: ->
@@ -290,7 +292,7 @@ module.exports = CollaborationController =
 
 
   ###*
-   * Show confirm modal to revert layout to host's layout.
+   * Show confirm modal to sync layout to host's layout.
    *
    * @param {string} nickname
   ###
@@ -590,16 +592,16 @@ module.exports = CollaborationController =
       @createPaneFromChange change
 
     @changeActiveTabView change?.context?.paneType
+  getHostSnapshotKey: ->
+
+    return "#{@getCollaborationHost()}Snapshot"
 
 
-  appendHostSnapshot: (snapshot) ->
+  getHostSnapshotForParticipant: ->
 
-    return snapshot  if snapshot?.length
+    key = @getHostSnapshotKey()
 
-    key = "#{@collaborationHost}Snapshot"
-
-    if hostSnapshot = @rtm.getFromModel(key)?.values()
-      return snapshot.concat hostSnapshot
+    return @rtm.getFromModel(key)?.get 'layout'
 
 
   showShareButton: ->
@@ -1148,7 +1150,6 @@ module.exports = CollaborationController =
       then @stateMachine.transition 'Loading'
 
 
-  getHostSnapshot: -> IDELayoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
 
 
   setInitialSessionSetting: (name, value) ->
