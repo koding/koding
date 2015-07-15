@@ -15,8 +15,10 @@ type ProviderName string
 const (
 	// The site PublicIP() uses to get the public IP from.
 	publicEcho string = "http://echoip.com"
+
 	// The whois server WhoisQuery uses by default.
 	whoisServer string = "whois.arin.net"
+
 	// Default timeout for the whoisQuery
 	whoisTimeout time.Duration = 5 * time.Second
 
