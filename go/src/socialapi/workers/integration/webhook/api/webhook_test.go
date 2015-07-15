@@ -1,10 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"net/http"
+	"net/http/httptest"
+	"reflect"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
@@ -15,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
 	"github.com/nu7hatch/gouuid"
@@ -741,4 +745,99 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestConfigure(t *testing.T) {
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("While configuring channel integration", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			Convey("it should not be configured when it is not authorizable", func() {
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+				settings := gorm.Hstore{}
+				err := h.Configure(ci, &models.Context{}, settings)
+				So(err, ShouldBeNil)
+
+				in = webhook.CreateTestIntegration(t)
+				err = in.AddSettings("authorizable", false)
+				So(err, ShouldBeNil)
+				err = in.Update()
+				So(err, ShouldBeNil)
+
+				ci = webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+				err = h.Configure(ci, &models.Context{}, settings)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("it should update settings with configure response", func() {
+
+				mux := http.NewServeMux()
+				server := httptest.NewServer(mux)
+				err := in.AddSettings("authorizable", true)
+				So(err, ShouldBeNil)
+				err = in.Update()
+				So(err, ShouldBeNil)
+
+				acc, err := models.CreateAccountInBothDbs()
+				So(err, ShouldBeNil)
+				groupName := models.RandomGroupName()
+
+				c := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+
+				ci.GroupName = groupName
+				ci.ChannelId = c.Id
+				ci.CreatorId = acc.Id
+				err = ci.Create()
+				So(err, ShouldBeNil)
+
+				h.rootPath = server.URL
+				ctx := &models.Context{
+					GroupName: groupName,
+					Client: &models.Client{
+						Account: acc,
+					},
+				}
+
+				mux.HandleFunc("/api/webhook/configure/"+in.Name,
+					func(w http.ResponseWriter, r *http.Request) {
+						if r.Method != "POST" {
+							w.WriteHeader(404)
+							return
+						}
+						w.Header().Set("Content-Type", "application/json")
+						response := map[string]interface{}{
+							"serviceId": "6",
+							"events":    []string{"push", "commit"},
+						}
+						byt, err := json.Marshal(response)
+						if err != nil {
+							t.Fatal("Could not marshal response")
+						}
+						w.Write(byt)
+					},
+				)
+
+				err = h.Configure(ci, ctx, gorm.Hstore{})
+				So(err, ShouldBeNil)
+
+				serviceId, err := ci.GetSettings("serviceId")
+				So(err, ShouldBeNil)
+				So(*serviceId, ShouldEqual, "6")
+
+				events := make([]string, 0)
+				eventsByte, err := ci.GetSettings("events")
+				So(err, ShouldBeNil)
+				err = json.Unmarshal([]byte(*eventsByte), &events)
+				So(err, ShouldBeNil)
+				So(reflect.DeepEqual(events, []string{"push", "commit"}), ShouldBeTrue)
+
+			})
+
+		})
+	})
+
 }
