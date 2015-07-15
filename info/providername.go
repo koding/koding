@@ -89,10 +89,7 @@ func checkDigitalOcean(whois string) (bool, error) {
 	return re.MatchString(whois), nil
 }
 
-func WhoisQuery(query, server string, timeout time.Duration) (
-	whois string, err error) {
-
-	//conn, err := net.DialTimeout("tcp", "whois.arin.net:43", timeout)
+func WhoisQuery(query, server string, timeout time.Duration) (string, error) {
 	host := net.JoinHostPort(server, "43")
 	conn, err := net.DialTimeout("tcp", host, timeout)
 	if err != nil {
