@@ -16,8 +16,8 @@ module.exports = class ComputeProvider extends Base
 
   {permit} = require '../group/permissionset'
 
-  JMachine = require './machine'
-  JProposedDomain  = require '../domain'
+  JMachine   = require './machine'
+  JWorkspace = require '../workspace'
 
   @share()
 
@@ -255,7 +255,15 @@ module.exports = class ComputeProvider extends Base
           create = (machineInfo) ->
             ComputeProvider.create client, machineInfo, (err, machine) ->
               results.machines.push { err, obj: machine }
-              queue.next()
+
+              # Create default workspace for the machine
+              JWorkspace.createDefault client, machine.uid, (err) ->
+
+                if err
+                  console.log \
+                    'Failed to create default workspace', machine.uid, err
+
+                queue.next()
 
           # This is optional, since for koding group for example
           # we don't want to add our admins into users machines ~ GG
@@ -327,7 +335,8 @@ module.exports = class ComputeProvider extends Base
         context    : group : group.slug
 
       ComputeProvider.createGroupStack client,
-        addGroupAdminToMachines: yes
+        addGroupAdminToMachines: no # Marked this as no until
+                                    # we find a better solution ~ GG
       , (err, res = {}) ->
 
         {stack, results} = res
