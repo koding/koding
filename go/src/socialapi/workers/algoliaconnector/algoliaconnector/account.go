@@ -5,6 +5,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"strconv"
+	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -45,6 +46,15 @@ func (f *Controller) AccountUpdated(data *models.Account) error {
 		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
 		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
 		return err
+	}
+
+	// when an account is deleted, remove the object from algolia
+	if strings.Contains(data.Nick, "guest-") {
+		if record == nil {
+			return nil
+		}
+
+		return f.delete(IndexAccounts, data.OldId)
 	}
 
 	// algolia partial update works like this, if item exists updates it, if

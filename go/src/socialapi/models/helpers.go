@@ -283,6 +283,35 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	return a, nil
 }
 
+func UpdateUsernameInBothDbs(currentUsername, newUsername string) error {
+	err := modelhelper.UpdateUser(
+		bson.M{"username": currentUsername},
+		bson.M{"username": newUsername},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = modelhelper.UpdateAccount(
+		modelhelper.Selector{"profile.nickname": currentUsername},
+		modelhelper.Selector{"$set": modelhelper.Selector{"profile.nickname": newUsername}},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	acc := NewAccount()
+	if err := acc.ByNick(currentUsername); err != nil {
+		return err
+	}
+
+	acc.Nick = newUsername
+
+	return acc.Update()
+}
+
 func AddInteractionWithTest(iType string, messageId int64, accountId int64) (*Interaction, error) {
 	cm := NewInteraction()
 	cm.AccountId = accountId
