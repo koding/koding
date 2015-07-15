@@ -260,3 +260,41 @@ module.exports = class IDELayoutManager extends KDObject
     return workspaceView.layout.getSplitViewByName 'BaseSplit'
 
 
+  ###*
+   * Clear all split views/tabs and create new an `IDEView`
+   *
+   * @param {boolean=} recover  Recover opened panes if it is `yes`
+   * @param {boolean=} save
+   * @return {Array} panes
+  ###
+  clearWorkspace: (recover = no, save = no) ->
+
+    ## The `ideApp` is an `IDEAppController`s instane
+    ideApp          = @getDelegate()
+    panes           = []
+    baseSplitView   = @getBaseSplitView()
+    parentView      = baseSplitView.panels.last.getSubViews().first
+    splitViews      = parentView.getSubViews().first
+
+    if recover
+      ideApp.forEachSubViewInIDEViews_ (p) ->
+        paneView  = p.parent
+        tabView   = paneView.parent
+
+        { pane }  = tabView.removePane paneView, yes, yes
+        panes.push pane
+
+    ideView         = new IDEView
+    ideApp.ideViews = []  # Reset `ideViews`s array
+
+    splitViews.detach()
+
+    parentView.addSubView ideView
+
+    ideApp.registerIDEView ideView
+    ideApp.setActiveTabView ideView.tabView
+
+    ideApp.recalculateHandles()
+    ideApp.writeSnapshot()  if save
+
+    return panes
