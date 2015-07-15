@@ -234,7 +234,12 @@ class IDEAppController extends AppController
     kd.utils.defer -> pane.setFocus? state
 
 
-  splitTabView: (type = 'vertical', ideViewOptions, saveSnapshot = yes) ->
+  ###*
+   * @param {Object} options
+  ###
+  splitTabView: (options) ->
+
+    { type, ideViewOptions, dontSave, newIDEViewHash, quite } = options
 
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
@@ -440,7 +445,7 @@ class IDEAppController extends AppController
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
 
-          @splitTabView 'horizontal', createNewEditor: no, no
+          @splitTabView type: 'horizontal', dontSave: yes
 
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
@@ -456,7 +461,6 @@ class IDEAppController extends AppController
           @fetchSnapshot (snapshot) =>
             return @resurrectLocalSnapshot snapshot  if snapshot
 
-            @splitTabView 'horizontal', createNewEditor: no, no
 
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
@@ -465,6 +469,7 @@ class IDEAppController extends AppController
 
             @forEachSubViewInIDEViews_ (pane) ->
               pane.isInitial = yes
+            @splitTabView type: 'horizontal', dontSave: yes
 
 
   setMountedMachine: (machine) ->
@@ -662,12 +667,12 @@ class IDEAppController extends AppController
 
   splitVertically: ->
 
-    @splitTabView 'vertical'
+    @splitTabView type: 'vertical'
 
 
   splitHorizontally: ->
 
-    @splitTabView 'horizontal'
+    @splitTabView type: 'horizontal'
 
   createNewFile: do ->
     newFileSeed = 1

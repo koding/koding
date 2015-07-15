@@ -168,6 +168,9 @@ module.exports = class IDELayoutManager extends KDObject
       ideApp.mergeSplitView()
       ideApp.setActiveTabView ideApp.ideViews.first.tabView
 
+    ideApp.splitTabView { type: snapshot[1].direction, quite }  if snapshot[1]
+
+
       if not item.views.length or item.views.first.context
         ideView.setHash item.hash
 
