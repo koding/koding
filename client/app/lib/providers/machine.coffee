@@ -109,6 +109,7 @@ module.exports = class Machine extends KDObject
         init       : -> Promise.reject()
         connect    : kd.noop
         disconnect : kd.noop
+        ready      : kd.noop
       }
 
 
