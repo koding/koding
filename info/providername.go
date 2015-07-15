@@ -30,6 +30,10 @@ var DefaultProviderCheckers = map[ProviderName]ProviderChecker{
 	DigitalOcean: checkDigitalOcean,
 }
 
+// digitalOceanRegexp is used to verify a whois string which belongs
+// to DigitalOcean.
+var digitalOceanRegexp = regexp.MustCompile(`digitalocean\.com`)
+
 // CheckProvider uses the current machine's IP and runs a whois on it,
 // then feeds the whois to all DefaultProviderCheckers.
 func CheckProvider() (ProviderName, error) {
@@ -81,12 +85,7 @@ func checkDigitalOcean(whois string) (bool, error) {
 		return false, errors.New("checkDigitalOcean: Whois is required")
 	}
 
-	re, err := regexp.Compile(`digitalocean\.com`)
-	if err != nil {
-		return false, nil
-	}
-
-	return re.MatchString(whois), nil
+	return digitalOceanRegexp.MatchString(whois), nil
 }
 
 // WhoisQuery is a simple func to query a whois service with the (limited)
