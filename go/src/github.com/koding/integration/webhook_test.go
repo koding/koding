@@ -12,7 +12,7 @@ var testRootPath = "http://lvh.me:8090"
 func TestValidate(t *testing.T) {
 
 	l := logging.NewLogger("test")
-	h := NewHandler(l, &services.ServiceConfig{})
+	h := NewHandler(l, &services.Services{})
 
 	err := h.validate("", "")
 	if err != ErrTokenNotSet {
