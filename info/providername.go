@@ -1,20 +1,17 @@
 package info
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"regexp"
 	"time"
-
-	"github.com/koding/klient/info/publicip"
 )
 
-// ProviderChecker funcs check the given information, and whatever else
-// they desire, to assert whether or not the current VM is belongs
-// to them or not.
-type ProviderChecker func(whois string) (isProvider bool, err error)
+// ProviderChecker funcs check the local machine to assert whether or
+// not the current VM is is of that specific Provider.
+type ProviderChecker func() (isProvider bool, err error)
 
 type ProviderName int
 
@@ -46,7 +43,7 @@ const (
 // DefaultProviderCheckers is a map of each ProviderName and the
 // corresponding checker.
 var DefaultProviderCheckers = map[ProviderName]ProviderChecker{
-	DigitalOcean: checkDigitalOcean,
+	DigitalOcean: CheckDigitalOcean,
 }
 
 // digitalOceanRegexp is used to verify a whois string which belongs
@@ -56,30 +53,18 @@ var digitalOceanRegexp = regexp.MustCompile(`digitalocean\.com`)
 // CheckProvider uses the current machine's IP and runs a whois on it,
 // then feeds the whois to all DefaultProviderCheckers.
 func CheckProvider() (ProviderName, error) {
-	// Get the IP of this machine, to whois against
-	ip, err := publicip.PublicIP()
-	if err != nil {
-		return UnknownProvider, err
-	}
-
-	// Get the whois of the current vm's IP
-	whois, err := WhoisQuery(ip.String(), whoisServer, whoisTimeout)
-	if err != nil {
-		return UnknownProvider, err
-	}
-
-	return checkProvider(whois, DefaultProviderCheckers)
+	return checkProvider(DefaultProviderCheckers)
 }
 
 // checkProvider implements the testable functionality of CheckProvider.
 // Ie, a pure func, aside from any impurities passed in via checkers.
-func checkProvider(whois string,
-	checkers map[ProviderName]ProviderChecker) (ProviderName, error) {
+func checkProvider(checkers map[ProviderName]ProviderChecker) (
+	ProviderName, error) {
 
 	var isProvider bool
 	var err error
 	for providerName, checker := range checkers {
-		isProvider, err = checker(whois)
+		isProvider, err = checker()
 		if err != nil {
 			return UnknownProvider, err
 		}
@@ -92,14 +77,21 @@ func checkProvider(whois string,
 	return UnknownProvider, nil
 }
 
-// checkDigitalOcean is a ProviderChecker which parses the given whois
-// string and checks if the whois is owned by DigitalOcean.
-func checkDigitalOcean(whois string) (bool, error) {
-	if whois == "" {
-		return false, errors.New("checkDigitalOcean: Whois is required")
+// CheckDigitalOcean is a ProviderChecker for DigitalOcean
+func CheckDigitalOcean() (bool, error) {
+	return checkDigitalOcean("http://169.254.169.254/metadata/v1/hostname")
+}
+
+// checkDigitalOcean implements the testable functionality of
+// CheckDigitalOcean by quering the given DigitalOcean API address
+// and if it returns 404, the check fails.
+func checkDigitalOcean(metadataApi string) (bool, error) {
+	res, err := http.Get(metadataApi)
+	if err != nil {
+		return false, err
 	}
 
-	return digitalOceanRegexp.MatchString(whois), nil
+	return res.StatusCode == http.StatusOK, nil
 }
 
 // WhoisQuery is a simple func to query a whois service with the (limited)

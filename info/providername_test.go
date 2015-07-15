@@ -1,8 +1,9 @@
 package info
 
 import (
-	"io/ioutil"
-	"path/filepath"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"testing"
 	"time"
@@ -30,35 +31,37 @@ func TestWhoisQuery(t *testing.T) {
 }
 
 func TestCheckDigitalOcean(t *testing.T) {
-	// Load our DO test Whois data(s) from fs
-	b, err := ioutil.ReadFile(filepath.Join("testdata", "whois-do-1.txt"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	whois := string(b)
+	ts := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			//r.URL.Path
+			//w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, "response")
+		}))
+	defer ts.Close()
 
-	isDo, err := checkDigitalOcean(whois)
+	isDo, err := checkDigitalOcean(ts.URL)
 	if err != nil {
 		t.Error(err)
 	}
 
 	if !isDo {
-		t.Error("Expected checkDigitalOcean to match testdata/whois-do-1.txt")
+		t.Error("Expected checkDigitalOcean to match on a StatusCode 200")
 	}
 
-	b, err = ioutil.ReadFile(filepath.Join("testdata", "whois-koding.com.txt"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	whois = string(b)
+	ts404 := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "response")
+		}))
+	defer ts404.Close()
 
-	isDo, err = checkDigitalOcean(whois)
+	isDo, err = checkDigitalOcean(ts404.URL)
 	if err != nil {
 		t.Error(err)
 	}
 
 	if isDo {
-		t.Error("Expected checkDigitalOcean not to match testdata/whois-koding.com.txt")
+		t.Error("Expected checkDigitalOcean to NOT match on a StatusCode !200")
 	}
-
 }
