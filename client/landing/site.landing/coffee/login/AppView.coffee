@@ -356,11 +356,17 @@ module.exports = class LoginView extends JView
         defaultValue : familyName
         label        : 'Last Name'
 
+    fields.recaptcha =
+      itemClass : KDCustomHTMLView
+      domId     : 'recaptcha'
+
     USERNAME_VALID       = no
     pendingSignupRequest = no
+
     @signupModal = new KDModalViewWithForms
       cssClass                        : 'extra-info password'
-      width                           : 360
+      # recaptcha has fixed with of 304, hence this value
+      width                           : 363
       height                          : 'auto'
       overlay                         : yes
       tabs                            :
@@ -398,6 +404,17 @@ module.exports = class LoginView extends JView
       @signupModal = null
 
     @signupModal.once 'viewAppended', =>
+
+      if @recaptchaEnabled()
+        window.onRecaptchaloadCallback = (event) ->
+          grecaptcha?.render 'recaptcha', { 'sitekey' : KD.config.recaptcha.key }
+
+        @signupModal.addSubView new KDCustomHTMLView
+          tagName    : 'script'
+          attributes :
+            src      : 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
+            async    : yes
+            defer    : yes
 
       @signupModal.addSubView new KDCustomHTMLView
         partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/Legal/Terms" target="_blank"> Terms of Service</a> and <a href="/Legal/Privacy" target="_blank">Privacy Policy.</a></div>"""
@@ -466,17 +483,28 @@ module.exports = class LoginView extends JView
       button.disable()
 
 
+  recaptchaEnabled: ->
+
+    return KD.config.recaptcha.enabled and KD.utils.getLastUsedProvider() isnt "github"
+
+
   checkBeforeRegister: ->
 
     return  unless @signupModal?
 
-    {username, firstName, lastName} = @signupModal.modalTabs.forms.extraInformation.inputs
+    {
+      username, firstName, lastName
+    } = @signupModal.modalTabs.forms.extraInformation.inputs
+
+    if @recaptchaEnabled and grecaptcha?.getResponse() is ''
+      return new KDNotificationView({ title : "Please tell us that you're not a robot!"})
 
     pendingSignupRequest = no
 
     if USERNAME_VALID and username.input.valid
       formData = @signupModal.getOption "userData"
 
+      formData.recaptcha       = grecaptcha?.getResponse()
       formData.username        = username.input.getValue()
       formData.passwordConfirm = formData.password
       formData.firstName       = firstName?.getValue()
@@ -517,6 +545,8 @@ module.exports = class LoginView extends JView
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : ->
+        KD.utils.removeLastUsedProvider()
+
         expiration = new Date Date.now() + (60 * 60 * 1000) # an hour
         document.cookie = "newRegister=true;expires=#{expiration.toUTCString()}"
 
