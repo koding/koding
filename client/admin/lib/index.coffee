@@ -90,6 +90,14 @@ module.exports = class AdminAppController extends AppController
           targetPaneView.handleIdentifier? identifier, action
         else
           targetPaneView.handleAction? action
+
+        if identifier or action
+          { parentTabTitle } = targetPane.getOptions()
+
+          if parentTabTitle
+            for handle in @getView().tabs.handles
+              if handle.getOption('title') is parentTabTitle
+                handle.setClass 'active'
       else
         kd.singletons.router.handleRoute '/Admin/Settings'
 

@@ -69,6 +69,7 @@ module.exports = class AdminAppView extends kd.ModalView
 
         if item.subTabs
           for subTab in item.subTabs
+            subTab.parentTabTitle = item.title
             items.push subTab
 
 
@@ -100,10 +101,11 @@ module.exports = class AdminAppView extends kd.ModalView
     items.forEach (item, i) =>
 
       { slug, title, action } = item
-      name         = slug or action
-      hiddenHandle = if action then yes
+      name           = slug or action
+      hiddenHandle   = if action then yes
+      parentTabTitle = item.parentTabTitle or null
 
-      pane = new KDTabPaneView { name, slug, action, hiddenHandle, title }
+      pane = new KDTabPaneView { name, slug, action, hiddenHandle, title, parentTabTitle }
       @tabs.addPane pane, i is 0
 
     @emit 'ready'
