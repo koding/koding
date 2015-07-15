@@ -15,7 +15,7 @@ type info struct {
 func Info(r *kite.Request) (interface{}, error) {
 	providerName, err := CheckProvider()
 	if err != nil {
-		return nil, err
+		return info{}, err
 	}
 
 	i := info{
