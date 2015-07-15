@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"testing"
 	"time"
@@ -71,8 +70,6 @@ func TestWarningsFull(t *testing.T) {
 	Convey("Given user who is inactive & not warned", t, func() {
 		user, err := createInactiveUser(21)
 		So(err, ShouldBeNil)
-
-		fmt.Println(user.LastLoginDate, user.Inactive)
 
 		resetFakeEmails()
 

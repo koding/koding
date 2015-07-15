@@ -25,9 +25,6 @@ const (
 	// DefaultRangeForQuery defines the range of interval for the queries.
 	DefaultRangeForQuery = 3
 
-	// DefaultLimitPerRun defines how many users to be processed in a day by one worker.
-	DefaultLimitPerRun = 500
-
 	// DailyAtTenPM specifies interval; cron runs at utc, 5 UTC is 10pm PST
 	// with daylight savings time.
 	DailyAtTenPM = "0 0 5 * * *"
@@ -70,7 +67,12 @@ func main() {
 			// clone warning so local changes don't affect next run
 			warning := *w
 
-			result := warning.Run()
+			result, err := warning.Run()
+			if err != nil {
+				j.log.Error(err.Error())
+				continue
+			}
+
 			j.log.Info(result.String())
 		}
 	})

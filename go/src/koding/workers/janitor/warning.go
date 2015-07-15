@@ -13,43 +13,55 @@ import (
 )
 
 type Warning struct {
-	// Identifier.
+	// ID is identifier for warning.
 	ID string
 
-	// Human readable description of what the warning does.
+	// Description is human readable description of what the warning does.
 	Description string
 
-	// Points to warning; this is required to check if previous
-	// warning was run before running this one.
+	// PreviousWarning points to warning before current one, is required to
+	// check if previous warning was run before running this one.
 	PreviousWarning *Warning
 
-	// Defines how long between emails from above level & this.
+	// IntervalSinceLastWarning defines how long between current and above warnings.
 	IntervalSinceLastWarning time.Duration
 
-	// Query that defines which user to select.
+	// Select is the query that defines which user to select.
 	Select []bson.M
 
 	// Action the warning will take if user isn't exempt.
 	Action Action
 
-	// Exemptions that will prevent the action from running.
+	// ExemptCheckers are exemptions that will prevent the action from running.
 	ExemptCheckers []*ExemptChecker
 
-	// Current result
+	// Throtted defines if there should be sleep time while warning is run.
+	Throttled bool
+
+	// Result is output success, failures of current run.
 	Result *Result
 }
 
-func (w *Warning) Run() *Result {
+func (w *Warning) Run() (*Result, error) {
 	w.Result = NewResult(w.Description)
 
-	for limit := DefaultLimitPerRun; limit >= 0; limit-- {
+	sleepInSec, err := w.getSleepTime()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if w.Throttled {
+			time.Sleep(sleepInSec)
+		}
+
 		if isErrNotFound(w.RunSingle()) {
 			break
 		}
 	}
 
 	w.Result.EndedAt = time.Now().String()
-	return w.Result
+	return w.Result, nil
 }
 
 func (w *Warning) RunSingle() error {
@@ -77,31 +89,15 @@ func (w *Warning) RunSingle() error {
 // FindAndLockUser finds user according to warning query and locks it.
 // While this lock is held, no other worker can get access to this document.
 func (w *Warning) FindAndLockUser() (*models.User, error) {
-	selector := w.Select
+	selectQuery := w.buildSelectQuery()
 
-	selector = append(selector, bson.M{"inactive.assigned": bson.M{"$ne": true}})
-	selector = append(selector, bson.M{"$or": []bson.M{
-		bson.M{"inactive.modifiedAt": bson.M{"$exists": false}},
-		bson.M{"inactive.modifiedAt": bson.M{"$lte": now.BeginningOfDay().UTC()}},
-	}})
-
-	var change = mgo.Change{
+	change := mgo.Change{
 		Update: bson.M{
 			"$set": bson.M{
 				"inactive.assigned": true, "inactive.assignedAt": timeNow(),
 			},
 		},
 		ReturnNew: true,
-	}
-
-	// mongo indexes requrie query order to be in same order of index
-	// however go map doesn't preserve ordering, so we accumulate queries
-	// with a slice and turn them into a map right before query time
-	selectQuery := bson.M{}
-	for _, query := range selector {
-		for k, v := range query {
-			selectQuery[k] = v
-		}
 	}
 
 	var user *models.User
@@ -196,6 +192,62 @@ func (w *Warning) ReleaseUser(user *models.User) error {
 	}
 
 	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
+}
+
+// getSleepTime returns how long to sleep between each document based
+// on total number of documents. It defaults to sleeping 1 seconds
+// when calculated time is too short or too long.
+func (w *Warning) getSleepTime() (time.Duration, error) {
+	count, err := w.getCount()
+	if err != nil {
+		return 0, err
+	}
+
+	now := time.Now()
+
+	timeToWork := now.Add(23*time.Hour).UnixNano() - now.UnixNano()
+	sleepInSec := timeToWork / int64(count)
+
+	if sleepInSec >= int64(10*time.Second) || sleepInSec >= int64(1*time.Second) {
+		return time.Duration(1 * time.Second), nil
+	}
+
+	return time.Duration(sleepInSec), nil
+}
+
+// getCount returns count of total documents that'll be processed in this run.
+func (w *Warning) getCount() (int, error) {
+	var count int
+	var err error
+
+	var query = func(c *mgo.Collection) error {
+		count, err = c.Find(w.buildSelectQuery()).Count()
+		return err
+	}
+
+	return count, modelhelper.Mongo.Run(modelhelper.UserColl, query)
+}
+
+func (w *Warning) buildSelectQuery() bson.M {
+	selector := w.Select
+
+	selector = append(selector, bson.M{"inactive.assigned": bson.M{"$ne": true}})
+	selector = append(selector, bson.M{"$or": []bson.M{
+		bson.M{"inactive.modifiedAt": bson.M{"$exists": false}},
+		bson.M{"inactive.modifiedAt": bson.M{"$lte": now.BeginningOfDay().UTC()}},
+	}})
+
+	// mongo indexes requrie query order to be in same order of index
+	// however go map doesn't preserve ordering, so we accumulate queries
+	// with a slice and turn them into a map right before query time
+	selectQuery := bson.M{}
+	for _, query := range selector {
+		for k, v := range query {
+			selectQuery[k] = v
+		}
+	}
+
+	return selectQuery
 }
 
 //----------------------------------------------------------
