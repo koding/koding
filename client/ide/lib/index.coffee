@@ -1272,7 +1272,7 @@ class IDEAppController extends AppController
 
     return  if not @myWatchMap or not @myWatchMap.keys()
 
-    @myWatchMap.keys().indexOf(origin) > -1
+    return @myWatchMap.keys().indexOf(origin) > -1
 
 
   handleChange: (change) ->
