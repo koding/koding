@@ -11,6 +11,11 @@ import (
 	"github.com/koding/klient/info/publicip"
 )
 
+// ProviderChecker funcs check the given information, and whatever else
+// they desire, to assert whether or not the current VM is belongs
+// to them or not.
+type ProviderChecker func(whois string) (isProvider bool, err error)
+
 type ProviderName int
 
 const (
@@ -86,11 +91,6 @@ func checkProvider(whois string,
 
 	return UnknownProvider, nil
 }
-
-// ProviderChecker funcs check the given information, and whatever else
-// they desire, to assert whether or not the current VM is belongs
-// to them or not.
-type ProviderChecker func(whois string) (isProvider bool, err error)
 
 // checkDigitalOcean is a ProviderChecker which parses the given whois
 // string and checks if the whois is owned by DigitalOcean.
