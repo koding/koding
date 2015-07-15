@@ -43,7 +43,6 @@ Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
 sleep 15
 
 x11vnc -passwd secret -display $DISPLAY -N -forever &
-sleep 10
 
 export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
 
