@@ -61,10 +61,8 @@ func CheckProvider() (ProviderName, error) {
 func checkProvider(checkers map[ProviderName]ProviderChecker) (
 	ProviderName, error) {
 
-	var isProvider bool
-	var err error
 	for providerName, checker := range checkers {
-		isProvider, err = checker()
+		isProvider, err := checker()
 		if err != nil {
 			return UnknownProvider, err
 		}
