@@ -1,5 +1,6 @@
-nick = require 'app/util/nick'
-kd   = require 'kd'
+kd      = require 'kd'
+nick    = require 'app/util/nick'
+Machine = require '../machine'
 
 
 # The maximum number of heartbeat attempts when looking for
@@ -76,7 +77,7 @@ updateMachineData = ({machine, kite}, callback)->
 ###
 heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
 
-  { router, computeController } = kd.singletons
+  { router } = kd.singletons
 
   beatCount  = 0
   oldKites   = {}
@@ -116,16 +117,17 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
       unless newKite
         return
 
-      createMachine newKite, (err, machine) ->
+      createMachine newKite, (err, jMachine) ->
         return kallback err  if err
 
         # Route to the IDE
-        kd.utils.defer -> router.handleRoute "/IDE/#{machine.slug}"
+        kd.utils.defer -> router.handleRoute "/IDE/#{jMachine.slug}"
+
+        machine = Machine { machine: jMachine }
 
         # Get the klient kite, and the info from that klient so we
         # can popup a Provider specific modal
-        # TODO: Is there a better way to get the klient kite?
-        klient = computeController.machinesById[machine._id].getBaseKite()
+        klient = machine.getBaseKite()
         klient.klientInfo().nodeify kallback
 
     queryPromise.catch (err) ->
