@@ -82,8 +82,8 @@ module.exports = class TopicItemView extends KDListItemView
       
       kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
        
-        if err 
-          return kd.warn err
+        return kd.warn err if err 
+          
         
         if rootChannel
           text = "Blacklisted"
