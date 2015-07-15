@@ -108,9 +108,10 @@ module.exports =
 
     @attemptEnterEmailAndPasswordOnRegister(browser, user)
     @attemptEnterUsernameOnRegister(browser, user)
-    @doLogout(browser)
 
-    @doLogin(browser, user)
+    browser
+      .waitForElementVisible '[testpath=main-header]', 50000 # Assertion
+      .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
 
 
   postActivity: (browser, shouldBeginTest = yes) ->
