@@ -1262,17 +1262,28 @@ class IDEAppController extends AppController
         @mySnapshot.delete paneHash  if paneHash
 
 
+  ###*
+   * Am I watching to change's owner?
+   *
+   * @param {string} origin  Nickname of the change's owner
+   * @return {boolean}
+  ###
+  amIWatchingChangeOwner: (origin) ->
+
+    return  if not @myWatchMap or not @myWatchMap.keys()
+
+    @myWatchMap.keys().indexOf(origin) > -1
+
+
   handleChange: (change) ->
 
     { context, origin, type, rtmHash } = change
 
     return if not context or not origin or (origin is nick() and rtmHash is @rtm.hash)
 
-    amIWatchingChangeOwner = @myWatchMap.keys().indexOf(origin) > -1
-
     mustSyncChanges = [ 'CursorActivity', 'FileSaved' ]
 
-    if amIWatchingChangeOwner or type in mustSyncChanges
+    if @amIWatchingChangeOwner(origin) or type in mustSyncChanges
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
