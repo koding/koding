@@ -1150,6 +1150,16 @@ module.exports = CollaborationController =
       then @stateMachine.transition 'Loading'
 
 
+  ###*
+   * Update the host's layout model in collaboration.
+  ###
+  updateHostSnapshotModel: ->
+
+    return  unless @rtm
+
+    @whenRealtimeReady =>
+      value = @getWorkspaceSnapshot()
+      @hostSnapshot.set 'layout', value  # Update key
 
 
   setInitialSessionSetting: (name, value) ->

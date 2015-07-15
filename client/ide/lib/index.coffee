@@ -810,6 +810,7 @@ class IDEAppController extends AppController
     value = @getWorkspaceSnapshot()
 
     @mountedMachine.getBaseKite().storageSetQueued name, value
+    @updateHostSnapshotModel()  if @amIHost
 
 
   removeWorkspaceSnapshot: (username = nick()) ->
