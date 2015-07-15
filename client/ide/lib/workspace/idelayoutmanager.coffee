@@ -22,8 +22,7 @@ module.exports = class IDELayoutManager extends KDObject
 
     @layout       = [] # Reset and create an array.
 
-    workspaceView = @getDelegate().workspace.getView()
-    baseSplitView = workspaceView.layout.getSplitViewByName 'BaseSplit'
+    baseSplitView = @getBaseSplitView()
     splitViews    = baseSplitView.panels.last.getSubViews().first.getSubViews().first
 
     if splitViews instanceof IDEView
@@ -252,3 +251,12 @@ module.exports = class IDELayoutManager extends KDObject
     else
       for subView in views
         IDELayoutManager.findPanesFromArray panes, subView # recall itself
+
+
+  getBaseSplitView: ->
+
+    workspaceView = @getDelegate().workspace.getView()
+
+    return workspaceView.layout.getSplitViewByName 'BaseSplit'
+
+
