@@ -820,9 +820,9 @@ Admin main styles
   .delete-topic
     abs                     8px 100px 0 0
     size                    32px 32px
-    
+
     &:before
-      abs                   8px 0 0 8px 
+      abs                   8px 0 0 8px
       content               ''
       display               block
       r-sprite              'admin', 'delete-topic'
@@ -1226,6 +1226,9 @@ Admin main styles
 // integrations view
 
 .AppModal--admin .integrations
+
+  .integration-details
+    overflow-y              scroll
 
   .kdtabhandle
     max-width               230px !important // override element style
