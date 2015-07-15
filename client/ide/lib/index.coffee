@@ -838,8 +838,7 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
-    ## Only host can write snapshot to Kite
-    return  if @isDestroyed or not @isMachineRunning() or not @amIHost
+    return  if @isDestroyed or not @isMachineRunning() or @quite
 
     name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
