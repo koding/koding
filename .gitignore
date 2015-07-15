@@ -17,7 +17,7 @@ selenium-debug.log
 .vagrant
 .runningpids
 /.build
-/.logs
+/.logs/*
 /.deployments
 /.pydevproject
 /.revision
