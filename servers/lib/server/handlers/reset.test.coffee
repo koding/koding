@@ -126,6 +126,7 @@ runTests = -> describe 'server.handlers.reset', ->
           queue.next()
 
       ->
+        # redeeming certificate without before reset request
         certificate.redeem (err) ->
           expect(err).to.not.exist
           queue.next()
@@ -139,6 +140,7 @@ runTests = -> describe 'server.handlers.reset', ->
           queue.next()
 
       ->
+        # expiring certificate before reset request
         certificate.expire (err) ->
           expect(err).to.not.exist
           queue.next()
@@ -150,7 +152,6 @@ runTests = -> describe 'server.handlers.reset', ->
           expect(res.statusCode)  .to.be.equal 400
           expect(body)            .to.be.equal expectedBody
           queue.next()
-
 
       -> done()
 
@@ -188,7 +189,7 @@ runTests = -> describe 'server.handlers.reset', ->
           queue.next()
 
       ->
-        # expecting failure because user doesnt exist
+        # expecting failure because user doesn't exist
         expectedBody = 'Unknown user!'
         request.post resetRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
@@ -218,9 +219,9 @@ runTests = -> describe 'server.handlers.reset', ->
         recoveryToken : token
 
     registerRequestParams = RegisterHandlerHelper.generateRequestParams
-      body              :
-        email           : email
-        username        : username
+      body       :
+        email    : email
+        username : username
 
     queue = [
 
@@ -281,7 +282,6 @@ runTests = -> describe 'server.handlers.reset', ->
     certificate1        = null
     certificate2        = null
     expiryPeriod        = ResetHandlerHelper.defaultExpiryPeriod
-    passwordBeforeReset = null
 
     resetRequestParams = generateResetRequestParams
       body            :
@@ -347,6 +347,7 @@ runTests = -> describe 'server.handlers.reset', ->
     ]
 
     daisy queue
+
 
 runTests()
 
