@@ -123,7 +123,8 @@ func getAccount(r *http.Request, groupName string) *models.Account {
 // lazily and sets socialapi id of it in mongo
 func makeSureAccount(groupName string, username string) (*models.Account, error) {
 	// try to fetch account from postgres
-	acc, err := models.Cache.Account.ByNick(username)
+	acc := models.NewAccount()
+	err := acc.ByNick(username)
 	if err == nil {
 		return acc, nil
 	}
