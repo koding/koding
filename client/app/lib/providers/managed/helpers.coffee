@@ -126,9 +126,7 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
         # can popup a Provider specific modal
         # TODO: Is there a better way to get the klient kite?
         klient = computeController.machinesById[machine._id].getBaseKite()
-        klient.klientInfo()
-          .then (payload) -> kallback null, payload
-          .catch    (err) -> kallback err
+        klient.klientInfo().nodeify kallback
 
     queryPromise.catch (err) ->
       kallback err  if err
