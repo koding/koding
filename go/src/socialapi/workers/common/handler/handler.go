@@ -180,12 +180,12 @@ func makeSureMembership(groupChannel *models.Channel, accountId int64) error {
 		return nil
 	}
 
-	cp, err := groupChannel.AddParticipant(accountId)
-	if err != nil {
+	_, err = groupChannel.AddParticipant(accountId)
+	if err != nil && err != models.ErrAccountIsAlreadyInTheChannel {
 		return err
 	}
 
-	return models.Cache.Participant.SetToCache(cp.ChannelId, cp.AccountId)
+	return models.Cache.Participant.SetToCache(groupChannel.Id, accountId)
 }
 
 func getGroupName(r *http.Request) string {
