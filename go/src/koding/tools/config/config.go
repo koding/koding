@@ -242,8 +242,7 @@ type RuntimeOptions struct {
 		IdleTime    int    `json:"idleTime"`
 		ExternalUrl string `json:"externalUrl"`
 	} `json:"troubleshoot"`
-	Recaptcha string `json:"recaptcha"`
-	Stripe    struct {
+	Stripe struct {
 		Token string `json:"token"`
 	} `json:"stripe"`
 	ExternalProfiles struct {
@@ -297,9 +296,13 @@ type RuntimeOptions struct {
 		BotChannel bool `json:"botchannel"`
 	} `json:"disabledFeatures"`
 	ContentRotatorUrl string `json:"contentRotatorUrl"`
-	Google struct {
+	Google            struct {
 		ApiKey string `json:"apiKey"`
 	} `json:"google"`
+	Recaptcha struct {
+		Key     string `json:"key"`
+		Enabled bool   `json:"enabled"`
+	} `json:"recaptcha"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
