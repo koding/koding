@@ -12,7 +12,6 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
-	"github.com/mitchellh/goamz/ec2"
 	"golang.org/x/net/context"
 )
 
@@ -75,12 +74,12 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	// we need it in a lot of places!
 	oldVolumeId := instance.BlockDevices[0].VolumeId
 
-	oldVolResp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
+	oldVolResp, err := a.ExistingVolume(oldVolumeId)
 	if err != nil {
-		return err
+		return fmt.Errorf("couldn't retrieve existing volume '%s': %s", oldVolumeId, err)
 	}
 
-	volSize := oldVolResp.Volumes[0].Size
+	volSize := oldVolResp.Size
 	currentSize, err := strconv.Atoi(volSize)
 	if err != nil {
 		return err
@@ -152,13 +151,14 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	m.Log.Info("creating volume from snapshot id %s with size: %d", newSnapshotId, desiredSize)
 
 	// Go on with the current volume type. SSD(gp2) or Magnetic(standard)
-	volType := oldVolResp.Volumes[0].VolumeType
+	volType := oldVolResp.VolumeType
 
 	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, volType, desiredSize)
 	if err != nil {
 		return err
 	}
 	newVolumeId := volume.VolumeId
+	m.Log.Info("new volume was created with id %s", newVolumeId)
 
 	// delete volume if something goes wrong in following steps
 	defer func() {
