@@ -282,9 +282,33 @@ class IDEAppController extends AppController
 
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
 
+    if @rtm?.isReady and not quite
+      context =
+        ideViewHash    : ideView.hash
+        newIDEViewHash : newIDEView.hash
+        direction      : type
+
+      @emitChange 'NewSplitViewCreated', context
+
     @recalculateHandles()
-    @writeSnapshot()  if saveSnapshot
+    @writeSnapshot()  unless dontSave
     @resizeActiveTerminalPane()
+
+
+  ###*
+   * @param {string} type
+   * @param {Object} context
+  ###
+  emitChange: (type, context) ->
+
+    return  unless @rtm
+
+    change  =
+      context       : context
+      type          : type
+      origin        : nick()
+
+    @syncChange change
 
 
   recalculateHandles: ->
@@ -338,11 +362,18 @@ class IDEAppController extends AppController
 
     parent.attach targetView  # Attach again.
 
+    @setActiveTabView targetIdeView.tabView
     @updateLayoutMap_ splitView, targetView
 
     # I'm not sure about the usage of private method. I had to...
     # Is it the best way for view resizing?
     targetView._windowDidResize()
+
+    if @rtm?.isReady and not quite
+      context =
+        ideViewHash : ideViewHash
+
+      @emitChange 'SplitViewWasMerged', context
 
     @doResize()
     @recalculateHandles()
@@ -1216,6 +1247,15 @@ class IDEAppController extends AppController
       when 'NewPaneCreated'
         @mySnapshot.set paneHash, change  if paneHash
 
+      when 'NewSplitViewCreated'
+        @mySnapshot.set ideViewHash, change  if ideViewHash
+
+      when 'SplitViewWasMerged'
+        @mySnapshot.set ideViewHash, change  if ideViewHash
+
+      when 'IDETabWasMoved'
+        @mySnapshot.set ideViewHash, change  if ideViewHash
+
       when 'PaneRemoved'
         @mySnapshot.delete paneHash  if paneHash
 
@@ -1236,6 +1276,20 @@ class IDEAppController extends AppController
       if type is 'NewPaneCreated'
         @createPaneFromChange change
 
+      else if type is 'NewSplitViewCreated'
+        @handleSplitViewChanges change, =>
+          @splitTabView
+            type            : context.direction
+            newIDEViewHash  : context.newIDEViewHash
+            quite           : yes
+
+      else if type is 'SplitViewWasMerged'
+        @handleSplitViewChanges change, =>
+          @mergeSplitView yes
+
+      else if type is 'IDETabWasMoved'
+        @handleMoveTabChanges context
+
       else if type in ['TabChanged', 'PaneRemoved', 'TerminalRenamed']
         paneView = targetPane?.parent
         tabView  = paneView?.parent
@@ -1255,6 +1309,64 @@ class IDEAppController extends AppController
 
 
       targetPane?.handleChange? change, @rtm
+
+
+  ###*
+   * @param {Object} context
+  ###
+  handleMoveTabChanges: (context) ->
+
+    originTabView = @getTabViewByIDEViewHash context.originIDEViewHash
+    targetTabView = @getTabViewByIDEViewHash context.targetIDEViewHash
+
+    return  if not originTabView or not targetTabView
+
+    @forEachSubViewInIDEViews_ context.paneType, (p) =>
+
+      if p.hash is context.paneHash
+
+        unless @checkPaneInTabView originTabView, context.paneHash
+          originTabView = p.parent.parent # Reach the `IDEApplicationTabView`
+
+        originTabView.activePane = null
+        { pane } = originTabView.removePane p.parent, yes, yes
+
+        originTabView.showPaneByIndex 0  if originTabView.panes.length
+
+        kd.utils.defer =>
+          targetTabView.addPane pane
+          @setActiveTabView targetTabView
+          @doResize()
+
+
+
+  ###*
+   * @param {Object} change
+   * @param {Function=} callback
+  ###
+  handleSplitViewChanges: (change, callback = kd.noop) ->
+
+    tabView = @getTabViewByIDEViewHash change.context.ideViewHash
+    return  unless tabView
+
+    @setActiveTabView tabView
+    callback()
+
+
+  ###*
+   * `pane` there in `tabView` really?
+   *
+   * @param {IDEApplicationTabView} tabView
+   * @param {KDTabPaneView} hash
+   * @return {boolean}
+  ###
+  checkPaneInTabView: (tabView, hash) ->
+
+    return  unless tabView.panes.length
+
+    check = tabView.panes.filter (p) -> p.hash is hash
+
+    return check.length > 0
 
 
   getPaneByChange: (change) ->
@@ -1292,7 +1404,9 @@ class IDEAppController extends AppController
 
     return  if not paneType or not paneHash
 
-    @changeActiveTabView paneType  if not isFromLocalStorage and not @amIHost
+    if ideViewHash and @amIWatchingChangeOwner origin
+      targetTabView = @getTabViewByIDEViewHash ideViewHash
+      @setActiveTabView targetTabView  if targetTabView
 
     switch paneType
       when 'terminal' then @createTerminalPaneFromChange change, paneHash
@@ -1587,6 +1701,16 @@ class IDEAppController extends AppController
 
     @setActiveTabView targetTabView
     @doResize()
+
+    { view } = pane
+
+    context =
+      paneType          : view.getOption 'paneType'
+      paneHash          : view.hash
+      originIDEViewHash : tabView.parent.hash
+      targetIDEViewHash : targetTabView.parent.hash
+
+    @emitChange 'IDETabWasMoved', context
 
 
   runOnboarding: ->
