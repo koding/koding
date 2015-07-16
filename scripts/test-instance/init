@@ -40,7 +40,7 @@ disown $!
 
 sleep 60
 
-Xvfb $DISPLAY -shmem -screen 0 1440x1200x16 &
+Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
 sleep 15
 
 x11vnc -passwd secret -display $DISPLAY -N -forever &

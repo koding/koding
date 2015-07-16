@@ -68,7 +68,7 @@ func TestWarningsQuery(t *testing.T) {
 
 func TestWarningsFull(t *testing.T) {
 	Convey("Given user who is inactive & not warned", t, func() {
-		user, err := createInactiveUser(46)
+		user, err := createInactiveUser(21)
 		So(err, ShouldBeNil)
 
 		resetFakeEmails()
@@ -76,6 +76,7 @@ func TestWarningsFull(t *testing.T) {
 		warning := VMDeletionWarning1
 		warning.ExemptCheckers = []*ExemptChecker{}
 		warning.Action = fakeEmailActionFn()
+
 		warning.Run()
 
 		Convey("Then they should get an email", func() {
@@ -89,7 +90,7 @@ func TestWarningsFull(t *testing.T) {
 	})
 
 	Convey("Given user who is inactive & been warned", t, func() {
-		user, err := createInactiveUser(46)
+		user, err := createInactiveUser(21)
 		So(err, ShouldBeNil)
 
 		resetFakeEmails()
@@ -110,7 +111,7 @@ func TestWarningsFull(t *testing.T) {
 			Convey("Then they should get another email", func() {
 				selector := bson.M{"username": user.Name}
 				update := bson.M{
-					"lastLoginDate": timeNow().Add(-time.Hour * 24 * time.Duration(53)),
+					"lastLoginDate": timeNow().Add(-time.Hour * 24 * time.Duration(25)),
 				}
 
 				err := modelhelper.UpdateUser(selector, update)
@@ -123,6 +124,7 @@ func TestWarningsFull(t *testing.T) {
 				warning := VMDeletionWarning2
 				warning.ExemptCheckers = []*ExemptChecker{}
 				warning.Action = fakeEmailActionFn()
+
 				warning.Run()
 
 				So(len(fakeEmails), ShouldEqual, 1)
