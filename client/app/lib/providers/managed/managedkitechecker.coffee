@@ -158,9 +158,8 @@ module.exports = class ManagedKiteChecker extends kd.Object
 
     # Be paranoid about duplicating timers.
     if @_delaying or @_ticking
-      kd.warn "ManagedKiteChecker: _startDelay called with pre-existing
-        timerId"
-      return
+      return @_callListener() new Error "ManagedKiteChecker:
+        _startDelay called with pre-existing timer or interval"
 
     @_delaying = yes
     @_timerId  = kd.utils.wait @getOption('delay'), =>
@@ -180,9 +179,8 @@ module.exports = class ManagedKiteChecker extends kd.Object
 
     # Be paranoid about duplicating timers.
     if @_delaying or @_ticking
-      kd.warn "ManagedKiteChecker: _startDelay called with pre-existing
-        timerId"
-      return
+      return @_callListener() new Error "ManagedKiteChecker:
+        _startTicking called with pre-existing timer or interval"
 
     @_ticking = yes
     @_timerId = kd.utils.repeat @getOption('interval'), @bound 'tick'
