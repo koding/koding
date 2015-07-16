@@ -5,9 +5,11 @@ import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"socialapi/config"
+	"sync"
 	"time"
 
 	kiteConfig "github.com/koding/kite/config"
@@ -24,9 +26,6 @@ const (
 
 	// DefaultRangeForQuery defines the range of interval for the queries.
 	DefaultRangeForQuery = 3
-
-	// DefaultLimitPerRun defines how many users to be processed in a day by one worker.
-	DefaultLimitPerRun = 500
 
 	// DailyAtTenPM specifies interval; cron runs at utc, 5 UTC is 10pm PST
 	// with daylight savings time.
@@ -65,14 +64,27 @@ func main() {
 
 	c := cron.New()
 	c.AddFunc(DailyAtTenPM, func() {
+		var wg sync.WaitGroup
+
 		for _, w := range warnings {
+			wg.Add(1)
 
-			// clone warning so local changes don't affect next run
-			warning := *w
+			time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
 
-			result := warning.Run()
-			j.log.Info(result.String())
+			go func(warning Warning) {
+				defer wg.Done()
+
+				result, err := warning.Run()
+				if err != nil {
+					j.log.Error(err.Error())
+					return
+				}
+
+				j.log.Info(result.String())
+			}(*w)
 		}
+
+		wg.Wait()
 	})
 
 	c.Start()

@@ -108,6 +108,9 @@ module.exports = class ComputeEventListener extends KDObject
     createSnapshot :
       public       : "MachineSnapshotted"
       private      : Snapshotting
+    apply          :
+      public       : "MachineBuilt"
+      private      : Running
 
 
   tick: (force) ->

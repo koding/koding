@@ -147,7 +147,7 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	if err != nil {
 		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
 			user.Name, err)
-		payment = &plans.PaymentResponse{Plan: "Free"}
+		payment = &plans.PaymentResponse{Plan: "free"}
 	}
 
 	checker, err := p.CheckerFetcher.Fetch(ctx, payment.Plan)

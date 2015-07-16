@@ -18,17 +18,10 @@ import (
 )
 
 func TestIsUserPaid(t *testing.T) {
-	warning := &Warning{}
-
 	Convey("Given user who is paid", t, func() {
 		username := "paiduser"
 		user, _, err := modeltesthelper.CreateUser(username)
 		So(err, ShouldBeNil)
-
-		Convey("Then it returns error if error fetching plan", func() {
-			_, err := IsUserPaidFn(user, warning)
-			So(err, ShouldNotBeNil)
-		})
 
 		Convey("Then it returns true if user is paid", func() {
 			mux := http.NewServeMux()
