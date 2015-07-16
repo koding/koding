@@ -7,7 +7,10 @@ Machine = require '../machine'
 # a new kite.
 MAX_HEARTBEATS = 60
 # The default heartbeat interval, in seconds.
-HEARTBEAT_INTERVAL = 5
+HEARTBEAT_INTERVAL = 10
+# The default number of seconds that heartbeat will wait, before
+# starting.
+HEARTBEAT_DELAY = 15
 
 
 # Not exported
@@ -106,10 +109,14 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
 
       clearInterval intervalId
 
-      # Check the old kites vs the new kites
+      # Find a new kite, from the kite list.
+      # NOTE: This only handles the first kite. This is mostly because
+      # we need a point at which we stop "heartbeating". If multiple
+      # new kites are needed in the future, we probably want to add
+      # a parameter for the number of kites to "heartbeat" for.
       newKite = null
       for kite in kites
-        if oldKites[kite.keyId]
+        unless kite.machine
           newKite = kite
           break
 
@@ -133,17 +140,14 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
     queryPromise.catch (err) ->
       kallback err  if err
 
-  # First, query for the kites to find the original kites
-  # After that's done, start the heartbeat.
-  queryKites()
-    .then (kites = []) ->
-      oldKites[kite.keyId] = kite  for kite in kites
+  # The delay serves to give klient time to connect, reducing unneeded
+  # heartbeats.
+  heartbeatDelay = HEARTBEAT_DELAY - interval
+  heartbeatDelay = 0  if heartbeatDelay < 0
+
+  setTimeout (->
       intervalId = setInterval heartbeat, interval * 1000
-      # Call the heartbeat immediately *after* setInterval,
-      # so we can clear it if it is immediately available.
-      heartbeat()
-    .catch (err) ->
-      kallback err
+  ), heartbeatDelay * 1000
   return
 
 
