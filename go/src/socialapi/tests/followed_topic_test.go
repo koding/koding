@@ -2,11 +2,9 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"strconv"
 	"testing"
 
 	"github.com/koding/runner"
@@ -15,7 +13,7 @@ import (
 
 func TestFollowedTopics(t *testing.T) {
 	Convey("While testing followed topics", t, func() {
-		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
 		r := runner.New("rest-tests")
 		err := r.Init()
 		So(err, ShouldBeNil)
@@ -26,12 +24,17 @@ func TestFollowedTopics(t *testing.T) {
 		defer modelhelper.Close()
 
 		Convey("First Create User", func() {
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err := rest.CreateAccount(account)
+			groupName := models.RandomGroupName()
+
+			account, err := models.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
-			So(account.Id, ShouldNotEqual, 0)
+
+			models.CreateTypedGroupedChannelWithTest(
+				account.Id,
+				models.Channel_TYPE_GROUP,
+				groupName,
+			)
 
 			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
@@ -43,17 +46,21 @@ func TestFollowedTopics(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
-			topicChannel1 := models.CreateTypedGroupedChannelWithTest(
+			topicChannel1, err := rest.CreateChannelByGroupNameAndType(
 				account.Id,
-				models.Channel_TYPE_TOPIC,
 				groupName,
+				models.Channel_TYPE_TOPIC,
+				ses.ClientId,
 			)
+			So(err, ShouldBeNil)
 
-			topicChannel2 := models.CreateTypedGroupedChannelWithTest(
+			topicChannel2, err := rest.CreateChannelByGroupNameAndType(
 				account.Id,
-				models.Channel_TYPE_TOPIC,
 				groupName,
+				models.Channel_TYPE_TOPIC,
+				ses.ClientId,
 			)
+			So(err, ShouldBeNil)
 
 			Convey("user should be able to follow one topic", func() {
 				channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, account.Id, account.Id)
