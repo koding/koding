@@ -37,6 +37,12 @@ func TestGroupChannel(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
+		models.CreateTypedGroupedChannelWithTest(
+			account.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
 		Convey("channel should be there", func() {
 			channel1, err := rest.CreateChannelByGroupNameAndType(
 				account.Id,

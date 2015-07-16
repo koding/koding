@@ -72,23 +72,20 @@ func TestCheckOwnership(t *testing.T) {
 	Convey("accounts can own things", t, func() {
 		groupName := models.RandomGroupName()
 
-		bob := models.NewAccount()
-		bob.Nick = "bob"
-		bob.OldId = bson.NewObjectId().Hex()
-		bobsAccount, err := rest.CreateAccount(bob)
+		bobsAccount, err := models.CreateAccountInBothDbsWithNick("bob")
 		So(err, ShouldBeNil)
 
-		bobsses, err := models.FetchOrCreateSession(bob.Nick, groupName)
+		bobsGroup := models.CreateTypedGroupedChannelWithTest(
+			bobsAccount.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
+		bobsses, err := models.FetchOrCreateSession(bobsAccount.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(bobsses, ShouldNotBeNil)
 
-		ted := models.NewAccount()
-		ted.Nick = "ted"
-		ted.OldId = bson.NewObjectId().Hex()
-		tedsAccount, err := rest.CreateAccount(ted)
-		So(err, ShouldBeNil)
-
-		bobsGroup, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_GROUP, bobsses.ClientId)
+		tedsAccount, err := models.CreateAccountInBothDbsWithNick("ted")
 		So(err, ShouldBeNil)
 
 		bobsPost, err := rest.CreatePost(bobsGroup.Id, bobsAccount.Id)
@@ -135,15 +132,16 @@ func TestAccountFetchProfile(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	groupName := models.RandomGroupName()
-
 	Convey("while fetching account activities in profile page", t, func() {
 		// create account
-		acc1 := models.NewAccount()
-		acc1.OldId = bson.NewObjectId().Hex()
-		acc1, err := rest.CreateAccount(acc1)
-		So(err, ShouldBeNil)
-		So(acc1, ShouldNotBeNil)
+		groupName := models.RandomGroupName()
+
+		acc1, err := models.CreateAccountInBothDbs()
+		models.CreateTypedGroupedChannelWithTest(
+			acc1.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
 
 		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
 		So(err, ShouldBeNil)
@@ -181,15 +179,19 @@ func TestAccountProfilePostCount(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	groupName := models.RandomGroupName()
-
 	Convey("While fetching account activity count in profile page", t, func() {
 		// create account
-		acc1 := models.NewAccount()
-		acc1.OldId = bson.NewObjectId().Hex()
-		acc1, err := rest.CreateAccount(acc1)
+		groupName := models.RandomGroupName()
+
+		acc1, err := models.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
 		So(acc1, ShouldNotBeNil)
+
+		models.CreateTypedGroupedChannelWithTest(
+			acc1.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
 
 		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
 		So(err, ShouldBeNil)
@@ -235,15 +237,19 @@ func TestAccountGroupChannels(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	groupName := models.RandomGroupName()
-
 	Convey("While fetching account activity count in profile page", t, func() {
 		// create account
-		acc1 := models.NewAccount()
-		acc1.OldId = bson.NewObjectId().Hex()
-		acc1, err := rest.CreateAccount(acc1)
+		groupName := models.RandomGroupName()
+
+		acc1, err := models.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
 		So(acc1, ShouldNotBeNil)
+
+		models.CreateTypedGroupedChannelWithTest(
+			acc1.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
 
 		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
 		So(err, ShouldBeNil)

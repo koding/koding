@@ -26,26 +26,21 @@ func TestChannelMessage(t *testing.T) {
 
 		groupName := models.RandomGroupName()
 
-		account := models.NewAccount()
-		account.OldId = AccountOldId.Hex()
-		account, err = rest.CreateAccount(account)
-
+		account, err := models.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
-		So(account, ShouldNotBeNil)
 
 		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
-		nonOwnerAccount := models.NewAccount()
-		nonOwnerAccount.OldId = AccountOldId2.Hex()
-		nonOwnerAccount, err = rest.CreateAccount(nonOwnerAccount)
+		nonOwnerAccount, err := models.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
-		So(nonOwnerAccount, ShouldNotBeNil)
 
-		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
-		So(err, ShouldBeNil)
-		So(groupChannel, ShouldNotBeNil)
+		groupChannel := models.CreateTypedGroupedChannelWithTest(
+			account.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
 
 		Convey("message should be able added to the group channel", func() {
 			post, err := rest.CreatePost(groupChannel.Id, account.Id)
