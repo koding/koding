@@ -36,22 +36,16 @@ func TestPopularTopic(t *testing.T) {
 		panic(err)
 	}
 
-	ses, err := models.FetchOrCreateSession(account.Nick, groupName)
-	if err != nil {
-		panic(err)
-	}
-
 	// Since the wercker tests are failing it is skipped for temporarily
 	Convey("order should be preserved", t, func() {
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
-		groupChannel, err := rest.CreateChannelByGroupNameAndType(
+
+		groupChannel := models.CreateTypedGroupedChannelWithTest(
 			account.Id,
-			groupName,
 			models.Channel_TYPE_GROUP,
-			ses.ClientId,
+			groupName,
 		)
-		So(err, ShouldBeNil)
 		So(groupChannel, ShouldNotBeNil)
 
 		for i := 0; i < 5; i++ {

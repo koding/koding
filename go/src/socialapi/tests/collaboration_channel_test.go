@@ -51,6 +51,8 @@ func TestCollaborationChannels(t *testing.T) {
 			groupName,
 		)
 
+		groupChannel.AddParticipant(account.Id)
+
 		_, err = groupChannel.AddParticipant(devrim.Id)
 		So(err, ShouldBeNil)
 		_, err = groupChannel.AddParticipant(sinan.Id)

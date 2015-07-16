@@ -36,12 +36,12 @@ func TestChannelHistory(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
-			channel, err := rest.CreateChannelByGroupNameAndType(
+			channel := models.CreateTypedGroupedChannelWithTest(
 				account.Id,
+				models.Channel_TYPE_GROUP,
 				groupName,
-				models.Channel_TYPE_DEFAULT,
-				ses.ClientId,
 			)
+
 			So(err, ShouldBeNil)
 			So(channel, ShouldNotBeNil)
 
