@@ -62,7 +62,8 @@ fetchData = (query) ->
 
   { socialApiChannelId } = getGroup()
 
-  kd.singletons.search.searchChannel query, socialApiChannelId, { hitsPerPage : NUMBER_OF_SUGGESTIONS }
+  options = { hitsPerPage : NUMBER_OF_SUGGESTIONS }
+  kd.singletons.search.searchChannelWithHighlighting query, socialApiChannelId, options
     .then (data) ->
       dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, { data }
     .catch (err) ->
