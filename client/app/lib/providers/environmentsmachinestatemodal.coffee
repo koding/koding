@@ -61,6 +61,9 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     {computeController, marketingController} = kd.singletons
 
+    computeController.fetchUserPlan (plan) =>
+      @userSubscription = plan
+
     computeController.ready => whoami().isEmailVerified (err, verified) =>
 
       kd.warn err  if err?
@@ -111,13 +114,26 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       if error
 
         if /NetworkOut/i.test error
-          @customErrorMessage = "
-            <p>You've reached your outbound network usage
-            limit for this week.</p><span>
-            Please upgrade your <a href='/Pricing'>plan</a> or
-            <span class='contact-support'>contact support</span> for further
-            assistance.</span>
+
+          limitReachedNotice = "
+            <p>You've reached your outbound network 
+            usage limit for this week.</p>
           "
+
+          if @userSubscription is 'free'
+            @customErrorMessage = "
+              #{limitReachedNotice}<span>
+              Please upgrade your <a href='/Pricing'>plan</a> or
+              <span class='contact-support'>contact support</span> for further
+              assistance.</span>
+            "
+
+          else
+            @customErrorMessage = "
+              #{limitReachedNotice}<span>
+              Please <span class='contact-support'>contact support</span> 
+              for further assistance.</span>
+            "
 
         unless error.code is ComputeController.Error.NotVerified
           @hasError = yes

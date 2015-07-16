@@ -217,6 +217,30 @@ func CreateAccountInBothDbs() (*Account, error) {
 	return CreateAccountInBothDbsWithNick(bson.NewObjectId().Hex())
 }
 
+func CreateAccountInBothDbsWithCheck() *Account {
+	acc, err := CreateAccountInBothDbsWithNick(bson.NewObjectId().Hex())
+	So(err, ShouldBeNil)
+	So(acc, ShouldNotBeNil)
+	return acc
+}
+
+func CreateRandomGroupDataWithChecks() (*Account, *Channel, string) {
+	groupName := RandomGroupName()
+
+	account := CreateAccountInBothDbsWithCheck()
+
+	groupChannel := CreateTypedGroupedChannelWithTest(
+		account.Id,
+		Channel_TYPE_GROUP,
+		groupName,
+	)
+
+	_, err := groupChannel.AddParticipant(account.Id)
+	So(err, ShouldBeNil)
+
+	return account, groupChannel, groupName
+}
+
 func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	accId := bson.NewObjectId()
 	accHex := nick
@@ -270,7 +294,7 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	}
 
 	if oldAcc.SocialApiId != strconv.FormatInt(a.Id, 10) {
-		s := modelhelper.Selector{"_id": accId}
+		s := modelhelper.Selector{"_id": oldAcc.Id}
 		o := modelhelper.Selector{"$set": modelhelper.Selector{
 			"socialApiId": strconv.FormatInt(a.Id, 10),
 		}}
@@ -281,6 +305,35 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	}
 
 	return a, nil
+}
+
+func UpdateUsernameInBothDbs(currentUsername, newUsername string) error {
+	err := modelhelper.UpdateUser(
+		bson.M{"username": currentUsername},
+		bson.M{"username": newUsername},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = modelhelper.UpdateAccount(
+		modelhelper.Selector{"profile.nickname": currentUsername},
+		modelhelper.Selector{"$set": modelhelper.Selector{"profile.nickname": newUsername}},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	acc := NewAccount()
+	if err := acc.ByNick(currentUsername); err != nil {
+		return err
+	}
+
+	acc.Nick = newUsername
+
+	return acc.Update()
 }
 
 func AddInteractionWithTest(iType string, messageId int64, accountId int64) (*Interaction, error) {

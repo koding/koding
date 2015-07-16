@@ -5,8 +5,6 @@ module.exports = (req, res) ->
 
   { email } = req.body
 
-  console.log "Gravatar info request for: #{email}"
-
   _hash     = (crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex')).toString()
   _url      = "https://www.gravatar.com/#{_hash}.json"
   _request  =
