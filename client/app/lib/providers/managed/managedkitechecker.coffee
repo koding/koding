@@ -202,10 +202,10 @@ module.exports = class ManagedKiteChecker extends kd.Object
    * will not be notified of that kite. See ManagedKiteChecker for a
    * high level understanding of why this is.
    *
-   * @param {Function(err:Error, info:Object)} listener - A callback for
-   *  when the new kite is connected. Info is the returned object from
-   *  the klient kite's `klient.info` method. This contains the
-   *  `providerName` key, among other things.
+   * @param {Function(err:Error, info:Object, machine:Machine)} listener -
+   *  A callback for when the new kite is connected. Info is the
+   *  returned object from the klient kite's `klient.info` method.
+   *  This contains the `providerName` key, among other things.
   ###
   addListener: (listener) ->
 
@@ -232,10 +232,10 @@ module.exports = class ManagedKiteChecker extends kd.Object
    * are currently listening, any Polling (ticking) that may be occuring
    * is halted.
    *
-   * @param {Function(err:Error, info:Object)} listener - A callback for
-   *  when the new kite is connected. Info is the returned object from
-   *  the klient kite's `klient.info` method. This contains the
-   *  `providerName` key, among other things.
+   * @param {Function(err:Error, info:Object, machine:Machine)} listener -
+   *  A callback for when the new kite is connected. Info is the
+   *  returned object from the klient kite's `klient.info` method.
+   *  This contains the `providerName` key, among other things.
   ###
   removeListener: (listener = kd.noop) ->
 
