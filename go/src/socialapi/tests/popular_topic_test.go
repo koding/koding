@@ -48,6 +48,9 @@ func TestPopularTopic(t *testing.T) {
 		)
 		So(groupChannel, ShouldNotBeNil)
 
+		_, err = groupChannel.AddParticipant(account.Id)
+		So(err, ShouldBeNil)
+
 		for i := 0; i < 5; i++ {
 			post, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #5times")
 			So(err, ShouldBeNil)

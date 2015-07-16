@@ -43,23 +43,17 @@ func TestFollowedTopics(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
-			topicChannel1, err := rest.CreateChannelByGroupNameAndType(
+			topicChannel1 := models.CreateTypedGroupedChannelWithTest(
 				account.Id,
-				groupName,
 				models.Channel_TYPE_TOPIC,
-				ses.ClientId,
+				groupName,
 			)
-			So(err, ShouldBeNil)
-			So(topicChannel1, ShouldNotBeNil)
 
-			topicChannel2, err := rest.CreateChannelByGroupNameAndType(
+			topicChannel2 := models.CreateTypedGroupedChannelWithTest(
 				account.Id,
-				groupName,
 				models.Channel_TYPE_TOPIC,
-				ses.ClientId,
+				groupName,
 			)
-			So(err, ShouldBeNil)
-			So(topicChannel2, ShouldNotBeNil)
 
 			Convey("user should be able to follow one topic", func() {
 				channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, account.Id, account.Id)

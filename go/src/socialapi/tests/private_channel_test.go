@@ -277,6 +277,8 @@ func TestPrivateMesssages(t *testing.T) {
 			)
 			So(groupChannel, ShouldNotBeNil)
 
+			_, err = groupChannel.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
 			_, err = groupChannel.AddParticipant(devrim.Id)
 			So(err, ShouldBeNil)
 			_, err = groupChannel.AddParticipant(sinan.Id)

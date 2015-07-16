@@ -41,9 +41,8 @@ func TestChannelHistory(t *testing.T) {
 				models.Channel_TYPE_GROUP,
 				groupName,
 			)
-
+			_, err = channel.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
-			So(channel, ShouldNotBeNil)
 
 			Convey("While posting a new message to it", func() {
 				var channelParticipant *models.ChannelParticipant
