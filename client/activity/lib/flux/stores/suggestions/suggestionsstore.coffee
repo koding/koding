@@ -34,9 +34,7 @@ module.exports = class SuggestionsStore extends KodingFluxStore
    * @param {array} payload.data
    * @return {Immutable} new data
   ###
-  handleFetchSuccess: (results, { data }) ->
-
-    results = toImmutable data
+  handleFetchSuccess: (results, { data }) -> toImmutable data
 
 
   ###*
@@ -57,4 +55,4 @@ module.exports = class SuggestionsStore extends KodingFluxStore
    * @param {Immutable} results
    * @return {Immutable} empty immutable list
   ###
-  handleReset: (results) -> results = immutable.List()
+  handleReset: (results) -> immutable.List()
