@@ -274,6 +274,15 @@ func TestChannelParticipantOperations(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(participant, ShouldNotBeNil)
 				groupName := models.RandomGroupName()
+
+				groupChannel := models.CreateTypedGroupedChannelWithTest(
+					ownerAccount.Id,
+					models.Channel_TYPE_GROUP,
+					groupName,
+				)
+
+				_, err = groupChannel.AddParticipant(ownerAccount.Id)
+				So(err, ShouldBeNil)
 				ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 
