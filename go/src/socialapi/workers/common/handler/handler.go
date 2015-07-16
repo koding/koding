@@ -105,7 +105,7 @@ func getAccount(r *http.Request, groupName string) *models.Account {
 
 	groupChannel, err := models.Cache.Channel.ByGroupName(groupName)
 	if err != nil {
-		if err != bongo.RecordNotFound {
+		if err != bongo.RecordNotFound && err != models.ErrGroupNotFound {
 			runner.MustGetLogger().Error("Err while getting group channel: %s, err :%s", groupName, err.Error())
 		}
 
