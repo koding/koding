@@ -130,7 +130,7 @@ heartbeatKites = (interval = HEARTBEAT_INTERVAL, callback = kd.noop) ->
         # Route to the IDE
         kd.utils.defer -> router.handleRoute "/IDE/#{jMachine.slug}"
 
-        machine = Machine { machine: jMachine }
+        machine = new Machine { machine: jMachine }
 
         # Get the klient kite, and the info from that klient so we
         # can popup a Provider specific modal
