@@ -26,11 +26,8 @@ func TestChannelCreation(t *testing.T) {
 
 	Convey("while  testing channel", t, func() {
 		Convey("First Create Users", func() {
-			account1 := models.NewAccount()
-			account1.OldId = AccountOldId.Hex()
-			account, err := rest.CreateAccount(account1)
+			account, err := models.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
 
 			groupName := models.RandomGroupName()
 
@@ -38,12 +35,12 @@ func TestChannelCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
-			groupChannel, err := rest.CreateChannelByGroupNameAndType(
+			groupChannel := models.CreateTypedGroupedChannelWithTest(
 				account.Id,
-				groupName,
 				models.Channel_TYPE_GROUP,
-				ses.ClientId,
+				groupName,
 			)
+
 			So(err, ShouldBeNil)
 			So(groupChannel, ShouldNotBeNil)
 
@@ -63,7 +60,7 @@ func TestChannelCreation(t *testing.T) {
 
 			Convey("we should be able to create it", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
-					account1.Id,
+					account.Id,
 					groupName,
 					models.Channel_TYPE_PRIVATE_MESSAGE,
 					ses.ClientId,
@@ -71,7 +68,7 @@ func TestChannelCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(channel1, ShouldNotBeNil)
 
-				_, err = rest.AddChannelParticipant(channel1.Id, account1.Id, account1.Id)
+				_, err = rest.AddChannelParticipant(channel1.Id, account.Id, account.Id)
 				So(err, ShouldBeNil)
 
 				Convey("owner should be able to update it", func() {
@@ -104,7 +101,7 @@ func TestChannelCreation(t *testing.T) {
 
 				Convey("owner should be get channel by name", func() {
 					channel2, err := rest.FetchChannelByName(
-						account1.Id,
+						account.Id,
 						channel1.Name,
 						channel1.GroupName,
 						channel1.TypeConstant,
@@ -142,7 +139,7 @@ func TestChannelCreation(t *testing.T) {
 
 			Convey("normal user shouldnt be able to add new participants to pinned activity channel", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
-					account1.Id,
+					account.Id,
 					groupName,
 					models.Channel_TYPE_PINNED_ACTIVITY,
 					ses.ClientId,
@@ -159,7 +156,7 @@ func TestChannelCreation(t *testing.T) {
 
 			Convey("owner should be able list participants", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
-					account1.Id,
+					account.Id,
 					groupName,
 					models.Channel_TYPE_DEFAULT,
 					ses.ClientId,
@@ -168,7 +165,7 @@ func TestChannelCreation(t *testing.T) {
 				So(channel1, ShouldNotBeNil)
 
 				// add first participant
-				channelParticipant1, err := rest.AddChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
+				channelParticipant1, err := rest.AddChannelParticipant(channel1.Id, account.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldBeNil)
 				// channel should be nil
@@ -180,13 +177,13 @@ func TestChannelCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(nonOwnerAccount2, ShouldNotBeNil)
 
-				channelParticipant2, err := rest.AddChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount2.Id)
+				channelParticipant2, err := rest.AddChannelParticipant(channel1.Id, account.Id, nonOwnerAccount2.Id)
 				// there should be an err
 				So(err, ShouldBeNil)
 				// channel should be nil
 				So(channelParticipant2, ShouldNotBeNil)
 
-				participants, err := rest.ListChannelParticipants(channel1.Id, account1.Id)
+				participants, err := rest.ListChannelParticipants(channel1.Id, account.Id)
 				// there should be an err
 				So(err, ShouldBeNil)
 				So(participants, ShouldNotBeNil)
@@ -199,7 +196,7 @@ func TestChannelCreation(t *testing.T) {
 
 			Convey("normal user should be able to list participants", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
-					account1.Id,
+					account.Id,
 					groupName,
 					models.Channel_TYPE_DEFAULT,
 					ses.ClientId,
@@ -208,7 +205,7 @@ func TestChannelCreation(t *testing.T) {
 				So(channel1, ShouldNotBeNil)
 
 				// add first participant
-				channelParticipant1, err := rest.AddChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
+				channelParticipant1, err := rest.AddChannelParticipant(channel1.Id, account.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldBeNil)
 				// channel should be nil
@@ -220,7 +217,7 @@ func TestChannelCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(nonOwnerAccount2, ShouldNotBeNil)
 
-				channelParticipant2, err := rest.AddChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount2.Id)
+				channelParticipant2, err := rest.AddChannelParticipant(channel1.Id, account.Id, nonOwnerAccount2.Id)
 				// there should be an err
 				So(err, ShouldBeNil)
 				// channel should be nil

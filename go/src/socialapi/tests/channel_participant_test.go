@@ -61,16 +61,16 @@ func TestChannelParticipantOperations(t *testing.T) {
 
 			groupName := models.RandomGroupName()
 
+			groupChannel := models.CreateTypedGroupedChannelWithTest(
+				ownerAccount.Id,
+				models.Channel_TYPE_GROUP,
+				groupName,
+			)
+
 			ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
-			groupChannel, err := rest.CreateChannelByGroupNameAndType(
-				ownerAccount.Id,
-				groupName,
-				models.Channel_TYPE_GROUP,
-				ses.ClientId,
-			)
 			tests.ResultedWithNoErrorCheck(groupChannel, err)
 			_, err = groupChannel.AddParticipant(secondAccount.Id)
 			So(err, ShouldBeNil)

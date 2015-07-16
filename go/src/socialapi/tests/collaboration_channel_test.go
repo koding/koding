@@ -45,13 +45,11 @@ func TestCollaborationChannels(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 
-		groupChannel, err := rest.CreateChannelByGroupNameAndType(
+		groupChannel := models.CreateTypedGroupedChannelWithTest(
 			account.Id,
-			groupName,
 			models.Channel_TYPE_GROUP,
-			ses.ClientId,
+			groupName,
 		)
-		tests.ResultedWithNoErrorCheck(groupChannel, err)
 
 		_, err = groupChannel.AddParticipant(devrim.Id)
 		So(err, ShouldBeNil)
