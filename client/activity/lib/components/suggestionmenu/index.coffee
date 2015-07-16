@@ -12,7 +12,7 @@ module.exports = class SuggestionMenu extends React.Component
 
     super props
 
-    @state = { suggestions : immutable.List(), query : '', state : immutable.Map() }
+    @state = { suggestions : immutable.List(), state : immutable.Map() }
 
 
   getDataBindings: ->
@@ -21,7 +21,6 @@ module.exports = class SuggestionMenu extends React.Component
 
     return {
       suggestions : getters.currentSuggestions
-      query       : getters.currentSuggestionsQuery
       state       : getters.suggestionListState
     }
 
@@ -50,7 +49,7 @@ module.exports = class SuggestionMenu extends React.Component
 
   render: ->
 
-    { suggestions, query } = @state
+    { suggestions } = @state
     return <div className="hidden" />  unless @isVisible()
 
     <div className="ActivitySuggestionMenu">
@@ -58,7 +57,7 @@ module.exports = class SuggestionMenu extends React.Component
         Searching for one of these?
         <a href="#" className="ActivitySuggestionMenu-closeIcon" onClick={@handleClose} />
       </div>
-      <SuggestionList suggestions={suggestions} query={query} />
+      <SuggestionList suggestions={suggestions} />
       <div className="ActivitySuggestionMenu-footer">
         None of the above answers your questions? Post yours
         <button type="submit" className="kdbutton solid green small" onClick={@props.onSubmit}>
