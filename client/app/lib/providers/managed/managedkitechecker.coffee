@@ -139,19 +139,19 @@ module.exports = class ManagedKiteChecker extends kd.Object
   ###
   _stop: ->
 
-    stopped = false
+    stopped = no
 
     if @_delaying
       @_delaying = no
       if @_timerId
         kd.utils.killWait @_timerId
-        stopped = true
+        stopped = yes
 
     if @_ticking
       @_ticking = no
       if @_timerId
         kd.utils.killRepeat @_timerId
-        stopped = true
+        stopped = yes
 
     return stopped
 
@@ -293,12 +293,12 @@ module.exports = class ManagedKiteChecker extends kd.Object
       unless kites?.length
         return
 
-      foundNewKite = false
+      foundNewKite = no
       # Find a new kite, from the kite list.
       # We are judging a "new" kite, as one that doesn't have a machine.
       for kite in kites
         continue  if kite?.machine
-        foundNewKite = true
+        foundNewKite = yes
         @_handleNewKiteIfListener kite
 
       # If we found new kites, stop the current interval and then
