@@ -79,6 +79,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
    * @returns {Function()} listener
   ###
   _getListener: ->
+
     listener = @_listeners[0]
     @removeListener listener
     return listener
