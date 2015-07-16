@@ -217,6 +217,13 @@ func CreateAccountInBothDbs() (*Account, error) {
 	return CreateAccountInBothDbsWithNick(bson.NewObjectId().Hex())
 }
 
+func CreateAccountInBothDbsWithCheck() *Account {
+	acc, err := CreateAccountInBothDbsWithNick(bson.NewObjectId().Hex())
+	So(err, ShouldBeNil)
+	So(acc, ShouldNotBeNil)
+	return acc
+}
+
 func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	accId := bson.NewObjectId()
 	accHex := nick
