@@ -68,7 +68,13 @@ module.exports = class ManagedKiteChecker extends kd.Object
    *
    * @param {...} args - The arguments to pass to the listener.
   ###
-  _callListener: (args...) -> @_getListener() args...
+  _callListener: (args...) ->
+    unless @_listeners.length
+      kd.warn "ManagedKiteChecker: _callListener called without
+        and listeners"
+      return
+
+    @_getListener() args...
 
 
   ###*
