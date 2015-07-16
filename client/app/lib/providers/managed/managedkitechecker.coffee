@@ -25,8 +25,9 @@ DEFAULT_MAX_TICKS = 60
 # kite.
 #
 # If (for some reason) you need to listen for all new kites, kites
-# are also emitted via @emit, and can be subscribed to with @on and
-# @off, as expected.
+# are also emitted via an @emit on 'NewKite', and can be subscribed to
+# with @on and @off, as expected. It's worth noting that a listener is
+# required for the NewKite event to be emitted, currently.
 #
 module.exports = class ManagedKiteChecker extends kd.Object
 
