@@ -117,7 +117,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
 
     # Create a machine for this kite.
     createMachine kite, (err, jMachine) =>
-      return listener err  if err
+      return kd.error err  if err
 
       machine = new Machine { machine: jMachine }
 
@@ -125,7 +125,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
       # can popup a Provider specific modal
       klient = machine.getBaseKite()
       klient.klientInfo().nodeify (err, payload) =>
-        listener null, payload, machine
+        listener payload, machine
         @emit 'NewKite', kite, payload, machine
 
 
@@ -164,7 +164,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
 
     # Be paranoid about duplicating timers.
     if @_delaying or @_ticking
-      return @_callListener() new Error "ManagedKiteChecker:
+      return kd.error "ManagedKiteChecker:
         _startDelay called with pre-existing timer or interval"
 
     @_delaying = yes
@@ -185,7 +185,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
 
     # Be paranoid about duplicating timers.
     if @_delaying or @_ticking
-      return @_callListener() new Error "ManagedKiteChecker:
+      return kd.error "ManagedKiteChecker:
         _startTicking called with pre-existing timer or interval"
 
     @_ticking = yes
@@ -206,7 +206,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
    * will not be notified of that kite. See ManagedKiteChecker for a
    * high level understanding of why this is.
    *
-   * @param {Function(err:Error, info:Object, machine:Machine)} listener -
+   * @param {Function(info:Object, machine:Machine)} listener -
    *  A callback for when the new kite is connected. Info is the
    *  returned object from the klient kite's `klient.info` method.
    *  This contains the `providerName` key, among other things.
@@ -236,7 +236,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
    * are currently listening, any Polling (ticking) that may be occuring
    * is halted.
    *
-   * @param {Function(err:Error, info:Object, machine:Machine)} listener -
+   * @param {Function(info:Object, machine:Machine)} listener -
    *  A callback for when the new kite is connected. Info is the
    *  returned object from the klient kite's `klient.info` method.
    *  This contains the `providerName` key, among other things.
@@ -284,7 +284,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
       return
 
     if @_tickCount > @getOption 'maxTicks'
-      return @_callListener new Error "Maximum tick limit of
+      return kd.error "ManagedKiteChecker: Maximum tick limit of
         #{@getOption 'maxTicks'} reached."
 
     queryPromise = queryKites()
@@ -309,6 +309,6 @@ module.exports = class ManagedKiteChecker extends kd.Object
         @_startDelay()
 
     queryPromise.catch (err) =>
-      @_callListener err  if err
+      kd.error err  if err
 
 
