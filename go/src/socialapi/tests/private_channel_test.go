@@ -40,6 +40,13 @@ func TestPrivateMesssages(t *testing.T) {
 		// cretae admin user
 		account, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(account, err)
+
+		models.CreateTypedGroupedChannelWithTest(
+			account.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
 		// fetch admin's session
 		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 		So(err, ShouldBeNil)
