@@ -30,10 +30,11 @@ module.exports =
           browser.end()
         else
           helpers.attemptEnterUsernameOnRegister(browser, user)
-          helpers.doLogout(browser)
-          helpers.doLogin(browser, user)
 
-          browser.end()
+          browser
+            .waitForElementVisible '[testpath=main-header]', 50000 # Assertion
+            .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
+            .end()
 
 
   registerWithoutGravatarEmail: (browser) ->

@@ -24,6 +24,10 @@ module.exports = (req, res) ->
              "url=#{encodeURIComponent(url)}"
 
   url   = parser.parse url
+
+  unless url.pathname?
+    return res.status(500).end()
+
   ext   = url.pathname.split(".")[-1] or "jpeg"
   noExt = "#{url.host}#{url.pathname}"
 

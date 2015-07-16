@@ -124,7 +124,7 @@ func TestModeration(t *testing.T) {
 			err = rest.BlackList(leaf.Id, root.Id, ses.ClientId)
 			So(err, ShouldNotBeNil)
 		})
-		
+
 		Convey("We should be able to get the root channel of the leaf channel", func() {
 			res, err := rest.CreateLink(root.Id, leaf.Id, ses.ClientId)
 			So(err, ShouldBeNil)
@@ -133,7 +133,7 @@ func TestModeration(t *testing.T) {
 			rootChnl, err := rest.GetRoot(leaf.Id, request.NewQuery(), ses.ClientId)
 			So(err, ShouldBeNil)
 			So(rootChnl, ShouldNotBeNil)
-			So(rootChnl.Id, ShouldEqual,root.Id)
+			So(rootChnl.Id, ShouldEqual, root.Id)
 		})
 	})
 }

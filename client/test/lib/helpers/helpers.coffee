@@ -1,7 +1,9 @@
 utils    = require '../utils/utils.js'
+fail     = require '../utils/fail.js'
 register = require '../register/register.js'
 faker    = require 'faker'
 assert   = require 'assert'
+
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
@@ -63,18 +65,18 @@ module.exports =
   doLogout: (browser) ->
 
     browser
-      .waitForElementVisible  '[testpath=AvatarAreaIconLink]', 10000
+      .waitForElementVisible  '[testpath=AvatarAreaIconLink]', 30000
       .click                  '[testpath=AvatarAreaIconLink]'
       .click                  '[testpath=logout-link]'
       .pause                  3000
-      .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
+      .waitForElementVisible  '[testpath=main-header]', 30000 # Assertion
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
 
     browser
       .url                    @getUrl()
-      .waitForElementVisible  '[testpath=main-header]', 10000
+      .waitForElementVisible  '[testpath=main-header]', 30000
       .setValue               '[testpath=register-form-email]', user.email
       .setValue               'input[name=password]', user.password
       .click                  '[testpath=signup-button]'
@@ -85,7 +87,7 @@ module.exports =
     modalSelector  = '.extra-info.password'
     buttonSelector = 'button[type=submit]'
 
-    browser.waitForElementVisible modalSelector, 10000
+    browser.waitForElementVisible modalSelector, 30000
 
     if user.gravatar
       browser
@@ -108,9 +110,10 @@ module.exports =
 
     @attemptEnterEmailAndPasswordOnRegister(browser, user)
     @attemptEnterUsernameOnRegister(browser, user)
-    @doLogout(browser)
 
-    @doLogin(browser, user)
+    browser
+      .waitForElementVisible '[testpath=main-header]', 50000 # Assertion
+      .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
 
 
   postActivity: (browser, shouldBeginTest = yes) ->
@@ -165,7 +168,7 @@ module.exports =
     browser
       .pause                    2500 # while typing something steals activity input focus
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
-      .waitForElementVisible    '[testpath=ActivityInputView]', 10000
+      .waitForElementVisible    '[testpath=ActivityInputView]', 30000
       .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
       .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
       .click                    '[testpath=ActivityInputView]'
