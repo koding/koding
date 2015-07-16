@@ -270,7 +270,7 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	}
 
 	if oldAcc.SocialApiId != strconv.FormatInt(a.Id, 10) {
-		s := modelhelper.Selector{"_id": accId}
+		s := modelhelper.Selector{"_id": oldAcc.Id}
 		o := modelhelper.Selector{"$set": modelhelper.Selector{
 			"socialApiId": strconv.FormatInt(a.Id, 10),
 		}}
