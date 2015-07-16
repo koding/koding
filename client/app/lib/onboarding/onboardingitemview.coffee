@@ -36,17 +36,14 @@ module.exports = class OnboardingItemView extends KDView
           tooltipPlacement
           targetIsScrollable
         }
-        @throbber.on 'TooltipReady', =>
+        @throbber.on 'TooltipCreated', =>
           @startTrackDate = new Date()
-          @isViewed       = yes
-        @throbber.tooltip.on 'ReceivedClickElsewhere', =>
-          return  unless @startTrackDate
-          OnboardingMetrics.trackView onboardingName, name, new Date() - @startTrackDate
+        @throbber.on 'TooltipDestroyed', =>
+          @throbber.destroy()
+          if @startTrackDate
+            OnboardingMetrics.trackView onboardingName, name, new Date() - @startTrackDate
           @startTrackDate = null
-        @throbber.on 'click', =>
-          if @isViewed
-            @throbber.destroy()
-            @emit 'OnboardingItemCompleted'
+          @emit 'OnboardingItemCompleted'
         @show()
       else
         return new Error "Target is neither KDView or visible. name = #{name}, onboardingName = #{onboardingName}"

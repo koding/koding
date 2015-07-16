@@ -1,5 +1,6 @@
 kd = require 'kd'
 KDView = kd.View
+KDCustomHTMLView = kd.CustomHTMLView
 
 module.exports = class ThrobberView extends KDView
 
@@ -14,7 +15,7 @@ module.exports = class ThrobberView extends KDView
     super options, data
 
     @appendToParent()
-    @createElements()
+    @createThrobberElement()
     @setPosition()
 
 
@@ -31,23 +32,43 @@ module.exports = class ThrobberView extends KDView
       @appendToDomBody()
 
 
-  createElements: ->
-
-    { placementX, placementY, tooltipText, tooltipPlacement } = @getOptions()
+  createThrobberElement: ->
 
     @addSubView new KDView
       tagName   : 'figure'
       cssClass  : 'throbber'
       partial   : '<i></i><i></i>'
 
+
+  createTooltip: ->
+
+    { placementX, placementY, tooltipText, tooltipPlacement } = @getOptions()
+
     if tooltipPlacement is 'auto' or not tooltipPlacement
       tooltipPlacement = if placementX is 'left' then 'left' else 'right'
 
+    tooltipView = new KDCustomHTMLView
+      cssClass : 'throbber-tooltip-text'
+      partial  : tooltipText
+
+    # open links inside of tooltip in a new tab
+    links = tooltipView.getElement().querySelectorAll 'a'
+    link.setAttribute 'target', '_blank' for link in links
+
+    tooltipView.addSubView new KDCustomHTMLView
+      tagName  : 'a'
+      cssClass : 'close-icon'
+      click    : @bound 'destroyTooltip'
+
     @setTooltip
-      title     : "<div class='throbber-tooltip-text'>#{tooltipText}<div>"
-      cssClass  : 'throbber-tooltip'
+      view      : tooltipView
+      cssClass  : 'throbber-tooltip just-text'
       placement : tooltipPlacement
       html      : yes
+      sticky    : yes
+      permanent : yes
+
+    @tooltip.show()
 
 
   setPosition: ->
@@ -78,3 +99,32 @@ module.exports = class ThrobberView extends KDView
     @getDomElement().css
       left : throbberX
       top  : throbberY
+
+
+  click: ->
+
+    if @tooltip?
+      @destroyTooltip()
+    else
+      @createTooltip()
+      @emit 'TooltipCreated'
+
+
+  destroyTooltip: ->
+
+    return  unless @tooltip
+
+    @unsetTooltip()
+    @emit 'TooltipDestroyed'
+
+
+  show: ->
+
+    super
+    @tooltip?.show()
+
+
+  hide: ->
+
+    super
+    @tooltip?.hide()
