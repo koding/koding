@@ -224,6 +224,23 @@ func CreateAccountInBothDbsWithCheck() *Account {
 	return acc
 }
 
+func CreateRandomGroupDataWithChecks() (*Account, *Channel, string) {
+	groupName := RandomGroupName()
+
+	account := CreateAccountInBothDbsWithCheck()
+
+	groupChannel := CreateTypedGroupedChannelWithTest(
+		account.Id,
+		Channel_TYPE_GROUP,
+		groupName,
+	)
+
+	_, err := groupChannel.AddParticipant(account.Id)
+	So(err, ShouldBeNil)
+
+	return account, groupChannel, groupName
+}
+
 func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	accId := bson.NewObjectId()
 	accHex := nick

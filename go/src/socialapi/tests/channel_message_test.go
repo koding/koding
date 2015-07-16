@@ -16,23 +16,9 @@ func TestChannelMessage(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("While testing channel messages given a channel", t, func() {
 
-			groupName := models.RandomGroupName()
+			account, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
 
-			account, err := models.CreateAccountInBothDbs()
-			So(err, ShouldBeNil)
-
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
-			So(err, ShouldBeNil)
-			So(ses, ShouldNotBeNil)
-
-			nonOwnerAccount, err := models.CreateAccountInBothDbs()
-			So(err, ShouldBeNil)
-
-			groupChannel := models.CreateTypedGroupedChannelWithTest(
-				account.Id,
-				models.Channel_TYPE_GROUP,
-				groupName,
-			)
+			nonOwnerAccount := models.CreateAccountInBothDbsWithCheck()
 
 			Convey("message should be able added to the group channel", func() {
 				post, err := rest.CreatePost(groupChannel.Id, account.Id)
@@ -59,6 +45,10 @@ func TestChannelMessage(t *testing.T) {
 			})
 
 			Convey("topic messages initialChannelId must be set as owner group channel id", func() {
+				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				So(err, ShouldBeNil)
+				So(ses, ShouldNotBeNil)
+
 				topicChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, "koding", models.Channel_TYPE_TOPIC, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(topicChannel, ShouldNotBeNil)

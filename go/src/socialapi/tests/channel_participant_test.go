@@ -18,48 +18,30 @@ func TestChannelParticipantOperations(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("while testing channel participants", t, func() {
 			Convey("First Create Users and initiate conversation", func() {
-				var err error
-				ownerAccount, err := models.CreateAccountInBothDbs()
-				tests.ResultedWithNoErrorCheck(ownerAccount, err)
+				ownerAccount, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
 
 				secondAccount, err := models.CreateAccountInBothDbs()
 				tests.ResultedWithNoErrorCheck(secondAccount, err)
-
-				thirdAccount, err := models.CreateAccountInBothDbs()
-				tests.ResultedWithNoErrorCheck(thirdAccount, err)
-
-				forthAccount, err := models.CreateAccountInBothDbs()
-				tests.ResultedWithNoErrorCheck(forthAccount, err)
-
-				devrim, err := models.CreateAccountInBothDbsWithNick("devrim")
-				tests.ResultedWithNoErrorCheck(devrim, err)
-
-				groupName := models.RandomGroupName()
-
-				groupChannel := models.CreateTypedGroupedChannelWithTest(
-					ownerAccount.Id,
-					models.Channel_TYPE_GROUP,
-					groupName,
-				)
-				tests.ResultedWithNoErrorCheck(groupChannel, err)
-
-				ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
-				tests.ResultedWithNoErrorCheck(ses, err)
-
-				_, err = groupChannel.AddParticipant(ownerAccount.Id)
-				So(err, ShouldBeNil)
-
 				_, err = groupChannel.AddParticipant(secondAccount.Id)
 				So(err, ShouldBeNil)
 
+				thirdAccount, err := models.CreateAccountInBothDbs()
+				tests.ResultedWithNoErrorCheck(thirdAccount, err)
 				_, err = groupChannel.AddParticipant(thirdAccount.Id)
 				So(err, ShouldBeNil)
 
+				forthAccount, err := models.CreateAccountInBothDbs()
+				tests.ResultedWithNoErrorCheck(forthAccount, err)
 				_, err = groupChannel.AddParticipant(forthAccount.Id)
 				So(err, ShouldBeNil)
 
+				devrim, err := models.CreateAccountInBothDbsWithNick("devrim")
+				tests.ResultedWithNoErrorCheck(devrim, err)
 				_, err = groupChannel.AddParticipant(devrim.Id)
 				So(err, ShouldBeNil)
+
+				ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+				tests.ResultedWithNoErrorCheck(ses, err)
 
 				pmr := models.PrivateChannelRequest{}
 
@@ -235,28 +217,13 @@ func TestChannelParticipantOperations(t *testing.T) {
 					So(err, ShouldEqual, bongo.RecordNotFound)
 				})
 				Convey("Users should not be able to add/remove users to/from bot channels", func() {
-
-					ownerAccount := models.NewAccount()
-					ownerAccount.OldId = AccountOldId.Hex()
-					ownerAccount, err = rest.CreateAccount(ownerAccount)
-					So(err, ShouldBeNil)
-					So(ownerAccount, ShouldNotBeNil)
+					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 					participant := models.NewAccount()
 					participant.OldId = AccountOldId.Hex()
 					participant, err = rest.CreateAccount(participant)
 					So(err, ShouldBeNil)
 					So(participant, ShouldNotBeNil)
-					groupName := models.RandomGroupName()
-
-					groupChannel := models.CreateTypedGroupedChannelWithTest(
-						ownerAccount.Id,
-						models.Channel_TYPE_GROUP,
-						groupName,
-					)
-
-					_, err = groupChannel.AddParticipant(ownerAccount.Id)
-					So(err, ShouldBeNil)
 
 					ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
 					So(err, ShouldBeNil)
@@ -267,7 +234,6 @@ func TestChannelParticipantOperations(t *testing.T) {
 
 					_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
 					So(strings.Contains(err.Error(), "can not add participants for bot channel"), ShouldBeTrue)
-
 				})
 			})
 		})
