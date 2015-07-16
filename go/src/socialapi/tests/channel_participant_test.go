@@ -31,33 +31,20 @@ func TestChannelParticipantOperations(t *testing.T) {
 
 		Convey("First Create Users and initiate conversation", func() {
 			var err error
-			ownerAccount := models.NewAccount()
-			ownerAccount.OldId = AccountOldId.Hex()
-			ownerAccount, err = rest.CreateAccount(ownerAccount)
-			So(err, ShouldBeNil)
-			So(ownerAccount, ShouldNotBeNil)
+			ownerAccount, err := models.CreateAccountInBothDbs()
+			tests.ResultedWithNoErrorCheck(ownerAccount, err)
 
-			secondAccount := models.NewAccount()
-			secondAccount.OldId = AccountOldId2.Hex()
-			secondAccount, err = rest.CreateAccount(secondAccount)
-			So(err, ShouldBeNil)
-			So(secondAccount, ShouldNotBeNil)
+			secondAccount, err := models.CreateAccountInBothDbs()
+			tests.ResultedWithNoErrorCheck(secondAccount, err)
 
-			thirdAccount := models.NewAccount()
-			thirdAccount.OldId = AccountOldId3.Hex()
-			thirdAccount, err = rest.CreateAccount(thirdAccount)
-			So(err, ShouldBeNil)
-			So(thirdAccount, ShouldNotBeNil)
+			thirdAccount, err := models.CreateAccountInBothDbs()
+			tests.ResultedWithNoErrorCheck(thirdAccount, err)
 
-			forthAccount := models.NewAccount()
-			forthAccount.OldId = AccountOldId4.Hex()
-			forthAccount, err = rest.CreateAccount(forthAccount)
-			So(err, ShouldBeNil)
-			So(forthAccount, ShouldNotBeNil)
+			forthAccount, err := models.CreateAccountInBothDbs()
+			tests.ResultedWithNoErrorCheck(forthAccount, err)
 
 			devrim, err := models.CreateAccountInBothDbsWithNick("devrim")
-			So(err, ShouldBeNil)
-			So(devrim, ShouldNotBeNil)
+			tests.ResultedWithNoErrorCheck(devrim, err)
 
 			groupName := models.RandomGroupName()
 
@@ -69,8 +56,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(groupChannel, err)
 
 			ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
-			So(err, ShouldBeNil)
-			So(ses, ShouldNotBeNil)
+			tests.ResultedWithNoErrorCheck(ses, err)
 
 			_, err = groupChannel.AddParticipant(ownerAccount.Id)
 			So(err, ShouldBeNil)
@@ -283,6 +269,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 
 				_, err = groupChannel.AddParticipant(ownerAccount.Id)
 				So(err, ShouldBeNil)
+
 				ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 
