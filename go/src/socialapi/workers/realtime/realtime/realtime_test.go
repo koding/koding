@@ -5,11 +5,10 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
+	"socialapi/workers/common/tests"
 	"testing"
 
 	"github.com/koding/runner"
-
-	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -29,12 +28,16 @@ func TestAddRemoveChannelParticipant(t *testing.T) {
 	Convey("While testing add/remove channel participants", t, func() {
 		pe := &models.ParticipantEvent{}
 
+		account, err := models.CreateAccountInBothDbs()
+		tests.ResultedWithNoErrorCheck(account, err)
 		groupName := models.RandomGroupName()
 
-		account := models.NewAccount()
-		account.OldId = bson.NewObjectId().Hex()
-		account, err := rest.CreateAccount(account)
-		So(err, ShouldBeNil)
+		groupChannel := models.CreateTypedGroupedChannelWithTest(
+			account.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+		tests.ResultedWithNoErrorCheck(groupChannel, err)
 
 		// fetch admin's session
 		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
