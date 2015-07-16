@@ -214,7 +214,7 @@ func TestGetCount(t *testing.T) {
 
 		warning := VMDeletionWarning1
 
-		count, err := warning.getCount()
+		count, err := modelhelper.CountUsersByQuery(warning.buildSelectQuery())
 		So(err, ShouldBeNil)
 
 		So(count, ShouldEqual, 2)

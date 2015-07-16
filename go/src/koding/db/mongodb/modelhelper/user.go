@@ -189,3 +189,15 @@ func GetUserByQuery(selector bson.M) (*models.User, error) {
 
 	return user, Mongo.Run(UserColl, query)
 }
+
+func CountUsersByQuery(selector bson.M) (int, error) {
+	var count int
+	var err error
+
+	var query = func(c *mgo.Collection) error {
+		count, err = c.Find(selector).Count()
+		return err
+	}
+
+	return count, Mongo.Run(UserColl, query)
+}

@@ -198,7 +198,7 @@ func (w *Warning) ReleaseUser(user *models.User) error {
 // on total number of documents. It defaults to sleeping 1 seconds
 // when calculated time is too short or too long.
 func (w *Warning) getSleepTime() (time.Duration, error) {
-	count, err := w.getCount()
+	count, err := modelhelper.CountUsersByQuery(w.buildSelectQuery())
 	if err != nil || count == 0 {
 		return 0, err
 	}
@@ -213,19 +213,6 @@ func (w *Warning) getSleepTime() (time.Duration, error) {
 	}
 
 	return time.Duration(sleepInSec), nil
-}
-
-// getCount returns count of total documents that'll be processed in this run.
-func (w *Warning) getCount() (int, error) {
-	var count int
-	var err error
-
-	var query = func(c *mgo.Collection) error {
-		count, err = c.Find(w.buildSelectQuery()).Count()
-		return err
-	}
-
-	return count, modelhelper.Mongo.Run(modelhelper.UserColl, query)
 }
 
 func (w *Warning) buildSelectQuery() bson.M {
