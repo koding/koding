@@ -52,10 +52,10 @@ module.exports = class ManagedKiteChecker extends kd.Object
       maxTicks : options.maxTicks ? DEFAULT_MAX_TICKS
 
     @_listeners = []
-    @_delaying = no
-    @_ticking = no
+    @_delaying  = no
+    @_ticking   = no
     @_tickCount = 0
-    @_timerId = null
+    @_timerId   = null
 
 
   ###*
