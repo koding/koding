@@ -221,7 +221,9 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []st
 	for _, cred := range credentials {
 		selector := modelhelper.Selector{
 			"targetId": cred.Id,
-			"sourceId": account.Id,
+			"sourceId": bson.M{
+				"$in": []bson.ObjectId{account.Id, group.Id},
+			},
 			"as": bson.M{
 				"$in": []string{"owner", "user"},
 			},
