@@ -303,7 +303,6 @@ module.exports = class ManagedKiteChecker extends kd.Object
         @_stop()
         @_startDelay()
 
-
     queryPromise.catch (err) =>
       @_callListener err  if err
 
