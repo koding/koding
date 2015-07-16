@@ -1650,9 +1650,15 @@ module.exports = class JUser extends jraphical.Module
     return callback null  if foreignAuthType is 'github'
 
     request.post url, {form:{response, secret}}, (err, res, raw)->
+      if err
+        console.log "Recaptcha: err validation captcha: #{err}"
+
       if !err && res.statusCode == 200
-        if JSON.parse(raw)["success"]
-          return callback null
+        try
+          if JSON.parse(raw)["success"]
+            return callback null
+        catch e
+          console.log "Recaptcha: parsing response failed. #{raw}"
 
       return callback new KodingError 'Captcha not valid. Please try again.'
 
