@@ -40,7 +40,7 @@ do ->
   KD.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
   KD.config.hasTeamAccess = kookies.get('team-access')?
   KD.config.groupName     = groupName = KD.utils.getGroupNameFromLocation()
-  KD.config.recaptcha     = window._recaptcha
+  KD.config.recaptcha     = window._recaptchaSettings
 
   if groupName is 'koding'
   then setGroup()

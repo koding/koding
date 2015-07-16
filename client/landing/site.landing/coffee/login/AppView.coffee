@@ -15,6 +15,8 @@ MainControllerLoggedOut               = require './../core/maincontrollerloggedo
 
 module.exports = class LoginView extends JView
 
+  RECATCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
+
   stop           = KD.utils.stopDOMEvent
   ENTER          = 13
   USERNAME_VALID = no
@@ -403,18 +405,20 @@ module.exports = class LoginView extends JView
 
       @signupModal = null
 
+    window.onRecaptchaloadCallback = (event) ->
+      grecaptcha?.render 'recaptcha', 'sitekey' : KD.config.recaptcha.key
+
+    @recaptcha = new KDCustomHTMLView
+      tagName    : 'script'
+      attributes :
+        src      : RECATCHA_JS
+        async    : yes
+        defer    : yes
+
     @signupModal.once 'viewAppended', =>
 
-      if @recaptchaEnabled()
-        window.onRecaptchaloadCallback = (event) ->
-          grecaptcha?.render 'recaptcha', { 'sitekey' : KD.config.recaptcha.key }
-
-        @signupModal.addSubView new KDCustomHTMLView
-          tagName    : 'script'
-          attributes :
-            src      : 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
-            async    : yes
-            defer    : yes
+      if @recaptchaEnabled() and !window.grecaptcha
+        @recaptcha.appendToDomBody()
 
       @signupModal.addSubView new KDCustomHTMLView
         partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/Legal/Terms" target="_blank"> Terms of Service</a> and <a href="/Legal/Privacy" target="_blank">Privacy Policy.</a></div>"""
@@ -485,7 +489,7 @@ module.exports = class LoginView extends JView
 
   recaptchaEnabled: ->
 
-    return KD.config.recaptcha.enabled and KD.utils.getLastUsedProvider() isnt "github"
+    return KD.config.recaptcha.enabled and KD.utils.getLastUsedProvider() isnt 'github'
 
 
   checkBeforeRegister: ->
@@ -497,7 +501,7 @@ module.exports = class LoginView extends JView
     } = @signupModal.modalTabs.forms.extraInformation.inputs
 
     if @recaptchaEnabled and grecaptcha?.getResponse() is ''
-      return new KDNotificationView({ title : "Please tell us that you're not a robot!"})
+      return new KDNotificationView title : "Please tell us that you're not a robot!"
 
     pendingSignupRequest = no
 

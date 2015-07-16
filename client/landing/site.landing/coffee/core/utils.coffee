@@ -322,12 +322,10 @@ utils.extend utils,
 
   # Used to store last used OAuth, ie 'github', 'facebook' etc. between refreshes.
   storeLastUsedProvider: (provider) ->
-    window.localStorage['lastUsedProvider'] = provider
+    window.localStorage.lastUsedProvider = provider
 
 
-  getLastUsedProvider: ->
-    window.localStorage['lastUsedProvider']
+  getLastUsedProvider: -> window.localStorage.lastUsedProvider
 
 
-  removeLastUsedProvider: ->
-    delete window.localStorage['lastUsedProvider']
+  removeLastUsedProvider: -> delete window.localStorage.lastUsedProvider
