@@ -28,6 +28,16 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+// include it here to because the library is not exporting it.
+var retryingTransport = &aws.ResilientTransport{
+	Deadline: func() time.Time {
+		return time.Now().Add(60 * time.Second)
+	},
+	DialTimeout: 45 * time.Second, // this is 10 seconds in original
+	MaxTries:    3,
+	Wait:        aws.ExpBackoff,
+}
+
 type Provider struct {
 	DB         *mongodb.MongoDB
 	Log        logging.Logger
@@ -103,12 +113,13 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
-	client := ec2.New(
+	client := ec2.NewWithClient(
 		aws.Auth{
 			AccessKey: creds.Meta.AccessKey,
 			SecretKey: creds.Meta.SecretKey,
 		},
 		aws.Regions[machine.Meta.Region],
+		aws.NewClient(retryingTransport),
 	)
 
 	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)

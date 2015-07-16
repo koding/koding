@@ -93,3 +93,18 @@ module.exports =
     notificationText = 'Your account information is updated.'
 
     changePasswordHelper(browser, newPassword, newPassword, null, notificationText, fn)
+
+
+ toggleNotificationsPopup: (browser) ->
+
+    notificationIconSelector = '.avatar-area .acc-notification-icon'
+
+    helpers.beginTest(browser)
+
+    browser
+      .waitForElementVisible     notificationIconSelector, 20000
+      .click                     notificationIconSelector
+      .waitForElementVisible     '.popup-notifications.active', 20000 # Assertion
+      .click                     notificationIconSelector
+      .waitForElementNotPresent  '.popup-notifications.active', 20000 # Assertion
+      .end()
