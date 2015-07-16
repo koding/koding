@@ -219,7 +219,7 @@ func TestGetCount(t *testing.T) {
 
 		So(count, ShouldEqual, 2)
 
-		Convey("It should return maximum sleep", func() {
+		Convey("It should return minimum sleep", func() {
 			sleepTime, err := warning.getSleepTime()
 			So(err, ShouldBeNil)
 

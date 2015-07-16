@@ -5,9 +5,11 @@ import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"socialapi/config"
+	"sync"
 	"time"
 
 	kiteConfig "github.com/koding/kite/config"
@@ -62,19 +64,27 @@ func main() {
 
 	c := cron.New()
 	c.AddFunc(DailyAtTenPM, func() {
+		var wg sync.WaitGroup
+
 		for _, w := range warnings {
+			wg.Add(1)
 
-			// clone warning so local changes don't affect next run
-			warning := *w
+			time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
 
-			result, err := warning.Run()
-			if err != nil {
-				j.log.Error(err.Error())
-				continue
-			}
+			go func(warning Warning) {
+				defer wg.Done()
 
-			j.log.Info(result.String())
+				result, err := warning.Run()
+				if err != nil {
+					j.log.Error(err.Error())
+					return
+				}
+
+				j.log.Info(result.String())
+			}(*w)
 		}
+
+		wg.Wait()
 	})
 
 	c.Start()

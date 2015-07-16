@@ -199,7 +199,7 @@ func (w *Warning) ReleaseUser(user *models.User) error {
 // when calculated time is too short or too long.
 func (w *Warning) getSleepTime() (time.Duration, error) {
 	count, err := w.getCount()
-	if err != nil {
+	if err != nil || count == 0 {
 		return 0, err
 	}
 
