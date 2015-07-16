@@ -50,7 +50,7 @@ module.exports = class ComputeController extends KDController
         @stateChecker.start()
 
         kd.singletons
-          .paymentController.on 'UserPlanUpdated', =>
+          .paymentController.on ['UserPlanUpdated', 'PaypalRequestFinished'], =>
             @lastKnownUserPlan = null
             @fetchUserPlan()
 

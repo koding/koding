@@ -72,7 +72,6 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
         { id } = data.channelIntegration
         kd.singletons.router.handleRoute "/Admin/Integrations/Configure/#{id}"
 
-
   pistachio: ->
 
     { integration } = @getData()

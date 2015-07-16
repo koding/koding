@@ -11,7 +11,7 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 ###
 loadMessages = (channelId) ->
 
-  { appManager } = kd.singletons
+  { appManager, socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL, CREATE_MESSAGE_SUCCESS } = actionTypes
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId }
@@ -21,8 +21,11 @@ loadMessages = (channelId) ->
       dispatch LOAD_MESSAGES_FAIL, { err, channelId }
       return
 
+    # get the channel instance from cache and dispatch it.
+    channel = socialapi.retrieveCachedItemById channelId
+
     result.forEach (message) ->
-      dispatch CREATE_MESSAGE_SUCCESS, { channelId, message }
+      dispatch CREATE_MESSAGE_SUCCESS, { channelId, channel, message }
 
 
 ###*

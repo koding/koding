@@ -148,6 +148,8 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 		webhookmodels.NewEvent("delete", "Branch or tag deleted"),
 	)
 
+	githubInt.AddSettings("authorizable", true)
+
 	githubInt.AddEvents(events)
 
 	if err := githubInt.Create(); err != nil {
@@ -180,7 +182,7 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 	i.Title = "iterable"
 	i.Name = "iterable"
 	i.Summary = "Email engagement service"
-	i.IsPublished = true
+	i.IsPublished = false
 
 	err := i.Create()
 	if err != nil {

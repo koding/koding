@@ -50,8 +50,6 @@ describe 'MessagesStore', ->
       expect(storeState.has clientRequestId).to.equal no
       expect(storeState.has messageId).to.equal yes
 
-      console.log storeState.get(messageId).toJS()
-
       expect(storeState.getIn [messageId, 'body']).to.equal 'hello world'
 
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/koding/integration"
@@ -27,13 +28,35 @@ func main() {
 	log := logging.NewLogger("webhook")
 
 	conf.PublicUrl = fmt.Sprintf("%s%s", conf.PublicUrl, proxyUrl)
-	h := integration.NewHandler(log, &conf.ServiceConfig)
+	sf := services.NewServices()
+	RegisterServices(sf, conf)
+
+	h := integration.NewHandler(log, sf)
+
 	mux := http.NewServeMux()
-	mux.Handle("/push/{name}/{token}", h)
+	mux.Handle("/{name}/{token}", h)
 	mux.HandleFunc("/configure/{name}", h.Configure)
 
 	log.Info("Integration server started")
 	if err := http.ListenAndServe(conf.Addr, mux); err != nil {
 		log.Fatal("Could not initialize server: %s", err)
 	}
+}
+
+func RegisterServices(sf *services.Services, conf *Config) {
+	service, err := RegisterGithubService(sf, conf)
+	if err != nil {
+		log.Fatal("Could not initialize service: %s", err)
+	}
+
+	sf.Register("github", service)
+}
+
+func RegisterGithubService(sf *services.Services, conf *Config) (services.Service, error) {
+	gc := services.GithubConfig{}
+	gc.PublicUrl = conf.PublicUrl
+	gc.IntegrationUrl = conf.IntegrationAddr
+	gc.Log = conf.Log
+
+	return services.NewGithub(gc)
 }

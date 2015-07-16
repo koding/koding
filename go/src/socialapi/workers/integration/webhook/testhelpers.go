@@ -40,7 +40,7 @@ func createTestGroupChannel(t *testing.T, a *models.Account) *models.Channel {
 
 func CreateTestIntegration(t *testing.T) *Integration {
 	i := NewIntegration()
-	i.Title = models.RandomGroupName()
+	i.Title = models.RandomName()
 	i.Name = i.Title
 
 	err := i.Create()
