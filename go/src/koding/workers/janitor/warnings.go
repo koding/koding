@@ -21,6 +21,8 @@ var VMDeletionWarning1 = &Warning{
 	},
 
 	Action: SendEmail,
+
+	Throttled: false,
 }
 
 var VMDeletionWarning2 = &Warning{
@@ -42,6 +44,8 @@ var VMDeletionWarning2 = &Warning{
 	},
 
 	Action: SendEmail,
+
+	Throttled: false,
 }
 
 var DeleteInactiveUserVM = &Warning{
@@ -63,6 +67,8 @@ var DeleteInactiveUserVM = &Warning{
 	},
 
 	Action: DeleteVMs,
+
+	Throttled: true,
 }
 
 var DeleteBlockedUserVM = &Warning{
@@ -71,7 +77,7 @@ var DeleteBlockedUserVM = &Warning{
 	Description: "Find blocked users inactive > 14 days, delete ALL their vms",
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": moreThanDaysQuery(14)},
+		bson.M{"lastLoginDate": dayRangeQuery(14, DefaultRangeForQuery)},
 		bson.M{"inactive.warning": bson.M{"$exists": false}},
 		bson.M{"status": "blocked"},
 	},
@@ -79,4 +85,6 @@ var DeleteBlockedUserVM = &Warning{
 	ExemptCheckers: []*ExemptChecker{IsUserVMsEmpty},
 
 	Action: DeleteVMs,
+
+	Throttled: true,
 }

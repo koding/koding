@@ -4,9 +4,7 @@ import (
 	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"socialapi/workers/email/emailsender"
-	"time"
 )
 
 var subjects = map[string]string{
@@ -69,9 +67,6 @@ func DeleteVMs(user *models.User, _ string) error {
 	var topErr error
 
 	for _, machine := range machines {
-		// avoid spamming kloud
-		time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
-
 		_, err := j.kiteClient.Tell("destroy", &requestArgs{
 			MachineID: machine.ObjectId.Hex(),
 			Provider:  "koding",
