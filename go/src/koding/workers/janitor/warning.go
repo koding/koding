@@ -208,8 +208,8 @@ func (w *Warning) getSleepTime() (time.Duration, error) {
 	timeToWork := now.Add(23*time.Hour).UnixNano() - now.UnixNano()
 	sleepInSec := timeToWork / int64(count)
 
-	if sleepInSec >= int64(10*time.Second) || sleepInSec >= int64(1*time.Second) {
-		return time.Duration(1 * time.Second), nil
+	if sleepInSec <= int64(20*time.Second) || sleepInSec >= int64(100*time.Second) {
+		return time.Duration(20 * time.Second), nil
 	}
 
 	return time.Duration(sleepInSec), nil
