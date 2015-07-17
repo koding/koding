@@ -553,7 +553,10 @@ module.exports = class JMachine extends Module
         @update $set: { label }, (err)-> kallback err, slug
 
   ###*
-   * setManagedProvider stores the managedprovider string in
+   * setManagedProvider stores the managedprovider string into meta
+   * information.
+   *
+   * @param {Function(err:Error)} - callback
   ###
   setManagedProvider: permit 'set managedprovider',
 
