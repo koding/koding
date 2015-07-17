@@ -52,6 +52,13 @@ func TestProcess(t *testing.T) {
 
 		acc1 := models.CreateAccountWithTest()
 		acc2 := models.CreateAccountWithTest()
+		groupName := models.RandomGroupName()
+
+		models.CreateTypedGroupedChannelWithTest(
+			acc1.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
 
 		Convey("should process 0 participated channels with no messages", func() {
 			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
@@ -77,7 +84,6 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process 0 participated channels with messages", func() {
-			groupName := models.RandomGroupName()
 
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -117,7 +123,6 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process participated channels with no messages", func() {
-			groupName := models.RandomGroupName()
 
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -157,7 +162,6 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process participated channels with messages", func() {
-			groupName := models.RandomGroupName()
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
@@ -194,7 +198,6 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process messages that are in multiple channels - when origin is linked channel", func() {
-			groupName := models.RandomGroupName()
 
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -269,7 +272,6 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("should process messages that are initiated in leaf channels", func() {
-			groupName := models.RandomGroupName()
 
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -331,7 +333,6 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure message order still same", func() {
-			groupName := models.RandomGroupName()
 
 			rootChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leafChannel := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -393,7 +394,6 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure messages got deleted if delete option is passed", func() {
-			groupName := models.RandomGroupName()
 
 			rootChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leafChannel := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
@@ -461,7 +461,6 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure messages dont have hashtag in them when we merge to group channel", func() {
-			groupName := models.RandomGroupName()
 
 			rootChannel := models.CreateTypedGroupedChannelWithTest(
 				acc1.Id,

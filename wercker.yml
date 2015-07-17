@@ -118,7 +118,7 @@ build:
           tail -n 100 /var/log/koding/social-webhook.log
           tail -n 100 /var/log/koding/social-webhookmiddleware.log
           cd go/src/socialapi
-          make testapi config=./config/test.toml
+          EXTRAS="-story=true" make testapi config=./config/test.toml
     - script:
         name: test janitor
         code: |

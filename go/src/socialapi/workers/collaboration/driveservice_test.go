@@ -39,7 +39,7 @@ func TestCollaborationDriveService(t *testing.T) {
 
 	handler := New(r.Log, redisConn, appConfig, r.Kite)
 
-	Convey("while pinging collaboration", t, func() {
+	SkipConvey("while pinging collaboration", t, func() {
 		// owner
 		owner := apimodels.NewAccount()
 		owner.OldId = AccountOldId.Hex()

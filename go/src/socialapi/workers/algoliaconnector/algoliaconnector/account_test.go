@@ -129,6 +129,38 @@ func TestAccountUpdated(t *testing.T) {
 				So(err, ShouldBeNil)
 			})
 		})
+
+		Convey("it should delete the document when user account is deleted", func() {
+			// first ensure account object is created
+			err = handler.AccountCreated(acc)
+			So(err, ShouldBeNil)
+			So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+			newNick := "guest-" + models.RandomName() + "-rm"
+			err = models.UpdateUsernameInBothDbs(acc.Nick, newNick)
+			So(err, ShouldBeNil)
+
+			acc.Nick = newNick
+
+			err = handler.AccountUpdated(acc)
+			So(err, ShouldBeNil)
+
+			So(doBasicTestForAccountDeletion(handler, acc.OldId), ShouldBeNil)
+		})
+
+		Convey("it should not return any error when deleted user does not exist on Algolia", func() {
+			newNick := "guest-" + models.RandomName() + "-rm"
+			err = models.UpdateUsernameInBothDbs(acc.Nick, newNick)
+			So(err, ShouldBeNil)
+
+			acc.Nick = newNick
+
+			err = handler.AccountUpdated(acc)
+			So(err, ShouldBeNil)
+
+			So(doBasicTestForAccountDeletion(handler, acc.OldId), ShouldBeNil)
+		})
+
 	})
 }
 
@@ -139,6 +171,16 @@ func doBasicTestForAccount(handler *Controller, id string) error {
 		}
 
 		if record == nil {
+			return false
+		}
+
+		return true
+	})
+}
+
+func doBasicTestForAccountDeletion(handler *Controller, id string) error {
+	return makeSureAccount(handler, id, func(record map[string]interface{}, err error) bool {
+		if err == nil {
 			return false
 		}
 

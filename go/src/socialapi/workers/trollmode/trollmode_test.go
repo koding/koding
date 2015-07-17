@@ -60,6 +60,12 @@ func TestMarkedAsTroll(t *testing.T) {
 		adminUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(adminUser, err)
 
+		models.CreateTypedGroupedChannelWithTest(
+			adminUser.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
 		// fetch admin's session
 		ses, err := models.FetchOrCreateSession(adminUser.Nick, groupName)
 		So(err, ShouldBeNil)
