@@ -10,8 +10,12 @@ module.exports = (options={})->
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Koding" />
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
+
   <link rel="shortcut icon" href="#{options.logo}" />
   <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
+  <link href="https://plus.google.com/+KodingInc" rel="publisher" />
+  <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
+
   <link rel="stylesheet" href="/a/p/p/#{KONFIG.version}/kd.css" />
   <link rel="stylesheet" href="/a/p/p/#{KONFIG.version}/app.css" />
   """
