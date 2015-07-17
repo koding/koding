@@ -21,6 +21,9 @@ module.exports = (options, callback)->
 
       <link rel="shortcut icon" href="/a/images/favicon.ico" />
       <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
+      <link href="https://plus.google.com/+KodingInc" rel="publisher" />
+      <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
+
       <link rel="stylesheet" href="/a/site.#{site}/css/kd.css?#{KONFIG.version}" />
       <link rel="stylesheet" href="/a/site.#{site}/css/main.css?#{KONFIG.version}" />
     </head>
