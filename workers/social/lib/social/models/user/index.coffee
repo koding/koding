@@ -1044,7 +1044,7 @@ module.exports = class JUser extends jraphical.Module
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName, agree,
       invitationToken, referrer, password, passwordConfirm,
-      emailFrequency, recaptcha } = userFormData
+      emailFrequency, recaptcha, slug } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -1093,7 +1093,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        @verifyRecaptcha recaptcha, foreignAuthType, (err)->
+        @verifyRecaptcha recaptcha, {foreignAuthType, slug}, (err)->
           return callback err  if err
           queue.next()
 
@@ -1642,12 +1642,15 @@ module.exports = class JUser extends jraphical.Module
    * @param {string}   foreignAuthType
    * @param {function} callback
   ###
-  @verifyRecaptcha = (response, foreignAuthType, callback) ->
-    { url, secret, enabled } = KONFIG.recaptcha
+  @verifyRecaptcha = (response, params, callback) ->
+    { foreignAuthType, slug } = params
+    { url, secret, enabled }  = KONFIG.recaptcha
 
     return callback null  unless enabled
-
     return callback null  if foreignAuthType is 'github'
+
+    # TODO: temporarily disable recaptcha for groups
+    return callback null  if slug is 'koding'
 
     request.post url, {form:{response, secret}}, (err, res, raw)->
       if err
