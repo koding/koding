@@ -77,7 +77,16 @@ sudo service klient restart > /dev/null 2> /dev/null
 
 # Print user friendly message.
 cat << EOF
-Success! Klient has connected to Koding, and will show up soon
-in your Koding Sidebar.
+Success! Your machine has been connected to Koding, and
+will show up shortly in your Koding sidebar.
+
+You may switch back to Koding now. Remember, Please do
+not close the Add Your Own VM modal until your Machine
+appears in the sidebar.
+
+If your Machine does not show up soon, please contact
+Koding support at:
+
+    support@koding.com
 
 EOF
