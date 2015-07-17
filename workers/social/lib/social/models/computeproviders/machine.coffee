@@ -19,39 +19,41 @@ module.exports = class JMachine extends Module
 
   @set
 
-    indexes             :
-      uid               : 'unique'
-      slug              : 'sparse'
-      users             : 'sparse'
-      groups            : 'sparse'
-      domain            : 'sparse'
+    indexes                :
+      uid                  : 'unique'
+      slug                 : 'sparse'
+      users                : 'sparse'
+      groups               : 'sparse'
+      domain               : 'sparse'
 
-    sharedEvents        :
-      static            : [ ]
-      instance          : [ ]
+    sharedEvents           :
+      static               : [ ]
+      instance             : [ ]
 
-    sharedMethods       :
-      static            :
-        one             :
+    sharedMethods          :
+      static               :
+        one                :
           (signature String, Function)
-        some            :
+        some               :
           (signature Object, Function)
-      instance          :
-        deny            :
+      instance             :
+        deny               :
           (signature Function)
-        approve         :
+        approve            :
           (signature Function)
-        reviveUsers     :
+        reviveUsers        :
           (signature Object, Function)
-        shareWith       :
+        shareWith          :
           (signature Object, Function)
-        setProvisioner  :
+        setProvisioner     :
           (signature String, Function)
-        setLabel        :
+        setLabel           :
           (signature String, Function)
-        share           :
+        setManagedProvider :
+          (signature String, Function)
+        share              :
           (signature Object, Function)
-        unshare         :
+        unshare            :
           (signature Object, Function)
 
         # Disabled for now ~ GG
@@ -61,12 +63,13 @@ module.exports = class JMachine extends Module
         #   (signature Object, Function)
 
 
-    permissions         :
-      'list machines'   : ['member']
-      'populate users'  : ['member']
-      'set provisioner' : ['member']
-      'set domain'      : ['member']
-      'set label'       : ['member']
+    permissions             :
+      'list machines'       : ['member']
+      'populate users'      : ['member']
+      'set provisioner'     : ['member']
+      'set domain'          : ['member']
+      'set label'           : ['member']
+      'set managedprovider' : ['member']
 
     schema              :
 
@@ -548,6 +551,26 @@ module.exports = class JMachine extends Module
           @update $set: { slug, label }, (err)-> kallback err, slug
       else
         @update $set: { label }, (err)-> kallback err, slug
+
+  ###*
+   * setManagedProvider stores the managedprovider string in
+  ###
+  setManagedProvider: permit 'set managedprovider',
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, managedProvider, callback)->
+
+      { r: { user, group } } = client
+
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
+
+      @update $set: { 'meta.managedProvider': managedProvider }, (err) ->
+        callback err
 
 
   # .shareWith can be used like this:
