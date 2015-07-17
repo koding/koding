@@ -223,7 +223,7 @@ func TestGetCount(t *testing.T) {
 			sleepTime, err := warning.getSleepTime()
 			So(err, ShouldBeNil)
 
-			So(sleepTime, ShouldEqual, 1*time.Second)
+			So(sleepTime, ShouldEqual, 20*time.Second)
 
 			Reset(func() {
 				deleteUserWithUsername(user1)

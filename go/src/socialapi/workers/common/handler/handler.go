@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"time"
 
+	"labix.org/v2/mgo"
+
 	"koding/tools/utils"
 	"socialapi/models"
 	"socialapi/workers/common/response"
@@ -96,7 +98,7 @@ func getAccount(r *http.Request, groupName string) *models.Account {
 
 	acc, err := makeSureAccount(groupName, session.Username)
 	if err != nil {
-		if err != bongo.RecordNotFound {
+		if err != bongo.RecordNotFound && err != mgo.ErrNotFound {
 			runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())
 		}
 
