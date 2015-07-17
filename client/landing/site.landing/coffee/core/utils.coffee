@@ -313,3 +313,19 @@ utils.extend utils,
 
 
   getAllowedDomainsPartial: (domains) -> ('<i>@' + d + '</i>, ' for d in domains).join('').replace(/,\s$/, '')
+
+
+  # Prevents recaptcha from showing up in signup form
+  # (but not backend); Used for testing.
+  disableRecaptcha: -> KD.config.recaptcha.enabled = no
+
+
+  # Used to store last used OAuth, ie 'github', 'facebook' etc. between refreshes.
+  storeLastUsedProvider: (provider) ->
+    window.localStorage.lastUsedProvider = provider
+
+
+  getLastUsedProvider: -> window.localStorage.lastUsedProvider
+
+
+  removeLastUsedProvider: -> delete window.localStorage.lastUsedProvider
