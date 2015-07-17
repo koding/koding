@@ -15,7 +15,7 @@ const testDir string = "testdata"
 
 func loadTestData(t *testing.T, file string) string {
 	// Get the full filepath
-	file = filepath.Join("testdata", file)
+	file = filepath.Join(testDir, file)
 
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
