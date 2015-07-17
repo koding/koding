@@ -6,6 +6,8 @@ Flaggable   = require '../../traits/flaggable'
 KodingError = require '../../error'
 { extend, uniq }  = require 'underscore'
 
+request     = require "request"
+
 module.exports = class JUser extends jraphical.Module
 
   {secure, signature, daisy, dash} = require 'bongo'
@@ -1034,6 +1036,7 @@ module.exports = class JUser extends jraphical.Module
       # at all ~ GG
       callback()
 
+
   @convert = secure (client, userFormData, callback) ->
 
     { connection, sessionToken : clientId, clientIP } = client
@@ -1041,7 +1044,7 @@ module.exports = class JUser extends jraphical.Module
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName, agree,
       invitationToken, referrer, password, passwordConfirm,
-      emailFrequency } = userFormData
+      emailFrequency, recaptcha } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -1062,12 +1065,13 @@ module.exports = class JUser extends jraphical.Module
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
 
-    newToken       = null
-    invitation     = null
-    user           = null
-    quotaExceedErr = null
-    error          = null
-    pin            = null
+    newToken         = null
+    invitation       = null
+    user             = null
+    quotaExceedErr   = null
+    error            = null
+    pin              = null
+    foreignAuthType  = null
 
     # TODO this can cause problems
     aNewRegister   = yes
@@ -1077,6 +1081,8 @@ module.exports = class JUser extends jraphical.Module
         @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo)=>
           console.log "Error while getting oauth data from session", err  if err
 
+          foreignAuthType = foreignAuthInfo?.foreignAuthType
+
           # Password is not required for GitHub users since they are authorized via GitHub.
           # To prevent having the same password for all GitHub users since it may be
           # a security hole, let's auto generate it if it's not provided in request
@@ -1084,6 +1090,11 @@ module.exports = class JUser extends jraphical.Module
             password        = userFormData.password        = createId()
             passwordConfirm = userFormData.passwordConfirm = password
 
+          queue.next()
+
+      =>
+        @verifyRecaptcha recaptcha, foreignAuthType, (err)->
+          return callback err  if err
           queue.next()
 
       =>
@@ -1621,3 +1632,33 @@ module.exports = class JUser extends jraphical.Module
     generatedKey = speakeasy.totp {key, encoding: 'base32'}
 
     return generatedKey is verificationCode
+
+
+  ###*
+   * Verify if `response` from client is valid by asking recaptcha servers.
+   * Check is disabled in dev mode or when user is authenticating via `github`.
+   *
+   * @param {string}   response
+   * @param {string}   foreignAuthType
+   * @param {function} callback
+  ###
+  @verifyRecaptcha = (response, foreignAuthType, callback) ->
+    { url, secret, enabled } = KONFIG.recaptcha
+
+    return callback null  unless enabled
+
+    return callback null  if foreignAuthType is 'github'
+
+    request.post url, {form:{response, secret}}, (err, res, raw)->
+      if err
+        console.log "Recaptcha: err validation captcha: #{err}"
+
+      if !err && res.statusCode == 200
+        try
+          if JSON.parse(raw)["success"]
+            return callback null
+        catch e
+          console.log "Recaptcha: parsing response failed. #{raw}"
+
+      return callback new KodingError 'Captcha not valid. Please try again.'
+

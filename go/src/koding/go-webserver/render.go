@@ -37,7 +37,6 @@ func writeLoggedInHomeToResp(w http.ResponseWriter, u *LoggedInUser) {
 	}
 
 	hc := buildHomeContent()
-	hc.Runtime = conf.Client.RuntimeOptions
 	hc.User = u
 	hc.Impersonating = impBool
 
@@ -75,6 +74,7 @@ func buildHomeContent() HomeContent {
 		GpImage:     kodingGpImage,
 		FbImage:     kodingFbImage,
 		TwImage:     kodingTwImage,
+		Runtime:     conf.Client.RuntimeOptions,
 	}
 
 	return hc
