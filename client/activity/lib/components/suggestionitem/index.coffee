@@ -13,7 +13,7 @@ module.exports = class SuggestionItem extends React.Component
   handleClick: ->
 
     { router } = kd.singletons
-    slug       = @props.suggestion.get('slug')
+    slug       = @props.suggestion.getIn ['message', 'slug']
 
     router.handleRoute groupifyLink "/Activity/Post/#{slug}"
 
