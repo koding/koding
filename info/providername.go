@@ -1,6 +1,7 @@
 package info
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -21,14 +22,34 @@ const (
 	// UnknownProvider is the zero value of the ProviderName type.
 	UnknownProvider ProviderName = iota
 
-	// A DigitalOcean virtual machine
+	AmazonWebServices
+	Azure
 	DigitalOcean
+	GoogleCloud
+	HPCloud
+	Joylent
+	Rackspace
+	SoftLayer
 )
 
 func (pn ProviderName) String() string {
 	switch pn {
+	case AmazonWebServices:
+		return "AmazonWebServices"
+	case Azure:
+		return "Azure"
 	case DigitalOcean:
 		return "DigitalOcean"
+	case GoogleCloud:
+		return "GoogleCloud"
+	case HPCloud:
+		return "HPCloud"
+	case Joylent:
+		return "Joylent"
+	case Rackspace:
+		return "Rackspace"
+	case SoftLayer:
+		return "SoftLayer"
 	default:
 		return "UnknownProvider"
 	}
@@ -45,12 +66,14 @@ const (
 // DefaultProviderCheckers is a map of each ProviderName and the
 // corresponding checker.
 var DefaultProviderCheckers = map[ProviderName]ProviderChecker{
-	DigitalOcean: CheckDigitalOcean,
+	AmazonWebServices: CheckAmazonWebServices,
+	Azure:             CheckAzure,
+	DigitalOcean:      CheckDigitalOcean,
+	GoogleCloud:       CheckGoogleCloud,
+	Joylent:           CheckJoylent,
+	Rackspace:         CheckRackspace,
+	SoftLayer:         CheckSoftLayer,
 }
-
-// digitalOceanRegexp is used to verify a whois string which belongs
-// to DigitalOcean.
-var digitalOceanRegexp = regexp.MustCompile(`digitalocean\.com`)
 
 // CheckProvider uses the current machine's IP and runs a whois on it,
 // then feeds the whois to all DefaultProviderCheckers.
@@ -89,6 +112,24 @@ func checkProvider(checkers map[ProviderName]ProviderChecker, whois string) (
 	return UnknownProvider, nil
 }
 
+// generateChecker returns a ProviderChecker matching one or more whois
+// regexp objects against the typical ProviderChecker whois.
+func generateChecker(res ...*regexp.Regexp) ProviderChecker {
+	return func(whois string) (bool, error) {
+		if whois == "" {
+			return false, errors.New("generateChecker: Whois is required")
+		}
+
+		for _, re := range res {
+			if !re.MatchString(whois) {
+				return false, nil
+			}
+		}
+
+		return true, nil
+	}
+}
+
 // CheckDigitalOcean is a ProviderChecker for DigitalOcean
 func CheckDigitalOcean(_ string) (bool, error) {
 	return checkDigitalOcean("http://169.254.169.254/metadata/v1/hostname")
@@ -105,6 +146,28 @@ func checkDigitalOcean(metadataApi string) (bool, error) {
 
 	return res.StatusCode == http.StatusOK, nil
 }
+
+// CheckAmazonWebServices is a generic whois checker for Amazon
+var CheckAmazonWebServices ProviderChecker = generateChecker(
+	regexp.MustCompile(`(?i)amazon`))
+
+var CheckAzure ProviderChecker = generateChecker(
+	regexp.MustCompile(`(?i)azure`))
+
+var CheckGoogleCloud ProviderChecker = generateChecker(
+	regexp.MustCompile(`(?i)google\s*cloud`))
+
+var CheckHPCloud ProviderChecker = generateChecker(
+	regexp.MustCompile(`(?i)hp\s*cloud`))
+
+var CheckJoylent ProviderChecker = generateChecker(
+	regexp.MustCompile(`(?i)joylent`))
+
+var CheckRackspace ProviderChecker = generateChecker(
+	regexp.MustCompile(`(?i)rackspace`))
+
+var CheckSoftLayer ProviderChecker = generateChecker(
+	regexp.MustCompile(`(?i)softlayer`))
 
 // WhoisQuery is a simple func to query a whois service with the (limited)
 // whois protocol.
