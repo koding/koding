@@ -9,4 +9,6 @@ USER='ubuntu'
 # Discard positional parameter $1 to pass rest to `ssh` command
 shift
 
-ssh -i $PRIVATE_KEY -l $USER $HOST $*
+SSH_OPTIONS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+
+ssh $SSH_OPTIONS -i $PRIVATE_KEY -l $USER $HOST $*
