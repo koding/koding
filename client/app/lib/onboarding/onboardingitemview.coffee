@@ -36,9 +36,9 @@ module.exports = class OnboardingItemView extends KDView
           tooltipPlacement
           targetIsScrollable
         }
-        @throbber.on 'TooltipCreated', =>
+        @throbber.on 'TooltipShown', =>
           @startTrackDate = new Date()
-        @throbber.on 'TooltipDestroyed', =>
+        @throbber.on 'TooltipClosed', =>
           @throbber.destroy()
           if @startTrackDate
             OnboardingMetrics.trackView onboardingName, name, new Date() - @startTrackDate

@@ -1,6 +1,7 @@
 kd = require 'kd'
 KDView = kd.View
 KDCustomHTMLView = kd.CustomHTMLView
+KDCustomScrollViewWrapper = kd.CustomScrollViewWrapper
 
 module.exports = class ThrobberView extends KDView
 
@@ -40,9 +41,9 @@ module.exports = class ThrobberView extends KDView
       partial   : '<i></i><i></i>'
 
 
-  createTooltip: ->
+  setTooltip: ->
 
-    { placementX, placementY, tooltipText, tooltipPlacement } = @getOptions()
+    { placementX, placementY, tooltipText, tooltipPlacement, targetIsScrollable } = @getOptions()
 
     if tooltipPlacement is 'auto' or not tooltipPlacement
       tooltipPlacement = if placementX is 'left' then 'left' else 'right'
@@ -58,9 +59,9 @@ module.exports = class ThrobberView extends KDView
     tooltipView.addSubView new KDCustomHTMLView
       tagName  : 'a'
       cssClass : 'close-icon'
-      click    : @bound 'destroyTooltip'
+      click    : @bound 'closeTooltip'
 
-    @setTooltip
+    super
       view      : tooltipView
       cssClass  : 'throbber-tooltip just-text'
       placement : tooltipPlacement
@@ -69,6 +70,25 @@ module.exports = class ThrobberView extends KDView
       permanent : yes
 
     @tooltip.show()
+    @listenToScrollEvent()  if targetIsScrollable
+
+    @emit 'TooltipShown'
+
+
+  unsetTooltip: ->
+
+    return  unless @tooltip
+
+    @scrollWrapper?.off 'scroll', @bound 'unsetTooltip'
+    @scrollWrapper = null
+
+    super
+
+
+  closeTooltip: ->
+
+    @unsetTooltip()
+    @emit 'TooltipClosed'
 
 
   setPosition: ->
@@ -101,30 +121,40 @@ module.exports = class ThrobberView extends KDView
       top  : throbberY
 
 
-  click: ->
+  click: (event) ->
 
     if @tooltip?
-      @destroyTooltip()
+      @closeTooltip()
     else
-      @createTooltip()
-      @emit 'TooltipCreated'
-
-
-  destroyTooltip: ->
-
-    return  unless @tooltip
-
-    @unsetTooltip()
-    @emit 'TooltipDestroyed'
+      @setTooltip()
 
 
   show: ->
 
     super
-    @tooltip?.show()
+    #reinit tooltip if it was hidden before
+    @setTooltip()  if @tooltip?
 
 
   hide: ->
 
     super
     @tooltip?.hide()
+
+
+  listenToScrollEvent: ->
+
+    @scrollWrapper = @findScrollWrapper this
+    return  unless @scrollWrapper
+
+    @scrollWrapper.on 'scroll', @bound 'unsetTooltip'
+
+
+  findScrollWrapper: (view) ->
+
+    { parent } = view
+
+    return  unless parent
+
+    return parent  if parent instanceof KDCustomScrollViewWrapper
+    return @findScrollWrapper parent
