@@ -1650,7 +1650,7 @@ module.exports = class JUser extends jraphical.Module
     return callback null  if foreignAuthType is 'github'
 
     if slug? and slug is not 'koding'
-      return callback null  unless slug is 'koding'
+      return callback null
 
     request.post url, {form:{response, secret}}, (err, res, raw)->
       if err
