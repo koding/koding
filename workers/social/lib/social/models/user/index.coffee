@@ -1650,7 +1650,8 @@ module.exports = class JUser extends jraphical.Module
     return callback null  if foreignAuthType is 'github'
 
     # TODO: temporarily disable recaptcha for groups
-    return callback null  if slug is 'koding'
+    if slug? and slug is not 'koding'
+      return callback null
 
     request.post url, {form:{response, secret}}, (err, res, raw)->
       if err
