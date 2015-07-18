@@ -122,7 +122,7 @@ generateCreateGroupKallback = (client, req, res, body) ->
     # set session token for later usage down the line
     owner                      = result.account
     redirect                  ?= '/'
-    client.sessionToken        = result.newToken
+    client.sessionToken        = result.newToken or result.replacementToken
     client.connection.delegate = result.account
 
     if validationError = validateGroupDataAndReturnError body
