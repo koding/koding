@@ -116,7 +116,7 @@ module.exports = class UserPolicyView extends JView
           controlled substances or illegal software;
         </li>
       </ul>
-
+      <br>
       <p>
         In addition to (and/or as some examples of) the violations described in
         our Terms of Service, you may not and may not allow any third party, including your
@@ -213,7 +213,7 @@ module.exports = class UserPolicyView extends JView
         </li>
 
         <li>
-          Modify, adapt, translate, or reverse engineer any portion of the Service
+          Modify, adapt, translate, or reverse engineer any portion of the Service (this includes, but not limited to, attempting to deliberately extend the permitted resource allocation for any of your virtual machines)
         </li>
 
         <li>
