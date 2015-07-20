@@ -24,7 +24,7 @@ module.exports = class TeamJoinTab extends KDTabPaneView
     teamData = KD.utils.getTeamData()
 
     alreadyMember  = teamData.signup?.alreadyMember
-    @alreadyMember = alreadyMember?
+    @alreadyMember = alreadyMember
     domains        = KD.config.group.allowedDomains
 
     desc = if @alreadyMember
