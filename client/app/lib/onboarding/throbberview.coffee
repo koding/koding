@@ -80,6 +80,7 @@ module.exports = class ThrobberView extends KDView
     return  unless @tooltip
 
     @scrollWrapper?.off 'scroll', @bound 'unsetTooltip'
+    @scrollWrapper?.verticalThumb.off 'DragInAction', @bound 'unsetTooltip'
     @scrollWrapper = null
 
     super
@@ -148,6 +149,7 @@ module.exports = class ThrobberView extends KDView
     return  unless @scrollWrapper
 
     @scrollWrapper.on 'scroll', @bound 'unsetTooltip'
+    @scrollWrapper.verticalThumb.on 'DragInAction', @bound 'unsetTooltip'
 
 
   findScrollWrapper: (view) ->
