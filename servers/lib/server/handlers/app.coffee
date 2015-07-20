@@ -1,4 +1,5 @@
-{ serve, serveHome }   = require './../helpers'
+{ serve, serveHome, isMainDomain }   = require './../helpers'
+
 koding                 = require './../bongo'
 { generateFakeClient } = require "./../client"
 Crawler                = require './../../crawler'
@@ -6,17 +7,15 @@ Crawler                = require './../../crawler'
 module.exports = (req, res, next, options)->
 
   { JName, JGroup }           = bongoModels = koding.models
-  { params, headers }         = req
+  { params }                  = req
   { name, section, slug }     = params
   { path, loggedIn, account } = options
   prefix                      = if loggedIn then 'loggedIn' else 'loggedOut'
 
-  host = headers["x-forwarded-host"]
-
-  mainDomains = ['dev.koding.com', 'sandbox.koding.com', 'latest.koding.com', 'prod.koding.com', 'koding.com']
+  return next()  unless isMainDomain req
 
   # do not show static page for team subdomains
-  if host in mainDomains and name is 'Activity'
+  if name is 'Activity'
     # When we try to access /Activity/Message/New route, it is trying to
     # fetch message history with channel id = 'New' and returning:
     # Bad Request: strconv.ParseInt: parsing "New": invalid syntax error.
