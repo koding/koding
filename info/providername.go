@@ -149,25 +149,32 @@ func checkDigitalOcean(metadataApi string) (bool, error) {
 
 // CheckAWS is a generic whois checker for Amazon
 var CheckAWS ProviderChecker = generateChecker(
-	regexp.MustCompile(`(?i)amazon`))
+	regexp.MustCompile(`(?i)amazon`),
+)
 
 var CheckAzure ProviderChecker = generateChecker(
-	regexp.MustCompile(`(?i)azure`))
+	regexp.MustCompile(`(?i)azure`),
+)
 
 var CheckGoogleCloud ProviderChecker = generateChecker(
-	regexp.MustCompile(`(?i)google\s*cloud`))
+	regexp.MustCompile(`(?i)google\s*cloud`),
+)
 
 var CheckHPCloud ProviderChecker = generateChecker(
-	regexp.MustCompile(`(?i)hp\s*cloud`))
+	regexp.MustCompile(`(?i)hp\s*cloud`),
+)
 
 var CheckJoylent ProviderChecker = generateChecker(
-	regexp.MustCompile(`(?i)joylent`))
+	regexp.MustCompile(`(?i)joylent`),
+)
 
 var CheckRackspace ProviderChecker = generateChecker(
-	regexp.MustCompile(`(?i)rackspace`))
+	regexp.MustCompile(`(?i)rackspace`),
+)
 
 var CheckSoftLayer ProviderChecker = generateChecker(
-	regexp.MustCompile(`(?i)softlayer`))
+	regexp.MustCompile(`(?i)softlayer`),
+)
 
 // WhoisQuery is a simple func to query a whois service with the (limited)
 // whois protocol.
