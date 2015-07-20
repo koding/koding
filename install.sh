@@ -7,20 +7,28 @@ fi
 
 if [ -z "$KONTROLURL" ]; then
     KONTROLURL="https://koding.com/kontrol/kite"
-fi 
+fi
 
+
+# TODO: Why are we defaulting to development?
 if [ -z "$CHANNEL" ]; then
     CHANNEL="development"
-fi 
+fi
 
 LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
 
 if [ ! -f klient.deb ]; then
-    echo "Downloading and installing klient 0.1.${LATESTVERSION}"
+    cat << EOF
+Downloading and installing klient 0.1.${LATESTVERSION}...
+
+EOF
     curl -s $LATESTURL -o klient.deb
 fi
 
+cat << EOF
+Installing the Klient Package...
+EOF
 sudo dpkg -i --force-confnew klient.deb > /dev/null
 
 KITE_USERNAME=""
@@ -28,12 +36,24 @@ if [ ! -z "$2" ]; then
     KITE_USERNAME=$2
 fi
 
-echo "Authenticating to ${KONTROLURL}"
+# Using an extra newline at the end of this message, because Klient
+# might need to communicate with the user - so the extra line helps any
+# klient prompts stand out.
+cat << EOF
+Authenticating to ${KONTROLURL}...
+
+EOF
 # It's ok $1 to be empty, in that case it'll try to register via password input
-sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1 -username "$KITE_USERNAME"
+sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1 -username "$KITE_USERNAME" < /dev/tty
+err=$?; if [ "$err" -ne 0 ]; then
+    cat << EOF
+Error $err: klient failed to register with Koding
+EOF
+    exit $err
+fi
 
 if [ ! -f /etc/kite/kite.key ]; then
-    echo "/etc/kite/kite.key not found. Aborting installation"
+    echo "Error: /etc/kite/kite.key not found. Aborting installation"
     exit -1
 fi
 
@@ -41,6 +61,32 @@ fi
 escaped_var=$(printf '%s\n' "$KONTROLURL" | sed 's:[/&\]:\\&:g;s/$/\\/')
 sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var -env managed /g" "/etc/init/klient.conf"
 
-# We need to restart it so it pick up the new environment variable
-sudo service klient restart > /dev/null
 
+cat << EOF
+Starting Klient..
+
+EOF
+# We need to restart it so it pick up the new environment variable
+sudo service klient restart > /dev/null 2> /dev/null
+
+
+# TODO: Confirm that klient is running, before displaying success message
+# to user. (Trying to find the best method for confirming this, rather
+# than just grepping)
+
+
+# Print user friendly message.
+cat << EOF
+Success! Your machine has been connected to Koding, and
+will show up shortly in your Koding sidebar.
+
+You may switch back to Koding now. Remember, Please do
+not close the Add Your Own VM modal until your Machine
+appears in the sidebar.
+
+If your Machine does not show up soon, please contact
+Koding support at:
+
+    support@koding.com
+
+EOF
