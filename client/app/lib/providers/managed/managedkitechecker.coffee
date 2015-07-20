@@ -112,7 +112,8 @@ module.exports = class ManagedKiteChecker extends kd.Object
     unless @_listeners.length
       return
 
-    { createMachine } = helpers
+    { computeController } = kd.singletons
+    { createMachine }     = helpers
 
     listener = @_getListener()
 
@@ -127,6 +128,13 @@ module.exports = class ManagedKiteChecker extends kd.Object
       klient = machine.getBaseKite()
       klient.klientInfo().nodeify (err, payload) =>
         return kd.error err if err
+
+        # Record the vmProvider in the machine. We don't need to
+        # wait for the callback though.
+        vmProvider = payload.providerName
+        computeController.update machine, { vmProvider }
+
+        # Notify the lisetener, and emit the event.
         listener payload, machine
         @emit 'NewKite', kite, payload, machine
 
