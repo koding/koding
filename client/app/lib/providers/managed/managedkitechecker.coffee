@@ -127,7 +127,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
       # can popup a Provider specific modal
       klient = machine.getBaseKite()
       klient.klientInfo().nodeify (err, payload) =>
-        return kd.error err if err
+        return kd.error err  if err
 
         # Record the vmProvider in the machine. We don't need to
         # wait for the callback though.
