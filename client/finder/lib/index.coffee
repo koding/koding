@@ -63,13 +63,12 @@ module.exports = class FinderController extends KDController
       hoverDetect : no
       delegate    : controller
 
-    onDrag = (args...) =>
+    onDrag = (event) =>
 
       { internalDragging }  = controller.treeController
-      mouseEvent            = args.filter (arg) -> arg instanceof KDView is no
 
-      if mouseEvent.length
-        { items }  = mouseEvent[0].originalEvent.dataTransfer
+      if event
+        { items }  = event.originalEvent.dataTransfer
 
         if items?[0].kind is 'string' and not internalDragging
           return finderView.overlay?.show()
@@ -84,12 +83,12 @@ module.exports = class FinderController extends KDController
       uploader.reset()
 
     {treeController} = controller
-    treeController.on 'dragEnter', onDrag
-    treeController.on 'dragOver' , onDrag
+    treeController.on 'dragEnter', (nodeView, event) -> onDrag event
+    treeController.on 'dragOver', (nodeView, event) ->  onDrag event
 
     finderView = controller.getView()
     finderView.on 'dragenter', onDrag
-    finderView.on 'dragover' , onDrag
+    finderView.on 'dragover', onDrag
     finderView.on 'drop', -> finderView.overlay?.hide()
 
     uploader
