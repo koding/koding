@@ -4,6 +4,7 @@ FSHelper                    = require 'app/util/fs/fshelper'
 AvatarView                  = require 'app/commonviews/avatarviews/avatarview'
 IDEChatHeadWatchItemView    = require './idechatheadwatchitemview'
 IDEChatHeadReadOnlyItemView = require './idechatheadreadonlyitemview'
+IDELayoutManager            = require '../../workspace/idelayoutmanager'
 
 
 module.exports = class IDEStatusBarAvatarView extends AvatarView
@@ -48,7 +49,6 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     { appManager } = kd.singletons
     { rtm }        = appManager.getFrontApp()
-    changes        = rtm.getFromModel("#{@nickname}Snapshot")?.values() or []
     menuItems      = {}
     menuData       =
       terminals    : []
@@ -63,11 +63,14 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     hasChanges = no
 
-    changes.forEach (change, i) ->
+    panes = rtm.getFromModel("#{@nickname}Snapshot")?.values() or []
+    panes = IDELayoutManager.convertSnapshotToFlatArray panes[0]  if panes.length
 
-      return if not change.type or not change.context
+    panes.forEach (pane, i) ->
 
-      { type, context: { file, paneType } }       = change
+      return  if not pane.context
+
+      { context: { file, paneType } }             = pane
       { editors, terminals, drawings, browsers }  = menuData
 
       return unless type is 'NewPaneCreated'
@@ -75,15 +78,15 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       hasChanges = yes
 
       switch paneType
-        when 'editor'   then editors.push   { change, title : FSHelper.getFileNameFromPath file.path }
-        when 'terminal' then terminals.push { change }
-        when 'drawing'  then drawings.push  { change }
-        when 'browser'  then browsers.push  { change }
+        when 'editor'   then editors.push   { pane, title : FSHelper.getFileNameFromPath file.path }
+        when 'terminal' then terminals.push { pane }
+        when 'drawing'  then drawings.push  { pane }
+        when 'browser'  then browsers.push  { pane }
 
     for own section, items of menuData
 
       items.forEach (item, i) ->
-        { context: { paneType } } = item.change
+        { context: { paneType } } = item.pane
         title = item.title or "#{paneType.capitalize()} #{i+1}"
         label = menuLabels[paneType]
         menuItems[label] or= children: {}
