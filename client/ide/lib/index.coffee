@@ -1355,9 +1355,13 @@ class IDEAppController extends AppController
 
         kd.utils.defer =>
           targetTabView.addPane pane
+
+          # Update `AceView`s delegate
+          if pane.view instanceof IDEEditorPane
+            pane.view.updateAceViewDelegate targetTabView.parent
+
           @setActiveTabView targetTabView
           @doResize()
-
 
 
   ###*
@@ -1727,6 +1731,9 @@ class IDEAppController extends AppController
     @doResize()
 
     { view } = pane
+
+    # Update `AceView`s delegate
+    view.updateAceViewDelegate targetTabView.parent  if view instanceof IDEEditorPane
 
     context =
       paneType          : view.getOption 'paneType'
