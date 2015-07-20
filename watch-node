@@ -1,6 +1,6 @@
 #!/bin/bash
 
-trap     ctrl_c INT
+trap     ctrl_c INT TERM KILL
 function ctrl_c () { kill -KILL $pid $$; }
 
 path=$@

@@ -752,6 +752,21 @@ Configuration = (options={}) ->
           }
         ]
 
+
+  KONFIG.supervisord =
+    logdir   : '/var/log/koding'
+    rundir   : '/var/run'
+    minfds   : 10000
+    minprocs : 200
+
+  KONFIG.supervisord.unix_http_server =
+    file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
+
+  KONFIG.supervisord.memmon =
+    limit : '3072MB'
+    email : 'sysops+supervisord-sandbox@koding.com'
+
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
@@ -791,7 +806,7 @@ Configuration = (options={}) ->
   KONFIG.runFile         = generateRunFile KONFIG
   KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 
-  KONFIG.configCheckExempt = ["ngrokProxy", "command"]
+  KONFIG.configCheckExempt = ["ngrokProxy", "command", "output_path"]
 
   return KONFIG
 

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+INSTANCE_DATA_FILE=$1
+
+SCRIPTS=$(dirname $0)/..
+REPOSITORY_PATH=/opt/koding
+
+if [ "$WERCKER_RESULT" = "passed" ]; then
+  exit 0
+fi
+
+cat $INSTANCE_DATA_FILE | awk '{print $2}' | \
+  xargs -n 1 \
+        -I HOST \
+        $SCRIPTS/test-instance/ssh HOST \
+        "sudo $REPOSITORY_PATH/scripts/test-instance/upload-logs $WERCKER_BUILD_ID"
+
+cat - <<EOF
+You can view logs at s3://koding-test-instance-logs/$WERCKER_BUILD_ID/
+EOF
+
+exit 0

@@ -109,9 +109,13 @@ func getAccount(r *http.Request, groupName string) *models.Account {
 	if err != nil {
 		if err != bongo.RecordNotFound && err != models.ErrGroupNotFound {
 			runner.MustGetLogger().Error("Err while getting group channel: %s, err :%s", groupName, err.Error())
+
+			return models.NewAccount()
 		}
 
-		return models.NewAccount()
+		// for creating the group channel for the first time, we should not return
+		// here with empty account
+		return acc
 	}
 
 	if err := makeSureMembership(groupChannel, acc.Id); err != nil {
