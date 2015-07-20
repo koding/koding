@@ -15,7 +15,7 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
 
 
     if @alreadyMember
-      email = teamData.signup.username
+      email = KD.utils.getTeamData().signup.username
       @username.setValue email
       @password.destroy()
       @password = new KDInputView
