@@ -1,0 +1,19 @@
+#!/bin/bash
+
+REPOSITORY_PATH=/opt/koding
+LOG_PATH=$REPOSITORY_PATH/.logs
+INSTANCE_ID=$(ec2metadata | grep instance-id | awk '{print $2}')
+
+BUCKET="koding-test-instance-logs"
+PREFIX=$1
+DESTINATION="s3://$BUCKET/$PREFIX/$INSTANCE_ID"
+
+if [ -z "$PREFIX" ]; then
+  echo 'error: prefix parameter is not given'
+  exit 1
+fi
+
+S3CMD_OPTIONS="--human-readable-sizes --follow-symlinks"
+
+s3cmd put $S3CMD_OPTIONS --recursive $LOG_PATH/ $DESTINATION/
+s3cmd put $S3CMD_OPTIONS /var/log/cloud-init-output.log $DESTINATION/
