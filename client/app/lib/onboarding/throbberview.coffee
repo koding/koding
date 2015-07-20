@@ -160,3 +160,9 @@ module.exports = class ThrobberView extends KDView
 
     return parent  if parent instanceof KDCustomScrollViewWrapper
     return @findScrollWrapper parent
+
+
+  destroy: ->
+
+    @unsetTooltip()
+    super
