@@ -20,14 +20,14 @@ LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.$
 
 if [ ! -f klient.deb ]; then
     cat << EOF
-Downloading Koding Service 0.1.${LATESTVERSION}...
+Downloading Koding Service Connector 0.1.${LATESTVERSION}...
 
 EOF
     curl -s $LATESTURL -o klient.deb
 fi
 
 cat << EOF
-Installing the Koding Service package...
+Installing the Koding Service Connector package...
 EOF
 sudo dpkg -i --force-confnew klient.deb > /dev/null
 
@@ -40,20 +40,21 @@ fi
 # might need to communicate with the user - so the extra line helps any
 # klient prompts stand out.
 cat << EOF
-Authenticating Koding Service
+Authenticating you to the Koding Service
 
 EOF
 # It's ok $1 to be empty, in that case it'll try to register via password input
 sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1 -username "$KITE_USERNAME" < /dev/tty
 err=$?; if [ "$err" -ne 0 ]; then
     cat << EOF
-Error $err: Service failed to register with Koding
+$err: Service failed to register with Koding. If this continues to happen,
+please contact support@digitalocean.com
 EOF
     exit $err
 fi
 
 if [ ! -f /etc/kite/kite.key ]; then
-    echo "Error: Koding Service key not found. Aborting installation"
+    echo "Error: Critical component missing. Aborting installation."
     exit -1
 fi
 
@@ -63,7 +64,7 @@ sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var -env managed /g" 
 
 
 cat << EOF
-Starting Koding Service..
+Starting the Koding Service Connector...
 
 EOF
 # We need to restart it so it pick up the new environment variable
@@ -77,16 +78,17 @@ sudo service klient restart > /dev/null 2> /dev/null
 
 # Print user friendly message.
 cat << EOF
-Success! Your machine has been connected to Koding, and
-will show up shortly in your Koding sidebar.
+Success!
+This system has been successfully connected to Koding and
+should show up automatically on the sidebar of your Koding account
+where your other VMs are listed.
 
-You may switch back to Koding now. Remember, Please do
-not close the Add Your Own VM modal until your Machine
-appears in the sidebar.
+Please head over to koding.com now and remember to not close
+the "Add your own VM" dialogue box until you see this system appear
+in the sidebar.
 
-If your Machine does not show up soon, please contact
-Koding support at:
-
-    support@koding.com
-
+For some reason if this system does not show up on your koding account
+in the next 2-3 minutes, please re-run the install script or contact us
+at support@koding.com. Note, we have no access to your DigitalOcean
+droplet so please debug on your own as much as you can.
 EOF
