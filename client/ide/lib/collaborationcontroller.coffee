@@ -309,6 +309,8 @@ module.exports = CollaborationController =
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
 
+      @setParticipantPermission nickname  if @amIHost
+
 
   channelMessageAdded: (message) ->
 
@@ -1100,3 +1102,11 @@ module.exports = CollaborationController =
     rval = {}
     rval[key] = value  for [key, value] in @settings.items()
     return rval
+
+
+  setParticipantPermission: (nickname, permission) ->
+
+    return  if (not permission?) and @permissions.get nickname
+
+    permission ?= if @settings.get 'read-only' then 'read' else 'edit'
+    @permissions.set nickname, permission
