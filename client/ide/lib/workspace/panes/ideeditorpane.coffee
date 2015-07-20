@@ -425,4 +425,4 @@ module.exports = class IDEEditorPane extends IDEPane
     super
 
 
-  updateAceViewDelegate: (ideView) -> @aceView.setDelegate ideView
+  updateAceViewDelegate: (ideView) -> @aceView?.setDelegate ideView
