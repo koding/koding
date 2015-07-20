@@ -339,6 +339,8 @@ module.exports = CollaborationController =
         unless isAdded
           @activeTabView.addPane pane
 
+      @doResize()
+
 
   bindSocialChannelEvents: ->
 
