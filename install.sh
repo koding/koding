@@ -20,14 +20,14 @@ LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.$
 
 if [ ! -f klient.deb ]; then
     cat << EOF
-Downloading and installing klient 0.1.${LATESTVERSION}...
+Downloading Koding Service 0.1.${LATESTVERSION}...
 
 EOF
     curl -s $LATESTURL -o klient.deb
 fi
 
 cat << EOF
-Installing the Klient Package...
+Installing the Koding Service package...
 EOF
 sudo dpkg -i --force-confnew klient.deb > /dev/null
 
@@ -40,20 +40,20 @@ fi
 # might need to communicate with the user - so the extra line helps any
 # klient prompts stand out.
 cat << EOF
-Authenticating to ${KONTROLURL}...
+Authenticating Koding Service
 
 EOF
 # It's ok $1 to be empty, in that case it'll try to register via password input
 sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1 -username "$KITE_USERNAME" < /dev/tty
 err=$?; if [ "$err" -ne 0 ]; then
     cat << EOF
-Error $err: klient failed to register with Koding
+Error $err: Service failed to register with Koding
 EOF
     exit $err
 fi
 
 if [ ! -f /etc/kite/kite.key ]; then
-    echo "Error: /etc/kite/kite.key not found. Aborting installation"
+    echo "Error: Koding Service key not found. Aborting installation"
     exit -1
 fi
 
@@ -63,7 +63,7 @@ sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var -env managed /g" 
 
 
 cat << EOF
-Starting Klient..
+Starting Koding Service..
 
 EOF
 # We need to restart it so it pick up the new environment variable
