@@ -46,7 +46,7 @@ func main() {
 		}
 	}
 
-	resultBytes, _ := json.Marshal(results)
+	resultBytes, _ := json.MarshalIndent(results, "", "\t")
 	fmt.Println(string(resultBytes))
 }
 
