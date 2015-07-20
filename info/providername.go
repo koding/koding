@@ -35,7 +35,7 @@ const (
 	DigitalOcean
 	GoogleCloud
 	HPCloud
-	Joylent
+	Joyent
 	Rackspace
 	SoftLayer
 )
@@ -52,8 +52,8 @@ func (pn ProviderName) String() string {
 		return "GoogleCloud"
 	case HPCloud:
 		return "HPCloud"
-	case Joylent:
-		return "Joylent"
+	case Joyent:
+		return "Joyent"
 	case Rackspace:
 		return "Rackspace"
 	case SoftLayer:
@@ -70,7 +70,7 @@ var DefaultProviderCheckers = map[ProviderName]ProviderChecker{
 	Azure:        CheckAzure,
 	DigitalOcean: CheckDigitalOcean,
 	GoogleCloud:  CheckGoogleCloud,
-	Joylent:      CheckJoylent,
+	Joyent:       CheckJoyent,
 	Rackspace:    CheckRackspace,
 	SoftLayer:    CheckSoftLayer,
 }
@@ -164,8 +164,8 @@ var CheckHPCloud ProviderChecker = generateChecker(
 	regexp.MustCompile(`(?i)hp\s*cloud`),
 )
 
-var CheckJoylent ProviderChecker = generateChecker(
-	regexp.MustCompile(`(?i)joylent`),
+var CheckJoyent ProviderChecker = generateChecker(
+	regexp.MustCompile(`(?i)joyent`),
 )
 
 var CheckRackspace ProviderChecker = generateChecker(
