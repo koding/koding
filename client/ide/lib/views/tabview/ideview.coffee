@@ -76,9 +76,27 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       @ensureSplitHandlers()  if addSplitHandlers
 
-      { tabHandle } = pane
-      { paneType }  = pane.view.getOptions()
-      tabHandle.enableContextMenu()  if paneType in [ 'editor', 'terminal' ]
+      { tabHandle, view } = pane
+      { options }  = view
+      { paneType } = options
+
+      switch paneType
+        when 'editor' then tabHandle.enableContextMenu()
+        when 'terminal'
+          tabHandle.enableContextMenu()
+
+          webtermCallback = @lazyBound 'handleWebtermCreated', pane, options
+          view.once 'WebtermCreated', webtermCallback
+
+          handleCallback = @lazyBound 'handleTerminalRenamingRequested', pane, options
+          tabHandle.on 'RenamingRequested', handleCallback
+
+          tabHandle.makeEditable()
+
+
+    @tabView.on 'PaneRemoved', ({ pane, handle }) =>
+
+      handle.off 'RenamingRequested'
 
 
     # This is a custom event for IDEApplicationTabView
@@ -236,16 +254,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         options.path = frontApp.workspaceData.rootPath
 
     terminalPane = new IDETerminalPane options
-    paneView = @createPane_ terminalPane, { name: 'Terminal' }
-    terminalHandle = @tabView.getHandleByPane paneView
-
-    webtermCallback = @lazyBound 'handleWebtermCreated', paneView, options
-    terminalPane.once 'WebtermCreated', webtermCallback
-
-    handleCallback = @lazyBound 'handleTerminalRenamingRequested', paneView, options
-    terminalHandle.on 'RenamingRequested', handleCallback
-
-    terminalHandle.makeEditable()
+    @createPane_ terminalPane, { name: 'Terminal' }
 
 
   emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
