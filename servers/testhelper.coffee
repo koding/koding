@@ -479,7 +479,7 @@ class LoginHandlerHelper
 
 class RegisterHandlerHelper
 
-  @generateRequestBody = (opts = {}) ->
+  @generateRegisterRequestBody = (opts = {}) ->
 
     defaultBodyObject =
       email             : generateRandomEmail()
@@ -495,12 +495,12 @@ class RegisterHandlerHelper
 
 
   # overwrites given options in the default params
-  @generateRequestParams = (opts = {}) ->
+  @generateRegisterRequestParams = (opts = {}) ->
 
     url  = generateUrl
       route : 'Register'
 
-    body = RegisterHandlerHelper.generateRequestBody()
+    body = RegisterHandlerHelper.generateRegisterRequestBody()
 
     params                = { url, body }
     defaultRequestParams  = generateDefaultRequestParams params

@@ -13,6 +13,7 @@ querystring                               = require 'querystring'
   RegisterHandlerHelper }                 = require '../../../testhelper'
 
 { generateRecoverRequestParams }          = RecoverHandlerHelper
+{ generateRegisterRequestParams }         = RegisterHandlerHelper
 
 
 # here we have actual tests
@@ -63,7 +64,7 @@ runTests = -> describe 'server.handlers.recover', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body    :
             email : email
 

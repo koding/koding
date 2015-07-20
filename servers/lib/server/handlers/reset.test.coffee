@@ -13,6 +13,7 @@ querystring                               = require 'querystring'
   RegisterHandlerHelper }                 = require '../../../testhelper'
 
 { generateResetRequestParams  }          = ResetHandlerHelper
+{ generateRegisterRequestParams }        = RegisterHandlerHelper
 
 JUser                                    = null
 JPasswordRecovery                        = null
@@ -218,7 +219,7 @@ runTests = -> describe 'server.handlers.reset', ->
         password      : generateRandomString()
         recoveryToken : token
 
-    registerRequestParams = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams = generateRegisterRequestParams
       body       :
         email    : email
         username : username
@@ -288,7 +289,7 @@ runTests = -> describe 'server.handlers.reset', ->
         password      : generateRandomString()
         recoveryToken : token1
 
-    registerRequestParams = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams = generateRegisterRequestParams
       body              :
         email           : email
         username        : username

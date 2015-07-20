@@ -13,6 +13,7 @@ Speakeasy                                 = require 'speakeasy'
   RegisterHandlerHelper }                 = require '../../../testhelper'
 
 { generateLoginRequestParams }            = LoginHandlerHelper
+{ generateRegisterRequestParams }         = RegisterHandlerHelper
 
 JLog                                      = null
 JUser                                     = null
@@ -79,7 +80,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             email    : email
             username : username
@@ -118,7 +119,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -166,7 +167,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -213,7 +214,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -261,7 +262,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -351,7 +352,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -394,7 +395,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -461,7 +462,7 @@ runTests = -> describe 'server.handlers.login', ->
 
     queue.push ->
       # registering a new user
-      registerRequestParams = RegisterHandlerHelper.generateRequestParams
+      registerRequestParams = generateRegisterRequestParams
         body       :
           username : username
           password : password
@@ -495,7 +496,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -546,7 +547,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -620,7 +621,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             email    : email
             username : username
@@ -674,7 +675,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             username : username
             password : password
@@ -723,7 +724,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             email    : email
             username : username
