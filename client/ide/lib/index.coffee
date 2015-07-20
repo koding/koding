@@ -1240,6 +1240,9 @@ class IDEAppController extends AppController
         else if change.type is 'ContentChange'
 
           {content, path} = context.file
+
+          return  unless content
+
           string = @rtm.getFromModel path
           string.setText content  if string
 
