@@ -15,7 +15,7 @@ module.exports = class ActivityAnnouncementWidget extends JView
 
     return """
       <div class="logo"></div>
-      <h3>New: Connect your own system!</h3>
-      <p>You can now connect any Ubuntu Linux system/VM with a public IP address your Koding account.</p>
-      <a href="http://learn.koding.com/connect_your_system">Learn how.</a>
+      <h3>New: Connect your own machine!</h3>
+      <p>You can now connect any Ubuntu Linux machine with a public IP address your Koding account.</p>
+      <a href="http://learn.koding.com/connect_your_machine">Learn how.</a>
     """
