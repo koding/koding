@@ -10,7 +10,6 @@ import (
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/app"
-	"github.com/koding/klient/fix"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
 	klienttunnel "github.com/koding/klient/tunnel"
@@ -115,11 +114,6 @@ func realMain() int {
 		LocalAddr:  *flagTunnelLocalAddr,
 		Debug:      *flagDebug,
 	})
-
-	// run inital fix commands
-	if err := fix.Run(u.Username); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-	}
 
 	// Run Forrest, Run!
 	a.Run()
