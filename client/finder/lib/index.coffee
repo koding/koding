@@ -63,7 +63,7 @@ module.exports = class FinderController extends KDController
       hoverDetect : no
       delegate    : controller
 
-    onDrag = (event) =>
+    onDrag = (event) ->
 
       { internalDragging }  = controller.treeController
 
