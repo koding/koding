@@ -98,11 +98,11 @@ func TestCheckDigitalOcean(t *testing.T) {
 	}
 }
 
-func TestCheckAmazonWebServices(t *testing.T) {
-	runRegexCheckTest(t, CheckAmazonWebServices,
+func TestCheckAWS(t *testing.T) {
+	runRegexCheckTest(t, CheckAWS,
 		"whois-aws-vm-1.txt", true)
 
-	runRegexCheckTest(t, CheckAmazonWebServices,
+	runRegexCheckTest(t, CheckAWS,
 		"whois-do-vm-1.txt", false)
 }
 
@@ -157,12 +157,12 @@ func TestCheckSoftLayer(t *testing.T) {
 // checkProvider tests
 func TestCheckProvider(t *testing.T) {
 	providerCheckers := map[ProviderName]ProviderChecker{
-		AmazonWebServices: CheckAmazonWebServices,
-		Azure:             CheckAzure,
-		GoogleCloud:       CheckGoogleCloud,
-		Joylent:           CheckJoylent,
-		Rackspace:         CheckRackspace,
-		SoftLayer:         CheckSoftLayer,
+		AWS:         CheckAWS,
+		Azure:       CheckAzure,
+		GoogleCloud: CheckGoogleCloud,
+		Joylent:     CheckJoylent,
+		Rackspace:   CheckRackspace,
+		SoftLayer:   CheckSoftLayer,
 
 		// We can't check the DigitalOcean provider in this func,
 		// because the func that implements ProviderChecker makes impure
@@ -183,5 +183,5 @@ func TestCheckProvider(t *testing.T) {
 		}
 	}
 
-	runProviderTest("whois-aws-vm-1.txt", AmazonWebServices)
+	runProviderTest("whois-aws-vm-1.txt", AWS)
 }

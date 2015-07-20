@@ -22,7 +22,7 @@ const (
 	// UnknownProvider is the zero value of the ProviderName type.
 	UnknownProvider ProviderName = iota
 
-	AmazonWebServices
+	AWS
 	Azure
 	DigitalOcean
 	GoogleCloud
@@ -34,8 +34,8 @@ const (
 
 func (pn ProviderName) String() string {
 	switch pn {
-	case AmazonWebServices:
-		return "AmazonWebServices"
+	case AWS:
+		return "AWS"
 	case Azure:
 		return "Azure"
 	case DigitalOcean:
@@ -66,13 +66,13 @@ const (
 // DefaultProviderCheckers is a map of each ProviderName and the
 // corresponding checker.
 var DefaultProviderCheckers = map[ProviderName]ProviderChecker{
-	AmazonWebServices: CheckAmazonWebServices,
-	Azure:             CheckAzure,
-	DigitalOcean:      CheckDigitalOcean,
-	GoogleCloud:       CheckGoogleCloud,
-	Joylent:           CheckJoylent,
-	Rackspace:         CheckRackspace,
-	SoftLayer:         CheckSoftLayer,
+	AWS:          CheckAWS,
+	Azure:        CheckAzure,
+	DigitalOcean: CheckDigitalOcean,
+	GoogleCloud:  CheckGoogleCloud,
+	Joylent:      CheckJoylent,
+	Rackspace:    CheckRackspace,
+	SoftLayer:    CheckSoftLayer,
 }
 
 // CheckProvider uses the current machine's IP and runs a whois on it,
@@ -147,8 +147,8 @@ func checkDigitalOcean(metadataApi string) (bool, error) {
 	return res.StatusCode == http.StatusOK, nil
 }
 
-// CheckAmazonWebServices is a generic whois checker for Amazon
-var CheckAmazonWebServices ProviderChecker = generateChecker(
+// CheckAWS is a generic whois checker for Amazon
+var CheckAWS ProviderChecker = generateChecker(
 	regexp.MustCompile(`(?i)amazon`))
 
 var CheckAzure ProviderChecker = generateChecker(
