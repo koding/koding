@@ -798,7 +798,11 @@ module.exports = class ComputeController extends KDController
     return  if kd.singletons.groupsController.getGroupSlug() is 'koding'
 
     @stacks.forEach (stack) =>
-      stack.checkRevision (error, status) =>
+
+      stack.checkRevision (error, data) =>
+
+        { status, machineCount } = data
         stack._revisionStatus = { error, status }
+
         console.info "Revision info for stack #{stack.title}", status
         @emit 'StackRevisionChecked', stack
