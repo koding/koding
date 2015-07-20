@@ -1,0 +1,33 @@
+BOOLEAN="boolean"
+NUMBER="number"
+
+function output {
+  echo "{\"name\":\"$1\", \"type\":\"$2\", \"$2\":$3}"
+}
+
+function number_of_lines() {
+  file=$1
+  if [ -e "$file" ]
+  then
+    wc -l $file | awk '{print $1}'
+  else
+    echo 0
+  fi
+}
+
+function list_file_types() {
+  cd ~; find . -maxdepth 2 -type f -name '*.*' -not -path "*/.gem/*" -not -path "*.npm/*" -not -path "*node_modules/*" | sed 's|.*\.||' | sort | uniq -c | sort -n
+}
+
+function list_git_repos() {
+  cd ~; find . -maxdepth 5 -type d -name '*.git'
+}
+
+function installed() {
+  VALUE=0
+  if which $2 > /dev/null; then
+    VALUE=1
+  fi
+
+  output "$1" $BOOLEAN $VALUE
+}

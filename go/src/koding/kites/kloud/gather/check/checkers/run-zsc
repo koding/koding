@@ -1,0 +1,1 @@
+output "zshrc line count" $NUMBER `number_of_lines ~/.zshrc`

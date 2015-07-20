@@ -1,0 +1,96 @@
+package gather
+
+import (
+	"bufio"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/s3"
+)
+
+const (
+	CONTENT_TYPE_TAR = "application/tar"
+	TAR_SUFFIX       = ".tar"
+)
+
+type Fetcher interface {
+	Download(string) error
+	GetFileName() string
+}
+
+type S3Fetcher struct {
+	AccessKey  string
+	SecretKey  string
+	BucketName string
+	FileName   string
+}
+
+func (s *S3Fetcher) Bucket() *s3.Bucket {
+	auth := aws.Auth{AccessKey: s.AccessKey, SecretKey: s.SecretKey}
+
+	return s3.New(auth, aws.USEast).Bucket(s.BucketName)
+}
+
+func (s *S3Fetcher) GetFileName() string {
+	return s.FileName
+}
+
+// Download downloads scripts from S3 bucket into specified folder.
+func (s *S3Fetcher) Download(folderName string) error {
+	// prefix, delim, marker, max
+	l, err := s.Bucket().List(s.FileName, "", "", 1)
+	if err != nil {
+		return err
+	}
+
+	contents := l.Contents
+	if len(contents) == 0 {
+		return ErrScriptsFileNotFound
+	}
+
+	key := contents[0].Key
+	rc, err := s.Bucket().GetReader(key)
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+
+	w, err := os.Create(filepath.Join(folderName, key))
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+
+	_, err = io.Copy(w, rc)
+
+	return err
+}
+
+// Upload tars folder and uploads to s3 bucket.
+func (s *S3Fetcher) Upload(folderName string) error {
+	var tarFile = folderName
+
+	if !strings.Contains(folderName, TAR_SUFFIX) {
+		tarFile = folderName + TAR_SUFFIX
+		if err := tarFolder(folderName, tarFile); err != nil {
+			return err
+		}
+	}
+
+	file, err := os.Open(tarFile)
+	if err != nil {
+		return err
+	}
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	return s.Bucket().PutReader(
+		tarFile, bufio.NewReader(file), fileInfo.Size(), CONTENT_TYPE_TAR, s3.Private,
+	)
+}

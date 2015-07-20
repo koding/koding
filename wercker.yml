@@ -138,6 +138,16 @@ build:
     #       cd go/src/koding/kites/terraformer
     #       go test -c && mv terraformer.test ./../../../../bin/ &&  CONFIG_PORT=1234 CONFIG_REGION="dev" CONFIG_ENVIRONMENT="dev" ./../../../../bin/terraformer.test
     - script:
+        name: test social worker
+        code: |
+          echo "testing social worker"
+          scripts/node-testing/run-tests $(pwd)/INSTANCE_DATA
+    - script:
+        name: test gather
+        code: |
+          go test ./go/src/koding/kites/kloud/gather -test.v=true
+          go test ./go/src/koding/kites/kloud/gather/check -test.v=true
+    - script:
         name: testing backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
@@ -233,9 +243,13 @@ deploy:
 
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
     - script:
+        name: build and upload gather scripts
+        code: |
+          cd $WERCKER_ROOT/go/src/koding/kites/kloud/gather
+          ./build.sh
+    - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
-
 
     - koding/eb-deploy@0.0.8:
         access-key: $S3_KEY_ID

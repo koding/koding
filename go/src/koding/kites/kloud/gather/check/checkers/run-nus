@@ -1,0 +1,2 @@
+COUNT=`grep koding /etc/passwd | wc -l | tr -d ' '`
+output "user count" $NUMBER $COUNT

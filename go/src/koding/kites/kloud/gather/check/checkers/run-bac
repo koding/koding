@@ -1,0 +1,1 @@
+output "bashrc line count" $NUMBER `number_of_lines ~/.bashrc`

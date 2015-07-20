@@ -1,0 +1,1 @@
+output "fish line count" $NUMBER `number_of_lines ~/.config/fish/config.fish`
