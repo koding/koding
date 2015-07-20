@@ -286,11 +286,12 @@ module.exports = class IDELayoutManager extends KDObject
 
     if recover
       ideApp.forEachSubViewInIDEViews_ (p) ->
-        paneView  = p.parent
-        tabView   = paneView.parent
+        panes.push p.parent
 
-        { pane }  = tabView.removePane paneView, yes, yes
-        panes.push pane
+    for ideView in ideApp.ideViews
+      tabView = ideView.tabView
+      for pane in tabView.panes.slice 0
+        tabView.removePane pane, yes, yes
 
     ideView         = new IDEView
     ideApp.ideViews = []  # Reset `ideViews`s array
