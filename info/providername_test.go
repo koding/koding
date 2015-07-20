@@ -130,11 +130,11 @@ func TestCheckHPCloud(t *testing.T) {
 		"whois-do-vm-1.txt", false)
 }
 
-func TestCheckJoylent(t *testing.T) {
-	runRegexCheckTest(t, CheckJoylent,
+func TestCheckJoyent(t *testing.T) {
+	runRegexCheckTest(t, CheckJoyent,
 		"whois-aws-vm-1.txt", false)
 
-	runRegexCheckTest(t, CheckJoylent,
+	runRegexCheckTest(t, CheckJoyent,
 		"whois-do-vm-1.txt", false)
 }
 
@@ -160,7 +160,7 @@ func TestCheckProvider(t *testing.T) {
 		AWS:         CheckAWS,
 		Azure:       CheckAzure,
 		GoogleCloud: CheckGoogleCloud,
-		Joylent:     CheckJoylent,
+		Joyent:      CheckJoyent,
 		Rackspace:   CheckRackspace,
 		SoftLayer:   CheckSoftLayer,
 
