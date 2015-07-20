@@ -1,5 +1,28 @@
 #!/usr/bin/env bash
 
+
+kodingVm=false
+awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document 2> /dev/null`
+# If the api responds not zero, we're assuming that it is indeed a Koding
+# machine. It is possible that a normal AWS user blocks their route
+# themselves.. but for now, this is reasonably safe to assume.
+if [ $? != 0 ]; then
+    kodingVm=true
+fi
+
+# If the api responded, lets check for the accountId
+if [[ $awsApiResponse == *"614068383889"* ]]; then
+    kodingVm=true
+fi
+
+if [ $kodingVm == true ]; then
+    cat << EOF
+Error: Koding's Bring Your Own VM cannot be used on a Koding VM.
+EOF
+    exit 1
+fi
+
+
 if [[ ! "$(uname)" = "Linux" ]]; then
     echo "Currenty only Ubuntu Linux is supported"
     exit 1
