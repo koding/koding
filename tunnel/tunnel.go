@@ -3,7 +3,9 @@ package tunnel
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"strings"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
@@ -45,6 +47,8 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 		tunnelkite.SetLogLevel(kite.DEBUG)
 	}
 
+	var tunnelServerPort = "80"
+
 	// Nothing is passed via command line flag, fallback to default values
 	if conf.ServerAddr == "" {
 		// first try to get a resolved addr from local config storage
@@ -69,6 +73,15 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 			k.Log.Debug("Resolved address is retrieved from the config '%s'", resolvedAddr)
 			conf.ServerAddr = resolvedAddr
 		}
+	} else {
+		// check if the user passed with a port and extract it
+		host, port, err := net.SplitHostPort(conf.ServerAddr)
+		if err != nil {
+			return err // this is users fault, return an error
+		}
+
+		tunnelServerPort = port
+		conf.ServerAddr = host
 	}
 
 	// Check if the addr is valid IP, the user might pass to us a valid IP.  If
@@ -91,7 +104,11 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 	}
 
 	// append port if absent
-	conf.ServerAddr = addPort(conf.ServerAddr, "80")
+	conf.ServerAddr = addPort(conf.ServerAddr, tunnelServerPort)
+
+	if err := isAlive(conf.ServerAddr); err != nil {
+		k.Log.Warning("server is not healthy: %s", err)
+	}
 
 	k.Log.Debug("Connecting to tunnel server IP: '%s'", conf.ServerAddr)
 	tunnelserver := tunnelkite.NewClient("http://" + conf.ServerAddr + "/kite")
@@ -121,6 +138,24 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 	}
 
 	go client.Start()
+	return nil
+}
+
+// isAlive checks whether the given tunnel server addres is an healthy one.
+func isAlive(addr string) error {
+	resp, err := http.Get("http://" + addr + "/healthcheck")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	out, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("string(out) = %+v\n", string(out))
+	fmt.Printf("resp.Status = %+v\n", resp.Status)
 	return nil
 }
 
