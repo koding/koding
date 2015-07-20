@@ -99,6 +99,36 @@ deepObjectExtend = (target, source) ->
   return target
 
 
+class OptoutHandlerHelper
+
+  @generateOptoutRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      name : generateRandomString()
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateOptoutRequestParams = (opts = {}) ->
+
+    name = opts?.body?.name or generateRandomString()
+
+    url  = generateUrl
+      route : "#{encodeURIComponent name}/Optout"
+
+    body = OptoutHandlerHelper.generateOptoutRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultRequestParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
 class RecoverHandlerHelper
 
   @defaultExpiryPeriod = 5 * 60 * 1000 # 5 minutes
@@ -521,6 +551,7 @@ module.exports = {
   TeamHandlerHelper
   LoginHandlerHelper
   ResetHandlerHelper
+  OptoutHandlerHelper
   RecoverHandlerHelper
   RegisterHandlerHelper
   ValidationHandlerHelper
