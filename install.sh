@@ -17,7 +17,7 @@ fi
 
 if [ $kodingVm == true ]; then
     cat << EOF
-Error: Koding's Bring Your Own VM cannot be used on a Koding VM.
+Error: This feature is for non-Koding machines
 EOF
     exit 1
 fi
