@@ -596,7 +596,7 @@ module.exports = CollaborationController =
         @layoutManager.resurrectSnapshot @getHostSnapshotForParticipant(), yes
       else
         @fetchSnapshot (snapshot) =>
-          @layoutManager.resurrectSnapshot snapshot  if snapshot
+          @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
 
 
   getHostSnapshotKey: ->
