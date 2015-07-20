@@ -8,11 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/app"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
-	klienttunnel "github.com/koding/klient/tunnel"
 )
 
 var (
@@ -98,22 +96,22 @@ func realMain() int {
 	defer a.Close()
 
 	// Change tunnel server based on environment
-	tunnelServerAddr := *flagTunnelServerAddr
-	if tunnelServerAddr == "" {
-		switch protocol.Environment {
-		case "development":
-			tunnelServerAddr = "devtunnelproxy.koding.com"
-		case "production":
-			tunnelServerAddr = "tunnelproxy.koding.com"
-		}
-	}
-
-	// Open Pandora's box
-	go klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
-		ServerAddr: tunnelServerAddr,
-		LocalAddr:  *flagTunnelLocalAddr,
-		Debug:      *flagDebug,
-	})
+	// tunnelServerAddr := *flagTunnelServerAddr
+	// if tunnelServerAddr == "" {
+	// 	switch protocol.Environment {
+	// 	case "development":
+	// 		tunnelServerAddr = "devtunnelproxy.koding.com"
+	// 	case "production":
+	// 		tunnelServerAddr = "tunnelproxy.koding.com"
+	// 	}
+	// }
+	//
+	// // Open Pandora's box
+	// go klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
+	// 	ServerAddr: tunnelServerAddr,
+	// 	LocalAddr:  *flagTunnelLocalAddr,
+	// 	Debug:      *flagDebug,
+	// })
 
 	// Run Forrest, Run!
 	a.Run()
