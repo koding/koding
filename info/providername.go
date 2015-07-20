@@ -12,6 +12,14 @@ import (
 	"github.com/koding/klient/info/publicip"
 )
 
+const (
+	// The whois server WhoisQuery uses by default.
+	whoisServer string = "whois.arin.net"
+
+	// Default timeout for the whoisQuery
+	whoisTimeout time.Duration = 5 * time.Second
+)
+
 // ProviderChecker funcs check the local machine to assert whether or
 // not the current VM is is of that specific Provider.
 type ProviderChecker func(whois string) (isProvider bool, err error)
@@ -54,14 +62,6 @@ func (pn ProviderName) String() string {
 		return "UnknownProvider"
 	}
 }
-
-const (
-	// The whois server WhoisQuery uses by default.
-	whoisServer string = "whois.arin.net"
-
-	// Default timeout for the whoisQuery
-	whoisTimeout time.Duration = 5 * time.Second
-)
 
 // DefaultProviderCheckers is a map of each ProviderName and the
 // corresponding checker.
