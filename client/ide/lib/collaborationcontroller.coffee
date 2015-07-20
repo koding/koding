@@ -302,11 +302,11 @@ module.exports = CollaborationController =
     return  if @amIHost
 
     modal = new KDModalView
-      title         : "You won't lose your changes, if you have any."
+      title         : "Host's layout is updated since you last watched his changes."
       cssClass      : "modal-with-text"
       content       : """
-        Host's layout is updated since you last watched his changes, if you
-        click yes below we'll change your tabs layout to match host's layout.
+        if you click yes below we'll change your tabs layout to match host's layout.
+        You won't lose your changes, if you have any.<br/><br/>
         Would you like to proceed?
       """
       overlay       : yes
