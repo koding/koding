@@ -12,7 +12,19 @@ list = (callback) ->
 
     return callback null, response.data
 
-fetch = (options, callback) ->
+fetch = (name, callback) ->
+
+  doXhrRequest
+    type     : 'GET'
+    endPoint : "/api/integration/#{name}"
+  , (err, response) ->
+
+    return callback err  if err
+
+    return callback null, response.data
+
+
+fetchChannelIntegration = (options, callback) ->
   { id } = options
 
   doXhrRequest
@@ -48,7 +60,7 @@ update = (options, callback) ->
   , callback
 
 
-fetchChannelIntegrations = (callback) ->
+listChannelIntegrations = (callback) ->
 
   doXhrRequest
     endPoint : "/api/integration/channelintegration"
@@ -71,7 +83,7 @@ regenerateToken = (options, callback) ->
     return callback null, response.data
 
 
-fetchGithubRepos = (callback) ->
+fetchAllGithubRepos = (callback) ->
 
   page = 1
   result = []
@@ -103,7 +115,8 @@ module.exports = {
   fetch
   create
   update
-  fetchChannelIntegrations
+  fetchChannelIntegration
+  listChannelIntegrations
   regenerateToken
-  fetchGithubRepos
+  fetchAllGithubRepos
 }

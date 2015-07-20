@@ -36,6 +36,15 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
+			Handler:  h.Get,
+			Name:     "webhook-get",
+			Type:     handler.GetRequest,
+			Endpoint: "/{name}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
 			Handler:  h.ListChannelIntegrations,
 			Name:     "webhook-list-channel-integrations",
 			Type:     handler.GetRequest,

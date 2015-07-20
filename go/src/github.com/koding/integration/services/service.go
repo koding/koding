@@ -5,6 +5,8 @@ package services
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/koding/integration/helpers"
 )
 
 type Service interface {
@@ -12,7 +14,7 @@ type Service interface {
 	ServeHTTP(w http.ResponseWriter, req *http.Request)
 	// Configure is used for sending webhook configuration requests
 	// to services
-	Configure(req *http.Request) (interface{}, error)
+	Configure(req *http.Request) (helpers.ConfigureResponse, error)
 }
 
 func prepareEndpoint(rootPath, service, token string) string {

@@ -1,13 +1,18 @@
 package services
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"testing"
 
+	"github.com/koding/integration/helpers"
+	"github.com/koding/logging"
 	"github.com/rjeczalik/gh/webhook"
 )
 
@@ -135,22 +140,197 @@ func equals(tb testing.TB, exp, act interface{}) {
 	}
 }
 
-// TODO...
+func CreateTestGithubService(t *testing.T) Github {
+	gc := GithubConfig{}
+	gc.PublicUrl = "http://koding.com/api/webhook"
+	gc.IntegrationUrl = "http://koding.com/api/integration"
+	gc.Log = logging.NewLogger("testing")
+	gc.Secret = "koding"
 
-// func TestConfigure(t *testing.T) {
-// 	cr := &ConfigureRequest{
-// 		AccessToken: "640e289a912484cdaf79ab55e2534181e0d40ba1",
-// 		Username:    "mehmetalisavas",
-// 		Repo:        "webhook",
-// 		Events:      []string{"push", "pull_request"},
-// 		Secret:      "koding",
-// 	}
+	service, err := NewGithub(gc)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	by, err := configure(cr)
-// 	if err != nil {
-// 		t.Fatal(err.Error())
-// 	}
+	return service
+}
 
-// 	fmt.Println(by)
+///////////////// Github Configure tests /////////////////////
 
-// }
+func createWebhookSettings(serviceId, repo *string) map[string]*string {
+	return map[string]*string{
+		"serviceId":  serviceId,
+		"repository": repo,
+	}
+}
+
+func createWebhookRequestData(settings, oldSettings map[string]*string, events []string) map[string]interface{} {
+	return map[string]interface{}{
+		"userToken":    "640e289a912484cdaf79ab55e2534181e0d40ba1",
+		"serviceToken": "e4e18128-d0db-487c-6e33-825e6fe6e824",
+		"settings":     settings,
+		"oldSettings":  oldSettings,
+		"events":       events,
+	}
+}
+
+func doConfigureGithubRequest(t *testing.T, service Github, data map[string]interface{}) (helpers.ConfigureResponse, error) {
+	body, err := json.Marshal(data)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	reader := bytes.NewReader(body)
+	req, _ := http.NewRequest("POST", "/configure/github", reader)
+
+	return service.Configure(req)
+}
+
+func TestConfigureInvalidRepository(t *testing.T) {
+	service := CreateTestGithubService(t)
+	reqData := createWebhookRequestData(nil, nil, nil)
+
+	_, err := doConfigureGithubRequest(t, service, reqData)
+	if err != ErrInvalidRepository {
+		t.Errorf("Expected %s, got %v", ErrInvalidRepository, err)
+	}
+}
+
+func TestConfigureCreateWebhook(t *testing.T) {
+	service := CreateTestGithubService(t)
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+
+	mux.HandleFunc("/repos/canthefason/testing/hooks",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "POST" {
+				w.WriteHeader(404)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+
+			fmt.Fprintln(w, createWebhookResponse)
+		},
+	)
+	defer server.Close()
+	service.ServerUrl = server.URL
+
+	repo := "canthefason/testing"
+	reqData := createWebhookRequestData(createWebhookSettings(nil, &repo), nil, nil)
+
+	res, err := doConfigureGithubRequest(t, service, reqData)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+	if res["serviceId"].(int64) != 5284884 {
+		t.Errorf("Expected 5284884, got %d", res["serviceId"])
+	}
+	events := res["events"].([]interface{})
+	if res["events"] == nil || len(events) != 1 {
+		t.Errorf("events not found")
+	}
+
+}
+
+func TestConfigureUpdateWebhook(t *testing.T) {
+	service := CreateTestGithubService(t)
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+
+	mux.HandleFunc("/repos/canthefason/testing/hooks/5284884",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "PATCH" {
+				w.WriteHeader(404)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+
+			fmt.Fprintln(w, updateWebhookResponse)
+		},
+	)
+	defer server.Close()
+	service.ServerUrl = server.URL
+
+	repo := "canthefason/testing"
+	serviceId := "5284884"
+	reqData := createWebhookRequestData(
+		createWebhookSettings(&serviceId, &repo),
+		createWebhookSettings(&serviceId, &repo),
+		[]string{"push", "commit_comment"},
+	)
+
+	res, err := doConfigureGithubRequest(t, service, reqData)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	if res["serviceId"].(int64) != 5284884 {
+		t.Errorf("Expected 5284884, got %d", res["serviceId"])
+	}
+	events := res["events"].([]interface{})
+	if res["events"] == nil || len(events) != 2 {
+		t.Errorf("events not found")
+	}
+}
+
+func TestConfigureChangeWebhookRepo(t *testing.T) {
+	service := CreateTestGithubService(t)
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+
+	repos := map[string]struct{}{
+		"canthefason/account-service": struct{}{},
+	}
+
+	mux.HandleFunc("/repos/canthefason/account-service/hooks/5284884",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "DELETE" {
+				w.WriteHeader(404)
+				return
+			}
+			delete(repos, "canthefason/account-service")
+			w.Header().Set("Content-Type", "application/json")
+		},
+	)
+
+	mux.HandleFunc("/repos/canthefason/testing/hooks",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "POST" {
+				w.WriteHeader(404)
+				return
+			}
+			repos["canthefason/testing"] = struct{}{}
+			w.Header().Set("Content-Type", "application/json")
+
+			fmt.Fprintln(w, createWebhookResponse)
+		},
+	)
+	defer server.Close()
+	service.ServerUrl = server.URL
+
+	oldRepo := "canthefason/account-service"
+	newRepo := "canthefason/testing"
+	serviceId := "5284884"
+	reqData := createWebhookRequestData(
+		createWebhookSettings(nil, &newRepo),
+		createWebhookSettings(&serviceId, &oldRepo),
+		[]string{"push"},
+	)
+
+	res, err := doConfigureGithubRequest(t, service, reqData)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+	if res["serviceId"].(int64) != 5284884 {
+		t.Errorf("Expected 5284884, got %d", res["serviceId"])
+	}
+	events := res["events"].([]interface{})
+	if res["events"] == nil || len(events) != 1 {
+		t.Errorf("events not found")
+	}
+
+	if _, ok := repos["canthefason/account-service"]; ok {
+		t.Errorf("old webhook is not deleted")
+	}
+
+}
