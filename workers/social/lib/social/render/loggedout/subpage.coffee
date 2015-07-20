@@ -10,7 +10,6 @@ putSplash = (name, section, model)->
       when "JBlogPost"      then "loading a blog post"
       when "JTutorial"      then "loading a tutorial"
       when "JTag"           then "loading a topic"
-      when "JNewApp"        then "loading a koding app page"
       else "loading something."
   else "launching an application"
 
@@ -25,8 +24,6 @@ generateShareUrl = (model, uri)->
     switch model.bongo_.constructorName
       when "SocialMessage"
         "/Activity/" + model.slug
-      when "JNewApp"
-        "/Apps/" + model.slug
       else ""
 
   url = if uri?.address then uri.address else "https://koding.com"
