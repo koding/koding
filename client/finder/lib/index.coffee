@@ -70,7 +70,9 @@ module.exports = class FinderController extends KDController
       if event
         { items }  = event.originalEvent.dataTransfer
 
-        if items?[0].kind is 'string' and not internalDragging
+        # If the user isn't dragging a file and internalDragging is false,
+        # show the overlay.
+        if items?[0].kind isnt 'file' and not internalDragging
           return finderView.overlay?.show()
 
       unless internalDragging
@@ -82,13 +84,13 @@ module.exports = class FinderController extends KDController
       uploader.setOption 'defaultPath', path
       uploader.reset()
 
-    {treeController} = controller
+    { treeController } = controller
     treeController.on 'dragEnter', (nodeView, event) -> onDrag event
     treeController.on 'dragOver', (nodeView, event) ->  onDrag event
 
     finderView = controller.getView()
-    finderView.on 'dragenter', onDrag
-    finderView.on 'dragover', onDrag
+    finderView.on 'dragenter', onDrag # "event" is passing by default.
+    finderView.on 'dragover', onDrag  # "event" is passing by default.
     finderView.on 'drop', -> finderView.overlay?.hide()
 
     uploader
