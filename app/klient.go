@@ -319,9 +319,10 @@ func (k *Klient) RegisterMethods() {
 // Run registers klient to Kontrol and starts the kite server. It also runs any
 // necessary workers in the background.
 func (k *Klient) Run() {
-	// don't run the tunnel for Koding VM's
-	isKoding, err := info.CheckKoding()
-	if err != nil || !isKoding {
+	// don't run the tunnel for Koding VM's, no need to check for error as we
+	// are not interested in it
+	isKoding, _ := info.CheckKoding()
+	if !isKoding {
 		// Open Pandora's box
 		if err := k.tunnelclient.Start(k.kite, &tunnel.ClientConfig{
 			ServerAddr: k.config.TunnelServerAddr,
