@@ -16,7 +16,7 @@ module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
       cssClass     : 'tiny'
       defaultValue : isWatching
       callback     : (state) =>
-        @getDelegate().setWatchState state, nickname
+        @getDelegate().setWatchState state
 
     @addSubView new CustomLinkView
       title        : ''

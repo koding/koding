@@ -142,16 +142,15 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       type          : 'customView'
       view          : new IDEChatHeadWatchItemView
         isWatching  : isWatching
-        nickname    : @nickname
         delegate    : this
 
 
-  setWatchState: (shouldWatch, nickname) ->
+  setWatchState: (shouldWatch) ->
 
     @toggleClass 'watching'
     methodName = if shouldWatch then 'watchParticipant' else 'unwatchParticipant'
 
-    kd.singletons.appManager.tell 'IDE', methodName, nickname
+    kd.singletons.appManager.tell 'IDE', methodName, @nickname
 
 
   destroy: ->
