@@ -3,6 +3,7 @@ KDContextMenu = kd.ContextMenu
 FSHelper = require 'app/util/fs/fshelper'
 AvatarView = require 'app/commonviews/avatarviews/avatarview'
 IDEChatHeadWatchItemView = require './idechatheadwatchitemview'
+IDEChatHeadReadOnlyItemView = require './idechatheadreadonlyitemview'
 module.exports = class IDEStatusBarAvatarView extends AvatarView
 
   INTENT_DELAY = 177
@@ -143,6 +144,18 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       view          : new IDEChatHeadWatchItemView
         isWatching  : isWatching
         delegate    : this
+
+
+  createReadOnlyToggle: (menuItems, permission) ->
+
+    return  unless menuItems
+    return  if @hasClass 'offline'
+
+    menuItems.ReadOnly =
+      type             : 'customView'
+      view             : new IDEChatHeadReadOnlyItemView
+        permission     : permission
+        delegate       : this
 
 
   setWatchState: (state) ->
