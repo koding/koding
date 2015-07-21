@@ -6,7 +6,7 @@ module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.partial = 'Watch'
+    options.partial ?= 'Watch'
 
     super options, data
 
