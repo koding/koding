@@ -2015,3 +2015,76 @@ paymentGrayLighter  = #f8f8f8
     top                     -2px
     margin-right            4px
     cursor                  pointer
+
+
+
+.add-managed-vm
+
+  .bg
+    margin-right            50px
+    r-sprite                'activity', 'add-managed-vm'
+    fl()
+
+  section
+    fl()
+    width                   360px
+
+    p
+      color                 #747474
+      font-size             14px
+      line-height           17px
+      margin-bottom         10px
+
+
+    span
+      font-size             12px
+      line-height           15px
+      color                 #747474
+      display               inline-block
+      abs()
+      bottom                13px
+
+    strong
+      font-weight           600
+      display               inline-block
+      margin-top            5px
+
+  .code
+    fl()
+    margin-top              28px
+    bg                      color, #F3F3F3
+    border                  1px solid #DEDEDE
+    rounded                 2px
+    size                    350px 43px
+    borderBox()
+
+    .kdinput
+      border                none
+      height                40px
+      font-size             13px
+      width                 289px
+
+      &:hover
+        border              none
+
+      &:focus
+        border              none
+        vendor              shadow, none
+
+    .select-all
+      bg                    color, #00B057
+      font-size             12px
+      color                 #FFF
+      size                  60px, 43px
+      text-align            center
+      line-height           43px
+      right                 10px
+      top                   82px
+      z-index               1
+      rounded               0 2px 2px 0
+      borderBox()
+      pointer()
+      abs()
+
+    .kdloader
+      margin                13px 0 0 165px

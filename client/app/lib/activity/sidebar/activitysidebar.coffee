@@ -752,3 +752,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     for list in @machineLists
       for box in list.machineBoxes when expandedBoxUIds[box.data.machine.uid]
         box.expandList()
+
+
+  showManagedMachineAddedModal: (info, machine) ->
+
+    box = @getMachineBoxByMachineUId machine.uid
+    box.machineItem.showMachineConnectedPopup info
