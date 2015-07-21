@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/koding/klient/app"
-	"github.com/koding/klient/fix"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/registration"
 )
@@ -97,11 +96,6 @@ func realMain() int {
 
 	a := app.NewKlient(conf)
 	defer a.Close()
-
-	// run inital fix commands, only for Ubuntu
-	if err := fix.Run(u.Username); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-	}
 
 	// Run Forrest, Run!
 	a.Run()

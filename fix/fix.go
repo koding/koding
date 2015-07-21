@@ -1,3 +1,5 @@
+// Package fix is used to fix certain aspects of a User VM. To use it import it
+// and call the Run() function
 package fix
 
 import (
