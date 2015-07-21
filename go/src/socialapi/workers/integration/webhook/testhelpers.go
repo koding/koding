@@ -40,7 +40,7 @@ func createTestGroupChannel(t *testing.T, a *models.Account) *models.Channel {
 
 func CreateTestIntegration(t *testing.T) *Integration {
 	i := NewIntegration()
-	i.Title = models.RandomGroupName()
+	i.Title = models.RandomName()
 	i.Name = i.Title
 
 	err := i.Create()
@@ -83,7 +83,7 @@ func CreateUnpublishedIntegration(t *testing.T) *Integration {
 	i := NewIntegration()
 	i.Title = models.RandomName()
 	i.Name = i.Title
-	i.IsPublished = true
+	i.IsPublished = false
 
 	err := i.Create()
 	if err != nil {

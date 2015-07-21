@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"encoding/json"
 	"errors"
 	"socialapi/models"
 	"time"
@@ -158,4 +159,41 @@ func (i *ChannelIntegration) ByGroupName(groupName string) ([]ChannelIntegration
 	}
 
 	return ints, nil
+}
+
+func (i *ChannelIntegration) AddSettings(name string, value interface{}) error {
+	if i.Settings == nil {
+		i.Settings = gorm.Hstore{}
+	}
+
+	switch value.(type) {
+	case string:
+		result := value.(string)
+		i.Settings[name] = &result
+		return nil
+	}
+
+	settings, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	settingsStr := string(settings)
+
+	i.Settings[name] = &settingsStr
+
+	return nil
+}
+
+func (i *ChannelIntegration) GetSettings(name string) (*string, error) {
+	if i.Settings == nil {
+		return nil, ErrSettingNotFound
+	}
+
+	v, ok := i.Settings[name]
+	if !ok {
+		return nil, ErrSettingNotFound
+	}
+
+	return v, nil
 }

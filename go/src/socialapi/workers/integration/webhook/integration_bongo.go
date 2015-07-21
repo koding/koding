@@ -43,3 +43,7 @@ func (i *Integration) Some(data interface{}, q *bongo.Query) error {
 func (i *Integration) Delete() error {
 	return bongo.B.Delete(i)
 }
+
+func (i *Integration) Update() error {
+	return bongo.B.Update(i)
+}
