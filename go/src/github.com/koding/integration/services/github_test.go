@@ -28,7 +28,7 @@ func TestGithubPush(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	exp := `[baxterthehacker](https://github.com/baxterthehacker) [pushed](https://github.com/baxterthehacker/public-repo/compare/9049f1265b7d...0d1a26e67d8f) to baxterthehacker/[baxterthehacker/public-repo](https://github.com/baxterthehacker/public-repo)
+	exp := `[baxterthehacker](https://github.com/baxterthehacker) [pushed](https://github.com/baxterthehacker/public-repo/compare/9049f1265b7d...0d1a26e67d8f) to [baxterthehacker/public-repo](https://github.com/baxterthehacker/public-repo)
   * [0d1a26](https://github.com/baxterthehacker/public-repo/commit/0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c) Update README.md - baxterthehacker`
 	equals(t, exp, d)
 }
@@ -45,7 +45,7 @@ func TestGithubIssueComment(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	exp := `[baxterthehacker](https://github.com/baxterthehacker) [commented](https://github.com/baxterthehacker/public-repo/issues/2#issuecomment-99262140) on pull request 'Spelling error in the README file' at [baxterthehacker/public-repo](https://github.com/baxterthehacker/public-repo)
+	exp := `[baxterthehacker](https://github.com/baxterthehacker) [commented](https://github.com/baxterthehacker/public-repo/issues/2#issuecomment-99262140) on issue 'Spelling error in the README file' at [baxterthehacker/public-repo](https://github.com/baxterthehacker/public-repo)
 >You are totally right! I'll get this fixed right away.`
 	equals(t, exp, d)
 }
@@ -222,7 +222,7 @@ func TestConfigureCreateWebhook(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
-	if res["serviceId"].(int64) != 5284884 {
+	if res["serviceId"].(string) != "5284884" {
 		t.Errorf("Expected 5284884, got %d", res["serviceId"])
 	}
 	events := res["events"].([]interface{})
@@ -264,7 +264,7 @@ func TestConfigureUpdateWebhook(t *testing.T) {
 		t.Errorf("Expected nil, got %s", err)
 	}
 
-	if res["serviceId"].(int64) != 5284884 {
+	if res["serviceId"].(string) != "5284884" {
 		t.Errorf("Expected 5284884, got %d", res["serviceId"])
 	}
 	events := res["events"].([]interface{})
@@ -321,7 +321,7 @@ func TestConfigureChangeWebhookRepo(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
-	if res["serviceId"].(int64) != 5284884 {
+	if res["serviceId"].(string) != "5284884" {
 		t.Errorf("Expected 5284884, got %d", res["serviceId"])
 	}
 	events := res["events"].([]interface{})

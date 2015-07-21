@@ -262,10 +262,9 @@ func (g GithubListener) push(e *webhook.PushEvent) (string, error) {
 	for _, commit := range e.Commits[:commitsLen] {
 		commitsStr += fmt.Sprintf("\n  * [%s](%s) %s - %s", commit.ID[:6], commit.URL, commit.Message, commit.Author.Name)
 	}
-	return fmt.Sprintf("%s %s to %s/%s%s",
+	return fmt.Sprintf("%s %s to %s%s",
 		user,
 		compareStr,
-		e.Repository.Owner.Name,
 		repo,
 		commitsStr,
 	), nil
@@ -288,7 +287,7 @@ func (g GithubListener) issueComment(e *webhook.IssueCommentEvent) (string, erro
 	user := fmt.Sprintf("[%s](%s)", e.Comment.User.Login, e.Comment.User.HTMLURL)
 	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
 
-	return fmt.Sprintf("%s %s on pull request '%s' at %s\n>%s",
+	return fmt.Sprintf("%s %s on issue '%s' at %s\n>%s",
 		user,
 		Link,
 		e.Issue.Title,
