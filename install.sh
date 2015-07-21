@@ -102,15 +102,15 @@ sudo service klient restart > /dev/null 2> /dev/null
 # Print user friendly message.
 cat << EOF
 Success!
-This system has been successfully connected to Koding and
+This machine has been successfully connected to Koding and
 should show up automatically on the sidebar of your Koding account
-where your other VMs are listed.
+where your other machines are listed.
 
 Please head over to koding.com now and remember to not close
-the "Add your own VM" dialogue box until you see this system appear
+the "Add Your Own Machine" dialogue box until you see this machine appear
 in the sidebar.
 
-For some reason if this system does not show up on your koding account
+For some reason if this machine does not show up on your koding account
 in the next 2-3 minutes, please re-run the install script or contact us
 at support@koding.com. Note, we have no access to your DigitalOcean
 droplet so please debug on your own as much as you can.
