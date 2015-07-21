@@ -143,7 +143,7 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 
 // isAlive checks whether the given tunnel server addres is an healthy one.
 func isAlive(addr string) error {
-	resp, err := http.Get("http://" + addr + "/healthcheck")
+	resp, err := http.Get("http://" + addr + "/healthCheck")
 	if err != nil {
 		return err
 	}
