@@ -153,6 +153,14 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     kd.singletons.appManager.tell 'IDE', methodName, @nickname
 
 
+  setReadOnlyState: (state) ->
+
+    permission = if state then 'read' else 'edit'
+    methodName = 'setParticipantPermission'
+
+    kd.singletons.appManager.tell 'IDE', methodName, @nickname, permission
+
+
   destroy: ->
 
     MENU?.destroy()
