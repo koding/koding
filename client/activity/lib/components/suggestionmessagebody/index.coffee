@@ -30,7 +30,7 @@ module.exports = class SuggestionMessageBody extends React.Component
     startTag = '<span class="SuggestionMessageBody-matchedWord">'
     endTag   = '</span>'
 
-    content = formatContent @props.source
+    content = formatContent @props.source, { highlight : no }
 
     content = helper.cleanUselessMarkers content
     content = helper.replaceMarkers content, startTag, endTag

@@ -6,7 +6,7 @@ formatBlockquotes = require './formatBlockquotes'
 applyMarkdown = require './applyMarkdown'
 expandUsernames = require './expandUsernames'
 
-module.exports = (body = '') ->
+module.exports = (body = '', markdownOptions = {}) ->
 
   fns = [
     transformTagTokens
@@ -14,10 +14,10 @@ module.exports = (body = '') ->
     transformEmails
     formatQuotes
     formatBlockquotes
-    applyMarkdown
   ]
 
   body = fn body for fn in fns
+  body = applyMarkdown body, markdownOptions
   body = expandUsernames body, 'code, a'
 
   return body
