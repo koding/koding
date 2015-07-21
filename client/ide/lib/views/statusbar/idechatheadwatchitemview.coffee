@@ -10,13 +10,12 @@ module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
 
     super options, data
 
-    { isWatching, nickname } = @getOptions()
+    { delegate, isWatching } = @getOptions()
 
     @addSubView new KodingSwitch
       cssClass     : 'tiny'
       defaultValue : isWatching
-      callback     : (state) =>
-        @getDelegate().setWatchState state
+      callback     : delegate.bound 'setWatchState'
 
     @addSubView new CustomLinkView
       title        : ''
