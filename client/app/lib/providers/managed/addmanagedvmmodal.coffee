@@ -7,8 +7,6 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
 
   constructor: (options = {}, data)->
 
-    return  unless checkFlag 'super-admin'
-
     hasContainer      = options.container?
 
     options           = kd.utils.extend options,
