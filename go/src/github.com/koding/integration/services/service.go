@@ -18,5 +18,5 @@ type Service interface {
 }
 
 func prepareEndpoint(rootPath, service, token string) string {
-	return fmt.Sprintf("%s/push/%s/%s", rootPath, service, token)
+	return fmt.Sprintf("%s/%s/%s", rootPath, service, token)
 }
