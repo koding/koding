@@ -270,7 +270,7 @@ module.exports = class NavigationMachineItem extends JView
     popup = popups[slug]
     kd.utils.defer -> popup?.destroy()
 
-    popups[slug] = new SidebarMachineConnectedPopup options
+    popups[slug] = new SidebarMachineConnectedPopup options, @machine
 
 
   subscribeMachineShareEvent: ->
