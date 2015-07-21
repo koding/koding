@@ -98,7 +98,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       isWatching  = watchMap.indexOf(@nickname) > -1
       permission  = permissions.get @nickname
 
-      menuWidth   = 172
+      menuWidth   = 150
 
       if settings.unwatch
         @createWatchToggle menuItems, isWatching
@@ -116,6 +116,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       MENU = new KDContextMenu
         nickname    : @nickname
         cssClass    : 'dark statusbar-files'
+        menuWidth   : menuWidth
         delegate    : this
         x           : @getX()
         y           : @getY()

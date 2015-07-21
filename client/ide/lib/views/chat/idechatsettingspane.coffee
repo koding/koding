@@ -309,7 +309,9 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       </header>
       {{> @everyone}}
       <div class="warning">
-        <span>Have sessions with people <strong>you trust</strong>, they can view and edit <strong>all your files</strong>.</span>
+        <div class="key-icon"></div>
+        <span>Have sessions with people you trust, and remember, \
+        <strong>they can view and edit all your files!</strong></span>
       </div>
       {{> @settings}}
       <div class='buttons'>
