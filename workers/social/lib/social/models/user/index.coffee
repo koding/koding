@@ -654,6 +654,31 @@ module.exports = class JUser extends jraphical.Module
       user.verifyByPin options, callback
 
 
+  validateConvertInputAndReturnError = (userFormData, client) ->
+
+    { username
+      password
+      passwordConfirm }         = userFormData
+    { connection }              = client
+    { delegate : account }      = connection
+
+    error = null
+
+    # only unregistered accounts can be "converted"
+    if account.type is 'registered'
+      error = new KodingError 'This account is already registered.'
+
+    if /^guest-/.test username
+      error = new KodingError 'Reserved username!'
+
+    if username is 'guestuser'
+      error = new KodingError 'Reserved username: \'guestuser\'!'
+
+    if password isnt passwordConfirm
+      error = new KodingError 'Passwords must match!'
+
+    return error
+
 
   logAndReturnLoginError = (username, error, callback)->
     JLog.log { type: "login", username: username, success: no }, ->
@@ -1100,18 +1125,8 @@ module.exports = class JUser extends jraphical.Module
     firstName = username  if not firstName or firstName is ''
     lastName  = ''        if not lastName
 
-    # only unregistered accounts can be "converted"
-    if account.type is 'registered'
-      return callback new KodingError 'This account is already registered.'
-
-    if /^guest-/.test username
-      return callback new KodingError 'Reserved username!'
-
-    if username is 'guestuser'
-      return callback new KodingError 'Reserved username: \'guestuser\'!'
-
-    if password isnt passwordConfirm
-      return callback new KodingError 'Passwords must match!'
+    if error = validateConvertInputAndReturnError userFormData, client
+      return callback error
 
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
@@ -1269,6 +1284,7 @@ module.exports = class JUser extends jraphical.Module
           # not created for a user we don't want to break registration process
           # at all ~ GG
           queue.next()
+
       ->
         return queue.next()  unless referrer
 
