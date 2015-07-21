@@ -391,7 +391,7 @@ module.exports = CollaborationController =
     settings    = @getSettings()
     watchMap    = @myWatchMap?.values()
 
-    callback {@amIHost, settings, watchMap}
+    callback {@amIHost, settings, watchMap, @permissions}
 
 
   startHeartbeat: ->
