@@ -39,7 +39,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     if isKoding()
       addVMMenu['Create Koding VM'] = callback: @generateMenuCallback 'koding'
 
-    addVMMenu['Add Your own VM']  = callback: @generateMenuCallback 'managed'
+    addVMMenu['Add Your Own Machine']  = callback: @generateMenuCallback 'managed'
 
 
     @addVMButton  = new kd.ButtonView
