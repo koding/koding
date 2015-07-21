@@ -22,7 +22,3 @@ module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
       cssClass     : 'info'
       href         : 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
       target       : '_blank'
-
-
-
-
