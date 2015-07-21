@@ -1,29 +1,29 @@
-jraphical   = require 'jraphical'
-Regions     = require 'koding-regions'
-{argv}      = require 'optimist'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
-Flaggable   = require '../../traits/flaggable'
-KodingError = require '../../error'
-{ extend, uniq }  = require 'underscore'
+{ argv }         = require 'optimist'
+KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
+Regions          = require 'koding-regions'
+request          = require "request"
+jraphical        = require 'jraphical'
+Flaggable        = require '../../traits/flaggable'
+KodingError      = require '../../error'
+{ extend, uniq } = require 'underscore'
 
-request     = require "request"
 
 module.exports = class JUser extends jraphical.Module
 
-  {secure, signature, daisy, dash} = require 'bongo'
-  { v4: createId }     = require 'node-uuid'
-  {Relationship}       = jraphical
+  { v4: createId }                   = require 'node-uuid'
+  { Relationship }                   = jraphical
+  { secure, signature, daisy, dash } = require 'bongo'
 
-  JAccount             = require '../account'
-  JSession             = require '../session'
-  JInvitation          = require '../invitation'
-  JName                = require '../name'
-  JGroup               = require '../group'
-  JLog                 = require '../log'
-  JPaymentPlan         = require '../payment/plan'
-  JPaymentSubscription = require '../payment/subscription'
-  ComputeProvider      = require '../computeproviders/computeprovider'
-  Tracker              = require '../tracker'
+  JLog                               = require '../log'
+  JName                              = require '../name'
+  JGroup                             = require '../group'
+  Tracker                            = require '../tracker'
+  JSession                           = require '../session'
+  JAccount                           = require '../account'
+  JInvitation                        = require '../invitation'
+  JPaymentPlan                       = require '../payment/plan'
+  ComputeProvider                    = require '../computeproviders/computeprovider'
+  JPaymentSubscription               = require '../payment/subscription'
 
   @bannedUserList = ['abrt','amykhailov','apache','about','visa','shared-',
                      'cthorn','daemon','dbus','dyasar','ec2-user','http',
@@ -1076,47 +1076,59 @@ module.exports = class JUser extends jraphical.Module
 
   @convert = secure (client, userFormData, callback) ->
 
-    { connection, sessionToken : clientId, clientIP } = client
-    { delegate : account } = connection
-    { nickname : oldUsername } = account.profile
-    { username, email, firstName, lastName, agree,
-      invitationToken, referrer, password, passwordConfirm,
-      emailFrequency, recaptcha, slug } = userFormData
+    { slug
+      email
+      agree
+      username
+      lastName
+      referrer
+      password
+      firstName
+      recaptcha
+      emailFrequency
+      invitationToken
+      passwordConfirm }         = userFormData
 
-    if not firstName or firstName is "" then firstName = username
-    if not lastName then lastName = ""
+    { clientIP
+      connection }              = client
+
+    { delegate : account }      = connection
+    { nickname : oldUsername }  = account.profile
+    { sessionToken : clientId } = client
+
+    # if firstname is not received use username as firstname
+    firstName = username  if not firstName or firstName is ''
+    lastName  = ''        if not lastName
 
     # only unregistered accounts can be "converted"
-    if account.type is "registered"
-      return callback new KodingError "This account is already registered."
+    if account.type is 'registered'
+      return callback new KodingError 'This account is already registered.'
 
     if /^guest-/.test username
-      return callback new KodingError "Reserved username!"
+      return callback new KodingError 'Reserved username!'
 
-    if username is "guestuser"
-      return callback new KodingError "Reserved username: 'guestuser'!"
+    if username is 'guestuser'
+      return callback new KodingError 'Reserved username: \'guestuser\'!'
 
     if password isnt passwordConfirm
-      return callback new KodingError "Passwords must match!"
+      return callback new KodingError 'Passwords must match!'
 
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
 
+    pin              = null
+    user             = null
+    error            = null
     newToken         = null
     invitation       = null
-    user             = null
     quotaExceedErr   = null
-    error            = null
-    pin              = null
     foreignAuthType  = null
 
-    # TODO this can cause problems
-    aNewRegister   = yes
-
     queue = [
+
       =>
-        @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo)=>
-          console.log "Error while getting oauth data from session", err  if err
+        @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo) ->
+          console.log 'Error while getting oauth data from session', err  if err
 
           foreignAuthType = foreignAuthInfo?.foreignAuthType
 
@@ -1130,26 +1142,25 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        if KONFIG.recaptcha.enabled
-          @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err)->
-            return callback err  if err
-            queue.next()
+        return quene.next()  unless KONFIG.recaptcha.enabled
 
-        else
-          queue.next()
-
-      =>
-        @validateAll userFormData, (err) =>
+        @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err)->
           return callback err  if err
           queue.next()
 
       =>
-        @emailAvailable email, (err, res)=>
+        @validateAll userFormData, (err) ->
+          return callback err  if err
+          queue.next()
+
+      =>
+        @emailAvailable email, (err, res) ->
           if err
-            return callback new KodingError "Something went wrong"
+            return callback new KodingError 'Something went wrong'
 
           if res is no
-            return callback new KodingError "Email is already in use!"
+            return callback new KodingError 'Email is already in use!'
+
           else
             queue.next()
 
@@ -1157,10 +1168,10 @@ module.exports = class JUser extends jraphical.Module
         # check if user can register to regarding group
         options =
           email           : email
-          invitationToken : invitationToken
           groupName       : client.context.group
+          invitationToken : invitationToken
 
-        @verifyEnrollmentEligibility options, (err, res) =>
+        @verifyEnrollmentEligibility options, (err, res) ->
           return callback err  if err
 
           { isEligible, invitation: invitation_ } = res
@@ -1172,80 +1183,63 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        if aNewRegister
+        userInfo =
+          email          : email
+          username       : username
+          password       : password
+          lastName       : lastName
+          firstName      : firstName
+          emailFrequency : emailFrequency
 
-          userInfo = { username, firstName, lastName,
-            email, password, emailFrequency }
+        @createUser userInfo, (err, user_, account_) ->
+          return callback err  if err
 
-          @createUser userInfo, (err, _user, _account)=>
-            return callback err  if err
-
-            if _user? and _account?
-
-              [account, user] = [_account, _user]
-              queue.next()
-
-            else
-
-              return callback new KodingError "Failed to create user!"
-
-        else
-          queue.next()
-
-      =>
-        if not aNewRegister and username? and email?
-          options = { account, oldUsername, email, username }
-          @changeEmailByUsername options, (err) =>
-            return callback err  if err
+          if user_? and account_?
+            [account, user] = [account_, user_]
             queue.next()
-        else
-          queue.next()
 
-      ->
-        if not aNewRegister
-          account.fetchUser (err, user_) ->
-            return callback err  if err
-            user = user_
-            queue.next()
-        else
-          queue.next()
+          else
+            return callback new KodingError 'Failed to create user!'
 
       ->
         if ip? and country? and region?
-          locationModifier = $set    :
-            "registeredFrom.ip"      : ip
-            "registeredFrom.country" : country
-            "registeredFrom.region"  : region
-          user.update locationModifier, -> queue.next()
+          locationModifier =
+            $set                       :
+              'registeredFrom.ip'      : ip
+              'registeredFrom.region'  : region
+              'registeredFrom.country' : country
+
+          user.update locationModifier, ->
+            queue.next()
+
         else
           queue.next()
 
       =>
-        oauthUser = if aNewRegister then username else oldUsername
-
-        @persistOauthInfo oauthUser, client.sessionToken, (err)=>
+        oauthUser =  username
+        @persistOauthInfo oauthUser, client.sessionToken, (err) ->
           return callback err  if err
           queue.next()
 
       =>
-        if aNewRegister and username?
-          options = {
+        if username?
+          options =
             account        : account
             username       : username
             clientId       : clientId
-            isRegistration : yes
             groupName      : client.context.group
-          }
+            isRegistration : yes
 
-          @changeUsernameByAccount options, (err, newToken_) =>
+          @changeUsernameByAccount options, (err, newToken_) ->
             return callback err  if err
             newToken = newToken_
             queue.next()
+
         else
           queue.next()
 
       ->
-        account.update $set: type: 'registered', (err) ->
+        account.update { $set: { type: 'registered' } }, (err) ->
           return callback err  if err?
           queue.next()
 
@@ -1257,7 +1251,7 @@ module.exports = class JUser extends jraphical.Module
       =>
         groupNames = [client.context.group, 'koding']
 
-        @addToGroups account, groupNames, user.email, invitation, (err) =>
+        @addToGroups account, groupNames, user.email, invitation, (err) ->
           error = err
           queue.next()
       ->
@@ -1267,7 +1261,7 @@ module.exports = class JUser extends jraphical.Module
           connection : delegate : account
           context    : group    : 'koding'
 
-        ComputeProvider.createGroupStack _client, (err)->
+        ComputeProvider.createGroupStack _client, (err) ->
           if err?
             console.warn "Failed to create group stack for #{account.profile.nickname}:", err
 
@@ -1282,12 +1276,12 @@ module.exports = class JUser extends jraphical.Module
           console.error "User (#{username}) tried to refer themself."
           return queue.next()
 
-        JUser.count {username: referrer}, (err, count)->
+        JUser.count { username: referrer }, (err, count) ->
           if err? or count < 1
-            console.error "Provided referrer not valid:", err
+            console.error 'Provided referrer not valid:', err
             return queue.next()
 
-          account.update $set: { referrerUsername: referrer }, (err)->
+          account.update { $set: { referrerUsername: referrer } }, (err) ->
 
             if err?
             then console.error err
@@ -1301,23 +1295,27 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        JUser.emit "UserRegistered", {user, account}
+        JUser.emit 'UserRegistered', { user, account }
         queue.next()
 
       ->
         # Auto confirm accounts for development environment
         # This config should be no for production! ~ GG
         if KONFIG.autoConfirmAccounts
-          user.confirmEmail (err)->
+          user.confirmEmail (err) ->
             console.warn err  if err?
             queue.next()
+
         else
-          options = {username, email, action: "verify-account"}
+          options =
+            email    : email
+            action   : 'verify-account'
+            username : username
 
           JVerificationToken = require '../verificationtoken'
-          JVerificationToken.createNewPin options, (err, confirmation)->
+          JVerificationToken.createNewPin options, (err, confirmation) ->
             if err
-              console.warn "Failed to send verification token:", err
+              console.warn 'Failed to send verification token:', err
             else
               pin = confirmation.pin
 
@@ -1325,29 +1323,29 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         # don't block register
-        callback error, {account, newToken}
+        callback error, { account, newToken }
         queue.next()
 
       ->
-        {secret, confirmExpiresInMinutes} = KONFIG.jwt
-        {publicHostname} = KONFIG
+        { publicHostname }                  = KONFIG
+        { secret, confirmExpiresInMinutes } = KONFIG.jwt
 
-        jwt   = require 'jsonwebtoken'
+        jwt = require 'jsonwebtoken'
 
         # uses 'HS256' as default for signing
-        token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
+        jwtToken = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
 
-        Tracker.identify username, { jwtToken: token, email, pin }
+        Tracker.identify username, { jwtToken, email, pin }
         queue.next()
 
       ->
-        {username, email} = user
-        subject           = Tracker.types.START_REGISTER
+        { username, email } = user
+        subject             = Tracker.types.START_REGISTER
         Tracker.track username, { to : email, subject }
         queue.next()
 
       ->
-        SiftScience = require "../siftscience"
+        SiftScience = require '../siftscience'
         SiftScience.createAccount client, referrer, ->
 
     ]
