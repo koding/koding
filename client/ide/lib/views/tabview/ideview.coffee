@@ -85,10 +85,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         when 'terminal'
           tabHandle.enableContextMenu()
 
-          webtermCallback = @lazyBound 'handleWebtermCreated', pane, options
+          webtermCallback = @lazyBound 'handleWebtermCreated', pane
           view.once 'WebtermCreated', webtermCallback
 
-          handleCallback = @lazyBound 'handleTerminalRenamingRequested', pane, options
+          handleCallback = @bound 'handleTerminalRenamingRequested'
           tabHandle.on 'RenamingRequested', handleCallback
 
           tabHandle.makeEditable()
@@ -96,7 +96,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneRemoved', ({ pane, handle }) =>
 
-      handle.off 'RenamingRequested'
+      handle.off 'RenamingRequested', @bound 'handleTerminalRenamingRequested'
 
 
     # This is a custom event for IDEApplicationTabView
@@ -578,9 +578,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     kd.singletons.appManager.tell 'IDE', 'handleTabDropped', event, @parent, index
 
 
-  handleWebtermCreated: (paneView, options) ->
+  handleWebtermCreated: (paneView) ->
 
     terminalPane   = paneView.view
+    options        = terminalPane.getOptions()
     terminalHandle = @tabView.getHandleByPane paneView
 
     { machine, joinUser, fitToWindow } = options
@@ -612,9 +613,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       terminalHandle.setTitle session
 
 
-  handleTerminalRenamingRequested: (paneView, options, newTitle) ->
+  handleTerminalRenamingRequested: (tabHandle, newTitle) ->
 
+    paneView     = tabHandle.getOptions().pane
     terminalPane = paneView.view
+    options      = terminalPane.getOptions()
 
     { machine } = options
     { remote : { session } } = terminalPane
