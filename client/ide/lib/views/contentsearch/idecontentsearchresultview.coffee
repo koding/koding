@@ -1,12 +1,14 @@
-kd               = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDScrollView     = kd.ScrollView
-FSHelper         = require 'app/util/fs/fshelper'
-Encoder          = require 'htmlencode'
-IDEHelpers       = require '../../idehelpers'
-showError        = require 'app/util/showError'
+kd                  = require 'kd'
+KDView              = kd.View
+FSHelper            = require 'app/util/fs/fshelper'
+Encoder             = require 'htmlencode'
+IDEHelpers          = require '../../idehelpers'
+showError           = require 'app/util/showError'
+KDCustomHTMLView    = kd.CustomHTMLView
+KDCustomScrollView  = kd.CustomScrollView
 
-module.exports = class IDEContentSearchResultView extends KDScrollView
+
+module.exports = class IDEContentSearchResultView extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -15,10 +17,12 @@ module.exports = class IDEContentSearchResultView extends KDScrollView
 
     super options, data
 
+    @addSubView @scrollView = new KDCustomScrollView
+
     {result, stats, searchText, isCaseSensitive, @machine} = options
 
     for fileName, lines of result
-      @addSubView new KDCustomHTMLView
+      @scrollView.wrapper.addSubView new KDCustomHTMLView
         partial  : "#{fileName}"
         cssClass : 'filename'
 
@@ -26,11 +30,11 @@ module.exports = class IDEContentSearchResultView extends KDScrollView
 
       for line in lines
         if previousLine and line.lineNumber - previousLine.lineNumber > 1
-          @addSubView new KDCustomHTMLView
+          @scrollView.wrapper.addSubView new KDCustomHTMLView
             cssClass : 'separator'
             partial  : '...'
 
-        view = @addSubView new KDCustomHTMLView
+        view = @scrollView.wrapper.addSubView new KDCustomHTMLView
           tagName  : 'pre'
           cssClass : 'line'
 
