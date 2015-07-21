@@ -1,15 +1,16 @@
-kd                       = require 'kd'
-nick                     = require '../util/nick'
-JView                    = require '../jview'
-Machine                  = require '../providers/machine'
-globals                  = require 'globals'
-htmlencode               = require 'htmlencode'
-groupifyLink             = require '../util/groupifyLink'
-KDCustomHTMLView         = kd.CustomHTMLView
-KDProgressBarView        = kd.ProgressBarView
-MachineSettingsModal     = require '../providers/machinesettingsmodal'
-SidebarMachineSharePopup = require 'app/activity/sidebar/sidebarmachinesharepopup'
-userEnvironmentDataProvider = require 'app/userenvironmentdataprovider'
+kd                           = require 'kd'
+nick                         = require '../util/nick'
+JView                        = require '../jview'
+Machine                      = require '../providers/machine'
+globals                      = require 'globals'
+htmlencode                   = require 'htmlencode'
+groupifyLink                 = require '../util/groupifyLink'
+KDCustomHTMLView             = kd.CustomHTMLView
+KDProgressBarView            = kd.ProgressBarView
+MachineSettingsModal         = require '../providers/machinesettingsmodal'
+SidebarMachineSharePopup     = require 'app/activity/sidebar/sidebarmachinesharepopup'
+userEnvironmentDataProvider  = require 'app/userenvironmentdataprovider'
+SidebarMachineConnectedPopup = require 'app/activity/sidebar/sidebarmachineconnectedpopup'
 
 
 module.exports = class NavigationMachineItem extends JView
@@ -257,6 +258,19 @@ module.exports = class NavigationMachineItem extends JView
           options.isApproved = channel.isParticipant
           show options
 
+
+  showMachineConnectedPopup: (params) ->
+
+    slug = "#{@machine.uid}ConnectedPopup"
+
+    options    =
+      position : @getPopupPosition 13
+      provider : params.providerName
+
+    popup = popups[slug]
+    kd.utils.defer -> popup?.destroy()
+
+    popups[slug] = new SidebarMachineConnectedPopup options
 
 
   subscribeMachineShareEvent: ->
