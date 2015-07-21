@@ -3,7 +3,6 @@ package tunnel
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
@@ -47,7 +46,15 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 		tunnelkite.SetLogLevel(kite.DEBUG)
 	}
 
+	// our defaults
 	var tunnelServerPort = "80"
+	var tunnelHost = ""
+	switch protocol.Environment {
+	case "development":
+		tunnelHost = "devtunnelproxy.koding.com"
+	case "production":
+		tunnelHost = "tunnelproxy.koding.com"
+	}
 
 	// Nothing is passed via command line flag, fallback to default values
 	if conf.ServerAddr == "" {
@@ -60,17 +67,17 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 				k.Log.Warning("couldn't retrieve resolved address from config: '%s' ", err)
 			}
 
-			switch protocol.Environment {
-			case "development":
-				conf.ServerAddr = "devtunnelproxy.koding.com"
-			case "production":
-				conf.ServerAddr = "tunnelproxy.koding.com"
-			default:
-				return fmt.Errorf("Tunnel server address is empty. No env found: %s",
-					protocol.Environment)
-			}
+			conf.ServerAddr = tunnelHost
 		} else {
 			k.Log.Debug("Resolved address is retrieved from the config '%s'", resolvedAddr)
+
+			// be sure it's alive, if not we are going to use hostname, which
+			// will resolved to a correct alive server
+			if err := isAlive(resolvedAddr); err != nil {
+				conf.ServerAddr = tunnelHost
+				k.Log.Warning("server is not healthy: %s", err)
+			}
+
 			conf.ServerAddr = resolvedAddr
 		}
 	} else {
@@ -106,12 +113,9 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 	// append port if absent
 	conf.ServerAddr = addPort(conf.ServerAddr, tunnelServerPort)
 
-	if err := isAlive(conf.ServerAddr); err != nil {
-		k.Log.Warning("server is not healthy: %s", err)
-	}
-
 	k.Log.Debug("Connecting to tunnel server IP: '%s'", conf.ServerAddr)
 	tunnelserver := tunnelkite.NewClient("http://" + conf.ServerAddr + "/kite")
+
 	// Enable it later if needed
 	// tunnelserver.LocalKite.Config.Transport = config.XHRPolling
 
@@ -149,14 +153,11 @@ func isAlive(addr string) error {
 	}
 	defer resp.Body.Close()
 
-	out, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
+	if resp.StatusCode == 200 {
+		return nil
 	}
 
-	fmt.Printf("string(out) = %+v\n", string(out))
-	fmt.Printf("resp.Status = %+v\n", resp.Status)
-	return nil
+	return fmt.Errorf("Server '%s' respnds with status code '%d'", addr, resp.StatusCode)
 }
 
 // addressFromConfig reads the resolvedAddress from the config.
