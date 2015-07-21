@@ -27,6 +27,13 @@ func (c *KodingContext) run(cmd cli.Command, content io.Reader, destroy bool, ar
 		return nil, err
 	}
 
+	go func() {
+		// copy all contents from local to remote for later operating
+		if err := c.LocalStorage.Clone(c.ContentID, c.RemoteStorage); err != nil {
+			c.log.Error("Err while cloning local store to remote %s", err.Error())
+		}
+	}()
+
 	args := argsFunc(paths, destroy)
 
 	exitCode := cmd.Run(args)

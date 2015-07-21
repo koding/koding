@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/koding/logging"
 )
 
 const (
@@ -43,11 +44,13 @@ type context struct {
 
 	Providers    map[string]terraform.ResourceProviderFactory
 	Provisioners map[string]terraform.ResourceProvisionerFactory
+
+	log logging.Logger
 }
 
 // New creates a new context, this should not be used directly, use Clone
 // instead from an existing one
-func New(ls, rs storage.Interface) (*context, error) {
+func New(ls, rs storage.Interface, log logging.Logger) (*context, error) {
 
 	config := pkg.BuiltinConfig
 	if err := config.Discover(); err != nil {
@@ -59,6 +62,7 @@ func New(ls, rs storage.Interface) (*context, error) {
 		Provisioners:  config.ProvisionerFactories(),
 		LocalStorage:  ls,
 		RemoteStorage: rs,
+		log:           log,
 	}
 
 	shutdownChans = make(map[string]chan struct{})
