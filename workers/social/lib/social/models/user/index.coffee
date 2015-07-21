@@ -1,12 +1,11 @@
-{ argv }         = require 'optimist'
-KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
+jraphical        = require 'jraphical'
 Regions          = require 'koding-regions'
 request          = require "request"
-jraphical        = require 'jraphical'
+{ argv }         = require 'optimist'
+KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable        = require '../../traits/flaggable'
 KodingError      = require '../../error'
 { extend, uniq } = require 'underscore'
-
 
 module.exports = class JUser extends jraphical.Module
 
@@ -14,16 +13,16 @@ module.exports = class JUser extends jraphical.Module
   { Relationship }                   = jraphical
   { secure, signature, daisy, dash } = require 'bongo'
 
-  JLog                               = require '../log'
+  JAccount                           = require '../account'
+  JSession                           = require '../session'
+  JInvitation                        = require '../invitation'
   JName                              = require '../name'
   JGroup                             = require '../group'
-  Tracker                            = require '../tracker'
-  JSession                           = require '../session'
-  JAccount                           = require '../account'
-  JInvitation                        = require '../invitation'
+  JLog                               = require '../log'
   JPaymentPlan                       = require '../payment/plan'
-  ComputeProvider                    = require '../computeproviders/computeprovider'
   JPaymentSubscription               = require '../payment/subscription'
+  ComputeProvider                    = require '../computeproviders/computeprovider'
+  Tracker                            = require '../tracker'
 
   @bannedUserList = ['abrt','amykhailov','apache','about','visa','shared-',
                      'cthorn','daemon','dbus','dyasar','ec2-user','http',
