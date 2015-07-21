@@ -3,7 +3,7 @@ package info
 import (
 	"errors"
 
-	"github.com/koding/ec2dynamicdata"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/ec2dynamicdata"
 )
 
 // KodingAccountID is Koding's main AWS account ID
