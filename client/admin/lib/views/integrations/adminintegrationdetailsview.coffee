@@ -287,7 +287,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           cssClass      : unless data.settings?.events?.length then 'hidden'
         name            :
           label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
-          defaultValue  : data.settings?.customName or integration.title
+          defaultValue  : data.name
       buttons           :
         Save            :
           title         : 'Save Integration'

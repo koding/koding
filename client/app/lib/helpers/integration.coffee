@@ -165,13 +165,14 @@ fetchConfigureData = (options, callback) ->
       { integration, channelIntegration } = response
 
       { id, token, createdAt, updatedAt, description,
-        integrationId, channelId, isDisabled } = channelIntegration
+        integrationId, channelId, isDisabled, settings } = channelIntegration
 
       description     = description or integration.summary
       webhookUrl      = "#{globals.config.integration.url}/#{integration.name}/#{token}"
       integrationType = 'configured'
       selectedEvents  = []
-      data            = { channels, id, integration, token, createdAt,
+      name            = settings?.customName or integration.title
+      data            = { channels, id, integration, token, createdAt, name,
                           updatedAt, description, integrationId, webhookUrl, isDisabled }
 
 
