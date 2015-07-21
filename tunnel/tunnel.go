@@ -78,14 +78,13 @@ func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 		} else {
 			k.Log.Debug("Resolved address is retrieved from the config '%s'", resolvedAddr)
 
+			conf.ServerAddr = resolvedAddr
 			// be sure it's alive, if not we are going to use hostname, which
 			// will resolved to a correct alive server
 			if err := isAlive(resolvedAddr); err != nil {
 				conf.ServerAddr = tunnelHost
 				k.Log.Warning("server is not healthy: %s", err)
 			}
-
-			conf.ServerAddr = resolvedAddr
 		}
 	} else {
 		// check if the user passed with a port and extract it
