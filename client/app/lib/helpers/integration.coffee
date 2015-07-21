@@ -2,6 +2,7 @@ kd           = require 'kd'
 remote       = require('app/remote').getInstance()
 globals      = require 'globals'
 doXhrRequest = require 'app/util/doXhrRequest'
+whoami       = require 'app/util/whoami'
 
 
 list = (callback) ->
@@ -158,7 +159,7 @@ fetchConfigureData = (options, callback) ->
   fetchChannels (err, channels) ->
     return callback err  if err
 
-    fetch options, (err, response) ->
+    fetchChannelIntegration options, (err, response) ->
       return callback err  if err
 
       { integration, channelIntegration } = response
@@ -173,6 +174,7 @@ fetchConfigureData = (options, callback) ->
       data            = { channels, id, integration, token, createdAt,
                           updatedAt, description, integrationId, webhookUrl, isDisabled }
 
+
       if channelIntegration.settings
         data.selectedEvents = try JSON.parse channelIntegration.settings.events catch e then []
 
@@ -180,13 +182,26 @@ fetchConfigureData = (options, callback) ->
         events = try JSON.parse integration.settings.events catch e then null
         data.settings = { events }
 
-      if integration.name is 'github'
-        fetchGithubRepos (err, repositories) =>
-          return callback err  if err
-          data.repositories = repositories
+      data.authorizable = integration.settings?.authorizable is 'true'
+
+      return callback null, data  unless data.authorizable
+
+      whoami().isAuthorized integration.name, (err, isAuthorized) ->
+
+        return callback err  if err
+
+        return callback null, data  unless isAuthorized
+
+        data.isAuthorized = isAuthorized
+
+        if integration.name is 'github'
+          fetchAllGithubRepos (err, repositories) =>
+            return callback err  if err
+            data.repositories = repositories
+            data.selectedRepository = channelIntegration.settings?.repository
+            callback null, data
+        else
           callback null, data
-      else
-        callback null, data
 
 
 module.exports = {
