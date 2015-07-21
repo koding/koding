@@ -737,6 +737,19 @@ runTests = -> describe 'workers.social.user.index', ->
 
   describe '#verifyRecaptcha()', ->
 
+    it 'should pass error if captcha code is empty', (done) ->
+
+      params =
+        slug            : 'koding'
+        foreignAuthType : ''
+
+      captchaCode = ''
+
+      JUser.verifyRecaptcha captchaCode, params, (err) ->
+        expect(err?.message).to.be.equal 'Captcha not valid. Please try again.'
+        done()
+
+
     it 'should pass error if captcha code is invalid', (done) ->
 
       params =
