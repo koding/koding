@@ -7,20 +7,14 @@ module.exports =
 
     users = []
 
-    for i in [1..1]
+    for i in [1..10]
 
       name     = faker.Name.findName()
-      username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
-      posts    = (faker.Lorem.paragraphs() for i in [1..10])
-      comments = (faker.Lorem.paragraph()  for i in [1..10])
-
-      username = username.substring(0, 7) + Date.now()
+      username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '').substring(0, 7) + Date.now()
       password = @getPassword()
-
-      email = "kodingtestuser+#{username}@koding.com"
+      email    = "kodingtestuser+#{username}@koding.com"
 
       users.push { name, email, username, password }
-
 
     fs.writeFileSync 'users.json', JSON.stringify(users), 'utf-8'
 
@@ -37,21 +31,21 @@ module.exports =
     return password
 
 
-  getUser: (createNewUserData) ->
+  getUser: (createNewUserData, allUsers = no) ->
 
     if createNewUserData
       users = @generateUsers()
-      return users[0]
+      return if allUsers then users else users[0]
 
     try
       usersFile = fs.readFileSync('users.json')
       users = JSON.parse(usersFile)
 
       console.log ' ✔ users.json found, returning first user'
-      return users[0]
+      return if allUsers then users else users[0]
 
     catch
       console.log ' ✔ users.json does not exist, creating new user data'
 
       users = @generateUsers()
-      return users[0]
+      return if allUsers then users else users[0]
