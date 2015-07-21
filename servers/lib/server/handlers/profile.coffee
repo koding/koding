@@ -8,7 +8,7 @@ module.exports = (req, res, next, options)->
 
   bongoModels                 = koding.models
   { JName }                   = bongoModels
-  { params, headers }         = req
+  { params }                  = req
   { name, section, slug }     = params
   { path, loggedIn, account } = options
 

@@ -229,7 +229,10 @@ isMainDomain = (req) ->
 
   { headers } = req
 
-  host = headers["x-forwarded-host"]
+
+  return no  unless headers
+
+  { host } = headers
 
   mainDomains = ['dev.koding.com', 'sandbox.koding.com', 'latest.koding.com', 'prod.koding.com', 'koding.com']
 
