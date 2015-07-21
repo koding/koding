@@ -12,7 +12,7 @@ module.exports = class SuggestionMenu extends React.Component
 
     super props
 
-    @state = { suggestions : immutable.List(), state : immutable.Map() }
+    @state = { suggestions : immutable.List(), flags : immutable.Map() }
 
 
   getDataBindings: ->
@@ -21,20 +21,20 @@ module.exports = class SuggestionMenu extends React.Component
 
     return {
       suggestions : getters.currentSuggestions
-      state       : getters.suggestionListState
+      flags       : getters.currentSuggestionsFlags
     }
 
 
   handleClose: (e) ->
 
     e.preventDefault()
-    ActivityFlux.actions.suggestions.setAccess no
+    ActivityFlux.actions.suggestions.setAccesibility no
 
 
   isVisible: ->
 
-    { suggestions, state } = @state
-    return suggestions.size > 0 and state.get('accessible') and state.get('visible')
+    { suggestions, flags } = @state
+    return suggestions.size > 0 and flags.get('accessible') and flags.get('visible')
 
 
 

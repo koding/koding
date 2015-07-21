@@ -1,10 +1,17 @@
 $             = require 'jquery'
 React         = require 'kd-react'
 Constants     = require 'activity/flux/actions/suggestionconstants'
-MessageBody   = require 'activity/components/common/messagebody'
+formatContent = require 'app/util/formatContent'
 
+module.exports = class SuggestionMessageBody extends React.Component
 
-module.exports = class SuggestionMessageBody extends MessageBody
+  ###*
+   * Renders suggestion body
+  ###
+  render: ->
+
+    <article className="has-markdown" dangerouslySetInnerHTML={__html: @formatSource()} />
+
 
   ###*
    * Processes suggestion body, converts markdown markup to html and highlights
@@ -23,12 +30,13 @@ module.exports = class SuggestionMessageBody extends MessageBody
     startTag = '<span class="SuggestionMessageBody-matchedWord">'
     endTag   = '</span>'
 
-    content = super()
+    content = formatContent @props.source
 
     content = helper.cleanUselessMarkers content
     content = helper.replaceMarkers content, startTag, endTag
 
     return content
+
 
   # HELPER METHODS
   helper =

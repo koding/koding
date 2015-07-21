@@ -36,5 +36,5 @@ module.exports = class SuggestionMenuView extends ReactView
 
   handleSubmit: (e) ->
 
-    e.preventDefault()
+    kd.utils.stopDOMEvent e
     @emit 'SubmitRequested'

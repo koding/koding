@@ -29,10 +29,10 @@ module.exports = class SuggestionsStore extends KodingFluxStore
    * It sets current results to successfully fetched
    * new data
    *
-   * @param {Immutable} results
+   * @param {Immutable.List} results
    * @param {object} payload
    * @param {array} payload.data
-   * @return {Immutable} new data
+   * @return {Immutable.List} new data
   ###
   handleFetchSuccess: (results, { data }) -> toImmutable data
 
@@ -42,8 +42,8 @@ module.exports = class SuggestionsStore extends KodingFluxStore
    * It resets current results if new data has failed
    * to load
    *
-   * @param {Immutable} results
-   * @return {Immutable} empty immutable list
+   * @param {Immutable.List} results
+   * @return {Immutable.List} empty immutable list
   ###
   handleFetchFail: (results) -> @handleReset results
 
@@ -52,7 +52,7 @@ module.exports = class SuggestionsStore extends KodingFluxStore
    * Handler for SUGGESTIONS_DATA_RESET action.
    * It sets current results to empty immutable list
    *
-   * @param {Immutable} results
-   * @return {Immutable} empty immutable list
+   * @param {Immutable.List} results
+   * @return {Immutable.List} empty immutable list
   ###
   handleReset: (results) -> immutable.List()

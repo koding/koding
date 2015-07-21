@@ -3,21 +3,21 @@ KodingFluxStore = require 'app/flux/store'
 toImmutable     = require 'app/util/toImmutable'
 
 ###*
- * Store to contain current state of suggestion list,
+ * Store to contain suggestions flags,
  * namely: accessible and visible flags.
  * It listens for SET_SUGGESTIONS_VISIBILITY and
- * SET_SUGGESTIONS_ACCESS actions to update those flags
+ * SET_SUGGESTIONS_ACCESSIBILITY actions to update those flags
 ###
-module.exports = class SuggestionListStateStore extends KodingFluxStore
+module.exports = class SuggestionsFlagsStore extends KodingFluxStore
 
-  @getterPath = 'SuggestionListStateStore'
+  @getterPath = 'SuggestionsFlagsStore'
 
   getInitialState: -> toImmutable { accessible: yes, visible: yes }
 
   initialize: ->
 
     @on actions.SET_SUGGESTIONS_VISIBILITY, @setVisibility
-    @on actions.SET_SUGGESTIONS_ACCESS, @setAccess
+    @on actions.SET_SUGGESTIONS_ACCESSIBILITY, @setAccesibility
 
 
   ###*
@@ -25,10 +25,10 @@ module.exports = class SuggestionListStateStore extends KodingFluxStore
    * It sets current state to a state with updated
    * visible flag
    *
-   * @param {Immutable} currentState
+   * @param {Immutable.Map} currentState
    * @param {object} payload
    * @param {bool} payload.visible
-   * @return {Immutable} nextState
+   * @return {Immutable.Map} nextState
   ###
   setVisibility: (currentState, { visible }) ->
 
@@ -36,15 +36,15 @@ module.exports = class SuggestionListStateStore extends KodingFluxStore
 
 
   ###*
-   * Handler for SET_SUGGESTIONS_ACCESS action
+   * Handler for SET_SUGGESTIONS_ACCESSIBILITY action
    * It sets current state to a state with updated
    * accessible flag
    *
-   * @param {Immutable} currentState
+   * @param {Immutable.Map} currentState
    * @param {object} payload
    * @param {bool} payload.accessible
-   * @return {Immutable} nextState
+   * @return {Immutable.Map} nextState
   ###
-  setAccess: (currentState, { accessible }) ->
+  setAccesibility: (currentState, { accessible }) ->
 
     currentState.set 'accessible', accessible
