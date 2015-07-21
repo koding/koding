@@ -28,7 +28,7 @@ module.exports = class OnboardingItemView extends KDView
         @throbber = new ThrobberView {
           cssClass    : kd.utils.curry color, if isModal then 'modal-throbber' else ''
           delegate    : @targetElement
-          tooltipText : "<div class='has-markdown'>#{applyMarkdown(content) ? ''}</div>"
+          tooltipText : "<div class='has-markdown'>#{applyMarkdown(content, { sanitize : no }) ? ''}</div>"
           placementX
           placementY
           offsetX
