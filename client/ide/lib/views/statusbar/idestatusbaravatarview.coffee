@@ -104,6 +104,9 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
         @createWatchToggle menuItems, isWatching
 
       if amIHost
+        @createReadOnlyToggle menuItems, permission
+
+      if amIHost
         menuItems.Kick =
           title     : 'Kick'
           callback  : =>
