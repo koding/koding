@@ -71,7 +71,7 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 		return nil, fmt.Errorf("err while creating remote store %s", err)
 	}
 
-	c, err := kodingcontext.New(ls, rs)
+	c, err := kodingcontext.New(ls, rs, log)
 	if err != nil {
 		return nil, err
 	}

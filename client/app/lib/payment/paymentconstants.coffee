@@ -45,7 +45,7 @@ module.exports =
   TOO_MANY_ATTEMPT_BLOCK_DURATION: globals.config.paymentBlockDuration
 
   error:
-    ERR_USER_NOT_CONFIRMED: 'You need to confirm your email to purchase a Koding subscription.'
+    ERR_USER_NOT_CONFIRMED: 'Sorry, you need to confirm your email address first.'
 
   events:
     WORKFLOW_STARTED: 'WorkflowStarted'

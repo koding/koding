@@ -9,9 +9,9 @@ nick                  = require 'app/util/nick'
 showError             = require 'app/util/showError'
 
 Machine               = require './machine'
-AddManagedVMModal     = require './managed/addmanagedvmmodal'
 ComputePlansModalPaid = require './computeplansmodalpaid'
 ComputePlansModalFree = require './computeplansmodalfree'
+AddManagedMachineModal= require './managed/addmanagedmachinemodal'
 
 
 module.exports = class ComputeHelpers
@@ -120,7 +120,7 @@ module.exports = class ComputeHelpers
     return  if cc._inprogress
 
     if options.provider is 'managed'
-      return callback new AddManagedVMModal
+      return callback new AddManagedMachineModal
 
     cc._inprogress = yes
 

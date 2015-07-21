@@ -1,5 +1,8 @@
+kd           = require 'kd'
 remote       = require('app/remote').getInstance()
+globals      = require 'globals'
 doXhrRequest = require 'app/util/doXhrRequest'
+
 
 list = (callback) ->
 
@@ -11,6 +14,46 @@ list = (callback) ->
     return callback err  if err
 
     return callback null, response.data
+
+
+find = (query, callback) ->
+
+  list (err, items) ->
+
+    return callback err  if err
+
+    query = decodeURIComponent query
+
+    for item in items when item.name is query or item.title is query
+      integration = item
+
+    return callback { message: 'Not found' }  unless integration
+
+    fetchChannels (err, channels) =>
+      return callback err  if err
+
+      integration.channels = channels
+
+      callback null, integration
+
+
+fetchChannels = (callback) ->
+
+  kd.singletons.socialapi.account.fetchChannels (err, channels) ->
+
+    return callback err  if err
+
+    decoratedChannels = []
+
+    for channel in channels
+      { id, typeConstant, name, purpose, participantsPreview } = channel
+
+      # TODO after refactoring the private channels, we also need to add them here
+      if typeConstant is 'topic' or typeConstant is 'group'
+        decoratedChannels.push { name:"##{name}", id }
+
+    callback null, decoratedChannels
+
 
 fetch = (options, callback) ->
   { id } = options
@@ -98,12 +141,52 @@ fetchGithubRepos = (callback) ->
 
   fetch()
 
+
+fetchConfigureData = (options, callback) ->
+
+  fetchChannels (err, channels) ->
+    return callback err  if err
+
+    fetch options, (err, response) ->
+      return callback err  if err
+
+      { integration, channelIntegration } = response
+
+      { id, token, createdAt, updatedAt, description,
+        integrationId, channelId, isDisabled } = channelIntegration
+
+      description     = description or integration.summary
+      webhookUrl      = "#{globals.config.integration.url}/#{integration.name}/#{token}"
+      integrationType = 'configured'
+      selectedEvents  = []
+      data            = { channels, id, integration, token, createdAt,
+                          updatedAt, description, integrationId, webhookUrl, isDisabled }
+
+      if channelIntegration.settings
+        data.selectedEvents = try JSON.parse channelIntegration.settings.events catch e then []
+
+      if integration.settings?.events
+        events = try JSON.parse integration.settings.events catch e then null
+        data.settings = { events }
+
+      if integration.name is 'github'
+        fetchGithubRepos (err, repositories) =>
+          return callback err  if err
+          data.repositories = repositories
+          callback null, data
+      else
+        callback null, data
+
+
 module.exports = {
   list
+  find
   fetch
   create
   update
-  fetchChannelIntegrations
+  fetchChannels
   regenerateToken
   fetchGithubRepos
+  fetchConfigureData
+  fetchChannelIntegrations
 }
