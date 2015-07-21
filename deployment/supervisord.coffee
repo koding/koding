@@ -1,50 +1,75 @@
 fs            = require 'fs'
 { isAllowed } = require './grouptoenvmapping'
 
-generateMainConf = (supervisorEnvironmentStr ="")->
+generateMainConf = (KONFIG) ->
+
+  environment = ""
+  environment += "#{key}='#{val}'," for key,val of KONFIG.ENV
+
+  {supervisord} = KONFIG
+
+  {
+    logdir
+    rundir
+    minfds
+    minprocs
+    unix_http_server
+  } = supervisord
+
   """
   [supervisord]
   ; environment variables
-  environment=#{supervisorEnvironmentStr}
+  environment=#{environment}
+
+  pidfile=#{rundir}/supervisord.pid
+
+  logfile=#{logdir}/supervisord.log
+  childlogdir=#{logdir}/
+
+  ; number of startup file descriptors
+  minfds=#{minfds}
+
+  ; number of process descriptors
+  minprocs=#{minprocs}
+
+  logfile_maxbytes=50MB                           ; maximum size of logfile before rotation
+  logfile_backups=10                              ; number of backed up logfiles
+  loglevel=error                                  ; info, debug, warn, trace
+
+  nodaemon=false                                  ; run supervisord as a daemon
+  user=root                                       ; default user
 
   [unix_http_server]
-  file=/var/run/supervisor.sock                   ; path to your socket file
+  file=#{unix_http_server.file}
 
   [rpcinterface:supervisor]
   supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
   [supervisorctl]
-  serverurl=unix:///var/run/supervisor.sock       ; use a unix:// URL  for a unix socket
-
-  logfile=/var/log/supervisord/supervisord.log    ; supervisord log file
-  logfile_maxbytes=50MB                           ; maximum size of logfile before rotation
-  logfile_backups=10                              ; number of backed up logfiles
-  loglevel=error                                  ; info, debug, warn, trace
-  pidfile=/var/run/supervisord.pid                ; pidfile location
-  nodaemon=false                                  ; run supervisord as a daemon
-  minfds=10000                                    ; number of startup file descriptors
-  minprocs=200                                    ; number of process descriptors
-  user=root                                       ; default user
-  childlogdir=/var/log/supervisord/               ; where child log files will live
-  \n
+  serverurl=unix://#{unix_http_server.file}       ; use a unix:// URL  for a unix socket
 
   [inet_http_server]
   port=0.0.0.0:9001
   username=koding
   password=1q2w3e4r
+
   """
 
-# becareful while editing this function, any change will affect evey worker
-generateSupervisorSectionForWorker = (app, options={})->
+# becareful while editing this function, any change will affect every worker
+generateWorkerSection = (app, options={}, KONFIG) ->
+
+  {projectRoot} = KONFIG
+  {supervisord: {logdir}} = KONFIG
+
   section =
     command                 : "command"
     stdout_logfile_maxbytes : "10MB"
     stdout_logfile_backups  : 50
-    stderr_logfile          : "/var/log/koding/#{app}.log"
-    stdout_logfile          : "/var/log/koding/#{app}.log"
+    stderr_logfile          : "#{logdir}/#{app}.log"
+    stdout_logfile          : "#{logdir}/#{app}.log"
     numprocs                : options.instances or 1
     numprocs_start          : 0
-    directory               : "/opt/koding"
+    directory               : projectRoot
     autostart               : yes
     autorestart             : yes
     startsecs               : 10
@@ -52,7 +77,7 @@ generateSupervisorSectionForWorker = (app, options={})->
     stopsignal              : "TERM"
     stopwaitsecs            : 10
     redirect_stderr         : yes
-    stdout_logfile          : "/var/log/koding/#{app}.log"
+    stdout_logfile          : "#{logdir}/#{app}.log"
     stdout_logfile_maxbytes : "1MB"
     stdout_logfile_backups  : 10
     stdout_capture_maxbytes : "1MB"
@@ -80,16 +105,20 @@ generateSupervisorSectionForWorker = (app, options={})->
   return supervisordSection
 
 
+generateMemmonSection = (config) ->
+
+  {limit, email} = config
+
+  """
+  [eventlistener:memmon]
+  command=memmon -g environment=#{limit} -m #{email}
+  events=TICK_60
+  """
+
 
 module.exports.create = (KONFIG)->
-  # create environment variables for the supervisor
-  # we can remove this later?
-  supervisorEnvironmentStr = ""
-  supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
-
-
   # create supervisord main config
-  conf = generateMainConf supervisorEnvironmentStr
+  conf = generateMainConf KONFIG
 
   groupConfigs = {}
 
@@ -110,7 +139,7 @@ module.exports.create = (KONFIG)->
     groupConfigs[options.group]       or= {}
     groupConfigs[options.group][name] or= {}
 
-    conf += generateSupervisorSectionForWorker name, options
+    conf += generateWorkerSection name, options, KONFIG
 
 
   # add group sections
@@ -123,11 +152,7 @@ module.exports.create = (KONFIG)->
     \n
     """
 
-  conf += """
-  [eventlistener:memmon]
-  command=memmon -g environment=3072MB -m sysops+supervisord@koding.com
-  events=TICK_60
-
-  """
+  {memmon} = KONFIG.supervisord
+  conf += generateMemmonSection memmon  if memmon
 
   return conf

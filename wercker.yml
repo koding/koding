@@ -173,6 +173,9 @@ build:
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
+        name: upload logs
+        code: scripts/wercker/upload-logs INSTANCE_DATA
+    - script:
         name: cleanup
         code: |
           export CLIENT_TEST=$(cat CLIENT_TEST)

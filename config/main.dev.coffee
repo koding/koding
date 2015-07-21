@@ -379,11 +379,6 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
-    ngrokProxy          :
-      group             : "environment"
-      supervisord       :
-        command         : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
-
     broker              :
       group             : "webserver"
       ports             :
@@ -803,6 +798,25 @@ Configuration = (options={}) ->
             ]
           }
         ]
+
+  if os.type() is 'Darwin'
+    KONFIG.workers.ngrokProxy =
+      group       : "environment"
+      supervisord :
+        command   : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
+
+
+  KONFIG.supervisord =
+    logdir   : "#{projectRoot}/.logs"
+    rundir   : "#{projectRoot}/.supervisor"
+    minfds   : 1024
+    minprocs : 200
+
+  KONFIG.supervisord.output_path = "#{projectRoot}/supervisord.conf"
+
+  KONFIG.supervisord.unix_http_server =
+    file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
+
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
