@@ -1,3 +1,5 @@
+// Package tunnel is responsible of setting up and connecting to a tunnel
+// server.
 package tunnel
 
 import (
@@ -24,6 +26,8 @@ const (
 
 var ErrKeyNotFound = errors.New("key not found")
 
+// registerResult is a response type from the tunnel server's `register`
+// method.
 type registerResult struct {
 	VirtualHost string
 	Identifier  string
@@ -33,12 +37,15 @@ type TunnelClient struct {
 	db *bolt.DB
 }
 
+// NewClient returns a new tunnel client instance.
 func NewClient(db *bolt.DB) *TunnelClient {
 	return &TunnelClient{
 		db: db,
 	}
 }
 
+// Start setups the client and connects to a tunnel server based on the given
+// configuration. It's non blocking and should be called only once.
 func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
 	tunnelkite := kite.New("tunnelclient", "0.0.1")
 	tunnelkite.Config = k.Config.Copy()
@@ -184,7 +191,7 @@ func (t *TunnelClient) addressFromConfig() (string, error) {
 
 		// retrieve val, it might be non existent (possible for the first
 		// retrieve). We don't return an error because it might be non nil but
-		// still an empty valu. That's why we check it below for emptiness
+		// still an empty value. That's why we check it below for emptiness
 		res = string(bucket.Get([]byte(dbKey)))
 		return nil
 	}); err != nil {
@@ -214,6 +221,7 @@ func (t *TunnelClient) saveToConfig(resolvedAddr string) error {
 	})
 }
 
+// callRegister registers the client to the given tunnel server
 func callRegister(tunnelserver *kite.Client) (*registerResult, error) {
 	response, err := tunnelserver.Tell("register", nil)
 	if err != nil {
@@ -229,6 +237,8 @@ func callRegister(tunnelserver *kite.Client) (*registerResult, error) {
 	return result, nil
 }
 
+// resolvedAddr resolves the given host name to a IP and returns the first
+// resolved address.
 func resolvedAddr(host string) (string, error) {
 	addr, err := net.LookupHost(host)
 	if err != nil {
@@ -242,7 +252,7 @@ func resolvedAddr(host string) (string, error) {
 	return addr[0], nil
 }
 
-// hasPort detecths if the given name has a port or not
+// hasPort detects if the given name has a port or not
 func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
 
 // addPort adds the port and returns "host:port". If the host already contains
