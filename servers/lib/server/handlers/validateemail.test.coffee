@@ -1,5 +1,6 @@
 Bongo                                     = require 'bongo'
 koding                                    = require './../bongo'
+request                                   = require 'request'
 
 { daisy }                                 = Bongo
 { expect }                                = require 'chai'
@@ -10,9 +11,9 @@ koding                                    = require './../bongo'
   RegisterHandlerHelper
   ValidationHandlerHelper }               = require '../../../testhelper'
 
+{ generateRegisterRequestParams }         = RegisterHandlerHelper
 { generateValidateEmailRequestParams }    = ValidationHandlerHelper
 
-request                                   = require 'request'
 JUser                                     = null
 
 
@@ -84,7 +85,7 @@ runTests = -> describe 'server.handlers.validateemail', ->
     email     = generateRandomEmail()
     username  = generateRandomUsername()
 
-    registerRequestParams = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams = generateRegisterRequestParams
       body     :
         email  : email
 
@@ -122,7 +123,7 @@ runTests = -> describe 'server.handlers.validateemail', ->
     username  = generateRandomUsername()
     password  = 'testpass'
 
-    registerRequestParams = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams = generateRegisterRequestParams
       body              :
         email           : email
         username        : username
@@ -162,7 +163,7 @@ runTests = -> describe 'server.handlers.validateemail', ->
     username  = generateRandomUsername()
     password  = 'testpass'
 
-    registerRequestParams = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams = generateRegisterRequestParams
       body              :
         email           : email
         username        : username
@@ -211,7 +212,7 @@ runTests = -> describe 'server.handlers.validateemail', ->
     username  = generateRandomUsername()
     password  = 'testpass'
 
-    registerRequestParams = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams = generateRegisterRequestParams
       body              :
         email           : email
         username        : username

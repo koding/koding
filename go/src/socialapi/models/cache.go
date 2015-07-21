@@ -34,14 +34,18 @@ func init() {
 		Message: &MessageCache{
 			id: cache.NewLRU(cacheSize),
 		},
+		Participant: &ParticipantCache{
+			id: cache.NewLRU(cacheSize),
+		},
 	}
 }
 
 type StaticCache struct {
-	Account *AccountCache
-	Session *SessionCache
-	Channel *ChannelCache
-	Message *MessageCache
+	Account     *AccountCache
+	Session     *SessionCache
+	Channel     *ChannelCache
+	Message     *MessageCache
+	Participant *ParticipantCache
 }
 
 //////////////// Account Cache ////////////////////
@@ -289,6 +293,32 @@ func (m *MessageCache) SetToCache(cm *ChannelMessage) error {
 	}
 
 	return nil
+}
+
+//////////////// Participant Cache ////////////////////
+
+// ParticipantCache will be used for caching channel-account participation data
+// Use this only for non-critical operations, eg: making sure that account is
+// processed once
+type ParticipantCache struct {
+	id cache.Cache
+}
+
+// ByChannelIdAndAccountId check if channel and account has a relationship
+func (m *ParticipantCache) ByChannelIdAndAccountId(channelId, accountId int64) (bool, error) {
+	id := fmt.Sprintf("%d-%d", channelId, accountId)
+	_, err := m.id.Get(id)
+	if err != nil && err != cache.ErrNotFound {
+		return false, err
+	}
+
+	return err != cache.ErrNotFound, nil
+}
+
+// SetToCache sets item to cache
+func (m *ParticipantCache) SetToCache(channelId, accountId int64) error {
+	id := fmt.Sprintf("%d-%d", channelId, accountId)
+	return m.id.Set(id, struct{}{})
 }
 
 func BuildChannelMessageContainer(id int64, query *request.Query) (*ChannelMessageContainer, error) {

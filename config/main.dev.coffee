@@ -114,6 +114,7 @@ Configuration = (options={}) ->
   webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
   paymentwebhook      = { port:     "6600"                                        , debug:              false                                         , secretKey: "paymentwebhooksecretkey-dev" }
   tokbox              = { apiKey:   "45253342"                                    , apiSecret:          "e834f7f61bd2b3fafc36d258da92413cebb5ce6e" }
+  recaptcha           = { enabled: no }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -211,6 +212,7 @@ Configuration = (options={}) ->
     monitoringRedis                : redis.url
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
     githubapi                      : githubapi
+    recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
 
     # -- WORKER CONFIGURATION -- #
 
@@ -307,6 +309,7 @@ Configuration = (options={}) ->
     disabledFeatures     : disabledFeatures
     integration          : { url: "#{integration.url}" }
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
+    recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
@@ -375,11 +378,6 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{region} -environment  #{environment} -aws-key #{awsKeys.worker_terraformer.accessKeyId} -aws-secret #{awsKeys.worker_terraformer.secretAccessKey} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
       healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
-
-    ngrokProxy          :
-      group             : "environment"
-      supervisord       :
-        command         : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
 
     broker              :
       group             : "webserver"
@@ -800,6 +798,25 @@ Configuration = (options={}) ->
             ]
           }
         ]
+
+  if os.type() is 'Darwin'
+    KONFIG.workers.ngrokProxy =
+      group       : "environment"
+      supervisord :
+        command   : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
+
+
+  KONFIG.supervisord =
+    logdir   : "#{projectRoot}/.logs"
+    rundir   : "#{projectRoot}/.supervisor"
+    minfds   : 1024
+    minprocs : 200
+
+  KONFIG.supervisord.output_path = "#{projectRoot}/supervisord.conf"
+
+  KONFIG.supervisord.unix_http_server =
+    file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
+
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#

@@ -203,3 +203,32 @@ func TestAct(t *testing.T) {
 		})
 	})
 }
+
+func TestGetCount(t *testing.T) {
+	Convey("It should return count", t, func() {
+		user1, err := createInactiveUser(21)
+		So(err, ShouldBeNil)
+
+		user2, err := createInactiveUser(21)
+		So(err, ShouldBeNil)
+
+		warning := VMDeletionWarning1
+
+		count, err := modelhelper.CountUsersByQuery(warning.buildSelectQuery())
+		So(err, ShouldBeNil)
+
+		So(count, ShouldEqual, 2)
+
+		Convey("It should return minimum sleep", func() {
+			sleepTime, err := warning.getSleepTime()
+			So(err, ShouldBeNil)
+
+			So(sleepTime, ShouldEqual, 20*time.Second)
+
+			Reset(func() {
+				deleteUserWithUsername(user1)
+				deleteUserWithUsername(user2)
+			})
+		})
+	})
+}

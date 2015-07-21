@@ -118,7 +118,7 @@ build:
           tail -n 100 /var/log/koding/social-webhook.log
           tail -n 100 /var/log/koding/social-webhookmiddleware.log
           cd go/src/socialapi
-          make testapi config=./config/test.toml
+          EXTRAS="-story=true" make testapi config=./config/test.toml
     - script:
         name: test janitor
         code: |
@@ -172,6 +172,9 @@ build:
 
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
+    - script:
+        name: upload logs
+        code: scripts/wercker/upload-logs INSTANCE_DATA
     - script:
         name: cleanup
         code: |

@@ -5,11 +5,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"koding/artifact"
-	"koding/ec2dynamicdata"
 	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"os"
 
+	"github.com/koding/ec2dynamicdata"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"

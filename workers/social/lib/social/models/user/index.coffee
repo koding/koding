@@ -6,6 +6,8 @@ Flaggable   = require '../../traits/flaggable'
 KodingError = require '../../error'
 { extend, uniq }  = require 'underscore'
 
+request     = require "request"
+
 module.exports = class JUser extends jraphical.Module
 
   {secure, signature, daisy, dash} = require 'bongo'
@@ -683,49 +685,86 @@ module.exports = class JUser extends jraphical.Module
     else
       callback null
 
+
   afterLogin = (user, clientId, session, callback)->
 
-    {username} = user
+    { username }      = user
 
-    user.fetchOwnAccount (err, account)->
-      if err then return callback err
-      checkLoginConstraints user, account, (err)->
-        if err then return callback err
+    account           = null
+    replacementToken  = null
+
+    queue = [
+
+      ->
+        # fetching account, will be used to check login constraints of user
+        user.fetchOwnAccount (err, account_)->
+          if err then return callback err
+          account = account_
+          queue.next()
+
+      ->
+        # checking login constraints
+        checkLoginConstraints user, account, (err)->
+          if err then return callback err
+          queue.next()
+
+      ->
+        # updating user passwordStatus if necessary
         updateUserPasswordStatus user, (err)->
           if err then return callback err
           replacementToken = createId()
-          session.update {
-            $set            :
-              username      : username
-              lastLoginDate : new Date
-              clientId      : replacementToken
-            $unset:
-              guestId       : 1
-          }, (err)->
-            return callback err  if err
+          queue.next()
 
-            options = lastLoginDate: new Date
+      ->
+        # updating session data after login
+        sessionUpdateOptions =
+          $set            :
+            username      : username
+            clientId      : replacementToken
+            lastLoginDate : new Date
+          $unset          :
+            guestId       : 1
 
-            if session.foreignAuth
-              { foreignAuth } = user
-              foreignAuth or= {}
-              foreignAuth = extend foreignAuth, session.foreignAuth
-              options.foreignAuth = foreignAuth
+        session.update sessionUpdateOptions, (err)->
+          return callback err  if err
+          queue.next()
 
-            user.update { $set: options, $unset: { inactive: 1 } }, (err) ->
-              return callback err  if err
+      ->
+        # updating user data after login
+        userUpdateData = { lastLoginDate : new Date }
 
-              # This should be called after login and this
-              # is not correct place to do it, FIXME GG
-              # p.s. we could do that in workers
-              account.updateCounts()
+        if session.foreignAuth
+          { foreignAuth }            = user
+          foreignAuth              or= {}
+          foreignAuth                = extend foreignAuth, session.foreignAuth
+          userUpdateData.foreignAuth = foreignAuth
 
-              JLog.log {type: "login", username , success: yes}
+        userUpdateOptions =
+          $set        : userUpdateData
+          $unset      :
+            inactive  : 1
 
-              JUser.clearOauthFromSession session, ->
-                callback null, { account, replacementToken, returnUrl: session.returnUrl }
+        user.update userUpdateOptions, (err) ->
+          return callback err  if err
 
-                Tracker.track username, { subject : Tracker.types.LOGGED_IN }
+          # This should be called after login and this
+          # is not correct place to do it, FIXME GG
+          # p.s. we could do that in workers
+          account.updateCounts()
+
+          JLog.log { type: "login", username , success: yes }
+          queue.next()
+
+      ->
+        JUser.clearOauthFromSession session, ->
+          callback null, { account, replacementToken, returnUrl: session.returnUrl }
+
+          Tracker.track username, { subject : Tracker.types.LOGGED_IN }
+          queue.next()
+
+    ]
+
+    daisy queue
 
 
   @logout = secure (client, callback)->
@@ -1034,6 +1073,7 @@ module.exports = class JUser extends jraphical.Module
       # at all ~ GG
       callback()
 
+
   @convert = secure (client, userFormData, callback) ->
 
     { connection, sessionToken : clientId, clientIP } = client
@@ -1041,7 +1081,7 @@ module.exports = class JUser extends jraphical.Module
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName, agree,
       invitationToken, referrer, password, passwordConfirm,
-      emailFrequency } = userFormData
+      emailFrequency, recaptcha, slug } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -1062,12 +1102,13 @@ module.exports = class JUser extends jraphical.Module
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
 
-    newToken       = null
-    invitation     = null
-    user           = null
-    quotaExceedErr = null
-    error          = null
-    pin            = null
+    newToken         = null
+    invitation       = null
+    user             = null
+    quotaExceedErr   = null
+    error            = null
+    pin              = null
+    foreignAuthType  = null
 
     # TODO this can cause problems
     aNewRegister   = yes
@@ -1077,6 +1118,8 @@ module.exports = class JUser extends jraphical.Module
         @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo)=>
           console.log "Error while getting oauth data from session", err  if err
 
+          foreignAuthType = foreignAuthInfo?.foreignAuthType
+
           # Password is not required for GitHub users since they are authorized via GitHub.
           # To prevent having the same password for all GitHub users since it may be
           # a security hole, let's auto generate it if it's not provided in request
@@ -1084,6 +1127,11 @@ module.exports = class JUser extends jraphical.Module
             password        = userFormData.password        = createId()
             passwordConfirm = userFormData.passwordConfirm = password
 
+          queue.next()
+
+      =>
+        @verifyRecaptcha recaptcha, {foreignAuthType, slug}, (err)->
+          return callback err  if err
           queue.next()
 
       =>
@@ -1621,3 +1669,37 @@ module.exports = class JUser extends jraphical.Module
     generatedKey = speakeasy.totp {key, encoding: 'base32'}
 
     return generatedKey is verificationCode
+
+
+  ###*
+   * Verify if `response` from client is valid by asking recaptcha servers.
+   * Check is disabled in dev mode or when user is authenticating via `github`.
+   *
+   * @param {string}   response
+   * @param {string}   foreignAuthType
+   * @param {function} callback
+  ###
+  @verifyRecaptcha = (response, params, callback) ->
+    { foreignAuthType, slug } = params
+    { url, secret, enabled }  = KONFIG.recaptcha
+
+    return callback null  unless enabled
+    return callback null  if foreignAuthType is 'github'
+
+    # TODO: temporarily disable recaptcha for groups
+    if slug? and slug isnt 'koding'
+      return callback null
+
+    request.post url, {form:{response, secret}}, (err, res, raw)->
+      if err
+        console.log "Recaptcha: err validation captcha: #{err}"
+
+      if !err && res.statusCode == 200
+        try
+          if JSON.parse(raw)["success"]
+            return callback null
+        catch e
+          console.log "Recaptcha: parsing response failed. #{raw}"
+
+      return callback new KodingError 'Captcha not valid. Please try again.'
+

@@ -249,6 +249,8 @@ module.exports.create = (KONFIG, environment)->
     gzip_http_version 1.1;
     gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript image/jpeg image/jpg image/png;
 
+    #{createHttpsRedirector(KONFIG)}
+
     # start server
     server {
       # we should not timeout on proxy connections
@@ -328,4 +330,23 @@ createRedirections = (KONFIG) ->
     server {
        server_name "~^old.koding.com" ;
        return 301 $scheme://koding.com$request_uri ;
+    }"""
+
+createHttpsRedirector = (KONFIG) ->
+  return "" if isProxy KONFIG.ebEnvName
+
+  return """
+  \t\t\t
+    # listen for http requests at port 81
+    # this port will be only used for http->https redirection
+    #
+    # do not forget to allow communication via port 81 at security groups(ELB SecGroup)
+    # like : koding-latest,
+    server {
+      # just a random port
+
+      listen #{parseInt(KONFIG.publicPort)+1+''};
+
+      # use generic names, do not hardcode values
+      return 301 https://$host$request_uri;
     }"""

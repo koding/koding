@@ -1,21 +1,23 @@
-htmlencode           = require 'htmlencode'
-Promise              = require 'bluebird'
 globals              = require 'globals'
+Promise              = require 'bluebird'
+htmlencode           = require 'htmlencode'
 
 kd                   = require 'kd'
 KDController         = kd.Controller
 KDNotificationView   = kd.NotificationView
 
-remote               = require('../remote').getInstance()
-showError            = require '../util/showError'
-isLoggedIn           = require '../util/isLoggedIn'
-nick                 = require '../util/nick'
+nick                 = require 'app/util/nick'
+isKoding             = require 'app/util/isKoding'
+showError            = require 'app/util/showError'
+isLoggedIn           = require 'app/util/isLoggedIn'
 
+remote               = require('../remote').getInstance()
 Machine              = require './machine'
 KiteCache            = require '../kite/kitecache'
 ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
 ComputeController_UI = require './computecontroller.ui'
+ManagedKiteChecker   = require './managed/managedkitechecker'
 
 require './config'
 
@@ -43,8 +45,9 @@ module.exports = class ComputeController extends KDController
 
       @fetchStacks =>
 
-        @eventListener = new ComputeEventListener
-        @stateChecker  = new ComputeStateChecker
+        @eventListener      = new ComputeEventListener
+        @managedKiteChecker = new ManagedKiteChecker
+        @stateChecker       = new ComputeStateChecker
 
         @stateChecker.machines = @machines
         @stateChecker.start()
@@ -795,10 +798,18 @@ module.exports = class ComputeController extends KDController
 
 
   checkStackRevisions: ->
-    return  if kd.singletons.groupsController.getGroupSlug() is 'koding'
+
+    return  if isKoding()
 
     @stacks.forEach (stack) =>
-      stack.checkRevision (error, status) =>
+
+      stack.checkRevision (error, data) =>
+
+        { status, machineCount } = data
         stack._revisionStatus = { error, status }
+
         console.info "Revision info for stack #{stack.title}", status
         @emit 'StackRevisionChecked', stack
+
+        if stack.machines.length isnt machineCount
+          @emit 'StacksInconsistent', stack
