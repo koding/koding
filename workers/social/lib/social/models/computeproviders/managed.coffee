@@ -107,7 +107,7 @@ module.exports = class Managed extends ProviderInterface
 
   @update = (client, options, callback)->
 
-    { machineId, queryString, ipAddress, storage } = options
+    { machineId, queryString, ipAddress, storage, managedProvider } = options
     { r: { group, user, account } } = client
 
     unless machineId? or (queryString? or ipAddress? or storage?)
@@ -123,7 +123,9 @@ module.exports = class Managed extends ProviderInterface
       fieldsToUpdate = {domain, ipAddress}
 
     fieldsToUpdate.queryString = getKiteIdOnly queryString  if queryString?
-    fieldsToUpdate['meta.storage'] = storage  if storage?
+
+    fieldsToUpdate['meta.storage']         = storage          if storage?
+    fieldsToUpdate['meta.managedProvider'] = managedProvider  if managedProvider?
 
     JMachine = require './machine'
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }

@@ -16,6 +16,7 @@ KiteCache            = require '../kite/kitecache'
 ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
 ComputeController_UI = require './computecontroller.ui'
+ManagedKiteChecker   = require './managed/managedkitechecker'
 
 require './config'
 
@@ -43,8 +44,9 @@ module.exports = class ComputeController extends KDController
 
       @fetchStacks =>
 
-        @eventListener = new ComputeEventListener
-        @stateChecker  = new ComputeStateChecker
+        @eventListener      = new ComputeEventListener
+        @managedKiteChecker = new ManagedKiteChecker
+        @stateChecker       = new ComputeStateChecker
 
         @stateChecker.machines = @machines
         @stateChecker.start()
