@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/koding/klient",
-	"GoVersion": "go1.4",
+	"GoVersion": "go1.4.2",
 	"Packages": [
 		"./..."
 	],
@@ -106,6 +106,10 @@
 		{
 			"ImportPath": "github.com/koding/cache",
 			"Rev": "487fc0ca06f9aa1a02d796f5510784b47d5afae2"
+		},
+		{
+			"ImportPath": "github.com/koding/ec2dynamicdata",
+			"Rev": "56f69f128b37c6bdfd61a6cac4b4b87e517fa2ee"
 		},
 		{
 			"ImportPath": "github.com/koding/kite",
