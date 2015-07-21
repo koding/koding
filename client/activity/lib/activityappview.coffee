@@ -18,6 +18,7 @@ isKoding               = require 'app/util/isKoding'
 isGroup                = require 'app/util/isGroup'
 isReactEnabled         = require 'app/util/isReactEnabled'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
+isSuggestionEnabled    = require 'activity/util/isSuggestionEnabled'
 
 TopicChatPaneView = require './components/topicchatpane/view'
 
@@ -202,6 +203,8 @@ module.exports = class ActivityAppView extends KDView
     channelId = data.id
     type      = data.typeConstant
 
+    paneOptions = { name, type, channelId }
+
     paneClass = switch type
       when 'bot'            then KodingBotMessagePane
       when 'privatemessage' then PrivateMessagePane
@@ -215,7 +218,9 @@ module.exports = class ActivityAppView extends KDView
         then AnnouncementPane
         else ActivityPane
 
-    @tabs.addPane pane = new paneClass {name, type, channelId}, data
+    paneOptions.isSuggestionEnabled = isSuggestionEnabled()  if paneClass is ActivityPane
+
+    @tabs.addPane pane = new paneClass paneOptions, data
 
     path = helper.sanitizePath kd.singletons.router.getCurrentPath()
 
