@@ -11,6 +11,7 @@ CustomLinkView       = require 'app/customlinkview'
 KDCustomHTMLView     = kd.CustomHTMLView
 integrationHelpers   = require 'app/helpers/integration'
 KDFormViewWithFields = kd.FormViewWithFields
+whoami               = require 'app/util/whoami'
 
 
 module.exports = class AdminIntegrationDetailsView extends JView
@@ -34,7 +35,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   createInstructionsView: ->
 
-    { instructions } = @getData().integration
+    { integration } = @getData()
+
+    { instructions } = integration
 
     if instructions
       @instructionsView = new KDCustomHTMLView
@@ -53,44 +56,43 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   createAuthView: ->
 
-    # @getData().authorizable = yes # DUMMY_DATA
-    # @getData().isAuthorized = yes  # DUMMY_DATA
-
     { authorizable, isAuthorized } = @getData()
 
-    if authorizable
-      @setClass 'authorizable'
-
-      @authView = new KDCustomHTMLView
-        tagName  : 'section'
-        cssClass : 'auth container'
-        partial  : """
-          <h4 class='title'>Authorization</h4>
-          <hr />
-          <p class='info-text'>You can setup authorization for your integration here.</p>
-        """
-
-      buttonTitle = 'Authorize with your own account'
-      buttonClass = 'green'
-
-      if isAuthorized
-        buttonTitle = 'Remove your authorization'
-        buttonClass = 'red'
-
-      @authButton = new KDButtonView
-        title     : buttonTitle
-        cssClass  : "solid compact #{buttonClass}"
-        loader    : yes
-        callback  : =>
-          if @getData().isAuthorized then @unauth() else @auth()
-
-      @authView.addSubView @authButton
-
-      # hide unnecessary views.
-      @instructionsView?.hide()
-      @settingsForm.fields.url.hide()
-    else
+    unless authorizable
       @authView = new KDCustomHTMLView cssClass: 'hidden'
+      return
+
+    @setClass 'authorizable'
+
+    @authView = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'auth container'
+      partial  : """
+        <h4 class='title'>Authorization</h4>
+        <hr />
+        <p class='info-text'>You can setup authorization for your integration here.</p>
+      """
+
+    buttonTitle = 'Authorize with your own account'
+    buttonClass = 'green'
+
+    if isAuthorized
+      buttonTitle = 'Remove your authorization'
+      buttonClass = 'red'
+
+    @authButton = new KDButtonView
+      title     : buttonTitle
+      cssClass  : "solid compact #{buttonClass}"
+      loader    : yes
+      callback  : =>
+        if @getData().isAuthorized then @unauth() else @auth()
+
+    @authView.addSubView @authButton
+
+    # hide unnecessary views.
+    @instructionsView?.hide()
+
+    @settingsForm.hide()  unless isAuthorized
 
 
   auth: ->
@@ -107,7 +109,18 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   unauth: ->
 
-    kd.warn 'Unhandled method, @canthefason'
+    name = @getData().integration?.name
+
+    whoami().unlinkOauth name, (err) =>
+      return showError err  if err
+
+      @getData().isAuthorized = no
+
+      @authButton.hideLoader()
+      @authButton.setTitle 'Authorize with your own account'
+      @authButton.unsetClass 'red'
+      @authButton.setClass 'green'
+      @settingsForm.hide()
 
 
   createEventCheckboxes: ->
@@ -198,11 +211,11 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   handleStatusChange: ->
 
-    { id, selectedChannel, isDisabled } = @getData()
+    { id, selectedChannel, isDisabled, channels } = @getData()
     newState     = not isDisabled
     data         =
       id         : id
-      channelId  : selectedChannel
+      channelId  : selectedChannel or channels[0]?.id
       isDisabled : newState
 
     integrationHelpers.update data, (err, res) =>
@@ -252,6 +265,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{integration.title}.</span>"
           defaultValue  : data.webhookUrl
           attributes    : readonly: 'readonly'
+          cssClass      : if data.authorizable then 'hidden'
           nextElement   :
             regenerate  :
               itemClass : KDCustomHTMLView
@@ -266,7 +280,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           type          : 'select'
           selectOptions : repositories
           cssClass      : unless repositories.length then 'hidden'
-          defaultValue  : data.selectedRepository # DUMMY_DATA @canthefason
+          defaultValue  : data.selectedRepository
         events          :
           label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
           type          : 'hidden'
@@ -289,7 +303,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     { integrationType, isDisabled } = @getData()
 
-    if integrationType is 'configured'
+    if integrationType isnt 'new'
       cssClass = 'disable status'
       title    = 'Disable Integration'
 
@@ -324,7 +338,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
       <section class="settings container">
         <h4 class='title'>Integration Settings</h4>
         <hr />
+        {{> @authView}}
+        <hr />
         {{> @settingsForm}}
       </section>
-      {{> @authView}}
     """
