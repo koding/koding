@@ -93,6 +93,7 @@ module.exports = class PaymentWorkflow extends KDController
     { PAYPAL }            = PaymentConstants.provider
     { paymentController } = kd.singletons
 
+    ## This event always works with "koding" or "stripe" provider.
     @modal.on 'PaymentSubmitted', (formData) =>
 
       ## Reset provider to "koding"
