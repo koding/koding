@@ -10,7 +10,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     options.cssClass = 'add-managed-vm'
     options.title    = 'Add Your Own Machine'
     options.width    = 690
-    options.height   = 305
+    options.height   = 310
 
     super options, data
 
@@ -30,6 +30,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
           <span>
             <strong>Leave this dialogue box open</strong> until you see a notification in the sidebar
             that the connection has been successful.
+            <a href="http://learn.koding.com/connect_your_machine" target="_blank">Learn more about this feature.</a>
           </span>
         </section>
       """
