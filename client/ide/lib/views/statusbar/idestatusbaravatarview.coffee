@@ -103,7 +103,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       if settings.unwatch
         @createWatchToggle menuItems, isWatching
 
-      if amIHost
+      if amIHost and settings.readOnly
         @createReadOnlyToggle menuItems, permission
 
       if amIHost
