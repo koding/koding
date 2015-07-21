@@ -12,13 +12,13 @@ module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
 
     { isWatching, nickname } = @getOptions()
 
-    @addSubView @toggle = new KodingSwitch
+    @addSubView new KodingSwitch
       cssClass     : 'tiny'
       defaultValue : isWatching
       callback     : (state) =>
         @getDelegate().setWatchState state, nickname
 
-    @addSubView @info = new CustomLinkView
+    @addSubView new CustomLinkView
       title        : ''
       cssClass     : 'info'
       href         : 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
