@@ -142,10 +142,11 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 		webhookmodels.NewEvent("commit_comment", "New comment on commit"),
 		webhookmodels.NewEvent("pull_request", "Pull request opened or closed"),
 		webhookmodels.NewEvent("issues", "Issues opened or closed"),
-		webhookmodels.NewEvent("issue_comment", "New comment on issue or pull request"),
+		webhookmodels.NewEvent("issue_comment", "New comment on issue"),
 		webhookmodels.NewEvent("deployment_status", "Show deployment statuses"),
 		webhookmodels.NewEvent("create", "Branch or tag created"),
 		webhookmodels.NewEvent("delete", "Branch or tag deleted"),
+		webhookmodels.NewEvent("pull_request_review_comment", "new comment on pull request"),
 	)
 
 	githubInt.AddSettings("authorizable", true)
