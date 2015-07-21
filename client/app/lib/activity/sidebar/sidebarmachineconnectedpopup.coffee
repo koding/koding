@@ -49,6 +49,13 @@ module.exports = class SidebarMachineConnectedPopup extends kd.ModalView
       callback  : @bound 'destroy'
 
 
+  destroy: ->
+
+    kd.singletons.router.handleRoute "/IDE/#{@getData().slug}"
+
+    super
+
+
   PROVIDERS         =
     AWS             : 'Amazon'
     Azure           : 'Azure'
