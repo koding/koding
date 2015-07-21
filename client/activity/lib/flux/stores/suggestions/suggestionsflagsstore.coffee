@@ -17,7 +17,7 @@ module.exports = class SuggestionsFlagsStore extends KodingFluxStore
   initialize: ->
 
     @on actions.SET_SUGGESTIONS_VISIBILITY, @setVisibility
-    @on actions.SET_SUGGESTIONS_ACCESSIBILITY, @setAccesibility
+    @on actions.SET_SUGGESTIONS_ACCESSIBILITY, @setAccessibility
 
 
   ###*
@@ -45,6 +45,6 @@ module.exports = class SuggestionsFlagsStore extends KodingFluxStore
    * @param {bool} payload.accessible
    * @return {Immutable.Map} nextState
   ###
-  setAccesibility: (currentState, { accessible }) ->
+  setAccessibility: (currentState, { accessible }) ->
 
     currentState.set 'accessible', accessible

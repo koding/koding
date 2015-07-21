@@ -17,7 +17,7 @@ setQuery = (query) ->
   { SET_SUGGESTIONS_QUERY } = actionTypes
 
   dispatch SET_SUGGESTIONS_QUERY, { query }
-  setAccesibility yes  unless query
+  setAccessibility yes  unless query
   fetchData query
 
 
@@ -28,7 +28,7 @@ setQuery = (query) ->
  *
  * @param {bool} accessible
 ###
-setAccesibility = (accessible) ->
+setAccessibility = (accessible) ->
 
   { SET_SUGGESTIONS_ACCESSIBILITY } = actionTypes
   dispatch SET_SUGGESTIONS_ACCESSIBILITY, { accessible }
@@ -93,7 +93,7 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 module.exports = {
   setQuery
-  setAccesibility
+  setAccessibility
   setVisibility
   fetchData
   reset
