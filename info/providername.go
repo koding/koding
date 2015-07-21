@@ -1,7 +1,6 @@
 package info
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -22,7 +21,10 @@ const (
 
 // ProviderChecker funcs check the local machine to assert whether or
 // not the current VM is is of that specific Provider.
-type ProviderChecker func(whois string) (isProvider bool, err error)
+type ProviderChecker func() (isProvider bool, err error)
+
+// WhoisFunc returns the whois from the whois protocol.
+type WhoisFunc func() (whois string, err error)
 
 type ProviderName int
 
@@ -38,6 +40,7 @@ const (
 	Joyent
 	Rackspace
 	SoftLayer
+	Koding
 )
 
 func (pn ProviderName) String() string {
@@ -58,6 +61,8 @@ func (pn ProviderName) String() string {
 		return "Rackspace"
 	case SoftLayer:
 		return "SoftLayer"
+	case Koding:
+		return "Koding"
 	default:
 		return "UnknownProvider"
 	}
@@ -73,33 +78,21 @@ var DefaultProviderCheckers = map[ProviderName]ProviderChecker{
 	Joyent:       CheckJoyent,
 	Rackspace:    CheckRackspace,
 	SoftLayer:    CheckSoftLayer,
+	Koding:       CheckKoding,
 }
 
-// CheckProvider uses the current machine's IP and runs a whois on it,
-// then feeds the whois to all DefaultProviderCheckers.
+// CheckProvider uses the current machine's IP and runs a whois on it, then
+// feeds the whois to all DefaultProviderCheckers. Providers are free to use
+// the whois query.
 func CheckProvider() (ProviderName, error) {
-	// Get the IP of this machine, to whois against
-	ip, err := publicip.PublicIP()
-	if err != nil {
-		return UnknownProvider, err
-	}
-
-	// Get the whois of the current vm's IP
-	whois, err := WhoisQuery(ip.String(), whoisServer, whoisTimeout)
-	if err != nil {
-		return UnknownProvider, err
-	}
-
-	return checkProvider(DefaultProviderCheckers, whois)
+	return checkProvider(DefaultProviderCheckers)
 }
 
 // checkProvider implements the testable functionality of CheckProvider.
 // Ie, a pure func, aside from any impurities passed in via checkers.
-func checkProvider(checkers map[ProviderName]ProviderChecker, whois string) (
-	ProviderName, error) {
-
+func checkProvider(checkers map[ProviderName]ProviderChecker) (ProviderName, error) {
 	for providerName, checker := range checkers {
-		isProvider, err := checker(whois)
+		isProvider, err := checker()
 		if err != nil {
 			return UnknownProvider, err
 		}
@@ -112,12 +105,13 @@ func checkProvider(checkers map[ProviderName]ProviderChecker, whois string) (
 	return UnknownProvider, nil
 }
 
-// generateChecker returns a ProviderChecker matching one or more whois
+// generateWhoisChecker returns a ProviderChecker matching one or more whois
 // regexp objects against the typical ProviderChecker whois.
-func generateChecker(res ...*regexp.Regexp) ProviderChecker {
-	return func(whois string) (bool, error) {
-		if whois == "" {
-			return false, errors.New("generateChecker: Whois is required")
+func generateWhoisChecker(res ...*regexp.Regexp) ProviderChecker {
+	return func() (bool, error) {
+		whois, err := DefaultWhoisChecker()
+		if err != nil {
+			return false, err
 		}
 
 		for _, re := range res {
@@ -131,7 +125,7 @@ func generateChecker(res ...*regexp.Regexp) ProviderChecker {
 }
 
 // CheckDigitalOcean is a ProviderChecker for DigitalOcean
-func CheckDigitalOcean(_ string) (bool, error) {
+func CheckDigitalOcean() (bool, error) {
 	return checkDigitalOcean("http://169.254.169.254/metadata/v1/hostname")
 }
 
@@ -148,31 +142,31 @@ func checkDigitalOcean(metadataApi string) (bool, error) {
 }
 
 // CheckAWS is a generic whois checker for Amazon
-var CheckAWS ProviderChecker = generateChecker(
+var CheckAWS ProviderChecker = generateWhoisChecker(
 	regexp.MustCompile(`(?i)amazon`),
 )
 
-var CheckAzure ProviderChecker = generateChecker(
+var CheckAzure ProviderChecker = generateWhoisChecker(
 	regexp.MustCompile(`(?i)azure`),
 )
 
-var CheckGoogleCloud ProviderChecker = generateChecker(
+var CheckGoogleCloud ProviderChecker = generateWhoisChecker(
 	regexp.MustCompile(`(?i)google\s*cloud`),
 )
 
-var CheckHPCloud ProviderChecker = generateChecker(
+var CheckHPCloud ProviderChecker = generateWhoisChecker(
 	regexp.MustCompile(`(?i)hp\s*cloud`),
 )
 
-var CheckJoyent ProviderChecker = generateChecker(
+var CheckJoyent ProviderChecker = generateWhoisChecker(
 	regexp.MustCompile(`(?i)joyent`),
 )
 
-var CheckRackspace ProviderChecker = generateChecker(
+var CheckRackspace ProviderChecker = generateWhoisChecker(
 	regexp.MustCompile(`(?i)rackspace`),
 )
 
-var CheckSoftLayer ProviderChecker = generateChecker(
+var CheckSoftLayer ProviderChecker = generateWhoisChecker(
 	regexp.MustCompile(`(?i)softlayer`),
 )
 
@@ -206,4 +200,16 @@ func WhoisQuery(query, server string, timeout time.Duration) (string, error) {
 	}
 
 	return string(b), nil
+}
+
+// DefaultWhoisChecker is used for all whois based checkers
+var DefaultWhoisChecker WhoisFunc = func() (string, error) {
+	// Get the IP of this machine, to whois against
+	ip, err := publicip.PublicIP()
+	if err != nil {
+		return "", err
+	}
+
+	// Get the whois of the current vm's IP
+	return WhoisQuery(ip.String(), whoisServer, whoisTimeout)
 }
