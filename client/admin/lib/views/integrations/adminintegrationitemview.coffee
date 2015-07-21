@@ -1,8 +1,9 @@
-kd             = require 'kd'
-JView          = require 'app/jview'
-remote         = require('app/remote').getInstance()
-KDButtonView   = kd.ButtonView
-KDListItemView = kd.ListItemView
+kd                 = require 'kd'
+JView              = require 'app/jview'
+remote             = require('app/remote').getInstance()
+KDButtonView       = kd.ButtonView
+KDListItemView     = kd.ListItemView
+integrationHelpers = require 'app/helpers/integration'
 
 
 module.exports = class AdminIntegrationItemView extends KDListItemView
@@ -13,7 +14,7 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
 
     options.cssClass = 'integration-view'
 
-    { @integrationType } = data
+    { @integrationType, @name } = data
     @createButton data
 
     super options, data
@@ -24,39 +25,9 @@ module.exports = class AdminIntegrationItemView extends KDListItemView
     @button    = new KDButtonView
       cssClass : 'solid compact green add'
       title    : if @integrationType is 'new' then 'Add' else 'Configure'
-      loader   : yes
-      callback : @bound 'fetchIntegrationChannels'
+      callback : =>
+        kd.singletons.router.handleRoute "/Admin/Integrations/Add/#{@name}"
 
-
-  fetchIntegrationChannels: ->
-
-    data = @getData()
-
-    @fetchChannels (err, channels) =>
-      return  if err
-
-      data.channels = channels
-
-      @button.hideLoader()
-      @emit 'IntegrationGroupsFetched', data
-
-
-  fetchChannels: (callback) ->
-
-    kd.singletons.socialapi.account.fetchChannels (err, channels) =>
-      return callback err  if err
-
-      decoratedChannels = []
-
-      for channel in channels
-        { id, typeConstant, name, purpose, participantsPreview } = channel
-
-        # TODO after refactoring the private channels, we also need
-        # to add them here
-        if typeConstant is 'topic' or typeConstant is 'group'
-          decoratedChannels.push { name:"##{name}", id }
-
-      callback null, decoratedChannels
 
   pistachio: ->
 

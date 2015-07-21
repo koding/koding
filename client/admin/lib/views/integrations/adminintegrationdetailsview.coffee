@@ -9,8 +9,8 @@ KDButtonView         = kd.ButtonView
 applyMarkdown        = require 'app/util/applyMarkdown'
 CustomLinkView       = require 'app/customlinkview'
 KDCustomHTMLView     = kd.CustomHTMLView
-KDFormViewWithFields = kd.FormViewWithFields
 integrationHelpers   = require 'app/helpers/integration'
+KDFormViewWithFields = kd.FormViewWithFields
 
 
 module.exports = class AdminIntegrationDetailsView extends JView
@@ -20,13 +20,21 @@ module.exports = class AdminIntegrationDetailsView extends JView
     options.cssClass = 'integration-details'
 
     super options, data
-    { integration } = data
-    { instructions } = integration
-    data.repositories or= []
-
-    repositories = ({ title: repository.full_name, value: repository.full_name } for repository in data.repositories)
 
     @eventCheckboxes = {}
+
+    @createInstructionsView()
+
+    @settingsForm = new KDFormViewWithFields @getFormOptions()
+
+    @createEventCheckboxes()
+
+    @createAuthView()
+
+
+  createInstructionsView: ->
+
+    { instructions } = @getData().integration
 
     if instructions
       @instructionsView = new KDCustomHTMLView
@@ -42,86 +50,11 @@ module.exports = class AdminIntegrationDetailsView extends JView
     else
       @instructionsView = new KDCustomHTMLView cssClass: 'hidden'
 
-    channels = ({ title: channel.name, value: channel.id } for channel in data.channels)
-
-    { customName } = data.settings  if data.settings
-    formOptions         =
-      cssClass          : 'AppModal-form details-form'
-      callback          : @bound 'handleFormCallback'
-      fields            :
-        channels        :
-          type          : 'select'
-          label         : '<p>Post to Channel</p><span>Which channel should we post exceptions to?</span>'
-          selectOptions : channels
-          defaultValue  : data.selectedChannel
-        url             :
-          label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{data.title}.</span>"
-          defaultValue  : data.webhookUrl
-          attributes    : readonly: 'readonly'
-          nextElement   :
-            regenerate  :
-              itemClass : CustomLinkView
-              title     : 'Regenerate'
-              cssClass  : 'link'
-              click     : @bound 'regenerateToken'
-        label           :
-          label         : '<p>Descriptive Label</p><span>Use this label to provide extra context in your list of integrations (optional).</span>'
-          defaultValue  : data.description  or integration.summary
-        repository      :
-          label         : '<p>Repository</p><span>Choose the repository that you would like to listen.</span>'
-          type          : 'select'
-          selectOptions : repositories
-          cssClass      : unless repositories.length then 'hidden'
-        events          :
-          label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
-          type          : 'hidden'
-          cssClass      : unless data.settings?.events?.length then 'hidden'
-        name            :
-          label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
-          defaultValue  : customName or integration.title
-        events          :
-          label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
-          type          : 'hidden'
-          cssClass      : unless data.settings?.events?.length then 'hidden'
-      buttons           :
-        Save            :
-          title         : 'Save Integration'
-          type          : 'submit'
-          cssClass      : 'solid green medium save'
-          loader        : yes
-        Cancel          :
-          title         : 'Cancel'
-          cssClass      : 'solid green medium red'
-          callback      : => @emit 'IntegrationCancelled'
-
-    { integrationType, isDisabled } = @getData()
-
-    if integrationType is 'configured'
-      cssClass = 'disable status'
-      title    = 'Disable Integration'
-
-      if isDisabled
-        cssClass = 'enable status'
-        title    = 'Enable Integration'
-
-      formOptions.fields.status =
-        label     : '<p>Integration Status</p><span>You can enable/disable your integration here.</span>'
-        itemClass : KDCustomHTMLView
-        partial   : title
-        cssClass  : cssClass
-        click     : @bound 'handleStatusChange'
-
-    @settingsForm = new KDFormViewWithFields formOptions
-
-    @createEventCheckboxes()
-
-    @createAuthView()
-
 
   createAuthView: ->
 
-    @getData().authorizable = yes # DUMMY_DATA
-    @getData().isAuthorized = yes  # DUMMY_DATA
+    # @getData().authorizable = yes # DUMMY_DATA
+    # @getData().isAuthorized = yes  # DUMMY_DATA
 
     { authorizable, isAuthorized } = @getData()
 
@@ -156,6 +89,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
       # hide unnecessary views.
       @instructionsView?.hide()
       @settingsForm.fields.url.hide()
+    else
+      @authView = new KDCustomHTMLView cssClass: 'hidden'
 
 
   auth: ->
@@ -236,7 +171,6 @@ module.exports = class AdminIntegrationDetailsView extends JView
       return kd.warn err  if err
 
       @settingsForm.buttons.Save.hideLoader()
-      @emit 'NewIntegrationSaved'
 
 
   regenerateToken: ->
@@ -244,21 +178,21 @@ module.exports = class AdminIntegrationDetailsView extends JView
     return  if @regenerateLock
 
     @regenerateLock = yes
-    { id, name }    = @getData()
+    { id, integration: { name } } = @getData()
 
     integrationHelpers.regenerateToken { id }, (err, res) =>
       return showError  if err
 
-      { url, Regenerate } = @settingsForm.inputs
+      { url, regenerate } = @settingsForm.inputs
 
       url.setValue "#{globals.config.integration.url}/#{name}/#{res.token}"
 
-      Regenerate.updatePartial 'Webhook url has been updated!'
-      Regenerate.setClass 'label'
+      regenerate.updatePartial 'Webhook url has been updated!'
+      regenerate.setClass 'label'
 
       kd.utils.wait 4000, =>
-        Regenerate.updatePartial 'Regenerate'
-        Regenerate.unsetClass 'label'
+        regenerate.updatePartial 'Regenerate'
+        regenerate.unsetClass 'label'
         @regenerateLock = no
 
 
@@ -288,6 +222,91 @@ module.exports = class AdminIntegrationDetailsView extends JView
         status.updatePartial 'Disable Integration'
 
 
+  getFormOptions: ->
+
+    data            = @getData()
+    { integration } = data
+    repositories    = []
+    channels        = []
+
+    if data.channels
+      for channel in data.channels
+        channels.push title: channel.name, value: channel.id
+
+    if data.repositories
+      for repository in data.repositories
+        repositories.push title: repository.full_name, value: repository.full_name
+
+    data.repositories = repositories or []
+
+    formOptions         =
+      cssClass          : 'AppModal-form details-form'
+      callback          : @bound 'handleFormCallback'
+      fields            :
+        channels        :
+          type          : 'select'
+          label         : '<p>Post to Channel</p><span>Which channel should we post exceptions to?</span>'
+          selectOptions : channels
+          defaultValue  : data.selectedChannel
+        url             :
+          label         : "<p>Webhook URL</p><span>When setting up this integration, this is the URL that you will paste into #{integration.title}.</span>"
+          defaultValue  : data.webhookUrl
+          attributes    : readonly: 'readonly'
+          nextElement   :
+            regenerate  :
+              itemClass : KDCustomHTMLView
+              partial   : 'Regenerate'
+              cssClass  : 'link'
+              click     : @bound 'regenerateToken'
+        label           :
+          label         : '<p>Descriptive Label</p><span>Use this label to provide extra context in your list of integrations (optional).</span>'
+          defaultValue  : data.description  or integration.summary
+        repository      :
+          label         : '<p>Repository</p><span>Choose the repository that you would like to listen.</span>'
+          type          : 'select'
+          selectOptions : repositories
+          cssClass      : unless repositories.length then 'hidden'
+          defaultValue  : data.selectedRepository # DUMMY_DATA @canthefason
+        events          :
+          label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
+          type          : 'hidden'
+          cssClass      : unless data.settings?.events?.length then 'hidden'
+        name            :
+          label         : '<p>Customize Name</p><span>Choose the username that this integration will post as.</span>'
+          defaultValue  : data.settings?.customName or integration.title
+      buttons           :
+        Save            :
+          title         : 'Save Integration'
+          type          : 'submit'
+          cssClass      : 'solid green medium save'
+          loader        : yes
+        Cancel          :
+          title         : 'Cancel'
+          cssClass      : 'solid green medium red'
+          callback      : -> kd.singletons.router.handleRoute '/Admin/Integrations/Configure'
+
+    delete formOptions.fields.repository  unless repositories.length
+
+    { integrationType, isDisabled } = @getData()
+
+    if integrationType is 'configured'
+      cssClass = 'disable status'
+      title    = 'Disable Integration'
+
+      if isDisabled
+        cssClass = 'enable status'
+        title    = 'Enable Integration'
+
+      formOptions.fields.status =
+        label     : '<p>Integration Status</p><span>You can enable/disable your integration here.</span>'
+        itemClass : KDCustomHTMLView
+        partial   : title
+        cssClass  : cssClass
+        click     : @bound 'handleStatusChange'
+
+    return formOptions
+
+
   pistachio: ->
 
     { integration: {title, description, summary, iconPath} } = @getData()
@@ -296,7 +315,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       <header class="integration-view">
         <img src="#{iconPath}" />
         <p>#{title}</p>
-         #{summary}
+        #{summary}
       </header>
       <section class="description">
         #{description}
