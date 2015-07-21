@@ -11,6 +11,7 @@ import (
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/client"
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
@@ -19,6 +20,7 @@ import (
 	"github.com/koding/klient/sshkeys"
 	"github.com/koding/klient/storage"
 	"github.com/koding/klient/terminal"
+	klienttunnel "github.com/koding/klient/tunnel"
 	"github.com/koding/klient/usage"
 )
 
@@ -50,6 +52,8 @@ type Klient struct {
 	// that return those informations
 	usage *usage.Usage
 
+	tunnelclient *klienttunnel.TunnelClient
+
 	log kite.Logger
 
 	// disconnectTimer is used track disconnected users and eventually remove
@@ -79,6 +83,9 @@ type KlientConfig struct {
 
 	UpdateInterval time.Duration
 	UpdateURL      string
+
+	TunnelServerAddr string
+	TunnelLocalAddr  string
 }
 
 // NewKlient returns a new Klient instance
@@ -132,9 +139,10 @@ func NewKlient(conf *KlientConfig) *Klient {
 	}
 
 	kl := &Klient{
-		kite:    k,
-		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
-		storage: storage.New(db),       // nil is ok, fallbacks to in memory storage
+		kite:         k,
+		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
+		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
+		tunnelclient: klienttunnel.NewClient(db),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,
@@ -311,6 +319,20 @@ func (k *Klient) RegisterMethods() {
 // Run registers klient to Kontrol and starts the kite server. It also runs any
 // necessary workers in the background.
 func (k *Klient) Run() {
+	// don't run the tunnel for Koding VM's, no need to check for error as we
+	// are not interested in it
+	isKoding, _ := info.CheckKoding()
+	if !isKoding {
+		// Open Pandora's box
+		if err := k.tunnelclient.Start(k.kite, &tunnel.ClientConfig{
+			ServerAddr: k.config.TunnelServerAddr,
+			LocalAddr:  k.config.TunnelLocalAddr,
+			Debug:      k.config.Debug,
+		}); err != nil {
+			k.log.Error("Could not start tunneling: '%s'", err)
+		}
+	}
+
 	k.startUpdater()
 
 	if err := k.register(); err != nil {

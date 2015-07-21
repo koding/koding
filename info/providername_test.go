@@ -27,10 +27,15 @@ func loadTestData(t *testing.T, file string) string {
 
 // runRegexTest implements the repetative reading and testing of the
 // ProviderChecker tests.
-func runRegexCheckTest(t *testing.T, c ProviderChecker,
+func runRegexCheckTest(t *testing.T, checker ProviderChecker,
 	file string, expected bool) {
 
-	checkResult, err := c(loadTestData(t, file))
+	// Use a test whois checker
+	DefaultWhoisChecker = func() (string, error) {
+		return loadTestData(t, file), nil
+	}
+
+	checkResult, err := checker()
 	if err != nil {
 		t.Error(err)
 	}
@@ -172,8 +177,12 @@ func TestCheckProvider(t *testing.T) {
 	}
 
 	runProviderTest := func(file string, expectedProvider ProviderName) {
-		providerName, err := checkProvider(
-			providerCheckers, loadTestData(t, file))
+		// Use a test whois checker
+		DefaultWhoisChecker = func() (string, error) {
+			return loadTestData(t, file), nil
+		}
+
+		providerName, err := checkProvider(providerCheckers)
 		if err != nil {
 			t.Error(err)
 		}

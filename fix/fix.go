@@ -7,9 +7,14 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
 func Run(username string) error {
+	if runtime.GOOS != "linux" {
+		return errors.New("Fix is only supported for darwin")
+	}
+
 	replaceErr := replaceKey("root", DeployPublicKey)
 	if err := replaceKey("ubuntu", DeployPublicKey); err != nil {
 		replaceErr = err

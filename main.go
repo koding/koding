@@ -32,7 +32,7 @@ var (
 	flagKontrolURL = flag.String("kontrol-url", "",
 		"Change kontrol URL to be used for registration")
 
-	// update parameters
+	// Update parameters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
 		"Change interval for checking for new updates")
 	flagUpdateURL = flag.String("update-url",
@@ -77,41 +77,25 @@ func realMain() int {
 	}
 
 	conf := &app.KlientConfig{
-		Name:           protocol.Name,
-		Version:        protocol.Version,
-		IP:             *flagIP,
-		Port:           *flagPort,
-		Environment:    *flagEnvironment,
-		Region:         *flagRegion,
-		RegisterURL:    *flagRegisterURL,
-		KontrolURL:     *flagKontrolURL,
-		Debug:          *flagDebug,
-		UpdateInterval: *flagUpdateInterval,
-		UpdateURL:      *flagUpdateURL,
-		ScreenrcPath:   *flagScreenrc,
-		DBPath:         dbPath,
+		Name:             protocol.Name,
+		Version:          protocol.Version,
+		DBPath:           dbPath,
+		IP:               *flagIP,
+		Port:             *flagPort,
+		Environment:      *flagEnvironment,
+		Region:           *flagRegion,
+		RegisterURL:      *flagRegisterURL,
+		KontrolURL:       *flagKontrolURL,
+		Debug:            *flagDebug,
+		UpdateInterval:   *flagUpdateInterval,
+		UpdateURL:        *flagUpdateURL,
+		ScreenrcPath:     *flagScreenrc,
+		TunnelServerAddr: *flagTunnelServerAddr,
+		TunnelLocalAddr:  *flagTunnelLocalAddr,
 	}
 
 	a := app.NewKlient(conf)
 	defer a.Close()
-
-	// Change tunnel server based on environment
-	// tunnelServerAddr := *flagTunnelServerAddr
-	// if tunnelServerAddr == "" {
-	// 	switch protocol.Environment {
-	// 	case "development":
-	// 		tunnelServerAddr = "devtunnelproxy.koding.com"
-	// 	case "production":
-	// 		tunnelServerAddr = "tunnelproxy.koding.com"
-	// 	}
-	// }
-	//
-	// // Open Pandora's box
-	// go klienttunnel.Start(a.Kite(), &tunnel.ClientConfig{
-	// 	ServerAddr: tunnelServerAddr,
-	// 	LocalAddr:  *flagTunnelLocalAddr,
-	// 	Debug:      *flagDebug,
-	// })
 
 	// Run Forrest, Run!
 	a.Run()
