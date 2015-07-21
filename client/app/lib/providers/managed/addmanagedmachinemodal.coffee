@@ -62,7 +62,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         then "export KONTROLURL=#{globals.config.newkontrol.url}; "
         else ''
 
-        cmd = "#{kontrolUrl}curl -sSL s3.amazonaws.com/koding-klient/install.sh | bash -s #{token}"
+        cmd = "#{kontrolUrl}curl -sSL https://kodi.ng/s | bash -s #{token}"
 
         @loader.destroy()
         @code.addSubView input = new kd.InputView
