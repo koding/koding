@@ -93,9 +93,11 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     appManager.tell 'IDE', 'getCollaborationData', (data) =>
 
-      { amIHost, settings, watchMap } = data
+      { amIHost, settings, watchMap, permissions } = data
 
       isWatching  = watchMap.indexOf(@nickname) > -1
+      permission  = permissions.get @nickname
+
       menuWidth   = 172
 
       if settings.unwatch
