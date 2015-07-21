@@ -96,7 +96,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneRemoved', ({ pane, handle }) =>
 
-      handle.off 'RenamingRequested', @bound 'handleTerminalRenamingRequested'
+      { options : { paneType } } = pane.view
+      if paneType is 'terminal'
+        handle.off 'RenamingRequested', @bound 'handleTerminalRenamingRequested'
 
 
     # This is a custom event for IDEApplicationTabView
