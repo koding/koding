@@ -12,6 +12,8 @@ KONFIG                              = require('koding-config-manager').load "mai
   generateRandomString
   RegisterHandlerHelper }           = require '../../../testhelper'
 
+{ generateRegisterRequestParams }   = RegisterHandlerHelper
+
 { convertToArray
   generateCreateTeamRequestBody
   generateCreateTeamRequestParams } = TeamHandlerHelper
@@ -273,7 +275,7 @@ runTests = -> describe 'server.handlers.createteam', ->
         password      : password
         alreadyMember : 'true'
 
-    registerRequestParams   = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams   = generateRegisterRequestParams
       body       :
         username : username
         password : password
@@ -449,7 +451,7 @@ runTests = -> describe 'server.handlers.createteam', ->
     username                = generateRandomString()
     password                = 'testpass'
 
-    registerRequestParams   = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams   = generateRegisterRequestParams
       body              :
         email           : email
         username        : username
@@ -521,7 +523,7 @@ runTests = -> describe 'server.handlers.createteam', ->
     username                = generateRandomString()
     anotherUsername         = generateRandomString()
 
-    registerRequestParams   = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams   = generateRegisterRequestParams
       body        :
         email     : email
         username  : username

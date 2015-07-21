@@ -67,7 +67,7 @@ generateDefaultHeadersObject = (opts = {}) ->
 generateDefaultBodyObject = -> {}
 
 
-generateDefaultParams = (opts = {}) ->
+generateDefaultRequestParams = (opts = {}) ->
 
   defaultBodyObject    = generateDefaultBodyObject()
 
@@ -99,7 +99,70 @@ deepObjectExtend = (target, source) ->
   return target
 
 
+class LogoutHandlerHelper
+
+  @generateLogoutRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      name : generateRandomString()
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateLogoutRequestParams = (opts = {}) ->
+
+    name = opts?.body?.name or generateRandomString()
+
+    url  = generateUrl
+      route : "#{encodeURIComponent name}/Logout"
+
+    body = LogoutHandlerHelper.generateLogoutRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultRequestParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
+class OptoutHandlerHelper
+
+  @generateOptoutRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      name : generateRandomString()
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateOptoutRequestParams = (opts = {}) ->
+
+    name = opts?.body?.name or generateRandomString()
+
+    url  = generateUrl
+      route : "#{encodeURIComponent name}/Optout"
+
+    body = OptoutHandlerHelper.generateOptoutRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultRequestParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
 class RecoverHandlerHelper
+
+  @defaultExpiryPeriod = 5 * 60 * 1000 # 5 minutes
+
 
   @generateRecoverRequestBody = (opts = {}) ->
 
@@ -113,15 +176,46 @@ class RecoverHandlerHelper
 
   @generateRecoverRequestParams = (opts = {}) ->
 
-    { body : email } = opts
+    email = opts?.body?.email or generateRandomEmail()
 
     url  = generateUrl
-      route : "#{email}/Recover"
+      route : "#{encodeURIComponent email}/Recover"
 
     body = RecoverHandlerHelper.generateRecoverRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
+
+    return requestParams
+
+
+class ResetHandlerHelper
+
+  @generateResetRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      password      : generateRandomString()
+      recoveryToken : generateRandomString()
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  @generateResetRequestParams = (opts = {}) ->
+
+    token = opts?.body?.email or 'someToken'
+
+    url  = generateUrl
+      route : "#{encodeURIComponent token}/Reset"
+
+    body = ResetHandlerHelper.generateResetRequestBody()
+
+    params               = { url, body }
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -152,7 +246,7 @@ class ValidationHandlerHelper
     body = ValidationHandlerHelper.generateVerifyTokenRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -180,7 +274,7 @@ class ValidationHandlerHelper
     body = ValidationHandlerHelper.generateValidateRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -206,7 +300,7 @@ class ValidationHandlerHelper
     body = ValidationHandlerHelper.generateValidateUsernameRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -234,7 +328,7 @@ class ValidationHandlerHelper
     body = ValidationHandlerHelper.generateValidateEmailRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -275,7 +369,7 @@ class TeamHandlerHelper
     body = TeamHandlerHelper.generateCheckTokenRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -299,7 +393,6 @@ class TeamHandlerHelper
       newsletter          : 'true'
       alreadyMember       : 'false'
       passwordConfirm     : 'testpass'
-      groupIsBeingCreated : yes
 
     deepObjectExtend defaultBodyObject, opts
 
@@ -314,7 +407,7 @@ class TeamHandlerHelper
     body = TeamHandlerHelper.generateCreateTeamRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -329,7 +422,7 @@ class TeamHandlerHelper
       route : "-/team/#{groupSlug}"
 
     params               = { url }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -359,7 +452,7 @@ class TeamHandlerHelper
     body = TeamHandlerHelper.generateGetTeamMembersRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -402,7 +495,7 @@ class TeamHandlerHelper
     body = TeamHandlerHelper.generateCreateTeamRequestBody()
 
     params               = { url, body }
-    defaultRequestParams = generateDefaultParams params
+    defaultRequestParams = generateDefaultRequestParams params
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body   = querystring.stringify requestParams.body
@@ -410,9 +503,43 @@ class TeamHandlerHelper
     return requestParams
 
 
+class LoginHandlerHelper
+
+  @generateLoginRequestBody = (opts = {}) ->
+
+    defaultBodyObject =
+      token               : ''
+      tfcode              : ''
+      username            : generateRandomUsername()
+      password            : 'testpass'
+      redirect            : ''
+      groupName           : 'koding'
+
+    deepObjectExtend defaultBodyObject, opts
+
+    return defaultBodyObject
+
+
+  # overwrites given options in the default params
+  @generateLoginRequestParams = (opts = {}) ->
+
+    url  = generateUrl
+      route : 'Login'
+
+    body = LoginHandlerHelper.generateLoginRequestBody()
+
+    params                = { url, body }
+    defaultRequestParams  = generateDefaultRequestParams params
+    requestParams         = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body    = querystring.stringify requestParams.body
+
+    return requestParams
+
+
 class RegisterHandlerHelper
 
-  @generateRequestBody = (opts = {}) ->
+  @generateRegisterRequestBody = (opts = {}) ->
 
     defaultBodyObject =
       email             : generateRandomEmail()
@@ -428,15 +555,15 @@ class RegisterHandlerHelper
 
 
   # overwrites given options in the default params
-  @generateRequestParams = (opts = {}) ->
+  @generateRegisterRequestParams = (opts = {}) ->
 
     url  = generateUrl
       route : 'Register'
 
-    body = RegisterHandlerHelper.generateRequestBody()
+    body = RegisterHandlerHelper.generateRegisterRequestBody()
 
     params                = { url, body }
-    defaultRequestParams  = generateDefaultParams params
+    defaultRequestParams  = generateDefaultRequestParams params
     requestParams         = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body    = querystring.stringify requestParams.body
@@ -449,8 +576,13 @@ module.exports = {
   generateRandomEmail
   generateRandomString
   generateRandomUsername
+  generateDefaultRequestParams
 
   TeamHandlerHelper
+  LoginHandlerHelper
+  ResetHandlerHelper
+  OptoutHandlerHelper
+  LogoutHandlerHelper
   RecoverHandlerHelper
   RegisterHandlerHelper
   ValidationHandlerHelper

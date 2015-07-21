@@ -1,5 +1,6 @@
 Bongo                                     = require 'bongo'
 koding                                    = require './../bongo'
+request                                   = require 'request'
 
 { daisy }                                 = Bongo
 { expect }                                = require 'chai'
@@ -11,9 +12,8 @@ koding                                    = require './../bongo'
   RegisterHandlerHelper
   ValidationHandlerHelper }               = require '../../../testhelper'
 
+{ generateRegisterRequestParams }         = RegisterHandlerHelper
 { generateVerifyTokenRequestParams }      = ValidationHandlerHelper
-
-request                                   = require 'request'
 
 JUser                                     = null
 JPasswordRecovery                         = null
@@ -84,7 +84,7 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
       ->
         # generationg a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             email    : email
             username : username
@@ -148,7 +148,7 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
       ->
         # generationg a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             email    : email
             username : username
