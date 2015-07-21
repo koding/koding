@@ -90,9 +90,9 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     menuItems.separator = type: 'separator'
 
-    appManager.tell 'IDE', 'getCollaborationData', (collaborationData) =>
+    appManager.tell 'IDE', 'getCollaborationData', (data) =>
 
-      { watchMap, amIHost } = collaborationData
+      { amIHost, settings, watchMap } = data
 
       isWatching  = watchMap.indexOf(@nickname) > -1
       menuWidth   = 172
