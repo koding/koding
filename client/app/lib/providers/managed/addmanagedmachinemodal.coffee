@@ -1,11 +1,14 @@
-kd      = require 'kd'
-globals = require 'globals'
-whoami  = require 'app/util/whoami'
+kd        = require 'kd'
+globals   = require 'globals'
+checkFlag = require 'app/util/checkFlag'
+whoami    = require 'app/util/whoami'
 
 
 module.exports = class AddManagedMachineModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
+
+    return  unless checkFlag ['super-admin', 'super-digitalocean']
 
     options.cssClass = 'add-managed-vm'
     options.title    = 'Add Your Own Machine'
@@ -62,7 +65,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         then "export KONTROLURL=#{globals.config.newkontrol.url}; "
         else ''
 
-        cmd = "#{kontrolUrl}curl -sSL s3.amazonaws.com/koding-klient/install.sh | bash -s #{token}"
+        cmd = "#{kontrolUrl}curl -sSL https://kodi.ng/s | bash -s #{token}"
 
         @loader.destroy()
         @code.addSubView input = new kd.InputView
