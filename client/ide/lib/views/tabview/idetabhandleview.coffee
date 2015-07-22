@@ -43,7 +43,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
       return  unless newTitle.length
       return @setTitleEditMode no  if newTitle is title
 
-      @emit 'RenamingRequested', this, newTitle, title
+      @emit 'RenamingRequested', newTitle, title
 
     @titleInput.on 'EscapePerformed', @lazyBound 'setTitleEditMode', no
 

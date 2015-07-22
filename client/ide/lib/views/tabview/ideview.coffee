@@ -88,7 +88,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           webtermCallback = @lazyBound 'handleWebtermCreated', pane
           view.once 'WebtermCreated', webtermCallback
 
-          handleCallback = @bound 'handleTerminalRenamingRequested'
+          handleCallback = @lazyBound 'handleTerminalRenamingRequested', tabHandle
           tabHandle.on 'RenamingRequested', handleCallback
 
           tabHandle.makeEditable()
@@ -97,8 +97,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @tabView.on 'PaneRemoved', ({ pane, handle }) =>
 
       { options : { paneType } } = pane.view
-      if paneType is 'terminal'
-        handle.off 'RenamingRequested', @bound 'handleTerminalRenamingRequested'
+      handle.off 'RenamingRequested'  if paneType is 'terminal'
 
 
     # This is a custom event for IDEApplicationTabView
