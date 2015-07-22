@@ -4,12 +4,13 @@ package iam
 
 import (
 	"encoding/xml"
-	"github.com/mitchellh/goamz/aws"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mitchellh/goamz/aws"
 )
 
 // The IAM type encapsulates operations operations with the IAM endpoint.
@@ -149,6 +150,18 @@ func (iam *IAM) GetUser(name string) (*GetUserResp, error) {
 	params := map[string]string{
 		"Action":   "GetUser",
 		"UserName": name,
+	}
+	resp := new(GetUserResp)
+	if err := iam.query(params, resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetDefaultUser gets the user making the request
+func (iam *IAM) GetDefaultUser() (*GetUserResp, error) {
+	params := map[string]string{
+		"Action": "GetUser",
 	}
 	resp := new(GetUserResp)
 	if err := iam.query(params, resp); err != nil {

@@ -225,6 +225,20 @@ isInAppRoute = (name) ->
   return true   if firstLetter.toUpperCase() is firstLetter
   return false
 
+isMainDomain = (req) ->
+
+  { headers } = req
+
+
+  return no  unless headers
+
+  { host } = headers
+
+  mainDomains = ['dev.koding.com', 'sandbox.koding.com', 'latest.koding.com', 'prod.koding.com', 'koding.com']
+
+  return host in mainDomains
+
+
 module.exports = {
   error_
   error_404
@@ -244,4 +258,5 @@ module.exports = {
   handleClientIdNotFound
   getClientId
   isInAppRoute
+  isMainDomain
 }

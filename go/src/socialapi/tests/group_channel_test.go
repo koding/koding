@@ -157,3 +157,29 @@ func TestGroupChannel(t *testing.T) {
 		})
 	})
 }
+
+func TestGroupChannelFirstCreation(t *testing.T) {
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("While creating the new group channel for the first time", t, func() {
+			Convey("user should be able to create group channel", func() {
+				acc, err := models.CreateAccountInBothDbs()
+				So(err, ShouldBeNil)
+
+				groupName := models.RandomGroupName()
+				ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+				So(err, ShouldBeNil)
+				So(ses, ShouldNotBeNil)
+
+				channel, err := rest.CreateChannelByGroupNameAndType(
+					acc.Id,
+					groupName,
+					models.Channel_TYPE_GROUP,
+					ses.ClientId,
+				)
+
+				So(err, ShouldBeNil)
+				So(channel.GroupName, ShouldEqual, groupName)
+			})
+		})
+	})
+}

@@ -137,27 +137,45 @@ module.exports = class SearchController extends KDObject
         return @searchAccountsMongo seed
       .filter Boolean
 
+
   searchTopics: (seed) ->
+
     @search 'topics', seed
 
-  searchChannel: (seed, channelId, options = {}) ->
+
+  _searchChannel: (seed, channelId, itemResultFunc, options = {}) ->
+
     options.tagFilters = (options.tagFilters ? []).concat channelId
 
     @search 'messages', seed, options
-      .map ({ objectID: id }) ->
+      .map ({ objectID: id, _highlightResult: highlightResult }) ->
         new Promise (resolve) ->
           kd.singletons.socialapi.message.byId { id }, (err, message) ->
             if err
               # NOTE: intentionally not rejecting here:
               console.warn "social api error:", err
-            resolve message
+            resolve itemResultFunc(message, highlightResult)
       .filter Boolean
       .catch (e) ->
         kd.error "Search error: #{e}"
         return new KDNotificationView
           title: "Search error!"
 
+
+  searchChannel: (seed, channelId, options) ->
+
+    itemResultFunc = (message) -> message
+    @_searchChannel seed, channelId, itemResultFunc, options
+
+
+  searchChannelWithHighlighting: (seed, channelId, options) ->
+
+    itemResultFunc = (message, highlightResult) -> { message, highlightResult }
+    @_searchChannel seed, channelId, itemResultFunc, options
+
+
   getIndex: (indexName) ->
+
     unless @indexes[indexName]?
       index = @algolia.initIndex indexName
       # this is for clearing the query cache every 10 seconds

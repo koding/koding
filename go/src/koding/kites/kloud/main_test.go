@@ -165,7 +165,7 @@ func init() {
 	kiteURL := &url.URL{Scheme: "http", Host: "localhost:4002", Path: "/kite"}
 	_, err := kloudKite.Register(kiteURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("kloud ", err.Error())
 	}
 
 	provider = kodingProvider()
@@ -207,12 +207,12 @@ func init() {
 
 	t, err := terraformer.New(tConf, common.NewLogger("terraformer", false))
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("terraformer ", err.Error())
 	}
 
 	terraformerKite, err := terraformer.NewKite(t, tConf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("terraformer ", err.Error())
 	}
 
 	// no need to register to kontrol, kloud talks directly via a secret key
@@ -766,8 +766,8 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 		PublicKey: credPublicKey,
 		OriginId:  accountId,
 		Meta: bson.M{
-			"access_key": "",
-			"secret_key": "",
+			"access_key": os.Getenv("KLOUD_TESTACCOUNT_ACCESSKEY"),
+			"secret_key": os.Getenv("KLOUD_TESTACCOUNT_SECRETKEY"),
 			"region":     region,
 		},
 	}

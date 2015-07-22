@@ -13,6 +13,8 @@ generateDummyMessage    = require 'app/util/generateDummyMessage'
 generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
 showErrorNotification   = require 'app/util/showErrorNotification'
 isLoggedIn              = require 'app/util/isLoggedIn'
+SuggestionMenuView      = require 'activity/components/suggestionmenu/view'
+ActivityFlux            = require 'activity/flux'
 
 module.exports = class ActivityInputWidget extends KDView
 
@@ -20,8 +22,9 @@ module.exports = class ActivityInputWidget extends KDView
 
   constructor: (options = {}, data) ->
     options.cssClass = kd.utils.curry "activity-input-widget", options.cssClass
-    options.destroyOnSubmit ?= no
-    options.inputViewClass  ?= ActivityInputView
+    options.destroyOnSubmit     ?= no
+    options.inputViewClass      ?= ActivityInputView
+    options.isSuggestionEnabled ?= no
 
     super options, data
 
@@ -31,10 +34,11 @@ module.exports = class ActivityInputWidget extends KDView
 
   createSubViews: ->
 
-    {defaultValue, placeholder, inputViewClass} = @getOptions()
+    {defaultValue, placeholder, inputViewClass, isSuggestionEnabled} = @getOptions()
     data = @getData()
 
     @input        = new inputViewClass {defaultValue, placeholder}
+    @suggestions  = new SuggestionMenuView()  if isSuggestionEnabled
     @helperView   = new ActivityInputHelperView
     @embedBox     = new EmbedBoxWidget delegate: @input, data
     @icon         = new KDCustomHTMLView tagName : 'figure'
@@ -69,10 +73,22 @@ module.exports = class ActivityInputWidget extends KDView
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
 
+    return  unless @getOptions().isSuggestionEnabled
+
+    @input.on 'keydown', kd.utils.debounce 300, @bound 'updateSuggestionsQuery'
+    @input.on 'focus',   @bound 'makeSuggestionsVisible'
+    @suggestions.on 'SubmitRequested', @bound 'handleSubmitRequested'
+
 
   focusSubmit: ->
 
     @submitButton.focus()
+
+
+  handleSubmitRequested: ->
+
+    ActivityFlux.actions.suggestions.setVisibility no
+    @submitButton.click()
 
 
   submit: (value) ->
@@ -171,6 +187,8 @@ module.exports = class ActivityInputWidget extends KDView
     if unlock then @unlockSubmit()
     else kd.utils.wait 8000, @bound 'unlockSubmit'
 
+    ActivityFlux.actions.suggestions.reset()  if @getOptions().isSuggestionEnabled
+
 
   getEmbedBoxPayload: -> return @embedBox.getData()
 
@@ -241,6 +259,7 @@ module.exports = class ActivityInputWidget extends KDView
 
     @addSubView @icon
     @addSubView @input
+    @addSubView @suggestions  if @suggestions?
     @addSubView @embedBox
     @addSubView @buttonBar
     @addSubView @helperView
@@ -249,3 +268,16 @@ module.exports = class ActivityInputWidget extends KDView
     @hide()  unless isLoggedIn()
 
 
+  makeSuggestionsVisible: ->
+
+    ActivityFlux.actions.suggestions.setVisibility yes
+
+
+  updateSuggestionsQuery: ->
+
+    query = @input.getValue()
+    { reactor } = kd.singletons
+    { getters, actions } = ActivityFlux
+
+    lastQuery = reactor.evaluate getters.currentSuggestionsQuery
+    actions.suggestions.setQuery query  if query isnt lastQuery

@@ -735,6 +735,47 @@ runTests = -> describe 'workers.social.user.index', ->
       daisy queue
 
 
+  describe '#verifyRecaptcha()', ->
+
+    it 'should pass error if captcha code is empty', (done) ->
+
+      params =
+        slug            : 'koding'
+        foreignAuthType : ''
+
+      captchaCode = ''
+
+      JUser.verifyRecaptcha captchaCode, params, (err) ->
+        expect(err?.message).to.be.equal 'Captcha not valid. Please try again.'
+        done()
+
+
+    it 'should pass error if captcha code is invalid', (done) ->
+
+      params =
+        slug            : 'koding'
+        foreignAuthType : ''
+
+      captchaCode = 'someInvalidCaptchaCode'
+
+      JUser.verifyRecaptcha captchaCode, params, (err) ->
+        expect(err?.message).to.be.equal 'Captcha not valid. Please try again.'
+        done()
+
+
+    it 'should bypass recaptcha verification if foreignAuthType is github', (done) ->
+
+      params =
+        slug            : 'koding'
+        foreignAuthType : 'github'
+
+      captchaCode = 'someInvalidCaptchaCode'
+
+      JUser.verifyRecaptcha captchaCode, params, (err) ->
+        expect(err).to.not.exist
+        done()
+
+
 beforeTests()
 
 runTests()
