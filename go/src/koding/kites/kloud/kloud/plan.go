@@ -54,6 +54,9 @@ func (t *terraformCredential) awsCredentials() (string, string, error) {
 		return "", "", fmt.Errorf("provider '%s' is not supported", t.Provider)
 	}
 
+	// we do not check for key existency here because the key might exists but
+	// with an empty value, so just checking for the emptiness of the value is
+	// better
 	accessKey := t.Data["access_key"]
 	if accessKey == "" {
 		return "", "", fmt.Errorf("accessKey for publicKey '%s' is not set", t.PublicKey)
@@ -61,7 +64,7 @@ func (t *terraformCredential) awsCredentials() (string, string, error) {
 
 	secretKey := t.Data["secret_key"]
 	if secretKey == "" {
-		return "", "", fmt.Errorf("accessKey for publicKey '%s' is not set", t.PublicKey)
+		return "", "", fmt.Errorf("secretKey for publicKey '%s' is not set", t.PublicKey)
 	}
 
 	return accessKey, secretKey, nil
