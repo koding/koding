@@ -59,16 +59,16 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
       defaultValue : Encoder.htmlDecode group.slug ? ''
       placeholder  : 'Please enter a title here'
 
-    @addInput form,
-      label        : 'Default Channels'
-      description  : 'Your new members will automatically join to <b>#general</b> channel. Here you can specify more channels for new team members to join automatically.'
-      name         : 'channels'
-      placeholder  : 'product, design, ux, random etc'
-      defaultValue : Encoder.htmlDecode group.defaultChannels?.join(', ') ? ''
-      nextElement  : new KDCustomHTMLView
-        cssClass   : 'warning-text'
-        tagName    : 'span'
-        partial    : 'Please add channel names separated by commas.'
+    # @addInput form,
+    #   label        : 'Default Channels'
+    #   description  : 'Your new members will automatically join to <b>#general</b> channel. Here you can specify more channels for new team members to join automatically.'
+    #   name         : 'channels'
+    #   placeholder  : 'product, design, ux, random etc'
+    #   defaultValue : Encoder.htmlDecode group.defaultChannels?.join(', ') ? ''
+    #   nextElement  : new KDCustomHTMLView
+    #     cssClass   : 'warning-text'
+    #     tagName    : 'span'
+    #     partial    : 'Please add channel names separated by commas.'
 
     @addInput form,
       label        : 'Allowed Domains'
@@ -197,19 +197,20 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
   update: ->
 
-    { channels, domains } = @generalSettingsForm.getFormData()
+    # { channels, domains } = @generalSettingsForm.getFormData()
+    { domains } = @generalSettingsForm.getFormData()
 
     formData     = @generalSettingsForm.getFormData()
     jGroup       = @getData()
-    newChannels  = @separateCommas channels
+    # newChannels  = @separateCommas channels
     newDomains   = @separateCommas domains
     dataToUpdate = {}
 
     unless formData.title is jGroup.title
       dataToUpdate.title = formData.title
 
-    unless _.isEqual newChannels, jGroup.defaultChannels
-      dataToUpdate.defaultChannels = newChannels
+    # unless _.isEqual newChannels, jGroup.defaultChannels
+    #   dataToUpdate.defaultChannels = newChannels
 
     unless _.isEqual newDomains, jGroup.allowedDomains
       for domain in newDomains when not validator.isURL domain
