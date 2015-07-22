@@ -23,6 +23,8 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     super
 
+    return  if @titleText
+
     { view, title } = @getOptions()
 
     @titleText  = new KDView
