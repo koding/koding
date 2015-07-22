@@ -59,7 +59,7 @@ module.exports = class SuggestionMenu extends React.Component
       </div>
       <SuggestionList suggestions={suggestions} />
       <div className="ActivitySuggestionMenu-footer">
-        None of the above answers your questions? Post yours
+        If none of these are relevant, post yours
         <button type="submit" className="kdbutton solid green small" onClick={@props.onSubmit}>
           <span className="button-title">SEND</span>
         </button>
