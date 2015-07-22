@@ -35,6 +35,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
     klientShare        : 'klient.share'
     klientUnshare      : 'klient.unshare'
     klientShared       : 'klient.shared'
+    klientStop         : 'klient.stop'
 
     sshKeysAdd         : 'sshkeys.add'
 

@@ -424,7 +424,11 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
-      machine.getBaseKite( createIfNotExists = no ).disconnect()
+      baseKite = machine.getBaseKite( createIfNotExists = no )
+
+      if machine?.provider is 'managed'
+      then baseKite.klientStop().disconnect()
+      else baseKite.disconnect()
 
       if machine?.provider is 'managed'
 
