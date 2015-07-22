@@ -1,4 +1,5 @@
-{ serve, serveHome }   = require './../helpers'
+{ serve, serveHome, isMainDomain }   = require './../helpers'
+
 koding                 = require './../bongo'
 { generateFakeClient } = require "./../client"
 Crawler                = require './../../crawler'
@@ -11,6 +12,9 @@ module.exports = (req, res, next, options)->
   { path, loggedIn, account } = options
   prefix                      = if loggedIn then 'loggedIn' else 'loggedOut'
 
+  return next()  unless isMainDomain req
+
+  # do not show static page for team subdomains
   if name is 'Activity'
     # When we try to access /Activity/Message/New route, it is trying to
     # fetch message history with channel id = 'New' and returning:
