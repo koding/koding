@@ -1,6 +1,11 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/config"
@@ -11,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jinzhu/gorm"
+	"github.com/koding/integration/helpers"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
 	"github.com/nu7hatch/gouuid"
@@ -23,6 +30,7 @@ type Handler struct {
 	bot      *webhook.Bot
 	redis    *redis.RedisSession
 	rootPath string
+	conf     *config.Config
 }
 
 func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger) (*Handler, error) {
@@ -36,6 +44,7 @@ func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger
 		bot:      bot,
 		redis:    redis,
 		rootPath: conf.CustomDomain.Local,
+		conf:     conf,
 	}, nil
 }
 
@@ -151,7 +160,7 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 	i := webhook.NewIntegration()
 	q := &request.Query{
 		Exclude: map[string]interface{}{
-			"isPublished": true,
+			"isPublished": false,
 		},
 	}
 
@@ -161,6 +170,25 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 	}
 
 	return response.NewOK(response.NewSuccessResponse(ints))
+}
+
+func (h *Handler) Get(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	name := u.Query().Get("name")
+	i := webhook.NewIntegration()
+	err := i.ByName(name)
+	if err == webhook.ErrIntegrationNotFound {
+		return response.NewNotFound()
+	}
+
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !i.IsPublished {
+		return response.NewNotFound()
+	}
+
+	return response.NewOK(response.NewSuccessResponse(i))
 }
 
 func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
@@ -266,6 +294,8 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 		return response.NewBadRequest(err)
 	}
 
+	oldSettings := ci.Settings
+
 	if i.ChannelId != 0 {
 		ci.ChannelId = i.ChannelId
 	}
@@ -280,11 +310,90 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 
 	ci.IsDisabled = i.IsDisabled
 
+	if err := h.Configure(ci, ctx, oldSettings); err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	if err := ci.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	return response.NewDefaultOK()
+}
+
+// Configure configures a webhook when integration settings authorizable field is
+// true. It sends current and updated settings to middleware service, and all CRUD
+// operation decisions are left to middleware, depending on updated fields.
+//
+// Besides, if middleware configure returns a response, we update settings map
+// with returned key/value pairs.
+func (h *Handler) Configure(ci *webhook.ChannelIntegration, ctx *models.Context, oldSettings gorm.Hstore) error {
+	i, err := webhook.Cache.Integration.ById(ci.IntegrationId)
+	if err != nil {
+		return err
+	}
+
+	var authorizable bool
+	err = i.GetSettings("authorizable", &authorizable)
+	if err == webhook.ErrSettingNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if !authorizable {
+		return nil
+	}
+
+	endpoint := fmt.Sprintf("%s/api/webhook/configure/%s", h.rootPath, i.Name)
+	creq := new(helpers.ConfigureRequest)
+
+	nick := ctx.Client.Account.Nick
+	user, err := modelhelper.GetUser(nick)
+	if err != nil {
+		return err
+	}
+
+	creq.UserToken = user.ForeignAuth.GetAccessToken(i.Name)
+	creq.ServiceToken = ci.Token
+	creq.Settings = helpers.Settings(ci.Settings)
+	creq.OldSettings = helpers.Settings(oldSettings)
+
+	body, err := json.Marshal(creq)
+	if err != nil {
+		return err
+	}
+
+	reader := bytes.NewReader(body)
+
+	resp, err := http.Post(endpoint, "application/json", reader)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return errors.New(resp.Status)
+	}
+
+	cr := helpers.ConfigureResponse{}
+	if err := json.NewDecoder(resp.Body).Decode(&cr); err != nil {
+		return err
+	}
+
+	// when user does not define any events, by default github api sets it
+	// as ["push"] event array. for this reason we are updating stored event
+	// with service response when it is needed
+	for k, v := range cr {
+		if err := ci.AddSettings(k, v); err != nil {
+			h.log.Error("Could not update field %s:%s", k, err)
+		}
+	}
+
+	return nil
 }
 
 func (h *Handler) ListChannelIntegrations(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {

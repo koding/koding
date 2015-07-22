@@ -68,3 +68,12 @@ type Github struct {
 	Username string
 	Scope    string
 }
+
+func (f ForeignAuth) GetAccessToken(name string) string {
+	switch name {
+	case "github":
+		return f.Github.Token
+	default:
+		return ""
+	}
+}

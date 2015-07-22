@@ -2,6 +2,7 @@ kd           = require 'kd'
 remote       = require('app/remote').getInstance()
 globals      = require 'globals'
 doXhrRequest = require 'app/util/doXhrRequest'
+whoami       = require 'app/util/whoami'
 
 
 list = (callback) ->
@@ -14,7 +15,6 @@ list = (callback) ->
     return callback err  if err
 
     return callback null, response.data
-
 
 find = (query, callback) ->
 
@@ -55,7 +55,19 @@ fetchChannels = (callback) ->
     callback null, decoratedChannels
 
 
-fetch = (options, callback) ->
+fetch = (name, callback) ->
+
+  doXhrRequest
+    type     : 'GET'
+    endPoint : "/api/integration/#{name}"
+  , (err, response) ->
+
+    return callback err  if err
+
+    return callback null, response.data
+
+
+fetchChannelIntegration = (options, callback) ->
   { id } = options
 
   doXhrRequest
@@ -91,7 +103,7 @@ update = (options, callback) ->
   , callback
 
 
-fetchChannelIntegrations = (callback) ->
+listChannelIntegrations = (callback) ->
 
   doXhrRequest
     endPoint : "/api/integration/channelintegration"
@@ -114,7 +126,7 @@ regenerateToken = (options, callback) ->
     return callback null, response.data
 
 
-fetchGithubRepos = (callback) ->
+fetchAllGithubRepos = (callback) ->
 
   page = 1
   result = []
@@ -147,20 +159,22 @@ fetchConfigureData = (options, callback) ->
   fetchChannels (err, channels) ->
     return callback err  if err
 
-    fetch options, (err, response) ->
+    fetchChannelIntegration options, (err, response) ->
       return callback err  if err
 
       { integration, channelIntegration } = response
 
       { id, token, createdAt, updatedAt, description,
-        integrationId, channelId, isDisabled } = channelIntegration
+        integrationId, channelId, isDisabled, settings } = channelIntegration
 
       description     = description or integration.summary
       webhookUrl      = "#{globals.config.integration.url}/#{integration.name}/#{token}"
       integrationType = 'configured'
       selectedEvents  = []
-      data            = { channels, id, integration, token, createdAt,
+      name            = settings?.customName or integration.title
+      data            = { channels, id, integration, token, createdAt, name,
                           updatedAt, description, integrationId, webhookUrl, isDisabled }
+
 
       if channelIntegration.settings
         data.selectedEvents = try JSON.parse channelIntegration.settings.events catch e then []
@@ -169,13 +183,26 @@ fetchConfigureData = (options, callback) ->
         events = try JSON.parse integration.settings.events catch e then null
         data.settings = { events }
 
-      if integration.name is 'github'
-        fetchGithubRepos (err, repositories) =>
-          return callback err  if err
-          data.repositories = repositories
+      data.authorizable = integration.settings?.authorizable is 'true'
+
+      return callback null, data  unless data.authorizable
+
+      whoami().isAuthorized integration.name, (err, isAuthorized) ->
+
+        return callback err  if err
+
+        return callback null, data  unless isAuthorized
+
+        data.isAuthorized = isAuthorized
+
+        if integration.name is 'github'
+          fetchAllGithubRepos (err, repositories) =>
+            return callback err  if err
+            data.repositories = repositories
+            data.selectedRepository = channelIntegration.settings?.repository
+            callback null, data
+        else
           callback null, data
-      else
-        callback null, data
 
 
 module.exports = {
@@ -185,8 +212,9 @@ module.exports = {
   create
   update
   fetchChannels
-  regenerateToken
-  fetchGithubRepos
   fetchConfigureData
-  fetchChannelIntegrations
+  fetchChannelIntegration
+  listChannelIntegrations
+  regenerateToken
+  fetchAllGithubRepos
 }

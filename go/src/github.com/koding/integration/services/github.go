@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/koding/integration/helpers"
 	"github.com/koding/logging"
@@ -14,6 +15,7 @@ import (
 )
 
 const (
+	GITHUB           = "github"
 	GithubServerURL  = "https://api.github.com"
 	OrgEndpoint      = "/users/%s/orgs"
 	UserRepoEndpoint = "/user/repos"
@@ -21,6 +23,12 @@ const (
 
 	hookType      = "web"
 	githubInfoKey = "githubInfo"
+)
+
+var (
+	ErrInvalidRepository = errors.New("invalid repository")
+	ErrWebhookNotDeleted = errors.New("webhook not deleted")
+	ErrServiceIdNotSet   = errors.New("service id is not set")
 )
 
 type GithubConfig struct {
@@ -45,34 +53,30 @@ type GithubListener struct {
 	Log logging.Logger
 }
 
-type ConfigureRequest struct {
-	AccessToken  string        `json:"token"`
-	Repo         string        `json:"repo"`
-	Events       []interface{} `json:"events"`
-	ServiceToken string        `json:"serviceToken"`
+func UnmarshalEvents(s helpers.Settings) ([]string, error) {
+	val := s.GetString("events")
+	if val == "" {
+		return []string{}, nil
+	}
+
+	var events []string
+	err := json.Unmarshal([]byte(val), &events)
+
+	return events, err
 }
 
 type ConfigurePostRequest struct {
-	Name   string        `json:"name"`
-	Active bool          `json:"active"`
-	Events []interface{} `json:"events"`
-	Config *Config       `json:"config"`
+	Id     int64    `json:"id"`
+	Name   string   `json:"name"`
+	Active bool     `json:"active"`
+	Events []string `json:"events"`
+	Config *Config  `json:"config"`
 }
 
 type Config struct {
 	URL         string `json:"url"`
 	ContentType string `json:"content_type"`
 	Secret      string `json:"secret"`
-}
-
-type Organization struct {
-	Name string `json:"login"`
-}
-
-type Repos map[string][]string
-
-type Repo struct {
-	Name string `json:"name"`
 }
 
 type GithubInfo struct {
@@ -111,22 +115,67 @@ func (g Github) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	g.handler.ServeHTTP(w, req)
 }
 
-// Configure is created for creating webhooks for repositories in github
-func (g Github) Configure(req *http.Request) (interface{}, error) {
-	cr, err := mapConfigureRequest(req)
+// Configure is for supporting CRUD operations on repository webhooks
+// in github. It decides what to do by comparing old and new settings
+func (g Github) Configure(req *http.Request) (helpers.ConfigureResponse, error) {
+	cr := new(helpers.ConfigureRequest)
+	if err := helpers.MapConfigureRequest(req, cr); err != nil {
+		return nil, err
+	}
+
+	repo := cr.Settings.GetString("repository")
+	if repo == "" {
+		return nil, ErrInvalidRepository
+	}
+
+	oldRepo := cr.OldSettings.GetString("repository")
+
+	// configure same repository, therefore update webhook
+	if repo == oldRepo {
+		baseUrl := fmt.Sprintf("%s/repos/%s/hooks", g.ServerUrl, oldRepo)
+		serviceId := cr.OldSettings.GetString("serviceId")
+		if serviceId == "" {
+			return nil, ErrServiceIdNotSet
+		}
+		url := fmt.Sprintf("%s/%s", baseUrl, serviceId)
+
+		return g.configure(cr, "PATCH", url)
+	}
+
+	// now create the new webhook
+	url := fmt.Sprintf("%s/repos/%s/hooks", g.ServerUrl, repo)
+
+	createRes, err := g.configure(cr, "POST", url)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf(
-		"%s/repos/%s/hooks",
-		g.ServerUrl,
-		cr.Repo,
-	)
+	// repository name has changed, therefore delete the previous webhook
+	if oldRepo != "" {
+		baseUrl := fmt.Sprintf("%s/repos/%s/hooks", g.ServerUrl, oldRepo)
+		serviceId := cr.OldSettings.GetString("serviceId")
+		if serviceId == "" {
+			return nil, ErrServiceIdNotSet
+		}
+
+		url := fmt.Sprintf("%s/%s", baseUrl, serviceId)
+		if _, err := g.configure(cr, "DELETE", url); err != nil {
+			g.Log.Error("Could not delete the previous repository %s: %s", oldRepo, err)
+		}
+	}
+
+	return createRes, nil
+}
+
+func (g Github) configure(cr *helpers.ConfigureRequest, method, url string) (helpers.ConfigureResponse, error) {
+	events, err := UnmarshalEvents(cr.Settings)
+	if err != nil {
+		g.Log.Error("Could not unmarshal events", err)
+	}
 
 	cpr := &ConfigurePostRequest{
 		Name:   hookType,
-		Events: cr.Events,
+		Events: events,
 		Active: true,
 		Config: &Config{
 			URL:         prepareEndpoint(g.PublicUrl, GITHUB, cr.ServiceToken),
@@ -141,13 +190,13 @@ func (g Github) Configure(req *http.Request) (interface{}, error) {
 	}
 	reader := bytes.NewReader(by)
 
-	req, err = http.NewRequest("POST", url, reader)
+	req, err := http.NewRequest(method, url, reader)
 	if err != nil {
 		return nil, err
 	}
 
 	// Set user's oauth token
-	headerAuth := fmt.Sprintf("token %s", cr.AccessToken)
+	headerAuth := fmt.Sprintf("token %s", cr.UserToken)
 	req.Header.Add("Authorization", headerAuth)
 	c := new(http.Client)
 	resp, err := c.Do(req)
@@ -160,7 +209,21 @@ func (g Github) Configure(req *http.Request) (interface{}, error) {
 		return nil, errors.New(resp.Status)
 	}
 
-	return nil, nil
+	result := make(map[string]interface{})
+	// it is delete request with no content
+	if resp.ContentLength == 0 {
+		return nil, nil
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	response := helpers.ConfigureResponse{}
+	response["serviceId"] = strconv.FormatInt(int64(result["id"].(float64)), 10)
+	response["events"] = result["events"]
+
+	return response, nil
 }
 
 func githubContextCreator(req *http.Request) context.Context {
@@ -170,15 +233,6 @@ func githubContextCreator(req *http.Request) context.Context {
 	}
 
 	return context.WithValue(context.Background(), githubInfoKey, gi)
-}
-
-func mapConfigureRequest(req *http.Request) (*ConfigureRequest, error) {
-	cr := new(ConfigureRequest)
-	if err := json.NewDecoder(req.Body).Decode(cr); err != nil {
-		return nil, err
-	}
-
-	return cr, nil
 }
 
 // Push is triggered when a repository branch is pushed to.
@@ -208,10 +262,9 @@ func (g GithubListener) push(e *webhook.PushEvent) (string, error) {
 	for _, commit := range e.Commits[:commitsLen] {
 		commitsStr += fmt.Sprintf("\n  * [%s](%s) %s - %s", commit.ID[:6], commit.URL, commit.Message, commit.Author.Name)
 	}
-	return fmt.Sprintf("%s %s to %s/%s%s",
+	return fmt.Sprintf("%s %s to %s%s",
 		user,
 		compareStr,
-		e.Repository.Owner.Name,
 		repo,
 		commitsStr,
 	), nil
@@ -234,7 +287,7 @@ func (g GithubListener) issueComment(e *webhook.IssueCommentEvent) (string, erro
 	user := fmt.Sprintf("[%s](%s)", e.Comment.User.Login, e.Comment.User.HTMLURL)
 	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
 
-	return fmt.Sprintf("%s %s on pull request '%s' at %s\n>%s",
+	return fmt.Sprintf("%s %s on issue '%s' at %s\n>%s",
 		user,
 		Link,
 		e.Issue.Title,
