@@ -1,12 +1,14 @@
 immutable           = require 'immutable'
 isPublicChatChannel = require 'activity/util/isPublicChatChannel'
 
-withEmptyMap = (storeData) -> storeData or immutable.Map()
+withEmptyMap  = (storeData) -> storeData or immutable.Map()
+withEmptyList = (storeData) -> storeData or immutable.List()
 
 # Store Data getters
 # Main purpose of these getters are fetching data from stores, some of them
 # the ones with `withEmptyMap` will return an empty immutable map if data from
-# the store is falsy.
+# the store is falsy. Another ones with `withEmptyList` will return an empty
+# immutable list if data from the store is falsy.
 
 ChannelsStore                  = [['ChannelsStore'], withEmptyMap]
 MessagesStore                  = [['MessagesStore'], withEmptyMap]
@@ -14,6 +16,9 @@ ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
+SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
+SuggestionsQueryStore          = ['SuggestionsQueryStore']
+SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -111,6 +116,10 @@ selectedChannelThreadMessages = [
     else immutable.List()
 ]
 
+# Aliases for providing consistent getter names for suggestion stores
+currentSuggestionsQuery = SuggestionsQueryStore
+currentSuggestions      = SuggestionsStore
+currentSuggestionsFlags = SuggestionsFlagsStore
 
 module.exports = {
   followedFeedThreads
@@ -120,5 +129,8 @@ module.exports = {
   selectedChannelThreadId
   selectedChannelThread
   selectedChannelThreadMessages
-}
 
+  currentSuggestionsQuery
+  currentSuggestions
+  currentSuggestionsFlags
+}

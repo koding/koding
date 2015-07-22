@@ -74,7 +74,8 @@ func (c *Controller) handleDefaultChannels(defaultChannels []string, cp *models.
 	for _, channelId := range defaultChannels {
 		ci, err := strconv.ParseInt(channelId, 10, 64)
 		if err != nil {
-			return err
+			c.log.Error("Couldnt parse channelId: %s, err: %s", channelId, err.Error())
+			continue
 		}
 
 		if err := c.handleDefaultChannel(ci, cp); err != nil {

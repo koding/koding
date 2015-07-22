@@ -820,9 +820,9 @@ Admin main styles
   .delete-topic
     abs                     8px 100px 0 0
     size                    32px 32px
-    
+
     &:before
-      abs                   8px 0 0 8px 
+      abs                   8px 0 0 8px
       content               ''
       display               block
       r-sprite              'admin', 'delete-topic'
@@ -1227,8 +1227,17 @@ Admin main styles
 
 .AppModal--admin .integrations
 
+  .integration-details
+    overflow-y              scroll
+
   .kdtabhandle
     max-width               230px !important // override element style
+
+  .error-view
+    text-align              center
+    margin-top              70px
+    font-size               15px
+    color                   #a1a1a1
 
   .configured-list
     margin-top              20px
@@ -1269,7 +1278,6 @@ Admin main styles
           r-sprite          'app', 'sidebar-toggle'
           display           inline-block
           vendor            transform, rotate(180deg)
-
 
   .integration-view
     border-top              1px solid #dedede

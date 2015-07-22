@@ -16,9 +16,13 @@ handleSection = (path, callback)->
       appManager.open 'Admin', callback
 
 
-handle = ({query, params:{section}}, path) ->
+handle = (options, path) ->
+
+  { query, params } = options
+  { section, action, identifier } = params
+
   handleSection path, (app) ->
-    app.openSection section, query
+    app.openSection section, query, action, identifier
 
 
 module.exports = ->
@@ -26,5 +30,5 @@ module.exports = ->
     switch type
       when 'home'
         kd.singletons.router.handleRoute '/Admin/Settings'
-      when 'section'
+      when 'section', 'action', 'identifier'
         handle info, path

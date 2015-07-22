@@ -244,6 +244,8 @@ class MainController extends KDController
 
     KiteCache.clearAll()
 
+    kd.singletons.onboarding.stop()
+
     remote.api.JUser.logout (err) =>
 
       mainView._logoutAnimation()

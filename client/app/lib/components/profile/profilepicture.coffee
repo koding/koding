@@ -16,7 +16,13 @@ module.exports = class ProfilePicture extends React.Component
 
 
   getImageProps: ->
-    src      : helper.getGravatarUri @props.account, @props.width * @state.dpr
+
+    { account, width, height } = @props
+    { dpr } = @state
+
+    avatarUri = helper.getAvatarUri account, width, height, dpr
+
+    src      : avatarUri
     style    :
       width  : @props.width
       height : @props.height

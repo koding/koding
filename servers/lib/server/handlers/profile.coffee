@@ -1,4 +1,5 @@
-{ error_404 }          = require './../helpers'
+{ error_404, isMainDomain } = require './../helpers'
+
 koding                 = require './../bongo'
 { generateFakeClient } = require "./../client"
 Crawler                = require './../../crawler'
@@ -10,6 +11,8 @@ module.exports = (req, res, next, options)->
   { params }                  = req
   { name, section, slug }     = params
   { path, loggedIn, account } = options
+
+  return next()  unless isMainDomain req
 
   JName.fetchModels name, (err, result)->
 

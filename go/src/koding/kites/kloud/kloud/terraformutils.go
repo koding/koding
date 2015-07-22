@@ -331,3 +331,15 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 func isVariable(v string) bool {
 	return v[0] == '$'
 }
+
+// parseAccountID parses an AWS arn string to get the Account ID
+func parseAccountID(arn string) (string, error) {
+	// example arn string: "arn:aws:iam::213456789:user/username"
+	// returns: 213456789.
+	splitted := strings.Split(strings.TrimPrefix(arn, "arn:aws:iam::"), ":")
+	if len(splitted) != 2 {
+		return "", fmt.Errorf("Couldn't parse arn string: %s", arn)
+	}
+
+	return splitted[0], nil
+}

@@ -69,7 +69,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
     @getDelegate()
       .verify this
-      .timeout 5000
+      .timeout 10000
       .then (response) =>
         @setVerified response?[publicKey]
 
