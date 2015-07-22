@@ -27,6 +27,8 @@ services=(
   koding/go-webserver
   koding/workers/cmd/tunnelproxymanager
   koding/vmwatcher
+  koding/workers/janitor
+
   github.com/koding/kite/kitectl
   github.com/canthefason/go-watcher
   github.com/mattes/migrate
@@ -46,6 +48,7 @@ services=(
   socialapi/workers/cmd/sitemap/sitemapgenerator
   socialapi/workers/cmd/sitemap/sitemapinitializer
   socialapi/workers/cmd/algoliaconnector
+  socialapi/workers/cmd/algoliaconnector/deletedaccountremover
   socialapi/workers/payment/paymentwebhook
   socialapi/workers/cmd/topicmoderation
   socialapi/workers/cmd/collaboration

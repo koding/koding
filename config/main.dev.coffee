@@ -3,6 +3,7 @@ log                   = console.log
 fs                    = require 'fs'
 os                    = require 'os'
 path                  = require 'path'
+{ isAllowed }         = require '../deployment/grouptoenvmapping'
 
 Configuration = (options={}) ->
 
@@ -70,7 +71,10 @@ Configuration = (options={}) ->
   version             = options.version        or "2.0" # TBD
   branch              = options.branch         or "cake-rewrite"
   build               = options.build          or "1111"
-  githubuser          = options.githubuser     or "koding"
+  githubapi           =
+    debug             : yes
+    timeout           : 5000
+    userAgent         : 'Koding-Bridge'
 
   mongo               = "#{boot2dockerbox}:27017/koding"
   etcd                = "#{boot2dockerbox}:4001"
@@ -108,8 +112,9 @@ Configuration = (options={}) ->
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                        , pubnub: pubnub                                }
   integration         = { host:     "localhost"                                   , port:               "7300"                                        , url: "#{customDomain.public}/api/integration"}
   webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
-  paymentwebhook      = { port   : "6600",     debug    : false }
-  tokbox              = { apiKey: '45253342', apiSecret: 'e834f7f61bd2b3fafc36d258da92413cebb5ce6e' }
+  paymentwebhook      = { port:     "6600"                                        , debug:              false                                         , secretKey: "paymentwebhooksecretkey-dev" }
+  tokbox              = { apiKey:   "45253342"                                    , apiSecret:          "e834f7f61bd2b3fafc36d258da92413cebb5ce6e" }
+  recaptcha           = { enabled: no }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -125,6 +130,8 @@ Configuration = (options={}) ->
     serviceAccountKeyFile : "#{projectRoot}/keys/KodingCollaborationDev201506.pem"
 
   segment                 = 'kb2hfdgf20'
+
+  github                  = { clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"   , redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback" }
 
 
   # if you want to disable a feature add here with "true" value do not forget to
@@ -165,16 +172,18 @@ Configuration = (options={}) ->
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
+    github                  : github
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
     disabledFeatures        : disabledFeatures
+    janitor                 : { port: "6700", secretKey: "janitorsecretkey-dev" }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   autoConfirmAccounts = yes
 
   tunnelserver =
-    port            : 4444
+    port            : 80
     basevirtualhost : "koding.me"
     hostedzone      : "koding.me"
 
@@ -202,10 +211,12 @@ Configuration = (options={}) ->
     redis                          : redis.url
     monitoringRedis                : redis.url
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
+    githubapi                      : githubapi
+    recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url }
+    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-dev" }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
@@ -230,7 +241,7 @@ Configuration = (options={}) ->
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
-    github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"   , redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"}
+    github                         : github
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "1408510959475637"                             , clientSecret  : "bf837bc719dc63c870ac77f9c76fe26d"           , redirectUri  : "http://dev.koding.com:8090/-/oauth/facebook/callback"}
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "http://dev.koding.com:8090/-/oauth/google/callback" }
@@ -245,7 +256,7 @@ Configuration = (options={}) ->
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : '2b62c0cbea188dc6'
-    prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
+    prerenderToken                 : 'rmhVl6TMAbAO4GQJyAI3'
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
@@ -276,7 +287,7 @@ Configuration = (options={}) ->
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
     embedly              : {apiKey       : KONFIG.embedly.apiKey}
-    github               : {clientId     : KONFIG.github.clientId}
+    github               : {clientId     : github.clientId}
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
@@ -298,6 +309,7 @@ Configuration = (options={}) ->
     disabledFeatures     : disabledFeatures
     integration          : { url: "#{integration.url}" }
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
+    recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
@@ -348,7 +360,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port}  -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile}  -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port}  -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile}  -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey} -janitorsecretkey=#{socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{paymentwebhook.secretKey}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -366,11 +378,6 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/terraformer -port #{KONFIG.terraformer.port} -region #{region} -environment  #{environment} -aws-key #{awsKeys.worker_terraformer.accessKeyId} -aws-secret #{awsKeys.worker_terraformer.secretAccessKey} -aws-bucket #{KONFIG.terraformer.bucket} -localstorepath #{KONFIG.terraformer.localstorepath}"
       healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
-
-    ngrokProxy          :
-      group             : "environment"
-      supervisord       :
-        command         : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
 
     broker              :
       group             : "webserver"
@@ -500,6 +507,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/moderation/(.*)"
             proxyPass   : "http://socialapi/moderation/$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/account/channels"
+            proxyPass   : "http://socialapi/account/channels$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"
@@ -661,6 +672,14 @@ Configuration = (options={}) ->
           run           : "#{GOBIN}/team -c #{socialapi.configFilePath}"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c #{socialapi.configFilePath}"
 
+    janitor             :
+      group             : "environment"
+      instances         : 1
+      supervisord       :
+        command         : "#{GOBIN}/janitor -c #{socialapi.configFilePath} -kite-init=true"
+      healthCheckURL    : "http://localhost:#{socialapi.janitor.port}/healthCheck"
+      versionURL        : "http://localhost:#{socialapi.janitor.port}/version"
+
     integration         :
       group             : "socialapi"
       ports             :
@@ -728,7 +747,7 @@ Configuration = (options={}) ->
         websocket       : yes
         locations       : [
           {
-            location    : "/(.*)"
+            location    : "~ /tunnelserver/(.*)"
             proxyPass   : "http://tunnelserver/$1"
           }
         ]
@@ -780,6 +799,25 @@ Configuration = (options={}) ->
           }
         ]
 
+  if os.type() is 'Darwin'
+    KONFIG.workers.ngrokProxy =
+      group       : "environment"
+      supervisord :
+        command   : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
+
+
+  KONFIG.supervisord =
+    logdir   : "#{projectRoot}/.logs"
+    rundir   : "#{projectRoot}/.supervisor"
+    minfds   : 1024
+    minprocs : 200
+
+  KONFIG.supervisord.output_path = "#{projectRoot}/supervisord.conf"
+
+  KONFIG.supervisord.unix_http_server =
+    file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
+
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
@@ -793,7 +831,11 @@ Configuration = (options={}) ->
 
     killlist = ->
       str = "kill -KILL "
-      str += "$#{key}pid " for key,val of KONFIG.workers
+      for key, worker of KONFIG.workers
+        unless isAllowed worker.group, KONFIG.ebEnvName
+          continue
+
+        str += "$#{key}pid "
 
       return str
 
@@ -813,6 +855,10 @@ Configuration = (options={}) ->
     workersRunList = ->
       workers = ""
       for name, worker of KONFIG.workers when worker.supervisord
+        # some of the locations can be limited to some environments, while creating
+        # nginx locations filter with this info
+        unless isAllowed worker.group, KONFIG.ebEnvName
+          continue
 
         {command} = worker.supervisord
 
@@ -1598,16 +1644,18 @@ Configuration = (options={}) ->
         sh -c scripts/validate-npm.sh
         run $1
 
-      elif [ "$1" == "socialworkertests" ]; then
-
-        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
-
       elif [ "$1" == "vmwatchertests" ]; then
         go test koding/vmwatcher -test.v=true
 
-      elif [ "$1" == "nodeservertests" ]; then
+      elif [ "$1" == "socialworkertests" ]; then
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
 
+      elif [ "$1" == "nodeservertests" ]; then
         #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers"
+
+      # To run specific test directory or a single test file
+      elif [ "$1" == "nodetestfiles" ]; then
+        #{projectRoot}/scripts/node-testing/mocha-runner $2
 
       else
         echo "Unknown command: $1"

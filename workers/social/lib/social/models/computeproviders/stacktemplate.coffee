@@ -1,20 +1,12 @@
-jraphical = require 'jraphical'
-crypto    = require 'crypto'
+{ ObjectId, signature }  = require 'bongo'
+{ Module, Relationship } = require 'jraphical'
+KodingError              = require '../../error'
 
 
-module.exports = class JStackTemplate extends jraphical.Module
+module.exports = class JStackTemplate extends Module
 
-  KodingError        = require '../../error'
-
-  JName              = require '../name'
-  JUser              = require '../user'
-  JGroup             = require '../group'
-  JCredentialData    = require './credentialdata'
-
-  {Inflector, secure, ObjectId, signature, daisy} = require 'bongo'
-  {Relationship}     = jraphical
-  {permit}           = require '../group/permissionset'
-  Validators         = require '../group/validators'
+  {permit}     = require '../group/permissionset'
+  Validators   = require '../group/validators'
 
   @trait __dirname, '../../traits/protected'
 
@@ -61,12 +53,7 @@ module.exports = class JStackTemplate extends jraphical.Module
 
     schema            :
 
-      rules           : [ Object ]
-      domains         : [ Object ]
       machines        : [ Object ]
-      extras          : [ Object ]
-
-      connections     : [ Object ]
 
       title           :
         type          : String
@@ -77,10 +64,10 @@ module.exports = class JStackTemplate extends jraphical.Module
 
       accessLevel     :
         type          : String
-        enum          : ["Wrong level specified!",
-          ["private", "group", "public"]
+        enum          : ['Wrong level specified!',
+          ['private', 'group', 'public']
         ]
-        default       : "private"
+        default       : 'private'
 
       originId        :
         type          : ObjectId
@@ -93,27 +80,30 @@ module.exports = class JStackTemplate extends jraphical.Module
       template        :
         content       : String
         sum           : String
+        details       : Object
 
       # Public keys of JCredentials
       credentials     : [ String ]
 
 
-  generateTemplateObject = (content)->
+  generateTemplateObject = (content, details) ->
 
-    content = ''  unless typeof content is 'string'
+    crypto   = require 'crypto'
+    content  = ''  unless typeof content is 'string'
+    details ?= {}
 
     return {
       content
+      details
       sum: crypto.createHash 'sha1'
         .update content
         .digest 'hex'
     }
 
 
-
   @create = permit 'create stack template',
 
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
 
       { delegate } = client.connection
 
@@ -126,16 +116,12 @@ module.exports = class JStackTemplate extends jraphical.Module
         title       : data.title
         config      : data.config      ? {}
         description : data.description ? ''
-        rules       : data.rules       ? []
-        domains     : data.domains     ? []
         machines    : data.machines    ? []
-        extras      : data.extras      ? []
-        connections : data.connections ? []
         accessLevel : data.accessLevel ? 'private'
-        template    : generateTemplateObject data.template
+        template    : generateTemplateObject data.template, data.templateDetails
         credentials : data.credentials ? []
 
-      stackTemplate.save (err)->
+      stackTemplate.save (err) ->
         if err
         then callback new KodingError 'Failed to save stack template', err
         else callback null, stackTemplate
@@ -143,7 +129,7 @@ module.exports = class JStackTemplate extends jraphical.Module
 
   @some$: permit 'list stack templates',
 
-    success: (client, selector, options, callback)->
+    success: (client, selector, options, callback) ->
 
       [options, callback] = [callback, options]  unless callback
       options ?= {}
@@ -151,7 +137,7 @@ module.exports = class JStackTemplate extends jraphical.Module
       { delegate } = client.connection
 
       unless typeof selector is 'object'
-        return callback new KodingError "Invalid query"
+        return callback new KodingError 'Invalid query'
 
       selector.$and ?= []
       selector.$and.push
@@ -166,7 +152,7 @@ module.exports = class JStackTemplate extends jraphical.Module
           }
         ]
 
-      @some selector, options, (err, templates)->
+      @some selector, options, (err, templates) ->
         callback err, templates
 
 
@@ -177,7 +163,7 @@ module.exports = class JStackTemplate extends jraphical.Module
       { permission: 'delete stack template' }
     ]
 
-    success: (client, callback)-> @remove callback
+    success: (client, callback) -> @remove callback
 
 
   setAccess: permit
@@ -187,7 +173,7 @@ module.exports = class JStackTemplate extends jraphical.Module
       { permission: 'update stack template' }
     ]
 
-    success: (client, accessLevel, callback)->
+    success: (client, accessLevel, callback) ->
 
       @update $set: { accessLevel }, callback
 
@@ -199,15 +185,23 @@ module.exports = class JStackTemplate extends jraphical.Module
       { permission: 'update stack template' }
     ]
 
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
 
+      # It's not allowed to change a stack template group or owner
       delete data.originId
       delete data.group
 
-      if data.template?
-        data.template = generateTemplateObject data.template
+      # Update template sum if template update requested
+      { template, templateDetails } = data
+      if template?
+        data.template = generateTemplateObject template, templateDetails
 
-      @update $set: data, (err)-> callback err
+        # Keep the existing template details if not provided
+        if not templateDetails?
+          data.template.details = @getAt 'template.details'
+
+      @update $set: data, (err) -> callback err
+
 
 # Base StackTemplate example for koding group
 ###
@@ -220,8 +214,6 @@ KD.remote.api.JStackTemplate.create({
      "KODING_BASE_PACKAGES" : "mc nodejs python sl screen",
      "DEBIAN_FRONTEND" : "noninteractive"
   },
-  rules: [],
-  domains: [],
   machines: [
     {
       "label" : "koding-vm-0",
@@ -234,7 +226,6 @@ KD.remote.api.JStackTemplate.create({
       "source_ami" : "ami-a6926dce"
     }
   ],
-  connections: []
 }, function(err, template) {
   return console.log(err, template);
 });
@@ -256,21 +247,6 @@ Default Template ---
         "KODING_BASE_PACKAGES" : "mc nodejs python sl",
         "DEBIAN_FRONTEND" : "noninteractive"
     },
-    "rules" : [],
-    "domains" : [
-        {
-            "domain" : "${username}.kd.io"
-        },
-        {
-            "domain" : "aws.${username}.kd.io"
-        },
-        {
-            "domain" : "rs.${username}.kd.io"
-        },
-        {
-            "domain" : "do.${username}.kd.io"
-        }
-    ],
     "machines" : [
         {
             "label" : "VM1 from Koding",
@@ -305,25 +281,6 @@ Default Template ---
             "image" : "ubuntu-13-10-x64",
             "region" : "sfo1",
             "size" : "512mb"
-        }
-    ],
-    "extras" : [],
-    "connections" : [
-        {
-            "domains" : 0,
-            "machines" : 0
-        },
-        {
-            "domains" : 1,
-            "machines" : 0
-        },
-        {
-            "domains" : 2,
-            "machines" : 1
-        },
-        {
-            "domains" : 3,
-            "machines" : 2
         }
     ],
     "group" : "koding",

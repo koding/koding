@@ -69,7 +69,10 @@ Configuration = (options={}) ->
   version        = options.tag
   tag            = options.tag
   publicIP       = options.publicIP            or "*"
-  githubuser     = options.githubuser          or "koding"
+  githubapi      =
+    debug        : no
+    timeout      : 5000
+    userAgent    : 'Koding-Bridge'
 
   mongo               = "#{prod_simulation_server}:27017/koding"
   etcd                = "#{prod_simulation_server}:4001"
@@ -93,8 +96,9 @@ Configuration = (options={}) ->
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                        , pubnub: pubnub                                }
   integration         = { host:     "localhost"                                   , port:               "7300"                                        , url: "#{customDomain.public}/api/integration" }
   webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
-  paymentwebhook      = { port:     "6600"                                        , debug:              false                                   }
-  tokbox              = { apiKey: '45253342', apiSecret: 'e834f7f61bd2b3fafc36d258da92413cebb5ce6e' }
+  paymentwebhook      = { port:     "6600"                                        , debug:              false                                         , secretKey: "paymentwebhooksecretkey-sandbox"       }
+  tokbox              = { apiKey:   "45253342"                                    , apiSecret:          "e834f7f61bd2b3fafc36d258da92413cebb5ce6e" }
+  recaptcha           = { enabled:  yes }
 
 
 
@@ -119,6 +123,11 @@ Configuration = (options={}) ->
     moderation : yes
     teams      : yes
     botchannel : yes
+
+  github =
+    clientId      : "d3b586defd01c24bb294"
+    clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"
+    redirectUri   : "https://sandbox.koding.com/-/oauth/github/callback"
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -151,6 +160,8 @@ Configuration = (options={}) ->
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
     disabledFeatures        : disabledFeatures
+    janitor                 : { port: "6700", secretKey: "janitorsecretkey-sandbox" }
+    github                  : github
 
   userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -161,7 +172,7 @@ Configuration = (options={}) ->
   kloudPort           = 5500
 
   tunnelserver =
-    port            : 4444
+    port            : 80
     basevirtualhost : "koding.me"
     hostedzone      : "koding.me"
 
@@ -189,9 +200,11 @@ Configuration = (options={}) ->
     redis                          : redis.url
     monitoringRedis                : "#{prod_simulation_server}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
+    githubapi                      : githubapi
+    recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
 
     # -- WORKER CONFIGURATION -- #
-    vmwatcher                      : {port          : "6400"                      , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
+    vmwatcher                      : {port          : "6400"                      , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey   , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-sandbox" }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
@@ -217,7 +230,7 @@ Configuration = (options={}) ->
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
-    github                         : {clientId      : "d3b586defd01c24bb294"                         , clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"   , redirectUri : "https://sandbox.koding.com/-/oauth/github/callback"}
+    github                         : github
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://sandbox.koding.com/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "650676665033389"                              , clientSecret  : "6771ee1f5aa28e5cd13d3465bacffbdc"           , redirectUri  : "https://sandbox.koding.com/-/oauth/facebook/callback"}
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "https://sandbox.koding.com/-/oauth/google/callback" }
@@ -232,7 +245,7 @@ Configuration = (options={}) ->
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : '2b62c0cbea188dc6'
-    prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
+    prerenderToken                 : 'rmhVl6TMAbAO4GQJyAI3'
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
@@ -262,7 +275,7 @@ Configuration = (options={}) ->
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
     embedly              : {apiKey       : KONFIG.embedly.apiKey}
-    github               : {clientId     : KONFIG.github.clientId}
+    github               : {clientId     : github.clientId }
     newkontrol           : {url          : "#{kontrol.url}"}
     sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
@@ -285,6 +298,7 @@ Configuration = (options={}) ->
     contentRotatorUrl    : 'http://koding.github.io'
     integration          : { url: "#{integration.url}" }
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
+    recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
@@ -335,7 +349,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey} -janitorsecretkey=#{socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{paymentwebhook.secretKey}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -451,6 +465,20 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
+    janitor             :
+      group             : "environment"
+      instances         : 1
+      supervisord       :
+        command         : "#{GOBIN}/janitor -c #{socialapi.configFilePath} -kite-init=true"
+      healthCheckURL    : "http://localhost:#{socialapi.janitor.port}/healthCheck"
+      versionURL        : "http://localhost:#{socialapi.janitor.port}/version"
+
+    # clientWatcher       :
+    #   group             : "webserver"
+    #   supervisord       :
+    #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
+
+
     # Social API workers
     socialapi           :
       group             : "socialapi"
@@ -485,6 +513,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/moderation/(.*)"
             proxyPass   : "http://socialapi/moderation/$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/account/channels"
+            proxyPass   : "http://socialapi/account/channels$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"
@@ -668,11 +700,10 @@ Configuration = (options={}) ->
         websocket       : yes
         locations       : [
           {
-            location    : "/(.*)"
+            location    : "~ /tunnelserver/(.*)"
             proxyPass   : "http://tunnelserver/$1"
           }
         ]
-
 
     userproxies         :
       group             : "proxy"
@@ -721,6 +752,21 @@ Configuration = (options={}) ->
           }
         ]
 
+
+  KONFIG.supervisord =
+    logdir   : '/var/log/koding'
+    rundir   : '/var/run'
+    minfds   : 10000
+    minprocs : 200
+
+  KONFIG.supervisord.unix_http_server =
+    file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
+
+  KONFIG.supervisord.memmon =
+    limit : '3072MB'
+    email : 'sysops+supervisord-sandbox@koding.com'
+
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
@@ -760,7 +806,7 @@ Configuration = (options={}) ->
   KONFIG.runFile         = generateRunFile KONFIG
   KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 
-  KONFIG.configCheckExempt = ["ngrokProxy", "command"]
+  KONFIG.configCheckExempt = ["ngrokProxy", "command", "output_path"]
 
   return KONFIG
 

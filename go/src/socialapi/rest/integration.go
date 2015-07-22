@@ -1,14 +1,14 @@
 package rest
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook/api"
 	"strconv"
-
-	"github.com/koding/integration/services"
 )
 
 const (
@@ -18,18 +18,36 @@ const (
 
 var ErrTypecastError = errors.New("typecast error")
 
-func DoPrepareRequest(data *services.ServiceInput, token string) error {
-	url := fmt.Sprintf("%s/push/iterable/%s", MiddlewareEndPoint, token)
-	_, err := sendModel("POST", url, data)
+func DoGithubPush(data string, token string) error {
+	url := fmt.Sprintf("%s/push/github/%s", MiddlewareEndPoint, token)
+
+	reader := bytes.NewReader([]byte(data))
+	req, err := http.NewRequest("POST", url, reader)
+	if err != nil {
+		return nil
+	}
+
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("User-Agent", "GitHub-Hookshot/aef1442")
+	req.Header.Set("X-GitHub-Delivery", "9c072a80-19f7-11e5-8043-a9077ed0d1e6")
+	req.Header.Set("X-GitHub-Event", "push")
+
+	req.Header.Set("X-Hub-Signature", "sha1=151b614b891bec1d49f86bee527d841c8eec9abd")
+
+	client := http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return errors.New(resp.Status)
 	}
 
 	return nil
 }
 
 func DoPushRequest(data *api.PushRequest, token string) error {
-
 	url := fmt.Sprintf("%s/push/%s", IntegrationEndPoint, token)
 	_, err := sendModel("POST", url, data)
 

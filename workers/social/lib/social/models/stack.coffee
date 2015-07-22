@@ -323,19 +323,22 @@ module.exports = class JComputeStack extends jraphical.Module
       { permission: 'list stacks', validateWith: Validators.own }
     ]
 
-    success: (client, callback)->
+    success: (client, callback) ->
 
       if not @baseStackId
         return callback null, stackRevisionErrors.NOTFROMTEMPLATE
 
       JStackTemplate = require "./computeproviders/stacktemplate"
-      JStackTemplate.one { _id: @baseStackId }, (err, template)=>
+      JStackTemplate.one { _id: @baseStackId }, (err, template) =>
         return callback err  if err
+        return callback new KodingError "Template not valid"  unless template
 
-        callback null,
+        status =
           if not template?.template?.sum or not @stackRevision
             stackRevisionErrors.INVALIDTEMPLATE
           else if template.template.sum is @stackRevision
             stackRevisionErrors.TEMPLATESAME
           else
             stackRevisionErrors.TEMPLATEDIFFERENT
+
+        callback null, { status, machineCount: template.machines.length }

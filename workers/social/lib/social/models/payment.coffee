@@ -153,6 +153,8 @@ module.exports = class Payment extends Base
         "GB storage"
       when "total"
         "total vms"
+      when "snapshots"
+        "total snapshots"
 
   canChangePlan = (client, planTitle, callback)->
     fetchPlan client, planTitle, (err, plan)->
@@ -161,7 +163,7 @@ module.exports = class Payment extends Base
       fetchUsage client, (err, usage)->
         return callback err  if err
 
-        for name in ["alwaysOn", "storage", "total"]
+        for name in ["alwaysOn", "storage", "total", "snapshots"]
           if usage[name] > plan[name]
             return callback {
               "message"   : "Sorry, your request to downgrade can't be processed because you are currently using more resources than the plan you are trying to downgrade to allows."

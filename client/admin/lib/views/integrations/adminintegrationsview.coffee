@@ -20,7 +20,7 @@ module.exports = class AdminMembersView extends KDView
 
   createTabView: ->
 
-    @addSubView tabView = new KDTabView hideHandleCloseIcons: yes
+    @addSubView tabView = @tabView = new KDTabView hideHandleCloseIcons: yes
 
     tabView.addPane all        = new KDTabPaneView name: 'All Services'
     tabView.addPane configured = new KDTabPaneView name: 'Configured Integrations'
@@ -36,3 +36,9 @@ module.exports = class AdminMembersView extends KDView
     allListView.on 'ShowConfiguredTab', =>
       tabView.showPaneByIndex 1
       configuredListView.refresh()
+
+
+  handleAction: (action) ->
+
+    index = if action is 'Configure' then 1 else 0
+    @tabView.showPaneByIndex index

@@ -1,5 +1,7 @@
 kd = require 'kd'
 KDView = kd.View
+KDCustomHTMLView = kd.CustomHTMLView
+KDCustomScrollViewWrapper = kd.CustomScrollViewWrapper
 
 module.exports = class ThrobberView extends KDView
 
@@ -14,7 +16,7 @@ module.exports = class ThrobberView extends KDView
     super options, data
 
     @appendToParent()
-    @createElements()
+    @createThrobberElement()
     @setPosition()
 
 
@@ -31,23 +33,61 @@ module.exports = class ThrobberView extends KDView
       @appendToDomBody()
 
 
-  createElements: ->
-
-    { placementX, placementY, tooltipText, tooltipPlacement } = @getOptions()
+  createThrobberElement: ->
 
     @addSubView new KDView
       tagName   : 'figure'
       cssClass  : 'throbber'
       partial   : '<i></i><i></i>'
 
+
+  showTooltip: ->
+
+    { placementX, placementY, tooltipText, tooltipPlacement, targetIsScrollable } = @getOptions()
+
     if tooltipPlacement is 'auto' or not tooltipPlacement
       tooltipPlacement = if placementX is 'left' then 'left' else 'right'
 
+    tooltipView = new KDCustomHTMLView
+      cssClass : 'throbber-tooltip-text'
+      partial  : tooltipText
+
+    helper.setupLinksTarget tooltipView
+
+    tooltipView.addSubView new KDCustomHTMLView
+      tagName  : 'a'
+      cssClass : 'close-icon'
+      click    : @bound 'closeTooltip'
+
     @setTooltip
-      title     : "<div class='throbber-tooltip-text'>#{tooltipText}<div>"
-      cssClass  : 'throbber-tooltip'
+      view      : tooltipView
+      cssClass  : 'throbber-tooltip just-text'
       placement : tooltipPlacement
       html      : yes
+      sticky    : yes
+      permanent : yes
+
+    @tooltip.show()
+    @listenToScrollEvent()  if targetIsScrollable
+
+    @emit 'TooltipShown'
+
+
+  unsetTooltip: ->
+
+    super
+
+    return  unless @scrollWrapper
+
+    @scrollWrapper.off 'scroll', @bound 'unsetTooltip'
+    @scrollWrapper.verticalThumb.off 'DragInAction', @bound 'unsetTooltip'
+    @scrollWrapper = null
+
+
+  closeTooltip: ->
+
+    @unsetTooltip()
+    @emit 'TooltipClosed'
 
 
   setPosition: ->
@@ -78,3 +118,59 @@ module.exports = class ThrobberView extends KDView
     @getDomElement().css
       left : throbberX
       top  : throbberY
+
+
+  click: (event) ->
+
+    kd.utils.stopDOMEvent event
+    if @tooltip then @closeTooltip() else @showTooltip()
+
+
+  show: ->
+
+    super
+    #reinit tooltip if it was hidden before
+    @showTooltip()  if @tooltip
+
+
+  hide: ->
+
+    super
+    @tooltip?.hide()
+
+
+  listenToScrollEvent: ->
+
+    @scrollWrapper = helper.findScrollWrapper this
+    return  unless @scrollWrapper
+
+    @scrollWrapper.on 'scroll', @bound 'unsetTooltip'
+    @scrollWrapper.verticalThumb.on 'DragInAction', @bound 'unsetTooltip'
+
+
+  destroy: ->
+
+    @unsetTooltip()
+    super
+
+
+  ###
+   HELPER METHODS
+  ###
+  helper =
+
+    setupLinksTarget: (tooltipView) ->
+
+      links = tooltipView.getElement().querySelectorAll 'a'
+      for link in links
+        link.setAttribute 'target', '_blank'  unless link.getAttribute 'target'
+
+
+    findScrollWrapper: (view) ->
+
+      { parent } = view
+
+      return  unless parent
+
+      return parent  if parent instanceof KDCustomScrollViewWrapper
+      return helper.findScrollWrapper parent

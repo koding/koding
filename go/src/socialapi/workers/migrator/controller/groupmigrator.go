@@ -75,7 +75,7 @@ func (mwc *Controller) migrateAllGroups() {
 func (mwc *Controller) createChangelogChannel() {
 	c := models.NewChannel()
 	c.Name = "changelog"
-	c.GroupName = "koding"
+	c.GroupName = models.Channel_KODING_NAME
 	c.TypeConstant = models.Channel_TYPE_ANNOUNCEMENT
 	c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
 	c.CreatorId = 1
@@ -85,10 +85,10 @@ func (mwc *Controller) createChangelogChannel() {
 	}
 }
 
-func (mwc *Controller) createPublicChannel() {
+func (mwc *Controller) createPublicChannel() *models.Channel {
 	c := models.NewChannel()
 	c.Name = "public"
-	c.GroupName = "koding"
+	c.GroupName = models.Channel_KODING_NAME
 	c.TypeConstant = models.Channel_TYPE_GROUP
 	c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
 	c.CreatorId = 1
@@ -102,12 +102,14 @@ func (mwc *Controller) createPublicChannel() {
 	if err := cp.Create(); err != nil {
 		mwc.log.Error("Could not add devrim to public channel: %s", err)
 	}
+
+	return c
 }
 
 func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.Name = groupName
-	if groupName == "koding" {
+	if groupName == models.Channel_KODING_NAME {
 		c.Name = "public"
 	}
 	c.GroupName = groupName

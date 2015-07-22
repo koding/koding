@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"socialapi/models"
 	"strconv"
+	"time"
 
 	"github.com/koding/cache"
 )
@@ -13,13 +14,18 @@ const cacheSize = 10000
 var Cache *StaticCache
 
 func init() {
+	// later on instead of time based invalidation,
+	// we need to invalidate cache with update messages
+	ciCache := cache.NewMemoryWithTTL(10 * time.Second)
+	ciCache.StartGC(1 * time.Second)
+
 	Cache = &StaticCache{
 		Integration: &IntegrationCache{
 			name: cache.NewLRU(cacheSize),
 			id:   cache.NewLRU(cacheSize),
 		},
 		ChannelIntegration: &ChannelIntegrationCache{
-			token: cache.NewLRU(cacheSize),
+			token: ciCache,
 		},
 		BotChannel: &BotChannelCache{
 			group: cache.NewLRU(cacheSize),

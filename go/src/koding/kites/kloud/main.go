@@ -10,6 +10,7 @@ import (
 	_ "net/http/pprof"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -29,6 +30,7 @@ import (
 
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
+
 	"koding/kites/kloud/kloudctl/command"
 
 	"github.com/koding/kite"
@@ -97,6 +99,10 @@ type Config struct {
 
 	AWSAccessKeyId     string
 	AWSSecretAccessKey string
+
+	JanitorSecretKey        string
+	VmwatcherSecretKey      string
+	PaymentwebhookSecretKey string
 }
 
 func main() {
@@ -202,6 +208,13 @@ func newKite(conf *Config) *kite.Kite {
 		"eu-west-1",
 	})
 
+	authorizedUsers := map[string]string{
+		"kloudctl":       command.KloudSecretKey,
+		"janitor":        conf.JanitorSecretKey,
+		"vmwatcher":      conf.VmwatcherSecretKey,
+		"paymentwebhook": conf.PaymentwebhookSecretKey,
+	}
+
 	/// KODING PROVIDER ///
 
 	kodingProvider := &koding.Provider{
@@ -218,6 +231,7 @@ func newKite(conf *Config) *kite.Kite {
 		CheckerFetcher: &plans.KodingChecker{
 			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		},
+		AuthorizedUsers: authorizedUsers,
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
@@ -254,7 +268,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 	kld.Metrics = stats
 
-	userPrivateKey, userPublicKey := userMachinesKeys(conf)
+	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
@@ -307,31 +321,34 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
-	// This is a custom authenticator just for kloudctl
-	k.Authenticators["kloudctl"] = func(r *kite.Request) error {
-		if r.Auth.Key != command.KloudSecretKey {
-			return errors.New("wrong secret key passed, you are not authenticated")
-		}
-		return nil
+	for w, s := range authorizedUsers {
+		func(worker, secretKey string) {
+			k.Authenticators[worker] = func(r *kite.Request) error {
+				if r.Auth.Key != secretKey {
+					return errors.New("wrong secret key passed, you are not authenticated")
+				}
+				return nil
+			}
+		}(w, s)
 	}
 
 	return k
 }
 
-func userMachinesKeys(conf *Config) (string, string) {
-	pubKey, err := ioutil.ReadFile(conf.UserPublicKey)
+func userMachinesKeys(publicPath, privatePath string) (string, string) {
+	pubKey, err := ioutil.ReadFile(publicPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	publicKey := string(pubKey)
 
-	privKey, err := ioutil.ReadFile(conf.UserPrivateKey)
+	privKey, err := ioutil.ReadFile(privatePath)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	privateKey := string(privKey)
 
-	return privateKey, publicKey
+	return strings.TrimSpace(privateKey), strings.TrimSpace(publicKey)
 }
 
 func kontrolKeys(conf *Config) (string, string) {

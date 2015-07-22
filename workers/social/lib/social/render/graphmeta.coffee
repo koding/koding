@@ -9,7 +9,7 @@ module.exports = (options = {})->
   options.body ?= "Koding is a developer community and cloud development environment where developers come together and code in the browser."
 
   """
-  <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, Wordpress, Django, Programming, virtual machines">
+  <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, WordPress, Django, Programming, virtual machines">
   <meta charset="utf-8">
 
   <meta name="msvalidate.01" content="F56689F2116FE1CC34876D855B2A5A8A" />

@@ -19,35 +19,60 @@ module.exports     = class GroupStackSettings extends kd.View
 
   initiateInitialView: ->
     @replaceViewsWith
-      initialView: @bound 'initiateNewStackWizard'
+      initialView: (action, data) =>
+        if action is 'from-repo'
+        then @initiateRepoFlowWizard()
+        else @initiateNewStackWizard data
+
+
+  initiateFollowing: (_steps, headers) ->
+
+    steps = []
+
+    _steps.forEach (step, index) =>
+      steps.push (data) =>
+        @replaceViewsWith "#{step}": {
+          callback       : steps[index+1] or @bound 'setGroupTemplate'
+          cancelCallback : steps[index-1] or @bound 'initiateInitialView'
+          index          : index+1
+          steps          : headers
+          data
+        }
+
+    return steps
 
 
   initiateNewStackWizard: (stackTemplate) ->
 
-    NEW_STACK_STEPS = [
+    steps = @initiateFollowing [
       'stepSelectProvider'
       'stepSetupCredentials'
       'stepBootstrap'
       'stepDefineStack'
       'stepComplete'
-    ]
+    ], StacksCustomViews.STEPS.CUSTOM_STACK
 
-    steps = []
+    steps.first { stackTemplate }
 
-    NEW_STACK_STEPS.forEach (step, index) =>
-      steps.push (data) =>
-        @replaceViewsWith "#{step}": {
-          callback       : steps[index+1] or @bound 'setGroupTemplate'
-          cancelCallback : steps[index-1] or @bound 'initiateInitialView'
-          data
-        }
+
+  initiateRepoFlowWizard: (stackTemplate) ->
+
+    steps = @initiateFollowing [
+      'stepSelectRepo'
+      'stepLocateFile'
+      'stepFetchTemplate'
+      'stepSetupCredentials'
+      'stepBootstrap'
+      'stepDefineStack'
+      'stepComplete'
+    ], StacksCustomViews.STEPS.REPO_FLOW
 
     steps.first { stackTemplate }
 
 
   setGroupTemplate: (stackTemplate) ->
 
-    { groupsController } = kd.singletons
+    { computeController, groupsController } = kd.singletons
 
     currentGroup = groupsController.getCurrentGroup()
     { slug }     = currentGroup
@@ -64,5 +89,8 @@ module.exports     = class GroupStackSettings extends kd.View
       new kd.NotificationView
         title : "Group (#{slug}) stack has been saved!"
         type  : 'mini'
+
+      computeController.createDefaultStack yes
+      computeController.checkStackRevisions()
 
       @initiateInitialView()

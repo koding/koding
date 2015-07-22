@@ -13,6 +13,7 @@ module.exports = class AccountCredentialList extends KDListView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass   = kd.utils.curry 'credential-list', options.cssClass
     options.itemClass ?= AccountCredentialListItem
 
     super options, data
@@ -67,16 +68,7 @@ module.exports = class AccountCredentialList extends KDListView
 
         data.meta.publicKey = credential.publicKey
 
-        try
-
-          cred = JSON.stringify data.meta, null, 2
-
-        catch e
-
-          kd.warn e; kd.log data
-          return new KDNotificationView
-            title: "An error occurred"
-
+        cred = JSON.stringify data.meta, null, 2
         cred = hljs.highlight('json', cred).value
 
         new KDModalView

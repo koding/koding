@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"socialapi/config"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/response"
 	"socialapi/workers/integration/webhook"
@@ -86,15 +87,14 @@ func TestWebhookListen(t *testing.T) {
 			t.Fatalf("could not create test account: %s", err)
 		}
 
-		channelIntegration := webhook.CreateTestChannelIntegration(t)
-
 		Convey("while testing incoming webhook", t, func() {
+			channelIntegration, topicChannel := webhook.CreateTestChannelIntegration(t)
 
 			groupName := models.RandomGroupName()
 
 			channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
 
-			Convey("users should not be able to send any message when they don't have valid token", func() {
+			Convey("integrations should not be able to send any message when they don't have valid token", func() {
 				token := "123123"
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
@@ -126,7 +126,7 @@ func TestWebhookListen(t *testing.T) {
 				So(s, ShouldEqual, http.StatusBadRequest)
 			})
 
-			Convey("users should not be able to send any message when their request does not include body or channel name", func() {
+			Convey("integrations should not be able to send any message when their request does not include body", func() {
 
 				tk, err := uuid.NewV4()
 				So(err, ShouldBeNil)
@@ -138,18 +138,9 @@ func TestWebhookListen(t *testing.T) {
 				)
 				So(err.Error(), ShouldEqual, ErrBodyNotSet.Error())
 				So(s, ShouldEqual, http.StatusBadRequest)
-
-				s, _, _, err = h.Push(
-					mocking.URL(m, "POST", "/push/"+token),
-					mocking.Header(nil),
-					newRequest("hey", 0, "koding"),
-				)
-				So(err.Error(), ShouldEqual, ErrChannelNotSet.Error())
-				So(s, ShouldEqual, http.StatusBadRequest)
-
 			})
 
-			Convey("users should be able to send message when token is valid", func() {
+			Convey("integrations should be able to send message when token is valid", func() {
 
 				Convey("related integrations must be created", func() {
 
@@ -174,6 +165,28 @@ func TestWebhookListen(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(s, ShouldEqual, http.StatusOK)
 				})
+			})
+
+			Convey("User should not be able to send any message when channel integration is disabled", func() {
+				channelIntegration.IsDisabled = true
+				err := channelIntegration.Update()
+				So(err, ShouldBeNil)
+
+				token := channelIntegration.Token
+				s, _, _, err := h.Push(
+					mocking.URL(m, "POST", "/push/"+token),
+					mocking.Header(nil),
+					newRequest("hha", channel.Id, "koding"),
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				cml := models.NewChannelMessageList()
+				cml.ChannelId = topicChannel.Id
+				hr, err := cml.List(&request.Query{}, false)
+				So(err, ShouldBeNil)
+				So(len(hr.MessageList), ShouldEqual, 0)
 			})
 
 		})
@@ -290,9 +303,8 @@ func TestWebhookFetchBotChannel(t *testing.T) {
 func TestWebhookGroupBotChannel(t *testing.T) {
 
 	tearUp(func(h *Handler, m *mux.Mux) {
-
-		channelIntegration := webhook.CreateTestChannelIntegration(t)
 		Convey("while checking group bot channels", t, func() {
+			channelIntegration, _ := webhook.CreateTestChannelIntegration(t)
 			Convey("we should be able to validate request", func() {
 				token := ""
 				username := ""
@@ -360,7 +372,7 @@ func TestWebhookIntegrationList(t *testing.T) {
 			Convey("it should only list public integrations", func() {
 
 				_, _, res, err := h.List(
-					mocking.URL(m, "GET", "/list"),
+					mocking.URL(m, "GET", "/"),
 					mocking.Header(nil),
 					nil,
 				)
@@ -410,7 +422,7 @@ func TestWebhookIntegrationCreate(t *testing.T) {
 				c.GroupName = groupName
 
 				s, _, _, err := h.CreateChannelIntegration(
-					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.URL(m, "POST", "/channelintegration"),
 					mocking.Header(nil),
 					ci,
 					c,
@@ -429,7 +441,7 @@ func TestWebhookIntegrationCreate(t *testing.T) {
 				c.GroupName = groupName
 
 				s, _, _, err := h.CreateChannelIntegration(
-					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.URL(m, "POST", "/channelintegration"),
 					mocking.Header(nil),
 					ci,
 					c,
@@ -452,7 +464,7 @@ func TestWebhookIntegrationCreate(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				s, _, res, err := h.CreateChannelIntegration(
-					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.URL(m, "POST", "/channelintegration"),
 					mocking.Header(nil),
 					ci,
 					c,
@@ -523,7 +535,7 @@ func TestWebhookRegenerateToken(t *testing.T) {
 				testCi := webhook.NewChannelIntegration()
 				testCi.Id = ci.Id
 				s, _, res, err := h.RegenerateToken(
-					mocking.URL(m, "POST", "/channelintegration/create"),
+					mocking.URL(m, "POST", "/channelintegration"),
 					mocking.Header(nil),
 					testCi,
 					c,
@@ -625,7 +637,7 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 				c := &models.Context{}
 				c.Client = &models.Client{Account: acc}
 				c.GroupName = groupName
-				endpoint := fmt.Sprintf("/channelintegration/%d/update", ci.Id)
+				endpoint := fmt.Sprintf("/channelintegration/%d", ci.Id)
 
 				s, _, _, err := h.UpdateChannelIntegration(
 					mocking.URL(m, "POST", endpoint),
@@ -647,7 +659,7 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 				c := &models.Context{}
 				c.Client = &models.Client{Account: acc}
 				c.GroupName = groupName
-				endpoint := fmt.Sprintf("/channelintegration/%d/update", ci.Id)
+				endpoint := fmt.Sprintf("/channelintegration/%d", ci.Id)
 				newChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
 				ci.ChannelId = newChannel.Id
 

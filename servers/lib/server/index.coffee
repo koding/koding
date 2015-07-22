@@ -60,9 +60,11 @@ app.post '/-/teams/validate-token'               , require './handlers/checktoke
 app.post '/-/teams/create'                       , require './handlers/createteam'
 app.post '/-/teams/join'                         , require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
+app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
+
 # fetches last members of team
-app.all  '/-/teams/:name/members'                , require './handlers/getteammembers'
-app.all  '/-/teams/:name'                        , require './handlers/getteam'
+app.all  '/-/team/:name/members'                , require './handlers/getteammembers'
+app.all  '/-/team/:name'                        , require './handlers/getteam'
 # temp endpoints ends
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
@@ -99,7 +101,6 @@ app.get  '/-/jobs'                               , require './handlers/jobs'
 app.post '/recaptcha'                            , require './handlers/recaptcha'
 app.get  '/-/presence/:service'                  , (req, res) -> res.status(200).end()
 app.get  '/-/api/user/:username/flags/:flag'     , require './handlers/flaguser'
-app.get  '/-/api/app/:app'                       , require './applications'
 app.get  '/-/image/cache'                        , require './image_cache'
 app.get  '/-/oauth/odesk/callback'               , require './odesk_callback'
 app.get  '/-/oauth/github/callback'              , require './github_callback'
@@ -135,8 +136,8 @@ usertracker.start()
 
 # init rabbitmq client for Email to use to queue emails
 mqClient = require './amqp'
-Email    = require '../../../workers/social/lib/social/models/email.coffee'
-Email.setMqClient mqClient
+Tracker    = require '../../../workers/social/lib/social/models/tracker.coffee'
+Tracker.setMqClient mqClient
 
 # NOTE: in the event of errors, send 500 to the client rather
 #       than the stack trace.

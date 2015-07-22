@@ -17,7 +17,7 @@ selenium-debug.log
 .vagrant
 .runningpids
 /.build
-/.logs
+/.logs/*
 /.deployments
 /.pydevproject
 /.revision
@@ -76,3 +76,5 @@ client/test/output
 client/test/logs
 
 supervisor.html
+.supervisor/*
+supervisord.conf

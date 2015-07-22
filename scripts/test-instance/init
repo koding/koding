@@ -35,12 +35,11 @@ docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
 ./run resetdb --yes
 ./run importusers
 
-./run backend &
-disown $!
+supervisord -c $REPOSITORY_PATH/supervisord.conf
 
 sleep 60
 
-Xvfb $DISPLAY -shmem -screen 0 1440x1200x16 &
+Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
 sleep 15
 
 x11vnc -passwd secret -display $DISPLAY -N -forever &
@@ -49,7 +48,7 @@ sleep 10
 export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
 
 java -jar $TEST_VENDOR/selenium-server-standalone-2.46.0.jar \
-     -host 127.0.0.1 \
+     -host 0.0.0.0 \
      -port 42424 \
      -Dwebdriver.chrome.driver=$TEST_VENDOR/chromedriver/linux64/chromedriver &
 

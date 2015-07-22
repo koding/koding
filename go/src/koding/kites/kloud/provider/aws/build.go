@@ -344,7 +344,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	}
 
 	ec2Data := &ec2.RunInstances{
-		ImageId:                  m.Meta.SourceAmi,
+		ImageId:                  imageData.imageId,
 		MinCount:                 1,
 		MaxCount:                 1,
 		KeyName:                  keyName,

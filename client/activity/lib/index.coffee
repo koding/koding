@@ -28,6 +28,18 @@ module.exports = class ActivityAppController extends AppController
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
 
+    kd.singletons.reactor.registerStores [
+      require './flux/stores/messagesstore'
+      require './flux/stores/channelsstore'
+      require './flux/stores/channelthreadsstore'
+      require './flux/stores/selectedchannelthreadidstore'
+      require './flux/stores/followedpublicchannelidsstore'
+      require './flux/stores/followedprivatechannelidsstore'
+      require './flux/stores/suggestions/suggestionsquerystore'
+      require './flux/stores/suggestions/suggestionsflagsstore'
+      require './flux/stores/suggestions/suggestionsstore'
+    ]
+
 
   post: (options = {}, callback = noop) ->
 

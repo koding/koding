@@ -1,18 +1,19 @@
-kd                        = require 'kd'
-AppController             = require 'app/appcontroller'
+kd                         = require 'kd'
+AppController              = require 'app/appcontroller'
+AdminAppView               = require './adminappview'
+AdminMembersView           = require './views/members/adminmembersview'
+AdministrationView         = require './views/administrationview'
+CustomViewsManager         = require './views/customviews/customviewsmanager'
+TopicModerationView        = require './views/moderation/topicmoderationview'
+GroupStackSettings         = require './views/groupstacksettings'
+OnboardingAdminView        = require './views/onboarding/onboardingadminview'
+AdminInvitationsView       = require './views/invitations/admininvitationsview'
+GroupPermissionsView       = require './views/grouppermissionsview'
+GroupsBlockedUserView      = require './views/groupsblockeduserview'
+AdminIntegrationsView      = require './views/integrations/adminintegrationsview'
+GroupGeneralSettingsView   = require './views/groupgeneralsettingsview'
+AdminIntegrationParentView = require './views/integrations/adminintegrationparentview'
 
-AdminAppView              = require './adminappview'
-AdminMembersView          = require './views/members/adminmembersview'
-AdministrationView        = require './views/administrationview'
-CustomViewsManager        = require './views/customviews/customviewsmanager'
-TopicModerationView       = require './views/moderation/topicmoderationview'
-GroupStackSettings        = require './views/groupstacksettings'
-OnboardingAdminView       = require './views/onboarding/onboardingadminview'
-AdminInvitationsView      = require './views/invitations/admininvitationsview'
-GroupPermissionsView      = require './views/grouppermissionsview'
-GroupsBlockedUserView     = require './views/groupsblockeduserview'
-AdminIntegrationsView     = require './views/integrations/adminintegrationsview'
-GroupGeneralSettingsView  = require './views/groupgeneralsettingsview'
 
 require('./routehandler')()
 
@@ -31,7 +32,15 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
         { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
-        { slug : 'Integrations',   title : 'Integrations',      viewClass : AdminIntegrationsView    }
+        {
+          slug      : 'Integrations'
+          title     : 'Integrations'
+          viewClass : AdminIntegrationsView,
+          subTabs   : [
+            { title : 'Add',        action: 'Add',              viewClass : AdminIntegrationParentView }
+            { title : 'Configure',  action: 'Configure',        viewClass : AdminIntegrationParentView }
+          ]
+        }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
       ]
     koding     :
@@ -60,17 +69,37 @@ module.exports = class AdminAppController extends AppController
     super options, data
 
 
-  openSection: (section, query) ->
+  openSection: (section, query, action, identifier) ->
 
     targetPane = null
 
     @mainView.ready =>
       @mainView.tabs.panes.forEach (pane) ->
-        if pane.getOption('slug') is section
+        paneAction = pane.getOption 'action'
+        paneSlug   = pane.getOption 'slug'
+
+        if identifier and action is paneAction
+          targetPane = pane
+        else if paneSlug is section
           targetPane = pane
 
-      if   targetPane then @mainView.tabs.showPane targetPane
-      else kd.singletons.router.handleRoute '/Admin/Settings'
+      if targetPane
+        @mainView.tabs.showPane targetPane
+        targetPaneView = targetPane.getMainView()
+        if identifier
+          targetPaneView.handleIdentifier? identifier, action
+        else
+          targetPaneView.handleAction? action
+
+        if identifier or action
+          { parentTabTitle } = targetPane.getOptions()
+
+          if parentTabTitle
+            for handle in @getView().tabs.handles
+              if handle.getOption('title') is parentTabTitle
+                handle.setClass 'active'
+      else
+        kd.singletons.router.handleRoute '/Admin/Settings'
 
 
   loadView: (modal) ->
@@ -81,4 +110,3 @@ module.exports = class AdminAppController extends AppController
       if previousRoutes.length > 0
       then router.handleRoute previousRoutes.last
       else router.handleRoute router.getDefaultRoute()
-

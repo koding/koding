@@ -26,11 +26,14 @@ type AwsBootstrapOutput struct {
 	SG        string `json:"sg" mapstructure:"sg"`
 	Subnet    string `json:"subnet" mapstructure:"subnet"`
 	VPC       string `json:"vpc" mapstructure:"vpc"`
+	AMI       string `json:"ami" mapstructure:"ami"`
 }
 
 type TerraformBootstrapRequest struct {
 	// PublicKeys contains publicKeys to be used with terraform
 	PublicKeys []string `json:"publicKeys"`
+
+	GroupName string `json:"groupName"`
 
 	// Destroy destroys the bootstrap resource associated with the given public
 	// keys
@@ -51,13 +54,17 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("publicKeys are not passed")
 	}
 
+	if args.GroupName == "" {
+		return nil, errors.New("group name is not passed")
+	}
+
 	ctx := k.ContextCreator(context.Background())
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, sess.DB, args.PublicKeys)
+	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.PublicKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -74,12 +81,12 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		finalBootstrap, err := cred.appendAWSVariable(awsBootstrap)
+		finalBootstrap, err := cred.appendAWSVariable(fmt.Sprintf(awsBootstrap, k.PublicKeys.PublicKey))
 		if err != nil {
 			return nil, err
 		}
 
-		keyName := "kloud-deployment-" + r.Username
+		keyName := "koding-deployment-" + r.Username
 		finalBootstrap, err = appendKeyName(finalBootstrap, keyName)
 		if err != nil {
 			return nil, err
@@ -93,15 +100,18 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
 
-		// TODO(arslan): change this once we have group context name
-		groupName := "koding"
 		awsOutput := &AwsBootstrapOutput{}
 
+		// this is custom because we need to remove the fields if we get a
+		// destroy. So the operator changes from $set to $unset.
+		mongodDBOperator := "$set"
+
 		if args.Destroy {
+			mongodDBOperator = "$unset"
 			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: groupName + "-" + cred.PublicKey,
+				ContentID: args.GroupName + "-" + cred.PublicKey,
 			})
 			if err != nil {
 				return nil, err
@@ -110,7 +120,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: groupName + "-" + cred.PublicKey,
+				ContentID: args.GroupName + "-" + cred.PublicKey,
 			})
 			if err != nil {
 				return nil, err
@@ -124,7 +134,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 
 		k.Log.Debug("[%s] Aws Output: %+v", cred.PublicKey, awsOutput)
 		if err := modelhelper.UpdateCredentialData(cred.PublicKey, bson.M{
-			"$set": bson.M{
+			mongodDBOperator: bson.M{
 				"meta.acl":        awsOutput.ACL,
 				"meta.cidr_block": awsOutput.CidrBlock,
 				"meta.igw":        awsOutput.IGW,
@@ -133,6 +143,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				"meta.sg":         awsOutput.SG,
 				"meta.subnet":     awsOutput.Subnet,
 				"meta.vpc":        awsOutput.VPC,
+				"meta.ami":        awsOutput.AMI,
 			},
 		}); err != nil {
 			return nil, err
@@ -196,6 +207,9 @@ var awsBootstrap = `{
         "sg": {
             "value": "${aws_security_group.allow_all.id}"
         },
+        "ami": {
+            "value": "${lookup(var.aws_amis, var.region)}"
+        },
         "key_pair": {
             "value": "${aws_key_pair.koding_key_pair.key_name}"
         }
@@ -253,13 +267,18 @@ var awsBootstrap = `{
             "allow_all": {
                 "description": "Allow all inbound and outbound traffic",
                 "ingress": {
-                    "cidr_blocks": [
-                        "0.0.0.0/0"
-                    ],
                     "from_port": 0,
+                    "to_port": 0,
+                    "protocol": "-1",
+                    "cidr_blocks": ["0.0.0.0/0"],
+                    "self": true
+                },
+                "egress": {
+                    "from_port": 0,
+                    "to_port": 0,
                     "protocol": "-1",
                     "self": true,
-                    "to_port": 65535
+                    "cidr_blocks": ["0.0.0.0/0"]
                 },
                 "name": "allow_all",
                 "tags": {
@@ -271,7 +290,7 @@ var awsBootstrap = `{
         "aws_key_pair": {
             "koding_key_pair": {
                 "key_name": "${var.key_name}",
-                "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com"
+                "public_key": "%s"
             }
         }
     },
@@ -293,6 +312,19 @@ var awsBootstrap = `{
                 "us-east-1": "us-east-1b",
                 "us-west-1": "us-west-1b",
                 "us-west-2": "us-west-2b"
+            }
+        },
+        "aws_amis": {
+            "default": {
+                "ap-northeast-1": "ami-9e5cff9e",
+                "ap-southeast-1": "ami-ec7879be",
+                "ap-southeast-2": "ami-2fce8b15",
+                "eu-central-1": "ami-60f9c27d",
+                "eu-west-1": "ami-7c4b0a0b",
+                "sa-east-1": "ami-cd9518d0",
+                "us-east-1": "ami-cf35f3a4",
+                "us-west-1": "ami-b33dccf7",
+                "us-west-2": "ami-8d5b5dbd"
             }
         }
     }

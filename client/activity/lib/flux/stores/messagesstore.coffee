@@ -21,6 +21,8 @@ MessageCollectionHelpers = require '../helpers/messagecollection'
 
 module.exports = class MessagesStore extends KodingFluxStore
 
+  @getterPath = 'MessagesStore'
+
   getInitialState: -> toImmutable {}
 
 

@@ -87,7 +87,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
   readableText = (text) ->
 
     dictionary =
-      JNewApp            : 'Apps'
+      # JNewApp            : 'Apps'
       JGroup             : 'Groups'
       SocialMessage      : 'Social API'
       JGroupBundle       : 'Group Bundles'

@@ -3,14 +3,13 @@ jraphical = require 'jraphical'
 module.exports = class JPasswordRecovery extends jraphical.Module
   # TODO - Refactor this file, now it is not only for password recovery
   # but also for email verification
-  {secure, signature} = require 'bongo'
+  { v4 : createId }            = require 'node-uuid'
+  { daisy, secure, signature } = require 'bongo'
 
-  dateFormat  = require 'dateformat'
-  { v4: createId } = require 'node-uuid'
-
-  KodingError = require '../error'
-  JUser       = require './user'
-  Email       = require './email'
+  JUser                        = require './user'
+  Tracker                      = require './tracker'
+  dateFormat                   = require 'dateformat'
+  KodingError                  = require '../error'
 
 
   UNKNOWN_ERROR = { message: "Error occurred. Please try again." }
@@ -58,8 +57,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @expiryPeriod = 1000 * 60 * 90 # 90 min
 
   @getEmailSubject = ({resetPassword})->
-    if resetPassword then Email.types.REQUEST_NEW_PASSWORD
-    else Email.types.REQUEST_EMAIL_CHANGE
+    if resetPassword then Tracker.types.REQUEST_NEW_PASSWORD
+    else Tracker.types.REQUEST_EMAIL_CHANGE
 
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
@@ -140,21 +139,29 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               resetPassword : options.resetPassword
               requestedAt   : certificate.getAt('requestedAt')
 
-            Email.queue username, {
-              to          : email
+            Tracker = require './tracker'
+            Tracker.identify username, { email }
+
+            Tracker.track username, {
+              to         : email
               subject    : @getEmailSubject messageOptions
-            }, {tokenUrl, firstName:username}, callback
+            }, {tokenUrl, firstName:username}
+
+            callback null
 
 
   @validate = (token, callback)->
     @one {token}, (err, certificate)->
       return callback err  if err
 
-      unless certificate
+      if not certificate or (certificate?.status is 'invalidated')
         return callback { message: 'Invalid token.', short: 'invalid_token' }
 
       if certificate.status is 'redeemed'
         return callback { message: 'Already redeemed', short: 'redeemed_token' }
+
+      if certificate.status is 'expired'
+        return callback { message: 'The token has expired.', short: 'expired_token' }
 
       if certificate.getAt('expiresAt') < new Date
         certificate.expire (err)->
@@ -172,26 +179,59 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     query.status = 'active'
     @update query, {$set: status: 'invalidated'}, callback
 
+
   @resetPassword = (token, newPassword, callback) ->
-    @one {token}, (err, certificate)->
-      return callback err  if err
-      return callback { message: 'Invalid token.' }  unless certificate
-      {status, expiresAt} = certificate
-      if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
-        return callback message: """
-          This password recovery certificate cannot be redeemed.
-          """
 
-      {username} = certificate
+    user        = null
+    username    = null
+    certificate = null
 
-      JUser.one {username}, (err, user)->
-        return callback err or { message: "Unknown user!" }  if err or not user
+    queue = [
+
+      ->
+        # checking if token is valid
+        JPasswordRecovery.one { token }, (err, certificate_) ->
+          return callback err  if err
+          return callback new KodingError 'Invalid token.'  unless certificate_
+
+          { status, expiresAt } = certificate = certificate_
+
+          if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
+            return callback new KodingError """
+              This password recovery certificate cannot be redeemed.
+              """
+          queue.next()
+
+      ->
+        # checking if user exists
+        { username } = certificate
+
+        JUser.one { username }, (err, user_)->
+          return callback err  if err
+          return callback new KodingError 'Unknown user!'  unless user_
+          user = user_
+          queue.next()
+
+      ->
+        # redeeming token
         certificate.redeem (err)->
           return callback err  if err
-          user.changePassword newPassword, (err)->
-            return callback err  if err
-            JPasswordRecovery.invalidate {username}, (err)->
-              callback err, username
+          queue.next()
+
+      ->
+        # changing user's password to new one
+        user.changePassword newPassword, (err)->
+          return callback err  if err
+          queue.next()
+
+      ->
+        # invalidating other active tokens
+        JPasswordRecovery.invalidate { username }, (err)->
+          return callback err, username
+
+    ]
+
+    daisy queue
 
 
   @resetPassword$ = secure (client, token, newPassword, callback)->

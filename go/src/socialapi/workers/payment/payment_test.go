@@ -60,8 +60,8 @@ func TestGetAllCustomers(t *testing.T) {
 			usernames, err := req.ActiveUsernames()
 			So(err, ShouldBeNil)
 
-			So(len(usernames), ShouldEqual, 1)
-			So(usernames[0], ShouldEqual, "indianajones")
+			So(len(usernames), ShouldBeGreaterThanOrEqualTo, 1)
+			So(usernames, ShouldContain, "indianajones")
 		})
 
 		Reset(func() {

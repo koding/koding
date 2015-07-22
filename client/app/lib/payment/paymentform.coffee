@@ -121,7 +121,7 @@ module.exports = class PaymentForm extends JView
 
     @yearPriceMessage = new KDCustomHTMLView
       cssClass  : 'year-price-msg'
-      partial   : "You will be billed $#{yearPrice} for 12 months"
+      partial   : "You have selected a <b>yearly plan</b> so you will be billed <b>$#{yearPrice}</b> today."
 
     @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'
@@ -331,8 +331,8 @@ module.exports = class PaymentForm extends JView
     { monthPrice, reducedMonth } = @state
 
     map =
-      month : "#{monthPrice}<span>/month</span>"
-      year  : "#{reducedMonth}<span>/month</span>"
+      month : "#{monthPrice}<span>/Month</span>"
+      year  : "#{reducedMonth}<span>/Month</span>"
 
     return map[planInterval]
 

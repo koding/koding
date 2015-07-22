@@ -9,6 +9,8 @@ koding                              = require './../bongo'
   generateRandomString
   RegisterHandlerHelper }           = require '../../../testhelper'
 
+{ generateRegisterRequestParams }   = RegisterHandlerHelper
+
 { convertToArray
   generateJoinTeamRequestParams
   generateCreateTeamRequestParams } = TeamHandlerHelper
@@ -184,7 +186,7 @@ runTests = -> describe 'server.handlers.jointeam', ->
         invitees    : inviteeEmail
         companyName : slug
 
-    registerRequestParams   = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams   = generateRegisterRequestParams
       body            :
         email         : inviteeEmail
         username      : username
@@ -257,7 +259,7 @@ runTests = -> describe 'server.handlers.jointeam', ->
   it 'should handle unregistered user with an email from an allowed domain', (done) ->
 
     slug                    = generateRandomString()
-    domains                 = "test1.com, test2.io, koding.com"
+    domains                 = "gmail.com, koding.com"
     domainsArray            = convertToArray domains
 
     createTeamRequestParams = generateCreateTeamRequestParams
@@ -302,10 +304,10 @@ runTests = -> describe 'server.handlers.jointeam', ->
     slug                    = generateRandomString()
     username                = generateRandomString()
     password                = 'testpass'
-    allowedDomain           = "test1.com"
+    allowedDomain           = "gmail.com"
     inviteeEmail            = "#{generateRandomString()}@#{allowedDomain}"
 
-    registerRequestParams   = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams   = generateRegisterRequestParams
       body            :
         email         : inviteeEmail
         username      : username
@@ -373,7 +375,7 @@ runTests = -> describe 'server.handlers.jointeam', ->
   it 'should send HTTP 400 if user email is not in allowedDomains', (done) ->
 
     slug                    = generateRandomString()
-    domains                 = "test1.com, test2.io, koding.com"
+    domains                 = "gmail.com, koding.com"
     domainsArray            = convertToArray domains
 
     createTeamRequestParams = generateCreateTeamRequestParams

@@ -7,19 +7,23 @@ hljs                            = require 'highlight.js'
 Encoder                         = require 'htmlencode'
 dateFormat                      = require 'dateformat'
 
+whoami                          = require 'app/util/whoami'
 FSHelper                        = require 'app/util/fs/fshelper'
 showError                       = require 'app/util/showError'
 applyMarkdown                   = require 'app/util/applyMarkdown'
 
+GitHub                          = require 'app/extras/github/github'
 CustomViews                     = require 'app/commonviews/customviews'
 IDEEditorPane                   = require 'ide/workspace/panes/ideeditorpane'
-CredentialListItem              = require './credentiallistitem'
 ComputeController_UI            = require 'app/providers/computecontroller.ui'
+
+CredentialListItem              = require 'app/stacks/credentiallistitem'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
-StackTemplateList               = require './stacktemplatelist'
-StackTemplateListController     = require './stacktemplatelistcontroller'
+StackRepoUserItem               = require 'app/stacks/stackrepouseritem'
+StackTemplateList               = require 'app/stacks/stacktemplatelist'
+StackTemplateListController     = require 'app/stacks/stacktemplatelistcontroller'
 
 
 module.exports = class StacksCustomViews extends CustomViews
@@ -30,20 +34,38 @@ module.exports = class StacksCustomViews extends CustomViews
     "provider": {
       "aws": {
         "access_key": "${var.access_key}",
-        "secret_key": "${var.secret_key}",
-        "region": "eu-central-1"
+        "secret_key": "${var.secret_key}"
       }
     },
     "resource": {
       "aws_instance": {
         "example": {
           "instance_type": "t2.micro",
-          "ami": "ami-936d9d93"
+          "ami": ""
         }
       }
     }
   }
   """
+
+  @STEPS         =
+    CUSTOM_STACK : [
+        { title  : 'Select Provider' }
+        { title  : 'Credentials' }
+        { title  : 'Bootstrap' }
+        { title  : 'Define your Stack' }
+        { title  : 'Complete' }
+      ]
+    REPO_FLOW    : [
+        { title  : 'Select Repo' }
+        { title  : 'Locate File' }
+        { title  : 'Fetch Template' }
+        { title  : 'Credentials' }
+        { title  : 'Bootstrap' }
+        { title  : 'Stack Details' }
+        { title  : 'Complete' }
+      ]
+
 
   parseTerraformOutput = (response) ->
 
@@ -85,6 +107,38 @@ module.exports = class StacksCustomViews extends CustomViews
     return out.machines
 
 
+  fetchGithubRepos = (options, callback) ->
+
+    { oauth_data } = options
+    { Github }     = remote.api
+
+    Github.api method: 'user.getOrgs', (err, orgs) ->
+
+      kd.warn err  if err
+
+      orgs ?= []
+
+      # to make identical users and orgs assigning
+      # username to login field as well
+      oauth_data.login = oauth_data.username
+      users = [oauth_data]
+
+      Github.api
+        method  : 'search.repos'
+        options :
+          q     : "user:#{oauth_data.login}+fork:true"
+          type  : 'all'
+          sort  : 'updated'
+          order : 'desc'
+
+      , (err, repos) ->
+
+        users.first.err   = err
+        users.first.repos = repos?.items ? []
+
+        callback null, {orgs, users}
+
+
   handleCheckTemplate = (options, callback) ->
 
     { stackTemplate } = options
@@ -95,21 +149,38 @@ module.exports = class StacksCustomViews extends CustomViews
       .nodeify callback
 
 
+  fetchRepoFile = (options, callback) ->
+
+    { Github } = remote.api
+    { repo, location, ref } = options
+
+    Github.api
+      method  : 'repos.getContent'
+      options :
+        repo  : repo.name
+        user  : repo.owner.login
+        path  : location
+        ref   : ref
+
+    , callback
+
+
   updateStackTemplate = (data, callback) ->
 
-    { template, credential, title, stackTemplate, machines } = data
+    { template, templateDetails, credential
+      title, stackTemplate, machines } = data
 
     title     or= 'Default stack template'
     credentials = [credential.publicKey]  if credential
 
     if stackTemplate
       dataToUpdate = if machines \
-        then {machines} else {title, template, credentials}
+        then {machines} else {title, template, credentials, templateDetails}
       stackTemplate.update dataToUpdate, (err) ->
         callback err, stackTemplate
     else
       remote.api.JStackTemplate.create {
-        title, template, credentials
+        title, template, credentials, templateDetails
       }, callback
 
 
@@ -139,20 +210,16 @@ module.exports = class StacksCustomViews extends CustomViews
     outputView.addContent 'Fetching latest data...'
 
     credential.fetchData (err, data) ->
+
       if err
         outputView.addContent 'Failed: ', err.message
-      else
+        return
 
-        try
-          cred = JSON.stringify data.meta, null, 2
-        catch e
-          outputView.addContent 'Failed to parse:', e
-          return
-
-        outputView
-          .addContent cred
-          .addContent 'You can continue to next step.'
-          .emit 'BootstrappingDone'
+      cred = JSON.stringify data.meta, null, 2
+      outputView
+        .addContent cred
+        .addContent 'You can continue to next step.'
+        .emit 'BootstrappingDone'
 
 
   handleBootstrap = (outputView, credential, button) ->
@@ -208,6 +275,62 @@ module.exports = class StacksCustomViews extends CustomViews
         view.show()
 
 
+  analyzeTemplate = (content) ->
+
+    valid       =  yes
+
+    try
+      obj       = JSON.parse content
+      providers = Object.keys obj.provider
+    catch e
+      message   = "We've failed to parse the template, please make sure
+                   you are providing a valid template like described
+                   <a href=learn.koding.com target=_blank>here</a>."
+      valid     = no
+
+    if valid
+      list      = ''
+      list     += "<li>#{pr}\n" for pr in providers
+
+      message   = "Based on the template you will need to enter
+                   credetentials for the following providers; <br/>
+                   #{list}"
+
+    return { message, valid, providers, obj, content }
+
+
+  analyzeError = (err) ->
+
+    return 'An unknown error occured'  unless err
+
+    if err.code is 404
+      return 'Template file not found at provided tag/branch'
+
+    if err.message?
+      details = "with following error: #{err.message}"
+
+    return "Failed to fetch template #{details ? ''}"
+
+
+  # Pass string or an object to show it in a modal ~ GG
+  showJSON = (options = {}, json) ->
+
+    unless typeof json is 'string'
+      json = JSON.stringify json, null, 2
+
+    json = hljs.highlight('json', json).value
+
+    { curry } = kd.utils
+    options.cssClass = curry 'has-markdown content-modal', options.cssClass
+
+    if options.overlay
+      options.overlayOptions = cssClass: 'second-overlay'
+
+    options.content = "<pre><code>#{json}</code></pre>"
+
+    return new kd.ModalView options
+
+
   _.assign @views,
 
 
@@ -220,24 +343,30 @@ module.exports = class StacksCustomViews extends CustomViews
           width    : 40
           height   : 40
 
-      @addTo container, text: message
+      textView = @addTo container, text: message
+      container.setTitle = textView.bound 'updatePartial'
 
       return container
 
 
     outputView: (options) =>
 
-      options.cssClass = kd.utils.curry options.cssClass, 'output-view'
+      options.cssClass = kd.utils.curry 'output-view', options.cssClass
       options.tagName  = 'pre'
       container        = @views.view options
       code             = @views.view tagName : 'code'
 
       container.addSubView code
 
-      container.addContent = (content...) =>
+      container.addContent = (content...) ->
         content = content.join ' '
         content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
         code.setPartial hljs.highlight('profile', content).value
+        return container
+
+      container.setContent = (content...) ->
+        content = content.join ' '
+        code.updatePartial hljs.highlight('profile', content).value
         return container
 
       return container
@@ -267,6 +396,37 @@ module.exports = class StacksCustomViews extends CustomViews
       new kd.ButtonView options
 
 
+    menuButton: (options) ->
+
+      {menu, callback} = options
+
+      button    = null
+      _menu     = null
+      menuItems = {}
+
+      Object.keys(menu).forEach (key) ->
+        menuItems[key] =
+          callback     : ->
+            callback menu[key]
+            _menu.destroy()
+
+      options.callback = ->
+        _menu = new kd.ContextMenu
+          cssClass    : 'menu-button-menu'
+          delegate    : button
+          y           : button.getY() + button.getHeight()
+          x           : button.getX() - 5
+          width       : button.getWidth()
+          arrow       :
+            placement : 'top'
+            margin    : -button.getWidth() / 2
+        , menuItems
+
+      button = new kd.ButtonView options
+
+      return button
+
+
     navButton: (options, name) =>
       options.cssClass = kd.utils.curry 'solid compact light-gray nav', name
       options.title = name.capitalize()
@@ -286,61 +446,39 @@ module.exports = class StacksCustomViews extends CustomViews
         fields: input: {name, label, defaultValue: value}
 
 
-    initialView: (callback) =>
+    repoList: (options) =>
 
-      container = @views.container 'stacktemplates'
+      controller    = new kd.ListViewController
+        viewOptions :
+          itemClass : StackRepoUserItem
+          cssClass  : 'repo-user-list'
 
-      { groupsController } = kd.singletons
-      currentGroup = groupsController.getCurrentGroup()
-
-      views = @addTo container,
-        text_header       : 'Compute Stack Templates'
-        container_top     :
-          text_intro      : "Stack Templates are awesome because when a user
-                             joins your group you can preconfigure their work
-                             environment by defining stacks.
-                             Learn more about stacks"
-          button          :
-            title         : 'Create New'
-            cssClass      : 'solid compact green action'
-            callback      : -> callback null
-        stackTemplateList :
-          group           : currentGroup
-
-      templateList = views.stackTemplateList.__view
-      templateList.on 'ItemSelected', callback
-
-      return container
-
-
-    stackTemplateList: (options) ->
-
-      listView   = new StackTemplateList
-      controller = new StackTemplateListController
-        view       : listView
-        wrapper    : no
-        scrollView : no
-
-      __view = controller.getView()
+      __view = controller.getListView()
       return { __view, controller }
 
 
-    stepSelectProvider: (options) =>
+    repoListView: (options) =>
 
-      {callback, cancelCallback, data} = options
-      container = @views.container 'step-provider'
+      container    = @views.container 'repo-listview'
+      loader       = @addTo container,
+        mainLoader : 'Fetching repositories list...'
 
-      views     = @addTo container,
-        stepsHeaderView : 1
-        text            : "You need to select a provider first"
-        providersView   :
-          providers     : Object.keys globals.config.providers
-        navButton_cancel:
-          callback      : cancelCallback
+      fetchGithubRepos options, (err, repo_data) =>
 
-      views.providersView.on 'ItemSelected', (provider) ->
-        data.provider = provider
-        callback data
+        showError err
+
+        loader.hide()
+
+        views        = @addTo container,
+          text       : "Github: Select a repository from your account"
+          repoList   : options
+
+        {controller, __view: repoList} = views.repoList
+
+        {orgs, users} = repo_data
+        controller.replaceAllItems users.concat orgs
+
+        container.forwardEvent repoList, 'RepoSelected'
 
       return container
 
@@ -363,14 +501,258 @@ module.exports = class StacksCustomViews extends CustomViews
       return { __view, controller }
 
 
+    providersView: (options) =>
+
+      {providers, enabled} = options
+      enabled  ?= providers
+
+      container = @views.container 'providers'
+
+      providers.forEach (provider) =>
+
+        return  if provider in ['custom', 'managed']
+
+        name = globals.config.providers[provider]?.name or provider
+
+        @addTo container,
+          button     :
+            title    : name
+            cssClass : provider
+            disabled : provider not in enabled
+            callback : ->
+              container.emit 'ItemSelected', provider
+
+      return container
+
+
+    stepsHeader: (options) =>
+
+      { title, index, selected } = options
+
+      container = @views.container "#{if selected then 'selected' else ''}"
+
+      @addTo container,
+        text_step  : index
+        text_title : title
+
+      return container
+
+
+    stepsHeaderView: (options) =>
+
+      { steps, selected } = options
+
+      container = @views.container 'steps-view'
+
+      @addTo container, view :
+        cssClass : 'vline'
+        tagName  : 'cite'
+
+      steps = steps.slice 0
+      steps.forEach (step, index) =>
+
+        step.index    = index + 1
+        step.selected = selected? and selected is step.index
+
+        @addTo container, stepsHeader: step
+
+      return container
+
+
+    initialView: (callback) =>
+
+      container = @views.container 'stacktemplates'
+
+      { groupsController } = kd.singletons
+      currentGroup = groupsController.getCurrentGroup()
+
+      views = @addTo container,
+        text_header       : 'Compute Stack Templates'
+        container_top     :
+          text_intro      : "Stack Templates are awesome because when a user
+                             joins your group you can preconfigure their work
+                             environment by defining stacks.
+                             Learn more about stacks"
+          menuButton      :
+            title         : 'Configure a Stack'
+            cssClass      : 'solid compact green action'
+            menu          :
+              'Create from scratch' : 'create-new'
+              'Use from repo'       : 'from-repo'
+            callback      : callback
+        stackTemplateList :
+          group           : currentGroup
+
+      templateList = views.stackTemplateList.__view
+      templateList.on 'ItemSelected', (stackTemplate) ->
+        callback 'edit-template', stackTemplate
+
+      return container
+
+
+    stackTemplateList: (options) ->
+
+      listView   = new StackTemplateList
+      controller = new StackTemplateListController
+        view       : listView
+        wrapper    : no
+        scrollView : no
+
+      __view = controller.getView()
+      return { __view, controller }
+
+    # STEPS --------------------------------------------------------------------
+
+    stepSelectRepo: (options) =>
+
+      {callback, cancelCallback, data, index, steps} = options
+      container = @views.container 'step-select-repo'
+
+      views     = @addTo container,
+        stepsHeaderView   : {steps, selected: index}
+        text              : "We need to locate your configuration file first so
+                             that we can understand what we are going to do
+                             when a user joins to your team.<br />
+                             So please tell us where your stack configuration
+                             file is."
+        providersView     :
+          providers       : ['github', 'bitbucket']
+          enabled         : ['github']
+        navButton_cancel  :
+          callback        : cancelCallback
+
+      views.providersView.on 'ItemSelected', (provider) ->
+
+        whoami().fetchOAuthInfo (err, services) ->
+          return  if showError err
+
+          unless oauth = services?[provider]
+            showError "You need to authenticate with #{provider} first."
+            kd.singletons.router.handleRoute '/Admin/Integrations'
+          else
+            data.repo_provider = provider
+            data.oauth_data    = oauth
+            callback data
+
+      return container
+
+
+    stepLocateFile: (options) =>
+
+      { callback, cancelCallback, data, steps, index } = options
+      { repo_provider, oauth_data } = data
+
+      container = @views.container 'step-view'
+
+      views     = @addTo container,
+        stepsHeaderView   : {steps, selected: index}
+        repoListView      : { oauth_data }
+        navCancelButton   :
+          title           : '< Select another provider'
+          callback        : ->
+            cancelCallback data
+
+      views.repoListView.on 'RepoSelected', (selected_repo) ->
+        data.selected_repo = selected_repo
+        callback data
+
+      return container
+
+
+    stepFetchTemplate: (options) =>
+
+      { callback, cancelCallback, data, steps, index } = options
+      { repo_provider, selected_repo }   = data
+
+      container = @views.container 'step-view'
+      container.setClass 'has-markdown'
+
+      views     = @addTo container,
+        stepsHeaderView   : {steps, selected: index}
+        mainLoader        : 'Fetching template...'
+        container         : 'output-container'
+        navCancelButton   :
+          title           : '< Select another template'
+          callback        : ->
+            cancelCallback data
+
+      {mainLoader} = views
+
+      fetchRepoFile selected_repo, (err, res) =>
+
+        mainLoader.setTitle 'Parsing template...'
+
+        if err
+          content = analyzeError err
+          message = "We've failed to fetch the template, from given branch/tag
+                     with given file name. Please make sure you are providing
+                     a valid template path like described
+                     <a href=learn.koding.com target=_blank>here</a>."
+
+        else if res?.content?
+
+          content   = atob res.content
+          template  = analyzeTemplate content
+          {message} = template
+          template.details = res
+
+          if template.valid then @addTo container,
+            button        :
+              title       : 'Continue'
+              cssClass    : 'solid compact green nav next'
+              callback    : ->
+                data.provider = 'aws' # Use the only supported provider for now ~ GG
+                data.template = template
+                callback data
+
+        else
+
+          content = 'Something went wrong, please try again.'
+
+
+        {outputView} = @addTo views.container,
+
+          container_top :
+            text        : message
+          outputView    :
+            cssClass    : 'template-output'
+
+        outputView.setContent content
+        mainLoader.hide()
+
+
+      return container
+
+
+    stepSelectProvider: (options) =>
+
+      {callback, cancelCallback, data, steps, index} = options
+      container = @views.container 'step-provider'
+
+      views     = @addTo container,
+        stepsHeaderView : {steps, selected: index}
+        text            : "You need to select a provider first"
+        providersView   :
+          providers     : Object.keys globals.config.providers
+          enabled       : ['aws']
+        navButton_cancel:
+          callback      : cancelCallback
+
+      views.providersView.on 'ItemSelected', (provider) ->
+        data.provider = provider
+        callback data
+
+      return container
+
+
     stepSetupCredentials: (options) =>
 
-      { data, callback, cancelCallback } = options
+      { data, callback, cancelCallback, steps, index } = options
       { provider, stackTemplate } = data
 
       container  = @views.container 'step-creds'
       views      = @addTo container,
-        stepsHeaderView : 2
+        stepsHeaderView : {steps, selected: index}
         container_top   :
           text_intro    : "To be able to use this provider <strong>you need to
                            select a verified credential</strong> below, if you
@@ -397,15 +779,15 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepBootstrap: (options) =>
 
-      {callback, cancelCallback, data} = options
+      {callback, cancelCallback, data, steps, index} = options
       {provider, credential, stackTemplate} = data
 
-      container = @views.container 'step-bootstrap'
+      container = @views.container 'step-view'
 
       container.setClass 'has-markdown'
 
       views     = @addTo container,
-        stepsHeaderView : 3
+        stepsHeaderView : {steps, selected: index}
         container       :
           mainLoader    : 'Checking bootstrap status...'
         navCancelButton :
@@ -415,6 +797,7 @@ module.exports = class StacksCustomViews extends CustomViews
       credential.isBootstrapped (err, state) =>
 
         views.container.destroySubViews()
+        views.container.setClass 'output-container'
 
         {outputView} = @addTo views.container,
 
@@ -440,8 +823,7 @@ module.exports = class StacksCustomViews extends CustomViews
           button        :
             title       : 'Continue'
             cssClass    : 'solid compact green nav next'
-            callback    : ->
-              callback {provider, credential, stackTemplate}
+            callback    : -> callback data
 
         if state
           outputView.show()
@@ -453,16 +835,34 @@ module.exports = class StacksCustomViews extends CustomViews
 
     stepDefineStack: (options) =>
 
-      {callback, cancelCallback, data}      = options
-      {provider, credential, stackTemplate} = data or {}
+      {callback, cancelCallback, data, steps, index} = options
+      {provider, credential, stackTemplate, template} = data or {}
 
       container = @views.container 'step-define-stack'
-      content   = stackTemplate?.template?.content or DEFAULT_TEMPLATE
+
+      if data.selected_repo? and template?
+        {repo}          = data.selected_repo
+        title           = repo.description
+        content         = template?.content
+        templateDetails =
+          fileSha       : template.details.sha
+          fileName      : template.details.name
+          fileRepo      : repo.full_name
+          fileRepoRef   : data.selected_repo.ref
+          fileRepoPath  : data.selected_repo.location
+
+      else
+        title   = stackTemplate?.title or 'Default Template'
+        content = stackTemplate?.template?.content
+        templateDetails = null
+
+      content or= DEFAULT_TEMPLATE
+
       views     = @addTo container,
-        stepsHeaderView : 4
+        stepsHeaderView : {steps, selected: index}
         input_title     :
           label         : 'Stack Template Title'
-          value         : stackTemplate?.title or 'Default Template'
+          value         : title
         editorView      : {content}
         navCancelButton :
           title         : '< Boostrap Credential'
@@ -472,24 +872,24 @@ module.exports = class StacksCustomViews extends CustomViews
           cssClass      : 'solid compact green nav next'
           callback      : ->
 
-            {title}  = views.input_title.getData()
-            template = views.editorView.getValue()
+            {title} = views.input_title.getData()
+            templateContent = views.editorView.getValue()
 
             updateStackTemplate {
-              title, template, credential, stackTemplate
+              template: templateContent, templateDetails
+              credential, stackTemplate, title
             }, (err, _stackTemplate) ->
               return  if showError err
 
-              callback {
-                stackTemplate: _stackTemplate, credential, provider
-              }
+              data.stackTemplate = _stackTemplate
+              callback data
 
       return container
 
 
     stepComplete: (options) =>
 
-      {callback, cancelCallback, data}      = options
+      {callback, cancelCallback, data, steps, index} = options
       {stackTemplate, credential, provider} = data
 
       container = @views.container 'step-complete'
@@ -497,7 +897,7 @@ module.exports = class StacksCustomViews extends CustomViews
       container.setClass 'has-markdown'
 
       views = @addTo container,
-        stepsHeaderView : 5
+        stepsHeaderView : {steps, selected: index}
         container       :
           mainLoader    : 'Processing template...'
 
@@ -540,70 +940,5 @@ module.exports = class StacksCustomViews extends CustomViews
                 }, (err, stackTemplate) ->
                   return  if showError err
                   callback stackTemplate
-
-      return container
-
-
-    providersView: (options) =>
-
-      {providers} = options
-
-      container = @views.container 'providers'
-
-      providers.forEach (provider) =>
-
-        return if provider in ['custom', 'managed']
-
-        name = globals.config.providers[provider]?.name or provider
-
-        @addTo container,
-          button     :
-            title    : name
-            cssClass : provider
-            disabled : provider isnt 'aws'
-            callback : ->
-              container.emit 'ItemSelected', provider
-
-      return container
-
-
-    stepsHeader: (options) =>
-
-      {title, index, selected} = options
-
-      container = @views.container "#{if selected then 'selected' else ''}"
-
-      @addTo container,
-        text_step  : index
-        text_title : title
-
-      return container
-
-
-    stepsHeaderView: (options) =>
-
-      if typeof options is 'number'
-        steps = [
-          { title : 'Select Provider' }
-          { title : 'Credentials' }
-          { title : 'Bootstrap' }
-          { title : 'Define your Stack' }
-          { title : 'Complete' }
-        ]
-        selected  = options
-      else
-        { steps } = options
-
-      container = @views.container 'steps-view'
-
-      @addTo container, view :
-        cssClass : 'vline'
-        tagName  : 'cite'
-
-      steps.forEach (step, index) =>
-        step.index = index + 1
-        if selected? and selected is step.index
-          step.selected = yes
-        @addTo container, stepsHeader: step
 
       return container

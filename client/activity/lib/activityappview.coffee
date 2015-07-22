@@ -16,7 +16,11 @@ globals                = require 'globals'
 isChannelCollaborative = require 'app/util/isChannelCollaborative'
 isKoding               = require 'app/util/isKoding'
 isGroup                = require 'app/util/isGroup'
+isReactEnabled         = require 'app/util/isReactEnabled'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
+isSuggestionEnabled    = require 'activity/util/isSuggestionEnabled'
+
+TopicChatPaneView = require './components/topicchatpane/view'
 
 
 module.exports = class ActivityAppView extends KDView
@@ -30,6 +34,9 @@ module.exports = class ActivityAppView extends KDView
 
     options.cssClass   = 'content-page activity clearfix'
     options.domId      = 'content-page-activity'
+
+    if isReactEnabled()
+      options.cssClass = kd.utils.curry 'Reactivity', options.cssClass
 
     super options, data
 
@@ -196,17 +203,24 @@ module.exports = class ActivityAppView extends KDView
     channelId = data.id
     type      = data.typeConstant
 
+    paneOptions = { name, type, channelId }
+
     paneClass = switch type
-      when 'topic'          then TopicMessagePane
       when 'bot'            then KodingBotMessagePane
       when 'privatemessage' then PrivateMessagePane
       when 'post'           then SingleActivityPane
+      when 'topic'
+        if isReactEnabled()
+        then TopicChatPaneView
+        else TopicMessagePane
       else
         if name is 'announcement-changelog'
         then AnnouncementPane
         else ActivityPane
 
-    @tabs.addPane pane = new paneClass {name, type, channelId}, data
+    paneOptions.isSuggestionEnabled = isSuggestionEnabled()  if paneClass is ActivityPane
+
+    @tabs.addPane pane = new paneClass paneOptions, data
 
     path = helper.sanitizePath kd.singletons.router.getCurrentPath()
 

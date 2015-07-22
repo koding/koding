@@ -4,8 +4,6 @@ INSTANCE_DATA_FILE=$1
 
 SCRIPTS=$(dirname $0)/..
 
-INSTANCES=$(cat $INSTANCE_DATA_FILE)
-
 function terminate_instance () {
   INSTANCE_ID=$1
   $SCRIPTS/test-instance/terminate $INSTANCE_ID
@@ -31,15 +29,41 @@ function check () {
   return $EXIT_CODE
 }
 
-rm -f $INSTANCE_DATA_FILE
-touch $INSTANCE_DATA_FILE
+function health_check () {
+  echo -n "Health check $INSTANCE "
+  INSTANCE=$1
+  HOST=$(echo $INSTANCE | awk '{print $2}')
+  OUTPUT=$(curl --silent --dump-header /dev/stdout "http://$HOST:8090/-/healthCheck")
+  STATUS_LINE=$(echo "$OUTPUT" | head -n1)
+  STATUS_LINE=$(echo "$STATUS_LINE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+  if [ "$STATUS_LINE" != "HTTP/1.1 200 OK" ]; then
+    echo 'NOT OK'
+    return 1
+  fi
+
+  echo 'OK'
+  return 0
+}
 
 IFS=$'\n'
+
+INSTANCES=$(cat $INSTANCE_DATA_FILE)
+truncate --size 0 $INSTANCE_DATA_FILE
+
 for INSTANCE in $INSTANCES; do
   check $INSTANCE 8090 1m 5 || continue # nginx
-  check $INSTANCE 4444 1m 5 || continue # selenium-server
+  check $INSTANCE 42424 1m 5 || continue # selenium-server
   echo $INSTANCE >> $INSTANCE_DATA_FILE
   echo
+done
+
+INSTANCES=$(cat $INSTANCE_DATA_FILE)
+truncate --size 0 $INSTANCE_DATA_FILE
+
+for INSTANCE in $INSTANCES; do
+  health_check $INSTANCE || continue
+  echo $INSTANCE >> $INSTANCE_DATA_FILE
 done
 
 INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')

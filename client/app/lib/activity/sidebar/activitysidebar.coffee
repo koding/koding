@@ -16,6 +16,7 @@ ChatSearchModal           = require './chatsearchmodal'
 ActivitySideView          = require './activitysideview'
 KDCustomHTMLView          = kd.CustomHTMLView
 SidebarTopicItem          = require './sidebartopicitem'
+EnvironmentsModal         = require 'app/environment/environmentsmodal'
 fetchChatChannels         = require 'activity/util/fetchChatChannels'
 SidebarPinnedItem         = require './sidebarpinneditem'
 KDNotificationView        = kd.NotificationView
@@ -100,7 +101,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
       .on 'MachineBuilt',              @bound 'machineBuilt'
-      .on 'StacksNotConfigured',       @bound 'addStackWarning'
+      .on 'StacksNotConfigured',       @bound 'addStacksNotConfiguredWarning'
+      .on 'StacksInconsistent',        @bound 'addStacksModifiedWarning'
 
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
@@ -512,17 +514,33 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     environmentDataProvider.fetch (data) => callback data
 
 
-  addStackWarning: ->
+  addStacksNotConfiguredWarning: ->
 
     return  if isKoding()
-    return  @stackWarning.show()  if @stackWarning?
+    return  @stacksNotConfiguredWarning.show()  if @stacksNotConfiguredWarning?
 
-    @stackWarning = new KDCustomHTMLView
+    @stacksNotConfiguredWarning = new KDCustomHTMLView
       cssClass : 'stack-warning'
       partial  : "Compute Stacks has not been configured yet for this Team.
                   <br/><a href='/Admin/Stacks'>click here</a> to setup now."
 
-    @machinesWrapper.addSubView @stackWarning, null, shouldPrepend = yes
+    @machinesWrapper.addSubView \
+      @stacksNotConfiguredWarning, null, shouldPrepend = yes
+
+
+  addStacksModifiedWarning: ->
+
+    return  if isKoding()
+    return  @stacksModifiedWarning.show()  if @stacksModifiedWarning?
+
+    @stacksModifiedWarning = new KDCustomHTMLView
+      cssClass : 'stack-warning'
+      partial  : "You have different resources in your stacks.
+                  <a href=#>Click here</a> to re-initialize existing stacks."
+      click    : -> new EnvironmentsModal
+
+    @machinesWrapper.addSubView \
+      @stacksModifiedWarning, null, shouldPrepend = yes
 
 
   addMachineList: (expandedBoxUIds) ->
@@ -752,3 +770,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     for list in @machineLists
       for box in list.machineBoxes when expandedBoxUIds[box.data.machine.uid]
         box.expandList()
+
+
+  showManagedMachineAddedModal: (info, machine) ->
+
+    box = @getMachineBoxByMachineUId machine.uid
+    box.machineItem.showMachineConnectedPopup info

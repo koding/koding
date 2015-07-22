@@ -6,8 +6,13 @@ Flaggable   = require '../../traits/flaggable'
 KodingError = require '../../error'
 { extend, uniq }  = require 'underscore'
 
+request     = require "request"
+
 module.exports = class JUser extends jraphical.Module
+
   {secure, signature, daisy, dash} = require 'bongo'
+  { v4: createId }     = require 'node-uuid'
+  {Relationship}       = jraphical
 
   JAccount             = require '../account'
   JSession             = require '../session'
@@ -18,17 +23,7 @@ module.exports = class JUser extends jraphical.Module
   JPaymentPlan         = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
   ComputeProvider      = require '../computeproviders/computeprovider'
-  Email                = require '../email'
-  Analytics            = require '../analytics'
-
-  { v4: createId } = require 'node-uuid'
-  {Relationship}   = jraphical
-
-  createKodingError =(err)->
-    if 'string' is typeof err
-      message: err
-    else
-      message: err.message
+  Tracker              = require '../tracker'
 
   @bannedUserList = ['abrt','amykhailov','apache','about','visa','shared-',
                      'cthorn','daemon','dbus','dyasar','ec2-user','http',
@@ -50,7 +45,6 @@ module.exports = class JUser extends jraphical.Module
                      'groups','blogs','forums','topics','develop','terminal',
                      'term','twitter','facebook','google','framework', 'kite'
                      'landing','hello','dev', 'sandbox', 'latest']
-
 
   hashPassword = (value, salt)->
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
@@ -146,7 +140,14 @@ module.exports = class JUser extends jraphical.Module
       lastLoginDate :
         type        : Date
         default     : -> new Date
+
+      # store fields for janitor worker. see go/src/koding/db/models/user.go for more details.
+      inactive      : Object
+
+      # stores user preference for how often email should be sent.
+      # see go/src/koding/db/models/user.go for more details.
       emailFrequency: Object
+
       onlineStatus  :
         actual      :
           type      : String
@@ -200,12 +201,12 @@ module.exports = class JUser extends jraphical.Module
 
     # deleter should be registered one
     if delegate.type is 'unregistered'
-      return callback createKodingError "You are not registered!"
+      return callback new KodingError "You are not registered!"
 
     # only owner and the dummy admins can delete a user
     unless toBeDeletedUsername is nickname or
            delegate.can 'administer accounts'
-      return callback createKodingError "You must confirm this action!"
+      return callback new KodingError "You must confirm this action!"
 
     username = @createGuestUsername()
 
@@ -218,7 +219,7 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err?
 
       unless user
-        return callback createKodingError \
+        return callback new KodingError \
           "User not found #{toBeDeletedUsername}"
 
       oldEmail = user.email
@@ -263,7 +264,7 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err?
 
           unless account
-            return callback createKodingError \
+            return callback new KodingError \
               "Account not found #{toBeDeletedUsername}"
 
           # update the account to be deleted with empty data
@@ -304,7 +305,7 @@ module.exports = class JUser extends jraphical.Module
 
       @logout clientId, (err)->
         logError reason, clientId
-        callback createKodingError reason
+        callback new KodingError reason
 
     # Let's try to lookup provided session first
     JSession.one { clientId }, (err, session)=>
@@ -313,7 +314,7 @@ module.exports = class JUser extends jraphical.Module
 
         # This is a very rare state here
         logError "error finding session", { err, clientId }
-        callback createKodingError err
+        callback new KodingError err
 
       else unless session?
 
@@ -407,7 +408,7 @@ module.exports = class JUser extends jraphical.Module
         toDate    = user.blockedUntil.toUTCString()
         message   = JUser.getBlockedMessage toDate
 
-        callback createKodingError message
+        callback new KodingError message
       else
         user.unblock callback
     else
@@ -420,7 +421,7 @@ module.exports = class JUser extends jraphical.Module
 
         cursor.nextObject (err, data) ->
           return callback err  if err?
-          return callback { message: 'Unrecognized email' }  unless data?
+          return callback new KodingError 'Unrecognized email'  unless data?
 
           callback null, data.username
     else
@@ -436,7 +437,7 @@ module.exports = class JUser extends jraphical.Module
 
   @login = (clientId, credentials, callback)->
 
-    { username: loginId, password,
+    { username: loginId, password, groupIsBeingCreated
       groupName, tfcode, invitationToken } = credentials
 
     bruteForceControlData = {}
@@ -462,7 +463,7 @@ module.exports = class JUser extends jraphical.Module
         session = fetchedSession
         unless session
           console.error "login: session not found", username
-          return callback { message: "Couldn't restore your session!" }
+          return callback new KodingError "Couldn't restore your session!"
 
         bruteForceControlData =
           ip        : session.clientIP
@@ -475,7 +476,7 @@ module.exports = class JUser extends jraphical.Module
       JLog.checkLoginBruteForce bruteForceControlData, (res) ->
 
         unless res
-          return callback createKodingError \
+          return callback new KodingError \
             "Your login access is blocked for #{JLog.timeLimit()} minutes."
 
         queue.next()
@@ -515,7 +516,7 @@ module.exports = class JUser extends jraphical.Module
     , ->
       # fetch account of the user, we will use it later
       JAccount.one { "profile.nickname": username }, (err, account_)->
-        return callback { message: "couldn't find account!" }  if err
+        return callback new KodingError "couldn't find account!"  if err
         account = account_
         queue.next()
 
@@ -533,7 +534,7 @@ module.exports = class JUser extends jraphical.Module
       JInvitation = require '../invitation'
       JInvitation.byCode invitationToken, (err, invitation_) =>
         return callback err  if err
-        return callback { message: "invitation is not valid" }  unless invitation_
+        return callback new KodingError "invitation is not valid"  unless invitation_
         invitation = invitation_
         queue.next()
 
@@ -548,10 +549,12 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
     , =>
+      return queue.next()  if groupIsBeingCreated
       # check for membership
       JGroup.one { slug: groupName }, (err, group) =>
-        if not group or err
-          return callback { message: "group doesnt exist"}
+
+        return callback new KodingError err                   if err
+        return callback new KodingError 'group doesnt exist'  if not group
 
         group.isMember account, (err , isMember)=>
           return callback err  if err
@@ -562,6 +565,7 @@ module.exports = class JUser extends jraphical.Module
             return callback err  if err
             return queue.next()
     , ->
+      return queue.next()  if groupIsBeingCreated
       # we are sure that user can access to the group, set group name into
       # cookie while logging in
       session.update { $set : {groupName} }, (err) ->
@@ -600,7 +604,7 @@ module.exports = class JUser extends jraphical.Module
     @fetchUser client, (err, user) ->
       return handleError err  if err
       if not password or password is ""
-        return handleError createKodingError("Password cannot be empty!"), user
+        return handleError new KodingError("Password cannot be empty!"), user
       confirmed = user.getAt('password') is hashPassword password, user.getAt('salt')
       return callback null, yes  if confirmed
       return handleError null, user
@@ -637,7 +641,7 @@ module.exports = class JUser extends jraphical.Module
         else if confirmed
           @confirmEmail (err)-> callback err
         else
-          callback createKodingError 'PIN is not confirmed.'
+          callback new KodingError 'PIN is not confirmed.'
 
 
   @verifyByPin = secure (client, options, callback)->
@@ -653,13 +657,13 @@ module.exports = class JUser extends jraphical.Module
 
   logAndReturnLoginError = (username, error, callback)->
     JLog.log { type: "login", username: username, success: no }, ->
-      callback createKodingError error
+      callback new KodingError error
 
 
 
   checkUserStatus = (user, account, callback)->
     if user.status is 'unconfirmed' and KONFIG.emailConfirmationCheckerWorker.enabled
-      error = createKodingError "You should confirm your email address"
+      error = new KodingError "You should confirm your email address"
       error.code = 403
       error.data or= {}
       error.data.name = account.profile.firstName or account.profile.nickname
@@ -681,49 +685,86 @@ module.exports = class JUser extends jraphical.Module
     else
       callback null
 
+
   afterLogin = (user, clientId, session, callback)->
 
-    {username} = user
+    { username }      = user
 
-    user.fetchOwnAccount (err, account)->
-      if err then return callback err
-      checkLoginConstraints user, account, (err)->
-        if err then return callback err
+    account           = null
+    replacementToken  = null
+
+    queue = [
+
+      ->
+        # fetching account, will be used to check login constraints of user
+        user.fetchOwnAccount (err, account_)->
+          if err then return callback err
+          account = account_
+          queue.next()
+
+      ->
+        # checking login constraints
+        checkLoginConstraints user, account, (err)->
+          if err then return callback err
+          queue.next()
+
+      ->
+        # updating user passwordStatus if necessary
         updateUserPasswordStatus user, (err)->
           if err then return callback err
           replacementToken = createId()
-          session.update {
-            $set            :
-              username      : username
-              lastLoginDate : new Date
-              clientId      : replacementToken
-            $unset:
-              guestId       : 1
-          }, (err)->
-            return callback err  if err
+          queue.next()
 
-            options = lastLoginDate: new Date
+      ->
+        # updating session data after login
+        sessionUpdateOptions =
+          $set            :
+            username      : username
+            clientId      : replacementToken
+            lastLoginDate : new Date
+          $unset          :
+            guestId       : 1
 
-            if session.foreignAuth
-              { foreignAuth } = user
-              foreignAuth or= {}
-              foreignAuth = extend foreignAuth, session.foreignAuth
-              options.foreignAuth = foreignAuth
+        session.update sessionUpdateOptions, (err)->
+          return callback err  if err
+          queue.next()
 
-            user.update { $set: options }, (err) ->
-              return callback err  if err
+      ->
+        # updating user data after login
+        userUpdateData = { lastLoginDate : new Date }
 
-              # This should be called after login and this
-              # is not correct place to do it, FIXME GG
-              # p.s. we could do that in workers
-              account.updateCounts()
+        if session.foreignAuth
+          { foreignAuth }            = user
+          foreignAuth              or= {}
+          foreignAuth                = extend foreignAuth, session.foreignAuth
+          userUpdateData.foreignAuth = foreignAuth
 
-              JLog.log {type: "login", username , success: yes}
+        userUpdateOptions =
+          $set        : userUpdateData
+          $unset      :
+            inactive  : 1
 
-              JUser.clearOauthFromSession session, ->
-                callback null, { account, replacementToken, returnUrl: session.returnUrl }
+        user.update userUpdateOptions, (err) ->
+          return callback err  if err
 
-                Analytics.track username, 'logged in'
+          # This should be called after login and this
+          # is not correct place to do it, FIXME GG
+          # p.s. we could do that in workers
+          account.updateCounts()
+
+          JLog.log { type: "login", username , success: yes }
+          queue.next()
+
+      ->
+        JUser.clearOauthFromSession session, ->
+          callback null, { account, replacementToken, returnUrl: session.returnUrl }
+
+          Tracker.track username, { subject : Tracker.types.LOGGED_IN }
+          queue.next()
+
+    ]
+
+    daisy queue
 
 
   @logout = secure (client, callback)->
@@ -759,7 +800,7 @@ module.exports = class JUser extends jraphical.Module
           return callback null, { isEligible: yes } if not group
 
           isAllowed = group.isInAllowedDomain email
-          return callback createKodingError "Your email domain is not in allowed \
+          return callback new KodingError "Your email domain is not in allowed \
             domains for this group"  unless isAllowed
 
           return callback null, { isEligible: yes }
@@ -770,7 +811,7 @@ module.exports = class JUser extends jraphical.Module
       JInvitation.byCode invitationToken, (err, invitation) ->
         # check if invitation exists
         if err or !invitation?
-          return callback createKodingError 'Invalid invitation code!'
+          return callback new KodingError 'Invalid invitation code!'
 
         # check if invitation is valid
         if invitation.isValid() and  invitation.groupName is groupName
@@ -785,8 +826,8 @@ module.exports = class JUser extends jraphical.Module
 
     JUser.verifyEnrollmentEligibility options, (err, res) ->
       return callback err  if err
-      return callback createKodingError 'malformed response' if not res
-      return callback createKodingError 'can not join to group' if not res.isEligible
+      return callback new KodingError 'malformed response' if not res
+      return callback new KodingError 'can not join to group' if not res.isEligible
 
       # fetch group that we are gonna add account in
       JGroup.one { slug }, (err, group) ->
@@ -878,7 +919,7 @@ module.exports = class JUser extends jraphical.Module
 
         return  if err
           if err.code is 11000
-          then callback createKodingError "Sorry, \"#{email}\" is already in use!"
+          then callback new KodingError "Sorry, \"#{email}\" is already in use!"
           else callback err
 
         account      = new JAccount
@@ -901,7 +942,7 @@ module.exports = class JUser extends jraphical.Module
 
     {foreignAuth} = session
     unless foreignAuth
-      return callback createKodingError "No foreignAuth:#{provider} info in session"
+      return callback new KodingError "No foreignAuth:#{provider} info in session"
 
     query                                      = {}
     query["foreignAuth.#{provider}.foreignId"] = foreignAuth[provider].foreignId
@@ -915,13 +956,13 @@ module.exports = class JUser extends jraphical.Module
     {sessionToken} = client
 
     JSession.one {clientId: sessionToken}, (err, session) =>
-      return callback createKodingError err  if err
+      return callback new KodingError err  if err
 
       unless session
         {connection: {delegate: {profile: {nickname}}}} = client
         console.error "authenticateWithOauth: session not found", nickname
 
-        return callback createKodingError "Couldn't restore your session!"
+        return callback new KodingError "Couldn't restore your session!"
 
       kallback = (err, resp={}) ->
         {account, replacementToken, returnUrl} = resp
@@ -935,17 +976,17 @@ module.exports = class JUser extends jraphical.Module
 
       @fetchUserByProvider provider, session, (err, user) =>
 
-        return callback createKodingError err.message  if err
+        return callback new KodingError err.message  if err
 
         if isUserLoggedIn
           if user and user.username isnt client.connection.delegate.profile.nickname
             @clearOauthFromSession session, ->
-              callback createKodingError """
+              callback new KodingError """
                 Account is already linked with another user.
               """
           else
             @fetchUser client, (err, user) =>
-              return callback createKodingError err.message  if err
+              return callback new KodingError err.message  if err
               @persistOauthInfo user.username, sessionToken, kallback
         else
           if user
@@ -1003,19 +1044,19 @@ module.exports = class JUser extends jraphical.Module
       newToken = createId()
       JSession.one { clientId }, (err, session) =>
         if err?
-          return callback createKodingError "Could not update your session"
+          return callback new KodingError "Could not update your session"
 
         if session?
           session.update { $set: { clientId: newToken, username, groupName }}, (err) ->
             return callback err  if err?
             callback null, newToken
         else
-          callback createKodingError "Session not found!"
+          callback new KodingError "Session not found!"
 
   @removeFromGuestsGroup = (account, callback) ->
     JGroup.one { slug: 'guests' }, (err, guestsGroup) ->
       return callback err  if err?
-      return callback message: "Guests group not found!"  unless guestsGroup?
+      return callback new KodingError "Guests group not found!"  unless guestsGroup?
       guestsGroup.removeMember account, callback
 
   createGroupStack = (account, groupName, callback)->
@@ -1032,6 +1073,7 @@ module.exports = class JUser extends jraphical.Module
       # at all ~ GG
       callback()
 
+
   @convert = secure (client, userFormData, callback) ->
 
     { connection, sessionToken : clientId, clientIP } = client
@@ -1039,33 +1081,34 @@ module.exports = class JUser extends jraphical.Module
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName, agree,
       invitationToken, referrer, password, passwordConfirm,
-      emailFrequency } = userFormData
+      emailFrequency, recaptcha, slug } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
 
-    # only unreigstered accounts can be "converted"
+    # only unregistered accounts can be "converted"
     if account.type is "registered"
-      return callback createKodingError "This account is already registered."
+      return callback new KodingError "This account is already registered."
 
     if /^guest-/.test username
-      return callback createKodingError "Reserved username!"
+      return callback new KodingError "Reserved username!"
 
     if username is "guestuser"
-      return callback createKodingError "Reserved username: 'guestuser'!"
+      return callback new KodingError "Reserved username: 'guestuser'!"
 
     if password isnt passwordConfirm
-      return callback createKodingError "Passwords must match!"
+      return callback new KodingError "Passwords must match!"
 
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
 
-    newToken       = null
-    invitation     = null
-    user           = null
-    quotaExceedErr = null
-    error          = null
-    pin            = null
+    newToken         = null
+    invitation       = null
+    user             = null
+    quotaExceedErr   = null
+    error            = null
+    pin              = null
+    foreignAuthType  = null
 
     # TODO this can cause problems
     aNewRegister   = yes
@@ -1074,6 +1117,8 @@ module.exports = class JUser extends jraphical.Module
       =>
         @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo)=>
           console.log "Error while getting oauth data from session", err  if err
+
+          foreignAuthType = foreignAuthInfo?.foreignAuthType
 
           # Password is not required for GitHub users since they are authorized via GitHub.
           # To prevent having the same password for all GitHub users since it may be
@@ -1085,6 +1130,15 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
+        if KONFIG.recaptcha.enabled
+          @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err)->
+            return callback err  if err
+            queue.next()
+
+        else
+          queue.next()
+
+      =>
         @validateAll userFormData, (err) =>
           return callback err  if err
           queue.next()
@@ -1092,10 +1146,10 @@ module.exports = class JUser extends jraphical.Module
       =>
         @emailAvailable email, (err, res)=>
           if err
-            return callback createKodingError "Something went wrong"
+            return callback new KodingError "Something went wrong"
 
           if res is no
-            return callback createKodingError "Email is already in use!"
+            return callback new KodingError "Email is already in use!"
           else
             queue.next()
 
@@ -1133,7 +1187,7 @@ module.exports = class JUser extends jraphical.Module
 
             else
 
-              return callback createKodingError "Failed to create user!"
+              return callback new KodingError "Failed to create user!"
 
         else
           queue.next()
@@ -1283,13 +1337,13 @@ module.exports = class JUser extends jraphical.Module
         # uses 'HS256' as default for signing
         token = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
 
-        Analytics.identify username, { jwtToken: token, email, pin }
+        Tracker.identify username, { jwtToken: token, email, pin }
         queue.next()
 
       ->
         {username, email} = user
-        subject           = Email.types.START_REGISTER
-        Email.queue username, { to : email, subject }, {}, ->
+        subject           = Tracker.types.START_REGISTER
+        Tracker.track username, { to : email, subject }
         queue.next()
 
       ->
@@ -1317,7 +1371,7 @@ module.exports = class JUser extends jraphical.Module
     JSession.one {clientId: client.sessionToken}, (err, session)->
       return callback err  if err
 
-      noUserError = createKodingError \
+      noUserError = new KodingError \
         "No user found! Not logged in or session expired"
 
       if not session or not session.username
@@ -1337,21 +1391,23 @@ module.exports = class JUser extends jraphical.Module
     @fetchUser client, (err, user)->
 
       if err or not user
-        return callback createKodingError \
+        return callback new KodingError \
           "Something went wrong please try again!"
 
       if user.getAt('password') is hashPassword password, user.getAt('salt')
-        return callback createKodingError "PasswordIsSame"
+        return callback new KodingError "PasswordIsSame"
 
       user.changePassword password, (err)-> callback err
 
 
   sendChangedEmail = (username, firstName, to, type, callback) ->
 
-    subject = if type is 'email' then Email.types.CHANGED_EMAIL
-    else Email.types.CHANGED_PASSWORD
+    subject = if type is 'email' then Tracker.types.CHANGED_EMAIL
+    else Tracker.types.CHANGED_PASSWORD
 
-    Email.queue username, {to, subject}, {firstName}, callback
+    Tracker.track username, {to, subject}, {firstName}
+
+    callback null
 
 
   @changeEmail = secure (client,options,callback)->
@@ -1360,34 +1416,39 @@ module.exports = class JUser extends jraphical.Module
 
     account = client.connection.delegate
     account.fetchUser (err, user)=>
-      return callback createKodingError "Something went wrong please try again!" if err
-      if email is user.email then return callback createKodingError "EmailIsSameError"
+      return callback new KodingError "Something went wrong please try again!" if err
+      if email is user.email then return callback new KodingError "EmailIsSameError"
       @emailAvailable email, (err, res)=>
-        return callback createKodingError "Something went wrong please try again!" if err
+        return callback new KodingError "Something went wrong please try again!" if err
         if res is no
-          callback createKodingError "Email is already in use!"
+          callback new KodingError "Email is already in use!"
         else
           user.changeEmail account, options, callback
 
 
   @emailAvailable = (email, callback)->
     unless typeof email is 'string'
-      return callback createKodingError 'Not a valid email!'
+      return callback new KodingError 'Not a valid email!'
 
     @count {email}, (err, count)-> callback err, count is 0
 
 
+  @getValidUsernameLengthRange = -> { minLength : 4, maxLength : 25 }
+
+
   @usernameAvailable = (username, callback)->
-    JName = require '../name'
+
+    JName     = require '../name'
 
     username += ''
-    res =
+    res       =
       kodingUser : no
       forbidden  : yes
 
     JName.count { name: username }, (err, count)=>
+      { minLength, maxLength } = JUser.getValidUsernameLengthRange()
 
-      if err or username.length < 4 or username.length > 25
+      if err or username.length < minLength or username.length > maxLength
         callback err, res
       else
         res.kodingUser = count is 1
@@ -1452,7 +1513,7 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err
 
         unless confirmed
-          return callback createKodingError 'PIN is not confirmed.'
+          return callback new KodingError 'PIN is not confirmed.'
 
         oldEmail = @getAt 'email'
 
@@ -1463,7 +1524,7 @@ module.exports = class JUser extends jraphical.Module
           account.save (err)=>
             return callback err  if err
 
-            {firstName} = account.profile
+              {firstName} = account.profile
 
             # send EmailChanged event
             @constructor.emit 'EmailChanged', {
@@ -1498,11 +1559,11 @@ module.exports = class JUser extends jraphical.Module
 
       callback null
 
-      Analytics.track username, 'finished register'
+      Tracker.track username, { subject : Tracker.types.FINISH_REGISTER }
 
 
   block:(blockedUntil, callback)->
-    unless blockedUntil then return callback createKodingError "Blocking date is not defined"
+    unless blockedUntil then return callback new KodingError "Blocking date is not defined"
     @update
       $set:
         status: 'blocked',
@@ -1612,3 +1673,37 @@ module.exports = class JUser extends jraphical.Module
     generatedKey = speakeasy.totp {key, encoding: 'base32'}
 
     return generatedKey is verificationCode
+
+
+  ###*
+   * Verify if `response` from client is valid by asking recaptcha servers.
+   * Check is disabled in dev mode or when user is authenticating via `github`.
+   *
+   * @param {string}   response
+   * @param {string}   foreignAuthType
+   * @param {function} callback
+  ###
+  @verifyRecaptcha = (response, params, callback) ->
+
+    { url, secret }           = KONFIG.recaptcha
+    { foreignAuthType, slug } = params
+
+    return callback null  if foreignAuthType is 'github'
+
+    # TODO: temporarily disable recaptcha for groups
+    if slug? and slug isnt 'koding'
+      return callback null
+
+    request.post url, { form: { response, secret } }, (err, res, raw) ->
+      if err
+        console.log "Recaptcha: err validation captcha: #{err}"
+
+      if not err and res.statusCode is 200
+        try
+          if JSON.parse(raw)['success']
+            return callback null
+        catch e
+          console.log "Recaptcha: parsing response failed. #{raw}"
+
+      return callback new KodingError 'Captcha not valid. Please try again.'
+

@@ -51,11 +51,6 @@ func CreateTestIntegration(t *testing.T) *Integration {
 	return i
 }
 
-func CreateIterableIntegration(t *testing.T) *Integration {
-
-	return CreateIntegration(t, "iterable")
-}
-
 func CreateIntegration(t *testing.T, name string) *Integration {
 	i := NewIntegration()
 	i.Title = name
@@ -98,16 +93,17 @@ func CreateUnpublishedIntegration(t *testing.T) *Integration {
 	return i
 }
 
-func CreateTestChannelIntegration(t *testing.T) *ChannelIntegration {
+func CreateTestChannelIntegration(t *testing.T) (*ChannelIntegration, *models.Channel) {
 	account := createTestAccount(t)
 
 	channel := createTestGroupChannel(t, account)
+	topicChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, channel.GroupName)
 
 	integration := CreateTestIntegration(t)
 
 	i := NewChannelIntegration()
 	i.CreatorId = account.Id
-	i.ChannelId = channel.Id
+	i.ChannelId = topicChannel.Id
 	i.GroupName = channel.GroupName
 	i.IntegrationId = integration.Id
 	err := i.Create()
@@ -115,5 +111,5 @@ func CreateTestChannelIntegration(t *testing.T) *ChannelIntegration {
 		t.Fatal(err)
 	}
 
-	return i
+	return i, topicChannel
 }

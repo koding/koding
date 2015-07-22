@@ -1,15 +1,15 @@
-Bongo                           = require 'bongo'
-koding                          = require './../bongo'
+Bongo                             = require 'bongo'
+koding                            = require './../bongo'
 
-{ daisy }                       = Bongo
-{ expect }                      = require "chai"
+{ daisy }                         = Bongo
+{ expect }                        = require "chai"
 { generateRandomString
-  RegisterHandlerHelper }       = require '../../../testhelper'
-{ generateRequestParams }       = RegisterHandlerHelper
+  RegisterHandlerHelper }         = require '../../../testhelper'
+{ generateRegisterRequestParams } = RegisterHandlerHelper
 
-hat                             = require 'hat'
-request                         = require 'request'
-querystring                     = require 'querystring'
+hat                               = require 'hat'
+request                           = require 'request'
+querystring                       = require 'querystring'
 
 
 # here we have actual tests
@@ -18,10 +18,10 @@ runTests = -> describe 'server.handlers.register', ->
   it 'should send HTTP 404 if method is not allowed', (done) ->
 
     queue       = []
-    methods     = ['put, patch, del']
-    postParams  = generateRequestParams()
+    methods     = ['put', 'patch', 'del']
+    postParams  = generateRegisterRequestParams()
 
-    addRequestToQueue = (queue, method) ->
+    addRequestToQueue = (queue, method) -> queue.push ->
       postParams.method = method
       request.del postParams, (err, res, body) ->
         expect(err)             .to.not.exist
@@ -38,7 +38,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 200 if GET request sent to Register hadler url', (done) ->
 
-    requestParams = generateRequestParams()
+    requestParams = generateRegisterRequestParams()
     request.get requestParams, (err, res, body) ->
       expect(err)             .to.not.exist
       expect(res.statusCode)  .to.be.equal 200
@@ -47,7 +47,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if username is not specified', (done) ->
 
-    postParams = generateRequestParams
+    postParams = generateRegisterRequestParams
       body        :
         username  : ''
 
@@ -59,7 +59,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if password is not specified', (done) ->
 
-    postParams = generateRequestParams
+    postParams = generateRegisterRequestParams
       body        :
         password  : ''
 
@@ -71,7 +71,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if passwords do not match ', (done) ->
 
-    postParams = generateRequestParams
+    postParams = generateRegisterRequestParams
       body              :
         password        : 'somePassword'
         passwordConfirm : 'anotherPassword'
@@ -85,7 +85,7 @@ runTests = -> describe 'server.handlers.register', ->
   it 'should send HTTP 400 if username is in use', (done) ->
 
     randomString = generateRandomString()
-    postParams   = generateRequestParams
+    postParams   = generateRegisterRequestParams
       body        :
         username  : randomString
 
@@ -113,7 +113,7 @@ runTests = -> describe 'server.handlers.register', ->
   it 'should send HTTP 400 if email is in use', (done) ->
 
     randomString = generateRandomString()
-    postParams   = generateRequestParams
+    postParams   = generateRegisterRequestParams
       body    :
         email : "kodingtestuser+#{randomString}@koding.com"
 
@@ -140,7 +140,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 400 if agree is set as off', (done) ->
 
-    postParams = generateRequestParams
+    postParams = generateRegisterRequestParams
       body        :
         agree     : 'off'
 
@@ -152,7 +152,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 200 and save user if valid data sent as XHR', (done) ->
 
-    postParams          = generateRequestParams()
+    postParams          = generateRegisterRequestParams()
     { username, email } = querystring.parse postParams.body
     { JUser, JAccount } = koding.models
 
@@ -192,7 +192,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 301 if request is not XHR',  (done) ->
 
-    postParams = generateRequestParams
+    postParams = generateRegisterRequestParams
       headers :
         'x-requested-with' : 'this is not an XHR'
 
@@ -204,7 +204,7 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should pass err if url is not specified', (done) ->
 
-    postParams = generateRequestParams
+    postParams = generateRegisterRequestParams
       url : ''
 
     request.post postParams, (err, res, body) ->

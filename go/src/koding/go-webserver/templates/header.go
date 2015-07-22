@@ -7,7 +7,7 @@ var Header = `
 
     <meta name="description"             content="{{.Description}}" />
     <meta name="author"                  content="Koding">
-    <meta name="keywords"                content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, Wordpress, Django, Programming, virtual machines">
+    <meta name="keywords"                content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, WordPress, Django, Programming, virtual machines">
 
     <!-- Schema.org for Google+ -->
     <meta itemprop="name"                content="{{.Title}}">
@@ -45,6 +45,7 @@ var Header = `
 
     <link rel="shortcut icon" href="/a/images/favicon.ico" />
     <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
+    <link href="https://plus.google.com/+KodingInc" rel="publisher" />
     <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
 
     <script type="text/javascript">

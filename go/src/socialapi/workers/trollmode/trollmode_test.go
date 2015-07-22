@@ -60,6 +60,12 @@ func TestMarkedAsTroll(t *testing.T) {
 		adminUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(adminUser, err)
 
+		models.CreateTypedGroupedChannelWithTest(
+			adminUser.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
 		// fetch admin's session
 		ses, err := models.FetchOrCreateSession(adminUser.Nick, groupName)
 		So(err, ShouldBeNil)
@@ -85,6 +91,19 @@ func TestMarkedAsTroll(t *testing.T) {
 			ses.ClientId,
 		)
 		tests.ResultedWithNoErrorCheck(groupChannel, err)
+
+		sinan := models.NewAccount()
+		err = sinan.ByNick("sinan")
+		So(err, ShouldBeNil)
+
+		_, err = groupChannel.AddParticipant(sinan.Id)
+		So(err, ShouldBeNil)
+
+		_, err = groupChannel.AddParticipant(trollUser.Id)
+		So(err, ShouldBeNil)
+
+		_, err = groupChannel.AddParticipant(normalUser.Id)
+		So(err, ShouldBeNil)
 
 		controller := NewController(r.Log)
 

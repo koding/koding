@@ -55,7 +55,7 @@ module.exports = class ComputeStateChecker extends KDObject
     @ignoredMachines = (m for m in @ignoredMachines when m isnt machineId)
 
 
-  tick: (checkAll = no)->
+  tick: (checkAll = no) ->
 
     return  unless @machines.length
     return  if @tickInProgress
@@ -63,9 +63,9 @@ module.exports = class ComputeStateChecker extends KDObject
 
     {computeController, kontrol} = kd.singletons
 
-    kd.info "Checking all machine states..."  if checkAll
+    # kd.info "Checking all machine states..."  if checkAll
 
-    @machines.forEach (machine)=>
+    @machines.forEach (machine) =>
 
       machineId = machine._id
       currentState = machine.status.state
@@ -87,7 +87,7 @@ module.exports = class ComputeStateChecker extends KDObject
 
       call = computeController.getKloud().info { machineId, currentState }
 
-      .then (response)=>
+      .then (response) =>
 
         return  if machineId in @ignoredMachines
 
@@ -103,7 +103,7 @@ module.exports = class ComputeStateChecker extends KDObject
 
       .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-      .catch (err)->
+      .catch (err) ->
 
         # Ignore pending event and timeout errors but log others
         unless (err?.code in ['107', '500']) or (err?.name is "TimeoutError")

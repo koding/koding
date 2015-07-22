@@ -82,7 +82,7 @@ func FetchUserContact(accountId int64) (*UserContact, error) {
 		LastName:                account.Profile.LastName,
 		Username:                account.Profile.Nickname,
 		Hash:                    account.Profile.Hash,
-		EmailSettings:           &user.EmailFrequency,
+		EmailSettings:           user.EmailFrequency,
 		LastLoginTimezoneOffset: account.LastLoginTimezoneOffset,
 	}, nil
 }

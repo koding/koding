@@ -57,6 +57,10 @@ type (
 		Geoipdbpath string
 
 		DisabledFeatures DisabledFeatures
+
+		Janitor Janitor
+
+		Github Github
 	}
 
 	// Email holds Email Workers' config
@@ -148,8 +152,9 @@ type (
 	}
 
 	PaymentWebhook struct {
-		Port  string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
-		Debug bool   `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_DEBUG"`
+		Port      string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
+		Debug     bool   `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_DEBUG"`
+		SecretKey string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_SECRETKEY"`
 	}
 
 	GoogleapiServiceAccount struct {
@@ -162,5 +167,16 @@ type (
 	DisabledFeatures struct {
 		Moderation bool
 		BotChannel bool
+	}
+
+	Janitor struct {
+		Port      string `env:"key=KONFIG_SOCIALAPI_JANITOR_PORT"`
+		SecretKey string `env:"key=KONFIG_SOCIALAPI_JANITOR_SECRETKEY"`
+	}
+
+	Github struct {
+		ClientId     string `env:"key=KONFIG_SOCIALAPI_GITHUB_CLIENTID"`
+		ClientSecret string `env:"key=KONFIG_SOCIALAPI_GITHUB_CLIENTSECRET"`
+		RedirectUri  string `env:"key=KONFIG_SOCIALAPI_GITHUB_REDIRECTURI"`
 	}
 )

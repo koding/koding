@@ -51,6 +51,11 @@ func TestCollaborationSesionEnd(t *testing.T) {
 		So(owner, ShouldNotBeNil)
 
 		groupName := apimodels.RandomGroupName()
+		apimodels.CreateTypedGroupedChannelWithTest(
+			owner.Id,
+			apimodels.Channel_TYPE_GROUP,
+			groupName,
+		)
 
 		ownerSession, err := apimodels.FetchOrCreateSession(owner.Nick, groupName)
 		So(err, ShouldBeNil)

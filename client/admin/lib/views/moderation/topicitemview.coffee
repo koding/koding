@@ -42,7 +42,7 @@ module.exports = class TopicItemView extends KDListItemView
         @moderationLabel.toggleClass 'active'
     
     @typeLabel = new KDCustomHTMLView
-      cssClass : 'type-label'
+      cssClass : 'type-label hidden'
 
 
   createSettingsView : (data) ->
@@ -58,17 +58,22 @@ module.exports = class TopicItemView extends KDListItemView
 
 
   createAllTopicView : (data) ->
-      @settings.addSubView deleteButton = new KDButtonView
-        cssClass : 'solid compact outline'
-        title    : 'DELETE CHANNEL'
-        callback :=>
+      @settings.addSubView deleteButton = new KDCustomHTMLView
+        tagName  : 'a'
+        cssClass : 'delete-topic'
+        click    :=>
+          @setClass 'hidden'
           options = 
             rootId  : kd.singletons.groupsController.getCurrentGroup().socialApiChannelId
             leafId  : data.id
           
           kd.singletons.socialapi.moderation.blacklist options, (err, data) =>
-            if err
-              return kd.warn err
+            return kd.warn err if err
+          
+          # TO-DO
+          # Send removed data into DELETED Topics
+          
+            
               
   createDeletedTopicView: (data) ->
       options = 
@@ -77,18 +82,19 @@ module.exports = class TopicItemView extends KDListItemView
       
       kd.singletons.socialapi.moderation.fetchRoot options, (err, rootChannel) =>
        
-        if err 
-          return kd.warn err
+        return kd.warn err if err 
+          
         
         if rootChannel
           text = "Blacklisted"
           if kd.singletons.groupsController.getCurrentGroup().socialApiChannelId isnt rootChannel.id 
-            text = "linked to #{rootChannel.name}"
+            text = "##{rootChannel.name}"
           
         @typeLabel.setPartial "#{text}"
+        @typeLabel.show()
         
         @settings.addSubView whitelistButton = new KDButtonView
-          cssClass : 'solid compact outline'
+          cssClass : 'solid compact outline whitelist-topic'
           title    : 'WHITELIST CHANNEL'
           callback : -> 
             options = 
@@ -102,15 +108,15 @@ module.exports = class TopicItemView extends KDListItemView
   createLeafChannelSetting: (data) ->
     
     @settings.addSubView @removeLabel = new KDCustomHTMLView
-      cssClass: 'solid compact hidden'
-      partial : '<span class="label">Leaf Channels</span>'
+      cssClass: 'topics-connected'
+      partial : '<span class="label">CONNECTED CHANNELS</span>'
 
     @createLeafChannelsListController()
     @settings.addSubView @leafChannelsListController.getView()
     @createLeafItemViews @getData()
 
     @settings.addSubView @removeButton = new KDButtonView
-      cssClass : 'solid compact outline hidden'
+      cssClass : 'solid compact hidden remove-topic'
       title    : 'REMOVE LINK'
       callback : =>
         listItems = @leafChannelsListController.getListItems()
@@ -128,17 +134,16 @@ module.exports = class TopicItemView extends KDListItemView
   createSimilarChannelSetting: (data) ->
          
     @settings.addSubView new KDCustomHTMLView
-      cssClass: 'solid compact'
-      partial : '<span class="label">Similar Channels</span>'
+      cssClass: 'topics-similar'
+      partial : '<span class="label">SIMILAR CHANNELS</span>'
 
 
     @settings.addSubView @searchContainer = new KDCustomHTMLView
       cssClass: 'search'
-      partial : '<span class="label">Find similar channels</span>'
 
     @searchContainer.addSubView @searchInput = new KDHitEnterInputView
       type        : 'text'
-      placeholder : @getData().name
+      placeholder : 'Find similar channels'
       callback    : @bound 'searchSimilarChannels'
     
     @createSimilarChannelsListController()
@@ -146,7 +151,7 @@ module.exports = class TopicItemView extends KDListItemView
     @fetchSimilarChannels(@getData().name)
     
     @settings.addSubView linkButton = new KDButtonView
-      cssClass : 'solid compact outline'
+      cssClass : 'solid compact link-topic'
       title    : 'LINK CHANNEL'
       callback : =>
         listItems = @similarChannelsListController.getListItems()
@@ -242,7 +247,10 @@ module.exports = class TopicItemView extends KDListItemView
         itemClass         : SelectableItemView
         cssClass          : 'leaf-channel-list'
         itemOptions       : {}
-      noItemFoundWidget   : new KDCustomHTMLView  { partial: "Doesn't have linked channel" }
+      noItemFoundWidget   : new KDCustomHTMLView  {
+          cssClass        : 'topics-empty'
+          partial         : "Doesn't have linked channels" 
+      }
       startWithLazyLoader : no
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
@@ -258,7 +266,10 @@ module.exports = class TopicItemView extends KDListItemView
         itemClass         : SelectableItemView
         cssClass          : 'similar-item-list'
         itemOptions       : {}
-      noItemFoundWidget   : new KDCustomHTMLView { partial: "Doesn't have similar channel" }
+      noItemFoundWidget   : new KDCustomHTMLView { 
+          cssClass        : 'topics-empty'
+          partial         : "Doesn't have similar channels" 
+      }
       startWithLazyLoader : yes
       lazyLoadThreshold   : .99
       lazyLoaderOptions   :
@@ -271,7 +282,7 @@ module.exports = class TopicItemView extends KDListItemView
     
     return """
       <div class="details">
-        <p class="topicname">{{#(name)}}</p>
+        <p class="topicname">\#{{#(name)}}</p>
       </div>
       {{> @typeLabel}}
       {{> @moderationLabel}}

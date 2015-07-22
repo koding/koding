@@ -15,9 +15,11 @@ TestHelper                    = require '../../../../testhelper'
 
 { daisy }                     = Bongo
 { generateUserInfo
-  generateCredentials,
-  generateRandomString,
-  generateDummyClientData,
+  generateCredentials
+  generateRandomEmail
+  generateRandomString
+  generateRandomUsername
+  generateDummyClientData
   generateDummyUserFormData } = TestHelper
 
 
@@ -92,7 +94,6 @@ runTests = -> describe 'workers.social.user.index', ->
         done()
 
 
-
     it 'should pass error if username is in use', (done) ->
 
       queue = [
@@ -104,7 +105,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # setting a different email, username will be duplicate
-          userInfo.email  = "kodingtestuser+#{generateRandomString()}@gmail.com"
+          userInfo.email  = generateRandomEmail()
           expectedError   = "The slug #{userInfo.username} is not available."
 
           JUser.createUser userInfo, (err) ->
@@ -155,7 +156,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting user to be saved
-          params = {username : userInfo.username}
+          params = { username : userInfo.username }
           JUser.one params, (err, user) ->
             expect(err)           .to.not.exist
             expect(user.username) .to.be.equal userInfo.username
@@ -181,8 +182,8 @@ runTests = -> describe 'workers.social.user.index', ->
       userInfo.emailFrequency =
         global         : off
         daily          : off
-        privateMessage : off
         followActions  : off
+        privateMessage : off
 
       queue = [
 
@@ -192,7 +193,7 @@ runTests = -> describe 'workers.social.user.index', ->
             queue.next()
 
         ->
-          params = {username : userInfo.username}
+          params = { username : userInfo.username }
           JUser.one params, (err, user) ->
             expect(err)                                 .to.not.exist
             expect(user.emailFrequency.global)          .to.be.false
@@ -356,25 +357,6 @@ runTests = -> describe 'workers.social.user.index', ->
       daisy queue
 
 
-    it 'should handle groups correctly', (done) ->
-
-      loginCredentials = generateCredentials
-        groupName : 'invalidgroupName'
-
-      queue = [
-
-        ->
-          JUser.login clientId, loginCredentials, (err)->
-            expect(err.message).to.be.equal 'group doesnt exist'
-            queue.next()
-
-        -> done()
-
-      ]
-
-      daisy queue
-
-
     it 'should pass error if account is not found', (done) ->
 
       { username, password } = userInfo = generateUserInfo()
@@ -469,7 +451,7 @@ runTests = -> describe 'workers.social.user.index', ->
       loginCredentials          = generateCredentials { username, password }
 
       setUserPasswordStatus = (queue, username, status) ->
-        JUser.update { username }, {$set: passwordStatus: status}, (err) ->
+        JUser.update { username }, { $set: passwordStatus: status }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -589,13 +571,25 @@ runTests = -> describe 'workers.social.user.index', ->
         done()
 
 
-    it 'should pass error if groupName is not valid', (done) ->
+    it 'should pass error if group doesnt exist and groupIsBeingCreated is false', (done) ->
 
       loginCredentials = generateCredentials
-        groupName : 'someinvalidgroupName'
+        groupName           : 'someinvalidgroupName'
+        groupIsBeingCreated : no
 
       JUser.login clientId, loginCredentials, (err) ->
         expect(err.message).to.be.equal 'group doesnt exist'
+        done()
+
+
+    it 'should be able to login if group doesnt exist but groupIsBeingCreated is true', (done) ->
+
+      loginCredentials = generateCredentials
+        groupName           : 'someinvalidgroupName'
+        groupIsBeingCreated : yes
+
+      JUser.login clientId, loginCredentials, (err) ->
+        expect(err).to.not.exist
         done()
 
 
@@ -613,9 +607,8 @@ runTests = -> describe 'workers.social.user.index', ->
       client                = JSON.parse JSON.stringify dummyClient
       userFormData          = JSON.parse JSON.stringify dummyUserFormData
 
-      randomString          = generateRandomString()
-      userFormData.email    = "kodingtestuser+#{randomString}@gmail.com"
-      userFormData.username = randomString
+      userFormData.email    = generateRandomEmail()
+      userFormData.username = generateRandomUsername()
 
 
     it 'should pass error if account is already registered', (done) ->
@@ -740,6 +733,47 @@ runTests = -> describe 'workers.social.user.index', ->
       ]
 
       daisy queue
+
+
+  describe '#verifyRecaptcha()', ->
+
+    it 'should pass error if captcha code is empty', (done) ->
+
+      params =
+        slug            : 'koding'
+        foreignAuthType : ''
+
+      captchaCode = ''
+
+      JUser.verifyRecaptcha captchaCode, params, (err) ->
+        expect(err?.message).to.be.equal 'Captcha not valid. Please try again.'
+        done()
+
+
+    it 'should pass error if captcha code is invalid', (done) ->
+
+      params =
+        slug            : 'koding'
+        foreignAuthType : ''
+
+      captchaCode = 'someInvalidCaptchaCode'
+
+      JUser.verifyRecaptcha captchaCode, params, (err) ->
+        expect(err?.message).to.be.equal 'Captcha not valid. Please try again.'
+        done()
+
+
+    it 'should bypass recaptcha verification if foreignAuthType is github', (done) ->
+
+      params =
+        slug            : 'koding'
+        foreignAuthType : 'github'
+
+      captchaCode = 'someInvalidCaptchaCode'
+
+      JUser.verifyRecaptcha captchaCode, params, (err) ->
+        expect(err).to.not.exist
+        done()
 
 
 beforeTests()

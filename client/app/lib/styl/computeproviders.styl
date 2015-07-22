@@ -431,6 +431,7 @@ computeproviders.styl
       border-top-left-radius     5px !important
 
 .kdcontextmenu.add-new-vm-menu
+.kdcontextmenu.menu-button-menu
   z-index                   10002
   span.arrow.top
     border-bottom-color     #eee
@@ -440,6 +441,9 @@ computeproviders.styl
     text-align              left !important
 
 .environments-modal
+
+  .kdmodal-inner > .kdbutton
+    abs                     15px, 25px
 
   .buttons
     width                   auto
@@ -534,3 +538,182 @@ computeproviders.styl
     > div:first-child
       margin-left           17px
       width                 200px
+
+
+.kdlistview.credential-list
+.kdlistview.stack-template-list
+
+  .outline.kdbutton
+    background              none
+    border                  2px solid #4a4e52
+
+    &:active
+      span
+        color               #4a4e52
+
+    span
+      color                 #4a4e52
+      line-height           26px
+
+    &.red
+      border-color          #e14a35
+
+      span
+        color               #e14a35
+
+      &:hover span
+        color               #FFF
+
+  .credential-item
+  .stacktemplate-item
+    padding                 10px 0
+    font-size               14px
+    border-bottom           1px solid #ddd
+    borderBox()
+
+    &:hover
+      .buttons button.secondary
+        opacity             1
+        pointer-events      auto
+
+    .credential-info
+    .stacktemplate-info
+      padding               10px 0
+
+      .title
+        font-weight         bold
+        fl()
+
+      .tag
+        padding             0 3px
+        font-size           12px
+        background-color    #ddd
+        margin-right        10px
+        fl()
+
+      .inuse-tag
+        font-size           10px
+        padding             0 4px
+        line-height         13px
+        margin-top          5px
+        margin-left         5px
+        background-color    #02A74D
+        color               #FFFFFF
+        cursor              default
+        fl()
+
+    .warning-message
+      background            #FCFCE9
+      border                1px solid #D4D4A9
+      border-radius         4px
+      padding               5px
+      font-size             12px
+      color                 #888869
+      margin-top            3px
+      text-align            center
+
+    .buttons
+      abs                   16px 0px
+
+      button.secondary
+        opacity             0
+        pointer-events      none
+        vendor              transition, opacity .3s .3s ease
+
+      button
+        min-width           80px
+        margin-left         15px
+
+      button.solid.green
+        background-color    #01A84E
+        &[disabled]
+          opacity           .5
+
+
+.kdlistview.repo-user-list
+
+  border                    1px solid #ccc
+  max-height                calc(100% \- 50px)
+  overflow                  auto
+  margin-top                20px
+  borderBox()
+
+  .error-view
+    padding-left            10px
+    font-size               12px
+    background              lightyellow
+
+  .repo-item
+  .repo-user-item
+
+    padding                 10px 0
+    box-sizing              border-box
+    pointer()
+
+    a
+      color                 #333
+      noTextDeco()
+
+    span.add-link
+    span.active-link
+      r-sprite              'app', 'sidebar-toggle'
+      vendor                transform, rotate(180deg)
+      display               block
+      margin-top            6px
+      margin-right          6px
+      pointer()
+      fr()
+
+    span.active-link
+      margin-top            12px
+
+  .repo-item
+    border-bottom           1px solid #DDD
+    padding                 10px
+
+    &.active
+      border-bottom         none
+      bg                    color, #eee
+      span.add-link
+        vendor              transform, rotate(270deg)
+
+  .repo-user-item
+    span.active-link
+      margin-right          15px
+
+    background              #F3F3F3
+    overflow                hidden
+    padding                 20px
+    border-bottom           1px solid #ccc
+
+    &:last-child
+      border-bottom         none
+
+    .listview-wrapper
+      margin-top            40px
+      clear                 both
+      height                300px
+      // overflow-y            auto
+      padding-left          42px
+      borderBox()
+
+    .gravatar
+      width                 32px
+      fl()
+
+    .user-title
+      line-height           32px
+      margin-left           20px
+      fl()
+
+    &.active
+      background            white
+
+      span.active-link
+        vendor              transform, rotate(270deg)
+
+
+.stacks-modal
+
+  .kdmodal-inner > .kdbutton
+    abs                     15px, 25px

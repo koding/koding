@@ -43,6 +43,7 @@ module.exports =
           .click                   textareaSelector
           .setValue                textareaSelector, message + '\n'
           .waitForElementVisible   '.message-pane.privatemessage', 20000
+          .waitForElementVisible   '[testpath=activity-list]', 20000
           .assert.containsText     '.message-pane.privatemessage', message # Assertion
           .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
           if purpose

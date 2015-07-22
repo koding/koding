@@ -6,6 +6,7 @@ KDButtonView             = kd.ButtonView
 KDTimeAgoView            = kd.TimeAgoView
 KDCustomHTMLView         = kd.CustomHTMLView
 AdminIntegrationItemView = require './adminintegrationitemview'
+integrationHelpers       = require 'app/helpers/integration'
 
 
 module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrationItemView
@@ -67,48 +68,9 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
     subview.addSubView new KDCustomHTMLView
       cssClass : 'edit'
       partial  : 'Customize <span></span>'
-      click    : => @handleCustomize data
-
-
-  handleCustomize: (integrationData) ->
-
-    { integration } = @getData()
-    { channelIntegration } = integrationData
-
-    @fetchChannels (err, channels) =>
-      return showError err  if err
-
-      kd.singletons.socialapi.integrations.fetch {id: channelIntegration.id}, (err, response) =>
-
-        return showError err  if err
-
-        { channelIntegration } = response
-
-        data              =
-          channels        : channels
-          id              : channelIntegration.id
-          name            : integration.name
-          title           : integration.title
-          token           : channelIntegration.token
-          summary         : integration.summary
-          settings        : channelIntegration.settings
-          createdAt       : channelIntegration.createdAt
-          iconPath        : integration.iconPath
-          updatedAt       : channelIntegration.updatedAt
-          description     : channelIntegration.description or integration.summary
-          instructions    : integration.instructions
-          typeConstant    : integration.typeConstant
-          integrationId   : channelIntegration.integrationId
-          selectedChannel : channelIntegration.channelId
-          webhookUrl      : "#{globals.config.integration.url}/#{integration.name}/#{channelIntegration.token}"
-          integrationType : 'configured'
-          isDisabled      : channelIntegration.isDisabled
-
-
-        # DUMMY DATA
-        data.selectedEvents = [ 'added_comment', 'edited_feature' ]
-
-        @emit 'IntegrationCustomizeRequested', data
+      click    : =>
+        { id } = data.channelIntegration
+        kd.singletons.router.handleRoute "/Admin/Integrations/Configure/#{id}"
 
 
   pistachio: ->

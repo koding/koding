@@ -1,9 +1,11 @@
-kd           = require 'kd'
-globals      = require 'globals'
-JView        = require 'app/jview'
-remote       = require('app/remote').getInstance()
-KDSelectBox  = kd.SelectBox
-KDButtonView = kd.ButtonView
+kd                 = require 'kd'
+globals            = require 'globals'
+JView              = require 'app/jview'
+remote             = require('app/remote').getInstance()
+KDSelectBox        = kd.SelectBox
+KDButtonView       = kd.ButtonView
+integrationHelpers = require 'app/helpers/integration'
+
 
 module.exports = class AdminIntegrationSetupView extends JView
 
@@ -29,27 +31,19 @@ module.exports = class AdminIntegrationSetupView extends JView
     @cancelButton = new KDButtonView
       title    : 'Cancel'
       cssClass : 'solid red compact cancel'
-      callback : @bound 'destroy'
+      callback : -> kd.singletons.router.handleRoute '/Admin/Integrations'
 
 
   setIntegration: ->
 
-    data = @getData()
     options =
-      integrationId : data.id
+      integrationId : @getData().id
       channelId     : @channelSelect.getValue()
 
-    kd.singletons.socialapi.integrations.create options, (err, response) =>
+    integrationHelpers.create options, (err, response) =>
       return console.warn "couldnt create integration", err  if err
 
-      data.token           = response.token
-      data.id              = response.id
-      data.integrationId   = response.integrationId
-      data.selectedChannel = response.channelId
-      data.webhookUrl      = "#{globals.config.integration.url}/#{data.name}/#{data.token}"
-
-      @destroy()
-      @emit 'NewIntegrationAdded', data
+      kd.singletons.router.handleRoute "/Admin/Integrations/Configure/#{response.id}"
 
 
   pistachio: ->

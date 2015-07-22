@@ -40,6 +40,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -76,6 +77,7 @@ import (
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/userdata"
+	"koding/kites/terraformer"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
@@ -103,7 +105,7 @@ var (
             "example": {
 				"count": %d,
                 "instance_type": "t2.micro",
-                "ami": "ami-936d9d93"
+                "user_data": "sudo apt-get install sl -y\ntouch /tmp/arslan.txt"
             }
         }
     }
@@ -144,14 +146,19 @@ func init() {
 	conf.KiteKey = testutil.NewKiteKey().Raw
 
 	// Power up our own kontrol kite for self-contained tests
+	log.Println("Starting Kontrol Test Instance")
 	kontrol.DefaultPort = 4099
-	kntrl := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
-	kntrl.SetStorage(kontrol.NewPostgres(nil, kntrl.Kite.Log))
+	kntrl := kontrol.New(conf.Copy(), "0.1.0")
+	p := kontrol.NewPostgres(nil, kntrl.Kite.Log)
+	kntrl.SetKeyPairStorage(p)
+	kntrl.SetStorage(p)
+	kntrl.AddKeyPair("", testkeys.Public, testkeys.Private)
 
 	go kntrl.Run()
 	<-kntrl.Kite.ServerReadyNotify()
 
 	// Power up kloud kite
+	log.Println("Starting Kloud Test Instance")
 	kloudKite = kite.New("kloud", "0.0.1")
 	kloudKite.Config = conf.Copy()
 	kloudKite.Config.Port = 4002
@@ -183,11 +190,48 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
+
+	// Power up our terraformer kite
+	log.Println("Starting Terraform Test Instance")
+	tConf := &terraformer.Config{
+		Port:        2300,
+		Region:      "dev",
+		Environment: "dev",
+		AWS: terraformer.AWS{
+			Key:    os.Getenv("TERRAFORMER_KEY"),
+			Secret: os.Getenv("TERRAFORMER_SECRET"),
+			Bucket: "koding-terraformer-state-dev",
+		},
+		LocalStorePath: "/Users/fatih/Code/koding/go/data/terraformer",
+	}
+
+	t, err := terraformer.New(tConf, common.NewLogger("terraformer", false))
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	terraformerKite, err := terraformer.NewKite(t, tConf)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// no need to register to kontrol, kloud talks directly via a secret key
+	terraformerKite.Config = conf.Copy()
+	terraformerKite.Config.Port = 2300
+
+	go terraformerKite.Run()
+	<-terraformerKite.ServerReadyNotify()
+
+	log.Println("=== Test instances are up and ready!. Executing now the tests... ===")
+
+	// hashicorp.terraform outputs many logs, discard them
+	log.SetOutput(ioutil.Discard)
 }
 
 func TestTerraformAuthenticate(t *testing.T) {
 	username := "testuser12"
-	userData, err := createUser(username)
+	groupname := "koding"
+	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,6 +240,7 @@ func TestTerraformAuthenticate(t *testing.T) {
 
 	args := &kloud.AuthenticateRequest{
 		PublicKeys: []string{userData.CredentialPublicKey},
+		GroupName:  groupname,
 	}
 
 	_, err = remote.Tell("authenticate", args)
@@ -206,7 +251,8 @@ func TestTerraformAuthenticate(t *testing.T) {
 
 func TestTerraformBootstrap(t *testing.T) {
 	username := "testuser11"
-	userData, err := createUser(username)
+	groupname := "koding"
+	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,11 +261,12 @@ func TestTerraformBootstrap(t *testing.T) {
 
 	args := &kloud.TerraformBootstrapRequest{
 		PublicKeys: []string{userData.CredentialPublicKey},
+		GroupName:  groupname,
 	}
 
 	_, err = remote.Tell("bootstrap", args)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	// should be return true always if resource exists
@@ -239,7 +286,9 @@ func TestTerraformBootstrap(t *testing.T) {
 func TestTerraformPlan(t *testing.T) {
 	t.Parallel()
 	username := "testuser0"
-	userData, err := createUser(username)
+	groupname := "koding"
+
+	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -248,6 +297,7 @@ func TestTerraformPlan(t *testing.T) {
 
 	args := &kloud.TerraformPlanRequest{
 		StackTemplateId: userData.StackTemplateId,
+		GroupName:       groupname,
 	}
 
 	resp, err := remote.Tell("plan", args)
@@ -282,46 +332,11 @@ func TestTerraformPlan(t *testing.T) {
 	fmt.Printf("result = %+v\n", result)
 }
 
-func TestTerraformApplyAndDestroy(t *testing.T) {
-	t.Parallel()
-	username := "testuser10"
-	userData, err := createUser(username)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	remote := userData.Remote
-	args := &kloud.TerraformApplyRequest{
-		StackId: userData.StackId,
-	}
-
-	resp, err := remote.Tell("apply", args)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var result kloud.ControlResult
-	err = resp.Unmarshal(&result)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
-			EventId: userData.StackId,
-			Type:    "apply",
-		},
-	})
-
-	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
-		t.Error(err)
-	}
-}
-
 func TestTerraformStack(t *testing.T) {
 	t.Parallel()
-	username := "testuser13"
-	userData, err := createUser(username)
+	username := "testuser"
+	groupname := "koding"
+	userData, err := createUser(username, groupname, "ap-northeast-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -330,6 +345,7 @@ func TestTerraformStack(t *testing.T) {
 
 	args := &kloud.TerraformBootstrapRequest{
 		PublicKeys: []string{userData.CredentialPublicKey},
+		GroupName:  groupname,
 	}
 
 	_, err = remote.Tell("bootstrap", args)
@@ -347,12 +363,13 @@ func TestTerraformStack(t *testing.T) {
 	}()
 
 	applyArgs := &kloud.TerraformApplyRequest{
-		StackId: userData.StackId,
+		StackId:   userData.StackId,
+		GroupName: groupname,
 	}
 
 	resp, err := remote.Tell("apply", applyArgs)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	var result kloud.ControlResult
@@ -372,9 +389,13 @@ func TestTerraformStack(t *testing.T) {
 		t.Error(err)
 	}
 
+	fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
+	time.Sleep(time.Minute * 5)
+
 	destroyArgs := &kloud.TerraformApplyRequest{
-		StackId: userData.StackId,
-		Destroy: true,
+		StackId:   userData.StackId,
+		Destroy:   true,
+		GroupName: groupname,
 	}
 
 	resp, err = remote.Tell("apply", destroyArgs)
@@ -402,7 +423,7 @@ func TestTerraformStack(t *testing.T) {
 func TestBuild(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "koding", "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -473,7 +494,7 @@ func checkSSHKey(id, privateKey string) error {
 func TestStop(t *testing.T) {
 	t.Parallel()
 	username := "testuser2"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "koding", "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -504,7 +525,7 @@ func TestStop(t *testing.T) {
 func TestStart(t *testing.T) {
 	t.Parallel()
 	username := "testuser3"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "koding", "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -535,7 +556,7 @@ func TestStart(t *testing.T) {
 func TestSnapshot(t *testing.T) {
 	t.Parallel()
 	username := "testuser4"
-	userData, err := createUser(username)
+	userData, err := createUser(username, "koding", "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -580,8 +601,8 @@ func TestSnapshot(t *testing.T) {
 
 func TestResize(t *testing.T) {
 	t.Parallel()
-	username := "testuser5"
-	userData, err := createUser(username)
+	username := "testuser"
+	userData, err := createUser(username, "koding", "eu-west-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -635,7 +656,7 @@ func TestResize(t *testing.T) {
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
-func createUser(username string) (*singleUser, error) {
+func createUser(username, groupname, region string) (*singleUser, error) {
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
@@ -650,6 +671,10 @@ func createUser(username string) (*singleUser, error) {
 		return c.Remove(bson.M{"profile.nickname": username})
 	})
 
+	provider.DB.Run("jGroups", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"slug": groupname})
+	})
+
 	// jAccounts
 	accountId := bson.NewObjectId()
 	account := &models.Account{
@@ -661,6 +686,36 @@ func createUser(username string) (*singleUser, error) {
 
 	if err := provider.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Insert(&account)
+	}); err != nil {
+		return nil, err
+	}
+
+	// jGroups
+	groupId := bson.NewObjectId()
+	group := &models.Group{
+		Id:    groupId,
+		Title: groupname,
+		Slug:  groupname,
+	}
+
+	if err := provider.DB.Run("jGroups", func(c *mgo.Collection) error {
+		return c.Insert(&group)
+	}); err != nil {
+		return nil, err
+	}
+
+	// add relation between use and group
+	relationship := &models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   accountId,
+		TargetName: "JAccount",
+		SourceId:   groupId,
+		SourceName: "JGroup",
+		As:         "member",
+	}
+
+	if err := provider.DB.Run("relationships", func(c *mgo.Collection) error {
+		return c.Insert(&relationship)
 	}); err != nil {
 		return nil, err
 	}
@@ -713,7 +768,7 @@ func createUser(username string) (*singleUser, error) {
 		Meta: bson.M{
 			"access_key": "",
 			"secret_key": "",
-			"region":     "ap-northeast-1",
+			"region":     region,
 		},
 	}
 
@@ -723,9 +778,8 @@ func createUser(username string) (*singleUser, error) {
 		return nil, err
 	}
 
-	relationshipId := bson.NewObjectId()
-	relationship := &models.Relationship{
-		Id:         relationshipId,
+	credRelationship := &models.Relationship{
+		Id:         bson.NewObjectId(),
 		TargetId:   credentialId,
 		TargetName: "JCredential",
 		SourceId:   accountId,
@@ -734,7 +788,7 @@ func createUser(username string) (*singleUser, error) {
 	}
 
 	if err := provider.DB.Run("relationships", func(c *mgo.Collection) error {
-		return c.Insert(&relationship)
+		return c.Insert(&credRelationship)
 	}); err != nil {
 		return nil, err
 	}
@@ -765,7 +819,7 @@ func createUser(username string) (*singleUser, error) {
 			Groups:     make([]models.Permissions, 0),
 		}
 
-		machine.Meta.Region = "ap-northeast-1"
+		machine.Meta.Region = region
 		machine.Meta.InstanceType = "t2.micro"
 		machine.Meta.StorageSize = 3
 		machine.Meta.AlwaysOn = false
@@ -1145,8 +1199,8 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 
 func kodingProvider() *koding.Provider {
 	auth := aws.Auth{
-		AccessKey: "",
-		SecretKey: "",
+		AccessKey: os.Getenv("KLOUD_ACCESSKEY"),
+		SecretKey: os.Getenv("KLOUD_SECRETKEY"),
 	}
 
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
@@ -1199,7 +1253,17 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	kld.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}
-	kld.PublicKeys = publickeys.NewKeys()
+
+	userPrivateKey, userPublicKey := userMachinesKeys(
+		os.Getenv("KLOUD_USER_PUBLICKEY"),
+		os.Getenv("KLOUD_USER_PRIVATEKEY"),
+	)
+
+	kld.PublicKeys = &publickeys.Keys{
+		KeyName:    publickeys.DeployKeyName,
+		PrivateKey: userPrivateKey,
+		PublicKey:  userPublicKey,
+	}
 	kld.Log = kloudLogger
 	kld.DomainStorage = p.DNSStorage
 	kld.Domainer = p.DNSClient

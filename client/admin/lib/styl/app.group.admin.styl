@@ -713,8 +713,19 @@ Admin main styles
   .listview-wrapper
     kalc                    height, (100% \- 91px)
 
+    .kdlistview
+      padding-right         20px
+
   .search
     margin                  25px 0
+    position                relative
+
+    &:before
+      display               block
+      abs                   0 0 11px 200px
+      content               ''
+      z-index               5
+      r-sprite              'admin', 'search'
 
     .label
       font-size             14px
@@ -742,7 +753,7 @@ Admin main styles
 
   .kdlistitemview-topic
     padding                 5px 0
-    border-top              1px solid #DEDEDE
+    border-top              1px solid #EFEFEF
     font-size               14px
     color                   #4c4c4c
 
@@ -759,7 +770,7 @@ Admin main styles
 
 
   .topicname
-    font-size               20px
+    font-size               14px
     color                   #434343
     font-weight             400
 
@@ -767,16 +778,25 @@ Admin main styles
     float                   left
     line-height             40px
 
+    &:before
+      display               block
+      abs                   22px 0 0 220px
+      r-sprite              'admin', 'linked'
+      content               ''
+
   .moderate-role
     abs()
     right                   0
     line-height             40px
     height                  40px
     font-size               14px
-    font-weight             bold
-    color                   #434343
+    color                   #D0D0D0
     vendor                  user-select, none
     pointer()
+
+    &:hover
+    &.active
+      color                 #00B057
 
   .moderate-role.active .settings-icon
     vendor                  transform, rotate(270deg)
@@ -793,10 +813,66 @@ Admin main styles
     margin-left             10px
 
   .settings
-    padding-top             15px
+    padding                 23px 18px
+    bg                      color, #F2F2F2
+    border                  1px solid #E4E4E4
 
+  .delete-topic
+    abs                     8px 100px 0 0
+    size                    32px 32px
 
+    &:before
+      abs                   8px 0 0 8px
+      content               ''
+      display               block
+      r-sprite              'admin', 'delete-topic'
 
+  .topics-connected
+  .topics-similar
+    color                   #B8B8B8
+    letter-spacing          0.8px
+    font-size               12px
+
+  .topics-similar
+    margin-top              26px
+
+  .similar-item
+    height                  34px
+    line-height             34px
+    border-top              1px solid #E2E2E2
+
+    &:first-child
+      border-top            none
+
+  .remove-topic
+    bg                      color, #FF6B5D
+    margin-top              12px
+
+    &:focus
+      box-shadow            0 0 10px -2px #FF6B5D
+
+    span
+      color                 #FFFFFF
+
+  .link-topic
+    bg                      color, #00B057
+    margin-top              12px
+    margin-right            15px
+
+    span
+      color                 #FFFFFF
+
+  .whitelist-topic
+    margin-top              12px
+    border-color            #00B057
+
+    span
+      color                 #00B057
+
+  .topics-empty
+    color                   #A9A9A9
+    text-align              center
+    padding                 30px 0 43px 0
 
 
 .AppModal--admin
@@ -985,35 +1061,45 @@ Admin main styles
         opacity             .5
         vendor              filter, grayscale(100%)
 
+      &.github
+        bg image,           url("/a/images/vendors/github.png")
+        bg size,            auto 100px
+        bg position,        50px -2px
+
+      &.bitbucket
+        bg image,           url("/a/images/vendors/bitbucket.png")
+        bg size,            auto 100px
+        bg position,        47px -3px
+
       &.aws
-        background          url("/a/images/vendors/amazon.png")
-        background-size     auto 40px
-        background-position 38px 22px
+        bg image,           url("/a/images/vendors/amazon.png")
+        bg size,            auto 40px
+        bg position,        38px 22px
 
       &.koding
-        background          url("/a/images/vendors/koding.png")
-        background-size     auto 40px
-        background-position 26px
+        bg image,           url("/a/images/vendors/koding.png")
+        bg size,            auto 40px
+        bg position,        26px
 
       &.digitalocean
-        background          url("/a/images/vendors/digitalocean.png")
-        background-size     180px
-        background-position 7px 33px
+        bg image,           url("/a/images/vendors/digitalocean.png")
+        bg size,            180px
+        bg position,        7px 33px
 
       &.rackspace
-        background          url("/a/images/vendors/rackspace.png")
-        background-size     180px
-        background-position 8px 25px
+        bg image,           url("/a/images/vendors/rackspace.png")
+        bg size,            180px
+        bg position,        8px 25px
 
       &.engineyard
-        background          url("/a/images/vendors/engineyard.png")
-        background-size     auto 40px
-        background-position 25px 28px
+        bg image,           url("/a/images/vendors/engineyard.png")
+        bg size,            auto 40px
+        bg position,        25px 28px
 
       &.google
-        background          url("/a/images/vendors/google.png")
-        background-size     200px
-        background-position 0 23px
+        bg image,           url("/a/images/vendors/google.png")
+        bg size,            200px
+        bg position,        0 23px
 
   .top
     display                 flex
@@ -1046,72 +1132,6 @@ Admin main styles
     .editor-view
       border-radius         4px
       height                calc(100% \- 100px)
-
-  .credential-item
-  .stacktemplate-item
-    padding                 10px 0
-    font-size               14px
-    border-bottom           1px solid #ddd
-    borderBox()
-
-    &:hover
-      .buttons button.secondary
-        opacity             1
-        pointer-events      auto
-
-    .credential-info
-    .stacktemplate-info
-      padding               10px 0
-
-      .title
-        font-weight         bold
-        fl()
-
-      .tag
-        padding             0 3px
-        font-size           12px
-        background-color    #ddd
-        margin-right        10px
-        fl()
-
-      .inuse-tag
-        font-size           10px
-        padding             0 4px
-        line-height         13px
-        margin-top          5px
-        margin-left         5px
-        background-color    #02A74D
-        color               #FFFFFF
-        cursor              default
-        fl()
-
-    .warning-message
-      background            #FCFCE9
-      border                1px solid #D4D4A9
-      border-radius         4px
-      padding               5px
-      font-size             12px
-      color                 #888869
-      margin-top            3px
-      text-align            center
-
-    .buttons
-      abs                   16px 0px
-
-      button.secondary
-        opacity             0
-        pointer-events      none
-        vendor              transition, opacity .3s .3s ease
-
-      button
-        min-width           80px
-        margin-left         15px
-
-      button.solid.green
-        background-color    #01A84E
-        &[disabled]
-          opacity           .5
-
 
   .steps-view
     display                 flex
@@ -1158,6 +1178,44 @@ Admin main styles
         .title
           color             #02A74D
 
+  .step-view
+  .output-container
+    height                  calc(100% \- 80px)
+
+  pre.output-view
+    height                  calc(100% \- 80px)
+    overflow                auto
+
+  .repo-listview
+    margin-top              20px
+    height                  calc(100% \- 60px)
+
+  .select-view
+
+    display                 flex
+    display                 -webkit-flex
+
+    margin-top              20px
+    borderBox()
+
+    .kdselectbox
+      min-width             130px
+      padding-top           2px
+      border-radius         3px
+      borderBox()
+
+      .arrows
+        top                 12px
+
+    div, input, button
+      margin                auto !important
+      margin-right          10px !important
+      height                40px
+      min-width             80px
+
+    button
+      margin-right          0 !important
+
 
 .AppModal--admin .members
   .label
@@ -1169,8 +1227,17 @@ Admin main styles
 
 .AppModal--admin .integrations
 
+  .integration-details
+    overflow-y              scroll
+
   .kdtabhandle
     max-width               230px !important // override element style
+
+  .error-view
+    text-align              center
+    margin-top              70px
+    font-size               15px
+    color                   #a1a1a1
 
   .configured-list
     margin-top              20px
@@ -1211,7 +1278,6 @@ Admin main styles
           r-sprite          'app', 'sidebar-toggle'
           display           inline-block
           vendor            transform, rotate(180deg)
-
 
   .integration-view
     border-top              1px solid #dedede

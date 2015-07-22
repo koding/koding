@@ -10,10 +10,15 @@ import (
 	"net/http"
 	"time"
 
+	"labix.org/v2/mgo"
+
 	"koding/tools/utils"
 	"socialapi/models"
 	"socialapi/workers/common/response"
+	"strconv"
 	"strings"
+
+	"koding/db/mongodb/modelhelper"
 
 	"github.com/PuerkitoBio/throttled"
 	"github.com/koding/bongo"
@@ -21,7 +26,6 @@ import (
 	kmetrics "github.com/koding/metrics"
 	"github.com/koding/redis"
 	"github.com/koding/runner"
-
 	tigertonic "github.com/rcrowley/go-tigertonic"
 
 	gometrics "github.com/rcrowley/go-metrics"
@@ -69,8 +73,9 @@ var throttleDenyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	writeJSONError(w, response.LimitRateExceededError{})
 })
 
-// todo add prooper logging
-func getAccount(r *http.Request) *models.Account {
+// getAccount tries to retrieve account information from incoming request,
+// should always return a valid account, not nil
+func getAccount(r *http.Request, groupName string) *models.Account {
 	cookie, err := r.Cookie("clientId")
 	if err != nil {
 		return models.NewAccount()
@@ -91,14 +96,103 @@ func getAccount(r *http.Request) *models.Account {
 		return models.NewAccount()
 	}
 
-	acc := models.NewAccount()
-	// err is ignored intentionally
-	err = acc.ByNick(session.Username)
-	if err != nil && err != bongo.RecordNotFound {
-		runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())
+	acc, err := makeSureAccount(groupName, session.Username)
+	if err != nil {
+		if err != bongo.RecordNotFound && err != mgo.ErrNotFound {
+			runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())
+		}
+
+		return models.NewAccount()
+	}
+
+	groupChannel, err := models.Cache.Channel.ByGroupName(groupName)
+	if err != nil {
+		if err != bongo.RecordNotFound && err != models.ErrGroupNotFound {
+			runner.MustGetLogger().Error("Err while getting group channel: %s, err :%s", groupName, err.Error())
+
+			return models.NewAccount()
+		}
+
+		// for creating the group channel for the first time, we should not return
+		// here with empty account
+		return acc
+	}
+
+	if err := makeSureMembership(groupChannel, acc.Id); err != nil {
+		runner.MustGetLogger().Error("Err while making sure account: %s, err :%s", groupName, err.Error())
+		return models.NewAccount()
 	}
 
 	return acc
+}
+
+// makeSureAccount checks if incoming account is in postgres, if not creates it
+// lazily and sets socialapi id of it in mongo
+func makeSureAccount(groupName string, username string) (*models.Account, error) {
+	// try to fetch account from postgres
+	acc := models.NewAccount()
+	err := acc.ByNick(username)
+	if err == nil {
+		return acc, nil
+	}
+
+	if err != bongo.RecordNotFound {
+		return acc, err
+	}
+
+	// if account is not in postgres, try to create it
+
+	// we need account first
+	macc, err := modelhelper.GetAccount(username)
+	if err != nil {
+		return nil, err
+	}
+
+	acc = models.NewAccount() // account is nil, set it
+	acc.OldId = macc.Id.Hex()
+	acc.Nick = username
+	if err := acc.Create(); err != nil {
+		return nil, err
+	}
+
+	// set it to cache, in case we may need it
+	if err := models.Cache.Account.SetToCache(acc); err != nil {
+		return nil, err
+	}
+
+	// we just created the account in postgres, so update mongo with
+	// socialApiId
+	s := modelhelper.Selector{
+		"profile.nickname": username,
+	}
+	o := modelhelper.Selector{"$set": modelhelper.Selector{
+		"socialApiId": strconv.FormatInt(acc.Id, 10),
+	}}
+	if err := modelhelper.UpdateAccount(s, o); err != nil {
+		return nil, err
+	}
+
+	return acc, nil
+}
+
+// makeSureMembership checks if the incoming account is a member of the group
+// channel that is persisted within incoming session data
+func makeSureMembership(groupChannel *models.Channel, accountId int64) error {
+	isMember, err := models.Cache.Participant.ByChannelIdAndAccountId(groupChannel.Id, accountId)
+	if err != nil {
+		return err
+	}
+	// we dont need to do anything if the user is a member of group channel
+	if isMember {
+		return nil
+	}
+
+	_, err = groupChannel.AddParticipant(accountId)
+	if err != nil && err != models.ErrAccountIsAlreadyInTheChannel {
+		return err
+	}
+
+	return models.Cache.Participant.SetToCache(groupChannel.Id, accountId)
 }
 
 func getGroupName(r *http.Request) string {
@@ -174,14 +268,10 @@ func BuildHandlerWithContext(handler http.Handler, redis *redis.RedisSession, lo
 	// add context
 	return tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
-			// this is an example
-			// set group name to context
-			//
-
 			context := models.NewContext(redis, log)
 			context.GroupName = getGroupName(r)
 			context.Client = &models.Client{
-				Account: getAccount(r),
+				Account: getAccount(r, context.GroupName),
 				IP:      net.ParseIP(utils.GetIpAddress(r)),
 			}
 

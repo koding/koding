@@ -3,30 +3,36 @@ hat = require 'hat'
 
 
 # returns 20 characters by default
-generateRandomString = (length = 20) ->
+generateRandomString = (length = 20) -> hat().slice(32 - length)
 
-  return hat().slice(32 - length)
+
+generateRandomEmail = (domain = 'koding.com') ->
+
+  return "kodingtestuser+#{generateRandomString()}@#{domain}"
+
+
+generateRandomUsername = -> generateRandomString()
 
 
 generateDummyClientData = ->
 
   dummyClient =
-    sessionToken              : ""
+    sessionToken              : ''
     context                   :
-      group                   : "koding"
-    clientIP                  : "127.0.0.1"
+      group                   : 'koding'
+    clientIP                  : '127.0.0.1'
     connection                :
       delegate                :
         bongo_                :
-          instanceId          : ""
-          constructorName     : "JAccount"
+          instanceId          : ''
+          constructorName     : 'JAccount'
         data                  :
           profile             :
-            nickname          : "guest-a974470194e85106"
-          type                : "unregistered"
-        type                  : "unregistered"
+            nickname          : 'guest-a974470194e85106'
+          type                : 'unregistered'
+        type                  : 'unregistered'
         profile               :
-          nickname            : "guest-a974470194e85106"
+          nickname            : 'guest-a974470194e85106'
         meta                  :
           data                : {}
 
@@ -36,11 +42,11 @@ generateDummyClientData = ->
 generateDummyUserFormData = ->
 
   dummyUserFormData =
-    email                     : "testacc@gmail.com",
-    agree                     : "on"
-    password                  : "testpass",
-    username                  : "testacc",
-    passwordConfirm           : "testpass"
+    email                     : generateRandomEmail()
+    agree                     : 'on'
+    password                  : 'testpass'
+    username                  : 'testacc'
+    passwordConfirm           : 'testpass'
 
   return dummyUserFormData
 
@@ -48,11 +54,12 @@ generateDummyUserFormData = ->
 generateCredentials = (opts = {}) ->
 
   credentials =
-    username       : 'devrim',
-    password       : 'devrim',
-    tfcode         : '',
-    groupName      : 'koding',
-    invitationToken: undefined
+    tfcode              : ''
+    username            : 'devrim'
+    password            : 'devrim'
+    groupName           : 'koding'
+    invitationToken     : undefined
+    groupIsBeingCreated : no
 
   credentials = _.extend credentials, opts
 
@@ -63,13 +70,13 @@ generateUserInfo = (opts = {}) ->
 
   userInfo =
     email           : "kodingtestuser+#{generateRandomString()}@gmail.com"
-    username        : generateRandomString()
-    password        : "testtest"
-    lastName        : "user"
-    firstName       : "kodingtest"
+    username        : generateRandomUsername()
+    password        : 'testpass'
+    lastName        : 'user'
+    firstName       : 'kodingtest'
     foreignAuth     : null
     emailFrequency  : null
-    passwordStatus  : "valid"
+    passwordStatus  : 'valid'
 
   userInfo = _.extend userInfo, opts
 
@@ -79,7 +86,9 @@ generateUserInfo = (opts = {}) ->
 module.exports = {
   generateUserInfo
   generateCredentials
+  generateRandomEmail
   generateRandomString
+  generateRandomUsername
   generateDummyClientData
   generateDummyUserFormData
 }
