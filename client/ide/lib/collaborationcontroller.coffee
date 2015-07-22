@@ -346,8 +346,8 @@ module.exports = CollaborationController =
 
     @socialChannel
       .on 'AddedToChannel', @bound 'participantAdded'
-      .on 'ChannelDeleted', @bound 'stopCollaborationSession'
-      .on 'MessageAdded', @bound 'channelMessageAdded'
+      .on 'MessageAdded',   @bound 'channelMessageAdded'
+      .on 'ChannelDeleted', => @stopCollaborationSession()  # Don't pass any arguments.
 
 
   participantAdded: (participant) ->
