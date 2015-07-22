@@ -14,6 +14,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/iam"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -45,6 +47,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
+	k.Log.Debug("Received arguments: %v", r.Args)
 	var args *TerraformBootstrapRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
@@ -69,22 +72,58 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	k.Log.Debug("Connecting to terraformer kite")
 	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
 		return nil, err
 	}
 	defer tfKite.Close()
 
+	k.Log.Debug("Iterating over credentials")
 	for _, cred := range creds.Creds {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
+		k.Log.Debug("Appending variables for %s", cred.PublicKey)
 		finalBootstrap, err := cred.appendAWSVariable(fmt.Sprintf(awsBootstrap, k.PublicKeys.PublicKey))
 		if err != nil {
 			return nil, err
 		}
+
+		// fetch accountID to create a unique contentID for Terraform
+		region, err := cred.region()
+		if err != nil {
+			return nil, err
+		}
+
+		accesKey, secretKey, err := cred.awsCredentials()
+		if err != nil {
+			return nil, err
+		}
+
+		iamClient := iam.New(
+			aws.Auth{
+				AccessKey: accesKey,
+				SecretKey: secretKey,
+			},
+			aws.Regions[region],
+		)
+
+		k.Log.Debug("Fetching the AWS user information to get the account ID")
+		user, err := iamClient.GetDefaultUser() // will default to username making the request
+		if err != nil {
+			return nil, err
+		}
+
+		awsAccountID, err := parseAccountID(user.User.Arn)
+		if err != nil {
+			return nil, err
+		}
+
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, region)
+		k.Log.Debug("Going to use the contentID: %s", contentID)
 
 		keyName := "koding-deployment-" + r.Username
 		finalBootstrap, err = appendKeyName(finalBootstrap, keyName)
@@ -111,7 +150,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: args.GroupName + "-" + cred.PublicKey,
+				ContentID: contentID,
 			})
 			if err != nil {
 				return nil, err
@@ -120,7 +159,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
-				ContentID: args.GroupName + "-" + cred.PublicKey,
+				ContentID: contentID,
 			})
 			if err != nil {
 				return nil, err
