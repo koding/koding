@@ -762,11 +762,28 @@ class IDEAppController extends AppController
 
     return  unless targetPanel?.subViews.first.tabView   # Defensive check.
 
-    { pane } = tabView.removePane tabView.getActivePane(), yes
+    { pane }      = tabView.removePane tabView.getActivePane(), yes
+    { view }      = pane
+    targetTabView = targetPanel.subViews.first.tabView
 
-    targetPanel.subViews.first.tabView.addPane pane
+    targetTabView.addPane pane
     @setActiveTabView targetPanel.subViews.first.tabView
     @doResize()
+
+    # Update `AceView`s delegate
+    view.updateAceViewDelegate targetTabView.parent  if view instanceof IDEEditorPane
+    @emitTabWasMovedEvent view, tabView, targetTabView
+
+
+  emitTabWasMovedEvent: (view, tabView, targetTabView) ->
+
+    context =
+      paneType          : view.getOption 'paneType'
+      paneHash          : view.hash
+      originIDEViewHash : tabView.parent.hash
+      targetIDEViewHash : targetTabView.parent.hash
+
+    @emitChange 'IDETabWasMoved', context
 
 
   moveTabUp: -> @moveTab 'north'
@@ -1734,14 +1751,7 @@ class IDEAppController extends AppController
 
     # Update `AceView`s delegate
     view.updateAceViewDelegate targetTabView.parent  if view instanceof IDEEditorPane
-
-    context =
-      paneType          : view.getOption 'paneType'
-      paneHash          : view.hash
-      originIDEViewHash : tabView.parent.hash
-      targetIDEViewHash : targetTabView.parent.hash
-
-    @emitChange 'IDETabWasMoved', context
+    @emitTabWasMovedEvent view, tabView, targetTabView
 
 
   runOnboarding: ->
