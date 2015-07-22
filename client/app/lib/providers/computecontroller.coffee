@@ -817,3 +817,5 @@ module.exports = class ComputeController extends KDController
 
         if stack.machines.length isnt machineCount
           @emit 'StacksInconsistent', stack
+
+
