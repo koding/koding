@@ -321,6 +321,42 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 	return response.NewDefaultOK()
 }
 
+func (h *Handler) DeleteChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewInvalidRequest(err)
+	}
+
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	ci := webhook.NewChannelIntegration()
+	if err := ci.ById(id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	groupChannel, err := models.Cache.Channel.ByGroupName(ci.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	isParticipant, err := groupChannel.IsParticipant(ctx.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !isParticipant {
+		return response.NewBadRequest(models.ErrParticipantNotFound)
+	}
+
+	if err := ci.Delete(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewDefaultOK()
+}
+
 // Configure configures a webhook when integration settings authorizable field is
 // true. It sends current and updated settings to middleware service, and all CRUD
 // operation decisions are left to middleware, depending on updated fields.
