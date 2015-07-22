@@ -1133,7 +1133,6 @@ module.exports = class JUser extends jraphical.Module
     error            = null
     newToken         = null
     invitation       = null
-    quotaExceedErr   = null
     foreignAuthType  = null
 
     queue = [
