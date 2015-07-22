@@ -90,15 +90,22 @@ module.exports = class PaymentWorkflow extends KDController
     @modal.on 'PaymentWorkflowFinished',          @bound 'finish'
     @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
 
+    { PAYPAL }            = PaymentConstants.provider
     { paymentController } = kd.singletons
 
+    ## This event always works with "koding" or "stripe" provider.
     @modal.on 'PaymentSubmitted', (formData) =>
+
+      ## Reset provider to "koding"
+      if @state.provider is PAYPAL and @modal.form.dgFlow?.isOpen() is no
+        @state.provider = PaymentConstants.provider.KODING
+
       paymentController.canUserPurchase (err, confirmed) =>
         return @userIsNotConfirmed err  if err
         @handlePaymentSubmit formData
 
     @modal.on 'PaypalButtonClicked', =>
-      @state.provider = PaymentConstants.provider.PAYPAL
+      @state.provider = PAYPAL
 
 
   startDowngradeFlow: ->
