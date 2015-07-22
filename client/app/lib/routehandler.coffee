@@ -4,6 +4,7 @@ KDModalView    = kd.ModalView
 
 remote         = require('./remote').getInstance()
 globals        = require 'globals'
+kookies        = require 'kookies'
 
 lazyrouter     = require './lazyrouter'
 trackEvent     = require './util/trackEvent'
@@ -90,5 +91,7 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
           then open.call this, info, models.first
           else 
            if info.params.name is 'Recover'
-           then kd.singletons.mainController.doLogout()
-           else ctx.handleNotFound info.params.name
+             kookies.expire 'clientId'
+             global.location.href = '/Recover'
+           else 
+             ctx.handleNotFound info.params.name
