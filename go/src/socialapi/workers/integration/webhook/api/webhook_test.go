@@ -1,10 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"net/http"
+	"net/http/httptest"
+	"reflect"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
@@ -15,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
 	"github.com/nu7hatch/gouuid"
@@ -22,13 +26,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newRequest(body string, channelId int64, groupName string) *PushRequest {
+func newRequest(body string, channelId int64) *PushRequest {
 	return &PushRequest{
 		Message: webhook.Message{
 			Body:      body,
 			ChannelId: channelId,
 		},
-		GroupName: groupName,
 	}
 }
 
@@ -99,7 +102,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("hey", channel.Id, "koding"),
+					newRequest("hey", channel.Id),
 				)
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, ErrTokenNotValid.Error())
@@ -111,7 +114,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err = h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("hey", channel.Id, "koding"),
+					newRequest("hey", channel.Id),
 				)
 				So(err, ShouldNotBeNil)
 				So(s, ShouldEqual, http.StatusNotFound)
@@ -120,7 +123,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err = h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("hey", channel.Id, "koding"),
+					newRequest("hey", channel.Id),
 				)
 				So(err.Error(), ShouldEqual, ErrTokenNotSet.Error())
 				So(s, ShouldEqual, http.StatusBadRequest)
@@ -134,7 +137,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("", channel.Id, "koding"),
+					newRequest("", channel.Id),
 				)
 				So(err.Error(), ShouldEqual, ErrBodyNotSet.Error())
 				So(s, ShouldEqual, http.StatusBadRequest)
@@ -148,7 +151,7 @@ func TestWebhookListen(t *testing.T) {
 					s, _, _, err := h.Push(
 						mocking.URL(m, "POST", "/push/"+token),
 						mocking.Header(nil),
-						newRequest("hey", channel.Id, "koding"),
+						newRequest("hey", channel.Id),
 					)
 
 					So(err, ShouldBeNil)
@@ -159,7 +162,7 @@ func TestWebhookListen(t *testing.T) {
 					s, _, _, err = h.Push(
 						mocking.URL(m, "POST", "/push/"+token),
 						mocking.Header(nil),
-						newRequest("hey", channel.Id, "koding"),
+						newRequest("hey", channel.Id),
 					)
 
 					So(err, ShouldBeNil)
@@ -176,7 +179,7 @@ func TestWebhookListen(t *testing.T) {
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
 					mocking.Header(nil),
-					newRequest("hha", channel.Id, "koding"),
+					newRequest("hha", channel.Id),
 				)
 
 				So(err, ShouldBeNil)
@@ -387,7 +390,7 @@ func TestWebhookIntegrationList(t *testing.T) {
 				So(len(integrations), ShouldBeGreaterThanOrEqualTo, 1)
 
 				for _, integration := range integrations {
-					So(integration.IsPublished, ShouldBeFalse)
+					So(integration.IsPublished, ShouldBeTrue)
 					So(integration.Name, ShouldNotEqual, firstInt.Name)
 				}
 			})
@@ -398,6 +401,66 @@ func TestWebhookIntegrationList(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				err = secondInt.Delete()
+				So(err, ShouldBeNil)
+			})
+		})
+	})
+}
+
+func TestWebhookIntegrationGet(t *testing.T) {
+
+	tearUp(func(h *Handler, m *mux.Mux) {
+
+		Convey("while getting integration", t, func() {
+			firstInt := webhook.CreateUnpublishedIntegration(t)
+
+			Convey("it should return not found if integration does not exist or not published", func() {
+				name := models.RandomName()
+				s, _, _, err := h.Get(
+					mocking.URL(m, "GET", "/"+name),
+					mocking.Header(nil),
+					nil,
+				)
+
+				So(err, ShouldNotBeNil)
+				So(s, ShouldEqual, http.StatusNotFound)
+
+				s, _, _, err = h.Get(
+					mocking.URL(m, "GET", "/"+firstInt.Name),
+					mocking.Header(nil),
+					nil,
+				)
+
+				So(err, ShouldNotBeNil)
+				So(s, ShouldEqual, http.StatusNotFound)
+			})
+
+			Convey("it should return integration when it exists", func() {
+				firstInt.IsPublished = true
+				err := firstInt.Update()
+				So(err, ShouldBeNil)
+
+				s, _, res, err := h.Get(
+					mocking.URL(m, "GET", "/"+firstInt.Name),
+					mocking.Header(nil),
+					nil,
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
+				So(res, ShouldNotBeNil)
+				r, ok := res.(*response.SuccessResponse)
+				So(ok, ShouldBeTrue)
+
+				integration, ok := r.Data.(*webhook.Integration)
+				So(ok, ShouldBeTrue)
+				So(integration.Name, ShouldEqual, firstInt.Name)
+			})
+
+			Reset(func() {
+
+				err := firstInt.Delete()
 				So(err, ShouldBeNil)
 			})
 		})
@@ -646,10 +709,12 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 					c,
 				)
 
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+
 				newCi := webhook.NewChannelIntegration()
 				err = newCi.ById(ci.Id)
 				So(err, ShouldBeNil)
-				So(s, ShouldEqual, http.StatusOK)
 				So(newCi.Token, ShouldEqual, currentToken)
 				So(newCi.Token, ShouldNotEqual, "123123123")
 			})
@@ -680,4 +745,99 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestConfigure(t *testing.T) {
+	tearUp(func(h *Handler, m *mux.Mux) {
+		Convey("While configuring channel integration", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			Convey("it should not be configured when it is not authorizable", func() {
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+				settings := gorm.Hstore{}
+				err := h.Configure(ci, &models.Context{}, settings)
+				So(err, ShouldBeNil)
+
+				in = webhook.CreateTestIntegration(t)
+				err = in.AddSettings("authorizable", false)
+				So(err, ShouldBeNil)
+				err = in.Update()
+				So(err, ShouldBeNil)
+
+				ci = webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+				err = h.Configure(ci, &models.Context{}, settings)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("it should update settings with configure response", func() {
+
+				mux := http.NewServeMux()
+				server := httptest.NewServer(mux)
+				err := in.AddSettings("authorizable", true)
+				So(err, ShouldBeNil)
+				err = in.Update()
+				So(err, ShouldBeNil)
+
+				acc, err := models.CreateAccountInBothDbs()
+				So(err, ShouldBeNil)
+				groupName := models.RandomGroupName()
+
+				c := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+
+				ci := webhook.NewChannelIntegration()
+				ci.IntegrationId = in.Id
+
+				ci.GroupName = groupName
+				ci.ChannelId = c.Id
+				ci.CreatorId = acc.Id
+				err = ci.Create()
+				So(err, ShouldBeNil)
+
+				h.rootPath = server.URL
+				ctx := &models.Context{
+					GroupName: groupName,
+					Client: &models.Client{
+						Account: acc,
+					},
+				}
+
+				mux.HandleFunc("/api/webhook/configure/"+in.Name,
+					func(w http.ResponseWriter, r *http.Request) {
+						if r.Method != "POST" {
+							w.WriteHeader(404)
+							return
+						}
+						w.Header().Set("Content-Type", "application/json")
+						response := map[string]interface{}{
+							"serviceId": "6",
+							"events":    []string{"push", "commit"},
+						}
+						byt, err := json.Marshal(response)
+						if err != nil {
+							t.Fatal("Could not marshal response")
+						}
+						w.Write(byt)
+					},
+				)
+
+				err = h.Configure(ci, ctx, gorm.Hstore{})
+				So(err, ShouldBeNil)
+
+				serviceId, err := ci.GetSettings("serviceId")
+				So(err, ShouldBeNil)
+				So(*serviceId, ShouldEqual, "6")
+
+				events := make([]string, 0)
+				eventsByte, err := ci.GetSettings("events")
+				So(err, ShouldBeNil)
+				err = json.Unmarshal([]byte(*eventsByte), &events)
+				So(err, ShouldBeNil)
+				So(reflect.DeepEqual(events, []string{"push", "commit"}), ShouldBeTrue)
+
+			})
+
+		})
+	})
+
 }

@@ -19,7 +19,7 @@ const (
 var ErrTypecastError = errors.New("typecast error")
 
 func DoGithubPush(data string, token string) error {
-	url := fmt.Sprintf("%s/push/github/%s", MiddlewareEndPoint, token)
+	url := fmt.Sprintf("%s/github/%s", MiddlewareEndPoint, token)
 
 	reader := bytes.NewReader([]byte(data))
 	req, err := http.NewRequest("POST", url, reader)

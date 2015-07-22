@@ -32,7 +32,6 @@ func main() {
 		PublicUrl:       appConfig.CustomDomain.Public + "/api/webhook",
 		Log:             r.Log,
 	}
-	conf.Github.Secret = appConfig.Github.ClientSecret
 
 	if r.Conf.Environment == "dev" || r.Conf.Environment == "test" {
 		conf.IntegrationAddr =
@@ -40,7 +39,10 @@ func main() {
 				appConfig.Integration.Port)
 	}
 
-	h := integration.NewHandler(r.Log, conf)
+	serviceMap := services.NewServices()
+	RegisterServices(serviceMap, appConfig, conf)
+
+	h := integration.NewHandler(r.Log, serviceMap)
 
 	addHandlers(m, h)
 
@@ -54,12 +56,11 @@ func main() {
 
 func addHandlers(m *mux.Mux, h *integration.Handler) {
 
-	//m.HandleFunc(handler.PostRequest, "/push/{name}/{token}", h)
 	m.AddUnscopedHandler(
 		handler.Request{
 			Handler:  h.ServeHTTP,
 			Type:     handler.PostRequest,
-			Endpoint: "/push/{name}/{token}",
+			Endpoint: "/{name}/{token}",
 		},
 	)
 
@@ -71,4 +72,22 @@ func addHandlers(m *mux.Mux, h *integration.Handler) {
 			Endpoint: "/configure/{name}",
 		},
 	)
+}
+
+func RegisterServices(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig) {
+	github, err := RegisterGithubService(sf, conf, serviceConf)
+	if err != nil {
+		panic(err)
+	}
+	sf.Register("github", github)
+}
+
+func RegisterGithubService(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig) (services.Service, error) {
+	gc := services.GithubConfig{}
+	gc.PublicUrl = serviceConf.PublicUrl
+	gc.IntegrationUrl = serviceConf.IntegrationAddr
+	gc.Log = serviceConf.Log
+	gc.Secret = conf.Github.ClientSecret
+
+	return services.NewGithub(gc)
 }

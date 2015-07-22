@@ -9,16 +9,14 @@ import (
 )
 
 type Handler struct {
-	log  logging.Logger
-	sf   *services.ServiceFactory
-	conf *services.ServiceConfig
+	log logging.Logger
+	sf  *services.Services
 }
 
-func NewHandler(l logging.Logger, conf *services.ServiceConfig) *Handler {
+func NewHandler(l logging.Logger, sf *services.Services) *Handler {
 	return &Handler{
-		log:  l,
-		sf:   services.NewServiceFactory(),
-		conf: conf,
+		log: l,
+		sf:  sf,
 	}
 }
 
@@ -31,7 +29,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	service, err := h.sf.Create(name, h.conf)
+	service, err := h.sf.Get(name)
 	if err == services.ErrServiceNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -49,7 +47,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (h *Handler) Configure(w http.ResponseWriter, req *http.Request) {
 	serviceName := req.URL.Query().Get("name")
 	// get service
-	service, err := h.sf.Create(serviceName, h.conf)
+	service, err := h.sf.Get(serviceName)
 	if err != nil {
 		h.NewBadRequest(w, err)
 		return
