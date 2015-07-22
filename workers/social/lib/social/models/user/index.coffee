@@ -1156,9 +1156,9 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        return quene.next()  unless KONFIG.recaptcha.enabled
+        return queue.next()  unless KONFIG.recaptcha.enabled
 
-        @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err)->
+        @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
           return callback err  if err
           queue.next()
 
