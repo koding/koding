@@ -1,8 +1,39 @@
 kd                = require 'kd'
 actionTypes       = require './actiontypes'
 fetchChatChannels = require 'activity/util/fetchChatChannels'
+isKoding          = require 'app/util/isKoding'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
+
+###*
+ * Action to load channel with given slug.
+ *
+ * @param {string} name - slug of the channel
+###
+loadChannelByName = (name) ->
+
+  { LOAD_CHANNEL_BY_NAME_BEGIN
+    LOAD_CHANNEL_BY_NAME_FAIL
+    LOAD_CHANNEL_SUCCESS } = actionTypes
+
+  type = if isKoding()
+    switch name
+      when 'Public'    then 'group'
+      when 'Changelog' then 'announcement'
+      else 'topic'
+  else 'topic'
+
+  name = name.toLowerCase()
+
+  dispatch LOAD_CHANNEL_BY_NAME_BEGIN, { name, type }
+
+  kd.singletons.socialapi.channel.byName { name, type }, (err, channel) ->
+    if err
+      dispatch LOAD_CHANNEL_BY_NAME_FAIL, { err }
+      return
+
+    dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
 
 ###*
  * Action to load followed private messages.
@@ -50,6 +81,7 @@ loadFollowedPublicChannels = (options = {}) ->
 
 
 module.exports = {
+  loadChannelByName
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
 }
