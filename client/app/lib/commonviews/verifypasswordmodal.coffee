@@ -30,6 +30,7 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                 title             : "Forgot Password?"
                 callback          : =>
                   @destroy()
+                  kd.singletons.appManager.tell 'Account', 'closeModal'
                   {entryPoint} = globals.config
                   kd.singleton("router").handleRoute "/Recover", {entryPoint}
 
