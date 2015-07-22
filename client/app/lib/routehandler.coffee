@@ -88,4 +88,7 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
         remote.cacheable info.params.name, (err, models, name) =>
           if models?
           then open.call this, info, models.first
-          else ctx.handleNotFound info.params.name
+          else 
+           if info.params.name is 'Recover'
+           then kd.singletons.mainController.doLogout()
+           else ctx.handleNotFound info.params.name
