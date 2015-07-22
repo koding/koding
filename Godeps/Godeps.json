@@ -26,6 +26,46 @@
 			"Rev": "89efc1fea9b8b47f6f6ce72279a7ed9496b4cdb3"
 		},
 		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws",
+			"Comment": "v0.6.7-3-g2a6648c",
+			"Rev": "2a6648c479175ce005bca95780f948a196a46062"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/endpoints",
+			"Comment": "v0.6.7-3-g2a6648c",
+			"Rev": "2a6648c479175ce005bca95780f948a196a46062"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/protocol/query",
+			"Comment": "v0.6.7-3-g2a6648c",
+			"Rev": "2a6648c479175ce005bca95780f948a196a46062"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/protocol/rest",
+			"Comment": "v0.6.7-3-g2a6648c",
+			"Rev": "2a6648c479175ce005bca95780f948a196a46062"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/protocol/restxml",
+			"Comment": "v0.6.7-3-g2a6648c",
+			"Rev": "2a6648c479175ce005bca95780f948a196a46062"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/protocol/xml/xmlutil",
+			"Comment": "v0.6.7-3-g2a6648c",
+			"Rev": "2a6648c479175ce005bca95780f948a196a46062"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/signer/v4",
+			"Comment": "v0.6.7-3-g2a6648c",
+			"Rev": "2a6648c479175ce005bca95780f948a196a46062"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/service/s3",
+			"Comment": "v0.6.7-3-g2a6648c",
+			"Rev": "2a6648c479175ce005bca95780f948a196a46062"
+		},
+		{
 			"ImportPath": "github.com/boltdb/bolt",
 			"Comment": "v1.0-5-g33e7a07",
 			"Rev": "33e7a074e2c470b6d0b7ee23322a1c4cc759044b"
@@ -147,6 +187,15 @@
 		{
 			"ImportPath": "github.com/nu7hatch/gouuid",
 			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/goconvey/convey",
+			"Comment": "1.5.0-409-g77a67b3",
+			"Rev": "77a67b3e7f4e0b1dd55c2f5702f7b5a97850d2eb"
+		},
+		{
+			"ImportPath": "github.com/vaughan0/go-ini",
+			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
