@@ -161,19 +161,19 @@ func TestCheckSoftLayer(t *testing.T) {
 
 // checkProvider tests
 func TestCheckProvider(t *testing.T) {
-	providerCheckers := map[ProviderName]ProviderChecker{
-		AWS:         CheckAWS,
-		Azure:       CheckAzure,
-		GoogleCloud: CheckGoogleCloud,
-		Joyent:      CheckJoyent,
-		Rackspace:   CheckRackspace,
-		SoftLayer:   CheckSoftLayer,
+	providersToCheck := []ProviderName{
+		AWS,
+		Azure,
+		GoogleCloud,
+		Joyent,
+		Rackspace,
+		SoftLayer,
 
 		// We can't check the DigitalOcean provider in this func,
 		// because the func that implements ProviderChecker makes impure
 		// http calls. This func is independantly tested inside of
 		// TestCheckDigitalOcean
-		//DigitalOcean:      CheckDigitalOcean,
+		//DigitalOcean,
 	}
 
 	runProviderTest := func(file string, expectedProvider ProviderName) {
@@ -182,7 +182,7 @@ func TestCheckProvider(t *testing.T) {
 			return loadTestData(t, file), nil
 		}
 
-		providerName, err := checkProvider(providerCheckers)
+		providerName, err := checkProvider(providersToCheck)
 		if err != nil {
 			t.Error(err)
 		}

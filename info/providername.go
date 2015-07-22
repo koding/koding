@@ -1,6 +1,7 @@
 package info
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -68,30 +69,62 @@ func (pn ProviderName) String() string {
 	}
 }
 
-// DefaultProviderCheckers is a map of each ProviderName and the
-// corresponding checker.
-var DefaultProviderCheckers = map[ProviderName]ProviderChecker{
-	AWS:          CheckAWS,
-	Azure:        CheckAzure,
-	DigitalOcean: CheckDigitalOcean,
-	GoogleCloud:  CheckGoogleCloud,
-	Joyent:       CheckJoyent,
-	Rackspace:    CheckRackspace,
-	SoftLayer:    CheckSoftLayer,
-	Koding:       CheckKoding,
+// Checker returns the ProviderChecker for the given ProviderName
+func (pn ProviderName) Checker() ProviderChecker {
+	switch pn {
+	case AWS:
+		return CheckAWS
+	case Azure:
+		return CheckAzure
+	case DigitalOcean:
+		return CheckDigitalOcean
+	case GoogleCloud:
+		return CheckGoogleCloud
+	case Joyent:
+		return CheckJoyent
+	case Rackspace:
+		return CheckRackspace
+	case SoftLayer:
+		return CheckSoftLayer
+	case Koding:
+		return CheckKoding
+	default:
+		return nil
+	}
+}
+
+// DefaultProviderCheckers is a slice of each ProviderName in the order
+// that they will be checked.
+var DefaultProvidersToCheck = []ProviderName{
+	AWS,
+	Azure,
+	DigitalOcean,
+	GoogleCloud,
+	Joyent,
+	Rackspace,
+	SoftLayer,
+	Koding,
 }
 
 // CheckProvider uses the current machine's IP and runs a whois on it, then
 // feeds the whois to all DefaultProviderCheckers. Providers are free to use
 // the whois query.
 func CheckProvider() (ProviderName, error) {
-	return checkProvider(DefaultProviderCheckers)
+	return checkProvider(DefaultProvidersToCheck)
 }
 
 // checkProvider implements the testable functionality of CheckProvider.
 // Ie, a pure func, aside from any impurities passed in via checkers.
-func checkProvider(checkers map[ProviderName]ProviderChecker) (ProviderName, error) {
-	for providerName, checker := range checkers {
+func checkProvider(providers []ProviderName) (ProviderName, error) {
+	for _, providerName := range providers {
+		checker := providerName.Checker()
+		if checker == nil {
+			return UnknownProvider, errors.New(fmt.Sprintf(
+				"checkProvider: No checker for ProviderName '%s'",
+				providerName.String(),
+			))
+		}
+
 		isProvider, err := checker()
 		if err != nil {
 			return UnknownProvider, err
