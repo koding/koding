@@ -1420,6 +1420,8 @@ module.exports = class JGroup extends Module
     options.name = "public"
     options.varName = "socialApiChannelId"
     options.typeConstant = "group"
+    options.payload or= {}
+    options.payload.description = "this is my first message"
 
     return @createSocialAPIChannel client, options, callback
 
@@ -1427,12 +1429,13 @@ module.exports = class JGroup extends Module
     options.name = if @slug is "koding" then "changelog" else @slug
     options.varName = "socialApiAnnouncementChannelId"
     options.typeConstant = "announcement"
+    options.payload = {}
 
     return @createSocialAPIChannel client, options, callback
 
 
   createSocialAPIChannel:(client, options, callback)->
-    {varName, name, typeConstant, creatorId, privacyConstant} = options
+    {varName, name, typeConstant, creatorId, privacyConstant, payload} = options
 
     return callback null, @[varName]  if @[varName]
 
@@ -1442,6 +1445,7 @@ module.exports = class JGroup extends Module
       groupName       : @slug
       typeConstant    : typeConstant
       privacyConstant : privacyConstant
+      payload         : payload
 
     {doRequest} = require '../socialapi/helper'
     doRequest "createChannel", client, defaultChannel, (err, channel)=>
