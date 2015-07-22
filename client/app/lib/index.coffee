@@ -62,36 +62,15 @@ bootup = ->
   # and that file is not a direct dependency of this file, you are most
   # probably causing harm to sea lions and sea turtles. -og
 
-  status           = new Status
-  mainController   = new MainController
+  status         = new Status
+  mainController = new MainController
 
   require('./routehandler')()
 
-  currentNotif     = null
-  firstLoad        = yes
+  currentNotif = null
+  firstLoad    = yes
 
   mainController.tempStorage = {}
-
-  if /edge.koding.com/.test global.location.href
-    name = getFullnameFromAccount whoami()
-    modal = new KDModalView
-      title            : "Hi #{name},"
-      width            : 600
-      overlay          : yes
-      cssClass         : "new-kdmodal"
-      content          : """
-<div class='modalformline'>
-  <p>Thanks for trying out the bleeding 'edge' of Koding features. Most of the new features here are experimental and hence prone to breaking.</p><br>
-
-  <p>If you run into problems, we'd love to hear what went wrong and how to reproduce the error. Please send an email to <a href="mailto:edge@koding.com">edge@koding.com</a>. Note that even though this environment is experimental, your vms are the same production vms as on koding.com.</p><br>
-
-  <p>By continuing you acknowledge the experimental nature of this environment.</p><br>
-</div>
-"""
-      buttons          :
-        "I Agree"      :
-          style        : "modal-clean-green"
-          callback     : -> modal.destroy()
 
   ###
   # CONNECTIVITY EVENTS
