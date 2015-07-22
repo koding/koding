@@ -13,16 +13,16 @@ module.exports = class JUser extends jraphical.Module
   { Relationship }                   = jraphical
   { secure, signature, daisy, dash } = require 'bongo'
 
-  JAccount                           = require '../account'
-  JSession                           = require '../session'
-  JInvitation                        = require '../invitation'
-  JName                              = require '../name'
-  JGroup                             = require '../group'
-  JLog                               = require '../log'
-  JPaymentPlan                       = require '../payment/plan'
-  JPaymentSubscription               = require '../payment/subscription'
-  ComputeProvider                    = require '../computeproviders/computeprovider'
-  Tracker                            = require '../tracker'
+  JAccount             = require '../account'
+  JSession             = require '../session'
+  JInvitation          = require '../invitation'
+  JName                = require '../name'
+  JGroup               = require '../group'
+  JLog                 = require '../log'
+  JPaymentPlan         = require '../payment/plan'
+  JPaymentSubscription = require '../payment/subscription'
+  ComputeProvider      = require '../computeproviders/computeprovider'
+  Tracker              = require '../tracker'
 
   @bannedUserList = ['abrt','amykhailov','apache','about','visa','shared-',
                      'cthorn','daemon','dbus','dyasar','ec2-user','http',
@@ -1098,22 +1098,11 @@ module.exports = class JUser extends jraphical.Module
 
   @convert = secure (client, userFormData, callback) ->
 
-    { slug
-      email
-      agree
-      username
-      lastName
-      referrer
-      password
-      firstName
-      recaptcha
-      emailFrequency
-      invitationToken
-      passwordConfirm }         = userFormData
+    { slug, email, agree, username, lastName, referrer,
+      password, firstName, recaptcha, emailFrequency,
+      invitationToken, passwordConfirm } = userFormData
 
-    { clientIP
-      connection }              = client
-
+    { clientIP, connection }    = client
     { delegate : account }      = connection
     { nickname : oldUsername }  = account.profile
     { sessionToken : clientId } = client
@@ -1226,8 +1215,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        oauthUser =  username
-        @persistOauthInfo oauthUser, client.sessionToken, (err) ->
+        @persistOauthInfo username, client.sessionToken, (err) ->
           return callback err  if err
           queue.next()
 
@@ -1273,7 +1261,7 @@ module.exports = class JUser extends jraphical.Module
         ComputeProvider.createGroupStack _client, (err) ->
           if err?
             console.warn "Failed to create group stack
-            for #{account.profile.nickname}:#{err}"
+                          for #{account.profile.nickname}:#{err}"
 
           # We are not returning error here on purpose, even stack template
           # not created for a user we don't want to break registration process
