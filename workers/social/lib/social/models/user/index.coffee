@@ -1130,8 +1130,12 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        @verifyRecaptcha recaptcha, {foreignAuthType, slug}, (err)->
-          return callback err  if err
+        if KONFIG.recaptcha.enabled
+          @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err)->
+            return callback err  if err
+            queue.next()
+
+        else
           queue.next()
 
       =>
@@ -1680,23 +1684,23 @@ module.exports = class JUser extends jraphical.Module
    * @param {function} callback
   ###
   @verifyRecaptcha = (response, params, callback) ->
-    { foreignAuthType, slug } = params
-    { url, secret, enabled }  = KONFIG.recaptcha
 
-    return callback null  unless enabled
+    { url, secret }           = KONFIG.recaptcha
+    { foreignAuthType, slug } = params
+
     return callback null  if foreignAuthType is 'github'
 
     # TODO: temporarily disable recaptcha for groups
     if slug? and slug isnt 'koding'
       return callback null
 
-    request.post url, {form:{response, secret}}, (err, res, raw)->
+    request.post url, { form: { response, secret } }, (err, res, raw) ->
       if err
         console.log "Recaptcha: err validation captcha: #{err}"
 
-      if !err && res.statusCode == 200
+      if not err and res.statusCode is 200
         try
-          if JSON.parse(raw)["success"]
+          if JSON.parse(raw)['success']
             return callback null
         catch e
           console.log "Recaptcha: parsing response failed. #{raw}"
