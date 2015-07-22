@@ -25,7 +25,7 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
           required  : 'Please enter a password.'
 
     @button = new KDButtonView
-      title      : 'Continue to environmental setup'
+      title      : 'Continue to environment setup'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'
       type       : 'submit'

@@ -69,7 +69,7 @@ module.exports = class TeamAuthenticateTabForm extends KDFormView
 
 
     @button = new KDButtonView
-      title      : 'Continue to environmental setup'
+      title      : 'Continue to environment setup'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'
       type       : 'submit'

@@ -81,7 +81,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
           ps.setClass strength[report.score]
 
     @button = new KDButtonView
-      title      : 'Continue to environmental setup'
+      title      : 'Continue to environment setup'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'
       type       : 'submit'
