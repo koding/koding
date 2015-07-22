@@ -661,22 +661,20 @@ module.exports = class JUser extends jraphical.Module
     { connection }              = client
     { delegate : account }      = connection
 
-    error = null
-
     # only unregistered accounts can be "converted"
     if account.type is 'registered'
-      error = new KodingError 'This account is already registered.'
+      return new KodingError 'This account is already registered.'
 
     if /^guest-/.test username
-      error = new KodingError 'Reserved username!'
+      return new KodingError 'Reserved username!'
 
     if username is 'guestuser'
-      error = new KodingError 'Reserved username: \'guestuser\'!'
+      return new KodingError 'Reserved username: \'guestuser\'!'
 
     if password isnt passwordConfirm
-      error = new KodingError 'Passwords must match!'
+      return new KodingError 'Passwords must match!'
 
-    return error
+    return null
 
 
   logAndReturnLoginError = (username, error, callback)->
@@ -1156,6 +1154,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
+        # verifying recaptcha if enabled
         return queue.next()  unless KONFIG.recaptcha.enabled
 
         @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
@@ -1175,8 +1174,7 @@ module.exports = class JUser extends jraphical.Module
           if res is no
             return callback new KodingError 'Email is already in use!'
 
-          else
-            queue.next()
+          queue.next()
 
       =>
         # check if user can register to regarding group
@@ -1197,6 +1195,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
+        # creating a new user
         userInfo =
           email          : email
           username       : username
@@ -1208,25 +1207,23 @@ module.exports = class JUser extends jraphical.Module
         @createUser userInfo, (err, user_, account_) ->
           return callback err  if err
 
-          if user_? and account_?
-            [account, user] = [account_, user_]
-            queue.next()
-
-          else
+          unless user_? and account_?
             return callback new KodingError 'Failed to create user!'
 
+          [account, user] = [account_, user_]
+          queue.next()
+
       ->
-        if ip? and country? and region?
-          locationModifier =
-            $set                       :
-              'registeredFrom.ip'      : ip
-              'registeredFrom.region'  : region
-              'registeredFrom.country' : country
+        # updating user's location related info
+        return queue.next()  unless ip? and country? and region?
 
-          user.update locationModifier, ->
-            queue.next()
+        locationModifier =
+          $set                       :
+            'registeredFrom.ip'      : ip
+            'registeredFrom.region'  : region
+            'registeredFrom.country' : country
 
-        else
+        user.update locationModifier, ->
           queue.next()
 
       =>
@@ -1236,20 +1233,18 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        if username?
-          options =
-            account        : account
-            username       : username
-            clientId       : clientId
-            groupName      : client.context.group
-            isRegistration : yes
+        return queue.next()  unless username?
 
-          @changeUsernameByAccount options, (err, newToken_) ->
-            return callback err  if err
-            newToken = newToken_
-            queue.next()
+        options =
+          account        : account
+          username       : username
+          clientId       : clientId
+          groupName      : client.context.group
+          isRegistration : yes
 
-        else
+        @changeUsernameByAccount options, (err, newToken_) ->
+          return callback err  if err
+          newToken = newToken_
           queue.next()
 
       ->
@@ -1268,6 +1263,7 @@ module.exports = class JUser extends jraphical.Module
         @addToGroups account, groupNames, user.email, invitation, (err) ->
           error = err
           queue.next()
+
       ->
         # create default stack for koding group, when a user joins this is only
         # required for koding group, not neeed for other teams
@@ -1277,7 +1273,8 @@ module.exports = class JUser extends jraphical.Module
 
         ComputeProvider.createGroupStack _client, (err) ->
           if err?
-            console.warn "Failed to create group stack for #{account.profile.nickname}:", err
+            console.warn "Failed to create group stack
+            for #{account.profile.nickname}:#{err}"
 
           # We are not returning error here on purpose, even stack template
           # not created for a user we don't want to break registration process
@@ -1342,20 +1339,24 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
+        # generating a json web token
         { publicHostname }                  = KONFIG
         { secret, confirmExpiresInMinutes } = KONFIG.jwt
 
         jwt = require 'jsonwebtoken'
 
         # uses 'HS256' as default for signing
-        jwtToken = jwt.sign { username }, secret, { expiresInMinutes: confirmExpiresInMinutes }
+        options =
+          expiresInMinutes : confirmExpiresInMinutes
+
+        jwtToken = jwt.sign { username }, secret, options
 
         Tracker.identify username, { jwtToken, email, pin }
         queue.next()
 
       ->
-        { username, email } = user
         subject             = Tracker.types.START_REGISTER
+        { username, email } = user
         Tracker.track username, { to : email, subject }
         queue.next()
 
