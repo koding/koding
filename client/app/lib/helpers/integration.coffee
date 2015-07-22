@@ -103,6 +103,14 @@ update = (options, callback) ->
   , callback
 
 
+remove = (id, callback) ->
+
+  doXhrRequest
+    endPoint : "/api/integration/channelintegration/#{id}"
+    type     : 'DELETE'
+  , callback
+
+
 listChannelIntegrations = (callback) ->
 
   doXhrRequest
@@ -211,6 +219,7 @@ module.exports = {
   fetch
   create
   update
+  remove
   fetchChannels
   fetchConfigureData
   fetchChannelIntegration
