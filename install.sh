@@ -84,6 +84,9 @@ fi
 escaped_var=$(printf '%s\n' "$KONTROLURL" | sed 's:[/&\]:\\&:g;s/$/\\/')
 sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var /g" "/etc/init/klient.conf"
 
+# To be safe, silently remove a manual upstart override if it exists
+rm /etc/init/klient.override 2> /dev/null
+
 
 cat << EOF
 Starting the Koding Service Connector...

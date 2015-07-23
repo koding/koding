@@ -35,25 +35,25 @@ func replaceKey(username, key string) error {
 
 	// create path folder and the file if it doesn't exists
 	createFile := fmt.Sprintf("mkdir -p %s && touch %s || exit", filepath.Dir(path), path)
-	err := runAsSudo(createFile)
+	err := RunAsSudo(createFile)
 	if err != nil {
 		return err
 	}
 
 	overrideKey := fmt.Sprintf("echo '%s' > %s", key, path)
-	if err := runAsSudo(overrideKey); err != nil {
+	if err := RunAsSudo(overrideKey); err != nil {
 		return err
 	}
 
 	chmod := fmt.Sprintf("chmod 0600 %[1]s && chown -R %[2]s:%[2]s %[3]s", path, username, filepath.Dir(path))
-	if err := runAsSudo(chmod); err != nil {
+	if err := RunAsSudo(chmod); err != nil {
 		return err
 	}
 
 	return err
 }
 
-func runAsSudo(cmd string) error {
+func RunAsSudo(cmd string) error {
 	out, err := exec.Command("/usr/bin/sudo", "-i", "--", "/bin/bash", "-c", cmd).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("err: '%s': out: '%s'", err, string(out))
