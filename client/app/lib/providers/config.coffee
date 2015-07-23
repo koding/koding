@@ -19,6 +19,11 @@ module.exports = globals.config.providers =
     link                   : "https://aws.amazon.com"
     title                  : "AWS Credential"
     description            : "Amazon Web Services"
+    advancedFields         : [
+                              'subnet', 'sg', 'vpc',
+                              'ami','acl','cidr_block',
+                              'igw','key_pair','rtb'
+                             ]
     credentialFields       :
       access_key           :
         label              : "Access Key"
