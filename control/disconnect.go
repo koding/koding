@@ -1,10 +1,13 @@
 package control
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/fix"
+	"github.com/koding/klient/protocol"
 )
 
 const (
@@ -29,6 +32,13 @@ const (
 // TODO: Find a way to stop Klient *after* it has safely finished any
 // pre-existing tasks.
 func Disconnect(r *kite.Request) (interface{}, error) {
+	if protocol.Environment != "managed" {
+		return nil, errors.New(fmt.Sprintf(
+			"klient.disconnect cannot be run from the '%s' Environment",
+			protocol.Environment,
+		))
+	}
+
 	err := fix.RunAsSudo(overrideCommand)
 	if err != nil {
 		return nil, err
