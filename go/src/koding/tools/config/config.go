@@ -296,7 +296,10 @@ type RuntimeOptions struct {
 		BotChannel bool `json:"botchannel"`
 	} `json:"disabledFeatures"`
 	ContentRotatorUrl string `json:"contentRotatorUrl"`
-	Google            struct {
+	Integration       struct {
+		Url string `json:"url"`
+	} `json:"integration"`
+	Google struct {
 		ApiKey string `json:"apiKey"`
 	} `json:"google"`
 	Recaptcha struct {

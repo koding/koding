@@ -103,6 +103,14 @@ update = (options, callback) ->
   , callback
 
 
+remove = (id, callback) ->
+
+  doXhrRequest
+    endPoint : "/api/integration/channelintegration/#{id}"
+    type     : 'DELETE'
+  , callback
+
+
 listChannelIntegrations = (callback) ->
 
   doXhrRequest
@@ -172,7 +180,8 @@ fetchConfigureData = (options, callback) ->
       integrationType = 'configured'
       selectedEvents  = []
       name            = settings?.customName or integration.title
-      data            = { channels, id, integration, token, createdAt, name,
+      selectedChannel = channelId
+      data            = { channels, id, integration, token, createdAt, name, selectedChannel,
                           updatedAt, description, integrationId, webhookUrl, isDisabled }
 
 
@@ -211,6 +220,7 @@ module.exports = {
   fetch
   create
   update
+  remove
   fetchChannels
   fetchConfigureData
   fetchChannelIntegration

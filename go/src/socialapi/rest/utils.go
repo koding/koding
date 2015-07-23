@@ -86,10 +86,15 @@ func DoWithRequest(req *http.Request, requestType, url string, data []byte) ([]b
 	// http.Client
 	client := http.Client{}
 	res, err := client.Do(req)
+	defer func() {
+		if res != nil {
+			res.Body.Close()
+		}
+	}()
+
 	if err != nil {
 		return make([]byte, 0), err
 	}
-	defer res.Body.Close()
 
 	return MapHTTPResponse(res)
 

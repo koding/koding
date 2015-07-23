@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
 	"github.com/nu7hatch/gouuid"
@@ -742,6 +743,94 @@ func TestWebhookUpdateChannelIntegration(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(s, ShouldEqual, http.StatusOK)
 				So(newCi.ChannelId, ShouldEqual, newChannel.Id)
+			})
+		})
+	})
+}
+
+func TestWebhookDeleteChannelIntegration(t *testing.T) {
+	tearUp(func(h *Handler, m *mux.Mux) {
+
+		deleteRequest := func(ci *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
+			endpoint := fmt.Sprintf("/channelintegration/%d", ci.Id)
+
+			return h.DeleteChannelIntegration(
+				mocking.URL(m, "DELETE", endpoint),
+				mocking.Header(nil),
+				ci,
+				ctx,
+			)
+		}
+
+		Convey("when a user requests to delete a channel integration", t, func() {
+			in := webhook.CreateTestIntegration(t)
+			acc := models.CreateAccountWithTest()
+			groupName := models.RandomGroupName()
+			groupChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_GROUP, groupName)
+			topicChannel := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			_, err := topicChannel.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			_, err = groupChannel.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			// create channel integration
+			ci := webhook.NewChannelIntegration()
+			ci.CreatorId = acc.Id
+			ci.GroupName = groupName
+			ci.ChannelId = topicChannel.Id
+			ci.IntegrationId = in.Id
+
+			err = ci.Create()
+			So(err, ShouldBeNil)
+
+			Convey("it should not be deleted", func() {
+				Convey("when user is not logged in", func() {
+					ctx := &models.Context{}
+					s, _, _, err := deleteRequest(ci, ctx)
+					So(err, ShouldNotBeNil)
+					So(s, ShouldEqual, http.StatusBadRequest)
+				})
+
+				Convey("when channel integration id is invalid", func() {
+					newCi := webhook.NewChannelIntegration()
+					rand.Seed(time.Now().UnixNano())
+					newCi.Id = rand.Int63()
+
+					ctx := &models.Context{}
+					ctx.Client = &models.Client{Account: acc}
+					ctx.GroupName = groupName
+
+					s, _, _, err := deleteRequest(newCi, ctx)
+					So(err, ShouldNotBeNil)
+					So(s, ShouldEqual, http.StatusBadRequest)
+				})
+
+				Convey("when user is not a group channel participant", func() {
+					newAcc := models.CreateAccountWithTest()
+					ctx := &models.Context{}
+					ctx.Client = &models.Client{Account: newAcc}
+					ctx.GroupName = groupName
+
+					s, _, _, err := deleteRequest(ci, ctx)
+					So(err, ShouldNotBeNil)
+					So(s, ShouldEqual, http.StatusBadRequest)
+				})
+			})
+
+			Convey("it should be deleted", func() {
+				Convey("when user is participant of the group channel", func() {
+					ctx := &models.Context{}
+					ctx.Client = &models.Client{Account: acc}
+					ctx.GroupName = groupName
+					s, _, _, err := deleteRequest(ci, ctx)
+					So(err, ShouldBeNil)
+					So(s, ShouldEqual, http.StatusOK)
+
+					newCi := webhook.NewChannelIntegration()
+					err = newCi.ById(ci.Id)
+					So(err, ShouldEqual, bongo.RecordNotFound)
+				})
 			})
 		})
 	})

@@ -90,6 +90,15 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
+			Handler:  h.DeleteChannelIntegration,
+			Name:     "channel-integration-delete",
+			Type:     handler.DeleteRequest,
+			Endpoint: "/channelintegration/{id}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
 			Handler:  h.FetchBotChannel,
 			Name:     "webhook-bot-channel",
 			Type:     handler.GetRequest,
