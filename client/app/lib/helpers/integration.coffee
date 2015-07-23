@@ -180,7 +180,8 @@ fetchConfigureData = (options, callback) ->
       integrationType = 'configured'
       selectedEvents  = []
       name            = settings?.customName or integration.title
-      data            = { channels, id, integration, token, createdAt, name,
+      selectedChannel = channelId
+      data            = { channels, id, integration, token, createdAt, name, selectedChannel,
                           updatedAt, description, integrationId, webhookUrl, isDisabled }
 
 
