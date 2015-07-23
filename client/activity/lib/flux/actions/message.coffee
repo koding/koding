@@ -54,8 +54,10 @@ createMessage = (channelId, body) ->
       }
       return
 
+    channel = socialapi.retrieveCachedItemById channelId
+
     dispatch CREATE_MESSAGE_SUCCESS, {
-      message, channelId, clientRequestId
+      message, channelId, clientRequestId, channel
     }
 
 

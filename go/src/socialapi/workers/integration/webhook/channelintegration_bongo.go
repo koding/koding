@@ -51,3 +51,7 @@ func (i *ChannelIntegration) Update() error {
 
 	return bongo.B.Update(i)
 }
+
+func (i *ChannelIntegration) Delete() error {
+	return bongo.B.Delete(i)
+}

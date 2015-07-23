@@ -109,7 +109,6 @@ func responseWithCookie(req interface{}, token string) (int, http.Header, interf
 	return response.NewOKWithCookie(req, []*http.Cookie{cookie})
 }
 
-// TODO needs a better request handler
 func (h *Handler) checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*models.CheckParticipationResponse, error) {
 	// relay the cookie to other endpoint
 	cookie := header.Get("Cookie")
@@ -124,8 +123,13 @@ func (h *Handler) checkParticipation(u *url.URL, header http.Header, cr *models.
 		Cookie: cookie,
 	}
 
-	// TODO update this requester
 	resp, err := handler.DoRequest(request)
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+
 	if err != nil {
 		return nil, err
 	}
@@ -136,9 +140,7 @@ func (h *Handler) checkParticipation(u *url.URL, header http.Header, cr *models.
 	}
 
 	var cpr models.CheckParticipationResponse
-	err = json.NewDecoder(resp.Body).Decode(&cpr)
-	resp.Body.Close()
-	if err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&cpr); err != nil {
 		return nil, err
 	}
 
