@@ -265,7 +265,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
 
       { plan, plans, usage } = planCombo
 
-      hasAllowances = usage.total < plans[plan].total
+      hasAllowances = usage.total < plans[plan].managed
       callback hasAllowances
 
 
