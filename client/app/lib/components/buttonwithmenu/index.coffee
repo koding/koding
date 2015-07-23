@@ -16,17 +16,16 @@ module.exports = class ButtonWithMenu extends React.Component
 
 
   onButtonClick: (event) ->
-    event.preventDefault()
-    event.stopPropagation()
+    kd.utils.stopDOMEvent event
     @setState showSettingsMenu: yes
     @props.showMenuForMouseAction = yes
 
 
   render: ->
-    settingsMenuListClassName = if @state.showSettingsMenu and @props.showMenuForMouseAction then 'SettingsMenuList' else 'SettingsMenuList hidden'
+    menuListClassName = if @state.showSettingsMenu and @props.showMenuForMouseAction then 'MenuList' else 'MenuList hidden'
     <div className="SettingsMenuWrapper">
       <button type="button" onClick={@bound 'onButtonClick'} ></button>
-      <ul className={settingsMenuListClassName} ref="SettingsMenuList">
+      <ul className={menuListClassName}>
         {@renderListMenu()}
       </ul>
     </div>
