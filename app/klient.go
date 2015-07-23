@@ -192,10 +192,10 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.info", info.Info)
 
 	// Collaboration, is used by our Koding.com browser client.
+	k.kite.HandleFunc("klient.disconnect", control.Disconnect)
 	k.kite.HandleFunc("klient.share", k.collab.Share)
 	k.kite.HandleFunc("klient.unshare", k.collab.Unshare)
 	k.kite.HandleFunc("klient.shared", k.collab.Shared)
-	k.kite.HandleFunc("klient.stop", control.Stop)
 
 	// SSH keys
 	k.kite.HandleFunc("sshkeys.list", sshkeys.List)
