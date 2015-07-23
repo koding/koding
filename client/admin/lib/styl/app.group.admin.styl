@@ -1121,11 +1121,24 @@ Admin main styles
       opacity               .5
 
   .kdformview
+    height                  calc(100% \- 210px)
+    overflow                auto
     margin-top              20px
+
+    .advanced-field
+      display               none
+
+    &.in-advanced-mode
+      .advanced-field
+        display             block
+
     .kdlabel
       line-height           39px
       min-width             160px
       fl()
+
+  .step-creds
+    height                  100%
 
   .step-define-stack
     height                  calc(100% \- 100px)

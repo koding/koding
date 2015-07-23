@@ -47,8 +47,9 @@ module.exports = class ComputeController_UI
         label       : "Title"
         placeholder : "title for this credential"
 
-    Providers = globals.config.providers
-    credentialFields = Object.keys Providers[provider].credentialFields
+    Providers        = globals.config.providers
+    currentProvider  = Providers[provider]
+    credentialFields = Object.keys currentProvider.credentialFields
 
     unless credentialFields.length
       return
@@ -57,7 +58,7 @@ module.exports = class ComputeController_UI
 
     credentialFields.forEach (field) ->
 
-      _field = fields[field] = _.clone Providers[provider].credentialFields[field]
+      _field = fields[field] = _.clone currentProvider.credentialFields[field]
       _field.required = yes
 
       if _field.type is 'selection'
@@ -65,6 +66,14 @@ module.exports = class ComputeController_UI
         _field.itemClass     = kd.SelectBox
         _field.defaultValue ?= values.first.value
         selectOptions.push { field, values }
+
+    # Add advanced fields into form
+    if advancedFields = currentProvider.advancedFields
+      advancedFields.forEach (field) ->
+        fields[field] =
+          label       : field.capitalize()
+          placeholder : field
+          cssClass    : 'advanced-field'
 
 
     form = new KDFormViewWithFields
