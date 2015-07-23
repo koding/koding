@@ -31,11 +31,11 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
     webtermPing        : 'webterm.ping'
     webtermRename      : 'webterm.rename'
 
+    klientDisconnect   : 'klient.disconnect'
     klientInfo         : 'klient.info'
     klientShare        : 'klient.share'
     klientUnshare      : 'klient.unshare'
     klientShared       : 'klient.shared'
-    klientStop         : 'klient.stop'
 
     sshKeysAdd         : 'sshkeys.add'
 
