@@ -322,6 +322,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
       return
 
     if @_tickCount > @getOption 'maxTicks'
+      @_stop()
       return kd.error "ManagedKiteChecker: Maximum tick limit of
         #{@getOption 'maxTicks'} reached."
 
