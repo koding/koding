@@ -1,7 +1,6 @@
 kd    = require 'kd'
 React = require 'kd-react'
 immutable = require 'immutable'
-$ = require 'jquery'
 
 ChatInputWidget      = require 'activity/components/chatinputwidget'
 ActivityFlux         = require 'activity/flux'
@@ -32,11 +31,13 @@ module.exports = class PublicChatPane extends React.Component
 
 
   componentDidUpdate: ->
-    PublicChatList     = React.findDOMNode(@refs.PublicChatList)
-    PublicChatPaneBody = React.findDOMNode(@refs.PublicChatPaneBody)
-    chatList = $(PublicChatList).find('.ChatList')
+    PublicChatList           = React.findDOMNode(@refs.PublicChatList)
+    PublicChatPaneBody       = React.findDOMNode(@refs.PublicChatPaneBody)
+    chatList                 = PublicChatList.firstElementChild
+    chatListHeight           = chatList.offsetHeight
+    publicChatPaneBodyHeight = PublicChatPaneBody.offsetHeight
 
-    if (chatList.outerHeight(no) > $(PublicChatPaneBody).outerHeight(no)) then chatList.removeClass "padded" else chatList.addClass "padded"
+    if (chatListHeight > publicChatPaneBodyHeight) then chatList.classList.remove "padded" else chatList.classList.add "padded"
 
   channel: (key) -> if key then @state.channel[key] else @state.channel
 
