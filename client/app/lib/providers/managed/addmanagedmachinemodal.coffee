@@ -60,6 +60,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     { computeController } = kd.singletons
 
     computeController.ready =>
+
       computeController.fetchPlanCombo 'managed', (err, userPlanInfo) =>
 
         return @handleError err  if err
@@ -68,35 +69,42 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         limit = plans[plan].managed
         used  = usage.total
 
-        if used >= limit
-          return @handleUsageLimit()
+        return @handleUsageLimit()  if used >= limit
 
         whoami().fetchOtaToken (err, token) =>
           return @handleError err  if err
 
-          kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
-          then "export KONTROLURL=#{globals.config.newkontrol.url}; "
-          else ''
+          @updateContentViews token
 
-          cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"
 
-          @loader.destroy()
-          @code.addSubView @input = new kd.InputView
-            defaultValue : cmd
-            click        : =>
-              @showTooltip()
-              @input.selectAll()
+  updateContentViews: (token) ->
 
-          @code.addSubView @selectButton = new kd.CustomHTMLView
-            cssClass : 'select-all'
-            partial  : '<span></span>SELECT'
-            click    : =>
-              @showTooltip()
-              @input.selectAll()
+    kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
+    then "export KONTROLURL=#{globals.config.newkontrol.url}; "
+    else ''
 
-          computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
+    cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"
 
-          @createPollLoader()
+    @loader.destroy()
+    @code.addSubView @input = new kd.InputView
+      defaultValue : cmd
+      click        : =>
+        @showTooltip()
+        @input.selectAll()
+
+    @code.addSubView @selectButton = new kd.CustomHTMLView
+      cssClass : 'select-all'
+      partial  : '<span></span>SELECT'
+      click    : =>
+        @showTooltip()
+        @input.selectAll()
+
+    { computeController } = kd.singletons
+    computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
+
+    kd.utils.wait 20000, =>
+      @addSubView new kd.LoaderView showLoader: yes, size: width: 26
+      @setClass 'polling'
 
 
   showTooltip: ->
@@ -136,13 +144,6 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     """
 
     @setClass 'error'
-
-
-  createPollLoader: ->
-
-    kd.utils.wait 20000, =>
-      @addSubView new kd.LoaderView showLoader: yes, size: width: 26
-      @setClass 'polling'
 
 
   destroy: ->
