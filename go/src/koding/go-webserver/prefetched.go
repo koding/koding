@@ -92,11 +92,15 @@ func fetchSocialItem(fetchURL string, userInfo *UserInfo) (interface{}, error) {
 	client.Jar = jar
 
 	resp, err := client.Get(fetchURL)
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+
 	if err != nil {
 		return nil, err
 	}
-
-	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		return nil, errors.New("Socialapi return non 200 status")
