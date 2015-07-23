@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestGistsService_List(t *testing.T) {
+func TestGistsService_List_specifiedUser(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -29,19 +29,19 @@ func TestGistsService_List(t *testing.T) {
 	})
 
 	opt := &GistListOptions{Since: time.Date(2013, time.January, 1, 0, 0, 0, 0, time.UTC)}
-	gists, err := client.Gists.List("u", opt)
+	gists, _, err := client.Gists.List("u", opt)
 
 	if err != nil {
 		t.Errorf("Gists.List returned error: %v", err)
 	}
 
-	want := []Gist{Gist{ID: "1"}}
+	want := []Gist{{ID: String("1")}}
 	if !reflect.DeepEqual(gists, want) {
 		t.Errorf("Gists.List returned %+v, want %+v", gists, want)
 	}
 }
 
-func TestGistsService_List_withEmptyUser(t *testing.T) {
+func TestGistsService_List_authenticatedUser(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -50,15 +50,20 @@ func TestGistsService_List_withEmptyUser(t *testing.T) {
 		fmt.Fprint(w, `[{"id": "1"}]`)
 	})
 
-	gists, err := client.Gists.List("", nil)
+	gists, _, err := client.Gists.List("", nil)
 	if err != nil {
 		t.Errorf("Gists.List returned error: %v", err)
 	}
 
-	want := []Gist{Gist{ID: "1"}}
+	want := []Gist{{ID: String("1")}}
 	if !reflect.DeepEqual(gists, want) {
 		t.Errorf("Gists.List returned %+v, want %+v", gists, want)
 	}
+}
+
+func TestGistsService_List_invalidUser(t *testing.T) {
+	_, _, err := client.Gists.List("%", nil)
+	testURLParseError(t, err)
 }
 
 func TestGistsService_ListAll(t *testing.T) {
@@ -76,13 +81,13 @@ func TestGistsService_ListAll(t *testing.T) {
 	})
 
 	opt := &GistListOptions{Since: time.Date(2013, time.January, 1, 0, 0, 0, 0, time.UTC)}
-	gists, err := client.Gists.ListAll(opt)
+	gists, _, err := client.Gists.ListAll(opt)
 
 	if err != nil {
 		t.Errorf("Gists.ListAll returned error: %v", err)
 	}
 
-	want := []Gist{Gist{ID: "1"}}
+	want := []Gist{{ID: String("1")}}
 	if !reflect.DeepEqual(gists, want) {
 		t.Errorf("Gists.ListAll returned %+v, want %+v", gists, want)
 	}
@@ -103,13 +108,13 @@ func TestGistsService_ListStarred(t *testing.T) {
 	})
 
 	opt := &GistListOptions{Since: time.Date(2013, time.January, 1, 0, 0, 0, 0, time.UTC)}
-	gists, err := client.Gists.ListStarred(opt)
+	gists, _, err := client.Gists.ListStarred(opt)
 
 	if err != nil {
 		t.Errorf("Gists.ListStarred returned error: %v", err)
 	}
 
-	want := []Gist{Gist{ID: "1"}}
+	want := []Gist{{ID: String("1")}}
 	if !reflect.DeepEqual(gists, want) {
 		t.Errorf("Gists.ListStarred returned %+v, want %+v", gists, want)
 	}
@@ -124,16 +129,47 @@ func TestGistsService_Get(t *testing.T) {
 		fmt.Fprint(w, `{"id": "1"}`)
 	})
 
-	gist, err := client.Gists.Get("1")
+	gist, _, err := client.Gists.Get("1")
 
 	if err != nil {
 		t.Errorf("Gists.Get returned error: %v", err)
 	}
 
-	want := &Gist{ID: "1"}
+	want := &Gist{ID: String("1")}
 	if !reflect.DeepEqual(gist, want) {
 		t.Errorf("Gists.Get returned %+v, want %+v", gist, want)
 	}
+}
+
+func TestGistsService_Get_invalidID(t *testing.T) {
+	_, _, err := client.Gists.Get("%")
+	testURLParseError(t, err)
+}
+
+func TestGistsService_GetRevision(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/gists/1/s", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, `{"id": "1"}`)
+	})
+
+	gist, _, err := client.Gists.GetRevision("1", "s")
+
+	if err != nil {
+		t.Errorf("Gists.Get returned error: %v", err)
+	}
+
+	want := &Gist{ID: String("1")}
+	if !reflect.DeepEqual(gist, want) {
+		t.Errorf("Gists.Get returned %+v, want %+v", gist, want)
+	}
+}
+
+func TestGistsService_GetRevision_invalidID(t *testing.T) {
+	_, _, err := client.Gists.GetRevision("%", "%")
+	testURLParseError(t, err)
 }
 
 func TestGistsService_Create(t *testing.T) {
@@ -141,10 +177,10 @@ func TestGistsService_Create(t *testing.T) {
 	defer teardown()
 
 	input := &Gist{
-		Description: "Gist description",
-		Public: false,
+		Description: String("Gist description"),
+		Public:      Bool(false),
 		Files: map[GistFilename]GistFile{
-			"test.txt": GistFile{Content: "Gist file content"},
+			"test.txt": {Content: String("Gist file content")},
 		},
 	}
 
@@ -171,17 +207,17 @@ func TestGistsService_Create(t *testing.T) {
 			}`)
 	})
 
-	gist, err := client.Gists.Create(input)
+	gist, _, err := client.Gists.Create(input)
 	if err != nil {
 		t.Errorf("Gists.Create returned error: %v", err)
 	}
 
 	want := &Gist{
-		ID: "1",
-		Description: "Gist description",
-		Public: false,
+		ID:          String("1"),
+		Description: String("Gist description"),
+		Public:      Bool(false),
 		Files: map[GistFilename]GistFile{
-			"test.txt": GistFile{Filename: "test.txt"},
+			"test.txt": {Filename: String("test.txt")},
 		},
 	}
 	if !reflect.DeepEqual(gist, want) {
@@ -194,9 +230,9 @@ func TestGistsService_Edit(t *testing.T) {
 	defer teardown()
 
 	input := &Gist{
-		Description: "New description",
+		Description: String("New description"),
 		Files: map[GistFilename]GistFile{
-			"new.txt": GistFile{Content: "new file content"},
+			"new.txt": {Content: String("new file content")},
 		},
 	}
 
@@ -226,23 +262,28 @@ func TestGistsService_Edit(t *testing.T) {
 			}`)
 	})
 
-	gist, err := client.Gists.Edit("1", input)
+	gist, _, err := client.Gists.Edit("1", input)
 	if err != nil {
 		t.Errorf("Gists.Edit returned error: %v", err)
 	}
 
 	want := &Gist{
-		ID: "1",
-		Description: "new description",
-		Public: false,
+		ID:          String("1"),
+		Description: String("new description"),
+		Public:      Bool(false),
 		Files: map[GistFilename]GistFile{
-			"test.txt": GistFile{Filename: "test.txt"},
-			"new.txt": GistFile{Filename: "new.txt"},
+			"test.txt": {Filename: String("test.txt")},
+			"new.txt":  {Filename: String("new.txt")},
 		},
 	}
 	if !reflect.DeepEqual(gist, want) {
 		t.Errorf("Gists.Edit returned %+v, want %+v", gist, want)
 	}
+}
+
+func TestGistsService_Edit_invalidID(t *testing.T) {
+	_, _, err := client.Gists.Edit("%", nil)
+	testURLParseError(t, err)
 }
 
 func TestGistsService_Delete(t *testing.T) {
@@ -253,10 +294,15 @@ func TestGistsService_Delete(t *testing.T) {
 		testMethod(t, r, "DELETE")
 	})
 
-	err := client.Gists.Delete("1")
+	_, err := client.Gists.Delete("1")
 	if err != nil {
 		t.Errorf("Gists.Delete returned error: %v", err)
 	}
+}
+
+func TestGistsService_Delete_invalidID(t *testing.T) {
+	_, err := client.Gists.Delete("%")
+	testURLParseError(t, err)
 }
 
 func TestGistsService_Star(t *testing.T) {
@@ -267,10 +313,15 @@ func TestGistsService_Star(t *testing.T) {
 		testMethod(t, r, "PUT")
 	})
 
-	err := client.Gists.Star("1")
+	_, err := client.Gists.Star("1")
 	if err != nil {
 		t.Errorf("Gists.Star returned error: %v", err)
 	}
+}
+
+func TestGistsService_Star_invalidID(t *testing.T) {
+	_, err := client.Gists.Star("%")
+	testURLParseError(t, err)
 }
 
 func TestGistsService_Unstar(t *testing.T) {
@@ -281,13 +332,18 @@ func TestGistsService_Unstar(t *testing.T) {
 		testMethod(t, r, "DELETE")
 	})
 
-	err := client.Gists.Unstar("1")
+	_, err := client.Gists.Unstar("1")
 	if err != nil {
 		t.Errorf("Gists.Unstar returned error: %v", err)
 	}
 }
 
-func TestGistsService_Starred_hasStar(t *testing.T) {
+func TestGistsService_Unstar_invalidID(t *testing.T) {
+	_, err := client.Gists.Unstar("%")
+	testURLParseError(t, err)
+}
+
+func TestGistsService_IsStarred_hasStar(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -296,7 +352,7 @@ func TestGistsService_Starred_hasStar(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	star, err := client.Gists.Starred("1")
+	star, _, err := client.Gists.IsStarred("1")
 	if err != nil {
 		t.Errorf("Gists.Starred returned error: %v", err)
 	}
@@ -305,7 +361,7 @@ func TestGistsService_Starred_hasStar(t *testing.T) {
 	}
 }
 
-func TestGistsService_Starred_noStar(t *testing.T) {
+func TestGistsService_IsStarred_noStar(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -314,13 +370,18 @@ func TestGistsService_Starred_noStar(t *testing.T) {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	star, err := client.Gists.Starred("1")
+	star, _, err := client.Gists.IsStarred("1")
 	if err != nil {
 		t.Errorf("Gists.Starred returned error: %v", err)
 	}
 	if want := false; star != want {
 		t.Errorf("Gists.Starred returned %+v, want %+v", star, want)
 	}
+}
+
+func TestGistsService_IsStarred_invalidID(t *testing.T) {
+	_, _, err := client.Gists.IsStarred("%")
+	testURLParseError(t, err)
 }
 
 func TestGistsService_Fork(t *testing.T) {
@@ -332,14 +393,19 @@ func TestGistsService_Fork(t *testing.T) {
 		fmt.Fprint(w, `{"id": "2"}`)
 	})
 
-	gist, err := client.Gists.Fork("1")
+	gist, _, err := client.Gists.Fork("1")
 
 	if err != nil {
 		t.Errorf("Gists.Fork returned error: %v", err)
 	}
 
-	want := &Gist{ID: "2"}
+	want := &Gist{ID: String("2")}
 	if !reflect.DeepEqual(gist, want) {
 		t.Errorf("Gists.Fork returned %+v, want %+v", gist, want)
 	}
+}
+
+func TestGistsService_Fork_invalidID(t *testing.T) {
+	_, _, err := client.Gists.Fork("%")
+	testURLParseError(t, err)
 }

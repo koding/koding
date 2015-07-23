@@ -7,8 +7,9 @@ a just a few small guidelines you need to follow.
 ## Contributor License Agreement ##
 
 Contributions to any Google project must be accompanied by a Contributor
-License Agreement.  This simply gives Google permission to use and redistribute
-your contributions as part of the project.
+License Agreement.  This is not a copyright **assignment**, it simply gives
+Google permission to use and redistribute your contributions as part of the
+project.
 
   * If you are an individual writing original source code and you're sure you
     own the intellectual property, then you'll need to sign an [individual
@@ -40,7 +41,7 @@ again.
 
   1. Go makes it very simple to ensure properly formatted code, so always run
      `go fmt` on your code before committing it.  You should also run
-     [golint][] over your code.  As noted in the golint readme, it's not
+     [golint][] over your code.  As noted in the [golint readme][], it's not
      strictly necessary that your code be completely "lint-free", but this will
      help you find common style issues.
 
@@ -58,6 +59,7 @@ again.
 
 [forking]: https://help.github.com/articles/fork-a-repo
 [golint]: https://github.com/golang/lint
+[golint readme]: https://github.com/golang/lint/blob/master/README
 [gocov]: https://github.com/axw/gocov
 [gocov-html]: https://github.com/matm/gocov-html
 [well-formed commit messages]: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
@@ -72,4 +74,9 @@ broken into separate service objects.  These services map directly to how
 the [GitHub API documentation][] is organized, so use that as your guide for
 where to put new methods.
 
+Sub-service (e.g. [Repo Hooks][]) implementations are split into separate files
+based on the APIs they provide. These files are named service_api.go (e.g.
+repos_hooks.go) to describe the API to service mappings.
+
 [GitHub API documentation]: http://developer.github.com/v3/
+[Repo Hooks]: http://developer.github.com/v3/repos/hooks/

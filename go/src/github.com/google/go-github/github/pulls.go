@@ -7,7 +7,6 @@ package github
 
 import (
 	"fmt"
-	"net/url"
 	"time"
 )
 
@@ -21,37 +20,45 @@ type PullRequestsService struct {
 
 // PullRequest represents a GitHub pull request on a repository.
 type PullRequest struct {
-	Number       int        `json:"number,omitempty"`
-	State        string     `json:"state,omitempty"`
-	Title        string     `json:"title,omitempty"`
-	Body         string     `json:"body,omitempty"`
+	Number       *int       `json:"number,omitempty"`
+	State        *string    `json:"state,omitempty"`
+	Title        *string    `json:"title,omitempty"`
+	Body         *string    `json:"body,omitempty"`
 	CreatedAt    *time.Time `json:"created_at,omitempty"`
 	UpdatedAt    *time.Time `json:"updated_at,omitempty"`
 	ClosedAt     *time.Time `json:"closed_at,omitempty"`
 	MergedAt     *time.Time `json:"merged_at,omitempty"`
 	User         *User      `json:"user,omitempty"`
-	Merged       bool       `json:"merged,omitempty"`
-	Mergeable    bool       `json:"mergeable,omitempty"`
+	Merged       *bool      `json:"merged,omitempty"`
+	Mergeable    *bool      `json:"mergeable,omitempty"`
 	MergedBy     *User      `json:"merged_by,omitempty"`
-	Comments     int        `json:"comments,omitempty"`
-	Commits      int        `json:"commits,omitempty"`
-	Additions    int        `json:"additions,omitempty"`
-	Deletions    int        `json:"deletions,omitempty"`
-	ChangedFiles int        `json:"changed_files,omitempty"`
+	Comments     *int       `json:"comments,omitempty"`
+	Commits      *int       `json:"commits,omitempty"`
+	Additions    *int       `json:"additions,omitempty"`
+	Deletions    *int       `json:"deletions,omitempty"`
+	ChangedFiles *int       `json:"changed_files,omitempty"`
+	URL          *string    `json:"url,omitempty"`
+	HTMLURL      *string    `json:"html_url,omitempty"`
+	IssueURL     *string    `json:"issue_url,omitempty"`
+	StatusesURL  *string    `json:"statuses_url,omitempty"`
+	DiffURL      *string    `json:"diff_url,omitempty"`
+	PatchURL     *string    `json:"patch_url,omitempty"`
 
-	// TODO(willnorris): add head and base once we have a Commit struct defined somewhere
+	Head *PullRequestBranch `json:"head,omitempty"`
+	Base *PullRequestBranch `json:"base,omitempty"`
 }
 
-// PullRequestComment represents a comment left on a pull request.
-type PullRequestComment struct {
-	ID        int        `json:"id,omitempty"`
-	Body      string     `json:"body,omitempty"`
-	Path      string     `json:"path,omitempty"`
-	Position  int        `json:"position,omitempty"`
-	CommitID  string     `json:"commit_id,omitempty"`
-	User      *User      `json:"user,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+func (p PullRequest) String() string {
+	return Stringify(p)
+}
+
+// PullRequestBranch represents a base or head branch in a GitHub pull request.
+type PullRequestBranch struct {
+	Label *string     `json:"label,omitempty"`
+	Ref   *string     `json:"ref,omitempty"`
+	SHA   *string     `json:"sha,omitempty"`
+	Repo  *Repository `json:"repo,omitempty"`
+	User  *User       `json:"user,omitempty"`
 }
 
 // PullRequestListOptions specifies the optional parameters to the
@@ -59,179 +66,210 @@ type PullRequestComment struct {
 type PullRequestListOptions struct {
 	// State filters pull requests based on their state.  Possible values are:
 	// open, closed.  Default is "open".
-	State string
+	State string `url:"state,omitempty"`
 
 	// Head filters pull requests by head user and branch name in the format of:
 	// "user:ref-name".
-	Head string
+	Head string `url:"head,omitempty"`
 
 	// Base filters pull requests by base branch name.
-	Base string
+	Base string `url:"base,omitempty"`
+
+	// Sort specifies how to sort pull requests. Possible values are: created,
+	// updated, popularity, long-running. Default is "created".
+	Sort string `url:"sort,omitempty"`
+
+	// Direction in which to sort pull requests. Possible values are: asc, desc.
+	// If Sort is "created" or not specified, Default is "desc", otherwise Default
+	// is "asc"
+	Direction string `url:"direction,omitempty"`
+
+	ListOptions
 }
 
 // List the pull requests for the specified repository.
 //
 // GitHub API docs: http://developer.github.com/v3/pulls/#list-pull-requests
-func (s *PullRequestsService) List(owner string, repo string, opt *PullRequestListOptions) ([]PullRequest, error) {
+func (s *PullRequestsService) List(owner string, repo string, opt *PullRequestListOptions) ([]PullRequest, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/pulls", owner, repo)
-	if opt != nil {
-		params := url.Values{
-			"state": {opt.State},
-			"head":  {opt.Head},
-			"base":  {opt.Base},
-		}
-		u += "?" + params.Encode()
+	u, err := addOptions(u, opt)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	pulls := new([]PullRequest)
-	_, err = s.client.Do(req, pulls)
-	return *pulls, err
+	resp, err := s.client.Do(req, pulls)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return *pulls, resp, err
 }
 
 // Get a single pull request.
 //
 // GitHub API docs: https://developer.github.com/v3/pulls/#get-a-single-pull-request
-func (s *PullRequestsService) Get(owner string, repo string, number int) (*PullRequest, error) {
+func (s *PullRequestsService) Get(owner string, repo string, number int) (*PullRequest, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/pulls/%d", owner, repo, number)
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	pull := new(PullRequest)
-	_, err = s.client.Do(req, pull)
-	return pull, err
+	resp, err := s.client.Do(req, pull)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return pull, resp, err
+}
+
+// NewPullRequest represents a new pull request to be created.
+type NewPullRequest struct {
+	Title *string `json:"title,omitempty"`
+	Head  *string `json:"head,omitempty"`
+	Base  *string `json:"base,omitempty"`
+	Body  *string `json:"body,omitempty"`
+	Issue *int    `json:"issue,omitempty"`
 }
 
 // Create a new pull request on the specified repository.
 //
 // GitHub API docs: https://developer.github.com/v3/pulls/#create-a-pull-request
-func (s *PullRequestsService) Create(owner string, repo string, pull *PullRequest) (*PullRequest, error) {
+func (s *PullRequestsService) Create(owner string, repo string, pull *NewPullRequest) (*PullRequest, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/pulls", owner, repo)
 	req, err := s.client.NewRequest("POST", u, pull)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	p := new(PullRequest)
-	_, err = s.client.Do(req, p)
-	return p, err
+	resp, err := s.client.Do(req, p)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return p, resp, err
 }
 
 // Edit a pull request.
 //
 // GitHub API docs: https://developer.github.com/v3/pulls/#update-a-pull-request
-func (s *PullRequestsService) Edit(owner string, repo string, number int, pull *PullRequest) (*PullRequest, error) {
+func (s *PullRequestsService) Edit(owner string, repo string, number int, pull *PullRequest) (*PullRequest, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/pulls/%d", owner, repo, number)
 	req, err := s.client.NewRequest("PATCH", u, pull)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	p := new(PullRequest)
-	_, err = s.client.Do(req, p)
-	return p, err
-}
-
-// PullRequestListCommentsOptions specifies the optional parameters to the
-// PullRequestsService.ListComments method.
-type PullRequestListCommentsOptions struct {
-	// Sort specifies how to sort comments.  Possible values are: created, updated.
-	Sort string
-
-	// Direction in which to sort comments.  Possible values are: asc, desc.
-	Direction string
-
-	// Since filters comments by time.
-	Since time.Time
-}
-
-// ListComments lists all comments on the specified pull request.  Specifying a
-// pull request number of 0 will return all comments on all pull requests for
-// the repository.
-//
-// GitHub API docs: https://developer.github.com/v3/pulls/comments/#list-comments-on-a-pull-request
-func (s *PullRequestsService) ListComments(owner string, repo string, number int, opt *PullRequestListCommentsOptions) ([]PullRequestComment, error) {
-	var u string
-	if number == 0 {
-		u = fmt.Sprintf("repos/%v/%v/pulls/comments", owner, repo)
-	} else {
-		u = fmt.Sprintf("repos/%v/%v/pulls/%d/comments", owner, repo, number)
+	resp, err := s.client.Do(req, p)
+	if err != nil {
+		return nil, resp, err
 	}
 
-	if opt != nil {
-		params := url.Values{
-			"sort":      {opt.Sort},
-			"direction": {opt.Direction},
-		}
-		if !opt.Since.IsZero() {
-			params.Add("since", opt.Since.Format(time.RFC3339))
-		}
-		u += "?" + params.Encode()
+	return p, resp, err
+}
+
+// ListCommits lists the commits in a pull request.
+//
+// GitHub API docs: https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
+func (s *PullRequestsService) ListCommits(owner string, repo string, number int, opt *ListOptions) ([]RepositoryCommit, *Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/pulls/%d/commits", owner, repo, number)
+	u, err := addOptions(u, opt)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	comments := new([]PullRequestComment)
-	_, err = s.client.Do(req, comments)
-	return *comments, err
+
+	commits := new([]RepositoryCommit)
+	resp, err := s.client.Do(req, commits)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return *commits, resp, err
 }
 
-// GetComment fetches the specified pull request comment.
+// ListFiles lists the files in a pull request.
 //
-// GitHub API docs: https://developer.github.com/v3/pulls/comments/#get-a-single-comment
-func (s *PullRequestsService) GetComment(owner string, repo string, number int) (*PullRequestComment, error) {
-	u := fmt.Sprintf("repos/%v/%v/pulls/comments/%d", owner, repo, number)
+// GitHub API docs: https://developer.github.com/v3/pulls/#list-pull-requests-files
+func (s *PullRequestsService) ListFiles(owner string, repo string, number int, opt *ListOptions) ([]CommitFile, *Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/pulls/%d/files", owner, repo, number)
+	u, err := addOptions(u, opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	comment := new(PullRequestComment)
-	_, err = s.client.Do(req, comment)
-	return comment, err
+
+	commitFiles := new([]CommitFile)
+	resp, err := s.client.Do(req, commitFiles)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return *commitFiles, resp, err
 }
 
-// CreateComment creates a new comment on the specified pull request.
+// IsMerged checks if a pull request has been merged.
 //
-// GitHub API docs: https://developer.github.com/v3/pulls/comments/#get-a-single-comment
-func (s *PullRequestsService) CreateComment(owner string, repo string, number int, comment *PullRequestComment) (*PullRequestComment, error) {
-	u := fmt.Sprintf("repos/%v/%v/pulls/%d/comments", owner, repo, number)
-	req, err := s.client.NewRequest("POST", u, comment)
+// GitHub API docs: https://developer.github.com/v3/pulls/#get-if-a-pull-request-has-been-merged
+func (s *PullRequestsService) IsMerged(owner string, repo string, number int) (bool, *Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/pulls/%d/merge", owner, repo, number)
+	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
-		return nil, err
+		return false, nil, err
 	}
-	c := new(PullRequestComment)
-	_, err = s.client.Do(req, c)
-	return c, err
+
+	resp, err := s.client.Do(req, nil)
+	merged, err := parseBoolResponse(err)
+	return merged, resp, err
 }
 
-// EditComment updates a pull request comment.
-//
-// GitHub API docs: https://developer.github.com/v3/pulls/comments/#edit-a-comment
-func (s *PullRequestsService) EditComment(owner string, repo string, number int, comment *PullRequestComment) (*PullRequestComment, error) {
-	u := fmt.Sprintf("repos/%v/%v/pulls/comments/%d", owner, repo, number)
-	req, err := s.client.NewRequest("PATCH", u, comment)
-	if err != nil {
-		return nil, err
-	}
-	c := new(PullRequestComment)
-	_, err = s.client.Do(req, c)
-	return c, err
+// PullRequestMergeResult represents the result of merging a pull request.
+type PullRequestMergeResult struct {
+	SHA     *string `json:"sha,omitempty"`
+	Merged  *bool   `json:"merged,omitempty"`
+	Message *string `json:"message,omitempty"`
 }
 
-// DeleteComment deletes a pull request comment.
+type pullRequestMergeRequest struct {
+	CommitMessage *string `json:"commit_message"`
+}
+
+// Merge a pull request (Merge Button™).
 //
-// GitHub API docs: https://developer.github.com/v3/pulls/comments/#delete-a-comment
-func (s *PullRequestsService) DeleteComment(owner string, repo string, number int) error {
-	u := fmt.Sprintf("repos/%v/%v/pulls/comments/%d", owner, repo, number)
-	req, err := s.client.NewRequest("DELETE", u, nil)
+// GitHub API docs: https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-buttontrade
+func (s *PullRequestsService) Merge(owner string, repo string, number int, commitMessage string) (*PullRequestMergeResult, *Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/pulls/%d/merge", owner, repo, number)
+
+	req, err := s.client.NewRequest("PUT", u, &pullRequestMergeRequest{
+		CommitMessage: &commitMessage,
+	})
+
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	_, err = s.client.Do(req, nil)
-	return err
+
+	mergeResult := new(PullRequestMergeResult)
+	resp, err := s.client.Do(req, mergeResult)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return mergeResult, resp, err
 }

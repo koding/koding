@@ -13,6 +13,46 @@ import (
 	"testing"
 )
 
+func TestUser_marshall(t *testing.T) {
+	testJSONMarshal(t, &User{}, "{}")
+
+	u := &User{
+		Login:       String("l"),
+		ID:          Int(1),
+		URL:         String("u"),
+		AvatarURL:   String("a"),
+		GravatarID:  String("g"),
+		Name:        String("n"),
+		Company:     String("c"),
+		Blog:        String("b"),
+		Location:    String("l"),
+		Email:       String("e"),
+		Hireable:    Bool(true),
+		PublicRepos: Int(1),
+		Followers:   Int(1),
+		Following:   Int(1),
+		CreatedAt:   &Timestamp{referenceTime},
+	}
+	want := `{
+		"login": "l",
+		"id": 1,
+		"avatar_url": "a",
+		"gravatar_id": "g",
+		"name": "n",
+		"company": "c",
+		"blog": "b",
+		"location": "l",
+		"email": "e",
+		"hireable": true,
+		"public_repos": 1,
+		"followers": 1,
+		"following": 1,
+		"created_at": ` + referenceTimeStr + `,
+		"url": "u"
+	}`
+	testJSONMarshal(t, u, want)
+}
+
 func TestUsersService_Get_authenticatedUser(t *testing.T) {
 	setup()
 	defer teardown()
@@ -22,12 +62,12 @@ func TestUsersService_Get_authenticatedUser(t *testing.T) {
 		fmt.Fprint(w, `{"id":1}`)
 	})
 
-	user, err := client.Users.Get("")
+	user, _, err := client.Users.Get("")
 	if err != nil {
 		t.Errorf("Users.Get returned error: %v", err)
 	}
 
-	want := &User{ID: 1}
+	want := &User{ID: Int(1)}
 	if !reflect.DeepEqual(user, want) {
 		t.Errorf("Users.Get returned %+v, want %+v", user, want)
 	}
@@ -42,19 +82,19 @@ func TestUsersService_Get_specifiedUser(t *testing.T) {
 		fmt.Fprint(w, `{"id":1}`)
 	})
 
-	user, err := client.Users.Get("u")
+	user, _, err := client.Users.Get("u")
 	if err != nil {
 		t.Errorf("Users.Get returned error: %v", err)
 	}
 
-	want := &User{ID: 1}
+	want := &User{ID: Int(1)}
 	if !reflect.DeepEqual(user, want) {
 		t.Errorf("Users.Get returned %+v, want %+v", user, want)
 	}
 }
 
 func TestUsersService_Get_invalidUser(t *testing.T) {
-	_, err := client.Users.Get("%")
+	_, _, err := client.Users.Get("%")
 	testURLParseError(t, err)
 }
 
@@ -62,7 +102,7 @@ func TestUsersService_Edit(t *testing.T) {
 	setup()
 	defer teardown()
 
-	input := &User{Name: "n"}
+	input := &User{Name: String("n")}
 
 	mux.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
 		v := new(User)
@@ -76,12 +116,12 @@ func TestUsersService_Edit(t *testing.T) {
 		fmt.Fprint(w, `{"id":1}`)
 	})
 
-	user, err := client.Users.Edit(input)
+	user, _, err := client.Users.Edit(input)
 	if err != nil {
 		t.Errorf("Users.Edit returned error: %v", err)
 	}
 
-	want := &User{ID: 1}
+	want := &User{ID: Int(1)}
 	if !reflect.DeepEqual(user, want) {
 		t.Errorf("Users.Edit returned %+v, want %+v", user, want)
 	}
@@ -98,104 +138,13 @@ func TestUsersService_ListAll(t *testing.T) {
 	})
 
 	opt := &UserListOptions{1}
-	users, err := client.Users.ListAll(opt)
+	users, _, err := client.Users.ListAll(opt)
 	if err != nil {
 		t.Errorf("Users.Get returned error: %v", err)
 	}
 
-	want := []User{User{ID: 2}}
+	want := []User{{ID: Int(2)}}
 	if !reflect.DeepEqual(users, want) {
 		t.Errorf("Users.ListAll returned %+v, want %+v", users, want)
-	}
-}
-
-func TestUsersService_ListFollowing(t *testing.T) {
-	setup()
-	defer teardown()
-
-	mux.HandleFunc("/users/sent-hil/following", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		fmt.Fprint(w, `[{"id":2}]`)
-	})
-
-	users, err := client.Users.ListFollowing("sent-hil")
-	if err != nil {
-		t.Errorf("Users.Get returned error: %v", err)
-	}
-
-	want := []User{User{ID: 2}}
-	if !reflect.DeepEqual(users, want) {
-		t.Errorf("Users.ListAll returned %+v, want %+v", users, want)
-	}
-}
-
-func TestUsersService_ListEmails(t *testing.T) {
-	setup()
-	defer teardown()
-
-	mux.HandleFunc("/user/emails", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		fmt.Fprint(w, `["user@example.com"]`)
-	})
-
-	emails, err := client.Users.ListEmails()
-	if err != nil {
-		t.Errorf("Users.ListEmails returned error: %v", err)
-	}
-
-	want := []UserEmail{"user@example.com"}
-	if !reflect.DeepEqual(emails, want) {
-		t.Errorf("Users.ListEmails returned %+v, want %+v", emails, want)
-	}
-}
-
-func TestUsersService_AddEmails(t *testing.T) {
-	setup()
-	defer teardown()
-
-	input := []UserEmail{"new@example.com"}
-
-	mux.HandleFunc("/user/emails", func(w http.ResponseWriter, r *http.Request) {
-		v := new([]UserEmail)
-		json.NewDecoder(r.Body).Decode(v)
-
-		testMethod(t, r, "POST")
-		if !reflect.DeepEqual(*v, input) {
-			t.Errorf("Request body = %+v, want %+v", *v, input)
-		}
-
-		fmt.Fprint(w, `["old@example.com", "new@example.com"]`)
-	})
-
-	emails, err := client.Users.AddEmails(input)
-	if err != nil {
-		t.Errorf("Users.AddEmails returned error: %v", err)
-	}
-
-	want := []UserEmail{"old@example.com", "new@example.com"}
-	if !reflect.DeepEqual(emails, want) {
-		t.Errorf("Users.AddEmails returned %+v, want %+v", emails, want)
-	}
-}
-
-func TestUsersService_DeleteEmails(t *testing.T) {
-	setup()
-	defer teardown()
-
-	input := []UserEmail{"user@example.com"}
-
-	mux.HandleFunc("/user/emails", func(w http.ResponseWriter, r *http.Request) {
-		v := new([]UserEmail)
-		json.NewDecoder(r.Body).Decode(v)
-
-		testMethod(t, r, "DELETE")
-		if !reflect.DeepEqual(*v, input) {
-			t.Errorf("Request body = %+v, want %+v", *v, input)
-		}
-	})
-
-	err := client.Users.DeleteEmails(input)
-	if err != nil {
-		t.Errorf("Users.DeleteEmails returned error: %v", err)
 	}
 }
