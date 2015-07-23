@@ -8,6 +8,8 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
+	"strconv"
+	"time"
 
 	"labix.org/v2/mgo/bson"
 
@@ -125,7 +127,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, region)
 		k.Log.Debug("Going to use the contentID: %s", contentID)
 
-		keyName := "koding-deployment-" + r.Username
+		keyName := "koding-deployment-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		finalBootstrap, err = appendKeyName(finalBootstrap, keyName)
 		if err != nil {
 			return nil, err
