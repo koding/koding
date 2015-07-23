@@ -29,6 +29,8 @@ type BotChannelData struct {
 	ChannelId int64 `json:"channelId,string"`
 }
 
+//////////// PushRequest //////////////
+
 type PushRequest struct {
 	Body      string `json:"body"`
 	ChannelId int64  `json:"channelId,string"`
@@ -43,6 +45,45 @@ func (pr *PushRequest) Buffered() (io.Reader, error) {
 	}
 
 	return bytes.NewReader(body), nil
+}
+
+////////// ConfigureRequest ////////////
+
+type ConfigureRequest struct {
+	UserToken    string   `json:"userToken"`
+	Settings     Settings `json:"settings"`
+	OldSettings  Settings `json:"oldSettings"`
+	ServiceToken string   `json:"serviceToken"`
+}
+
+type Settings map[string]*string
+
+func (s Settings) Get(key string) *string {
+	val, ok := s[key]
+	if !ok {
+		return nil
+	}
+
+	return val
+}
+
+func (s Settings) GetString(key string) string {
+	val := s.Get(key)
+	if val == nil {
+		return ""
+	}
+
+	return *val
+}
+
+type ConfigureResponse map[string]interface{}
+
+func MapConfigureRequest(req *http.Request, val interface{}) error {
+	if err := json.NewDecoder(req.Body).Decode(val); err != nil {
+		return err
+	}
+
+	return req.Body.Close()
 }
 
 // fetchBotChannelId retrieves the user's bot channel id within the given

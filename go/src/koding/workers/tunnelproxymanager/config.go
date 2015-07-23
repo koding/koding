@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"koding/ec2dynamicdata"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/koding/ec2dynamicdata"
 	"github.com/koding/multiconfig"
 )
 

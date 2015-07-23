@@ -43,6 +43,7 @@ createWebLocation = ({name, locationConf}) ->
         proxy_pass            #{proxyPass};
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header      Host            $host;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
         #{if internalOnly then allowInternal else ''}
@@ -64,13 +65,13 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
         proxy_set_header      Upgrade         $http_upgrade;
         proxy_set_header      Connection      $connection_upgrade;
 
-        proxy_set_header      Host $host;
-        proxy_set_header      X-Real-IP $remote_addr;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_redirect        off;
 
         # Don't buffer WebSocket connections
-        proxy_buffering off;
+        proxy_buffering       off;
 
         # try again with another upstream if there is an error
         proxy_next_upstream   error timeout   invalid_header http_500;
@@ -249,6 +250,8 @@ module.exports.create = (KONFIG, environment)->
     gzip_http_version 1.1;
     gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript image/jpeg image/jpg image/png;
 
+    #{createHttpsRedirector(KONFIG)}
+
     # start server
     server {
       # we should not timeout on proxy connections
@@ -328,4 +331,23 @@ createRedirections = (KONFIG) ->
     server {
        server_name "~^old.koding.com" ;
        return 301 $scheme://koding.com$request_uri ;
+    }"""
+
+createHttpsRedirector = (KONFIG) ->
+  return "" if isProxy KONFIG.ebEnvName
+
+  return """
+  \t\t\t
+    # listen for http requests at port 81
+    # this port will be only used for http->https redirection
+    #
+    # do not forget to allow communication via port 81 at security groups(ELB SecGroup)
+    # like : koding-latest,
+    server {
+      # just a random port
+
+      listen #{parseInt(KONFIG.publicPort)+1+''};
+
+      # use generic names, do not hardcode values
+      return 301 https://$host$request_uri;
     }"""

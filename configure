@@ -30,7 +30,6 @@ options = o =
   target           : argv.target         or "localhost"
   onlyconfigure    : argv.onlyconfigure  or no
   runGoWatcher     : argv.hasOwnProperty 'with-go-watcher'
-  supervisor       : argv.supervisor     or no
   deploy           : argv.deploy         or no
   host             : argv.host
   ebEnvName        : argv.ebEnvName      or "dev"
@@ -81,9 +80,8 @@ rest = ->
     fs.writeFileSync "./deployment/generated_files/nginx.conf", KONFIG.nginxConf
     fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
 
-    # write supervisor config
-    if o.supervisor
-      fs.writeFileSync "/etc/supervisor/conf.d/koding.conf",KONFIG.supervisorConf
+    if KONFIG.supervisord.output_path
+      fs.writeFileSync KONFIG.supervisord.output_path, KONFIG.supervisorConf
 
     log "Configuration done"
     log "------------------"
@@ -127,7 +125,7 @@ git.long (str) ->
     options.hostname       = argv.hostname
     rest()
   else if os.type() is "Darwin"
-    options.hostname = "lvh.me"
+    options.hostname = "dev.koding.com"
     options.ngrok = yes
     rest()
   else

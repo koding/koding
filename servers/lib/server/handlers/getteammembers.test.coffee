@@ -10,6 +10,8 @@ koding                                  = require './../bongo'
   generateRandomString
   RegisterHandlerHelper }               = require '../../../testhelper'
 
+{ generateRegisterRequestParams }       = RegisterHandlerHelper
+
 { generateJoinTeamRequestParams
   generateCreateTeamRequestParams
   generateGetTeamMembersRequestParams } = TeamHandlerHelper
@@ -201,7 +203,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
       ->
         # expecting user to be registered
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body       :
             email    : inviteeEmail
             username : groupOwnerUsername

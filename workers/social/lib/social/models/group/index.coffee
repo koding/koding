@@ -342,9 +342,6 @@ module.exports = class JGroup extends Module
       owner         :
         targetType  : 'JAccount'
         as          : 'owner'
-      application   :
-        targetType  : 'JNewApp'
-        as          : 'owner'
       subgroup      :
         targetType  : 'JGroup'
         as          : 'parent'
@@ -1301,10 +1298,6 @@ module.exports = class JGroup extends Module
         => @fetchTags (err, tags)->
           JTag = require '../tag'
           removeHelperMany JTag, tags, err, callback, queue
-
-        => @fetchApplications (err, apps)->
-          JNewApp = require '../app'
-          removeHelperMany JNewApp, apps, err, callback, queue
 
         =>
           @constructor.emit 'GroupDestroyed', this

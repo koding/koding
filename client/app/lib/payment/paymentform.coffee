@@ -10,14 +10,14 @@
 # from the rest. ~Umut
 
 
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDButtonView = kd.ButtonView
-JView = require '../jview'
-PaymentConstants = require './paymentconstants'
-PaypalFormView = require './paypalformview'
-StripeFormView = require './stripeformview'
-nick = require '../util/nick'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+KDButtonView      = kd.ButtonView
+JView             = require '../jview'
+PaymentConstants  = require './paymentconstants'
+PaypalFormView    = require './paypalformview'
+StripeFormView    = require './stripeformview'
+nick              = require '../util/nick'
 
 
 module.exports = class PaymentForm extends JView
@@ -195,9 +195,10 @@ module.exports = class PaymentForm extends JView
 
   initPaypalClient: ->
 
-    new PAYPAL.apps.DGFlow
-      expType : 'popup'
-      trigger : 'paypal-submit'
+    @dgFlow = new PAYPAL.apps.DGFlow
+      expType   : 'popup'
+      trigger   : 'paypal-submit'
+
 
 
   initEvents: ->

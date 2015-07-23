@@ -1,6 +1,7 @@
 kd                   = require 'kd'
-KDTabPaneView        = kd.TabPaneView
 globals              = require 'globals'
+KDTabPaneView        = kd.TabPaneView
+KDCustomHTMLView     = kd.CustomHTMLView
 AdminMainTabPaneView = require './views/adminmaintabpaneview'
 
 
@@ -63,28 +64,48 @@ module.exports = class AdminAppView extends kd.ModalView
       if sectionKey is 'koding' and currentGroup.slug isnt 'koding'
         continue
 
-      items = items.concat section.items
+      for item in section.items
+        items.push item
+
+        if item.subTabs
+          for subTab in item.subTabs
+            subTab.parentTabTitle = item.title
+            items.push subTab
 
 
     @tabs.on 'PaneDidShow', (pane) ->
       return  if pane._isViewAdded
 
-      slug = pane.getOption 'slug'
+      slug       = pane.getOption 'slug'
+      action     = pane.getOption 'action'
+      identifier = pane.getOption 'identifier'
+      targetItem = viewClass: KDCustomHTMLView
 
-      for item in items when item.slug is slug
-        {viewClass} = item
+      for item in items
+        if item.action is action
+          targetItem = item
+          break
+        else if item.slug is slug
+          targetItem = item
+          break
+
+      { viewClass } = targetItem
 
       pane._isViewAdded = yes
-      pane.addSubView new viewClass
-        cssClass : slug
+      pane.setMainView new viewClass
+        cssClass : slug or action
         delegate : this
+        action   : action
       , data
 
     items.forEach (item, i) =>
 
-      { slug, title } = item
+      { slug, title, action } = item
+      name           = slug or action
+      hiddenHandle   = if action then yes
+      parentTabTitle = item.parentTabTitle or null
 
-      pane = new KDTabPaneView { slug, name: title }
+      pane = new KDTabPaneView { name, slug, action, hiddenHandle, title, parentTabTitle }
       @tabs.addPane pane, i is 0
 
     @emit 'ready'

@@ -1497,27 +1497,41 @@ a.action-link.verify-email
 
 .throbber-tooltip
 
-  &.placement-right:after
-    border-right-color    #fff!important
-
-  &.placement-left:after
-    border-left-color     #fff!important
-
-  &.placement-top:after
-    border-top-color      #fff!important
-
-  &.placement-bottom:after
-    border-bottom-color   #fff!important
-
   .wrapper
-    background-color      #fff!important
-    color                 #000!important
+    background-color      #fff !important
+    color                 #000 !important
 
     .throbber-tooltip-text
       padding             10px
       padding-bottom      5px
       text-align          left
       line-height         16px
+
+  .close-icon
+    abs()
+    r-sprite              'app', 'tooltip-close-icon'
+    top                   4px
+    right                 4px
+
+  &.placement-right
+    &:after
+      border-right-color  #fff !important
+
+  &.placement-left
+    &:after
+      border-left-color   #fff !important
+
+    .close-icon
+      right               auto
+      left                5px
+
+  &.placement-top
+    &:after
+      border-top-color    #fff !important
+
+  &.placement-bottom
+    &:after
+      border-bottom-color #fff !important
 
 
 .kdcontextmenu

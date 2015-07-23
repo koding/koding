@@ -13,6 +13,7 @@ querystring                               = require 'querystring'
   RegisterHandlerHelper }                 = require '../../../testhelper'
 
 { generateRecoverRequestParams }          = RecoverHandlerHelper
+{ generateRegisterRequestParams }         = RegisterHandlerHelper
 
 
 # here we have actual tests
@@ -44,8 +45,9 @@ runTests = -> describe 'server.handlers.recover', ->
 
   it 'should send HTTP 400 if email params is not set', (done) ->
 
-    recoverRequestParams       = generateRecoverRequestParams()
-    recoverRequestParams.body  = null
+    recoverRequestParams = generateRecoverRequestParams
+      body    :
+        email : ''
 
     request.post recoverRequestParams, (err, res, body) ->
       expect(err)             .to.not.exist
@@ -62,7 +64,7 @@ runTests = -> describe 'server.handlers.recover', ->
 
       ->
         # registering a new user
-        registerRequestParams = RegisterHandlerHelper.generateRequestParams
+        registerRequestParams = generateRegisterRequestParams
           body    :
             email : email
 

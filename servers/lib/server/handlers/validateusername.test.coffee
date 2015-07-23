@@ -1,5 +1,6 @@
 Bongo                                     = require 'bongo'
 koding                                    = require './../bongo'
+request                                   = require 'request'
 
 { daisy }                                 = Bongo
 { expect }                                = require 'chai'
@@ -9,9 +10,9 @@ koding                                    = require './../bongo'
   RegisterHandlerHelper
   ValidationHandlerHelper }               = require '../../../testhelper'
 
+{ generateRegisterRequestParams }         = RegisterHandlerHelper
 { generateValidateUsernameRequestParams } = ValidationHandlerHelper
 
-request                                   = require 'request'
 JUser                                     = null
 
 
@@ -85,7 +86,7 @@ runTests = -> describe 'server.handlers.validateusername', ->
       body       :
         username : username
 
-    registerRequestParams         = RegisterHandlerHelper.generateRequestParams
+    registerRequestParams         = generateRegisterRequestParams
       body       :
         username : username
 

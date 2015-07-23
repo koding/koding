@@ -1,9 +1,13 @@
-globals = require 'globals'
-kd = require 'kd'
-KDFormViewWithFields = kd.FormViewWithFields
+kd                    = require 'kd'
+globals               = require 'globals'
+KDFormViewWithFields  = kd.FormViewWithFields
+
+
 module.exports = class PaypalFormView extends KDFormViewWithFields
 
+
   getInitialState: -> kd.utils.dict()
+
 
   constructor: (options = {}, data) ->
 

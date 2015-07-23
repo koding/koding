@@ -820,9 +820,9 @@ Admin main styles
   .delete-topic
     abs                     8px 100px 0 0
     size                    32px 32px
-    
+
     &:before
-      abs                   8px 0 0 8px 
+      abs                   8px 0 0 8px
       content               ''
       display               block
       r-sprite              'admin', 'delete-topic'
@@ -1121,11 +1121,29 @@ Admin main styles
       opacity               .5
 
   .kdformview
+    height                  calc(100% \- 210px)
+    overflow                auto
     margin-top              20px
+
+    .advanced-field
+      display               none
+
+    &.in-advanced-mode
+      .advanced-field
+        display             block
+
     .kdlabel
       line-height           39px
       min-width             160px
       fl()
+
+    .button-field
+      bottom                0
+      right                 0
+      abs()
+
+  .step-creds
+    height                  100%
 
   .step-define-stack
     height                  calc(100% \- 100px)
@@ -1227,8 +1245,17 @@ Admin main styles
 
 .AppModal--admin .integrations
 
+  .integration-details
+    overflow-y              scroll
+
   .kdtabhandle
     max-width               230px !important // override element style
+
+  .error-view
+    text-align              center
+    margin-top              70px
+    font-size               15px
+    color                   #a1a1a1
 
   .configured-list
     margin-top              20px
@@ -1269,7 +1296,6 @@ Admin main styles
           r-sprite          'app', 'sidebar-toggle'
           display           inline-block
           vendor            transform, rotate(180deg)
-
 
   .integration-view
     border-top              1px solid #dedede

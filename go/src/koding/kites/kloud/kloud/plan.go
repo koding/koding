@@ -49,6 +49,27 @@ func (t *terraformCredential) region() (string, error) {
 	return region, nil
 }
 
+func (t *terraformCredential) awsCredentials() (string, string, error) {
+	if t.Provider != "aws" {
+		return "", "", fmt.Errorf("provider '%s' is not supported", t.Provider)
+	}
+
+	// we do not check for key existency here because the key might exists but
+	// with an empty value, so just checking for the emptiness of the value is
+	// better
+	accessKey := t.Data["access_key"]
+	if accessKey == "" {
+		return "", "", fmt.Errorf("accessKey for publicKey '%s' is not set", t.PublicKey)
+	}
+
+	secretKey := t.Data["secret_key"]
+	if secretKey == "" {
+		return "", "", fmt.Errorf("secretKey for publicKey '%s' is not set", t.PublicKey)
+	}
+
+	return accessKey, secretKey, nil
+}
+
 // appendAWSVariable appends the credentials aws data to the given template and
 // returns it back.
 func (t *terraformCredential) appendAWSVariable(template string) (string, error) {
@@ -88,12 +109,17 @@ func (t *terraformCredential) appendAWSVariable(template string) (string, error)
 		data.Variable = make(map[string]map[string]interface{})
 	}
 
+	accessKey, secretKey, err := t.awsCredentials()
+	if err != nil {
+		return "", err
+	}
+
 	data.Variable["access_key"] = map[string]interface{}{
-		"default": t.Data["access_key"],
+		"default": accessKey,
 	}
 
 	data.Variable["secret_key"] = map[string]interface{}{
-		"default": t.Data["secret_key"],
+		"default": secretKey,
 	}
 
 	data.Variable["region"] = map[string]interface{}{
