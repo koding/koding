@@ -7,7 +7,7 @@ MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 ButtonWithMenu       = require 'app/components/buttonwithmenu'
-ActivityLikeLink     = require 'activity/components/activitylikelink'
+ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
 keycode              = require 'keycode'
 
 module.exports = class ChatListItem extends React.Component
@@ -80,7 +80,7 @@ module.exports = class ChatListItem extends React.Component
               {makeProfileLink message.get 'account'}
             </span>
             <span className="ChatItem-messageDate">
-              {makeTimeAgo message.get 'createdAt'}
+              <TimeAgo from={message.get 'createdAt'} />
             </span>
             <ActivityLikeLink />
           </div>
@@ -97,9 +97,6 @@ module.exports = class ChatListItem extends React.Component
       </div>
     </div>
 
-
-makeTimeAgo = (createdAt) ->
-  <TimeAgo from={createdAt} />
 
 makeProfileLink = (imAccount) ->
   <ProfileLinkContainer origin={imAccount.toJS()}>
