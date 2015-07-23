@@ -18,6 +18,7 @@ module.exports = class ThrobberView extends KDView
     @appendToParent()
     @createThrobberElement()
     @setPosition()
+    @listenWindowResize()
 
 
   appendToParent: ->
@@ -132,8 +133,6 @@ module.exports = class ThrobberView extends KDView
 
     super
 
-    @listenWindowResize yes
-
     #reinit tooltip if it was hidden before
     @showTooltip()  if @tooltip
 
@@ -142,7 +141,6 @@ module.exports = class ThrobberView extends KDView
 
     super
 
-    @listenWindowResize no
     @tooltip?.hide()
 
 
@@ -157,12 +155,13 @@ module.exports = class ThrobberView extends KDView
 
   destroy: ->
 
-    @listenWindowResize no
     @unsetTooltip()
     super
 
 
-  _windowDidResize: -> @setPosition()
+  _windowDidResize: ->
+
+    @setPosition()  unless @hasClass 'hidden'
 
 
   ###
