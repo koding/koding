@@ -12,11 +12,13 @@ module.exports = class FinderController extends KDController
     name         : 'Finder'
     background   : yes
 
+
   constructor: (options, data) ->
 
     options.appInfo = name : "Finder"
 
     super options, data
+
 
   create: (options = {}) ->
 
@@ -32,6 +34,15 @@ module.exports = class FinderController extends KDController
     finderView.addSubView @getAppTitleView()  if options.addAppTitle
     finderView.addSubView @createUploader controller
 
+    finderView.putOverlay
+      container   : finderView
+      cssClass    : 'hidden'
+      opacity     : 1
+      transparent : yes
+
+    { frontApp } = kd.singletons.appManager
+    frontApp.on 'IDETabDropped', -> finderView.overlay?.hide()
+
     return controller
 
 
@@ -42,7 +53,7 @@ module.exports = class FinderController extends KDController
       partial  : "Ace Editor"
 
 
-  createUploader: (controller)->
+  createUploader: (controller) ->
 
     uploaderPlaceholder = new KDView
       domId       : 'finder-dnduploader'
@@ -52,24 +63,45 @@ module.exports = class FinderController extends KDController
       hoverDetect : no
       delegate    : controller
 
-    onDrag = ->
+
+    checkDraggingItem = (event) ->
+
+      { items } = event.originalEvent.dataTransfer
+
+      # If the user isn't dragging a file and internalDragging is false,
+      # show the overlay.
+      if items?[0].kind isnt 'file' and not controller.treeController.internalDragging
+        finderView.overlay?.show()
+        return no
+
+      return yes
+
+    # Handle framework's drag events.
+    onFwDrag = (nodeView, event) -> onDrag()  if checkDraggingItem event
+
+    # Handle HTML's drag events.
+    onNDrag = (event) -> onDrag()  if checkDraggingItem event
+
+    onDrag = (event) ->
 
       unless controller.treeController.internalDragging
         uploaderPlaceholder.show()
         uploader.unsetClass 'hover'
+
 
     controller.on 'MachineMounted', (machine, path) ->
 
       uploader.setOption 'defaultPath', path
       uploader.reset()
 
-    {treeController} = controller
-    treeController.on 'dragEnter', onDrag
-    treeController.on 'dragOver' , onDrag
+    { treeController } = controller
+    treeController.on 'dragEnter', onFwDrag
+    treeController.on 'dragOver',  onFwDrag
 
     finderView = controller.getView()
-    finderView.on 'dragenter', onDrag
-    finderView.on 'dragover' , onDrag
+    finderView.on 'dragenter', onNDrag
+    finderView.on 'dragover',  onNDrag
+    finderView.on 'drop', -> finderView.overlay?.hide()
 
     uploader
       .on 'dragleave', ->
