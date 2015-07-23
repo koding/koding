@@ -47,8 +47,9 @@ module.exports = class ComputeController_UI
         label       : "Title"
         placeholder : "title for this credential"
 
-    Providers = globals.config.providers
-    credentialFields = Object.keys Providers[provider].credentialFields
+    Providers        = globals.config.providers
+    currentProvider  = Providers[provider]
+    credentialFields = Object.keys currentProvider.credentialFields
 
     unless credentialFields.length
       return
@@ -57,7 +58,7 @@ module.exports = class ComputeController_UI
 
     credentialFields.forEach (field) ->
 
-      _field = fields[field] = _.clone Providers[provider].credentialFields[field]
+      _field = fields[field] = _.clone currentProvider.credentialFields[field]
       _field.required = yes
 
       if _field.type is 'selection'
@@ -66,24 +67,38 @@ module.exports = class ComputeController_UI
         _field.defaultValue ?= values.first.value
         selectOptions.push { field, values }
 
+    buttons      =
+      Save       :
+        title    : "Add credential"
+        type     : "submit"
+        style    : "solid green medium"
+        loader   : color : "#444444"
+        callback : -> @hideLoader()
+
+      Cancel     :
+        style    : "solid medium"
+        type     : "button"
+        callback : -> form.emit "Cancel"
+
+    # Add advanced fields into form
+    if advancedFields = currentProvider.advancedFields
+      advancedFields.forEach (field) ->
+        fields[field] =
+          label       : field.capitalize()
+          placeholder : field
+          cssClass    : 'advanced-field'
+
+      buttons['Advanced Mode'] =
+        style    : "solid medium"
+        type     : "button"
+        callback : ->
+          form.toggleClass 'in-advanced-mode'
+          @toggleClass 'green'
 
     form = new KDFormViewWithFields
       cssClass     : "form-view"
       fields       : fields
-      buttons      :
-
-        Save       :
-          title    : "Add credential"
-          type     : "submit"
-          style    : "solid green medium"
-          loader   : color : "#444444"
-          callback : -> @hideLoader()
-
-        Cancel     :
-          style    : "solid medium"
-          type     : "button"
-          callback : -> form.emit "Cancel"
-
+      buttons      : buttons
       callback     : (data)->
 
         { Save } = @buttons
