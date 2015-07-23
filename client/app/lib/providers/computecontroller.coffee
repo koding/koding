@@ -424,7 +424,10 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
-      machine.getBaseKite( createIfNotExists = no ).disconnect()
+      baseKite = machine.getBaseKite( createIfNotExists = no )
+      if machine?.provider is 'managed' and baseKite.klientDisable?
+      then baseKite.klientDisable().finally -> baseKite.disconnect()
+      else baseKite.disconnect()
 
       if machine?.provider is 'managed'
 
@@ -813,3 +816,5 @@ module.exports = class ComputeController extends KDController
 
         if stack.machines.length isnt machineCount
           @emit 'StacksInconsistent', stack
+
+

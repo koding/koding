@@ -55,7 +55,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     kd.singletons.computeController.fetchDomains (err, domains = []) =>
       kd.warn err  if err
 
-      @listController.lazyLoader.hide()
+      @listController.lazyLoader?.hide()
       @listController.replaceAllItems domains
 
 
