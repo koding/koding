@@ -5,10 +5,12 @@ KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
 
 globals              = require 'globals'
-isMine               = require '../util/isMine'
-showError            = require '../util/showError'
-isLoggedIn           = require '../util/isLoggedIn'
 remote               = require('../remote').getInstance()
+
+isMine               = require 'app/util/isMine'
+showError            = require 'app/util/showError'
+isLoggedIn           = require 'app/util/isLoggedIn'
+applyMarkdown        = require 'app/util/applyMarkdown'
 
 ProviderView         = require './providerview'
 TerminalModal        = require '../terminal/terminalmodal'
@@ -182,7 +184,7 @@ module.exports = class ComputeController_UI
           message : "
             If you choose to proceed, this stack and all the VMs will be
             re-initialized from the latest revision of this stack.
-            You will lose all of your existing files, workspaces, VMs and all 
+            You will lose all of your existing files, workspaces, VMs and all
             of your data.
           "
           button  : "Proceed"
@@ -215,14 +217,23 @@ module.exports = class ComputeController_UI
           button  : "Yes, remove"
       managed     :
         destroy   :
-          title   : "Delete VM from Koding?"
-          message : "
-            <p>Deleting this VM will only remove it's connection with Koding,
-               all your files and changes on this VM will remain same.
-            </p><br/>
-            <p>Are you sure you want to proceed?</p>
-          "
-          button  : "Yes, delete"
+          title   : "Delete Machine from Koding?"
+          message : applyMarkdown "
+            Deleting this machine here will only remove its connection to
+            your Koding account. All files and data will still be available
+            on the actual machine.\n\n
+
+            If you also wish to uninstall the Koding Connector Service from
+            your machine, then please run this command there once you have
+            clicked “Yes” below. We recommend you copy the command below
+            before clicking “Yes”.\n
+
+            ```bash\n
+            sudo dpkg -P klient\n
+            ```\n
+
+            Are you sure you want to proceed?"
+          button  : "Yes"
 
     task = tasks[provider]?[action] ? tasks.default[action]
 
@@ -244,6 +255,10 @@ module.exports = class ComputeController_UI
         type      : "button"
         callback  : ->
           modal.destroy()
+
+    modal.setClass 'has-markdown'
+
+    return modal
 
 
   showInlineInformation = do ->
