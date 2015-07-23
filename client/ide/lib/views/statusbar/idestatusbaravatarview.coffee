@@ -3,6 +3,7 @@ KDContextMenu = kd.ContextMenu
 FSHelper = require 'app/util/fs/fshelper'
 AvatarView = require 'app/commonviews/avatarviews/avatarview'
 IDEChatHeadWatchItemView = require './idechatheadwatchitemview'
+IDEChatHeadReadOnlyItemView = require './idechatheadreadonlyitemview'
 module.exports = class IDEStatusBarAvatarView extends AvatarView
 
   INTENT_DELAY = 177
@@ -90,20 +91,20 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     menuItems.separator = type: 'separator'
 
-    appManager.tell 'IDE', 'getCollaborationData', (collaborationData) =>
+    appManager.tell 'IDE', 'getCollaborationData', (data) =>
 
-      { watchMap, amIHost } = collaborationData
+      { amIHost, settings, watchMap, permissions } = data
 
       isWatching  = watchMap.indexOf(@nickname) > -1
-      menuWidth   = 172
+      permission  = permissions.get @nickname
 
-      unless @hasClass 'offline'
-        menuItems.Watch =
-          type         : 'customView'
-          view         : new IDEChatHeadWatchItemView
-            isWatching : isWatching
-            nickname   : @nickname
-            delegate   : this
+      menuWidth   = 150
+
+      if settings.unwatch
+        @createWatchToggle menuItems, isWatching
+
+      if amIHost and settings.readOnly
+        @createReadOnlyToggle menuItems, permission
 
       if amIHost
         menuItems.Kick =
@@ -115,6 +116,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       MENU = new KDContextMenu
         nickname    : @nickname
         cssClass    : 'dark statusbar-files'
+        menuWidth   : menuWidth
         delegate    : this
         x           : @getX()
         y           : @getY()
@@ -138,12 +140,44 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       MENU.once 'KDObjectWillBeDestroyed', => MENU = null
 
 
-  setWatchState: (shouldWatch, nickname) ->
+  createWatchToggle: (menuItems, isWatching) ->
+
+    return  unless menuItems
+    return  if @hasClass 'offline'
+
+    menuItems.Watch =
+      type          : 'customView'
+      view          : new IDEChatHeadWatchItemView
+        isWatching  : isWatching
+        delegate    : this
+
+
+  createReadOnlyToggle: (menuItems, permission) ->
+
+    return  unless menuItems
+    return  if @hasClass 'offline'
+
+    menuItems.ReadOnly =
+      type             : 'customView'
+      view             : new IDEChatHeadReadOnlyItemView
+        permission     : permission
+        delegate       : this
+
+
+  setWatchState: (state) ->
 
     @toggleClass 'watching'
-    methodName = if shouldWatch then 'watchParticipant' else 'unwatchParticipant'
+    methodName = if state then 'watchParticipant' else 'unwatchParticipant'
 
-    kd.singletons.appManager.tell 'IDE', methodName, nickname
+    kd.singletons.appManager.tell 'IDE', methodName, @nickname
+
+
+  setReadOnlyState: (state) ->
+
+    permission = if state then 'read' else 'edit'
+    methodName = 'setParticipantPermission'
+
+    kd.singletons.appManager.tell 'IDE', methodName, @nickname, permission
 
 
   destroy: ->

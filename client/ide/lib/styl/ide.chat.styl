@@ -664,38 +664,84 @@ pmLinkColor   = #B6B6B6
       top:                  -3px
       z-index               2
 
+  .session-settings
+
+    margin-top              32px
+
+    a
+    label
+      color                 #777
+      font-size             14px
+      line-height           1.4em
+
+    label
+      cursor                pointer
+
+    .wrapper
+
+      size                  270px 28px
+      margin                0 auto
+
+      .koding-on-off
+
+        display             inline-block
+        fl()
+
+        margin-right        10px
+        vendor              transform, scaleX(0.7) scaleY(0.7)
+
+        &.on
+          bg                color #52A840
+
+      &.unwatch
+
+        a
+          color             #00b057
+          text-decoration   none
+
 
 .chat-view .chat-settings .warning
 
   hidden()
 
+  span
+    color                 #777
+    font-size             14px
+    line-height           1.4em
+
+  .key-icon
+
+    r-sprite                'ide', 'key-icon'
+    margin                  5px auto 0
+
+    &:before
+    &:after
+
+      content               ''
+      display               inline-block
+      size                  27px 0
+      abs                   37px
+      border-top            2px solid #E3E3E3
+
+    &:before
+      left                  110px
+
+    &:after
+      right                 110px
 
 .chat-view.onboarding
-  height                    168px
+  size                      335px 305px
 
   .chat-settings .warning
     visible()
     text-align              center
 
     span
-      color                 #777
-      font-size             14px
       display               inline-block
-      margin-top            22px
-      line-height           1.4em
-
-    p
-      margin-top            10px
-
-      a
-        font-size           13px
-        color               #F56778
-        text-transform      uppercase
-        noTextDeco()
+      margin-top            15px
 
     strong
-      font-weight           600
-      color                 #575757
+      color                 #52A840
 
   .settings
   header.chat-settings

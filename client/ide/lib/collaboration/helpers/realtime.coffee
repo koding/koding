@@ -142,6 +142,7 @@ getReferences = (manager, channelId, initialSnapshot) ->
   refs =
     participants      : getFromManager manager, 'participants', 'list', []
     changes           : getFromManager manager, 'changes', 'list', []
+    settings          : getFromManager manager, 'settings', 'map', {}
     permissions       : getFromManager manager, 'permissions', 'map', {}
     broadcastMessages : getFromManager manager, 'broadcastMessages', 'list', []
     pingTime          : getFromManager manager, 'pingTime', 'list', []

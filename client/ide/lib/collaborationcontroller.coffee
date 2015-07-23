@@ -251,6 +251,7 @@ module.exports = CollaborationController =
     # TODO: keep this until CollaborationModel abstraction. ~Umut
     @participants      = refs.participants
     @changes           = refs.changes
+    @settings          = refs.settings
     @permissions       = refs.permissions
     @broadcastMessages = refs.broadcastMessages
     @myWatchMap        = refs.watchMap
@@ -259,6 +260,7 @@ module.exports = CollaborationController =
     @rtm.once 'RealtimeManagerDidDispose', =>
       @participants      = null
       @changes           = null
+      @settings          = null
       @permissions       = null
       @broadcastMessages = null
       @myWatchMap        = null
@@ -306,6 +308,8 @@ module.exports = CollaborationController =
 
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
+
+      @setParticipantPermission nickname  if @amIHost
 
 
   channelMessageAdded: (message) ->
@@ -384,11 +388,10 @@ module.exports = CollaborationController =
 
   getCollaborationData: (callback = kd.noop) ->
 
-    collaborationData =
-      watchMap        : @myWatchMap?.values()
-      amIHost         : @amIHost
+    settings    = @getSettings()
+    watchMap    = @myWatchMap?.values()
 
-    callback collaborationData
+    callback {@amIHost, settings, watchMap, @permissions}
 
 
   startHeartbeat: ->
@@ -676,6 +679,8 @@ module.exports = CollaborationController =
 
   onCollaborationCreated: ->
 
+    @setInitialSettings()
+
     @chat.settingsPane.startSession.updateProgress 100
 
     kd.utils.wait 500, => @stateMachine.transition 'Active'
@@ -759,7 +764,6 @@ module.exports = CollaborationController =
 
     {settingsPane} = @chat
     settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
-    settingsPane.updateDefaultPermissions()
 
     @chat.emit 'CollaborationStarted'
     @statusBar.emit 'CollaborationStarted'
@@ -1080,3 +1084,29 @@ module.exports = CollaborationController =
 
   getHostSnapshot: -> IDELayoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
 
+
+  setInitialSessionSetting: (name, value) ->
+
+    @initialSettings ?= {}
+    @initialSettings[name] = value
+
+
+  setInitialSettings: ->
+
+    for own key, value of @initialSettings
+      @settings.set key, value
+
+
+  getSettings: ->
+
+    rval = {}
+    rval[key] = value  for [key, value] in @settings.items()
+    return rval
+
+
+  setParticipantPermission: (nickname, permission) ->
+
+    return  if (not permission?) and @permissions.get nickname
+
+    permission ?= if @settings.get 'read-only' then 'read' else 'edit'
+    @permissions.set nickname, permission

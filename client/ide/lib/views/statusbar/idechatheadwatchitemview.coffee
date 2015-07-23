@@ -6,24 +6,21 @@ module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.partial = 'Watch'
+    options.partial ?= 'Watch'
 
     super options, data
 
-    { isWatching, nickname } = @getOptions()
+    { delegate, isWatching } = @getOptions()
 
-    @addSubView @toggle = new KodingSwitch
+    @addSubView new KodingSwitch
       cssClass     : 'tiny'
       defaultValue : isWatching
-      callback     : (state) =>
-        @getDelegate().setWatchState state, nickname
+      callback     : delegate.bound 'setWatchState'
 
-    @addSubView @info = new CustomLinkView
+    @addSubView new CustomLinkView
       title        : ''
       cssClass     : 'info'
-      href         : 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
+      href         : GUIDE_URL
       target       : '_blank'
 
-
-
-
+  GUIDE_URL = 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'

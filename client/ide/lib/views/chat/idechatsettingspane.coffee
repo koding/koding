@@ -1,6 +1,7 @@
 kd                          = require 'kd'
 KDButtonView                = kd.ButtonView
 KDCustomHTMLView            = kd.CustomHTMLView
+KDLabelView                 = kd.LabelView
 KDLoaderView                = kd.LoaderView
 KDSelectBox                 = kd.SelectBox
 KDTabPaneView               = kd.TabPaneView
@@ -8,6 +9,7 @@ remote                      = require('app/remote').getInstance()
 whoami                      = require 'app/util/whoami'
 nick                        = require 'app/util/nick'
 JView                       = require 'app/jview'
+KodingSwitch                = require 'app/commonviews/kodingswitch'
 CustomLinkView              = require 'app/customlinkview'
 IDEChatParticipantView      = require './idechatparticipantview'
 ButtonViewWithProgressBar   = require 'app/commonviews/buttonviewwithprogressbar'
@@ -33,7 +35,6 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @on 'CollaborationNotInitialized', => @everyone.destroySubViews()
     @on 'ParticipantJoined', @bound 'addParticipant'
     @on 'ParticipantLeft',   @bound 'removeParticipant'
-    @on 'PermissionChanged', @bound 'handlePermissionChange'
 
     @on 'CollaborationEnded', =>
       @toggleButtons 'ended'
@@ -94,15 +95,6 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       cssClass : 'chat-link'
       click    : => @getDelegate().showChatPane()
 
-    @defaultPermission = new KDSelectBox
-      defaultValue  : 'edit'
-      callback      : (value) => @setDefaultPermission value
-      disabled      : not @amIHost
-      selectOptions : [
-        { title : 'CAN READ', value : 'read'}
-        { title : 'CAN EDIT', value : 'edit'}
-      ]
-
     @everyone  = new KDCustomHTMLView
       tagName  : 'ul'
       cssClass : 'settings everyone loading'
@@ -115,6 +107,73 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @everyone.addSubView new KDCustomHTMLView
       cssClass : 'label'
       partial  : 'Fetching participants'
+
+    @createSettingsElements()
+
+
+  createSettingsElements: ->
+
+    @settings  = new KDCustomHTMLView
+      tagName  : 'div'
+      cssClass : 'session-settings'
+
+    @createReadOnlySettingElements()
+    @createUnwatchSettingElements()
+
+
+  GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
+
+  createUnwatchSettingElements: ->
+
+    @unwatchWrapper = new KDCustomHTMLView cssClass: 'wrapper unwatch'
+
+    @unwatchWrapper.addSubView toggle = new KodingSwitch
+      size         : 'tiny'
+      defaultValue : on
+      callback     : @bound 'setUnwatch'
+
+    @unwatchWrapper.addSubView new KDLabelView
+      title     : 'Allow participants to unwatch'
+      mousedown : toggle.bound 'mouseDown'
+
+    @unwatchWrapper.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes :
+        href     : GUIDE_LINK
+        target   : '_blank'
+      partial    : '(?)'
+
+    @settings.addSubView @unwatchWrapper
+
+    @setUnwatch on  # set default value
+
+
+  setUnwatch: (state) ->
+
+    kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'unwatch', state
+
+
+  createReadOnlySettingElements: ->
+
+    @readOnlyWrapper = new KDCustomHTMLView cssClass: 'wrapper read-only'
+
+    @readOnlyWrapper.addSubView toggle = new KodingSwitch
+      size         : 'tiny'
+      defaultValue : off
+      callback     : @bound 'setReadOnly'
+
+    @readOnlyWrapper.addSubView new KDLabelView
+      title     : 'Read-only session'
+      mousedown : toggle.bound 'mouseDown'
+
+    @settings.addSubView @readOnlyWrapper
+
+    @setReadOnly off  # set default value
+
+
+  setReadOnly: (state) ->
+
+    kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'readOnly', state
 
 
   initiateSession: ->
@@ -206,20 +265,14 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     {nickname}        = account.profile
     watchList         = @rtm.getFromModel("#{nick()}WatchMap").keys()
     isWatching        = watchList.indexOf(nickname) > -1
-    permissionsMap    = @rtm.getFromModel 'permissions'
-    defaultPermission = permissionsMap.get 'default'
-    permission        = permissionsMap.get(nickname) or defaultPermission
     channel           = @getData()
-    options           = { isOnline, @isInSession, isWatching, permission }
+    options           = { isOnline, @isInSession, isWatching }
     data              = { account, channel }
     participantView   = new IDEChatParticipantView options, data
 
     @participantViews[nickname] = participantView
     @everyone.addSubView participantView, null, isOnline
     @onboarding?.destroy()
-
-    participantView.on 'ParticipantPermissionChanged', (permission) =>
-      @rtm.getFromModel('permissions').set nickname, permission
 
 
   removeParticipant: (username, unshare) ->
@@ -243,29 +296,6 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       @createParticipantView account.first, yes
 
 
-  updateDefaultPermissions: ->
-
-    permissions = @rtm.getFromModel 'permissions'
-    @defaultPermission.setValue permissions.get 'default'
-
-
-  setDefaultPermission: (value) ->
-
-    @rtm.getFromModel('permissions').set 'default', value
-
-
-  handlePermissionChange: (event) ->
-
-    {newValue, property} = event
-
-    return  unless newValue in ['edit', 'read']
-
-    if property is 'default'
-      @defaultPermission.setValue newValue
-    else
-      @participantViews[property]?.permissions.setValue newValue
-
-
   viewAppended: JView::viewAppended
 
   setTemplate: JView::setTemplate
@@ -277,13 +307,13 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       <header class='chat-settings'>
         {{> @back}}
       </header>
-      <ul class='settings default'>
-        <li><label>Anyone who joins</label>{{> @defaultPermission}}</li>
-      </ul>
       {{> @everyone}}
       <div class="warning">
-        <span>Have sessions with people <strong>you trust</strong>, they can view and edit <strong>all your files</strong>.</span>
+        <div class="key-icon"></div>
+        <span>Have sessions with people you trust, and remember, \
+        <strong>they can view and edit all your files!</strong></span>
       </div>
+      {{> @settings}}
       <div class='buttons'>
         {{> @startSession}} {{> @endSession}}
       </div>
