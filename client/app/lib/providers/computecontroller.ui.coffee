@@ -67,6 +67,19 @@ module.exports = class ComputeController_UI
         _field.defaultValue ?= values.first.value
         selectOptions.push { field, values }
 
+    buttons      =
+      Save       :
+        title    : "Add credential"
+        type     : "submit"
+        style    : "solid green medium"
+        loader   : color : "#444444"
+        callback : -> @hideLoader()
+
+      Cancel     :
+        style    : "solid medium"
+        type     : "button"
+        callback : -> form.emit "Cancel"
+
     # Add advanced fields into form
     if advancedFields = currentProvider.advancedFields
       advancedFields.forEach (field) ->
@@ -75,24 +88,17 @@ module.exports = class ComputeController_UI
           placeholder : field
           cssClass    : 'advanced-field'
 
+      buttons['Advanced Mode'] =
+        style    : "solid medium"
+        type     : "button"
+        callback : ->
+          form.toggleClass 'in-advanced-mode'
+          @toggleClass 'green'
 
     form = new KDFormViewWithFields
       cssClass     : "form-view"
       fields       : fields
-      buttons      :
-
-        Save       :
-          title    : "Add credential"
-          type     : "submit"
-          style    : "solid green medium"
-          loader   : color : "#444444"
-          callback : -> @hideLoader()
-
-        Cancel     :
-          style    : "solid medium"
-          type     : "button"
-          callback : -> form.emit "Cancel"
-
+      buttons      : buttons
       callback     : (data)->
 
         { Save } = @buttons
