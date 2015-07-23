@@ -81,18 +81,32 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
           cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"
 
           @loader.destroy()
-          @code.addSubView input = new kd.InputView
+          @code.addSubView @input = new kd.InputView
             defaultValue : cmd
-            click        : -> @selectAll()
+            click        : =>
+              @showTooltip()
+              @input.selectAll()
 
-          @code.addSubView new kd.CustomHTMLView
+          @code.addSubView @selectButton = new kd.CustomHTMLView
             cssClass : 'select-all'
             partial  : '<span></span>SELECT'
-            click    : -> input.selectAll()
+            click    : =>
+              @showTooltip()
+              @input.selectAll()
 
           computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
 
           @createPollLoader()
+
+
+  showTooltip: ->
+
+    @input.setTooltip title: 'Press Cmd+C to copy', placement: 'above'
+    @input.tooltip.show()
+
+    kd.singletons.windowController.addLayer @input
+    @input.on 'ReceivedClickElsewhere', =>
+      @input.unsetTooltip()
 
 
   handleError: (err) ->
