@@ -63,21 +63,31 @@ module.exports = class FinderController extends KDController
       hoverDetect : no
       delegate    : controller
 
+
+    checkDraggingItem = (event) ->
+
+      { items } = event.originalEvent.dataTransfer
+
+      # If the user isn't dragging a file and internalDragging is false,
+      # show the overlay.
+      if items?[0].kind isnt 'file' and not controller.treeController.internalDragging
+        finderView.overlay?.show()
+        return no
+
+      return yes
+
+    # Handle framework's drag events.
+    onFwDrag = (nodeView, event) -> onDrag()  if checkDraggingItem event
+
+    # Handle HTML's drag events.
+    onNDrag = (event) -> onDrag()  if checkDraggingItem event
+
     onDrag = (event) ->
 
-      { internalDragging }  = controller.treeController
-
-      if event
-        { items }  = event.originalEvent.dataTransfer
-
-        # If the user isn't dragging a file and internalDragging is false,
-        # show the overlay.
-        if items?[0].kind isnt 'file' and not internalDragging
-          return finderView.overlay?.show()
-
-      unless internalDragging
+      unless controller.treeController.internalDragging
         uploaderPlaceholder.show()
         uploader.unsetClass 'hover'
+
 
     controller.on 'MachineMounted', (machine, path) ->
 
@@ -85,12 +95,12 @@ module.exports = class FinderController extends KDController
       uploader.reset()
 
     { treeController } = controller
-    treeController.on 'dragEnter', (nodeView, event) -> onDrag event
-    treeController.on 'dragOver', (nodeView, event) ->  onDrag event
+    treeController.on 'dragEnter', onFwDrag
+    treeController.on 'dragOver',  onFwDrag
 
     finderView = controller.getView()
-    finderView.on 'dragenter', onDrag # "event" is passing by default.
-    finderView.on 'dragover', onDrag  # "event" is passing by default.
+    finderView.on 'dragenter', onNDrag
+    finderView.on 'dragover',  onNDrag
     finderView.on 'drop', -> finderView.overlay?.hide()
 
     uploader
