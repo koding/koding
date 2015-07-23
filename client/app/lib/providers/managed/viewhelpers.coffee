@@ -19,7 +19,7 @@ kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
 
 contents  =
   install : """#{kontrolUrl}
-    $ curl -sSL https://kodi.ng/s | bash -s %%TOKEN%%
+    $ curl -sL https://kodi.ng/s | bash -s %%TOKEN%%
   """
 
 module.exports   = view =
