@@ -22,7 +22,7 @@ module.exports = class ButtonWithMenu extends React.Component
 
 
   render: ->
-    menuListClassName = if @state.showSettingsMenu and @props.showMenuForMouseAction then 'MenuList' else 'MenuList hidden'
+    menuListClassName = if @state.showSettingsMenu and @props.showMenuForMouseAction then 'ButtonWithMenuItemsList' else 'ButtonWithMenuItemsList hidden'
     <div className="SettingsMenuWrapper">
       <button type="button" onClick={@bound 'onButtonClick'} ></button>
       <ul className={menuListClassName}>
