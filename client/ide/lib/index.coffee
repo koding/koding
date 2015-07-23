@@ -328,7 +328,7 @@ class IDEAppController extends AppController
 
     parent.attach targetView  # Attach again.
 
-    @updateLayoutMap_ splitView, targetView.parent
+    @updateLayoutMap_ splitView, targetView
 
     # I'm not sure about the usage of private method. I had to...
     # Is it the best way for view resizing?
@@ -700,7 +700,7 @@ class IDEAppController extends AppController
   moveTab: (direction) ->
 
     tabView = @activeTabView
-    return unless tabView.parent?
+    return unless tabView?.parent
 
     panel = tabView.parent.parent
     return  unless panel instanceof KDSplitViewPanel
@@ -1568,25 +1568,32 @@ class IDEAppController extends AppController
   ###*
    * Update `@layoutMap` for move tab with keyboard shortcuts.
    *
-   * @param {KDSplitView} targetView
-   * @param {KDSplitViewPanel} parent
+   * @param {KDSplitView|IDEView} parent
   ###
-  updateLayoutMap_: (splitView, parent) ->
+  updateLayoutMap_: (splitView, targetView) ->
 
-    { subViews } = parent
+    return  if targetView instanceof KDSplitViewPanel
 
-    if subViews.first instanceof KDSplitView
-      @mergeLayoutMap_ splitView
+    @mergeLayoutMap_ splitView
+
+    if targetView instanceof IDEView
+      @mergeLayoutMap_ targetView.parent
     else
-      @mergeLayoutMap_ splitView
-      @layoutMap[splitView._layout.data.offset] = parent
+      targetView.panels.forEach (panel) =>
+        @mergeLayoutMap_ panel
 
 
   ###*
    *
-   * @param {KDSplitView} splitView
+   * @param {KDSplitViewPanel} view
   ###
-  mergeLayoutMap_: (splitView) ->
+  mergeLayoutMap_: (view) ->
 
-    splitView._layout.leafs.forEach (leaf) => @layoutMap[leaf.data.offset] = null
-    splitView._layout.merge()
+    return  unless view instanceof KDSplitViewPanel
+
+    view._layout.leafs?.forEach (leaf) =>
+      @layoutMap[leaf.data.offset] = null
+
+    view._layout.merge()
+
+    @layoutMap[view._layout.data.offset] = view
