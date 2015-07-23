@@ -101,7 +101,12 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   showTooltip: ->
 
-    @input.setTooltip title: 'Press Cmd+C to copy', placement: 'above'
+    shortcut = 'Ctrl+C'
+
+    if navigator.userAgent.indexOf('Mac OS X') > -1
+      shortcut = 'Cmd+C'
+
+    @input.setTooltip title: "Press #{shortcut} to copy", placement: 'above'
     @input.tooltip.show()
 
     kd.singletons.windowController.addLayer @input
