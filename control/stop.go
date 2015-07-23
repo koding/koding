@@ -1,6 +1,7 @@
 package control
 
 import (
+	"io/ioutil"
 	"time"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
@@ -13,7 +14,8 @@ const (
 	// more information.
 	exitDelay = 100 * time.Millisecond
 
-	stopCommand string = "service klient stop"
+	stopCommand  string = "service klient stop"
+	overrideFile string = "/etc/init/klient.override"
 )
 
 // Stop implements the `klient.stop` method, to stop klient from
@@ -28,6 +30,11 @@ const (
 // TODO: Find a way to stop Klient *after* it has safely finished any
 // pre-existing tasks.
 func Stop(r *kite.Request) (interface{}, error) {
+	err := ioutil.WriteFile(overrideFile, []byte("manual"), 0677)
+	if err != nil {
+		return nil, err
+	}
+
 	go func() {
 		time.Sleep(exitDelay)
 		fix.RunAsSudo(stopCommand)
