@@ -1,3 +1,136 @@
-.TopicChatItem
-  bg                        color, #fff
+.ChatList
+  .ChatItem
+    rel()
+    max-width                 600px
+    padding-left              25px
+    margin-bottom             20px
 
+    .ChatItem-authorName
+      margin-right            10px
+
+    time
+      color                   #999
+      font-size               12px
+      font-weight             400
+
+    .ChatItem-likeLink
+      abs()
+      pointer()
+      display                 none
+      vertical-align          text-bottom
+      padding                 5px
+
+      &:after
+        content               ''
+        display               block
+        size                  9px, 9px
+        r-sprite              activity heart-dim
+
+    .SettingsMenuWrapper
+      abs()
+      hidden()
+      top                     0px
+      right                   20px
+
+      button
+        pointer()
+        outline               none
+        size                  16px !important, 10px !important
+        border                none
+        r-sprite              activity chevron-icon
+        bg                    color, transparent
+
+    .ChatItem-contentWrapper.editing
+      rounded                 3px 3px 0 0
+      padding                 10px 0 6px
+      bg                      color, #FDF6E3
+
+      > div
+        max-width             485px
+
+      .SettingsMenuWrapper
+        hidden()
+
+    &:hover
+      .SettingsMenuWrapper
+        visible()
+
+      .ChatItem-likeLink
+        display               inline-block
+
+    .ChatItem-updateMessageForm
+      fl()
+      rel()
+      z-index                 1
+      width                   calc(100% \- 55px)
+
+      textarea
+        borderBox()
+        outline               none
+        rounded               3px
+        font-size             14px
+        color                 #4C4C4C
+        line-height           19px
+        border                1px solid #DFCC97
+        padding               6px
+        size                  100%, 34px
+        resize                none
+        display               block
+        margin-bottom         2px
+
+        &:focus
+          shadow              0 0 3px rgba(125,190,241,.7)
+
+      button
+        fr()
+        pointer()
+        height                20px
+        border                none
+        text-align            center
+        font-size             12px
+        padding               0 10px
+
+      button.green
+        rounded               6px
+        bg                    color, #61C17F
+        color                 #FFF
+
+        &:hover, &:focus, &:active
+          bg                  color, #2DBEA1
+
+      button.cancel-editing
+        bg                    color, transparent
+        color                 #999
+
+
+
+.SettingsMenuList
+  abs()
+  bg                          color, #FFF
+  padding                     5px 0
+  right                       -20px
+  top                         24px
+  rounded                     6px
+  size                        136px, 120px
+  z-index                     1
+  shadow                      0 8px 35px rgba(0, 0, 0, 0.22)
+
+  &:before
+    abs()
+    content                   ''
+    display                   block
+    border                    7px solid rgba(0, 0, 0, 0);
+    border-bottom-color       #FFF
+    top                       -14px
+    right                     20px
+    z-index                   600
+
+  li
+    pointer()
+    padding-left              12px
+    font-size                 12px
+    line-height               24px
+
+    &:hover
+      color                   #FFFFFF
+      bg                      color, #494949
