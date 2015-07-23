@@ -20,7 +20,7 @@ isReactEnabled         = require 'app/util/isReactEnabled'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
 isSuggestionEnabled    = require 'activity/util/isSuggestionEnabled'
 
-TopicChatPaneView = require './components/topicchatpane/view'
+PublicChatPaneView = require './components/PublicChatPane/view'
 
 
 module.exports = class ActivityAppView extends KDView
@@ -211,7 +211,7 @@ module.exports = class ActivityAppView extends KDView
       when 'post'           then SingleActivityPane
       when 'topic'
         if isReactEnabled()
-        then TopicChatPaneView
+        then PublicChatPaneView
         else TopicMessagePane
       else
         if name is 'announcement-changelog'
