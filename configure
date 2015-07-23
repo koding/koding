@@ -125,7 +125,7 @@ git.long (str) ->
     options.hostname       = argv.hostname
     rest()
   else if os.type() is "Darwin"
-    options.hostname = "lvh.me"
+    options.hostname = "dev.koding.com"
     options.ngrok = yes
     rest()
   else

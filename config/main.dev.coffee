@@ -61,7 +61,7 @@ Configuration = (options={}) ->
       secretAccessKey : "aK3jcGlvOzDs8HkW87eq+rXi6f4a7J/21dwpSwzj"
 
   publicPort          = options.publicPort     or "8090"
-  hostname            = options.hostname       or "lvh.me"
+  hostname            = options.hostname       or "dev.koding.com"
   protocol            = options.protocol       or "http:"
   publicHostname      = options.publicHostname or "#{protocol}//#{hostname}"
   region              = options.region         or "dev"
@@ -97,7 +97,7 @@ Configuration = (options={}) ->
   if publicPort isnt '80'
     local = "#{local}:#{publicPort}"
 
-  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
+  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://#{hostname}", port: 8090 }
 
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipient: "#{process.env.USER}@koding.com"                       }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
@@ -1031,7 +1031,7 @@ Configuration = (options={}) ->
 
       function testendpoints () {
 
-        EP=("lvh.me:8090/" "lvh.me:8090/xhr" "lvh.me:8090/subscribe/info" "lvh.me:8090/kloud/kite" "lvh.me:8090/kontrol/kite" "lvh.me:8090/sourcemaps")
+        EP=("dev.koding.com:8090/" "dev.koding.com:8090/xhr" "dev.koding.com:8090/subscribe/info" "dev.koding.com:8090/kloud/kite" "dev.koding.com:8090/kontrol/kite" "dev.koding.com:8090/sourcemaps")
 
         while [ 1==1 ];
         do
