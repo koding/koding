@@ -262,8 +262,9 @@ class IDEAppController extends AppController
       splitView.panels.first.attach ideView
       splitView.panels[0] = ideView.parent
       splitView.options.views[0] = ideView
+
       splitView.panels.forEach (panel, i) =>
-        leaf = layout.leafs[i]
+        leaf          = layout.leafs[i]
         panel._layout = leaf
         @layoutMap[leaf.data.offset] = panel
 
@@ -292,62 +293,51 @@ class IDEAppController extends AppController
 
   mergeSplitView: ->
 
-    panel     = @activeTabView.parent.parent
-    splitView = panel.parent
-    {parent}  = splitView
+    tabView    = @activeTabView
+    panel      = tabView.parent.parent
+    splitView  = panel.parent
+    { parent } = splitView
 
     return  unless panel instanceof KDSplitViewPanel
 
-    if parent instanceof KDSplitViewPanel
-      parentSplitView    = parent.parent
-      panelIndexInParent = parentSplitView.panels.indexOf parent
+    # Remove merged `ideView` from `ideViews`
+    index = @ideViews.indexOf tabView.parent
+    @ideViews.splice index, 1
 
-    splitView.once 'SplitIsBeingMerged', (views) =>
-      for view in views
-        index = @ideViews.indexOf view
-        @ideViews.splice index, 1
+    # Detect the next `ideView`.
+    index = if index < @ideViews.length - 1 then index++ else @ideViews.length - 1
+    targetIdeView = @ideViews[index]
 
-      @layoutMap[splitView._layout.data.offset] = parent
+    return  unless targetIdeView
 
-      @handleSplitMerge views, parent, parentSplitView, panelIndexInParent
-      @doResize()
+    for pane in tabView.panes.slice 0
+      tabView.removePane pane, yes, (yes if tabView instanceof IDEApplicationTabView)
+      targetIdeView.tabView.addPane pane
 
-    splitView._layout.leafs.forEach (leaf) =>
-      @layoutMap[leaf.data.offset] = null
-    splitView._layout.merge()
+    panel.destroy() # Remove panel.
 
-    splitView.merge()
+    # Remove destroyed panel from array.
+    splitView.panels       = _.compact splitView.panels
+    splitView.beingResized = yes  # Mark as resized because DOM was deleted.
+    splitView.detach()  # Detach `splitView` from DOM.
 
+    # Point shot.
+    # `targetView` can be a `KDSplitView` or an `IDEView`.
+    targetView = splitView.panels.first.getSubViews().first
+    targetView.unsetParent()  # Remove `parent` of `targetView`.
+
+    parent.attach targetView  # Attach again.
+
+    @updateLayoutMap_ splitView, targetView
+
+    # I'm not sure about the usage of private method. I had to...
+    # Is it the best way for view resizing?
+    targetView._windowDidResize()
+
+    @doResize()
     @recalculateHandles()
-    @writeSnapshot()
     @resizeActiveTerminalPane()
-
-
-  handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
-
-    ideView = new IDEView createNewEditor: no
-    panes   = []
-
-    for view in views
-      {tabView} = view
-
-      for p in tabView.panes by -1
-        {pane} = tabView.removePane p, yes, (yes if tabView instanceof IDEApplicationTabView)
-        panes.push pane
-
-      view.destroy()
-
-    container.addSubView ideView
-
-    for pane in panes
-      ideView.tabView.addPane pane
-
-    @setActiveTabView ideView.tabView
-    @registerIDEView ideView
-
-    if parentSplitView and panelIndexInParent
-      parentSplitView.options.views[panelIndexInParent] = ideView
-      parentSplitView.panels[panelIndexInParent]        = ideView.parent
+    @writeSnapshot()
 
 
   ###*
@@ -710,7 +700,7 @@ class IDEAppController extends AppController
   moveTab: (direction) ->
 
     tabView = @activeTabView
-    return unless tabView.parent?
+    return unless tabView?.parent
 
     panel = tabView.parent.parent
     return  unless panel instanceof KDSplitViewPanel
@@ -719,6 +709,8 @@ class IDEAppController extends AppController
     return  unless targetOffset?
 
     targetPanel = @layoutMap[targetOffset]
+
+    return  unless targetPanel?.subViews.first.tabView   # Defensive check.
 
     { pane } = tabView.removePane tabView.getActivePane(), yes
 
@@ -1571,3 +1563,37 @@ class IDEAppController extends AppController
 
     { onboarding, appManager } = kd.singletons
     onboarding.run 'IDELoaded'  if appManager.frontApp is this
+
+
+  ###*
+   * Update `@layoutMap` for move tab with keyboard shortcuts.
+   *
+   * @param {KDSplitView|IDEView} parent
+  ###
+  updateLayoutMap_: (splitView, targetView) ->
+
+    return  if targetView instanceof KDSplitViewPanel
+
+    @mergeLayoutMap_ splitView
+
+    if targetView instanceof IDEView
+      @mergeLayoutMap_ targetView.parent
+    else
+      targetView.panels.forEach (panel) =>
+        @mergeLayoutMap_ panel
+
+
+  ###*
+   *
+   * @param {KDSplitViewPanel} view
+  ###
+  mergeLayoutMap_: (view) ->
+
+    return  unless view instanceof KDSplitViewPanel
+
+    view._layout.leafs?.forEach (leaf) =>
+      @layoutMap[leaf.data.offset] = null
+
+    view._layout.merge()
+
+    @layoutMap[view._layout.data.offset] = view
