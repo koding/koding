@@ -74,23 +74,12 @@ module.exports = class OnboardingController extends KDController
 
 
   ###*
-   * It is executed once all data is loaded
-   * If it's preview mode (super admin), it resets all onboardings so admin can see them again
-   * Also, it runs all onboardings which were requested while data was loading
-   * and therefore were added to pending queue
+   * It is executed once all data is loaded.
+   * It marks controller as ready to work and runs all onboardings
+   * which were requested while data was loading and therefore
+   * were added to pending queue
   ###
   ready: ->
-
-    if @isPreviewMode()
-      @reset @bound 'processPendingQueue'
-    else
-      @processPendingQueue()
-
-
-  ###*
-   * Marks controller as ready to work and runs onboardings in pending queue
-  ###
-  processPendingQueue: ->
 
     @isReady = yes
     @run args...  for args in @pendingQueue
