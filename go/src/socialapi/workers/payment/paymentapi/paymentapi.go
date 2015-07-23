@@ -60,11 +60,15 @@ func (c *Client) GetByAccountId(accountId string) (*payment.SubscriptionsRespons
 func (c *Client) GetByAccount(account *models.Account) (*payment.SubscriptionsResponse, error) {
 	url := fmt.Sprintf("%s?account_id=%s", c.PlanUrl, account.Id.Hex())
 	resp, err := http.Get(url)
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+
 	if err != nil {
 		return nil, err
 	}
-
-	defer resp.Body.Close()
 
 	var subscription *payment.SubscriptionsResponse
 	if err := json.NewDecoder(resp.Body).Decode(&subscription); err != nil {

@@ -405,11 +405,15 @@ func (h *Handler) Configure(ci *webhook.ChannelIntegration, ctx *models.Context,
 	reader := bytes.NewReader(body)
 
 	resp, err := http.Post(endpoint, "application/json", reader)
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+
 	if err != nil {
 		return err
 	}
-
-	defer resp.Body.Close()
 
 	if resp.StatusCode >= 300 {
 		return errors.New(resp.Status)
