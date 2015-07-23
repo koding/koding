@@ -13,8 +13,9 @@ func CheckKoding() (bool, error) {
 	// First try to get the data, if it's not available we can assume it's not
 	// a Koding machine
 	data, err := ec2dynamicdata.Get()
+	// TODO: Parse this error type and do not return it if it's a 404
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
 	// Second check if the account ID is the same, if not, it belongs to

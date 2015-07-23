@@ -17,8 +17,6 @@ var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
 	flagVersion     = flag.Bool("version", false, "Show version and exit")
-	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
-	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = flag.Bool("debug", false, "Debug mode")
 	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
@@ -78,12 +76,12 @@ func realMain() int {
 
 	conf := &app.KlientConfig{
 		Name:             protocol.Name,
+		Environment:      protocol.Environment,
+		Region:           protocol.Region,
 		Version:          protocol.Version,
 		DBPath:           dbPath,
 		IP:               *flagIP,
 		Port:             *flagPort,
-		Environment:      *flagEnvironment,
-		Region:           *flagRegion,
 		RegisterURL:      *flagRegisterURL,
 		KontrolURL:       *flagKontrolURL,
 		Debug:            *flagDebug,
