@@ -3,6 +3,7 @@ package control
 import (
 	"errors"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
@@ -37,6 +38,10 @@ func Disable(r *kite.Request) (interface{}, error) {
 			"klient.disable cannot be run from the '%s' Environment",
 			protocol.Environment,
 		))
+	}
+
+	if runtime.GOOS != "linux" {
+		return nil, errors.New("klient.disable requires a linux GOOS")
 	}
 
 	err := fix.RunAsSudo(overrideCommand)
