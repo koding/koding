@@ -27,14 +27,14 @@ module.exports = class ChatListItem extends React.Component
 
   getMenuItems: ->
     return [
-      {title: 'Edit Post',   key: 'editpost',  onClick: @editPost}
-      {title: 'Delete Post', key: 'deletepost', onClick: @deletePost}
-      {title: 'Mark User as Troll', key: 'markuser', onClick: @markUser}
-      {title: 'Block User', key: 'blockuser', onClick: @blockUser}
-      {title: 'impersonate User', key: 'impersonate', onClick: @impersonate}
+      {title: 'Edit Post',   key: 'editpost',  onClick: @bound 'editPost'}
+      {title: 'Delete Post', key: 'deletepost', onClick: @bound 'deletePost'}
+      {title: 'Mark User as Troll', key: 'markuser', onClick: @bound 'markUser'}
+      {title: 'Block User', key: 'blockuser', onClick: @bound 'blockUser'}
+      {title: 'impersonate User', key: 'impersonate', onClick: @bound 'impersonate'}
     ]
 
-  editPost: =>
+  editPost: ->
     @setState editMode: yes
 
   deletePost: ->
@@ -49,10 +49,10 @@ module.exports = class ChatListItem extends React.Component
   impersonate: ->
     console.log "impersonate clicked"
 
-  updateMessage: =>
+  updateMessage: ->
     console.log "update message"
 
-  cancelEdit: =>
+  cancelEdit: ->
     @setState editMode: no
 
   handleEditMessageKeyDown: (event) ->
