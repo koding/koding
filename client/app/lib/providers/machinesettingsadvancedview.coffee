@@ -21,7 +21,7 @@ module.exports = class MachineSettingsAdvancedView extends KDView
       reinitButton.hide()
       reassignButton.show()
       terminateTitle = 'Disconnect your VM'
-      terminateText  = 'Remove the connection between your VM and Koding.'
+      terminateText  = 'Remove the connection between your Machine and Koding.'
     else
       reassignButton.hide()
 

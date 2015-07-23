@@ -12,7 +12,7 @@ func TestMailerNotification(t *testing.T) {
 		messages := []Message{}
 
 		m := MailerNotification{
-			Hostname:         "http://lvh.me:8090",
+			Hostname:         "http://dev.koding.com:8090",
 			FirstName:        "Indiana",
 			Username:         "indiana",
 			Email:            "indiana@koding.com",
@@ -24,14 +24,14 @@ func TestMailerNotification(t *testing.T) {
 		results := m.ToMap()
 
 		So(results["firstName"], ShouldEqual, "Indiana")
-		So(results["unsubscribeLink"], ShouldEqual, "http://lvh.me:8090/Unsubscribe/token/indiana@koding.com")
-		So(results["unsubscribeAllLink"], ShouldEqual, "http://lvh.me:8090/Unsubscribe/token/indiana@koding.com/all")
+		So(results["unsubscribeLink"], ShouldEqual, "http://dev.koding.com:8090/Unsubscribe/token/indiana@koding.com")
+		So(results["unsubscribeAllLink"], ShouldEqual, "http://dev.koding.com:8090/Unsubscribe/token/indiana@koding.com/all")
 		So(len(results["messages"].([]map[string]interface{})), ShouldEqual, 0)
 	})
 
 	Convey("It should build notification message hash", t, func() {
 		n := &NotificationMessage{
-			Hostname:       "http://lvh.me",
+			Hostname:       "http://dev.koding.com",
 			Actor:          "Indiana",
 			ActorHash:      "1",
 			ActorSlug:      "indiana",
@@ -46,8 +46,8 @@ func TestMailerNotification(t *testing.T) {
 		result := n.ToMap()
 
 		So(result["actorAvatar"], ShouldEqual, "https://gravatar.com/avatar/1?size=35&d=https%3A%2F%2Fkoding-cdn.s3.amazonaws.com%2Fsquare-avatars%2Fdefault.avatar.35.png")
-		So(result["actorLink"], ShouldEqual, "http://lvh.me/indiana")
-		So(result["messageLink"], ShouldEqual, "http://lvh.me/Activity/Post/raiders-of-the-last-ark")
+		So(result["actorLink"], ShouldEqual, "http://dev.koding.com/indiana")
+		So(result["messageLink"], ShouldEqual, "http://dev.koding.com/Activity/Post/raiders-of-the-last-ark")
 		So(result["createdAt"], ShouldEqual, "12:00 AM")
 	})
 

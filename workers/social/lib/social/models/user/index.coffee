@@ -1524,7 +1524,7 @@ module.exports = class JUser extends jraphical.Module
           account.save (err)=>
             return callback err  if err
 
-              {firstName} = account.profile
+            {firstName} = account.profile
 
             # send EmailChanged event
             @constructor.emit 'EmailChanged', {

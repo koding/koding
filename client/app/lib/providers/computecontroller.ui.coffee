@@ -5,10 +5,12 @@ KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
 
 globals              = require 'globals'
-isMine               = require '../util/isMine'
-showError            = require '../util/showError'
-isLoggedIn           = require '../util/isLoggedIn'
 remote               = require('../remote').getInstance()
+
+isMine               = require 'app/util/isMine'
+showError            = require 'app/util/showError'
+isLoggedIn           = require 'app/util/isLoggedIn'
+applyMarkdown        = require 'app/util/applyMarkdown'
 
 ProviderView         = require './providerview'
 TerminalModal        = require '../terminal/terminalmodal'
@@ -45,8 +47,9 @@ module.exports = class ComputeController_UI
         label       : "Title"
         placeholder : "title for this credential"
 
-    Providers = globals.config.providers
-    credentialFields = Object.keys Providers[provider].credentialFields
+    Providers        = globals.config.providers
+    currentProvider  = Providers[provider]
+    credentialFields = Object.keys currentProvider.credentialFields
 
     unless credentialFields.length
       return
@@ -55,7 +58,7 @@ module.exports = class ComputeController_UI
 
     credentialFields.forEach (field) ->
 
-      _field = fields[field] = _.clone Providers[provider].credentialFields[field]
+      _field = fields[field] = _.clone currentProvider.credentialFields[field]
       _field.required = yes
 
       if _field.type is 'selection'
@@ -64,24 +67,38 @@ module.exports = class ComputeController_UI
         _field.defaultValue ?= values.first.value
         selectOptions.push { field, values }
 
+    buttons      =
+      Save       :
+        title    : "Add credential"
+        type     : "submit"
+        style    : "solid green medium"
+        loader   : color : "#444444"
+        callback : -> @hideLoader()
+
+      Cancel     :
+        style    : "solid medium"
+        type     : "button"
+        callback : -> form.emit "Cancel"
+
+    # Add advanced fields into form
+    if advancedFields = currentProvider.advancedFields
+      advancedFields.forEach (field) ->
+        fields[field] =
+          label       : field.capitalize()
+          placeholder : field
+          cssClass    : 'advanced-field'
+
+      buttons['Advanced Mode'] =
+        style    : "solid medium"
+        type     : "button"
+        callback : ->
+          form.toggleClass 'in-advanced-mode'
+          @toggleClass 'green'
 
     form = new KDFormViewWithFields
       cssClass     : "form-view"
       fields       : fields
-      buttons      :
-
-        Save       :
-          title    : "Add credential"
-          type     : "submit"
-          style    : "solid green medium"
-          loader   : color : "#444444"
-          callback : -> @hideLoader()
-
-        Cancel     :
-          style    : "solid medium"
-          type     : "button"
-          callback : -> form.emit "Cancel"
-
+      buttons      : buttons
       callback     : (data)->
 
         { Save } = @buttons
@@ -182,7 +199,7 @@ module.exports = class ComputeController_UI
           message : "
             If you choose to proceed, this stack and all the VMs will be
             re-initialized from the latest revision of this stack.
-            You will lose all of your existing files, workspaces, VMs and all 
+            You will lose all of your existing files, workspaces, VMs and all
             of your data.
           "
           button  : "Proceed"
@@ -215,14 +232,23 @@ module.exports = class ComputeController_UI
           button  : "Yes, remove"
       managed     :
         destroy   :
-          title   : "Delete VM from Koding?"
-          message : "
-            <p>Deleting this VM will only remove it's connection with Koding,
-               all your files and changes on this VM will remain same.
-            </p><br/>
-            <p>Are you sure you want to proceed?</p>
-          "
-          button  : "Yes, delete"
+          title   : "Delete Machine from Koding?"
+          message : applyMarkdown "
+            Deleting this machine here will only remove its connection to
+            your Koding account. All files and data will still be available
+            on the actual machine.\n\n
+
+            If you also wish to uninstall the Koding Connector Service from
+            your machine, then please run this command there once you have
+            clicked “Yes” below. We recommend you copy the command below
+            before clicking “Yes”.\n
+
+            ```bash\n
+            sudo dpkg -P klient\n
+            ```\n
+
+            Are you sure you want to proceed?"
+          button  : "Yes"
 
     task = tasks[provider]?[action] ? tasks.default[action]
 
@@ -244,6 +270,10 @@ module.exports = class ComputeController_UI
         type      : "button"
         callback  : ->
           modal.destroy()
+
+    modal.setClass 'has-markdown'
+
+    return modal
 
 
   showInlineInformation = do ->

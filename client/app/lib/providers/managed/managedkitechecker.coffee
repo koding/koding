@@ -228,17 +228,45 @@ module.exports = class ManagedKiteChecker extends kd.Object
     unless listener
       return
 
-    @_listeners.push listener
+    # If the user is already at the plan limit, we don't want to
+    # start listening. This helps avoid polling. The caller is
+    # also responsible for checking plan limits on their own.
+    @hasManagedAllowances (hasAllowances) =>
+      unless hasAllowances
+        return kd.error "ManagedKiteChecker: Listener added, but user is
+          already at maximum allowed Managed Kites"
 
-    # If we're already running, nothing needs to be done.
-    return  if @running()
+      @_listeners.push listener
 
-    # Now simply start the delay. Which will then call the ticker, and
-    # start ticking - eventually calling the listener.
-    @_startDelay()
+      # If we're already running, nothing needs to be done.
+      return  if @running()
 
-    # Don't return the delay id
-    return
+      # Now simply start the delay. Which will then call the ticker, and
+      # start ticking - eventually calling the listener.
+      @_startDelay()
+
+      # Don't return the delay id
+      return
+
+
+  ###*
+   * Compare the total managed usage against the allowance.
+   *
+   * @param {Function(hasManagedAllowances:boolean)} callback - Called
+   *  with true if the user has allowances based on their current plan.
+   *  False if not.
+  ###
+  hasManagedAllowances: (callback) ->
+
+    { computeController } = kd.singletons
+
+    computeController.fetchPlanCombo 'managed', (err, planCombo) ->
+      return kd.error err  if err
+
+      { plan, plans, usage } = planCombo
+
+      hasAllowances = usage.total < plans[plan].managed
+      callback hasAllowances
 
 
   ###*
@@ -294,6 +322,7 @@ module.exports = class ManagedKiteChecker extends kd.Object
       return
 
     if @_tickCount > @getOption 'maxTicks'
+      @_stop()
       return kd.error "ManagedKiteChecker: Maximum tick limit of
         #{@getOption 'maxTicks'} reached."
 

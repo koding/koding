@@ -24,18 +24,20 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
   createElements: ->
 
     @addSubView new kd.CustomHTMLView
-      partial   : """
-        <div class="bg"></div>
-        <section>
-          <p>Run the command below to connect to your machine to Koding. Note, machine should:</p>
-          <p class="middle">1. have a public IP address</p>
-          <p>2. you should have root access</p>
-          <span>
-            <strong>Leave this dialogue box open</strong> until you see a notification in the sidebar
-            that the connection has been successful.
-            <a href="http://learn.koding.com/connect_your_machine" target="_blank">Learn more about this feature.</a>
-          </span>
-        </section>
+      cssClass: 'bg'
+      partial : '<div class="extra"></div>'
+
+    @addSubView @content = new kd.CustomHTMLView
+      tagName: 'section'
+      partial: """
+        <p>Run the command below to connect to your machine to Koding. Note, machine should:</p>
+        <p class="middle">1. have a public IP address</p>
+        <p>2. you should have root access</p>
+        <span>
+          <strong>Leave this dialogue box open</strong> until you see a notification in the sidebar
+          that the connection has been successful.
+          <a href="http://learn.koding.com/connect_your_machine" target="_blank">Learn more about this feature.</a>
+        </span>
       """
 
     @addSubView @code = new kd.CustomHTMLView
@@ -43,8 +45,8 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
       cssClass : 'code'
 
     @code.addSubView @loader = new kd.LoaderView
-      showLoader: yes
-      size      : width: 16
+      size: width : 16
+      showLoader  : yes
 
 
   machineFoundCallback: (info, machine) ->
@@ -58,26 +60,66 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     { computeController } = kd.singletons
 
     computeController.ready =>
-      whoami().fetchOtaToken (err, token) =>
+
+      computeController.fetchPlanCombo 'managed', (err, userPlanInfo) =>
+
         return @handleError err  if err
 
-        kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
-        then "export KONTROLURL=#{globals.config.newkontrol.url}; "
-        else ''
+        { plan, usage, plans } = userPlanInfo
+        limit = plans[plan].managed
+        used  = usage.total
 
-        cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"
+        return @handleUsageLimit()  if used >= limit
 
-        @loader.destroy()
-        @code.addSubView input = new kd.InputView
-          defaultValue : cmd
-          click        : -> @selectAll()
+        whoami().fetchOtaToken (err, token) =>
+          return @handleError err  if err
 
-        @code.addSubView new kd.CustomHTMLView
-          cssClass : 'select-all'
-          partial  : '<span></span>SELECT'
-          click    : -> input.selectAll()
+          @updateContentViews token
 
-        computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
+
+  updateContentViews: (token) ->
+
+    kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
+    then "export KONTROLURL=#{globals.config.newkontrol.url}; "
+    else ''
+
+    cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"
+
+    @loader.destroy()
+    @code.addSubView @input = new kd.InputView
+      defaultValue : cmd
+      click        : =>
+        @showTooltip()
+        @input.selectAll()
+
+    @code.addSubView @selectButton = new kd.CustomHTMLView
+      cssClass : 'select-all'
+      partial  : '<span></span>SELECT'
+      click    : =>
+        @showTooltip()
+        @input.selectAll()
+
+    { computeController } = kd.singletons
+    computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
+
+    kd.utils.wait 20000, =>
+      @addSubView new kd.LoaderView showLoader: yes, size: width: 26
+      @setClass 'polling'
+
+
+  showTooltip: ->
+
+    shortcut = 'Ctrl+C'
+
+    if navigator.userAgent.indexOf('Mac OS X') > -1
+      shortcut = 'Cmd+C'
+
+    @input.setTooltip title: "Press #{shortcut} to copy", placement: 'above'
+    @input.tooltip.show()
+
+    kd.singletons.windowController.addLayer @input
+    @input.on 'ReceivedClickElsewhere', =>
+      @input.unsetTooltip()
 
 
   handleError: (err) ->
@@ -86,6 +128,22 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
     @loader.destroy()
     return @code.updatePartial 'Failed to fetch one time access token.'
+
+
+  handleUsageLimit: ->
+
+    @setTitle 'Uh oh! You already have a managed machine!'
+
+    @code.destroy()
+    @content.updatePartial """
+      <p>
+        Free Koding accounts are limited to adding one external machine and
+        you already have one connected. Paid accounts are allowed to add unlimited external machines.
+      </p>
+      <p>Please <a href="/Pricing">upgrade</a> to be able to add more.</p>
+    """
+
+    @setClass 'error'
 
 
   destroy: ->
