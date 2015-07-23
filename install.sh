@@ -33,9 +33,8 @@ if [ -z "$KONTROLURL" ]; then
 fi
 
 
-# TODO: Why are we defaulting to development?
 if [ -z "$CHANNEL" ]; then
-    CHANNEL="development"
+    CHANNEL="managed"
 fi
 
 LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
@@ -83,7 +82,7 @@ fi
 
 # Production kontrol might return a different kontrol URL. Let us control this aspect.
 escaped_var=$(printf '%s\n' "$KONTROLURL" | sed 's:[/&\]:\\&:g;s/$/\\/')
-sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var -env managed /g" "/etc/init/klient.conf"
+sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var /g" "/etc/init/klient.conf"
 
 
 cat << EOF
