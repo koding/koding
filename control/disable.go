@@ -20,21 +20,21 @@ const (
 	overrideCommand string = "touch /etc/init/klient.override"
 )
 
-// Disconnect implements the `klient.disconnect` method, to stop klient
+// Disable implements the `klient.disable` method, to stop klient
 // from running remotely. This is tightly integrated with Ubuntu, due to
 // upstart usage.
 //
-// It's important to note that Disconnect() does not (and should not)
+// It's important to note that Disable() does not (and should not)
 // immediately stop klient. Doing so would prevent the caller from
 // getting any sort of a response. So, the actual command is delayed
 // by the time specified in exitDelay.
 //
 // TODO: Find a way to stop Klient *after* it has safely finished any
 // pre-existing tasks.
-func Disconnect(r *kite.Request) (interface{}, error) {
+func Disable(r *kite.Request) (interface{}, error) {
 	if protocol.Environment != "managed" {
 		return nil, errors.New(fmt.Sprintf(
-			"klient.disconnect cannot be run from the '%s' Environment",
+			"klient.disable cannot be run from the '%s' Environment",
 			protocol.Environment,
 		))
 	}
