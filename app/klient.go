@@ -188,9 +188,6 @@ func (k *Klient) RegisterMethods() {
 	k.kite.PreHandleFunc(k.usage.Counter) // we measure every incoming request
 	k.kite.HandleFunc("klient.usage", k.usage.Current)
 
-	// Klient Control method(s)
-	k.kite.HandleFunc("klient.stop", control.Stop)
-
 	// Klient Info method(s)
 	k.kite.HandleFunc("klient.info", info.Info)
 
@@ -198,6 +195,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.share", k.collab.Share)
 	k.kite.HandleFunc("klient.unshare", k.collab.Unshare)
 	k.kite.HandleFunc("klient.shared", k.collab.Shared)
+	k.kite.HandleFunc("klient.stop", control.Stop)
 
 	// SSH keys
 	k.kite.HandleFunc("sshkeys.list", sshkeys.List)
