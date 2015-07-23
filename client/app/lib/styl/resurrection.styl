@@ -2025,12 +2025,30 @@ paymentGrayLighter  = #f8f8f8
 
   .bg
     margin-right            50px
-    r-sprite                'activity', 'add-managed-vm'
+    r-sprite                'app', 'managed-modal-bg'
     fl()
+
+    .extra
+      r-sprite              'app', 'managed-modal-bg2'
+      position              relative
+      top                   7px
+      left                  56px
+
+  &.error
+  &.polling
+    .extra
+      hidden()
+
+  &.polling
+    .kdloader
+      top                   80px
+      left                  102px
+      size                  26px, 26px
+      abs()
 
   &.error
     .bg
-      r-sprite              'activity', 'add-managed-vm-error'
+      r-sprite              'app', 'managed-modal-error-bg'
 
     p
       &:first-child

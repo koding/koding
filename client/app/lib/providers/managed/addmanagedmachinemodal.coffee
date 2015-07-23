@@ -25,6 +25,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
     @addSubView new kd.CustomHTMLView
       cssClass: 'bg'
+      partial : '<div class="extra"></div>'
 
     @addSubView @content = new kd.CustomHTMLView
       tagName: 'section'
@@ -91,6 +92,8 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
           computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
 
+          @createPollLoader()
+
 
   handleError: (err) ->
 
@@ -114,6 +117,13 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     """
 
     @setClass 'error'
+
+
+  createPollLoader: ->
+
+    kd.utils.wait 20000, =>
+      @addSubView new kd.LoaderView showLoader: yes, size: width: 26
+      @setClass 'polling'
 
 
   destroy: ->
