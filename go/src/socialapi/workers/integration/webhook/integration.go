@@ -66,7 +66,9 @@ const (
 )
 
 func NewIntegration() *Integration {
-	return &Integration{}
+	return &Integration{
+		IsPublished: true,
+	}
 }
 
 func (i *Integration) Create() error {
