@@ -2028,9 +2028,20 @@ paymentGrayLighter  = #f8f8f8
     r-sprite                'activity', 'add-managed-vm'
     fl()
 
+  &.error
+    .bg
+      r-sprite              'activity', 'add-managed-vm-error'
+
+    p
+      &:first-child
+        margin              38px 0 32px 0
+
   section
     fl()
     width                   360px
+
+    a
+      color                 #00b057
 
     p
       color                 #747474
@@ -2052,12 +2063,12 @@ paymentGrayLighter  = #f8f8f8
       a
         display             block
         margin-top          5px
-        color               #00b057
 
     strong
       font-weight           600
       display               inline-block
       margin-top            5px
+
 
   .code
     fl()
