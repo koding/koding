@@ -199,8 +199,18 @@ func CheckDigitalOcean() (bool, error) {
 // and if it returns 404, the check fails.
 func checkDigitalOcean(metadataApi string) (bool, error) {
 	res, err := http.Get(metadataApi)
+
+	// An error during the http request indicates that the API server
+	// is either non-existent, or does not exist. This is expected
+	// behavior if this func is called on something other than DigitalOcean,
+	// and should not return an error.
+	//
+	// Note: It's also possible that the given string is not a valid URL,
+	// but we're not worrying about that since this is a private func.
+	// If we want to handle that, we should simply create a net.URL and
+	// return any parsing errors from that, and not fro http.Get()
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 
 	return res.StatusCode == http.StatusOK, nil
