@@ -16,7 +16,7 @@ loadMessages = (channelId) ->
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId }
 
-  appManager.tell 'Activity', 'fetch', {id: channelId}, (err, result) ->
+  socialapi.channel.fetchActivities {id: channelId}, (err, messages) ->
     if err
       dispatch LOAD_MESSAGES_FAIL, { err, channelId }
       return
@@ -24,7 +24,7 @@ loadMessages = (channelId) ->
     # get the channel instance from cache and dispatch it.
     channel = socialapi.retrieveCachedItemById channelId
 
-    result.forEach (message) ->
+    messages.forEach (message) ->
       dispatch CREATE_MESSAGE_SUCCESS, { channelId, channel, message }
 
 
