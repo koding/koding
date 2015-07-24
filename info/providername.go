@@ -96,7 +96,6 @@ func (pn ProviderName) Checker() ProviderChecker {
 // DefaultProviderCheckers is a slice of each ProviderName in the order
 // that they will be checked.
 var DefaultProvidersToCheck = []ProviderName{
-	AWS,
 	Azure,
 	DigitalOcean,
 	GoogleCloud,
@@ -104,6 +103,7 @@ var DefaultProvidersToCheck = []ProviderName{
 	Rackspace,
 	SoftLayer,
 	Koding,
+	AWS,
 }
 
 // cachedProviderName is the ProviderName resulting from running through
