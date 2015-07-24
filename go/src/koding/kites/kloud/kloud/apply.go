@@ -354,7 +354,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		return err
 	}
 
-	fmt.Printf(string(d))
+	sess.Log.Debug("Updated machines\n%s", string(d))
 
 	ev.Push(&eventer.Event{
 		Message:    "Checking klient connections",
@@ -362,6 +362,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
+	sess.Log.Debug("Checking total '%d' klients", len(buildData.KiteIds))
 	return checkKlients(ctx, buildData.KiteIds)
 }
 
