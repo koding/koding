@@ -96,11 +96,13 @@ runTests = ->
 
             JInvitation.create adminClient, invitationReq, (err) ->
               expect(err).to.not.exist
+              queue.next()
 
           ->
               JInvitation.one { email: userFormData.email, groupName: client.context.group }, (err, invitation) ->
                 expect(err).to.not.exist
                 expect(invitation).to.exist
+                queue.next()
 
           -> done()
 
