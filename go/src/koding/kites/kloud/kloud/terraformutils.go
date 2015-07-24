@@ -281,7 +281,14 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 				return nil, err
 			}
 
-			kiteIds[resourceName] = kiteId
+			// if the count is greater than 1, terraform will change the labels
+			// and append a number(starting with index 0) to each label
+			if count != 1 {
+				kiteIds[resourceName+"."+strconv.Itoa(i)] = kiteId
+			} else {
+				kiteIds[resourceName] = kiteId
+			}
+
 			countKeys[strconv.Itoa(i)] = kiteKey
 		}
 
