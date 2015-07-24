@@ -127,7 +127,7 @@ build:
         code: ./run gatheringestortests
     - script:
         name: test koding mongo models
-        code: ./run gomongotests
+        code: ./run gomodeltests
     - script:
         name: test vmwatcher
         code: ./run vmwatchertests
