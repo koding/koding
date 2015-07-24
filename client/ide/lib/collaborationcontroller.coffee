@@ -1108,5 +1108,5 @@ module.exports = CollaborationController =
 
     return  if (not permission?) and @permissions.get nickname
 
-    permission ?= if @settings.get 'read-only' then 'read' else 'edit'
+    permission ?= if @settings.get 'readOnly' then 'read' else 'edit'
     @permissions.set nickname, permission
