@@ -102,7 +102,7 @@ module.exports = class AccountBilling extends kd.View
       style    : 'solid small green'
       cssClass : 'hidden'
       title    : 'Update'
-      callback : => @preventBlockedUser()
+      callback : => @bound 'preventBlockedUser'
 
     @paymentMethodHeader = header
     @paymentMethodButton = button
@@ -154,7 +154,7 @@ module.exports = class AccountBilling extends kd.View
       @paymentHistoryWrapper.addSubView @listController.getView()
 
 
-  preventBlockedUser: () ->
+  preventBlockedUser: ->
 
     { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
     now               = Date.now()
@@ -172,7 +172,7 @@ module.exports = class AccountBilling extends kd.View
         @removeBlockFromUser()
 
 
-  startWorkflow: (isFailedLimitReached = no) ->
+  startWorkflow: (isFailedLimitReached) ->
 
     @workflow = new UpdateCreditCardWorkflow { delegate: this }
     @workflow.once 'UpdateCreditCardWorkflowFinishedSuccessfully', @bound 'handleFinishedWithSuccess'
