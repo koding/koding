@@ -190,13 +190,15 @@ module.exports = class PricingAppView extends KDView
 
   preventBlockedUser: (options, callback) ->
 
-    @appStorage.fetchValue PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_KEY, (result) =>
+    { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.PRICING
+
+    @appStorage.fetchValue KEY, (result) =>
 
       return callback()  unless result
 
       difference = Date.now() - result.timestamp
 
-      if difference < PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_DURATION
+      if difference < DURATION
 
         @workflowController = new PaymentWorkflow { state: options, delegate: this }
 
@@ -219,9 +221,9 @@ module.exports = class PricingAppView extends KDView
 
   removeBlockFromUser: ->
 
-    TOO_MANY_ATTEMPT_BLOCK_KEY = PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_KEY
+    { KEY } = PaymentConstants.FAILED_ATTEMPTS.PRICING
 
-    kd.utils.defer => @appStorage.unsetKey TOO_MANY_ATTEMPT_BLOCK_KEY
+    kd.utils.defer => @appStorage.unsetKey KEY
 
 
   ###*
