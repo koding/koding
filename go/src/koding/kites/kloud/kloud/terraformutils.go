@@ -7,6 +7,7 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/userdata"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -209,34 +210,6 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 	kiteIds := make(map[string]string)
 
 	for resourceName, instance := range data.Resource.Aws_Instance {
-		// create a new kite id for every new aws resource
-		kiteUUID, err := uuid.NewV4()
-		if err != nil {
-			return nil, err
-		}
-
-		kiteId := kiteUUID.String()
-		userCfg := &userdata.CloudInitConfig{
-			Username: username,
-			Groups:   []string{"sudo"},
-			Hostname: username, // no typo here. hostname = username
-			KiteId:   kiteId,
-		}
-
-		// prepend custom script if available
-		if c, ok := instance["user_data"]; ok {
-			if customCMD, ok := c.(string); ok {
-				userCfg.CustomCMD = customCMD
-			}
-		}
-
-		userdata, err := sess.Userdata.Create(userCfg)
-		if err != nil {
-			return nil, err
-		}
-
-		kiteIds[resourceName] = kiteId
-		instance["user_data"] = string(userdata)
 		instance["key_name"] = awsOutput.KeyPair
 
 		// if nothing is provided or the ami is empty use default Ubuntu AMI's
@@ -255,8 +228,65 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		}
 
 		// means there will be several instances, we need to create a userdata
-		// with count interpolation
-		if instance["count"] == nil {
+		// with count interpolation, because each machine must have an unique
+		// kite id.
+		var count int = 0
+		if c, ok := instance["count"]; ok {
+			// we receive it as float64
+			if cFloat, ok := c.(float64); !ok {
+				return nil, fmt.Errorf("count statement should be an integer, got: %+v", c)
+			} else {
+				count = int(cFloat)
+			}
+		}
+
+		// this part will be the same for all machines
+		userCfg := &userdata.CloudInitConfig{
+			Username: username,
+			Groups:   []string{"sudo"},
+			Hostname: username, // no typo here. hostname = username
+		}
+
+		// prepend custom script if available
+		if c, ok := instance["user_data"]; ok {
+			if customCMD, ok := c.(string); ok {
+				userCfg.CustomCMD = customCMD
+			}
+		}
+
+		// will be replaced with the kitekeys we create below
+		userCfg.KiteKey = "${lookup(var.kitekeys, count.index)}"
+
+		userdata, err := sess.Userdata.Create(userCfg)
+		if err != nil {
+			return nil, err
+		}
+
+		instance["user_data"] = string(userdata)
+
+		// create independent kiteKey for each machine and create a Terraform
+		// lookup map, which is used in conjuctuon with the `count.index`
+		countKeys := map[string]string{}
+		for i := 0; i < count; i++ {
+			// create a new kite id for every new aws resource
+			kiteUUID, err := uuid.NewV4()
+			if err != nil {
+				return nil, err
+			}
+
+			kiteId := kiteUUID.String()
+
+			kiteKey, err := sess.Userdata.Keycreator.Create(username, kiteId)
+			if err != nil {
+				return nil, err
+			}
+
+			kiteIds[resourceName] = kiteId
+			countKeys[strconv.Itoa(i)] = kiteKey
+		}
+
+		data.Variable["kitekeys"] = map[string]interface{}{
+			"default": countKeys,
 		}
 
 		data.Resource.Aws_Instance[resourceName] = instance
