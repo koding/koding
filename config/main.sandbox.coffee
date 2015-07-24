@@ -480,7 +480,10 @@ Configuration = (options={}) ->
     #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
 
     gatheringestor      :
+      ports             :
+        incoming        : KONFIG.gatheringestor.port
       group             : "environment"
+      instances         : 1
       nginx             :
         locations       : [ { location: "/-/gatheringestor" } ]
       supervisord       :

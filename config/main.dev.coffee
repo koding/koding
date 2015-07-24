@@ -682,7 +682,10 @@ Configuration = (options={}) ->
       versionURL        : "http://localhost:#{socialapi.janitor.port}/version"
 
     gatheringestor      :
+      ports             :
+        incoming        : KONFIG.gatheringestor.port
       group             : "environment"
+      instances         : 1
       supervisord       :
         command         : "#{GOBIN}/watcher -run koding/workers/gatheringestor -c #{configName}"
       nginx             :
