@@ -14,6 +14,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     options.title    = 'Add Your Own Machine'
     options.width    = 690
     options.height   = 310
+    options.overlay  = yes
 
     super options, data
 
