@@ -218,6 +218,7 @@ Configuration = (options={}) ->
 
     vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-dev" }
     gowebserver                    : {port          : 6500}
+    gatheringestor                 : {port          : 6800}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
     mq                             : mq
@@ -679,6 +680,15 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/janitor -c #{socialapi.configFilePath} -kite-init=true"
       healthCheckURL    : "http://localhost:#{socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapi.janitor.port}/version"
+
+    gatheringestor      :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/watcher -run koding/workers/gatheringestor -c #{configName}"
+      nginx             :
+        locations       : [ { location: "/-/gatheringestor" } ]
+      healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
 
     integration         :
       group             : "socialapi"
