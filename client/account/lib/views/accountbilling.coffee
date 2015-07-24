@@ -23,6 +23,9 @@ module.exports = class AccountBilling extends kd.View
 
     @state = kd.utils.extend @initialState, options.state
 
+    { appStorageController } = kd.singletons
+    @accountStorage          = appStorageController.storage 'Account', '1.0'
+
 
   viewAppended: ->
 
@@ -99,7 +102,7 @@ module.exports = class AccountBilling extends kd.View
       style    : 'solid small green'
       cssClass : 'hidden'
       title    : 'Update'
-      callback : => @startWorkflow method
+      callback : => @preventBlockedUser()
 
     @paymentMethodHeader = header
     @paymentMethodButton = button
@@ -151,11 +154,37 @@ module.exports = class AccountBilling extends kd.View
       @paymentHistoryWrapper.addSubView @listController.getView()
 
 
-  startWorkflow: ->
+  preventBlockedUser: () ->
+
+    { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
+    now               = Date.now()
+
+    @accountStorage.fetchValue KEY, (result) =>
+
+      return @startWorkflow()  unless result
+
+      difference = now - result.timestamp
+
+      if difference < DURATION
+        return @startWorkflow yes
+      else
+        @startWorkflow()
+        @removeBlockFromUser()
+
+
+  startWorkflow: (isFailedLimitReached = no) ->
 
     @workflow = new UpdateCreditCardWorkflow { delegate: this }
-
     @workflow.once 'UpdateCreditCardWorkflowFinishedSuccessfully', @bound 'handleFinishedWithSuccess'
+
+    if isFailedLimitReached
+      @workflow.once 'ModalIsReady', => @workflow.failedAttemptLimitReached no
+
+
+  removeBlockFromUser: ->
+
+    { KEY } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
+    kd.utils.defer => @accountStorage?.unsetKey KEY
 
 
   handleFinishedWithSuccess: ({ paymentMethod }) ->

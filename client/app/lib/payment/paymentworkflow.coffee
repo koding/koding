@@ -254,13 +254,13 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
 
   blockUserForTooManyAttempts: ->
 
-    { appStorageController } = kd.singletons
+    { appStorageController }  = kd.singletons
+    pricingStorage            = appStorageController.storage 'Pricing', '2.0.0'
 
-    pricingStorage = appStorageController.storage 'Pricing', '2.0.0'
+    { KEY } = PaymentConstants.FAILED_ATTEMPTS.PRICING
+    value   = { timestamp: Date.now() }
 
-    value = { timestamp: Date.now() }
-
-    pricingStorage.setValue TOO_MANY_ATTEMPT_BLOCK_KEY, value
+    pricingStorage.setValue KEY, value
 
 
   finish: (state) ->

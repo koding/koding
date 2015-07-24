@@ -25,6 +25,7 @@ module.exports = class UpdateCreditCardWorkflow extends BaseWorkFlow
 
     @modal.on 'CreditCardSubmitted',        @bound 'handleSubmit'
     @modal.on 'CreditCardWorkflowFinished', @bound 'finish'
+    @emit 'ModalIsReady'
 
 
   handleSubmit: (formData) ->
@@ -88,4 +89,15 @@ module.exports = class UpdateCreditCardWorkflow extends BaseWorkFlow
       initiatorView.state.paymentMethod = card
 
       @modal.destroy()
+
+
+  blockUserForTooManyAttempts: ->
+
+    { appStorageController }  = kd.singletons
+    accountStorage            = appStorageController.storage 'Account', '1.0'
+
+    { KEY } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
+    value   = { timestamp: Date.now() }
+
+    accountStorage.setValue KEY, value
 

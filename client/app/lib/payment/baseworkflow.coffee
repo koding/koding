@@ -27,8 +27,9 @@ module.exports = class BaseWorkFlow extends KDController
 
   failedAttemptLimitReached: (blockUser = yes) ->
 
-    kd.utils.defer => @blockUserForTooManyAttempts()  if blockUser
-    @modal?.emit 'FailedAttemptLimitReached'
+    kd.utils.defer =>
+      @blockUserForTooManyAttempts()  if blockUser
+      @modal?.emit 'FailedAttemptLimitReached'
 
 
   blockUserForTooManyAttempts: ->
