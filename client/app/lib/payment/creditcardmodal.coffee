@@ -56,7 +56,10 @@ module.exports = class CreditCardModal extends PaymentBaseModal
 
   initEvents: ->
 
-    @on 'CreditCardUpdateFailed', showError
+    @on 'CreditCardUpdateFailed', (err) =>
+      @submitButton.hideLoader()
+      showError err
+
     @on 'CreditCardUpdateSucceeded', @bound 'handleSuccess'
     @on 'GotValidationResult', @bound 'handleValidationResult'
     @on 'FailedAttemptLimitReached', @bound 'handleLimitReached'
