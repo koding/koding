@@ -205,6 +205,19 @@ runTests = -> describe 'server.handlers.getteammembers', ->
       ->
         # expecting user to be registered
         registerRequestParams = generateRegisterRequestParams
+          body              :
+            email           : inviteeEmail
+            username        : inviteeUsername
+            password        : inviteeUsername
+            passwordConfirm : inviteeUsername
+
+        # registering a new user
+        request.post registerRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+        # expecting user to be registered
+        registerRequestParams = generateRegisterRequestParams
           body       :
             email    : groupOwnerEmail
             username : groupOwnerUsername
