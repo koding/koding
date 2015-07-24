@@ -4,6 +4,7 @@
 KONFIG                      = require('koding-config-manager').load("main.#{argv.c}")
 mongo                       = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
 Bongo                       = require 'bongo'
+{ daisy }                   = Bongo
 JUser                       = require './user'
 JGroup                      = require './group'
 JAccount                    = require './account'
@@ -54,7 +55,7 @@ runTests = ->
             allowedDomains : [ 'koding.com' ]
 
           # create the group
-          JGroup.create adminClient, groupData, account, (err, data)->
+          JGroup.create adminClient, groupData, account, (err, data) ->
             expect(err).to.not.exist
 
             group = data
@@ -66,7 +67,7 @@ runTests = ->
     client       = {}
     userFormData = {}
 
-    beforeEach (done)->
+    beforeEach (done) ->
       # create session data before each test
       client = generateDummyClientData()
       client.context.group = group.slug
@@ -84,44 +85,62 @@ runTests = ->
     describe 'if user is not a member yet', ->
 
       it 'should receive the invitation', (done) ->
+        queue = [
 
-        invitationReq = {
-          invitations:[
-            { email: userFormData.email }
-          ]
-        }
+          ->
+            invitationReq = {
+              invitations:[
+                { email: userFormData.email }
+              ]
+            }
 
-        JInvitation.create adminClient, invitationReq, (err)->
-          expect(err).to.not.exist
+            JInvitation.create adminClient, invitationReq, (err) ->
+              expect(err).to.not.exist
 
-          JInvitation.one { email: userFormData.email, groupName: client.context.group }, (err, invitation)->
-            expect(err).to.not.exist
-            expect(invitation).to.exist
+          ->
+              JInvitation.one { email: userFormData.email, groupName: client.context.group }, (err, invitation) ->
+                expect(err).to.not.exist
+                expect(invitation).to.exist
 
-            done()
+          -> done()
+
+        ]
+
+        daisy queue
 
 
     describe 'if user is already member', ->
 
       it 'should not receive the invitation', (done) ->
 
-        JUser.convert client, userFormData, (err) ->
-          expect(err).to.not.exist
+        queue = [
 
-          invitationReq = {
-            invitations:[
-              { email: userFormData.email }
-            ]
-          }
+          ->
+            JUser.convert client, userFormData, (err) ->
+              expect(err).to.not.exist
+              queue.next()
 
-          JInvitation.create adminClient, invitationReq, (err)->
-            expect(err).to.not.exist
+          ->
+            invitationReq = {
+              invitations:[
+                { email: userFormData.email }
+              ]
+            }
 
-            JInvitation.one { email: userFormData.email, groupName: group.slug }, (err, invitation)->
+            JInvitation.create adminClient, invitationReq, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            JInvitation.one { email: userFormData.email, groupName: group.slug }, (err, invitation) ->
               expect(err).to.not.exist
               expect(invitation).to.not.exist
+              queue.next()
 
-              done()
+          -> done()
 
+        ]
+
+        daisy queue
 
 runTests()
