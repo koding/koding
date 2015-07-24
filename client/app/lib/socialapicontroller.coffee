@@ -138,6 +138,8 @@ module.exports = class SocialApiController extends KDController
     m.repliesCount = data.repliesCount
     m.isFollowed   = data.isFollowed
 
+    m.integration = data.integration
+
     # this is sent by the server when
     # response for pinned messages
     m.unreadRepliesCount = data.unreadRepliesCount
