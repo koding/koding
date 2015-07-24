@@ -49,7 +49,6 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrNoArguments)
 	}
 
-	k.Log.Debug("Received arguments: %v", r.Args)
 	var args *TerraformBootstrapRequest
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err

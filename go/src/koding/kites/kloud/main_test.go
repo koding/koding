@@ -91,7 +91,7 @@ var (
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
 
-	machineCount      = 1
+	machineCount      = 2
 	terraformTemplate = `{
     "provider": {
         "aws": {
