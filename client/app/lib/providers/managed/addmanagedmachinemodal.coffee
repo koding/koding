@@ -14,6 +14,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     options.title    = 'Add Your Own Machine'
     options.width    = 690
     options.height   = 310
+    options.overlay  = yes
 
     super options, data
 
@@ -148,7 +149,11 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   destroy: ->
 
+    @input.unsetTooltip()
+
     super
 
     cc = kd.singletons.computeController
     cc.managedKiteChecker.removeListener @bound 'machineFoundCallback'
+
+
