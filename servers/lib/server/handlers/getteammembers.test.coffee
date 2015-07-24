@@ -194,6 +194,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
     token              = ''
     groupSlug          = generateRandomString()
     inviteeEmail       = generateRandomEmail()
+    inviteeEmail       = generateRandomEmail()
     inviteeUsername    = generateRandomString()
     groupOwnerEmail    = generateRandomEmail()
     groupOwnerUsername = generateRandomString()
@@ -205,7 +206,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
         # expecting user to be registered
         registerRequestParams = generateRegisterRequestParams
           body       :
-            email    : inviteeEmail
+            email    : groupOwnerEmail
             username : groupOwnerUsername
             password : groupOwnerPassword
 
@@ -234,18 +235,6 @@ runTests = -> describe 'server.handlers.getteammembers', ->
           queue.next()
 
       ->
-        joinTeamRequestParams = generateJoinTeamRequestParams
-          body       :
-            slug     : groupSlug
-            token    : token
-            username : inviteeUsername
-
-        request.post joinTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
-
-      ->
         # expecting group to be crated
         JGroup.one { slug : groupSlug }, (err, group) ->
           expect(err)         .to.not.exist
@@ -254,7 +243,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
       ->
         # expecting invitation to be created with correct data
-        params = { email : inviteeEmail }
+        params = { email : inviteeEmail, groupName : groupSlug }
 
         JInvitation.one params, (err, invitation) ->
           expect(err)                   .to.not.exist
@@ -283,7 +272,6 @@ runTests = -> describe 'server.handlers.getteammembers', ->
           expect(res.statusCode)  .to.be.equal 200
           expect(body)            .not.to.be.empty
           expect(body)            .to.contain groupOwnerUsername
-          expect(body)            .to.contain inviteeUsername
           queue.next()
 
       -> done()
