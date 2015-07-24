@@ -77,9 +77,28 @@ describe 'ChannelThreadsStore', ->
 
   describe '#addNewThread', ->
 
-    it 'creates inits a new thread in store', ->
+    it 'adds a new thread on followed public channel success', ->
       mockChannel = { id: '123' }
       reactor.dispatch actionTypes.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, {
+        channel: mockChannel
+      }
+
+      storeState = reactor.evaluateToJS ['channelThreads']
+      expect(storeState['123']).to.be.ok
+
+    it 'adds a new thread on followed private channel success', ->
+      mockChannel = { id: '123' }
+      reactor.dispatch actionTypes.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, {
+        channel: mockChannel
+      }
+
+      storeState = reactor.evaluateToJS ['channelThreads']
+      expect(storeState['123']).to.be.ok
+
+
+    it 'adds a new thread on regular message success', ->
+      mockChannel = { id: '123' }
+      reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, {
         channel: mockChannel
       }
 

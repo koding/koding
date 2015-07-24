@@ -41,6 +41,7 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
 
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
 
+    @on actions.LOAD_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @addNewThread
 
