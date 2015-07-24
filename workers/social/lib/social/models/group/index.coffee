@@ -320,7 +320,9 @@ module.exports = class JGroup extends Module
       'member', 'moderator', 'admin'
       'owner', 'tag', 'role'
     ]
-    relationships   :
+    relationships   : ->
+      JAccount     = require '../account'
+
       bundle        :
         targetType  : 'JGroupBundle'
         as          : 'owner'
@@ -331,16 +333,16 @@ module.exports = class JGroup extends Module
         targetType  : JPermissionSet
         as          : 'defaultpermset'
       member        :
-        targetType  : 'JAccount'
+        targetType  : JAccount
         as          : 'member'
       moderator     :
-        targetType  : 'JAccount'
+        targetType  : JAccount
         as          : 'moderator'
       admin         :
-        targetType  : 'JAccount'
+        targetType  : JAccount
         as          : 'admin'
       owner         :
-        targetType  : 'JAccount'
+        targetType  : JAccount
         as          : 'owner'
       subgroup      :
         targetType  : 'JGroup'
