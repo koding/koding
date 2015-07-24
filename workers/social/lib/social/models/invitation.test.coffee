@@ -80,6 +80,7 @@ runTests = ->
 
         done()
 
+
     describe 'if user is not a member yet', ->
 
       it 'should receive the invitation', (done) ->
@@ -98,6 +99,7 @@ runTests = ->
             expect(invitation).to.exist
 
             done()
+
 
     describe 'if user is already member', ->
 
@@ -120,5 +122,6 @@ runTests = ->
               expect(invitation).to.not.exist
 
               done()
+
 
 runTests()
