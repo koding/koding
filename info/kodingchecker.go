@@ -17,6 +17,10 @@ const delRouteCommand = "route del -host 169.254.169.254 reject"
 
 // TODO: Check the distro, if we're not on Ubuntu simply return false.
 func CheckKoding() (bool, error) {
+	if cachedProviderName == Koding {
+		return true, nil
+	}
+
 	// If we're not on Linux, we're not on a Koding VM
 	if runtime.GOOS != "linux" {
 		return false, nil
