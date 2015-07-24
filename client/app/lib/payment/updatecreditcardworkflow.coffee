@@ -1,10 +1,11 @@
 kd                = require 'kd'
 KDController      = kd.Controller
 CreditCardModal   = require './creditcardmodal'
+BaseWorkFlow      = require './baseworkflow'
 PaymentConstants  = require './paymentconstants'
 
 
-module.exports = class UpdateCreditCardWorkflow extends KDController
+module.exports = class UpdateCreditCardWorkflow extends BaseWorkFlow
 
   constructor: (options = {}, data) ->
 
@@ -28,6 +29,8 @@ module.exports = class UpdateCreditCardWorkflow extends KDController
 
   handleSubmit: (formData) ->
 
+    return @failedAttemptLimitReached()  if @isExceedFailedAttemptCount()
+
     { cardNumber, cardCVC, cardName
       cardMonth, cardYear
     } = formData
@@ -50,6 +53,7 @@ module.exports = class UpdateCreditCardWorkflow extends KDController
       if response.error
         @modal.emit 'StripeRequestValidationFalied', response.error
         @modal.submitButton.hideLoader()
+        @increaseFailedAttemptCount()
         return
 
       token = response.id
@@ -63,8 +67,10 @@ module.exports = class UpdateCreditCardWorkflow extends KDController
     paymentController.updateCreditCard token, (err, result) =>
 
       if err
-      then @modal.emit 'CreditCardUpdateFailed', err
-      else @modal.emit 'CreditCardUpdateSucceeded'
+        @modal.emit 'CreditCardUpdateFailed', err
+        @increaseFailedAttemptCount()
+      else
+        @modal.emit 'CreditCardUpdateSucceeded'
 
 
   finish: ->

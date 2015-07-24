@@ -12,7 +12,7 @@
 # yearPrice  : int (e.g 19000 for $190)
 
 kd                                  = require 'kd'
-KDController                        = kd.Controller
+BaseWorkFlow                        = require './baseworkflow'
 PaymentDowngradeErrorModal          = require './paymentdowngradeerrormodal'
 PaymentDowngradeWithDeletionModal   = require './paymentdowngradewithdeletionmodal'
 PaymentConstants                    = require './paymentconstants'
@@ -24,21 +24,13 @@ _                                   = require 'lodash'
 ComputeHelpers                      = require 'app/providers/computehelpers'
 
 
-module.exports = class PaymentWorkflow extends KDController
-
-  { TOO_MANY_ATTEMPT_BLOCK_KEY,
-    TOO_MANY_ATTEMPT_BLOCK_DURATION } = PaymentConstants
-
-  getInitialState: -> {
-    failedAttemptCount : 0
-  }
+module.exports = class PaymentWorkflow extends BaseWorkFlow
 
 
   constructor: (options = {}, data) ->
 
     super options, data
 
-    @state = kd.utils.extend @getInitialState(), options.state
     @startingState = _.extend {}, @state
 
     kd.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
@@ -130,10 +122,7 @@ module.exports = class PaymentWorkflow extends KDController
 
   handlePaymentSubmit: (formData) ->
 
-    { FAILED_ATTEMPT_LIMIT } = PaymentConstants
-
-    if @state.failedAttemptCount >= FAILED_ATTEMPT_LIMIT
-      return @failedAttemptLimitReached()
+    return @failedAttemptLimitReached()  if @isExceedFailedAttemptCount()
 
     {
       cardNumber, cardCVC, cardMonth,
@@ -177,7 +166,7 @@ module.exports = class PaymentWorkflow extends KDController
         if response.error
           @modal.emit 'StripeRequestValidationFailed', response.error
           @modal.form.submitButton.hideLoader()
-          @state.failedAttemptCount++
+          @increaseFailedAttemptCount()
           return
 
         token = response.id
@@ -200,7 +189,7 @@ module.exports = class PaymentWorkflow extends KDController
 
         if err
           @modal.emit 'PaymentFailed', err
-          @state.failedAttemptCount++
+          @increaseFailedAttemptCount()
         else
           @modal.emit 'PaymentSucceeded'
           @trackPaymentSucceeded()
@@ -257,12 +246,9 @@ module.exports = class PaymentWorkflow extends KDController
     }]
 
 
-  failedAttemptLimitReached: (blockUser = yes)->
+  failedAttemptLimitReached: (blockUser) ->
 
-    kd.utils.defer => @blockUserForTooManyAttempts()  if blockUser
-
-    @modal.emit 'FailedAttemptLimitReached'
-
+    super blockUser
     @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
 
 

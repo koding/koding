@@ -59,6 +59,7 @@ module.exports = class CreditCardModal extends PaymentBaseModal
     @on 'CreditCardUpdateFailed', showError
     @on 'CreditCardUpdateSucceeded', @bound 'handleSuccess'
     @on 'GotValidationResult', @bound 'handleValidationResult'
+    @on 'FailedAttemptLimitReached', @bound 'handleLimitReached'
 
     { cardNumber } = @form.inputs
 
@@ -87,4 +88,30 @@ module.exports = class CreditCardModal extends PaymentBaseModal
     @submitButton.setCallback =>
       @submitButton.hideLoader()
       @emit 'CreditCardWorkflowFinished'
+
+
+  handleLimitReached: ->
+
+    [
+      @form
+      @submitButton
+      @securityNote
+    ].forEach (view) -> view.destroy()
+
+    @setTitle 'Too many failed attempts'
+    @setSubtitle ''
+    @setClass 'has-problem'
+
+    subject = "User: #{nick()} blocked from upgrades due to too many failed attempts"
+
+    @successMessage.updatePartial "
+      Your access to upgrades has been locked for 24 hours
+      due to too many failed attempts. Please try again in 24 hours.
+      If you believe this is an error on our end, please send us a note at
+      <a href='mailto:support@koding.com?subject=#{subject}'>
+      support@koding.com</a> with
+      relevant details (your username,
+      plan you want to purchase, etc.).
+    "
+    @successMessage.show()
 
