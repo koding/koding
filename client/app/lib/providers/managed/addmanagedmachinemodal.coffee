@@ -149,7 +149,11 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   destroy: ->
 
+    @input.unsetTooltip()
+
     super
 
     cc = kd.singletons.computeController
     cc.managedKiteChecker.removeListener @bound 'machineFoundCallback'
+
+
