@@ -112,11 +112,15 @@ module.exports = class AvatarView extends LinkView
 
     width         = width * @dpr
     height        = height * @dpr
-    minAvatarSize = 30 * @dpr 
+    minAvatarSize = 30 * @dpr
 
     if profile.avatar?.match regexps.webProtocolRegExp
       resizedAvatar = proxifyUrl profile.avatar, {crop: yes, width, height}
       avatarURI     = resizedAvatar
+
+    {integration} = @getOptions()
+    if integration?.iconPath
+      avatarURI = proxifyUrl integration.iconPath, {crop: yes, width, height}
 
     @setAvatar avatarURI
 
@@ -132,7 +136,13 @@ module.exports = class AvatarView extends LinkView
 
     kd.getSingleton("groupsController").ready =>
       {slug} = kd.getSingleton("groupsController").getCurrentGroup()
-      href = if slug is "koding" then "/#{profile.nickname}" else "/#{slug}/#{profile.nickname}"
+      href = if integration
+        "/Admin/Integrations/Configure/#{integration.id}"
+      else if slug is 'koding'
+        "/#{profile.nickname}"
+      else
+        "/#{slug}/#{profile.nickname}"
+
       @setAttribute "href", href
 
     @showStatus()  if @getOptions().showStatus
