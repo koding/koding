@@ -210,9 +210,13 @@ final_message: "All done!"
 
 func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 	var err error
-	c.KiteKey, err = u.Keycreator.Create(c.Username, c.KiteId)
-	if err != nil {
-		return nil, err
+
+	// only change it KiteKey was not passed from outside
+	if c.KiteKey == "" {
+		c.KiteKey, err = u.Keycreator.Create(c.Username, c.KiteId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	latestKlientPath, err := u.Bucket.LatestDeb()
