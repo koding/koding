@@ -74,7 +74,7 @@ selectedChannelThread = [
   channelThreads
   selectedChannel
   (threads, channel) ->
-    return null  unless channel
+    return immutable.Map()  unless channel
     thread = threads.get channel.get('id')
     return thread.set 'channel', channel
 ]
