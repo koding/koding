@@ -24,11 +24,11 @@ var (
 	WorkerName    = "vmwatcher"
 	WorkerVersion = "0.0.1"
 
-	NetworkOut              = "NetworkOut"
-	NetworkOutLimit float64 = 7 * 1024 // 7GB/week
+	NetworkOut = "NetworkOut"
 
-	PaidPlanMultiplier float64 = 2
-	LimitMultiplier    float64 = 2
+	NetworkOutLimit    float64 = 2 * 1024 // 2GB/week
+	BlockMultiplier    float64 = 1.5      // 3GB/week
+	PaidPlanMultiplier float64 = 2        // 4GB & 6GB/week
 
 	BlockDuration = time.Hour * 24 * 365
 
@@ -37,7 +37,7 @@ var (
 	metricsToSave = []Metric{
 		&Cloudwatch{Name: NetworkOut, Limits: Limits{
 			StopLimitKey:  NetworkOutLimit,
-			BlockLimitKey: NetworkOutLimit * LimitMultiplier,
+			BlockLimitKey: NetworkOutLimit * BlockMultiplier,
 		}},
 	}
 )

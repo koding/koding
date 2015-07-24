@@ -83,12 +83,10 @@ var (
 			}
 
 			lines := strings.Split(cmd, "\n")
-			fmt.Printf("lines = %+v\n", lines)
 			c := "  - |\n"
 			for _, line := range lines {
 				c += fmt.Sprintf("    %s\n", line)
 			}
-			fmt.Printf("c = %+v\n", c)
 			return c
 		},
 	}
@@ -210,9 +208,13 @@ final_message: "All done!"
 
 func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 	var err error
-	c.KiteKey, err = u.Keycreator.Create(c.Username, c.KiteId)
-	if err != nil {
-		return nil, err
+
+	// only change it KiteKey was not passed from outside
+	if c.KiteKey == "" {
+		c.KiteKey, err = u.Keycreator.Create(c.Username, c.KiteId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	latestKlientPath, err := u.Bucket.LatestDeb()
