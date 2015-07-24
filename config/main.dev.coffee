@@ -1657,6 +1657,15 @@ Configuration = (options={}) ->
       elif [ "$1" == "vmwatchertests" ]; then
         go test koding/vmwatcher -test.v=true
 
+      elif [ "$1" == "janitortests" ]; then
+        ./go/src/koding/workers/janitor/test.sh
+
+      elif [ "$1" == "gatheringestortests" ]; then
+        go test go/src/koding/workers/gatheringestor/*.go
+
+      elif [ "$1" == "gomongotests" ]; then
+        go test ./go/src/koding/db/mongodb/modelhelper/*go
+
       elif [ "$1" == "socialworkertests" ]; then
         #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
 
