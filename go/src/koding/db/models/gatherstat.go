@@ -2,22 +2,20 @@ package models
 
 import "labix.org/v2/mgo/bson"
 
-type Gather struct {
-	Env        string `bson:"env" json:"env"`
-	Username   string `bson:"username" json:"username"`
-	InstanceId string `bson:"instanceId" json:"instanceId"`
-}
-
 type GatherStat struct {
-	Id bson.ObjectId `bson:"_id" json:"-"`
-	*Gather
-	Stats []GatherSingleStat `bson:"stats" json:"stats"`
+	Id         bson.ObjectId      `bson:"_id" json:"-"`
+	Env        string             `bson:"env" json:"env"`
+	Username   string             `bson:"username" json:"username"`
+	InstanceId string             `bson:"instanceId" json:"instanceId"`
+	Stats      []GatherSingleStat `bson:"stats" json:"stats"`
 }
 
 type GatherError struct {
-	Id bson.ObjectId `bson:"_id" json:"-"`
-	*Gather
-	Error string `bson:"error" json:error`
+	Id         bson.ObjectId `bson:"_id" json:"-"`
+	Env        string        `bson:"env" json:"env"`
+	Username   string        `bson:"username" json:"username"`
+	InstanceId string        `bson:"instanceId" json:"instanceId"`
+	Error      string        `bson:"error" json:error`
 }
 
 type GatherSingleStat struct {
@@ -26,10 +24,10 @@ type GatherSingleStat struct {
 	Value interface{} `bson:"value" json:"value"`
 }
 
-func NewGatherError(g *Gather, err error) *GatherError {
-	return &GatherError{bson.NewObjectId(), g, err.Error()}
+func NewGatherError(err error) *GatherError {
+	return &GatherError{Error: err.Error()}
 }
 
-func NewGatherStat(g *Gather, results []GatherSingleStat) *GatherStat {
-	return &GatherStat{bson.NewObjectId(), g, results}
+func NewGatherStat(results []GatherSingleStat) *GatherStat {
+	return &GatherStat{Stats: results}
 }
