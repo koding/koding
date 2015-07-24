@@ -51,9 +51,9 @@ func CheckKoding() (bool, error) {
 
 	// Second check if the account ID is the same, if not, it belongs to
 	// someone else (not Koding obviously)
-	if data.AccountID == KodingAccountID {
-		return true, nil
+	if data.AccountID != KodingAccountID {
+		return false, errors.New("account ID doesn not match Koding's account ID")
 	}
 
-	return false, errors.New("account ID doesn not match Koding's account ID")
+	return true, nil
 }
