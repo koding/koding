@@ -2,6 +2,7 @@ kd                = require 'kd'
 actionTypes       = require './actiontypes'
 fetchChatChannels = require 'activity/util/fetchChatChannels'
 isKoding          = require 'app/util/isKoding'
+MessageActions    = require './message'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -33,6 +34,7 @@ loadChannelByName = (name) ->
       return
 
     dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+    MessageActions.loadMessages channel.id
 
 
 ###*
