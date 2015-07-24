@@ -71,7 +71,8 @@ const (
 	ChannelMessage_TYPE_BOT             = "bot"
 	ChannelMessage_TYPE_SYSTEM          = "system"
 
-	ChannelMessagePayloadKeyLocation = "location"
+	ChannelMessagePayloadKeyLocation    = "location"
+	ChannelMessagePayloadKeyIntegration = "channelIntegrationId"
 )
 
 func (c *ChannelMessage) Location() *string {
@@ -211,7 +212,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 	}
 
 	// return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
-	return cmc, cmc.AddIsInteracted(query).Err
+	return cmc, cmc.AddIntegration().AddIsInteracted(query).Err
 }
 
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
