@@ -389,8 +389,8 @@ func TestTerraformStack(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
-	time.Sleep(time.Minute * 5)
+	// fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
+	// time.Sleep(time.Minute * 5)
 
 	destroyArgs := &kloud.TerraformApplyRequest{
 		StackId:   userData.StackId,
