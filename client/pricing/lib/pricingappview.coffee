@@ -16,6 +16,10 @@ trackEvent        = require 'app/util/trackEvent'
 
 module.exports = class PricingAppView extends KDView
 
+
+  { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.PRICING
+
+
   JView.mixin @prototype
 
   getInitialState : ->
@@ -30,7 +34,7 @@ module.exports = class PricingAppView extends KDView
       reversePlans
     }
 
-  constructor:(options = {}, data) ->
+  constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry "content-page pricing", options.cssClass
 
@@ -190,8 +194,6 @@ module.exports = class PricingAppView extends KDView
 
   preventBlockedUser: (options, callback) ->
 
-    { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.PRICING
-
     @appStorage.fetchValue KEY, (result) =>
 
       return callback()  unless result
@@ -220,8 +222,6 @@ module.exports = class PricingAppView extends KDView
 
 
   removeBlockFromUser: ->
-
-    { KEY } = PaymentConstants.FAILED_ATTEMPTS.PRICING
 
     kd.utils.defer => @appStorage.unsetKey KEY
 

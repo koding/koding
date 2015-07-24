@@ -41,20 +41,20 @@ module.exports =
     DOWNGRADE       : -1
 
 
-  FAILED_ATTEMPTS:
-    PRICING:
-      LIMIT: 3
-      KEY: 'PricingBlockForTooManyAttempts'
-      DURATION: globals.config.paymentBlockDuration
+  FAILED_ATTEMPTS       :
+    PRICING             :
+      LIMIT             : 3
+      KEY               : 'PricingBlockForTooManyAttempts'
+      DURATION          : globals.config.paymentBlockDuration
 
-    UPDATE_CREDIT_CARD:
-      LIMIT: 3
-      KEY: 'UpdateCreditCardBlockForTooManyAttempts'
-      DURATION: globals.config.paymentBlockDuration
+    UPDATE_CREDIT_CARD  :
+      LIMIT             : 3
+      KEY               : 'UpdateCreditCardBlockForTooManyAttempts'
+      DURATION          : globals.config.paymentBlockDuration
 
   error:
     ERR_USER_NOT_CONFIRMED: 'Sorry, you need to confirm your email address first.'
 
   events:
-    WORKFLOW_STARTED: 'WorkflowStarted'
-    WORKFLOW_COULD_NOT_START: 'WorkflowCouldNotStart'
+    WORKFLOW_STARTED          : 'WorkflowStarted'
+    WORKFLOW_COULD_NOT_START  : 'WorkflowCouldNotStart'

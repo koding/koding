@@ -7,6 +7,10 @@ PaymentConstants  = require './paymentconstants'
 
 module.exports = class UpdateCreditCardWorkflow extends BaseWorkFlow
 
+
+  { KEY, LIMIT } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
+
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -30,7 +34,8 @@ module.exports = class UpdateCreditCardWorkflow extends BaseWorkFlow
 
   handleSubmit: (formData) ->
 
-    return @failedAttemptLimitReached()  if @isExceedFailedAttemptCount()
+    if @isExceedFailedAttemptCount LIMIT
+      return @failedAttemptLimitReached()
 
     { cardNumber, cardCVC, cardName
       cardMonth, cardYear
@@ -96,7 +101,6 @@ module.exports = class UpdateCreditCardWorkflow extends BaseWorkFlow
     { appStorageController }  = kd.singletons
     accountStorage            = appStorageController.storage 'Account', '1.0'
 
-    { KEY } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
     value   = { timestamp: Date.now() }
 
     accountStorage.setValue KEY, value

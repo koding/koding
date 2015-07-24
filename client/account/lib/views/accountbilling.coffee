@@ -11,6 +11,10 @@ PaymentConstants          = require 'app/payment/paymentconstants'
 
 module.exports = class AccountBilling extends kd.View
 
+
+  { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
+
+
   initialState: {
     subscription: null
     paymentMethod: null
@@ -102,7 +106,7 @@ module.exports = class AccountBilling extends kd.View
       style    : 'solid small green'
       cssClass : 'hidden'
       title    : 'Update'
-      callback : => @bound 'preventBlockedUser'
+      callback : @bound 'preventBlockedUser'
 
     @paymentMethodHeader = header
     @paymentMethodButton = button
@@ -156,8 +160,7 @@ module.exports = class AccountBilling extends kd.View
 
   preventBlockedUser: ->
 
-    { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
-    now               = Date.now()
+    now = Date.now()
 
     @accountStorage.fetchValue KEY, (result) =>
 
@@ -183,8 +186,7 @@ module.exports = class AccountBilling extends kd.View
 
   removeBlockFromUser: ->
 
-    { KEY } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
-    kd.utils.defer => @accountStorage?.unsetKey KEY
+    kd.utils.defer => @accountStorage.unsetKey KEY
 
 
   handleFinishedWithSuccess: ({ paymentMethod }) ->

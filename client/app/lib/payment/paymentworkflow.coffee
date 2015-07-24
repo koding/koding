@@ -27,6 +27,9 @@ ComputeHelpers                      = require 'app/providers/computehelpers'
 module.exports = class PaymentWorkflow extends BaseWorkFlow
 
 
+  { KEY, LIMIT } = PaymentConstants.FAILED_ATTEMPTS.PRICING
+
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -122,7 +125,8 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
 
   handlePaymentSubmit: (formData) ->
 
-    return @failedAttemptLimitReached()  if @isExceedFailedAttemptCount()
+    if @isExceedFailedAttemptCount LIMIT
+      return @failedAttemptLimitReached()
 
     {
       cardNumber, cardCVC, cardMonth,
@@ -257,7 +261,6 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
     { appStorageController }  = kd.singletons
     pricingStorage            = appStorageController.storage 'Pricing', '2.0.0'
 
-    { KEY } = PaymentConstants.FAILED_ATTEMPTS.PRICING
     value   = { timestamp: Date.now() }
 
     pricingStorage.setValue KEY, value
