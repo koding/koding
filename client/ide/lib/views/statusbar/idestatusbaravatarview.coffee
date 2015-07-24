@@ -179,6 +179,9 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     kd.singletons.appManager.tell 'IDE', methodName, @nickname
 
+    if state
+      kd.singletons.appManager.tell 'IDE', 'showConfirmToSyncLayout', @nickname
+
 
   setReadOnlyState: (state) ->
 
@@ -186,9 +189,6 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     methodName = 'setParticipantPermission'
 
     kd.singletons.appManager.tell 'IDE', methodName, @nickname, permission
-
-    if shouldWatch
-      kd.singletons.appManager.tell 'IDE', 'showConfirmToSyncLayout', nickname
 
 
   destroy: ->
