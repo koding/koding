@@ -60,11 +60,12 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
       id              : data.account._id
 
     @avatar = new AvatarView
-      size     :
-        width  : 37
-        height : 37
-      cssClass : 'author-avatar'
-      origin   : origin
+      size        :
+        width     : 37
+        height    : 37
+      cssClass    : 'author-avatar'
+      origin      : origin
+      integration : data.integration
 
     @author = new ProfileLinkView { origin, integration: data.integration }
 
