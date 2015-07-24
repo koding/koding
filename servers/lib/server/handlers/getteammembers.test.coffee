@@ -194,7 +194,6 @@ runTests = -> describe 'server.handlers.getteammembers', ->
     token              = ''
     groupSlug          = generateRandomString()
     inviteeEmail       = generateRandomEmail()
-    inviteeEmail       = generateRandomEmail()
     inviteeUsername    = generateRandomString()
     groupOwnerEmail    = generateRandomEmail()
     groupOwnerUsername = generateRandomString()
@@ -216,12 +215,15 @@ runTests = -> describe 'server.handlers.getteammembers', ->
           expect(err)             .to.not.exist
           expect(res.statusCode)  .to.be.equal 200
           queue.next()
+
+      ->
         # expecting user to be registered
         registerRequestParams = generateRegisterRequestParams
-          body       :
-            email    : groupOwnerEmail
-            username : groupOwnerUsername
-            password : groupOwnerPassword
+          body              :
+            email           : groupOwnerEmail
+            username        : groupOwnerUsername
+            password        : groupOwnerPassword
+            passwordConfirm : groupOwnerPassword
 
         # registering a new user
         request.post registerRequestParams, (err, res, body) ->
