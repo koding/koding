@@ -6,6 +6,7 @@ PaymentMethodView         = require 'app/payment/paymentmethodview'
 PaymentHistoryListItem    = require './paymenthistorylistitem'
 UpdateCreditCardWorkflow  = require 'app/payment/updatecreditcardworkflow'
 AccountListViewController = require '../controllers/accountlistviewcontroller'
+PaymentConstants          = require 'app/payment/paymentconstants'
 
 
 module.exports = class AccountBilling extends kd.View

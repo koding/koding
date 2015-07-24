@@ -1,6 +1,7 @@
-kd = require 'kd'
-KDController = kd.Controller
-CreditCardModal = require './creditcardmodal'
+kd                = require 'kd'
+KDController      = kd.Controller
+CreditCardModal   = require './creditcardmodal'
+PaymentConstants  = require './paymentconstants'
 
 
 module.exports = class UpdateCreditCardWorkflow extends KDController

@@ -1,13 +1,15 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDButtonView = kd.ButtonView
-PaymentBaseModal = require './paymentbasemodal'
-StripeFormView = require './stripeformview'
-PaymentForm = require './paymentform'
-showError = require '../util/showError'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+KDButtonView      = kd.ButtonView
+PaymentBaseModal  = require './paymentbasemodal'
+StripeFormView    = require './stripeformview'
+PaymentForm       = require './paymentform'
+showError         = require '../util/showError'
+nick              = require '../util/nick'
 
 
 module.exports = class CreditCardModal extends PaymentBaseModal
+
 
   constructor: (options = {}, data) ->
 
@@ -22,6 +24,7 @@ module.exports = class CreditCardModal extends PaymentBaseModal
   observeForm: PaymentForm::observeForm
   handleFormInputValidation: PaymentForm::handleFormInputValidation
   handleValidationResult: PaymentForm::handleValidationResult
+
 
   initViews: ->
 

@@ -1,17 +1,17 @@
-kd = require 'kd'
+kd                = require 'kd'
+KDView            = kd.View
 KDButtonGroupView = kd.ButtonGroupView
-KDCustomHTMLView = kd.CustomHTMLView
-KDView = kd.View
-PricingPlansView = require './views/pricingplansview'
-isLoggedIn = require 'app/util/isLoggedIn'
-showError = require 'app/util/showError'
-PaymentWorkflow = require 'app/payment/paymentworkflow'
-PaymentConstants = require 'app/payment/paymentconstants'
-JView = require 'app/jview'
-FooterView = require 'app/commonviews/footerview'
-CustomLinkView = require 'app/customlinkview'
-globals = require 'globals'
-trackEvent = require 'app/util/trackEvent'
+KDCustomHTMLView  = kd.CustomHTMLView
+PricingPlansView  = require './views/pricingplansview'
+isLoggedIn        = require 'app/util/isLoggedIn'
+showError         = require 'app/util/showError'
+PaymentWorkflow   = require 'app/payment/paymentworkflow'
+PaymentConstants  = require 'app/payment/paymentconstants'
+JView             = require 'app/jview'
+FooterView        = require 'app/commonviews/footerview'
+CustomLinkView    = require 'app/customlinkview'
+globals           = require 'globals'
+trackEvent        = require 'app/util/trackEvent'
 
 
 module.exports = class PricingAppView extends KDView

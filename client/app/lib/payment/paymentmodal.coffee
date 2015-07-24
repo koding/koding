@@ -1,10 +1,10 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-PaymentBaseModal = require './paymentbasemodal'
-PaymentForm = require './paymentform'
-PaymentConstants = require './paymentconstants'
-showError = require '../util/showError'
-trackEvent = require 'app/util/trackEvent'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+PaymentBaseModal  = require './paymentbasemodal'
+PaymentForm       = require './paymentform'
+PaymentConstants  = require './paymentconstants'
+showError         = require '../util/showError'
+trackEvent        = require 'app/util/trackEvent'
 
 
 # This class is the modal view.
@@ -41,7 +41,7 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
     super options, data
 
-    {planTitle, planInterval} = @state
+    { planTitle, planInterval } = @state
 
     trackEvent 'Viewed Product',
       id       : "#{planTitle}-#{planInterval}"
