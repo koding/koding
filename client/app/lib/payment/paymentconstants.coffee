@@ -40,9 +40,17 @@ module.exports =
     INTERVAL_CHANGE : 0
     DOWNGRADE       : -1
 
-  FAILED_ATTEMPT_LIMIT: 3
-  TOO_MANY_ATTEMPT_BLOCK_KEY: 'BlockForTooManyAttempts'
-  TOO_MANY_ATTEMPT_BLOCK_DURATION: globals.config.paymentBlockDuration
+
+  FAILED_ATTEMPTS:
+    PRICING:
+      LIMIT: 3
+      KEY: 'PricingBlockForTooManyAttempts'
+      DURATION: globals.config.paymentBlockDuration
+
+    UPDATE_CREDIT_CARD:
+      LIMIT: 3
+      KEY: 'UpdateCreditCardBlockForTooManyAttempts'
+      DURATION: globals.config.paymentBlockDuration
 
   error:
     ERR_USER_NOT_CONFIRMED: 'Sorry, you need to confirm your email address first.'
