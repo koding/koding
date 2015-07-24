@@ -1,7 +1,6 @@
 package info
 
 import (
-	"errors"
 	"runtime"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/ec2dynamicdata"
@@ -49,10 +48,10 @@ func CheckKoding() (bool, error) {
 		return false, nil
 	}
 
-	// Second check if the account ID is the same, if not, it belongs to
+	// Check if the account ID is the same, if not, it belongs to
 	// someone else (not Koding obviously)
 	if data.AccountID != KodingAccountID {
-		return false, errors.New("account ID doesn not match Koding's account ID")
+		return false, nil
 	}
 
 	return true, nil
