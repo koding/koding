@@ -18,6 +18,7 @@ import (
 	"github.com/koding/klient/control"
 	"github.com/koding/klient/fs"
 	"github.com/koding/klient/info"
+	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/sshkeys"
 	"github.com/koding/klient/storage"
 	"github.com/koding/klient/terminal"
@@ -336,6 +337,13 @@ func (k *Klient) Run() {
 	}
 
 	k.startUpdater()
+
+	if isKoding && protocol.Environment == "managed" {
+		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
+		panic(errors.New(
+			"This binary of Klient cannot run on a Koding provided VM",
+		))
+	}
 
 	if err := k.register(); err != nil {
 		panic(err)
