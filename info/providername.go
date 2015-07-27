@@ -162,11 +162,9 @@ func checkProvider(providers []ProviderName) (ProviderName, error) {
 
 // generateWhoisChecker returns a ProviderChecker matching one or more whois
 // regexp objects against the typical ProviderChecker whois.
-func generateWhoisChecker(pn ProviderName,
-	res ...*regexp.Regexp) ProviderChecker {
-
+func generateWhoisChecker(provider ProviderName, res ...*regexp.Regexp) ProviderChecker {
 	return func() (bool, error) {
-		if cachedProviderName == pn {
+		if cachedProviderName == provider {
 			return true, nil
 		}
 
