@@ -1,9 +1,7 @@
 kd                        = require 'kd'
 showError                 = require 'app/util/showError'
 checkFlag                 = require 'app/util/checkFlag'
-
 StacksModal               = require 'app/stacks/stacksmodal'
-
 EnvironmentList           = require './environmentlist'
 EnvironmentListController = require './environmentlistcontroller'
 
@@ -18,11 +16,6 @@ module.exports = class EnvironmentsModal extends kd.ModalView
     options.overlay  = yes
 
     super options, data
-
-
-  viewAppended: ->
-
-    super
 
     listView   = new EnvironmentList
     controller = new EnvironmentListController
@@ -50,7 +43,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
       stack.delete (err) ->
         return showError err  if err
 
-        {computeController, appManager} = kd.singletons
+        { computeController, appManager } = kd.singletons
 
         computeController
           .reset()
