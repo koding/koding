@@ -9,8 +9,8 @@ module.exports = class MessageTime extends React.Component
     date : React.PropTypes.string.isRequired
 
 
-  timeFormat = 'h:MM TT'
-
+  timeFormat            = 'h:MM TT'
+  timeWithSecondsFormat = 'h:MM:ss TT'
 
   getTime: (date) ->
 
@@ -31,6 +31,6 @@ module.exports = class MessageTime extends React.Component
 
     <div className="ChatItem-messageDate">
       <time>{ @getTime @props.date }</time>
-      <Tooltip text={ @getTooltipTitle @props.date, timeFormat }/>
+      <Tooltip text={ @getTooltipTitle @props.date, timeWithSecondsFormat }/>
     </div>
 
