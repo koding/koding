@@ -206,7 +206,7 @@ func checkDigitalOcean(metadataApi string) (bool, error) {
 	// Note: It's also possible that the given string is not a valid URL,
 	// but we're not worrying about that since this is a private func.
 	// If we want to handle that, we should simply create a net.URL and
-	// return any parsing errors from that, and not fro http.Get()
+	// return any parsing errors from that, and not from http.Get()
 	if err != nil {
 		return false, nil
 	}
