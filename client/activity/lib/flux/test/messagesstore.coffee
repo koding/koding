@@ -15,6 +15,19 @@ describe 'MessagesStore', ->
     reactor = new Reactor
     reactor.registerStores messages: MessagesStore
 
+
+  describe '#handleLoadMessageSuccess', ->
+
+    it 'adds successful message to state', ->
+
+      message = MessageCollectionHelpers.createFakeMessage '567', 'foo'
+      reactor.dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { message }
+
+      storeState = reactor.evaluateToJS ['messages']
+
+      expect(storeState['567']['body']).to.eql 'foo'
+
+
   describe '#handleCreateMessageBegin', ->
 
     it 'creates a fake item view with dispatched clientRequestId', ->

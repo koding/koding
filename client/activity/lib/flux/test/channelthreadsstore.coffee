@@ -15,6 +15,19 @@ describe 'ChannelThreadsStore', ->
     reactor.registerStores channelThreads: ChannelThreadsStore
     channelId = '123'
 
+
+  describe '#handleLoadMessageSuccess', ->
+
+    it 'adds successful message to store', ->
+
+      message = id: '567'
+      reactor.dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, message }
+
+      storeState = reactor.evaluateToJS ['channelThreads']
+
+      expect(storeState[channelId]['messages']['567']).to.eql '567'
+
+
   describe '#handleCreateMessageBegin', ->
 
     it 'inits thread if does not exist', ->

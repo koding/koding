@@ -35,6 +35,8 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
 
   initialize: ->
 
+    @on actions.LOAD_MESSAGE_SUCCESS, @handleLoadMessageSuccess
+
     @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
@@ -44,6 +46,20 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
     @on actions.LOAD_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @addNewThread
+
+
+  ###*
+   * General handler for message load actions.
+   *
+   * @param {IMThreadCollection} threads
+   * @param {object} payload
+   * @param {string} payload.channelId
+   * @param {SocialMessage} payload.message
+   * @return {IMThreadCollection} nextState
+  ###
+  handleLoadMessageSuccess: (threads, { channelId, message }) ->
+
+    return addMessage threads, channelId, message.id
 
 
   ###*

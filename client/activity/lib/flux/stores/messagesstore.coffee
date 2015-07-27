@@ -28,6 +28,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
   initialize: ->
 
+    @on actions.LOAD_MESSAGE_SUCCESS, @handleLoadMessageSuccess
     @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
@@ -47,6 +48,20 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.UNLIKE_MESSAGE_BEGIN, @handleUnlikeMessageBegin
     @on actions.UNLIKE_MESSAGE_SUCCESS, @handleUnlikeMessageSuccess
     @on actions.UNLIKE_MESSAGE_FAIL, @handleUnlikeMessageFail
+
+  ###*
+   * Handler for message load actions.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {SocialMessage} payload.message
+   * @return {IMMessageCollection} nextState
+  ###
+  handleLoadMessageSuccess: (messages, { message }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    return addMessage messages, toImmutable message
 
 
   ###*
