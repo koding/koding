@@ -29,6 +29,29 @@ loadMessages = (channelId) ->
 
 
 ###*
+ * Action to load message with given slug.
+ *
+ * @param {string} slug
+###
+loadMessageBySlug = (slug) ->
+
+  { socialapi } = kd.singletons
+  { LOAD_MESSAGE_BY_SLUG_BEGIN
+    LOAD_MESSAGE_BY_SLUG_FAIL
+    LOAD_MESSAGE_SUCCESS } = actionTypes
+
+  dispatch LOAD_MESSAGE_BY_SLUG_BEGIN, { slug }
+
+  socialapi.message.bySlug { slug }, (err, message) ->
+    if err
+      dispatch LOAD_MESSAGE_BY_SLUG_FAIL, { err, slug }
+      return
+
+    dispatch LOAD_MESSAGE_SUCCESS, { messageId: message.id, message }
+    loadComments message.id
+
+
+###*
  * Action to create a message.
  *
  * @param {string} channelId
