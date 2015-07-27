@@ -15,6 +15,7 @@ MessagesStore                  = [['MessagesStore'], withEmptyMap]
 ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
+ChannelPopularMessageIdsStore  = [['ChannelPopularMessageIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
 SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
 SuggestionsQueryStore          = ['SuggestionsQueryStore']
@@ -58,9 +59,17 @@ channelThreads = [
       thread.set 'messages', messages
 ]
 
+channelPopularMessages = [
+  ChannelPopularMessageIdsStore
+  MessagesStore
+  (channelIds, messages) ->
+    channelIds.map (msgs) -> msgs.map (id) -> messages.get id
+]
+
 # Returns data from SelectedChannelThreadIdStore
 # Alias for providing a consistent api.
 selectedChannelThreadId = SelectedChannelThreadIdStore
+
 
 # Returns selected channel instance.
 selectedChannel = [
@@ -123,6 +132,12 @@ selectedChannelThreadMessages = [
     if thread?.has 'messages'
     then thread.get 'messages'
     else immutable.List()
+selectedChannelPopularMessages = [
+  channelPopularMessages
+  selectedChannelThreadId
+  (messages, id) -> messages.get id
+]
+
 ]
 
 # Aliases for providing consistent getter names for suggestion stores
@@ -138,6 +153,8 @@ module.exports = {
   selectedChannelThreadId
   selectedChannelThread
   selectedChannelThreadMessages
+
+  selectedChannelPopularMessages
 
   currentSuggestionsQuery
   currentSuggestions

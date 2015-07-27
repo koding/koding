@@ -12,6 +12,7 @@ module.exports =
     require './stores/selectedchannelthreadidstore'
     require './stores/followedpublicchannelidsstore'
     require './stores/followedprivatechannelidsstore'
+    require './stores/channelpopularmessageidsstore'
     require './stores/suggestions/suggestionsquerystore'
     require './stores/suggestions/suggestionsflagsstore'
     require './stores/suggestions/suggestionsstore'
