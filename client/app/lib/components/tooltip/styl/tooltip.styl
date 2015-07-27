@@ -1,0 +1,30 @@
+.Tooltip-wrapper
+  abs()
+  hidden()
+  top                   -24px
+  left                  -50%
+
+  span
+    borderBox()
+    display             block
+    line-height         22px
+    height              22px
+    padding             0 5px
+    rounded             3px
+    color               #FFF
+    text-align          center
+    word-wrap           break-word
+    white-space         nowrap
+    font-size           12px
+    font-weight         300
+    bg                  color, rgba(0,0,0,.65)
+
+  &:after
+    abs()
+    content             ''
+    bottom              -10px
+    left                50%
+    margin-left         -5px
+    size                0, 0
+    border              5px solid rgba(0, 0, 0, 0)
+    border-top-color    rgba(0,0,0,.65)
