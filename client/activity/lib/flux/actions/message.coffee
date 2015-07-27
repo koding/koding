@@ -188,6 +188,31 @@ editMessage = (messageId, body, payload = {}) ->
           }
 
 
+###*
+ * Action to load comments with given options.
+ *
+ * @param {string} messageId
+ * @param {string} from
+ * @param {number} limit
+###
+loadComments = (messageId, from, limit) ->
+
+  { socialapi } = kd.singletons
+  { LOAD_COMMENTS_BEGIN
+    LOAD_COMMENTS_FAIL
+    LOAD_COMMENT_SUCCESS } = actionTypes
+
+  dispatch LOAD_COMMENTS_BEGIN, { messageId, from, limit }
+
+  socialapi.message.listReplies {messageId, from, limit}, (err, comments) ->
+    if err
+      dispatch LOAD_COMMENTS_FAIL, { err, messageId, from, limit }
+      return
+
+    comments.forEach (comment) ->
+      dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
+
+
 module.exports = {
   loadMessages
   createMessage
@@ -195,5 +220,6 @@ module.exports = {
   unlikeMessage
   removeMessage
   editMessage
+  loadComments
 }
 
