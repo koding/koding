@@ -96,21 +96,43 @@ func (pn ProviderName) Checker() ProviderChecker {
 // DefaultProviderCheckers is a slice of each ProviderName in the order
 // that they will be checked.
 var DefaultProvidersToCheck = []ProviderName{
+	DigitalOcean,
+	Koding,
 	AWS,
 	Azure,
-	DigitalOcean,
 	GoogleCloud,
 	Joyent,
 	Rackspace,
 	SoftLayer,
-	Koding,
 }
+
+// cachedProviderName is the ProviderName resulting from running through
+// all of the DefaultProviderCheckers.
+//
+// This should not be written to by anyone but CheckProvider(), because
+// an individual ProviderChecker may not be correct when compared to
+// CheckProvider. For example, CheckAWS() will always return true, even
+// if the ProviderName is actually Koding.
+//
+// ProviderCheckers are able to read from this value though, if desired.
+var cachedProviderName ProviderName
 
 // CheckProvider uses the current machine's IP and runs a whois on it, then
 // feeds the whois to all DefaultProviderCheckers. Providers are free to use
 // the whois query.
 func CheckProvider() (ProviderName, error) {
-	return checkProvider(DefaultProvidersToCheck)
+	if cachedProviderName != UnknownProvider {
+		return cachedProviderName, nil
+	}
+
+	providerName, err := checkProvider(DefaultProvidersToCheck)
+	if err != nil {
+		return UnknownProvider, err
+	}
+
+	cachedProviderName = providerName
+
+	return providerName, nil
 }
 
 // checkProvider implements the testable functionality of CheckProvider.
@@ -140,8 +162,12 @@ func checkProvider(providers []ProviderName) (ProviderName, error) {
 
 // generateWhoisChecker returns a ProviderChecker matching one or more whois
 // regexp objects against the typical ProviderChecker whois.
-func generateWhoisChecker(res ...*regexp.Regexp) ProviderChecker {
+func generateWhoisChecker(provider ProviderName, res ...*regexp.Regexp) ProviderChecker {
 	return func() (bool, error) {
+		if cachedProviderName == provider {
+			return true, nil
+		}
+
 		whois, err := DefaultWhoisChecker()
 		if err != nil {
 			return false, err
@@ -159,6 +185,10 @@ func generateWhoisChecker(res ...*regexp.Regexp) ProviderChecker {
 
 // CheckDigitalOcean is a ProviderChecker for DigitalOcean
 func CheckDigitalOcean() (bool, error) {
+	if cachedProviderName == DigitalOcean {
+		return true, nil
+	}
+
 	return checkDigitalOcean("http://169.254.169.254/metadata/v1/hostname")
 }
 
@@ -167,8 +197,18 @@ func CheckDigitalOcean() (bool, error) {
 // and if it returns 404, the check fails.
 func checkDigitalOcean(metadataApi string) (bool, error) {
 	res, err := http.Get(metadataApi)
+
+	// An error during the http request indicates that the API server
+	// is either non-existent, or does not exist. This is expected
+	// behavior if this func is called on something other than DigitalOcean,
+	// and should not return an error.
+	//
+	// Note: It's also possible that the given string is not a valid URL,
+	// but we're not worrying about that since this is a private func.
+	// If we want to handle that, we should simply create a net.URL and
+	// return any parsing errors from that, and not from http.Get()
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 
 	return res.StatusCode == http.StatusOK, nil
@@ -176,30 +216,37 @@ func checkDigitalOcean(metadataApi string) (bool, error) {
 
 // CheckAWS is a generic whois checker for Amazon
 var CheckAWS ProviderChecker = generateWhoisChecker(
+	AWS,
 	regexp.MustCompile(`(?i)amazon`),
 )
 
 var CheckAzure ProviderChecker = generateWhoisChecker(
+	Azure,
 	regexp.MustCompile(`(?i)azure`),
 )
 
 var CheckGoogleCloud ProviderChecker = generateWhoisChecker(
+	GoogleCloud,
 	regexp.MustCompile(`(?i)google\s*cloud`),
 )
 
 var CheckHPCloud ProviderChecker = generateWhoisChecker(
+	HPCloud,
 	regexp.MustCompile(`(?i)hp\s*cloud`),
 )
 
 var CheckJoyent ProviderChecker = generateWhoisChecker(
+	Joyent,
 	regexp.MustCompile(`(?i)joyent`),
 )
 
 var CheckRackspace ProviderChecker = generateWhoisChecker(
+	Rackspace,
 	regexp.MustCompile(`(?i)rackspace`),
 )
 
 var CheckSoftLayer ProviderChecker = generateWhoisChecker(
+	SoftLayer,
 	regexp.MustCompile(`(?i)softlayer`),
 )
 
