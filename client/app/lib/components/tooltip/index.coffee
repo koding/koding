@@ -9,6 +9,8 @@ module.exports = class Tooltip extends React.Component
 
 
   render: ->
+
     <div className="Tooltip-wrapper">
       <span>{ @props.text }</span>
     </div>
+

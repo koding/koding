@@ -12,9 +12,11 @@ MessageTime          = require 'activity/components/chatlistitem/messagetime'
 keycode              = require 'keycode'
 
 module.exports = class ChatListItem extends React.Component
+
   constructor: (props) ->
 
     @state = { hover: no, showMenuForMouseAction: no, editMode: no }
+
 
   getItemProps: ->
     key       : @props.message.get 'id'
@@ -26,6 +28,7 @@ module.exports = class ChatListItem extends React.Component
       @setState hover: no
       @setState showMenuForMouseAction: no
 
+
   getMenuItems: ->
     return [
       {title: 'Edit Post',   key: 'editpost',  onClick: @bound 'editPost'}
@@ -35,26 +38,41 @@ module.exports = class ChatListItem extends React.Component
       {title: 'impersonate User', key: 'impersonate', onClick: @bound 'impersonate'}
     ]
 
+
   editPost: ->
+
     @setState editMode: yes
 
+
   deletePost: ->
+
     console.log "delete post clicked"
 
+
   markUser: ->
+
     console.log "mark user clicked"
 
+
   blockUser: ->
+
     console.log "block user clicked"
 
+
   impersonate: ->
+
     console.log "impersonate clicked"
 
+
   updateMessage: ->
+
     console.log "update message"
 
+
   cancelEdit: ->
+
     @setState editMode: no
+
 
   handleEditMessageKeyDown: (event) ->
 
@@ -66,6 +84,7 @@ module.exports = class ChatListItem extends React.Component
 
 
   render: ->
+
     { message } = @props
     editFormClass       = if @state.editMode then 'ChatItem-updateMessageForm' else 'ChatItem-updateMessageForm hidden'
     mediaContentClass   = if @state.editMode then 'MediaObject-content hidden' else 'MediaObject-content'
@@ -98,13 +117,15 @@ module.exports = class ChatListItem extends React.Component
 
 
 makeProfileLink = (imAccount) ->
+
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <ProfileText />
   </ProfileLinkContainer>
 
+
 makeAvatar = (imAccount) ->
+
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <Avatar className="ChatItem-Avatar" width={35} height={35} />
   </ProfileLinkContainer>
-
 

@@ -4,6 +4,16 @@
   top                   -24px
   left                  -50%
 
+  &:after
+    abs()
+    content             ''
+    bottom              -10px
+    left                50%
+    margin-left         -5px
+    size                0, 0
+    border              5px solid rgba(0, 0, 0, 0)
+    border-top-color    rgba(0,0,0,.65)
+
   span
     borderBox()
     display             block
@@ -19,12 +29,3 @@
     font-weight         300
     bg                  color, rgba(0,0,0,.65)
 
-  &:after
-    abs()
-    content             ''
-    bottom              -10px
-    left                50%
-    margin-left         -5px
-    size                0, 0
-    border              5px solid rgba(0, 0, 0, 0)
-    border-top-color    rgba(0,0,0,.65)
