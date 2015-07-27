@@ -213,13 +213,41 @@ loadComments = (messageId, from, limit) ->
       dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
 
 
+###*
+ * Adds comment to given message.
+ *
+ * @param {string} messageId
+ * @param {string} body
+ * @param {object=} payload
+###
+createComment = (messageId, body, payload = {}) ->
+
+  { socialapi } = kd.singletons
+  { CREATE_COMMENT_BEGIN
+    CREATE_COMMENT_FAIL
+    CREATE_COMMENT_SUCCESS } = actionTypes
+
+  clientRequestId = generateFakeIdentifier Date.now()
+
+  dispatch CREATE_COMMENT_BEGIN, { messageId, clientRequestId, body }
+
+  socialapi.message.reply { messageId, clientRequestId, body, payload }, (err, comment) ->
+    if err
+      dispatch CREATE_COMMENT_FAIL, { err, comment, clientRequestId }
+      return
+
+    dispatch CREATE_COMMENT_SUCCESS, { messageId, comment, clientRequestId }
+
+
 module.exports = {
   loadMessages
+  loadMessageBySlug
   createMessage
   likeMessage
   unlikeMessage
   removeMessage
   editMessage
   loadComments
+  createComment
 }
 
