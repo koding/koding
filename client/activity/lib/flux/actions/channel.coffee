@@ -2,6 +2,7 @@ kd                = require 'kd'
 actionTypes       = require './actiontypes'
 fetchChatChannels = require 'activity/util/fetchChatChannels'
 isKoding          = require 'app/util/isKoding'
+getGroup          = require 'app/util/getGroup'
 MessageActions    = require './message'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -82,8 +83,40 @@ loadFollowedPublicChannels = (options = {}) ->
       dispatch LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, { channel, options }
 
 
+###*
+ * Action to load popular messages of given channel.
+ *
+ * @param {string} channelId
+ * @param {object=} options
+###
+loadPopularMessages = (channelId, options = {}) ->
+
+  { skip, limit } = options
+  { LOAD_POPULAR_MESSAGES_BEGIN
+    LOAD_POPULAR_MESSAGES_FAIL
+    LOAD_POPULAR_MESSAGE_SUCCESS } = actionTypes
+
+  dispatch LOAD_POPULAR_MESSAGES_BEGIN, { channelId }
+
+  channel = kd.singletons.socialapi.retrieveCachedItemById channelId
+
+  channelName = 'public'
+  group = getGroup().slug
+
+  { fetchPopularPosts } = kd.singletons.socialapi.channel
+  fetchPopularPosts { group, channelName, skip, limit }, (err, messages) ->
+    if err
+      dispatch LOAD_POPULAR_MESSAGES_FAIL, { err, channelId }
+      return
+
+    messages.forEach (message) ->
+      dispatch LOAD_POPULAR_MESSAGE_SUCCESS, { channelId, message }
+
+
+
 module.exports = {
   loadChannelByName
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
+  loadPopularMessages
 }
