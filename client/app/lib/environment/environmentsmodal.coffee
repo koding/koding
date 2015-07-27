@@ -11,14 +11,14 @@ module.exports = class EnvironmentsModal extends kd.ModalView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'environments-modal', options.cssClass
+    options.title    = 'Your Machines'
     options.width    = 742
-    options.title    = 'Your VMs'
     options.overlay  = yes
 
     super options, data
 
-    listView   = new EnvironmentList
-    controller = new EnvironmentListController
+    listView     = new EnvironmentList
+    controller   = new EnvironmentListController
       view       : listView
       wrapper    : no
       scrollView : no
