@@ -4,7 +4,6 @@ KDModalView    = kd.ModalView
 
 remote         = require('./remote').getInstance()
 globals        = require 'globals'
-kookies        = require 'kookies'
 
 lazyrouter     = require './lazyrouter'
 trackEvent     = require './util/trackEvent'
