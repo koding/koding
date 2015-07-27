@@ -89,9 +89,4 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
         remote.cacheable info.params.name, (err, models, name) =>
           if models?
           then open.call this, info, models.first
-          else 
-           if info.params.name is 'Recover'
-             kookies.expire 'clientId'
-             global.location.href = '/Recover'
-           else 
-             ctx.handleNotFound info.params.name
+          else ctx.handleNotFound info.params.name
