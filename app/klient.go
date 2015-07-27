@@ -11,7 +11,6 @@ import (
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
 	"github.com/koding/klient/client"
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
@@ -325,16 +324,16 @@ func (k *Klient) Run() {
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
 	isKoding, _ := info.CheckKoding()
-	if !isKoding {
-		// Open Pandora's box
-		if err := k.tunnelclient.Start(k.kite, &tunnel.ClientConfig{
-			ServerAddr: k.config.TunnelServerAddr,
-			LocalAddr:  k.config.TunnelLocalAddr,
-			Debug:      k.config.Debug,
-		}); err != nil {
-			k.log.Error("Could not start tunneling: '%s'", err)
-		}
-	}
+	//if !isKoding {
+	//	// Open Pandora's box
+	//	if err := k.tunnelclient.Start(k.kite, &tunnel.ClientConfig{
+	//		ServerAddr: k.config.TunnelServerAddr,
+	//		LocalAddr:  k.config.TunnelLocalAddr,
+	//		Debug:      k.config.Debug,
+	//	}); err != nil {
+	//		k.log.Error("Could not start tunneling: '%s'", err)
+	//	}
+	//}
 
 	k.startUpdater()
 
