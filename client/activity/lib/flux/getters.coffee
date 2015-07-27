@@ -13,10 +13,12 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 ChannelsStore                  = [['ChannelsStore'], withEmptyMap]
 MessagesStore                  = [['MessagesStore'], withEmptyMap]
 ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
+MessageThreadsStore            = [['MessageThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
 ChannelPopularMessageIdsStore  = [['ChannelPopularMessageIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
+SelectedMessageThreadIdStore   = ['SelectedMessageThreadIdStore']
 SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
 SuggestionsQueryStore          = ['SuggestionsQueryStore']
 SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
@@ -134,6 +136,39 @@ selectedChannelPopularMessages = [
   (messages, id) -> messages.get id
 ]
 
+selectedMessageThreadId = SelectedMessageThreadIdStore
+
+selectedMessage = [
+  MessagesStore
+  selectedMessageThreadId
+  (messages, id) -> if id then messages.get id else null
+]
+
+# Maps channels message ids with relevant message instances.
+messageThreads = [
+  MessageThreadsStore
+  MessagesStore
+  (threads, messages) ->
+    threads.map (thread) ->
+      # replace messageIds in list with message instances.
+      thread.update 'comments', (comments) ->
+        comments.map (id) -> messages.get id
+]
+
+selectedMessageThread = [
+  messageThreads
+  selectedMessage
+  (threads, message) ->
+    return null  unless message
+    thread = threads.get message.get('id')
+    return thread.set 'message', message
+]
+
+selectedMessageThreadComments = [
+  selectedMessageThread
+  (thread) ->
+    return null  unless thread
+    thread.get 'comments'
 ]
 
 # Aliases for providing consistent getter names for suggestion stores
@@ -149,6 +184,10 @@ module.exports = {
   selectedChannelThreadId
   selectedChannelThread
   selectedChannelThreadMessages
+
+  selectedMessageThreadId
+  selectedMessageThread
+  selectedMessageThreadComments
 
   selectedChannelPopularMessages
 
