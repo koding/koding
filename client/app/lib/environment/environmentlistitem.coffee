@@ -102,13 +102,10 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   generateMenuCallback: (provider) ->
 
-    {handleNewMachineRequest} = ComputeHelpers
-    delegate = @getDelegate()
-
     return =>
-      handleNewMachineRequest { provider }
+      ComputeHelpers.handleNewMachineRequest { provider }
       @_menu.destroy()
-      delegate.emit 'ModalDestroyRequested'
+      @getDelegate().emit 'ModalDestroyRequested'
 
 
   pistachio: ->
