@@ -42,14 +42,17 @@ module.exports =
 
 
   FAILED_ATTEMPTS       :
+
+    # Use same key with another
+    # I left it that way because maybe we can want to distinguish keys on next time.
     PRICING             :
       LIMIT             : 3
-      KEY               : 'PricingBlockForTooManyAttempts'
+      KEY               : 'BlockForTooManyAttempts'
       DURATION          : globals.config.paymentBlockDuration
 
     UPDATE_CREDIT_CARD  :
       LIMIT             : 3
-      KEY               : 'UpdateCreditCardBlockForTooManyAttempts'
+      KEY               : 'BlockForTooManyAttempts'
       DURATION          : globals.config.paymentBlockDuration
 
   error:
