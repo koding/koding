@@ -29,6 +29,8 @@ module.exports = class MessagesStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_MESSAGE_SUCCESS, @handleLoadMessageSuccess
+    @on actions.LOAD_POPULAR_MESSAGE_SUCCESS, @handleLoadMessageSuccess
+
     @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
