@@ -147,41 +147,78 @@ module.exports = class JInvitation extends jraphical.Module
   @create: permit 'send invitations',
     success: (client, options, callback) ->
       JUser               = require './user'
+      JGroup              = require './group'
+
       { delegate }        = client.connection
       { invitations }     = options
       groupName           = client.context.group or 'koding'
       name                = getName delegate
 
-      queue = invitations.map (invitation) -> ->
+      # check for membership
+      JGroup.one { slug: groupName }, (err, group) ->
+        return callback new KodingError err                   if err
+        return callback new KodingError 'group doesnt exist'  if not group
 
-        { email, firstName, lastName } = invitation
+        queue = invitations.map (invitation) -> ->
 
-        JInvitation.one { email, groupName }, (err, invitation) ->
-          return callback err  if err
-          queue.fin()          if invitation
+          { email, firstName, lastName } = invitation
 
-          hash = JUser.getHash email
+          JInvitation.one { email, groupName }, (err, invitation) ->
+            return callback new KodingError err  if err
 
-          # eg: VJPj9gUQ
-          code = shortid.generate()
+            # do not send another invitation if the user is already invited
+            # before
+            return queue.fin()  if invitation
 
-          data =   {
-            code
-            hash
-            email
-            groupName
-          }
-          # firstName and lastName are optional
-          data.firstName = firstName  if firstName
-          data.lastName  = lastName  if lastName
+            isAlreadyMember group, email, (err, isMember)->
+              return callback new KodingError err  if err
 
-          invite = new JInvitation data
-          invite.save (err) ->
-            return callback err   if err
+              # do not send another invitation if the user is already a member
+              # of the group
+              return queue.fin()  if isMember
 
-            JInvitation.sendInvitationEmail client, invite, -> queue.fin()
+              hash = JUser.getHash email
 
-      dash queue, callback
+              # eg: VJPj9gUQ
+              code = shortid.generate()
+
+              data =   {
+                code
+                hash
+                email
+                groupName
+              }
+              # firstName and lastName are optional
+              data.firstName = firstName  if firstName
+              data.lastName  = lastName  if lastName
+
+              invite = new JInvitation data
+              invite.save (err) ->
+                return callback new KodingError err  if err
+
+                JInvitation.sendInvitationEmail client, invite, -> queue.fin()
+
+        dash queue, callback
+
+
+  # isAlreadyMember checks if the given email is already member of the given
+  # group
+  isAlreadyMember = (group, email, callback)->
+    return callback new KodingError 'group is not set'  if not group
+    return callback new KodingError 'email is not set'  if not email
+
+    JUser = require './user'
+    JUser.one { email }, (err, user)->
+      return callback new KodingError err   if err
+      return callback null, no              if not user
+
+      user.fetchOwnAccount (err, account)->
+
+        return callback new KodingError err  if err
+        return callback null, no             if not account
+
+        group.isMember account, callback
+
 
   # byCode fetches an invitation by its code
   @byCode: (code, callback) ->
