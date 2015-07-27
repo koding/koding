@@ -47,18 +47,27 @@ cd /tmp
 LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
 
+downloadedDeb=false
 if [ ! -f klient.deb ]; then
     cat << EOF
 Downloading Koding Service Connector 0.1.${LATESTVERSION}...
 
 EOF
     curl -s $LATESTURL -o klient.deb
+    downloadedDeb=true
 fi
 
 cat << EOF
 Installing the Koding Service Connector package...
 EOF
 sudo dpkg -i --force-confnew klient.deb > /dev/null
+
+
+# If we downloaded the deb, clean it up
+if [ "$downloadedDeb" == true ]; then
+    rm klient.deb
+fi
+
 
 KITE_USERNAME=""
 if [ ! -z "$2" ]; then
