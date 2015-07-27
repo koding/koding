@@ -13,6 +13,18 @@ if [[ `lsb_release -si 2> /dev/null` != "Ubuntu" ]]; then
 fi
 
 
+echo "Testing sudo permissions, please input password if prompted.."
+sudo -l > /dev/null 2> /dev/null
+err=$?; if [ "$err" -ne 0 ]; then
+    cat << EOF
+Error: Sudo (root) permission is required to install the Koding Connector
+Service. Please run this command from a Linux Account on this machine with
+proper permissions.
+EOF
+    exit $err
+fi
+
+
 sudo route del -host 169.254.169.254 reject 2> /dev/null
 routeErr=$?
 awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document 2> /dev/null`
