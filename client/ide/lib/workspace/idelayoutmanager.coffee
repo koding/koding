@@ -154,7 +154,9 @@ module.exports = class IDELayoutManager extends KDObject
     ideApp = @getDelegate()
 
     # if has the fake view
-    ideApp.mergeSplitView()  unless ideApp.fakeViewsDestroyed
+    if ideApp.fakeViewsDestroyed
+      ideApp.mergeSplitView()
+      ideApp.setActiveTabView ideApp.ideViews.first.tabView
 
     ideApp.splitTabView snapshot[1].direction  if snapshot[1]
 
