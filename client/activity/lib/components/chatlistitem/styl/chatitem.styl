@@ -26,6 +26,19 @@
         size                  9px, 9px
         r-sprite              activity heart-dim
 
+    .ChatItem-messageDate
+      rel()
+      pointer()
+      display                 inline-block
+
+      &:hover
+
+        time
+          text-decoration     underline
+
+        .Tooltip-wrapper
+          visible()
+
     .SettingsMenuWrapper
       abs()
       hidden()
@@ -39,6 +52,12 @@
         border                none
         r-sprite              activity chevron-icon
         bg                    color, transparent
+
+    .ChatItem-contentWrapper.MediaObject
+      overflow              inherit
+
+      .MediaObject-content
+        overflow              inherit
 
     .ChatItem-contentWrapper.editing
       rounded                 3px 3px 0 0
