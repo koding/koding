@@ -412,14 +412,21 @@ module.exports = class StacksCustomViews extends CustomViews
 
       kd.singletons.appManager.require 'IDE'
 
-      {content} = options
+      {
+        content
+        contentType
+        err
+      } = jsonToYaml Encoder.htmlDecode options.content
 
-      content   = Encoder.htmlDecode content
-      file      = FSHelper.createFileInstance path: 'localfile:/stack.json'
+      new kd.NotificationView "Parse error on template"  if err
+
+      file = FSHelper.createFileInstance
+        path: "localfile:/stack.#{contentType}"
 
       editorView = new IDEEditorPane {
         cssClass: 'editor-view'
         file, content, delegate: this
+        contentType
       }
 
       editorView.setCss background: 'black'
@@ -910,6 +917,9 @@ module.exports = class StacksCustomViews extends CustomViews
 
             {title} = views.input_title.getData()
             templateContent = views.editorView.getValue()
+
+            if 'yaml' is views.editorView.getOption 'contentType'
+              templateContent = (yamlToJson templateContent).content
 
             updateStackTemplate {
               template: templateContent, templateDetails
