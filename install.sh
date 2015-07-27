@@ -7,6 +7,12 @@ if [[ ! "$(uname)" = "Linux" ]]; then
 fi
 
 
+if [[ `lsb_release -si 2> /dev/null` != "Ubuntu" ]]; then
+    echo "Currenty only Ubuntu Linux is supported"
+    exit 1
+fi
+
+
 sudo route del -host 169.254.169.254 reject 2> /dev/null
 routeErr=$?
 awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document 2> /dev/null`
