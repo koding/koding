@@ -10,6 +10,7 @@ module.exports =
     require './stores/channelsstore'
     require './stores/channelthreadsstore'
     require './stores/selectedchannelthreadidstore'
+    require './stores/selectedmessagethreadidstore'
     require './stores/followedpublicchannelidsstore'
     require './stores/followedprivatechannelidsstore'
     require './stores/channelpopularmessageidsstore'
