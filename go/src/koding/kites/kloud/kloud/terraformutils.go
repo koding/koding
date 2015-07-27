@@ -230,7 +230,7 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		// means there will be several instances, we need to create a userdata
 		// with count interpolation, because each machine must have an unique
 		// kite id.
-		var count int = 0
+		var count int = 1
 		if c, ok := instance["count"]; ok {
 			// we receive it as float64
 			if cFloat, ok := c.(float64); !ok {

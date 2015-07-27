@@ -158,11 +158,13 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
+	k.Log.Debug("Fetching template for id %s", args.StackTemplateId)
 	stackTemplate, err := modelhelper.GetStackTemplate(args.StackTemplateId)
 	if err != nil {
 		return nil, err
 	}
 
+	k.Log.Debug("Fetching credentials for id %v", stackTemplate.Credentials)
 	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, stackTemplate.Credentials)
 	if err != nil {
 		return nil, err
@@ -183,18 +185,21 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
+		k.Log.Debug("Appending AWS variable for\n%s", stackTemplate.Template.Content)
 		stackTemplate.Template.Content, err = cred.appendAWSVariable(stackTemplate.Template.Content)
 		if err != nil {
 			return nil, err
 		}
 	}
 
+	sess.Log.Debug("Plan: stack template before injecting Koding data")
 	buildData, err := injectKodingData(ctx, stackTemplate.Template.Content, r.Username, creds)
 	if err != nil {
 		return nil, err
 	}
 	stackTemplate.Template.Content = buildData.Template
 
+	k.Log.Debug("Calling plan with content\n%s", stackTemplate.Template.Content)
 	plan, err := tfKite.Plan(&tf.TerraformRequest{
 		Content:   stackTemplate.Template.Content,
 		ContentID: r.Username + "-" + args.StackTemplateId,
