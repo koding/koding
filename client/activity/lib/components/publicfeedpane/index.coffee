@@ -11,11 +11,12 @@ module.exports = class PublicFeedPane extends React.Component
 
 
   getMessages: ->
-    @props.messages
-      .toSeq()
-      .sortBy (m) -> m.get 'createdAt'
-      .reverse()
-      .toMap()
+    return immutable.Map()  unless @props.messages
+
+    @props.messages.sort (a, b) ->
+      if a.get 'createdAt' > b.get 'createdAt' then 1
+      else if b.get 'createdAt' < b.get 'createdAt' then return -1
+      else 0
 
 
   render: ->
