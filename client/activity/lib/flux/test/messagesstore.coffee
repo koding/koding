@@ -140,6 +140,41 @@ describe 'MessagesStore', ->
       expect(message.get 'body').to.eql 'Hello World'
 
 
+  describe '#handleLoadCommentSuccess', ->
+
+    it 'loads given comment', ->
+
+      comment = MessageCollectionHelpers.createFakeMessage '567', 'foo'
+      reactor.dispatch actionTypes.LOAD_COMMENT_SUCCESS, { comment }
+
+      storeState = reactor.evaluateToJS ['messages']
+
+      expect(storeState['567']['body']).to.eql 'foo'
+
+
+  describe '#handleCreateCommentSuccess', ->
+
+    it 'loads successful comment to messages store', ->
+
+      clientRequestId = 'test'
+      body = 'hello world'
+      commentId = '123'
+
+      reactor.dispatch actionTypes.CREATE_COMMENT_BEGIN, {clientRequestId, body}
+
+      comment = MessageCollectionHelpers.createFakeMessage commentId, body
+      reactor.dispatch actionTypes.CREATE_COMMENT_SUCCESS, {
+        clientRequestId, comment
+      }
+
+      storeState = reactor.evaluate ['messages']
+
+      expect(storeState.has clientRequestId).to.equal no
+      expect(storeState.has commentId).to.equal yes
+
+      expect(storeState.getIn [commentId, 'body']).to.equal 'hello world'
+
+
   describe '#handleRemoveMessageBegin', ->
 
     messageId = null

@@ -51,6 +51,13 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.UNLIKE_MESSAGE_SUCCESS, @handleUnlikeMessageSuccess
     @on actions.UNLIKE_MESSAGE_FAIL, @handleUnlikeMessageFail
 
+    @on actions.LOAD_COMMENT_SUCCESS, @handleLoadCommentSuccess
+
+    @on actions.CREATE_COMMENT_BEGIN, @handleCreateMessageBegin
+    @on actions.CREATE_COMMENT_SUCCESS, @handleCreateCommentSuccess
+    @on actions.CREATE_COMMENT_FAIL, @handleCreateMessageFail
+
+
   ###*
    * Handler for message load actions.
    *
@@ -150,6 +157,42 @@ module.exports = class MessagesStore extends KodingFluxStore
     message = message.remove '__editedPayload'
 
     return addMessage messages, message
+
+
+  ###*
+   * Handler for `CREATE_COMMENT_SUCCESS` action.
+   * It first removes fake comment if it exists, and then pushes given comment
+   * from payload.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.clientRequestId
+   * @param {SocialMessage} payload.comment
+   * @return {IMMessageCollection} nextState
+  ###
+  handleCreateCommentSuccess: (messages, { clientRequestId, comment }) ->
+
+    { addMessage, removeFakeMessage } = MessageCollectionHelpers
+
+    if clientRequestId
+      messages = removeFakeMessage messages, clientRequestId
+
+    return addMessage messages, toImmutable comment
+
+
+  ###*
+   * Handler for successful comment creation.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {SocialMessage} payload.comment
+   * @param {IMMessageCollection} nextState
+  ###
+  handleLoadCommentSuccess: (messages, { comment }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    return addMessage messages, toImmutable comment
 
 
   ###*
