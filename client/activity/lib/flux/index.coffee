@@ -9,6 +9,7 @@ module.exports =
     require './stores/messagesstore'
     require './stores/channelsstore'
     require './stores/channelthreadsstore'
+    require './stores/messagethreadssstore'
     require './stores/selectedchannelthreadidstore'
     require './stores/selectedmessagethreadidstore'
     require './stores/followedpublicchannelidsstore'
