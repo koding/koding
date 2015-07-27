@@ -38,6 +38,12 @@ if [ -z "$CHANNEL" ]; then
     CHANNEL="managed"
 fi
 
+
+# Make tmp if needed, then navigate to it.
+mkdir -p /tmp
+cd /tmp
+
+
 LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
 
