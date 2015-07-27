@@ -45,18 +45,13 @@ channelThreads = [
   MessagesStore
   (threads, messages) ->
     threads.map (thread) ->
-      # replace messageIds in list with message instances.
-
-      messages = thread.get('messages').map (messageId) ->
-
+      thread.update 'messages', (msgs) -> msgs.map (messageId) ->
         message = messages.get messageId
         if message.has('__editedBody')
           message = message.set 'body', message.get '__editedBody'
           message = message.set 'payload', message.get '__editedPayload'
 
         return message
-
-      thread.set 'messages', messages
 ]
 
 channelPopularMessages = [
@@ -83,7 +78,7 @@ selectedChannelThread = [
   channelThreads
   selectedChannel
   (threads, channel) ->
-    return immutable.Map()  unless channel
+    return null  unless channel
     thread = threads.get channel.get('id')
     return thread.set 'channel', channel
 ]
@@ -129,9 +124,10 @@ followedPrivateThreads = followedPrivateChannelThreads
 selectedChannelThreadMessages = [
   selectedChannelThread
   (thread) ->
-    if thread?.has 'messages'
-    then thread.get 'messages'
-    else immutable.List()
+    return null  unless thread
+    thread.get 'messages'
+]
+
 selectedChannelPopularMessages = [
   channelPopularMessages
   selectedChannelThreadId
