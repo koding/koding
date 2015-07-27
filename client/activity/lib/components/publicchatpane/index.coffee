@@ -1,11 +1,8 @@
 kd              = require 'kd'
 React           = require 'kd-react'
 immutable       = require 'immutable'
-ChatInputWidget = require 'activity/components/chatinputwidget'
 ActivityFlux    = require 'activity/flux'
-KDReactorMixin  = require 'app/flux/reactormixin'
-ChatList        = require 'activity/components/chatlist'
-
+ChatPane        = require 'activity/components/chatpane'
 
 module.exports = class PublicChatPane extends React.Component
 
@@ -40,12 +37,12 @@ module.exports = class PublicChatPane extends React.Component
     else chatList.classList.add 'padded'
 
 
-  channel: (key) -> @props.thread.getIn ['channel', key]
+  channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
   onSubmit: ({ value }) ->
 
-    body = value
+    return  unless body = value
     name = @channel 'name'
 
     unless body.match ///\##{name}///
@@ -55,23 +52,11 @@ module.exports = class PublicChatPane extends React.Component
 
 
   render: ->
-    messages = @props.messages.sortBy (m) -> m?.get 'createdAt'
-    <div className="PublicChatPane">
-      <section className="PublicChatPane-contentWrapper">
-        <header className="PublicChatPane-header">
-          <h3 className="PublicChatPane-NameLabel">{@channel 'name'}</h3>
-          <div className="PublicChatPane-SettingsMenuButton"></div>
-          <div className="PublicChatPane-SearchWidget"></div>
-        </header>
-        <section className="PublicChatPane-body" ref="PublicChatPaneBody">
-          <div className="PublicChatList" ref="PublicChatList">
-            <ChatList messages={messages}/>
-          </div>
-        </section>
-        <footer className="PublicChatPane-footer">
-          <ChatInputWidget onSubmit={@bound 'onSubmit'} />
-        </footer>
-      </section>
-    </div>
+    <ChatPane
+      className="PublicChatPane"
+      title={@channel 'name'}
+      messages={@props.messages}
+      onSubmit={@bound 'onSubmit'}
+    />
 
 
