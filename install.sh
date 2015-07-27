@@ -1,32 +1,45 @@
 #!/usr/bin/env bash
 
 
-kodingVm=false
+if [[ ! "$(uname)" = "Linux" ]]; then
+    echo "Currenty only Ubuntu Linux is supported"
+    exit 1
+fi
+
+
+if [[ `lsb_release -si 2> /dev/null` != "Ubuntu" ]]; then
+    echo "Currenty only Ubuntu Linux is supported"
+    exit 1
+fi
+
+
+echo "Testing sudo permissions, please input password if prompted.."
+sudo -l > /dev/null 2> /dev/null
+err=$?; if [ "$err" -ne 0 ]; then
+    cat << EOF
+Error: Sudo (root) permission is required to install the Koding Service
+Connector Please run this command from a Linux Account on this machine
+with proper permissions.
+EOF
+    exit $err
+fi
+
+
+sudo route del -host 169.254.169.254 reject 2> /dev/null
+routeErr=$?
 awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document 2> /dev/null`
-# If the api responds not zero, we're assuming that it is indeed a Koding
-# machine. It is possible that a normal AWS user blocks their route
-# themselves.. but for now, this is reasonably safe to assume.
-if [ $? != 0 ]; then
-    kodingVm=true
+if [ "$routeErr" -eq 0 ]; then
+    sudo route add -host 169.254.169.254 reject 2> /dev/null
 fi
 
-# If the api responded, lets check for the accountId
+
 if [[ $awsApiResponse == *"614068383889"* ]]; then
-    kodingVm=true
-fi
-
-if [ $kodingVm == true ]; then
     cat << EOF
 Error: This feature is for non-Koding machines
 EOF
     exit 1
 fi
 
-
-if [[ ! "$(uname)" = "Linux" ]]; then
-    echo "Currenty only Ubuntu Linux is supported"
-    exit 1
-fi
 
 if [ -z "$KONTROLURL" ]; then
     KONTROLURL="https://koding.com/kontrol/kite"
@@ -37,6 +50,12 @@ if [ -z "$CHANNEL" ]; then
     CHANNEL="managed"
 fi
 
+
+# Make tmp if needed, then navigate to it.
+mkdir -p /tmp
+cd /tmp
+
+
 LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
 
@@ -46,12 +65,28 @@ Downloading Koding Service Connector 0.1.${LATESTVERSION}...
 
 EOF
     curl -s $LATESTURL -o klient.deb
+    err=$?; if [ "$err" -ne 0 ]; then
+        cat << EOF
+Error: Unable to download or save Koding Service Connector
+package.
+EOF
+        exit $err
+    fi
 fi
 
 cat << EOF
 Installing the Koding Service Connector package...
 EOF
 sudo dpkg -i --force-confnew klient.deb > /dev/null
+err=$?; if [ "$err" -ne 0 ]; then
+    echo "Error: Failed to install Koding Service Connector package"
+    exit $err
+fi
+
+
+# Clean the klient deb from the system
+rm klient.deb
+
 
 KITE_USERNAME=""
 if [ ! -z "$2" ]; then
