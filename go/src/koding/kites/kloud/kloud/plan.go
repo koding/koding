@@ -189,6 +189,12 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		}
 	}
 
+	buildData, err := injectKodingData(ctx, stackTemplate.Template.Content, r.Username, creds)
+	if err != nil {
+		return nil, err
+	}
+	stackTemplate.Template.Content = buildData.Template
+
 	plan, err := tfKite.Plan(&tf.TerraformRequest{
 		Content:   stackTemplate.Template.Content,
 		ContentID: r.Username + "-" + args.StackTemplateId,
