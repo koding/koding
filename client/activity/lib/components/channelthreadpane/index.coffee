@@ -7,10 +7,15 @@ classnames     = require 'classnames'
 
 module.exports = class ChannelThreadPane extends React.Component
 
+  { getters } = ActivityFlux
+
   getDataBindings: ->
     return {
-      messages : ActivityFlux.getters.selectedChannelThreadMessages
-      thread   : ActivityFlux.getters.selectedChannelThread
+      channelThread         : getters.selectedChannelThread
+      channelThreadMessages : getters.selectedChannelThreadMessages
+      messageThread         : getters.selectedMessageThread
+      messageThreadComments : getters.selectedMessageThreadComments
+      popularMessages       : getters.selectedChannelPopularMessages
     }
 
 
@@ -18,34 +23,46 @@ module.exports = class ChannelThreadPane extends React.Component
 
     super props
 
-    @state = { thread: immutable.Map(), messages: immutable.List() }
+    @state =
+      channelThread         : immutable.Map()
+      channelThreadMessages : immutable.List()
+      messageThread         : immutable.Map()
+      messageThreadComments : immutable.List()
+      popularMessages       : immutable.List()
 
 
-  componentDidMount: ->
-
-    { thread, channel } = ActivityFlux.actions
-
-    thread.changeSelectedThreadByName @props.params.slug
-    channel.loadChannelByName @props.params.slug
+  componentDidMount: -> reset @props
 
 
-  renderWithState: (component) ->
-
-    React.cloneElement component,
-      thread   : @state.thread
-      messages : @state.messages
+  componentWillReceiveProps: (nextProps) -> reset nextProps
 
 
   renderFeed: ->
     return null  unless @props.feed
 
-    @renderWithState @props.feed
+    React.cloneElement @props.feed,
+      thread   : @state.channelThread
+      messages : @state.popularMessages
 
 
   renderChat: ->
     return null  unless @props.chat
 
-    @renderWithState @props.chat
+    console.log 333, @state.channelThreadMessages?.filter (m) -> not m
+
+    React.cloneElement @props.chat,
+      thread   : @state.channelThread
+      messages : @state.channelThreadMessages
+
+
+  renderPost: ->
+
+    return null  unless @props.post
+
+    React.cloneElement @props.post,
+      thread        : @state.messageThread
+      messages      : @state.messageThreadComments
+      channelThread : @state.channelThread
 
 
   renderChannelSidebar: -> null
@@ -57,6 +74,7 @@ module.exports = class ChannelThreadPane extends React.Component
       ChannelThreadPane: yes
       'is-withFeed': @props.feed
       'is-withChat': @props.chat
+      'is-withPost': @props.post
     )
 
 
@@ -68,9 +86,27 @@ module.exports = class ChannelThreadPane extends React.Component
       <section className="ChannelThreadPane-chatWrapper">
         {@renderChat()}
       </section>
+      <section className="ChannelThreadPane-postWrapper">
+        {@renderPost()}
+      </section>
       {@renderChannelSidebar()}
     </div>
 
 
 React.Component.include.call ChannelThreadPane, [KDReactorMixin]
+
+reset = (props) ->
+
+  { channelName, postSlug } = props.params
+  { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
+
+  if channelName
+    channelActions.loadChannelByName(channelName).then ({ channel }) ->
+      thread.changeSelectedThread channel.id
+      channelActions.loadPopularMessages channel.id
+
+  if postSlug
+    messageActions.loadMessageBySlug(postSlug).then ({ message }) ->
+      messageActions.changeSelectedMessage message.id
+
 
