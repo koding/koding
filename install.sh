@@ -17,9 +17,9 @@ echo "Testing sudo permissions, please input password if prompted.."
 sudo -l > /dev/null 2> /dev/null
 err=$?; if [ "$err" -ne 0 ]; then
     cat << EOF
-Error: Sudo (root) permission is required to install the Koding Connector
-Service. Please run this command from a Linux Account on this machine with
-proper permissions.
+Error: Sudo (root) permission is required to install the Koding Service
+Connector Please run this command from a Linux Account on this machine
+with proper permissions.
 EOF
     exit $err
 fi
