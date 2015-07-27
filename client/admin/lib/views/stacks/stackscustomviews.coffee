@@ -4,6 +4,7 @@ remote                          = require('app/remote').getInstance()
 
 _                               = require 'lodash'
 hljs                            = require 'highlight.js'
+jsyaml                          = require 'js-yaml'
 Encoder                         = require 'htmlencode'
 dateFormat                      = require 'dateformat'
 
@@ -329,6 +330,41 @@ module.exports = class StacksCustomViews extends CustomViews
     options.content = "<pre><code>#{json}</code></pre>"
 
     return new kd.ModalView options
+
+
+  jsonToYaml = (content) ->
+
+    contentType     = 'json'
+
+    try
+      contentObject = JSON.parse content
+
+      content       = jsyaml.safeDump contentObject
+      contentType   = 'yaml'
+
+    catch err
+      console.error '[JsonToYaml]', err
+
+    console.log '[JsonToYaml]', { content, contentType, err }
+
+    return { content, contentType, err }
+
+
+  yamlToJson = (content) ->
+
+    contentType     = 'yaml'
+
+    try
+      contentObject = jsyaml.safeLoad content
+
+      content       = JSON.stringify contentObject
+      contentType   = 'json'
+    catch err
+      console.error '[YamlToJson]', err
+
+    console.log '[YamlToJson]', { content, contentType, err }
+
+    return { content, contentType, err }
 
 
   _.assign @views,
