@@ -80,6 +80,10 @@ cat << EOF
 Installing the Koding Service Connector package...
 EOF
 sudo dpkg -i --force-confnew klient.deb > /dev/null
+err=$?; if [ "$err" -ne 0 ]; then
+    echo "Error: Failed to install Koding Service Connector package"
+    exit $err
+fi
 
 
 # If we downloaded the deb, clean it up
