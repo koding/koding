@@ -302,7 +302,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 				}
 
 				ev.Push(&eventer.Event{
-					Message:    "Building stack",
+					Message:    "Building stack resources",
 					Percentage: start,
 					Status:     machinestate.Building,
 				})
@@ -326,7 +326,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	close(done)
 
 	ev.Push(&eventer.Event{
-		Message:    "Creating artifact",
+		Message:    "Updating final results",
 		Percentage: 70,
 		Status:     machinestate.Building,
 	})
@@ -357,7 +357,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	sess.Log.Debug("Updated machines\n%s", string(d))
 
 	ev.Push(&eventer.Event{
-		Message:    "Checking klient connections",
+		Message:    "Checking VM connections",
 		Percentage: 90,
 		Status:     machinestate.Building,
 	})
