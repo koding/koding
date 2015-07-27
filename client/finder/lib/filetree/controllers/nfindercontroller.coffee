@@ -125,6 +125,8 @@ module.exports = class NFinderController extends KDViewController
     path ?= if owner = machine.getOwner()
     then "/home/#{owner}"
     else '/'
+    
+    path = '/root'  if machine.isManaged()
 
     if @getMachineNode uid
       return kd.warn "Machine #{machine.getName()} is already mounted!"
