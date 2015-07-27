@@ -72,7 +72,10 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
   ###
   addNewThread: (threads, { channel }) ->
 
-    return initThread threads, channel.id
+    unless threads.has channel.id
+      return initThread threads, channel.id
+
+    return threads
 
 
   ###*
@@ -153,10 +156,8 @@ addMessage = (threads, channelId, messageId) ->
   unless threads.has channelId
     threads = initThread threads, channelId
 
-  threads = threads.update channelId, (thread) ->
-    thread.setIn ['messages', messageId], messageId
+  return threads.setIn [channelId, 'messages', messageId], messageId
 
-  return threads
 
 
 ###*
@@ -172,7 +173,7 @@ removeMessage = (threads, messageId) ->
   # for each thread
   return threads.map (thread) ->
     # update messages list with filtering out given messageId.
-    thread.update 'messages', (messages) -> messages.filter (id) -> id isnt messageId
+    thread.update 'messages', (messages) -> messages.remove messageId
 
 
 ###*
