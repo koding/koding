@@ -17,7 +17,12 @@
     "/Activity/Chat/All" : "AllPrivateMessages",
     "/Activity" : "ActivityGeneric",
 
-    "/Activity/Channels/:first?/:second?/:third?": "SingleChannel"
+    "/Channels/:channelName": "SingleChannel",
+    "/Channels/:channelName/:postSlug": "SinglePost",
+    "/Channels/:channelName/summary": "SingleChannelWithSummary",
+    "/Channels/:channelName/summary/:postSlug": "SinglePostWithSummary"
+
+
 
   },
   "sprites": [

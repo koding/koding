@@ -8,7 +8,15 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
 
   handle = (name) -> handlers["handle#{name}"](info, ctx, path, state)
 
-  if type is 'SingleChannel'
+  reactivityRoutes = [
+    'SingleChannel'
+    'SinglePost'
+    'SingleChannelWithSummary'
+    'SinglePostWithSummary'
+  ]
+
+
+  if type in reactivityRoutes
   then handleReactivity info, ctx
   else handle type
 
