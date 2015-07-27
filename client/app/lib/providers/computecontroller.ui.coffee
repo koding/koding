@@ -107,6 +107,10 @@ module.exports = class ComputeController_UI
         { title } = data
         delete data.title
 
+        # Remove fields which has no value in it
+        for field, value of data
+          delete data[field]  if value is ''
+
         remote.api.JCredential.create {
           provider, title, meta: data
         }, (err, credential)=>
