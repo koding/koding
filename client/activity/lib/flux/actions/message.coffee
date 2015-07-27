@@ -239,6 +239,34 @@ createComment = (messageId, body, payload = {}) ->
     dispatch CREATE_COMMENT_SUCCESS, { messageId, comment, clientRequestId }
 
 
+###*
+ * Changes selected message id.
+ *
+ * @param {string} messageId
+###
+changeSelectedMessage = (messageId) ->
+
+  dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId }
+
+
+###*
+ * Change selected message with given slug.
+ *
+ * @param {string} slug
+###
+changeSelectedMessageBySlug = (slug) ->
+
+  { SET_SELECTED_MESSAGE_THREAD_FAIL,
+    SET_SELECTED_MESSAGE_THREAD } = actionTypes
+
+  kd.singletons.socialapi.message.bySlug { slug }, (err, message) ->
+    if err
+      dispatch SET_SELECTED_MESSAGE_THREAD_FAIL, { err, slug }
+      return
+
+    dispatch SET_SELECTED_MESSAGE_THREAD, { messageId: message.id }
+
+
 module.exports = {
   loadMessages
   loadMessageBySlug
@@ -249,5 +277,7 @@ module.exports = {
   editMessage
   loadComments
   createComment
+  changeSelectedMessage
+  changeSelectedMessageBySlug
 }
 
