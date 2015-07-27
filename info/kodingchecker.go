@@ -7,13 +7,15 @@ import (
 	"github.com/koding/klient/fix"
 )
 
-// KodingAccountID is Koding's main AWS account ID
-const KodingAccountID = "614068383889"
+const (
+	// KodingAccountID is Koding's main AWS account ID
+	KodingAccountID = "614068383889"
 
-// addRouteCommand and delRouteCommand are responsible for temporarily
-// disabling the aws api null route.
-const addRouteCommand = "route add -host 169.254.169.254 reject"
-const delRouteCommand = "route del -host 169.254.169.254 reject"
+	// addRouteCommand and delRouteCommand are responsible for temporarily
+	// disabling the aws api null route.
+	addRouteCommand = "route add -host 169.254.169.254 reject"
+	delRouteCommand = "route del -host 169.254.169.254 reject"
+)
 
 // TODO: Check the distro, if we're not on Ubuntu simply return false.
 func CheckKoding() (bool, error) {
