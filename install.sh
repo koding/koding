@@ -1,21 +1,15 @@
 #!/usr/bin/env bash
 
 
-kodingVm=false
+sudo route del -host 169.254.169.254 reject 2> /dev/null
+routeErr=$?
 awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document 2> /dev/null`
-# If the api responds not zero, we're assuming that it is indeed a Koding
-# machine. It is possible that a normal AWS user blocks their route
-# themselves.. but for now, this is reasonably safe to assume.
-if [ $? != 0 ]; then
-    kodingVm=true
+if [ "$routeErr" -eq 0 ]; then
+    sudo route add -host 169.254.169.254 reject 2> /dev/null
 fi
 
-# If the api responded, lets check for the accountId
+
 if [[ $awsApiResponse == *"614068383889"* ]]; then
-    kodingVm=true
-fi
-
-if [ $kodingVm == true ]; then
     cat << EOF
 Error: This feature is for non-Koding machines
 EOF
