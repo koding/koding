@@ -53,8 +53,15 @@ if [ ! -f klient.deb ]; then
 Downloading Koding Service Connector 0.1.${LATESTVERSION}...
 
 EOF
-    curl -s $LATESTURL -o klient.deb
     downloadedDeb=true
+    curl -s $LATESTURL -o klient.deb
+    err=$?; if [ "$err" -ne 0 ]; then
+        cat << EOF
+Error: Unable to download or save Koding Service Connector
+package.
+EOF
+        exit $err
+    fi
 fi
 
 cat << EOF
