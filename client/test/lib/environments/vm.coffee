@@ -74,3 +74,24 @@ module.exports =
       .waitForElementVisible  nicknameView, 20000
       .assert.containsText    nicknameView, nickname # Assertion
       .end()
+
+  terminateVm: (browser) ->
+
+      terminateSelector  = '.advanced .terminate'
+      proceedSelector    = '.kdbutton.solid.red.medium'
+      terminatedLabelSelector = '.terminated'
+
+      helpers.beginTest(browser)
+      helpers.waitForVMRunning(browser)
+      
+      environmentHelpers.openAdvancedSettings(browser)
+
+      browser
+        .waitForElementVisible  terminateSelector, 20000
+        .click                  terminateSelector
+        .pause                  2500
+      	.waitForElementVisible  proceedSelector, 20000
+	      .click                  proceedSelector
+        .waitForElementVisible  terminatedLabelSelector, 100000
+        .assert.containsText   terminatedLabelSelector, "successfully deleted"
+        .end()

@@ -48,6 +48,9 @@ module.exports =
 
     @openVmSettingsModal browser, vmName, '.domains'
 
+  openAdvancedSettings: (browser, vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.advanced'
 
   clickAddVMButton: (browser) ->
 
