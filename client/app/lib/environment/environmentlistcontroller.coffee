@@ -16,7 +16,7 @@ module.exports = class EnvironmentListController extends kd.ListViewController
     @removeAllItems()
 
     if stacks
-      @instantiateListItems stacks
+      @addListItems stacks
       return
 
     @showLazyLoader()
@@ -30,4 +30,13 @@ module.exports = class EnvironmentListController extends kd.ListViewController
       return if showError err, \
         KodingError : "Failed to fetch stacks, please try again later."
 
-      @instantiateListItems stacks
+      @addListItems stacks
+
+
+  addListItems: (stacks) ->
+
+    @instantiateListItems stacks
+
+    if stacks.length > 1
+      view.title.show()  for view in @getItemsOrdered()
+      @getView().setClass 'multi-stack'
