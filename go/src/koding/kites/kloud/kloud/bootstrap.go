@@ -88,7 +88,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		}
 
 		k.Log.Debug("Appending variables for %s", cred.PublicKey)
-		finalBootstrap, err := cred.appendAWSVariable(fmt.Sprintf(awsBootstrap, k.PublicKeys.PublicKey))
+		finalBootstrap, err := cred.appendAWSVariable(awsBootstrap)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +127,12 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		k.Log.Debug("Going to use the contentID: %s", contentID)
 
 		keyName := "koding-deployment-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		finalBootstrap, err = appendKeyName(finalBootstrap, keyName)
+
+		finalBootstrap, err = appendAWSTemplateData(finalBootstrap, &awsTemplateData{
+			KeyPairName:     keyName,
+			PublicKey:       k.PublicKeys.PublicKey,
+			EnvironmentName: fmt.Sprintf("Koding-%s-Bootstrap", args.GroupName),
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -193,7 +198,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func appendKeyName(template, keyName string) (string, error) {
+func appendAWSTemplateData(template string, awsData *awsTemplateData) (string, error) {
 	var data struct {
 		Output   map[string]map[string]interface{} `json:"output,omitempty"`
 		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
@@ -206,7 +211,15 @@ func appendKeyName(template, keyName string) (string, error) {
 	}
 
 	data.Variable["key_name"] = map[string]interface{}{
-		"default": keyName,
+		"default": awsData.KeyPairName,
+	}
+
+	data.Variable["public_key"] = map[string]interface{}{
+		"default": awsData.PublicKey,
+	}
+
+	data.Variable["environment_name"] = map[string]interface{}{
+		"default": awsData.EnvironmentName,
 	}
 
 	out, err := json.MarshalIndent(data, "", "  ")
@@ -215,6 +228,14 @@ func appendKeyName(template, keyName string) (string, error) {
 	}
 
 	return string(out), nil
+}
+
+// awsTemplateData is being used to format the bootstrap before we pass it to
+// terraformer
+type awsTemplateData struct {
+	KeyPairName     string
+	PublicKey       string
+	EnvironmentName string
 }
 
 var awsBootstrap = `{
@@ -330,7 +351,7 @@ var awsBootstrap = `{
         "aws_key_pair": {
             "koding_key_pair": {
                 "key_name": "${var.key_name}",
-                "public_key": "%s"
+                "public_key": "${var.public_key}"
             }
         }
     },

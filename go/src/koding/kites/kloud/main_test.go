@@ -283,55 +283,6 @@ func TestTerraformBootstrap(t *testing.T) {
 	}
 }
 
-func TestTerraformPlan(t *testing.T) {
-	t.Parallel()
-	username := "testuser0"
-	groupname := "koding"
-
-	userData, err := createUser(username, groupname, "ap-northeast-1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	remote := userData.Remote
-
-	args := &kloud.TerraformPlanRequest{
-		StackTemplateId: userData.StackTemplateId,
-		GroupName:       groupname,
-	}
-
-	resp, err := remote.Tell("plan", args)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var result *kloud.Machines
-	if err := resp.Unmarshal(&result); err != nil {
-		t.Fatal(err)
-	}
-
-	inLabels := func(label string) bool {
-		for _, l := range userData.MachineLabels {
-			if l == label {
-				return true
-			}
-		}
-		return false
-	}
-
-	for _, machine := range result.Machines {
-		if !inLabels(machine.Label) {
-			t.Errorf("plan label: have: %+v got: %s\n", userData.MachineLabels, machine.Label)
-		}
-
-		if machine.Region != "ap-northeast-1" {
-			t.Errorf("plan region: want: ap-northeast-1 got: %s\n", machine.Region)
-		}
-	}
-
-	fmt.Printf("result = %+v\n", result)
-}
-
 func TestTerraformStack(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
@@ -362,12 +313,48 @@ func TestTerraformStack(t *testing.T) {
 		}
 	}()
 
+	planArgs := &kloud.TerraformPlanRequest{
+		StackTemplateId: userData.StackTemplateId,
+		GroupName:       groupname,
+	}
+
+	resp, err := remote.Tell("plan", planArgs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var planResult *kloud.Machines
+	if err := resp.Unmarshal(&planResult); err != nil {
+		t.Fatal(err)
+	}
+
+	inLabels := func(label string) bool {
+		for _, l := range userData.MachineLabels {
+			if l == label {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, machine := range planResult.Machines {
+		if !inLabels(machine.Label) {
+			t.Errorf("plan label: have: %+v got: %s\n", userData.MachineLabels, machine.Label)
+		}
+
+		if machine.Region != "ap-northeast-1" {
+			t.Errorf("plan region: want: ap-northeast-1 got: %s\n", machine.Region)
+		}
+	}
+
+	fmt.Printf("planResult = %+v\n", planResult)
+
 	applyArgs := &kloud.TerraformApplyRequest{
 		StackId:   userData.StackId,
 		GroupName: groupname,
 	}
 
-	resp, err := remote.Tell("apply", applyArgs)
+	resp, err = remote.Tell("apply", applyArgs)
 	if err != nil {
 		t.Fatal(err)
 	}
