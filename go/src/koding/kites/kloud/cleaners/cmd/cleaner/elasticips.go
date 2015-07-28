@@ -3,38 +3,27 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
-
-	"github.com/mitchellh/goamz/ec2"
 )
 
 type ElasticIPs struct {
 	Lookup *lookup.Lookup
 
-	nonused map[string][]ec2.Address
+	nonused lookup.Addresses
 	err     error
 }
 
 func (e *ElasticIPs) Process() {
 	addressess := e.Lookup.FetchIpAddresses()
 
-	e.nonused = make(map[string][]ec2.Address)
-
-	for region, a := range addressess {
-		nonAssociatedAddressess := make([]ec2.Address, 0)
-		for _, address := range a {
-			if address.AssociationId == "" {
-				nonAssociatedAddressess = append(nonAssociatedAddressess, address)
-			}
-		}
-
-		fmt.Printf("region '%s' has %d addresses (which %d are not associated) \n",
-			region, len(a), len(nonAssociatedAddressess))
-		e.nonused[region] = nonAssociatedAddressess
-	}
+	e.nonused = addressess.NotAssociated()
 }
 
 func (e *ElasticIPs) Run() {
+	if len(e.nonused) == 0 {
+		return
+	}
 
+	// e.Lookup.ReleaseAll(e.nonused)
 }
 
 func (e *ElasticIPs) Result() string {
@@ -42,7 +31,8 @@ func (e *ElasticIPs) Result() string {
 		return fmt.Sprintf("elasticIPs: error '%s'", e.err.Error())
 	}
 
-	return ""
+	return fmt.Sprintf("Released(removed) %d non associated elastic IP addresses",
+		e.nonused.Count())
 }
 
 func (e *ElasticIPs) Info() *taskInfo {
