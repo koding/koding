@@ -68,7 +68,6 @@ runTests = ->
         userFormData      = generateDummyUserFormData()
         adminUserFormData = generateDummyUserFormData()
 
-
         queue = [
 
           ->
@@ -106,7 +105,8 @@ runTests = ->
 
           ->
             # expecting invitation to exist
-            JInvitation.one { email: userFormData.email, groupName: client.context.group }, (err, invitation) ->
+            params = { email: userFormData.email, groupName: client.context.group }
+            JInvitation.one params, (err, invitation) ->
               expect(err).to.not.exist
               expect(invitation).to.exist
               queue.next()
@@ -172,7 +172,8 @@ runTests = ->
 
           ->
             # expecting invitation not to be created
-            JInvitation.one { email: userFormData.email, groupName: group.slug }, (err, invitation) ->
+            params = { email: userFormData.email, groupName: group.slug }
+            JInvitation.one params, (err, invitation) ->
               expect(err).to.not.exist
               expect(invitation).to.not.exist
               queue.next()
