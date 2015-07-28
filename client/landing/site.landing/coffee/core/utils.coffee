@@ -245,6 +245,7 @@ utils.extend utils,
     formData.agree           = 'on'
     formData.passwordConfirm = formData.password
     formData.redirect        = '/'
+    formData.slug            = KD.config.group.slug
 
     $.ajax
       url       : "/-/teams/join"

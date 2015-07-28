@@ -52,7 +52,6 @@ module.exports = class OAuthController extends KDController
     {mainController} = KD.singletons
     mainController.once "ForeignAuthCompleted", (provider)=>
 
-      KD.utils.storeLastUsedProvider provider
       isUserLoggedIn = KD.isLoggedIn()
 
       params = {isUserLoggedIn, provider}
@@ -80,6 +79,7 @@ module.exports = class OAuthController extends KDController
 
   handleNewUser: (userInfo)->
 
+    KD.utils.storeLastUsedProvider userInfo.provider
     KD.singletons.router.handleRoute '/'
 
     KD.singletons.router.requireApp 'Home', (homeController)->
