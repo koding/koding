@@ -32,6 +32,10 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
 
+    @on actions.EDIT_MESSAGE_BEGIN, @handleEditMessageBegin
+    @on actions.EDIT_MESSAGE_SUCCESS, @handleEditMessageSuccess
+    @on actions.EDIT_MESSAGE_FAIL, @handleEditMessageFail
+
     @on actions.REMOVE_MESSAGE_BEGIN, @handleRemoveMessageBegin
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
     @on actions.REMOVE_MESSAGE_FAIL, @handleRemoveMessageFail
@@ -100,6 +104,35 @@ module.exports = class MessagesStore extends KodingFluxStore
     { removeFakeMessage } = MessageCollectionHelpers
 
     return removeFakeMessage messages, clientRequestId
+
+
+  handleEditMessageBegin: (messages, { messageId, body, payload }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    message = message.set '__editedBody', body
+    message = message.set '__editedPayload', toImmutable payload
+
+    return addMessage messages, message
+
+
+  handleEditMessageSuccess: (messages, { message, messageId }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    return addMessage messages, toImmutable message
+
+
+  handleEditMessageFail: (messages, { messageId }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    message = message.remove '__editedBody'
+    message = message.remove '__editedPayload'
+
+    return addMessage messages, message
 
 
   ###*
