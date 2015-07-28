@@ -19,6 +19,8 @@ module.exports = (req, res) ->
 
       { isValid : isEmail } = JUser.validateAt 'email', email, yes
 
+      return res.status(400).send 'Bad request'  unless isEmail
+
       if err?.name is 'VERIFICATION_CODE_NEEDED'
         return res.status(400).send 'TwoFactor auth Enabled'
 
