@@ -45,7 +45,16 @@ channelThreads = [
   (threads, messages) ->
     threads.map (thread) ->
       # replace messageIds in list with message instances.
-      messages = thread.get('messages').map (messageId) -> messages.get messageId
+
+      messages = thread.get('messages').map (messageId) ->
+
+        message = messages.get messageId
+        if message.has('__editedBody')
+          message = message.set 'body', message.get '__editedBody'
+          message = message.set 'payload', message.get '__editedPayload'
+
+        return message
+
       thread.set 'messages', messages
 ]
 
