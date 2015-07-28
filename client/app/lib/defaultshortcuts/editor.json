@@ -84,30 +84,6 @@
     ]
   },
   {
-    "name": "addCursorAboveSkipCurrent",
-    "description": "Move Multi-cursor to the Line Above",
-    "binding": [
-      [
-        "ctrl+alt+shift+up"
-      ],
-      [
-        "ctrl+alt+shift+up"
-      ]
-    ]
-  },
-  {
-    "name": "addCursorBelowSkipCurrent",
-    "description": "Move Multi-cursor to the Line Below",
-    "binding": [
-      [
-        "ctrl+alt+shift+down"
-      ],
-      [
-        "ctrl+alt+shift+down"
-      ]
-    ]
-  },
-  {
     "name": "selectMoreBefore",
     "description": "Add Previous Occurence to Multi-selection",
     "binding": [
