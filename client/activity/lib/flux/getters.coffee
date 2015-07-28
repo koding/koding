@@ -13,9 +13,12 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 ChannelsStore                  = [['ChannelsStore'], withEmptyMap]
 MessagesStore                  = [['MessagesStore'], withEmptyMap]
 ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
+MessageThreadsStore            = [['MessageThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
+ChannelPopularMessageIdsStore  = [['ChannelPopularMessageIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
+SelectedMessageThreadIdStore   = ['SelectedMessageThreadIdStore']
 SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
 SuggestionsQueryStore          = ['SuggestionsQueryStore']
 SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
@@ -44,23 +47,26 @@ channelThreads = [
   MessagesStore
   (threads, messages) ->
     threads.map (thread) ->
-      # replace messageIds in list with message instances.
-
-      messages = thread.get('messages').map (messageId) ->
-
+      thread.update 'messages', (msgs) -> msgs.map (messageId) ->
         message = messages.get messageId
         if message.has('__editedBody')
           message = message.set 'body', message.get '__editedBody'
           message = message.set 'payload', message.get '__editedPayload'
 
         return message
+]
 
-      thread.set 'messages', messages
+channelPopularMessages = [
+  ChannelPopularMessageIdsStore
+  MessagesStore
+  (channelIds, messages) ->
+    channelIds.map (msgs) -> msgs.map (id) -> messages.get id
 ]
 
 # Returns data from SelectedChannelThreadIdStore
 # Alias for providing a consistent api.
 selectedChannelThreadId = SelectedChannelThreadIdStore
+
 
 # Returns selected channel instance.
 selectedChannel = [
@@ -120,9 +126,49 @@ followedPrivateThreads = followedPrivateChannelThreads
 selectedChannelThreadMessages = [
   selectedChannelThread
   (thread) ->
-    if thread?.has 'messages'
-    then thread.get 'messages'
-    else immutable.List()
+    return null  unless thread
+    thread.get 'messages'
+]
+
+selectedChannelPopularMessages = [
+  channelPopularMessages
+  selectedChannelThreadId
+  (messages, id) -> messages.get id
+]
+
+selectedMessageThreadId = SelectedMessageThreadIdStore
+
+selectedMessage = [
+  MessagesStore
+  selectedMessageThreadId
+  (messages, id) -> if id then messages.get id else null
+]
+
+# Maps channels message ids with relevant message instances.
+messageThreads = [
+  MessageThreadsStore
+  MessagesStore
+  (threads, messages) ->
+    threads.map (thread) ->
+      # replace messageIds in list with message instances.
+      thread.update 'comments', (comments) ->
+        comments.map (id) -> messages.get id
+]
+
+selectedMessageThread = [
+  messageThreads
+  selectedMessage
+  (threads, message) ->
+    return null  unless message
+    thread = threads.get message.get('id')
+    return thread.set 'message', message
+]
+
+selectedMessageThreadComments = [
+  selectedMessageThread
+  (thread) ->
+    return null  unless thread
+    thread.get 'comments'
 ]
 
 # Aliases for providing consistent getter names for suggestion stores
@@ -138,6 +184,12 @@ module.exports = {
   selectedChannelThreadId
   selectedChannelThread
   selectedChannelThreadMessages
+
+  selectedMessageThreadId
+  selectedMessageThread
+  selectedMessageThreadComments
+
+  selectedChannelPopularMessages
 
   currentSuggestionsQuery
   currentSuggestions

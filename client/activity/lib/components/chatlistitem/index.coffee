@@ -13,6 +13,7 @@ MessageTime          = require 'activity/components/chatlistitem/messagetime'
 keycode              = require 'keycode'
 ActivityFlux         = require 'activity/flux'
 
+
 module.exports = class ChatListItem extends React.Component
 
   constructor: (props) ->
@@ -22,7 +23,10 @@ module.exports = class ChatListItem extends React.Component
 
   getItemProps: ->
     key       : @props.message.get 'id'
-    className : if @state.hover then kd.utils.curry 'ChatItem mouse-enter', @props.className else kd.utils.curry 'ChatItem', @props.className
+    className : \
+      if @state.hover
+      then kd.utils.curry 'ChatItem mouse-enter', @props.className
+      else kd.utils.curry 'ChatItem', @props.className
     onMouseEnter: =>
       @setState hover: yes
 

@@ -147,6 +147,8 @@ class MainController extends KDController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
     kd.registerSingleton 'reactor',                   new KodingFluxReactor { debug: yes }
 
+    @registerFluxStores()
+
     shortcuts.addEventListeners()
 
     router.listen()
@@ -416,3 +418,15 @@ class MainController extends KDController
       for src in images
         image     = new Image
         image.src = src
+
+
+  registerFluxStores: ->
+
+    fluxModules = [
+      require 'activity/flux'
+    ]
+
+    fluxModules.forEach (fluxModule) ->
+      kd.singletons.reactor.registerStores fluxModule.stores
+
+
