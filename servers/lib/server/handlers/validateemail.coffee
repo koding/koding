@@ -6,8 +6,13 @@ module.exports = (req, res) ->
   { JUser }           = koding.models
   { password, email, tfcode } = req.body
 
-  unless email? and (email = email.trim()).length isnt 0
-    return res.status(400).send 'Bad request'
+  badRequest = (message = 'Bad request') ->
+    res.status(400).send message
+
+  return badRequest()  unless email
+
+  if (email = email.trim()).length is 0
+    return badRequest()
 
   { password, redirect } = req.body
 
@@ -19,21 +24,21 @@ module.exports = (req, res) ->
 
       { isValid : isEmail } = JUser.validateAt 'email', email, yes
 
-      return res.status(400).send 'Bad request'  unless isEmail
+      return badRequest()  unless isEmail
 
       if err?.name is 'VERIFICATION_CODE_NEEDED'
-        return res.status(400).send 'TwoFactor auth Enabled'
+        return badRequest 'TwoFactor auth Enabled'
 
       else if err?.message is 'Access denied!'
-        return res.status(400).send 'Bad request'
+        return badRequest()
 
       else if err and isEmail
         JUser.emailAvailable email, (err_, response) ->
-          return res.status(400).send 'Bad request'  if err_
+          return badRequest()  if err_
 
           return if response
           then res.status(200).send response
-          else res.status(400).send 'Email is taken!'
+          else badRequest 'Email is taken!'
 
         return
 
