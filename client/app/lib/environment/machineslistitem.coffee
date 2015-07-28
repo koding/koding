@@ -72,10 +72,18 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
 
   pistachio: ->
+    { provider }  = @getData()
+    providerData  = PROVIDERS[provider] or PROVIDERS.aws
+    { url, logo } = providerData
+
     """
       <div>
         {{> @labelLink}}
-        {{#(provider)}}
+      </div>
+      <div>
+        <a href="#{url}" target="_blank">
+          <img class="logo #{provider}" src="/a/images/providers/#{logo}.png" />
+        </a>
       </div>
       <div>
         <span>VM{{> @settingsLink}}</span>
@@ -89,3 +97,8 @@ module.exports = class MachinesListItem extends kd.ListItemView
         {{> @alwaysOnToggle}}
       </div>
     """
+
+  PROVIDERS      =
+    aws          : logo: 'aws',          url: 'http://aws.amazon.com'
+    koding       : logo: 'aws',          url: 'http://aws.amazon.com'
+    digitalocean : logo: 'digitalocean', url: 'http://digitalocean.com'
