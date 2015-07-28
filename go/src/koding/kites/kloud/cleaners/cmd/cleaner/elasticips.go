@@ -34,6 +34,7 @@ func (e *ElasticIPs) Process() {
 }
 
 func (e *ElasticIPs) Run() {
+
 }
 
 func (e *ElasticIPs) Result() string {
@@ -45,5 +46,8 @@ func (e *ElasticIPs) Result() string {
 }
 
 func (e *ElasticIPs) Info() *taskInfo {
-	return nil
+	return &taskInfo{
+		Title: "ElasticIPs",
+		Desc:  "Release(delete) elasticIPs which are not associated to any instance",
+	}
 }
