@@ -61,7 +61,7 @@ module.exports = class IDEStatusBar extends KDView
       href     : "#{kd.singletons.router.getCurrentPath()}/share"
       title    : 'Loading'
       cssClass : 'share fr hidden'
-      click    : =>
+      click    : (event) =>
         kd.utils.stopDOMEvent event
         return  if @hasClass 'loading'
         return  unless appManager.frontApp.mountedMachine.isRunning()
