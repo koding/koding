@@ -7,9 +7,11 @@ MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 ButtonWithMenu       = require 'app/components/buttonwithmenu'
+ActivityPromptModal  = require 'app/components/activitypromptmodal'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
 MessageTime          = require 'activity/components/chatlistitem/messagetime'
 keycode              = require 'keycode'
+ActivityFlux         = require 'activity/flux'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -31,12 +33,34 @@ module.exports = class ChatListItem extends React.Component
 
   getMenuItems: ->
     return [
-      {title: 'Edit Post',   key: 'editpost',  onClick: @bound 'editPost'}
-      {title: 'Delete Post', key: 'deletepost', onClick: @bound 'deletePost'}
-      {title: 'Mark User as Troll', key: 'markuser', onClick: @bound 'markUser'}
-      {title: 'Block User', key: 'blockuser', onClick: @bound 'blockUser'}
-      {title: 'impersonate User', key: 'impersonate', onClick: @bound 'impersonate'}
+      {title: 'Edit Post',          key: 'editpost',    onClick: @bound 'editPost'}
+      {title: 'Delete Post',        key: 'deletepost',  onClick: @bound 'deletePost'}
+      {title: 'Mark User as Troll', key: 'markuser',    onClick: @bound 'markUser'}
+      {title: 'Block User',         key: 'blockuser',   onClick: @bound 'blockUser'}
+      {title: 'impersonate User',   key: 'impersonate', onClick: @bound 'impersonate'}
     ]
+
+
+  getDeleteItemModalProps: ->
+    className          : 'activityDeleteItemModal'
+    title              : 'Delete post'
+    body               : 'Are you sure you want to delete this post?'
+    buttonYESText      : 'DELETE'
+    buttonNOText       : 'CANCEL'
+    buttonYESHandler   : @bound 'deletePostButtonHandler'
+    buttonNOHandler    : @bound 'closeDeletePostModal'
+    buttonCloseHandler : @bound 'closeDeletePostModal'
+
+
+  deletePostButtonHandler: ->
+
+    ActivityFlux.actions.message.removeMessage @props.message.get('id')
+    @closeDeletePostModal()
+
+
+  closeDeletePostModal: ->
+
+    @modalContainer.classList.add 'hidden'
 
 
   editPost: ->
@@ -46,7 +70,10 @@ module.exports = class ChatListItem extends React.Component
 
   deletePost: ->
 
-    console.log "delete post clicked"
+    @modalContainer = document.getElementsByClassName("PublicChatPane-ModalContainer")[0]
+    @modalContainer.classList.remove 'hidden'
+    React.render <ActivityPromptModal {...@getDeleteItemModalProps()}/>, @modalContainer
+    @setState showMenuForMouseAction: no
 
 
   markUser: ->
@@ -66,7 +93,9 @@ module.exports = class ChatListItem extends React.Component
 
   updateMessage: ->
 
-    console.log "update message"
+    @setState editMode: no
+    messageBody = @refs.EditMessageTextarea.getDOMNode().value
+    ActivityFlux.actions.message.editMessage @props.message.get('id'), messageBody
 
 
   cancelEdit: ->
@@ -80,7 +109,11 @@ module.exports = class ChatListItem extends React.Component
     key  = keycode code
 
     @setState editMode: no if key is 'esc'
-    @setState editMode: no if key is 'enter'
+
+    if key is 'enter'
+
+      @setState editMode: no
+      ActivityFlux.actions.message.editMessage @props.message.get('id'), event.target.value
 
 
   render: ->
@@ -107,7 +140,7 @@ module.exports = class ChatListItem extends React.Component
           </div>
         </div>
         <div className={editFormClass}>
-          <textarea onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' }></textarea>
+          <textarea onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' } ref="EditMessageTextarea"></textarea>
           <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
           <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
         </div>
