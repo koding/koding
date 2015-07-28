@@ -204,10 +204,26 @@ runTests = -> describe 'server.handlers.getteammembers', ->
       ->
         # expecting user to be registered
         registerRequestParams = generateRegisterRequestParams
-          body       :
-            email    : inviteeEmail
-            username : groupOwnerUsername
-            password : groupOwnerPassword
+          body              :
+            email           : inviteeEmail
+            username        : inviteeUsername
+            password        : inviteeUsername
+            passwordConfirm : inviteeUsername
+
+        # registering a new user
+        request.post registerRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
+
+      ->
+        # expecting user to be registered
+        registerRequestParams = generateRegisterRequestParams
+          body              :
+            email           : groupOwnerEmail
+            username        : groupOwnerUsername
+            password        : groupOwnerPassword
+            passwordConfirm : groupOwnerPassword
 
         # registering a new user
         request.post registerRequestParams, (err, res, body) ->
@@ -234,18 +250,6 @@ runTests = -> describe 'server.handlers.getteammembers', ->
           queue.next()
 
       ->
-        joinTeamRequestParams = generateJoinTeamRequestParams
-          body       :
-            slug     : groupSlug
-            token    : token
-            username : inviteeUsername
-
-        request.post joinTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
-
-      ->
         # expecting group to be crated
         JGroup.one { slug : groupSlug }, (err, group) ->
           expect(err)         .to.not.exist
@@ -254,7 +258,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
       ->
         # expecting invitation to be created with correct data
-        params = { email : inviteeEmail }
+        params = { email : inviteeEmail, groupName : groupSlug }
 
         JInvitation.one params, (err, invitation) ->
           expect(err)                   .to.not.exist
@@ -283,7 +287,6 @@ runTests = -> describe 'server.handlers.getteammembers', ->
           expect(res.statusCode)  .to.be.equal 200
           expect(body)            .not.to.be.empty
           expect(body)            .to.contain groupOwnerUsername
-          expect(body)            .to.contain inviteeUsername
           queue.next()
 
       -> done()
