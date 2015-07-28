@@ -287,6 +287,8 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     channel = @getData()
     @input  = new ReplyInputWidget {channel, collaboration : yes, cssClass : 'private'}
 
+    @input.input.setClass 'collab-chat-input'
+
     @input.on 'EditModeRequested', @bound 'editLastMessage'
 
 
