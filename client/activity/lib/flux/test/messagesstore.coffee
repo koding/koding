@@ -68,6 +68,65 @@ describe 'MessagesStore', ->
       expect(storeState.has clientRequestId).to.equal no
 
 
+  describe '#handleEditMessageBegin', ->
+
+    it 'marks message edited', ->
+
+      messageId = 'test'
+      body      = 'Hello World'
+      message   = MessageCollectionHelpers.createFakeMessage messageId, body
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { messageId, message }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: foo: 'bar' }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.get '__editedBody').to.eql 'Hello World Edited'
+      expect(message.get('__editedPayload').toJS()).to.eql foo: 'bar'
+
+
+  describe '#handleEditMessageSuccess', ->
+
+    it 'marks message edited', ->
+
+      messageId = 'test'
+      body      = 'Hello World'
+      message   = MessageCollectionHelpers.createFakeMessage messageId, body
+      successMessage   = MessageCollectionHelpers.createFakeMessage messageId, 'Hello World Edited'
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { messageId, message }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: foo: 'bar' }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_SUCCESS, { messageId, message: successMessage }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.has '__editedBody').to.eql no
+      expect(message.has '__editedPayload').to.eql no
+      expect(message.get 'body').to.eql 'Hello World Edited'
+
+
+  describe '#handleEditMessageFail', ->
+
+    it 'marks message edited', ->
+
+      messageId = 'test'
+      body      = 'Hello World'
+      message   = MessageCollectionHelpers.createFakeMessage messageId, body
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { messageId, message }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_BEGIN, { messageId, body: 'Hello World Edited', payload: foo: 'bar' }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_FAIL, { messageId }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.has '__editedBody').to.eql no
+      expect(message.has '__editedPayload').to.eql no
+      expect(message.get 'body').to.eql 'Hello World'
+
+
   describe '#handleRemoveMessageBegin', ->
 
     messageId = null
