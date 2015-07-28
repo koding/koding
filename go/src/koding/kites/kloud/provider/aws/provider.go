@@ -14,6 +14,7 @@ import (
 	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/userdata"
 	"time"
 
@@ -27,16 +28,6 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
-
-// include it here to because the library is not exporting it.
-var retryingTransport = &aws.ResilientTransport{
-	Deadline: func() time.Time {
-		return time.Now().Add(60 * time.Second)
-	},
-	DialTimeout: 45 * time.Second, // this is 10 seconds in original
-	MaxTries:    3,
-	Wait:        aws.ExpBackoff,
-}
 
 type Provider struct {
 	DB         *mongodb.MongoDB
@@ -119,7 +110,7 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 			SecretKey: creds.Meta.SecretKey,
 		},
 		aws.Regions[machine.Meta.Region],
-		aws.NewClient(retryingTransport),
+		aws.NewClient(multiec2.NewResilientTransport()),
 	)
 
 	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)

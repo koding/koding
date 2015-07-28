@@ -23,10 +23,8 @@ type Clients struct {
 	sync.Mutex
 }
 
-// Clients is returning a new multi clients refernce for the given regions.
-func New(auth aws.Auth, regions []string) *Clients {
-	// include it here to because the library is not exporting it.
-	var retryingTransport = &aws.ResilientTransport{
+func NewResilientTransport() *aws.ResilientTransport {
+	return &aws.ResilientTransport{
 		Deadline: func() time.Time {
 			return time.Now().Add(60 * time.Second)
 		},
@@ -35,7 +33,10 @@ func New(auth aws.Auth, regions []string) *Clients {
 		ShouldRetry: awsRetry,
 		Wait:        aws.ExpBackoff,
 	}
+}
 
+// Clients is returning a new multi clients refernce for the given regions.
+func New(auth aws.Auth, regions []string) *Clients {
 	clients := &Clients{
 		regions: make(map[string]*ec2.EC2),
 		zones:   make(map[string][]string),
@@ -48,7 +49,7 @@ func New(auth aws.Auth, regions []string) *Clients {
 			continue
 		}
 
-		client := ec2.NewWithClient(auth, region, aws.NewClient(retryingTransport))
+		client := ec2.NewWithClient(auth, region, aws.NewClient(NewResilientTransport()))
 		clients.regions[region.Name] = client
 
 		resp, err := client.DescribeAvailabilityZones(ec2.NewFilter())
