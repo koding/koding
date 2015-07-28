@@ -48,8 +48,6 @@ module.exports = class ChannelThreadPane extends React.Component
   renderChat: ->
     return null  unless @props.chat
 
-    console.log 333, @state.channelThreadMessages?.filter (m) -> not m
-
     React.cloneElement @props.chat,
       thread   : @state.channelThread
       messages : @state.channelThreadMessages
