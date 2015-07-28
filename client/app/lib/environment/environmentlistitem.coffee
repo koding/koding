@@ -20,47 +20,61 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     super options, data
 
-    { machines, _revisionStatus } = stack = @getData()
-    delegate = @getDelegate()
+    @createButtons()
+    @createExtraViews()
 
-    @reinitButton = new kd.ButtonView
-      cssClass    : if isKoding() then 'hidden' else ''
-      icon        : yes
-      iconOnly    : yes
-      iconClass   : 'reinit'
-      tooltip     :
-        title     : 'Re-init Stack'
-      callback    : ->
-        ComputeController_UI.askFor 'reinitStack', {}, ->
-          delegate.emit 'StackReinitRequested', stack
+    listView     = new MachinesList
+    controller   = new MachinesListController
+      view       : listView
+      wrapper    : no
+      scrollView : no
+    ,
+      items      : @getData().machines
 
-    addVMMenu = {}
+    @machinesList = controller.getView()
+
+
+  createButtons: ->
+
+    @reinitButton     = new kd.CustomHTMLView cssClass: 'hidden'
+    @addVMButton      = new kd.CustomHTMLView cssClass: 'hidden'
+    @addManagedButton = new kd.CustomHTMLView cssClass: 'hidden'
+
+    unless isKoding()
+      @reinitButton = new kd.ButtonView
+        cssClass    : 'solid compact red'
+        title       : 'RE-INIT STACK'
+        callback    : ->
+          ComputeController_UI.askFor 'reinitStack', {}, ->
+            delegate.emit 'StackReinitRequested', stack
 
     if isKoding()
-      addVMMenu['Create Koding VM'] = callback: @generateMenuCallback 'koding'
+      @addVMButton = new kd.ButtonView
+        title      : 'Add a Koding VM'
+        cssClass   : 'add-vm-button solid green compact'
+        callback   : => @handleMachineRequest 'koding'
 
     if checkFlag ['super-admin', 'super-digitalocean']
-      addVMMenu['Add Your Own Machine']  = callback: @generateMenuCallback 'managed'
+      @addManagedButton = new kd.ButtonView
+        title           : 'Add Your Own Machine'
+        cssClass        : 'add-managed-button solid green compact'
+        callback        : => @handleMachineRequest 'managed'
 
 
-    @addVMButton  = new kd.ButtonView
-      icon        : yes
-      iconOnly    : yes
-      iconClass   : 'add'
-      cssClass    : 'add-vm-button'
-      tooltip     :
-        title     : 'Add new VM'
-      callback    : =>
-        @_menu = new kd.ContextMenu
-          cssClass    : 'add-new-vm-menu'
-          delegate    : @addVMButton
-          y           : @addVMButton.getY() + 25
-          x           : @addVMButton.getX() + @addVMButton.getWidth() / 2 - 120
-          width       : 240
-          arrow       :
-            placement : 'top'
-            margin    : -47
-        , addVMMenu
+  handleMachineRequest: (provider) ->
+
+      ComputeHelpers.handleNewMachineRequest { provider }
+      @getDelegate().emit 'ModalDestroyRequested'
+
+
+  createExtraViews: ->
+
+    { group, stackRevision, _revisionStatus, machines, title } = @getData()
+
+
+    @title = new kd.CustomHTMLView
+      cssClass : 'stack-info clearfix hidden'
+      partial  : "<div class='title'>#{title}</div>"
 
     @warningIcon = new kd.CustomHTMLView
       cssClass   : 'warning-icon hidden'
@@ -74,7 +88,6 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     else
       revisionMessage = "You're currently using the latest revision."
 
-    {group, stackRevision} = stack
     @infoIcon     = new kd.CustomHTMLView
       cssClass    : 'info-icon'
       tooltip     :
@@ -89,32 +102,20 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     @infoIcon.hide()  if isKoding()
 
-    listView   = new MachinesList
-    controller = new MachinesListController
-      view        : listView
-      wrapper     : no
-      scrollView  : no
-    ,
-      items       : machines
-
-    @machinesList = controller.getView()
-
-
-  generateMenuCallback: (provider) ->
-
-    return =>
-      ComputeHelpers.handleNewMachineRequest { provider }
-      @_menu.destroy()
-      @getDelegate().emit 'ModalDestroyRequested'
-
 
   pistachio: ->
     """
-    <div class='stack-info clearfix'>
-      {{> @warningIcon}} {div.title{#(title)}} {{> @infoIcon}}
-      <div class='buttons'>
-        {{> @reinitButton}}{{> @addVMButton}}
+      {{> @title}}
+      {{> @machinesList}}
+      <div class="footer">
+        <div class="icons">
+          {{> @warningIcon}}
+          {{> @infoIcon}}
+        </div>
+        <div class="button-container">
+          {{> @reinitButton}}
+          {{> @addManagedButton}}
+          {{> @addVMButton}}
+        </div>
       </div>
-    </div>
-    {{> @machinesList}}
     """
