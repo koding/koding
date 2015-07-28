@@ -1,7 +1,7 @@
 _        = require 'underscore'
 hat      = require 'hat'
-JUser    = require './lib/social/models/user/index'
 JAccount = require './lib/social/models/account'
+JSession = require './lib/social/models/session'
 
 
 # returns 20 characters by default
@@ -18,12 +18,11 @@ generateRandomUsername = -> generateRandomString()
 
 generateDummyClient = (context, callback) ->
 
-  # sending null session token to generate a new client
-  JUser.authenticateClient null, (err, res = {}) ->
+  # creating session and account
+  JSession.createSession (err, data) ->
+    callback err  if err
 
-    return callback err  if err
-
-    { account, session } = res
+    { session, account } = data
     context ?= { group: session?.groupName ? 'koding' }
 
     if account instanceof JAccount
@@ -32,6 +31,7 @@ generateDummyClient = (context, callback) ->
       # replace token with session.clientid
       sessionToken = clientId
 
+      # setting client data
       client =
         sessionToken : sessionToken
         context      : context
