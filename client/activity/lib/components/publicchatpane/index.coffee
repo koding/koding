@@ -24,19 +24,6 @@ module.exports = class PublicChatPane extends React.Component
     document.body.appendChild ModalContainer
 
 
-  componentDidUpdate: ->
-
-    PublicChatList           = React.findDOMNode(@refs.PublicChatList)
-    PublicChatPaneBody       = React.findDOMNode(@refs.PublicChatPaneBody)
-    chatList                 = PublicChatList.firstElementChild
-    chatListHeight           = chatList.offsetHeight
-    publicChatPaneBodyHeight = PublicChatPaneBody.offsetHeight
-
-    if (chatListHeight > publicChatPaneBodyHeight)
-    then chatList.classList.remove 'padded'
-    else chatList.classList.add 'padded'
-
-
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
