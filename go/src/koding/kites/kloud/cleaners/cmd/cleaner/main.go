@@ -143,7 +143,9 @@ func (c *Cleaner) collectAndProcess() error {
 		&TestDomains{
 			DNS: c.DNSDev,
 		},
-		&ElasticIPs{},
+		&ElasticIPs{
+			Lookup: c.AWS,
+		},
 		&AlwaysOn{
 			MongoDB:          c.MongoDB,
 			IsPaid:           artifacts.IsPaid,
