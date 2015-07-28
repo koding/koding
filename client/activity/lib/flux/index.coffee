@@ -5,6 +5,7 @@ module.exports =
     thread      : require './actions/thread'
     channel     : require './actions/channel'
     suggestions : require './actions/suggestions'
+    emoji       : require './actions/emoji'
   stores    : [
     require './stores/messagesstore'
     require './stores/channelsstore'

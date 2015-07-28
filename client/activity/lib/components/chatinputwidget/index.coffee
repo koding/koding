@@ -1,6 +1,10 @@
 kd       = require 'kd'
 React    = require 'kd-react'
 TextArea = require 'react-autosize-textarea'
+EmojiDropup = require 'activity/components/emojidropup'
+
+ActivityFlux   = require 'activity/flux'
+KDReactorMixin = require 'app/flux/reactormixin'
 
 module.exports = class ChatInputWidget extends React.Component
 
@@ -13,9 +17,56 @@ module.exports = class ChatInputWidget extends React.Component
     @state = { value : '' }
 
 
+  getDataBindings: ->
+
+    { getters } = ActivityFlux
+
+    return {
+      emojis        : getters.currentEmojis
+      selectedEmoji : getters.selectedEmoji
+    }
+
+
+  componentDidUpdate: (prevProps, prevState) ->
+
+    { selectedEmoji } = @state
+    return  if prevState.selectedEmoji is selectedEmoji
+    return  unless selectedEmoji
+
+    domElement = React.findDOMNode(this)
+    textarea   = domElement.querySelector 'textarea'
+
+    textBeforeCursor = helper.getTextBeforeCursor textarea
+    lastWord         = helper.getLastWord textBeforeCursor
+
+    startIndex = textBeforeCursor.lastIndexOf lastWord
+    endIndex   = textarea.selectionStart
+
+    value    = textarea.value
+    newValue = value.substring(0, startIndex) + ":#{selectedEmoji}:"
+    newValue += value.substring endIndex
+
+    @setState { value : newValue }
+
   update: (event) ->
 
-    @setState { value: event.target.value }
+    value = event.target.value
+    @setState { value }
+
+    emoji = @findEmojiInText()
+    ActivityFlux.actions.emoji.setQuery emoji ? ''
+
+
+  findEmojiInText: ->
+
+    domElement = React.findDOMNode(this)
+    textarea   = domElement.querySelector 'textarea'
+
+    textBeforeCursor = helper.getTextBeforeCursor textarea
+    lastWord         = helper.getLastWord textBeforeCursor
+
+    matchResult = lastWord.match /\:(.+)/
+    return matchResult?[1]
 
 
   onKeyDown: (event) ->
@@ -34,7 +85,10 @@ module.exports = class ChatInputWidget extends React.Component
 
   render: ->
 
-    <div className='ChatInputWidget'>
+    { emojis, selectedEmoji } = @state
+
+    <div className="ChatInputWidget">
+      <EmojiDropup emojis={emojis} selectedEmoji={selectedEmoji} />
       <TextArea
         value     = { @state.value }
         onChange  = { @bound 'update' }
@@ -42,3 +96,22 @@ module.exports = class ChatInputWidget extends React.Component
         onResize  = { @bound 'onResize' }
       />
     </div>
+
+
+  helper =
+
+    getTextBeforeCursor: (textbox) ->
+
+      position = textbox.selectionStart
+      value    = textbox.value
+
+      return value.substring 0, position
+
+
+    getLastWord: (str) ->
+
+      matchResult = str.match /\s([^\s]+)$/
+      return matchResult?[1] ? str
+
+
+React.Component.include.call ChatInputWidget, [KDReactorMixin]

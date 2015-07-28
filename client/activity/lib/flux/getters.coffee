@@ -27,6 +27,9 @@ SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
+EmojisStore                    = [['EmojisStore'], withEmptyList]
+EmojiQueryStore                = ['EmojiQueryStore']
+SelectedEmojiStore             = ['SelectedEmojiStore']
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -186,6 +189,16 @@ currentSuggestionsQuery = SuggestionsQueryStore
 currentSuggestions      = SuggestionsStore
 currentSuggestionsFlags = SuggestionsFlagsStore
 
+currentEmojis = [
+  EmojisStore
+  EmojiQueryStore
+  (emojis, query) ->
+    return immutable.List()  unless query
+    emojis.filter (emoji) -> emoji.indexOf(query) is 0
+]
+currentEmojiQuery = EmojiQueryStore
+selectedEmoji     = SelectedEmojiStore
+
 module.exports = {
   followedPublicChannelThreads
   followedPrivateChannelThreads
@@ -205,4 +218,8 @@ module.exports = {
   currentSuggestionsQuery
   currentSuggestions
   currentSuggestionsFlags
+
+  currentEmojis
+  currentEmojiQuery
+  selectedEmoji
 }
