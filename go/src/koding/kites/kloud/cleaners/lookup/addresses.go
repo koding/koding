@@ -53,6 +53,8 @@ func (a Addresses) Release(client *ec2.EC2) {
 			fmt.Printf("[%s] release ip address error: %s\n", client.Region.Name, err)
 		}
 	}
+
+	fmt.Printf("Releasing is done for region %s\n", client.Region.Name)
 }
 
 // ReleaseAll releases all the given addresses

@@ -23,7 +23,7 @@ func (e *ElasticIPs) Run() {
 		return
 	}
 
-	// e.Lookup.ReleaseAll(e.nonused)
+	e.Lookup.ReleaseAll(e.nonused)
 }
 
 func (e *ElasticIPs) Result() string {
