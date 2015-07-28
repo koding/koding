@@ -135,6 +135,34 @@ unlikeMessage = (messageId) ->
           message
         }
 
+editMessage = (messageId, body, payload = {}) ->
+
+    {socialapi} = kd.singletons
+    { EDIT_MESSAGE_BEGIN
+      EDIT_MESSAGE_SUCCESS
+      EDIT_MESSAGE_FAIL
+    } = actionTypes
+
+    dispatch EDIT_MESSAGE_BEGIN, {
+      messageId, body, payload
+    }
+
+    socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
+
+      if err
+        dispatch EDIT_MESSAGE_FAIL, {
+          err, messageId
+        }
+
+        return
+
+      kd.utils.wait 273, ->
+        socialapi.message.byId {id: messageId}, (err, message) ->
+          message.body = body
+          dispatch EDIT_MESSAGE_SUCCESS, {
+            message, messageId
+          }
+
 
 module.exports = {
   loadMessages
@@ -142,5 +170,6 @@ module.exports = {
   likeMessage
   unlikeMessage
   removeMessage
+  editMessage
 }
 
