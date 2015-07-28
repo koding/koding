@@ -6,7 +6,8 @@ module.exports = (req, res) ->
   { JUser }           = koding.models
   { password, email, tfcode } = req.body
 
-  return res.status(400).send 'Bad request'  unless email?
+  unless email? and (email = email.trim()).length isnt 0
+    return res.status(400).send 'Bad request'
 
   { password, redirect } = req.body
 
