@@ -26,13 +26,13 @@ module.exports = class EnvironmentsModal extends kd.ModalView
 
     if checkFlag 'super-admin'
 
-      stackEditorButton = new kd.ButtonView
-        title    : 'Open Stack Editor'
-        cssClass : 'compact solid green'
+      advancedButton = new kd.ButtonView
+        title    : 'ADVANCED'
+        cssClass : 'compact solid green advanced'
         callback : -> new StacksModal
 
       # Hack to add button outside of modal container
-      @addSubView stackEditorButton, '.kdmodal-inner'
+      @addSubView advancedButton, '.kdmodal-inner'
 
 
     @addSubView controller.getView()
