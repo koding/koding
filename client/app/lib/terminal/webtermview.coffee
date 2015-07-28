@@ -1,15 +1,16 @@
-trackEvent = require '../util/trackEvent'
-kd = require 'kd'
-KDButtonViewWithMenu = kd.ButtonViewWithMenu
-KDCustomScrollView = kd.CustomScrollView
-KDNotificationView = kd.NotificationView
-Machine = require '../providers/machine'
-Terminal = require './terminal'
-TerminalWrapper = require './terminalwrapper'
-WebTermMessagePane = require './webtermmessagepane'
-WebtermSettingsView = require './webtermsettingsview'
-settings = require './settings'
-globals = require 'globals'
+trackEvent            = require '../util/trackEvent'
+kd                    = require 'kd'
+KDButtonViewWithMenu  = kd.ButtonViewWithMenu
+KDCustomScrollView    = kd.CustomScrollView
+KDNotificationView    = kd.NotificationView
+Machine               = require '../providers/machine'
+Terminal              = require './terminal'
+TerminalWrapper       = require './terminalwrapper'
+WebTermMessagePane    = require './webtermmessagepane'
+WebtermSettingsView   = require './webtermsettingsview'
+settings              = require './settings'
+globals               = require 'globals'
+isIDEChatInputFocused = require '../util/isIDEChatInputFocused'
 
 
 module.exports = class WebTermView extends KDCustomScrollView
@@ -260,6 +261,9 @@ module.exports = class WebTermView extends KDCustomScrollView
     @once "ReceivedClickElsewhere", => @setFocus no
 
   setFocus: (state = yes) ->
+
+    return  if isIDEChatInputFocused()
+
     @focused = state
     @terminal.setFocused state
 

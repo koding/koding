@@ -1,16 +1,17 @@
-$                    = require 'jquery'
-_                    = require 'lodash'
-getscript            = require '@koding/getscript'
-kd                   = require 'kd'
-KDButtonView         = kd.ButtonView
-KDModalViewWithForms = kd.ModalViewWithForms
-KDNotificationView   = kd.NotificationView
-KDView               = kd.View
-remote               = require('app/remote').getInstance()
-globals              = require 'globals'
-trackEvent           = require 'app/util/trackEvent'
-FSHelper             = require 'app/util/fs/fshelper'
-settings             = require './settings'
+$                     = require 'jquery'
+_                     = require 'lodash'
+getscript             = require '@koding/getscript'
+kd                    = require 'kd'
+KDButtonView          = kd.ButtonView
+KDModalViewWithForms  = kd.ModalViewWithForms
+KDNotificationView    = kd.NotificationView
+KDView                = kd.View
+remote                = require('app/remote').getInstance()
+globals               = require 'globals'
+trackEvent            = require 'app/util/trackEvent'
+FSHelper              = require 'app/util/fs/fshelper'
+settings              = require './settings'
+isIDEChatInputFocused = require 'app/util/isIDEChatInputFocused'
 
 module.exports =
 
@@ -621,7 +622,11 @@ class Ace extends KDView
     @editor.gotoLine lineNumber
 
 
-  focus: -> @editor?.focus()
+  focus: ->
+
+    return  if isIDEChatInputFocused()
+
+    @editor?.focus()
 
 
   ###
