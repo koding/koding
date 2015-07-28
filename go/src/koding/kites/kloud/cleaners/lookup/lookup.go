@@ -40,7 +40,7 @@ func (l *Lookup) IpAddresses(client *ec2.EC2) ([]ec2.Address, error) {
 }
 
 // FetchIpAddresses fetches all IpAddresses from all regions
-func (l *Lookup) FetchIpAddresses() map[string][]ec2.Address {
+func (l *Lookup) FetchIpAddresses() Addresses {
 	var wg sync.WaitGroup
 
 	allAddressess := make(map[string][]ec2.Address, 0)
@@ -52,7 +52,7 @@ func (l *Lookup) FetchIpAddresses() map[string][]ec2.Address {
 
 			addressess, err := l.IpAddresses(client)
 			if err != nil {
-				fmt.Printf("[%s] fetching error: %s\n", region, err)
+				fmt.Printf("[%s] fetching ip addresses error: %s\n", region, err)
 				return
 			}
 
