@@ -26,6 +26,19 @@
         size                  9px, 9px
         r-sprite              activity heart-dim
 
+    .ChatItem-messageDate
+      rel()
+      pointer()
+      display                 inline-block
+
+      &:hover
+
+        time
+          text-decoration     underline
+
+        .Tooltip-wrapper
+          visible()
+
     .SettingsMenuWrapper
       abs()
       hidden()
@@ -44,6 +57,7 @@
       rounded                 3px 3px 0 0
       padding                 10px 0 6px
       bg                      color, #FDF6E3
+      overflow                hidden
 
       > div
         max-width             485px
@@ -101,3 +115,4 @@
       button.cancel-editing
         bg                    color, transparent
         color                 #999
+
