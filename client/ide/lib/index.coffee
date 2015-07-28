@@ -399,6 +399,8 @@ class IDEAppController extends AppController
     path ?= if owner = machineData.getOwner()
     then "/home/#{owner}"
     else '/'
+    
+    path = '/root'  if machineData.isManaged()
 
     @workspace.ready ->
       filesPane.emit 'MachineMountRequested', machineData, path
