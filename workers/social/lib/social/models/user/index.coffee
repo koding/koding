@@ -1141,6 +1141,8 @@ module.exports = class JUser extends jraphical.Module
     firstName = username  if not firstName or firstName is ''
     lastName  = ''        if not lastName
 
+    email = userFormData.email = email.trim()
+
     if error = validateConvertInput userFormData, client
       return callback error
 
