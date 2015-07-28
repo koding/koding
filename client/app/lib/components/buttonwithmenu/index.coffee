@@ -6,9 +6,6 @@ module.exports = class ButtonWithMenu extends React.Component
     @defaultProps = { items: [], showMenuForMouseAction: no}
     @state = { showSettingsMenu: props.showMenuForMouseAction or no }
 
-  componentDidMount: ->
-    @modalWrapper = document.createElement "div"
-    #document.body.appendChild modalWrapper
 
   renderListMenu: ->
     @props.items.map (item) ->

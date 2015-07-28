@@ -28,6 +28,13 @@ module.exports = class PublicChatPane extends React.Component
     { thread, message } = ActivityFlux.actions
     thread.changeSelectedThread @state.channel.id
     message.loadMessages @state.channel.id
+    @createModalContainer()
+
+
+  createModalContainer: ->
+    ModalContainer = document.createElement 'div'
+    ModalContainer.setAttribute 'class', 'PublicChatPane-ModalContainer hidden'
+    document.body.appendChild ModalContainer
 
 
   componentDidUpdate: ->
@@ -39,7 +46,9 @@ module.exports = class PublicChatPane extends React.Component
 
     if (chatListHeight > publicChatPaneBodyHeight) then chatList.classList.remove "padded" else chatList.classList.add "padded"
 
+
   channel: (key) -> if key then @state.channel[key] else @state.channel
+
 
   onSubmit: ({ value }) ->
 
