@@ -28,6 +28,43 @@ func NewAWS(auth aws.Auth) *Lookup {
 	}
 }
 
+// IpAddressess returns all elastic IP addres that belongs to the given
+// client/region
+func (l *Lookup) IpAddresses(client *ec2.EC2) ([]ec2.Address, error) {
+	resp, err := client.Addresses([]string{}, []string{}, ec2.NewFilter())
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Addresses, nil
+}
+
+// FetchIpAddresses fetches all IpAddresses from all regions
+func (l *Lookup) FetchIpAddresses() map[string][]ec2.Address {
+	var wg sync.WaitGroup
+
+	allAddressess := make(map[string][]ec2.Address, 0)
+
+	for region, client := range l.clients.Regions() {
+		wg.Add(1)
+		go func(region string, client *ec2.EC2) {
+			defer wg.Done()
+
+			addressess, err := l.IpAddresses(client)
+			if err != nil {
+				fmt.Printf("[%s] fetching error: %s\n", region, err)
+				return
+			}
+
+			allAddressess[region] = addressess
+		}(region, client)
+	}
+
+	wg.Wait()
+
+	return allAddressess
+}
+
 // Instances returns all instances that belongs to the given client/region if
 func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 	instances := make([]ec2.Instance, 0)
