@@ -119,6 +119,7 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
 
     @createReadOnlySettingElements()
     @createUnwatchSettingElements()
+    @createMuteHostSettingElements()
 
 
   GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
@@ -174,6 +175,29 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
   setReadOnly: (state) ->
 
     kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'readOnly', state
+
+
+  createMuteHostSettingElements: ->
+
+    @muteHostWrapper = new KDCustomHTMLView cssClass: 'wrapper mute-host'
+
+    @muteHostWrapper.addSubView toggle = new KodingSwitch
+      size         : 'tiny'
+      defaultValue : off
+      callback     : @bound 'setMuteHost'
+
+    @muteHostWrapper.addSubView new KDLabelView
+      title     : 'Participants can mute host'
+      mousedown : toggle.bound 'mouseDown'
+
+    @settings.addSubView @muteHostWrapper
+
+    @setMuteHost off  # set default value
+
+
+  setMuteHost: (state) ->
+
+    kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'muteHost', state
 
 
   initiateSession: ->

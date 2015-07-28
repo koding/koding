@@ -66,7 +66,12 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
 
     appManager.tell 'IDE', 'getCollaborationData', (data) =>
       appManager.tell 'IDE', 'hasParticipantWithAudio', @nickname, (hasAudio) =>
-        if hasAudio
+        canMute = hasAudio
+
+        if @nickname is data.host
+          canMute = hasAudio and data.settings.muteHost
+
+        if canMute
           items['Mute'] =
             title    : 'Mute'
             callback : =>

@@ -388,10 +388,17 @@ module.exports = CollaborationController =
 
   getCollaborationData: (callback = kd.noop) ->
 
-    settings    = @getSettings()
-    watchMap    = @myWatchMap?.values()
+    host     = @collaborationHost
+    settings = @getSettings()
+    watchMap = @myWatchMap?.values()
 
-    callback {@amIHost, settings, watchMap, @permissions}
+    callback {
+      @amIHost
+      host
+      settings
+      watchMap
+      @permissions
+    }
 
 
   startHeartbeat: ->
