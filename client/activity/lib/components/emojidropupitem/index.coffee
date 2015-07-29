@@ -1,20 +1,35 @@
-kd    = require 'kd'
-React = require 'kd-react'
-ActivityFlux   = require 'activity/flux'
+kd           = require 'kd'
+React        = require 'kd-react'
+ActivityFlux = require 'activity/flux'
+classnames   = require 'classnames'
+
 
 module.exports = class EmojiDropupItem extends React.Component
 
   handleSelect: ->
 
-    { emoji } = @props
-    ActivityFlux.actions.emoji.selectEmoji emoji
+    { index } = @props
+    ActivityFlux.actions.emoji.selectEmoji index
+
+
+  handleClick: (event) ->
+
+    event.preventDefault()
+    ActivityFlux.actions.emoji.clearEmojiQuery()
 
 
   render: ->
 
     { emoji, isSelected } = @props
-    className = "EmojiDropupItem #{if isSelected then 'EmojiDropupItem-selected' else ''}"
+    className = classnames
+      'EmojiDropupItem'         : yes
+      'EmojiDropupItem-selected': isSelected
 
-    <a href="#" className={className} onMouseEnter={@bound 'handleSelect'}>
+    <a
+      href         = "#"
+      className    = {className}
+      onMouseEnter = {@bound 'handleSelect'}
+      onClick      = {@bound 'handleClick'}
+    >
       <span className="EmojiDropupItem-emojiName">:{emoji}:</span>
     </a>

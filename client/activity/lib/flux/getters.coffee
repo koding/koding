@@ -2,6 +2,8 @@ immutable           = require 'immutable'
 isPublicChatChannel = require 'activity/util/isPublicChatChannel'
 whoami              = require 'app/util/whoami'
 
+EmojiConstants = require 'activity/flux/emojiconstants'
+
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
 
@@ -29,7 +31,7 @@ MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
 EmojisStore                    = [['EmojisStore'], withEmptyList]
 EmojiQueryStore                = ['EmojiQueryStore']
-SelectedEmojiStore             = ['SelectedEmojiStore']
+SelectedEmojiIndexStore        = ['SelectedEmojiIndexStore']
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -197,7 +199,17 @@ currentEmojis = [
     emojis.filter (emoji) -> emoji.indexOf(query) is 0
 ]
 currentEmojiQuery = EmojiQueryStore
-selectedEmoji     = SelectedEmojiStore
+selectedEmoji = [
+  currentEmojis
+  SelectedEmojiIndexStore
+  (emojis, index) ->
+    return ''  if index is EmojiConstants.UNSELECTED_EMOJI_INDEX or emojis.size is 0
+
+    index = index % emojis.size  if index >= emojis.size
+    index = emojis.size + index  if index < 0
+
+    return emojis.get index
+]
 
 module.exports = {
   followedPublicChannelThreads

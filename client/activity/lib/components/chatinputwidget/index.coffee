@@ -8,7 +8,13 @@ KDReactorMixin = require 'app/flux/reactormixin'
 
 module.exports = class ChatInputWidget extends React.Component
 
-  ENTER = 13
+  TAB         = 9
+  ENTER       = 13
+  ESC         = 27
+  LEFT_ARROW  = 37
+  UP_ARROW    = 38
+  RIGHT_ARROW = 39
+  DOWN_ARROW  = 40
 
   constructor: (props) ->
 
@@ -24,6 +30,7 @@ module.exports = class ChatInputWidget extends React.Component
     return {
       emojis        : getters.currentEmojis
       selectedEmoji : getters.selectedEmoji
+      emojiQuery    : getters.currentEmojiQuery
     }
 
 
@@ -33,49 +40,50 @@ module.exports = class ChatInputWidget extends React.Component
     return  if prevState.selectedEmoji is selectedEmoji
     return  unless selectedEmoji
 
-    domElement = React.findDOMNode(this)
-    textarea   = domElement.querySelector 'textarea'
+    textInput = React.findDOMNode(this.refs.textInput)
 
-    textBeforeCursor = helper.getTextBeforeCursor textarea
-    lastWord         = helper.getLastWord textBeforeCursor
+    { value, cursorPosition } = helper.insertEmoji textInput, selectedEmoji
+    @setState { value }
 
-    startIndex = textBeforeCursor.lastIndexOf lastWord
-    endIndex   = textarea.selectionStart
+    kd.utils.defer ->
+      helper.setCursorPosition textInput, cursorPosition
 
-    value    = textarea.value
-    newValue = value.substring(0, startIndex) + ":#{selectedEmoji}:"
-    newValue += value.substring endIndex
 
-    @setState { value : newValue }
-
-  update: (event) ->
+  onChange: (event) ->
 
     value = event.target.value
     @setState { value }
 
-    emoji = @findEmojiInText()
-    ActivityFlux.actions.emoji.setQuery emoji ? ''
+    textInput = React.findDOMNode this.refs.textInput
 
-
-  findEmojiInText: ->
-
-    domElement = React.findDOMNode(this)
-    textarea   = domElement.querySelector 'textarea'
-
-    textBeforeCursor = helper.getTextBeforeCursor textarea
-    lastWord         = helper.getLastWord textBeforeCursor
-
-    matchResult = lastWord.match /\:(.+)/
-    return matchResult?[1]
+    emojiQuery = helper.getEmojiQuery textInput
+    ActivityFlux.actions.emoji.setEmojiQuery emojiQuery
 
 
   onKeyDown: (event) ->
 
-    if event.which is ENTER and not event.shiftKey
-      kd.utils.stopDOMEvent event
-      @props.onSubmit? { value: @state.value }
-
-      @setState { value: '' }
+    { emojis : { size } } = @state
+    emojiActions = ActivityFlux.actions.emoji
+    switch event.which
+      when ENTER
+        if not event.shiftKey
+          kd.utils.stopDOMEvent event
+          @props.onSubmit? { value: @state.value }
+          @setState { value: '' }
+      when ESC
+        emojiActions.clearEmojiQuery()
+      when RIGHT_ARROW, DOWN_ARROW, TAB
+        if size is 1
+          emojiActions.clearEmojiQuery()
+        else if size > 0
+          event.preventDefault()
+          emojiActions.moveToNextEmoji()
+      when LEFT_ARROW, UP_ARROW
+        if size is 1
+          emojiActions.clearEmojiQuery()
+        else if size > 0
+          event.preventDefault()
+          emojiActions.moveToPrevEmoji()
 
 
   onResize: ->
@@ -85,33 +93,75 @@ module.exports = class ChatInputWidget extends React.Component
 
   render: ->
 
-    { emojis, selectedEmoji } = @state
+    { emojis, selectedEmoji, emojiQuery } = @state
 
     <div className="ChatInputWidget">
-      <EmojiDropup emojis={emojis} selectedEmoji={selectedEmoji} />
+      <EmojiDropup emojis={emojis} selectedEmoji={selectedEmoji} emojiQuery={emojiQuery} />
       <TextArea
         value     = { @state.value }
-        onChange  = { @bound 'update' }
+        onChange  = { @bound 'onChange' }
         onKeyDown = { @bound 'onKeyDown' }
         onResize  = { @bound 'onResize' }
+        ref       = "textInput"
       />
     </div>
 
 
   helper =
 
-    getTextBeforeCursor: (textbox) ->
+    getCursorPosition: (textInput) -> textInput.selectionStart
 
-      position = textbox.selectionStart
-      value    = textbox.value
+
+    setCursorPosition: (textInput, position) ->
+
+      textInput.focus()
+      textInput.setSelectionRange position, position
+
+
+    getTextBeforeCursor: (textInput) ->
+
+      position = helper.getCursorPosition textInput
+      value    = textInput.value
 
       return value.substring 0, position
 
 
     getLastWord: (str) ->
 
-      matchResult = str.match /\s([^\s]+)$/
-      return matchResult?[1] ? str
+      matchResult = str.match /([^\s]+)$/
+      return matchResult?[1]
+
+
+    getLastEmoji: (str) ->
+
+      matchResult = str.match /\s(\:[^\s]+\:\s)$/
+      return matchResult?[1]
+
+
+    getEmojiQuery: (textInput) ->
+
+      textBeforeCursor = helper.getTextBeforeCursor textInput
+      lastWord         = helper.getLastWord textBeforeCursor
+
+      matchResult = lastWord?.match /\:(.+)/
+      return matchResult?[1]
+
+
+    insertEmoji: (textInput, emoji) ->
+
+      textBeforeCursor = helper.getTextBeforeCursor textInput
+      lastEmoji        = helper.getLastEmoji textBeforeCursor
+      textToReplace    = lastEmoji ? helper.getLastWord textBeforeCursor
+
+      startReplaceIndex = textBeforeCursor.lastIndexOf textToReplace
+      endReplaceIndex   = helper.getCursorPosition textInput
+
+      value = textInput.value
+      textBeforeCursor = value.substring(0, startReplaceIndex) + ":#{emoji}: "
+      cursorPosition = textBeforeCursor.length
+      newValue = textBeforeCursor + value.substring endReplaceIndex
+
+      return { value : newValue, cursorPosition }
 
 
 React.Component.include.call ChatInputWidget, [KDReactorMixin]

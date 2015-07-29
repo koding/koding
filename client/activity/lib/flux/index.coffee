@@ -21,4 +21,7 @@ module.exports =
     require './stores/suggestions/suggestionsflagsstore'
     require './stores/suggestions/suggestionsstore'
     require './stores/messagelikerssstore'
+    require './stores/emojis/emojisstore'
+    require './stores/emojis/emojiquerystore'
+    require './stores/emojis/selectedemojiindexstore'
   ]

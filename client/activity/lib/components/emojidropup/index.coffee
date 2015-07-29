@@ -1,19 +1,40 @@
-$     = require 'jquery'
-kd    = require 'kd'
-React = require 'kd-react'
+$          = require 'jquery'
+kd         = require 'kd'
+React      = require 'kd-react'
+classnames = require 'classnames'
 
+ActivityFlux    = require 'activity/flux'
 EmojiDropupItem = require 'activity/components/emojidropupitem'
 
 module.exports = class EmojiDropup extends React.Component
 
+  componentDidMount: ->
+
+    document.addEventListener 'mousedown', @bound 'handleMouseClick'
+
+
+  componentWillUnmount: ->
+
+    document.removeEventListener 'mousedown', @bound 'handleMouseClick'
+
+
   componentDidUpdate: ->
 
-    kd.utils.defer =>
-      element = $ React.findDOMNode(this)
-      element.css top : -element.outerHeight()
+    element = $(React.findDOMNode this.refs.dropup)
+    element.css top : -element.outerHeight()
 
 
-  renderChildren: ->
+  handleMouseClick: (event) ->
+
+    { target }  = event
+    element     = React.findDOMNode this
+    isVisible   = not element.classList.contains 'hidden'
+    shouldClear = isVisible and not $.contains element, target
+
+    ActivityFlux.actions.emoji.clearEmojiQuery()  if shouldClear
+
+
+  renderList: ->
 
     { emojis, selectedEmoji } = @props
 
@@ -22,15 +43,22 @@ module.exports = class EmojiDropup extends React.Component
       then emoji is selectedEmoji
       else index is 0
 
-      <EmojiDropupItem emoji={emoji} isSelected={isSelected} />
+      <EmojiDropupItem emoji={emoji} isSelected={isSelected} index={index} />
 
 
   render: ->
 
-    { emojis } = @props
-    className = "EmojiDropup #{if emojis.size is 0 then 'hidden' else '' }"
+    { emojis, emojiQuery } = @props
+    className = classnames
+      'EmojiDropup-container' : yes
+      'hidden'                : emojis.size is 0
 
     <div className={className}>
-      {@renderChildren()}
-      <div className="clearfix" />
+      <div className="EmojiDropup" ref="dropup">
+        <div className="EmojiDropup-header">
+          Emojis matching <strong>:{emojiQuery}</strong>
+        </div>
+        {@renderList()}
+        <div className="clearfix" />
+      </div>
     </div>
