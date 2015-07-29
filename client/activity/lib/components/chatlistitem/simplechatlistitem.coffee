@@ -6,25 +6,35 @@ ButtonWithMenu       = require 'app/components/buttonwithmenu'
 ChatListItem         = require 'activity/components/chatlistitem'
 MessageTime          = require 'activity/components/chatlistitem/messagetime'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+classnames           = require 'classnames'
 
-module.exports = class ConsequentMessageItem extends ChatListItem
+module.exports = class SimpleChatListItem extends ChatListItem
+
+  getClassNames: ->
+    edit: classnames
+      'ChatItem-updateMessageForm': yes
+      'hidden': not @state.editMode
+    media: classnames
+      'MediaObject-content': yes
+      'hidden': @state.editMode
+    content: classnames
+      'ChatItem-contentWrapper MediaObject SimpleChatListItem': yes
+      'editing': @state.editMode
+
 
   render: ->
 
     { message } = @props
-    editFormClass       = if @state.editMode then 'ChatItem-updateMessageForm' else 'ChatItem-updateMessageForm hidden'
-    mediaContentClass   = if @state.editMode then 'MediaObject-content hidden' else 'MediaObject-content'
-    contentWrapperClass = if @state.editMode then 'ChatItem-contentWrapper MediaObject ConsequentMessageItem editing' else 'ChatItem-contentWrapper MediaObject ConsequentMessageItem'
     <div {...@getItemProps()}>
-      <div className={contentWrapperClass}>
-        <div className={mediaContentClass}>
+      <div className={@getClassNames().content}>
+        <div className={@getClassNames().media}>
           <MessageTime date={message.get 'createdAt'}/>
           <ActivityLikeLink />
           <div className="ChatItem-contentBody">
             <MessageBody source={message.get 'body'} />
           </div>
         </div>
-        <div className={editFormClass}>
+        <div className={@getClassNames().edit}>
           <textarea onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' } ref="EditMessageTextarea"></textarea>
           <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
           <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
@@ -32,3 +42,5 @@ module.exports = class ConsequentMessageItem extends ChatListItem
         <ButtonWithMenu items={@getMenuItems()} showMenuForMouseAction={@state.showMenuForMouseAction}/>
       </div>
     </div>
+
+
