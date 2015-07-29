@@ -102,19 +102,20 @@ func (p *Provider) CheckUsage(m *Machine) error {
 
 	// lock so it doesn't interfere with others.
 	p.Lock(m.Id.Hex())
-	defer func() {
-		p.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
-		p.Unlock(m.Id.Hex())
-	}()
+	defer p.Unlock(m.Id.Hex())
 
-	// mark it as stopped, so client side shouldn't ask for any eventer
-	if err := m.markAsStopped(); err != nil {
+	// Hasta la vista, baby!
+	p.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
+	if err := m.stop(ctx); err != nil {
+		// returning is ok, because Kloud will mark it anyways as stopped if
+		// Klient is not rechable anymore with the `info` method
+		p.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", m.Id.Hex(), err)
 		return err
 	}
+	p.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
 
-	p.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
-	// Hasta la vista, baby!
-	return m.stop(ctx)
+	// mark it as stopped, so client side shouldn't ask for any eventer
+	return m.markAsStoppedWithReason("Machine is stopped due inactivity")
 }
 
 // FetchOne() fetches a single machine document from mongodb that meets the criterias:

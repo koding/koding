@@ -6,6 +6,7 @@
     "/": "home",
     "/R/:username": "referrer",
     "/:name?/Login": "login",
+    "/:name?/Register": "register",
     "/:name?/Logout": "logout",
     "/:slug/:name": "members",
     "/member/:username": "member",

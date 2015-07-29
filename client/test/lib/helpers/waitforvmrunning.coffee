@@ -21,7 +21,7 @@ module.exports = (browser, machineName) ->
           if result.status is 0
             console.log ' ✔ VM is building, waiting to finish'
             browser
-              .waitForElementNotPresent  modalSelector, 200000
+              .waitForElementNotPresent  modalSelector, 400000
               .waitForElementVisible     vmSelector, 20000
               .pause 10000
 
@@ -31,6 +31,6 @@ module.exports = (browser, machineName) ->
             browser
               .waitForElementVisible     turnOnButtonSelector, 100000
               .click                     turnOnButtonSelector
-              .waitForElementNotPresent  modalSelector, 200000
+              .waitForElementNotPresent  modalSelector, 400000
               .waitForElementVisible     vmSelector, 20000
               .pause 10000

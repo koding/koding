@@ -154,6 +154,10 @@ func (m *Machine) markAsNotInitialized() error {
 }
 
 func (m *Machine) markAsStopped() error {
+	return m.markAsStoppedWithReason("Machine is stopped")
+}
+
+func (m *Machine) markAsStoppedWithReason(reason string) error {
 	m.Log.Debug("Marking instance as stopped")
 	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
@@ -162,7 +166,7 @@ func (m *Machine) markAsStopped() error {
 				"ipAddress":         "",
 				"status.state":      machinestate.Stopped.String(),
 				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Machine is stopped",
+				"status.reason":     reason,
 			}},
 		)
 	}); err != nil {
