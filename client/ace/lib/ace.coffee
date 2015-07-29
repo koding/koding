@@ -122,7 +122,7 @@ class Ace extends KDView
 
       @prepareEditor()
 
-      @focus()
+      @focus()  unless isIDEChatInputFocused()
       @show()
 
       kd.utils.defer @lazyBound 'emit', 'ready'
@@ -622,11 +622,7 @@ class Ace extends KDView
     @editor.gotoLine lineNumber
 
 
-  focus: ->
-
-    return  if isIDEChatInputFocused()
-
-    @editor?.focus()
+  focus: -> @editor?.focus()
 
 
   ###
