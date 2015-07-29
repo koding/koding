@@ -16,6 +16,7 @@ module.exports = class MachinesListItemHeader extends kd.ListItemView
   pistachio: ->
     """
       <div>NAME</div>
+      <div>PROVIDER</div>
       <div>TYPE</div>
       <div>OS</div>
       <div class='input-title'>ALWAYS ON</div>
