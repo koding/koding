@@ -5,7 +5,7 @@ koding                                  = require './../bongo'
 KONFIG                                  = require('koding-config-manager').load "main.#{argv.c}"
 
 { uniq }                                = require 'underscore'
-{ hostname }                            = KONFIG
+{ hostname, environment }               = KONFIG
 { dash, daisy }                         = Bongo
 { getClientId, handleClientIdNotFound } = require './../helpers'
 
@@ -114,12 +114,13 @@ generateCreateGroupKallback = (client, req, res, body) ->
 
     { JUser, JGroup, JInvitation } = koding.models
 
-    # don't set the cookie we don't want that
-    # bc we're going to redirect the page to the
-    # group subdomain, if you can set the cookie for
-    # the subdomain - SY cc/ @cihangir
+    teamDomain = switch environment
+      when 'production'  then ".koding.com"
+      when 'development' then ".dev.koding.com"
+      else ".#{environment}.koding.com"
 
-    # res.cookie 'clientId', result.newToken, path : '/'
+
+    res.cookie 'clientId', token, path : '/', domain : teamDomain
 
     # set session token for later usage down the line
     owner                      = result.account
