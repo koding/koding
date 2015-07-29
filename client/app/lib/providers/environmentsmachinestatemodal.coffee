@@ -494,21 +494,15 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         </span>
       "
       ManagedStopped : "
-        <h1>Cannot connect to your machine!</h1>
+        <h1><strong>Cannot connect to your machine!</strong></h1>
         <p>
-          Unfortunately, we cannot communicate with your machine. This can happen if:
-        </p>
-        <ol>
-          <li>Your machine is turned off</li>
-          <li>The Koding Service Connector is not running.</li>
-        </ol>
-        <p>
-          Please ensure that your machine is running and that the
-          Koding Service Connector is running.
+          This can happen either if your machine is turned off or the
           <a href='http://learn.koding.com/guides/connect-your-machine/' target='_blank'>
-            Learn more</a>.
+          Koding Service Connector</a> is not running.</p>
+        <p>
+          If you want, you can also <a class='managed-disconnect'>
+          disconnect</a> this machine.
         </p>
-        <p>If you want, you can also <a class='managed-disconnect'>disconnect</a> this machine.</p>
       "
 
     if customState is 'NotFound' and not isKoding()
