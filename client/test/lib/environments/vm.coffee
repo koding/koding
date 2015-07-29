@@ -78,7 +78,7 @@ module.exports =
   terminateVm: (browser) ->
 
       terminateSelector       = '.advanced .terminate'
-      proceedSelector         = '.kdbutton.solid.red.medium'
+      proceedSelector         = '.kdmodal.with-buttons .kdbutton.solid.red.medium'
       terminatedLabelSelector = '.terminated'
 
       helpers.beginTest(browser)
@@ -89,9 +89,10 @@ module.exports =
       browser
         .waitForElementVisible  terminateSelector, 20000
         .click                  terminateSelector
-        .pause                  2500
         .waitForElementVisible  proceedSelector, 20000
         .click                  proceedSelector
         .waitForElementVisible  terminatedLabelSelector, 100000
         .assert.containsText   terminatedLabelSelector, "successfully deleted"
         .end()
+      
+      
