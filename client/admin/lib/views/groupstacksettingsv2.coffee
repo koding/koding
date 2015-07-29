@@ -9,7 +9,7 @@ module.exports = class GroupStackSettingsV2 extends kd.View
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'stacks'
+    curryIn options, cssClass: 'stacks stacks-v2'
 
     super options, data
 
