@@ -1,14 +1,11 @@
 kd        = require 'kd'
 globals   = require 'globals'
-checkFlag = require 'app/util/checkFlag'
 whoami    = require 'app/util/whoami'
 
 
 module.exports = class AddManagedMachineModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
-
-    return  unless checkFlag ['super-admin', 'super-digitalocean']
 
     options.cssClass = 'add-managed-vm'
     options.title    = 'Add Your Own Machine'
