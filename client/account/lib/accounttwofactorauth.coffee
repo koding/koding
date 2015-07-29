@@ -182,8 +182,8 @@ module.exports = class AccountTwoFactorAuth extends kd.View
       cssClass   : 'main-loader'
       showLoader : yes
       size       :
-        width    : 40
-        height   : 40
+        width    : 25
+        height   : 25
 
   getLearnLink: ->
     "
