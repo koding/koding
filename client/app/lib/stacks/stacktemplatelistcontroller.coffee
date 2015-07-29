@@ -1,6 +1,7 @@
 kd                          = require 'kd'
 remote                      = require('app/remote').getInstance()
 
+getGroup                    = require 'app/util/getGroup'
 showError                   = require 'app/util/showError'
 AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
 
@@ -30,8 +31,7 @@ module.exports = class StackTemplateListController extends AccountListViewContro
       return if showError err, \
         KodingError : "Failed to fetch stackTemplates, try again later."
 
-      { groupsController } = kd.singletons
-      currentGroup = groupsController.getCurrentGroup()
+      currentGroup = getGroup()
 
       stackTemplates.map (template) ->
         template.inuse = template._id in (currentGroup.stackTemplates or [])

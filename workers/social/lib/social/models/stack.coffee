@@ -72,10 +72,9 @@ module.exports = class JComputeStack extends jraphical.Module
       baseStackId        : ObjectId
       stackRevision      : String
 
-      rules              : [ ObjectId ]
-      domains            : [ ObjectId ]
-      machines           : [ ObjectId ]
-      extras             : [ ObjectId ]
+      machines           :
+        type             : [ ObjectId ]
+        default          : -> []
 
       config             : Object
 

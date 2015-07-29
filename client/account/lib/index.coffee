@@ -20,7 +20,6 @@ KDListViewController  = kd.ListViewController
 AccountNavigationItem = require './accountnavigationitem'
 require('./routehandler')()
 
-
 module.exports = class AccountAppController extends AppController
 
   @options =
@@ -85,7 +84,7 @@ module.exports = class AccountAppController extends AppController
 
     @mainView.destroy()
 
-  openSection: (section, query) ->
+  openSection: (section, query) -> kd.singletons.mainController.ready =>
 
     if section is 'Oauth' and query.provider?
       @handleOauthRedirect query
@@ -109,7 +108,7 @@ module.exports = class AccountAppController extends AppController
       replaceState    : yes
 
 
-  loadView: (modal) ->
+  loadView: (modal) -> kd.singletons.mainController.ready =>
 
     @navController?.destroy()
     @navController = new KDListViewController

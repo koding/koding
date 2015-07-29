@@ -2,6 +2,7 @@ package amazon
 
 import (
 	"errors"
+	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
@@ -82,8 +83,32 @@ func (a *Amazon) Stop(ctx context.Context) error {
 		})
 	}
 
-	_, err := a.Client.StopInstances(a.Id())
-	if err != nil {
+	var (
+		// needs to be declared so we can call it recursively
+		tryStop   func() error
+		tried     int = 0
+		lastError error
+	)
+
+	// we try to stop if there is an error in the stop instance call. For
+	// example if it's a timeout we shouldn't return and try again.
+	tryStop = func() error {
+		if tried == 2 {
+			return fmt.Errorf("Tried to stop three times without any success. Last error is:'%s'",
+				lastError)
+		}
+
+		_, err := a.Client.StopInstances(a.Id())
+		if err != nil {
+			lastError = err
+			tried++
+			return tryStop()
+		}
+
+		return nil
+	}
+
+	if err := tryStop(); err != nil {
 		return err
 	}
 

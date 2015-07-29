@@ -155,14 +155,15 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 			Percentage: 100,
 		}
 
-		k.Log.Info("[%s] ======> %s started <======", args.MachineId, strings.ToUpper(r.Method))
+		k.Log.Debug("[%s] ======> %s started <======", args.MachineId, strings.ToUpper(r.Method))
 		start := time.Now()
-
 		err := fn(ctx, machine)
 		if err != nil {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
-			k.Log.Error("[%s][%s] %s error: %s", args.Provider, args.MachineId, r.Method, err)
+			k.Log.Error("[%s][%s] ======> %s finished with error: '%s' <======",
+				args.Provider, args.MachineId, strings.ToUpper(r.Method), err)
+
 			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
 
 			// however, eventerErr is an error we want to pass explicitly to
@@ -172,10 +173,10 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 			}
 
 			finalEvent.Status = stater.State() // fallback to to old state
+		} else {
+			k.Log.Info("[%s][%s] ======> %s finished (time: %s) <======",
+				args.Provider, args.MachineId, strings.ToUpper(r.Method), time.Since(start))
 		}
-
-		k.Log.Info("[%s] ======> %s finished (time: %s) <======",
-			args.MachineId, strings.ToUpper(r.Method), time.Since(start))
 
 		ev.Push(finalEvent)
 		k.Locker.Unlock(args.MachineId)
