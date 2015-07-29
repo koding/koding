@@ -6,7 +6,6 @@ IDEPane               = require './idepane'
 Ace                   = require 'ace/ace'
 AceView               = require 'ace/aceview'
 IDEHelpers            = require '../../idehelpers'
-isIDEChatInputFocused = require 'app/util/isIDEChatInputFocused'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -117,7 +116,6 @@ module.exports = class IDEEditorPane extends IDEPane
     super state
 
     return  unless ace = @getEditor()
-    return  if isIDEChatInputFocused()
 
     if state
     then ace.focus()
