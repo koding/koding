@@ -4,6 +4,7 @@ fetchChatChannels = require 'activity/util/fetchChatChannels'
 isKoding          = require 'app/util/isKoding'
 getGroup          = require 'app/util/getGroup'
 MessageActions    = require './message'
+{ actions: appActions } = require 'app/flux'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -36,6 +37,35 @@ loadChannelByName = (name) ->
 
     dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
     MessageActions.loadMessages channel.id
+
+
+###*
+ * Load participants of a channel.
+ *
+ * @param {string} channelId
+ * @param {array=} participantsPreview
+###
+loadParticipants = (channelId, participantsPreview = []) ->
+
+  { socialapi } = kd.singletons
+  { LOAD_CHANNEL_PARTICIPANTS_BEGIN
+    LOAD_CHANNEL_PARTICIPANTS_FAIL
+    LOAD_CHANNEL_PARTICIPANT_SUCCESS } = actionTypes
+
+  # first load the participants preview accounts.
+  participantsPreview.forEach (p) -> appActions.user.loadAccount p._id
+
+  dispatch LOAD_CHANNEL_PARTICIPANTS_BEGIN, { channelId, participantsPreview }
+
+  socialapi.channel.listParticipants { channelId }, (err, participants) ->
+    if err
+      dispatch LOAD_CHANNEL_PARTICIPANTS_FAIL, { err, channelId }
+      return
+
+    participants.forEach (participant) ->
+      { accountOldId } = participant
+      appActions.user.loadAccount accountOldId
+      dispatch LOAD_CHANNEL_PARTICIPANT_SUCCESS, { channelId, userId: accountOldId }
 
 
 ###*
@@ -118,5 +148,6 @@ module.exports = {
   loadChannelByName
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
+  loadParticipants
   loadPopularMessages
 }

@@ -16,12 +16,14 @@ ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 MessageThreadsStore            = [['MessageThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
+ChannelParticipantIdsStore     = [['ChannelParticipantIdsStore'], withEmptyMap]
 ChannelPopularMessageIdsStore  = [['ChannelPopularMessageIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
 SelectedMessageThreadIdStore   = ['SelectedMessageThreadIdStore']
 SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
 SuggestionsQueryStore          = ['SuggestionsQueryStore']
 SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
+UsersStore                     = [['UsersStore'], withEmptyMap]
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -171,6 +173,16 @@ selectedMessageThreadComments = [
     thread.get 'comments'
 ]
 
+selectedChannelParticipants = [
+  SelectedChannelThreadIdStore
+  ChannelParticipantIdsStore
+  UsersStore
+  (selectedId, ids, users) ->
+    return null  unless selectedId
+    participants = ids.get selectedId
+    participants.map (id) -> users.get id
+]
+
 # Aliases for providing consistent getter names for suggestion stores
 currentSuggestionsQuery = SuggestionsQueryStore
 currentSuggestions      = SuggestionsStore
@@ -188,6 +200,8 @@ module.exports = {
   selectedMessageThreadId
   selectedMessageThread
   selectedMessageThreadComments
+
+  selectedChannelParticipants
 
   selectedChannelPopularMessages
 
