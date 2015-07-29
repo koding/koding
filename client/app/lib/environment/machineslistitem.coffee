@@ -68,9 +68,15 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
 
   pistachio: ->
-    { provider }  = @getData()
-    providerData  = PROVIDERS[provider] or PROVIDERS.aws
-    { url, logo } = providerData
+    data = @getData()
+    { provider } = data
+
+    if provider is 'managed'
+      provider = data.jMachine.meta.managedProvider
+
+    pData = PROVIDERS[provider]
+    logo  = pData.logo or provider.toLowerCase()
+    url   = pData.url
 
     """
       <div>
@@ -95,6 +101,15 @@ module.exports = class MachinesListItem extends kd.ListItemView
     """
 
   PROVIDERS      =
-    aws          : logo: 'aws',          url: 'http://aws.amazon.com'
-    koding       : logo: 'aws',          url: 'http://aws.amazon.com'
-    digitalocean : logo: 'digitalocean', url: 'http://digitalocean.com'
+    Azure        : url: 'https://azure.microsoft.com/en-us'
+    HPCloud      : url: 'http://www.hpcloud.com'
+    Joyent       : url: 'https://www.joyent.com/'
+    SoftLayer    : url: 'http://www.softlayer.com'
+    Rackspace    : url: 'http://www.rackspace.com'
+    GoogleCloud  : url: 'https://cloud.google.com'
+    DigitalOcean : url: 'https://www.digitalocean.com'
+    AWS          : url: 'http://aws.amazon.com'
+
+    # handle `jMachine.provider` field.
+    aws          : url: 'http://aws.amazon.com'
+    koding       : url: 'http://aws.amazon.com', logo: 'aws'
