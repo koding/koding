@@ -40,7 +40,6 @@ module.exports = class AceFindAndReplaceView extends JView
   close: (fireEvent = yes) ->
 
     @hide()
-    @resizeEditor 0
     @findInput.setValue    ''
     @replaceInput.setValue ''
     @emit 'FindAndReplaceViewClosed'  if fireEvent
@@ -59,21 +58,7 @@ module.exports = class AceFindAndReplaceView extends JView
       height = 26 # we need to shrink editor height to fit all content
 
     @[method] cssName
-    @resizeEditor height
-
-
-  resizeEditor: (height) ->
-
-    if @getDelegate()?.ace?
-      {ace} = @getDelegate()
-      return unless ace.editor
-
-      ace.setHeight ace.getHeight() + @lastHeightTakenFromAce - height
-      ace.editor.resize yes
-      @lastHeightTakenFromAce = height
-
-
-  lastHeightTakenFromAce: 0
+    @emit 'FindAndReplaceViewShown', withReplace
 
 
   setTextIntoFindInput: (text) ->
