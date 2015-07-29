@@ -1,7 +1,7 @@
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
-
+ideHelpers = require '../helpers/idehelpers.js'
 modalSelector = '.machine-settings-modal.AppModal'
 
 module.exports =
@@ -77,22 +77,20 @@ module.exports =
 
   terminateVm: (browser) ->
 
-      terminateSelector       = '.advanced .terminate'
-      proceedSelector         = '.kdmodal.with-buttons .kdbutton.solid.red.medium'
-      terminatedLabelSelector = '.terminated'
+    terminateSelector       = '.kdmodal.AppModal .advanced .advanced.terminate'
+    proceedSelector         = '.kdmodal.with-buttons .kdbutton.red'
+    terminatedLabelSelector = '.terminated'
 
-      helpers.beginTest(browser)
-      helpers.waitForVMRunning(browser)
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
       
-      environmentHelpers.openAdvancedSettings(browser)
+    environmentHelpers.openAdvancedSettings(browser)
 
-      browser
-        .waitForElementVisible  terminateSelector, 20000
-        .click                  terminateSelector
-        .waitForElementVisible  proceedSelector, 20000
-        .click                  proceedSelector
-        .waitForElementVisible  terminatedLabelSelector, 100000
-        .assert.containsText   terminatedLabelSelector, "successfully deleted"
-        .end()
-      
-      
+    browser
+      .waitForElementVisible  terminateSelector, 20000
+      .click                  terminateSelector
+      .waitForElementVisible  proceedSelector, 20000
+      .click                  proceedSelector
+      .waitForElementVisible  terminatedLabelSelector, 100000
+      .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
+      .end()
