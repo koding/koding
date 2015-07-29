@@ -1,5 +1,7 @@
-_   = require 'underscore'
-hat = require 'hat'
+_        = require 'underscore'
+hat      = require 'hat'
+JAccount = require './lib/social/models/account'
+JSession = require './lib/social/models/session'
 
 
 # returns 20 characters by default
@@ -14,29 +16,33 @@ generateRandomEmail = (domain = 'koding.com') ->
 generateRandomUsername = -> generateRandomString()
 
 
-generateDummyClientData = ->
+generateDummyClient = (context, callback) ->
 
-  dummyClient =
-    sessionToken              : ''
-    context                   :
-      group                   : 'koding'
-    clientIP                  : '127.0.0.1'
-    connection                :
-      delegate                :
-        bongo_                :
-          instanceId          : ''
-          constructorName     : 'JAccount'
-        data                  :
-          profile             :
-            nickname          : 'guest-a974470194e85106'
-          type                : 'unregistered'
-        type                  : 'unregistered'
-        profile               :
-          nickname            : 'guest-a974470194e85106'
-        meta                  :
-          data                : {}
+  # creating session and account
+  JSession.createSession (err, data) ->
+    callback err  if err
 
-  return dummyClient
+    { session, account } = data
+    context ?= { group: session?.groupName ? 'koding' }
+
+    if account instanceof JAccount
+      { clientIP, clientId } = session
+
+      # replace token with session.clientid
+      sessionToken = clientId
+
+      # setting client data
+      client =
+        sessionToken : sessionToken
+        context      : context
+        clientIP     : '127.0.0.1'
+        connection   :
+          delegate   : account
+
+      callback null, client
+
+    else
+      callback 'session error'
 
 
 generateDummyUserFormData = ->
@@ -85,11 +91,11 @@ generateUserInfo = (opts = {}) ->
 
 module.exports = {
   generateUserInfo
+  generateDummyClient
   generateCredentials
   generateRandomEmail
   generateRandomString
   generateRandomUsername
-  generateDummyClientData
   generateDummyUserFormData
 }
 
