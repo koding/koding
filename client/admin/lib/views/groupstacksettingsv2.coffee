@@ -1,17 +1,34 @@
-kd             = require 'kd'
-InitialView    = require './stacksv2/initialview'
+kd              = require 'kd'
+curryIn         = require 'app/util/curryIn'
+
+InitialView     = require './stacksv2/initialview'
+DefineStackView = require './stacksv2/definestackview'
 
 
 module.exports = class GroupStackSettingsV2 extends kd.View
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'stacks'
+    curryIn options, cssClass: 'stacks'
+
     super options, data
 
 
   viewAppended: ->
-    @addSubView new InitialView
+
+    @addSubView initialView = new InitialView
+
+    initialView.on ['CreateNewStack', 'EditStack'], (stackTemplate) =>
+
+      initialView.hide()
+
+      requiresReload  = !stackTemplate?
+      defineStackView = @addSubView new DefineStackView {}, { stackTemplate }
+
+      defineStackView.on ['Cancel', 'Completed'], (stackTemplate) ->
+        initialView.reload()  if requiresReload
+        initialView.show()
+        @destroy()
 
 
   setGroupTemplate: (stackTemplate) ->
