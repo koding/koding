@@ -47,8 +47,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     # more to come like os, version etc.
     @vminfo =
-      instance_type : machine.jMachine.meta?.instance_type or 'unknown'
-
+      instance_type : machine.jMachine.meta?.instance_type or ''
 
 
   handleAlwaysOnStateChanged: (state) ->
