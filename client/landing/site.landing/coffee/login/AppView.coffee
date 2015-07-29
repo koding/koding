@@ -408,19 +408,18 @@ module.exports = class LoginView extends JView
     window.onRecaptchaloadCallback = (event) ->
       grecaptcha?.render 'recaptcha', sitekey : KD.config.recaptcha.key
 
-    @recaptcha = new KDCustomHTMLView
-      tagName    : 'script'
-      attributes :
-        src      : RECATCHA_JS
-        async    : yes
-        defer    : yes
-
     @signupModal.once 'viewAppended', =>
 
       if @recaptchaEnabled()
-        unless window.grecaptcha
-        then @recaptcha.appendToDomBody()
-        else grecaptcha?.render 'recaptcha', sitekey : KD.config.recaptcha.key
+        @recaptcha?.destroy()
+        @recaptcha = new KDCustomHTMLView
+          tagName    : 'script'
+          attributes :
+            src      : RECATCHA_JS
+            async    : yes
+            defer    : yes
+
+        @recaptcha.appendToDomBody()
 
       @signupModal.addSubView new KDCustomHTMLView
         partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/Legal/Terms" target="_blank"> Terms of Service</a> and <a href="/Legal/Privacy" target="_blank">Privacy Policy.</a></div>"""
