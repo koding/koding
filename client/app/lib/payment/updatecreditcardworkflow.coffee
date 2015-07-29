@@ -1,9 +1,15 @@
-kd = require 'kd'
-KDController = kd.Controller
-CreditCardModal = require './creditcardmodal'
+kd                = require 'kd'
+KDController      = kd.Controller
+CreditCardModal   = require './creditcardmodal'
+BaseWorkFlow      = require './baseworkflow'
+PaymentConstants  = require './paymentconstants'
 
 
-module.exports = class UpdateCreditCardWorkflow extends KDController
+module.exports = class UpdateCreditCardWorkflow extends BaseWorkFlow
+
+
+  { KEY, LIMIT } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
+
 
   constructor: (options = {}, data) ->
 
@@ -23,9 +29,13 @@ module.exports = class UpdateCreditCardWorkflow extends KDController
 
     @modal.on 'CreditCardSubmitted',        @bound 'handleSubmit'
     @modal.on 'CreditCardWorkflowFinished', @bound 'finish'
+    @emit 'ModalIsReady'
 
 
   handleSubmit: (formData) ->
+
+    if @isExceedFailedAttemptCount LIMIT
+      return @failedAttemptLimitReached()
 
     { cardNumber, cardCVC, cardName
       cardMonth, cardYear
@@ -49,6 +59,7 @@ module.exports = class UpdateCreditCardWorkflow extends KDController
       if response.error
         @modal.emit 'StripeRequestValidationFalied', response.error
         @modal.submitButton.hideLoader()
+        @increaseFailedAttemptCount()
         return
 
       token = response.id
@@ -62,8 +73,10 @@ module.exports = class UpdateCreditCardWorkflow extends KDController
     paymentController.updateCreditCard token, (err, result) =>
 
       if err
-      then @modal.emit 'CreditCardUpdateFailed', err
-      else @modal.emit 'CreditCardUpdateSucceeded'
+        @modal.emit 'CreditCardUpdateFailed', err
+        @increaseFailedAttemptCount()
+      else
+        @modal.emit 'CreditCardUpdateSucceeded'
 
 
   finish: ->
@@ -81,4 +94,14 @@ module.exports = class UpdateCreditCardWorkflow extends KDController
       initiatorView.state.paymentMethod = card
 
       @modal.destroy()
+
+
+  blockUserForTooManyAttempts: ->
+
+    { appStorageController }  = kd.singletons
+    accountStorage            = appStorageController.storage 'Account', '1.0'
+
+    value   = { timestamp: Date.now() }
+
+    accountStorage.setValue KEY, value
 

@@ -35,14 +35,31 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
 
   initialize: ->
 
+    @on actions.LOAD_MESSAGE_SUCCESS, @handleLoadMessageSuccess
+
     @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageSuccess
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageFail
 
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
 
+    @on actions.LOAD_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @addNewThread
+
+
+  ###*
+   * General handler for message load actions.
+   *
+   * @param {IMThreadCollection} threads
+   * @param {object} payload
+   * @param {string} payload.channelId
+   * @param {SocialMessage} payload.message
+   * @return {IMThreadCollection} nextState
+  ###
+  handleLoadMessageSuccess: (threads, { channelId, message }) ->
+
+    return addMessage threads, channelId, message.id
 
 
   ###*
@@ -55,7 +72,10 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
   ###
   addNewThread: (threads, { channel }) ->
 
-    return initThread threads, channel.id
+    unless threads.has channel.id
+      return initThread threads, channel.id
+
+    return threads
 
 
   ###*
@@ -136,10 +156,8 @@ addMessage = (threads, channelId, messageId) ->
   unless threads.has channelId
     threads = initThread threads, channelId
 
-  threads = threads.update channelId, (thread) ->
-    thread.setIn ['messages', messageId], messageId
+  return threads.setIn [channelId, 'messages', messageId], messageId
 
-  return threads
 
 
 ###*
@@ -155,7 +173,7 @@ removeMessage = (threads, messageId) ->
   # for each thread
   return threads.map (thread) ->
     # update messages list with filtering out given messageId.
-    thread.update 'messages', (messages) -> messages.filter (id) -> id isnt messageId
+    thread.update 'messages', (messages) -> messages.remove messageId
 
 
 ###*

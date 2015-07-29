@@ -1,0 +1,60 @@
+$base-padding               = 24px
+
+.FeedItem
+  width                     100%
+  background                $white
+  border-radius             $border-radius
+  border                    1px solid getBorderColor($gray-19)
+  margin-bottom             10px
+  padding                   0
+  font-size                 $fs-regular
+
+  &.is-disabled
+    opacity                 .5 !important
+
+.FeedItem-header
+
+  padding                   $base-padding $base-padding 0 $base-padding
+
+  .MediaObject-media
+    margin-right            16px
+
+  .MediaObject-content a
+    display                 block
+    float                   left
+    clear                   both
+
+.FeedItem-date
+  font-size                 $fs-small
+  color                     $color-light-text
+
+.FeedItem-body
+  padding                   ($base-padding/2) $base-padding
+
+.FeedItemAction
+  float                     left
+  margin-right              0
+  font-size                 $fs-small
+
+.FeedItemAction a
+  color                     $color-light-text
+
+.FeedItemAction~.FeedItemAction:before
+  content                   ""
+  display                   inline-block
+  size                      3px, 3px
+  rounded                   50%
+  background                $color-light-text
+  font-size                 8px
+  margin                    0 6px
+  vertical-align            middle
+
+.FeedItem-likeSummary
+  padding                   ($base-padding/2) $base-padding
+  border-top                1px solid getBorderColor($gray-19)
+  border-bottom             1px solid getBorderColor($gray-19)
+  bg                        color $gray-19
+
+  a
+    color                   $gray-2
+    font-weight             $fw-semibold

@@ -1,9 +1,7 @@
 kd                        = require 'kd'
 showError                 = require 'app/util/showError'
 checkFlag                 = require 'app/util/checkFlag'
-
 StacksModal               = require 'app/stacks/stacksmodal'
-
 EnvironmentList           = require './environmentlist'
 EnvironmentListController = require './environmentlistcontroller'
 
@@ -13,19 +11,14 @@ module.exports = class EnvironmentsModal extends kd.ModalView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'environments-modal', options.cssClass
+    options.title    = 'Your Machines'
     options.width    = 742
-    options.title    = 'Your VMs'
     options.overlay  = yes
 
     super options, data
 
-
-  viewAppended: ->
-
-    super
-
-    listView   = new EnvironmentList
-    controller = new EnvironmentListController
+    listView     = new EnvironmentList
+    controller   = new EnvironmentListController
       view       : listView
       wrapper    : no
       scrollView : no
@@ -33,13 +26,13 @@ module.exports = class EnvironmentsModal extends kd.ModalView
 
     if checkFlag 'super-admin'
 
-      stackEditorButton = new kd.ButtonView
-        title    : 'Open Stack Editor'
-        cssClass : 'compact solid green'
+      advancedButton = new kd.ButtonView
+        title    : 'ADVANCED'
+        cssClass : 'compact solid green advanced'
         callback : -> new StacksModal
 
       # Hack to add button outside of modal container
-      @addSubView stackEditorButton, '.kdmodal-inner'
+      @addSubView advancedButton, '.kdmodal-inner'
 
 
     @addSubView controller.getView()
@@ -50,7 +43,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
       stack.delete (err) ->
         return showError err  if err
 
-        {computeController, appManager} = kd.singletons
+        { computeController, appManager } = kd.singletons
 
         computeController
           .reset()

@@ -4,7 +4,8 @@
   "routes": {
     "/:name?/Account": "profile",
     "/:name?/Account/:section": "section",
-    "/:name?/Account/Referrer": "referrer"
+    "/:name?/Account/Referrer": "referrer",
+    "/:name?/Recover": "recover"
   },
   "sprites": [
     "./lib/sprites"
