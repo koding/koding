@@ -64,13 +64,13 @@ module.exports =
 
   clickAddKodingVMButton: (browser) ->
 
-    sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
+    modalSelector  = '.environments-modal'
+    buttonSelector = modalSelector + ' .kdbutton.add-vm-button'
+
     browser
-      .waitForElementVisible   '.environments-modal', 20000 # Assertion
-      .waitForElementVisible   '.kdbutton.add-vm-button', 20000 # Assertion
-      .click                   '.kdbutton.add-vm-button'
-      .waitForElementVisible   '.kdcontextmenu.add-new-vm-menu', 20000 # Assertion
-      .click                   '.kdlistitemview.create-koding-vm'
+      .waitForElementVisible   modalSelector, 20000 # Assertion
+      .waitForElementVisible   buttonSelector, 20000 # Assertion
+      .click                   buttonSelector
 
 
   seeUpgradeModal: (browser) ->
