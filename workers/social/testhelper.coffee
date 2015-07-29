@@ -45,7 +45,7 @@ generateDummyUserFormData = ->
     email                     : generateRandomEmail()
     agree                     : 'on'
     password                  : 'testpass'
-    username                  : 'testacc'
+    username                  : generateRandomUsername()
     passwordConfirm           : 'testpass'
 
   return dummyUserFormData

@@ -137,7 +137,7 @@ module.exports = class JName extends Model
     isEmailValid = require './user/emailchecker'
     {check}      = require 'validator'
 
-    return check(candidate).isEmail and isEmailValid candidate
+    return check(candidate).isEmail() and isEmailValid candidate
 
 
   @claimNames = secure (client, callback=->)->

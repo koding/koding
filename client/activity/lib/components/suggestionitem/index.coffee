@@ -23,6 +23,7 @@ module.exports = class SuggestionItem extends React.Component
     { suggestion }  = @props
     message         = suggestion.get 'message'
     highlightResult = suggestion.get 'highlightResult'
+    messageBody     = highlightResult?.getIn(['body', 'value']) ? message.get('body')
 
     { makeAvatar, makeProfileLink, makeInfoText } = helper
 
@@ -31,7 +32,7 @@ module.exports = class SuggestionItem extends React.Component
         {makeAvatar message.get('account')}
       </div>
       <div className="ActivitySuggestionItem-messageBody">
-        <SuggestionMessageBody source={highlightResult.getIn(['body', 'value'])} />
+        <SuggestionMessageBody source={messageBody} />
       </div>
       <div>
         <span className="ActivitySuggestionItem-info ActivitySuggestionItem-profileLink">

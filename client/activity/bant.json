@@ -15,7 +15,15 @@
     "/Activity/Topic/All" : "AllTopics",
     "/Activity/Topic/Following" : "FollowingTopics",
     "/Activity/Chat/All" : "AllPrivateMessages",
-    "/Activity" : "ActivityGeneric"
+    "/Activity" : "ActivityGeneric",
+
+    "/Channels/:channelName": "SingleChannel",
+    "/Channels/:channelName/:postSlug": "SinglePost",
+    "/Channels/:channelName/summary": "SingleChannelWithSummary",
+    "/Channels/:channelName/summary/:postSlug": "SinglePostWithSummary"
+
+
+
   },
   "sprites": [
     "./lib/sprites"
