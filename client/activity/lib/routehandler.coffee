@@ -1,8 +1,9 @@
-React      = require 'kd-react'
-Router     = require 'app/components/router'
-Location   = require 'react-router/lib/Location'
-handlers   = require './routehandlers'
-lazyrouter = require 'app/lazyrouter'
+React               = require 'kd-react'
+Router              = require 'app/components/router'
+Location            = require 'react-router/lib/Location'
+handlers            = require './routehandlers'
+lazyrouter          = require 'app/lazyrouter'
+isReactivityEnabled = require 'app/util/isReactivityEnabled'
 
 module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) ->
 
@@ -15,9 +16,11 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
     'SinglePostWithSummary'
   ]
 
-
   if type in reactivityRoutes
-  then handleReactivity info, ctx
+    if isReactivityEnabled()
+    then handleReactivity info, ctx
+    # unless reactivity is enabled redirect reactivity routes to `Public`
+    else ctx.handleRoute '/Activity/Public'
   else handle type
 
 
