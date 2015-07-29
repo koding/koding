@@ -14,16 +14,15 @@ module.exports = class StackTemplateListView extends kd.View
 
     super options, data
 
-
-  viewAppended: ->
-
-    @listView       = new StackTemplateList
+    @list           = new StackTemplateList
     @listController = new StackTemplateListController
-      view       : @listView
+      view       : @list
       wrapper    : no
       scrollView : no
 
-    @addSubView @getView()
+    @listView = @listController.getView()
 
 
-  getView: -> @listController.getView()
+  viewAppended: ->
+
+    @addSubView @listView

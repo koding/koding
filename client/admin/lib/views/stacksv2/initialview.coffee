@@ -19,8 +19,7 @@ module.exports = class InitialView extends kd.View
       callback : -> alert 'FIX ME'
 
     @stackTemplateList = (new StackTemplateListView)
-      .getView()
-      .on 'ItemSelected', (stackTemplate) ->
+      .listView.on 'ItemSelected', (stackTemplate) ->
         console.log 'Selected Template:', stackTemplate
 
 
