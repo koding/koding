@@ -395,6 +395,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     if @state is 'NotFound'
       @createStateLabel 'NotFound'
+    else if @isManaged and @state is Stopped
+      @createStateLabel 'ManagedStopped'
     else
       @createStateLabel()
 
@@ -475,7 +477,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
   createStateLabel: (customState) ->
 
     states       =
-      NotFound   : "
+      NotFound      : "
         <h1>You don't have any VMs!</h1>
         <span>
           This can happen if you have deleted all your VMs or if your
@@ -484,12 +486,23 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
           Learn more</a> about inactive VM cleanup.
         </span>
       "
-      NoTemplate : "
+      NoTemplate     : "
         <h1>Compute Stacks not configured yet!</h1>
         <span>
           Your team currently is not providing any compute resources.
           Please contact with your team admins for more information.
         </span>
+      "
+      ManagedStopped : "
+        <h1><strong>Cannot connect to your machine!</strong></h1>
+        <p>
+          This can happen either if your machine is turned off or the
+          <a href='http://learn.koding.com/guides/connect-your-machine/' target='_blank'>
+          Koding Service Connector</a> is not running.</p>
+        <p>
+          If you want, you can also <a class='managed-disconnect'>
+          disconnect</a> this machine.
+        </p>
       "
 
     if customState is 'NotFound' and not isKoding()
@@ -500,6 +513,12 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       tagName  : 'p'
       partial  : states[customState] or customState or @getStateLabel()
       cssClass : "state-label #{@state.toLowerCase()}"
+      click: (event) =>
+        if 'managed-disconnect' in event.target.classList
+          kd.utils.stopDOMEvent event
+          MachineSettingsModal = require './machinesettingsmodal'
+          settingsModal        = new MachineSettingsModal {}, @machine
+          settingsModal.tabView.showPaneByName 'Advanced'
 
     @container.addSubView @label
 
@@ -515,8 +534,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         return  unless groupsController.currentGroupHasStack()
 
     else if @isManaged
-      title    = 'Search for Nodes'
-      callback = 'findNodes'
+      # Display no button for managed.
+      return
     else
       title    = 'Turn it on'
       callback = 'turnOnMachine'

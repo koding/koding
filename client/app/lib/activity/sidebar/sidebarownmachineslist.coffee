@@ -37,7 +37,7 @@ module.exports = class SidebarOwnMachinesList extends SidebarMachineList
 
       {_revisionStatus} = stack
       if not _revisionStatus?.error? and {status} = _revisionStatus
-        @unreadCount.show()  if status.code > 0
+        @unreadCount.show()  if status?.code > 0
 
 
   headerClickHandler: -> new EnvironmentsModal

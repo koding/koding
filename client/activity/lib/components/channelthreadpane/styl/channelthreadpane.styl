@@ -1,0 +1,22 @@
+.ChannelThreadPane
+  dispFlex()
+  flex-direction            row
+
+.ChannelThreadPane.is-withFeed
+  .ChannelThreadPane-feedWrapper
+    flex                    1
+
+.ChannelThreadPane.is-withChat
+  .ChannelThreadPane-chatWrapper
+    flex                    1
+
+.ChannelThreadPane.is-withPost
+  .ChannelThreadPane-postWrapper
+    flex                    1
+
+.ChannelThreadPane-feedWrapper
+.ChannelThreadPane-chatWrapper
+.ChannelThreadPane-postWrapper
+  flex                      .00001
+  vendor                    transition, flex .177s ease
+

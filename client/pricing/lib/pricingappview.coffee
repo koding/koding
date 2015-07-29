@@ -1,20 +1,24 @@
-kd = require 'kd'
+kd                = require 'kd'
+KDView            = kd.View
 KDButtonGroupView = kd.ButtonGroupView
-KDCustomHTMLView = kd.CustomHTMLView
-KDView = kd.View
-PricingPlansView = require './views/pricingplansview'
-isLoggedIn = require 'app/util/isLoggedIn'
-showError = require 'app/util/showError'
-PaymentWorkflow = require 'app/payment/paymentworkflow'
-PaymentConstants = require 'app/payment/paymentconstants'
-JView = require 'app/jview'
-FooterView = require 'app/commonviews/footerview'
-CustomLinkView = require 'app/customlinkview'
-globals = require 'globals'
-trackEvent = require 'app/util/trackEvent'
+KDCustomHTMLView  = kd.CustomHTMLView
+PricingPlansView  = require './views/pricingplansview'
+isLoggedIn        = require 'app/util/isLoggedIn'
+showError         = require 'app/util/showError'
+PaymentWorkflow   = require 'app/payment/paymentworkflow'
+PaymentConstants  = require 'app/payment/paymentconstants'
+JView             = require 'app/jview'
+FooterView        = require 'app/commonviews/footerview'
+CustomLinkView    = require 'app/customlinkview'
+globals           = require 'globals'
+trackEvent        = require 'app/util/trackEvent'
 
 
 module.exports = class PricingAppView extends KDView
+
+
+  { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.PRICING
+
 
   JView.mixin @prototype
 
@@ -30,7 +34,7 @@ module.exports = class PricingAppView extends KDView
       reversePlans
     }
 
-  constructor:(options = {}, data) ->
+  constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry "content-page pricing", options.cssClass
 
@@ -190,13 +194,13 @@ module.exports = class PricingAppView extends KDView
 
   preventBlockedUser: (options, callback) ->
 
-    @appStorage.fetchValue PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_KEY, (result) =>
+    @appStorage.fetchValue KEY, (result) =>
 
       return callback()  unless result
 
       difference = Date.now() - result.timestamp
 
-      if difference < PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_DURATION
+      if difference < DURATION
 
         @workflowController = new PaymentWorkflow { state: options, delegate: this }
 
@@ -219,9 +223,7 @@ module.exports = class PricingAppView extends KDView
 
   removeBlockFromUser: ->
 
-    TOO_MANY_ATTEMPT_BLOCK_KEY = PaymentConstants.TOO_MANY_ATTEMPT_BLOCK_KEY
-
-    kd.utils.defer => @appStorage.unsetKey TOO_MANY_ATTEMPT_BLOCK_KEY
+    kd.utils.defer => @appStorage.unsetKey KEY
 
 
   ###*
