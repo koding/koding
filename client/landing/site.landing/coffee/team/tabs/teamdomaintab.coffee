@@ -24,7 +24,11 @@ module.exports = class TeamDomainTab extends KDTabPaneView
           success : =>
             @form.input.unsetClass 'validation-error'
             KD.utils.storeNewTeamData name, formData
-            KD.singletons.router.handleRoute '/Team/Email-domains'
+            # removed these steps
+            # temp putting these empty values here to not break stuff - SY
+            KD.utils.storeNewTeamData 'email-domains', domains : ''
+            KD.utils.storeNewTeamData 'invite', invitee1 : '', invitee2 : '', invitee3 : ''
+            KD.singletons.router.handleRoute '/Team/Username'
 
           error    : =>
             @form.input.setClass 'validation-error'
