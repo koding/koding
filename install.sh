@@ -139,6 +139,10 @@ sudo service klient restart > /dev/null 2> /dev/null
 # Print user friendly message.
 cat << EOF
 
+
+
+
+
 >>>>>>>>>>>>>>>Success!<<<<<<<<<<<<<<
 
 This machine has been successfully connected to Koding and
