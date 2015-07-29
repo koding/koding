@@ -84,7 +84,7 @@ module.exports = class AccountAppController extends AppController
 
     @mainView.destroy()
 
-  openSection: (section, query) ->
+  openSection: (section, query) -> kd.singletons.mainController.ready =>
 
     if section is 'Oauth' and query.provider?
       @handleOauthRedirect query
