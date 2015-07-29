@@ -168,8 +168,9 @@ module.exports = class SearchController extends KDObject
     @_searchChannel seed, channelId, itemResultFunc, options
 
 
-  searchChannelWithHighlighting: (seed, channelId, options) ->
+  searchChannelWithHighlighting: (seed, channelId, options = {}) ->
 
+    options.attributesToHighlight or= 'body'
     itemResultFunc = (message, highlightResult) -> { message, highlightResult }
     @_searchChannel seed, channelId, itemResultFunc, options
 

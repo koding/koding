@@ -107,7 +107,7 @@ module.exports = class JUser extends jraphical.Module
       email         :
         type        : String
         validate    : require('../name').validateEmail
-        set         : (value) -> value.toLowerCase()
+        set         : (value) -> value.trim().toLowerCase()
       password      : String
       salt          : String
       twofactorkey  : String
@@ -1140,6 +1140,8 @@ module.exports = class JUser extends jraphical.Module
     # if firstname is not received use username as firstname
     firstName = username  if not firstName or firstName is ''
     lastName  = ''        if not lastName
+
+    email = userFormData.email = email.trim()
 
     if error = validateConvertInput userFormData, client
       return callback error

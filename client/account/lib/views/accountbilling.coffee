@@ -6,9 +6,14 @@ PaymentMethodView         = require 'app/payment/paymentmethodview'
 PaymentHistoryListItem    = require './paymenthistorylistitem'
 UpdateCreditCardWorkflow  = require 'app/payment/updatecreditcardworkflow'
 AccountListViewController = require '../controllers/accountlistviewcontroller'
+PaymentConstants          = require 'app/payment/paymentconstants'
 
 
 module.exports = class AccountBilling extends kd.View
+
+
+  { KEY, DURATION } = PaymentConstants.FAILED_ATTEMPTS.UPDATE_CREDIT_CARD
+
 
   initialState: {
     subscription: null
@@ -21,6 +26,9 @@ module.exports = class AccountBilling extends kd.View
     super options, data
 
     @state = kd.utils.extend @initialState, options.state
+
+    { appStorageController } = kd.singletons
+    @accountStorage          = appStorageController.storage 'Account', '1.0'
 
 
   viewAppended: ->
@@ -98,7 +106,7 @@ module.exports = class AccountBilling extends kd.View
       style    : 'solid small green'
       cssClass : 'hidden'
       title    : 'Update'
-      callback : => @startWorkflow method
+      callback : @bound 'preventBlockedUser'
 
     @paymentMethodHeader = header
     @paymentMethodButton = button
@@ -150,11 +158,35 @@ module.exports = class AccountBilling extends kd.View
       @paymentHistoryWrapper.addSubView @listController.getView()
 
 
-  startWorkflow: ->
+  preventBlockedUser: ->
+
+    now = Date.now()
+
+    @accountStorage.fetchValue KEY, (result) =>
+
+      return @startWorkflow()  unless result
+
+      difference = now - result.timestamp
+
+      if difference < DURATION
+        return @startWorkflow yes
+      else
+        @startWorkflow()
+        @removeBlockFromUser()
+
+
+  startWorkflow: (isFailedLimitReached) ->
 
     @workflow = new UpdateCreditCardWorkflow { delegate: this }
-
     @workflow.once 'UpdateCreditCardWorkflowFinishedSuccessfully', @bound 'handleFinishedWithSuccess'
+
+    if isFailedLimitReached
+      @workflow.once 'ModalIsReady', => @workflow.failedAttemptLimitReached no
+
+
+  removeBlockFromUser: ->
+
+    kd.utils.defer => @accountStorage.unsetKey KEY
 
 
   handleFinishedWithSuccess: ({ paymentMethod }) ->
