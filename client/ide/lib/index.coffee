@@ -610,6 +610,11 @@ class IDEAppController extends AppController
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
     @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'
 
+    # stop IDE onboarding if it's running
+    # since machine state is changed and state modal appears,
+    # onboarding throbbers will be unavailable and should be hidden
+    @stopOnboarding()
+
 
   collapseSidebar: ->
 
@@ -1562,6 +1567,12 @@ class IDEAppController extends AppController
 
     { onboarding, appManager } = kd.singletons
     onboarding.run 'IDELoaded'  if appManager.frontApp is this
+
+
+  stopOnboarding: ->
+
+    { onboarding, appManager } = kd.singletons
+    onboarding.stop 'IDELoaded'  if appManager.frontApp is this
 
 
   ###*
