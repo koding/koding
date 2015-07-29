@@ -921,18 +921,18 @@ module.exports = class JAccount extends jraphical.Module
   modify: secure (client, fields, callback) ->
 
     allowedFields = [
-      "preferredKDProxyDomain"
-      "profile.about"
-      "profile.description"
-      "profile.ircNickname"
-      "profile.firstName"
-      "profile.lastName"
-      "profile.avatar"
-      "profile.experience"
-      "profile.experiencePoints"
-      "skillTags"
-      "locationTags"
-      "shareLocation"
+      'preferredKDProxyDomain'
+      'profile.about'
+      'profile.description'
+      'profile.ircNickname'
+      'profile.firstName'
+      'profile.lastName'
+      'profile.avatar'
+      'profile.experience'
+      'profile.experiencePoints'
+      'skillTags'
+      'locationTags'
+      'shareLocation'
     ]
 
     objKeys = Object.keys(fields)
@@ -952,6 +952,9 @@ module.exports = class JAccount extends jraphical.Module
           nick          : @profile.nickname
           settings      : {shareLocation: fields.shareLocation}
         }, callback
+
+    else
+      callback new KodingError 'Access denied'
 
   setClientId:(@clientId)->
 
