@@ -40,10 +40,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
       cssClass      : 'settings-link'
       partial       : 'settings'
       tagName       : 'span'
-      click         : ->
-        new MachineSettingsModal {}, machine
-
-    @settingsLink.hide()  unless machine.isRunning()
+      click         : -> new MachineSettingsModal {}, machine
 
     # more to come like os, version etc.
     @vminfo =
