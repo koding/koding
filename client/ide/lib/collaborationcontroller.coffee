@@ -659,7 +659,8 @@ module.exports = CollaborationController =
   onCollaborationPreparing: ->
 
     # Don't allow when the mounted machine isn't running.
-    return  unless @isMachineRunning()
+    unless @isMachineRunning()
+      return @stateMachine.state = @stateMachine.initialState
 
     @prepareChatSession
       success : => @stateMachine.transition 'Prepared'
@@ -680,7 +681,8 @@ module.exports = CollaborationController =
   onCollaborationCreating: ->
 
     # Don't allow when the mounted machine isn't running.
-    return  unless @isMachineRunning()
+    unless @isMachineRunning()
+      return @stateMachine.state = @stateMachine.initialState
 
     @createCollaborationSession
       success : (doc) =>
