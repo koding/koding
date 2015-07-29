@@ -20,7 +20,6 @@ KDListViewController  = kd.ListViewController
 AccountNavigationItem = require './accountnavigationitem'
 require('./routehandler')()
 
-
 module.exports = class AccountAppController extends AppController
 
   @options =
@@ -109,7 +108,7 @@ module.exports = class AccountAppController extends AppController
       replaceState    : yes
 
 
-  loadView: (modal) ->
+  loadView: (modal) -> kd.singletons.mainController.ready =>
 
     @navController?.destroy()
     @navController = new KDListViewController
