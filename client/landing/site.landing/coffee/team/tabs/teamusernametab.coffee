@@ -14,7 +14,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
   createSubViews: ->
 
     teamData = KD.utils.getTeamData()
-    { @alreadyMember } = teamData.signup
+    { @alreadyMember, profile } = teamData.signup
 
     @addSubView new MainHeaderView
       cssClass : 'team'
@@ -27,11 +27,15 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
       wrapper.addSubView new KDCustomHTMLView
         tagName : 'h4'
-        partial : 'Almost there'
+        partial : "Almost there @#{profile.nickname}"
 
       wrapper.addSubView new KDCustomHTMLView
-        tagName : 'h5'
-        partial : 'please enter your Koding password'
+        tagName  : 'p'
+        cssClass : 'full'
+        partial  : """
+          Your email indicates that you're already registered at Koding,
+          if you wish you can <a href='/Teams'>go back and continue</a> with a different email.
+        """
 
       wrapper.addSubView @form = new TeamLoginAndCreateTabForm callback : @bound 'createTeam'
 
@@ -39,11 +43,11 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
       wrapper.addSubView new KDCustomHTMLView
         tagName : 'h4'
-        partial : 'Choose a Username'
+        partial : 'Create your account'
 
       wrapper.addSubView new KDCustomHTMLView
         tagName : 'h5'
-        partial : '...or login with your existing Koding account.'
+        partial : '...pick a username that others will recognize.'
 
       wrapper.addSubView @form = new TeamUsernameTabForm
         callback    : @bound 'createTeam'
