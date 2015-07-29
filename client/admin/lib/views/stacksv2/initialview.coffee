@@ -16,11 +16,16 @@ module.exports = class InitialView extends kd.View
     @createStackButton = new kd.ButtonView
       title    : 'Create new Stack'
       cssClass : 'solid compact green action'
-      callback : -> alert 'FIX ME'
+      callback : => @emit 'CreateNewStack'
 
-    @stackTemplateList = (new StackTemplateListView)
-      .listView.on 'ItemSelected', (stackTemplate) ->
-        console.log 'Selected Template:', stackTemplate
+    @stackTemplateList = new StackTemplateListView
+
+    @stackTemplateList.listView.on 'ItemSelected', (stackTemplate) =>
+      @emit 'EditStack', stackTemplate
+
+
+  reload: ->
+    @stackTemplateList.listController.loadItems()
 
 
   pistachio: ->
