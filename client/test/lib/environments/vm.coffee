@@ -1,7 +1,6 @@
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
-ideHelpers = require '../helpers/idehelpers.js'
 modalSelector = '.machine-settings-modal.AppModal'
 
 module.exports =
