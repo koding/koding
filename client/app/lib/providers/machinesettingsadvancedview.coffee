@@ -12,7 +12,7 @@ module.exports = class MachineSettingsAdvancedView extends KDView
 
     @machine = data
 
-    reinitButton   = @createButton 'Reinitialize your VM', 'reinit', 'This will take your VM back to its original state. (Note: you will lose all your data)'
+    reinitButton   = @createButton 'reinit', 'Reinitialize your VM', 'reinit', 'This will take your VM back to its original state. (Note: you will lose all your data)'
     terminateClass = 'terminate'
     terminateTitle = 'Terminate your VM'
     terminateText  = 'This will delete your VM completely. (Note: you will lose all your data)'
@@ -23,14 +23,14 @@ module.exports = class MachineSettingsAdvancedView extends KDView
       terminateTitle = 'Disconnect your VM'
       terminateText  = 'Remove the connection between your Machine and Koding.'
 
-    terminateButton = @createButton terminateTitle, terminateClass, terminateText
+    terminateButton = @createButton 'terminate', terminateTitle, terminateClass, terminateText
 
 
-  createButton: (title, className, desc) ->
+  createButton: (callbackName, title, className, desc) ->
 
     @addSubView new KDCustomHTMLView
       cssClass : "big-icon advanced #{className}"
-      click    : (e) => @handleButtonClick e, className
+      click    : (e) => @handleButtonClick e, callbackName
       partial  : """
         <figure>
           <span class="icon"></span>
