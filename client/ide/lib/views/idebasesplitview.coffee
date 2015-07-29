@@ -4,6 +4,7 @@ KDSplitView = kd.SplitView
 
 module.exports = class IDEBaseSplitView extends KDSplitView
 
+
   viewAppended: ->
 
     super
@@ -11,9 +12,10 @@ module.exports = class IDEBaseSplitView extends KDSplitView
     @lastKnownFileTreeSize = @getOption('sizes').first or 250
 
     @on 'PanelDidResize', kd.utils.debounce 10, =>
-
       return  unless fileTree = @panels.first
       @lastKnownFileTreeSize = fileTree.size
+
+    @resizer.on 'DragInAction', => @getFirstSplitView()?._windowDidResize()
 
 
   _resizePanels: ->
@@ -26,4 +28,11 @@ module.exports = class IDEBaseSplitView extends KDSplitView
     # last `yes` is to force render second pane
     # even if the first pane reaches the value.
     @resizePanel first, 0, kd.noop, yes
+
+
+  getFirstSplitView: ->
+
+    { first } = @panels.last.getSubViews().first.getSubViews()
+
+    return first  if first instanceof KDSplitView
 
