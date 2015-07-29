@@ -457,7 +457,9 @@ module.exports = class LoginView extends JView
 
         error : ({responseJSON}) =>
 
-          usernameCheckTimer = null
+          usernameCheckTimer   = null
+          pendingSignupRequest = no
+
           return  unless @signupModal?
 
           {forbidden, kodingUser} = responseJSON
@@ -471,8 +473,6 @@ module.exports = class LoginView extends JView
           else
             input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
             USERNAME_VALID = no
-
-          pendingSignupRequest = no
 
 
   changeButtonState: (button, state) ->
