@@ -1107,7 +1107,7 @@ module.exports = class TosView extends JView
 
       <p class='p2'>
         The services are offered by Koding, Inc., located at:<br>
-        358 Brannan Ave<br>
+        358 Brannan Street<br>
         San Francisco, CA 94107<br>
         USA
       </p>
