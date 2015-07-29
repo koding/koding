@@ -155,13 +155,6 @@ generateCreateGroupKallback = (client, req, res, body) ->
         # do not block group creation
         console.error "Error while creating group artifacts", body, err if err
 
-        # temp code for creating the team-access cookie for development
-        # sandbox and latest share the same config file
-        # so sandbox.koding.com covers both cases ಠ_ಠ - SY
-        if /ngrok|sandbox\.koding/.test KONFIG.hostname
-          console.log "setting cookie for #{slug}.dev.koding.com"
-          res.cookie 'team-access', 'yes', domain : ".dev.koding.com"
-
         # handle the request as an XHR response:
         return res.status(200).end() if req.xhr
         # handle the request with an HTTP redirect:
