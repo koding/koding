@@ -77,7 +77,11 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     KD.utils.usernameCheck username,
       success : ->
         KD.utils.storeNewTeamData 'username', formData
-        KD.utils.createTeam success : -> KD.singletons.router.handleRoute '/Team/Stacks'
+        KD.utils.createTeam
+          success : ->
+            KD.utils.clearTeamData()
+            { protocol, host } = location
+            location.href      = "#{protocol}//#{slug}.#{host}"
 
       error   : ({responseJSON}) =>
 
