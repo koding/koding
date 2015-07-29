@@ -79,7 +79,7 @@ module.exports =
 
     terminateSelector       = '.kdmodal.AppModal .advanced .advanced.terminate'
     proceedSelector         = '.kdmodal.with-buttons .kdbutton.red'
-    terminatedLabelSelector = '.terminated'
+    terminatedLabelSelector = '.kdmodal.env-modal .state-label.terminated'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
