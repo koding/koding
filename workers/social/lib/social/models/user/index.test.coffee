@@ -15,41 +15,23 @@ TestHelper                    = require '../../../../testhelper'
 
 { daisy }                     = Bongo
 { generateUserInfo
+  generateDummyClient
   generateCredentials
   generateRandomEmail
   generateRandomString
   generateRandomUsername
-  generateDummyClientData
   generateDummyUserFormData } = TestHelper
-
-
-###
-  variables
-###
-bongo             = null
-clientId          = null
-dummyClient       = null
-dummyUserFormData = null
 
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
 
-  # generating dummy data
-  dummyClient       = generateDummyClientData()
-  dummyUserFormData = generateDummyUserFormData()
+    bongo = new Bongo
+      root   : __dirname
+      mongo  : mongo
+      models : ''
 
-  bongo = new Bongo
-    root   : __dirname
-    mongo  : mongo
-    models : '../../models'
-
-  bongo.once 'dbClientReady', ->
-
-    # creating a session before running tests
-    JSession.createSession (err, { session, account }) ->
-      clientId                  = session.clientId
-      dummyClient.sessionToken  = session.token
+    bongo.once 'dbClientReady', ->
       done()
 
 
@@ -60,26 +42,11 @@ afterTests = -> after ->
 # here we have actual tests
 runTests = -> describe 'workers.social.user.index', ->
 
-  it 'should be able to make mongodb connection', (done) ->
-
-    { serverConfig : { _serverState } } = bongo.getClient()
-    expect(_serverState).to.be.equal 'connected'
-    done()
-
-
   describe '#createUser', ->
-
-    # variables needed in the login method scope
-    userInfo = {}
-
-    # setting necessary variables before each test case
-    beforeEach ->
-
-      userInfo = generateUserInfo()
-
 
     it 'should pass error passwordStatus type is not valid', (done) ->
 
+      userInfo                = generateUserInfo()
       userInfo.passwordStatus = 'some invalid passwordStatus'
       JUser.createUser userInfo, (err) ->
         expect(err.message).to.be.equal 'Errors were encountered during validation.'
@@ -88,6 +55,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should error if username is not set', (done) ->
 
+      userInfo          = generateUserInfo()
       userInfo.username = ''
       JUser.createUser userInfo, (err) ->
         expect(err).to.exist
@@ -95,6 +63,8 @@ runTests = -> describe 'workers.social.user.index', ->
 
 
     it 'should pass error if username is in use', (done) ->
+
+      userInfo = generateUserInfo()
 
       queue = [
 
@@ -121,6 +91,8 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if email is in use', (done) ->
 
+      userInfo = generateUserInfo()
+
       queue = [
 
         ->
@@ -145,6 +117,8 @@ runTests = -> describe 'workers.social.user.index', ->
 
 
     it 'should create and save a new user when valid in case data is valid', (done) ->
+
+      userInfo = generateUserInfo()
 
       queue = [
 
@@ -178,6 +152,8 @@ runTests = -> describe 'workers.social.user.index', ->
 
 
     it 'should save email frequencies correctly', (done) ->
+
+      userInfo = generateUserInfo()
 
       userInfo.emailFrequency =
         global         : off
@@ -224,15 +200,14 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # creating a new user
-          JUser.createUser userInfo, (err, user) ->
+          JUser.createUser userInfo, (err, user, account) ->
             expect(err).to.not.exist
             queue.next()
 
         ->
           # expecting successful login
-          JSession.one { clientId }, (err, session) ->
-            expect(err)      .to.not.exist
-            expect(session)  .to.exist
+          JUser.login null, loginCredentials, (err) ->
+            expect(err).to.not.exist
             queue.next()
 
         ->
@@ -244,7 +219,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting another successful login
-          JUser.login clientId, loginCredentials, (err) ->
+          JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
             queue.next()
 
@@ -278,14 +253,14 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting user to be able to login with username
-          JUser.login clientId, loginCredentials, (err) ->
+          JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
             queue.next()
 
         ->
           # expecting user to be able to login with email
           loginCredentials.username = email
-          JUser.login clientId, loginCredentials, (err) ->
+          JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
             queue.next()
 
@@ -320,14 +295,14 @@ runTests = -> describe 'workers.social.user.index', ->
         ->
           # trying to login with empty tf code
           loginCredentials.tfcode = ''
-          JUser.login clientId, loginCredentials, (err) ->
+          JUser.login null, loginCredentials, (err) ->
             expect(err.message).to.be.equal 'TwoFactor auth Enabled'
             queue.next()
 
         ->
           # trying to login with invalid tfcode
           loginCredentials.tfcode = 'invalidtfcode'
-          JUser.login clientId, loginCredentials, (err) ->
+          JUser.login null, loginCredentials, (err) ->
             expect(err.message).to.be.equal 'Access denied!'
             queue.next()
 
@@ -346,7 +321,7 @@ runTests = -> describe 'workers.social.user.index', ->
             key       : tfcode
             encoding  : 'base32'
           loginCredentials.tfcode = verificationCode
-          JUser.login clientId, loginCredentials, (err) ->
+          JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
             queue.next()
 
@@ -378,7 +353,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting not to able to login without an account
-          JUser.login clientId, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err)->
             expect(err.message).to.be.equal "No account found!"
             queue.next()
 
@@ -407,7 +382,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting successful login with the newly generated user
-          JUser.login clientId, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err)->
             expect(err).to.not.exist
             queue.next()
 
@@ -420,7 +395,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting login attempt to fail and return blocked message
-          JUser.login clientId, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err)->
             toDate = user.blockedUntil.toUTCString()
             expect(err.message).to.be.equal JUser.getBlockedMessage toDate
             queue.next()
@@ -433,7 +408,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting user to be able to login
-          JUser.login clientId, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err)->
             expect(err).to.not.exist
             queue.next()
 
@@ -468,7 +443,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting successful login
-          JUser.login clientId, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err)->
             expect(err).to.not.exist
             queue.next()
 
@@ -477,7 +452,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting unsuccessful login attempt
-          JUser.login clientId, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err)->
             expect(err).to.exist
             queue.next()
 
@@ -506,7 +481,7 @@ runTests = -> describe 'workers.social.user.index', ->
       loginCredentials = generateCredentials
         username : 'herecomesanunregisteredusername'
 
-      JUser.login clientId, loginCredentials, (err) ->
+      JUser.login null, loginCredentials, (err) ->
         expect(err.message).to.be.equal 'Unknown user name'
         done()
 
@@ -529,7 +504,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
       addLoginTrialToQueue = (queue, tryCount) ->
         queue.push ->
-          JUser.login clientId, loginCredentials, (err) ->
+          JUser.login null, loginCredentials, (err) ->
             expectedError = switch
               when tryCount < JLog.tryLimit()
                 'Access denied!'
@@ -566,7 +541,7 @@ runTests = -> describe 'workers.social.user.index', ->
       loginCredentials = generateCredentials
         invitationToken : 'someinvalidtoken'
 
-      JUser.login clientId, loginCredentials, (err) ->
+      JUser.login null, loginCredentials, (err) ->
         expect(err.message).to.be.equal 'invitation is not valid'
         done()
 
@@ -577,7 +552,7 @@ runTests = -> describe 'workers.social.user.index', ->
         groupName           : 'someinvalidgroupName'
         groupIsBeingCreated : no
 
-      JUser.login clientId, loginCredentials, (err) ->
+      JUser.login null, loginCredentials, (err) ->
         expect(err.message).to.be.equal 'group doesnt exist'
         done()
 
@@ -588,7 +563,7 @@ runTests = -> describe 'workers.social.user.index', ->
         groupName           : 'someinvalidgroupName'
         groupIsBeingCreated : yes
 
-      JUser.login clientId, loginCredentials, (err) ->
+      JUser.login null, loginCredentials, (err) ->
         expect(err).to.not.exist
         done()
 
@@ -600,15 +575,16 @@ runTests = -> describe 'workers.social.user.index', ->
     userFormData = {}
 
     # this function will be called everytime before each test case under this test suite
-    beforeEach ->
+    beforeEach (done) ->
 
-      # cloning the client and userFormData from dummy datas each time.
-      # used pure nodejs instead of a library bcs we need deep cloning here.
-      client                = JSON.parse JSON.stringify dummyClient
-      userFormData          = JSON.parse JSON.stringify dummyUserFormData
+      # generating new form data
+      userFormData = generateDummyUserFormData()
 
-      userFormData.email    = generateRandomEmail()
-      userFormData.username = generateRandomUsername()
+      # generating a dummy client before each test case
+      generateDummyClient { group : 'koding' }, (err, client_) ->
+        expect(err).to.not.exist
+        client = client_
+        done()
 
 
     it 'should pass error if account is already registered', (done) ->

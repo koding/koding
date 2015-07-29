@@ -12,9 +12,17 @@ module.exports = class AccountEmailNotifications extends KDView
 
   viewAppended: ->
 
+    @addSubView loader = new kd.LoaderView
+      cssClass   : 'AccountEmailNotifications-loader'
+      showLoader : yes
+      size       :
+        width    : 25
+        height   : 25
+
     whoami().fetchEmailFrequency (err, frequency) =>
       @putContents frequency or {}
       @handleGlobalState frequency.global
+      loader.destroy()
 
     @on 'EmailPrefSwitched', (flag, state) => @["handle#{flag.capitalize()}State"]? state
 
