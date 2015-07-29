@@ -2,8 +2,6 @@ kd           = require 'kd'
 actions      = require './actiontypes'
 fetchAccount = require 'app/util/fetchAccount'
 
-dispatch = (args...) -> kd.singletons.reactor.dispatch args...
-
 
 ###*
  * Load account with given id.
@@ -14,14 +12,16 @@ loadAccount = (id) ->
 
   origin = generateOrigin id
 
-  dispatch actions.LOAD_USER_BEGIN, { id, origin }
+  { reactor } = kd.singletons
+
+  reactor.dispatch actions.LOAD_USER_BEGIN, { id, origin }
 
   fetchAccount origin, (err, account) ->
     if err
-      dispatch actions.LOAD_USER_FAIL, { err, id, origin }
+      reactor.dispatch actions.LOAD_USER_FAIL, { err, id, origin }
       return
 
-    dispatch actions.LOAD_USER_SUCCESS, { id, origin, account }
+    reactor.dispatch actions.LOAD_USER_SUCCESS, { id, origin, account }
 
 
 ###*
