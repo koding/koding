@@ -77,6 +77,10 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
       error   : ({responseJSON}) =>
 
+        unless responseJSON
+          return new KDNotificationView
+            title: 'Something went wrong'
+
         {forbidden, kodingUser} = responseJSON
         msg = if forbidden then "Sorry, \"#{username}\" is forbidden to use!"
         else if kodingUser then "Sorry, \"#{username}\" is already taken!"
