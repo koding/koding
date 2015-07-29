@@ -60,9 +60,12 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
     when 'logout'
       kd.singletons.mainController.doLogout()
 
-    when 'login'
-      {params:{name}} = info
-      handleRoot()
+    when 'login', 'register'
+      {query:{redirectTo}} = info
+      if redirectTo
+        redirectTo = "/#{redirectTo}"  unless redirectTo[0] is '/'
+        kd.singletons.router.handleRoute redirectTo
+      else handleRoot()
 
     when 'referrer'
       {params:{username}} = info

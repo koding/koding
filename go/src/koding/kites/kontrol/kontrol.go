@@ -5,6 +5,9 @@ import (
 	"koding/artifact"
 	"koding/kites/kontrol/kontrol"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	"github.com/koding/kite"
 	"github.com/koding/multiconfig"
 )
@@ -40,6 +43,12 @@ func main() {
 	if conf.Debug {
 		k.Kite.SetLogLevel(kite.DEBUG)
 	}
+
+	go func() {
+		// Kloud runs on 6060, so we choose 6061 for kontrol
+		err := http.ListenAndServe("0.0.0.0:6061", nil)
+		k.Kite.Log.Error(err.Error())
+	}()
 
 	k.Run()
 }
