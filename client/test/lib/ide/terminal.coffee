@@ -61,7 +61,6 @@ terminateAll = (browser) ->
 
 module.exports =
 
-
   terminateAll: (browser) ->
 
     user = helpers.beginTest(browser)
@@ -134,6 +133,30 @@ module.exports =
       .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', time
       .end()
 
+
+  renameTerminalTab: (browser) ->
+
+    name            = helpers.getFakeText().split(' ')[0]
+    optionsSelector = ".kdtabhandle.terminal .options"
+    renameSelector  = ".kdcontextmenu.terminal-context-menu .rename"
+    editSelector    = ".kdtabhandle.terminal.edit-mode .hitenterview.tab-handle-input"
+    tabNameSelector = ".kdtabhandle.terminal .tab-handle-text"
+    tabSelector     = ".kdtabhandle.terminal"
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible    tabSelector, 20000
+      .moveToElement            tabSelector, 64, 18
+      .waitForElementVisible    optionsSelector, 20000
+      .click                    optionsSelector
+      .waitForElementVisible    renameSelector, 20000
+      .click                    renameSelector
+      .waitForElementPresent    editSelector, 20000
+      .setValue                 editSelector, [name,browser.Keys.RETURN]
+      .waitForElementNotPresent editSelector, 20000
+      .assert.containsText      tabNameSelector, name #Assertion
 
   # this test is deprecated with persistent storage
   # openOldTerminalSession: (browser) ->
