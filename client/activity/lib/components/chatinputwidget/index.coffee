@@ -1,10 +1,12 @@
 kd       = require 'kd'
 React    = require 'kd-react'
 TextArea = require 'react-autosize-textarea'
-EmojiDropup = require 'activity/components/emojidropup'
+EmojiDropup   = require 'activity/components/emojidropup'
+EmojiSelector = require 'activity/components/emojiselector'
 
-ActivityFlux   = require 'activity/flux'
-KDReactorMixin = require 'app/flux/reactormixin'
+ActivityFlux    = require 'activity/flux'
+KDReactorMixin  = require 'app/flux/reactormixin'
+formatEmojiName = require 'activity/util/formatEmojiName'
 
 module.exports = class ChatInputWidget extends React.Component
 
@@ -28,19 +30,46 @@ module.exports = class ChatInputWidget extends React.Component
     { getters } = ActivityFlux
 
     return {
-      emojis        : getters.currentEmojis
-      selectedEmoji : getters.selectedEmoji
-      emojiQuery    : getters.currentEmojiQuery
+      emojis                      : getters.currentEmojis
+      selectedEmoji               : getters.selectedEmoji
+      emojiQuery                  : getters.currentEmojiQuery
+      commonEmojiList             : getters.commonEmojiList
+      commonEmojiListFlags        : getters.commonEmojiListFlags
+      commonEmojiListSelectedItem : getters.commonEmojiListSelectedItem
     }
 
 
   componentDidUpdate: (prevProps, prevState) ->
 
-    { selectedEmoji } = @state
-    return  if prevState.selectedEmoji is selectedEmoji
-    return  unless selectedEmoji.get('confirmed')
+    isHandled = @insertFilteredEmojiIfNeed prevProps, prevState
+    isHandled = @insertCommonEmojiIfNeed prevProps, prevState  unless isHandled
 
-    textInput = React.findDOMNode(this.refs.textInput)
+
+  insertCommonEmojiIfNeed: (prevProps, prevState) ->
+
+    { commonEmojiListFlags, commonEmojiListSelectedItem, value } = @state
+    return no  if prevState.commonEmojiListFlags is commonEmojiListFlags
+    return no  unless commonEmojiListFlags.get 'selectionCompleted'
+
+    newValue = value + formatEmojiName commonEmojiListSelectedItem
+    @setState { value : newValue }
+
+    textInput = React.findDOMNode this.refs.textInput
+    textInput.focus()
+
+    kd.utils.defer ->
+      ActivityFlux.actions.emoji.resetCommonListFlags()
+
+    return yes
+
+
+  insertFilteredEmojiIfNeed: (prevProps, prevState) ->
+
+    { selectedEmoji } = @state
+    return no  if prevState.selectedEmoji is selectedEmoji
+    return no  unless selectedEmoji.get 'confirmed'
+
+    textInput = React.findDOMNode this.refs.textInput
 
     { value, cursorPosition } = helper.insertEmoji textInput, selectedEmoji.get 'emoji'
     @setState { value }
@@ -48,8 +77,10 @@ module.exports = class ChatInputWidget extends React.Component
     kd.utils.defer ->
       helper.setCursorPosition textInput, cursorPosition
 
+    return yes
 
-  onChange: (event) ->
+
+  onValueChanged: (event) ->
 
     value = event.target.value
     @setState { value }
@@ -95,23 +126,37 @@ module.exports = class ChatInputWidget extends React.Component
           emojiActions.moveToPrevEmoji()
 
 
-  onResize: ->
+  handleEmojiIconClick: (event) ->
 
-    console.log 'resized'
+    ActivityFlux.actions.emoji.setCommonListVisibility yes
 
 
   render: ->
 
     { emojis, selectedEmoji, emojiQuery } = @state
+    { commonEmojiList, commonEmojiListFlags, commonEmojiListSelectedItem } = @state
 
     <div className="ChatInputWidget">
-      <EmojiDropup emojis={emojis} selectedEmoji={selectedEmoji} emojiQuery={emojiQuery} />
+      <EmojiDropup
+        emojis        = { emojis }
+        selectedEmoji = { selectedEmoji }
+        emojiQuery    = { emojiQuery }
+      />
+      <EmojiSelector
+        emojis        = { commonEmojiList }
+        visible       = { commonEmojiListFlags.get 'visible' }
+        selectedEmoji = { commonEmojiListSelectedItem }
+      />
       <TextArea
         value     = { @state.value }
-        onChange  = { @bound 'onChange' }
+        onChange  = { @bound 'onValueChanged' }
         onKeyDown = { @bound 'onKeyDown' }
-        onResize  = { @bound 'onResize' }
         ref       = "textInput"
+      />
+      <a
+        href      = "#"
+        className = "ChatInputWidget-emojiButton"
+        onClick   = { @bound 'handleEmojiIconClick' }
       />
     </div>
 
@@ -152,16 +197,16 @@ module.exports = class ChatInputWidget extends React.Component
 
     insertEmoji: (textInput, emoji) ->
 
-      textBeforeCursor = helper.getTextBeforeCursor textInput
-      textToReplace    = helper.getLastWord textBeforeCursor
-
+      textBeforeCursor  = helper.getTextBeforeCursor textInput
+      textToReplace     = helper.getLastWord textBeforeCursor
       startReplaceIndex = textBeforeCursor.lastIndexOf textToReplace
       endReplaceIndex   = helper.getCursorPosition textInput
 
-      value = textInput.value
-      textBeforeCursor = value.substring(0, startReplaceIndex) + ":#{emoji}: "
-      cursorPosition = textBeforeCursor.length
-      newValue = textBeforeCursor + value.substring endReplaceIndex
+      value             = textInput.value
+      textBeforeCursor  = value.substring(0, startReplaceIndex)
+      textBeforeCursor += formatEmojiName(emoji) + " "
+      cursorPosition    = textBeforeCursor.length
+      newValue          = textBeforeCursor + value.substring endReplaceIndex
 
       return { value : newValue, cursorPosition }
 

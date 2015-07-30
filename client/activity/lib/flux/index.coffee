@@ -24,4 +24,6 @@ module.exports =
     require './stores/emojis/emojisstore'
     require './stores/emojis/emojiquerystore'
     require './stores/emojis/selectedemojiindexstore'
+    require './stores/emojis/commonemojilistselectedindexstore'
+    require './stores/emojis/commonemojilistflagsstore'
   ]

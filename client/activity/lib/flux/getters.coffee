@@ -34,6 +34,9 @@ EmojisStore                    = [['EmojisStore'], withEmptyList]
 EmojiQueryStore                = ['EmojiQueryStore']
 SelectedEmojiIndexStore        = ['SelectedEmojiIndexStore']
 
+CommonEmojiListSelectedIndexStore = ['CommonEmojiListSelectedIndexStore']
+CommonEmojiListFlagsStore         = [['CommonEmojiListFlagsStore'], withEmptyMap]
+
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
 # visual components) to use.
@@ -214,6 +217,15 @@ selectedEmoji = [
     return toImmutable { index, confirmed, emoji }
 ]
 
+commonEmojiList              = EmojisStore
+commonEmojiListSelectedIndex = CommonEmojiListSelectedIndexStore
+commonEmojiListFlags         = CommonEmojiListFlagsStore
+commonEmojiListSelectedItem  = [
+  commonEmojiList
+  commonEmojiListSelectedIndex
+  (emojis, index) -> emojis.get index
+]
+
 module.exports = {
   followedPublicChannelThreads
   followedPrivateChannelThreads
@@ -237,4 +249,9 @@ module.exports = {
   currentEmojis
   currentEmojiQuery
   selectedEmoji
+
+  commonEmojiList
+  commonEmojiListSelectedIndex
+  commonEmojiListFlags
+  commonEmojiListSelectedItem
 }
