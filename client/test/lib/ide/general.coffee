@@ -85,5 +85,5 @@ module.exports =
       .click                     '.panel-1 .panel-0 .application-tab-handle-holder .plus'
       .waitForElementVisible     '.context-list-wrapper', 20000
       .click                     '.context-list-wrapper li.enter-fullscreen'
-      .waitForElementVisible     '.ws-tabview.fullscren', 20000 # Assertion
+      .waitForElementVisible     '.ws-tabview.fullscreen', 20000 # Assertion
       .end()
