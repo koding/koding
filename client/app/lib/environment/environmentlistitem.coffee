@@ -1,7 +1,6 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 isKoding               = require 'app/util/isKoding'
-checkFlag              = require 'app/util/checkFlag'
 
 MachinesList           = require './machineslist'
 MachinesListController = require './machineslistcontroller'
@@ -54,11 +53,10 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         cssClass   : 'add-vm-button solid green compact'
         callback   : => @handleMachineRequest 'koding'
 
-    if checkFlag ['super-admin', 'super-digitalocean']
-      @addManagedButton = new kd.ButtonView
-        title           : 'Add Your Own Machine'
-        cssClass        : 'add-managed-button solid green compact'
-        callback        : => @handleMachineRequest 'managed'
+    @addManagedButton = new kd.ButtonView
+      title           : 'Add Your Own Machine'
+      cssClass        : 'add-managed-button solid green compact'
+      callback        : => @handleMachineRequest 'managed'
 
 
   handleMachineRequest: (provider) ->

@@ -424,6 +424,7 @@ class MainController extends KDController
 
     fluxModules = [
       require 'activity/flux'
+      require 'app/flux'
     ]
 
     fluxModules.forEach (fluxModule) ->
