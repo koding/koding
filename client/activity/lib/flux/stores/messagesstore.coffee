@@ -130,6 +130,16 @@ module.exports = class MessagesStore extends KodingFluxStore
     return removeFakeMessage messages, clientRequestId
 
 
+  ###*
+   * Use private fields to updated optimistically.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @param {string} payload.body
+   * @param {object=} payload.payload
+   * @return {IMMessageCollection} nextState
+  ###
   handleEditMessageBegin: (messages, { messageId, body, payload }) ->
 
     { addMessage } = MessageCollectionHelpers
@@ -141,6 +151,16 @@ module.exports = class MessagesStore extends KodingFluxStore
     return addMessage messages, message
 
 
+  ###*
+   * Replace old message with given messageId with the new one provided through
+   * props.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @param {SocialMessage} payload.message
+   * @return {IMMessageCollection} nextState
+  ###
   handleEditMessageSuccess: (messages, { message, messageId }) ->
 
     { addMessage } = MessageCollectionHelpers
@@ -148,6 +168,14 @@ module.exports = class MessagesStore extends KodingFluxStore
     return addMessage messages, toImmutable message
 
 
+  ###*
+   * Cleanup optimistically updates.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @return {IMMessageCollection} nextState
+  ###
   handleEditMessageFail: (messages, { messageId }) ->
 
     { addMessage } = MessageCollectionHelpers
