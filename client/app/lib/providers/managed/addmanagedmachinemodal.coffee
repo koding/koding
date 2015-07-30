@@ -28,9 +28,10 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     @addSubView @content = new kd.CustomHTMLView
       tagName: 'section'
       partial: """
-        <p>Run the command below to connect to your machine to Koding. Note, machine should:</p>
-        <p class="middle">1. have a public IP address</p>
+        <p>Run the command below to connect to your machine to Koding. Please note:</p>
+        <p class="middle">1. the machine should have a public IP address</p>
         <p>2. you should have root access</p>
+        <p>3. no firewall should be running on the machine</p>
         <span>
           <strong>Leave this dialogue box open</strong> until you see a notification in the sidebar
           that the connection has been successful.
