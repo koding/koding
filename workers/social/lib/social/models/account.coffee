@@ -1386,20 +1386,6 @@ module.exports = class JAccount extends jraphical.Module
       return callback null, response[name].scope is 'repo'
 
 
-  likeMember: permit 'like members',
-    success: (client, nickname, callback)->
-      JAccount.one { 'profile.nickname' : nickname }, (err, account)=>
-        return callback new KodingError "An error occurred!" if err or not account
-
-        rel = new Relationship
-          targetId    : account.getId()
-          targetName  : 'JAccount'
-          sourceId    : @getId()
-          sourceName  : 'JAccount'
-          as          : 'like'
-
-        rel.save (err)-> callback err
-
   setLastLoginTimezoneOffset: secure (client, options, callback) ->
     {lastLoginTimezoneOffset} = options
 
