@@ -1,14 +1,11 @@
 kd        = require 'kd'
 globals   = require 'globals'
-checkFlag = require 'app/util/checkFlag'
 whoami    = require 'app/util/whoami'
 
 
 module.exports = class AddManagedMachineModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
-
-    return  unless checkFlag ['super-admin', 'super-digitalocean']
 
     options.cssClass = 'add-managed-vm'
     options.title    = 'Add Your Own Machine'
@@ -37,7 +34,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         <span>
           <strong>Leave this dialogue box open</strong> until you see a notification in the sidebar
           that the connection has been successful.
-          <a href="http://learn.koding.com/connect_your_machine" target="_blank">Learn more about this feature.</a>
+          <a href="http://learn.koding.com/guides/connect-your-machine" target="_blank">Learn more about this feature.</a>
         </span>
       """
 

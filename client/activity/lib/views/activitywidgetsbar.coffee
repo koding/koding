@@ -1,6 +1,5 @@
 kd                         = require 'kd'
 KDCustomHTMLView           = kd.CustomHTMLView
-checkFlag                  = require 'app/util/checkFlag'
 ActivityGuideWidget        = require './activityguidewidget'
 ActivityTopicsWidget       = require './activitytopicswidget'
 ActivityUniversityWidget   = require './activityuniversitywidget'
@@ -17,8 +16,7 @@ module.exports = class ActivityWidgetsBar extends KDCustomHTMLView
 
     super options
 
-    if checkFlag ['super-admin', 'super-digitalocean']
-      @addSubView new ActivityAnnouncementWidget
+    @addSubView new ActivityAnnouncementWidget
     @addSubView new ActivityGuideWidget
     @addSubView new ActivityTopicsWidget
     @addSubView new ActivityUniversityWidget
