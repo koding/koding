@@ -110,7 +110,7 @@ EOF
     exit $err
 fi
 
-if [ ! -f /etc/kite/kite.key ]; then
+if sudo [ ! -f /etc/kite/kite.key ]; then
     echo "Error: Critical component missing. Aborting installation."
     exit -1
 fi
