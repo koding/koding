@@ -164,6 +164,15 @@ getReferences = (manager, channelId, initialSnapshot) ->
   return refs
 
 
+getParticipantWatchMap = (manager, nickname) ->
+
+  watchMap = getFromManager manager, "#{nickname}WatchMap", 'map', {}
+
+  manager.bindRealtimeListeners watchMap, 'map'
+
+  return watchMap
+
+
 ###*
  * Returns the collection from RealtimeManager instance with given name.
  * If collection is not created, this function will try to create a new
@@ -322,4 +331,5 @@ module.exports = {
   ensureParticipantLeft
   isUserOnline
   getFromManager
+  getParticipantWatchMap
 }

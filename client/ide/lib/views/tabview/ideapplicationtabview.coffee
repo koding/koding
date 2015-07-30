@@ -43,14 +43,24 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
   askForSave: (pane, aceView) ->
 
-    {ace} = aceView
-    file  = ace.getData()
+    { ace } = aceView
+    file    = ace.getData()
+
+    content = "<p>Your changes will be lost if you don't save them.</p>"
+
+    { frontApp } = kd.singletons.appManager
+
+    if frontApp.hasSession()
+      participants = frontApp.getWatchingMeParticipantsList()
+
+      if participants.length
+        content += "<p>Also #{participants.join(', ')} maybe made changes here?</p>"
 
     modal = new KDModalView
       width         : 620
       cssClass      : "modal-with-text"
       title         : "Do you want to save your changes?"
-      content       : "<p>Your changes will be lost if you don't save them.</p>"
+      content       : content
       overlay       : yes
       buttons       :
         "SaveClose" :

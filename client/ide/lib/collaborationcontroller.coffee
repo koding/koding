@@ -1117,3 +1117,20 @@ module.exports = CollaborationController =
 
     permission ?= if @settings.get 'readOnly' then 'read' else 'edit'
     @permissions.set nickname, permission
+
+
+  hasSession: -> @rtm?.isReady
+
+
+  getWatchingMeParticipantsList: ->
+
+    participants = []
+
+    for user in @participants.asArray() when user.nickname isnt nick()
+
+      map = realtimeHelpers.getParticipantWatchMap @rtm, user.nickname
+
+      if map.keys().indexOf(nick()) > -1
+        participants.push user.nickname
+
+    return participants
