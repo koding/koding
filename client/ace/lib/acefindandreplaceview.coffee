@@ -15,8 +15,7 @@ module.exports = class AceFindAndReplaceView extends JView
 
     super options, data
 
-    @mode             = null
-    @lastViewHeight   = 0
+    @mode = null
 
     @createElements()
 
@@ -50,12 +49,7 @@ module.exports = class AceFindAndReplaceView extends JView
     super
 
     cssName = 'with-replace-view'
-    method  = 'unsetClass'
-    height  = 0
-
-    if withReplace
-      method = 'setClass'
-      height = 26 # we need to shrink editor height to fit all content
+    method  = if withReplace then 'setClass' else 'unsetClass'
 
     @[method] cssName
     @emit 'FindAndReplaceViewShown', withReplace
