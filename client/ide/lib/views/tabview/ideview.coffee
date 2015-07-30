@@ -18,6 +18,7 @@ ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
+WebTermView           = require 'app/terminal/webtermview'
 
 
 HANDLE_PROXIMITY_DISTANCE   = 100
@@ -266,6 +267,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         options.path = frontApp.workspaceData.rootPath
 
     terminalPane = new IDETerminalPane options
+
+    terminalPane.webtermView.setFocus = ->
+      return  if frontApp.isChatInputFocused()
+
+      WebTermView::setFocus.call this
+
     @createPane_ terminalPane, { name: 'Terminal' }
 
 
