@@ -31,7 +31,7 @@ module.exports = class EmojiDropup extends React.Component
     isVisible   = not element.classList.contains 'hidden'
     shouldClear = isVisible and not $.contains element, target
 
-    ActivityFlux.actions.emoji.clearEmojiQuery()  if shouldClear
+    ActivityFlux.actions.emoji.unsetEmojiQuery()  if shouldClear
 
 
   renderList: ->
@@ -39,10 +39,7 @@ module.exports = class EmojiDropup extends React.Component
     { emojis, selectedEmoji } = @props
 
     emojis.map (emoji, index) ->
-      isSelected = if selectedEmoji
-      then emoji is selectedEmoji
-      else index is 0
-
+      isSelected = emoji is selectedEmoji.get 'emoji'
       <EmojiDropupItem emoji={emoji} isSelected={isSelected} index={index} />
 
 

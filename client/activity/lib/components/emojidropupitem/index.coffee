@@ -15,7 +15,11 @@ module.exports = class EmojiDropupItem extends React.Component
   handleClick: (event) ->
 
     event.preventDefault()
-    ActivityFlux.actions.emoji.clearEmojiQuery()
+
+    emojiActions = ActivityFlux.actions.emoji
+    emojiActions.confirmSelectedEmoji()
+
+    kd.utils.defer -> emojiActions.unsetEmojiQuery()
 
 
   render: ->

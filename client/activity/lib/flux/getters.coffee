@@ -3,6 +3,7 @@ isPublicChatChannel = require 'activity/util/isPublicChatChannel'
 whoami              = require 'app/util/whoami'
 
 EmojiConstants = require 'activity/flux/emojiconstants'
+toImmutable         = require 'app/util/toImmutable'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -202,13 +203,15 @@ currentEmojiQuery = EmojiQueryStore
 selectedEmoji = [
   currentEmojis
   SelectedEmojiIndexStore
-  (emojis, index) ->
-    return ''  if index is EmojiConstants.UNSELECTED_EMOJI_INDEX or emojis.size is 0
+  (emojis, selectedIndex) ->
+    return immutable.Map()  unless emojis.size > 0
 
+    { index, confirmed } = selectedIndex.toJS()
     index = index % emojis.size  if index >= emojis.size
     index = emojis.size + index  if index < 0
+    emoji = emojis.get index
 
-    return emojis.get index
+    return toImmutable { index, confirmed, emoji }
 ]
 
 module.exports = {

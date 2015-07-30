@@ -1,30 +1,34 @@
 kd             = require 'kd'
 actionTypes    = require '../actions/actiontypes'
-EmojiConstants = require 'activity/flux/emojiconstants'
 
 setEmojiQuery = (query) ->
 
-  { SET_EMOJI_QUERY } = actionTypes
+  if query
+    { SET_EMOJI_QUERY } = actionTypes
+    dispatch SET_EMOJI_QUERY, { query }
+  else
+    unsetEmojiQuery()
 
-  query ?= ''
-  dispatch SET_EMOJI_QUERY, { query }
-  selectEmoji EmojiConstants.UNSELECTED_EMOJI_INDEX
+  unsetSelectedEmoji()
 
 
-clearEmojiQuery = -> setEmojiQuery ''
+unsetEmojiQuery = ->
+
+  { UNSET_EMOJI_QUERY } = actionTypes
+  dispatch UNSET_EMOJI_QUERY
+
+  unsetSelectedEmoji()
 
 
 selectEmoji = (index) ->
 
   { SET_SELECTED_EMOJI_INDEX } = actionTypes
-
   dispatch SET_SELECTED_EMOJI_INDEX, { index }
 
 
 moveToNextEmoji = ->
 
   { MOVE_TO_NEXT_EMOJI_INDEX } = actionTypes
-
   dispatch MOVE_TO_NEXT_EMOJI_INDEX
 
 
@@ -34,13 +38,27 @@ moveToPrevEmoji = ->
   dispatch MOVE_TO_PREV_EMOJI_INDEX
 
 
+confirmSelectedEmoji = ->
+
+  { CONFIRM_SELECTED_EMOJI_INDEX } = actionTypes
+  dispatch CONFIRM_SELECTED_EMOJI_INDEX
+
+
+unsetSelectedEmoji = ->
+
+  { UNSET_SELECTED_EMOJI_INDEX } = actionTypes
+  dispatch UNSET_SELECTED_EMOJI_INDEX
+
+
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
 module.exports = {
   setEmojiQuery
-  clearEmojiQuery
+  unsetEmojiQuery
   selectEmoji
   moveToNextEmoji
   moveToPrevEmoji
+  confirmSelectedEmoji
+  unsetSelectedEmoji
 }

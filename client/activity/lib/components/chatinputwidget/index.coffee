@@ -38,11 +38,11 @@ module.exports = class ChatInputWidget extends React.Component
 
     { selectedEmoji } = @state
     return  if prevState.selectedEmoji is selectedEmoji
-    return  unless selectedEmoji
+    return  unless selectedEmoji.get('confirmed')
 
     textInput = React.findDOMNode(this.refs.textInput)
 
-    { value, cursorPosition } = helper.insertEmoji textInput, selectedEmoji
+    { value, cursorPosition } = helper.insertEmoji textInput, selectedEmoji.get 'emoji'
     @setState { value }
 
     kd.utils.defer ->
@@ -63,26 +63,35 @@ module.exports = class ChatInputWidget extends React.Component
   onKeyDown: (event) ->
 
     { emojis : { size } } = @state
-    emojiActions = ActivityFlux.actions.emoji
+    emojiActions  = ActivityFlux.actions.emoji
+    isEmojiMode   = size > 0
+    isSingleEmoji = size is 1
+
     switch event.which
       when ENTER
-        if not event.shiftKey
+        return  if event.shiftKey
+        if isEmojiMode
+          emojiActions.confirmSelectedEmoji()
+        else
           kd.utils.stopDOMEvent event
           @props.onSubmit? { value: @state.value }
           @setState { value: '' }
+
       when ESC
-        emojiActions.clearEmojiQuery()
+        emojiActions.unsetEmojiQuery()
+
       when RIGHT_ARROW, DOWN_ARROW, TAB
-        if size is 1
+        if isSingleEmoji
           emojiActions.clearEmojiQuery()
-        else if size > 0
-          event.preventDefault()
+        else if isEmojiMode
+          kd.utils.stopDOMEvent event
           emojiActions.moveToNextEmoji()
+
       when LEFT_ARROW, UP_ARROW
-        if size is 1
+        if isSingleEmoji
           emojiActions.clearEmojiQuery()
-        else if size > 0
-          event.preventDefault()
+        else if isEmojiMode
+          kd.utils.stopDOMEvent event
           emojiActions.moveToPrevEmoji()
 
 
@@ -132,12 +141,6 @@ module.exports = class ChatInputWidget extends React.Component
       return matchResult?[1]
 
 
-    getLastEmoji: (str) ->
-
-      matchResult = str.match /\s(\:[^\s]+\:\s)$/
-      return matchResult?[1]
-
-
     getEmojiQuery: (textInput) ->
 
       textBeforeCursor = helper.getTextBeforeCursor textInput
@@ -150,8 +153,7 @@ module.exports = class ChatInputWidget extends React.Component
     insertEmoji: (textInput, emoji) ->
 
       textBeforeCursor = helper.getTextBeforeCursor textInput
-      lastEmoji        = helper.getLastEmoji textBeforeCursor
-      textToReplace    = lastEmoji ? helper.getLastWord textBeforeCursor
+      textToReplace    = helper.getLastWord textBeforeCursor
 
       startReplaceIndex = textBeforeCursor.lastIndexOf textToReplace
       endReplaceIndex   = helper.getCursorPosition textInput

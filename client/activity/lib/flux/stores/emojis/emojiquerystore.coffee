@@ -10,7 +10,11 @@ module.exports = class EmojiQueryStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.SET_EMOJI_QUERY, @setQuery
+    @on actions.SET_EMOJI_QUERY,   @setQuery
+    @on actions.UNSET_EMOJI_QUERY, @unsetQuery
 
 
   setQuery: (currentState, { query }) -> query
+
+
+  unsetQuery: (currentState) -> ''

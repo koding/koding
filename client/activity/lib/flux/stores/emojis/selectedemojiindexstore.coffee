@@ -1,33 +1,46 @@
 actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
-EmojiConstants  = require 'activity/flux/emojiconstants'
+toImmutable     = require 'app/util/toImmutable'
 
 module.exports = class SelectedEmojiIndexStore extends KodingFluxStore
 
   @getterPath = 'SelectedEmojiIndexStore'
 
-  getInitialState: -> EmojiConstants.UNSELECTED_EMOJI_INDEX
+  getInitialState: -> toImmutable { index : 0, confirmed : no }
 
 
   initialize: ->
 
-    @on actions.SET_SELECTED_EMOJI_INDEX, @setSelectedIndex
+    @on actions.SET_SELECTED_EMOJI_INDEX, @setIndex
     @on actions.MOVE_TO_NEXT_EMOJI_INDEX, @moveToNextIndex
     @on actions.MOVE_TO_PREV_EMOJI_INDEX, @moveToPrevIndex
+    @on actions.CONFIRM_SELECTED_EMOJI_INDEX, @confirm
+    @on actions.UNSET_SELECTED_EMOJI_INDEX, @reset
 
 
-  setSelectedIndex: (currentState, { index }) -> index
+  setIndex: (currentState, { index }) ->
+
+    currentState.set 'index', index
 
 
   moveToNextIndex: (currentState) ->
 
-    if currentState is EmojiConstants.UNSELECTED_EMOJI_INDEX
-    then 1
-    else currentState + 1
+    index = currentState.get 'index'
+    currentState.set 'index', index + 1
 
 
   moveToPrevIndex: (currentState) ->
 
-    if currentState is EmojiConstants.UNSELECTED_EMOJI_INDEX
-    then -1
-    else currentState - 1
+    index = currentState.get 'index'
+    currentState.set 'index', index - 1
+
+
+  confirm: (currentState) ->
+
+    currentState.set 'confirmed', yes
+
+
+  reset: (currentState) ->
+
+    currentState.withMutations (map) ->
+      map.set('index', 0).set('confirmed', no)
