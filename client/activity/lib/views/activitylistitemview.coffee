@@ -153,16 +153,14 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
       @embedBoxWrapper.hide()
 
     kd.utils.defer =>
-      {typeConstant} = @getData()
-      {input} = @editWidget
-      {body}  = global.document
+      { typeConstant }  = @getData()
+      { input }         = @editWidget
+      { body }          = global.document
       input.setFocus()
       input.resize()
       input.setCaretPosition input.getValue().length
 
       return  unless typeConstant is 'privatemessage'
-
-      input.getElement().scrollIntoView yes
 
     @editWidgetWrapper.show()
 
