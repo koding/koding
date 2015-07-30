@@ -2,9 +2,6 @@ immutable           = require 'immutable'
 isPublicChatChannel = require 'activity/util/isPublicChatChannel'
 whoami              = require 'app/util/whoami'
 
-EmojiConstants = require 'activity/flux/emojiconstants'
-toImmutable         = require 'app/util/toImmutable'
-
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
 
