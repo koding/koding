@@ -186,6 +186,8 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'readOnly', state
 
 
+  MUTE_HOST_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#mute_host'
+
   createMuteHostSettingElements: ->
 
     @muteHostWrapper = new KDCustomHTMLView cssClass: 'wrapper mute-host'
@@ -198,6 +200,13 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @muteHostWrapper.addSubView new KDLabelView
       title     : 'Participants can mute host'
       mousedown : toggle.bound 'mouseDown'
+
+    @muteHostWrapper.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes :
+        href     : MUTE_HOST_GUIDE_LINK
+        target   : '_blank'
+      partial  : '(?)'
 
     @settings.addSubView @muteHostWrapper
 
