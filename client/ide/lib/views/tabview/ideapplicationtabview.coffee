@@ -46,7 +46,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     { ace } = aceView
     file    = ace.getData()
 
-    content = "Your changes will be lost if you don't save them."
+    content = "<p>Your changes will be lost if you don't save them.</p>"
 
     { frontApp } = kd.singletons.appManager
 
@@ -54,7 +54,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
       participants = frontApp.getWatchingMeParticipantsList()
 
       if participants.length
-        content += " Also #{participants.join(', ')} maybe made changes here?"
+        content += "<p>Also #{participants.join(', ')} maybe made changes here?</p>"
 
     modal = new KDModalView
       width         : 620
