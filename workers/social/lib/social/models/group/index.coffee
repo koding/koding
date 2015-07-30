@@ -300,6 +300,9 @@ module.exports = class JGroup extends Module
         plan        : String
         paymentQuota: Number
       disabledFeatures: Object
+      # BEWARE: if anyone needs to put a default value here in stackTemplates field
+      # it would break the onboarding process of showing the initial stacks not
+      # configured modal, so don't. - SY
       stackTemplates  : [ ObjectId ]
       # DefaultChannels holds the default channels for a group, when a user joins
       # to this group, participants will be automatically added to regarding
