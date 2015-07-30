@@ -1,15 +1,15 @@
-trackEvent = require '../util/trackEvent'
-kd = require 'kd'
-KDButtonViewWithMenu = kd.ButtonViewWithMenu
-KDCustomScrollView = kd.CustomScrollView
-KDNotificationView = kd.NotificationView
-Machine = require '../providers/machine'
-Terminal = require './terminal'
-TerminalWrapper = require './terminalwrapper'
-WebTermMessagePane = require './webtermmessagepane'
-WebtermSettingsView = require './webtermsettingsview'
-settings = require './settings'
-globals = require 'globals'
+trackEvent            = require '../util/trackEvent'
+kd                    = require 'kd'
+KDButtonViewWithMenu  = kd.ButtonViewWithMenu
+KDCustomScrollView    = kd.CustomScrollView
+KDNotificationView    = kd.NotificationView
+Machine               = require '../providers/machine'
+Terminal              = require './terminal'
+TerminalWrapper       = require './terminalwrapper'
+WebTermMessagePane    = require './webtermmessagepane'
+WebtermSettingsView   = require './webtermsettingsview'
+settings              = require './settings'
+globals               = require 'globals'
 
 
 module.exports = class WebTermView extends KDCustomScrollView
@@ -260,6 +260,7 @@ module.exports = class WebTermView extends KDCustomScrollView
     @once "ReceivedClickElsewhere", => @setFocus no
 
   setFocus: (state = yes) ->
+
     @focused = state
     @terminal.setFocused state
 
