@@ -60,7 +60,7 @@ terminateAll = (browser) ->
 
 
 module.exports =
-
+  ###
   terminateAll: (browser) ->
 
     user = helpers.beginTest(browser)
@@ -132,7 +132,7 @@ module.exports =
       .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
       .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', time
       .end()
-
+###
 
   renameTerminalTab: (browser) ->
 
@@ -145,6 +145,7 @@ module.exports =
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
+    createTerminalSession(browser, user)
 
     browser
       .waitForElementVisible    tabSelector, 20000
