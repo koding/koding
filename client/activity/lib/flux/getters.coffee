@@ -109,21 +109,6 @@ followedPrivateChannelThreads = [
       return thread.set 'channel', channel
 ]
 
-# Filters public channels to not have any public chat channels.
-followedFeedThreads = [
-  followedPublicChannelThreads
-  (threads) -> threads.filterNot (thread) -> isPublicChatChannel thread.get 'channel'
-]
-
-# Filters public channels to only have public chat channels.
-followedPublicThreads = [
-  followedPublicChannelThreads
-  (threads) -> threads.filter (thread) -> isPublicChatChannel thread.get 'channel'
-]
-
-# Alias for providing a consistent api.
-# followedPublicThreads, followedFeedThreads, and `followedPrivateThreads`
-followedPrivateThreads = followedPrivateChannelThreads
 
 selectedChannelThreadMessages = [
   selectedChannelThread
@@ -189,9 +174,8 @@ currentSuggestions      = SuggestionsStore
 currentSuggestionsFlags = SuggestionsFlagsStore
 
 module.exports = {
-  followedFeedThreads
-  followedPublicThreads
-  followedPrivateThreads
+  followedPublicChannelThreads
+  followedPrivateChannelThreads
 
   selectedChannelThreadId
   selectedChannelThread
