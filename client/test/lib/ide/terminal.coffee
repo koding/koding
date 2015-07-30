@@ -138,10 +138,10 @@ module.exports =
 
     name            = helpers.getFakeText().split(' ')[0]
     tabSelector     = ".kdtabhandle.terminal"
-    optionsSelector = tabSelector+" .options"
+    optionsSelector = tabSelector + " .options"
     renameSelector  = ".kdcontextmenu.terminal-context-menu .rename"
-    editSelector    = tabSelector+".edit-mode .hitenterview.tab-handle-input"
-    tabNameSelector = tabSelector+" .tab-handle-text"
+    editSelector    = tabSelector + ".edit-mode .hitenterview.tab-handle-input"
+    tabNameSelector = tabSelector + " .tab-handle-text"
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
