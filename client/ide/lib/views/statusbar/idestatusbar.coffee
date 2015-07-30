@@ -16,8 +16,6 @@ module.exports = class IDEStatusBar extends KDView
 
     super options, data
 
-    {appManager} = kd.singletons
-
     @participantAvatars = {}
 
     @on 'ShowAvatars',          @bound 'showAvatars'
@@ -29,7 +27,7 @@ module.exports = class IDEStatusBar extends KDView
     @on 'ParticipantWatched',   @bound 'decorateWatchedAvatars'
     @on 'ParticipantUnwatched', @bound 'decorateUnwatchedAvatars'
 
-    { mainController, router } = kd.singletons
+    { mainController, router, appManager } = kd.singletons
     collabDisabled = mainController.isFeatureDisabled 'collaboration'
 
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
@@ -65,7 +63,10 @@ module.exports = class IDEStatusBar extends KDView
       cssClass : 'share fr hidden'
       click    : (event) ->
         kd.utils.stopDOMEvent event
+
         return  if @hasClass 'loading'
+        return  unless appManager.frontApp.isMachineRunning()
+
         appManager.tell 'IDE', 'showChat'  unless collabDisabled
 
     @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr'
