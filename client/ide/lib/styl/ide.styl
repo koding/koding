@@ -34,8 +34,8 @@ body.ide
 
       // importants are here because `hidden` class adds
       // an !important to display.
-      visibility              visible !important
-      display                 block !important
+      visibility            visible !important
+      display               block   !important
 
       .icon
         display             block
@@ -51,6 +51,13 @@ body.ide
   .application-page
     border-left             2px solid dark-tab-header-bg
     bg                      color, dark-panel-bg
+
+    &.in-find-mode
+      .kdsplitcomboview > .kdsplitview-vertical > .panel-1 .pane-wrapper
+        kalc                height, 100% \- 66px
+
+      .chat-view
+        bottom              66px
 
     &.blurred
       .panel
