@@ -157,6 +157,8 @@ module.exports =
       .setValue                 editSelector, [name,browser.Keys.RETURN]
       .waitForElementNotPresent editSelector, 20000
       .assert.containsText      tabNameSelector, name #Assertion
+      .end()
+
 
   # this test is deprecated with persistent storage
   # openOldTerminalSession: (browser) ->
