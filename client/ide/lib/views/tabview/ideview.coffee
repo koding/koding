@@ -407,8 +407,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   toggleFullscreen: ->
 
+    { appManager, windowController } = kd.singletons
+
     @toggleClass 'fullscreen'
-    kd.getSingleton('windowController').notifyWindowResizeListeners()
+    appManager.getFrontApp().getView().toggleClass 'fullscreen'
+    windowController.notifyWindowResizeListeners()
     @isFullScreen = !@isFullScreen
     @holderView.setFullscreenHandleState @isFullScreen
 
