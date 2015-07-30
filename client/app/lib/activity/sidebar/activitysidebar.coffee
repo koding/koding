@@ -1,35 +1,36 @@
-kd                        = require 'kd'
-nick                      = require '../../util/nick'
-whoami                    = require '../../util/whoami'
-remote                    = require('../../remote').getInstance()
-globals                   = require 'globals'
-Promise                   = require 'bluebird'
-sinkrow                   = require 'sinkrow'
-Machine                   = require 'app/providers/machine'
-FSHelper                  = require '../../util/fs/fshelper'
-isKoding                  = require 'app/util/isKoding'
-showError                 = require '../../util/showError'
-groupifyLink              = require '../../util/groupifyLink'
-ComputeHelpers            = require 'app/providers/computehelpers'
-CustomLinkView            = require '../../customlinkview'
-ChatSearchModal           = require './chatsearchmodal'
-ActivitySideView          = require './activitysideview'
-KDCustomHTMLView          = kd.CustomHTMLView
-SidebarTopicItem          = require './sidebartopicitem'
-EnvironmentsModal         = require 'app/environment/environmentsmodal'
-fetchChatChannels         = require 'activity/util/fetchChatChannels'
-SidebarPinnedItem         = require './sidebarpinneditem'
-KDNotificationView        = kd.NotificationView
-SidebarMessageItem        = require './sidebarmessageitem'
-JTreeViewController       = kd.JTreeViewController
-MoreWorkspacesModal       = require './moreworkspacesmodal'
-fetchChatChannelCount     = require 'activity/util/fetchChatChannelCount'
-isChannelCollaborative    = require '../../util/isChannelCollaborative'
-SidebarOwnMachinesList    = require './sidebarownmachineslist'
-environmentDataProvider   = require 'app/userenvironmentdataprovider'
-SidebarSharedMachinesList = require './sidebarsharedmachineslist'
-ChannelActivitySideView   = require './channelactivitysideview'
-isFeatureEnabled          = require 'app/util/isFeatureEnabled'
+kd                              = require 'kd'
+nick                            = require '../../util/nick'
+whoami                          = require '../../util/whoami'
+remote                          = require('../../remote').getInstance()
+globals                         = require 'globals'
+Promise                         = require 'bluebird'
+sinkrow                         = require 'sinkrow'
+Machine                         = require 'app/providers/machine'
+FSHelper                        = require '../../util/fs/fshelper'
+isKoding                        = require 'app/util/isKoding'
+showError                       = require '../../util/showError'
+groupifyLink                    = require '../../util/groupifyLink'
+ComputeHelpers                  = require 'app/providers/computehelpers'
+CustomLinkView                  = require '../../customlinkview'
+ChatSearchModal                 = require './chatsearchmodal'
+ActivitySideView                = require './activitysideview'
+KDCustomHTMLView                = kd.CustomHTMLView
+SidebarTopicItem                = require './sidebartopicitem'
+isFeatureEnabled                = require 'app/util/isFeatureEnabled'
+EnvironmentsModal               = require 'app/environment/environmentsmodal'
+fetchChatChannels               = require 'activity/util/fetchChatChannels'
+SidebarPinnedItem               = require './sidebarpinneditem'
+KDNotificationView              = kd.NotificationView
+SidebarMessageItem              = require './sidebarmessageitem'
+JTreeViewController             = kd.JTreeViewController
+MoreWorkspacesModal             = require './moreworkspacesmodal'
+fetchChatChannelCount           = require 'activity/util/fetchChatChannelCount'
+isChannelCollaborative          = require '../../util/isChannelCollaborative'
+SidebarOwnMachinesList          = require './sidebarownmachineslist'
+environmentDataProvider         = require 'app/userenvironmentdataprovider'
+SidebarSharedMachinesList       = require './sidebarsharedmachineslist'
+ChannelActivitySideView         = require './channelactivitysideview'
+SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -517,15 +518,32 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   addStacksNotConfiguredWarning: ->
 
     return  if isKoding()
-    return  @stacksNotConfiguredWarning.show()  if @stacksNotConfiguredWarning?
+    return  @showStacksNotConfiguredWarning()  if @stacksNotConfiguredWarning?
 
-    @stacksNotConfiguredWarning = new KDCustomHTMLView
-      cssClass : 'stack-warning'
-      partial  : "Compute Stacks has not been configured yet for this Team.
-                  <br/><a href='/Admin/Stacks'>click here</a> to setup now."
+    @stacksNotConfiguredWarning = @machinesWrapper.addSubView (new KDCustomHTMLView
+      cssClass : 'stack-warning hidden'
+      partial  : "Compute Stacks has not been configured yet for this Team.<br/>
+                  <a href='/Admin/Stacks'>click here</a> to setup now."
+      ), null, shouldPrepend = yes
 
-    @machinesWrapper.addSubView \
-      @stacksNotConfiguredWarning, null, shouldPrepend = yes
+    @showStacksNotConfiguredWarning()
+
+
+  showStacksNotConfiguredWarning: ->
+
+    @stacksNotConfiguredWarning.show()
+
+    { stackTemplates } = globals.currentGroup
+
+    if not stackTemplates
+      @showStacksNotConfiguredModal 'congrats'
+    else if Array.isArray stackTemplates and stackTemplates.length is 0
+      @showStacksNotConfiguredModal 'warning'
+
+
+  showStacksNotConfiguredModal: (type) ->
+
+    new SidebarStacksNotConfiguredPopup
 
 
   addStacksModifiedWarning: ->
