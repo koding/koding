@@ -18,7 +18,6 @@ ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
-isIDEChatInputFocused = require 'app/util/isIDEChatInputFocused'
 
 
 HANDLE_PROXIMITY_DISTANCE   = 100
@@ -80,7 +79,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
-      @focusTab()  unless isIDEChatInputFocused()
+      @focusTab()  unless frontApp.isChatInputFocused()
 
     @tabView.on 'PaneAdded', (pane) =>
 
