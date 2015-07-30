@@ -11,7 +11,7 @@ module.exports = class ChatList extends React.Component
 
   renderChildren: ->
 
-    lastMessageId = undefined
+    lastMessageId = null
 
     @props.messages.map (message, i) ->
       if lastMessageId and lastMessageId is message.get 'accountId'

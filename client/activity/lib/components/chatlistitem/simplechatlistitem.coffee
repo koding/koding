@@ -8,9 +8,12 @@ MessageTime          = require 'activity/components/chatlistitem/messagetime'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
 classnames           = require 'classnames'
 
+
 module.exports = class SimpleChatListItem extends ChatListItem
 
+
   getClassNames: ->
+
     edit: classnames
       'ChatItem-updateMessageForm': yes
       'hidden': not @state.editMode
