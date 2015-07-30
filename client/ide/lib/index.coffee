@@ -362,14 +362,14 @@ class IDEAppController extends AppController
   ###*
    * Open multiple file paths, loading the contents.
    *
-   * @param {Array<string>} files - A list of file paths.
+   * @param {Array<string>} filePaths - A list of file paths.
   ###
-  openFiles: (files) ->
+  openFiles: (filePaths) ->
 
-    unless files
+    unless filePaths
       return kd.error "IDEAppController::openFiles: Called with empty files"
 
-    files.forEach (path) =>
+    filePaths.forEach (path) =>
       file = FSHelper.createFileInstance { path, machine: @mountedMachine }
       file.fetchContents yes, (err, contents) =>
         return kd.error err  if err
@@ -1094,7 +1094,7 @@ class IDEAppController extends AppController
 
   addInitialViews: ->
 
-    @ideViews.first.createEditor()
+    @ideViews.first.createEditor()  unless @isNewRegister
     @ideViews.last.createTerminal machine: @mountedMachine
     @setActiveTabView @ideViews.first.tabView
     @initialViewsReady = yes
@@ -1466,6 +1466,8 @@ class IDEAppController extends AppController
   setupFakeActivityNotification: ->
 
     return  unless kookies.get('newRegister') is 'true'
+
+    @isNewRegister = yes
 
     @machineStateModal?.once 'MachineTurnOnStarted', =>
       kookies.expire 'newRegister', path: '/'
