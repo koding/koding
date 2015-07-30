@@ -399,7 +399,7 @@ class IDEAppController extends AppController
     path ?= if owner = machineData.getOwner()
     then "/home/#{owner}"
     else '/'
-    
+
     path = '/root'  if machineData.isManaged()
 
     @workspace.ready ->
@@ -996,11 +996,24 @@ class IDEAppController extends AppController
 
   createFindAndReplaceView: (splitViewPanel) ->
 
+    { windowController } = kd.singletons
+    cssName = 'in-find-mode'
+
     splitViewPanel.addSubView @findAndReplaceView = new AceFindAndReplaceView
     @findAndReplaceView.hide()
+
     @findAndReplaceView.on 'FindAndReplaceViewClosed', =>
+      @getView().unsetClass cssName
       @getActivePaneView().aceView?.ace.focus()
       @isFindAndReplaceViewVisible = no
+
+      windowController.notifyWindowResizeListeners()
+
+    @findAndReplaceView.on 'FindAndReplaceViewShown', (withReplace) =>
+      view = @getView()
+      if withReplace then view.setClass cssName else view.unsetClass cssName
+
+      windowController.notifyWindowResizeListeners()
 
 
   showFindReplaceView: (withReplaceMode) ->
@@ -1008,8 +1021,9 @@ class IDEAppController extends AppController
     view = @findAndReplaceView
     @setFindAndReplaceViewDelegate()
     @isFindAndReplaceViewVisible = yes
-    view.setViewHeight withReplaceMode
+    view.show withReplaceMode
     view.setTextIntoFindInput '' # FIXME: Set selected text if exists
+
 
   showFindReplaceViewWithReplaceMode: -> @showFindReplaceView yes
 
