@@ -146,7 +146,7 @@ module.exports = class ChatInputWidget extends React.Component
       textBeforeCursor = helper.getTextBeforeCursor textInput
       lastWord         = helper.getLastWord textBeforeCursor
 
-      matchResult = lastWord?.match /\:(.+)/
+      matchResult = lastWord?.match /^\:(.+)/
       return matchResult?[1]
 
 
