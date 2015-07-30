@@ -61,22 +61,6 @@
       .MediaObject-content
         overflow              visible
 
-      &.SimpleChatListItem
-        margin                0
-        padding-left          50px
-
-        .ChatItem-messageDate
-          abs()
-          hidden()
-          left                15px
-
-        .ChatItem-likeLink
-          left                63px
-
-        &:hover
-          .ChatItem-messageDate
-            visible()
-
       &.editing
         rounded               3px 3px 0 0
         padding               10px 0 6px
@@ -149,3 +133,18 @@
         bg                    color, transparent
         color                 #999
 
+.ChatItem-contentWrapper.SimpleChatListItem
+  margin                      0
+  padding-left                50px
+
+  .ChatItem-messageDate
+    abs()
+    hidden()
+    left                      15px
+
+  .ChatItem-likeLink
+    left                      63px
+
+  &:hover
+    .ChatItem-messageDate
+      visible()
