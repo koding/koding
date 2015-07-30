@@ -133,16 +133,20 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       defaultValue : on
       callback     : @bound 'setUnwatch'
 
-    @unwatchWrapper.addSubView new KDLabelView
-      title     : 'Allow participants to unwatch'
-      mousedown : toggle.bound 'mouseDown'
-
-    @unwatchWrapper.addSubView new KDCustomHTMLView
+    guideLink = new KDCustomHTMLView
       tagName    : 'a'
+      cssClass   : 'guide-link'
       attributes :
         href     : WATCH_MODE_GUIDE_LINK
         target   : '_blank'
-      partial    : '(?)'
+
+    guideLink.addSubView new KDCustomHTMLView cssClass: 'icon'
+
+    @unwatchWrapper.addSubView new KDLabelView
+      title      : 'Allow participants to unwatch'
+      mousedown  : toggle.bound 'mouseDown'
+
+    @unwatchWrapper.addSubView guideLink
 
     @settings.addSubView @unwatchWrapper
 
@@ -165,16 +169,20 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       defaultValue : off
       callback     : @bound 'setReadOnly'
 
-    @readOnlyWrapper.addSubView new KDLabelView
-      title     : 'Read-only session'
-      mousedown : toggle.bound 'mouseDown'
-
-    @readOnlyWrapper.addSubView new KDCustomHTMLView
+    guideLink    = new KDCustomHTMLView
       tagName    : 'a'
+      cssClass   : 'guide-link'
       attributes :
         href     : READ_ONLY_GUIDE_LINK
         target   : '_blank'
-      partial  : '(?)'
+
+    guideLink.addSubView new KDCustomHTMLView cssClass: 'icon'
+
+    @readOnlyWrapper.addSubView new KDLabelView
+      title      : 'Read-only session'
+      mousedown  : toggle.bound 'mouseDown'
+
+    @readOnlyWrapper.addSubView guideLink
 
     @settings.addSubView @readOnlyWrapper
 
@@ -197,16 +205,20 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       defaultValue : off
       callback     : @bound 'setMuteHost'
 
-    @muteHostWrapper.addSubView new KDLabelView
-      title     : 'Participants can mute host'
-      mousedown : toggle.bound 'mouseDown'
-
-    @muteHostWrapper.addSubView new KDCustomHTMLView
+    guideLink    = new KDCustomHTMLView
       tagName    : 'a'
+      cssClass   : 'guide-link'
       attributes :
         href     : MUTE_HOST_GUIDE_LINK
         target   : '_blank'
-      partial  : '(?)'
+
+    guideLink.addSubView new KDCustomHTMLView cssClass: 'icon'
+
+    @muteHostWrapper.addSubView new KDLabelView
+      title      : 'Participants can mute host'
+      mousedown  : toggle.bound 'mouseDown'
+
+    @muteHostWrapper.addSubView guideLink
 
     @settings.addSubView @muteHostWrapper
 

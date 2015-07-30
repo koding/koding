@@ -682,6 +682,10 @@ pmLinkColor   = #B6B6B6
       size                  270px 28px
       margin                0 auto
 
+      &:hover
+        .guide-link
+          opacity           .5
+
       .koding-on-off
 
         display             inline-block
@@ -693,9 +697,14 @@ pmLinkColor   = #B6B6B6
         &.on
           bg                color #52A840
 
-      label + a
-        color               #0DA84C
-        text-decoration     none
+      .guide-link
+        fr()
+        opacity             0
+        vendor              transition, opacity .2s .2s ease
+
+        .icon
+          vertical-align    sub
+          r-sprite          'app', '16-info'
 
 
 .chat-view .chat-settings .warning
