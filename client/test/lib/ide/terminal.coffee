@@ -137,11 +137,11 @@ module.exports =
   renameTerminalTab: (browser) ->
 
     name            = helpers.getFakeText().split(' ')[0]
-    optionsSelector = ".kdtabhandle.terminal .options"
-    renameSelector  = ".kdcontextmenu.terminal-context-menu .rename"
-    editSelector    = ".kdtabhandle.terminal.edit-mode .hitenterview.tab-handle-input"
-    tabNameSelector = ".kdtabhandle.terminal .tab-handle-text"
     tabSelector     = ".kdtabhandle.terminal"
+    optionsSelector = tabSelector+" .options"
+    renameSelector  = ".kdcontextmenu.terminal-context-menu .rename"
+    editSelector    = tabSelector+".edit-mode .hitenterview.tab-handle-input"
+    tabNameSelector = tabSelector+" .tab-handle-text"
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
