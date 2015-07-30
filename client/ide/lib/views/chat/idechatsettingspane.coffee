@@ -154,6 +154,8 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'unwatch', state
 
 
+  READ_ONLY_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#read_only'
+
   createReadOnlySettingElements: ->
 
     @readOnlyWrapper = new KDCustomHTMLView cssClass: 'wrapper read-only'
@@ -166,6 +168,13 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @readOnlyWrapper.addSubView new KDLabelView
       title     : 'Read-only session'
       mousedown : toggle.bound 'mouseDown'
+
+    @readOnlyWrapper.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes :
+        href     : READ_ONLY_GUIDE_LINK
+        target   : '_blank'
+      partial  : '(?)'
 
     @settings.addSubView @readOnlyWrapper
 
