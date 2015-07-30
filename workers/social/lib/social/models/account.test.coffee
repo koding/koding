@@ -1,3 +1,27 @@
+{ argv }                      = require 'optimist'
+{ expect }                    = require "chai"
+{ env : {MONGO_URL} }         = process
+
+KONFIG                        = require('koding-config-manager').load("main.#{argv.c}")
+
+Bongo                         = require 'bongo'
+JUser                         = require './user'
+mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
+JAccount                      = require './account'
+JSession                      = require './session'
+TestHelper                    = require '../../../testhelper'
+
+{ daisy }                     = Bongo
+{ generateUserInfo
+  generateDummyClient
+  generateCredentials
+  generateRandomEmail
+  generateRandomString
+  generateRandomUsername
+  generateDummyUserFormData } = TestHelper
+
+
+# making sure we have db connection before tests
 beforeTests = -> before (done) ->
 
     bongo = new Bongo
@@ -64,7 +88,6 @@ runTests = -> describe 'workers.social.user.account', ->
       client        = null
       account       = null
       userFormData  = generateDummyUserFormData()
-      socialAccount = null
 
       queue = [
 
@@ -104,6 +127,243 @@ runTests = -> describe 'workers.social.user.account', ->
 
       daisy queue
 
+
+  describe '#createSocialApiId()', ->
+
+    describe 'when account type is unregistered', ->
+
+      it 'should return -1', (done) ->
+
+        client        = null
+        account       = null
+        userFormData  = generateDummyUserFormData()
+
+        queue = [
+
+          ->
+            # generating dummy client
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client  = client_
+              account = client.connection.delegate
+              queue.next()
+
+          ->
+            # expecting unregistered account to return -1
+            account.createSocialApiId (err, socialApiId) ->
+              expect(err)          .to.not.exist
+              expect(socialApiId)  .to.be.equal -1
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+    describe 'when account type is not unregistered', ->
+
+      it 'should return socialApiId if socialApiId is already set', (done) ->
+
+        client        = null
+        account       = null
+        socialApiId   = '12345'
+        userFormData  = generateDummyUserFormData()
+
+        queue = [
+
+          ->
+            # generating dummy client
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client  = client_
+              account = client.connection.delegate
+              queue.next()
+
+          ->
+            # registering user
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+              # set credentials
+              { account, newToken }      = data
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              queue.next()
+
+          ->
+            # setting social api id
+            account.update { $set : { socialApiId : socialApiId } }, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            # expecting createsocialApiId method to return accountId
+            account.createSocialApiId (err, socialApiId_) ->
+              expect(err)          .to.not.exist
+              expect(socialApiId_) .to.be.equal socialApiId
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'should create social api id if account\'s socialApiId is not set', (done) ->
+
+        client        = null
+        account       = null
+        userFormData  = generateDummyUserFormData()
+
+        queue = [
+
+          ->
+            # generating dummy client
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client  = client_
+              account = client.connection.delegate
+              queue.next()
+
+          ->
+            # registering user
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+              # set credentials
+              { account, newToken }      = data
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              queue.next()
+
+          ->
+            # unsetting account's socialApiId
+            account.socialApiId = null
+            account.update { $unset : 'socialApiId' : 1 }, (err) ->
+              expect(err)                          .to.not.exist
+              expect(account.getAt 'socialApiId')  .to.not.exist
+              queue.next()
+
+          ->
+            # creating new social api id
+            account.createSocialApiId (err, socialApiId_) ->
+              expect(err)           .to.not.exist
+              expect(socialApiId_)  .to.exist
+              queue.next()
+
+          ->
+            # expecting account's social api id to be set
+            expect(account.getAt 'socialApiId')  .to.exist
+            expect(account.socialApiId)          .to.exist
+            queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+  describe '#fetchMyPermissions()', ->
+
+    describe 'when group does not exist', ->
+
+      it 'should return error', (done) ->
+
+        client        = null
+        account       = null
+        userFormData  = generateDummyUserFormData()
+
+        queue = [
+
+          ->
+            # generating dummy client
+            generateDummyClient { group : 'someInvalidGroup' }, (err, client_) ->
+              expect(err).to.not.exist
+              client  = client_
+              account = client.connection.delegate
+              queue.next()
+
+          ->
+            # expecting error when client's group does not exist
+            account.fetchMyPermissions client, (err, permissions) ->
+              expect(err?.message).to.be.equal 'group not found'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+    describe 'when group exists', ->
+
+      describe 'if account is valid', ->
+
+        it 'should return client\'s permissions', (done) ->
+
+          client        = null
+          account       = null
+          userFormData  = generateDummyUserFormData()
+
+          queue = [
+
+            ->
+              # generating dummy client
+              generateDummyClient { group : 'koding' }, (err, client_) ->
+                expect(err).to.not.exist
+                client  = client_
+                account = client.connection.delegate
+                queue.next()
+
+            ->
+              # expecting to be able to get permissions
+              account.fetchMyPermissions client, (err, permissions) ->
+                expect(err)          .to.not.exist
+                expect(permissions)  .to.exist
+                expect(permissions)  .to.be.an 'object'
+                queue.next()
+
+            -> done()
+
+          ]
+
+          daisy queue
+
+      describe 'if group slug is not defined', ->
+
+        it 'should set the slug as koding and return permissions', (done) ->
+
+          client        = null
+          account       = null
+          userFormData  = generateDummyUserFormData()
+
+          queue = [
+
+            ->
+              # generating dummy client
+              generateDummyClient { group : 'koding' }, (err, client_) ->
+                expect(err).to.not.exist
+                client               = client_
+                client.context.group = null
+                account              = client.connection.delegate
+                queue.next()
+
+            ->
+              # expecting to be able to get permissions
+              account.fetchMyPermissions client, (err, permissions) ->
+                expect(err)          .to.not.exist
+                expect(permissions)  .to.exist
+                expect(permissions)  .to.be.an 'object'
+                queue.next()
+
+            -> done()
+
+          ]
+
+          daisy queue
 
 beforeTests()
 
