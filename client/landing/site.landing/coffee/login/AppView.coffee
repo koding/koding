@@ -457,22 +457,28 @@ module.exports = class LoginView extends JView
 
         error : ({responseJSON}) =>
 
-          usernameCheckTimer = null
+          usernameCheckTimer   = null
+          pendingSignupRequest = no
+
           return  unless @signupModal?
+
+          unless responseJSON
+            return new KDNotificationView
+              title: 'Something went wrong'
 
           {forbidden, kodingUser} = responseJSON
 
-          if forbidden
-            input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is forbidden to use!"
-            USERNAME_VALID = no
-          else if kodingUser
-            input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is already taken!"
-            USERNAME_VALID = no
-          else
-            input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
-            USERNAME_VALID = no
+          USERNAME_VALID = no
 
-          pendingSignupRequest = no
+          message = switch
+            when forbidden
+              "Sorry, \"#{username}\" is forbidden to use!"
+            when kodingUser
+              "Sorry, \"#{username}\" is already taken!"
+            else
+              "Sorry, there is a problem with \"#{username}\"!"
+
+          input.setValidationResult 'usernameCheck', message
 
 
   changeButtonState: (button, state) ->
