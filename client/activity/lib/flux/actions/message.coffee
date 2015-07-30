@@ -1,6 +1,7 @@
-kd = require 'kd'
+kd                     = require 'kd'
+whoami                 = require 'app/util/whoami'
+actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
-actionTypes = require './actiontypes'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -120,16 +121,19 @@ likeMessage = (messageId) ->
     LIKE_MESSAGE_FAIL
     LIKE_MESSAGE_SUCCESS } = actionTypes
 
-  dispatch LIKE_MESSAGE_BEGIN, { messageId }
+  userId = whoami()._id
+
+  dispatch LIKE_MESSAGE_BEGIN, { messageId, userId }
 
   socialapi.message.like { id: messageId }, (err) ->
     if err
-      dispatch LIKE_MESSAGE_FAIL, { err, messageId }
+      dispatch LIKE_MESSAGE_FAIL, { err, messageId, userId }
       return
 
-    kd.utils.wait 573, ->
-      socialapi.message.byId { id: messageId }, (err, message) ->
-        dispatch LIKE_MESSAGE_SUCCESS, { message }
+    socialapi.message.listLikers { id: messageId }, (err, likers) ->
+      kd.singletons.reactor.batch ->
+        likers.forEach (id) ->
+          dispatch LIKE_MESSAGE_SUCCESS, { userId: id, messageId }
 
 
 ###*
