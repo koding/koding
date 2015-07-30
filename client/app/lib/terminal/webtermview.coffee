@@ -255,10 +255,7 @@ module.exports = class WebTermView extends KDCustomScrollView
 
   setKeyView: ->
     kd.getSingleton('windowController').addLayer this
-
-    { frontApp } = kd.singletons.appManager
-
-    @setFocus()  unless frontApp.isChatInputFocused()
+    @setFocus()
     @emit 'KeyViewIsSet'
     @once "ReceivedClickElsewhere", => @setFocus no
 
