@@ -116,7 +116,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if /NetworkOut/i.test error
 
           limitReachedNotice = "
-            <p>You've reached your outbound network 
+            <p>You've reached your outbound network
             usage limit for this week.</p>
           "
 
@@ -131,7 +131,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
           else
             @customErrorMessage = "
               #{limitReachedNotice}<span>
-              Please <span class='contact-support'>contact support</span> 
+              Please <span class='contact-support'>contact support</span>
               for further assistance.</span>
             "
 
@@ -662,7 +662,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     findNodes = new FindManagedNodesModal { container }, @machine
 
 
-  requestNewMachine: -> new EnvironmentsModal
+  requestNewMachine: ->
+
+    new EnvironmentsModal
+    @destroy()
 
 
   turnOnMachine: ->
