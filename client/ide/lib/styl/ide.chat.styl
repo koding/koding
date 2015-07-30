@@ -130,7 +130,7 @@ pmLinkColor   = #B6B6B6
         bg                  color #D0D0D0
 
       &.green
-        bg                  color #52A840
+        bg                  color #0DA84C
 
       &.red
         bg                  color #F56778
@@ -682,6 +682,10 @@ pmLinkColor   = #B6B6B6
       size                  270px 28px
       margin                0 auto
 
+      &:hover
+        .guide-link
+          opacity           .5
+
       .koding-on-off
 
         display             inline-block
@@ -693,11 +697,14 @@ pmLinkColor   = #B6B6B6
         &.on
           bg                color #52A840
 
-      &.unwatch
+      .guide-link
+        fr()
+        opacity             0
+        vendor              transition, opacity .2s .2s ease
 
-        a
-          color             #00b057
-          text-decoration   none
+        .icon
+          vertical-align    sub
+          r-sprite          'app', '16-info'
 
 
 .chat-view .chat-settings .warning
@@ -708,6 +715,10 @@ pmLinkColor   = #B6B6B6
     color                 #777
     font-size             14px
     line-height           1.4em
+
+  a
+    color                   #0DA84C
+    text-decoration         none
 
   .key-icon
 
@@ -741,7 +752,7 @@ pmLinkColor   = #B6B6B6
       margin-top            15px
 
     strong
-      color                 #52A840
+      color                 #0DA84C
 
   .settings
   header.chat-settings

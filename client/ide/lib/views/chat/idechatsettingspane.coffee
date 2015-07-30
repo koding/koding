@@ -122,7 +122,7 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @createMuteHostSettingElements()
 
 
-  GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
+  WATCH_MODE_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#watch_mode'
 
   createUnwatchSettingElements: ->
 
@@ -133,16 +133,20 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       defaultValue : on
       callback     : @bound 'setUnwatch'
 
-    @unwatchWrapper.addSubView new KDLabelView
-      title     : 'Allow participants to unwatch'
-      mousedown : toggle.bound 'mouseDown'
-
-    @unwatchWrapper.addSubView new KDCustomHTMLView
+    guideLink = new KDCustomHTMLView
       tagName    : 'a'
+      cssClass   : 'guide-link'
       attributes :
-        href     : GUIDE_LINK
+        href     : WATCH_MODE_GUIDE_LINK
         target   : '_blank'
-      partial    : '(?)'
+
+    guideLink.addSubView new KDCustomHTMLView cssClass: 'icon'
+
+    @unwatchWrapper.addSubView new KDLabelView
+      title      : 'Allow participants to unwatch'
+      mousedown  : toggle.bound 'mouseDown'
+
+    @unwatchWrapper.addSubView guideLink
 
     @settings.addSubView @unwatchWrapper
 
@@ -154,6 +158,8 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'unwatch', state
 
 
+  READ_ONLY_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#read_only'
+
   createReadOnlySettingElements: ->
 
     @readOnlyWrapper = new KDCustomHTMLView cssClass: 'wrapper read-only'
@@ -163,9 +169,20 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       defaultValue : off
       callback     : @bound 'setReadOnly'
 
+    guideLink    = new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'guide-link'
+      attributes :
+        href     : READ_ONLY_GUIDE_LINK
+        target   : '_blank'
+
+    guideLink.addSubView new KDCustomHTMLView cssClass: 'icon'
+
     @readOnlyWrapper.addSubView new KDLabelView
-      title     : 'Read-only session'
-      mousedown : toggle.bound 'mouseDown'
+      title      : 'Read-only session'
+      mousedown  : toggle.bound 'mouseDown'
+
+    @readOnlyWrapper.addSubView guideLink
 
     @settings.addSubView @readOnlyWrapper
 
@@ -177,6 +194,8 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'readOnly', state
 
 
+  MUTE_HOST_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#mute_host'
+
   createMuteHostSettingElements: ->
 
     @muteHostWrapper = new KDCustomHTMLView cssClass: 'wrapper mute-host'
@@ -186,9 +205,20 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       defaultValue : off
       callback     : @bound 'setMuteHost'
 
+    guideLink    = new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'guide-link'
+      attributes :
+        href     : MUTE_HOST_GUIDE_LINK
+        target   : '_blank'
+
+    guideLink.addSubView new KDCustomHTMLView cssClass: 'icon'
+
     @muteHostWrapper.addSubView new KDLabelView
-      title     : 'Participants can mute host'
-      mousedown : toggle.bound 'mouseDown'
+      title      : 'Participants can mute host'
+      mousedown  : toggle.bound 'mouseDown'
+
+    @muteHostWrapper.addSubView guideLink
 
     @settings.addSubView @muteHostWrapper
 
@@ -334,8 +364,11 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       {{> @everyone}}
       <div class="warning">
         <div class="key-icon"></div>
-        <span>Have sessions with people you trust, and remember, \
-        <strong>they can view and edit all your files!</strong></span>
+        <span>Have sessions with people you trust, <br />
+          <a href="#{WATCH_MODE_GUIDE_LINK}" target="_blank">
+            <strong>they can view and edit all your files!</strong>
+          </a>
+        </span>
       </div>
       {{> @settings}}
       <div class='buttons'>
