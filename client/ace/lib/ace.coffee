@@ -11,7 +11,6 @@ globals               = require 'globals'
 trackEvent            = require 'app/util/trackEvent'
 FSHelper              = require 'app/util/fs/fshelper'
 settings              = require './settings'
-isIDEChatInputFocused = require 'app/util/isIDEChatInputFocused'
 
 module.exports =
 
@@ -121,8 +120,6 @@ class Ace extends KDView
       @editor.gotoLine 0
 
       @prepareEditor()
-
-      @focus()  unless isIDEChatInputFocused()
       @show()
 
       kd.utils.defer @lazyBound 'emit', 'ready'

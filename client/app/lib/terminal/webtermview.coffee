@@ -10,7 +10,6 @@ WebTermMessagePane    = require './webtermmessagepane'
 WebtermSettingsView   = require './webtermsettingsview'
 settings              = require './settings'
 globals               = require 'globals'
-isIDEChatInputFocused = require '../util/isIDEChatInputFocused'
 
 
 module.exports = class WebTermView extends KDCustomScrollView
@@ -256,7 +255,10 @@ module.exports = class WebTermView extends KDCustomScrollView
 
   setKeyView: ->
     kd.getSingleton('windowController').addLayer this
-    @setFocus()  unless isIDEChatInputFocused()
+
+    { frontApp } = kd.singletons.appManager
+
+    @setFocus()  unless frontApp.isChatInputFocused()
     @emit 'KeyViewIsSet'
     @once "ReceivedClickElsewhere", => @setFocus no
 
