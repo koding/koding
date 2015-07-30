@@ -7,7 +7,7 @@ vmSelector = '.sidebar-machine-box.koding-vm-1'
 
 module.exports =
 
-
+  
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
@@ -46,8 +46,7 @@ module.exports =
           .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
           .end()
 
-
-  addVM: (browser) ->
+ addVM: (browser) ->
 
     freeModalSelector = '.computeplan-modal.free-plan'
 
@@ -124,3 +123,18 @@ module.exports =
             browser
               .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
+
+  createSnapshotForNonPaidUser: (browser) ->
+
+    buttonSelector   = '.snapshots .add-button'
+    messageSelector  = '.kdmodal.computeplan-modal .message'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.openSnapshotsSettings(browser)
+
+    browser
+      .waitForElementVisible buttonSelector, 20000
+      .click                 buttonSelector
+      .waitForElementVisible messageSelector, 20000
+      .assert.containsText   messageSelector, "The Snapshot feature is only available for paid accounts." #Assertion

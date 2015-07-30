@@ -51,6 +51,10 @@ module.exports =
   openAdvancedSettings: (browser, vmName) ->
 
     @openVmSettingsModal browser, vmName, '.advanced'
+  
+  openSnapshotsSettings: (browser,vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.snapshots'
 
   clickAddVMButton: (browser) ->
 
