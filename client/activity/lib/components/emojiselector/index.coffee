@@ -41,7 +41,7 @@ module.exports = class EmogiSelector extends React.Component
 
   handleItemClicked: ->
 
-    ActivityFlux.actions.emoji.completeCommonListSelection()
+    ActivityFlux.actions.emoji.confirmCommonListSelection()
 
 
   handleMouseClick: (event) ->

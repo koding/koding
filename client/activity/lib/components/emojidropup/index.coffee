@@ -24,6 +24,16 @@ module.exports = class EmojiDropup extends React.Component
     element.css top : -element.outerHeight()
 
 
+  handleItemSelect: (index) ->
+
+    ActivityFlux.actions.emoji.setFilteredListSelectedIndex index
+
+
+  handleItemClick: ->
+
+    ActivityFlux.actions.emoji.confirmFilteredListSelection()
+
+
   handleMouseClick: (event) ->
 
     { target }  = event
@@ -31,16 +41,22 @@ module.exports = class EmojiDropup extends React.Component
     isVisible   = not element.classList.contains 'hidden'
     shouldClear = isVisible and not $.contains element, target
 
-    ActivityFlux.actions.emoji.unsetEmojiQuery()  if shouldClear
+    ActivityFlux.actions.emoji.unsetFilteredListQuery()  if shouldClear
 
 
   renderList: ->
 
     { emojis, selectedEmoji } = @props
 
-    emojis.map (emoji, index) ->
-      isSelected = emoji is selectedEmoji.get 'emoji'
-      <EmojiDropupItem emoji={emoji} isSelected={isSelected} index={index} />
+    emojis.map (emoji, index) =>
+      isSelected = emoji is selectedEmoji
+      <EmojiDropupItem
+        emoji      = { emoji }
+        isSelected = { isSelected }
+        index      = { index }
+        onSelect   = { @bound 'handleItemSelect'}
+        onClick    = { @bound 'handleItemClick' }
+      />
 
 
   render: ->

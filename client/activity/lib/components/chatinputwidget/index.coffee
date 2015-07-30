@@ -30,12 +30,13 @@ module.exports = class ChatInputWidget extends React.Component
     { getters } = ActivityFlux
 
     return {
-      emojis                      : getters.currentEmojis
-      selectedEmoji               : getters.selectedEmoji
-      emojiQuery                  : getters.currentEmojiQuery
-      commonEmojiList             : getters.commonEmojiList
-      commonEmojiListFlags        : getters.commonEmojiListFlags
-      commonEmojiListSelectedItem : getters.commonEmojiListSelectedItem
+      filteredEmojiList             : getters.filteredEmojiList
+      filteredEmojiListSelectedItem : getters.filteredEmojiListSelectedItem
+      filteredEmojiListQuery        : getters.filteredEmojiListQuery
+      filteredEmojiListFlags        : getters.filteredEmojiListFlags
+      commonEmojiList               : getters.commonEmojiList
+      commonEmojiListFlags          : getters.commonEmojiListFlags
+      commonEmojiListSelectedItem   : getters.commonEmojiListSelectedItem
     }
 
 
@@ -49,7 +50,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     { commonEmojiListFlags, commonEmojiListSelectedItem, value } = @state
     return no  if prevState.commonEmojiListFlags is commonEmojiListFlags
-    return no  unless commonEmojiListFlags.get 'selectionCompleted'
+    return no  unless commonEmojiListFlags.get 'selectionConfirmed'
 
     newValue = value + formatEmojiName commonEmojiListSelectedItem
     @setState { value : newValue }
@@ -65,17 +66,20 @@ module.exports = class ChatInputWidget extends React.Component
 
   insertFilteredEmojiIfNeed: (prevProps, prevState) ->
 
-    { selectedEmoji } = @state
-    return no  if prevState.selectedEmoji is selectedEmoji
-    return no  unless selectedEmoji.get 'confirmed'
+    { filteredEmojiListSelectedItem, filteredEmojiListFlags } = @state
+    return no  if prevState.filteredEmojiListFlags is filteredEmojiListFlags
+    return no  unless filteredEmojiListFlags.get 'selectionConfirmed'
 
     textInput = React.findDOMNode this.refs.textInput
 
-    { value, cursorPosition } = helper.insertEmoji textInput, selectedEmoji.get 'emoji'
+    { value, cursorPosition } = helper.insertEmoji textInput, filteredEmojiListSelectedItem
     @setState { value }
 
+    emojiActions = ActivityFlux.actions.emoji
     kd.utils.defer ->
       helper.setCursorPosition textInput, cursorPosition
+      emojiActions.resetFilteredListFlags()
+      emojiActions.unsetFilteredListQuery()
 
     return yes
 
@@ -88,12 +92,12 @@ module.exports = class ChatInputWidget extends React.Component
     textInput = React.findDOMNode this.refs.textInput
 
     emojiQuery = helper.getEmojiQuery textInput
-    ActivityFlux.actions.emoji.setEmojiQuery emojiQuery
+    ActivityFlux.actions.emoji.setFilteredListQuery emojiQuery
 
 
   onKeyDown: (event) ->
 
-    { emojis : { size } } = @state
+    { filteredEmojiList : { size } } = @state
     emojiActions  = ActivityFlux.actions.emoji
     isEmojiMode   = size > 0
     isSingleEmoji = size is 1
@@ -101,29 +105,30 @@ module.exports = class ChatInputWidget extends React.Component
     switch event.which
       when ENTER
         return  if event.shiftKey
+
+        kd.utils.stopDOMEvent event
         if isEmojiMode
-          emojiActions.confirmSelectedEmoji()
+          emojiActions.confirmFilteredListSelection()
         else
-          kd.utils.stopDOMEvent event
           @props.onSubmit? { value: @state.value }
           @setState { value: '' }
 
       when ESC
-        emojiActions.unsetEmojiQuery()
+        emojiActions.unsetFilteredListQuery()
 
       when RIGHT_ARROW, DOWN_ARROW, TAB
         if isSingleEmoji
-          emojiActions.clearEmojiQuery()
+          emojiActions.unsetFilteredListQuery()
         else if isEmojiMode
           kd.utils.stopDOMEvent event
-          emojiActions.moveToNextEmoji()
+          emojiActions.moveToNextFilteredListIndex()
 
       when LEFT_ARROW, UP_ARROW
         if isSingleEmoji
-          emojiActions.clearEmojiQuery()
+          emojiActions.unsetFilteredListQuery()
         else if isEmojiMode
           kd.utils.stopDOMEvent event
-          emojiActions.moveToPrevEmoji()
+          emojiActions.moveToPrevFilteredListIndex()
 
 
   handleEmojiIconClick: (event) ->
@@ -133,14 +138,14 @@ module.exports = class ChatInputWidget extends React.Component
 
   render: ->
 
-    { emojis, selectedEmoji, emojiQuery } = @state
+    { filteredEmojiList, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
     { commonEmojiList, commonEmojiListFlags, commonEmojiListSelectedItem } = @state
 
     <div className="ChatInputWidget">
       <EmojiDropup
-        emojis        = { emojis }
-        selectedEmoji = { selectedEmoji }
-        emojiQuery    = { emojiQuery }
+        emojis        = { filteredEmojiList }
+        selectedEmoji = { filteredEmojiListSelectedItem }
+        emojiQuery    = { filteredEmojiListQuery }
       />
       <EmojiSelector
         emojis        = { commonEmojiList }

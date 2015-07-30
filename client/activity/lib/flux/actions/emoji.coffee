@@ -1,53 +1,58 @@
 kd             = require 'kd'
 actionTypes    = require '../actions/actiontypes'
 
-setEmojiQuery = (query) ->
+setFilteredListQuery = (query) ->
 
   if query
-    { SET_EMOJI_QUERY } = actionTypes
-    dispatch SET_EMOJI_QUERY, { query }
+    { SET_FILTERED_EMOJI_LIST_QUERY } = actionTypes
+    dispatch SET_FILTERED_EMOJI_LIST_QUERY, { query }
+    resetFilteredListSelectedIndex()
   else
-    unsetEmojiQuery()
-
-  unsetSelectedEmoji()
+    unsetFilteredListQuery()
 
 
-unsetEmojiQuery = ->
+unsetFilteredListQuery = ->
 
-  { UNSET_EMOJI_QUERY } = actionTypes
-  dispatch UNSET_EMOJI_QUERY
+  { UNSET_FILTERED_EMOJI_LIST_QUERY } = actionTypes
+  dispatch UNSET_FILTERED_EMOJI_LIST_QUERY
 
-  unsetSelectedEmoji()
-
-
-selectEmoji = (index) ->
-
-  { SET_SELECTED_EMOJI_INDEX } = actionTypes
-  dispatch SET_SELECTED_EMOJI_INDEX, { index }
+  resetFilteredListSelectedIndex()
 
 
-moveToNextEmoji = ->
+setFilteredListSelectedIndex = (index) ->
 
-  { MOVE_TO_NEXT_EMOJI_INDEX } = actionTypes
-  dispatch MOVE_TO_NEXT_EMOJI_INDEX
-
-
-moveToPrevEmoji = ->
-
-  { MOVE_TO_PREV_EMOJI_INDEX } = actionTypes
-  dispatch MOVE_TO_PREV_EMOJI_INDEX
+  { SET_FILTERED_EMOJI_LIST_SELECTET_INDEX } = actionTypes
+  dispatch SET_FILTERED_EMOJI_LIST_SELECTET_INDEX, { index }
 
 
-confirmSelectedEmoji = ->
+moveToNextFilteredListIndex = ->
 
-  { CONFIRM_SELECTED_EMOJI_INDEX } = actionTypes
-  dispatch CONFIRM_SELECTED_EMOJI_INDEX
+  { MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX } = actionTypes
+  dispatch MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX
 
 
-unsetSelectedEmoji = ->
+moveToPrevFilteredListIndex = ->
 
-  { UNSET_SELECTED_EMOJI_INDEX } = actionTypes
-  dispatch UNSET_SELECTED_EMOJI_INDEX
+  { MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX } = actionTypes
+  dispatch MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX
+
+
+resetFilteredListSelectedIndex = ->
+
+  { RESET_FILTERED_EMOJI_LIST_SELECTET_INDEX } = actionTypes
+  dispatch RESET_FILTERED_EMOJI_LIST_SELECTET_INDEX
+
+
+confirmFilteredListSelection = ->
+
+  { CONFIRM_FILTERED_EMOJI_LIST_SELECTION } = actionTypes
+  dispatch CONFIRM_FILTERED_EMOJI_LIST_SELECTION
+
+
+resetFilteredListFlags = ->
+
+  { RESET_FILTERED_EMOJI_LIST_FLAGS } = actionTypes
+  dispatch RESET_FILTERED_EMOJI_LIST_FLAGS
 
 
 setCommonListSelectedIndex = (index) ->
@@ -74,10 +79,10 @@ toggleCommonListVisibility = ->
   dispatch TOGGLE_COMMON_EMOJI_LIST_VISIBILITY
 
 
-completeCommonListSelection = ->
+confirmCommonListSelection = ->
 
-  { COMPLETE_COMMON_EMOJI_LIST_SELECTION } = actionTypes
-  dispatch COMPLETE_COMMON_EMOJI_LIST_SELECTION
+  { CONFIRM_COMMON_EMOJI_LIST_SELECTION } = actionTypes
+  dispatch CONFIRM_COMMON_EMOJI_LIST_SELECTION
 
 
 resetCommonListFlags = ->
@@ -90,18 +95,19 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
 module.exports = {
-  setEmojiQuery
-  unsetEmojiQuery
-  selectEmoji
-  moveToNextEmoji
-  moveToPrevEmoji
-  confirmSelectedEmoji
-  unsetSelectedEmoji
+  setFilteredListQuery
+  unsetFilteredListQuery
+  setFilteredListSelectedIndex
+  moveToNextFilteredListIndex
+  moveToPrevFilteredListIndex
+  resetFilteredListSelectedIndex
+  confirmFilteredListSelection
+  resetFilteredListFlags
 
   setCommonListSelectedIndex
   resetCommonListSelectedIndex
   setCommonListVisibility
   toggleCommonListVisibility
-  completeCommonListSelection
+  confirmCommonListSelection
   resetCommonListFlags
 }

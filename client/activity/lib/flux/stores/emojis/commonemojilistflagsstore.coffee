@@ -6,14 +6,14 @@ module.exports = class CommonEmojiListFlagsStore extends KodingFluxStore
 
   @getterPath = 'CommonEmojiListFlagsStore'
 
-  getInitialState: -> toImmutable { visible : false, selectionCompleted : false }
+  getInitialState: -> toImmutable { visible : false, selectionConfirmed : false }
 
 
   initialize: ->
 
     @on actions.SET_COMMON_EMOJI_LIST_VISIBILITY, @setVisibility
     @on actions.TOGGLE_COMMON_EMOJI_LIST_VISIBILITY, @toggleVisibility
-    @on actions.COMPLETE_COMMON_EMOJI_LIST_SELECTION, @completeSelection
+    @on actions.CONFIRM_COMMON_EMOJI_LIST_SELECTION, @confirmSelection
     @on actions.RESET_COMMON_EMOJI_LIST_FLAGS, @reset
 
 
@@ -28,12 +28,12 @@ module.exports = class CommonEmojiListFlagsStore extends KodingFluxStore
     currentState.set 'visible', not visible
 
 
-  completeSelection: (currentState) ->
+  confirmSelection: (currentState) ->
 
-    currentState.set 'selectionCompleted', yes
+    currentState.set 'selectionConfirmed', yes
 
 
   reset: (currentState) ->
 
     currentState.withMutations (map) ->
-      map.set('visible', no).set('selectionCompleted', no)
+      map.set('visible', no).set('selectionConfirmed', no)

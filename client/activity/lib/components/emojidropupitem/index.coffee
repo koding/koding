@@ -9,18 +9,14 @@ module.exports = class EmojiDropupItem extends React.Component
 
   handleSelect: ->
 
-    { index } = @props
-    ActivityFlux.actions.emoji.selectEmoji index
+    { onSelect, index } = @props
+    onSelect? index
 
 
-  handleClick: (event) ->
+  handleClick: ->
 
-    event.preventDefault()
-
-    emojiActions = ActivityFlux.actions.emoji
-    emojiActions.confirmSelectedEmoji()
-
-    kd.utils.defer -> emojiActions.unsetEmojiQuery()
+    { onClick, index } = @props
+    onClick? index
 
 
   render: ->

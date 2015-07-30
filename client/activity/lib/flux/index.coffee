@@ -22,8 +22,9 @@ module.exports =
     require './stores/suggestions/suggestionsstore'
     require './stores/messagelikerssstore'
     require './stores/emojis/emojisstore'
-    require './stores/emojis/emojiquerystore'
-    require './stores/emojis/selectedemojiindexstore'
+    require './stores/emojis/filteredemojilistquerystore'
+    require './stores/emojis/filteredemojilistselectedindexstore'
+    require './stores/emojis/filteredemojilistflagsstore'
     require './stores/emojis/commonemojilistselectedindexstore'
     require './stores/emojis/commonemojilistflagsstore'
   ]

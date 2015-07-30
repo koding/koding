@@ -30,12 +30,12 @@ SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
-EmojisStore                    = [['EmojisStore'], withEmptyList]
-EmojiQueryStore                = ['EmojiQueryStore']
-SelectedEmojiIndexStore        = ['SelectedEmojiIndexStore']
-
-CommonEmojiListSelectedIndexStore = ['CommonEmojiListSelectedIndexStore']
-CommonEmojiListFlagsStore         = [['CommonEmojiListFlagsStore'], withEmptyMap]
+EmojisStore                         = [['EmojisStore'], withEmptyList]
+FilteredEmojiListQueryStore         = ['FilteredEmojiListQueryStore']
+FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
+FilteredEmojiListFlagsStore         = [['FilteredEmojiListFlagsStore'], withEmptyMap]
+CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
+CommonEmojiListFlagsStore           = [['CommonEmojiListFlagsStore'], withEmptyMap]
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -195,26 +195,25 @@ currentSuggestionsQuery = SuggestionsQueryStore
 currentSuggestions      = SuggestionsStore
 currentSuggestionsFlags = SuggestionsFlagsStore
 
-currentEmojis = [
+filteredEmojiListQuery         = FilteredEmojiListQueryStore
+filteredEmojiListSelectedIndex = FilteredEmojiListSelectedIndexStore
+filteredEmojiListFlags         = FilteredEmojiListFlagsStore
+filteredEmojiList              = [
   EmojisStore
-  EmojiQueryStore
+  filteredEmojiListQuery
   (emojis, query) ->
     return immutable.List()  unless query
     emojis.filter (emoji) -> emoji.indexOf(query) is 0
 ]
-currentEmojiQuery = EmojiQueryStore
-selectedEmoji = [
-  currentEmojis
-  SelectedEmojiIndexStore
-  (emojis, selectedIndex) ->
-    return immutable.Map()  unless emojis.size > 0
+filteredEmojiListSelectedItem  = [
+  filteredEmojiList
+  filteredEmojiListSelectedIndex
+  (emojis, index) ->
+    return  unless emojis.size > 0
 
-    { index, confirmed } = selectedIndex.toJS()
     index = index % emojis.size  if index >= emojis.size
     index = emojis.size + index  if index < 0
-    emoji = emojis.get index
-
-    return toImmutable { index, confirmed, emoji }
+    return emojis.get index
 ]
 
 commonEmojiList              = EmojisStore
@@ -246,9 +245,11 @@ module.exports = {
   currentSuggestions
   currentSuggestionsFlags
 
-  currentEmojis
-  currentEmojiQuery
-  selectedEmoji
+  filteredEmojiList
+  filteredEmojiListQuery
+  filteredEmojiListSelectedItem
+  filteredEmojiListSelectedIndex
+  filteredEmojiListFlags
 
   commonEmojiList
   commonEmojiListSelectedIndex
