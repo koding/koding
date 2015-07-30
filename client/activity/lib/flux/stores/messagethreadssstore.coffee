@@ -25,7 +25,7 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.LOAD_MESSAGE_SUCCESS, @addNewThread
+    @on actions.LOAD_MESSAGE_SUCCESS, @ensureThread
 
     @on actions.LOAD_COMMENT_SUCCESS, @handleLoadSuccess
 
@@ -42,7 +42,7 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
    * @param {SocialMessage} message
    * @return {IMThreadCollection} nextState
   ###
-  addNewThread: (threads, { message }) ->
+  ensureThread: (threads, { message }) ->
 
     unless threads.has message.id
       return initThread threads, message.id
