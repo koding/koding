@@ -122,7 +122,7 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @createMuteHostSettingElements()
 
 
-  GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
+  WATCH_MODE_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#watch_mode'
 
   createUnwatchSettingElements: ->
 
@@ -140,7 +140,7 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
     @unwatchWrapper.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes :
-        href     : GUIDE_LINK
+        href     : WATCH_MODE_GUIDE_LINK
         target   : '_blank'
       partial    : '(?)'
 
@@ -334,8 +334,11 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       {{> @everyone}}
       <div class="warning">
         <div class="key-icon"></div>
-        <span>Have sessions with people you trust, and remember, \
-        <strong>they can view and edit all your files!</strong></span>
+        <span>Have sessions with people you trust, and remember,
+          <a href="#{WATCH_MODE_GUIDE_LINK}" target="_blank">
+            <strong>they can view and edit all your files!</strong>
+          </a>
+        </span>
       </div>
       {{> @settings}}
       <div class='buttons'>
