@@ -481,6 +481,13 @@ module.exports =
       .pause                   5000
 
 
+  setCookie: (browser, name, value) ->
+
+    browser
+      .cookie    'POST', { name, value }
+      .refresh()
+
+
   getUrl: ->
 
     return 'http://dev.koding.com:8090'
