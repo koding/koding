@@ -209,8 +209,9 @@ loadComments = (messageId, from, limit) ->
       dispatch LOAD_COMMENTS_FAIL, { err, messageId, from, limit }
       return
 
-    comments.forEach (comment) ->
-      dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
+    kd.singletons.reactor.batch ->
+      comments.forEach (comment) ->
+        dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
 
 
 ###*
