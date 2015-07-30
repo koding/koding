@@ -148,20 +148,17 @@ unlikeMessage = (messageId) ->
     UNLIKE_MESSAGE_FAIL
     UNLIKE_MESSAGE_SUCCESS } = actionTypes
 
-  dispatch UNLIKE_MESSAGE_BEGIN, { messageId }
+  userId = whoami()._id
+
+  dispatch UNLIKE_MESSAGE_BEGIN, { messageId, userId }
 
   socialapi.message.unlike { id: messageId }, (err, message) ->
     if err
-      dispatch UNLIKE_MESSAGE_FAIL, {
-        err, messageId
-      }
+      dispatch UNLIKE_MESSAGE_FAIL, { err, messageId }
       return
 
-    kd.utils.wait 573, ->
-      socialapi.message.byId {id: messageId}, (err, message) ->
-        dispatch UNLIKE_MESSAGE_SUCCESS, {
-          message
-        }
+    dispatch UNLIKE_MESSAGE_SUCCESS, { messageId, userId }
+
 
 ###*
  * Edit message.
