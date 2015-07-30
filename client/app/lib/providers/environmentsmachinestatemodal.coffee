@@ -665,7 +665,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
   requestNewMachine: ->
 
     new EnvironmentsModal
-    @destroy()
+    kd.singletons.appManager.getFrontApp().quit()
 
 
   turnOnMachine: ->
