@@ -12,6 +12,7 @@ MessageTime          = require 'activity/components/chatlistitem/messagetime'
 keycode              = require 'keycode'
 ActivityFlux         = require 'activity/flux'
 classnames           = require 'classnames'
+whoami               = require 'app/util/whoami'
 
 
 module.exports = class ChatListItem extends React.Component
@@ -145,6 +146,13 @@ module.exports = class ChatListItem extends React.Component
     'edited' : @isEditedMessage()
 
 
+  renderChatItemMenu: ->
+
+    { message } = @props
+    if message.get('accountId') is whoami().socialApiId
+      <ButtonWithMenu items={@getMenuItems()} showMenuForMouseAction={@state.showMenuForMouseAction}/>
+
+
   render: ->
 
     { message } = @props
@@ -171,7 +179,7 @@ module.exports = class ChatListItem extends React.Component
           <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
           <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
         </div>
-        <ButtonWithMenu items={@getMenuItems()} showMenuForMouseAction={@state.showMenuForMouseAction}/>
+        {@renderChatItemMenu()}
       </div>
     </div>
 

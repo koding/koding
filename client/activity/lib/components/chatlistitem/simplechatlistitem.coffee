@@ -35,7 +35,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
           <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
           <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
         </div>
-        <ButtonWithMenu items={@getMenuItems()} showMenuForMouseAction={@state.showMenuForMouseAction}/>
+        {@renderChatItemMenu()}
       </div>
     </div>
 
