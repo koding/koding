@@ -1,9 +1,11 @@
-kd = require 'kd'
-KDContextMenu = kd.ContextMenu
-FSHelper = require 'app/util/fs/fshelper'
-AvatarView = require 'app/commonviews/avatarviews/avatarview'
-IDEChatHeadWatchItemView = require './idechatheadwatchitemview'
+kd                          = require 'kd'
+KDContextMenu               = kd.ContextMenu
+FSHelper                    = require 'app/util/fs/fshelper'
+AvatarView                  = require 'app/commonviews/avatarviews/avatarview'
+IDEChatHeadWatchItemView    = require './idechatheadwatchitemview'
 IDEChatHeadReadOnlyItemView = require './idechatheadreadonlyitemview'
+
+
 module.exports = class IDEStatusBarAvatarView extends AvatarView
 
   INTENT_DELAY = 177
@@ -59,6 +61,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       browser      : 'Browser'
       editor       : 'Editor'
 
+    hasChanges = no
 
     changes.forEach (change, i) ->
 
@@ -68,6 +71,8 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
       { editors, terminals, drawings, browsers }  = menuData
 
       return unless type is 'NewPaneCreated'
+
+      hasChanges = yes
 
       switch paneType
         when 'editor'   then editors.push   { change, title : FSHelper.getFileNameFromPath file.path }
@@ -89,7 +94,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
           appManager.tell 'IDE', 'createPaneFromChange', it.getData().change
           @destroy()
 
-    menuItems.separator = type: 'separator'
+    menuItems.separator = type: 'separator'  if hasChanges
 
     appManager.tell 'IDE', 'getCollaborationData', (data) =>
 
