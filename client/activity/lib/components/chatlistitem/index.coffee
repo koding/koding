@@ -11,6 +11,7 @@ ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelin
 MessageTime          = require 'activity/components/chatlistitem/messagetime'
 keycode              = require 'keycode'
 ActivityFlux         = require 'activity/flux'
+classnames           = require 'classnames'
 
 
 module.exports = class ChatListItem extends React.Component
@@ -18,6 +19,14 @@ module.exports = class ChatListItem extends React.Component
   constructor: (props) ->
 
     @state = { hover: no, showMenuForMouseAction: no, editMode: no }
+
+
+  isEditedMessage: ->
+
+    createdAt = @props.message.get 'createdAt'
+    updatedAt = @props.message.get 'updatedAt'
+
+    return isEdited = if createdAt is updatedAt then no else yes
 
 
   getItemProps: ->
@@ -98,7 +107,8 @@ module.exports = class ChatListItem extends React.Component
 
     @setState editMode: no
     messageBody = @refs.EditMessageTextarea.getDOMNode().value
-    ActivityFlux.actions.message.editMessage @props.message.get('id'), messageBody
+    createdAt   = @props.message.get 'createdAt'
+    ActivityFlux.actions.message.editMessage @props.message.get('id'), messageBody, createdAt
 
 
   cancelEdit: ->
@@ -110,27 +120,41 @@ module.exports = class ChatListItem extends React.Component
 
     code = event.which or event.keyCode
     key  = keycode code
-
+    createdAt = @props.message.get 'createdAt'
     @setState editMode: no if key is 'esc'
 
     if key is 'enter'
 
       @setState editMode: no
-      ActivityFlux.actions.message.editMessage @props.message.get('id'), event.target.value
+      ActivityFlux.actions.message.editMessage @props.message.get('id'), event.target.value, createdAt
+
+
+  getEditModeClassNames: -> classnames
+    'ChatItem-updateMessageForm': yes
+    'hidden' : not @state.editMode
+
+
+  getMediaObjectClassNames: -> classnames
+    'MediaObject-content': yes
+    'hidden' : @state.editMode
+
+
+  getContentClassNames: -> classnames
+    'ChatItem-contentWrapper MediaObject': yes
+    'editing': @state.editMode
+    'edited' : @isEditedMessage()
 
 
   render: ->
 
     { message } = @props
-    editFormClass       = if @state.editMode then 'ChatItem-updateMessageForm' else 'ChatItem-updateMessageForm hidden'
-    mediaContentClass   = if @state.editMode then 'MediaObject-content hidden' else 'MediaObject-content'
-    contentWrapperClass = if @state.editMode then 'ChatItem-contentWrapper MediaObject editing' else 'ChatItem-contentWrapper MediaObject'
+
     <div {...@getItemProps()}>
-      <div className={contentWrapperClass}>
+      <div className={@getContentClassNames()}>
         <div className="MediaObject-media">
           {makeAvatar message.get 'account'}
         </div>
-        <div className={mediaContentClass}>
+        <div className={@getMediaObjectClassNames()}>
           <div className="ChatItem-contentHeader">
             <span className="ChatItem-authorName">
               {makeProfileLink message.get 'account'}
@@ -142,7 +166,7 @@ module.exports = class ChatListItem extends React.Component
             <MessageBody source={message.get 'body'} />
           </div>
         </div>
-        <div className={editFormClass}>
+        <div className={@getEditModeClassNames()}>
           <textarea onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' } ref="EditMessageTextarea"></textarea>
           <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
           <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>

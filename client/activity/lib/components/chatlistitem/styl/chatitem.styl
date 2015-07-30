@@ -82,6 +82,15 @@
         .SettingsMenuWrapper
           hidden()
 
+      &.edited
+        article
+          p
+            &:after
+              content         ' (edited)'
+              display         inline
+              font-size       11px
+              color           #CCC
+
       .ChatItem-contentBody
         article
           margin-top          7px
