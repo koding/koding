@@ -27,6 +27,15 @@
         size                  9px, 9px
         r-sprite              activity heart-dim
 
+      &.is-likedByOthers, &.is-likedByUser
+        display               inline-block
+
+      &.is-likedByOthers:after
+        r-sprite              activity heart-outline !important
+
+      &.is-likedByUser:after
+        r-sprite              activity heart-solid !important
+
     .ChatItem-messageDate
       rel()
       pointer()
@@ -134,7 +143,7 @@
         color                 #999
 
 .ChatItem-contentWrapper.SimpleChatListItem
-  margin                      0
+  margin                      0 !important
   padding-left                50px
 
   .ChatItem-messageDate

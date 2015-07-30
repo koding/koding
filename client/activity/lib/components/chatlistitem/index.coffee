@@ -136,7 +136,7 @@ module.exports = class ChatListItem extends React.Component
               {makeProfileLink message.get 'account'}
             </span>
             <MessageTime date={message.get 'createdAt'}/>
-            <ActivityLikeLink />
+            <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           </div>
           <div className="ChatItem-contentBody">
             <MessageBody source={message.get 'body'} />

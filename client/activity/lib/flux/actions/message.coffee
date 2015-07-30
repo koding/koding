@@ -127,7 +127,7 @@ likeMessage = (messageId) ->
       dispatch LIKE_MESSAGE_FAIL, { err, messageId }
       return
 
-    kd.utils.wait 273, ->
+    kd.utils.wait 573, ->
       socialapi.message.byId { id: messageId }, (err, message) ->
         dispatch LIKE_MESSAGE_SUCCESS, { message }
 
@@ -153,7 +153,7 @@ unlikeMessage = (messageId) ->
       }
       return
 
-    kd.utils.wait 273, ->
+    kd.utils.wait 573, ->
       socialapi.message.byId {id: messageId}, (err, message) ->
         dispatch UNLIKE_MESSAGE_SUCCESS, {
           message
