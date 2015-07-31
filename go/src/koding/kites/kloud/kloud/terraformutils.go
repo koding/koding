@@ -323,15 +323,22 @@ func varsFromCredentials(creds *terraformCredentials) map[string]string {
 	return vars
 }
 
-func checkKlients(ctx context.Context, kiteIds map[string]string) error {
+type userdataOutput struct {
+	Label  string
+	Output string
+}
+
+func checkKlients(ctx context.Context, kiteIds map[string]string) ([]userdataOutput, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
-		return errors.New("session context is not passed")
+		return nil, errors.New("session context is not passed")
 	}
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex // protects multierror
+	var mu sync.Mutex // protects multierror and outputs
 	var multiErrors error
+
+	outputs := []userdataOutput{}
 
 	for l, k := range kiteIds {
 		wg.Add(1)
@@ -354,13 +361,31 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 				multiErrors = multierror.Append(multiErrors,
 					fmt.Errorf("Couldn't send ping to '%s:%s': %s", label, kiteId, err))
 				mu.Unlock()
+				return
 			}
+
+			out, err := klientRef.UserData()
+			if err != nil {
+				mu.Lock()
+				multiErrors = multierror.Append(multiErrors,
+					fmt.Errorf("Couldn't get userdata '%s:%s': %s", label, kiteId, err))
+				mu.Unlock()
+				return
+			}
+
+			mu.Lock()
+			outputs = append(outputs, userdataOutput{
+				Label:  label,
+				Output: out,
+			})
+			mu.Unlock()
+
 		}(l, k)
 	}
 
 	wg.Wait()
 
-	return multiErrors
+	return outputs, multiErrors
 }
 
 // isVariable checkes whether the given string is a template variable, such as:
