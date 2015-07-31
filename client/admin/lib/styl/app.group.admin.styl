@@ -1287,6 +1287,20 @@ Admin main styles
       &.verified
         r-sprite            account, 'check-8'
 
+  .kdview.output
+    top                     100%
+    vendor                  transition, top .2s ease
+    height                  calc(50% - 43px)
+    background-color        rgba(255,255,255,.98)
+    border-radius           0 0 2px 2px
+    z-index                 12
+    abs()
+
+    &.raise
+      top                   50%
+
+    pre.output-view
+      height                auto
 
 
 .AppModal--admin .members
