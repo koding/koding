@@ -22,11 +22,12 @@ module.exports = class GroupStackSettingsV2 extends kd.View
 
       initialView.hide()
 
-      requiresReload  = !stackTemplate?
       defineStackView = @addSubView new DefineStackView {}, { stackTemplate }
 
-      defineStackView.on ['Cancel', 'Completed'], (stackTemplate) ->
-        initialView.reload()  if requiresReload and stackTemplate
+      defineStackView.on 'Reload', ->
+        initialView.reload()
+
+      defineStackView.on ['Cancel', 'Completed'], ->
         initialView.show()
         @destroy()
 
