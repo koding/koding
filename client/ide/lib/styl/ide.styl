@@ -15,9 +15,6 @@ dark-active-tab-color       = #9C9C9C
 dark-tab-color              = #5C5C5C
 text-color-green            = #4EA04C
 
-.ide-general-handle-tooltip
-  white-space               nowrap
-  min-width                 80px !important
 
 // theming
 body.ide
@@ -47,10 +44,14 @@ body.ide
   #main-panel-wrapper
     bg                      color, #131313
 
-
   .application-page
     border-left             2px solid dark-tab-header-bg
     bg                      color, dark-panel-bg
+
+    &.fullscreen
+      .ace-find-replace-view
+        position            fixed
+        left                0
 
     &.in-find-mode
       .kdsplitcomboview > .kdsplitview-vertical > .panel-1 .pane-wrapper
@@ -260,7 +261,7 @@ body.ide .dark
         bg                  color, dark-panel-bg
         opacity             .8
 
-  .ws-tabview.fullscren
+  .ws-tabview.fullscreen
     position                fixed
     top                     0
     left                    0
@@ -1314,3 +1315,8 @@ body.ide .kddialogview.save-as-dialog
 
   .kdmodal-title
     cursor                  default
+
+
+.ide-general-handle-tooltip
+  white-space               nowrap
+  min-width                 80px !important
