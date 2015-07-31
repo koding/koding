@@ -1,14 +1,13 @@
-$               = require 'jquery'
-kd              = require 'kd'
-React           = require 'kd-react'
-classnames      = require 'classnames'
-emojify         = require 'emojify.js'
-formatEmojiName = require 'activity/util/formatEmojiName'
-
+$                 = require 'jquery'
+kd                = require 'kd'
+React             = require 'kd-react'
+classnames        = require 'classnames'
+emojify           = require 'emojify.js'
+formatEmojiName   = require 'activity/util/formatEmojiName'
 ActivityFlux      = require 'activity/flux'
 EmojiSelectorItem = require 'activity/components/emojiselectoritem'
 
-module.exports = class EmogiSelector extends React.Component
+module.exports = class EmoiiSelector extends React.Component
 
   DEFAULT_ITEMS_PER_ROW = 8
   ESC = 27
@@ -48,11 +47,11 @@ module.exports = class EmogiSelector extends React.Component
 
     return  unless @props.visible
 
-    { target }  = event
-    element     = React.findDOMNode this
-    shouldHide  = not $.contains element, target
+    { target } = event
+    element    = React.findDOMNode this
+    innerClick = $.contains element, target
 
-    ActivityFlux.actions.emoji.resetCommonListFlags()  if shouldHide
+    ActivityFlux.actions.emoji.resetCommonListFlags()  unless innerClick
 
 
   handleKeyDown: (event) ->
@@ -79,6 +78,7 @@ module.exports = class EmogiSelector extends React.Component
         isSelected   = { isSelected }
         onSelect     = { kd.utils.throttle 300, @bound 'handleItemSelected' }
         onClick      = { @bound 'handleItemClicked' }
+        key          = { emoji }
       />
 
 
@@ -87,19 +87,19 @@ module.exports = class EmogiSelector extends React.Component
     { visible, selectedEmoji } = @props
 
     className = classnames
-      'EmogiSelector-container' : yes
+      'EmojiSelector-container' : yes
       'hidden'                  : not visible
     
     <div className={className}>
-      <div className="EmogiSelector">
-        <div className="EmogiSelector-emojiList" ref="emojiList">
+      <div className="EmojiSelector">
+        <div className="EmojiSelector-emojiList" ref="emojiList">
           {@renderList()}
         </div>
-        <div className="EmogiSelector-footer">
-          <div className="EmogiSelector-selectedEmojiIcon" ref="selectedEmoji">
+        <div className="EmojiSelector-footer">
+          <div className="EmojiSelector-selectedEmojiIcon" ref="selectedEmoji">
             {formatEmojiName selectedEmoji}
           </div>
-          <div className="EmogiSelector-selectedEmojiName">
+          <div className="EmojiSelector-selectedEmojiName">
             {formatEmojiName selectedEmoji}
           </div>
           <div className="clearfix" />

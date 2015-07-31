@@ -19,7 +19,7 @@ describe 'CommonEmojiListSelectedIndexStore', ->
 
       index = 5
 
-      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_SELECTET_INDEX, { index }
+      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal index
@@ -31,12 +31,12 @@ describe 'CommonEmojiListSelectedIndexStore', ->
 
       index = 5
 
-      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_SELECTET_INDEX, { index }
+      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal index
 
-      @reactor.dispatch actionTypes.RESET_COMMON_EMOJI_LIST_SELECTET_INDEX
+      @reactor.dispatch actionTypes.RESET_COMMON_EMOJI_LIST_SELECTED_INDEX
       selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal 0

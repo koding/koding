@@ -19,7 +19,7 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
 
       index = 5
 
-      @reactor.dispatch actionTypes.SET_FILTERED_EMOJI_LIST_SELECTET_INDEX, { index }
+      @reactor.dispatch actionTypes.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['filteredEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal index
@@ -32,7 +32,7 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
       index = 5
       nextIndex = index + 1
 
-      @reactor.dispatch actionTypes.SET_FILTERED_EMOJI_LIST_SELECTET_INDEX, { index }
+      @reactor.dispatch actionTypes.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['filteredEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal index
@@ -50,7 +50,7 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
       index = 5
       prevIndex = index - 1
 
-      @reactor.dispatch actionTypes.SET_FILTERED_EMOJI_LIST_SELECTET_INDEX, { index }
+      @reactor.dispatch actionTypes.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['filteredEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal index
@@ -67,12 +67,12 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
 
       index = 5
 
-      @reactor.dispatch actionTypes.SET_FILTERED_EMOJI_LIST_SELECTET_INDEX, { index }
+      @reactor.dispatch actionTypes.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['filteredEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal index
 
-      @reactor.dispatch actionTypes.RESET_FILTERED_EMOJI_LIST_SELECTET_INDEX
+      @reactor.dispatch actionTypes.RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX
       selectedIndex = @reactor.evaluate ['filteredEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal 0

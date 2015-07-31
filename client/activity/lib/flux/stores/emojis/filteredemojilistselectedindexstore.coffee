@@ -11,10 +11,10 @@ module.exports = class FilteredEmojiListSelectedIndexStore extends KodingFluxSto
 
   initialize: ->
 
-    @on actions.SET_FILTERED_EMOJI_LIST_SELECTET_INDEX,   @setIndex
+    @on actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX,   @setIndex
     @on actions.MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX,   @moveToNextIndex
     @on actions.MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX,   @moveToPrevIndex
-    @on actions.RESET_FILTERED_EMOJI_LIST_SELECTET_INDEX, @resetIndex
+    @on actions.RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, @resetIndex
 
 
   setIndex: (currentState, { index }) -> index

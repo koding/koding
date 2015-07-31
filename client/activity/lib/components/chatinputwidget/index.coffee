@@ -1,9 +1,8 @@
-kd       = require 'kd'
-React    = require 'kd-react'
-TextArea = require 'react-autosize-textarea'
-EmojiDropup   = require 'activity/components/emojidropup'
-EmojiSelector = require 'activity/components/emojiselector'
-
+kd              = require 'kd'
+React           = require 'kd-react'
+TextArea        = require 'react-autosize-textarea'
+EmojiDropup     = require 'activity/components/emojidropup'
+EmojiSelector   = require 'activity/components/emojiselector'
 ActivityFlux    = require 'activity/flux'
 KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
@@ -131,7 +130,7 @@ module.exports = class ChatInputWidget extends React.Component
           emojiActions.moveToPrevFilteredListIndex()
 
 
-  handleEmojiIconClick: (event) ->
+  handleEmojiButtonClick: (event) ->
 
     ActivityFlux.actions.emoji.setCommonListVisibility yes
 
@@ -161,7 +160,7 @@ module.exports = class ChatInputWidget extends React.Component
       <a
         href      = "#"
         className = "ChatInputWidget-emojiButton"
-        onClick   = { @bound 'handleEmojiIconClick' }
+        onClick   = { @bound 'handleEmojiButtonClick' }
       />
     </div>
 

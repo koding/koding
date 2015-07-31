@@ -40,7 +40,7 @@ describe 'CommonEmojiListFlagsStore', ->
 
   describe '#reset', ->
 
-  	it 'resets flags', ->
+    it 'resets flags', ->
 
       @reactor.dispatch actionTypes.CONFIRM_COMMON_EMOJI_LIST_SELECTION
       @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_VISIBILITY, { visible : yes }

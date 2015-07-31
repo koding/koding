@@ -1,12 +1,14 @@
-$          = require 'jquery'
-kd         = require 'kd'
-React      = require 'kd-react'
-classnames = require 'classnames'
-
+$               = require 'jquery'
+kd              = require 'kd'
+React           = require 'kd-react'
+classnames      = require 'classnames'
 ActivityFlux    = require 'activity/flux'
 EmojiDropupItem = require 'activity/components/emojidropupitem'
 
 module.exports = class EmojiDropup extends React.Component
+
+  isVisible: -> @props.emojis?.size > 0
+
 
   componentDidMount: ->
 
@@ -19,6 +21,8 @@ module.exports = class EmojiDropup extends React.Component
 
 
   componentDidUpdate: ->
+
+    return  unless @isVisible()
 
     element = $(React.findDOMNode this.refs.dropup)
     element.css top : -element.outerHeight()
@@ -36,12 +40,13 @@ module.exports = class EmojiDropup extends React.Component
 
   handleMouseClick: (event) ->
 
-    { target }  = event
-    element     = React.findDOMNode this
-    isVisible   = not element.classList.contains 'hidden'
-    shouldClear = isVisible and not $.contains element, target
+    return  unless @isVisible()
 
-    ActivityFlux.actions.emoji.unsetFilteredListQuery()  if shouldClear
+    { target } = event
+    element    = React.findDOMNode this
+    innerClick = $.contains element, target
+
+    ActivityFlux.actions.emoji.unsetFilteredListQuery()  unless innerClick
 
 
   renderList: ->
@@ -56,6 +61,7 @@ module.exports = class EmojiDropup extends React.Component
         index      = { index }
         onSelect   = { @bound 'handleItemSelect'}
         onClick    = { @bound 'handleItemClick' }
+        key        = { emoji }
       />
 
 
@@ -64,7 +70,7 @@ module.exports = class EmojiDropup extends React.Component
     { emojis, emojiQuery } = @props
     className = classnames
       'EmojiDropup-container' : yes
-      'hidden'                : emojis.size is 0
+      'hidden'                : not @isVisible()
 
     <div className={className}>
       <div className="EmojiDropup" ref="dropup">

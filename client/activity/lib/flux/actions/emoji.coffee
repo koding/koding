@@ -1,5 +1,5 @@
-kd             = require 'kd'
-actionTypes    = require '../actions/actiontypes'
+kd          = require 'kd'
+actionTypes = require '../actions/actiontypes'
 
 setFilteredListQuery = (query) ->
 
@@ -21,8 +21,8 @@ unsetFilteredListQuery = ->
 
 setFilteredListSelectedIndex = (index) ->
 
-  { SET_FILTERED_EMOJI_LIST_SELECTET_INDEX } = actionTypes
-  dispatch SET_FILTERED_EMOJI_LIST_SELECTET_INDEX, { index }
+  { SET_FILTERED_EMOJI_LIST_SELECTED_INDEX } = actionTypes
+  dispatch SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { index }
 
 
 moveToNextFilteredListIndex = ->
@@ -39,8 +39,8 @@ moveToPrevFilteredListIndex = ->
 
 resetFilteredListSelectedIndex = ->
 
-  { RESET_FILTERED_EMOJI_LIST_SELECTET_INDEX } = actionTypes
-  dispatch RESET_FILTERED_EMOJI_LIST_SELECTET_INDEX
+  { RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX } = actionTypes
+  dispatch RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX
 
 
 confirmFilteredListSelection = ->
@@ -57,14 +57,14 @@ resetFilteredListFlags = ->
 
 setCommonListSelectedIndex = (index) ->
 
-  { SET_COMMON_EMOJI_LIST_SELECTET_INDEX } = actionTypes
-  dispatch SET_COMMON_EMOJI_LIST_SELECTET_INDEX, { index }
+  { SET_COMMON_EMOJI_LIST_SELECTED_INDEX } = actionTypes
+  dispatch SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
 
 
 resetCommonListSelectedIndex = ->
 
-  { RESET_COMMON_EMOJI_LIST_SELECTET_INDEX } = actionTypes
-  dispatch RESET_COMMON_EMOJI_LIST_SELECTET_INDEX
+  { RESET_COMMON_EMOJI_LIST_SELECTED_INDEX } = actionTypes
+  dispatch RESET_COMMON_EMOJI_LIST_SELECTED_INDEX
 
 
 setCommonListVisibility = (visible) ->
