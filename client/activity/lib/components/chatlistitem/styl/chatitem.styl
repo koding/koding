@@ -1,10 +1,11 @@
 .ChatList
+  overflow                    auto
   margin-bottom               10px
 
   .ChatItem
     rel()
     max-width                 600px
-    padding-left              34px
+    padding-left              24px
 
     .ChatItem-authorName
       margin-right            10px
@@ -64,7 +65,8 @@
         bg                    color, transparent
 
     .ChatItem-contentWrapper
-      margin-top              20px
+      padding                 10px 0 0 10px
+      margin-top              10px
       overflow                visible
 
       .MediaObject-content
@@ -72,7 +74,7 @@
 
       &.editing
         rounded               3px 3px 0 0
-        padding               10px 0 6px
+        padding               10px 0 6px 10px
         bg                    color, #FDF6E3
         overflow              hidden
 
@@ -81,6 +83,15 @@
 
         .SettingsMenuWrapper
           hidden()
+
+      &.edited
+        article
+          p
+            &:after
+              content         ' (edited)'
+              display         inline
+              font-size       11px
+              color           #CCC
 
       .ChatItem-contentBody
         article
@@ -144,7 +155,8 @@
 
 .ChatItem-contentWrapper.SimpleChatListItem
   margin                      0 !important
-  padding-left                50px
+  padding                     0 0 0 60px !important
+
 
   .ChatItem-messageDate
     abs()
@@ -157,3 +169,9 @@
   &:hover
     .ChatItem-messageDate
       visible()
+
+  &.editing
+    padding                   10px 0 6px 10px !important
+
+    .ChatItem-updateMessageForm
+      margin-left             50px

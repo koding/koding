@@ -1,4 +1,6 @@
+whoami               = require 'app/util/whoami'
 generateDummyMessage = require 'app/util/generateDummyMessage'
+
 
 ###*
  * Adds given message to given messages map.
@@ -107,8 +109,9 @@ removeLiker = (message, userId) ->
 ###
 createFakeMessage = (id, body) ->
 
-  message    = generateDummyMessage body
-  message.id = id
+  message           = generateDummyMessage body
+  message.accountId = whoami().socialApiId
+  message.id        = id
 
   return message
 
