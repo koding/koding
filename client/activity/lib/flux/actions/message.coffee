@@ -165,6 +165,7 @@ unlikeMessage = (messageId) ->
  *
  * @param {string} messageId
  * @param {string} body
+ * @param {string} createdAt
  * @param {object=} payload
 ###
 editMessage = (messageId, body, createdAt, payload = {}) ->
