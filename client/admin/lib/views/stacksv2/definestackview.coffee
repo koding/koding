@@ -71,6 +71,44 @@ module.exports = class DefineStackView extends kd.View
       else @saveButton.disable()
 
 
+  handleSave: ->
+
+    @outputView.clear().raise()
+
+    @cancelButton.setTitle 'Cancel'
+    @setAsDefaultButton.hide()
+
+    @checkAndBootstrapCredentials (err, credentials) =>
+      return  @saveButton.hideLoader()  if err
+
+      @outputView
+        .add 'Credentials are ready!'
+        .add 'Saving current template content...'
+
+      @saveTemplate (err, stackTemplate) =>
+
+        if @outputView.handleError err
+          @saveButton.hideLoader()
+          return
+
+        @outputView.add 'Template content saved now processing the template...'
+
+        @handleCheckTemplate { stackTemplate }, (err, machines) =>
+
+          @saveButton.hideLoader()
+
+          if err
+            @outputView.add "Parsing failed, please check your
+                             template and try again"
+            return
+
+          @outputView.add "You can now close this window, or set this
+                           template as default for your team members."
+
+          @cancelButton.setTitle 'Close'
+          @setAsDefaultButton.show()
+
+
   checkAndBootstrapCredentials: (callback) ->
 
     {credentialsData} = @credentialStatus
