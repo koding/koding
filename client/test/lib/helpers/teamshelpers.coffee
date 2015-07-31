@@ -8,6 +8,11 @@ companyNameSelector = '.login-form input[testpath=company-name]'
 module.exports =
 
 
+  setCookie: (browser) ->
+
+    helpers.setCookie(browser, 'team-access', 'true')
+
+
   openTeamsPage: (browser) ->
 
     teamsSelector = '[testpath=main-header] .full-menu a.teams'

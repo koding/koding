@@ -483,8 +483,10 @@ module.exports =
 
   setCookie: (browser, name, value) ->
 
+    domain = '.dev.koding.com'
+
     browser
-      .cookie    'POST', { name, value }
+      .cookie    'POST', { name, value, domain }
       .refresh()
 
 

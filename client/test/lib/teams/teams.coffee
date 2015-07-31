@@ -13,7 +13,7 @@ module.exports =
     browser.url helpers.getUrl()
     browser.maximizeWindow()
 
-    helpers.setCookie(browser, 'team-access', 'true')
+    teamsHelpers.setCookie(browser)
 
     teamsHelpers.openTeamsPage(browser)
     teamsHelpers.fillSignUpFormOnTeamsHomePage(browser, user)
