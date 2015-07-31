@@ -201,7 +201,7 @@ func (k *Klient) UserData() (string, error) {
 	var args = struct {
 		Command string
 	}{
-		Command: `cat /var/log/cloud-init-output.log`,
+		Command: `sed -n '/SCRIPT_STARTED/,/SCRIPT_FINISHED/p' /var/log/cloud-init-output.log`,
 	}
 
 	resp, err := k.Client.TellWithTimeout("exec", 10*time.Second, args)
