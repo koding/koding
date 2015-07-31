@@ -38,3 +38,11 @@ module.exports = class MainHeaderView extends KDView
       click     : (event) ->
         KD.utils.stopDOMEvent event
         KD.singletons.router.handleRoute '/'
+
+    @addSubView @hiringBadge = new KDCustomHTMLView
+      tagName   : 'a'
+      cssClass  : 'hiring-badge'
+      partial   : '<span>IS HIRING!</span>'
+      attributes:
+        href    : 'https://jobs.lever.co/koding'
+        title   : 'Koding is hiring!'
