@@ -124,13 +124,11 @@ module.exports = class ChatListItem extends React.Component
 
     code = event.which or event.keyCode
     key  = keycode code
-    createdAt = @props.message.get 'createdAt'
     @setState editMode: no if key is 'esc'
 
     if key is 'enter'
-
       @setState editMode: no
-      ActivityFlux.actions.message.editMessage @props.message.get('id'), event.target.value, createdAt
+      ActivityFlux.actions.message.editMessage @props.message.get('id'), event.target.value
 
 
   getEditModeClassNames: -> classnames
