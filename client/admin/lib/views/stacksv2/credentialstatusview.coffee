@@ -1,5 +1,6 @@
 kd             = require 'kd'
 JView          = require 'app/jview'
+remote         = require('app/remote').getInstance()
 
 curryIn        = require 'app/util/curryIn'
 showError      = require 'app/util/showError'
@@ -16,7 +17,8 @@ module.exports = class CredentialStatusView extends kd.View
 
     super options, data
 
-    @credentials = []
+    { @credentials } = (@getOption 'stackTemplate') or {}
+    @credentials   or= []
 
     # Waiting state view
     @waitingView = new kd.View
@@ -41,7 +43,7 @@ module.exports = class CredentialStatusView extends kd.View
       click      : =>
 
         modal = new CredentialSelectorModal {
-          selectedCredentials: @getPublicKeys()
+          selectedCredentials: @credentials
         }
 
         modal.on 'ItemSelected', (credential) =>
@@ -50,11 +52,22 @@ module.exports = class CredentialStatusView extends kd.View
           @setCredential credential
 
 
+    if @credentials.length > 0
+      [credential] = @credentials
+
+      remote.api.JCredential.one credential, (err, credential) =>
+        if err
+        then @setNotVerified 'Credentials not valid'
+        else @setCredential credential
+    else
+      @setNotVerified()
+
+
   setCredential: (credential) ->
 
     return @setNotVerified()  unless credential
 
-    @credentials      = [credential]
+    @credentials      = [credential.publicKey]
     {provider, title} = credential
     @setVerified "
       A credential titled as '#{title}' for #{provider} provider is selected.
@@ -78,7 +91,7 @@ module.exports = class CredentialStatusView extends kd.View
     @waitingView.hide()
 
     @setInfo()
-    @link.updatePartial 'Credentials are not set'
+    @link.updatePartial message or 'Credentials are not set'
     @icon.unsetClass 'verified'
     @emit 'StatusChanged', 'not-verified'
 
@@ -93,10 +106,6 @@ module.exports = class CredentialStatusView extends kd.View
     @link.setTooltip
       title     : message
       placement : 'below'
-
-
-  getPublicKeys: ->
-    (cred.publicKey for cred in @credentials)
 
 
   pistachio: ->
