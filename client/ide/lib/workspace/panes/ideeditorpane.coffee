@@ -69,9 +69,10 @@ module.exports = class IDEEditorPane extends IDEPane
       @bindChangeListeners()
       @emit 'EditorIsReady'
 
-      @on 'RealtimeManagerSet', =>
-        myPermission = @rtm.getFromModel('permissions').get nick()
-        @makeReadOnly()  if myPermission is 'read'
+    @on 'RealtimeManagerSet', =>
+      myPermission = @rtm.getFromModel('permissions').get nick()
+      return  if myPermission isnt 'read'
+      ace.ready @bound 'makeReadOnly'
 
 
   handleAutoSave: ->
