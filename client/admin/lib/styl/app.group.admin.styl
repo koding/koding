@@ -1241,6 +1241,16 @@ Admin main styles
 
 .AppModal--admin .stacks-v2
 
+  .step-creds
+    .form-view
+      height                calc(100% \- 110px)
+      border-bottom         1px solid #EEE
+
+    &.form-open
+      .credential-list
+        display             none
+
+
   .step-define-stack
     height                  100%
     .editor-view
@@ -1496,3 +1506,7 @@ Admin main styles
         width               auto
         top                 1px
         rel()
+
+
+.kdmodal.content-modal
+  overflow                  auto
