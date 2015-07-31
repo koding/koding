@@ -1,7 +1,6 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
 Avatar               = require 'app/components/profile/avatar'
-TimeAgo              = require 'app/components/common/timeago'
 immutable            = require 'immutable'
 MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
@@ -137,7 +136,7 @@ module.exports = class ChatListItem extends React.Component
               {makeProfileLink message.get 'account'}
             </span>
             <MessageTime date={message.get 'createdAt'}/>
-            <ActivityLikeLink />
+            <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           </div>
           <div className="ChatItem-contentBody">
             <MessageBody source={message.get 'body'} />

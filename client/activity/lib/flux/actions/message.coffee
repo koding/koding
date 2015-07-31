@@ -1,6 +1,7 @@
-kd = require 'kd'
+kd                     = require 'kd'
+whoami                 = require 'app/util/whoami'
+actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
-actionTypes = require './actiontypes'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -120,16 +121,19 @@ likeMessage = (messageId) ->
     LIKE_MESSAGE_FAIL
     LIKE_MESSAGE_SUCCESS } = actionTypes
 
-  dispatch LIKE_MESSAGE_BEGIN, { messageId }
+  userId = whoami()._id
+
+  dispatch LIKE_MESSAGE_BEGIN, { messageId, userId }
 
   socialapi.message.like { id: messageId }, (err) ->
     if err
-      dispatch LIKE_MESSAGE_FAIL, { err, messageId }
+      dispatch LIKE_MESSAGE_FAIL, { err, messageId, userId }
       return
 
-    kd.utils.wait 273, ->
-      socialapi.message.byId { id: messageId }, (err, message) ->
-        dispatch LIKE_MESSAGE_SUCCESS, { message }
+    socialapi.message.listLikers { id: messageId }, (err, likers) ->
+      kd.singletons.reactor.batch ->
+        likers.forEach (id) ->
+          dispatch LIKE_MESSAGE_SUCCESS, { userId: id, messageId }
 
 
 ###*
@@ -144,48 +148,40 @@ unlikeMessage = (messageId) ->
     UNLIKE_MESSAGE_FAIL
     UNLIKE_MESSAGE_SUCCESS } = actionTypes
 
-  dispatch UNLIKE_MESSAGE_BEGIN, { messageId }
+  userId = whoami()._id
+
+  dispatch UNLIKE_MESSAGE_BEGIN, { messageId, userId }
 
   socialapi.message.unlike { id: messageId }, (err, message) ->
     if err
-      dispatch UNLIKE_MESSAGE_FAIL, {
-        err, messageId
-      }
+      dispatch UNLIKE_MESSAGE_FAIL, { err, messageId }
       return
 
-    kd.utils.wait 273, ->
-      socialapi.message.byId {id: messageId}, (err, message) ->
-        dispatch UNLIKE_MESSAGE_SUCCESS, {
-          message
-        }
+    dispatch UNLIKE_MESSAGE_SUCCESS, { messageId, userId }
 
+
+###*
+ * Edit message.
+ *
+ * @param {string} messageId
+ * @param {string} body
+ * @param {object=} payload
+###
 editMessage = (messageId, body, payload = {}) ->
 
-    {socialapi} = kd.singletons
-    { EDIT_MESSAGE_BEGIN
-      EDIT_MESSAGE_SUCCESS
-      EDIT_MESSAGE_FAIL
-    } = actionTypes
+  { socialapi } = kd.singletons
+  { EDIT_MESSAGE_BEGIN
+    EDIT_MESSAGE_SUCCESS
+    EDIT_MESSAGE_FAIL } = actionTypes
 
-    dispatch EDIT_MESSAGE_BEGIN, {
-      messageId, body, payload
-    }
+  dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
-    socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
+  socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
+    if err
+      dispatch EDIT_MESSAGE_FAIL, { err, messageId }
+      return
 
-      if err
-        dispatch EDIT_MESSAGE_FAIL, {
-          err, messageId
-        }
-
-        return
-
-      kd.utils.wait 273, ->
-        socialapi.message.byId {id: messageId}, (err, message) ->
-          message.body = body
-          dispatch EDIT_MESSAGE_SUCCESS, {
-            message, messageId
-          }
+    dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
 
 
 ###*
@@ -209,8 +205,9 @@ loadComments = (messageId, from, limit) ->
       dispatch LOAD_COMMENTS_FAIL, { err, messageId, from, limit }
       return
 
-    comments.forEach (comment) ->
-      dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
+    kd.singletons.reactor.batch ->
+      comments.forEach (comment) ->
+        dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
 
 
 ###*
