@@ -1,13 +1,15 @@
-kd                  = require 'kd'
+kd                   = require 'kd'
 
-JView               = require 'app/jview'
-curryIn             = require 'app/util/curryIn'
-showError           = require 'app/util/showError'
+JView                = require 'app/jview'
+curryIn              = require 'app/util/curryIn'
+showError            = require 'app/util/showError'
 
-{yamlToJson}        = require './yamlutils'
-StackEditorView     = require './stackeditorview'
-updateStackTemplate = require './updatestacktemplate'
-CredentialStatusView= require './credentialstatusview'
+{yamlToJson}         = require './yamlutils'
+OutputView           = require './outputview'
+StackEditorView      = require './stackeditorview'
+updateStackTemplate  = require './updatestacktemplate'
+parseTerraformOutput = require './parseterraformoutput'
+CredentialStatusView = require './credentialstatusview'
 
 
 module.exports = class DefineStackView extends kd.View
@@ -40,6 +42,8 @@ module.exports = class DefineStackView extends kd.View
 
     @editorView      = new StackEditorView {delegate: this, content}
 
+    @outputView      = new OutputView
+
     @cancelButton    = new kd.ButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
@@ -49,10 +53,17 @@ module.exports = class DefineStackView extends kd.View
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
       disabled       : yes
-      callback       : =>
-        @saveTemplate (err, stackTemplate) =>
-          return  if showError err
-          @emit 'Completed', stackTemplate
+      loader         : yes
+      callback       : @bound 'handleSave'
+
+    @setAsDefaultButton = new kd.ButtonView
+      title          : 'Set as Default for Team'
+      cssClass       : 'solid compact nav next hidden'
+      loader         : yes
+      callback       : @bound 'handleSetDefaultTemplate'
+
+    @setAsDefaultButton.setCss 'right', '110px'
+
 
     @credentialStatus.on 'StatusChanged', (status) =>
       if status is 'verified'
@@ -114,6 +125,8 @@ module.exports = class DefineStackView extends kd.View
       <div class='text header'>Create new Stack</div>
       {{> @inputTitle}}
       {{> @editorView}}
+      {{> @outputView}}
       {{> @cancelButton}}
+      {{> @setAsDefaultButton}}
       {{> @saveButton}}
     """
