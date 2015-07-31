@@ -126,6 +126,40 @@ module.exports = class DefineStackView extends kd.View
             failed err
             console.warn '[KLOUD:Bootstrap:Fail]', err
 
+
+  handleCheckTemplate: (options, callback) ->
+
+    { stackTemplate } = options
+    { computeController } = kd.singletons
+
+    computeController.getKloud()
+      .checkTemplate { stackTemplateId: stackTemplate._id }
+      .nodeify (err, response) =>
+
+        console.log '[KLOUD:checkTemplate]', err, response
+
+        if err or not response
+          @outputView
+            .add 'Something went wrong with the template:'
+            .add err?.message or 'No response from Kloud'
+
+          callback err
+
+        else
+
+          machines = parseTerraformOutput response
+
+          @outputView
+            .add 'Template check complete succesfully'
+            .add 'Following machines will be created:'
+            .add JSON.stringify machines, null, 2
+            .add 'This stack has been saved succesfully!'
+
+          updateStackTemplate {
+            stackTemplate, machines
+          }, callback
+
+
   saveTemplate: (callback) ->
 
     {stackTemplate} = @getData()
