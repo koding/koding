@@ -47,9 +47,14 @@ module.exports = class CredentialStatusView extends kd.View
         }
 
         modal.on 'ItemSelected', (credential) =>
-          modal.destroy()
 
-          @setCredential credential
+          # After adding credential, we are sharing it with the current
+          # group, so anyone in this group can use this credential ~ GG
+          {slug} = kd.singletons.groupsController.getCurrentGroup()
+          credential.shareWith {target: slug}, (err) =>
+            console.warn 'Failed to share credential:', err  if err
+            @setCredential credential
+            modal.destroy()
 
 
     if @credentials.length > 0
@@ -67,6 +72,7 @@ module.exports = class CredentialStatusView extends kd.View
 
     return @setNotVerified()  unless credential
 
+    @credentialsData  = [credential]
     @credentials      = [credential.publicKey]
     {provider, title} = credential
     @setVerified "
