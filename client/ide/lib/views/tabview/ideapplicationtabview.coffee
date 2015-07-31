@@ -43,26 +43,35 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
   askForSave: (pane, aceView) ->
 
-    { ace } = aceView
-    file    = ace.getData()
-
     content = "Your changes will be lost if you don't save them. "
 
     { frontApp } = kd.singletons.appManager
 
-    if frontApp.hasSession()
-      participants = frontApp.getWatchingMeParticipantsList()
+    frontApp.checkSessionActivity
+      active    : =>
+        participants = frontApp.getWatchingMeParticipantsList()
 
-      if participants.length
+        if participants.length
 
-        more = ""
-        if participants.length > 3
-          more = " and <strong>#{participants.length - 3}</strong> others"
+          more = ""
+          if participants.length > 3
+            more = " and <strong>#{participants.length - 3}</strong> others"
 
-        content += """
-          Also #{(participants.slice(0,3).map (p) -> '<strong>@'+p+'</strong>').join(', ')}
-          #{more} may have some changes here.
-        """
+          content += """
+            Also #{(participants.slice(0,3).map (p) -> '<strong>@'+p+'</strong>').join(', ')}
+            #{more} may have some changes here.
+          """
+
+        @showModal_ pane, aceView, content
+
+      error      : => @showModal_ pane, aceView, content
+      notStarted : => @showModal_ pane, aceView, content
+
+
+  showModal_: (pane, aceView, content) ->
+
+    { ace } = aceView
+    file    = ace.getData()
 
     modal = new KDModalView
       width         : 620
@@ -94,6 +103,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
           title     : "Cancel"
           callback  : =>
             modal.destroy()
+
 
   closePaneAndModal: (pane, modal) ->
     @removePane_ pane

@@ -1119,9 +1119,6 @@ module.exports = CollaborationController =
     @permissions.set nickname, permission
 
 
-  hasSession: -> @rtm?.isReady
-
-
   getWatchingMeParticipantsList: ->
 
     participants = []
