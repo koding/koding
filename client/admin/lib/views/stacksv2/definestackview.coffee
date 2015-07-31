@@ -34,6 +34,7 @@ module.exports = class DefineStackView extends kd.View
           credentialStatus :
             cssClass       : 'credential-status'
             itemClass      : CredentialStatusView
+            stackTemplate  : stackTemplate
 
     { @credentialStatus } = @inputTitle.inputs
 
@@ -57,10 +58,6 @@ module.exports = class DefineStackView extends kd.View
       if status is 'verified'
       then @saveButton.enable()
       else @saveButton.disable()
-
-    kd.utils.defer =>
-      { credential } = @getData()
-      @credentialStatus.setCredential credential
 
 
   saveTemplate: (callback) ->
