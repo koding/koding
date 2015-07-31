@@ -25,10 +25,11 @@ module.exports =
       .waitForElementVisible     findInFilesSelector, 20000
       .click                     findInFilesSelector
       .waitForElementVisible     contentSearchModalSelector, 20000
-      .setValue                  contentSearchModalSelector + ' input[name=findInput]', 'hello'
+      .setValue                  contentSearchModalSelector + ' input[name=findInput]', 'from'
       .click                     contentSearchModalSelector + ' button.search'
       .waitForElementVisible     paneSelector + ' .search-result', 20000 # Assertion
       .waitForElementNotPresent  activeUntitledFileSelector, 20000 # Assertion
+      .pause                     5000
       .getText                   fileNameSelector, (result = {}) ->
 
         fileName  = result.value.split('/')?.reverse()[0]
@@ -45,7 +46,7 @@ module.exports =
           .waitForElementNotPresent  paneSelector + '.search-result .active', 20000 # Assertion
           .waitForElementVisible     tabHandleSelector, 20000
           .waitForElementVisible     editorSelector, 20000
-          .assert.containsText       editorSelector, 'hello'
+          .assert.containsText       editorSelector, 'Hello World from Python by Koding'
           .end()
 
 

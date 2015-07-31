@@ -84,6 +84,7 @@ module.exports = [
 
   [
     'environments domain'
+    'teams teams'
   ]
 
 ]
