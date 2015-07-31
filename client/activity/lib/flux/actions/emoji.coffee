@@ -43,18 +43,6 @@ resetFilteredListSelectedIndex = ->
   dispatch RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX
 
 
-confirmFilteredListSelection = ->
-
-  { CONFIRM_FILTERED_EMOJI_LIST_SELECTION } = actionTypes
-  dispatch CONFIRM_FILTERED_EMOJI_LIST_SELECTION
-
-
-resetFilteredListFlags = ->
-
-  { RESET_FILTERED_EMOJI_LIST_FLAGS } = actionTypes
-  dispatch RESET_FILTERED_EMOJI_LIST_FLAGS
-
-
 setCommonListSelectedIndex = (index) ->
 
   { SET_COMMON_EMOJI_LIST_SELECTED_INDEX } = actionTypes
@@ -73,18 +61,6 @@ setCommonListVisibility = (visible) ->
   dispatch SET_COMMON_EMOJI_LIST_VISIBILITY, { visible }
 
 
-toggleCommonListVisibility = ->
-
-  { TOGGLE_COMMON_EMOJI_LIST_VISIBILITY } = actionTypes
-  dispatch TOGGLE_COMMON_EMOJI_LIST_VISIBILITY
-
-
-confirmCommonListSelection = ->
-
-  { CONFIRM_COMMON_EMOJI_LIST_SELECTION } = actionTypes
-  dispatch CONFIRM_COMMON_EMOJI_LIST_SELECTION
-
-
 resetCommonListFlags = ->
 
   { RESET_COMMON_EMOJI_LIST_FLAGS } = actionTypes
@@ -101,13 +77,9 @@ module.exports = {
   moveToNextFilteredListIndex
   moveToPrevFilteredListIndex
   resetFilteredListSelectedIndex
-  confirmFilteredListSelection
-  resetFilteredListFlags
 
   setCommonListSelectedIndex
   resetCommonListSelectedIndex
   setCommonListVisibility
-  toggleCommonListVisibility
-  confirmCommonListSelection
   resetCommonListFlags
 }

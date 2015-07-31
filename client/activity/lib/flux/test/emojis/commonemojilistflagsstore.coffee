@@ -13,16 +13,6 @@ describe 'CommonEmojiListFlagsStore', ->
     @reactor.registerStores commonEmojiListFlags : CommonEmojiListFlagsStore
 
 
-  describe '#confirmSelection', ->
-
-    it 'confirms selection', ->
-
-      @reactor.dispatch actionTypes.CONFIRM_COMMON_EMOJI_LIST_SELECTION
-      flags = @reactor.evaluate ['commonEmojiListFlags']
-
-      expect(flags.get 'selectionConfirmed').to.be.true
-
-
   describe '#setVisibility', ->
 
     it 'sets visibility', ->
@@ -42,15 +32,12 @@ describe 'CommonEmojiListFlagsStore', ->
 
     it 'resets flags', ->
 
-      @reactor.dispatch actionTypes.CONFIRM_COMMON_EMOJI_LIST_SELECTION
       @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_VISIBILITY, { visible : yes }
       flags = @reactor.evaluate ['commonEmojiListFlags']
 
-      expect(flags.get 'selectionConfirmed').to.be.true
       expect(flags.get 'visible').to.be.true
 
       @reactor.dispatch actionTypes.RESET_COMMON_EMOJI_LIST_FLAGS
       flags = @reactor.evaluate ['commonEmojiListFlags']
 
-      expect(flags.get 'selectionConfirmed').to.be.false
       expect(flags.get 'visible').to.be.false

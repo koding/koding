@@ -13,10 +13,7 @@ module.exports = class EmojiDropupItem extends React.Component
     onSelect? index
 
 
-  handleClick: ->
-
-    { onClick, index } = @props
-    onClick? index
+  handleClick: -> @props.onClick?()
 
 
   render: ->

@@ -30,7 +30,6 @@ MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 EmojisStore                         = [['EmojisStore'], withEmptyList]
 FilteredEmojiListQueryStore         = ['FilteredEmojiListQueryStore']
 FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
-FilteredEmojiListFlagsStore         = [['FilteredEmojiListFlagsStore'], withEmptyMap]
 CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
 CommonEmojiListFlagsStore           = [['CommonEmojiListFlagsStore'], withEmptyMap]
 
@@ -194,7 +193,6 @@ currentSuggestionsFlags = SuggestionsFlagsStore
 
 filteredEmojiListQuery         = FilteredEmojiListQueryStore
 filteredEmojiListSelectedIndex = FilteredEmojiListSelectedIndexStore
-filteredEmojiListFlags         = FilteredEmojiListFlagsStore
 filteredEmojiList              = [
   EmojisStore
   filteredEmojiListQuery
@@ -246,7 +244,6 @@ module.exports = {
   filteredEmojiListQuery
   filteredEmojiListSelectedItem
   filteredEmojiListSelectedIndex
-  filteredEmojiListFlags
 
   commonEmojiList
   commonEmojiListSelectedIndex

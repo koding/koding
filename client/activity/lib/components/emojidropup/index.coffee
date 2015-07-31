@@ -35,7 +35,7 @@ module.exports = class EmojiDropup extends React.Component
 
   handleItemClick: ->
 
-    ActivityFlux.actions.emoji.confirmFilteredListSelection()
+    @props.onItemConfirmed?()
 
 
   handleMouseClick: (event) ->

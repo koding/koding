@@ -40,7 +40,7 @@ module.exports = class EmoiiSelector extends React.Component
 
   handleItemClicked: ->
 
-    ActivityFlux.actions.emoji.confirmCommonListSelection()
+    @props.onItemConfirmed?()
 
 
   handleMouseClick: (event) ->
