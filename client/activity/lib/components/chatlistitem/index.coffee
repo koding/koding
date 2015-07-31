@@ -12,14 +12,26 @@ MessageTime          = require 'activity/components/chatlistitem/messagetime'
 keycode              = require 'keycode'
 ActivityFlux         = require 'activity/flux'
 classnames           = require 'classnames'
-whoami               = require 'app/util/whoami'
+Portal               = require 'react-portal'
 
 
 module.exports = class ChatListItem extends React.Component
 
+  @defaultProps =
+    hover      : no
+    editMode   : no
+    isDeleting : no
+    isMenuOpen : no
+
   constructor: (props) ->
 
-    @state = { hover: no, showMenuForMouseAction: no, editMode: no }
+    super props
+
+    @state =
+      hover      : @props.hover
+      editMode   : @props.editMode
+      isDeleting : @props.isDeleting
+      isMenuOpen : @props.isMenuOpen
 
 
   isEditedMessage: ->
@@ -32,16 +44,14 @@ module.exports = class ChatListItem extends React.Component
 
   getItemProps: ->
     key       : @props.message.get 'id'
-    className : \
-      if @state.hover
-      then kd.utils.curry 'ChatItem mouse-enter', @props.className
-      else kd.utils.curry 'ChatItem', @props.className
+    className : classnames
+      'ChatItem': yes
+      'mouse-enter': @state.hover
+      'is-menuOpen': @state.isMenuOpen
     onMouseEnter: =>
       @setState hover: yes
-
     onMouseLeave: =>
       @setState hover: no
-      @setState showMenuForMouseAction: no
 
 
   getMenuItems: ->
@@ -55,14 +65,13 @@ module.exports = class ChatListItem extends React.Component
 
 
   getDeleteItemModalProps: ->
-    className          : 'activityDeleteItemModal'
     title              : 'Delete post'
     body               : 'Are you sure you want to delete this post?'
-    buttonYESText      : 'DELETE'
-    buttonNOText       : 'CANCEL'
-    buttonYESHandler   : @bound 'deletePostButtonHandler'
-    buttonNOHandler    : @bound 'closeDeletePostModal'
-    buttonCloseHandler : @bound 'closeDeletePostModal'
+    buttonConfirmTitle : 'DELETE'
+    buttonAbortTitle   : 'CANCEL'
+    onConfirm          : @bound 'deletePostButtonHandler'
+    onAbort            : @bound 'closeDeletePostModal'
+    onClose            : @bound 'closeDeletePostModal'
 
 
   deletePostButtonHandler: ->
@@ -73,7 +82,7 @@ module.exports = class ChatListItem extends React.Component
 
   closeDeletePostModal: ->
 
-    @modalContainer.classList.add 'hidden'
+    @setState isDeleting: no
 
 
   editPost: ->
@@ -86,10 +95,7 @@ module.exports = class ChatListItem extends React.Component
 
   deletePost: ->
 
-    @modalContainer = document.getElementsByClassName("PublicChatPane-ModalContainer")[0]
-    @modalContainer.classList.remove 'hidden'
-    React.render <ActivityPromptModal {...@getDeleteItemModalProps()}/>, @modalContainer
-    @setState showMenuForMouseAction: no
+    @setState isDeleting: yes
 
 
   markUser: ->
@@ -118,6 +124,9 @@ module.exports = class ChatListItem extends React.Component
   cancelEdit: ->
 
     @setState editMode: no
+
+
+  onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
 
 
   handleEditMessageKeyDown: (event) ->
@@ -151,13 +160,28 @@ module.exports = class ChatListItem extends React.Component
 
     { message } = @props
     if message.get('accountId') is whoami().socialApiId
-      <ButtonWithMenu items={@getMenuItems()} showMenuForMouseAction={@state.showMenuForMouseAction}/>
+      <ButtonWithMenu
+        items       = {@getMenuItems()}
+        onMenuOpen  = {=> @onMenuToggle yes}
+        onMenuClose = {=> @onMenuToggle no}
+      />
+
+
+  getClassNames: ->
+    editForm: classnames
+     'ChatItem-updateMessageForm': yes
+     'hidden': not @state.editMode
+    mediaContent: classnames
+      'MediaObject-content': yes
+      'hidden': @state.editMode
+    contentWrapper: classnames
+      'ChatItem-contentWrapper': yes
+      'MediaObject': yes
+      'editing': @state.editMode
 
 
   render: ->
-
     { message } = @props
-
     <div {...@getItemProps()}>
       <div className={@getContentClassNames()}>
         <div className="MediaObject-media">
@@ -181,6 +205,18 @@ module.exports = class ChatListItem extends React.Component
           <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
         </div>
         {@renderChatItemMenu()}
+        <div className={@getClassNames().editForm}>
+          <textarea
+            onKeyDown={@bound 'handleEditMessageKeyDown'}
+            defaultValue={message.get 'body'}
+            ref="EditMessageTextarea">
+          </textarea>
+          <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'}>DONE</button>
+          <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
+        </div>
+        <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
+          Are you sure you want to delete this post?
+        </ActivityPromptModal>
       </div>
     </div>
 

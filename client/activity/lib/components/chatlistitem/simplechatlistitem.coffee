@@ -6,6 +6,7 @@ ButtonWithMenu       = require 'app/components/buttonwithmenu'
 ChatListItem         = require 'activity/components/chatlistitem'
 MessageTime          = require 'activity/components/chatlistitem/messagetime'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+ActivityPromptModal  = require 'app/components/activitypromptmodal'
 classnames           = require 'classnames'
 
 
@@ -36,6 +37,9 @@ module.exports = class SimpleChatListItem extends ChatListItem
           <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
         </div>
         {@renderChatItemMenu()}
+        <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
+          Are you sure you want to delete this post?
+        </ActivityPromptModal>
       </div>
     </div>
 
