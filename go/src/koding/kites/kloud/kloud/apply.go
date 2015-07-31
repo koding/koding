@@ -363,7 +363,23 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	})
 
 	sess.Log.Debug("Checking total '%d' klients", len(buildData.KiteIds))
-	return checkKlients(ctx, buildData.KiteIds)
+	outputs, err := checkKlients(ctx, buildData.KiteIds)
+	if err != nil {
+		return err
+	}
+
+	scriptOutputs, err := json.Marshal(&outputs)
+	if err != nil {
+		return err
+	}
+
+	ev.Push(&eventer.Event{
+		Message:    string(scriptOutputs),
+		Percentage: 90,
+		Status:     machinestate.Building,
+	})
+
+	return nil
 }
 
 func fetchStack(stackId string) (*Stack, error) {
