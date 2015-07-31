@@ -127,8 +127,10 @@ module.exports = class SocialApiController extends KDController
     cachedItem = kd.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
 
     if cachedItem
-      return  cachedItem  unless invalidateCache
-      unbindMessageListeners cachedItem
+      if invalidateCache
+        unbindMessageListeners
+      else
+        return cachedItem
 
     plain._id = plain.id
 
