@@ -19,10 +19,9 @@ import (
 )
 
 var (
-	AWS_NAMESPACE       = "AWS/EC2"
-	AWS_PERIOD    int64 = 604800
-
-	GB_TO_MB float64 = 1024
+	AWS_NAMESPACE         = "AWS/EC2"
+	AWS_PERIOD    int64   = 3600
+	GB_TO_MB      float64 = 1024
 )
 
 type Limits map[string]float64
