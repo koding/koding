@@ -7,7 +7,6 @@ vmSelector = '.sidebar-machine-box.koding-vm-1'
 
 module.exports =
 
-  
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
@@ -45,6 +44,7 @@ module.exports =
           .pause                  2000
           .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
           .end()
+
 
  addVM: (browser) ->
 
@@ -124,17 +124,46 @@ module.exports =
               .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
 
+              
   createSnapshotForNonPaidUser: (browser) ->
-
-    buttonSelector   = '.snapshots .add-button'
+    
     messageSelector  = '.kdmodal.computeplan-modal .message'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    environmentHelpers.openSnapshotsSettings(browser)
+    environmentHelpers.beginSnapshotCreation(browser)
 
     browser
-      .waitForElementVisible buttonSelector, 20000
-      .click                 buttonSelector
       .waitForElementVisible messageSelector, 20000
       .assert.containsText   messageSelector, "The Snapshot feature is only available for paid accounts." #Assertion
+      .end()
+
+
+  createSnapshot: (browser) ->
+   
+    name            = helpers.getFakeText().split(' ')[0]
+    upgradeSelector = '.kdmodal.computeplan-modal .custom-link-view'
+    inputSelector   = '.snapshots .text.hitenterview'
+    labelSelector   = '.kdlistitemview-snapshot .info .label'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.beginSnapshotCreation(browser)
+    
+    browser
+      .waitForElementVisible upgradeSelector, 20000
+      .click                 upgradeSelector
+
+    helpers.selectPlan(browser)
+    helpers.fillPaymentForm(browser)
+    browser.url helpers.getUrl() + '/IDE' 
+    
+    environmentHelpers.beginSnapshotCreation(browser)
+    
+    browser
+      .waitForElementVisible inputSelector, 20000
+      .click                 inputSelector
+      .setValue              inputSelector, [name, browser.Keys.RETURN]
+      .waitForElementVisible labelSelector, 300000
+      .assert.containsText   labelSelector, name #Assertion
+      .end()

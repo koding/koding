@@ -56,6 +56,16 @@ module.exports =
 
     @openVmSettingsModal browser, vmName, '.snapshots'
 
+  beginSnapshotCreation: (browser) ->
+    
+    buttonSelector   = '.snapshots .add-button'
+
+    @openSnapshotsSettings(browser)
+
+    browser
+      .waitForElementVisible buttonSelector, 20000
+      .click                 buttonSelector
+
   clickAddVMButton: (browser) ->
 
     sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
