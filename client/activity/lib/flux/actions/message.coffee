@@ -167,21 +167,28 @@ unlikeMessage = (messageId) ->
  * @param {string} body
  * @param {object=} payload
 ###
-editMessage = (messageId, body, payload = {}) ->
+editMessage = (messageId, body, createdAt, payload = {}) ->
 
-  { socialapi } = kd.singletons
-  { EDIT_MESSAGE_BEGIN
-    EDIT_MESSAGE_SUCCESS
-    EDIT_MESSAGE_FAIL } = actionTypes
+    {socialapi} = kd.singletons
+    { EDIT_MESSAGE_BEGIN
+      EDIT_MESSAGE_SUCCESS
+      EDIT_MESSAGE_FAIL
+    } = actionTypes
 
-  dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
+    dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
-  socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
-    if err
-      dispatch EDIT_MESSAGE_FAIL, { err, messageId }
-      return
+    socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
+      if err
+        dispatch EDIT_MESSAGE_FAIL, { err, messageId }
+        return
 
-    dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
+      kd.utils.wait 673, ->
+        socialapi.message.byId {id: messageId}, (err, message) ->
+          message.body = body
+          message.createdAt = createdAt
+          dispatch EDIT_MESSAGE_SUCCESS, {
+            message, messageId
+          }
 
 
 ###*
