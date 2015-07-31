@@ -71,6 +71,61 @@ module.exports = class DefineStackView extends kd.View
       else @saveButton.disable()
 
 
+  checkAndBootstrapCredentials: (callback) ->
+
+    {credentialsData} = @credentialStatus
+    [credential]      = credentialsData
+
+    failed = (err) ->
+      @outputView.handleError err
+      callback err
+
+    showCredentialContent = (credential) =>
+      credential.fetchData (err, data) =>
+        return failed err  if err
+        @outputView.add JSON.stringify data.meta, null, 2
+        callback null, [credential]
+
+    @outputView
+      .add 'Verifying credentials...'
+      .add 'Bootstrap check initiated for credentials...'
+
+    credential.isBootstrapped (err, state) =>
+      return failed err  if err
+
+      if state
+
+        @outputView.add 'Already bootstrapped, fetching data...'
+        showCredentialContent credential
+
+      else
+
+        @outputView.add 'Bootstrap required, initiating to bootstrap...'
+
+        publicKeys = [credential.publicKey]
+
+        { computeController } = kd.singletons
+
+        computeController.getKloud()
+
+          .bootstrap { publicKeys }
+
+          .then (response) =>
+
+            if response
+              @outputView.add 'Bootstrap completed successfully'
+              showCredentialContent credential
+            else
+              @outputView.add 'Bootstrapping completed but something went wrong.'
+              callback null
+
+            console.log '[KLOUD:Bootstrap]', response
+
+          .catch (err) =>
+
+            failed err
+            console.warn '[KLOUD:Bootstrap:Fail]', err
+
   saveTemplate: (callback) ->
 
     {stackTemplate} = @getData()
@@ -83,7 +138,7 @@ module.exports = class DefineStackView extends kd.View
     templateDetails = null
 
     # TODO Make this to support multiple credentials
-    credential      = @credentialStatus.credentials.first
+    credential      = @credentialStatus.credentialsData.first
 
     if 'yaml' is @editorView.getOption 'contentType'
       templateContent = (yamlToJson templateContent).content
@@ -91,7 +146,15 @@ module.exports = class DefineStackView extends kd.View
     updateStackTemplate {
       template: templateContent, templateDetails
       credential, stackTemplate, title
-    }, callback
+    }, (err, stackTemplate) =>
+
+      if not err and stackTemplate
+        @setData { stackTemplate }
+        @emit 'Reload'
+
+      callback err, stackTemplate
+
+
   handleSetDefaultTemplate: ->
 
     { stackTemplate } = @getData()
