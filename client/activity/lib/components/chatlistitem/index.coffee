@@ -79,6 +79,9 @@ module.exports = class ChatListItem extends React.Component
   editPost: ->
 
     @setState editMode: yes
+    domNode = @refs.EditMessageTextarea.getDOMNode()
+    kd.utils.wait 100, ->
+      kd.utils.moveCaretToEnd domNode
 
 
   deletePost: ->
@@ -175,7 +178,7 @@ module.exports = class ChatListItem extends React.Component
           </div>
         </div>
         <div className={@getEditModeClassNames()}>
-          <textarea onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' } ref="EditMessageTextarea"></textarea>
+          <textarea autoFocus onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' } ref="EditMessageTextarea"></textarea>
           <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
           <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
         </div>
