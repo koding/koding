@@ -111,17 +111,24 @@ module.exports = class SocialApiController extends KDController
     realtime.unsubscribeChannel channel
 
 
-  mapActivity = (data) ->
+  unbindMessageListeners = (message) ->
+
+    message._events = {}
+
+
+  mapActivity = (data, invalidateCache = no) ->
 
     return  unless data
     return  unless plain = data.message
 
-    {accountOldId, replies, interactions} = data
-    {createdAt, deletedAt, updatedAt, typeConstant}     = plain
+    {accountOldId, replies, interactions}           = data
+    {createdAt, deletedAt, updatedAt, typeConstant} = plain
 
     cachedItem = kd.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
 
-    return cachedItem  if cachedItem
+    if cachedItem
+      return  cachedItem  unless invalidateCache
+      unbindMessageListeners cachedItem
 
     plain._id = plain.id
 
