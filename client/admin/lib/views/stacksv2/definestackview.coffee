@@ -7,6 +7,7 @@ showError           = require 'app/util/showError'
 {yamlToJson}        = require './yamlutils'
 StackEditorView     = require './stackeditorview'
 updateStackTemplate = require './updatestacktemplate'
+CredentialStatusView= require './credentialstatusview'
 
 
 module.exports = class DefineStackView extends kd.View
@@ -24,10 +25,17 @@ module.exports = class DefineStackView extends kd.View
     title   = stackTemplate?.title or 'Default stack template'
     content = stackTemplate?.template?.content
 
-    @inputTitle      = new kd.FormViewWithFields
-      fields         : title :
-        label        : 'Stack Template Title'
-        defaultValue : title
+    @inputTitle            = new kd.FormViewWithFields fields:
+      title                :
+        cssClass           : 'template-title'
+        label              : 'Stack Template Title'
+        defaultValue       : title
+        nextElement        :
+          credentialStatus :
+            cssClass       : 'credential-status'
+            itemClass      : CredentialStatusView
+
+    { @credentialStatus } = @inputTitle.inputs
 
     @editorView      = new StackEditorView {delegate: this, content}
 
