@@ -78,3 +78,5 @@ client/test/logs
 supervisor.html
 .supervisor/*
 supervisord.conf
+client/test/*.png
+client/test/users-*.json

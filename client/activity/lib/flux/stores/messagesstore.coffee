@@ -130,6 +130,16 @@ module.exports = class MessagesStore extends KodingFluxStore
     return removeFakeMessage messages, clientRequestId
 
 
+  ###*
+   * Use private fields to updated optimistically.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @param {string} payload.body
+   * @param {object=} payload.payload
+   * @return {IMMessageCollection} nextState
+  ###
   handleEditMessageBegin: (messages, { messageId, body, payload }) ->
 
     { addMessage } = MessageCollectionHelpers
@@ -141,6 +151,16 @@ module.exports = class MessagesStore extends KodingFluxStore
     return addMessage messages, message
 
 
+  ###*
+   * Replace old message with given messageId with the new one provided through
+   * props.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @param {SocialMessage} payload.message
+   * @return {IMMessageCollection} nextState
+  ###
   handleEditMessageSuccess: (messages, { message, messageId }) ->
 
     { addMessage } = MessageCollectionHelpers
@@ -148,6 +168,14 @@ module.exports = class MessagesStore extends KodingFluxStore
     return addMessage messages, toImmutable message
 
 
+  ###*
+   * Cleanup optimistically updates.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @return {IMMessageCollection} nextState
+  ###
   handleEditMessageFail: (messages, { messageId }) ->
 
     { addMessage } = MessageCollectionHelpers
@@ -242,115 +270,5 @@ module.exports = class MessagesStore extends KodingFluxStore
     { removeMessage } = MessageCollectionHelpers
 
     return removeMessage messages, messageId
-
-
-  ###*
-   * Handler for `LIKE_MESSAGE_BEGIN` action.
-   * It optimistically adds a like from logged in user.
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleLikeMessageBegin: (messages, { messageId }) ->
-
-    { setIsLiked, addLiker } = MessageCollectionHelpers
-
-    return messages.withMutations (messages) ->
-      messages.update messageId, (message) ->
-        message = setIsLiked message, yes
-        message = addLiker message, whoami()._id
-
-
-  ###*
-   * Handler for `LIKE_MESSAGE_SUCCESS` action.
-   * It updates the message with message id with given message.
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @param {SocialMessage} payload.message
-   * @return {IMMessageCollection} nextState
-  ###
-  handleLikeMessageSuccess: (messages, { messageId, message }) ->
-
-    { addMessage } = MessageCollectionHelpers
-
-    return addMessage messages, toImmutable message
-
-
-  ###*
-   * Handler for `LIKE_MESSAGE_FAIL` action.
-   * It removes optimistically added like in `LIKE_MESSAGE_BEGIN` action.
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleLikeMessageFail: (messages, { messageId }) ->
-
-    { setIsLiked, removeLiker } = MessageCollectionHelpers
-
-    return messages.withMutations (messages) ->
-      messages.update messageId, (message) ->
-        message = setIsLiked message, no
-        message = removeLiker message, whoami()._id
-
-
-  ###*
-   * Handler for `UNLIKE_MESSAGE_BEGIN` action.
-   * It optimistically removes a like from message.
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleUnlikeMessageBegin: (messages, { messageId }) ->
-
-    { setIsLiked, removeLiker } = MessageCollectionHelpers
-
-    return messages.withMutations (messages) ->
-      messages.update messageId, (message) ->
-        message = setIsLiked message, no
-        message = removeLiker message, whoami()._id
-
-
-  ###*
-   * Handler for `UNLIKE_MESSAGE_SUCCESS` action.
-   * It updates the message with message id with given message.
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @param {SocialMessage} payload.message
-   * @return {IMMessageCollection} nextState
-  ###
-  handleUnlikeMessageSuccess: (messages, { messageId, message }) ->
-
-    { addMessage } = MessageCollectionHelpers
-
-    return addMessage messages, toImmutable message
-
-
-  ###*
-   * Handler for `UNLIKE_MESSAGE_FAIL` action.
-   * It adds back optimistically removed like in `UNLIKE_MESSAGE_BEGIN` action.
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleUnlikeMessageFail: (messages, { messageId }) ->
-
-    { setIsLiked, addLiker } = MessageCollectionHelpers
-
-    return messages.withMutations (messages) ->
-      messages.update messageId, (message) ->
-        message = setIsLiked message, yes
-        message = addLiker message, whoami()._id
 
 

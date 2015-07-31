@@ -139,8 +139,9 @@ loadPopularMessages = (channelId, options = {}) ->
       dispatch LOAD_POPULAR_MESSAGES_FAIL, { err, channelId }
       return
 
-    messages.forEach (message) ->
-      dispatch LOAD_POPULAR_MESSAGE_SUCCESS, { channelId, message }
+    kd.singletons.reactor.batch ->
+      messages.forEach (message) ->
+        dispatch LOAD_POPULAR_MESSAGE_SUCCESS, { channelId, message }
 
 
 

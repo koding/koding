@@ -1,9 +1,10 @@
 .ChatList
+  margin-bottom               10px
+
   .ChatItem
     rel()
     max-width                 600px
-    padding-left              25px
-    margin-bottom             20px
+    padding-left              34px
 
     .ChatItem-authorName
       margin-right            10px
@@ -25,6 +26,15 @@
         display               block
         size                  9px, 9px
         r-sprite              activity heart-dim
+
+      &.is-likedByOthers, &.is-likedByUser
+        display               inline-block
+
+      &.is-likedByOthers:after
+        r-sprite              activity heart-outline !important
+
+      &.is-likedByUser:after
+        r-sprite              activity heart-solid !important
 
     .ChatItem-messageDate
       rel()
@@ -53,17 +63,33 @@
         r-sprite              activity chevron-icon
         bg                    color, transparent
 
-    .ChatItem-contentWrapper.editing
-      rounded                 3px 3px 0 0
-      padding                 10px 0 6px
-      bg                      color, #FDF6E3
-      overflow                hidden
+    .ChatItem-contentWrapper
+      margin-top              20px
+      overflow                visible
 
-      > div
-        max-width             485px
+      .MediaObject-content
+        overflow              visible
 
-      .SettingsMenuWrapper
-        hidden()
+      &.editing
+        rounded               3px 3px 0 0
+        padding               10px 0 6px
+        bg                    color, #FDF6E3
+        overflow              hidden
+
+        > div
+          max-width           485px
+
+        .SettingsMenuWrapper
+          hidden()
+
+      .ChatItem-contentBody
+        article
+          margin-top          7px
+          p
+            padding           0 0 2px
+
+            > a
+              hidden()
 
     &:hover
       .SettingsMenuWrapper
@@ -116,3 +142,18 @@
         bg                    color, transparent
         color                 #999
 
+.ChatItem-contentWrapper.SimpleChatListItem
+  margin                      0 !important
+  padding-left                50px
+
+  .ChatItem-messageDate
+    abs()
+    hidden()
+    left                      15px
+
+  .ChatItem-likeLink
+    left                      63px
+
+  &:hover
+    .ChatItem-messageDate
+      visible()
