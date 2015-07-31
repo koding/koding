@@ -9,10 +9,8 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -146,28 +144,31 @@ func getInfo(path string) (*FileEntry, error) {
 }
 
 func makeFileEntry(fullPath string, fi os.FileInfo) *FileEntry {
-	var fileUid uint32
-	var fileGid uint32
-	if runtime.GOOS != "windows" && fi.Sys() != nil {
-		if f, ok := fi.Sys().(*syscall.Stat_t); ok {
-			fileUid = f.Uid
-			fileGid = f.Gid
-		}
+	var (
+		readable bool
+		writable bool
+	)
+
+	f, err := os.OpenFile(fullPath, os.O_RDONLY, 0)
+	if f != nil {
+		f.Close()
 	}
 
-	// check only if the files owner or group are the same, otherwise they
-	// don't have any permission by default
-	readable, writable := false, false
-	if fileUid == uint32(os.Getuid()) {
-		readable = fi.Mode()&0400 != 0
-		writable = fi.Mode()&0200 != 0
-	} else if fileGid == uint32(os.Getgid()) {
-		readable = fi.Mode()&0040 != 0
-		writable = fi.Mode()&0020 != 0
-	} else {
-		// all users
-		readable = fi.Mode()&0004 != 0
-		writable = fi.Mode()&0002 != 0
+	// If there is no error in attempting to open the file for Reading,
+	// it is readable.
+	if err == nil {
+		readable = true
+	}
+
+	f, err = os.OpenFile(fullPath, os.O_WRONLY, 0)
+	if f != nil {
+		f.Close()
+	}
+
+	// If there are no error in attempting to open the file for Writing,
+	// it is writable.
+	if err == nil {
+		writable = true
 	}
 
 	entry := &FileEntry{
