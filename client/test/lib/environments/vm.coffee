@@ -51,3 +51,23 @@ module.exports =
       .assert.containsText     circularBar + ' span.percentage', '53%' # Assertion
       .end()
 
+  updateVMNickname: (browser) ->
+
+      vmModal = modalSelector + ' .AppModal-form'
+      paragraph = helpers.getFakeText()
+      nickname = paragraph.split(' ')[0]
+
+      helpers.beginTest(browser)
+      helpers.waitForVMRunning(browser)
+
+      environmentHelpers.openGeneralSettings(browser)
+
+      browser
+        .waitForElementVisible  vmModal, 20000
+        .waitForElementVisible  vmModal + ' .nickname', 20000
+        .click                                   vmModal + ' .nickname .edit'
+        .waitForElementVisible  vmModal + ' .nickname input.hitenterview', 20000
+        .setValue                           vmModal + ' .nickname input.hitenterview', nickname + '\n'
+        .waitForElementVisible  vmModal + ' .nickname .input-wrapper .kdview', 20000
+        .assert.containsText        vmModal + ' .nickname .input-wrapper .kdview', nickname # Assertion
+        .end()
