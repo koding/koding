@@ -564,7 +564,7 @@ module.exports = class SocialApiController extends KDController
     edit                 : messageRequesterFn
       fnName             : 'edit'
       validateOptionsWith: ['id', 'body']
-      mapperFn           : mapActivity
+      mapperFn           : (data) -> mapActivity data, yes # force cache invalidation
 
     post                 : messageRequesterFn
       fnName             : 'post'
