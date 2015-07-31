@@ -6,7 +6,7 @@ vmSelector = '.sidebar-machine-box.koding-vm-1'
 
 
 module.exports =
-
+  
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
@@ -123,15 +123,15 @@ module.exports =
             browser
               .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
-
               
+
   createSnapshotForNonPaidUser: (browser) ->
     
     messageSelector  = '.kdmodal.computeplan-modal .message'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    environmentHelpers.beginSnapshotCreation(browser)
+    environmentHelpers.attemptCreateSnapshot(browser)
 
     browser
       .waitForElementVisible messageSelector, 20000
@@ -141,14 +141,12 @@ module.exports =
 
   createSnapshot: (browser) ->
    
-    name            = helpers.getFakeText().split(' ')[0]
     upgradeSelector = '.kdmodal.computeplan-modal .custom-link-view'
-    inputSelector   = '.snapshots .text.hitenterview'
     labelSelector   = '.kdlistitemview-snapshot .info .label'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    environmentHelpers.beginSnapshotCreation(browser)
+    environmentHelpers.attemptCreateSnapshot(browser)
     
     browser
       .waitForElementVisible upgradeSelector, 20000
@@ -156,14 +154,35 @@ module.exports =
 
     helpers.selectPlan(browser)
     helpers.fillPaymentForm(browser)
-    browser.url helpers.getUrl() + '/IDE' 
     
-    environmentHelpers.beginSnapshotCreation(browser)
-    
+    browser.url helpers.getUrl() + '/IDE'
+    name = environmentHelpers.createSnapshot(browser)
+
     browser
-      .waitForElementVisible inputSelector, 20000
-      .click                 inputSelector
-      .setValue              inputSelector, [name, browser.Keys.RETURN]
       .waitForElementVisible labelSelector, 300000
       .assert.containsText   labelSelector, name #Assertion
       .end()
+ 
+
+  #This test depends on createSnapshot
+  deleteSnapshot: (browser) ->
+
+    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot"
+    confirmSelector = ".kdmodal .kdmodal-buttons .red"
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.openSnapshotsSettings(browser)
+
+    browser.element 'css selector', ".kdlistview .kdlistitemview-snapshot", (result) ->
+      
+      if result.status is not 0
+        environmentHelpers.createSnapshot(browser)
+
+      environmentHelpers.deleteSnapshot(browser)
+
+      browser
+        .waitForElementNotPresent confirmSelector, 20000
+        .pause                    1000 #Deleted snapshots take a little time to disappear.
+        .assert.elementNotPresent elementSelector #Assertion
+        .end()

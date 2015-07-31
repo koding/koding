@@ -56,7 +56,7 @@ module.exports =
 
     @openVmSettingsModal browser, vmName, '.snapshots'
 
-  beginSnapshotCreation: (browser) ->
+  attemptCreateSnapshot: (browser) ->
     
     buttonSelector   = '.snapshots .add-button'
 
@@ -65,7 +65,34 @@ module.exports =
     browser
       .waitForElementVisible buttonSelector, 20000
       .click                 buttonSelector
+  createSnapshot: (browser) ->
+    
+    name            = helpers.getFakeText().split(' ')[0]
+    inputSelector   = '.snapshots .text.hitenterview'
 
+    @attemptCreateSnapshot(browser)
+    
+    browser
+      .waitForElementVisible inputSelector, 20000
+      .click                 inputSelector
+      .setValue              inputSelector, [name, browser.Keys.RETURN]
+    
+    return name
+
+  deleteSnapshot: (browser) ->
+
+    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot"
+    deleteSelector  = ".kdlistitemview-snapshot .buttons .delete"
+    confirmSelector = ".kdmodal .kdmodal-buttons .red"
+
+    browser
+      .waitForElementVisible elementSelector, 20000
+      .moveToElement         elementSelector, 205, 22
+      .waitForElementVisible deleteSelector, 20000
+      .click                 deleteSelector
+      .waitForElementVisible confirmSelector, 20000
+      .click                 confirmSelector
+ 
   clickAddVMButton: (browser) ->
 
     sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
