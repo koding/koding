@@ -1119,7 +1119,7 @@ module.exports = CollaborationController =
     @permissions.set nickname, permission
 
 
-  getWatchingMeParticipantsList: ->
+  getMyWatchers: ->
 
     participants = []
 

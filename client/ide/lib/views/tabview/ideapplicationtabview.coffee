@@ -49,23 +49,27 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
     frontApp.checkSessionActivity
       active    : =>
-        participants = frontApp.getWatchingMeParticipantsList()
+        myWatchers = frontApp.getMyWatchers()
 
-        if participants.length
-
-          more = ""
-          if participants.length > 3
-            more = " and <strong>#{participants.length - 3}</strong> others"
-
-          content += """
-            Also #{(participants.slice(0,3).map (p) -> '<strong>@'+p+'</strong>').join(', ')}
-            #{more} may have some changes here.
-          """
+        content += @getMyWatchersContentForModal(myWatchers)  if myWatchers.length
 
         @showModal_ pane, aceView, content
 
       error      : => @showModal_ pane, aceView, content
       notStarted : => @showModal_ pane, aceView, content
+
+
+  getMyWatchersContentForModal: (myWatchers) ->
+
+    more = ""
+
+    if myWatchers.length > 3
+      more = " and <strong>#{myWatchers.length - 3}</strong> others"
+
+    return """
+      Also #{(myWatchers.slice(0,3).map (w) -> '<strong>@'+w+'</strong>').join(', ')}
+      #{more} may have some changes here.
+    """
 
 
   showModal_: (pane, aceView, content) ->
