@@ -1,5 +1,6 @@
 immutable           = require 'immutable'
 isPublicChatChannel = require 'activity/util/isPublicChatChannel'
+whoami              = require 'app/util/whoami'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -24,6 +25,8 @@ SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
 SuggestionsQueryStore          = ['SuggestionsQueryStore']
 SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
 UsersStore                     = [['UsersStore'], withEmptyMap]
+MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
+
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -109,27 +112,22 @@ followedPrivateChannelThreads = [
       return thread.set 'channel', channel
 ]
 
-# Filters public channels to not have any public chat channels.
-followedFeedThreads = [
-  followedPublicChannelThreads
-  (threads) -> threads.filterNot (thread) -> isPublicChatChannel thread.get 'channel'
-]
 
-# Filters public channels to only have public chat channels.
-followedPublicThreads = [
-  followedPublicChannelThreads
-  (threads) -> threads.filter (thread) -> isPublicChatChannel thread.get 'channel'
-]
-
-# Alias for providing a consistent api.
-# followedPublicThreads, followedFeedThreads, and `followedPrivateThreads`
-followedPrivateThreads = followedPrivateChannelThreads
-
+# Aggregates selected channel thread's messages from multiple getters & stores.
 selectedChannelThreadMessages = [
   selectedChannelThread
-  (thread) ->
+  MessageLikersStore
+  UsersStore
+  (thread, likers, users) ->
     return null  unless thread
-    thread.get 'messages'
+    thread.get('messages').map (message) ->
+      message.updateIn ['interactions', 'like'], (like) ->
+        like.withMutations (like) ->
+          messageLikers = likers.get (message.get 'id'), immutable.Map()
+          like
+            .set 'actorsPreview', messageLikers.map (id) -> users.get id
+            .set 'actorsCount', messageLikers.size
+            .set 'isInteracted', messageLikers.contains whoami()._id
 ]
 
 selectedChannelPopularMessages = [
@@ -189,9 +187,8 @@ currentSuggestions      = SuggestionsStore
 currentSuggestionsFlags = SuggestionsFlagsStore
 
 module.exports = {
-  followedFeedThreads
-  followedPublicThreads
-  followedPrivateThreads
+  followedPublicChannelThreads
+  followedPrivateChannelThreads
 
   selectedChannelThreadId
   selectedChannelThread

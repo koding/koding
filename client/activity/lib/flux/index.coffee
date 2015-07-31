@@ -19,4 +19,5 @@ module.exports =
     require './stores/suggestions/suggestionsquerystore'
     require './stores/suggestions/suggestionsflagsstore'
     require './stores/suggestions/suggestionsstore'
+    require './stores/messagelikerssstore'
   ]
