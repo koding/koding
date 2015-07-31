@@ -11,7 +11,7 @@ module.exports = class ApplicationTabHandleHolder extends KDView
     options.bind                = "mouseenter mouseleave"
     options.addPlusHandle      ?= yes
     options.addCloseHandle     ?= yes
-    options.addFullscrenHandle ?= yes
+    options.addFullscreenHandle ?= yes
 
     super options, data
 
@@ -25,7 +25,7 @@ module.exports = class ApplicationTabHandleHolder extends KDView
 
     @addPlusHandle()  if @getOptions().addPlusHandle
 
-    @addFullscrenHandle()  if @getOptions().addFullscrenHandle
+    @addFullscreenHandle()  if @getOptions().addFullscreenHandle
     @addCloseHandle()  if @getOptions().addCloseHandle
 
 
@@ -49,7 +49,7 @@ module.exports = class ApplicationTabHandleHolder extends KDView
       click    : => @getDelegate()?.emit 'CloseHandleClicked'
 
 
-  addFullscrenHandle: ->
+  addFullscreenHandle: ->
     @fullscreenHandle?.destroy()
 
     @generalHandlesContainer.addSubView @fullscreenHandle = new KDCustomHTMLView
