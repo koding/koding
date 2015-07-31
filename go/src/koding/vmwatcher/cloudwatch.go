@@ -9,19 +9,19 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
-	"github.com/crowdmob/goamz/aws"
-	"github.com/crowdmob/goamz/cloudwatch"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+
 	"github.com/jinzhu/now"
 	"github.com/koding/redis"
 )
 
 var (
-	AWS_NAMESPACE = "AWS/EC2"
-	AWS_PERIOD    = 604800
+	AWS_NAMESPACE       = "AWS/EC2"
+	AWS_PERIOD    int64 = 604800
 
 	GB_TO_MB float64 = 1024
-
-	auth aws.Auth
 )
 
 type Limits map[string]float64
@@ -71,35 +71,43 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 			continue
 		}
 
-		dimension := &cloudwatch.Dimension{
-			Name:  "InstanceId",
-			Value: instanceId,
+		var (
+			config = &aws.Config{
+				Credentials: credentials.NewStaticCredentials(AWS_KEY, AWS_SECRET, ""),
+				Region:      region,
+			}
+
+			startTime     = now.BeginningOfWeek()
+			endTime       = time.Now()
+			metricName    = c.GetName()
+			statistic     = "Sum"
+			dimensionName = "InstanceId"
+
+			dimension = cloudwatch.Dimension{
+				Name:  &dimensionName,
+				Value: &instanceId,
+			}
+		)
+
+		input := &cloudwatch.GetMetricStatisticsInput{
+			Period:     &AWS_PERIOD,
+			Namespace:  &AWS_NAMESPACE,
+			MetricName: &metricName,
+			StartTime:  &startTime,
+			EndTime:    &endTime,
+			Statistics: []*string{&statistic},
+			Dimensions: []*cloudwatch.Dimension{&dimension},
 		}
 
-		cw, err := cloudwatch.NewCloudWatch(auth, aws.Regions[region].CloudWatchServicepoint)
-		if err != nil {
-			Log.Error("Failed to initialize cloudwatch client:", err)
-			continue
-		}
-
-		request := &cloudwatch.GetMetricStatisticsRequest{
-			Dimensions: []cloudwatch.Dimension{*dimension},
-			Statistics: []string{cloudwatch.StatisticDatapointSum},
-			MetricName: c.GetName(),
-			EndTime:    time.Now(),
-			StartTime:  now.BeginningOfWeek(),
-			Period:     AWS_PERIOD,
-			Namespace:  AWS_NAMESPACE,
-		}
-
-		response, err := cw.GetMetricStatistics(request)
+		client := cloudwatch.New(config)
+		response, err := client.GetMetricStatistics(input)
 		if err != nil {
 			Log.Error("Failed to get request for machine: %s, %v", machine.ObjectId, err)
 			continue
 		}
 
-		for _, raw := range response.GetMetricStatisticsResult.Datapoints {
-			sum += raw.Sum / GB_TO_MB / GB_TO_MB
+		for _, raw := range response.Datapoints {
+			sum += *raw.Sum / GB_TO_MB / GB_TO_MB
 		}
 	}
 
