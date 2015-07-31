@@ -47,15 +47,25 @@ module.exports = class DefineStackView extends kd.View
     @saveButton      = new kd.ButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
+      disabled       : yes
       callback       : =>
         @saveTemplate (err, stackTemplate) =>
           return  if showError err
           @emit 'Completed', stackTemplate
 
+    @credentialStatus.on 'StatusChanged', (status) =>
+      if status is 'verified'
+      then @saveButton.enable()
+      else @saveButton.disable()
+
+    kd.utils.defer =>
+      { credential } = @getData()
+      @credentialStatus.setCredential credential
+
 
   saveTemplate: (callback) ->
 
-    {credential, stackTemplate} = @getData()
+    {stackTemplate} = @getData()
 
     {title}         = @inputTitle.getData()
     templateContent = @editorView.getValue()
@@ -63,6 +73,9 @@ module.exports = class DefineStackView extends kd.View
     # TODO this needs to be filled in when we implement
     # Github flow for new stack editor
     templateDetails = null
+
+    # TODO Make this to support multiple credentials
+    credential      = @credentialStatus.credentials.first
 
     if 'yaml' is @editorView.getOption 'contentType'
       templateContent = (yamlToJson templateContent).content
