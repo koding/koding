@@ -1256,6 +1256,38 @@ Admin main styles
     .editor-view
       height                calc(100% \- 140px)
 
+  .kdview.credential-status
+    width                   200px
+    line-height             38px
+    font-size               13px
+    text-align              right
+    right                   10px
+    top                     0
+    z-index                 1
+    abs()
+
+    .link
+    .message
+      display               inline-block
+
+    .link
+      color                 #02A74D
+      text-decoration       underline
+      cursor                pointer
+
+    .icon
+    .kdloader
+      width                 8px
+      display               inline-block
+      margin-right          10px
+
+    .icon
+      &.not
+        r-sprite            account, 'cross-8'
+      &.verified
+        r-sprite            account, 'check-8'
+
+
 
 .AppModal--admin .members
   .label
