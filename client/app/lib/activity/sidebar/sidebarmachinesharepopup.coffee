@@ -159,18 +159,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
         return @destroy()  if wasApproved
 
-        envDataProvider.fetch =>
-          # if there is an ide instance this means user landed to ide with direct url
-          ideApp = envDataProvider.getIDEFromUId machine.uid
-
-          if ideApp
-            ideApp.quit()
-            # i needed to wait 737ms to do the navigation. actually i don't want
-            # to burn more ATP for this case because it's the only case if user
-            # navigates to that url manually by knowing the machine uid and stuff
-            kd.utils.wait 737, => doNavigation()
-          else
-            doNavigation()
+        doNavigation()
 
       { channelId } = @getOptions()
 
