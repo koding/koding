@@ -1,17 +1,17 @@
 kd = require 'kd'
 KDViewController = kd.ViewController
-AboutAppView = require './aboutappview'
+WelcomeAppView = require './welcomeappview'
 
 
-module.exports = class AboutAppController extends KDViewController
+module.exports = class WelcomeAppController extends KDViewController
 
   @options =
-    name  : 'About'
-    route : '/:name?/About'
+    name  : 'Welcome'
+    route : '/:name?/Welcome'
 
   constructor:(options = {}, data)->
 
-    options.view    = new AboutAppView
-      cssClass      : "content-page about"
+    options.view    = new WelcomeAppView
+      cssClass      : "content-page welcome"
 
     super options, data

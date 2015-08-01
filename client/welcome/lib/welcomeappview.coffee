@@ -2,7 +2,7 @@ JView = require 'app/jview'
 FooterView = require 'app/commonviews/footerview'
 
 
-module.exports = class AboutAppView extends JView
+module.exports = class WelcomeAppView extends JView
 
   constructor:->
 
@@ -15,7 +15,7 @@ module.exports = class AboutAppView extends JView
   pistachio : ->
     """
     <section class='introduction'>
-      <h2>About Koding</h2>
+      <h2>Welcome Koding</h2>
       <p class='main-description'>
         Koding is a developer community and cloud development environment where
         developers come together and code in the browser – with a real development
