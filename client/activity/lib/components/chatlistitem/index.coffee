@@ -18,20 +18,22 @@ Portal               = require 'react-portal'
 module.exports = class ChatListItem extends React.Component
 
   @defaultProps =
-    hover      : no
-    editMode   : no
-    isDeleting : no
-    isMenuOpen : no
+    hover          : no
+    editMode       : no
+    isDeleting     : no
+    isMenuOpen     : no
+    editInputValue : ''
 
   constructor: (props) ->
 
     super props
 
     @state =
-      hover      : @props.hover
-      editMode   : @props.editMode
-      isDeleting : @props.isDeleting
-      isMenuOpen : @props.isMenuOpen
+      hover          : @props.hover
+      editMode       : @props.editMode
+      isDeleting     : @props.isDeleting
+      isMenuOpen     : @props.isMenuOpen
+      editInputValue : @props.message.get 'body'
 
 
   isEditedMessage: ->
@@ -123,7 +125,7 @@ module.exports = class ChatListItem extends React.Component
 
   cancelEdit: ->
 
-    @setState editMode: no
+    @setState editMode: no, editInputValue: @props.message.get('body')
 
 
   onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
