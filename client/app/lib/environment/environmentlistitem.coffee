@@ -43,9 +43,9 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       @reinitButton = new kd.ButtonView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
-        callback    : ->
-          ComputeController_UI.askFor 'reinitStack', {}, ->
-            delegate.emit 'StackReinitRequested', stack
+        callback    : =>
+          ComputeController_UI.askFor 'reinitStack', {}, =>
+            @getDelegate().emit 'StackReinitRequested', @getData()
 
     if isKoding()
       @addVMButton = new kd.ButtonView
