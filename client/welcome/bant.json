@@ -1,5 +1,5 @@
 {
-  "name": "about",
+  "name": "welcome",
   "main": "./lib/index.coffee",
   "sprites": [
     "./lib/sprites"
