@@ -20,6 +20,7 @@ module.exports = class GroupStackSettingsV2 extends kd.View
 
     @initialView.on ['CreateNewStack', 'EditStack'], @bound 'showEditor'
 
+    @showEditor()  if kd.singletons.groupsController.currentGroupIsNew()
 
 
   showEditor: (stackTemplate) ->
