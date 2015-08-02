@@ -43,6 +43,9 @@ module.exports = class GroupsController extends KDController
     return stackTemplates?.length > 0
 
 
+  currentGroupIsNew: -> not @getCurrentGroup().stackTemplates
+
+
   filterXssAndForwardEvents: (target, events) ->
     events.forEach (event) =>
       target.on event, (rest...) =>
