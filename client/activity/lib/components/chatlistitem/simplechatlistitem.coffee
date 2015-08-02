@@ -31,11 +31,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
             <MessageBody source={message.get 'body'} />
           </div>
         </div>
-        <div className={@getEditModeClassNames()}>
-          <textarea onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' } ref="EditMessageTextarea"></textarea>
-          <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
-          <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
-        </div>
+        {@renderEditMode()}
         {@renderChatItemMenu()}
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?

@@ -13,6 +13,7 @@ keycode              = require 'keycode'
 ActivityFlux         = require 'activity/flux'
 classnames           = require 'classnames'
 Portal               = require 'react-portal'
+whoami               = require 'app/util/whoami'
 
 
 module.exports = class ChatListItem extends React.Component
@@ -118,9 +119,12 @@ module.exports = class ChatListItem extends React.Component
   updateMessage: ->
 
     @setState editMode: no
-    messageBody = @refs.EditMessageTextarea.getDOMNode().value
-    createdAt   = @props.message.get 'createdAt'
-    ActivityFlux.actions.message.editMessage @props.message.get('id'), messageBody, createdAt
+
+    ActivityFlux.actions.message.editMessage(
+      @props.message.get('id')
+      @state.editInputValue
+      @props.message.get('payload').toJS()
+    )
 
 
   cancelEdit: ->
@@ -131,15 +135,21 @@ module.exports = class ChatListItem extends React.Component
   onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
 
 
-  handleEditMessageKeyDown: (event) ->
+  onEditInputChange: (event) ->
+
+    @setState { editInputValue: event.target.value }
+
+
+  onEditInputKeyDown: (event) ->
 
     code = event.which or event.keyCode
     key  = keycode code
-    @setState editMode: no if key is 'esc'
 
-    if key is 'enter'
-      @setState editMode: no
-      ActivityFlux.actions.message.editMessage @props.message.get('id'), event.target.value
+    switch key
+      when 'esc'
+        @cancelEdit()
+      when 'enter'
+        @updateMessage()
 
 
   getEditModeClassNames: -> classnames
@@ -156,6 +166,26 @@ module.exports = class ChatListItem extends React.Component
     'ChatItem-contentWrapper MediaObject': yes
     'editing': @state.editMode
     'edited' : @isEditedMessage()
+
+
+  renderEditMode: ->
+
+    { message } = @props
+
+    <div className={@getEditModeClassNames()}>
+      <textarea
+        autoFocus
+        onKeyDown={@bound 'onEditInputKeyDown'}
+        onChange={@bound 'onEditInputChange'}
+        value={@state.editInputValue}
+        ref="EditMessageTextarea"></textarea>
+      <button
+        className="solid green done-button"
+        onClick={@bound 'updateMessage'}>DONE</button>
+      <button
+        className="cancel-editing"
+        onClick={@bound 'cancelEdit'}>CANCEL</button>
+    </div>
 
 
   renderChatItemMenu: ->
@@ -201,21 +231,8 @@ module.exports = class ChatListItem extends React.Component
             <MessageBody source={message.get 'body'} />
           </div>
         </div>
-        <div className={@getEditModeClassNames()}>
-          <textarea autoFocus onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' } ref="EditMessageTextarea"></textarea>
-          <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
-          <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
-        </div>
+        {@renderEditMode()}
         {@renderChatItemMenu()}
-        <div className={@getClassNames().editForm}>
-          <textarea
-            onKeyDown={@bound 'handleEditMessageKeyDown'}
-            defaultValue={message.get 'body'}
-            ref="EditMessageTextarea">
-          </textarea>
-          <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'}>DONE</button>
-          <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
-        </div>
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>
