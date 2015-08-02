@@ -114,13 +114,17 @@ generateCreateGroupKallback = (client, req, res, body) ->
 
     { JUser, JGroup, JInvitation } = koding.models
 
-    teamDomain = switch environment
-      when 'production'  then ".koding.com"
-      when 'development' then ".dev.koding.com"
-      else ".#{environment}.koding.com"
+    # this logs you in the newly created group but causes problems
+    # for the default and other subdomains
+    # need to find another way - SY
 
+    # teamDomain = switch environment
+    #   when 'production'  then ".koding.com"
+    #   when 'development' then ".dev.koding.com"
+    #   else ".#{environment}.koding.com"
 
-    res.cookie 'clientId', token, path : '/', domain : teamDomain
+    # res.clearCookie 'clientId'
+    # res.cookie 'clientId', token, path : '/', domain : teamDomain
 
     # set session token for later usage down the line
     owner                      = result.account
