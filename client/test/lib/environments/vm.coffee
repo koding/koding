@@ -53,21 +53,24 @@ module.exports =
 
   updateVMNickname: (browser) ->
 
-      vmModal = modalSelector + ' .AppModal-form'
-      paragraph = helpers.getFakeText()
-      nickname = paragraph.split(' ')[0]
+    vmModal       = modalSelector + ' .AppModal-form'
+    paragraph     = helpers.getFakeText()
+    nickname      = paragraph.split(' ')[0]
+    nicknameInput = vmModal + ' .nickname input[name=nickEdit]'
+    nicknameView  = vmModal + ' .nickname .input-wrapper .kdview'
 
-      helpers.beginTest(browser)
-      helpers.waitForVMRunning(browser)
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-      environmentHelpers.openGeneralSettings(browser)
+    environmentHelpers.openGeneralSettings(browser)
 
-      browser
-        .waitForElementVisible  vmModal, 20000
-        .waitForElementVisible  vmModal + ' .nickname', 20000
-        .click                                   vmModal + ' .nickname .edit'
-        .waitForElementVisible  vmModal + ' .nickname input.hitenterview', 20000
-        .setValue                           vmModal + ' .nickname input.hitenterview', nickname + '\n'
-        .waitForElementVisible  vmModal + ' .nickname .input-wrapper .kdview', 20000
-        .assert.containsText        vmModal + ' .nickname .input-wrapper .kdview', nickname # Assertion
-        .end()
+    browser
+    .waitForElementVisible  vmModal, 20000
+    .waitForElementVisible  vmModal + ' .nickname', 20000
+    .click                  vmModal + ' .nickname .edit'
+    .waitForElementVisible  nicknameInput, 20000
+    .clearValue             nicknameInput
+    .setValue               nicknameInput, nickname + '\n'
+    .waitForElementVisible  nicknameView, 20000
+    .assert.containsText    nicknameView, nickname # Assertion
+    .end()
