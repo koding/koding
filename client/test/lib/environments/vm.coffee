@@ -65,12 +65,12 @@ module.exports =
     environmentHelpers.openGeneralSettings(browser)
 
     browser
-    .waitForElementVisible  vmModal, 20000
-    .waitForElementVisible  vmModal + ' .nickname', 20000
-    .click                  vmModal + ' .nickname .edit'
-    .waitForElementVisible  nicknameInput, 20000
-    .clearValue             nicknameInput
-    .setValue               nicknameInput, nickname + '\n'
-    .waitForElementVisible  nicknameView, 20000
-    .assert.containsText    nicknameView, nickname # Assertion
-    .end()
+      .waitForElementVisible  vmModal, 20000
+      .waitForElementVisible  vmModal + ' .nickname', 20000
+      .click                  vmModal + ' .nickname .edit'
+      .waitForElementVisible  nicknameInput, 20000
+      .clearValue             nicknameInput
+      .setValue               nicknameInput, nickname + '\n'
+      .waitForElementVisible  nicknameView, 20000
+      .assert.containsText    nicknameView, nickname # Assertion
+      .end()
