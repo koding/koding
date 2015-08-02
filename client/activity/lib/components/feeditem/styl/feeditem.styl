@@ -4,7 +4,7 @@ $base-padding               = 24px
   width                     100%
   background                $white
   border-radius             $border-radius
-  border                    1px solid getBorderColor($gray-19)
+  // border                    1px solid #EAEAEA
   margin-bottom             10px
   padding                   0
   font-size                 $fs-regular
@@ -13,20 +13,21 @@ $base-padding               = 24px
     opacity                 .5 !important
 
 .FeedItem-header
-
   padding                   $base-padding $base-padding 0 $base-padding
-
-  .MediaObject-media
-    margin-right            16px
-
-  .MediaObject-content a
-    display                 block
-    float                   left
-    clear                   both
 
 .FeedItem-date
   font-size                 $fs-small
   color                     $color-light-text
+
+.FeedItem-date:before
+  content                   ""
+  display                   inline-block
+  size                      3px, 3px
+  rounded                   50%
+  background                $color-light-text
+  font-size                 8px
+  margin                    0 6px
+  vertical-align            middle
 
 .FeedItem-body
   padding                   ($base-padding/2) $base-padding
@@ -39,21 +40,13 @@ $base-padding               = 24px
 .FeedItemAction a
   color                     $color-light-text
 
-.FeedItemAction~.FeedItemAction:before
-  content                   ""
-  display                   inline-block
-  size                      3px, 3px
-  rounded                   50%
-  background                $color-light-text
-  font-size                 8px
-  margin                    0 6px
-  vertical-align            middle
+.FeedItem-footer
+  border                    1px solid #EAEAEA
+  bg                        color #FBFAF9
+  border-radius             0 0 $border-radius $border-radius
 
 .FeedItem-likeSummary
   padding                   ($base-padding/2) $base-padding
-  border-top                1px solid getBorderColor($gray-19)
-  border-bottom             1px solid getBorderColor($gray-19)
-  bg                        color $gray-19
 
   a
     color                   $gray-2
