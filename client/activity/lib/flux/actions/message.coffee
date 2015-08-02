@@ -2,6 +2,7 @@ kd                     = require 'kd'
 whoami                 = require 'app/util/whoami'
 actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
+messageHelpers         = require '../helpers/message'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -58,8 +59,11 @@ loadMessageBySlug = (slug) ->
  *
  * @param {string} channelId
  * @param {string} body
+ * @param {object=}
 ###
-createMessage = (channelId, body) ->
+createMessage = (channelId, body, payload) ->
+
+  payload = messageHelpers.sanitizePayload payload
 
   { socialapi } = kd.singletons
   { CREATE_MESSAGE_BEGIN
@@ -167,7 +171,9 @@ unlikeMessage = (messageId) ->
  * @param {string} body
  * @param {object=} payload
 ###
-editMessage = (messageId, body, payload = {}) ->
+editMessage = (messageId, body, payload) ->
+
+  payload = messageHelpers.sanitizePayload payload
 
   { socialapi } = kd.singletons
   { EDIT_MESSAGE_BEGIN
@@ -217,7 +223,9 @@ loadComments = (messageId, from, limit) ->
  * @param {string} body
  * @param {object=} payload
 ###
-createComment = (messageId, body, payload = {}) ->
+createComment = (messageId, body, payload) ->
+
+  payload = messageHelpers.sanitizePayload payload
 
   { socialapi } = kd.singletons
   { CREATE_COMMENT_BEGIN
