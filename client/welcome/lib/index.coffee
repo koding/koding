@@ -7,7 +7,7 @@ module.exports = class WelcomeAppController extends KDViewController
 
   @options =
     name  : 'Welcome'
-    route : '/:name?/Welcome'
+    route : '/Welcome'
 
   constructor:(options = {}, data)->
 
