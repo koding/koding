@@ -522,8 +522,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @stacksNotConfiguredWarning = @machinesWrapper.addSubView (new KDCustomHTMLView
       cssClass : 'stack-warning hidden'
-      partial  : "Compute Stacks has not been configured yet for this Team.<br/>
-                  <a href='/Admin/Stacks'>click here</a> to setup now."
+      partial  : "<a href='/Welcome'>Your team page has not been<br/>
+                  fully configured yet please<br/>
+                  click here to setup now.</a>"
       ), null, shouldPrepend = yes
 
     @showStacksNotConfiguredWarning()
