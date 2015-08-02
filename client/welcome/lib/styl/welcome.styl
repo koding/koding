@@ -6,4 +6,85 @@ welcome.styl
 }
 
 body.welcome
-  bg                        color, red
+  size                      100% 100%
+  bg                        color #f0f0f0
+
+  #main-panel-wrapper
+    bg                      color, transparent !important
+
+.content-page.welcome
+  overflow                  hidden
+  max-width                 1000px
+
+  > section
+    width                   451px
+    text-align              center
+    margin                  50px auto 0
+
+    .artboard
+      r-sprite              'welcome' 'congrats'
+      margin                23px auto 0
+
+    h2
+      font-size             24px
+      font-weight           bold
+      line-height           36px
+      color                 #00B057
+      margin                21px 0
+
+    p
+      margin                0 auto 45px
+      font-size             18px
+      line-height           26px
+      color                 #aaa
+      width                 330px
+
+    ul
+      text-align            left
+      margin                0 auto 15px
+
+      li
+        height              80px
+        bg                  color white
+        rounded             3px
+        margin              0 0 10px 0
+        rel()
+        &:after
+          content           ''
+          r-sprite          'welcome' 'app-arrow'
+          abs               33px 20px 0 0
+
+    a
+      display               block
+      size                  100% 100%
+      borderBox()
+      noTextDeco()
+
+      cite
+        size                60px 80px
+        line-height         80px
+        font-size           18px
+        font-weight         bold
+        color               $color-link
+        text-align          center
+        display             block
+        float               left
+
+
+      > div
+        line-height         30px
+        overflow            hidden
+        width               auto
+        padding             10px 0
+        borderBox()
+
+        span
+          display           block
+
+        span:first-child
+          color             #595959
+          font-size         18px
+
+        span:last-child
+          font-size         14px
+          color             #aaa
