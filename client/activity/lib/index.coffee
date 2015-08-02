@@ -6,6 +6,7 @@ getGroup        = require 'app/util/getGroup'
 checkFlag       = require 'app/util/checkFlag'
 AppStorage      = require 'app/appstorage'
 AppController   = require 'app/appcontroller'
+KodingAppsController = require 'app/kodingappscontroller'
 
 require('./routehandler')()
 
@@ -27,6 +28,8 @@ module.exports = class ActivityAppController extends AppController
     {appStorageController} = kd.singletons
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
+
+    helper.loadFonts()
 
 
   post: (options = {}, callback = noop) ->
@@ -133,3 +136,17 @@ module.exports = class ActivityAppController extends AppController
     switch e.model.name
       when 'prevwindow' then @getView().openPrev()
       when 'nextwindow' then @getView().openNext()
+
+helper =
+
+  loadFonts: ->
+
+    global.WebFontConfig =
+      google: { families: [ 'Source+Sans+Pro:400,600:latin', 'Oxygen:400,700:latin' ] }
+
+    options =
+      identifier : 'source-sans-pro'
+      url        : '//ajax.googleapis.com/ajax/libs/webfont/1/webfont.js'
+
+    KodingAppsController.appendHeadElement 'script', options
+
