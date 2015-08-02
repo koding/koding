@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDViewController = kd.ViewController
-WelcomeAppView = require './welcomeappview'
+WelcomeAppView   = require './welcomeappview'
 
 
 module.exports = class WelcomeAppController extends KDViewController
