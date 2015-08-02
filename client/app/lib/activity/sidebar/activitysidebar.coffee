@@ -534,17 +534,21 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @stacksNotConfiguredWarning.show()
 
-    { stackTemplates } = globals.currentGroup
+  # this part is for when there was a stack before
+  # but removed later. disabled until we have a complete ux - SY
 
-    if not stackTemplates
-      @showStacksNotConfiguredModal 'congrats'
-    else if Array.isArray stackTemplates and stackTemplates.length is 0
-      @showStacksNotConfiguredModal 'warning'
+  #   { groupsController } = kd.singletons
+  #   { stackTemplates }   = globals.currentGroup
+
+  #   if not stackTemplates
+  #     kd.singletons.router.handleRoute '/Welcome'
+  #   else if Array.isArray stackTemplates and stackTemplates.length is 0
+  #     @showStacksNotConfiguredModal 'warning'
 
 
-  showStacksNotConfiguredModal: (type) ->
+  # showStacksNotConfiguredModal: (type) ->
 
-    new SidebarStacksNotConfiguredPopup
+  #   new SidebarStacksNotConfiguredPopup
 
 
   addStacksModifiedWarning: ->
