@@ -21,13 +21,21 @@ body.home
       letter-spacing      0.77px
       line-height         29px
       text-decoration     none
+      text-align          center
       color               #535353
-      r-sprite            home 'hiring-home'
-      abs                 -4px 0 0 150px
+      bg                  color #F7E747
+      rounded             3px
+      abs                 -4px 0 0 155px
+      size                88px 29px
       vendor              animation, fadeInRight 1.5s ease both
 
-      span
-        padding-left      18px
+      &:before
+        content           ''
+        abs               9px 0 0 -7px
+        size              0 0
+        border-style      solid
+        border-width      5px 8.7px 5px 0
+        border-color      transparent #f7e847 transparent transparent
 
   #kdmaincontainer.blur
     vendor                filter, blur(5px)
