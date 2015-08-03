@@ -17,7 +17,7 @@ type Request struct {
 
 var (
 	tailedMu    sync.Mutex // protects the followings
-	tailedFiles map[string]*tail.Tail
+	tailedFiles = make(map[string]*tail.Tail)
 )
 
 func Tail(r *kite.Request) (interface{}, error) {
@@ -31,25 +31,42 @@ func Tail(r *kite.Request) (interface{}, error) {
 	}
 
 	if !params.Watch.IsValid() {
-		return nil, errors.New("watch argument is either not passed or is not a function")
+		return nil, errors.New("watch argument is either not passed or it's not a function")
 	}
 
-	t, err := tail.TailFile(params.Path, tail.Config{
-		Follow: true,
-	})
-	if err != nil {
-		return nil, err
+	var err error
+
+	tailedMu.Lock()
+	t, ok := tailedFiles[params.Path]
+	tailedMu.Unlock()
+	if !ok {
+		t, err = tail.TailFile(params.Path, tail.Config{
+			Follow: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		tailedMu.Lock()
+		tailedFiles[params.Path] = t
+		tailedMu.Unlock()
+	}
+
+	stopTail := func() {
+		tailedMu.Lock()
+		t.Stop()
+		delete(tailedFiles, params.Path)
+		tailedMu.Unlock()
 	}
 
 	go func() {
 		for line := range t.Lines {
 			params.Watch.Call(line.Text)
 		}
+		stopTail() // if it stops somehow, just cleanup anything else
 	}()
 
-	r.Client.OnDisconnect(func() {
-		t.Stop()
-	})
+	r.Client.OnDisconnect(stopTail)
 
 	return true, nil
 }
