@@ -323,22 +323,15 @@ func varsFromCredentials(creds *terraformCredentials) map[string]string {
 	return vars
 }
 
-type userdataOutput struct {
-	Label  string
-	Output string
-}
-
-func checkKlients(ctx context.Context, kiteIds map[string]string) ([]userdataOutput, error) {
+func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
-		return nil, errors.New("session context is not passed")
+		return errors.New("session context is not passed")
 	}
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex // protects multierror and outputs
 	var multiErrors error
-
-	outputs := []userdataOutput{}
 
 	check := func(label, kiteId string) error {
 		queryString := protocol.Kite{ID: kiteId}.String()
@@ -348,22 +341,7 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) ([]userdataOut
 		}
 		defer klientRef.Close()
 
-		if err := klientRef.Ping(); err != nil {
-			return err
-		}
-
-		out, err := klientRef.UserData()
-		if err != nil {
-			return err
-		}
-
-		mu.Lock()
-		outputs = append(outputs, userdataOutput{
-			Label:  label,
-			Output: out,
-		})
-		mu.Unlock()
-		return nil
+		return klientRef.Ping()
 	}
 
 	for l, k := range kiteIds {
@@ -381,7 +359,7 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) ([]userdataOut
 
 	wg.Wait()
 
-	return outputs, multiErrors
+	return multiErrors
 }
 
 // isVariable checkes whether the given string is a template variable, such as:

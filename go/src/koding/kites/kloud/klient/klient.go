@@ -195,29 +195,3 @@ func (k *Klient) Ping() error {
 
 	return fmt.Errorf("wrong response %s", out)
 }
-
-// UserData returns the user data output from the given machine.
-func (k *Klient) UserData() (string, error) {
-	var args = struct {
-		Command string
-	}{
-		Command: `sed -n '/SCRIPT_STARTED/,/SCRIPT_FINISHED/p' /var/log/cloud-init-output.log`,
-	}
-
-	resp, err := k.Client.TellWithTimeout("exec", 10*time.Second, args)
-	if err != nil {
-		return "", err
-	}
-
-	var result = struct {
-		Stdout     string `json:"stdout"`
-		Stderr     string `json:"stderr"`
-		ExitStatus int    `json:"exitStatus"`
-	}{}
-
-	if err := resp.Unmarshal(&result); err != nil {
-		return "", err
-	}
-
-	return result.Stdout, nil
-}
