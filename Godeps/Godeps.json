@@ -21,6 +21,11 @@
 			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
 		},
 		{
+			"ImportPath": "github.com/ActiveState/tail",
+			"Comment": "v0-10-g4b368d1",
+			"Rev": "4b368d1590196ade29993d6a0896591403180bbd"
+		},
+		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.6.4-10-g89efc1f",
 			"Rev": "89efc1fea9b8b47f6f6ce72279a7ed9496b4cdb3"
@@ -207,6 +212,11 @@
 			"Rev": "27c40922c40b43fe04554d8223a402af3ea333f3"
 		},
 		{
+			"ImportPath": "gopkg.in/fsnotify.v0",
+			"Comment": "v0.9.3",
+			"Rev": "ea925a0a47d225b2ca7f9932b01d2ed4f3ec74f6"
+		},
+		{
 			"ImportPath": "gopkg.in/fsnotify.v1",
 			"Comment": "v1.1.0",
 			"Rev": "f582d920d11386e8ae15227bb5933a8f9b4c3dec"
@@ -214,6 +224,10 @@
 		{
 			"ImportPath": "gopkg.in/igm/sockjs-go.v2/sockjs",
 			"Rev": "32606d9d36ea669347adc725866c95df69e2509e"
+		},
+		{
+			"ImportPath": "gopkg.in/tomb.v1",
+			"Rev": "dd632973f1e7218eb1089048e0798ec9ae7dceb8"
 		}
 	]
 }
