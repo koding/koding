@@ -158,7 +158,6 @@ module.exports = class ChatListItem extends React.Component
 
 
   getMediaObjectClassNames: -> classnames
-    'MediaObject-content': yes
     'hidden' : @state.editMode
 
 
@@ -177,8 +176,8 @@ module.exports = class ChatListItem extends React.Component
         {makeProfileLink message.get 'account'}
       </span>
       <div className="ChatItem-editActions">
-        <span className="ChatItem-enterToSave">enter to save</span>
-        <span className="ChatItem-escToCancel">esc to cancel</span>
+        <button className="ChatItem-submit" onClick={@bound 'updateMessage'}>enter to save</button>
+        <button className="ChatItem-cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
       <textarea
         autoFocus
@@ -205,7 +204,6 @@ module.exports = class ChatListItem extends React.Component
      'ChatItem-updateMessageForm': yes
      'hidden': not @state.editMode
     mediaContent: classnames
-      'MediaObject-content': yes
       'hidden': @state.editMode
     contentWrapper: classnames
       'ChatItem-contentWrapper': yes

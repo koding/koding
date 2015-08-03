@@ -19,6 +19,7 @@
     .ChatItem-likeLink
       abs()
       pointer()
+      top                     12px
       display                 none
       vertical-align          text-bottom
       padding                 5px
@@ -69,9 +70,6 @@
       padding                 10px 0 0 34px
       margin-top              10px
       overflow                visible
-
-      .MediaObject-content
-        overflow              visible
 
       &.editing
         height                59px
@@ -140,13 +138,20 @@
 
       .ChatItem-editActions
         abs()
-        top                   0
+        top                   2px
         right                 0
         line-height           12px
         font-size             11px
 
-        .ChatItem-escToCancel
-          margin-right      3px
+        button
+          pointer()
+          padding             0
+          outline             none
+          border              none
+          bg                  color, transparent
+
+        .ChatItem-cancel
+          margin-right        3px
 
           &:before
             blockMid()
@@ -154,7 +159,7 @@
             margin-right      6px
             r-sprite          activity 'icon-cross'
 
-        .ChatItem-enterToSave
+        .ChatItem-submit
           margin-right        20px
 
           &:before
@@ -171,9 +176,11 @@
   .ChatItem-messageDate
     abs()
     hidden()
+    top                       0
     left                      15px
 
   .ChatItem-likeLink
+    top                       0
     left                      63px
 
   &:hover
@@ -181,7 +188,7 @@
       visible()
 
   &.editing
-    padding                   10px 0 6px 19px !important
+    padding                   8px 0 6px 19px !important
 
     .ChatItem-updateMessageForm
       margin-left             64px
