@@ -14,7 +14,7 @@ module.exports = (req, res, next)->
     JAccount.one { 'profile.nickname' : user.username }, (err, account) ->
 
       return res.status(500).send 'an error occured'  if err
-      return res.status(404).send 'no account found'  unless user
+      return res.status(404).send 'no account found'  unless account
 
       { data : { profile } } = account
 
