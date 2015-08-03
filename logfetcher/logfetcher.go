@@ -41,7 +41,8 @@ func Tail(r *kite.Request) (interface{}, error) {
 	tailedMu.Unlock()
 	if !ok {
 		t, err = tail.TailFile(params.Path, tail.Config{
-			Follow: true,
+			Follow:    true,
+			MustExist: true,
 		})
 		if err != nil {
 			return nil, err
