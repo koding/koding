@@ -6,7 +6,7 @@ vmSelector = '.sidebar-machine-box.koding-vm-1'
 
 
 module.exports =
-  ###  
+
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
@@ -123,7 +123,7 @@ module.exports =
             browser
               .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
-        ###
+
 
   createSnapshotForNonPaidUser: (browser) ->
     
