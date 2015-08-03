@@ -94,16 +94,25 @@ module.exports = class ChannelThreadPane extends React.Component
 
   render: ->
     <div className={@getClassName()}>
-      <section className="ChannelThreadPane-feedWrapper">
-        {@renderFeed()}
+      <section className="ChannelThreadPane-content">
+        <header className="ChannelThreadPane-header">
+          {@renderHeader()}
+        </header>
+        <div className="ChannelThreadPane-body">
+          <section className="ChannelThreadPane-feedWrapper">
+            {@renderFeed()}
+          </section>
+          <section className="ChannelThreadPane-chatWrapper">
+            {@renderChat()}
+          </section>
+          <section className="ChannelThreadPane-postWrapper">
+            {@renderPost()}
+          </section>
+        </div>
       </section>
-      <section className="ChannelThreadPane-chatWrapper">
-        {@renderChat()}
-      </section>
-      <section className="ChannelThreadPane-postWrapper">
-        {@renderPost()}
-      </section>
-      {@renderChannelSidebar()}
+      <aside className="ChannelThreadPane-sidebar">
+        {@renderSidebar()}
+      </aside>
     </div>
 
 
