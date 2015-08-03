@@ -84,8 +84,7 @@ module.exports = class IDEStatusBar extends KDView
     return  if nickname is nick()
 
     if view = @participantAvatars[nickname]
-      @updateParticipantAvatar view, isOnline
-      return @avatars.addSubView view
+      return @updateParticipantAvatar view, isOnline
 
     view       = new IDEStatusBarAvatarView
       origin   : nickname
@@ -175,6 +174,7 @@ module.exports = class IDEStatusBar extends KDView
     @collaborationStatus.hide()
     @collaborationEndButtonContainer.setClass 'hidden'
     @collaborationStatus.unsetClass 'participant'
+    @participantAvatars = {}
 
 
   handleCollaborationStarted: ->
