@@ -20,6 +20,7 @@ build:
           go test -v ./sshkeys
           go test -v ./storage
           go test -v ./client
+          go test -v ./logfetcher
 
 
 deploy:
