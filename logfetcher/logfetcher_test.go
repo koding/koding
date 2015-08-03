@@ -2,7 +2,10 @@ package logfetcher
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -36,11 +39,18 @@ func init() {
 func TestFetch(t *testing.T) {
 	testFile := "testdata/testfile1.txt"
 
+	initialText, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
-		s := r.One().MustString()
-		fmt.Printf("s = %+v\n", s)
+		line := r.One().MustString()
+		watchResult = append(watchResult, line)
 	})
-	_, err := remote.Tell("fetch", &Request{
+
+	_, err = remote.Tell("fetch", &Request{
 		Path:  testFile,
 		Watch: watchFunc,
 	})
@@ -48,5 +58,12 @@ func TestFetch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	time.Sleep(time.Second * 5)
+	fmt.Println("Waiting for the results..")
+	time.Sleep(time.Second * 1)
+
+	lines := strings.Split(strings.TrimSpace(string(initialText)), "\n")
+	if !reflect.DeepEqual(lines, watchResult) {
+		t.Errorf("\nWant: %v\nGot : %v\n", lines, watchResult)
+	}
+
 }
