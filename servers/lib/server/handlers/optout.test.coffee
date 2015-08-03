@@ -5,7 +5,7 @@ querystring                     = require 'querystring'
 
 { daisy }                       = Bongo
 { expect }                      = require 'chai'
-{ OptoutHandlerHelper }         = require '../../../testhelper/testhelper'
+{ OptoutHandlerHelper }         = require '../../../testhelper'
 { generateOptoutRequestParams } = OptoutHandlerHelper
 
 # here we have actual tests

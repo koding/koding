@@ -10,7 +10,7 @@ Speakeasy                                 = require 'speakeasy'
   generateRandomUsername
 
   LoginHandlerHelper
-  RegisterHandlerHelper }                 = require '../../../testhelper/testhelper'
+  RegisterHandlerHelper }                 = require '../../../testhelper'
 
 { generateLoginRequestParams }            = LoginHandlerHelper
 { generateRegisterRequestParams }         = RegisterHandlerHelper

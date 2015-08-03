@@ -6,7 +6,7 @@ koding                              = require './../bongo'
 { TeamHandlerHelper
   generateRandomEmail
   generateRandomString
-  RegisterHandlerHelper }           = require '../../../testhelper/testhelper'
+  RegisterHandlerHelper }           = require '../../../testhelper'
 
 { convertToArray
   generateJoinTeamRequestParams

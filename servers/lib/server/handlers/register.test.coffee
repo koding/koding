@@ -4,7 +4,7 @@ koding                            = require './../bongo'
 { daisy }                         = Bongo
 { expect }                        = require "chai"
 { generateRandomString
-  RegisterHandlerHelper }         = require '../../../testhelper/testhelper'
+  RegisterHandlerHelper }         = require '../../../testhelper'
 { generateRegisterRequestParams } = RegisterHandlerHelper
 
 hat                               = require 'hat'

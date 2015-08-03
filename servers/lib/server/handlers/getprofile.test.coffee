@@ -10,7 +10,7 @@ request          = require 'request'
 
 { RegisterHandlerHelper
   generateRandomEmail
-  generateRandomString } = require '../../../testhelper/testhelper'
+  generateRandomString } = require '../../../testhelper'
 
 { generateGetProfileRequestParams
   generateRegisterRequestParams } = RegisterHandlerHelper

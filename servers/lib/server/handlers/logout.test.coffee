@@ -5,7 +5,7 @@ querystring                     = require 'querystring'
 
 { daisy }                       = Bongo
 { expect }                      = require 'chai'
-{ LogoutHandlerHelper }         = require '../../../testhelper/testhelper'
+{ LogoutHandlerHelper }         = require '../../../testhelper'
 { generateLogoutRequestParams } = LogoutHandlerHelper
 
 # here we have actual tests

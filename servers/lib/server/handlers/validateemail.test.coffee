@@ -9,7 +9,7 @@ request                                   = require 'request'
   generateRandomUsername
 
   RegisterHandlerHelper
-  ValidationHandlerHelper }               = require '../../../testhelper/testhelper'
+  ValidationHandlerHelper }               = require '../../../testhelper'
 
 { generateRegisterRequestParams }         = RegisterHandlerHelper
 { generateValidateEmailRequestParams }    = ValidationHandlerHelper

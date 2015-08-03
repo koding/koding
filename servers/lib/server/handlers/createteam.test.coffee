@@ -10,7 +10,7 @@ KONFIG                              = require('koding-config-manager').load "mai
 { TeamHandlerHelper
   generateRandomEmail
   generateRandomString
-  RegisterHandlerHelper }           = require '../../../testhelper/testhelper'
+  RegisterHandlerHelper }           = require '../../../testhelper'
 
 { generateRegisterRequestParams }   = RegisterHandlerHelper
 
