@@ -30,16 +30,6 @@ module.exports = class ChatPane extends React.Component
   onSubmit: (event) -> @props.onSubmit? event
 
 
-  renderHeader: ->
-    return null  unless @props.title
-
-    <header className="ChatPane-header">
-      <h3 className="ChatPane-NameLabel">{@props.title}</h3>
-      <div className="ChatPane-SettingsMenuButton"></div>
-      <div className="ChatPane-SearchWidget"></div>
-    </header>
-
-
   renderBody: ->
     return null  unless @props.messages
 
@@ -62,7 +52,6 @@ module.exports = class ChatPane extends React.Component
   render: ->
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="ChatPane-contentWrapper">
-        {@renderHeader()}
         {@renderBody()}
         {@renderFooter()}
       </section>
