@@ -4,6 +4,13 @@ KodingFluxStore = require 'app/flux/store'
 toImmutable     = require 'app/util/toImmutable'
 emojisKeywords  = require 'emojis-keywords'
 
+###*
+ * Store to contain the whole list of available emojis.
+ * Initial list of emojis is taken from emojis-keywords package.
+ * Some of emojis are not handled by emojify library which draws
+ * emoji icons on the page. That's why those emojis are put to
+ * SKIPPED_EMOJIES array and not included in the store
+###
 module.exports = class EmojisStore extends KodingFluxStore
 
   SKIPPED_EMOJIES = [
