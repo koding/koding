@@ -81,17 +81,17 @@ func (c *Cloudwatch) normalizeMeta(machine *models.Machine) (string, string, err
 		return "", "", errors.New("queued machine has no meta")
 	}
 
-	region, ok := meta["region"].(string)
-	if !ok || isEmpty(region) {
-		return "", "", errors.New("queued machine has no region")
-	}
-
 	instanceId, ok := meta["instanceId"].(string)
 	if !ok || isEmpty(instanceId) {
 		return "", "", errors.New("queued machine has no instanceId")
 	}
 
-	return region, instanceId, nil
+	region, ok := meta["region"].(string)
+	if !ok || isEmpty(region) {
+		return "", "", errors.New("queued machine has no region")
+	}
+
+	return instanceId, region, nil
 }
 
 func (c *Cloudwatch) GetMetric(instanceId, region string) (float64, error) {
@@ -108,8 +108,7 @@ func (c *Cloudwatch) GetMetric(instanceId, region string) (float64, error) {
 		metricName    = c.GetName()
 		statistic     = "Sum"
 		dimensionName = "InstanceId"
-
-		dimension = cloudwatch.Dimension{
+		dimension     = cloudwatch.Dimension{
 			Name:  &dimensionName,
 			Value: &instanceId,
 		}
