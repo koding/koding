@@ -1,4 +1,4 @@
-$base-padding               = 24px
+$base-padding               = 18px
 
 .FeedItem
   width                     100%
@@ -18,6 +18,7 @@ $base-padding               = 24px
 .FeedItem-date
   font-size                 $fs-small
   color                     $color-light-text
+
 
 .FeedItem-date:before
   content                   ""
@@ -41,13 +42,32 @@ $base-padding               = 24px
   color                     $color-light-text
 
 .FeedItem-footer
+  dispFlex()
   border                    1px solid #EAEAEA
   bg                        color #FBFAF9
   border-radius             0 0 $border-radius $border-radius
+  padding                   $base-padding
 
-.FeedItem-likeSummary
-  padding                   ($base-padding/2) $base-padding
+.FeedItem-summary
+  flex                      6
+  dispFlex()
+  align-items               center
 
-  a
-    color                   $gray-2
+.FeedItem-summaryItem
+  cite
     font-weight             $fw-semibold
+    margin-right            3px
+
+.FeedItem-summaryItem~.FeedItem-summaryItem:before
+  content                   ""
+  display                   inline-block
+  size                      3px, 3px
+  rounded                   50%
+  background                $gray-5
+  margin                    0 6px
+  vertical-align            middle
+
+.FeedItem-footerActionContainer
+  flex                      4
+  dispFlex()
+  justify-content           flex-end

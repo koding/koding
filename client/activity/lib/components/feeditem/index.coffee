@@ -17,6 +17,12 @@ module.exports = class FeedItem extends React.Component
   shouldComponentUpdate: (nextProps, nextState) ->
     return @props.message isnt nextProps.message
 
+  onConversationButtonClick: (event) ->
+
+    kd.utils.stopDOMEvent event
+
+    kd.singletons.router.handleRoute "/Channels/Public/summary/#{@props.message.get 'slug'}"
+
   render: ->
     { message } = @props
     <div className={kd.utils.curry 'FeedItem', @props.className}>
@@ -32,9 +38,32 @@ module.exports = class FeedItem extends React.Component
         </div>
       </section>
       <footer className="FeedItem-footer">
-        <MessageLikeSummary className="FeedItem-likeSummary" message={message} />
+        <div className="FeedItem-summary">
+          {makeLikes message.getIn ['interactions', 'like', 'actorsCount']}
+          {makeComments message.get 'repliesCount'}
+        </div>
+        <div className="FeedItem-footerActionContainer">
+          <button
+            onClick={@bound 'onConversationButtonClick'}
+            className="Button Button--info">View Conversation</button>
+        </div>
       </footer>
     </div>
+
+
+makeComments = (count) ->
+  return null  unless count
+  <span className="FeedItem-summaryItem FeedItem-replyCount">
+    <cite>{count}</cite>
+    Comments
+  </span>
+
+makeLikes = (count) ->
+  return null  unless count
+  <span className="FeedItem-summaryItem FeedItem-likeCount">
+    <cite>{count}</cite>
+    Likes
+  </span>
 
 
 makeTimeAgo = (createdAt) ->
