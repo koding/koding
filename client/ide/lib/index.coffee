@@ -1746,4 +1746,4 @@ class IDEAppController extends AppController
 
   isChatInputFocused: ->
 
-    return @rtm?.isReady and kd.dom.hasClass document.activeElement, 'collab-chat-input'
+    return kd.dom.hasClass document.activeElement, 'collab-chat-input'

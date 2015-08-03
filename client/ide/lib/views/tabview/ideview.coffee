@@ -80,7 +80,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
-      @focusTab()  unless frontApp.isChatInputFocused()
+      @focusTab()
 
     @tabView.on 'PaneAdded', (pane) =>
 
@@ -267,11 +267,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         options.path = frontApp.workspaceData.rootPath
 
     terminalPane = new IDETerminalPane options
-
-    terminalPane.webtermView.setFocus = ->
-      return  if frontApp.isChatInputFocused()
-
-      WebTermView::setFocus.call this
 
     @createPane_ terminalPane, { name: 'Terminal' }
 
