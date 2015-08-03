@@ -117,5 +117,7 @@ reset = (props) ->
   if postSlug
     messageActions.loadMessageBySlug(postSlug).then ({ message }) ->
       messageActions.changeSelectedMessage message.id
+  else
+    messageActions.changeSelectedMessage null
 
 
