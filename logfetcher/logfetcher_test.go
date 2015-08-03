@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -64,6 +65,30 @@ func TestFetch(t *testing.T) {
 	lines := strings.Split(strings.TrimSpace(string(initialText)), "\n")
 	if !reflect.DeepEqual(lines, watchResult) {
 		t.Errorf("\nWant: %v\nGot : %v\n", lines, watchResult)
+	}
+
+	file, err := os.OpenFile(testFile, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file.WriteString("Tail2\n")
+	file.WriteString("Tail3\n")
+	file.Close()
+
+	modifiedText, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// wait so the watch function picked up the tail changes
+	time.Sleep(time.Second * 1)
+
+	fmt.Printf("watchResult = %+v\n", watchResult)
+
+	modifiedLines := strings.Split(strings.TrimSpace(string(modifiedText)), "\n")
+	if !reflect.DeepEqual(modifiedLines, watchResult) {
+		t.Errorf("\nWant: %v\nGot : %v\n", modifiedLines, watchResult)
 	}
 
 }
