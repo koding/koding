@@ -5,6 +5,7 @@ ActivityFlux   = require 'activity/flux'
 immutable      = require 'immutable'
 classnames     = require 'classnames'
 ThreadSidebar  = require 'activity/components/threadsidebar'
+ThreadHeader   = require 'activity/components/threadheader'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -38,6 +39,14 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   componentWillReceiveProps: (nextProps) -> reset nextProps
+
+
+  renderHeader: ->
+    <ThreadHeader
+      channelThread={@state.channelThread}
+      messageThread={@state.messageThread}
+      isSummaryActive={!!@props.feed}
+    />
 
 
   renderFeed: ->
