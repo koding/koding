@@ -503,17 +503,6 @@ class TeamHandlerHelper
     return requestParams
 
 
-  @generateGetProfileRequestParams = (opts = {}) ->
-
-    url                  = generateUrl route : "-/team/#{opts.email}"
-    defaultRequestParams = generateDefaultRequestParams { url }
-    requestParams        = deepObjectExtend defaultRequestParams, opts
-    # after deep extending object, encodes body param to a query string
-    requestParams.body   = querystring.stringify requestParams.body
-
-    return requestParams
-
-
 class LoginHandlerHelper
 
   @generateLoginRequestBody = (opts = {}) ->
@@ -578,6 +567,17 @@ class RegisterHandlerHelper
     requestParams         = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
     requestParams.body    = querystring.stringify requestParams.body
+
+    return requestParams
+
+
+  @generateGetProfileRequestParams = (opts = {}) ->
+
+    url                  = generateUrl route : "-/profile/#{opts.email}"
+    defaultRequestParams = generateDefaultRequestParams { url }
+    requestParams        = deepObjectExtend defaultRequestParams, opts
+    # after deep extending object, encodes body param to a query string
+    requestParams.body   = querystring.stringify requestParams.body
 
     return requestParams
 
