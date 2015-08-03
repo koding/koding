@@ -6,7 +6,7 @@ emojisKeywords  = require 'emojis-keywords'
 
 module.exports = class EmojisStore extends KodingFluxStore
 
-  SKIPPED_EMOGIES = [
+  SKIPPED_EMOJIES = [
     'back'
     'black_medium_small_square'
     'black_medium_square'
@@ -23,6 +23,6 @@ module.exports = class EmojisStore extends KodingFluxStore
   getInitialState: ->
 
     emojiList = emojisKeywords.filter (emoji) ->
-      return SKIPPED_EMOGIES.indexOf(emoji) is -1
+      return SKIPPED_EMOJIES.indexOf(emoji) is -1
 
     toImmutable emojiList

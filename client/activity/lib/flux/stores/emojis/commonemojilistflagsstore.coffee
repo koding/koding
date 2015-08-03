@@ -6,7 +6,7 @@ module.exports = class CommonEmojiListFlagsStore extends KodingFluxStore
 
   @getterPath = 'CommonEmojiListFlagsStore'
 
-  getInitialState: -> toImmutable { visible : false }
+  getInitialState: -> toImmutable { visible : no }
 
 
   initialize: ->
