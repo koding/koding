@@ -330,31 +330,30 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	}
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex // protects multierror
+	var mu sync.Mutex // protects multierror and outputs
 	var multiErrors error
+
+	check := func(label, kiteId string) error {
+		queryString := protocol.Kite{ID: kiteId}.String()
+		klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
+		if err != nil {
+			return err
+		}
+		defer klientRef.Close()
+
+		return klientRef.Ping()
+	}
 
 	for l, k := range kiteIds {
 		wg.Add(1)
 		go func(label, kiteId string) {
-			defer wg.Done()
-
-			queryString := protocol.Kite{ID: kiteId}.String()
-			klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
-			if err != nil {
+			if err := check(label, kiteId); err != nil {
 				mu.Lock()
 				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't connect to '%s:%s'", label, kiteId))
-				mu.Unlock()
-				return
-			}
-			defer klientRef.Close()
-
-			if err := klientRef.Ping(); err != nil {
-				mu.Lock()
-				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't send ping to '%s:%s': %s", label, kiteId, err))
+					fmt.Errorf("Couldn't check '%s:%s'", label, kiteId))
 				mu.Unlock()
 			}
+			wg.Done()
 		}(l, k)
 	}
 

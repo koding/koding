@@ -134,7 +134,7 @@ type singleUser struct {
 
 func init() {
 	conf = config.New()
-	conf.Username = "testuser"
+	conf.Username = "koding"
 
 	conf.KontrolURL = os.Getenv("KLOUD_KONTROL_URL")
 	if conf.KontrolURL == "" {
@@ -142,7 +142,7 @@ func init() {
 	}
 
 	conf.KontrolKey = testkeys.Public
-	conf.KontrolUser = "testuser"
+	conf.KontrolUser = "koding"
 	conf.KiteKey = testutil.NewKiteKey().Raw
 
 	// Power up our own kontrol kite for self-contained tests
@@ -376,8 +376,8 @@ func TestTerraformStack(t *testing.T) {
 		t.Error(err)
 	}
 
-	// fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
-	// time.Sleep(time.Minute * 5)
+	fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
+	time.Sleep(time.Minute * 5)
 
 	destroyArgs := &kloud.TerraformApplyRequest{
 		StackId:   userData.StackId,

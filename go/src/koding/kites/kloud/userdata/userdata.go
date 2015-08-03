@@ -84,9 +84,11 @@ var (
 
 			lines := strings.Split(cmd, "\n")
 			c := "  - |\n"
+			c += fmt.Sprintf("    %s\n", `echo "==== SCRIPT_STARTED ===="`)
 			for _, line := range lines {
 				c += fmt.Sprintf("    %s\n", line)
 			}
+			c += fmt.Sprintf("    %s\n", `echo "==== SCRIPT_FINISHED ====="`)
 			return c
 		},
 	}
