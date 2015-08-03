@@ -51,6 +51,18 @@ followedPrivateChannels = [
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
 
+channelParticipants = [
+  ChannelParticipantIdsStore
+  UsersStore
+  (channelIds, users) ->
+    channelIds.map (participantIds) ->
+      participantIds.reduce (result, id) ->
+        if users.has id
+        then result.set id, users.get id
+        else result
+      , immutable.Map()
+]
+
 # Maps channels message ids with relevant message instances.
 channelThreads = [
   ChannelThreadsStore
@@ -178,12 +190,10 @@ selectedMessageThreadComments = [
 
 selectedChannelParticipants = [
   SelectedChannelThreadIdStore
-  ChannelParticipantIdsStore
-  UsersStore
-  (selectedId, ids, users) ->
+  channelParticipants
+  (selectedId, participants) ->
     return null  unless selectedId
-    participants = ids.get selectedId
-    participants.map (id) -> users.get id
+    participants.get selectedId
 ]
 
 # Aliases for providing consistent getter names for suggestion stores
