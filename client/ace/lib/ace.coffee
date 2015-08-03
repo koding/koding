@@ -121,7 +121,7 @@ class Ace extends KDView
 
       @prepareEditor()
 
-      @focus()
+      @focus()  unless kd.singletons.appManager.frontApp.isChatInputFocused()
       @show()
 
       kd.utils.defer @lazyBound 'emit', 'ready'
