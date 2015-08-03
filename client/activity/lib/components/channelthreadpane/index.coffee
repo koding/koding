@@ -4,6 +4,7 @@ KDReactorMixin = require 'app/flux/reactormixin'
 ActivityFlux   = require 'activity/flux'
 immutable      = require 'immutable'
 classnames     = require 'classnames'
+ThreadSidebar  = require 'activity/components/threadsidebar'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -63,7 +64,11 @@ module.exports = class ChannelThreadPane extends React.Component
       channelThread : @state.channelThread
 
 
-  renderChannelSidebar: -> null
+  renderSidebar: ->
+    <ThreadSidebar
+      channelThread={@state.channelThread}
+      popularMessages={@state.popularMessages}
+      channelParticipants={@state.channelParticipants}/>
 
 
   getClassName: ->
