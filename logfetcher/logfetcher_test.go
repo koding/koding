@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	lf     *kite.Kite
-	remote *kite.Client
+	lf      *kite.Kite
+	remote  *kite.Client
+	remote2 *kite.Client
 )
 
 func init() {
@@ -32,6 +33,14 @@ func init() {
 	remoteKite.Config.Username = "remote"
 	remote = remoteKite.NewClient("http://127.0.0.1:3639/kite")
 	err := remote.Dial()
+	if err != nil {
+		log.Fatal("err")
+	}
+
+	remoteKite2 := kite.New("remote2", "0.0.1")
+	remoteKite2.Config.Username = "remote2"
+	remote2 = remoteKite2.NewClient("http://127.0.0.1:3639/kite")
+	err = remote2.Dial()
 	if err != nil {
 		log.Fatal("err")
 	}
@@ -90,5 +99,59 @@ func TestTail(t *testing.T) {
 	if !reflect.DeepEqual(modifiedLines, watchResult) {
 		t.Errorf("\nWant: %v\nGot : %v\n", modifiedLines, watchResult)
 	}
+}
 
+func TestTail(t *testing.T) {
+	testFile := "testdata/testfile1.txt"
+
+	initialText, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	watchResult := []string{}
+	watchFunc := dnode.Callback(func(r *dnode.Partial) {
+		line := r.One().MustString()
+		watchResult = append(watchResult, line)
+	})
+
+	_, err = remote.Tell("tail", &Request{
+		Path:  testFile,
+		Watch: watchFunc,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println("Waiting for the results..")
+	time.Sleep(time.Second * 1)
+
+	lines := strings.Split(strings.TrimSpace(string(initialText)), "\n")
+	if !reflect.DeepEqual(lines, watchResult) {
+		t.Errorf("\nWant: %v\nGot : %v\n", lines, watchResult)
+	}
+
+	file, err := os.OpenFile(testFile, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file.WriteString("Tail2\n")
+	file.WriteString("Tail3\n")
+	file.Close()
+
+	modifiedText, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// wait so the watch function picked up the tail changes
+	time.Sleep(time.Second * 1)
+
+	fmt.Printf("watchResult = %+v\n", watchResult)
+
+	modifiedLines := strings.Split(strings.TrimSpace(string(modifiedText)), "\n")
+	if !reflect.DeepEqual(modifiedLines, watchResult) {
+		t.Errorf("\nWant: %v\nGot : %v\n", modifiedLines, watchResult)
+	}
 }
