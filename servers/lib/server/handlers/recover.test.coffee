@@ -10,7 +10,7 @@ querystring                               = require 'querystring'
   generateRandomUsername
 
   RecoverHandlerHelper
-  RegisterHandlerHelper }                 = require '../../../testhelper'
+  RegisterHandlerHelper }                 = require '../../../test/testhelper'
 
 { generateRecoverRequestParams }          = RecoverHandlerHelper
 { generateRegisterRequestParams }         = RegisterHandlerHelper

@@ -10,7 +10,7 @@ querystring                               = require 'querystring'
   generateRandomUsername
 
   RegisterHandlerHelper
-  ValidationHandlerHelper }               = require '../../../testhelper'
+  ValidationHandlerHelper }               = require '../../../test/testhelper'
 
 { generateValidateRequestBody
   generateValidateRequestParams }         = ValidationHandlerHelper
