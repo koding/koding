@@ -65,7 +65,6 @@ runTests = -> describe 'server.handlers.validateemail', ->
       done()
 
 
-  # returns 200 with invalid email address, needs to be investigated
   it 'should send HTTP 400 if email is not valid', (done) ->
 
     validateEmailRequestParams = generateValidateEmailRequestParams
