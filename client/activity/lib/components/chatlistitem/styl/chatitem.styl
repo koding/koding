@@ -136,38 +136,6 @@
         &:focus
           shadow              0 0 3px rgba(125,190,241,.7)
 
-      .ChatItem-editActions
-        abs()
-        top                   2px
-        right                 0
-        line-height           12px
-        font-size             11px
-
-        button
-          pointer()
-          padding             0
-          outline             none
-          border              none
-          bg                  color, transparent
-
-        .ChatItem-cancel
-          margin-right        3px
-
-          &:before
-            blockMid()
-            content           ''
-            margin-right      6px
-            r-sprite          activity 'icon-cross'
-
-        .ChatItem-submit
-          margin-right        20px
-
-          &:before
-            blockMid()
-            content           ''
-            margin-right      6px
-            r-sprite          activity 'check-green'
-
 .ChatItem-contentWrapper.SimpleChatListItem
   margin                      0 !important
   padding                     0 0 0 84px !important
@@ -195,3 +163,35 @@
 
       .ChatItem-authorName
         hidden()
+
+.ChatItem-editActions
+  abs()
+  top                   2px
+  right                 0
+  line-height           12px
+  font-size             11px
+
+  button
+    pointer()
+    padding             0
+    outline             none
+    border              none
+    bg                  color, transparent
+
+.ChatItem-cancel
+  margin-right        3px
+
+  &:before
+    blockMid()
+    content           ''
+    margin-right      6px
+    r-sprite          activity 'icon-cross'
+
+.ChatItem-submit
+  margin-right        20px
+
+  &:before
+    blockMid()
+    content           ''
+    margin-right      6px
+    r-sprite          activity 'check-green'
