@@ -31,7 +31,7 @@ func Tail(r *kite.Request) (interface{}, error) {
 	}
 
 	if !params.Watch.IsValid() {
-		return nil, errors.New("watch argument is not a function")
+		return nil, errors.New("watch argument is either not passed or is not a function")
 	}
 
 	t, err := tail.TailFile(params.Path, tail.Config{
@@ -46,6 +46,10 @@ func Tail(r *kite.Request) (interface{}, error) {
 			params.Watch.Call(line.Text)
 		}
 	}()
+
+	r.Client.OnDisconnect(func() {
+		t.Stop()
+	})
 
 	return true, nil
 }
