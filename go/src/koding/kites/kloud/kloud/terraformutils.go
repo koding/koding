@@ -340,46 +340,42 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) ([]userdataOut
 
 	outputs := []userdataOutput{}
 
+	check := func(label, kiteId string) error {
+		queryString := protocol.Kite{ID: kiteId}.String()
+		klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
+		if err != nil {
+			return err
+		}
+		defer klientRef.Close()
+
+		if err := klientRef.Ping(); err != nil {
+			return err
+		}
+
+		out, err := klientRef.UserData()
+		if err != nil {
+			return err
+		}
+
+		mu.Lock()
+		outputs = append(outputs, userdataOutput{
+			Label:  label,
+			Output: out,
+		})
+		mu.Unlock()
+		return nil
+	}
+
 	for l, k := range kiteIds {
 		wg.Add(1)
 		go func(label, kiteId string) {
-			defer wg.Done()
-
-			queryString := protocol.Kite{ID: kiteId}.String()
-			klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
-			if err != nil {
+			if err := check(label, kiteId); err != nil {
 				mu.Lock()
 				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't connect to '%s:%s'", label, kiteId))
+					fmt.Errorf("Couldn't check '%s:%s'", label, kiteId))
 				mu.Unlock()
-				return
 			}
-			defer klientRef.Close()
-
-			if err := klientRef.Ping(); err != nil {
-				mu.Lock()
-				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't send ping to '%s:%s': %s", label, kiteId, err))
-				mu.Unlock()
-				return
-			}
-
-			out, err := klientRef.UserData()
-			if err != nil {
-				mu.Lock()
-				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't get userdata '%s:%s': %s", label, kiteId, err))
-				mu.Unlock()
-				return
-			}
-
-			mu.Lock()
-			outputs = append(outputs, userdataOutput{
-				Label:  label,
-				Output: out,
-			})
-			mu.Unlock()
-
+			wg.Done()
 		}(l, k)
 	}
 
