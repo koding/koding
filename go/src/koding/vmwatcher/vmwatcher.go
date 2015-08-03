@@ -28,7 +28,7 @@ func getAndSaveQueueMachineMetrics() error {
 	var queue = make(chan *metricQueueMsg)
 	var waitG sync.WaitGroup
 
-	for i := 0; i < WorkerCount; i++ {
+	for i := 0; i < ParallelWorkerCount; i++ {
 		waitG.Add(1)
 
 		go func() {
@@ -75,8 +75,6 @@ func getAndSaveQueueMachineMetrics() error {
 	return nil
 }
 
-var WorkerCount = 4
-
 type actionQueueMsg struct {
 	Machines []*models.Machine
 	Limit    string
@@ -89,7 +87,7 @@ func dealWithMachinesOverLimit() error {
 		waitg sync.WaitGroup
 	)
 
-	for i := 0; i < WorkerCount; i++ {
+	for i := 0; i < ParallelWorkerCount; i++ {
 		go func() {
 			for msg := range queue {
 				act(msg.Machines, msg.Limit, msg.Action)

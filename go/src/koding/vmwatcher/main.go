@@ -24,6 +24,8 @@ var (
 	WorkerName    = "vmwatcher"
 	WorkerVersion = "0.0.1"
 
+	ParallelWorkerCount = 4
+
 	NetworkOut = "NetworkOut"
 
 	NetworkOutLimit    float64 = 2 * 1024 // 2GB/week
