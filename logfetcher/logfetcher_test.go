@@ -1,10 +1,13 @@
 package logfetcher
 
 import (
+	"fmt"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
 )
 
 var (
@@ -32,10 +35,18 @@ func init() {
 
 func TestFetch(t *testing.T) {
 	testFile := "testdata/testfile1.txt"
+
+	watchFunc := dnode.Callback(func(r *dnode.Partial) {
+		s := r.One().MustString()
+		fmt.Printf("s = %+v\n", s)
+	})
 	_, err := remote.Tell("fetch", &Request{
-		Path: testFile,
+		Path:  testFile,
+		Watch: watchFunc,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	time.Sleep(time.Second * 5)
 }

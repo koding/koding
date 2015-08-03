@@ -2,16 +2,23 @@ package logfetcher
 
 import (
 	"errors"
-	"fmt"
+	"sync"
 
 	"github.com/ActiveState/tail"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
 )
 
 type Request struct {
-	Path string
+	Path  string
+	Watch dnode.Function
 }
+
+var (
+	tailedMu    sync.Mutex // protects the followings
+	tailedFiles map[string]*tail.Tail
+)
 
 func Fetch(r *kite.Request) (interface{}, error) {
 	var params *Request
@@ -23,6 +30,10 @@ func Fetch(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("{ path: [string] }")
 	}
 
+	if !params.Watch.IsValid() {
+		return nil, errors.New("watch argument is not a function")
+	}
+
 	t, err := tail.TailFile(params.Path, tail.Config{
 		Follow: true,
 	})
@@ -30,9 +41,11 @@ func Fetch(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	for line := range t.Lines {
-		fmt.Println(line.Text)
-	}
+	go func() {
+		for line := range t.Lines {
+			params.Watch.Call(line.Text)
+		}
+	}()
 
-	return nil, errors.New("not implemented yet")
+	return true, nil
 }
