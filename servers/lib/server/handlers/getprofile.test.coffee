@@ -1,23 +1,19 @@
-JUser                               = null
-JAccount                            = null
+JUser            = null
+JAccount         = null
 
-Bongo                               = require 'bongo'
-koding                              = require './../bongo'
-request                             = require 'request'
-querystring                         = require 'querystring'
+Bongo            = require 'bongo'
+koding           = require './../bongo'
+request          = require 'request'
 
-{ daisy }                           = Bongo
-{ expect }                          = require 'chai'
-{ Relationship }                    = require 'jraphical'
+{ daisy }        = Bongo
+{ expect }       = require 'chai'
 
-{ TeamHandlerHelper
+{ RegisterHandlerHelper
   generateRandomEmail
-  generateRandomString
-  RegisterHandlerHelper }           = require '../../../testhelper/testhelper'
+  generateRandomString } = require '../../../testhelper/testhelper'
 
-# { generateGetTeamRequestParams
-#   generateJoinTeamRequestParams
-#   generateCreateTeamRequestParams } = TeamHandlerHelper
+{ generateGetProfileRequestParams
+  generateRegisterRequestParams } = RegisterHandlerHelper
 
 # begin tests
 describe 'server.handlers.getprofile', ->
@@ -41,7 +37,7 @@ describe 'server.handlers.getprofile', ->
     email   = generateRandomEmail()
 
     methods.forEach (method) ->
-      requestParams = generateGetTeamRequestParams { email, method }
+      requestParams = generateGetProfileRequestParams { email, method }
       queue.push ->
         request requestParams, (err, res, body) ->
           expect(err)             .to.not.exist
@@ -54,34 +50,35 @@ describe 'server.handlers.getprofile', ->
     daisy queue
 
 
-  # it 'should send HTTP 200 if slug is valid using any method', (done) ->
+  it 'should send HTTP 200 if user is found for the given email.', (done) ->
 
-  #   addRequestToQueue = (queue, method, requestParams) ->
-  #     requestParams.method = method
-  #     queue.push ->
-  #       request requestParams, (err, res, body) ->
-  #         expect(err)             .to.not.exist
-  #         expect(res.statusCode)  .to.be.equal 200
-  #         queue.next()
+    queue = []
+    email = generateRandomEmail()
 
-  #   queue                     = []
-  #   methods                   = ['post', 'get', 'put', 'patch']
-  #   randomEmail               = generateRandomEmail()
-  #   getTeamRequestParams      = generateGetTeamRequestParams { groupSlug }
+    registerRequestParams = generateRegisterRequestParams
+      method              : 'post'
+      body                :
+        email             : email
+        username          : generateRandomString()
+        password          : 'testpass'
+        passwordConfirm   : 'testpass'
 
-  #   createTeamRequestParams   = generateCreateTeamRequestParams
-  #     body    :
-  #       slug  : groupSlug
+    profileRequestParams  = generateGetProfileRequestParams { email, method : 'post' }
 
-  #   queue.push ->
-  #     request.post createTeamRequestParams, (err, res, body) ->
-  #       expect(err)             .to.not.exist
-  #       expect(res.statusCode)  .to.be.equal 200
-  #       queue.next()
+    queue.push ->
 
-  #   for method in methods
-  #     addRequestToQueue queue, method, getTeamRequestParams
+      request registerRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 200
+        queue.next()
 
-  #   queue.push -> done()
+    queue.push ->
 
-  #   daisy queue
+      request profileRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 200
+        queue.next()
+
+    queue.push -> done()
+
+    daisy queue
