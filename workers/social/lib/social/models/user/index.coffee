@@ -107,7 +107,7 @@ module.exports = class JUser extends jraphical.Module
       email         :
         type        : String
         validate    : require('../name').validateEmail
-        set         : (value) -> value.trim().toLowerCase()
+        set         : require './emailsanitize'
       password      : String
       salt          : String
       twofactorkey  : String
