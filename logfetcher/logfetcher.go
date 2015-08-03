@@ -20,7 +20,7 @@ var (
 	tailedFiles map[string]*tail.Tail
 )
 
-func Fetch(r *kite.Request) (interface{}, error) {
+func Tail(r *kite.Request) (interface{}, error) {
 	var params *Request
 	if r.Args == nil {
 		return nil, errors.New("arguments are not passed")

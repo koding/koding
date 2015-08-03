@@ -23,7 +23,7 @@ func init() {
 	lf := kite.New("logfetcher", "0.0.1")
 	lf.Config.DisableAuthentication = true
 	lf.Config.Port = 3639
-	lf.HandleFunc("fetch", Fetch)
+	lf.HandleFunc("tail", Tail)
 
 	go lf.Run()
 	<-lf.ServerReadyNotify()
@@ -37,7 +37,7 @@ func init() {
 	}
 }
 
-func TestFetch(t *testing.T) {
+func TestTail(t *testing.T) {
 	testFile := "testdata/testfile1.txt"
 
 	initialText, err := ioutil.ReadFile(testFile)
@@ -51,7 +51,7 @@ func TestFetch(t *testing.T) {
 		watchResult = append(watchResult, line)
 	})
 
-	_, err = remote.Tell("fetch", &Request{
+	_, err = remote.Tell("tail", &Request{
 		Path:  testFile,
 		Watch: watchFunc,
 	})
