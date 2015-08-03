@@ -1,11 +1,11 @@
-kd                    = require 'kd'
-getColorFromString    = require 'app/util/getColorFromString'
-nick                  = require 'app/util/nick'
-FSFile                = require 'app/util/fs/fsfile'
-IDEPane               = require './idepane'
-Ace                   = require 'ace/ace'
-AceView               = require 'ace/aceview'
-IDEHelpers            = require '../../idehelpers'
+kd                 = require 'kd'
+getColorFromString = require 'app/util/getColorFromString'
+nick               = require 'app/util/nick'
+FSFile             = require 'app/util/fs/fsfile'
+IDEPane            = require './idepane'
+IDEAceView         = require '../../views/ace/ideaceview'
+IDEAce             = require '../../views/ace/ideace'
+IDEHelpers         = require '../../idehelpers'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -57,8 +57,9 @@ module.exports = class IDEEditorPane extends IDEPane
       delegate                 : @getDelegate()
       createBottomBar          : no
       createFindAndReplaceView : no
+      aceClass                 : IDEAce
 
-    @addSubView @aceView = new AceView aceOptions, file
+    @addSubView @aceView = new IDEAceView aceOptions, file
 
     {ace} = @aceView
 
