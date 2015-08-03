@@ -6,8 +6,6 @@ module.exports = (req, res, next)->
   { email }           = params
   { JAccount, JUser } = koding.models
 
-  console.log email
-
   JUser.one { email }, (err, user) ->
 
     return res.status(500).send 'an error occured'  if err
