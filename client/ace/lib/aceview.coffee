@@ -27,6 +27,7 @@ module.exports = class AceView extends JView
 
     super options, file
 
+    options.aceClass                or= Ace
     options.advancedSettings         ?= no
     options.createBottomBar          ?= yes
     options.createFindAndReplaceView ?= yes
@@ -37,7 +38,7 @@ module.exports = class AceView extends JView
       delegate: options.delegate or this
       createFindAndReplaceView: options.createFindAndReplaceView
 
-    @ace = new Ace aceOptions, file
+    @ace = new options.aceClass aceOptions, file
 
     if options.createFindAndReplaceView
       @findAndReplaceView = new AceFindAndReplaceView delegate: this
