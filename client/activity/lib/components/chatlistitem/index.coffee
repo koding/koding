@@ -173,18 +173,19 @@ module.exports = class ChatListItem extends React.Component
     { message } = @props
 
     <div className={@getEditModeClassNames()}>
+      <span className="ChatItem-authorName">
+        {makeProfileLink message.get 'account'}
+      </span>
+      <div className="ChatItem-editActions">
+        <span className="ChatItem-enterToSave">enter to save</span>
+        <span className="ChatItem-escToCancel">esc to cancel</span>
+      </div>
       <textarea
         autoFocus
         onKeyDown={@bound 'onEditInputKeyDown'}
         onChange={@bound 'onEditInputChange'}
         value={@state.editInputValue}
         ref="EditMessageTextarea"></textarea>
-      <button
-        className="solid green done-button"
-        onClick={@bound 'updateMessage'}>DONE</button>
-      <button
-        className="cancel-editing"
-        onClick={@bound 'cancelEdit'}>CANCEL</button>
     </div>
 
 

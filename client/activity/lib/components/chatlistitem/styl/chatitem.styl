@@ -5,10 +5,11 @@
   .ChatItem
     rel()
     max-width                 600px
-    padding-left              24px
 
     .ChatItem-authorName
-      margin-right            10px
+      display                 inline-block
+      font-size               12px
+      margin                  4px 10px 2px 0
 
     time
       color                   #999
@@ -65,13 +66,19 @@
         bg                    color, transparent
 
     .ChatItem-contentWrapper
-      padding                 10px 0 0 10px
+      padding                 10px 0 0 34px
       margin-top              10px
+      overflow                visible
+
+      .MediaObject-content
+        overflow              visible
 
       &.editing
+        height                59px
         rounded               3px 3px 0 0
-        padding               10px 0 6px 10px
-        bg                    color, #FDF6E3
+        padding               10px 0 6px 34px
+        bg                    color, $light-yellow
+        overflow              hidden
 
         > div
           max-width           485px
@@ -110,47 +117,55 @@
       z-index                 1
       width                   calc(100% \- 55px)
 
+      .ChatItem-authorName
+        abs()
+        margin-top            2px
+
       textarea
         borderBox()
         outline               none
         rounded               3px
         font-size             14px
         color                 #4C4C4C
-        line-height           19px
-        border                1px solid #DFCC97
-        padding               6px
-        size                  100%, 34px
+        line-height           26px
+        border                2px solid $gray-18
+        padding               0 6px
+        size                  100%, 30px
         resize                none
         display               block
-        margin-bottom         2px
+        margin-top            24px
 
         &:focus
           shadow              0 0 3px rgba(125,190,241,.7)
 
-      button
-        fr()
-        pointer()
-        height                20px
-        border                none
-        text-align            center
-        font-size             12px
-        padding               0 10px
+      .ChatItem-editActions
+        abs()
+        top                   0
+        right                 0
+        line-height           12px
+        font-size             11px
 
-      button.green
-        rounded               6px
-        bg                    color, #61C17F
-        color                 #FFF
+        .ChatItem-escToCancel
+          margin-right      3px
 
-        &:hover, &:focus, &:active
-          bg                  color, #2DBEA1
+          &:before
+            blockMid()
+            content           ''
+            margin-right      6px
+            r-sprite          activity 'icon-cross'
 
-      button.cancel-editing
-        bg                    color, transparent
-        color                 #999
+        .ChatItem-enterToSave
+          margin-right        20px
+
+          &:before
+            blockMid()
+            content           ''
+            margin-right      6px
+            r-sprite          activity 'check-green'
 
 .ChatItem-contentWrapper.SimpleChatListItem
   margin                      0 !important
-  padding                     0 0 0 60px !important
+  padding                     0 0 0 84px !important
 
 
   .ChatItem-messageDate
@@ -166,7 +181,10 @@
       visible()
 
   &.editing
-    padding                   10px 0 6px 10px !important
+    padding                   10px 0 6px 19px !important
 
     .ChatItem-updateMessageForm
-      margin-left             50px
+      margin-left             64px
+
+      .ChatItem-authorName
+        hidden()
