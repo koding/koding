@@ -13,6 +13,8 @@ emojisKeywords  = require 'emojis-keywords'
 ###
 module.exports = class EmojisStore extends KodingFluxStore
 
+  @getterPath = 'EmojisStore'
+
   SKIPPED_EMOJIES = [
     'back'
     'black_medium_small_square'
@@ -24,8 +26,6 @@ module.exports = class EmojisStore extends KodingFluxStore
     'white_medium_square'
     'white_small_square'
   ]
-
-  @getterPath = 'EmojisStore'
 
   getInitialState: ->
 
