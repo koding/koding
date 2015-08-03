@@ -31,5 +31,11 @@ func init() {
 }
 
 func TestFetch(t *testing.T) {
-	t.Error("not implemented yet")
+	testFile := "testdata/testfile1.txt"
+	_, err := remote.Tell("fetch", &Request{
+		Path: testFile,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 }
