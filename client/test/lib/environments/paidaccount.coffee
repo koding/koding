@@ -6,7 +6,7 @@ vmSelector = '.sidebar-machine-box.koding-vm-1'
 
 
 module.exports =
-  
+  ###  
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
@@ -123,7 +123,7 @@ module.exports =
             browser
               .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
-              
+        ###
 
   createSnapshotForNonPaidUser: (browser) ->
     
@@ -141,21 +141,11 @@ module.exports =
 
   createSnapshot: (browser) ->
    
-    upgradeSelector = '.kdmodal.computeplan-modal .custom-link-view'
     labelSelector   = '.kdlistitemview-snapshot .info .label'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    environmentHelpers.attemptCreateSnapshot(browser)
     
-    browser
-      .waitForElementVisible upgradeSelector, 20000
-      .click                 upgradeSelector
-
-    helpers.selectPlan(browser)
-    helpers.fillPaymentForm(browser)
-    
-    browser.url helpers.getUrl() + '/IDE'
     name = environmentHelpers.createSnapshot(browser)
 
     browser
@@ -164,25 +154,37 @@ module.exports =
       .end()
  
 
+  renameSnapshot: (browser) ->
+    
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.openSnapshotsSettings(browser)
+
+    environmentHelpers.createSnapshotIfNotFound browser, (name)->
+      environmentHelpers.attemptCreateSnapshot(browser)
+      renamed = environmentHelpers.nameSnapshot(browser)
+      environmentHelpers.assertSnapshotPresent browser, renamed, false
+      browser.end()
+      
+
+
   #This test depends on createSnapshot
   deleteSnapshot: (browser) ->
 
-    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot"
     confirmSelector = ".kdmodal .kdmodal-buttons .red"
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     environmentHelpers.openSnapshotsSettings(browser)
 
-    browser.element 'css selector', ".kdlistview .kdlistitemview-snapshot", (result) ->
-      
-      if result.status is not 0
-        environmentHelpers.createSnapshot(browser)
+    environmentHelpers.createSnapshotIfNotFound browser, (name)->
 
       environmentHelpers.deleteSnapshot(browser)
 
       browser
         .waitForElementNotPresent confirmSelector, 20000
         .pause                    1000 #Deleted snapshots take a little time to disappear.
-        .assert.elementNotPresent elementSelector #Assertion
-        .end()
+      
+      environmentHelpers.assertSnapshotPresent browser, name, true
+
+      browser.end()
