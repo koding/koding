@@ -237,6 +237,15 @@ utils.extend utils,
       error       : callbacks.error
 
 
+  getProfile: (email, callbacks) ->
+
+    $.ajax
+      url         : "/-/profile/#{email}"
+      type        : 'GET'
+      success     : callbacks.success
+      error       : callbacks.error
+
+
   joinTeam: (callbacks = {}) ->
 
     formData = createFormData()

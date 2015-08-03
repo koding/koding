@@ -5,6 +5,7 @@ do ->
   KD.registerRoutes 'Team',
 
     '/Team'       : handleRoot
+    '/Team/Login' : -> KD.singletons.router.handleRoute '/Login'
     '/Team/:step' : ({ params : { step }, query }) ->
 
       unless KD.config.hasTeamAccess

@@ -45,7 +45,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
 
     domains = group.allowedDomains
 
-    return  unless domains
+    return  if not domains or not domains.first
 
     @inviteDesc.updatePartial if domains.length > 1
       domainsPartial = KD.utils.getAllowedDomainsPartial domains

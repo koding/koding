@@ -3,17 +3,17 @@ TeamView = require './AppView'
 FLOW_ROUTES  =
   'signup'        : '/Teams'
   'domain'        : '/Team/Domain'
-  'email-domains' : '/Team/Email-domains'
-  'invite'        : '/Team/Invite'
   'username'      : '/Team/Username'
-  'stacks'        : '/Team/Stacks'
   'welcome'       : '/Team/Welcome'
   'join'          : '/Team/Join'
   'register'      : '/Team/Register'
-  'congrats'      : '/Team/Congrats'
+  # 'email-domains' : '/Team/Email-domains'
+  # 'invite'        : '/Team/Invite'
+  # 'stacks'        : '/Team/Stacks'
+  # 'congrats'      : '/Team/Congrats'
 
-CREATION_FLOW = [ 'signup', 'domain', 'email-domains', 'invite'
-                  'username', 'stacks', 'congrats' ]
+# 'email-domains' and 'invite' left out intentionally
+CREATION_FLOW = [ 'signup', 'domain', 'username' ]
 # JOIN_FLOW     = [ 'welcome', 'join' ]
 
 

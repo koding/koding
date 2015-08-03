@@ -55,14 +55,23 @@ module.exports = class TeamsView extends JView
       @form = new TeamsSignupForm
         cssClass : 'TeamsModal--middle login-form'
         callback : (formData) ->
-          go = ->
+
+          finalize = (email) ->
             KD.utils.storeNewTeamData 'signup', formData
             KD.singletons.router.handleRoute '/Team/Domain'
 
+            return  unless email
+
+            KD.utils.getProfile email,
+              error   : ->
+              success : (profile) ->
+                formData.profile = profile  if profile
+                KD.utils.storeNewTeamData 'signup', formData
+
           { email } = formData
           KD.utils.validateEmail { email },
-            success : -> formData.alreadyMember = no; go()
-            error   : -> formData.alreadyMember = yes; go()
+            success : -> formData.alreadyMember = no; do finalize
+            error   : -> formData.alreadyMember = yes; finalize email
 
       @playVideoIcon = new KDCustomHTMLView
         tagName  : 'span'
