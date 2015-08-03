@@ -159,7 +159,8 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
         return @destroy()  if wasApproved
 
-        doNavigation()
+        envDataProvider.fetch =>
+          doNavigation()
 
       { channelId } = @getOptions()
 
