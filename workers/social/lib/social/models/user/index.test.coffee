@@ -11,7 +11,7 @@ mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
 JAccount                      = require '../account'
 JSession                      = require '../session'
 Speakeasy                     = require 'speakeasy'
-TestHelper                    = require '../../../../testhelper'
+TestHelper                    = require '../../../../test/testhelper'
 
 { daisy }                     = Bongo
 { generateUserInfo
