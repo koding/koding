@@ -941,7 +941,15 @@ module.exports = CollaborationController =
 
   removeMachineNode: ->
 
-    kd.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
+    { activitySidebar } = kd.singletons.mainView
+
+    machineBox = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
+
+    if machineBox.listController.getItemCount() > 1
+      machineBox.removeWorkspace @workspaceData.getId()
+    else
+      activitySidebar.removeMachineNode @mountedMachine
+
     environmentDataProvider.removeCollaborationMachine @mountedMachine
 
 
