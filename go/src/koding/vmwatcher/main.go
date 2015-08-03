@@ -24,7 +24,7 @@ var (
 	WorkerName    = "vmwatcher"
 	WorkerVersion = "0.0.1"
 
-	ParallelWorkerCount = 4
+	ParallelWorkerCount = 8
 
 	NetworkOut = "NetworkOut"
 
