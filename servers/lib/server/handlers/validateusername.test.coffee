@@ -8,7 +8,7 @@ request                                   = require 'request'
   generateRandomUsername
 
   RegisterHandlerHelper
-  ValidationHandlerHelper }               = require '../../../test/testhelper'
+  ValidationHandlerHelper }               = require '../../../testhelper/testhelper'
 
 { generateRegisterRequestParams }         = RegisterHandlerHelper
 { generateValidateUsernameRequestParams } = ValidationHandlerHelper

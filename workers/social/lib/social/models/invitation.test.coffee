@@ -13,7 +13,7 @@ JInvitation                   = require './invitation'
 { generateRandomEmail
   generateDummyClient
   generateRandomString
-  generateDummyUserFormData } = require '../../../test/testhelper'
+  generateDummyUserFormData } = require '../../../testhelper/testhelper'
 
 
 registerUserGenerateGroup = (adminClient, adminUserFormData, callback) ->
