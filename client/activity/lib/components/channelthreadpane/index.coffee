@@ -17,6 +17,7 @@ module.exports = class ChannelThreadPane extends React.Component
       messageThread         : getters.selectedMessageThread
       messageThreadComments : getters.selectedMessageThreadComments
       popularMessages       : getters.selectedChannelPopularMessages
+      channelParticipants   : getters.selectedChannelParticipants
     }
 
 
@@ -30,6 +31,7 @@ module.exports = class ChannelThreadPane extends React.Component
       messageThread         : immutable.Map()
       messageThreadComments : immutable.List()
       popularMessages       : immutable.List()
+      channelParticipants   : immutable.List()
 
 
   componentDidMount: -> reset @props
@@ -107,6 +109,10 @@ reset = (props) ->
     channelActions.loadChannelByName(channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadPopularMessages channel.id
+      channelActions.loadParticipants channel.id, channel.participantsPreview
+
+  else
+    thread.changeSelectedThread null
 
   if postSlug
     messageActions.loadMessageBySlug(postSlug).then ({ message }) ->
