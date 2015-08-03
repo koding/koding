@@ -164,13 +164,7 @@ getReferences = (manager, channelId, initialSnapshot) ->
   return refs
 
 
-getParticipantWatchMap = (manager, nickname) ->
-
-  watchMap = getFromManager manager, "#{nickname}WatchMap", 'map', {}
-
-  manager.bindRealtimeListeners watchMap, 'map'
-
-  return watchMap
+getParticipantWatchMap = (manager, nickname) ->  getFromManager manager, "#{nickname}WatchMap", 'map', {}
 
 
 ###*
