@@ -32,6 +32,7 @@ module.exports =
 
   componentWillUnmount: ->
 
+    component = this
     while component.__unwatchFns.length
       component.__unwatchFns.shift()()
 

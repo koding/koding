@@ -62,10 +62,11 @@ loadParticipants = (channelId, participantsPreview = []) ->
       dispatch LOAD_CHANNEL_PARTICIPANTS_FAIL, { err, channelId }
       return
 
-    participants.forEach (participant) ->
-      { accountOldId } = participant
-      appActions.user.loadAccount accountOldId
-      dispatch LOAD_CHANNEL_PARTICIPANT_SUCCESS, { channelId, userId: accountOldId }
+    kd.singletons.reactor.batch ->
+      participants.forEach (participant) ->
+        { accountOldId } = participant
+        appActions.user.loadAccount accountOldId
+        dispatch LOAD_CHANNEL_PARTICIPANT_SUCCESS, { channelId, userId: accountOldId }
 
 
 ###*
