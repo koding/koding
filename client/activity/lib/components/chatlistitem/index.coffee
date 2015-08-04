@@ -176,8 +176,8 @@ module.exports = class ChatListItem extends React.Component
         {makeProfileLink message.get 'account'}
       </span>
       <div className="ChatItem-editActions">
-        <button className="ChatItem-submit" onClick={@bound 'updateMessage'}>enter to save</button>
-        <button className="ChatItem-cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
+        <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
+        <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
       <textarea
         autoFocus

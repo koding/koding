@@ -166,32 +166,31 @@
 
 .ChatItem-editActions
   abs()
-  top                   2px
-  right                 0
-  line-height           12px
-  font-size             11px
+  top                         2px
+  right                       0
+  line-height                 12px
+  font-size                   11px
 
-  button
-    pointer()
-    padding             0
-    outline             none
-    border              none
-    bg                  color, transparent
-
-.ChatItem-cancel
-  margin-right        3px
+.ChatItem-editAction
+  pointer()
+  padding                   0
+  outline                   none
+  border                    none
+  bg                        color, transparent
 
   &:before
     blockMid()
-    content           ''
-    margin-right      6px
-    r-sprite          activity 'icon-cross'
+    content                   ''
+    margin-right              6px
 
-.ChatItem-submit
-  margin-right        20px
+  &.cancel
+    margin-right              3px
 
-  &:before
-    blockMid()
-    content           ''
-    margin-right      6px
-    r-sprite          activity 'check-green'
+    &:before
+      r-sprite                  activity 'icon-cross'
+
+  &.submit
+    margin-right              20px
+
+    &:before
+      r-sprite                  activity 'check-green'
