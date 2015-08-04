@@ -1241,10 +1241,66 @@ Admin main styles
 
 .AppModal--admin .stacks-v2
 
+  .step-creds
+    .form-view
+      height                calc(100% \- 110px)
+      border-bottom         1px solid #EEE
+
+    &.form-open
+      .credential-list
+        display             none
+
+
   .step-define-stack
     height                  100%
     .editor-view
       height                calc(100% \- 140px)
+
+  .kdview.credential-status
+    width                   200px
+    line-height             38px
+    font-size               13px
+    text-align              right
+    right                   10px
+    top                     0
+    z-index                 1
+    abs()
+
+    .link
+    .message
+      display               inline-block
+
+    .link
+      color                 #02A74D
+      text-decoration       underline
+      cursor                pointer
+
+    .icon
+    .kdloader
+      width                 8px
+      display               inline-block
+      margin-right          10px
+
+    .icon
+      &.not
+        r-sprite            account, 'cross-8'
+      &.verified
+        r-sprite            account, 'check-8'
+
+  .kdview.output
+    top                     100%
+    vendor                  transition, top .2s ease
+    height                  calc(50% - 43px)
+    background-color        rgba(255,255,255,.98)
+    border-radius           0 0 2px 2px
+    z-index                 12
+    abs()
+
+    &.raise
+      top                   50%
+
+    pre.output-view
+      height                auto
 
 
 .AppModal--admin .members
@@ -1496,3 +1552,7 @@ Admin main styles
         width               auto
         top                 1px
         rel()
+
+
+.kdmodal.content-modal
+  overflow                  auto

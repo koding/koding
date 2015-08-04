@@ -22,32 +22,12 @@ module.exports = class GroupStackSettingsV2 extends kd.View
 
       initialView.hide()
 
-      requiresReload  = !stackTemplate?
       defineStackView = @addSubView new DefineStackView {}, { stackTemplate }
 
-      defineStackView.on ['Cancel', 'Completed'], (stackTemplate) ->
-        initialView.reload()  if requiresReload
+      defineStackView.on 'Reload', ->
+        initialView.reload()
+
+      defineStackView.on ['Cancel', 'Completed'], ->
         initialView.show()
         @destroy()
 
-
-  setGroupTemplate: (stackTemplate) ->
-
-    { computeController, groupsController } = kd.singletons
-
-    currentGroup = groupsController.getCurrentGroup()
-    { slug }     = currentGroup
-
-    if slug is 'koding'
-      return new kd.NotificationView
-        title: 'Setting stack template for koding is disabled'
-
-    currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
-      return @showError err  if err
-
-      new kd.NotificationView
-        title : "Group (#{slug}) stack has been saved!"
-        type  : 'mini'
-
-      computeController.createDefaultStack yes
-      computeController.checkStackRevisions()
