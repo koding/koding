@@ -93,8 +93,6 @@ func TestTail(t *testing.T) {
 	// wait so the watch function picked up the tail changes
 	time.Sleep(time.Second * 1)
 
-	fmt.Printf("watchResult = %+v\n", watchResult)
-
 	modifiedLines := strings.Split(strings.TrimSpace(string(modifiedText)), "\n")
 	if !reflect.DeepEqual(modifiedLines, watchResult) {
 		t.Errorf("\nWant: %v\nGot : %v\n", modifiedLines, watchResult)
@@ -102,7 +100,7 @@ func TestTail(t *testing.T) {
 }
 
 func TestMultipleTail(t *testing.T) {
-	testFile := "testdata/testfile1.txt"
+	testFile := "testdata/testfile2.txt"
 
 	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
@@ -132,17 +130,21 @@ func TestMultipleTail(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	time.Sleep(time.Second * 1)
+
 	file, err := os.OpenFile(testFile, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer file.Close()
 
 	file.WriteString("Tail2\n")
 	file.WriteString("Tail3\n")
-	file.Close()
 
 	// wait so the watch function picked up the tail changes
 	time.Sleep(time.Second * 1)
+	fmt.Printf("watchResult = %+v\n", watchResult)
+	fmt.Printf("watchResult2 = %+v\n", watchResult2)
 
 	// Now check the new two results
 	if !reflect.DeepEqual(
@@ -154,4 +156,29 @@ func TestMultipleTail(t *testing.T) {
 			watchResult2[len(watchResult2)-2:],
 		)
 	}
+
+	// Now let us disconnect the second connection, we should receive any new
+	// changes for watchResult2 (From watchFunc2) anymore
+
+	currentWatchLen := len(watchResult)
+	currentWatch2Len := len(watchResult2)
+	remote2.Close()
+
+	// wait so onDisconnect get recognized on Kite
+	time.Sleep(time.Second)
+
+	file.WriteString("Tail4\n")
+	file.WriteString("Tail5\n")
+
+	// wait so the watch function picked up the tail changes
+	time.Sleep(time.Second * 1)
+
+	if currentWatch2Len != len(watchResult2) {
+		t.Errorf("WatchFunc2 is still triggered, got %d should have %d", len(watchResult2), currentWatch2Len)
+	}
+
+	if currentWatchLen+2 != len(watchResult) {
+		t.Errorf("WatchFunc2 is not triggered, got %d should have %d", len(watchResult), currentWatchLen+2)
+	}
+
 }
