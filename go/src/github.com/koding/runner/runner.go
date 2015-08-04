@@ -48,6 +48,7 @@ type Runner struct {
 	Done            chan error
 	Kite            *kite.Kite
 	Metrics         *metrics.Metrics
+	SQS             *SQS
 }
 
 func New(name string) *Runner {
@@ -206,6 +207,10 @@ func (r *Runner) Close() error {
 		}
 
 		r.Kite.Close()
+	}
+
+	if r.SQS != nil {
+		r.SQS.Close()
 	}
 
 	return err
