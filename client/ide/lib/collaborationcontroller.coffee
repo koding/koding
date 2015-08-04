@@ -257,7 +257,6 @@ module.exports = CollaborationController =
     @permissions       = refs.permissions
     @broadcastMessages = refs.broadcastMessages
     @myWatchMap        = refs.watchMap
-    @hostSnapshot      = refs.hostSnapshot
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       @participants      = null
@@ -266,7 +265,6 @@ module.exports = CollaborationController =
       @permissions       = null
       @broadcastMessages = null
       @myWatchMap        = null
-      @hostSnapshot      = null
 
 
   registerCollaborationSessionId: ->
@@ -321,23 +319,24 @@ module.exports = CollaborationController =
 
   syncParticipantToHost: ->
 
-    hostSnapshot    = @getHostSnapshotForParticipant()
-    recoveredPanes  = @layoutManager.clearWorkspace yes # Recover opened panes
-    @layoutManager.resurrectSnapshot hostSnapshot, yes
+    @getHostSnapshot (snapshot) =>
 
-    return  unless recoveredPanes.length
+      recoveredPanes  = @layoutManager.clearWorkspace yes # Recover opened panes
+      @layoutManager.resurrectSnapshot snapshot, yes
 
-    kd.utils.defer =>
-      for pane in recoveredPanes
-        isAdded = no
+      return  unless recoveredPanes.length
 
-        @forEachSubViewInIDEViews_ (p) ->
-          isAdded = yes  if p.hash is pane.view.hash
+      kd.utils.defer =>
+        for pane in recoveredPanes
+          isAdded = no
 
-        unless isAdded
-          @activeTabView.addPane pane
+          @forEachSubViewInIDEViews_ (p) ->
+            isAdded = yes  if p.hash is pane.view.hash
 
-      @doResize()
+
+          @activeTabView.addPane pane  unless isAdded
+
+        @doResize()
 
 
   bindSocialChannelEvents: ->
@@ -593,22 +592,11 @@ module.exports = CollaborationController =
       # Check it while `myWatchMap` is unfilled
       # or the participant isn't following the host.
       if not mapLength or (mapLength and @amIWatchingChangeOwner(@collaborationHost))
-        @layoutManager.resurrectSnapshot @getHostSnapshotForParticipant(), yes
+        @getHostSnapshot (snapshot) =>
+          @layoutManager.resurrectSnapshot snapshot, yes
       else
         @fetchSnapshot (snapshot) =>
           @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
-
-
-  getHostSnapshotKey: ->
-
-    return "#{@getCollaborationHost()}Snapshot"
-
-
-  getHostSnapshotForParticipant: ->
-
-    key = @getHostSnapshotKey()
-
-    return @rtm.getFromModel(key)?.get 'layout'
 
 
   showShareButton: ->
@@ -1157,18 +1145,6 @@ module.exports = CollaborationController =
       then @stateMachine.transition 'Loading'
 
 
-  ###*
-   * Update the host's layout model in collaboration.
-  ###
-  updateHostSnapshotModel: ->
-
-    return  unless @rtm
-
-    @whenRealtimeReady =>
-      value = @getWorkspaceSnapshot()
-      @hostSnapshot.set 'layout', value  # Update key
-
-
   setInitialSessionSetting: (name, value) ->
 
     @initialSettings ?= {}
@@ -1208,3 +1184,11 @@ module.exports = CollaborationController =
         participants.push user.nickname
 
     return participants
+
+
+  getHostSnapshot: (callback = kd.noop) ->
+
+    @fetchSnapshot (snapshot) =>
+      callback snapshot
+    ,@getCollaborationHost()
+

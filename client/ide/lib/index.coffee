@@ -865,7 +865,6 @@ class IDEAppController extends AppController
     value = @getWorkspaceSnapshot()
 
     @mountedMachine.getBaseKite().storageSetQueued name, value
-    @updateHostSnapshotModel()  if @amIHost
 
 
   removeWorkspaceSnapshot: (username = nick()) ->
@@ -1639,7 +1638,7 @@ class IDEAppController extends AppController
           @openFile { file, contents }
 
 
-  fetchSnapshot: (callback) ->
+  fetchSnapshot: (callback, username = nick()) ->
 
     if not @mountedMachine or not @mountedMachine.isRunning()
       callback null
@@ -1655,7 +1654,7 @@ class IDEAppController extends AppController
       key = @getWorkspaceSnapshotName username
       @mountedMachine.getBaseKite().storageGet key
 
-    fetch nick()
+    fetch username
 
       .then (snapshot) =>
 

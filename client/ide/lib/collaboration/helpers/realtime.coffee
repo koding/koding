@@ -137,7 +137,6 @@ getReferences = (manager, channelId, initialSnapshot) ->
 
   nickname          = getNick()
   watchMapName      = "#{nickname}WatchMap"
-  snapshotName      = "#{nickname}Snapshot"
   defaultPermission = { default: 'edit' }
 
   refs =
@@ -148,9 +147,6 @@ getReferences = (manager, channelId, initialSnapshot) ->
     broadcastMessages : getFromManager manager, 'broadcastMessages', 'list', []
     pingTime          : getFromManager manager, 'pingTime', 'list', []
     watchMap          : getFromManager manager, watchMapName, 'map', {}
-    hostSnapshot      : getFromManager manager, snapshotName, 'map', {}
-
-  refs.hostSnapshot.set 'layout', initialSnapshot
 
   manager.bindRealtimeListeners refs.changes, 'list'
   manager.bindRealtimeListeners refs.broadcastMessages, 'list'
@@ -158,7 +154,6 @@ getReferences = (manager, channelId, initialSnapshot) ->
   manager.bindRealtimeListeners refs.permissions, 'map'
 
   manager.once 'RealtimeManagerWillDispose', =>
-    refs.hostSnapshot.clear() # Clear host's layout data.
     manager.unbindRealtimeListeners refs.changes, 'list'
     manager.unbindRealtimeListeners refs.broadcastMessages, 'list'
     manager.unbindRealtimeListeners refs.watchMap, 'map'
@@ -241,11 +236,7 @@ removeParticipantFromList = (participants, nickname) ->
 ###
 removeParticipantFromMaps = (manager, nickname) ->
 
-  myWatchMapName = "#{nickname}WatchMap"
-  mySnapshotName = "#{nickname}Snapshot"
-
-  manager.delete 'map', myWatchMapName
-  manager.delete 'map', mySnapshotName
+  manager.delete 'map', "#{nickname}WatchMap"
 
 
 ###*
