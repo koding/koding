@@ -51,13 +51,13 @@ module.exports =
   openAdvancedSettings: (browser, vmName) ->
 
     @openVmSettingsModal browser, vmName, '.advanced'
-  
+
   openSnapshotsSettings: (browser,vmName) ->
 
     @openVmSettingsModal browser, vmName, '.snapshots'
 
   attemptCreateSnapshot: (browser) ->
-    
+
     buttonSelector   = '.snapshots .add-button'
 
     @openSnapshotsSettings(browser)
@@ -65,43 +65,43 @@ module.exports =
     browser
       .waitForElementVisible buttonSelector, 20000
       .click                 buttonSelector
-  
+
   nameSnapshot: (browser) ->
     name            = helpers.getFakeText().split(' ')[0]
     inputSelector   = '.snapshots .text.hitenterview'
-    
+
     browser
       .waitForElementVisible inputSelector, 20000
       .click                 inputSelector
       .setValue              inputSelector, [name, browser.Keys.RETURN]
-    
+
     return name
-  
-  
+
+
   createSnapshot: (browser) ->
-    
+
     upgradeSelector = '.kdmodal.computeplan-modal .custom-link-view'
 
     @attemptCreateSnapshot(browser)
-    
+
     browser.pause 2000 #Wait for the modal for upgrading to be displayed or not
 
     browser.isVisible upgradeSelector, (result) ->
-      
+
       if result.value
          browser.click(upgradeSelector)
          helpers.selectPlan(browser)
          helpers.fillPaymentForm(browser)
          browser.url helpers.getUrl() + '/IDE'
-    
+
     @attemptCreateSnapshot(browser)
-  
+
     return @nameSnapshot(browser)
- 
+
   assertSnapshotPresent: (browser, name, reverse=false) ->
 
     listSelector = ".snapshots .kdlistview"
-    
+
     browser.elements 'css selector', listSelector+" .kdlistitemview-snapshot.snapshot .label", (elements) ->
       elements.value.map (value) ->
         browser.elementIdText value.ELEMENT, (res) ->
@@ -110,17 +110,17 @@ module.exports =
               assert.notEqual res,name, "Snapshot present when not expected to be"
             else
               assert.equal res,name
-      
-  
+
+
   createSnapshotIfNotFound: (browser, callback) ->
-    
+
     browser.element 'css selector', ".kdlistview .kdlistitemview-snapshot", (result) ->
       name = null
       if result.status is not 0
         name = environmentHelpers.createSnapshot(browser)
-      
+
       callback(name)
- 
+
 
   deleteSnapshot: (browser) ->
 
@@ -135,7 +135,7 @@ module.exports =
       .click                 deleteSelector
       .waitForElementVisible confirmSelector, 20000
       .click                 confirmSelector
- 
+
   clickAddVMButton: (browser) ->
 
     sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
