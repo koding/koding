@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	proxyUrl = "/api/webhook"
+	proxyURL = "/api/webhook"
 )
 
 type Config struct {
@@ -27,7 +27,7 @@ func main() {
 
 	log := logging.NewLogger("webhook")
 
-	conf.PublicUrl = fmt.Sprintf("%s%s", conf.PublicUrl, proxyUrl)
+	conf.PublicURL = fmt.Sprintf("%s%s", conf.PublicURL, proxyURL)
 	sf := services.NewServices()
 	RegisterServices(sf, conf)
 
@@ -44,17 +44,23 @@ func main() {
 }
 
 func RegisterServices(sf *services.Services, conf *Config) {
-	service, err := RegisterGithubService(sf, conf)
+	githubService, err := RegisterGithubService(sf, conf)
 	if err != nil {
-		log.Fatal("Could not initialize service: %s", err)
+		log.Fatal("Could not initialize githubService: %s", err)
 	}
 
-	sf.Register("github", service)
+	pivotalService, err := services.NewPivotal("", conf.PublicURL, conf.IntegrationAddr, conf.Log)
+	if err != nil {
+		log.Fatal("Could not initialize githubService: %s", err)
+	}
+
+	sf.Register("github", githubService)
+	sf.Register("pivotal", pivotalService)
 }
 
 func RegisterGithubService(sf *services.Services, conf *Config) (services.Service, error) {
 	gc := services.GithubConfig{}
-	gc.PublicUrl = conf.PublicUrl
+	gc.PublicURL = conf.PublicURL
 	gc.IntegrationUrl = conf.IntegrationAddr
 	gc.Log = conf.Log
 

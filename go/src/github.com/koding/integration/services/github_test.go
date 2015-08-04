@@ -142,7 +142,7 @@ func equals(tb testing.TB, exp, act interface{}) {
 
 func CreateTestGithubService(t *testing.T) Github {
 	gc := GithubConfig{}
-	gc.PublicUrl = "http://koding.com/api/webhook"
+	gc.PublicURL = "http://koding.com/api/webhook"
 	gc.IntegrationUrl = "http://koding.com/api/integration"
 	gc.Log = logging.NewLogger("testing")
 	gc.Secret = "koding"
