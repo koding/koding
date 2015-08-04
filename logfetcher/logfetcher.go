@@ -1,7 +1,10 @@
 package logfetcher
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/ActiveState/tail"
@@ -14,9 +17,15 @@ type Request struct {
 	Watch dnode.Function
 }
 
+type PathTail struct {
+	Tail      *tail.Tail
+	Listeners map[string]dnode.Function
+}
+
 var (
+	once        sync.Once  // watcher variables
 	tailedMu    sync.Mutex // protects the followings
-	tailedFiles = make(map[string]*tail.Tail)
+	tailedFiles = make(map[string]*PathTail)
 )
 
 func Tail(r *kite.Request) (interface{}, error) {
@@ -33,13 +42,15 @@ func Tail(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("watch argument is either not passed or it's not a function")
 	}
 
-	var err error
+	// unique ID for each new connection
+	clientId := randomStringLength(16)
 
 	tailedMu.Lock()
-	t, ok := tailedFiles[params.Path]
+	p, ok := tailedFiles[params.Path]
 	tailedMu.Unlock()
 	if !ok {
-		t, err = tail.TailFile(params.Path, tail.Config{
+		fmt.Println("First time!!!!!")
+		t, err := tail.TailFile(params.Path, tail.Config{
 			Follow:    true,
 			MustExist: true,
 		})
@@ -47,26 +58,80 @@ func Tail(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		tailedMu.Lock()
-		tailedFiles[params.Path] = t
-		tailedMu.Unlock()
-	}
-
-	stopTail := func() {
-		tailedMu.Lock()
-		t.Stop()
-		delete(tailedFiles, params.Path)
-		tailedMu.Unlock()
-	}
-
-	go func() {
-		for line := range t.Lines {
-			params.Watch.Call(line.Text)
+		p := &PathTail{
+			Tail: t,
+			Listeners: map[string]dnode.Function{
+				clientId: params.Watch,
+			},
 		}
-		stopTail() // if it stops somehow, just cleanup anything else
-	}()
 
-	r.Client.OnDisconnect(stopTail)
+		tailedMu.Lock()
+		tailedFiles[params.Path] = p
+		tailedMu.Unlock()
+
+		// start the tail only once for each path
+		go once.Do(func() {
+			for line := range p.Tail.Lines {
+				tailedMu.Lock()
+				p, ok := tailedFiles[params.Path]
+				tailedMu.Unlock()
+
+				if !ok {
+					continue
+				}
+
+				for _, listener := range p.Listeners {
+					listener.Call(line.Text)
+				}
+			}
+
+			// stop the tail all together if it somehow comes to here.
+			tailedMu.Lock()
+			p, ok := tailedFiles[params.Path]
+			if !ok {
+				tailedMu.Unlock()
+				return
+			}
+
+			p.Tail.Stop()
+			delete(tailedFiles, params.Path)
+			tailedMu.Unlock()
+		})
+	} else {
+		fmt.Println("Already started, just appending...")
+		// tailing is already started with a previous connection, just add this
+		// new function so it's get notified too.
+		p.Listeners[clientId] = params.Watch
+	}
+
+	r.Client.OnDisconnect(func() {
+		tailedMu.Lock()
+		p, ok := tailedFiles[params.Path]
+		if ok {
+			// delete the function for this connection
+			delete(p.Listeners, clientId)
+
+			// now check if there is any user left back. If we have removed
+			// all users, we should also stop the watcher from watching the
+			// path. So notify the watcher to stop watching the path and
+			// also remove it from the callbacks map
+			if len(p.Listeners) == 0 {
+				p.Tail.Stop()
+				delete(tailedFiles, params.Path)
+			} else {
+				tailedFiles[params.Path] = p // add back the decreased listener
+			}
+		}
+		tailedMu.Unlock()
+	})
 
 	return true, nil
+}
+
+// randomStringLength is used to generate a session_id.
+func randomStringLength(length int) string {
+	size := (length * 6 / 8) + 1
+	r := make([]byte, size)
+	rand.Read(r)
+	return base64.URLEncoding.EncodeToString(r)[:length]
 }
