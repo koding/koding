@@ -1,4 +1,7 @@
 jraphical = require "jraphical"
+
+emailsanitize = require './user/emailsanitize'
+
 module.exports = class JReferrableEmail extends jraphical.Module
   JAccount = require "./account"
   Tracker  = require "./tracker"
@@ -29,6 +32,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
       email       :
         type      : String
         email     : yes
+        set       : emailsanitize
       invited     :
         type      : Boolean
         default   : false
