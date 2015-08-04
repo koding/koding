@@ -173,3 +173,28 @@ module.exports =
       .assert.containsText  dontSaveSelector + ' span.button-title', 'DON\'T SAVE'
       .click  dontSaveSelector
       .end()
+
+  saveCloseFile: (browser) ->
+
+    paragraph = helpers.getFakeText()
+    dummyText = paragraph.split(' ')[0]
+    closeFileSelector = "#{paneSelector} span.close-tab"
+    saveCloseSelector = '.modal-with-text .kdmodal-inner button.green'
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    fileName = helpers.createFile(browser, user)
+
+    ideHelpers.openFile(browser, user, fileName)
+    ideHelpers.setTextToEditor(browser, dummyText)
+
+    browser
+      .moveToElement             paneSelector, 60, 15
+      .waitForElementVisible     closeFileSelector, 20000
+      .click                     closeFileSelector
+      .waitForElementVisible  saveCloseSelector, 20000
+      .assert.containsText  saveCloseSelector + ' span.button-title', 'SAVE AND CLOSE'
+      .click  saveCloseSelector
+
+      .end()
