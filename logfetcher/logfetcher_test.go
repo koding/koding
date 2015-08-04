@@ -142,9 +142,9 @@ func TestMultipleTail(t *testing.T) {
 	file.WriteString("Tail3\n")
 
 	// wait so the watch function picked up the tail changes
-	time.Sleep(time.Second * 1)
-	fmt.Printf("watchResult = %+v\n", watchResult)
-	fmt.Printf("watchResult2 = %+v\n", watchResult2)
+	time.Sleep(time.Second * 2)
+	t.Logf("watchResult = %+v\n", watchResult)
+	t.Logf("watchResult2 = %+v\n", watchResult2)
 
 	// Now check the new two results
 	if !reflect.DeepEqual(
