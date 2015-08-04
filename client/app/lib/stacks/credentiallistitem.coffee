@@ -37,8 +37,13 @@ module.exports = class CredentialListItem extends kd.ListItemView
       tooltip  :
         title  : 'This stack template currently using this credential'
 
-    {stackTemplate} = @getOptions()
-    if stackTemplate?.credentials? and publicKey in stackTemplate.credentials
+    { stackTemplate }       = @getOptions()
+    { selectedCredentials } = delegate.getOptions()
+
+    credentials = stackTemplate?.credentials ? []
+    credentials = credentials.concat (selectedCredentials or [])
+
+    if publicKey in credentials
       @inuseView.show()
 
     @warningView = new kd.CustomHTMLView

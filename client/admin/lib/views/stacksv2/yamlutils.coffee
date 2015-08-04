@@ -15,8 +15,6 @@ module.exports = {
     catch err
       console.error '[JsonToYaml]', err
 
-    console.log '[JsonToYaml]', { content, contentType, err }
-
     return { content, contentType, err }
 
 
@@ -31,8 +29,6 @@ module.exports = {
       contentType   = 'json'
     catch err
       console.error '[YamlToJson]', err
-
-    console.log '[YamlToJson]', { content, contentType, err }
 
     return { content, contentType, err }
 

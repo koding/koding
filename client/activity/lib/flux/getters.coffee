@@ -27,6 +27,11 @@ SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
+EmojisStore                         = [['EmojisStore'], withEmptyList]
+FilteredEmojiListQueryStore         = ['FilteredEmojiListQueryStore']
+FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
+CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
+CommonEmojiListFlagsStore           = [['CommonEmojiListFlagsStore'], withEmptyMap]
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -186,6 +191,35 @@ currentSuggestionsQuery = SuggestionsQueryStore
 currentSuggestions      = SuggestionsStore
 currentSuggestionsFlags = SuggestionsFlagsStore
 
+filteredEmojiListQuery         = FilteredEmojiListQueryStore
+filteredEmojiListSelectedIndex = FilteredEmojiListSelectedIndexStore
+filteredEmojiList              = [
+  EmojisStore
+  filteredEmojiListQuery
+  (emojis, query) ->
+    return immutable.List()  unless query
+    emojis.filter (emoji) -> emoji.indexOf(query) is 0
+]
+filteredEmojiListSelectedItem  = [
+  filteredEmojiList
+  filteredEmojiListSelectedIndex
+  (emojis, index) ->
+    return  unless emojis.size > 0
+
+    index = index % emojis.size  if index >= emojis.size
+    index = emojis.size + index  if index < 0
+    return emojis.get index
+]
+
+commonEmojiList              = EmojisStore
+commonEmojiListSelectedIndex = CommonEmojiListSelectedIndexStore
+commonEmojiListFlags         = CommonEmojiListFlagsStore
+commonEmojiListSelectedItem  = [
+  commonEmojiList
+  commonEmojiListSelectedIndex
+  (emojis, index) -> emojis.get index
+]
+
 module.exports = {
   followedPublicChannelThreads
   followedPrivateChannelThreads
@@ -205,4 +239,14 @@ module.exports = {
   currentSuggestionsQuery
   currentSuggestions
   currentSuggestionsFlags
+
+  filteredEmojiList
+  filteredEmojiListQuery
+  filteredEmojiListSelectedItem
+  filteredEmojiListSelectedIndex
+
+  commonEmojiList
+  commonEmojiListSelectedIndex
+  commonEmojiListFlags
+  commonEmojiListSelectedItem
 }

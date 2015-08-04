@@ -1,35 +1,70 @@
-kd    = require 'kd'
-React = require 'kd-react'
+kd     = require 'kd'
+React  = require 'kd-react'
+Portal = require 'react-portal'
+$      = require 'jquery'
 
 module.exports = class ButtonWithMenu extends React.Component
 
-  @defaultProps = { items: [], showMenuForMouseAction: no}
+  WINDOW_OFFSET = 100
+
+  @defaultProps = { items: [], isMenuOpen: no}
 
   constructor: (props) ->
 
-    @state = { showSettingsMenu: props.showMenuForMouseAction or no }
+    super props
+
+    @state = { isMenuOpen: @props.isMenuOpen }
 
 
   renderListMenu: ->
 
+    onClick = (item) => (event) =>
+      item.onClick event
+      @onMenuClose()
+
     @props.items.map (item) ->
-      <li onClick={item.onClick} key={item.key}>{item.title}</li>
+      <li onClick={onClick item} key={item.key}>{item.title}</li>
+
+
+  listDidMount: (_list) ->
+
+    button = React.findDOMNode @refs.button
+    list = React.findDOMNode _list
+    buttonRect = button.getBoundingClientRect()
+
+    mainHeight = $(window).height()
+    mainScroll = $(window).scrollTop()
+    menuHeight = $(list).height()
+    menuWidth  = $(list).width()
+
+    menuTop = if buttonRect.top + menuHeight + WINDOW_OFFSET > mainHeight + mainScroll
+    then buttonRect.top - menuHeight
+    else buttonRect.top
+
+    $(list).css top: menuTop, left: buttonRect.left + buttonRect.width - menuWidth
+
+
+  onMenuClose: ->
+
+    @setState isMenuOpen: no
+    @props.onMenuClose?()
 
 
   onButtonClick: (event) ->
 
     kd.utils.stopDOMEvent event
-    @setState showSettingsMenu: yes
-    @props.showMenuForMouseAction = yes
+    @setState isMenuOpen: yes
+    @props.onMenuOpen?()
 
 
   render: ->
-    menuListClassName = if @state.showSettingsMenu and @props.showMenuForMouseAction then 'ButtonWithMenuItemsList' else 'ButtonWithMenuItemsList hidden'
     <div className="SettingsMenuWrapper">
-      <button type="button" onClick={@bound 'onButtonClick'}></button>
-      <ul className={menuListClassName}>
-        {@renderListMenu()}
-      </ul>
+      <button ref="button" onClick={@bound 'onButtonClick'}></button>
+      <Portal isOpened={@state.isMenuOpen} closeOnOutsideClick={yes} closeOnEsc={yes} onClose={@bound 'onMenuClose'}>
+        <ul ref={@bound 'listDidMount'} className="ButtonWithMenuItemsList">
+          {@renderListMenu()}
+        </ul>
+      </Portal>
     </div>
 
 
