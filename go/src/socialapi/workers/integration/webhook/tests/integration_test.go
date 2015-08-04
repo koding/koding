@@ -132,6 +132,48 @@ func TestWebhook(t *testing.T) {
 
 	})
 
+	Convey("We should be able to successfully receive pivotal push messages via middleware", t, func() {
+		channelIntegration, topicChannel := webhook.CreateTestChannelIntegration(t)
+
+		account, err := models.CreateAccountInBothDbsWithNick(models.RandomName())
+		So(err, ShouldBeNil)
+
+		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, channelIntegration.GroupName)
+
+		_, err = channel.AddParticipant(account.Id)
+		So(err, ShouldBeNil)
+		_, err = topicChannel.AddParticipant(account.Id)
+		So(err, ShouldBeNil)
+
+		err = rest.DoPivotalPush("POST", pivotalEventData, channelIntegration.Token)
+		So(err, ShouldBeNil)
+
+		ses, err := models.FetchOrCreateSession(account.Nick, channelIntegration.GroupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		tick := time.Tick(time.Millisecond * 200)
+		deadLine := time.After(10 * time.Second)
+		for {
+			select {
+			case <-tick:
+				resp, err := rest.GetHistory(topicChannel.Id,
+					&request.Query{},
+					ses.ClientId,
+				)
+				So(err, ShouldBeNil)
+				if len(resp.MessageList) > 0 {
+					So(len(resp.MessageList), ShouldEqual, 1)
+					So(resp.MessageList[0].Message.Body, ShouldStartWith, "Mehmet Ali Savas started this feature")
+					return
+				}
+			case <-deadLine:
+				So(errors.New("Could not fetch messages"), ShouldBeNil)
+			}
+		}
+
+	})
+
 	Convey("We should not be able to send more than 100 requests per minute", t, func() {
 		channelIntegration, _ := webhook.CreateTestChannelIntegration(t)
 
