@@ -299,7 +299,7 @@ module.exports = CollaborationController =
       title         : "Host's layout is updated since you last watched his changes."
       cssClass      : "modal-with-text layout-changed-modal"
       content       : """
-        if you click yes below we'll change your tabs layout to match host's layout.
+        If you click yes below we'll change your tabs layout to match host's layout.
         You won't lose your changes, if you have any.<br/><br/>
         Would you like to proceed?
       """
