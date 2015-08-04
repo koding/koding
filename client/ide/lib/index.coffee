@@ -1272,23 +1272,6 @@ class IDEAppController extends AppController
 
       @changes.push change
 
-    switch change.type
-
-      when 'NewPaneCreated'
-        @mySnapshot.set paneHash, change  if paneHash
-
-      when 'NewSplitViewCreated'
-        @mySnapshot.set ideViewHash, change  if ideViewHash
-
-      when 'SplitViewWasMerged'
-        @mySnapshot.set ideViewHash, change  if ideViewHash
-
-      when 'IDETabWasMoved'
-        @mySnapshot.set ideViewHash, change  if ideViewHash
-
-      when 'PaneRemoved'
-        @mySnapshot.delete paneHash  if paneHash
-
 
   ###*
    * Am I watching to change's owner?
@@ -1711,7 +1694,7 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) =>
       @removePaneFromTabView pane  if pane.isInitial
 
-    @mergeSplitView()
+    @mergeSplitView yes
 
 
   setTargetTabView: (tabView) ->

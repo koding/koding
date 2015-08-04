@@ -257,7 +257,6 @@ module.exports = CollaborationController =
     @permissions       = refs.permissions
     @broadcastMessages = refs.broadcastMessages
     @myWatchMap        = refs.watchMap
-    @mySnapshot        = refs.snapshot
     @hostSnapshot      = refs.hostSnapshot
 
     @rtm.once 'RealtimeManagerDidDispose', =>
@@ -267,7 +266,6 @@ module.exports = CollaborationController =
       @permissions       = null
       @broadcastMessages = null
       @myWatchMap        = null
-      @mySnapshot        = null
       @hostSnapshot      = null
 
 
