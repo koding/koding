@@ -333,7 +333,6 @@ module.exports = CollaborationController =
           @forEachSubViewInIDEViews_ (p) ->
             isAdded = yes  if p.hash is pane.view.hash
 
-
           @activeTabView.addPane pane  unless isAdded
 
         @doResize()
