@@ -1,4 +1,6 @@
-kd = require 'kd'
+kd     = require 'kd'
+whoami = require 'app/util/whoami'
+
 
 module.exports = class MachineShareManager extends kd.Object
 
@@ -44,6 +46,7 @@ module.exports = class MachineShareManager extends kd.Object
 
       .on 'SharedMachineInvitation', @bound 'handleSharedMachineInvitation'
       .on 'CollaborationInvitation', @bound 'handleCollaborationInvitation'
+      .on 'MachineShareActionTaken', (options) => @unset options.uid
 
 
   handleSharedMachineInvitation: (data) ->
