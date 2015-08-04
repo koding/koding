@@ -118,13 +118,14 @@ generateCreateGroupKallback = (client, req, res, body) ->
     # for the default and other subdomains
     # need to find another way - SY
 
-    # teamDomain = switch environment
-    #   when 'production'  then ".koding.com"
-    #   when 'development' then ".dev.koding.com"
-    #   else ".#{environment}.koding.com"
+    teamDomain = switch environment
+      when 'production'  then ".koding.com"
+      when 'development' then ".dev.koding.com"
+      else ".#{environment}.koding.com"
 
     # res.clearCookie 'clientId'
-    # res.cookie 'clientId', token, path : '/', domain : teamDomain
+    res.clearCookie 'clientId', token, path : '/', domain : ".#{slug}#{teamDomain}"
+    res.cookie 'clientId', token, path : '/', domain : ".#{slug}#{teamDomain}"
 
     # set session token for later usage down the line
     owner                      = result.account
