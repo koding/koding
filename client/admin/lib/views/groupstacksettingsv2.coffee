@@ -16,18 +16,22 @@ module.exports = class GroupStackSettingsV2 extends kd.View
 
   viewAppended: ->
 
-    @addSubView initialView = new InitialView
+    @initialView = @addSubView new InitialView
 
-    initialView.on ['CreateNewStack', 'EditStack'], (stackTemplate) =>
+    @initialView.on ['CreateNewStack', 'EditStack'], @bound 'showEditor'
 
-      initialView.hide()
+    @showEditor()  if kd.singletons.groupsController.currentGroupIsNew()
 
-      defineStackView = @addSubView new DefineStackView {}, { stackTemplate }
 
-      defineStackView.on 'Reload', ->
-        initialView.reload()
+  showEditor: (stackTemplate) ->
 
-      defineStackView.on ['Cancel', 'Completed'], ->
-        initialView.show()
-        @destroy()
+    @initialView.hide()
+
+    defineStackView = @addSubView new DefineStackView {}, { stackTemplate }
+
+    defineStackView.on 'Reload', => @initialView.reload()
+
+    defineStackView.on ['Cancel', 'Completed'], =>
+      @initialView.show()
+      @destroy()
 
