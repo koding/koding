@@ -17,6 +17,7 @@ import (
 	"github.com/koding/klient/control"
 	"github.com/koding/klient/fs"
 	"github.com/koding/klient/info"
+	"github.com/koding/klient/logfetcher"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/sshkeys"
 	"github.com/koding/klient/storage"
@@ -206,6 +207,9 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("storage.set", k.storage.SetValue)
 	k.kite.HandleFunc("storage.get", k.storage.GetValue)
 	k.kite.HandleFunc("storage.delete", k.storage.DeleteValue)
+
+	// Logfetcher
+	k.kite.HandleFunc("log.tail", logfetcher.Tail)
 
 	// Filesystem
 	k.kite.HandleFunc("fs.readDirectory", fs.ReadDirectory)
