@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/robfig/cron"
 )
 
@@ -37,10 +38,14 @@ var (
 	// defines list of metrics, all queue/fetch/save operations
 	// must iterate this list and not use metric directly
 	metricsToSave = []Metric{
-		&Cloudwatch{Name: NetworkOut, Limits: Limits{
-			StopLimitKey:  NetworkOutLimit,
-			BlockLimitKey: NetworkOutLimit * BlockMultiplier,
-		}},
+		&Cloudwatch{
+			Name: NetworkOut,
+			Limits: Limits{
+				StopLimitKey:  NetworkOutLimit,
+				BlockLimitKey: NetworkOutLimit * BlockMultiplier,
+			},
+			clientCreds: credentials.NewStaticCredentials(AWS_KEY, AWS_SECRET, ""),
+		},
 	}
 )
 

@@ -29,6 +29,8 @@ type Limits map[string]float64
 type Cloudwatch struct {
 	Name   string
 	Limits Limits
+
+	clientCreds *credentials.Credentials
 }
 
 func (c *Cloudwatch) GetName() string {
@@ -99,7 +101,7 @@ func (c *Cloudwatch) GetMetric(instanceId, region string) (float64, error) {
 		sum float64
 
 		config = &aws.Config{
-			Credentials: credentials.NewStaticCredentials(AWS_KEY, AWS_SECRET, ""),
+			Credentials: c.clientCreds,
 			Region:      region,
 		}
 
