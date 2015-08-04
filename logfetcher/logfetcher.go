@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/ActiveState/tail"
@@ -49,7 +48,6 @@ func Tail(r *kite.Request) (interface{}, error) {
 	p, ok := tailedFiles[params.Path]
 	tailedMu.Unlock()
 	if !ok {
-		fmt.Println("First time!!!!!")
 		t, err := tail.TailFile(params.Path, tail.Config{
 			Follow:    true,
 			MustExist: true,
@@ -98,7 +96,6 @@ func Tail(r *kite.Request) (interface{}, error) {
 			tailedMu.Unlock()
 		})
 	} else {
-		fmt.Println("Already started, just appending...")
 		// tailing is already started with a previous connection, just add this
 		// new function so it's get notified too.
 		p.Listeners[clientId] = params.Watch

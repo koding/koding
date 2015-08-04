@@ -100,3 +100,58 @@ func TestTail(t *testing.T) {
 		t.Errorf("\nWant: %v\nGot : %v\n", modifiedLines, watchResult)
 	}
 }
+
+func TestMultipleTail(t *testing.T) {
+	testFile := "testdata/testfile1.txt"
+
+	watchResult := []string{}
+	watchFunc := dnode.Callback(func(r *dnode.Partial) {
+		line := r.One().MustString()
+		watchResult = append(watchResult, line)
+	})
+
+	_, err := remote.Tell("tail", &Request{
+		Path:  testFile,
+		Watch: watchFunc,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	watchResult2 := []string{}
+	watchFunc2 := dnode.Callback(func(r *dnode.Partial) {
+		line := r.One().MustString()
+		watchResult2 = append(watchResult2, line)
+	})
+
+	_, err = remote2.Tell("tail", &Request{
+		Path:  testFile,
+		Watch: watchFunc2,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file, err := os.OpenFile(testFile, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file.WriteString("Tail2\n")
+	file.WriteString("Tail3\n")
+	file.Close()
+
+	// wait so the watch function picked up the tail changes
+	time.Sleep(time.Second * 1)
+
+	// Now check the new two results
+	if !reflect.DeepEqual(
+		watchResult[len(watchResult)-2:],
+		watchResult2[len(watchResult2)-2:],
+	) {
+		t.Errorf("\nWant: %v\nGot : %v\n",
+			watchResult[len(watchResult)-2:],
+			watchResult2[len(watchResult2)-2:],
+		)
+	}
+}
