@@ -130,7 +130,7 @@ func TestMultipleTail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 2)
 
 	file, err := os.OpenFile(testFile, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
@@ -142,7 +142,7 @@ func TestMultipleTail(t *testing.T) {
 	file.WriteString("Tail3\n")
 
 	// wait so the watch function picked up the tail changes
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second)
 	t.Logf("watchResult = %+v\n", watchResult)
 	t.Logf("watchResult2 = %+v\n", watchResult2)
 
@@ -171,7 +171,7 @@ func TestMultipleTail(t *testing.T) {
 	file.WriteString("Tail5\n")
 
 	// wait so the watch function picked up the tail changes
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second)
 
 	if currentWatch2Len != len(watchResult2) {
 		t.Errorf("WatchFunc2 is still triggered, got %d should have %d", len(watchResult2), currentWatch2Len)

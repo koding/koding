@@ -22,7 +22,6 @@ type PathTail struct {
 }
 
 var (
-	once        sync.Once  // watcher variables
 	tailedMu    sync.Mutex // protects the followings
 	tailedFiles = make(map[string]*PathTail)
 )
@@ -68,7 +67,7 @@ func Tail(r *kite.Request) (interface{}, error) {
 		tailedMu.Unlock()
 
 		// start the tail only once for each path
-		go once.Do(func() {
+		go func() {
 			for line := range p.Tail.Lines {
 				tailedMu.Lock()
 				p, ok := tailedFiles[params.Path]
@@ -94,7 +93,7 @@ func Tail(r *kite.Request) (interface{}, error) {
 			p.Tail.Stop()
 			delete(tailedFiles, params.Path)
 			tailedMu.Unlock()
-		})
+		}()
 	} else {
 		// tailing is already started with a previous connection, just add this
 		// new function so it's get notified too.
