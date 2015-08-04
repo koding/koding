@@ -45,4 +45,4 @@ describe 'FilteredEmojiListQueryStore', ->
       @reactor.dispatch actionTypes.UNSET_FILTERED_EMOJI_LIST_QUERY
       query = @reactor.evaluate ['filteredEmojiListQuery']
 
-      expect(query).to.equal ''
+      expect(query).to.be.null

@@ -6,6 +6,8 @@ EmojiSelector   = require 'activity/components/emojiselector'
 ActivityFlux    = require 'activity/flux'
 KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
+Link            = require 'app/components/common/link'
+helpers         = require './helpers'
 
 module.exports = class ChatInputWidget extends React.Component
 
@@ -57,12 +59,12 @@ module.exports = class ChatInputWidget extends React.Component
 
     textInput = React.findDOMNode this.refs.textInput
 
-    { value, cursorPosition } = helper.insertEmoji textInput, filteredEmojiListSelectedItem
+    { value, cursorPosition } = helpers.insertEmoji textInput, filteredEmojiListSelectedItem
     @setState { value }
 
     ActivityFlux.actions.emoji.unsetFilteredListQuery()
     kd.utils.defer ->
-      helper.setCursorPosition textInput, cursorPosition
+      helpers.setCursorPosition textInput, cursorPosition
 
 
   onValueChanged: (event) ->
@@ -72,7 +74,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     textInput = React.findDOMNode this.refs.textInput
 
-    emojiQuery = helper.getEmojiQuery textInput
+    emojiQuery = helpers.getEmojiQuery textInput
     ActivityFlux.actions.emoji.setFilteredListQuery emojiQuery
 
 
@@ -117,86 +119,47 @@ module.exports = class ChatInputWidget extends React.Component
     ActivityFlux.actions.emoji.setCommonListVisibility yes
 
 
-  render: ->
+  renderEmojiDropup: ->
 
     { filteredEmojiList, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
+
+    <EmojiDropup
+      emojis          = { filteredEmojiList }
+      selectedEmoji   = { filteredEmojiListSelectedItem }
+      emojiQuery      = { filteredEmojiListQuery }
+      onItemConfirmed = { @bound 'handleEmojiDropupItemConfirmed' }
+    />
+
+
+  renderEmojiSelector: ->
+
     { commonEmojiList, commonEmojiListFlags, commonEmojiListSelectedItem } = @state
 
+    <EmojiSelector
+      emojis          = { commonEmojiList }
+      visible         = { commonEmojiListFlags.get 'visible' }
+      selectedEmoji   = { commonEmojiListSelectedItem }
+      onItemConfirmed = { @bound 'handleEmojiSelectorItemConfirmed' }
+    />
+
+
+  render: ->
+
+
     <div className="ChatInputWidget">
-      <EmojiDropup
-        emojis          = { filteredEmojiList }
-        selectedEmoji   = { filteredEmojiListSelectedItem }
-        emojiQuery      = { filteredEmojiListQuery }
-        onItemConfirmed = { @bound 'handleEmojiDropupItemConfirmed' }
-      />
-      <EmojiSelector
-        emojis          = { commonEmojiList }
-        visible         = { commonEmojiListFlags.get 'visible' }
-        selectedEmoji   = { commonEmojiListSelectedItem }
-        onItemConfirmed = { @bound 'handleEmojiSelectorItemConfirmed' }
-      />
+      { @renderEmojiDropup() }
+      { @renderEmojiSelector() }
       <TextArea
         value     = { @state.value }
         onChange  = { @bound 'onValueChanged' }
         onKeyDown = { @bound 'onKeyDown' }
         ref       = "textInput"
       />
-      <a
-        href      = "#"
+      <Link
         className = "ChatInputWidget-emojiButton"
         onClick   = { @bound 'handleEmojiButtonClick' }
       />
     </div>
-
-
-  helper =
-
-    getCursorPosition: (textInput) -> textInput.selectionStart
-
-
-    setCursorPosition: (textInput, position) ->
-
-      textInput.focus()
-      textInput.setSelectionRange position, position
-
-
-    getTextBeforeCursor: (textInput) ->
-
-      position = helper.getCursorPosition textInput
-      value    = textInput.value
-
-      return value.substring 0, position
-
-
-    getLastWord: (str) ->
-
-      matchResult = str.match /([^\s]+)$/
-      return matchResult?[1]
-
-
-    getEmojiQuery: (textInput) ->
-
-      textBeforeCursor = helper.getTextBeforeCursor textInput
-      lastWord         = helper.getLastWord textBeforeCursor
-
-      matchResult = lastWord?.match /^\:(.+)/
-      return matchResult?[1]
-
-
-    insertEmoji: (textInput, emoji) ->
-
-      textBeforeCursor  = helper.getTextBeforeCursor textInput
-      textToReplace     = helper.getLastWord textBeforeCursor
-      startReplaceIndex = textBeforeCursor.lastIndexOf textToReplace
-      endReplaceIndex   = helper.getCursorPosition textInput
-
-      value             = textInput.value
-      textBeforeCursor  = value.substring(0, startReplaceIndex)
-      textBeforeCursor += formatEmojiName(emoji) + " "
-      cursorPosition    = textBeforeCursor.length
-      newValue          = textBeforeCursor + value.substring endReplaceIndex
-
-      return { value : newValue, cursorPosition }
 
 
 React.Component.include.call ChatInputWidget, [KDReactorMixin]
