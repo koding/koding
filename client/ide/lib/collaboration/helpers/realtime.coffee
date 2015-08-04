@@ -127,13 +127,11 @@ getTargetUser = (participants, field, predicateValue) ->
 ###*
  * Returns an object with the necessary google drive maps and lists are set.
  *
- * TODO: `initialSnapshot` may be irrelevant here.
  *
  * @param {RealtimeManager} manager
  * @param {string} channelId
- * @param {object} initialSnapshot
 ###
-getReferences = (manager, channelId, initialSnapshot) ->
+getReferences = (manager, channelId) ->
 
   nickname          = getNick()
   watchMapName      = "#{nickname}WatchMap"

@@ -245,9 +245,7 @@ module.exports = CollaborationController =
 
   setCollaborativeReferences: ->
 
-    initialSnapshot = if @amIHost then @getWorkspaceSnapshot() else {}
-
-    refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), initialSnapshot
+    refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId()
 
     # for backwards compatibility.
     # TODO: keep this until CollaborationModel abstraction. ~Umut
