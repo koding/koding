@@ -26,3 +26,9 @@ module.exports =
     teamsHelpers.loginToTeam(browser, user)
 
     browser.end()
+
+
+  loginTeam: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    browser.end()
