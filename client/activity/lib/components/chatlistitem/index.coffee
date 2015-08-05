@@ -158,7 +158,6 @@ module.exports = class ChatListItem extends React.Component
 
 
   getMediaObjectClassNames: -> classnames
-    'MediaObject-content': yes
     'hidden' : @state.editMode
 
 
@@ -173,18 +172,19 @@ module.exports = class ChatListItem extends React.Component
     { message } = @props
 
     <div className={@getEditModeClassNames()}>
+      <span className="ChatItem-authorName">
+        {makeProfileLink message.get 'account'}
+      </span>
+      <div className="ChatItem-editActions">
+        <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
+        <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
+      </div>
       <textarea
         autoFocus
         onKeyDown={@bound 'onEditInputKeyDown'}
         onChange={@bound 'onEditInputChange'}
         value={@state.editInputValue}
         ref="EditMessageTextarea"></textarea>
-      <button
-        className="solid green done-button"
-        onClick={@bound 'updateMessage'}>DONE</button>
-      <button
-        className="cancel-editing"
-        onClick={@bound 'cancelEdit'}>CANCEL</button>
     </div>
 
 
@@ -204,7 +204,6 @@ module.exports = class ChatListItem extends React.Component
      'ChatItem-updateMessageForm': yes
      'hidden': not @state.editMode
     mediaContent: classnames
-      'MediaObject-content': yes
       'hidden': @state.editMode
     contentWrapper: classnames
       'ChatItem-contentWrapper': yes

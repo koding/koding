@@ -4,6 +4,8 @@ KDReactorMixin = require 'app/flux/reactormixin'
 ActivityFlux   = require 'activity/flux'
 immutable      = require 'immutable'
 classnames     = require 'classnames'
+ThreadSidebar  = require 'activity/components/threadsidebar'
+ThreadHeader   = require 'activity/components/threadheader'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -16,6 +18,7 @@ module.exports = class ChannelThreadPane extends React.Component
       messageThread         : getters.selectedMessageThread
       messageThreadComments : getters.selectedMessageThreadComments
       popularMessages       : getters.selectedChannelPopularMessages
+      channelParticipants   : getters.selectedChannelParticipants
     }
 
 
@@ -29,12 +32,21 @@ module.exports = class ChannelThreadPane extends React.Component
       messageThread         : immutable.Map()
       messageThreadComments : immutable.List()
       popularMessages       : immutable.List()
+      channelParticipants   : immutable.List()
 
 
   componentDidMount: -> reset @props
 
 
   componentWillReceiveProps: (nextProps) -> reset nextProps
+
+
+  renderHeader: ->
+    <ThreadHeader
+      channelThread={@state.channelThread}
+      messageThread={@state.messageThread}
+      isSummaryActive={!!@props.feed}
+    />
 
 
   renderFeed: ->
@@ -63,7 +75,11 @@ module.exports = class ChannelThreadPane extends React.Component
       channelThread : @state.channelThread
 
 
-  renderChannelSidebar: -> null
+  renderSidebar: ->
+    <ThreadSidebar
+      channelThread={@state.channelThread}
+      popularMessages={@state.popularMessages}
+      channelParticipants={@state.channelParticipants}/>
 
 
   getClassName: ->
@@ -78,16 +94,25 @@ module.exports = class ChannelThreadPane extends React.Component
 
   render: ->
     <div className={@getClassName()}>
-      <section className="ChannelThreadPane-feedWrapper">
-        {@renderFeed()}
+      <section className="ChannelThreadPane-content">
+        <header className="ChannelThreadPane-header">
+          {@renderHeader()}
+        </header>
+        <div className="ChannelThreadPane-body">
+          <section className="ChannelThreadPane-feedWrapper">
+            {@renderFeed()}
+          </section>
+          <section className="ChannelThreadPane-chatWrapper">
+            {@renderChat()}
+          </section>
+          <section className="ChannelThreadPane-postWrapper">
+            {@renderPost()}
+          </section>
+        </div>
       </section>
-      <section className="ChannelThreadPane-chatWrapper">
-        {@renderChat()}
-      </section>
-      <section className="ChannelThreadPane-postWrapper">
-        {@renderPost()}
-      </section>
-      {@renderChannelSidebar()}
+      <aside className="ChannelThreadPane-sidebar">
+        {@renderSidebar()}
+      </aside>
     </div>
 
 
@@ -102,9 +127,15 @@ reset = (props) ->
     channelActions.loadChannelByName(channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadPopularMessages channel.id
+      channelActions.loadParticipants channel.id, channel.participantsPreview
+
+  else
+    thread.changeSelectedThread null
 
   if postSlug
     messageActions.loadMessageBySlug(postSlug).then ({ message }) ->
       messageActions.changeSelectedMessage message.id
+  else
+    messageActions.changeSelectedMessage null
 
 

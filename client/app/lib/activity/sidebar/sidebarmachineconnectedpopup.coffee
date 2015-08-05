@@ -6,7 +6,7 @@ module.exports = class SidebarMachineConnectedPopup extends kd.ModalView
 
     options.width    = 610
     options.height   = 400
-    options.cssClass = 'activity-modal machine-connected-modal'
+    options.cssClass = 'activity-modal sidebar-info-modal'
     options.overlay  = yes
 
     super options, data

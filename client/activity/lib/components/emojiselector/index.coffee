@@ -7,7 +7,7 @@ formatEmojiName   = require 'activity/util/formatEmojiName'
 ActivityFlux      = require 'activity/flux'
 EmojiSelectorItem = require 'activity/components/emojiselectoritem'
 
-module.exports = class EmoiiSelector extends React.Component
+module.exports = class EmojiSelector extends React.Component
 
   DEFAULT_ITEMS_PER_ROW = 8
   ESC = 27
@@ -59,7 +59,7 @@ module.exports = class EmoiiSelector extends React.Component
     return  unless @props.visible and event.which is ESC
 
     kd.utils.stopDOMEvent event
-    ActivityFlux.actions.emoji.resetCommonListFlags() 
+    ActivityFlux.actions.emoji.resetCommonListFlags()
 
 
   renderList: ->
@@ -89,7 +89,7 @@ module.exports = class EmoiiSelector extends React.Component
     className = classnames
       'EmojiSelector-container' : yes
       'hidden'                  : not visible
-    
+
     <div className={className}>
       <div className="EmojiSelector">
         <div className="EmojiSelector-emojiList" ref="emojiList">
