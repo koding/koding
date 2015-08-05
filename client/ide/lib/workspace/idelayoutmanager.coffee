@@ -269,7 +269,7 @@ module.exports = class IDELayoutManager extends KDObject
 
 
   ###*
-   * Clear all split views/tabs and create new an `IDEView`
+   * Clear all split views/tabs and create an new `IDEView`
    *
    * @param {boolean=} recover  Recover opened panes if it is `yes`
    * @param {boolean=} save
