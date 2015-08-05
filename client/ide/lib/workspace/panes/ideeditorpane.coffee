@@ -3,7 +3,7 @@ getColorFromString = require 'app/util/getColorFromString'
 nick               = require 'app/util/nick'
 FSFile             = require 'app/util/fs/fsfile'
 IDEPane            = require './idepane'
-IDEAceView         = require '../../views/ace/ideaceview'
+AceView            = require 'ace/aceview'
 IDEAce             = require '../../views/ace/ideace'
 IDEHelpers         = require '../../idehelpers'
 
@@ -59,7 +59,7 @@ module.exports = class IDEEditorPane extends IDEPane
       createFindAndReplaceView : no
       aceClass                 : IDEAce
 
-    @addSubView @aceView = new IDEAceView aceOptions, file
+    @addSubView @aceView = new AceView aceOptions, file
 
     {ace} = @aceView
 
