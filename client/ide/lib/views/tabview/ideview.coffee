@@ -49,8 +49,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'PlusHandleClicked',        @bound 'createPlusContextMenu'
     @on 'CloseHandleClicked',       @bound 'closeSplitView'
     @on 'FullscreenHandleClicked',  @bound 'toggleFullscreen'
-    @on 'IDETabWasMoved',           @bound 'handleTabWasMoved'
+    @on 'IDETabMoved',              @bound 'handleTabWasMoved'
     @on 'NewSplitViewCreated',      @bound 'handleSplitViewCreated'
+    @on 'SplitViewMerged',          @bound 'handleSplitViewMerged'
 
     @on 'VerticalSplitHandleClicked', =>
       frontApp.setActiveTabView @tabView
@@ -721,7 +722,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         originIDEViewHash : tabView.parent.hash
         targetIDEViewHash : targetTabView.parent.hash
 
-    @emitChange view, change, 'IDETabWasMoved'
+    @emitChange view, change, 'IDETabMoved'
 
 
   handleSplitViewCreated: (params) ->

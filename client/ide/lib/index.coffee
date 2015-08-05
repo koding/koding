@@ -373,7 +373,7 @@ class IDEAppController extends AppController
       context =
         ideViewHash : ideViewHash
 
-      @emitChange 'SplitViewWasMerged', context
+      @emitChange 'SplitViewMerged', context
 
     @doResize()
     @recalculateHandles()
@@ -768,7 +768,7 @@ class IDEAppController extends AppController
     @setActiveTabView targetPanel.subViews.first.tabView
     @doResize()
 
-    targetTabView.parent.emit 'IDETabWasMoved', { view, tabView, targetTabView }
+    targetTabView.parent.emit 'IDETabMoved', { view, tabView, targetTabView }
 
 
   moveTabUp: -> @moveTab 'north'
@@ -1280,11 +1280,11 @@ class IDEAppController extends AppController
             newIdeViewHash  : context.newIdeViewHash
             silent          : yes
 
-      else if type is 'SplitViewWasMerged'
+      else if type is 'SplitViewMerged'
         @handleSplitViewChanges change, =>
           @mergeSplitView yes
 
-      else if type is 'IDETabWasMoved'
+      else if type is 'IDETabMoved'
         @handleMoveTabChanges context
 
       else if type in ['TabChanged', 'PaneRemoved', 'TerminalRenamed']
@@ -1709,7 +1709,7 @@ class IDEAppController extends AppController
 
     { view } = pane
 
-    targetTabView.parent.emit 'IDETabWasMoved', { view, tabView, targetTabView }
+    targetTabView.parent.emit 'IDETabMoved', { view, tabView, targetTabView }
 
 
   runOnboarding: ->
