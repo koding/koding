@@ -369,11 +369,8 @@ class IDEAppController extends AppController
     # Is it the best way for view resizing?
     targetView._windowDidResize()
 
-    if @rtm?.isReady and not silent
-      context =
-        ideViewHash : ideViewHash
-
-      @emitChange 'SplitViewMerged', context
+    if not silent
+      targetIdeView.emit 'SplitViewMerged', { ideViewHash, targetIdeView }
 
     @doResize()
     @recalculateHandles()

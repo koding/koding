@@ -736,3 +736,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         direction       : direction
 
     @emitChange newIdeView, change, 'NewSplitViewCreated'
+
+
+  handleSplitViewMerged: (params) ->
+
+    { ideViewHash, targetIdeView } = params
+
+    change =
+      context:
+        ideViewHash : ideViewHash
+
+    @emitChange targetIdeView, change, 'SplitViewMerged'
