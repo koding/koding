@@ -75,8 +75,6 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 		Machines: make([]TerraformMachine, 0),
 	}
 
-	attrs := make(map[string]string, 0)
-
 	for _, m := range state.Modules {
 		for resource, r := range m.Resources {
 			if r.Primary == nil {
@@ -88,6 +86,7 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 				return nil, err
 			}
 
+			attrs := make(map[string]string, len(r.Primary.Attributes))
 			for key, val := range r.Primary.Attributes {
 				attrs[key] = val
 			}
@@ -116,8 +115,6 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 		Machines: make([]TerraformMachine, 0),
 	}
 
-	attrs := make(map[string]string, 0)
-
 	for _, d := range plan.Diff.Modules {
 		if d.Resources == nil {
 			continue
@@ -128,6 +125,7 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				continue
 			}
 
+			attrs := make(map[string]string, len(r.Attributes))
 			for name, a := range r.Attributes {
 				attrs[name] = a.New
 			}

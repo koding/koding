@@ -1,6 +1,7 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
 Avatar               = require 'app/components/profile/avatar'
+Link                 = require 'app/components/common/link'
 TimeAgo              = require 'app/components/common/timeago'
 immutable            = require 'immutable'
 MessageBody          = require 'activity/components/common/messagebody'
@@ -16,44 +17,59 @@ module.exports = class FeedItem extends React.Component
   shouldComponentUpdate: (nextProps, nextState) ->
     return @props.message isnt nextProps.message
 
+  onConversationButtonClick: (event) ->
+
+    kd.utils.stopDOMEvent event
+
+    kd.singletons.router.handleRoute "/Channels/Public/summary/#{@props.message.get 'slug'}"
+
   render: ->
     { message } = @props
     <div className={kd.utils.curry 'FeedItem', @props.className}>
       <header className="FeedItem-header">
-        <div className="FeedItem-headerContentWrapper MediaObject">
-          <div className="MediaObject-media">
-            {makeAvatar message.get 'account'}
-          </div>
-          <div className="MediaObject-content">
-            <div className="FeedItem-headerTopRow">
-              <span>{makeProfileLink message.get 'account'}</span>
-            </div>
-            <div className="FeedItem-headerBottomRow">
-              <span>{makeTimeAgo message.get 'createdAt'}</span>
-            </div>
-          </div>
+        <div className="FeedItem-headerContentWrapper">
+          {makeProfileLink message.get 'account'}
+          {makeTimeAgo message.get 'createdAt'}
         </div>
       </header>
       <section className="FeedItem-body">
         <div className="FeedItem-bodyContentWrapper">
           <MessageBody source={message.get 'body'} />
         </div>
-        <div className="FeedItem-actionsContainer">
-          <FeedItemAction>Like</FeedItemAction>
-          <FeedItemAction>Comment</FeedItemAction>
-          <FeedItemAction>Share</FeedItemAction>
-        </div>
       </section>
       <footer className="FeedItem-footer">
-        <MessageLikeSummary className="FeedItem-likeSummary" message={message} />
+        <div className="FeedItem-summary">
+          {makeLikes message.getIn ['interactions', 'like', 'actorsCount']}
+          {makeComments message.get 'repliesCount'}
+        </div>
+        <div className="FeedItem-footerActionContainer">
+          <button
+            onClick={@bound 'onConversationButtonClick'}
+            className="Button Button--info">View Conversation</button>
+        </div>
       </footer>
     </div>
 
 
+makeComments = (count) ->
+  return null  unless count
+  <span className="FeedItem-summaryItem FeedItem-replyCount">
+    <cite>{count}</cite>
+    Comments
+  </span>
+
+makeLikes = (count) ->
+  return null  unless count
+  <span className="FeedItem-summaryItem FeedItem-likeCount">
+    <cite>{count}</cite>
+    Likes
+  </span>
+
+
 makeTimeAgo = (createdAt) ->
-  <a href="#" className="FeedItem-date">
+  <Link className="FeedItem-date u-color-light-text">
     <TimeAgo from={createdAt} />
-  </a>
+  </Link>
 
 makeProfileLink = (imAccount) ->
   <ProfileLinkContainer origin={imAccount.toJS()}>

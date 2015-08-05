@@ -3,6 +3,7 @@ React           = require 'kd-react'
 ActivityFlux    = require 'activity/flux'
 classnames      = require 'classnames'
 formatEmojiName = require 'activity/util/formatEmojiName'
+Link            = require 'app/components/common/link'
 
 
 module.exports = class EmojiDropupItem extends React.Component
@@ -23,11 +24,10 @@ module.exports = class EmojiDropupItem extends React.Component
       'EmojiDropupItem'         : yes
       'EmojiDropupItem-selected': isSelected
 
-    <a
-      href         = "#"
+    <Link
       className    = {className}
       onMouseEnter = {@bound 'handleSelect'}
       onClick      = {@bound 'handleClick'}
     >
       <span className="EmojiDropupItem-emojiName">{formatEmojiName emoji}</span>
-    </a>
+    </Link>

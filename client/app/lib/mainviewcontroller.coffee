@@ -87,10 +87,10 @@ module.exports = class MainViewController extends KDViewController
     html     = global.document.documentElement
     mainView = @getView()
 
-    fullSizeApps = ['Login', 'Pricing', 'Activity', 'Teams']
+    fullSizeApps    = [ 'Login', 'Pricing', 'Activity', 'Teams' ]
     appsWithSidebar = [
       'Activity', 'Members', 'content-display', 'Apps', 'Dashboard', 'Account'
-      'Environments', 'Bugs'
+      'Environments', 'Bugs', 'Welcome'
     ]
 
     if (isApp = behavior is 'application') or (name in fullSizeApps)

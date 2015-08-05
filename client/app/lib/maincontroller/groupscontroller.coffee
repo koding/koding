@@ -35,9 +35,15 @@ module.exports = class GroupsController extends KDController
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
 
+
   currentGroupHasStack: ->
+
     {stackTemplates} = @getCurrentGroup()
+
     return stackTemplates?.length > 0
+
+
+  currentGroupIsNew: -> not @getCurrentGroup().stackTemplates
 
 
   filterXssAndForwardEvents: (target, events) ->
