@@ -237,7 +237,7 @@ module.exports = CollaborationController =
   activateRealtimeManagerForParticipant: ->
 
     @startRealtimePolling()
-    @resurrectSnapshot()
+    @resurrectParticipantSnapshot()
 
     if @permissions.get(nick()) is 'read'
       @makeReadOnly()
@@ -578,17 +578,15 @@ module.exports = CollaborationController =
   ###*
    * Resurrect snapshot for participant
   ###
-  resurrectSnapshot: ->
+  resurrectParticipantSnapshot: ->
 
     @whenRealtimeReady =>
 
       @removeInitialViews()
+      mapLength = @myWatchMap.values()?.length
 
-      mapLength = @myWatchMap?.values().length
-
-      # Check it while `myWatchMap` is unfilled
-      # or the participant isn't following the host.
-      if not mapLength or (mapLength and @amIWatchingChangeOwner(@collaborationHost))
+      ## `mapLength=0` meant the participant joined the collaboration just now.
+      if not mapLength or @amIWatchingChangeOwner(@collaborationHost)
         @getHostSnapshot (snapshot) =>
           @layoutManager.resurrectSnapshot snapshot, yes
       else
