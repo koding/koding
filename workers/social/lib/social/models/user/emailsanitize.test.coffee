@@ -7,6 +7,10 @@ describe 'Gmail Validation', ->
     expected = 'INDIANAJONES@gmail.com'
     expect(sanitize(expected)).to.equal expected.toLowerCase()
 
+  it 'trims whitespace', ->
+    expected = '  indianajones@gmail.com  '
+    expect(sanitize(expected)).to.equal expected.trim()
+
   it 'removes dots', ->
     expected = 'indiana.jones@gmail.com'
     equals   = 'indianajones@gmail.com'
