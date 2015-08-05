@@ -422,12 +422,11 @@ module.exports = class JGroup extends Module
 
   @create = do ->
 
-    save_ =(label, model, queue, callback)->
-      model.save (err)->
-        if err then callback err
-        else
-          console.log "#{label} is saved"
-          queue.next()
+    save_ = (label, model, queue, callback) ->
+      model.save (err) ->
+        return callback err  if err
+        console.log "#{label} is saved"
+        queue.next()
 
     create = (client, groupData, owner, callback) ->
       JPermissionSet        = require './permissionset'
@@ -441,59 +440,75 @@ module.exports = class JGroup extends Module
 
       queue = [
 
-        -> group.useSlug group.slug, (err, slug)->
-          if err then callback err
-          else unless slug?
-            callback new KodingError "Couldn't claim the slug!"
-          else
+        ->
+          group.useSlug group.slug, (err, slug) ->
+            return callback err  if err
+            return callback new KodingError 'Couldn\'t claim the slug!'  unless slug?
+
             console.log "created a slug #{slug.slug}"
             group.slug  = slug.slug
             group.slug_ = slug.slug
             queue.next()
-        -> save_ 'group', group, queue, (err)->
-           if err
-             JName.release group.slug, -> callback err
-           else
-             queue.next()
-        -> JSession.update { clientId : sessionToken }, { $set : { groupName : group.slug } }, (err) ->
+
+        ->
+          save_ 'group', group, queue, (err) ->
+            if err
+              JName.release group.slug, -> callback err
+            else
+              queue.next()
+
+        ->
+          selector = { clientId : sessionToken }
+          params   = { $set : { groupName : group.slug } }
+
+          JSession.update selector, params, (err) ->
            return callback err  if err
            queue.next()
 
-        -> group.addMember owner, (err)->
-            if err then callback err
-            else
-              console.log 'member is added'
-              queue.next()
-        -> group.addAdmin owner, (err)->
-            if err then callback err
-            else
-              console.log 'admin is added'
-              queue.next()
-        -> group.addOwner owner, (err)->
-            if err then callback err
-            else
-              console.log 'owner is added'
-              queue.next()
-        -> save_ 'default permission set', defaultPermissionSet, queue,
-                  callback
-        -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
-            if err then callback err
-            else
-              console.log 'permissionSet is added'
-              queue.next()
-        -> group.addDefaultRoles (err)->
-            if err then callback err
-            else
-              console.log 'roles are added'
-              queue.next()
-        -> group.createSocialApiChannels client, (err)->
-            if err then console.error err
+        ->
+          group.addMember owner, (err) ->
+            return callback err  if err
+            console.log 'member is added'
+            queue.next()
+
+        ->
+          group.addAdmin owner, (err) ->
+            return callback err  if err
+            console.log 'admin is added'
+            queue.next()
+
+        ->
+          group.addOwner owner, (err) ->
+            return callback err  if err
+            console.log 'owner is added'
+            queue.next()
+
+        ->
+          save_ 'default permission set', defaultPermissionSet, queue, callback
+
+        ->
+          group.addDefaultPermissionSet defaultPermissionSet, (err) ->
+            return callback err  if err
+            console.log 'permissionSet is added'
+            queue.next()
+
+        ->
+          group.addDefaultRoles (err) ->
+            return callback err  if err
+            console.log 'roles are added'
+            queue.next()
+
+        ->
+          group.createSocialApiChannels client, (err) ->
+            console.error err  if err
             console.log 'created socialApiId ids'
             queue.next()
+
       ]
 
       if 'private' is group.privacy
-        queue.push -> group.createMembershipPolicy groupData.requestType, -> queue.next()
+        queue.push ->
+          group.createMembershipPolicy groupData.requestType, -> queue.next()
 
       queue.push =>
         @emit 'GroupCreated', { group, creator: owner }

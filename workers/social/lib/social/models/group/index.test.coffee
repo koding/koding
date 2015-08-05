@@ -179,7 +179,7 @@ runTests = -> describe 'workers.social.group.index', ->
               expect(data).to.exist
               expect(data).to.be.an 'object'
               queue.next()
-        
+
           ->
             # expecting no error from kick member request
             group.kickMember adminClient, account._id, (err) ->
@@ -206,9 +206,9 @@ runTests = -> describe 'workers.social.group.index', ->
               queue.next()
 
           -> done()
-        
+
         ]
-          
+
         daisy queue
 
 
