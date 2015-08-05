@@ -490,8 +490,15 @@ module.exports =
       .refresh()
 
 
-  getUrl: ->
+  getUrl: (teamsUrl) ->
 
-    return 'http://dev.koding.com:8090'
-    # return 'http://54.165.211.40:8090'
-    # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
+    url = 'dev.koding.com:8090'
+
+    if teamsUrl
+      user = utils.getUser()
+      slug = user.name.toLowerCase().replace /\s/g, '-'
+      return 'http://' + slug + '.' + url
+    else
+      return 'http://' + url
+      # return 'http://54.152.13.1:8090'
+      # return 'https://koding:1q2w3e4r@sandbox.koding.com/'

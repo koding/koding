@@ -2,7 +2,6 @@
   bg                        color, $gray-19
   size                      100% 100%
   box-sizing                border-box
-  font-family               $adelle-family
   font-size                 $fs-regular
   line-height               $body-line-height
 
@@ -12,37 +11,10 @@
   height                    100vh
   flex-direction            column
 
-.ChatPane-header
-  height                    60px
-
-  .ChatPane-NameLabel
-    border-bottom           1px dashed #A49797
-    display                 inline-block
-    font-size               $fs-big
-    line-height             32px
-    margin                  10px 0 0 25px
-    color                   #A49797
-    font-weight             400
-
-.ChatPane-SettingsMenuButton
-.ChatPane-SearchWidget
-  hidden()
-
-.ChatPane-SearchWidget
-  abs()
-  hidden()
-  width                     200px
-  height                    12px
-  padding                   8px 20px
-  right                     25px
-  top                       15px
-  border                    1px solid #A49797
-  border-radius             25px
-
 .ChatPane-body
   rel()
   dispFlex()
-  flex                      7
+  flex                      1
   overflow                  auto
   padding                   10px 0
   flex-direction            column
@@ -62,6 +34,7 @@
 .ChatPane-footer
   rel()
   height                    70px
+  flex                      0 0 120px
 
 .ChatPane .ChatInputWidget
   abs()

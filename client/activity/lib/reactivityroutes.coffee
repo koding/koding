@@ -30,7 +30,7 @@ module.exports =
     path: ':channelName/:postSlug'
     components:
       feed: null
-      chat: PublicChatPane
+      chat: null
       post: PostPane
   ]
 

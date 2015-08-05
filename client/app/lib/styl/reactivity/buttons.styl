@@ -46,7 +46,7 @@ buttonThinColorModifier(borderColor, color, disabled = false)
 
 
 .Button
-  font-family               $adelle-family
+  font-family               $source-sans-family
   display                   inline-block
   letter-spacing            0.05em
   padding                   6px 12px
@@ -79,6 +79,9 @@ buttonThinColorModifier(borderColor, color, disabled = false)
 .Button--disabled
   buttonColorModifier($color-disabled-action, $white, true)
 
+.Button--info
+  buttonColorModifier($color-info, $white)
+
 // Thin buttons
 .Button--primaryThin
   buttonThinColorModifier($color-primary-action, $color-primary-action)
@@ -97,6 +100,9 @@ buttonThinColorModifier(borderColor, color, disabled = false)
 
 .Button--disabledThin
   buttonThinColorModifier($color-disabled-action, $color-disabled-action, true)
+
+.Button--infoThin
+  buttonThinColorModifier($color-info, $color-info)
 
 .Button--small
   font-size                 8px

@@ -63,8 +63,9 @@ app.post '/-/teams/early-access'                 , require './handlers/earlyacce
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
 
 # fetches last members of team
-app.all  '/-/team/:name/members'                , require './handlers/getteammembers'
-app.all  '/-/team/:name'                        , require './handlers/getteam'
+app.all  '/-/team/:name/members'                 , require './handlers/getteammembers'
+app.all  '/-/team/:name'                         , require './handlers/getteam'
+app.all  '/-/profile/:email'                     , require './handlers/getprofile'
 # temp endpoints ends
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'

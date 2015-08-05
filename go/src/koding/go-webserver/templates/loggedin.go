@@ -10,7 +10,7 @@ var LoggedInHome = `
     <link rel="stylesheet" href="/a/p/p/{{.Version}}/app.css" />
   </head>
 
-  <body class='logged-in ide'>
+  <body class='logged-in'>
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
     <script>

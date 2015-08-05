@@ -212,8 +212,8 @@ r-sprite(folder, name)
   if sprite2x
     @media retinaQuery
       bg image, url(sprite2x[8])
-      bg position, (sprite2x[2]/2 sprite2x[3]/2)
-      bg size, (sprite2x[6]/2 sprite2x[7]/2)
+      bg position, (round(sprite2x[2]/2) round(sprite2x[3]/2))
+      bg size, (floor(sprite2x[6]/2) floor(sprite2x[7]/2))
 
 
 getSmallGoldenFraction(value)
