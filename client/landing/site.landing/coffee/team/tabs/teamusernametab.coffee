@@ -78,10 +78,10 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
       success : ->
         KD.utils.storeNewTeamData 'username', formData
         KD.utils.createTeam
-          success : ->
+          success : (data)->
             KD.utils.clearTeamData()
             { protocol, host } = location
-            location.href      = "#{protocol}//#{slug}.#{host}"
+            location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
 
       error   : ({responseJSON}) =>
 
