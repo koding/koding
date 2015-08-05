@@ -239,7 +239,7 @@ class IDEAppController extends AppController
   ###
   splitTabView: (options) ->
 
-    { type, ideViewOptions, dontSave, newIDEViewHash, quite } = options
+    { type, ideViewOptions, dontSave, newIDEViewHash, silent } = options
 
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
@@ -282,7 +282,7 @@ class IDEAppController extends AppController
 
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
 
-    if @rtm?.isReady and not quite
+    if @rtm?.isReady and not silent
       context =
         ideViewHash    : ideView.hash
         newIDEViewHash : newIDEView.hash
@@ -322,9 +322,9 @@ class IDEAppController extends AppController
       view.ensureSplitHandlers()
 
   ###*
-   * @param {boolean=} quite  Don't dispatch the `SplitViewWasMerged` event if it is `yes`
+   * @param {boolean=} silent  Don't dispatch the `SplitViewWasMerged` event if it is `yes`
   ###
-  mergeSplitView: (quite = no) ->
+  mergeSplitView: (silent = no) ->
 
     tabView     = @activeTabView
     panel       = tabView.parent.parent
@@ -371,7 +371,7 @@ class IDEAppController extends AppController
     # Is it the best way for view resizing?
     targetView._windowDidResize()
 
-    if @rtm?.isReady and not quite
+    if @rtm?.isReady and not silent
       context =
         ideViewHash : ideViewHash
 
@@ -498,9 +498,9 @@ class IDEAppController extends AppController
             if snapshot and @amIHost
               return @resurrectLocalSnapshot snapshot
 
-            # Be quite. Don't write initial views's changes to snapshot.
+            # Be quiet. Don't write initial views's changes to snapshot.
             # After that, get participant's snapshot from collaboration data and build workspace.
-            @quite = yes  if @isInSession and not @amIHost
+            @silent = yes  if @isInSession and not @amIHost
 
             @splitTabView type: 'horizontal', dontSave: yes
 
@@ -859,7 +859,7 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
-    return  if @isDestroyed or not @isMachineRunning() or @quite
+    return  if @isDestroyed or not @isMachineRunning() or @silent
 
     name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
@@ -1304,7 +1304,7 @@ class IDEAppController extends AppController
           @splitTabView
             type            : context.direction
             newIDEViewHash  : context.newIDEViewHash
-            quite           : yes
+            silent          : yes
 
       else if type is 'SplitViewWasMerged'
         @handleSplitViewChanges change, =>

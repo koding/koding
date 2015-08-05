@@ -156,21 +156,21 @@ module.exports = class IDELayoutManager extends KDObject
    * Resurrect saved snapshot from server.
    *
    * @param {Array} snapshot
-   * @param {boolean=} quite  Don't dispatch `SplitViewWasMerged` or `NewSplitViewCreated` event.
+   * @param {boolean=} silent  Don't dispatch `SplitViewWasMerged` or `NewSplitViewCreated` event.
   ###
-  resurrectSnapshot: (snapshot, quite = no) ->
+  resurrectSnapshot: (snapshot, silent = no) ->
 
     ## The `ideApp` is an `IDEAppController`s instance
     ideApp = @getDelegate()
 
-    ideApp.quite = no
+    ideApp.silent = no
 
     # if has the fake view
     if ideApp.fakeViewsDestroyed
-      ideApp.mergeSplitView quite
+      ideApp.mergeSplitView silent
       ideApp.setActiveTabView ideApp.ideViews.first.tabView
 
-    ideApp.splitTabView { type: snapshot[1].direction, quite }  if snapshot[1]
+    ideApp.splitTabView { type: snapshot[1].direction, silent }  if snapshot[1]
 
     for index, item of snapshot when item.type is 'split'  # Defensive check.
       ideView = ideApp.ideViews[index]
@@ -178,7 +178,7 @@ module.exports = class IDELayoutManager extends KDObject
       if not item.views.length or item.views.first.context
         ideView.setHash item.hash
 
-      @resurrectPanes_ item.views, ideView.tabView, quite
+      @resurrectPanes_ item.views, ideView.tabView, silent
 
     ideApp.recalculateHandles()
     ideApp.isLocalSnapshotRestored = yes
@@ -187,9 +187,9 @@ module.exports = class IDELayoutManager extends KDObject
   ###*
    * @param {Array} items
    * @param {IDEApplicationTabView} tabView
-   * @param {boolean=} quite  Don't dispatch any event when "IDEView" is merged or splitted
+   * @param {boolean=} silent  Don't dispatch any event when "IDEView" is merged or splitted
   ###
-  resurrectPanes_: (items, tabView, quite) ->
+  resurrectPanes_: (items, tabView, silent) ->
 
     ## The `ideApp` is an `IDEAppController`s instane
     ideApp = @getDelegate()
@@ -204,7 +204,7 @@ module.exports = class IDELayoutManager extends KDObject
           ideApp.splitTabView
             type            : item.direction
             newIDEViewHash  : item.hash
-            quite           : quite
+            silent          : silent
 
           tabView = ideApp.ideViews.last.tabView
         else
@@ -213,8 +213,8 @@ module.exports = class IDELayoutManager extends KDObject
         if item.views.length
           # since we are in a for loop to be able to preserve item and tabview
           # for the defer, we are creating a scope and passing them into there.
-          do (item, tabView, quite) =>
-            kd.utils.defer => @resurrectPanes_ item.views, tabView, quite
+          do (item, tabView, silent) =>
+            kd.utils.defer => @resurrectPanes_ item.views, tabView, silent
 
       else
         # Don't use `active tab view` logic for new pane creation.
