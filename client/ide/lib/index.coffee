@@ -293,22 +293,6 @@ class IDEAppController extends AppController
     @resizeActiveTerminalPane()
 
 
-  ###*
-   * @param {string} type
-   * @param {Object} context
-  ###
-  emitChange: (type, context) ->
-
-    return  unless @rtm
-
-    change  =
-      context       : context
-      type          : type
-      origin        : nick()
-
-    @syncChange change
-
-
   recalculateHandles: ->
 
     closeHandleMethod = if @ideViews.length > 1
