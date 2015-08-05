@@ -50,6 +50,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'CloseHandleClicked',       @bound 'closeSplitView'
     @on 'FullscreenHandleClicked',  @bound 'toggleFullscreen'
     @on 'IDETabWasMoved',           @bound 'handleTabWasMoved'
+    @on 'NewSplitViewCreated',      @bound 'handleSplitViewCreated'
 
     @on 'VerticalSplitHandleClicked', =>
       frontApp.setActiveTabView @tabView
@@ -271,7 +272,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     change.context.paneType     = pane.options?.paneType or null
     change.context.paneHash     = pane.hash or null
-    change.context.ideViewHash  = @hash
+    change.context.ideViewHash  = change.context.ideViewHash or @hash
 
     change.type   = type
     change.origin = nick()
@@ -721,3 +722,16 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         targetIDEViewHash : targetTabView.parent.hash
 
     @emitChange view, change, 'IDETabWasMoved'
+
+
+  handleSplitViewCreated: (params) ->
+
+    { ideView, newIDEView, direction } = params
+
+    change =
+      context:
+        ideViewHash     : ideView.hash
+        newIDEViewHash  : newIDEView.hash
+        direction       : direction
+
+    @emitChange newIDEView, change, 'NewSplitViewCreated'

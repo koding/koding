@@ -282,13 +282,11 @@ class IDEAppController extends AppController
 
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
 
-    if @rtm?.isReady and not silent
-      context =
-        ideViewHash    : ideView.hash
-        newIDEViewHash : newIDEView.hash
-        direction      : type
-
-      @emitChange 'NewSplitViewCreated', context
+    if not silent
+      newIDEView.emit 'NewSplitViewCreated',
+        ideView    : ideView
+        newIDEView : newIDEView
+        direction  : type
 
     @recalculateHandles()
     @writeSnapshot()  unless dontSave
@@ -835,7 +833,7 @@ class IDEAppController extends AppController
       @writeSnapshot()
 
     ideView.on 'ChangeHappened', (change) =>
-      @syncChange change  if @rtm
+      @syncChange change  if @rtm?.isReady
 
     ideView.on 'UpdateWorkspaceSnapshot', =>
       @writeSnapshot()
