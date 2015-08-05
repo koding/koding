@@ -38,7 +38,7 @@ handleReactivity = ({ query }, router) ->
         <Router {...state}>
           {routes}
         </Router>
-        view.getElement()
+        view.reactivityContainer.getElement()
       )
 
 
