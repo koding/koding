@@ -5,7 +5,6 @@ modalSelector = '.machine-settings-modal.AppModal'
 
 module.exports =
 
-
   turnOffVm: (browser) ->
 
     linkSelector  = modalSelector + ' .AppModal-form'
@@ -82,7 +81,7 @@ module.exports =
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-      
+
     environmentHelpers.openAdvancedSettings(browser)
 
     browser
@@ -93,3 +92,50 @@ module.exports =
       .waitForElementVisible  terminatedLabelSelector, 100000
       .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
       .end()
+
+  resizeVm: (browser) ->
+
+    confirmSelector  = ".kdmodal-content .kdbutton.green"
+    upgradeSelector  = ".kdmodal-inner .container .custom-link-view"
+    envModalSelector = ".env-modal.env-machine-state"
+    proceedSelector  = ".kdmodal.with-buttons .kdbutton.red"
+    diskSelector     = ".disk-usage .usage-info"
+
+    usageText        = ""
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    environmentHelpers.openDiskUsageSettings(browser)
+    browser.getText diskSelector, (res) ->
+      usageText = res.value
+
+      environmentHelpers.openResizeVmModal(browser)
+      browser.waitForElementVisible confirmSelector, 20000
+
+      browser.getAttribute confirmSelector, "disabled", (res)->
+        if res.value
+
+          browser.click upgradeSelector
+          helpers.selectPlan(browser)
+          helpers.fillPaymentForm(browser)
+          browser.url helpers.getUrl() + "/IDE"
+          environmentHelpers.openResizeVmModal(browser)
+
+        browser.waitForElementVisible confirmSelector, 20000
+        browser.elements "css selector", ".sliderbar-container .sliderbar-label", (res) ->
+
+          element = res.value[1]
+          browser
+            .elementIdClick           element.ELEMENT
+            .pause                    100 #A little time for UI to update
+            .click                    confirmSelector
+            .waitForElementVisible    proceedSelector, 20000
+            .click                    proceedSelector
+            .waitForElementVisible    envModalSelector, 20000
+            .waitForElementNotVisible envModalSelector, 500000
+
+          environmentHelpers.openDiskUsageSettings(browser)
+          browser.waitForElementVisible diskSelector
+          browser.expect.element(diskSelector).text.to.not.equal(usageText) #Assertion
+          browser.end()

@@ -136,6 +136,18 @@ module.exports =
       .waitForElementVisible confirmSelector, 20000
       .click                 confirmSelector
 
+  openResizeVmModal: (browser) ->
+
+    resizeSelector  = ".disk-usage-info .footline .resize"
+
+    @openDiskUsageSettings(browser)
+
+    browser
+      .waitForElementVisible resizeSelector, 20000
+      .click                 resizeSelector
+
+
+
   clickAddVMButton: (browser) ->
 
     sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
