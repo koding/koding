@@ -163,10 +163,10 @@ generateCreateGroupKallback = (client, req, res, body) ->
         # do not block group creation
         console.error "Error while creating group artifacts", body, err if err
 
-        # handle the request as an XHR response:
-        return res.status(200).end() if req.xhr
-        # handle the request with an HTTP redirect:
-        res.redirect 301, redirect
+        data =
+          token: JUser.createJWT { username, groupName: slug }
+
+        return res.status(200).send data
 
 
 validateGroupDataAndReturnError = (body) ->
