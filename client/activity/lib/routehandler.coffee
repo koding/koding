@@ -38,13 +38,15 @@ handleReactivity = ({ query }, router) ->
         <Router {...state}>
           {routes}
         </Router>
-        view.getElement()
+        view.reactivityContainer.getElement()
       )
 
 
 activityView = (callback) ->
   {appManager} = require('kd').singletons
   appManager.open 'Activity', (app) ->
-    callback app.getView()
+    view = app.getView()
+    view.switchToReactivityContainer()
+    callback view
 
 
