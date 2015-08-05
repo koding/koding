@@ -9,7 +9,7 @@ sanitize = (email, options = {}) ->
 
 sanitizeGmail = (email, options = {}) ->
 
-  options.excludeDots or= yes
+  options.excludeDots or= no
   options.excludePlus or= no
 
   [local, host]     = email.split '@'

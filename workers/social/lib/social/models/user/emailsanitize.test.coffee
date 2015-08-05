@@ -11,19 +11,19 @@ describe 'Gmail Validation', ->
     expected = 'indiana.jones@gmail.com'
     equals   = 'indianajones@gmail.com'
 
-    expect(sanitize(expected)).to.equal equals
+    expect(sanitize(expected, excludeDots: yes)).to.equal equals
 
   it 'removes dots before plus label', ->
     expected = 'ind.iana+jones@gmail.com'
     equals   = 'indiana+jones@gmail.com'
 
-    expect(sanitize(expected)).to.equal equals
+    expect(sanitize(expected, excludeDots: yes)).to.equal equals
 
   it 'removes dots till +', ->
     expected = 'ind.iana+j.o.n.e.s@gmail.com'
     equals   = 'indiana+j.o.n.e.s@gmail.com'
 
-    expect(sanitize(expected)).to.equal equals
+    expect(sanitize(expected, excludeDots: yes)).to.equal equals
 
   it 'removes plus label and characters till @', ->
     expected = 'indiana+jones@gmail.com'
@@ -35,7 +35,7 @@ describe 'Gmail Validation', ->
     expected = 'ind.iana+jones@gmail.com'
     equals   = 'indiana@gmail.com'
 
-    expect(sanitize(expected, excludePlus: yes)).to.equal equals
+    expect(sanitize(expected, excludeDots: yes, excludePlus: yes)).to.equal equals
 
   it 'ignores other domains', ->
     expected = 'ind.iana+jones@koding.com'
@@ -45,7 +45,7 @@ describe 'Gmail Validation', ->
     expected = 'ind.iana+jones@googlemail.com'
     equals   = 'indiana@googlemail.com'
 
-    expect(sanitize(expected, excludePlus: yes)).to.equal equals
+    expect(sanitize(expected, excludeDots: yes, excludePlus: yes)).to.equal equals
 
   it 'ignores other google domains', ->
     expected = 'ind.iana+jones@gmail.uk'
