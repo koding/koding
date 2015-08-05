@@ -927,6 +927,7 @@ module.exports = class JUser extends jraphical.Module
     { username, email, password, passwordStatus,
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
 
+    email = emailsanitize email
     sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
 
     emailFrequencyDefaults = {
