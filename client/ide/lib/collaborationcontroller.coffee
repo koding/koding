@@ -585,7 +585,7 @@ module.exports = CollaborationController =
       @removeInitialViews()
       mapLength = @myWatchMap.values()?.length
 
-      ## `mapLength=0` meant the participant joined the collaboration just now.
+      ## The `mapLength=0` meant the participant joined the collaboration just now.
       if not mapLength or @amIWatchingChangeOwner(@collaborationHost)
         @getHostSnapshot (snapshot) =>
           @layoutManager.resurrectSnapshot snapshot, yes
