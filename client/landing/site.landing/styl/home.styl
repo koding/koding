@@ -10,32 +10,14 @@ home.styl
 body.home
   -webkit-font-smoothing  antialiased
 
-  .main-header nav
-    a.signup
-      hidden()
-
   .main-header
-    .hiring-badge
-      font-size           12px
-      font-family         Oxygen
-      letter-spacing      0.77px
-      line-height         29px
-      text-decoration     none
-      text-align          center
-      color               #535353
-      bg                  color #F7E747
-      rounded             3px
-      abs                 -4px 0 0 155px
-      size                88px 29px
-      vendor              animation, fadeInRight 1.5s ease both
 
-      &:before
-        content           ''
-        abs               6px 0 0 -5px
-        size              0 0
-        border-style      solid
-        border-width      8px 8px 8px 0
-        border-color      transparent #f7e847 transparent transparent
+    .hiring-badge
+      visible()
+
+    nav
+      a.signup
+        hidden()
 
   #kdmaincontainer.blur
     vendor                filter, blur(5px)
@@ -752,7 +734,7 @@ body.home
     background-color        rgba(35, 35, 35, .6)
 
   body.home
-    .main-header 
+    .main-header
 
       .hamburger-menu .icon
         background          #fff
@@ -916,7 +898,7 @@ body.home
     -moz-transform     scale(1.2)
 
 @-webkit-keyframes fadeInRight
-  0% 
+  0%
     opacity               0
     -webkit-transform     translateX(30px)
   100%
