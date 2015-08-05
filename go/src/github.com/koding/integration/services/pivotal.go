@@ -24,38 +24,30 @@ var (
 	ErrInvalidRequest      = errors.New("invalid request")
 )
 
-func NewPivotal(serverURL, publicURL, integrationURL string, log logging.Logger) (*Pivotal, error) {
-	if serverURL == "" {
-		serverURL = PivotalServerURL
+type PivotalConfig struct {
+	ServerURL      string
+	PublicURL      string
+	IntegrationURL string
+}
+
+func NewPivotal(pc *PivotalConfig, log logging.Logger) (*Pivotal, error) {
+	if pc.ServerURL == "" {
+		pc.ServerURL = PivotalServerURL
 	}
 
 	return &Pivotal{
-		serverURL:      serverURL,
-		publicURL:      publicURL,
-		integrationURL: integrationURL,
+		serverURL:      pc.ServerURL,
+		publicURL:      pc.PublicURL,
+		integrationURL: pc.IntegrationURL,
 		log:            log.New(PIVOTAL),
 	}, nil
-}
-
-func readBody(body io.ReadCloser) (*PivotalActivity, error) {
-	pm := &PivotalActivity{}
-	defer func() {
-		if body != nil {
-			body.Close()
-		}
-	}()
-
-	if err := json.NewDecoder(body).Decode(pm); err != nil {
-		return nil, err
-	}
-
-	return pm, nil
 }
 
 func (p *Pivotal) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	token := req.URL.Query().Get("token")
 	if token == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		p.log.Error("Token is not found %v", ErrUserTokenIsNotValid)
 		return
 	}
 
@@ -72,11 +64,9 @@ func (p *Pivotal) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		comma = ","
 	}
 
-	message := fmt.Sprintf("%s: %s", pm.Message, resources)
+	message := fmt.Sprintf("[[%s](%s)] %s: %s", pm.Project.Name, pm.Message, resources)
 
-	pr := &helpers.PushRequest{
-		Body: message,
-	}
+	pr := helpers.NewPushRequest(message)
 
 	if err := helpers.Push(token, pr, p.integrationURL); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -84,7 +74,6 @@ func (p *Pivotal) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 }
 
 func (p *Pivotal) Configure(req *http.Request) (helpers.ConfigureResponse, error) {
@@ -166,15 +155,28 @@ func (p *Pivotal) sendRequest(cp *ConfigurePivotal, projectID, userToken string)
 		return nil, err
 	}
 
-	if resp.StatusCode > 299 {
+	if resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("configure failed with code: %d, response: %#v", resp.StatusCode, result)
 	}
 
-	fmt.Printf("%#v", result)
-	// return nil, nil
 	response := helpers.ConfigureResponse{}
 	response["webhook_id"] = strconv.FormatInt(int64(result["id"].(float64)), 10)
 	response["project_id"] = result["project_id"]
 
 	return response, nil
+}
+
+func readBody(body io.ReadCloser) (*PivotalActivity, error) {
+	pm := &PivotalActivity{}
+	defer func() {
+		if body != nil {
+			body.Close()
+		}
+	}()
+
+	if err := json.NewDecoder(body).Decode(pm); err != nil {
+		return nil, err
+	}
+
+	return pm, nil
 }
