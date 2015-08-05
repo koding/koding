@@ -203,7 +203,7 @@ module.exports = class IDELayoutManager extends KDObject
         if item.isFirst isnt yes
           ideApp.splitTabView
             type            : item.direction
-            newIDEViewHash  : item.hash
+            newIdeViewHash  : item.hash
             silent          : silent
 
           tabView = ideApp.ideViews.last.tabView

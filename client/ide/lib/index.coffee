@@ -239,13 +239,13 @@ class IDEAppController extends AppController
   ###
   splitTabView: (options) ->
 
-    { type, ideViewOptions, dontSave, newIDEViewHash, silent } = options
+    { type, ideViewOptions, dontSave, newIdeViewHash, silent } = options
 
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
-    newIDEView     = new IDEView ideViewOptions
+    newIdeView     = new IDEView ideViewOptions
 
-    newIDEView.setHash newIDEViewHash
+    newIdeView.setHash newIdeViewHash
 
     splitViewPanel = @activeTabView.parent.parent
     if splitViewPanel instanceof KDSplitViewPanel
@@ -258,12 +258,12 @@ class IDEAppController extends AppController
 
     splitView = new KDSplitView
       type  : type
-      views : [ null, newIDEView ]
+      views : [ null, newIdeView ]
 
     layout.split(type is 'vertical')
     splitView._layout = layout
 
-    @registerIDEView newIDEView
+    @registerIDEView newIdeView
 
     splitView.once 'viewAppended', =>
       splitView.panels.first.attach ideView
@@ -278,14 +278,14 @@ class IDEAppController extends AppController
       @doResize()
 
     ideParent.addSubView splitView
-    @setActiveTabView newIDEView.tabView
+    @setActiveTabView newIdeView.tabView
 
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
 
     if not silent
-      newIDEView.emit 'NewSplitViewCreated',
+      newIdeView.emit 'NewSplitViewCreated',
         ideView    : ideView
-        newIDEView : newIDEView
+        newIdeView : newIdeView
         direction  : type
 
     @recalculateHandles()
@@ -1277,7 +1277,7 @@ class IDEAppController extends AppController
         @handleSplitViewChanges change, =>
           @splitTabView
             type            : context.direction
-            newIDEViewHash  : context.newIDEViewHash
+            newIdeViewHash  : context.newIdeViewHash
             silent          : yes
 
       else if type is 'SplitViewWasMerged'

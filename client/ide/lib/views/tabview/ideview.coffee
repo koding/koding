@@ -726,12 +726,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   handleSplitViewCreated: (params) ->
 
-    { ideView, newIDEView, direction } = params
+    { ideView, newIdeView, direction } = params
 
     change =
       context:
         ideViewHash     : ideView.hash
-        newIDEViewHash  : newIDEView.hash
+        newIdeViewHash  : newIdeView.hash
         direction       : direction
 
-    @emitChange newIDEView, change, 'NewSplitViewCreated'
+    @emitChange newIdeView, change, 'NewSplitViewCreated'
