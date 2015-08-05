@@ -3,17 +3,22 @@ package gatherrun
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"os/exec"
 )
 
 type Options map[string]interface{}
 
 type GatherBinary struct {
-	Path string
+	Path       string
+	ScriptType string
 }
 
 func (g *GatherBinary) Run() ([]interface{}, error) {
-	output, err := exec.Command(g.Path).Output()
+	cmd := exec.Command(g.Path)
+	cmd.Env = append(os.Environ(), g.ScriptType)
+
+	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}

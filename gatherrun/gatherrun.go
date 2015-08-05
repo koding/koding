@@ -6,6 +6,12 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"time"
+)
+
+var (
+	AbuseInterval     = time.Minute * 30
+	AnalyticsInterval = time.Hour * 24
 )
 
 type GatherRun struct {
@@ -13,6 +19,7 @@ type GatherRun struct {
 	Exporter   Exporter
 	Fetcher    Fetcher
 	Output     *Gather
+	ScriptType string
 }
 
 func Run(env, username string) {
@@ -24,24 +31,35 @@ func Run(env, username string) {
 		Region:     "us-east-1",
 	}
 
-	// initialize `Exporter` to save results
 	exporter := NewKodingExporter()
 
-	opts := &Gather{
-		Env:      env,
-		Username: username,
-	}
+	opts := &Gather{Env: env, Username: username}
 
-	// initialize `Client` to download the scripts and save the results.
-	New(fetcher, exporter, opts).Run()
+	go func() {
+		New(fetcher, exporter, opts, "abuse").Run()
+		New(fetcher, exporter, opts, "analytics").Run()
+	}()
+
+	abuseTimer := time.NewTimer(AbuseInterval)
+	analyticsTimer := time.NewTimer(AnalyticsInterval)
+
+	for {
+		select {
+		case <-abuseTimer.C:
+			New(fetcher, exporter, opts, "abuse").Run()
+		case <-analyticsTimer.C:
+			New(fetcher, exporter, opts, "analytics").Run()
+		}
+	}
 }
 
-func New(fetcher Fetcher, exporter Exporter, output *Gather) *GatherRun {
+func New(fetcher Fetcher, exporter Exporter, output *Gather, scriptType string) *GatherRun {
 	return &GatherRun{
 		Fetcher:    fetcher,
 		Exporter:   exporter,
 		DestFolder: "/tmp/" + randSeq(10),
 		Output:     output,
+		ScriptType: scriptType,
 	}
 }
 
@@ -75,7 +93,7 @@ func (c *GatherRun) GetGatherBinary() (*GatherBinary, error) {
 	}
 
 	binaryPath := strings.TrimSuffix(tarFile, TAR_SUFFIX)
-	return &GatherBinary{Path: binaryPath}, nil
+	return &GatherBinary{Path: binaryPath, ScriptType: c.ScriptType}, nil
 }
 
 func (c *GatherRun) CreateDestFolder() error {

@@ -14,7 +14,7 @@ func TestGather(t *testing.T) {
 		exporter, err := newTestExporter()
 		So(err, ShouldBeNil)
 
-		g := New(fetcher, exporter, nil)
+		g := New(fetcher, exporter, nil, "analytics")
 		err = g.CreateDestFolder()
 		So(err, ShouldBeNil)
 
@@ -31,7 +31,7 @@ func TestGather(t *testing.T) {
 		exporter, err := newTestExporter()
 		So(err, ShouldBeNil)
 
-		g := New(fetcher, exporter, nil)
+		g := New(fetcher, exporter, nil, "analytics")
 		_, err = g.GetGatherBinary()
 		So(err, ShouldBeNil)
 
@@ -55,7 +55,7 @@ func TestGather(t *testing.T) {
 		exporter, err := newTestExporterHandler(handler)
 		So(err, ShouldBeNil)
 
-		g := New(fetcher, exporter, nil)
+		g := New(fetcher, exporter, nil, "analytics")
 		err = g.Run()
 		So(err, ShouldBeNil)
 	})
