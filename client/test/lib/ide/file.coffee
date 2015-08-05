@@ -126,34 +126,36 @@ module.exports =
 
   #   browser.end()
 
-  # cancelSaveFile: (browser) ->
+  cancelSaveFile: (browser) ->
 
-  #   paragraph = helpers.getFakeText()
-  #   dummyText = paragraph.split(' ')[0]
-  #   closeFileSelector = "#{paneSelector} span.close-tab"
-  #   cancelSelector = '.modal-with-text .kdmodal-inner button.light-gray'
+    dummyText = helpers.getFakeText().split(' ')[0]
+    closeFileSelector = "#{paneSelector} span.close-tab"
+    cancelSelector = '.modal-with-text .kdmodal-inner button.light-gray'
 
-  #   user = helpers.beginTest(browser)
-  #   helpers.waitForVMRunning(browser)
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   fileName = helpers.createFile(browser, user)
+    fileName = helpers.createFile(browser, user)
 
-  #   ideHelpers.openFile(browser, user, fileName)
-  #   ideHelpers.setTextToEditor(browser, dummyText)
+    ideHelpers.openFile(browser, user, fileName)
+    ideHelpers.setTextToEditor(browser, dummyText)
 
-  #   browser
-  #     .moveToElement             paneSelector, 60, 15
-  #     .waitForElementVisible     closeFileSelector, 20000
-  #     .click                     closeFileSelector
-  #     .waitForElementVisible  cancelSelector, 20000
-  #     .assert.containsText  cancelSelector + ' span.button-title', 'CANCEL'
-  #     .click  cancelSelector
-  #     .end()
+    browser
+      .moveToElement             paneSelector, 60, 15
+      .waitForElementVisible     closeFileSelector, 20000
+      .click                     closeFileSelector
+      .waitForElementVisible  cancelSelector, 20000
+      .assert.containsText  cancelSelector + ' span.button-title', 'CANCEL'
+      .click  cancelSelector
+
+    ideHelpers.setTextToEditor(browser, '')
+    ideHelpers.closeFile(browser, fileName)
+
+    browser.end()
 
   dontSaveFile: (browser) ->
 
-    paragraph = helpers.getFakeText()
-    dummyText = paragraph.split(' ')[0]
+    dummyText = helpers.getFakeText().split(' ')[0]
     closeFileSelector = "#{paneSelector} span.close-tab"
     dontSaveSelector = '.modal-with-text .kdmodal-inner button.red'
 
@@ -176,17 +178,21 @@ module.exports =
 
   saveCloseFile: (browser) ->
 
-    paragraph = helpers.getFakeText()
-    dummyText = paragraph.split(' ')[0]
+    dummyText = helpers.getFakeText().split(' ')[0]
     closeFileSelector = "#{paneSelector} span.close-tab"
     saveCloseSelector = '.modal-with-text .kdmodal-inner button.green'
+
+    filesTabSelector    = '.ide-files-tab .file-container'
+    saveAsModalSelector = '.save-as-dialog'
+    saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
+    newName             = helpers.getFakeText().split(' ')[0] + '.txt'
+
+    saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons span.button-title"
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    fileName = helpers.createFile(browser, user)
-
-    ideHelpers.openFile(browser, user, fileName)
+    ideHelpers.openNewFile(browser)
     ideHelpers.setTextToEditor(browser, dummyText)
 
     browser
@@ -196,5 +202,15 @@ module.exports =
       .waitForElementVisible  saveCloseSelector, 20000
       .assert.containsText  saveCloseSelector + ' span.button-title', 'SAVE AND CLOSE'
       .click  saveCloseSelector
+      .waitForElementVisible  saveAsModalSelector, 20000
+      .waitForElementVisible  saveAsInputSelector, 20000
+      .clearValue             saveAsInputSelector
+      .setValue               saveAsInputSelector, newName
+      .click                  saveButtonSelector
+      .waitForElementVisible  filesTabSelector, 20000
+      .pause  20000
+      .assert.containsText    filesTabSelector, newName # Assertion
 
-      .end()
+    ideHelpers.openAnExistingFile(browser, user, newName, dummyText)
+
+    browser.end()
