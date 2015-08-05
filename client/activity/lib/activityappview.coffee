@@ -84,6 +84,20 @@ module.exports = class ActivityAppView extends KDView
       pane?.refreshContent? path
 
 
+  switchToReactivityContainer: ->
+
+    @tabs.hide()
+    @setClass 'Reactivity'
+    @reactivityContainer.show()
+
+
+  switchToTabs: ->
+
+    @reactivityContainer.hide()
+    @unsetClass 'Reactivity'
+    @tabs.show()
+
+
   viewAppended: ->
 
     # see above for the terrible hack note - SY
