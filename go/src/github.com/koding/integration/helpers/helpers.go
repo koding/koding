@@ -10,10 +10,15 @@ import (
 )
 
 var (
-	ErrBadGateway      = errors.New("bad gateway")
-	ErrUnknown         = errors.New("unknown error")
-	ErrContentNotFound = errors.New("content not found")
+	ErrServiceOverloaded = errors.New("service overloaded")
+	ErrUnknown           = errors.New("unknown error")
+	ErrContentNotFound   = errors.New("content not found")
+	ErrInternalError     = errors.New("internal error")
 )
+
+type Fallback func(string) error
+
+var FallbackFn Fallback
 
 type ErrorResponse struct {
 	Description string `json:"description"`
@@ -32,10 +37,19 @@ type BotChannelData struct {
 //////////// PushRequest //////////////
 
 type PushRequest struct {
-	Body      string `json:"body"`
-	ChannelId int64  `json:"channelId,string"`
-	GroupName string `json:"groupName"`
-	Token     string `json:"token"`
+	Body       string   `json:"body"`
+	ChannelId  int64    `json:"channelId,string"`
+	GroupName  string   `json:"groupName"`
+	Token      string   `json:"token"`
+	FallbackFn Fallback `json:"-"`
+}
+
+// NewPushRequest creates a new PushRequest instance with Fallback function
+func NewPushRequest(body string) *PushRequest {
+	return &PushRequest{
+		FallbackFn: FallbackFn,
+		Body:       body,
+	}
 }
 
 func (pr *PushRequest) Buffered() (io.Reader, error) {
@@ -45,6 +59,56 @@ func (pr *PushRequest) Buffered() (io.Reader, error) {
 	}
 
 	return bytes.NewReader(body), nil
+}
+
+// Fallback stores the Push request arguments in a queue, when a
+// fallback function is attached to push request
+func (pr *PushRequest) Fallback(token, rootPath string) error {
+	if pr.FallbackFn == nil {
+		return nil
+	}
+
+	fr := &FallbackRequest{}
+	fr.Body = pr
+	fr.RootPath = rootPath
+	fr.Token = token
+
+	body, err := json.Marshal(fr)
+	if err != nil {
+		return err
+	}
+
+	return pr.FallbackFn(string(body))
+}
+
+func FallbackHandler(message *string) error {
+	if message == nil {
+		return nil
+	}
+
+	fr := FallbackRequest{}
+	err := json.Unmarshal([]byte(*message), &fr)
+	if err != nil {
+		return err
+	}
+
+	if err := fr.Push(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+////////// FallbackRequest /////////////
+
+type FallbackRequest struct {
+	Token    string       `json:"token"`
+	Body     *PushRequest `json:"body"`
+	RootPath string       `json:"rootPath"`
+}
+
+func (fr *FallbackRequest) Push() error {
+	return Push(fr.Token, fr.Body, fr.RootPath)
 }
 
 ////////// ConfigureRequest ////////////
@@ -107,8 +171,12 @@ func FetchBotChannelId(username, token, rootPath string) (int64, error) {
 }
 
 func ParseError(resp *http.Response) error {
+	if resp.StatusCode == 500 {
+		return ErrInternalError
+	}
+
 	if resp.StatusCode == 502 {
-		return ErrBadGateway
+		return ErrServiceOverloaded
 	}
 
 	if resp.StatusCode == 404 {
@@ -128,6 +196,9 @@ func ParseError(resp *http.Response) error {
 	return ErrUnknown
 }
 
+// Push makes a request to push endpoint of webhook worker. When the worker is down
+// or if it returns an Internal Server Error, message is pushed to the fallback
+// queue
 func Push(token string, pr *PushRequest, rootPath string) error {
 	endpoint := fmt.Sprintf("%s/push/%s", rootPath, token)
 	reader, err := pr.Buffered()
@@ -136,13 +207,25 @@ func Push(token string, pr *PushRequest, rootPath string) error {
 	}
 
 	resp, err := http.Post(endpoint, "application/json", reader)
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+
 	if err != nil {
+		// When webhook server is down, push request must be queued
+		pr.Fallback(token, rootPath)
 		return err
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return ParseError(resp)
+		err := ParseError(resp)
+		if err == ErrInternalError {
+			pr.Fallback(token, rootPath)
+		}
+
+		return err
 	}
 
 	return nil

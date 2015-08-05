@@ -412,9 +412,7 @@ func (g GithubListener) output(ctx context.Context, str string) {
 		return
 	}
 
-	pr := &helpers.PushRequest{
-		Body: str,
-	}
+	pr := helpers.NewPushRequest(str)
 
 	if err := helpers.Push(gi.token, pr, g.IntegrationUrl); err != nil {
 		g.Log.Error("Could not push message: %s", err)

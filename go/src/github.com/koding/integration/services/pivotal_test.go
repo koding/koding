@@ -83,7 +83,13 @@ func CreateTestPivotalService(t *testing.T) *Pivotal {
 	pv.integrationURL = "http://koding.com/api/integration"
 	pv.log = logging.NewLogger("testing")
 
-	service, err := NewPivotal("", pv.publicURL, pv.integrationURL, pv.log)
+	pc := &PivotalConfig{
+		ServerURL:      "",
+		PublicURL:      pv.publicURL,
+		IntegrationURL: pv.integrationURL,
+	}
+
+	service, err := NewPivotal(pc, pv.log)
 	if err != nil {
 		t.Fatal(err)
 	}
