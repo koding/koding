@@ -16,6 +16,7 @@ globals                = require 'globals'
 isChannelCollaborative = require 'app/util/isChannelCollaborative'
 isKoding               = require 'app/util/isKoding'
 isGroup                = require 'app/util/isGroup'
+isReactivityEnabled    = require 'app/util/isReactivityEnabled'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
 isSuggestionEnabled    = require 'activity/util/isSuggestionEnabled'
 
@@ -33,6 +34,9 @@ module.exports = class ActivityAppView extends KDView
 
     options.cssClass   = 'content-page activity clearfix'
     options.domId      = 'content-page-activity'
+
+    if isReactivityEnabled()
+      options.cssClass = kd.utils.curry 'Reactivity', options.cssClass
 
     super options, data
 
