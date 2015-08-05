@@ -985,23 +985,6 @@ module.exports = class JGroup extends Module
   #       set["communications.#{messageType}"] = message
   #       policy.update $set: set, callback
 
-  inviteMember : permit 'send invitations',
-    success: (client, email, account, options, callback)->
-      JInvitation = require '../invitation'
-      JInvitation.create client, @slug, email, options, (err, invite)=>
-        return callback err  if err
-        @addInvitation invite, (err)=>
-          return callback err  if err
-          invite.sendMail client, this, options, (err)->
-            return callback err  if err
-            kallback = (err)-> callback err, invite
-
-            JAccount = require '../account'
-            if account instanceof JAccount
-              account.emit 'NewPendingInvitation'
-              account.addInvitation invite, kallback
-            else
-              kallback null
 
   isMember: (account, callback)->
     return callback new Error "No account found!"  unless account
