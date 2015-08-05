@@ -1,3 +1,4 @@
+articlize                 = require 'indefinite-article'
 MainHeaderView            = require './../../core/mainheaderview'
 TeamJoinTabForm           = require './../forms/teamjointabform'
 TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
@@ -10,6 +11,11 @@ module.exports = class TeamJoinTab extends KDTabPaneView
 
     super options, data
 
+    teamData = KD.utils.getTeamData()
+
+    @alreadyMember = teamData.signup?.alreadyMember
+    domains        = KD.config.group.allowedDomains
+
     @addSubView new MainHeaderView
       cssClass : 'team'
       navItems : []
@@ -19,20 +25,18 @@ module.exports = class TeamJoinTab extends KDTabPaneView
 
     wrapper.addSubView new KDCustomHTMLView
       tagName : 'h4'
-      partial : 'Join with your email'
+      partial : if @alreadyMember then 'Join with your account' else 'Join with your email'
 
-    teamData = KD.utils.getTeamData()
-
-    alreadyMember  = teamData.signup?.alreadyMember
-    @alreadyMember = alreadyMember
-    domains        = KD.config.group.allowedDomains
 
     desc = if @alreadyMember
       "Please enter your <i>Koding.com</i> password."
     else if domains?.length > 1
       domainsPartial = KD.utils.getAllowedDomainsPartial domains
-      "You must have an email address from one of these domains #{domainsPartial} to join."
-    else "You must have a <i>#{domains.first}</i> email address to join."
+      "You must have an email address from one of these domains #{domainsPartial} to join"
+    else if domains?.length is 1
+      "You must have a #{articlize domains.first} <i>#{domains.first}</i> email address to join"
+    else
+      "You are about to join to <i>#{KD.config.group.title}</i> on Koding"
 
 
     wrapper.addSubView new KDCustomHTMLView
