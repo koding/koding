@@ -588,7 +588,7 @@ module.exports = CollaborationController =
       ## The `mapLength=0` meant the participant joined the collaboration just now.
       if not mapLength or @amIWatchingChangeOwner(@collaborationHost)
         @getHostSnapshot (snapshot) =>
-          @layoutManager.resurrectSnapshot snapshot, yes
+          @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
       else
         @fetchSnapshot (snapshot) =>
           @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
