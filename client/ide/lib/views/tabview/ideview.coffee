@@ -46,9 +46,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     { frontApp } = kd.singletons.appManager
 
-    @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
-    @on 'CloseHandleClicked', @bound 'closeSplitView'
-    @on 'FullscreenHandleClicked', @bound 'toggleFullscreen'
+    @on 'PlusHandleClicked',        @bound 'createPlusContextMenu'
+    @on 'CloseHandleClicked',       @bound 'closeSplitView'
+    @on 'FullscreenHandleClicked',  @bound 'toggleFullscreen'
+    @on 'IDETabWasMoved',           @bound 'handleTabWasMoved'
+
     @on 'VerticalSplitHandleClicked', =>
       frontApp.setActiveTabView @tabView
       frontApp.splitVertically()
@@ -705,3 +707,17 @@ module.exports = class IDEView extends IDEWorkspaceTabView
   setHash: (hash) ->
 
     @hash = hash or generatePassword 64, no
+
+
+  handleTabWasMoved: (params) ->
+
+    { view, tabView, targetTabView } = params
+
+    view.updateAceViewDelegate targetTabView.parent  if view instanceof IDEEditorPane
+
+    change =
+      context:
+        originIDEViewHash : tabView.parent.hash
+        targetIDEViewHash : targetTabView.parent.hash
+
+    @emitChange view, change, 'IDETabWasMoved'

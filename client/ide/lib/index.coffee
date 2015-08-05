@@ -770,20 +770,7 @@ class IDEAppController extends AppController
     @setActiveTabView targetPanel.subViews.first.tabView
     @doResize()
 
-    # Update `AceView`s delegate
-    view.updateAceViewDelegate targetTabView.parent  if view instanceof IDEEditorPane
-    @emitTabWasMovedEvent view, tabView, targetTabView
-
-
-  emitTabWasMovedEvent: (view, tabView, targetTabView) ->
-
-    context =
-      paneType          : view.getOption 'paneType'
-      paneHash          : view.hash
-      originIDEViewHash : tabView.parent.hash
-      targetIDEViewHash : targetTabView.parent.hash
-
-    @emitChange 'IDETabWasMoved', context
+    targetTabView.parent.emit 'IDETabWasMoved', { view, tabView, targetTabView }
 
 
   moveTabUp: -> @moveTab 'north'
@@ -1727,9 +1714,7 @@ class IDEAppController extends AppController
 
     { view } = pane
 
-    # Update `AceView`s delegate
-    view.updateAceViewDelegate targetTabView.parent  if view instanceof IDEEditorPane
-    @emitTabWasMovedEvent view, tabView, targetTabView
+    targetTabView.parent.emit 'IDETabWasMoved', { view, tabView, targetTabView }
 
 
   runOnboarding: ->
