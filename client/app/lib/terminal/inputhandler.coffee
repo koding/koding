@@ -57,7 +57,7 @@ module.exports = class InputHandler
     if Array.isArray seq
       seq = seq[if @applicationKeypad then 1 else 0]
 
-    if seq?
+    if seq? and @terminal.server?
       @terminal.server.controlSequence seq
       event.preventDefault()
 
