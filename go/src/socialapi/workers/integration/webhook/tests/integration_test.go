@@ -164,7 +164,7 @@ func TestWebhook(t *testing.T) {
 				So(err, ShouldBeNil)
 				if len(resp.MessageList) > 0 {
 					So(len(resp.MessageList), ShouldEqual, 1)
-					So(resp.MessageList[0].Message.Body, ShouldStartWith, "Mehmet Ali Savas started this feature")
+					So(resp.MessageList[0].Message.Body, ShouldStartWith, "[pivotal-project] Mehmet Ali Savas started this feature")
 					return
 				}
 			case <-deadLine:

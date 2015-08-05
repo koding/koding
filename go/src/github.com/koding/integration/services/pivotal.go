@@ -64,7 +64,7 @@ func (p *Pivotal) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		comma = ","
 	}
 
-	message := fmt.Sprintf("[[%s](%s)] %s: %s", pm.Project.Name, pm.Message, resources)
+	message := fmt.Sprintf("[%s] %s: %s", pm.Project.Name, pm.Message, resources)
 
 	pr := helpers.NewPushRequest(message)
 
