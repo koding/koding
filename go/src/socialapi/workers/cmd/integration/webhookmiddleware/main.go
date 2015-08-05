@@ -83,7 +83,7 @@ func RegisterServices(sf *services.Services, conf *config.Config, serviceConf *s
 
 	pivotalService, err := services.NewPivotal("", serviceConf.PublicURL, serviceConf.IntegrationAddr, log)
 	if err != nil {
-		log.Fatal("Could not initialize githubService: %s", err)
+		log.Fatal("Could not initialize pivotal service: %s", err)
 	}
 
 	sf.Register("github", githubService)
