@@ -1116,7 +1116,7 @@ class IDEAppController extends AppController
 
       unless @isLocalSnapshotRestored
 
-        if snapshot
+        if snapshot and @amIHost
           @layoutManager.resurrectSnapshot snapshot
         else
           @addInitialViews()  unless @initialViewsReady
