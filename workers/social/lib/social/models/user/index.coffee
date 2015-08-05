@@ -1484,9 +1484,9 @@ module.exports = class JUser extends jraphical.Module
     unless typeof email is 'string'
       return callback new KodingError 'Not a valid email!'
 
-    email = emailsanitize email
+    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
 
-    @count {email}, (err, count) ->
+    @count {sanitizedEmail}, (err, count) ->
       callback err, count is 0
 
 
