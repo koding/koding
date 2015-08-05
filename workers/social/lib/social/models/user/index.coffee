@@ -64,6 +64,7 @@ module.exports = class JUser extends jraphical.Module
     indexes         :
       username      : 'unique'
       email         : 'unique'
+      sanitizedEmail: ['unique', 'sparse']
       'foreignAuth.github.foreignId'   : 'ascending'
       'foreignAuth.odesk.foreignId'    : 'ascending'
       'foreignAuth.facebook.foreignId' : 'ascending'
@@ -109,6 +110,10 @@ module.exports = class JUser extends jraphical.Module
         type        : String
         validate    : JName.validateEmail
         set         : emailsanitize
+      sanitizedEmail:
+        type        : String
+        validate    : JName.validateEmail
+        set         : (value) -> emailsanitize value, excludeDots: yes, excludePlus: yes
       password      : String
       salt          : String
       twofactorkey  : String
@@ -922,6 +927,8 @@ module.exports = class JUser extends jraphical.Module
     { username, email, password, passwordStatus,
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
 
+    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
+
     emailFrequencyDefaults = {
       global         : on
       daily          : on
@@ -955,6 +962,7 @@ module.exports = class JUser extends jraphical.Module
       user = new JUser {
         username
         email
+        sanitizedEmail
         salt
         password         : hashPassword password, salt
         passwordStatus   : passwordStatus or 'valid'
