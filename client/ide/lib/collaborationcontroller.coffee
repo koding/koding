@@ -292,8 +292,8 @@ module.exports = CollaborationController =
   ###
   showConfirmToSyncLayout: (nickname) ->
 
-    return  if nickname isnt @collaborationHost
-    return  if @amIHost
+    isHostWatched = nickname is @collaborationHost
+    return  if not isHostWatched or @amIHost
 
     modal = new KDModalView
       title         : "Host's layout is updated since you last watched his changes."
