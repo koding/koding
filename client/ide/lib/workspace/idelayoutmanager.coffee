@@ -275,14 +275,14 @@ module.exports = class IDELayoutManager extends KDObject
    * @param {boolean=} save
    * @return {Array} panes
   ###
-  clearWorkspace: (recover = no, save = no) ->
+  clearLayout: (recover = no, save = no) ->
 
     ## The `ideApp` is an `IDEAppController`s instane
     ideApp          = @getDelegate()
     panes           = []
     baseSplitView   = @getBaseSplitView()
     parentView      = baseSplitView.panels.last.getSubViews().first
-    splitViews      = parentView.getSubViews().first
+    splitView       = parentView.getSubViews().first
 
     if recover
       ideApp.forEachSubViewInIDEViews_ (p) ->
@@ -296,7 +296,7 @@ module.exports = class IDELayoutManager extends KDObject
     ideView         = new IDEView
     ideApp.ideViews = []  # Reset `ideViews`s array
 
-    splitViews.detach()
+    splitView.detach()
 
     parentView.addSubView ideView
 

@@ -319,13 +319,13 @@ module.exports = CollaborationController =
 
     @getHostSnapshot (snapshot) =>
 
-      recoveredPanes  = @layoutManager.clearWorkspace yes # Recover opened panes
+      remainingPanes = @layoutManager.clearLayout yes # Recover opened panes
       @layoutManager.resurrectSnapshot snapshot, yes
 
-      return  unless recoveredPanes.length
+      return  unless remainingPanes.length
 
       kd.utils.defer =>
-        for pane in recoveredPanes
+        for pane in remainingPanes
           isAdded = no
 
           @forEachSubViewInIDEViews_ (p) ->
