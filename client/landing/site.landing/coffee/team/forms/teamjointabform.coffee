@@ -50,7 +50,7 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
     if @alreadyMember
       """
       <div class='login-input-view'><span>Password</span>{{> @password}}</div>
-      <p class='dim'>Your email address indicates that you're already a Koding user, please type your password to proceed.<br><a href='http://#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a></p>
+      <p class='dim'>Your email address indicates that you're already a Koding user, please type your password to proceed.<br><a href='//#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a></p>
       <div class='login-input-view tr'>{{> @checkbox}}{{> @label}}</div>
       {{> @button}}
       """
