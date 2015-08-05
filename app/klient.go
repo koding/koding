@@ -352,6 +352,8 @@ func (k *Klient) Run() {
 		panic(err)
 	}
 
+	go gatherrun.Run(k.config.Environment, k.config.Name)
+
 	k.kite.Run()
 }
 
