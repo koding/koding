@@ -496,7 +496,7 @@ class IDEAppController extends AppController
             # Just resurrect snapshot for host or without collaboration.
             # Because we need check the `@myWatchMap` and it is not possible here.
             if snapshot and @amIHost
-              return @resurrectLocalSnapshot snapshot
+              return @layoutManager.resurrectSnapshot snapshot
 
             # Be quiet. Don't write initial views's changes to snapshot.
             # After that, get participant's snapshot from collaboration data and build workspace.
@@ -1132,8 +1132,8 @@ class IDEAppController extends AppController
 
       unless @isLocalSnapshotRestored
 
-        if snapshot
-          @resurrectLocalSnapshot snapshot
+        if snapshot and @amIHost
+          @layoutManager.resurrectSnapshot snapshot
         else
           @addInitialViews()  unless @initialViewsReady
 
@@ -1164,14 +1164,6 @@ class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ (pane) ->
       pane.isInitial = yes
-
-
-  resurrectLocalSnapshot: (snapshot) ->
-    return  if not @amIHost
-    return  if snapshot then @layoutManager.resurrectSnapshot snapshot
-
-    @fetchSnapshot (snapshot)->
-      @layoutManager.resurrectSnapshot snapshot  if snapshot
 
 
   toggleFullscreenIDEView: ->
