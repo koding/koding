@@ -309,13 +309,13 @@ module.exports = CollaborationController =
           cssClass  : "solid medium red"
           callback  : =>
             modal.destroy()
-            @syncParticipantToHost()
+            @applyHostLayoutToParticipant()
         "Cancel"    :
           cssClass  : "solid medium light-gray"
           callback  : => modal.destroy()
 
 
-  syncParticipantToHost: ->
+  applyHostLayoutToParticipant: ->
 
     @getHostSnapshot (snapshot) =>
 
