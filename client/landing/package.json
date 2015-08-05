@@ -42,6 +42,7 @@
     "gulp-util": "3.0.1",
     "gulp.spritesmith": "2.5.1",
     "imagemin-pngquant": "4.0.0",
+    "indefinite-article": "0.0.2",
     "kdf": "0.1.17",
     "minimist": "1.1.0",
     "request": "2.45.0",

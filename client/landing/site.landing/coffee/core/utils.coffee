@@ -46,6 +46,16 @@ utils.extend utils,
     return referrer  if match and referrer = match[1]
 
 
+  getMainDomain: ->
+
+    { hostname, port } = location
+    domain = if prefix = hostname.split('.').shift() in ['dev', 'sandbox', 'latest']
+    then hostname
+    else hostname.split('.').slice(1).join('.')
+
+    return "#{domain}#{if port then ':'+port else ''}"
+
+
   getGroupNameFromLocation: ->
 
     { hostname } = location

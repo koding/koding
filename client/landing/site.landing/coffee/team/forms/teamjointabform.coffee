@@ -13,10 +13,11 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
       style      : 'TeamsModal-button TeamsModal-button--green'
       type       : 'submit'
 
+    teamData = KD.utils.getTeamData()
 
     if @alreadyMember
-      email = KD.utils.getTeamData().signup.username
-      @username.setValue email
+      { username } = teamData.signup
+      @username.setValue username
       @password.destroy()
       @password = new KDInputView
         type          : 'password'
@@ -30,10 +31,12 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
           messages    :
             required  : 'Please enter a password.'
 
+    email = teamData.invitation?.email
+
     @email = new KDInputView
       name         : 'email'
       placeholder  : 'Email address'
-      defaultValue : if @alreadyMember then email
+      defaultValue : if @alreadyMember then username else email
       validate     :
         rules      :
           email    : yes
@@ -47,7 +50,7 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
     if @alreadyMember
       """
       <div class='login-input-view'><span>Password</span>{{> @password}}</div>
-      <p class='dim'>Since you're already a Koding user to join <i>#{KD.config.groupName}</i> you need to enter your koding.com password to proceed.</p>
+      <p class='dim'>Your email address indicates that you're already a Koding user, please type your password to proceed.<br><a href='http://#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a></p>
       <div class='login-input-view tr'>{{> @checkbox}}{{> @label}}</div>
       {{> @button}}
       """
