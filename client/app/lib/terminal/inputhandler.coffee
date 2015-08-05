@@ -42,7 +42,12 @@ module.exports = class InputHandler
     @previousMouseY = -1
 
 
+  isTerminalReady: -> @terminal.server?
+
+
   keyDown: (event) ->
+
+    return unless @isTerminalReady()
 
     @terminal.scrollToBottom()
     @terminal.cursor.resetBlink()
@@ -57,7 +62,7 @@ module.exports = class InputHandler
     if Array.isArray seq
       seq = seq[if @applicationKeypad then 1 else 0]
 
-    if seq? and @terminal.server?
+    if seq?
       @terminal.server.controlSequence seq
       event.preventDefault()
 
