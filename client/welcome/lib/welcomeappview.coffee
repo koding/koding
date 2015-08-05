@@ -28,7 +28,7 @@ module.exports = class WelcomeAppView extends kd.View
             </a>
           </li>
           <li>
-            <a href='Admin/Invitations'>
+            <a href='/Admin/Invitations'>
               <cite>2</cite>
               <div>
                 <span>Invite your team</span>
