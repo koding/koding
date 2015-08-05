@@ -105,7 +105,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
       menuWidth   = 150
 
-      if settings.unwatch
+      if settings.unwatch or amIHost
         @createWatchToggle menuItems, isWatching
 
       if amIHost and settings.readOnly

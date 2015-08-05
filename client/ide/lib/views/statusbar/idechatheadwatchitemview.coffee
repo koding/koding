@@ -1,7 +1,9 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KodingSwitch = require 'app/commonviews/kodingswitch'
-CustomLinkView = require 'app/customlinkview'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+KodingSwitch      = require 'app/commonviews/kodingswitch'
+CustomLinkView    = require 'app/customlinkview'
+
+
 module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
