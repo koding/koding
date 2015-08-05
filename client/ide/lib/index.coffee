@@ -828,9 +828,6 @@ class IDEAppController extends AppController
 
       @statusBar.showInformation()  if ideViewLength is 0
 
-      # Return if participant is leaving from collaboration session.
-      return  if @isInSession and not @amIHost and not @rtm
-
       @writeSnapshot()
 
     ideView.tabView.on 'PaneAdded', (pane) =>
