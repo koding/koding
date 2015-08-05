@@ -81,7 +81,7 @@ func RegisterServices(sf *services.Services, conf *config.Config, serviceConf *s
 		panic(err)
 	}
 
-	pivotalService, err := services.NewPivotal("", serviceConf.PublicURL, serviceConf.IntegrationAddr, log)
+	pivotalService, err := RegisterPivotalService(sf, conf, serviceConf)
 	if err != nil {
 		log.Fatal("Could not initialize pivotal service: %s", err)
 	}
@@ -98,4 +98,14 @@ func RegisterGithubService(sf *services.Services, conf *config.Config, serviceCo
 	gc.Secret = conf.Github.ClientSecret
 
 	return services.NewGithub(gc)
+}
+
+func RegisterPivotalService(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig) (services.Service, error) {
+	pv := &services.PivotalConfig{
+		ServerURL:      "",
+		PublicURL:      serviceConf.PublicURL,
+		IntegrationURL: serviceConf.IntegrationAddr,
+	}
+
+	return services.NewPivotal(pv, serviceConf.Log)
 }
