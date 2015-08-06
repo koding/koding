@@ -1,14 +1,17 @@
-$               = require 'jquery'
-kd              = require 'kd'
-KDObject        = kd.Object
-IDEMetrics      = require './idemetrics'
-GoogleApiClient = require './googleapiclient'
+$                = require 'jquery'
+kd               = require 'kd'
+KDObject         = kd.Object
+IDEMetrics       = require './idemetrics'
+GoogleApiClient  = require './googleapiclient'
+generatePassword = require 'app/util/generatePassword'
 
 module.exports = class RealtimeManager extends KDObject
 
   constructor: (options = {}, data) ->
 
     super options, data
+
+    @hash = generatePassword 64, no
 
     @collaborativeInstances = []
     @collaborativeEventListeners = {}
