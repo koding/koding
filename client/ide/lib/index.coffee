@@ -1733,7 +1733,6 @@ class IDEAppController extends AppController
   ###
   getTabViewByIDEViewHash: (hash) ->
 
-    target = @ideViews.filter (ideView) -> ideView.hash is hash
+    [ target ] = @ideViews.filter (ideView) -> ideView.hash is hash
 
-    return target[0]?.tabView  if target.length
-    return null
+    return target?.tabView
