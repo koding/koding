@@ -15,6 +15,7 @@ var (
 	ErrIntegrationIdIsNotSet      = errors.New("integration id is not set")
 	ErrGroupChannelIdIsNotSet     = errors.New("group channel id is not set")
 	ErrChannelIntegrationNotFound = errors.New("channel integration is not found")
+	ErrTokenNotSet                = errors.New("token is not set")
 )
 
 type ChannelIntegration struct {
