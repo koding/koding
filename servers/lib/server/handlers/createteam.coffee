@@ -123,10 +123,6 @@ generateCreateGroupKallback = (client, req, res, body) ->
       when 'development' then ".dev.koding.com"
       else ".#{environment}.koding.com"
 
-    # res.clearCookie 'clientId'
-    res.clearCookie 'clientId', token, path : '/', domain : ".#{slug}#{teamDomain}"
-    res.cookie 'clientId', token, path : '/', domain : ".#{slug}#{teamDomain}"
-
     # set session token for later usage down the line
     owner                      = result.account
     redirect                  ?= '/'
