@@ -20,7 +20,7 @@ var (
 )
 
 func initializeConf() *config.Config {
-	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	flag.Parse()
 	if *flagConfig == "" {
