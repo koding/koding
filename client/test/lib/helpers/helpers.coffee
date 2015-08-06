@@ -422,12 +422,19 @@ module.exports =
 
   openAccountPage: (browser) ->
 
+    @openAvatarAreaModal(browser)
+
+    browser
+      .click                   '.avatararea-popup.active .content [testpath=AccountSettingsLink]'
+      .waitForElementVisible   '.AppModal--account', 20000
+
+
+  openAvatarAreaModal: (browser) ->
+
     browser
       .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
       .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
-      .waitForElementVisible   '.avatararea-popup .content', 20000
-      .click                   '.avatararea-popup .content [testpath=AccountSettingsLink]'
-      .waitForElementVisible   '.AppModal--account', 20000
+      .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
 
 
   fillPaymentForm: (browser, planType = 'developer') ->
@@ -496,8 +503,7 @@ module.exports =
 
     if teamsUrl
       user = utils.getUser()
-      slug = user.name.toLowerCase().replace /\s/g, '-'
-      return 'http://' + slug + '.' + url
+      return 'http://' + user.teamSlug + '.' + url
     else
       return 'http://' + url
       # return 'http://54.152.13.1:8090'
