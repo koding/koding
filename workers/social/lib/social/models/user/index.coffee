@@ -1545,9 +1545,10 @@ module.exports = class JUser extends jraphical.Module
     {email, pin} = options
 
     email = options.email = emailsanitize email
+    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
 
     if account.type is 'unregistered'
-      @update $set: { email }, (err) ->
+      @update $set: { email, sanitizedEmail }, (err) ->
         return callback err  if err
 
         callback null
@@ -1577,7 +1578,7 @@ module.exports = class JUser extends jraphical.Module
 
         oldEmail = @getAt 'email'
 
-        @update $set: {email}, (err, res)=>
+        @update $set: {email, sanitizedEmail}, (err, res)=>
           return callback err  if err
 
           account.profile.hash = getHash email
