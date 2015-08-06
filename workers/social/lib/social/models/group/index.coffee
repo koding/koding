@@ -207,10 +207,6 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         transferOwnership:
           (signature String, Function)
-        fetchRolesByClientId: [
-          (signature Function)
-          (signature String, Function)
-        ]
         # fetchInvitationsFromGraph:
         #   (signature String, Object, Function)
         # countInvitationsFromGraph:
@@ -258,8 +254,6 @@ module.exports = class JGroup extends Module
         fetchUserStatus:
           (signature Object, Function)
         fetchInvitationsByStatus:
-          (signature Object, Function)
-        toggleFeature:
           (signature Object, Function)
     schema          :
       title         :
@@ -832,19 +826,6 @@ module.exports = class JGroup extends Module
       kallback()
 
 
-  fetchRolesByClientId:(clientId, callback)->
-    [callback, clientId] = [clientId, callback]  unless callback
-    return callback null, []  unless clientId
-
-    JSession = require '../session'
-    JSession.one {clientId}, (err, session)=>
-      return callback err  if err
-      {username} = session.data
-      return callback null, []  unless username
-
-      @fetchMembershipStatusesByUsername username, (err, roles)=>
-        callback err, roles or [], session
-
   createRole: permit 'grant permissions',
     success:(client, formData, callback)->
       JGroupRole = require './role'
@@ -908,7 +889,6 @@ module.exports = class JGroup extends Module
       convertPrivateToPublic this, client
     @privacy = privacy
 
-  getPrivacy:-> @privacy
 
   modify: permit
     advanced : [
@@ -953,42 +933,6 @@ module.exports = class JGroup extends Module
           else if explanation? then ERROR_POLICY
           else ERROR_NO_POLICY
         callback clientError, no
-
-  toggleFeature: permit 'grant permissions',
-    success:(client, options, callback)->
-      if not options.feature or not options.role or not options.operation
-        return callback {message:"request is not valid"}
-
-      @disabledFeatures = {}  unless @disabledFeatures
-      @disabledFeatures[options.role] =[]  unless @disabledFeatures[options.role]
-
-      if options.operation is "disable"
-        if options.feature not in @disabledFeatures?[options.role]
-          @disabledFeatures[options.role].push options.feature
-          return @update callback
-        else
-          return callback {message:"item is not in the list "}
-      else
-
-        if options.feature not in @disabledFeatures?[options.role]
-          return callback {message:"item is not in the list"}
-        else
-          ops = (feature for feature in @disabledFeatures?[options.role] when feature isnt options.feature)
-          @disabledFeatures[options.role] = ops
-          return @update callback
-
-  fetchAccountByEmail: (email, callback) ->
-    JUser    = require '../user'
-    JUser.one {email}, (err, user)=>
-      return callback err, null  if err or not user
-      user.fetchOwnAccount (err, account)=>
-        return callback err, null  if err
-        return callback new Error "Account not found.", null  unless account
-        @isMember account, (err, isMember)->
-          if isMember
-            callback new KodingError "#{email} is already member of this group!"
-          else
-            callback null, account
 
 
   # saveInviteMessage: permit 'send invitations',
@@ -1069,14 +1013,6 @@ module.exports = class JGroup extends Module
           else unless request? then callback null, ['guest']
           else callback null, ["invitation-#{request.status}"]
 
-  fetchMembershipStatusesByUsername: (username, callback)->
-    JAccount = require '../account'
-    JAccount.one {'profile.nickname': username}, (err, account)=>
-      if not err and account
-        @fetchRolesHelper account, callback
-      else
-        console.error err
-        callback err
 
   fetchMembershipStatuses: secure (client, callback)->
     JAccount = require '../account'
@@ -1347,26 +1283,20 @@ module.exports = class JGroup extends Module
   #     JPaymentGroup = require '../payment/group'
   #     JPaymentGroup.deletePlan this, data, callback
 
-  checkVmType: (data, callback) ->
-    unless data.type in ['user', 'group', 'expensed']
-      callback new KodingError "No such VM type: #{data.type}"
-    else
-      callback null
 
   fetchOrCountInvitations: permit 'send invitations',
     success: (client, type, method, options, callback)->
       return callback {message: "unimplemented feature"}
+
 
   fetchInvitationsByStatus: permit 'send invitations',
     success: (client, options, callback)->
       return callback {message: "unimplemented feature"}
 
 
-
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'
     @each selector, options, callback
-
 
 
   addSubscription$: permit 'edit own groups',
