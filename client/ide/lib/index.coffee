@@ -1304,7 +1304,8 @@ class IDEAppController extends AppController
 
       if p.hash is context.paneHash
 
-        unless @checkPaneInTabView originTabView, context.paneHash
+        check = originTabView.panes.filter (p) -> p.hash is context.paneHash
+        if not originTabView.panes.length or not check.length
           originTabView = p.parent.parent # Reach the `IDEApplicationTabView`
 
         originTabView.activePane = null
@@ -1334,22 +1335,6 @@ class IDEAppController extends AppController
 
     @setActiveTabView tabView
     callback()
-
-
-  ###*
-   * `pane` there in `tabView` really?
-   *
-   * @param {IDEApplicationTabView} tabView
-   * @param {KDTabPaneView} hash
-   * @return {boolean}
-  ###
-  checkPaneInTabView: (tabView, hash) ->
-
-    return  unless tabView.panes.length
-
-    check = tabView.panes.filter (p) -> p.hash is hash
-
-    return check.length > 0
 
 
   getPaneByChange: (change) ->
