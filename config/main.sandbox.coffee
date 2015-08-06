@@ -484,13 +484,16 @@ Configuration = (options={}) ->
         incoming        : KONFIG.gatheringestor.port
       group             : "environment"
       instances         : 1
-      nginx             :
-        locations       : [ { location: "/-/gatheringestor" } ]
       supervisord       :
         command         : "#{GOBIN}/gatheringestor -c #{configName}"
         stopwaitsecs    : 20
       healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
+      nginx             :
+        locations       : [
+          location      : "~ /-/ingestor/(.*)"
+          proxyPass     : "http://gatheringestor/$1$is_args$args"
+        ]
 
     # Social API workers
     socialapi           :

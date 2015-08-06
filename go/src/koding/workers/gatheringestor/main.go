@@ -46,7 +46,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/stats", stathandler)
+	mux.Handle("/ingest", stathandler)
 	mux.Handle("/errors", errhandler)
 
 	mux.HandleFunc("/version", artifact.VersionHandler())
