@@ -151,6 +151,18 @@ loadPopularMessages = (channelId, options = {}) ->
         dispatch LOAD_POPULAR_MESSAGE_SUCCESS, { channelId, message }
 
 
+loadChannels = (options = {}) ->
+
+  { LOAD_CHANNELS_SUCCESS, LOAD_CHANNELS_FAIL } = actionTypes
+
+  kd.singletons.socialapi.channel.list options, (err, channels) ->
+    if err
+      dispatch LOAD_CHANNELS_FAIL, { err, query }
+      return
+
+    dispatch LOAD_CHANNELS_SUCCESS, { channels }
+
+
 loadChannelsByQuery = (query, options = {}) ->
 
   { LOAD_CHANNELS_BY_QUERY_SUCCESS, LOAD_CHANNELS_BY_QUERY_FAIL } = actionTypes
@@ -173,6 +185,7 @@ setChatInputChannelsQuery = (query) ->
     loadChannelsByQuery query
   else
     unsetChatInputChannelsQuery()
+    loadChannels()
 
 
 unsetChatInputChannelsQuery = ->
@@ -207,6 +220,13 @@ resetChatInputChannelsSelectedIndex = ->
   dispatch RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
 
 
+setChatInputChannelsVisibility = (visible) ->
+
+  { SET_CHAT_INPUT_CHANNELS_VISIBILITY } = actionTypes
+  dispatch SET_CHAT_INPUT_CHANNELS_VISIBILITY, { visible }
+
+
+
 module.exports = {
   loadChannelByName
   loadFollowedPrivateChannels
@@ -219,4 +239,5 @@ module.exports = {
   moveToNextChatInputChannelsIndex
   moveToPrevChatInputChannelsIndex
   resetChatInputChannelsSelectedIndex
+  setChatInputChannelsVisibility
 }

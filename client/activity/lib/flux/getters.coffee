@@ -36,6 +36,7 @@ CommonEmojiListFlagsStore           = [['CommonEmojiListFlagsStore'], withEmptyM
 
 ChatInputChannelsQueryStore         = ['ChatInputChannelsQueryStore']
 ChatInputChannelsSelectedIndexStore = ['ChatInputChannelsSelectedIndexStore']
+ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
 
 
 # Computed Data getters.
@@ -244,10 +245,11 @@ chatInputChannes               = [
   ChannelsStore
   chatInputChannelsQuery
   (channels, query) ->
-    return immutable.List()  unless query
+    channels = channels.toList()
+    return channels  unless query
 
     query = query.toLowerCase()
-    channels.toList().filter (channel) ->
+    channels.filter (channel) ->
       channelName = channel.get('name').toLowerCase()
       return channelName.indexOf(query) is 0
 ]
@@ -261,6 +263,7 @@ chatInputChannelsSelectedItem = [
     index = channels.size + index  if index < 0
     return channels.get index
 ]
+chatInputChannelsVisibility = ChatInputChannelsVisibilityStore
 
 module.exports = {
   followedPublicChannelThreads
@@ -296,4 +299,5 @@ module.exports = {
   chatInputChannelsQuery
   chatInputChannelsSelectedIndex
   chatInputChannelsSelectedItem
+  chatInputChannelsVisibility
 }

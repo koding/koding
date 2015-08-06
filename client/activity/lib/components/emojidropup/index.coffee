@@ -21,10 +21,10 @@ module.exports = class EmojiDropup extends React.Component
     { selectedItem } = @props
 
     @props.onItemConfirmed? formatEmojiName selectedItem
-    @clearQuery()
+    @close()
 
 
-  clearQuery: ->
+  close: ->
 
     ActivityFlux.actions.emoji.unsetFilteredListQuery()
 
@@ -32,7 +32,7 @@ module.exports = class EmojiDropup extends React.Component
   moveToNextPosition: ->
 
     if @hasOnlyItem()
-      @clearQuery()
+      @close()
       return no
     else
       ActivityFlux.actions.emoji.moveToNextFilteredListIndex()
@@ -42,7 +42,7 @@ module.exports = class EmojiDropup extends React.Component
   moveToPrevPosition: ->
 
     if @hasOnlyItem()
-      @clearQuery()
+      @close()
       return no
     else
       ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
@@ -88,7 +88,7 @@ module.exports = class EmojiDropup extends React.Component
       className      = "EmojiDropup"
       items          = { items }
       visible        = { @isActive() }
-      onOuterClick   = { @bound 'clearQuery' }
+      onOuterClick   = { @bound 'close' }
     >
       <div className="Dropup-header">
         Emojis matching <strong>:{query}</strong>

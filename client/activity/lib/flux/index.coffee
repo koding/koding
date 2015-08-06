@@ -29,5 +29,6 @@ module.exports =
     require './stores/chatinput/commonemojilistflagsstore'
     require './stores/chatinput/chatinputchannelsselectedindexstore'
     require './stores/chatinput/chatinputchannelsquerystore'
+    require './stores/chatinput/chatinputchannelsvisibilitystore'
   ]
 

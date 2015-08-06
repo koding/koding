@@ -9,7 +9,10 @@ ChannelDropupItem = require 'activity/components/channeldropupitem'
 
 module.exports = class ChannelDropup extends React.Component
 
-  isActive: -> @props.items?.size > 0
+  isActive: ->
+
+    { items, visible } = @props
+    return items?.size > 0 and visible
 
 
   hasOnlyItem: -> @props.items?.size is 1
@@ -20,18 +23,18 @@ module.exports = class ChannelDropup extends React.Component
     { selectedItem } = @props
     
     @props.onItemConfirmed? "##{selectedItem.get 'name'}"
-    @clearQuery()
+    @close()
 
 
-  clearQuery: ->
+  close: ->
 
-    ActivityFlux.actions.channel.unsetChatInputChannelsQuery()
+    ActivityFlux.actions.channel.setChatInputChannelsVisibility no
 
 
   moveToNextPosition: ->
 
     if @hasOnlyItem()
-      @clearQuery()
+      @close()
       return no
     else
       ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()
@@ -41,7 +44,7 @@ module.exports = class ChannelDropup extends React.Component
   moveToPrevPosition: ->
 
     if @hasOnlyItem()
-      @clearQuery()
+      @close()
       return no
     else
       ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()
@@ -50,11 +53,13 @@ module.exports = class ChannelDropup extends React.Component
 
   setQuery: (query) ->
 
-    matchResult = query?.match /^#(.+)/
-    query = matchResult?[1]
-
-    if @isActive() or query
+    matchResult = query?.match /^#(.*)/
+    if matchResult
+      query = matchResult[1]
       ActivityFlux.actions.channel.setChatInputChannelsQuery query
+      ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
+    else
+      @close()
 
 
   componentDidUpdate: (prevProps, prevState) ->
@@ -72,6 +77,7 @@ module.exports = class ChannelDropup extends React.Component
     itemHeight            = itemElement.outerHeight()
     itemBottom            = itemTop + itemHeight
 
+    # scroll container if selected item is outside the visible area
     if itemBottom > containerScrollBottom
       scrollTop = if itemElement.next().length > 0
       then itemBottom - containerHeight
@@ -114,7 +120,7 @@ module.exports = class ChannelDropup extends React.Component
       className      = "ChannelDropup"
       items          = { items }
       visible        = { @isActive() }
-      onOuterClick   = { @bound 'clearQuery' }
+      onOuterClick   = { @bound 'close' }
       ref            = 'dropup'
     >
       <div className="ChannelDropup-innerContainer">
