@@ -9,7 +9,10 @@ import (
 	"net"
 	"net/http"
 	"runtime"
+	"time"
 
+	"github.com/PuerkitoBio/throttled"
+	"github.com/PuerkitoBio/throttled/store"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 )
@@ -46,8 +49,17 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/ingest", stathandler)
-	mux.Handle("/errors", errhandler)
+	th := throttled.RateLimit(
+		throttled.Q{Requests: 10, Window: time.Hour},
+		&throttled.VaryBy{Path: true},
+		store.NewMemStore(1000),
+	)
+
+	tStathandler := th.Throttle(stathandler)
+	mux.Handle("/ingest", tStathandler)
+
+	tErrHandler := th.Throttle(errhandler)
+	mux.Handle("/errors", tErrHandler)
 
 	mux.HandleFunc("/version", artifact.VersionHandler())
 	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
