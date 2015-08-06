@@ -75,8 +75,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Object, Function)
         someData:
           (signature Object, Object, Object, Function)
-        getAutoCompleteData:
-          (signature String, String, Function)
         count: [
           (signature Function)
           (signature Object, Function)
@@ -85,8 +83,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
           (signature String, Object, Function)
         ]
-        fetchVersion:
-          (signature Function)
         reserveNames: [
           (signature Function)
           (signature Object, Function)
@@ -112,10 +108,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchRole:
           (signature Function)
-        flagAccount:
-          (signature String, Function)
-        unflagAccount:
-          (signature String, Function)
         isFollowing:
           (signature String, String, Function)
         updateFlags:
@@ -124,13 +116,7 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
-        fetchGroupRoles:
-          (signature String, Function)
         fetchGroupsWithPendingInvitations: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        fetchGroupsWithPendingRequests: [
           (signature Function)
           (signature Object, Function)
         ]
@@ -139,8 +125,6 @@ module.exports = class JAccount extends jraphical.Module
         acceptInvitation:
           (signature String, Function)
         ignoreInvitation:
-          (signature String, Function)
-        fetchMyGroupInvitationStatus:
           (signature String, Function)
         fetchMyPermissions:
           (signature Function)
@@ -158,8 +142,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
         markUserAsExempt:
           (signature Boolean, Function)
-        userIsExempt:
-          (signature Function)
         checkGroupMembership:
           (signature String, Function)
         fetchStorage:
@@ -523,22 +505,6 @@ module.exports = class JAccount extends jraphical.Module
                 roles = (doc.as for doc in groupedDocs[group.getId()])
                 return { group, roles }
 
-  fetchGroupRoles: secure (client, slug, callback)->
-    {delegate} = client.connection
-    JGroup     = require './group'
-    JGroup.fetchIdBySlug slug, (err, groupId)->
-      if err then callback err
-      else
-        selector = {
-          sourceId: groupId
-          targetId: delegate.getId()
-        }
-        Relationship.someData selector, {as:1}, (err, cursor)->
-          if err then callback err
-          else
-            cursor.toArray (err, arr)->
-              if err then callback err
-              else callback null, (doc.as for doc in arr)
 
   @verifyEmailByUsername = secure (client, username, callback)->
     {connection:{delegate}, sessionToken} = client
@@ -575,7 +541,6 @@ module.exports = class JAccount extends jraphical.Module
                   options.skip += options.limit
                   @reserveNames options, callback
 
-  @fetchVersion =(callback)-> callback null, KONFIG.version
 
   @fetchBlockedUsers = secure ({connection:{delegate}}, options, callback) ->
     unless delegate.can 'list-blocked-users'
@@ -639,27 +604,6 @@ module.exports = class JAccount extends jraphical.Module
       sort    : 'profile.firstName' : 1
     }, callback
 
-  @getAutoCompleteData = (fieldString, queryString, callback)->
-    query = {}
-    desiredData = {}
-    query[fieldString] = RegExp queryString, 'i'
-    desiredData[fieldString] = yes
-    @someData query, desiredData, (err, cursor)->
-      cursor.toArray (err, docs)->
-        results = []
-        for doc in docs
-          results.push doc.profile.fullname
-        callback err, results
-
-  # I wrote it and decided that it is not necessary, feel free to remove ~ GG
-  #
-  # @filterUsernames = permit 'list members',
-  #   success: (client, nick, options, callback)->
-  #     [callback, options] = [options, callback]  unless callback
-  #     options or= {}
-  #     options.limit = 10
-  #     query = 'profile.nickname' : ///^#{nick}///
-  #     @some query, options, callback
 
   setEmailPreferences: (user, prefs, callback)->
     current = user.getAt('emailFrequency') or {}
@@ -715,25 +659,6 @@ module.exports = class JAccount extends jraphical.Module
                   "sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
                   "szkl", "canthefason", "nitin", "usirin", "kodinglearn" ] # kodinglearn is nitin's impersonation account
 
-  userIsExempt: (callback)->
-    # console.log @isExempt, this
-    callback null, @isExempt
-
-  # returns troll users ids
-  #
-  # Adding a temporary limit of 100. We currently've 24 trolls, by the
-  # time this limit runs out we'll have switched to a scalable model of
-  # filtering troll users. SA
-  @getExemptUserIds: (callback)->
-    JAccount.someData {isExempt:true}, {_id:1, limit:100}, {sort:_id:-1}, (err, cursor)->
-      return callback err, null if err
-      ids = []
-      cursor.each (err, account)->
-        return callback err, null if err
-        if account
-            ids.push account._id.toString()
-        else
-            callback null, ids
 
   isEmailVerified: (callback)->
     @fetchUser (err, user)->
@@ -770,21 +695,6 @@ module.exports = class JAccount extends jraphical.Module
       else
         unmarkAsTroll {accountId}, callback
 
-  flagAccount: secure (client, flag, callback)->
-    {delegate} = client.connection
-    JAccount.taint @getId()
-    if delegate.can 'flag', this
-      @update {$addToSet: globalFlags: flag}, callback
-    else
-      callback new KodingError 'Access denied'
-
-  unflagAccount: secure (client, flag, callback)->
-    {delegate} = client.connection
-    JAccount.taint @getId()
-    if delegate.can 'flag', this
-      @update {$pullAll: globalFlags: [flag]}, callback
-    else
-      callback new KodingError 'Access denied'
 
   updateFlags: secure (client, flags, callback)->
     {delegate} = client.connection
@@ -882,11 +792,6 @@ module.exports = class JAccount extends jraphical.Module
 
   # temp dummy stuff ends
 
-  fetchPrivateChannel:(callback)->
-    require('bongo').fetchChannel @getPrivateChannelName(), callback
-
-  getPrivateChannelName:-> "private-#{@getAt('pro file.nickname')}-private"
-
 
   modify: secure (client, fields, callback) ->
 
@@ -926,7 +831,6 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  setClientId:(@clientId)->
 
   getFullName:->
     {firstName, lastName} = @data.profile
@@ -1070,32 +974,10 @@ module.exports = class JAccount extends jraphical.Module
       JGroup = require './group'
       JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
 
-  fetchGroupsWithPendingRequests:(options, callback)->
-    @fetchGroupsWithPending 'Request', 'pending', options, callback
 
   fetchGroupsWithPendingInvitations:(options, callback)->
     @fetchGroupsWithPending '', 'sent', options, callback
 
-  fetchMyGroupInvitationStatus: secure (client, slug, callback)->
-    return  unless @equals client.connection.delegate
-
-    JGroup = require './group'
-
-    JGroup.one { slug }, (err, group) ->
-      return callback err  if err
-
-      selector = sourceId: group.getId()
-
-      options = targetOptions: selector: status: 'pending'
-      @fetchInvitationRequests selector, options, (err, requests)=>
-        return callback err                if err
-        return callback null, 'requested'  if requests?[0]
-
-        options = targetOptions: selector: status: 'sent'
-        @fetchInvitations selector, options, (err, invites)=>
-          return callback err              if err
-          return callback null, 'invited'  if invites?[0]
-          return callback null, no
 
   cancelRequest: secure (client, slug, callback)->
     options = targetOptions: selector: status: 'pending'
