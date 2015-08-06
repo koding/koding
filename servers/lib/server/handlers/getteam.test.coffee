@@ -41,22 +41,19 @@ runTests = -> describe 'server.handlers.getteam', ->
 
   it 'should send HTTP 404 if group does not exist using any method', (done) ->
 
-    addRequestToQueue = (queue, method, requestParams) ->
-      requestParams.method = method
+    queue                 = []
+    methods               = ['post', 'get', 'put', 'patch']
+    groupSlug             = generateRandomString()
+
+    methods.forEach (method) ->
+      getTeamRequestParams  = generateGetTeamRequestParams { method, groupSlug }
+
       queue.push ->
-        request requestParams, (err, res, body) ->
+        request getTeamRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
           expect(res.statusCode)  .to.be.equal 404
           expect(body)            .to.be.equal 'no group found'
           queue.next()
-
-    queue                 = []
-    methods               = ['post', 'get', 'put', 'patch']
-    groupSlug             = generateRandomString()
-    getTeamRequestParams  = generateGetTeamRequestParams { groupSlug }
-
-    for method in methods
-      addRequestToQueue queue, method, getTeamRequestParams
 
     queue.push -> done()
 
@@ -65,18 +62,9 @@ runTests = -> describe 'server.handlers.getteam', ->
 
   it 'should send HTTP 200 if slug is valid using any method', (done) ->
 
-    addRequestToQueue = (queue, method, requestParams) ->
-      requestParams.method = method
-      queue.push ->
-        request requestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
-
     queue                     = []
     methods                   = ['post', 'get', 'put', 'patch']
     groupSlug                 = generateRandomString()
-    getTeamRequestParams      = generateGetTeamRequestParams { groupSlug }
 
     createTeamRequestParams   = generateCreateTeamRequestParams
       body    :
@@ -88,8 +76,14 @@ runTests = -> describe 'server.handlers.getteam', ->
         expect(res.statusCode)  .to.be.equal 200
         queue.next()
 
-    for method in methods
-      addRequestToQueue queue, method, getTeamRequestParams
+    methods.forEach (method) ->
+      getTeamRequestParams = generateGetTeamRequestParams { method, groupSlug }
+
+      queue.push ->
+        request getTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
 
     queue.push -> done()
 
