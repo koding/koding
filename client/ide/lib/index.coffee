@@ -854,7 +854,7 @@ class IDEAppController extends AppController
     @generatedPanes[view.hash] = yes
 
     view.on 'ChangeHappened', (change) =>
-      @syncChange change  if @rtm
+      @syncChange change  if @rtm?.isReady
 
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->

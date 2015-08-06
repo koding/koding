@@ -57,7 +57,7 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
       .on 'AddedToChannel',     (acc) =>
 
         return  unless acc.profile?
-        return  unless @rtm.isReady
+        return  unless @rtm?.isReady
 
         @addParticipant acc.profile.nickname
 
