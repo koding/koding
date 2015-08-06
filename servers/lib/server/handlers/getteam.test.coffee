@@ -16,28 +16,9 @@ koding                              = require './../bongo'
 request                             = require 'request'
 querystring                         = require 'querystring'
 
-JUser                               = null
-JGroup                              = null
-JAccount                            = null
-JSession                            = null
-JInvitation                         = null
-
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.getteam', ->
-
-  beforeEach (done) ->
-
-    # including models before each test case, requiring them outside of
-    # tests suite is causing undefined errors
-    { JUser
-      JGroup
-      JAccount
-      JSession
-      JInvitation } = koding.models
-
-    done()
-
 
   it 'should send HTTP 404 if group does not exist using any method', (done) ->
 
