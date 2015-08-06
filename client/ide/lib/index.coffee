@@ -1095,6 +1095,7 @@ class IDEAppController extends AppController
 
       unless @isLocalSnapshotRestored
 
+        # Just resurrect snapshot for the host with/without a session.
         if snapshot and @amIHost
           @layoutManager.resurrectSnapshot snapshot
         else
