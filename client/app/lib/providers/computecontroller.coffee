@@ -380,10 +380,7 @@ module.exports = class ComputeController extends KDController
       if force or groupsController.currentGroupHasStack()
         create()  if @stacks.length is 0
       else
-        currentGroup = groupsController.getCurrentGroup()
-        currentGroup.fetchMyRoles (err, roles) =>
-          return kd.warn err  if err
-          @emit 'StacksNotConfigured'  if 'admin' in (roles ? [])
+        @emit 'StacksNotConfigured'
 
 
   # remote.ComputeProvider and Kloud kite public methods
