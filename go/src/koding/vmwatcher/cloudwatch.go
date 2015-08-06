@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"sync"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -27,10 +28,28 @@ var (
 type Limits map[string]float64
 
 type Cloudwatch struct {
-	Name   string
-	Limits Limits
+	Name    string
+	Limits  Limits
+	Regions []string
 
-	clientCreds *credentials.Credentials
+	sync.Mutex
+	clients map[string]*cloudwatch.CloudWatch
+}
+
+func NewCloudwatch(name string, limits Limits, creds *credentials.Credentials, regions []string) *Cloudwatch {
+	clients := map[string]*cloudwatch.CloudWatch{}
+
+	for _, regionName := range regions {
+		config := &aws.Config{Credentials: creds, Region: regionName}
+		clients[regionName] = cloudwatch.New(config)
+	}
+
+	return &Cloudwatch{
+		Name:    name,
+		Limits:  limits,
+		Regions: regions,
+		clients: clients,
+	}
 }
 
 func (c *Cloudwatch) GetName() string {
@@ -100,11 +119,6 @@ func (c *Cloudwatch) GetMetric(instanceId, region string) (float64, error) {
 	var (
 		sum float64
 
-		config = &aws.Config{
-			Credentials: c.clientCreds,
-			Region:      region,
-		}
-
 		startTime     = now.BeginningOfWeek()
 		endTime       = time.Now()
 		metricName    = c.GetName()
@@ -126,7 +140,11 @@ func (c *Cloudwatch) GetMetric(instanceId, region string) (float64, error) {
 		Dimensions: []*cloudwatch.Dimension{&dimension},
 	}
 
-	client := cloudwatch.New(config)
+	client, err := c.region(region)
+	if err != nil {
+		return sum, err
+	}
+
 	response, err := client.GetMetricStatistics(input)
 	if err != nil {
 		return sum, err
@@ -234,6 +252,18 @@ func (c *Cloudwatch) getUserLimit(username, limitKey, planTitle string) (float64
 	}
 
 	return limit, nil
+}
+
+func (c *Cloudwatch) region(region string) (*cloudwatch.CloudWatch, error) {
+	c.Lock()
+	defer c.Unlock()
+
+	client, ok := c.clients[region]
+	if !ok {
+		return nil, fmt.Errorf("no client available for the given region '%s'", region)
+	}
+
+	return client, nil
 }
 
 func isRedisRecordNil(err error) bool {
