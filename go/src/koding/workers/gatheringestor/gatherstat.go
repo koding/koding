@@ -21,12 +21,12 @@ type GatherStat struct {
 func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req = &models.GatherStat{Id: bson.NewObjectId()}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		writeError(g.log, err, w)
+		write404Err(g.log, err, w)
 		return
 	}
 
 	if err := modelhelper.SaveGatherStat(req); err != nil {
-		writeError(g.log, err, w)
+		write500Err(g.log, err, w)
 		return
 	}
 
