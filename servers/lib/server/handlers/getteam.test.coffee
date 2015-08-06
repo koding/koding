@@ -16,47 +16,25 @@ koding                              = require './../bongo'
 request                             = require 'request'
 querystring                         = require 'querystring'
 
-JUser                               = null
-JGroup                              = null
-JAccount                            = null
-JSession                            = null
-JInvitation                         = null
-
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.getteam', ->
 
-  beforeEach (done) ->
-
-    # including models before each test case, requiring them outside of
-    # tests suite is causing undefined errors
-    { JUser
-      JGroup
-      JAccount
-      JSession
-      JInvitation } = koding.models
-
-    done()
-
-
   it 'should send HTTP 404 if group does not exist using any method', (done) ->
-
-    addRequestToQueue = (queue, method, requestParams) ->
-      requestParams.method = method
-      queue.push ->
-        request requestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 404
-          expect(body)            .to.be.equal 'no group found'
-          queue.next()
 
     queue                 = []
     methods               = ['post', 'get', 'put', 'patch']
     groupSlug             = generateRandomString()
-    getTeamRequestParams  = generateGetTeamRequestParams { groupSlug }
 
-    for method in methods
-      addRequestToQueue queue, method, getTeamRequestParams
+    methods.forEach (method) ->
+      getTeamRequestParams  = generateGetTeamRequestParams { method, groupSlug }
+
+      queue.push ->
+        request getTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 404
+          expect(body)            .to.be.equal 'no group found'
+          queue.next()
 
     queue.push -> done()
 
@@ -65,18 +43,9 @@ runTests = -> describe 'server.handlers.getteam', ->
 
   it 'should send HTTP 200 if slug is valid using any method', (done) ->
 
-    addRequestToQueue = (queue, method, requestParams) ->
-      requestParams.method = method
-      queue.push ->
-        request requestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
-
     queue                     = []
     methods                   = ['post', 'get', 'put', 'patch']
     groupSlug                 = generateRandomString()
-    getTeamRequestParams      = generateGetTeamRequestParams { groupSlug }
 
     createTeamRequestParams   = generateCreateTeamRequestParams
       body    :
@@ -88,8 +57,14 @@ runTests = -> describe 'server.handlers.getteam', ->
         expect(res.statusCode)  .to.be.equal 200
         queue.next()
 
-    for method in methods
-      addRequestToQueue queue, method, getTeamRequestParams
+    methods.forEach (method) ->
+      getTeamRequestParams = generateGetTeamRequestParams { method, groupSlug }
+
+      queue.push ->
+        request getTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
 
     queue.push -> done()
 
