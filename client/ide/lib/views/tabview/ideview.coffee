@@ -49,7 +49,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'PlusHandleClicked',        @bound 'createPlusContextMenu'
     @on 'CloseHandleClicked',       @bound 'closeSplitView'
     @on 'FullscreenHandleClicked',  @bound 'toggleFullscreen'
-    @on 'IDETabMoved',              @bound 'handleTabWasMoved'
+    @on 'IDETabMoved',              @bound 'handleTabMoved'
     @on 'NewSplitViewCreated',      @bound 'handleSplitViewCreated'
     @on 'SplitViewMerged',          @bound 'handleSplitViewMerged'
 
@@ -711,7 +711,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @hash = hash or generatePassword 64, no
 
 
-  handleTabWasMoved: (params) ->
+  handleTabMoved: (params) ->
 
     { view, tabView, targetTabView } = params
 
