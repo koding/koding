@@ -163,7 +163,6 @@ runTests = -> describe 'workers.social.group.index', ->
           ->
             # making sure client is a member of the group before trying to kick
             group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
-              console.log err
               expect(err).to.not.exist
               expect(members.length).to.be.equal 1
               queue.next()
@@ -189,7 +188,6 @@ runTests = -> describe 'workers.social.group.index', ->
           ->
             # admin client search for kicked member within group member
             group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
-              console.log err
               expect(err).to.not.exist
               expect(members.length).to.be.equal 0
               queue.next()
@@ -554,7 +552,6 @@ runTests = -> describe 'workers.social.group.index', ->
           # expecting to return false when there are no allowedDomains
           JGroup.create client, groupData, account, (err, group) ->
             expect(err).to.not.exist
-            console.log userFormData.email
             expect(group.isInAllowedDomain userFormData.email).to.be.ok
             queue.next()
 
