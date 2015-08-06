@@ -2,6 +2,7 @@ kd = require 'kd'
 React = require 'kd-react'
 ChatInputWidget = require 'activity/components/chatinputwidget'
 ChatList = require 'activity/components/chatlist'
+InfiniteScroll = require 'app/components/infinitescroll'
 
 
 module.exports = class ChatPane extends React.Component
@@ -30,15 +31,21 @@ module.exports = class ChatPane extends React.Component
   onSubmit: (event) -> @props.onSubmit? event
 
 
+  getScrollProps: ->
+    scrollDirection          : 'up'
+    onScrollThresholdReached : @props.onScrollThresholdReached
+    isDataLoading            : @props.thread.getIn ['flags', 'isMessagesLoading']
+
+
   renderBody: ->
     return null  unless @props.messages
 
     messages = @props.messages.sortBy (m) -> m?.get 'createdAt'
 
     <section className="ChatPane-body" ref="ChatPaneBody">
-      <div className="ChatList" ref="ChatList">
-        <ChatList messages={messages}/>
-      </div>
+      <InfiniteScroll {...@getScrollProps()} ref="ChatList">
+        <ChatList messages={messages} />
+      </InfiniteScroll>
     </section>
 
 
