@@ -95,8 +95,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
         fetchBlockedUsers:
           (signature Object, Function)
-        fetchCachedUserCount:
-          (signature Function)
 
       instance:
         modify:
@@ -108,14 +106,8 @@ module.exports = class JAccount extends jraphical.Module
         unfollow: [
           (signature Function)
         ]
-        fetchTopics:
-          (signature Object, Object, Function)
         fetchAppStorage:
           (signature Object, Function)
-        addTags: [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
         setEmailPreferences:
           (signature Object, Function)
         fetchRole:
@@ -484,14 +476,6 @@ module.exports = class JAccount extends jraphical.Module
 
   @renderHomepage: require '../render/profile.coffee'
 
-  @fetchCachedUserCount: (callback)->
-    if (Date.now() - @lastUserCountFetchTime)/1000 < 60
-      return callback null, @cachedUserCount
-    JAccount.count type:'registered', (err, count)=>
-      return callback err if err
-      @lastUserCountFetchTime = Date.now()
-      @cachedUserCount = count
-      callback null, count
 
   fetchHomepageView:(options, callback)->
     {account} = options
@@ -903,20 +887,6 @@ module.exports = class JAccount extends jraphical.Module
 
   getPrivateChannelName:-> "private-#{@getAt('pro file.nickname')}-private"
 
-  fetchTopics: secure (client, query, page, callback)->
-    query       =
-      targetId  : @getId()
-      as        : 'follower'
-      sourceName: 'JTag'
-    Relationship.some query, page, (err, docs)->
-      if err then callback err
-      else
-        {group} = client.context
-        ids = (rel.sourceId for rel in docs)
-        selector = _id: $in: ids
-        selector.group = group if group isnt 'koding'
-        JTag.all selector, (err, tags)->
-          callback err, tags
 
   modify: secure (client, fields, callback) ->
 
@@ -1216,11 +1186,6 @@ module.exports = class JAccount extends jraphical.Module
               callback null, { permissions: (flatten perms), roles, userId }
 
       group.fetchMyRoles client, kallback
-
-  oldAddTags = @::addTags
-  addTags: secure (client, tags, options, callback)->
-    client.context.group = 'koding'
-    oldAddTags.call this, client, tags, options, callback
 
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
 
