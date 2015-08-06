@@ -245,7 +245,8 @@ module.exports = CollaborationController =
 
   setCollaborativeReferences: ->
 
-    refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId()
+    initialSnapshot = @getWorkspaceSnapshot()
+    refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), initialSnapshot
 
     # for backwards compatibility.
     # TODO: keep this until CollaborationModel abstraction. ~Umut
@@ -255,6 +256,7 @@ module.exports = CollaborationController =
     @permissions       = refs.permissions
     @broadcastMessages = refs.broadcastMessages
     @myWatchMap        = refs.watchMap
+    @mySnapshot        = refs.snapshot
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       @participants      = null
@@ -263,6 +265,7 @@ module.exports = CollaborationController =
       @permissions       = null
       @broadcastMessages = null
       @myWatchMap        = null
+      @mySnapshot        = null
 
 
   registerCollaborationSessionId: ->
@@ -804,7 +807,8 @@ module.exports = CollaborationController =
     # attach realtime manager when a new editor pane is opened.
     @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
 
-    @on 'SetMachineUser', @bound 'broadcastMachineUserChange'
+    @on 'SetMachineUser',   @bound 'broadcastMachineUserChange'
+    @on 'SnapshotUpdated',  @bound 'handleSnapshotUpdated'
 
 
   transitionViewsToActive: ->
@@ -1187,3 +1191,15 @@ module.exports = CollaborationController =
       callback snapshot
     ,@getCollaborationHost()
 
+
+  handleSnapshotUpdated: -> @mySnapshot.set 'layout', @getWorkspaceSnapshot()
+
+
+  getSnapshotFromDrive: (username = nick(), isFlat = no) ->
+
+    layout = @mySnapshot?.get 'layout'
+
+    if layout and isFlat
+      return IDELayoutManager.convertSnapshotToFlatArray layout
+
+    return layout

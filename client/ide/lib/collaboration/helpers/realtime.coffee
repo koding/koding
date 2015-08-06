@@ -130,11 +130,13 @@ getTargetUser = (participants, field, predicateValue) ->
  *
  * @param {RealtimeManager} manager
  * @param {string} channelId
+ * @param {Object} initialSnapshot
 ###
-getReferences = (manager, channelId) ->
+getReferences = (manager, channelId, initialSnapshot) ->
 
   nickname          = getNick()
   watchMapName      = "#{nickname}WatchMap"
+  snapshotName      = "#{nickname}Snapshot"
   defaultPermission = { default: 'edit' }
 
   refs =
@@ -145,6 +147,7 @@ getReferences = (manager, channelId) ->
     broadcastMessages : getFromManager manager, 'broadcastMessages', 'list', []
     pingTime          : getFromManager manager, 'pingTime', 'list', []
     watchMap          : getFromManager manager, watchMapName, 'map', {}
+    snapshot          : getFromManager manager, snapshotName, 'map', layout: initialSnapshot
 
   manager.bindRealtimeListeners refs.changes, 'list'
   manager.bindRealtimeListeners refs.broadcastMessages, 'list'
@@ -152,6 +155,7 @@ getReferences = (manager, channelId) ->
   manager.bindRealtimeListeners refs.permissions, 'map'
 
   manager.once 'RealtimeManagerWillDispose', =>
+    refs.snapshot.clear()
     manager.unbindRealtimeListeners refs.changes, 'list'
     manager.unbindRealtimeListeners refs.broadcastMessages, 'list'
     manager.unbindRealtimeListeners refs.watchMap, 'map'

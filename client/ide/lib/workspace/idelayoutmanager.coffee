@@ -253,12 +253,12 @@ module.exports = class IDELayoutManager extends KDObject
 
     return  unless views?.length
 
-    if views.first.context # if items are a pane
+    if views.first?.context # if items are a pane
       for pane in views    # collect panes
         panes.push pane
     else
       for subView in views
-        IDELayoutManager.findPanesFromArray panes, subView # recall itself
+        IDELayoutManager.findPanesFromArray panes, subView.views # recall itself
 
 
   getBaseSplitView: ->

@@ -828,6 +828,7 @@ class IDEAppController extends AppController
     value = @getWorkspaceSnapshot()
 
     @mountedMachine.getBaseKite().storageSetQueued name, value
+    @emit 'SnapshotUpdated'
 
 
   removeWorkspaceSnapshot: (username = nick()) ->
@@ -1380,9 +1381,6 @@ class IDEAppController extends AppController
       when 'terminal' then @createTerminalPaneFromChange change, paneHash
       when 'editor'   then @createEditorPaneFromChange change, paneHash
       when 'drawing'  then @createDrawingPaneFromChange change, paneHash
-
-    if @mySnapshot and not @mySnapshot.get paneHash
-      @mySnapshot.set paneHash, change
 
 
   createTerminalPaneFromChange: (change, hash) ->

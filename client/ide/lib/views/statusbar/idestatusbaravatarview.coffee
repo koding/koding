@@ -48,7 +48,9 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     MENU.destroy()  if MENU
 
     { appManager } = kd.singletons
-    { rtm }        = appManager.getFrontApp()
+    { frontApp }   = appManager
+    { rtm }        = frontApp
+
     menuItems      = {}
     menuData       =
       terminals    : []
@@ -63,8 +65,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     hasChanges = no
 
-    panes = rtm.getFromModel("#{@nickname}Snapshot")?.values() or []
-    panes = IDELayoutManager.convertSnapshotToFlatArray panes[0]  if panes.length
+    panes = frontApp.getSnapshotFromDrive @nickname, yes
 
     panes.forEach (pane, i) ->
 
@@ -72,8 +73,6 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
       { context: { file, paneType } }             = pane
       { editors, terminals, drawings, browsers }  = menuData
-
-      return unless type is 'NewPaneCreated'
 
       hasChanges = yes
 
