@@ -26,10 +26,10 @@ func getAndSaveQueueMachineMetrics() error {
 	}()
 
 	var queue = make(chan *metricQueueMsg)
-	var waitG sync.WaitGroup
+	var waitg sync.WaitGroup
 
 	for i := 0; i < ParallelWorkerCount; i++ {
-		waitG.Add(1)
+		waitg.Add(1)
 
 		go func() {
 			for msg := range queue {
@@ -41,7 +41,7 @@ func getAndSaveQueueMachineMetrics() error {
 				}
 			}
 
-			waitG.Done()
+			waitg.Done()
 		}()
 	}
 
@@ -70,7 +70,7 @@ func getAndSaveQueueMachineMetrics() error {
 	}
 
 	close(queue)
-	waitG.Wait()
+	waitg.Wait()
 
 	return nil
 }
@@ -88,6 +88,8 @@ func dealWithMachinesOverLimit() error {
 	)
 
 	for i := 0; i < ParallelWorkerCount; i++ {
+		waitg.Add(1)
+
 		go func() {
 			for msg := range queue {
 				act(msg.Machines, msg.Limit, msg.Action)
