@@ -19,9 +19,9 @@ describe 'Gmail Validation', ->
 
     expect(sanitize(expected)).to.equal equals
 
-  it 'removes dots till +', ->
+  it 'removes dots till @', ->
     expected = 'ind.iana+j.o.n.e.s@gmail.com'
-    equals   = 'indiana+j.o.n.e.s@gmail.com'
+    equals   = 'indiana+jones@gmail.com'
 
     expect(sanitize(expected)).to.equal equals
 
