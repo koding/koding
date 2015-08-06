@@ -32,3 +32,12 @@ module.exports =
 
     teamsHelpers.loginTeam(browser)
     browser.end()
+
+
+  clickOnTeamSettings: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    helpers.openAvatarAreaModal(browser)
+    teamsHelpers.openTeamSettingsModal(browser)
+
+    browser.end()

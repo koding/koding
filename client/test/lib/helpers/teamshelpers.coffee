@@ -128,3 +128,13 @@ module.exports =
 
     @loginToTeam(browser, user)
 
+
+
+  openTeamSettingsModal: (browser) ->
+
+    teamDashboard = '.AppModal--admin'
+
+    browser
+      .click                  '.avatararea-popup.active .content a[href="/Admin"'
+      .waitForElementVisible  teamDashboard, 20000 # Assertion
+      .assert.containsText    teamDashboard, 'Team Dashboard' # Assertion
