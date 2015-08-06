@@ -840,6 +840,7 @@ module.exports = CollaborationController =
         @handleCollaborationEndedForHost()
     else
       @endCollaborationForParticipant =>
+        @silent = yes
         @modal?.destroy()
         @handleCollaborationEndedForParticipant()
 

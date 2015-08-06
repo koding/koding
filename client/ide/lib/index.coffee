@@ -86,6 +86,7 @@ class IDEAppController extends AppController
           }
         ]
 
+    @silent    = no
     @workspace = new IDEWorkspace { layoutOptions }
     @ideViews  = []
 
