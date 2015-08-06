@@ -106,6 +106,7 @@ module.exports =
   loginToTeam: (browser, user) ->
 
     browser
+      .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
       .setValue               'input[name=username]', user.username
