@@ -128,6 +128,7 @@ module.exports =
 
     @loginToTeam(browser, user)
 
+    return user
 
 
   openTeamSettingsModal: (browser) ->
@@ -138,3 +139,12 @@ module.exports =
       .click                  '.avatararea-popup.active .content a[href="/Admin"'
       .waitForElementVisible  teamDashboard, 20000 # Assertion
       .assert.containsText    teamDashboard, 'Team Dashboard' # Assertion
+
+
+  seeTeamNameOnsideBar: (browser, name) ->
+
+    sidebarSelector = '.with-sidebar [testpath=main-sidebar]'
+
+    browser
+      .waitForElementVisible  sidebarSelector, 20000
+      .assert.containsText    sidebarSelector, name

@@ -41,3 +41,15 @@ module.exports =
     teamsHelpers.openTeamSettingsModal(browser)
 
     browser.end()
+
+
+  seeTeamNameOnsideBar: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+
+    teamsHelpers.seeTeamNameOnsideBar(browser, user.teamSlug)
+    browser.end()
+
+
+
+
