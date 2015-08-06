@@ -5,7 +5,6 @@ request          = require "request"
 KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable        = require '../../traits/flaggable'
 KodingError      = require '../../error'
-emailsanitize    = require './emailsanitize'
 { extend, uniq } = require 'underscore'
 
 module.exports = class JUser extends jraphical.Module
@@ -108,7 +107,7 @@ module.exports = class JUser extends jraphical.Module
       email         :
         type        : String
         validate    : require('../name').validateEmail
-        set         : emailsanitize
+        set         : (value) -> value.trim().toLowerCase()
       password      : String
       salt          : String
       twofactorkey  : String
@@ -1469,8 +1468,6 @@ module.exports = class JUser extends jraphical.Module
 
     unless typeof email is 'string'
       return callback new KodingError 'Not a valid email!'
-
-    email = emailsanitize email
 
     @count {email}, (err, count) ->
       callback err, count is 0
