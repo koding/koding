@@ -20,8 +20,11 @@ module.exports = class Dropup extends React.Component
 
     return  unless @props.visible
 
-    element = $(React.findDOMNode this.refs.dropup)
+    element = $ @getMainElement()
     element.css top : -element.outerHeight()
+
+
+  getMainElement: -> React.findDOMNode @refs.dropup
 
 
   handleMouseClick: (event) ->

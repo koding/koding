@@ -57,6 +57,32 @@ module.exports = class ChannelDropup extends React.Component
       ActivityFlux.actions.channel.setChatInputChannelsQuery query
 
 
+  componentDidUpdate: (prevProps, prevState) ->
+
+    { selectedItem } = @props
+    return  if prevProps.selectedItem is selectedItem or not selectedItem
+
+    containerElement = $ @refs.dropup.getMainElement()
+    itemElement      = $ React.findDOMNode @refs[selectedItem.get 'id']
+
+    containerScrollTop    = containerElement.scrollTop()
+    containerHeight       = containerElement.height()
+    containerScrollBottom = containerScrollTop + containerHeight
+    itemTop               = itemElement.position().top
+    itemHeight            = itemElement.outerHeight()
+    itemBottom            = itemTop + itemHeight
+
+    if itemBottom > containerScrollBottom
+      scrollTop = if itemElement.next().length > 0
+      then itemBottom - containerHeight
+      else containerElement.get(0).scrollHeight
+
+      containerElement.scrollTop scrollTop
+    else if itemTop < containerScrollTop
+      scrollTop = if itemElement.prev().length then itemTop else 0
+      containerElement.scrollTop scrollTop
+
+
   onItemSelected: (index) ->
 
     ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex index
@@ -76,6 +102,7 @@ module.exports = class ChannelDropup extends React.Component
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
         key         = { item.get 'id' }
+        ref         = { item.get 'id' }
       />
 
 
@@ -88,11 +115,14 @@ module.exports = class ChannelDropup extends React.Component
       items          = { items }
       visible        = { @isActive() }
       onOuterClick   = { @bound 'clearQuery' }
+      ref            = 'dropup'
     >
-      <div className="Dropup-header">
-        Channels
-      </div>
-      <div className="ChannelDropup-list">
-        {@renderList()}
+      <div className="ChannelDropup-innerContainer">
+        <div className="Dropup-header">
+          Channels
+        </div>
+        <div className="ChannelDropup-list">
+          {@renderList()}
+        </div>
       </div>
     </Dropup>
