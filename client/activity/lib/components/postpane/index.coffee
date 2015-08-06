@@ -25,13 +25,17 @@ module.exports = class PostPane extends React.Component
 
     ActivityFlux.actions.message.createComment @message('id'), event.value
 
+  onScrollThresholdReached: (event) ->
+    console.log 'loadComments '
 
   render: ->
     <ChatPane
+      thread={@props.thread}
       className="PostPane"
       title={"#{@channel 'name'}/#{@message 'slug'}"}
       messages={@props.messages}
       onSubmit={@bound 'onSubmit'}
+      onScrollThresholdReached={@bound 'onScrollThresholdReached'}
     />
 
 
