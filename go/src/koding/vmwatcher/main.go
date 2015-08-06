@@ -17,12 +17,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/robfig/cron"
 )
 
 var (
 	WorkerName    = "vmwatcher"
 	WorkerVersion = "0.0.1"
+
+	ParallelWorkerCount = 8
 
 	NetworkOut = "NetworkOut"
 
@@ -32,13 +35,21 @@ var (
 
 	BlockDuration = time.Hour * 24 * 365
 
+	limits = Limits{
+		StopLimitKey:  NetworkOutLimit,
+		BlockLimitKey: NetworkOutLimit * BlockMultiplier,
+	}
+
+	creds = credentials.NewStaticCredentials(AWS_KEY, AWS_SECRET, "")
+
+	regions = []string{
+		"us-east-1", "us-west-2", "eu-west-1", "ap-southeast-2",
+	}
+
 	// defines list of metrics, all queue/fetch/save operations
 	// must iterate this list and not use metric directly
 	metricsToSave = []Metric{
-		&Cloudwatch{Name: NetworkOut, Limits: Limits{
-			StopLimitKey:  NetworkOutLimit,
-			BlockLimitKey: NetworkOutLimit * BlockMultiplier,
-		}},
+		NewCloudwatch(NetworkOut, limits, creds, regions),
 	}
 )
 
