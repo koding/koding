@@ -314,6 +314,8 @@ class IDEAppController extends AppController
       tabView.removePane pane, yes, (yes if tabView instanceof IDEApplicationTabView)
       targetIdeView.tabView.addPane pane
 
+    @setActiveTabView targetIdeView.tabView
+
     panel.destroy() # Remove panel.
 
     # Remove destroyed panel from array.
