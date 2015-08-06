@@ -1,8 +1,9 @@
-kd = require 'kd'
-React = require 'kd-react'
+kd              = require 'kd'
+React           = require 'kd-react'
+ChatList        = require 'activity/components/chatlist'
+InfiniteScroll  = require 'app/components/infinitescroll'
 ChatInputWidget = require 'activity/components/chatinputwidget'
-ChatList = require 'activity/components/chatlist'
-InfiniteScroll = require 'app/components/infinitescroll'
+
 
 
 module.exports = class ChatPane extends React.Component

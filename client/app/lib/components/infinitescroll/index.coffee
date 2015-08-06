@@ -1,6 +1,6 @@
-kd    = require 'kd'
-$     = require 'jquery'
-React = require 'kd-react'
+kd                       = require 'kd'
+$                        = require 'jquery'
+React                    = require 'kd-react'
 isScrollThresholdReached = require 'app/util/isScrollThresholdReached'
 
 module.exports = class InfiniteScroll extends React.Component
