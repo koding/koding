@@ -421,8 +421,7 @@ module.exports = class JUser extends jraphical.Module
   @normalizeLoginId = (loginId, callback) ->
 
     if /@/.test loginId
-      email = emailsanitize loginId
-      JUser.someData { email }, { username: 1 }, (err, cursor) ->
+      JUser.someData { email: loginId }, { username: 1 }, (err, cursor) ->
         return callback err  if err
 
         cursor.nextObject (err, data) ->
@@ -597,11 +596,9 @@ module.exports = class JUser extends jraphical.Module
     { password, email }           = options
     { connection : { delegate } } = client
 
-    email = emailsanitize email  if email
-
     # handles error and decide to invalidate pin or not
     # depending on email and user variables
-    handleError = (err, user) ->
+    handleError = (err, user, email) ->
       if email and user
         # when email and user is set, we need to invalidate verification token
         params =
@@ -1079,7 +1076,7 @@ module.exports = class JUser extends jraphical.Module
 
     { account, oldUsername, email } = options
     # prevent from leading and trailing spaces
-    email = emailsanitize email
+    email = email.trim()
     @update { username: oldUsername }, { $set: { email } }, (err, res) =>
       return callback err  if err
       account.profile.hash = getHash email
@@ -1145,7 +1142,7 @@ module.exports = class JUser extends jraphical.Module
     firstName = username  if not firstName or firstName is ''
     lastName  = ''        if not lastName
 
-    email = userFormData.email = emailsanitize email
+    email = userFormData.email = email.trim()
 
     if error = validateConvertInput userFormData, client
       return callback error
@@ -1454,8 +1451,6 @@ module.exports = class JUser extends jraphical.Module
 
     {email} = options
 
-    email = options.email = emailsanitize email
-
     account = client.connection.delegate
     account.fetchUser (err, user) =>
       return callback new KodingError 'Something went wrong please try again!' if err
@@ -1534,8 +1529,6 @@ module.exports = class JUser extends jraphical.Module
     JVerificationToken = require '../verificationtoken'
 
     {email, pin} = options
-
-    email = options.email = emailsanitize email
 
     if account.type is 'unregistered'
       @update $set: { email }, (err) ->
