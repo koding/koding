@@ -1,14 +1,13 @@
-$               = require 'jquery'
-kd              = require 'kd'
-React           = require 'kd-react'
-classnames      = require 'classnames'
-formatEmojiName = require 'activity/util/formatEmojiName'
-ActivityFlux    = require 'activity/flux'
-Dropup          = require 'activity/components/dropup'
-EmojiDropupItem = require 'activity/components/emojidropupitem'
+$                 = require 'jquery'
+kd                = require 'kd'
+React             = require 'kd-react'
+classnames        = require 'classnames'
+ActivityFlux      = require 'activity/flux'
+Dropup            = require 'activity/components/dropup'
+ChannelDropupItem = require 'activity/components/channeldropupitem'
 
 
-module.exports = class EmojiDropup extends React.Component
+module.exports = class ChannelDropup extends React.Component
 
   isActive: -> @props.items?.size > 0
 
@@ -19,14 +18,14 @@ module.exports = class EmojiDropup extends React.Component
   confirmSelectedItem: ->
 
     { selectedItem } = @props
-
-    @props.onItemConfirmed? formatEmojiName selectedItem
+    
+    @props.onItemConfirmed? "##{selectedItem.get 'name'}"
     @clearQuery()
 
 
   clearQuery: ->
 
-    ActivityFlux.actions.emoji.unsetFilteredListQuery()
+    ActivityFlux.actions.channel.unsetChatInputChannelsQuery()
 
 
   moveToNextPosition: ->
@@ -35,7 +34,7 @@ module.exports = class EmojiDropup extends React.Component
       @clearQuery()
       return no
     else
-      ActivityFlux.actions.emoji.moveToNextFilteredListIndex()
+      ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()
       return yes
 
 
@@ -45,22 +44,22 @@ module.exports = class EmojiDropup extends React.Component
       @clearQuery()
       return no
     else
-      ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
+      ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()
       return yes
 
 
   setQuery: (query) ->
 
-    matchResult = query?.match /^\:(.+)/
+    matchResult = query?.match /^#(.+)/
     query = matchResult?[1]
 
     if @isActive() or query
-      ActivityFlux.actions.emoji.setFilteredListQuery query
+      ActivityFlux.actions.channel.setChatInputChannelsQuery query
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.emoji.setFilteredListSelectedIndex index
+    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex index
 
 
   renderList: ->
@@ -70,13 +69,13 @@ module.exports = class EmojiDropup extends React.Component
     items.map (item, index) =>
       isSelected = item is selectedItem
 
-      <EmojiDropupItem
+      <ChannelDropupItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = item
+        key         = { item.get 'id' }
       />
 
 
@@ -85,16 +84,15 @@ module.exports = class EmojiDropup extends React.Component
     { items, query } = @props
 
     <Dropup
-      className      = "EmojiDropup"
+      className      = "ChannelDropup"
       items          = { items }
       visible        = { @isActive() }
       onOuterClick   = { @bound 'clearQuery' }
     >
       <div className="Dropup-header">
-        Emojis matching <strong>:{query}</strong>
+        Channels
       </div>
-      <div className="EmojiDropup-list">
+      <div className="ChannelDropup-list">
         {@renderList()}
-        <div className="clearfix" />
       </div>
     </Dropup>

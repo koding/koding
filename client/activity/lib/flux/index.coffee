@@ -22,10 +22,12 @@ module.exports =
     require './stores/suggestions/suggestionsstore'
     require './stores/messagelikerssstore'
     require './stores/channelflagsstore'
-    require './stores/emojis/emojisstore'
-    require './stores/emojis/filteredemojilistquerystore'
-    require './stores/emojis/filteredemojilistselectedindexstore'
-    require './stores/emojis/commonemojilistselectedindexstore'
-    require './stores/emojis/commonemojilistflagsstore'
+    require './stores/chatinput/emojisstore'
+    require './stores/chatinput/filteredemojilistquerystore'
+    require './stores/chatinput/filteredemojilistselectedindexstore'
+    require './stores/chatinput/commonemojilistselectedindexstore'
+    require './stores/chatinput/commonemojilistflagsstore'
+    require './stores/chatinput/chatinputchannelsselectedindexstore'
+    require './stores/chatinput/chatinputchannelsquerystore'
   ]
 

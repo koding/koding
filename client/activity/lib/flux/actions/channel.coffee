@@ -151,6 +151,61 @@ loadPopularMessages = (channelId, options = {}) ->
         dispatch LOAD_POPULAR_MESSAGE_SUCCESS, { channelId, message }
 
 
+loadChannelsByQuery = (query, options = {}) ->
+
+  { LOAD_CHANNELS_BY_QUERY_SUCCESS, LOAD_CHANNELS_BY_QUERY_FAIL } = actionTypes
+  options.name = query
+
+  kd.singletons.socialapi.channel.searchTopics options, (err, channels) ->
+    if err
+      dispatch LOAD_CHANNELS_BY_QUERY_FAIL, { err, query }
+      return
+
+    dispatch LOAD_CHANNELS_BY_QUERY_SUCCESS, { channels }
+
+
+setChatInputChannelsQuery = (query) ->
+
+  if query
+    { SET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
+    dispatch SET_CHAT_INPUT_CHANNELS_QUERY, { query }
+    resetChatInputChannelsSelectedIndex()
+    loadChannelsByQuery query
+  else
+    unsetChatInputChannelsQuery()
+
+
+unsetChatInputChannelsQuery = ->
+
+  { UNSET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
+  dispatch UNSET_CHAT_INPUT_CHANNELS_QUERY
+
+  resetChatInputChannelsSelectedIndex()
+
+
+setChatInputChannelsSelectedIndex = (index) ->
+
+  { SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
+  dispatch SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
+
+
+moveToNextChatInputChannelsIndex = ->
+
+  { MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
+  dispatch MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX
+
+
+moveToPrevChatInputChannelsIndex = ->
+
+  { MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
+  dispatch MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX
+
+
+resetChatInputChannelsSelectedIndex = ->
+
+  { RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
+  dispatch RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
+
 
 module.exports = {
   loadChannelByName
@@ -158,4 +213,10 @@ module.exports = {
   loadFollowedPublicChannels
   loadParticipants
   loadPopularMessages
+  setChatInputChannelsQuery
+  unsetChatInputChannelsQuery
+  setChatInputChannelsSelectedIndex
+  moveToNextChatInputChannelsIndex
+  moveToPrevChatInputChannelsIndex
+  resetChatInputChannelsSelectedIndex
 }
