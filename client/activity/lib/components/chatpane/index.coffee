@@ -12,7 +12,7 @@ module.exports = class ChatPane extends React.Component
     title                    : null
     messages                 : null
     isDataLoading            : no
-    onScrollThresholdReached : no
+    onScrollThresholdReached : kd.noop
 
 
   componentDidUpdate: ->
