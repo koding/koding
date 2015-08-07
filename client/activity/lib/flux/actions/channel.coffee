@@ -150,7 +150,11 @@ loadPopularMessages = (channelId, options = {}) ->
       messages.forEach (message) ->
         dispatch LOAD_POPULAR_MESSAGE_SUCCESS, { channelId, message }
 
-
+###*
+ * Action to load popular channels with given options
+ *
+ * @param {object=} options
+###
 loadPopularChannels = (options = {}) ->
 
   { LOAD_POPULAR_CHANNELS_BEGIN
@@ -167,6 +171,12 @@ loadPopularChannels = (options = {}) ->
     dispatch LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
 
 
+###*
+ * Action to load channels filtered by given query
+ *
+ * @param {string}  query
+ * @param {object=} options
+###
 loadChannelsByQuery = (query, options = {}) ->
 
   { LOAD_CHANNELS_BEGIN
@@ -185,6 +195,15 @@ loadChannelsByQuery = (query, options = {}) ->
     dispatch LOAD_CHANNELS_SUCCESS, { channels }
 
 
+###*
+ * Action to set current query of chat input channels.
+ * Also, it resets channels selected index and loads channels
+ * depending on query's value:
+ * - if query is empty, it loads popular channels
+ * - otherwise, it loads channels filtered by query
+ *
+ * @param {string} query
+###
 setChatInputChannelsQuery = (query) ->
 
   if query
@@ -197,6 +216,10 @@ setChatInputChannelsQuery = (query) ->
     loadPopularChannels()
 
 
+###*
+ * Action to unset current query of chat input channels.
+ * Also, it resets channels selected index
+###
 unsetChatInputChannelsQuery = ->
 
   { UNSET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
@@ -205,35 +228,51 @@ unsetChatInputChannelsQuery = ->
   resetChatInputChannelsSelectedIndex()
 
 
+###*
+ * Action to set selected index of chat input channels
+ *
+ * @param {number} index
+###
 setChatInputChannelsSelectedIndex = (index) ->
 
   { SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
   dispatch SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
 
 
+###*
+ * Action to increment channels selected index
+###
 moveToNextChatInputChannelsIndex = ->
 
   { MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
   dispatch MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX
 
 
+###*
+ * Action to decrement channels selected index
+###
 moveToPrevChatInputChannelsIndex = ->
 
   { MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
   dispatch MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX
 
 
+###*
+ * Action to reset channels selected index to initial value
+###
 resetChatInputChannelsSelectedIndex = ->
 
   { RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
   dispatch RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
 
 
+###*
+ * Action to set visibility of chat input channels
+###
 setChatInputChannelsVisibility = (visible) ->
 
   { SET_CHAT_INPUT_CHANNELS_VISIBILITY } = actionTypes
   dispatch SET_CHAT_INPUT_CHANNELS_VISIBILITY, { visible }
-
 
 
 module.exports = {
