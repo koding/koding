@@ -925,6 +925,10 @@ module.exports = CollaborationController =
 
   showChat: ->
 
+    # Show this message while "@stateMachine" is preparing when a session is over just now.
+    # It will be ready in a few seconds.
+    return showError 'Please wait a few seconds.'  unless @stateMachine
+
     switch @stateMachine.state
       when 'Active'     then @showChatPane()
       when 'Prepared'   then @chat.show()
