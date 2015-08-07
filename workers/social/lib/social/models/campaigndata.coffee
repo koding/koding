@@ -1,7 +1,5 @@
 jraphical = require 'jraphical'
 
-emailsanitize = require './user/emailsanitize'
-
 module.exports = class JCampaignData extends jraphical.Module
 
   @set
@@ -10,7 +8,7 @@ module.exports = class JCampaignData extends jraphical.Module
         type     : String
         required : yes
         validate : require('./name').validateEmail
-        set      : emailsanitize
+        set      : (value) -> value.toLowerCase()
       campaign   :
         required : yes
         type     : String
@@ -29,8 +27,6 @@ module.exports = class JCampaignData extends jraphical.Module
     return callback message: 'Campaign info is missing!'  unless data.campaign
 
     { campaign, email } = data
-
-    email = emailsanitize email
 
     JCampaignData.one { campaign, email }, {}, (err, model) ->
 

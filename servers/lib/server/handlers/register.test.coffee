@@ -138,42 +138,6 @@ runTests = -> describe 'server.handlers.register', ->
     daisy queue
 
 
-  it 'should send HTTP 400 if dotted gmail address is in use', (done) ->
-
-    email = "kodingtestuser+#{generateRandomString()}@gmail.com"
-
-    queue = [
-
-      ->
-
-        registerParams = generateRegisterRequestParams body: {email}
-
-        request.post registerParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
-
-      ->
-
-        [username, host] = email.split '@'
-
-        username  = username.replace /(.)/g, '$1.'
-        email = "#{username}@#{host}"
-
-        registerParams = generateRegisterRequestParams body: {email}
-
-        request.post registerParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          queue.next()
-
-      -> done()
-
-    ]
-
-    daisy queue
-
-
   it 'should send HTTP 400 if agree is set as off', (done) ->
 
     postParams = generateRegisterRequestParams

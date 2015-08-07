@@ -16,7 +16,6 @@ globals                = require 'globals'
 isChannelCollaborative = require 'app/util/isChannelCollaborative'
 isKoding               = require 'app/util/isKoding'
 isGroup                = require 'app/util/isGroup'
-isReactEnabled         = require 'app/util/isReactEnabled'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
 isSuggestionEnabled    = require 'activity/util/isSuggestionEnabled'
 
@@ -34,9 +33,6 @@ module.exports = class ActivityAppView extends KDView
 
     options.cssClass   = 'content-page activity clearfix'
     options.domId      = 'content-page-activity'
-
-    if isReactEnabled()
-      options.cssClass = kd.utils.curry 'Reactivity', options.cssClass
 
     super options, data
 
@@ -66,6 +62,10 @@ module.exports = class ActivityAppView extends KDView
         type = 'privatemessage'  if type is 'bot'
         @tabs.setAttribute 'class', kd.utils.curry 'kdview kdtabview', type
 
+    @addSubView @reactivityContainer = new KDCustomHTMLView
+      cssClass: 'ReactivityContainer hidden'
+
+
     { router } = kd.singletons
 
     router.on 'AlreadyHere', (path, options) =>
@@ -78,6 +78,20 @@ module.exports = class ActivityAppView extends KDView
       pane = @panePathMap[path]
 
       pane?.refreshContent? path
+
+
+  switchToReactivityContainer: ->
+
+    @tabs.hide()
+    @setClass 'Reactivity'
+    @reactivityContainer.show()
+
+
+  switchToTabs: ->
+
+    @reactivityContainer.hide()
+    @unsetClass 'Reactivity'
+    @tabs.show()
 
 
   viewAppended: ->
@@ -209,10 +223,7 @@ module.exports = class ActivityAppView extends KDView
       when 'bot'            then KodingBotMessagePane
       when 'privatemessage' then PrivateMessagePane
       when 'post'           then SingleActivityPane
-      when 'topic'
-        if isReactEnabled()
-        then PublicChatPaneView
-        else TopicMessagePane
+      when 'topic'          then TopicMessagePane
       else
         if name is 'announcement-changelog'
         then AnnouncementPane

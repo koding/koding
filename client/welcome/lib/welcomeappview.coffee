@@ -6,8 +6,7 @@ module.exports = class WelcomeAppView extends kd.View
 
     super
 
-
-    @addSubView new kd.CustomHTMLView
+    @addSubView @welcome = new kd.CustomHTMLView
       tagName : 'section'
       partial : """
         <div class="artboard"></div>
@@ -17,6 +16,20 @@ module.exports = class WelcomeAppView extends kd.View
           work faster, with a development
           environment in the cloud
         </p>
+        """
+    { groupsController } = kd.singletons
+    groupsController.ready =>
+      currentGroup = groupsController.getCurrentGroup()
+      currentGroup.fetchMyRoles (err, roles) =>
+        return  kd.warn err  if err
+        return  unless 'admin' in (roles ? [])
+
+        @putInstructions()
+
+
+  putInstructions: ->
+
+      @welcome.setPartial """
         <ul>
           <li>
             <a href='/Admin/Stacks'>
@@ -28,7 +41,7 @@ module.exports = class WelcomeAppView extends kd.View
             </a>
           </li>
           <li>
-            <a href='Admin/Invitations'>
+            <a href='/Admin/Invitations'>
               <cite>2</cite>
               <div>
                 <span>Invite your team</span>

@@ -23,7 +23,7 @@ module.exports =
     teamsHelpers.fillUsernamePasswordForm(browser, user)
     # teamsHelpers.setupStackPage(browser)
     # teamsHelpers.congratulationsPage(browser)
-    teamsHelpers.loginToTeam(browser, user)
+    # teamsHelpers.loginToTeam(browser, user)
 
     browser.end()
 
