@@ -31,7 +31,7 @@ func Channels(
 			Model(m).
 			Table(m.TableName()).
 			Limit(processCount).
-			Where("group_name = ? AND name <> ", groupName, groupName). // dont process the group channel itself
+			Where("group_name = ?", groupName). // dont process the group channel itself
 			Find(&channels).Error
 
 		// if we encounter an error do not continue, if we cant find any

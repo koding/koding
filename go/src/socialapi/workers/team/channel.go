@@ -9,21 +9,9 @@ import (
 	"github.com/koding/bongo"
 )
 
-// // ChannelCreated handles the channel create events, for now only handles the
-// // channels that are group channels
-// func (f *Controller) ChannelCreated(data *models.Channel) error {
-// 	channel, err := models.Cache.Channel.ById(cp.ChannelId)
-// 	if err != nil {
-// 		c.log.Error("Channel: %d is not found", cp.ChannelId)
-// 		return nil
-// 	}
-
-// 	if channel.TypeConstant != models.Channel_TYPE_GROUP {
-// 		return nil // following logic ensures that channel is a group channel
-// 	}
-
-// 	return nil
-// }
+// sleepTimeForDeleteMessages holds sleeping time per processCount, with current
+// code, processMessage	Lists will generate at least 300 events to system
+var sleepTimeForDeleteMessages = time.Second * 3
 
 // ChannelDeleted handles the channel delete events, for now only handles the
 // channels that are group channels
@@ -38,6 +26,7 @@ func (f *Controller) ChannelDeleted(data *models.Channel) error {
 		return nil // following logic ensures that channel is a group channel
 	}
 
+	// iterate over all channels of a group and delete their messages
 	return iterator.Channels(
 		f.log,
 		channel.GroupName,
@@ -45,10 +34,6 @@ func (f *Controller) ChannelDeleted(data *models.Channel) error {
 		sleepTimeForDeleteMessages,
 	)
 }
-
-// sleepTimeForDeleteMessages holds sleeping time per processCount, with current
-// code, processMessage	Lists will generate at least 300 events to system
-var sleepTimeForDeleteMessages = time.Second * 3
 
 func (f *Controller) deleteMessages(channels []models.Channel) error {
 	for _, channel := range channels {
