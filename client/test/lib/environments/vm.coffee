@@ -51,27 +51,24 @@ module.exports =
 
   updateVMNickname: (browser) ->
 
-    vmModal       = modalSelector + ' .AppModal-form'
     paragraph     = helpers.getFakeText()
     nickname      = paragraph.split(' ')[0]
-    nicknameInput = vmModal + ' .nickname input[name=nickEdit]'
-    nicknameView  = vmModal + ' .nickname .input-wrapper .kdview'
+    nicknameView  = modalSelector + ' .nickname .input-wrapper .kdview'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
     environmentHelpers.openGeneralSettings(browser)
+    environmentHelpers.nameVM(browser,nickname)
 
     browser
-      .waitForElementVisible  vmModal, 20000
-      .waitForElementVisible  vmModal + ' .nickname', 20000
-      .click                  vmModal + ' .nickname .edit'
-      .waitForElementVisible  nicknameInput, 20000
-      .clearValue             nicknameInput
-      .setValue               nicknameInput, nickname + '\n'
-      .waitForElementVisible  nicknameView, 20000
-      .assert.containsText    nicknameView, nickname # Assertion
-      .end()
+      .waitForElementVisible nicknameView, 20000
+      .assert.containsText   nicknameView, nickname # Assertion
+
+    #Revert Changes for next test to work
+    environmentHelpers.nameVM(browser, "koding-vm-0")
+    browser.pause 1000 #Doesn't work without it
+    browser.end()
 
   terminateVm: (browser) ->
 
@@ -80,6 +77,7 @@ module.exports =
     terminatedLabelSelector = '.kdmodal.env-modal .state-label.terminated'
 
     helpers.beginTest(browser)
+    browser.pause 1000
     helpers.waitForVMRunning(browser)
 
     environmentHelpers.openAdvancedSettings(browser)
@@ -93,6 +91,7 @@ module.exports =
       .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
       .end()
 
+### DISABLED - takes too long (10m 41s)
   resizeVm: (browser) ->
 
     confirmSelector  = ".kdmodal-content .kdbutton.green"
@@ -138,4 +137,4 @@ module.exports =
           environmentHelpers.openDiskUsageSettings(browser)
           browser.waitForElementVisible diskSelector
           browser.expect.element(diskSelector).text.to.not.equal(usageText) #Assertion
-          browser.end()
+          browser.end()###

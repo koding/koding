@@ -223,3 +223,16 @@ module.exports =
       .waitForElementNotVisible '.env-modal.paid-plan', 250000
       .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 25000
       .end()
+
+  nameVM: (browser, name) ->
+
+    vmModal       = modalSelector + ' .AppModal-form'
+    nicknameInput = vmModal + ' .nickname input[name=nickEdit]'
+
+    browser
+      .waitForElementVisible  vmModal, 20000
+      .waitForElementVisible  vmModal + ' .nickname', 20000
+      .click                  vmModal + ' .nickname .edit'
+      .waitForElementVisible  nicknameInput, 20000
+      .clearValue             nicknameInput
+      .setValue               nicknameInput, name + '\n'
