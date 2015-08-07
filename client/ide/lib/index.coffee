@@ -1172,9 +1172,9 @@ class IDEAppController extends AppController
   syncChange: (change) ->
 
     { context } = change
-    change.rtmHash = @rtm.hash
-
     return  if not @rtm or not @rtm.isReady or not context
+
+    change.rtmHash = @rtm.hash
 
     {paneHash} = context
     nickname   = nick()
