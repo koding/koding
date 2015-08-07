@@ -26,7 +26,7 @@ func NewKodingExporter() *KodingExporter {
 }
 
 func (k *KodingExporter) SendResult(output *GatherStat) error {
-	return k.send("/stats", output)
+	return k.send("/ingest", output)
 }
 
 func (k *KodingExporter) SendError(output *GatherError) error {

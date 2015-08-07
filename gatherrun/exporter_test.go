@@ -45,7 +45,7 @@ func TestExporter(t *testing.T) {
 		handler := func(w http.ResponseWriter, r *http.Request) {
 			Convey("Then it should make proper request", t, func() {
 				So(r.Method, ShouldEqual, "POST")
-				So(r.URL.String(), ShouldEqual, "/stats")
+				So(r.URL.String(), ShouldEqual, "/ingest")
 			})
 
 			fmt.Fprintln(w, "{}")
