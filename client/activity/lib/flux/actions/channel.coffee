@@ -151,23 +151,28 @@ loadPopularMessages = (channelId, options = {}) ->
         dispatch LOAD_POPULAR_MESSAGE_SUCCESS, { channelId, message }
 
 
-loadChannels = (options = {}) ->
+loadPopularChannels = (options = {}) ->
 
-  { LOAD_CHANNELS_BEGIN, LOAD_CHANNELS_SUCCESS, LOAD_CHANNELS_FAIL } = actionTypes
+  { LOAD_POPULAR_CHANNELS_BEGIN
+    LOAD_POPULAR_CHANNELS_SUCCESS
+    LOAD_POPULAR_CHANNELS_FAIL } = actionTypes
 
-  dispatch LOAD_CHANNELS_BEGIN
+  dispatch LOAD_POPULAR_CHANNELS_BEGIN
 
-  kd.singletons.socialapi.channel.list options, (err, channels) ->
+  kd.singletons.socialapi.channel.fetchPopularTopics options, (err, channels) ->
     if err
-      dispatch LOAD_CHANNELS_FAIL, { err, query }
+      dispatch LOAD_POPULAR_CHANNELS_FAIL, { err }
       return
 
-    dispatch LOAD_CHANNELS_SUCCESS, { channels }
+    dispatch LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
 
 
 loadChannelsByQuery = (query, options = {}) ->
 
-  { LOAD_CHANNELS_BEGIN, LOAD_CHANNELS_SUCCESS, LOAD_CHANNELS_FAIL } = actionTypes
+  { LOAD_CHANNELS_BEGIN
+    LOAD_CHANNELS_SUCCESS
+    LOAD_CHANNELS_FAIL } = actionTypes
+
   options.name = query
 
   dispatch LOAD_CHANNELS_BEGIN
@@ -189,7 +194,7 @@ setChatInputChannelsQuery = (query) ->
     loadChannelsByQuery query
   else
     unsetChatInputChannelsQuery()
-    loadChannels()
+    loadPopularChannels()
 
 
 unsetChatInputChannelsQuery = ->

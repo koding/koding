@@ -18,6 +18,7 @@ ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 MessageThreadsStore            = [['MessageThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
+PopularChannelIdsStore         = [['PopularChannelIdsStore'], withEmptyMap]
 ChannelParticipantIdsStore     = [['ChannelParticipantIdsStore'], withEmptyMap]
 ChannelPopularMessageIdsStore  = [['ChannelPopularMessageIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
@@ -53,6 +54,12 @@ followedPublicChannels = [
 # Maps followed private channel ids with relevant channel instances.
 followedPrivateChannels = [
   FollowedPrivateChannelIdsStore
+  ChannelsStore
+  (ids, channels) -> ids.map (id) -> channels.get id
+]
+
+popularChannels = [
+  PopularChannelIdsStore
   ChannelsStore
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
@@ -243,13 +250,13 @@ chatInputChannelsQuery         = ChatInputChannelsQueryStore
 chatInputChannelsSelectedIndex = ChatInputChannelsSelectedIndexStore
 chatInputChannes               = [
   ChannelsStore
+  popularChannels
   chatInputChannelsQuery
-  (channels, query) ->
-    channels = channels.toList()
-    return channels  unless query
+  (channels, popularChannels, query) ->
+    return popularChannels.toList()  unless query
 
     query = query.toLowerCase()
-    channels.filter (channel) ->
+    channels.toList().filter (channel) ->
       channelName = channel.get('name').toLowerCase()
       return channelName.indexOf(query) is 0
 ]

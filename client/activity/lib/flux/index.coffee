@@ -15,6 +15,7 @@ module.exports =
     require './stores/selectedmessagethreadidstore'
     require './stores/followedpublicchannelidsstore'
     require './stores/followedprivatechannelidsstore'
+    require './stores/popularchannelidsstore'
     require './stores/channelparticipantidsstore'
     require './stores/channelpopularmessageidsstore'
     require './stores/suggestions/suggestionsquerystore'

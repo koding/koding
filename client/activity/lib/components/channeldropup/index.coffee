@@ -13,7 +13,7 @@ module.exports = class ChannelDropup extends React.Component
   @defaultProps =
     items        : immutable.List()
     visible      : no
-    selectedItem : immutable.Map()
+    selectedItem : null
 
 
   isActive: ->

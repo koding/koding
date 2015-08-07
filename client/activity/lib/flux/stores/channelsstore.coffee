@@ -15,6 +15,7 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on actions.LOAD_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
+    @on actions.LOAD_POPULAR_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
 
 
   handleLoadChannelSuccess: (channels, { channel }) ->
@@ -25,7 +26,7 @@ module.exports = class ChannelsStore extends KodingFluxStore
   handleLoadChannelListSuccess: (currentChannels, { channels }) ->
 
     return currentChannels.withMutations (map) ->
-      channels.forEach (channel) -> map.set channel.id, toImmutable channel
+      map.set channel.id, toImmutable channel for channel in  channels
       return map
 
 

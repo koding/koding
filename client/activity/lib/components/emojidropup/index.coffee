@@ -13,7 +13,7 @@ module.exports = class EmojiDropup extends React.Component
 
   @defaultProps =
     items        : immutable.List()
-    selectedItem : immutable.Map()
+    selectedItem : null
 
 
   isActive: -> @props.items.size > 0
