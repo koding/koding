@@ -2,13 +2,17 @@ package main
 
 import (
 	"fmt"
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"strings"
 	"time"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
-	KloudTimeout  = time.Second * 2
+	KloudTimeout  = time.Second * 10
 	DefaultReason = "NetworkOut limit reached"
 )
 
@@ -19,13 +23,30 @@ type requestArgs struct {
 	Provider  string `json:"provider"`
 }
 
-func stopVm(machineId, username, reason string) error {
-	if controller.Klient == nil {
-		Log.Debug("Klient not initialized. Not stopping: %s", machineId)
+func stopVMIfRunning(machineId, username, reason string) error {
+	var machine *models.Machine
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": bson.ObjectIdHex(machineId)}).One(&machine)
+	}
+
+	if err := modelhelper.Mongo.Run(modelhelper.MachinesColl, query); err != nil {
+		return err
+	}
+
+	if controller.KiteClient == nil {
+		Log.Info("KloudClient not initialized. Not stopping: %s", machineId)
 		return nil
 	}
 
-	_, err := controller.Klient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
+	if machine.Status.State != "Running" {
+		Log.Info("Machine: '%s' has status: '%s'...skipping", machineId, machine.Status.State)
+		return nil
+	}
+
+	Log.Info("Starting to stop machine: '%s' for username: '%s'", machineId, username)
+
+	_, err := controller.KiteClient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
 		MachineId: machineId,
 		Reason:    DefaultReason,
 		Provider:  "koding",
@@ -53,7 +74,7 @@ func blockUserAndDestroyVm(machineId, username, reason string) error {
 	}
 
 	for _, machine := range machines {
-		err := stopVm(machine.ObjectId.Hex(), username, reason)
+		err := stopVMIfRunning(machine.ObjectId.Hex(), username, reason)
 		if err != nil {
 			Log.Error(fmt.Sprintf(
 				"Error stopping machine: %s of user: %s: %s", machine.ObjectId,

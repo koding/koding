@@ -6,7 +6,7 @@ import (
 )
 
 type VmController struct {
-	Redis  *RedisStorage
-	Klient *kite.Client
-	Aws    *credentials.Credentials
+	Redis      *RedisStorage
+	KiteClient *kite.Client
+	Aws        *credentials.Credentials
 }
