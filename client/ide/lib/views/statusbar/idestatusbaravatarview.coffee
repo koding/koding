@@ -91,7 +91,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
         menuItems[label] or= children: {}
         targetObj = menuItems[label].children
         targetObj[title] = { title }
-        targetObj[title].change = item.change
+        targetObj[title].change = context: item.pane.context
         targetObj[title].callback = (it) ->
           appManager.tell 'IDE', 'createPaneFromChange', it.getData().change
           @destroy()

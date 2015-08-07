@@ -1374,6 +1374,13 @@ class IDEAppController extends AppController
 
     return  if not paneType or not paneHash
 
+    # if the pane is already opened on IDE, don't re-open it. Show it.
+    if pane = @getPaneByChange change
+      paneView = pane.parent
+      tabView  = paneView.parent
+      return tabView.showPane paneView
+
+
     if ideViewHash and @amIWatchingChangeOwner origin
       targetTabView = @getTabViewByIDEViewHash ideViewHash
       @setActiveTabView targetTabView  if targetTabView
