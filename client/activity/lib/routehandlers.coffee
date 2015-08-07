@@ -104,6 +104,7 @@ activityPane = (callback) ->
   {appManager} = kd.singletons
   appManager.open 'Activity', (app) ->
     view = app.getView()
+    view.switchToTabs()
 
     kd.singleton('mainController').ready ->
       view.open 'topic', 'public'
@@ -113,6 +114,8 @@ activityPane = (callback) ->
 handleChannel = (type, slug, callback) ->
   callback    ?= (app) -> app.getView().open type, slug
   {appManager, mainController} = kd.singletons
-  mainController.ready -> appManager.open 'Activity', callback
+  mainController.ready -> appManager.open 'Activity', (app) ->
+    app.getView().switchToTabs()
+    callback app
 
 

@@ -520,14 +520,25 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     return  if isKoding()
     return  @showStacksNotConfiguredWarning()  if @stacksNotConfiguredWarning?
 
-    @stacksNotConfiguredWarning = @machinesWrapper.addSubView (new KDCustomHTMLView
-      cssClass : 'stack-warning hidden'
-      partial  : "<a href='/Welcome'>Your team page has not been<br/>
-                  fully configured yet please<br/>
-                  click here to setup now.</a>"
-      ), null, shouldPrepend = yes
+    currentGroup = kd.singletons.groupsController.getCurrentGroup()
+    currentGroup.fetchMyRoles (err, roles) =>
+      return kd.warn err  if err
 
-    @showStacksNotConfiguredWarning()
+      if 'admin' in (roles ? [])
+        partial = "<a href='/Welcome'>Your team page has not been<br/>
+                      fully configured yet please<br/>
+                      click here to setup now.</a>"
+      else
+        partial = "Your team page has not been<br/>
+                      fully configured yet please<br/>
+                      contact your team admin.</a>"
+
+      cssClass = 'stack-warning hidden'
+      view     = new KDCustomHTMLView { cssClass, partial }
+
+      @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, shouldPrepend = yes
+
+      @showStacksNotConfiguredWarning()
 
 
   showStacksNotConfiguredWarning: ->

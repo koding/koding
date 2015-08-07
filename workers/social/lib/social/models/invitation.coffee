@@ -10,8 +10,6 @@ KodingError = require '../error'
 { protocol, hostname } = KONFIG
 { secure, signature, dash } = Bongo
 
-emailsanitize = require './user/emailsanitize'
-
 module.exports = class JInvitation extends jraphical.Module
 
   @trait __dirname, '../traits/grouprelated'
@@ -66,7 +64,6 @@ module.exports = class JInvitation extends jraphical.Module
       email         :
         type        : String
         required    : yes
-        set         : emailsanitize
       hash          :
         type        : String
         required    : yes

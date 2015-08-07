@@ -1,7 +1,5 @@
 jraphical = require 'jraphical'
 
-emailsanitize = require './user/emailsanitize'
-
 module.exports = class JPasswordRecovery extends jraphical.Module
   # TODO - Refactor this file, now it is not only for password recovery
   # but also for email verification
@@ -37,9 +35,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     indexes       :
       token       : 'unique'
     schema        :
-      email       :
-        type      : String
-        set       : emailsanitize
+      email       : String
       username    : String
       token       : String
       redeemedAt  : Date
@@ -96,8 +92,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     { email } = options
 
-    email = emailsanitize email
-
     JUser.count { email }, (err, num) =>
       unless num
         return callback null # pretend like everything went fine.
@@ -111,8 +105,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     token = createId()
 
     {email, verb, expiryPeriod} = options
-
-    email = emailsanitize email
 
     options.resetPassword ?= no
 

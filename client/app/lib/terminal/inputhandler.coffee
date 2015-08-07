@@ -42,7 +42,12 @@ module.exports = class InputHandler
     @previousMouseY = -1
 
 
+  isTerminalReady: -> @terminal.server?
+
+
   keyDown: (event) ->
+
+    return unless @isTerminalReady()
 
     @terminal.scrollToBottom()
     @terminal.cursor.resetBlink()
