@@ -10,22 +10,15 @@ gather is part of klient repo.
 
 ## Structure
 
-gatheringestor expects requests to unmarshal to the following struct:
+This is an example of a request:
 
-    type GatherStat struct {
-      Id         bson.ObjectId      `bson:"_id" json:"-"`
-      Env        string             `bson:"env" json:"env"`
-      Username   string             `bson:"username" json:"username"`
-      InstanceId string             `bson:"instanceId" json:"instanceId"`
-      Stats      []GatherSingleStat `bson:"stats" json:"stats"`
+    {
+      "env"        : "prod",
+      "username"   : "indianajones",
+      "instanceId" : "i-00000",
+      "stats"      : [{"name" : "user count", "type" : "number", "value" : "1"}]
     }
 
-Stats is a collection of individual metric. `GatherSingleStat#Value` is of type interface{} so any type of value can be sent, ie number, string, slice of strings etc.
-
-    type GatherSingleStat struct {
-      Name  string      `bson:"name" json:"name"`
-      Type  string      `bson:"type" json:"type"`
-      Value interface{} `bson:"value" json:"value"`
-    }
+Stats is a collection of individual metric. `Value` is of type interface{} so any type of value can be sent, ie number, string, slice of strings etc.
 
 Only numbers are sent to Datadog.
