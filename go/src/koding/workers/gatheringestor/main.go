@@ -16,6 +16,7 @@ import (
 	"github.com/PuerkitoBio/throttled/store"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+	"github.com/koding/redis"
 )
 
 var (
@@ -35,12 +36,19 @@ func initializeConf() *config.Config {
 }
 
 func main() {
+	log := common.CreateLogger(WorkerName, false)
+
 	conf := initializeConf()
 	modelhelper.Initialize(conf.Mongo)
 
 	defer modelhelper.Close()
 
-	log := common.CreateLogger(WorkerName, false)
+	redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	defer redisConn.Close()
 
 	dogclient, err := metrics.NewDogStatsD(WorkerName)
 	if err != nil {
@@ -55,7 +63,7 @@ func main() {
 	th := throttled.RateLimit(
 		throttled.Q{Requests: 10, Window: time.Hour},
 		&throttled.VaryBy{Path: true},
-		store.NewMemStore(1000),
+		store.NewRedisStore(redisConn.Pool(), WorkerName, 0),
 	)
 
 	tStathandler := th.Throttle(stathandler)
