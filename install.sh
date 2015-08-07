@@ -2,14 +2,23 @@
 
 
 if [[ ! "$(uname)" = "Linux" ]]; then
-    echo "Currenty only Ubuntu Linux is supported"
+    echo "Error: Currenty only Ubuntu Linux is supported"
     exit 1
 fi
 
 
 if [[ `lsb_release -si 2> /dev/null` != "Ubuntu" ]]; then
-    echo "Currenty only Ubuntu Linux is supported"
+    echo "Error: Currenty only Ubuntu Linux is supported"
     exit 1
+fi
+
+
+lsbRelease=`lsb_release -sr 2> /dev/null`
+if [ "$lsbRelease" == "15.04" ] || [ "$lsbRelease" == "15.10" ]; then
+  cat << EOF
+Error: The Koding Service Connector is not currently supported on Ubuntu ${lsbRelease}.
+EOF
+  exit 1
 fi
 
 
