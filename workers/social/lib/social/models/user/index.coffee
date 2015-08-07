@@ -597,7 +597,7 @@ module.exports = class JUser extends jraphical.Module
 
     # handles error and decide to invalidate pin or not
     # depending on email and user variables
-    handleError = (err, user, email) ->
+    handleError = (err, user) ->
       if email and user
         # when email and user is set, we need to invalidate verification token
         params =
