@@ -6,8 +6,11 @@ import (
 	"net/http"
 )
 
-var defaultKodingURI = "https://koding.com/-/gatheringestor"
+// defaultKodingURI is the value to send gather data.
+const defaultKodingURI = "https://koding.com/-/ingestor"
 
+// Exporter defines the interface for sending gather data from
+// user VMs to external server.
 type Exporter interface {
 	SendResult(*GatherStat) error
 	SendError(*GatherError) error
@@ -17,6 +20,7 @@ type Exporter interface {
 // KodingExporter
 //----------------------------------------------------------
 
+// KodingExporter sends gather data from user VMs to Koding servers.
 type KodingExporter struct {
 	URI string
 }
@@ -25,16 +29,16 @@ func NewKodingExporter() *KodingExporter {
 	return &KodingExporter{URI: defaultKodingURI}
 }
 
-func (k *KodingExporter) SendResult(output *GatherStat) error {
-	return k.send("/ingest", output)
+func (k *KodingExporter) SendResult(stats *GatherStat) error {
+	return k.send("/ingest", stats)
 }
 
-func (k *KodingExporter) SendError(output *GatherError) error {
-	return k.send("/errors", output)
+func (k *KodingExporter) SendError(errors *GatherError) error {
+	return k.send("/errors", errors)
 }
 
 func (k *KodingExporter) send(path string, output interface{}) error {
-	buf := bytes.NewBuffer(nil)
+	buf := new(bytes.Buffer)
 
 	err := json.NewEncoder(buf).Encode(output)
 	if err != nil {

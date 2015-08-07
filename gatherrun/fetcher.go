@@ -11,15 +11,17 @@ import (
 )
 
 const (
-	CONTENT_TYPE_TAR = "application/tar"
-	TAR_SUFFIX       = ".tar"
+	contentTypeTar = "application/tar"
+	tarSuffix      = ".tar"
 )
 
+// Fetcher defines interface for downloading gather binary to user VMs.
 type Fetcher interface {
 	Download(string) error
 	GetFileName() string
 }
 
+// S3Fetcher downloads gather binary from a private S3 bucket.
 type S3Fetcher struct {
 	AccessKey  string
 	SecretKey  string
@@ -52,6 +54,12 @@ func (s *S3Fetcher) Download(folderName string) error {
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
 
 	w, err := os.Create(filepath.Join(folderName, s.FileName))
 	if err != nil {

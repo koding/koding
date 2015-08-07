@@ -3,15 +3,15 @@ package gatherrun
 import (
 	"bytes"
 	"encoding/json"
-	"math/rand"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 )
 
 var (
-	AbuseInterval     = time.Minute * 30
-	AnalyticsInterval = time.Hour * 24
+	abuseInterval     = time.Minute * 30
+	analyticsInterval = time.Hour * 24
 )
 
 type GatherRun struct {
@@ -40,8 +40,8 @@ func Run(env, username string) {
 		New(fetcher, exporter, opts, "analytics").Run()
 	}()
 
-	abuseTimer := time.NewTimer(AbuseInterval)
-	analyticsTimer := time.NewTimer(AnalyticsInterval)
+	abuseTimer := time.NewTimer(abuseInterval)
+	analyticsTimer := time.NewTimer(analyticsInterval)
 
 	for {
 		select {
@@ -54,10 +54,15 @@ func Run(env, username string) {
 }
 
 func New(fetcher Fetcher, exporter Exporter, output *Gather, scriptType string) *GatherRun {
+	tmpDir, err := ioutil.TempDir("/tmp", "gather")
+	if err != nil {
+		// TODO: how to deal with errs
+	}
+
 	return &GatherRun{
 		Fetcher:    fetcher,
 		Exporter:   exporter,
-		DestFolder: "/tmp/" + randSeq(10),
+		DestFolder: tmpDir,
 		Output:     output,
 		ScriptType: scriptType,
 	}
@@ -79,7 +84,7 @@ func (c *GatherRun) Run() error {
 }
 
 func (c *GatherRun) GetGatherBinary() (*GatherBinary, error) {
-	if err := c.CreateDestFolder(); err != nil {
+	if err := os.MkdirAll(c.DestFolder, 0777); err != nil {
 		return nil, err
 	}
 
@@ -92,7 +97,7 @@ func (c *GatherRun) GetGatherBinary() (*GatherBinary, error) {
 		return nil, err
 	}
 
-	binaryPath := strings.TrimSuffix(tarFile, TAR_SUFFIX)
+	binaryPath := strings.TrimSuffix(tarFile, tarSuffix)
 	return &GatherBinary{Path: binaryPath, ScriptType: c.ScriptType}, nil
 }
 
@@ -122,7 +127,7 @@ func (c *GatherRun) Export(raw []interface{}, err error) error {
 	results := []GatherSingleStat{}
 
 	for _, r := range raw {
-		buf := bytes.NewBuffer(nil)
+		buf := new(bytes.Buffer)
 		if err := json.NewEncoder(buf).Encode(r); err != nil {
 			continue
 		}
@@ -141,20 +146,4 @@ func (c *GatherRun) Export(raw []interface{}, err error) error {
 
 func (c *GatherRun) Cleanup() error {
 	return os.RemoveAll(c.DestFolder)
-}
-
-//----------------------------------------------------------
-// Helpers
-//----------------------------------------------------------
-
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func randSeq(n int) string {
-	b := make([]rune, n)
-
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-
-	return string(b)
 }

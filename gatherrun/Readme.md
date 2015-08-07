@@ -1,6 +1,6 @@
 # gatherrun
 
-gatherrun is a library that collects info on how user is using their VM. This library doesn't define any metrics itself (it downloads them for a S3 server). This library provides functions to manage the workflow of getting the scripts, running them and saving the results to a datastore. The scripts are in their own repo under `github.com/koding/gather`.
+gatherrun is a library that collects info on how user is using their VM. This library doesn't define any metrics itself (it downloads them from a S3 server). This library provides functions to manage the workflow of getting the scripts, running them and saving the results to a datastore. The scripts are in their own repo under `github.com/koding/gather`.
 
 ## Usage
 

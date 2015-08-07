@@ -23,10 +23,10 @@ func (g *GatherBinary) Run() ([]interface{}, error) {
 		return nil, err
 	}
 
-	bites := bytes.NewBuffer(output)
+	buf := bytes.NewBuffer(output)
 
 	var results []interface{}
-	if err := json.NewDecoder(bites).Decode(&results); err != nil {
+	if err := json.NewDecoder(buf).Decode(&results); err != nil {
 		return nil, err
 	}
 
