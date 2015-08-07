@@ -3,6 +3,7 @@ package topic
 import (
 	"fmt"
 	"socialapi/models"
+	"socialapi/workers/iterator"
 	"strings"
 	"time"
 
@@ -47,164 +48,126 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 		toBeReplacedTargetString = leafChannel.Name
 	}
 
-	m := models.ChannelMessageList{}
-	var errors []error
-	for {
-		var messageLists []models.ChannelMessageList
+	f := c.processMessageLists(
+		cl,
+		rootChannel,
+		leafChannel,
+		toBeReplacedSourceString,
+		toBeReplacedTargetString,
+	)
 
-		// fetch all records, even deleted ones, because we are not gonna need
-		// them anymore
-		err := bongo.B.DB.
-			Unscoped().
-			Model(m).
-			Table(m.TableName()).
-			Limit(processCount).
-			Where("channel_id = ?", cl.LeafId).
-			Find(&messageLists).Error
-
-		// if we encounter an error do not continue, if we cant find any
-		// result, it can be excluded from the error case, because since we
-		// will not be able to process any message, system will return
-		if err != nil && err != bongo.RecordNotFound {
-			return err
-		}
-
-		// we processed all channel messages. or no message exits
-		if len(messageLists) == 0 {
-			log.Info("doesnt have any message lists for moving")
-			break
-		}
-
-		err = c.processMessageLists(
-			cl,
-			rootChannel,
-			leafChannel,
-			messageLists,
-			toBeReplacedSourceString,
-			toBeReplacedTargetString,
-		)
-		if err != nil {
-			errors = append(errors, err)
-		}
-
-		// sleep for every `processCount` operation
-		time.Sleep(sleepTimeForMoveMessages) // poor mans throttling strategy
-	}
-
-	if len(errors) != 0 {
-		return fmt.Errorf("%+v", errors)
-	}
-
-	return nil
+	return iterator.MessageLists(log, cl.LeafId, f, sleepTimeForMoveMessages)
 }
 
 func (c *Controller) processMessageLists(
 	cl *models.ChannelLink,
 	rootChannel *models.Channel,
 	leafChannel *models.Channel,
-	messageLists []models.ChannelMessageList,
 	toBeReplacedSourceString string,
 	toBeReplacedTargetString string,
-) error {
-	log := c.log.New("rootId", cl.RootId, "leafId", cl.LeafId)
+) func(messageLists []models.ChannelMessageList) error {
+	return func(messageLists []models.ChannelMessageList) error {
+		log := c.log.New("rootId", cl.RootId, "leafId", cl.LeafId)
 
-	var erroredMessageLists []models.ChannelMessageList
-	m := models.ChannelMessageList{}
+		var erroredMessageLists []models.ChannelMessageList
+		m := models.ChannelMessageList{}
 
-	for i, messageList := range messageLists {
-		// fetch the regarding message
-		cm := models.NewChannelMessage()
-		// message can be a deleted one
-		err := cm.UnscopedById(messageList.MessageId)
-		if err != nil && err != bongo.RecordNotFound {
-			return err
-		}
-
-		if err == bongo.RecordNotFound {
-			log.Critical("we do have inconsistent data in our db, message with id: %d doesnt exist in channel_message table but we have referance in our channel_message_list table id: %d", messageList.MessageId, messageList.Id)
-			continue
-		}
-
-		// if deletemessage option is passed delete the messages
-		if cl.DeleteMessages {
-			err := cm.DeleteMessageAndDependencies(true)
-			if err != nil {
-				log.Error("couldn't delete mesage %s", err.Error())
-				erroredMessageLists = append(erroredMessageLists, messageLists[i])
-			}
-			continue
-		}
-
-		var channelMessageList []models.ChannelMessageList
-
-		ml := models.ChannelMessageList{}
-		// we can ignore error
-		_ = bongo.B.DB.
-			Model(ml).
-			Table(ml.BongoName()).
-			Unscoped().
-			Limit(processCount).
-			Where("message_id = ? AND channel_id = ?", cm.Id, rootChannel.Id).
-			Find(&channelMessageList).Error
-
-		isInRootChannel := len(channelMessageList) > 0
-
-		if isInRootChannel {
-			// we are deleting the leaf with an unscoped because we dont need the
-			// data in our db anymore
-			if err := bongo.B.
-				Unscoped().
-				Model(m).
-				Table(m.TableName()).
-				Delete(messageList).
-				Error; err != nil {
-				log.Error("Err while deleting the channel message list %s", err.Error())
-				erroredMessageLists = append(erroredMessageLists, messageLists[i])
+		for i, messageList := range messageLists {
+			// fetch the regarding message
+			cm := models.NewChannelMessage()
+			// message can be a deleted one
+			err := cm.UnscopedById(messageList.MessageId)
+			if err != nil && err != bongo.RecordNotFound {
+				return err
 			}
 
-			// do not forget to send the event, other workers may need it, ps: algoliaconnecter needs it
-			go bongo.B.AfterDelete(messageList)
+			if err == bongo.RecordNotFound {
+				log.Critical("we do have inconsistent data in our db, message with id: %d doesnt exist in channel_message table but we have referance in our channel_message_list table id: %d", messageList.MessageId, messageList.Id)
+				continue
+			}
 
-		} else {
-			// update the message itself, without callbacks
+			// if deletemessage option is passed delete the messages
+			if cl.DeleteMessages {
+				err := cm.DeleteMessageAndDependencies(true)
+				if err != nil {
+					log.Error("couldn't delete mesage %s", err.Error())
+					erroredMessageLists = append(erroredMessageLists, messageLists[i])
+				}
+				continue
+			}
+
+			var channelMessageList []models.ChannelMessageList
+
+			ml := models.ChannelMessageList{}
+			// we can ignore error
+			_ = bongo.B.DB.
+				Model(ml).
+				Table(ml.BongoName()).
+				Unscoped().
+				Limit(processCount).
+				Where("message_id = ? AND channel_id = ?", cm.Id, rootChannel.Id).
+				Find(&channelMessageList).Error
+
+			isInRootChannel := len(channelMessageList) > 0
+
+			if isInRootChannel {
+				// we are deleting the leaf with an unscoped because we dont need the
+				// data in our db anymore
+				if err := bongo.B.
+					Unscoped().
+					Model(m).
+					Table(m.TableName()).
+					Delete(messageList).
+					Error; err != nil {
+					log.Error("Err while deleting the channel message list %s", err.Error())
+					erroredMessageLists = append(erroredMessageLists, messageLists[i])
+				}
+
+				// do not forget to send the event, other workers may need it, ps: algoliaconnecter needs it
+				go bongo.B.AfterDelete(messageList)
+
+			} else {
+				// update the message itself, without callbacks
+				if err := bongo.B.
+					Unscoped().
+					Table(m.TableName()).
+					Model(&messageList).
+					UpdateColumn("channel_id", cl.RootId).
+					Error; err != nil && !models.IsUniqueConstraintError(err) {
+					log.Error("couldn't update mesage %s", err.Error())
+					erroredMessageLists = append(erroredMessageLists, messageLists[i])
+					continue
+				}
+
+				// do not forget to send the event, other workers may need it, ps: algoliaconnecter needs it
+				go bongo.B.AfterCreate(messageList)
+			}
+
+			// update message here
+
+			cm.Body = processWithNewTag(cm.Body, toBeReplacedSourceString, toBeReplacedTargetString)
+
+			// update the message itself
 			if err := bongo.B.
 				Unscoped().
-				Table(m.TableName()).
-				Model(&messageList).
-				UpdateColumn("channel_id", cl.RootId).
-				Error; err != nil && !models.IsUniqueConstraintError(err) {
+				Table(cm.TableName()).
+				Model(*cm). // should not be a pointer, why? dont ask me for now
+				Update(cm).Error; err != nil {
 				log.Error("couldn't update mesage %s", err.Error())
 				erroredMessageLists = append(erroredMessageLists, messageLists[i])
 				continue
 			}
-
-			// do not forget to send the event, other workers may need it, ps: algoliaconnecter needs it
-			go bongo.B.AfterCreate(messageList)
+			cm.AfterUpdate() // do not forget to send updated event
 		}
 
-		// update message here
-
-		cm.Body = processWithNewTag(cm.Body, toBeReplacedSourceString, toBeReplacedTargetString)
-
-		// update the message itself
-		if err := bongo.B.
-			Unscoped().
-			Table(cm.TableName()).
-			Model(*cm). // should not be a pointer, why? dont ask me for now
-			Update(cm).Error; err != nil {
-			log.Error("couldn't update mesage %s", err.Error())
-			erroredMessageLists = append(erroredMessageLists, messageLists[i])
-			continue
+		// if error happens, return it, next time it will be re-tried
+		if len(erroredMessageLists) != 0 {
+			return fmt.Errorf("some errors: %v", erroredMessageLists)
 		}
-		cm.AfterUpdate() // do not forget to send updated event
+
+		return nil
 	}
 
-	// if error happens, return it, next time it will be re-tried
-	if len(erroredMessageLists) != 0 {
-		return fmt.Errorf("some errors: %v", erroredMessageLists)
-	}
-
-	return nil
 }
 
 func processWithNewTag(body, leaf, root string) string {

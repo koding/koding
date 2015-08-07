@@ -1358,17 +1358,7 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
-        # generating a json web token
-        { publicHostname }                  = KONFIG
-        { secret, confirmExpiresInMinutes } = KONFIG.jwt
-
-        jwt = require 'jsonwebtoken'
-
-        # uses 'HS256' as default for signing
-        options =
-          expiresInMinutes : confirmExpiresInMinutes
-
-        jwtToken = jwt.sign { username }, secret, options
+        jwtToken = JUser.createJWT { username }
 
         Tracker.identify username, { jwtToken, email, pin }
         queue.next()
@@ -1387,6 +1377,16 @@ module.exports = class JUser extends jraphical.Module
 
     daisy queue
 
+  @createJWT: (data) ->
+    { secret, confirmExpiresInMinutes } = KONFIG.jwt
+
+    jwt = require 'jsonwebtoken'
+
+    # uses 'HS256' as default for signing
+    options =
+      expiresInMinutes : confirmExpiresInMinutes
+
+    return jwt.sign data, secret, options
 
   @removeUnsubscription:({email}, callback) ->
 

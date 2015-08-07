@@ -106,7 +106,7 @@ generateCreateGroupKallback = (client, req, res, body) ->
       invitees
       # domains holds allowed domains for signinup without invitation, comma separated
       domains
-      # username of the user, can be already registered or a new one for creation
+      # username or email of the user, can be already registered or a new one for creation
       username
     } = body
 
@@ -118,13 +118,10 @@ generateCreateGroupKallback = (client, req, res, body) ->
     # for the default and other subdomains
     # need to find another way - SY
 
-    # teamDomain = switch environment
-    #   when 'production'  then ".koding.com"
-    #   when 'development' then ".dev.koding.com"
-    #   else ".#{environment}.koding.com"
-
-    # res.clearCookie 'clientId'
-    # res.cookie 'clientId', token, path : '/', domain : teamDomain
+    teamDomain = switch environment
+      when 'production'  then ".koding.com"
+      when 'development' then ".dev.koding.com"
+      else ".#{environment}.koding.com"
 
     # set session token for later usage down the line
     owner                      = result.account
@@ -162,10 +159,14 @@ generateCreateGroupKallback = (client, req, res, body) ->
         # do not block group creation
         console.error "Error while creating group artifacts", body, err if err
 
-        # handle the request as an XHR response:
-        return res.status(200).end() if req.xhr
-        # handle the request with an HTTP redirect:
-        res.redirect 301, redirect
+        opt =
+          username  : result.account.profile.nickname
+          groupName : slug
+
+        data =
+          token : JUser.createJWT opt
+
+        return res.status(200).send data
 
 
 validateGroupDataAndReturnError = (body) ->
