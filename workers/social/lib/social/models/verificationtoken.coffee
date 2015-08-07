@@ -1,8 +1,6 @@
 {Module} = require 'jraphical'
 KodingError = require '../error'
 
-emailsanitize = require './user/emailsanitize'
-
 class PINExistsError extends Error
   constructor:(message)->
     return new PINExistsError(message) unless @ instanceof PINExistsError
@@ -28,7 +26,7 @@ module.exports = class JVerificationToken extends Module
       email       :
         type      : String
         email     : yes
-        set       : emailsanitize
+        set       : (value) -> value.toLowerCase()
       pin         : String
       createdAt   :
         type      : Date
@@ -48,9 +46,6 @@ module.exports = class JVerificationToken extends Module
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName, resendIfExists} = options
-
-    email = emailsanitize email  if email
-
     subject   or= Tracker.types.REQUEST_EMAIL_CHANGE
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
@@ -92,8 +87,6 @@ module.exports = class JVerificationToken extends Module
 
     {pin, email, action, username} = options
 
-    email = emailsanitize email
-
     @one {email, action, pin, username}, (err, confirmation)->
 
       return callback err  if err
@@ -117,9 +110,6 @@ module.exports = class JVerificationToken extends Module
 
   @invalidatePin = (options, callback)->
     {email, action, username} = options
-
-    email = emailsanitize email
-
     @one {email, action, username}, (err, verify)->
       return callback err  if err
       return callback new KodingError "token not found" unless verify
@@ -130,8 +120,6 @@ module.exports = class JVerificationToken extends Module
   @createNewPin = (options, callback)->
     {username, action, email} = options
     pin = hat 16
-
-    email = emailsanitize email
 
     confirmation = new JVerificationToken {username, action, email, pin}
     confirmation.save (err)-> callback err, confirmation

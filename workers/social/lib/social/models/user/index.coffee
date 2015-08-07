@@ -5,7 +5,6 @@ request          = require "request"
 KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable        = require '../../traits/flaggable'
 KodingError      = require '../../error'
-emailsanitize    = require './emailsanitize'
 { extend, uniq } = require 'underscore'
 
 module.exports = class JUser extends jraphical.Module
@@ -108,7 +107,7 @@ module.exports = class JUser extends jraphical.Module
       email         :
         type        : String
         validate    : require('../name').validateEmail
-        set         : emailsanitize
+        set         : (value) -> value.trim().toLowerCase()
       password      : String
       salt          : String
       twofactorkey  : String
@@ -421,8 +420,7 @@ module.exports = class JUser extends jraphical.Module
   @normalizeLoginId = (loginId, callback) ->
 
     if /@/.test loginId
-      email = emailsanitize loginId
-      JUser.someData { email }, { username: 1 }, (err, cursor) ->
+      JUser.someData { email: loginId }, { username: 1 }, (err, cursor) ->
         return callback err  if err
 
         cursor.nextObject (err, data) ->
@@ -596,8 +594,6 @@ module.exports = class JUser extends jraphical.Module
 
     { password, email }           = options
     { connection : { delegate } } = client
-
-    email = emailsanitize email  if email
 
     # handles error and decide to invalidate pin or not
     # depending on email and user variables
@@ -1079,7 +1075,7 @@ module.exports = class JUser extends jraphical.Module
 
     { account, oldUsername, email } = options
     # prevent from leading and trailing spaces
-    email = emailsanitize email
+    email = email.trim()
     @update { username: oldUsername }, { $set: { email } }, (err, res) =>
       return callback err  if err
       account.profile.hash = getHash email
@@ -1145,7 +1141,7 @@ module.exports = class JUser extends jraphical.Module
     firstName = username  if not firstName or firstName is ''
     lastName  = ''        if not lastName
 
-    email = userFormData.email = emailsanitize email
+    email = userFormData.email = email.trim()
 
     if error = validateConvertInput userFormData, client
       return callback error
@@ -1454,8 +1450,6 @@ module.exports = class JUser extends jraphical.Module
 
     {email} = options
 
-    email = options.email = emailsanitize email
-
     account = client.connection.delegate
     account.fetchUser (err, user) =>
       return callback new KodingError 'Something went wrong please try again!' if err
@@ -1474,8 +1468,6 @@ module.exports = class JUser extends jraphical.Module
 
     unless typeof email is 'string'
       return callback new KodingError 'Not a valid email!'
-
-    email = emailsanitize email
 
     @count {email}, (err, count) ->
       callback err, count is 0
@@ -1534,8 +1526,6 @@ module.exports = class JUser extends jraphical.Module
     JVerificationToken = require '../verificationtoken'
 
     {email, pin} = options
-
-    email = options.email = emailsanitize email
 
     if account.type is 'unregistered'
       @update $set: { email }, (err) ->

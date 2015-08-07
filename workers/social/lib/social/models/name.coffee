@@ -135,10 +135,7 @@ module.exports = class JName extends Model
   @validateEmail = (candidate)->
 
     isEmailValid = require './user/emailchecker'
-    sanitize     = require './user/emailsanitize'
     {check}      = require 'validator'
-
-    candidate = sanitize candidate
 
     return check(candidate).isEmail() and isEmailValid candidate
 
