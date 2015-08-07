@@ -47,6 +47,31 @@ func DoGithubPush(data string, token string) error {
 	return nil
 }
 
+func DoPivotalPush(method string, data string, token string) error {
+	url := fmt.Sprintf("%s/pivotal/%s", MiddlewareEndPoint, token)
+
+	reader := bytes.NewReader([]byte(data))
+	req, err := http.NewRequest(method, url, reader)
+	if err != nil {
+		return nil
+	}
+
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("X-TrackerToken", token)
+
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return errors.New(resp.Status)
+	}
+
+	return nil
+}
+
 func DoPushRequest(data *api.PushRequest, token string) error {
 	url := fmt.Sprintf("%s/push/%s", IntegrationEndPoint, token)
 	_, err := sendModel("POST", url, data)

@@ -161,3 +161,49 @@ var githubPushEventData = `{
     "site_admin": false
   }
 }`
+
+var pivotalEventData = `{
+    "kind": "story_update_activity",
+    "guid": "1389130_42",
+    "project_version": 42,
+    "message": "Mehmet Ali Savas started this feature",
+    "highlight": "started",
+    "changes": [
+        {
+            "kind": "story",
+            "change_type": "update",
+            "id": 99401346,
+            "original_values": {
+                "current_state": "rejected",
+                "updated_at": 1437659726000
+            },
+            "new_values": {
+                "current_state": "started",
+                "updated_at": 1438695802000
+            },
+            "name": "story eklemece2",
+            "story_type": "feature"
+        }
+    ],
+    "primary_resources": [
+        {
+            "kind": "story",
+            "id": 99401346,
+            "name": "story eklemece2",
+            "story_type": "feature",
+            "url": "https://www.pivotaltracker.com/story/show/99401346"
+        }
+    ],
+    "project": {
+        "kind": "project",
+        "id": 1389130,
+        "name": "pivotal-project"
+    },
+    "performed_by": {
+        "kind": "person",
+        "id": 1596468,
+        "name": "Mehmet Ali Savas",
+        "initials": "MA"
+    },
+    "occurred_at": 1438695802000
+}`
