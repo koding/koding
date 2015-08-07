@@ -378,11 +378,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   openSavedFile: (file, content) ->
 
-      pane = @tabView.getActivePane()
-      if pane.data instanceof FSFile and @isDummyFilePath pane.data.path
-        @tabView.removePane @tabView.getActivePane()
-      @openFile file, content
+    pane = @tabView.getActivePane()
 
+    if pane.data instanceof FSFile and @isDummyFilePath pane.data.path
+      @tabView.removePane @tabView.getActivePane()
+
+    @openFile file, content
 
 
   openFile: (file, content, callback = kd.noop, emitChange) ->
@@ -432,7 +433,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     return filePath
 
 
-  isDummyFilePath: (filePath) -> filePath.indexOf(@getDummyFilePath no) is 0
+  isDummyFilePath: (filePath) -> filePath.indexOf('localfile:/') is 0
 
 
   openMachineTerminal: (machine) -> @createTerminal { machine }
