@@ -303,7 +303,8 @@ module.exports = class Terminal extends KDObject
     newContent.pushAll oldContent.substring(x + count)
     text = ""
     text += "\xA0" for i in [0...count]
-    newContent.push new StyledText(text, oldContent.get(oldContent.length() - 1).style)
+    if lastLine = oldContent.get oldContent.length() - 1
+      newContent.push new StyledText(text, lastLine.style)
     @screenBuffer.setLineContent lineIndex, newContent
 
   setStyle: (name, value) ->

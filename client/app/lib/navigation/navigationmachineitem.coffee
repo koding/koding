@@ -285,7 +285,7 @@ module.exports = class NavigationMachineItem extends JView
   click: (e) ->
 
     m = @machine
-    hasInvitation = _kd.singletons.machineShareManager.get m.uid
+    hasInvitation = kd.singletons.machineShareManager.get m.uid
 
     if not m.isMine() and not m.isApproved() and hasInvitation
       kd.utils.stopDOMEvent e

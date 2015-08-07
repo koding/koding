@@ -9,6 +9,10 @@ handleError = (err, callback) ->
 
 updateCookie = (req, res, session)->
   { clientId }       = session
+
+  # if we already have the same cookie in request, dont do anything
+  return if req?.cookies?.clientId is clientId
+
   { maxAge, secure } = KONFIG.sessionCookie
   # set cookie as pending cookie
   req.pendingCookies or= {}

@@ -23,8 +23,6 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
-const RevProxyPath = "/api/integration"
-
 type Handler struct {
 	log      logging.Logger
 	bot      *webhook.Bot
