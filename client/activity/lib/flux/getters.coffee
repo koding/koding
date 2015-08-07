@@ -11,6 +11,7 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 # the store is falsy. Another ones with `withEmptyList` will return an empty
 # immutable list if data from the store is falsy.
 
+ChannelFlagsStore              = [['ChannelFlagsStore'], withEmptyMap]
 ChannelsStore                  = [['ChannelsStore'], withEmptyMap]
 MessagesStore                  = [['MessagesStore'], withEmptyMap]
 ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
@@ -67,8 +68,11 @@ channelParticipants = [
 channelThreads = [
   ChannelThreadsStore
   MessagesStore
-  (threads, messages) ->
+  ChannelFlagsStore
+  (threads, messages, channelFlags) ->
     threads.map (thread) ->
+      channelId = thread.get 'channelId'
+      thread.set 'flags', channelFlags.get channelId
       thread.update 'messages', (msgs) -> msgs.map (messageId) ->
         message = messages.get messageId
         if message.has('__editedBody')
