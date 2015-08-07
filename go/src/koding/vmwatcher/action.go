@@ -23,7 +23,7 @@ type requestArgs struct {
 	Provider  string `json:"provider"`
 }
 
-func stopVmIfRunning(machineId, username, reason string) error {
+func stopVMIfRunning(machineId, username, reason string) error {
 	var machine *models.Machine
 
 	query := func(c *mgo.Collection) error {
@@ -74,7 +74,7 @@ func blockUserAndDestroyVm(machineId, username, reason string) error {
 	}
 
 	for _, machine := range machines {
-		err := stopVmIfRunning(machine.ObjectId.Hex(), username, reason)
+		err := stopVMIfRunning(machine.ObjectId.Hex(), username, reason)
 		if err != nil {
 			Log.Error(fmt.Sprintf(
 				"Error stopping machine: %s of user: %s: %s", machine.ObjectId,

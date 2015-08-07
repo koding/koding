@@ -58,7 +58,7 @@ func initialize() {
 	initializeRedis(controller)
 
 	if conf.ConnectToKlient {
-		initializeKlient(controller)
+		initializeKiteClient(controller)
 	}
 
 	initializeMongo()
@@ -92,7 +92,7 @@ func initializeMongo() {
 	// Log.Debug("Connected to mongo: %s", conf.MongoURL)
 }
 
-func initializeKlient(c *VmController) {
+func initializeKiteClient(c *VmController) {
 	var err error
 
 	// create new kite

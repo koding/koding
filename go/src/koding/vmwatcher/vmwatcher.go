@@ -7,7 +7,7 @@ import (
 )
 
 var limitsToAction = map[string]func(string, string, string) error{
-	StopLimitKey:  stopVmIfRunning,
+	StopLimitKey:  stopVMIfRunning,
 	BlockLimitKey: blockUserAndDestroyVm,
 }
 
