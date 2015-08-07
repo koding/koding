@@ -26,6 +26,7 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_MESSAGE_SUCCESS, @ensureThread
+    @on actions.CREATE_MESSAGE_SUCCESS, @ensureThread
 
     @on actions.LOAD_COMMENT_SUCCESS, @handleLoadSuccess
 
