@@ -48,7 +48,6 @@ module.exports = class PublicChatPane extends React.Component
     <ChatPane
       thread={@props.thread}
       className="PublicChatPane"
-      title={@channel 'name'}
       messages={@props.messages}
       onSubmit={@bound 'onSubmit'}
       onScrollThresholdReached={@bound 'onScrollThresholdReached'}

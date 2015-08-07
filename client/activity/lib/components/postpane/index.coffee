@@ -32,7 +32,6 @@ module.exports = class PostPane extends React.Component
     <ChatPane
       thread={@props.thread}
       className="PostPane"
-      title={"#{@channel 'name'}/#{@message 'slug'}"}
       messages={@props.messages}
       onSubmit={@bound 'onSubmit'}
       onScrollThresholdReached={@bound 'onScrollThresholdReached'}

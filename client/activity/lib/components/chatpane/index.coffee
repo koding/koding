@@ -9,8 +9,10 @@ ChatInputWidget = require 'activity/components/chatinputwidget'
 module.exports = class ChatPane extends React.Component
 
   @defaultProps =
-    title    : null
-    messages : null
+    title                    : null
+    messages                 : null
+    isDataLoading            : no
+    onScrollThresholdReached : no
 
 
   componentDidUpdate: ->
