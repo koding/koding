@@ -16,6 +16,7 @@ import (
 	"github.com/koding/klient/command"
 	"github.com/koding/klient/control"
 	"github.com/koding/klient/fs"
+	"github.com/koding/klient/gatherrun"
 	"github.com/koding/klient/info"
 	"github.com/koding/klient/logfetcher"
 	"github.com/koding/klient/protocol"
@@ -352,7 +353,9 @@ func (k *Klient) Run() {
 		panic(err)
 	}
 
-	go gatherrun.Run(k.config.Environment, k.config.Name)
+	if isKoding {
+		go gatherrun.Run(k.config.Environment, k.config.Name)
+	}
 
 	k.kite.Run()
 }
