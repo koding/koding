@@ -34,6 +34,8 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
     @on actions.CREATE_COMMENT_SUCCESS, @handleCreateSuccess
     @on actions.CREATE_COMMENT_FAIL, @handleCreateFail
 
+    @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
+
 
   ###*
    * Creates a new thread if it doesn't exist.
@@ -109,6 +111,20 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
   handleCreateFail: (threads, { messageId, clientRequestId }) ->
 
     return removeComment threads, messageId, clientRequestId
+
+
+  ###*
+   * Remove given messageId from all the threads.
+   *
+   * @param {IMThreadCollection} threads
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @return {IMThreadCollection} nextState
+  ###
+  handleRemoveMessageSuccess: (threads, { messageId }) ->
+
+    threads.map (thread) ->
+      thread.update 'comments', (comments) -> comments.remove messageId
 
 
 ###*
