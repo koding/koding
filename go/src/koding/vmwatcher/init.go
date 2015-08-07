@@ -122,7 +122,7 @@ func initializeKlient(c *VmController) {
 		Log.Fatal("%s. Is kloud/kontrol running?", err.Error())
 	}
 
-	Log.Info("Connected to klient: %s", conf.KloudAddr)
+	Log.Info("Connected to kite: %s", conf.KloudAddr)
 
-	c.Klient = kiteClient
+	c.KiteClient = kiteClient
 }

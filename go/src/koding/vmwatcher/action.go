@@ -34,8 +34,8 @@ func stopVmIfRunning(machineId, username, reason string) error {
 		return err
 	}
 
-	if controller.Klient == nil {
-		Log.Debug("Klient not initialized. Not stopping: %s", machineId)
+	if controller.KiteClient == nil {
+		Log.Info("KloudClient not initialized. Not stopping: %s", machineId)
 		return nil
 	}
 
@@ -46,7 +46,7 @@ func stopVmIfRunning(machineId, username, reason string) error {
 
 	Log.Info("Starting to stop machine: '%s' for username: '%s'", machineId, username)
 
-	_, err := controller.Klient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
+	_, err := controller.KiteClient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
 		MachineId: machineId,
 		Reason:    DefaultReason,
 		Provider:  "koding",

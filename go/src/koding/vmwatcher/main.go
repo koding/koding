@@ -132,7 +132,7 @@ func main() {
 			switch signal {
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
 				listener.Close()
-				controller.Klient.Close()
+				controller.KiteClient.Close()
 				modelhelper.Close()
 				controller.Redis.Client.Close()
 
