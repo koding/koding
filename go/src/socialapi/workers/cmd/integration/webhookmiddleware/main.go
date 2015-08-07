@@ -8,6 +8,7 @@ import (
 
 	"github.com/koding/integration"
 	"github.com/koding/integration/services"
+	"github.com/koding/logging"
 	"github.com/koding/runner"
 )
 
@@ -29,7 +30,7 @@ func main() {
 	m := mux.New(mc, r.Log, r.Metrics)
 	conf := &services.ServiceConfig{
 		IntegrationAddr: appConfig.CustomDomain.Local + "/api/integration",
-		PublicUrl:       appConfig.CustomDomain.Public + "/api/webhook",
+		PublicURL:       appConfig.CustomDomain.Public + "/api/webhook",
 		Log:             r.Log,
 	}
 
@@ -40,7 +41,7 @@ func main() {
 	}
 
 	serviceMap := services.NewServices()
-	RegisterServices(serviceMap, appConfig, conf)
+	RegisterServices(serviceMap, appConfig, conf, r.Log)
 
 	h := integration.NewHandler(r.Log, serviceMap)
 
@@ -74,20 +75,37 @@ func addHandlers(m *mux.Mux, h *integration.Handler) {
 	)
 }
 
-func RegisterServices(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig) {
-	github, err := RegisterGithubService(sf, conf, serviceConf)
+func RegisterServices(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig, log logging.Logger) {
+	githubService, err := RegisterGithubService(sf, conf, serviceConf)
 	if err != nil {
 		panic(err)
 	}
-	sf.Register("github", github)
+
+	pivotalService, err := RegisterPivotalService(sf, conf, serviceConf)
+	if err != nil {
+		log.Fatal("Could not initialize pivotal service: %s", err)
+	}
+
+	sf.Register("github", githubService)
+	sf.Register("pivotal", services.Service(pivotalService))
 }
 
 func RegisterGithubService(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig) (services.Service, error) {
 	gc := services.GithubConfig{}
-	gc.PublicUrl = serviceConf.PublicUrl
+	gc.PublicURL = serviceConf.PublicURL
 	gc.IntegrationUrl = serviceConf.IntegrationAddr
 	gc.Log = serviceConf.Log
 	gc.Secret = conf.Github.ClientSecret
 
 	return services.NewGithub(gc)
+}
+
+func RegisterPivotalService(sf *services.Services, conf *config.Config, serviceConf *services.ServiceConfig) (services.Service, error) {
+	pv := &services.PivotalConfig{
+		ServerURL:      "",
+		PublicURL:      serviceConf.PublicURL,
+		IntegrationURL: serviceConf.IntegrationAddr,
+	}
+
+	return services.NewPivotal(pv, serviceConf.Log)
 }

@@ -111,5 +111,20 @@ module.exports =
       .setValue               'input[name=username]', user.username
       .setValue               'input[name=password]', user.password
       .click                  'button[testpath=login-button]'
-      .waitForElementVisible  '[testpath=main-header]', 20000 # Assertion
+      .waitForElementVisible  '.content-page.welcome', 20000 # Assertion
       .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
+
+
+  loginTeam: (browser) ->
+
+    user = utils.getUser()
+    url  = helpers.getUrl(yes)
+
+    browser.url url
+    browser.maximizeWindow()
+
+    @setCookie(browser)
+    browser.url url
+
+    @loginToTeam(browser, user)
+

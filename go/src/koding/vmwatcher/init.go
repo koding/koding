@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
-	"github.com/crowdmob/goamz/aws"
 	"github.com/jinzhu/now"
 	"github.com/koding/kite"
 	kiteConfig "github.com/koding/kite/config"
@@ -57,10 +56,9 @@ func initialize() {
 	controller = &VmController{}
 
 	initializeRedis(controller)
-	initializeAws(controller)
 
 	if conf.ConnectToKlient {
-		initializeKlient(controller)
+		initializeKiteClient(controller)
 	}
 
 	initializeMongo()
@@ -94,20 +92,7 @@ func initializeMongo() {
 	// Log.Debug("Connected to mongo: %s", conf.MongoURL)
 }
 
-func initializeAws(c *VmController) {
-	var err error
-
-	// initialize cloudwatch api client
-	// arguments are: key, secret, token, expiration
-	auth, err = aws.GetAuth(AWS_KEY, AWS_SECRET, "", now.BeginningOfWeek())
-	if err != nil {
-		Log.Fatal(err.Error())
-	}
-
-	c.Aws = auth
-}
-
-func initializeKlient(c *VmController) {
+func initializeKiteClient(c *VmController) {
 	var err error
 
 	// create new kite
@@ -137,7 +122,7 @@ func initializeKlient(c *VmController) {
 		Log.Fatal("%s. Is kloud/kontrol running?", err.Error())
 	}
 
-	Log.Info("Connected to klient: %s", conf.KloudAddr)
+	Log.Info("Connected to kite: %s", conf.KloudAddr)
 
-	c.Klient = kiteClient
+	c.KiteClient = kiteClient
 }

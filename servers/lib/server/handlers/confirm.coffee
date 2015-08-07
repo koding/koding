@@ -7,13 +7,13 @@ Jwt     = require 'jsonwebtoken'
 
 module.exports = (req, res, next) ->
 
-  {JUser, JSession} = (require './../bongo').models
+  { JUser, JSession } = (require './../bongo').models
 
   logErrorAndReturn = (err) ->
     console.error 'confirm handler failed:', err
     res.status(500).end()
 
-  {token, redirect_uri} = req.query
+  { token, redirect_uri } = req.query
 
   unless token
     return res.status(400).end()
@@ -24,14 +24,16 @@ module.exports = (req, res, next) ->
     unless username = decoded.username
       return logErrorAndReturn 'no username in token'
 
-    JUser.one {username}, (err, user) ->
+    groupName = decoded.groupName or 'koding'
+
+    JUser.one { username }, (err, user) ->
       return logErrorAndReturn err  if err
+      return logErrorAndReturn 'User not found'  unless user
 
       user.confirmEmail (err) ->
         return logErrorAndReturn err  if err
 
-        groupName = 'koding'
-        JSession.createNewSession {username, groupName}, (err, session) ->
+        JSession.createNewSession { username, groupName }, (err, session) ->
           return logErrorAndReturn err  if err
 
           res.cookie 'clientId', session.clientId, path: '/'

@@ -1,34 +1,55 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"sync"
 	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
-	"github.com/crowdmob/goamz/aws"
-	"github.com/crowdmob/goamz/cloudwatch"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+
 	"github.com/jinzhu/now"
 	"github.com/koding/redis"
 )
 
 var (
-	AWS_NAMESPACE = "AWS/EC2"
-	AWS_PERIOD    = 604800
-
-	GB_TO_MB float64 = 1024
-
-	auth aws.Auth
+	AWS_NAMESPACE         = "AWS/EC2"
+	AWS_PERIOD    int64   = 3600
+	GB_TO_MB      float64 = 1024
 )
 
 type Limits map[string]float64
 
 type Cloudwatch struct {
-	Name   string
-	Limits Limits
+	Name    string
+	Limits  Limits
+	Regions []string
+
+	sync.Mutex
+	clients map[string]*cloudwatch.CloudWatch
+}
+
+func NewCloudwatch(name string, limits Limits, creds *credentials.Credentials, regions []string) *Cloudwatch {
+	clients := map[string]*cloudwatch.CloudWatch{}
+
+	for _, regionName := range regions {
+		config := &aws.Config{Credentials: creds, Region: regionName}
+		clients[regionName] = cloudwatch.New(config)
+	}
+
+	return &Cloudwatch{
+		Name:    name,
+		Limits:  limits,
+		Regions: regions,
+		clients: clients,
+	}
 }
 
 func (c *Cloudwatch) GetName() string {
@@ -53,54 +74,19 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	var sum float64
 
 	for _, machine := range userMachines {
-		meta, ok := machine.Meta.(bson.M)
-		if !ok {
-			Log.Debug("queued machine has no `meta`", machine.ObjectId)
-			continue
-		}
-
-		region, ok := meta["region"].(string)
-		if !ok || isEmpty(region) {
-			Log.Debug("queued machine has no `region`: %v", machine.ObjectId)
-			continue
-		}
-
-		instanceId, ok := meta["instanceId"].(string)
-		if !ok || isEmpty(instanceId) {
-			Log.Debug("queued machine has no `instanceId`: %v", machine.ObjectId)
-			continue
-		}
-
-		dimension := &cloudwatch.Dimension{
-			Name:  "InstanceId",
-			Value: instanceId,
-		}
-
-		cw, err := cloudwatch.NewCloudWatch(auth, aws.Regions[region].CloudWatchServicepoint)
+		instanceId, region, err := c.normalizeMeta(machine)
 		if err != nil {
-			Log.Error("Failed to initialize cloudwatch client:", err)
+			Log.Debug("error normalizig meta: %v %s", machine.ObjectId, err)
 			continue
 		}
 
-		request := &cloudwatch.GetMetricStatisticsRequest{
-			Dimensions: []cloudwatch.Dimension{*dimension},
-			Statistics: []string{cloudwatch.StatisticDatapointSum},
-			MetricName: c.GetName(),
-			EndTime:    time.Now(),
-			StartTime:  now.BeginningOfWeek(),
-			Period:     AWS_PERIOD,
-			Namespace:  AWS_NAMESPACE,
-		}
-
-		response, err := cw.GetMetricStatistics(request)
+		machineSum, err := c.GetMetric(instanceId, region)
 		if err != nil {
-			Log.Error("Failed to get request for machine: %s, %v", machine.ObjectId, err)
+			Log.Debug("error getting metric: %v %s", machine.ObjectId, err)
 			continue
 		}
 
-		for _, raw := range response.GetMetricStatisticsResult.Datapoints {
-			sum += raw.Sum / GB_TO_MB / GB_TO_MB
-		}
+		sum += machineSum
 	}
 
 	if sum > c.Limits[StopLimitKey] {
@@ -108,6 +94,67 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	}
 
 	return c.Save(username, sum)
+}
+
+func (c *Cloudwatch) normalizeMeta(machine *models.Machine) (string, string, error) {
+	meta, ok := machine.Meta.(bson.M)
+	if !ok {
+		return "", "", errors.New("queued machine has no meta")
+	}
+
+	instanceId, ok := meta["instanceId"].(string)
+	if !ok || isEmpty(instanceId) {
+		return "", "", errors.New("queued machine has no instanceId")
+	}
+
+	region, ok := meta["region"].(string)
+	if !ok || isEmpty(region) {
+		return "", "", errors.New("queued machine has no region")
+	}
+
+	return instanceId, region, nil
+}
+
+func (c *Cloudwatch) GetMetric(instanceId, region string) (float64, error) {
+	var (
+		sum float64
+
+		startTime     = now.BeginningOfWeek()
+		endTime       = time.Now()
+		metricName    = c.GetName()
+		statistic     = "Sum"
+		dimensionName = "InstanceId"
+		dimension     = cloudwatch.Dimension{
+			Name:  &dimensionName,
+			Value: &instanceId,
+		}
+	)
+
+	input := &cloudwatch.GetMetricStatisticsInput{
+		Period:     &AWS_PERIOD,
+		Namespace:  &AWS_NAMESPACE,
+		MetricName: &metricName,
+		StartTime:  &startTime,
+		EndTime:    &endTime,
+		Statistics: []*string{&statistic},
+		Dimensions: []*cloudwatch.Dimension{&dimension},
+	}
+
+	client, err := c.region(region)
+	if err != nil {
+		return sum, err
+	}
+
+	response, err := client.GetMetricStatistics(input)
+	if err != nil {
+		return sum, err
+	}
+
+	for _, raw := range response.Datapoints {
+		sum += *raw.Sum / GB_TO_MB / GB_TO_MB
+	}
+
+	return sum, nil
 }
 
 func (c *Cloudwatch) GetMachinesOverLimit(limitName string) ([]*models.Machine, error) {
@@ -205,6 +252,18 @@ func (c *Cloudwatch) getUserLimit(username, limitKey, planTitle string) (float64
 	}
 
 	return limit, nil
+}
+
+func (c *Cloudwatch) region(region string) (*cloudwatch.CloudWatch, error) {
+	c.Lock()
+	defer c.Unlock()
+
+	client, ok := c.clients[region]
+	if !ok {
+		return nil, fmt.Errorf("no client available for the given region '%s'", region)
+	}
+
+	return client, nil
 }
 
 func isRedisRecordNil(err error) bool {

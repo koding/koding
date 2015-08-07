@@ -1,4 +1,6 @@
 .Reactivity
+  font-family                 $ff-normal-text
+
   mark
   .u-mark
     padding                   .2em
@@ -6,8 +8,8 @@
 
   a
   .u-a
-    color                     $color-brand
-    outline-color             $color-brand
+    color                     $blue
+    outline-color             $blue
     text-decoration           none
 
     &:hover
@@ -45,13 +47,14 @@
 
 
   /* Headings */
-  h1, h2, h3, h4, h5, h6
+  h1, h2, h3, h4, h5, h6,
   .u-h1, .u-h2, .u-h3, .u-h4, .u-h5, .u-h6
     display                   block
+    font-family               $ff-title
     font-weight               $fw-semibold
     line-height               $body-line-height
     color                     $color-primary-text
-    margin                    1.0rem 0
+    margin                    0 0 10px
 
     &:first-child
       margin-top              0
@@ -65,27 +68,27 @@
 
   h1
   .u-h1
-    font-size                 3.6rem
+    font-size                 36px
 
   h2
   .u-h2
-    font-size                 3.0rem
+    font-size                 30px
 
   h3
   .u-h3
-    font-size                 2.4rem
+    font-size                 24px
 
   h4
   .u-h4
-    font-size                 1.8rem
+    font-size                 18px
 
   h5
   .u-h5
-    font-size                 1.4rem
+    font-size                 14px
 
   h6
   .u-h6
-    font-size                 1.2rem
+    font-size                 12px
 
 
   /* Paragraphs */

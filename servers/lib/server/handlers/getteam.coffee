@@ -1,13 +1,10 @@
-koding                 = require './../bongo'
-{ isLoggedIn }         = require './../helpers'
-{ generateFakeClient } = require "./../client"
+koding = require './../bongo'
 
 module.exports = (req, res, next)->
 
-  { params, query } = req
-  { name }          = params
-  { limit }         = query
-  { JGroup }        = koding.models
+  { params } = req
+  { name }   = params
+  { JGroup } = koding.models
 
   JGroup.one { slug : name }, (err, group) ->
 

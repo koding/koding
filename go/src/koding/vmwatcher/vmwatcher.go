@@ -3,11 +3,17 @@ package main
 import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"sync"
 )
 
 var limitsToAction = map[string]func(string, string, string) error{
-	StopLimitKey:  stopVm,
+	StopLimitKey:  stopVMIfRunning,
 	BlockLimitKey: blockUserAndDestroyVm,
+}
+
+type metricQueueMsg struct {
+	Metric  Metric
+	Machine *models.Machine
 }
 
 // pops username from set in db and gets metrics for machines belonging
@@ -18,6 +24,26 @@ func getAndSaveQueueMachineMetrics() error {
 	defer func() {
 		Log.Debug("Fetched: %d machine entries for queued usernames", index)
 	}()
+
+	var queue = make(chan *metricQueueMsg)
+	var waitg sync.WaitGroup
+
+	for i := 0; i < ParallelWorkerCount; i++ {
+		waitg.Add(1)
+
+		go func() {
+			for msg := range queue {
+				index += 1
+
+				err := msg.Metric.GetAndSaveData(msg.Machine.Credential)
+				if err != nil {
+					Log.Error(err.Error())
+				}
+			}
+
+			waitg.Done()
+		}()
+	}
 
 	for _, metric := range metricsToSave {
 		for {
@@ -37,21 +63,42 @@ func getAndSaveQueueMachineMetrics() error {
 				continue
 			}
 
-			for _, machine := range machines {
-				index += 1
-
-				err := metric.GetAndSaveData(machine.Credential)
-				if err != nil {
-					Log.Error(err.Error())
-				}
+			for i := range machines {
+				queue <- &metricQueueMsg{Metric: metric, Machine: machines[i]}
 			}
 		}
 	}
 
+	close(queue)
+	waitg.Wait()
+
 	return nil
 }
 
+type actionQueueMsg struct {
+	Machines []*models.Machine
+	Limit    string
+	Action   func(string, string, string) error
+}
+
 func dealWithMachinesOverLimit() error {
+	var (
+		queue = make(chan *actionQueueMsg)
+		waitg sync.WaitGroup
+	)
+
+	for i := 0; i < ParallelWorkerCount; i++ {
+		waitg.Add(1)
+
+		go func() {
+			for msg := range queue {
+				act(msg.Machines, msg.Limit, msg.Action)
+			}
+
+			waitg.Done()
+		}()
+	}
+
 	for _, metric := range metricsToSave {
 		for limit, action := range limitsToAction {
 			for {
@@ -70,10 +117,13 @@ func dealWithMachinesOverLimit() error {
 					len(machines), metric.GetName(), limit,
 				)
 
-				act(machines, limit, action)
+				queue <- &actionQueueMsg{Machines: machines, Limit: limit, Action: action}
 			}
 		}
 	}
+
+	close(queue)
+	waitg.Wait()
 
 	return nil
 }

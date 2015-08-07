@@ -5,7 +5,7 @@ koding                                  = require './../bongo'
 KONFIG                                  = require('koding-config-manager').load "main.#{argv.c}"
 
 { uniq }                                = require 'underscore'
-{ hostname }                            = KONFIG
+{ hostname, environment }               = KONFIG
 { dash, daisy }                         = Bongo
 { getClientId, handleClientIdNotFound } = require './../helpers'
 
@@ -106,23 +106,27 @@ generateCreateGroupKallback = (client, req, res, body) ->
       invitees
       # domains holds allowed domains for signinup without invitation, comma separated
       domains
-      # username of the user, can be already registered or a new one for creation
+      # username or email of the user, can be already registered or a new one for creation
       username
     } = body
 
+    token = result.newToken or result.replacementToken
+
     { JUser, JGroup, JInvitation } = koding.models
 
-    # don't set the cookie we don't want that
-    # bc we're going to redirect the page to the
-    # group subdomain, if you can set the cookie for
-    # the subdomain - SY cc/ @cihangir
+    # this logs you in the newly created group but causes problems
+    # for the default and other subdomains
+    # need to find another way - SY
 
-    # res.cookie 'clientId', result.newToken, path : '/'
+    teamDomain = switch environment
+      when 'production'  then ".koding.com"
+      when 'development' then ".dev.koding.com"
+      else ".#{environment}.koding.com"
 
     # set session token for later usage down the line
     owner                      = result.account
     redirect                  ?= '/'
-    client.sessionToken        = result.newToken or result.replacementToken
+    client.sessionToken        = token
     client.connection.delegate = result.account
 
     if validationError = validateGroupDataAndReturnError body
@@ -155,17 +159,14 @@ generateCreateGroupKallback = (client, req, res, body) ->
         # do not block group creation
         console.error "Error while creating group artifacts", body, err if err
 
-        # temp code for creating the team-access cookie for development
-        # sandbox and latest share the same config file
-        # so sandbox.koding.com covers both cases ಠ_ಠ - SY
-        if /ngrok|sandbox\.koding/.test KONFIG.hostname
-          console.log "setting cookie for #{slug}.dev.koding.com"
-          res.cookie 'team-access', 'yes', domain : ".dev.koding.com"
+        opt =
+          username  : result.account.profile.nickname
+          groupName : slug
 
-        # handle the request as an XHR response:
-        return res.status(200).end() if req.xhr
-        # handle the request with an HTTP redirect:
-        res.redirect 301, redirect
+        data =
+          token : JUser.createJWT opt
+
+        return res.status(200).send data
 
 
 validateGroupDataAndReturnError = (body) ->

@@ -180,7 +180,14 @@ module.exports = class Sidebar extends bongo.Base
     SocialChannel.byId client, id: workspace.channelId, (err, channel) ->
 
       if err
-        console.error 'Fetch workspace channel:', err
-        return failureFn err
+        data =
+          channelId   : workspace.channelId
+          workspaceId : workspace.getId()
+
+        console.error 'error: fetch workspace channel'
+        console.error JSON.stringify {data}
+        console.error JSON.stringify {err}
+
+        return failureFn()
 
       successFn()

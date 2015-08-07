@@ -674,7 +674,10 @@ module.exports = class JMachine extends Module
       "_id"      : @getId()
       "users.id" : user._id
     , $set       : "users.$.approved" : yes
-    , (err)-> callback err
+    , (err) =>
+      options = { action: 'approve', @uid }
+      client.connection.delegate.sendNotification 'MachineShareActionTaken', options
+      callback err
 
 
   deny: secure revive
@@ -698,7 +701,9 @@ module.exports = class JMachine extends Module
       inform    : no
       permanent : yes
 
-    @shareWith options, (err)->
+    @shareWith options, (err) =>
+      options = { action: 'deny', @uid }
+      client.connection.delegate.sendNotification 'MachineShareActionTaken', options
       callback err
 
 

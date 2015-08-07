@@ -111,7 +111,7 @@ generateMemmonSection = (config) ->
 
   """
   [eventlistener:memmon]
-  command=memmon -g environment=#{limit} -m #{email}
+  command=memmon -g environment=#{limit}
   events=TICK_60
   """
 

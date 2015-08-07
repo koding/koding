@@ -44,8 +44,7 @@ func checkerHTTP(w http.ResponseWriter, r *http.Request) {
 	var response = checker(username)
 
 	Log.Info(
-		"Returning response#canStart: %v, response#current_usage:%v for username: %v",
-		response.CanStart, response.CurrentUsage, username,
+		"Returning response#canStart: %v, for username: %v", response.CanStart, username,
 	)
 
 	err = json.NewEncoder(w).Encode(response)

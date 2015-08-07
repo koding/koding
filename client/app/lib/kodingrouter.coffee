@@ -95,17 +95,16 @@ module.exports = class KodingRouter extends kd.Router
     #
     # This doesn't effect the routes direct accesses. ~ GG
 
-    if isLoggedIn()
+    if not currentGroup or currentGroup.slug is 'koding'
+      return '/IDE'
 
-      if not currentGroup or currentGroup.slug is 'koding'
-        return '/IDE'
-
-      if groupsController.currentGroupHasStack()
-      then return '/IDE'
+    if groupsController.currentGroupHasStack()
+    then return '/IDE'
+    else
+      if groupsController.currentGroupIsNew()
+      then return '/Welcome'
       else return '/Activity'
 
-    else
-      return '/Home'
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title

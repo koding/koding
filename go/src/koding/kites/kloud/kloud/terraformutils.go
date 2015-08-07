@@ -75,8 +75,6 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 		Machines: make([]TerraformMachine, 0),
 	}
 
-	attrs := make(map[string]string, 0)
-
 	for _, m := range state.Modules {
 		for resource, r := range m.Resources {
 			if r.Primary == nil {
@@ -88,6 +86,7 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 				return nil, err
 			}
 
+			attrs := make(map[string]string, len(r.Primary.Attributes))
 			for key, val := range r.Primary.Attributes {
 				attrs[key] = val
 			}
@@ -116,8 +115,6 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 		Machines: make([]TerraformMachine, 0),
 	}
 
-	attrs := make(map[string]string, 0)
-
 	for _, d := range plan.Diff.Modules {
 		if d.Resources == nil {
 			continue
@@ -128,6 +125,7 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				continue
 			}
 
+			attrs := make(map[string]string, len(r.Attributes))
 			for name, a := range r.Attributes {
 				attrs[name] = a.New
 			}
@@ -330,31 +328,30 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	}
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex // protects multierror
+	var mu sync.Mutex // protects multierror and outputs
 	var multiErrors error
+
+	check := func(label, kiteId string) error {
+		queryString := protocol.Kite{ID: kiteId}.String()
+		klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
+		if err != nil {
+			return err
+		}
+		defer klientRef.Close()
+
+		return klientRef.Ping()
+	}
 
 	for l, k := range kiteIds {
 		wg.Add(1)
 		go func(label, kiteId string) {
-			defer wg.Done()
-
-			queryString := protocol.Kite{ID: kiteId}.String()
-			klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
-			if err != nil {
+			if err := check(label, kiteId); err != nil {
 				mu.Lock()
 				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't connect to '%s:%s'", label, kiteId))
-				mu.Unlock()
-				return
-			}
-			defer klientRef.Close()
-
-			if err := klientRef.Ping(); err != nil {
-				mu.Lock()
-				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't send ping to '%s:%s': %s", label, kiteId, err))
+					fmt.Errorf("Couldn't check '%s:%s'", label, kiteId))
 				mu.Unlock()
 			}
+			wg.Done()
 		}(l, k)
 	}
 

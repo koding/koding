@@ -49,18 +49,6 @@ runTests = -> describe 'server.handlers.createteam', ->
     done()
 
 
-  it 'should send HTTP 301 if request is not XHR', (done) ->
-
-    postParams = generateCreateTeamRequestParams
-      headers              :
-        'x-requested-with' : 'this is not an XHR'
-
-    request.post postParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 301
-      done()
-
-
   # creating team with an unregistered user
   it 'should handle team creation correctly when valid data provided', (done) ->
 
@@ -83,6 +71,10 @@ runTests = -> describe 'server.handlers.createteam', ->
         request.post createTeamRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
           expect(res.statusCode)  .to.be.equal 200
+
+          b = try JSON.parse body
+          expect(b.token).to.exist
+
           queue.next()
 
       ->

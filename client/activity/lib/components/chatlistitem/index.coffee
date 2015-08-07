@@ -12,14 +12,29 @@ MessageTime          = require 'activity/components/chatlistitem/messagetime'
 keycode              = require 'keycode'
 ActivityFlux         = require 'activity/flux'
 classnames           = require 'classnames'
+Portal               = require 'react-portal'
 whoami               = require 'app/util/whoami'
 
 
 module.exports = class ChatListItem extends React.Component
 
+  @defaultProps =
+    hover          : no
+    editMode       : no
+    isDeleting     : no
+    isMenuOpen     : no
+    editInputValue : ''
+
   constructor: (props) ->
 
-    @state = { hover: no, showMenuForMouseAction: no, editMode: no }
+    super props
+
+    @state =
+      hover          : @props.hover
+      editMode       : @props.editMode
+      isDeleting     : @props.isDeleting
+      isMenuOpen     : @props.isMenuOpen
+      editInputValue : @props.message.get 'body'
 
 
   isEditedMessage: ->
@@ -32,16 +47,14 @@ module.exports = class ChatListItem extends React.Component
 
   getItemProps: ->
     key       : @props.message.get 'id'
-    className : \
-      if @state.hover
-      then kd.utils.curry 'ChatItem mouse-enter', @props.className
-      else kd.utils.curry 'ChatItem', @props.className
+    className : classnames
+      'ChatItem': yes
+      'mouse-enter': @state.hover
+      'is-menuOpen': @state.isMenuOpen
     onMouseEnter: =>
       @setState hover: yes
-
     onMouseLeave: =>
       @setState hover: no
-      @setState showMenuForMouseAction: no
 
 
   getMenuItems: ->
@@ -55,14 +68,13 @@ module.exports = class ChatListItem extends React.Component
 
 
   getDeleteItemModalProps: ->
-    className          : 'activityDeleteItemModal'
     title              : 'Delete post'
     body               : 'Are you sure you want to delete this post?'
-    buttonYESText      : 'DELETE'
-    buttonNOText       : 'CANCEL'
-    buttonYESHandler   : @bound 'deletePostButtonHandler'
-    buttonNOHandler    : @bound 'closeDeletePostModal'
-    buttonCloseHandler : @bound 'closeDeletePostModal'
+    buttonConfirmTitle : 'DELETE'
+    buttonAbortTitle   : 'CANCEL'
+    onConfirm          : @bound 'deletePostButtonHandler'
+    onAbort            : @bound 'closeDeletePostModal'
+    onClose            : @bound 'closeDeletePostModal'
 
 
   deletePostButtonHandler: ->
@@ -73,7 +85,7 @@ module.exports = class ChatListItem extends React.Component
 
   closeDeletePostModal: ->
 
-    @modalContainer.classList.add 'hidden'
+    @setState isDeleting: no
 
 
   editPost: ->
@@ -86,10 +98,7 @@ module.exports = class ChatListItem extends React.Component
 
   deletePost: ->
 
-    @modalContainer = document.getElementsByClassName("PublicChatPane-ModalContainer")[0]
-    @modalContainer.classList.remove 'hidden'
-    React.render <ActivityPromptModal {...@getDeleteItemModalProps()}/>, @modalContainer
-    @setState showMenuForMouseAction: no
+    @setState isDeleting: yes
 
 
   markUser: ->
@@ -110,25 +119,37 @@ module.exports = class ChatListItem extends React.Component
   updateMessage: ->
 
     @setState editMode: no
-    messageBody = @refs.EditMessageTextarea.getDOMNode().value
-    createdAt   = @props.message.get 'createdAt'
-    ActivityFlux.actions.message.editMessage @props.message.get('id'), messageBody, createdAt
+
+    ActivityFlux.actions.message.editMessage(
+      @props.message.get('id')
+      @state.editInputValue
+      @props.message.get('payload').toJS()
+    )
 
 
   cancelEdit: ->
 
-    @setState editMode: no
+    @setState editMode: no, editInputValue: @props.message.get('body')
 
 
-  handleEditMessageKeyDown: (event) ->
+  onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
+
+
+  onEditInputChange: (event) ->
+
+    @setState { editInputValue: event.target.value }
+
+
+  onEditInputKeyDown: (event) ->
 
     code = event.which or event.keyCode
     key  = keycode code
-    @setState editMode: no if key is 'esc'
 
-    if key is 'enter'
-      @setState editMode: no
-      ActivityFlux.actions.message.editMessage @props.message.get('id'), event.target.value
+    switch key
+      when 'esc'
+        @cancelEdit()
+      when 'enter'
+        @updateMessage()
 
 
   getEditModeClassNames: -> classnames
@@ -137,7 +158,6 @@ module.exports = class ChatListItem extends React.Component
 
 
   getMediaObjectClassNames: -> classnames
-    'MediaObject-content': yes
     'hidden' : @state.editMode
 
 
@@ -147,17 +167,52 @@ module.exports = class ChatListItem extends React.Component
     'edited' : @isEditedMessage()
 
 
+  renderEditMode: ->
+
+    { message } = @props
+
+    <div className={@getEditModeClassNames()}>
+      <span className="ChatItem-authorName">
+        {makeProfileLink message.get 'account'}
+      </span>
+      <div className="ChatItem-editActions">
+        <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
+        <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
+      </div>
+      <textarea
+        autoFocus
+        onKeyDown={@bound 'onEditInputKeyDown'}
+        onChange={@bound 'onEditInputChange'}
+        value={@state.editInputValue}
+        ref="EditMessageTextarea"></textarea>
+    </div>
+
+
   renderChatItemMenu: ->
 
     { message } = @props
     if message.get('accountId') is whoami().socialApiId
-      <ButtonWithMenu items={@getMenuItems()} showMenuForMouseAction={@state.showMenuForMouseAction}/>
+      <ButtonWithMenu
+        items       = {@getMenuItems()}
+        onMenuOpen  = {=> @onMenuToggle yes}
+        onMenuClose = {=> @onMenuToggle no}
+      />
+
+
+  getClassNames: ->
+    editForm: classnames
+     'ChatItem-updateMessageForm': yes
+     'hidden': not @state.editMode
+    mediaContent: classnames
+      'hidden': @state.editMode
+    contentWrapper: classnames
+      'ChatItem-contentWrapper': yes
+      'MediaObject': yes
+      'editing': @state.editMode
 
 
   render: ->
-
     { message } = @props
-
     <div {...@getItemProps()}>
       <div className={@getContentClassNames()}>
         <div className="MediaObject-media">
@@ -175,12 +230,11 @@ module.exports = class ChatListItem extends React.Component
             <MessageBody source={message.get 'body'} />
           </div>
         </div>
-        <div className={@getEditModeClassNames()}>
-          <textarea autoFocus onKeyDown = { @bound 'handleEditMessageKeyDown' } defaultValue={ message.get 'body' } ref="EditMessageTextarea"></textarea>
-          <button className="solid green done-button" type="button" onClick={@bound 'updateMessage'} >DONE</button>
-          <button className="cancel-editing" type="button" onClick={@bound 'cancelEdit'} >CANCEL</button>
-        </div>
+        {@renderEditMode()}
         {@renderChatItemMenu()}
+        <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
+          Are you sure you want to delete this post?
+        </ActivityPromptModal>
       </div>
     </div>
 

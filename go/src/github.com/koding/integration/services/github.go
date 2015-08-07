@@ -34,7 +34,7 @@ var (
 type GithubConfig struct {
 	Secret         string
 	ServerUrl      string
-	PublicUrl      string
+	PublicURL      string
 	IntegrationUrl string
 	Log            logging.Logger
 }
@@ -178,7 +178,7 @@ func (g Github) configure(cr *helpers.ConfigureRequest, method, url string) (hel
 		Events: events,
 		Active: true,
 		Config: &Config{
-			URL:         prepareEndpoint(g.PublicUrl, GITHUB, cr.ServiceToken),
+			URL:         prepareEndpoint(g.PublicURL, GITHUB, cr.ServiceToken),
 			ContentType: "json",
 			Secret:      g.Secret,
 		},
@@ -412,9 +412,7 @@ func (g GithubListener) output(ctx context.Context, str string) {
 		return
 	}
 
-	pr := &helpers.PushRequest{
-		Body: str,
-	}
+	pr := helpers.NewPushRequest(str)
 
 	if err := helpers.Push(gi.token, pr, g.IntegrationUrl); err != nil {
 		g.Log.Error("Could not push message: %s", err)
