@@ -6,9 +6,7 @@ import (
 	"labix.org/v2/mgo"
 )
 
-var (
-	GatherStatsColl = "gatherstats"
-)
+const GatherStatsColl = "gatherstats"
 
 func SaveGatherStat(stat *models.GatherStat) error {
 	query := func(c *mgo.Collection) error {

@@ -7,25 +7,22 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestGatherStat(t *testing.T) {
-	Convey("It should save stats", t, func() {
+func TestGatherError(t *testing.T) {
+	Convey("It should save errors", t, func() {
 		dogclient, err := metrics.NewDogStatsD(WorkerName)
 		So(err, ShouldBeNil)
 
-		log := logging.NewLogger(WorkerName)
-
 		mux := http.NewServeMux()
-		mux.Handle("/", &GatherStat{dog: dogclient, log: log})
+		mux.Handle("/", &GatherError{dog: dogclient})
 
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		reqBuf := bytes.NewBuffer([]byte(`{"username":"indianajones"}`))
+		reqBuf := bytes.NewBuffer([]byte(`{"error":"failed to run", "username":"indianajones"}`))
 
 		res, err := http.Post(server.URL, "application/json", reqBuf)
 		So(err, ShouldBeNil)
@@ -34,14 +31,14 @@ func TestGatherStat(t *testing.T) {
 
 		So(res.StatusCode, ShouldEqual, 200)
 
-		docs, err := modeltesthelper.GetGatherStatsForUser("indianajones")
+		docs, err := modeltesthelper.GetGatherErrorsForUser("indianajones")
 		So(err, ShouldBeNil)
 
 		So(len(docs), ShouldEqual, 1)
-		So(docs[0].Username, ShouldEqual, "indianajones")
+		So(docs[0].Error, ShouldEqual, "failed to run")
 
 		Reset(func() {
-			modeltesthelper.DeleteGatherStatsForUser("indianajones")
+			modeltesthelper.DeleteGatherErrorsForUser("indianajones")
 		})
 	})
 }

@@ -25,6 +25,12 @@ func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer func() {
+		if r != nil {
+			r.Body.Close()
+		}
+	}()
+
 	if err := modelhelper.SaveGatherStat(req); err != nil {
 		write500Err(g.log, err, w)
 		return
@@ -47,6 +53,7 @@ func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// name, value, tags, rate
 		if err := g.dog.Gauge(name, value, tags, 1.0); err != nil {
+			g.log.Error("Sending to datadog failed: %s", err)
 			continue
 		}
 	}

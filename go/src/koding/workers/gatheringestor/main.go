@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"koding/artifact"
+	"koding/common"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"net"
@@ -37,7 +38,9 @@ func main() {
 	conf := initializeConf()
 	modelhelper.Initialize(conf.Mongo)
 
-	log := logging.NewLogger(WorkerName)
+	defer modelhelper.Close()
+
+	log := common.CreateLogger(WorkerName, false)
 
 	dogclient, err := metrics.NewDogStatsD(WorkerName)
 	if err != nil {
@@ -72,6 +75,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+	defer listener.Close()
 
 	if err = http.Serve(listener, mux); err != nil {
 		log.Fatal(err.Error())
