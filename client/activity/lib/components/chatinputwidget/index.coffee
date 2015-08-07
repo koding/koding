@@ -51,13 +51,13 @@ module.exports = class ChatInputWidget extends React.Component
 
   onChange: (event) ->
 
-    value = event.target.value
+    { value } = event.target
     @setState { value }
 
     textInput   = React.findDOMNode @refs.textInput
     dropupQuery = helpers.getDropupQuery textInput
 
-    @getDropups().forEach (dropup) ->
+    for dropup in @getDropups()
       dropup.setQuery dropupQuery
 
 
@@ -78,39 +78,44 @@ module.exports = class ChatInputWidget extends React.Component
 
     return  if event.shiftKey
 
+    kd.utils.stopDOMEvent event
+
     isDropupEnter = no
-    @getDropups().forEach (dropup) ->
-      if dropup.isActive()
-        dropup.confirmSelectedItem()
-        kd.utils.stopDOMEvent event
-        isDropupEnter = yes
+    for dropup in @getDropups()
+      continue  unless dropup.isActive()
+
+      dropup.confirmSelectedItem()
+      isDropupEnter = yes
+      break
 
     unless isDropupEnter
-      kd.utils.stopDOMEvent event
       @props.onSubmit? { value: @state.value }
       @setState { value: '' }
 
 
   onEsc: (event) ->
 
-    @getDropups().forEach (dropup) ->
-      dropup.clearQuery()  if dropup.isActive()
+    dropup.close() for dropup in @getDropups()
 
 
   onNextPosition: (event) ->
 
-    @getDropups().forEach (dropup) ->
-      if dropup.isActive()
-        stopEvent = dropup.moveToNextPosition()
-        kd.utils.stopDOMEvent event  if stopEvent
+    for dropup in @getDropups()
+      continue  unless dropup.isActive()
+
+      stopEvent = dropup.moveToNextPosition()
+      kd.utils.stopDOMEvent event  if stopEvent
+      break
 
 
   onPrevPosition: (event) ->
 
-    @getDropups().forEach (dropup) ->
-      if dropup.isActive()
-        stopEvent = dropup.moveToPrevPosition()
-        kd.utils.stopDOMEvent event  if stopEvent
+    for dropup in @getDropups()
+      continue  unless dropup.isActive()
+
+      stopEvent = dropup.moveToPrevPosition()
+      kd.utils.stopDOMEvent event  if stopEvent
+      break
 
 
   onDropupItemConfirmed: (item) ->

@@ -1,11 +1,19 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-ActivityFlux    = require 'activity/flux'
-classnames      = require 'classnames'
-Link            = require 'app/components/common/link'
+kd           = require 'kd'
+React        = require 'kd-react'
+immutable    = require 'immutable'
+ActivityFlux = require 'activity/flux'
+classnames   = require 'classnames'
+Link         = require 'app/components/common/link'
 
 
 module.exports = class DropupItem extends React.Component
+
+  @defaultProps =
+    item       : immutable.Map()
+    isSelected : no
+    index      : 0
+    className  : ''
+
 
   handleSelect: ->
 

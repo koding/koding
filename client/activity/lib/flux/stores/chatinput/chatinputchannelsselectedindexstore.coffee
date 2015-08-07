@@ -1,4 +1,4 @@
-actionTypes        = require 'activity/flux/actions/actiontypes'
+actions            = require 'activity/flux/actions/actiontypes'
 SelectedIndexStore = require './chatinputselectedindexstore'
 
 ###*
@@ -10,10 +10,8 @@ module.exports = class ChatInputChannelsSelectedIndexStore extends SelectedIndex
 
   initialize: ->
 
-    actions =
-      setIndex        : actionTypes.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
-      moveToNextIndex : actionTypes.MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX
-      moveToPrevIndex : actionTypes.MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX
-      resetIndex      : actionTypes.RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
-
-    @bindActions actions
+    @bindActions
+      setIndex        : actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
+      moveToNextIndex : actions.MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX
+      moveToPrevIndex : actions.MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX
+      resetIndex      : actions.RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX

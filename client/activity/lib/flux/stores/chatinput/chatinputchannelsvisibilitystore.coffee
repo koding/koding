@@ -1,4 +1,4 @@
-actionTypes     = require 'activity/flux/actions/actiontypes'
+actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 
 module.exports = class ChatInputChannelsVisibilityStore extends KodingFluxStore
@@ -11,7 +11,7 @@ module.exports = class ChatInputChannelsVisibilityStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actionTypes.SET_CHAT_INPUT_CHANNELS_VISIBILITY, @setVisibility
+    @on actions.SET_CHAT_INPUT_CHANNELS_VISIBILITY, @setVisibility
 
 
   setVisibility: (currentState, { visible }) -> visible

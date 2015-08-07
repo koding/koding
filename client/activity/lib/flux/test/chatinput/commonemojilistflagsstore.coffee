@@ -3,7 +3,7 @@
 Reactor = require 'app/flux/reactor'
 
 CommonEmojiListFlagsStore = require 'activity/flux/stores/chatinput/commonemojilistflagsstore'
-actionTypes = require 'activity/flux/actions/actiontypes'
+actions = require 'activity/flux/actions/actiontypes'
 
 describe 'CommonEmojiListFlagsStore', ->
 
@@ -17,12 +17,12 @@ describe 'CommonEmojiListFlagsStore', ->
 
     it 'sets visibility', ->
 
-      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_VISIBILITY, { visible : yes }
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_VISIBILITY, { visible : yes }
       flags = @reactor.evaluate ['commonEmojiListFlags']
 
       expect(flags.get 'visible').to.be.true
 
-      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_VISIBILITY, { visible : no }
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_VISIBILITY, { visible : no }
       flags = @reactor.evaluate ['commonEmojiListFlags']
 
       expect(flags.get 'visible').to.be.false
@@ -32,12 +32,12 @@ describe 'CommonEmojiListFlagsStore', ->
 
     it 'resets flags', ->
 
-      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_VISIBILITY, { visible : yes }
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_VISIBILITY, { visible : yes }
       flags = @reactor.evaluate ['commonEmojiListFlags']
 
       expect(flags.get 'visible').to.be.true
 
-      @reactor.dispatch actionTypes.RESET_COMMON_EMOJI_LIST_FLAGS
+      @reactor.dispatch actions.RESET_COMMON_EMOJI_LIST_FLAGS
       flags = @reactor.evaluate ['commonEmojiListFlags']
 
       expect(flags.get 'visible').to.be.false

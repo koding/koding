@@ -3,7 +3,7 @@
 Reactor = require 'app/flux/reactor'
 
 ChatInputChannelsSelectedIndexStore = require 'activity/flux/stores/chatinput/chatinputchannelsselectedindexstore'
-actionTypes = require 'activity/flux/actions/actiontypes'
+actions = require 'activity/flux/actions/actiontypes'
 
 describe 'ChatInputChannelsSelectedIndexStore', ->
 
@@ -19,7 +19,7 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
 
       index = 3
 
-      @reactor.dispatch actionTypes.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['chatInputChannelsSelectedIndex']
 
       expect(selectedIndex).to.equal index
@@ -32,12 +32,12 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
       index = 3
       nextIndex = index + 1
 
-      @reactor.dispatch actionTypes.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['chatInputChannelsSelectedIndex']
 
       expect(selectedIndex).to.equal index
       
-      @reactor.dispatch actionTypes.MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX
+      @reactor.dispatch actions.MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX
       selectedIndex = @reactor.evaluate ['chatInputChannelsSelectedIndex']
 
       expect(selectedIndex).to.equal nextIndex
@@ -50,12 +50,12 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
       index = 3
       prevIndex = index - 1
 
-      @reactor.dispatch actionTypes.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['chatInputChannelsSelectedIndex']
 
       expect(selectedIndex).to.equal index
       
-      @reactor.dispatch actionTypes.MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX
+      @reactor.dispatch actions.MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX
       selectedIndex = @reactor.evaluate ['chatInputChannelsSelectedIndex']
 
       expect(selectedIndex).to.equal prevIndex
@@ -67,12 +67,12 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
 
       index = 3
 
-      @reactor.dispatch actionTypes.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['chatInputChannelsSelectedIndex']
 
       expect(selectedIndex).to.equal index
 
-      @reactor.dispatch actionTypes.RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
+      @reactor.dispatch actions.RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
       selectedIndex = @reactor.evaluate ['chatInputChannelsSelectedIndex']
 
       expect(selectedIndex).to.equal 0

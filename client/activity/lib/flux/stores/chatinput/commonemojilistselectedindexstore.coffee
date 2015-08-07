@@ -1,4 +1,4 @@
-actionTypes        = require 'activity/flux/actions/actiontypes'
+actions            = require 'activity/flux/actions/actiontypes'
 SelectedIndexStore = require './chatinputselectedindexstore'
 
 ###*
@@ -10,8 +10,6 @@ module.exports = class CommonEmojiListSelectedIndexStore extends SelectedIndexSt
 
   initialize: ->
 
-    actions =
-      setIndex        : actionTypes.SET_COMMON_EMOJI_LIST_SELECTED_INDEX
-      resetIndex      : actionTypes.RESET_COMMON_EMOJI_LIST_SELECTED_INDEX
-
-    @bindActions actions
+    @bindActions
+      setIndex        : actions.SET_COMMON_EMOJI_LIST_SELECTED_INDEX
+      resetIndex      : actions.RESET_COMMON_EMOJI_LIST_SELECTED_INDEX

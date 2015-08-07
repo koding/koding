@@ -1,6 +1,7 @@
 $               = require 'jquery'
 kd              = require 'kd'
 React           = require 'kd-react'
+immutable       = require 'immutable'
 classnames      = require 'classnames'
 formatEmojiName = require 'activity/util/formatEmojiName'
 ActivityFlux    = require 'activity/flux'
@@ -10,10 +11,15 @@ EmojiDropupItem = require 'activity/components/emojidropupitem'
 
 module.exports = class EmojiDropup extends React.Component
 
-  isActive: -> @props.items?.size > 0
+  @defaultProps =
+    items        : immutable.List()
+    selectedItem : immutable.Map()
 
 
-  hasOnlyItem: -> @props.items?.size is 1
+  isActive: -> @props.items.size > 0
+
+
+  hasOnlyItem: -> @props.items.size is 1
 
 
   confirmSelectedItem: ->

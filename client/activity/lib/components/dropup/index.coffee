@@ -6,6 +6,11 @@ ActivityFlux = require 'activity/flux'
 
 module.exports = class Dropup extends React.Component
 
+  @defaultProps =
+    visible   : no
+    className : ''
+
+
   componentDidMount: ->
 
     document.addEventListener 'mousedown', @bound 'handleMouseClick'

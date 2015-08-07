@@ -1,6 +1,7 @@
 $                 = require 'jquery'
 kd                = require 'kd'
 React             = require 'kd-react'
+immutable         = require 'immutable'
 classnames        = require 'classnames'
 ActivityFlux      = require 'activity/flux'
 Dropup            = require 'activity/components/dropup'
@@ -9,13 +10,19 @@ ChannelDropupItem = require 'activity/components/channeldropupitem'
 
 module.exports = class ChannelDropup extends React.Component
 
+  @defaultProps =
+    items        : immutable.List()
+    visible      : no
+    selectedItem : immutable.Map()
+
+
   isActive: ->
 
     { items, visible } = @props
-    return items?.size > 0 and visible
+    return items.size > 0 and visible
 
 
-  hasOnlyItem: -> @props.items?.size is 1
+  hasOnlyItem: -> @props.items.size is 1
 
 
   confirmSelectedItem: ->
@@ -58,7 +65,7 @@ module.exports = class ChannelDropup extends React.Component
       query = matchResult[1]
       ActivityFlux.actions.channel.setChatInputChannelsQuery query
       ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
-    else
+    else if @isActive()
       @close()
 
 

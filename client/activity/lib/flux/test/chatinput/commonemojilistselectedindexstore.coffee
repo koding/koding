@@ -3,7 +3,7 @@
 Reactor = require 'app/flux/reactor'
 
 CommonEmojiListSelectedIndexStore = require 'activity/flux/stores/chatinput/commonemojilistselectedindexstore'
-actionTypes = require 'activity/flux/actions/actiontypes'
+actions = require 'activity/flux/actions/actiontypes'
 
 describe 'CommonEmojiListSelectedIndexStore', ->
 
@@ -19,7 +19,7 @@ describe 'CommonEmojiListSelectedIndexStore', ->
 
       index = 5
 
-      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal index
@@ -31,12 +31,12 @@ describe 'CommonEmojiListSelectedIndexStore', ->
 
       index = 5
 
-      @reactor.dispatch actionTypes.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal index
 
-      @reactor.dispatch actionTypes.RESET_COMMON_EMOJI_LIST_SELECTED_INDEX
+      @reactor.dispatch actions.RESET_COMMON_EMOJI_LIST_SELECTED_INDEX
       selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal 0
