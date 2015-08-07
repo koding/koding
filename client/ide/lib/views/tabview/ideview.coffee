@@ -381,7 +381,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     pane = @tabView.getActivePane()
 
     if pane.data instanceof FSFile and @isDummyFilePath pane.data.path
-      @tabView.removePane @tabView.getActivePane()
+      @tabView.removePane pane
 
     @openFile file, content
 
