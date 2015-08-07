@@ -43,7 +43,7 @@ var (
 	creds = credentials.NewStaticCredentials(AWS_KEY, AWS_SECRET, "")
 
 	regions = []string{
-		"us-east-1", "us-west-2", "eu-west-1", "ap-southeast-2",
+		"us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1",
 	}
 
 	// defines list of metrics, all queue/fetch/save operations
@@ -132,7 +132,7 @@ func main() {
 			switch signal {
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
 				listener.Close()
-				controller.Klient.Close()
+				controller.KiteClient.Close()
 				modelhelper.Close()
 				controller.Redis.Client.Close()
 

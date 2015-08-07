@@ -58,7 +58,7 @@ func initialize() {
 	initializeRedis(controller)
 
 	if conf.ConnectToKlient {
-		initializeKlient(controller)
+		initializeKiteClient(controller)
 	}
 
 	initializeMongo()
@@ -92,7 +92,7 @@ func initializeMongo() {
 	// Log.Debug("Connected to mongo: %s", conf.MongoURL)
 }
 
-func initializeKlient(c *VmController) {
+func initializeKiteClient(c *VmController) {
 	var err error
 
 	// create new kite
@@ -122,7 +122,7 @@ func initializeKlient(c *VmController) {
 		Log.Fatal("%s. Is kloud/kontrol running?", err.Error())
 	}
 
-	Log.Info("Connected to klient: %s", conf.KloudAddr)
+	Log.Info("Connected to kite: %s", conf.KloudAddr)
 
-	c.Klient = kiteClient
+	c.KiteClient = kiteClient
 }
