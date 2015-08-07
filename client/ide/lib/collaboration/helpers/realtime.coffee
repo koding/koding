@@ -79,7 +79,7 @@ isSessionActive = (manager, title, callback) ->
   manager.fetchFileByTitle options, (err, file) ->
     return callback no  if err
 
-    if file.result.items.length > 0
+    if file.result?.items.length > 0
     then callback yes, file.result.items[0]
     else callback no
 
