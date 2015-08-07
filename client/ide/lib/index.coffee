@@ -1171,9 +1171,10 @@ class IDEAppController extends AppController
 
   syncChange: (change) ->
 
-    {context} = change
-
+    { context } = change
     return  if not @rtm or not @rtm.isReady or not context
+
+    change.rtmHash = @rtm.hash
 
     {paneHash} = context
     nickname   = nick()
@@ -1212,9 +1213,9 @@ class IDEAppController extends AppController
 
   handleChange: (change) ->
 
-    {context, origin, type} = change
+    { context, origin, type, rtmHash } = change
 
-    return if not context or not origin or origin is nick()
+    return if not context or not origin or (origin is nick() and rtmHash is @rtm.hash)
 
     amIWatchingChangeOwner = @myWatchMap.keys().indexOf(origin) > -1
 
