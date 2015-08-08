@@ -3,6 +3,7 @@ whoami                 = require 'app/util/whoami'
 actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
 messageHelpers         = require '../helpers/message'
+realtimeActionCreators = require './realtime/actioncreators'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -24,14 +25,11 @@ loadMessages = (channelId) ->
       dispatch LOAD_MESSAGES_FAIL, { err, channelId }
       return
 
-    # get the channel instance from cache and dispatch it.
-    channel = socialapi.retrieveCachedItemById channelId
-
-    dispatch LOAD_MESSAGES_SUCCESS, { channelId }
-
     kd.singletons.reactor.batch ->
       messages.forEach (message) ->
-        dispatch LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
+        dispatchLoadMessageSuccess channelId, message
+
+
 ###*
  * An action creator to group load message action operations.
  * It wraps given message with realtimeActionCreators to transform realtime
@@ -69,7 +67,7 @@ loadMessageBySlug = (slug) ->
       dispatch LOAD_MESSAGE_BY_SLUG_FAIL, { err, slug }
       return
 
-    dispatch LOAD_MESSAGE_SUCCESS, { messageId: message.id, message }
+    dispatchLoadMessageSuccess message.initialChannelId, message
     loadComments message.id
 
 
@@ -104,6 +102,7 @@ createMessage = (channelId, body, payload) ->
 
     channel = socialapi.retrieveCachedItemById channelId
 
+    realtimeActionCreators.wrapMessage message
     dispatch CREATE_MESSAGE_SUCCESS, {
       message, channelId, clientRequestId, channel
     }
@@ -206,6 +205,7 @@ editMessage = (messageId, body, payload) ->
       dispatch EDIT_MESSAGE_FAIL, { err, messageId }
       return
 
+    realtimeActionCreators.wrapMessage message
     dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
 
 
@@ -232,6 +232,7 @@ loadComments = (messageId, from, limit) ->
 
     kd.singletons.reactor.batch ->
       comments.forEach (comment) ->
+        realtimeActionCreators.wrapMessage comment
         dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
 
 
@@ -260,6 +261,7 @@ createComment = (messageId, body, payload) ->
       dispatch CREATE_COMMENT_FAIL, { err, comment, clientRequestId }
       return
 
+    realtimeActionCreators.wrapMessage comment
     dispatch CREATE_COMMENT_SUCCESS, { messageId, comment, clientRequestId }
 
 
