@@ -80,6 +80,7 @@ func (c *Clients) Region(region string) (*ec2.EC2, error) {
 	c.Lock()
 	client, ok := c.regions[region]
 	if !ok {
+		c.Unlock()
 		return nil, fmt.Errorf("no client availabile for the given region '%s'", region)
 	}
 	c.Unlock()
@@ -91,6 +92,7 @@ func (c *Clients) Zones(region string) ([]string, error) {
 	c.Lock()
 	zones, ok := c.zones[region]
 	if !ok {
+		c.Unlock()
 		return nil, fmt.Errorf("no zone availabile for the given region '%s'", region)
 	}
 	c.Unlock()
