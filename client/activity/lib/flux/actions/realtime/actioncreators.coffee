@@ -20,11 +20,11 @@ bindMessageEvents = (message) ->
   messageId = message.id
   { initialChannelId: channelId } = message
 
-  message.on 'LikeAdded', ({ accountId }) ->
-    dispatch actions.LIKE_MESSAGE_SUCCESS, { userId: accountId, messageId }
+  message.on 'LikeAdded', ({ accountId: userId }) ->
+    dispatch actions.LIKE_MESSAGE_SUCCESS, { userId, messageId }
 
-  message.on 'LikeRemoved', ({ accountId }) ->
-    dispatch actions.UNLIKE_MESSAGE_SUCCESS, { userId: accountId, messageId }
+  message.on 'LikeRemoved', ({ accountId: userId }) ->
+    dispatch actions.UNLIKE_MESSAGE_SUCCESS, { userId, messageId }
 
   message.on 'AddReply', (comment) ->
     dispatch actions.LOAD_COMMENT_SUCCESS, { messageId, comment }
