@@ -36,7 +36,7 @@ loadChannelByName = (name) ->
       dispatch LOAD_CHANNEL_BY_NAME_FAIL, { err }
       return
 
-    realtimeActionCreators.wrapChannel channel
+    realtimeActionCreators.bindChannelEvents channel
     dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
     MessageActions.loadMessages channel.id
 
@@ -91,7 +91,7 @@ loadFollowedPrivateChannels = (options = {}) ->
 
     kd.singletons.reactor.batch ->
       channels.forEach (channel) ->
-        realtimeActionCreators.wrapChannel channel
+        realtimeActionCreators.bindChannelEvents channel
         dispatch LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, { channel, options }
 
 
@@ -116,7 +116,7 @@ loadFollowedPublicChannels = (options = {}) ->
 
     kd.singletons.reactor.batch ->
       channels.forEach (channel) ->
-        realtimeActionCreators.wrapChannel channel
+        realtimeActionCreators.bindChannelEvents channel
         dispatch LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, { channel, options }
 
 

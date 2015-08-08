@@ -43,7 +43,7 @@ dispatchLoadMessageSuccess = (channelId, message) ->
 
   channel = kd.singletons.socialapi.retrieveCachedItemById channelId
 
-  realtimeActionCreators.wrapMessage message
+  realtimeActionCreators.bindMessageEvents message
   dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
 
 
@@ -102,7 +102,7 @@ createMessage = (channelId, body, payload) ->
 
     channel = socialapi.retrieveCachedItemById channelId
 
-    realtimeActionCreators.wrapMessage message
+    realtimeActionCreators.bindMessageEvents message
     dispatch CREATE_MESSAGE_SUCCESS, {
       message, channelId, clientRequestId, channel
     }
@@ -205,7 +205,7 @@ editMessage = (messageId, body, payload) ->
       dispatch EDIT_MESSAGE_FAIL, { err, messageId }
       return
 
-    realtimeActionCreators.wrapMessage message
+    realtimeActionCreators.bindMessageEvents message
     dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
 
 
@@ -232,7 +232,7 @@ loadComments = (messageId, from, limit) ->
 
     kd.singletons.reactor.batch ->
       comments.forEach (comment) ->
-        realtimeActionCreators.wrapMessage comment
+        realtimeActionCreators.bindMessageEvents comment
         dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
 
 
@@ -261,7 +261,7 @@ createComment = (messageId, body, payload) ->
       dispatch CREATE_COMMENT_FAIL, { err, comment, clientRequestId }
       return
 
-    realtimeActionCreators.wrapMessage comment
+    realtimeActionCreators.bindMessageEvents comment
     dispatch CREATE_COMMENT_SUCCESS, { messageId, comment, clientRequestId }
 
 

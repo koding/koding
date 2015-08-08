@@ -3,19 +3,19 @@ actions = require '../actiontypes'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
-wrapChannel = (channel) ->
+bindChannelEvents = (channel) ->
 
   kd.singletons.socialapi.onChannelReady channel, ->
 
     channel.on 'MessageAdded', (message) ->
-      wrapMessage message
+      bindMessageEvents message
       dispatch actions.LOAD_MESSAGE_SUCCESS, { channel, message, channelId: channel.id }
 
     channel.on 'MessageRemoved', (message) ->
       dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: message.id }
 
 
-wrapMessage = (message) ->
+bindMessageEvents = (message) ->
 
   messageId = message.id
   { initialChannelId: channelId } = message
@@ -38,6 +38,6 @@ wrapMessage = (message) ->
 
 
 module.exports = {
-  wrapChannel
-  wrapMessage
+  bindChannelEvents
+  bindMessageEvents
 }
