@@ -32,6 +32,22 @@ loadMessages = (channelId) ->
     kd.singletons.reactor.batch ->
       messages.forEach (message) ->
         dispatch LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
+###*
+ * An action creator to group load message action operations.
+ * It wraps given message with realtimeActionCreators to transform realtime
+ * events to flux actions.
+ *
+ * @param {string} channelId
+ * @param {SocialMessage} message
+ * @api private
+###
+dispatchLoadMessageSuccess = (channelId, message) ->
+
+  channel = kd.singletons.socialapi.retrieveCachedItemById channelId
+
+  realtimeActionCreators.wrapMessage message
+  dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
+
 
 
 ###*
