@@ -79,11 +79,11 @@ func (c *Clients) Regions() map[string]*ec2.EC2 {
 func (c *Clients) Region(region string) (*ec2.EC2, error) {
 	c.Lock()
 	client, ok := c.regions[region]
+	c.Unlock()
+
 	if !ok {
-		c.Unlock()
 		return nil, fmt.Errorf("no client availabile for the given region '%s'", region)
 	}
-	c.Unlock()
 	return client, nil
 }
 
@@ -91,11 +91,11 @@ func (c *Clients) Region(region string) (*ec2.EC2, error) {
 func (c *Clients) Zones(region string) ([]string, error) {
 	c.Lock()
 	zones, ok := c.zones[region]
+	c.Unlock()
+
 	if !ok {
-		c.Unlock()
 		return nil, fmt.Errorf("no zone availabile for the given region '%s'", region)
 	}
-	c.Unlock()
 	return zones, nil
 }
 
