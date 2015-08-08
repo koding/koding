@@ -261,7 +261,10 @@ createComment = (messageId, body, payload) ->
       dispatch CREATE_COMMENT_FAIL, { err, comment, clientRequestId }
       return
 
+    addMessageReply = require 'activity/mixins/addmessagereply'
+    message         = socialapi.retrieveCachedItemById messageId
     realtimeActionCreators.bindMessageEvents comment
+    addMessageReply message, comment
     dispatch CREATE_COMMENT_SUCCESS, { messageId, comment, clientRequestId }
 
 
