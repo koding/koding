@@ -87,8 +87,9 @@ loadFollowedPrivateChannels = (options = {}) ->
       dispatch LOAD_FOLLOWED_PRIVATE_CHANNELS_FAIL, { err }
       return
 
-    channels.forEach (channel) ->
-      dispatch LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, { channel, options }
+    kd.singletons.reactor.batch ->
+      channels.forEach (channel) ->
+        dispatch LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, { channel, options }
 
 
 ###*
@@ -110,8 +111,9 @@ loadFollowedPublicChannels = (options = {}) ->
       dispatch LOAD_FOLLOWED_PUBLIC_CHANNELS_FAIL, { err }
       return
 
-    channels.forEach (channel) ->
-      dispatch LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, { channel, options }
+    kd.singletons.reactor.batch ->
+      channels.forEach (channel) ->
+        dispatch LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, { channel, options }
 
 
 ###*
