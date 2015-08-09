@@ -197,8 +197,6 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         # addCustomRole:
         #   (signature Object, Function)
-        fetchMembershipStatuses:
-          (signature Function)
         isMember:
           (signature Object, Function)
         kickMember:
@@ -892,8 +890,6 @@ module.exports = class JGroup extends Module
     selector.visibility = 'visible'
     Module::each.call this, selector, rest...
 
-  fetchVocabulary$: permit 'administer vocabularies',
-    success:(client, rest...)-> @fetchVocabulary rest...
 
   fetchRolesHelper: (account, callback)->
     client = connection: delegate : account
@@ -909,14 +905,6 @@ module.exports = class JGroup extends Module
           else unless request? then callback null, ['guest']
           else callback null, ["invitation-#{request.status}"]
 
-
-  fetchMembershipStatuses: secure (client, callback)->
-    JAccount = require '../account'
-    {delegate} = client.connection
-    unless delegate instanceof JAccount
-      callback null, ['guest']
-    else
-      @fetchRolesHelper delegate, callback
 
   updateCounts:->
     # remove this guest shit if required
