@@ -213,8 +213,6 @@ module.exports = class JGroup extends Module
           (signature Function)
         fetchUserStatus:
           (signature Object, Function)
-        fetchInvitationsByStatus:
-          (signature Object, Function)
     schema          :
       title         :
         type        : String
@@ -1154,11 +1152,6 @@ module.exports = class JGroup extends Module
           @notify admin, event, contents, next
 
         daisy queue
-
-
-  fetchInvitationsByStatus: permit 'send invitations',
-    success: (client, options, callback)->
-      return callback {message: "unimplemented feature"}
 
 
   @each$ = (selector, options, callback)->
