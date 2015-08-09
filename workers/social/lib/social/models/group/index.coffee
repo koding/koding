@@ -195,8 +195,6 @@ module.exports = class JGroup extends Module
           (signature Function)
         modifyMembershipPolicy:
           (signature Object, Function)
-        # addCustomRole:
-        #   (signature Object, Function)
         isMember:
           (signature Object, Function)
         kickMember:
@@ -1156,11 +1154,6 @@ module.exports = class JGroup extends Module
           @notify admin, event, contents, next
 
         daisy queue
-
-
-  fetchOrCountInvitations: permit 'send invitations',
-    success: (client, type, method, options, callback)->
-      return callback {message: "unimplemented feature"}
 
 
   fetchInvitationsByStatus: permit 'send invitations',
