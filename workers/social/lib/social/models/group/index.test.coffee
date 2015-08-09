@@ -686,7 +686,7 @@ runTests = -> describe 'workers.social.group.index', ->
             # expecting validaton error when slug is empty
             groupData.slug = ''
 
-            expectedError = 'Errors were encountered during validation.'
+            expectedError = 'The slug  is not available.'
             JGroup.create client, groupData, account, (err, data) ->
               expect(err?.message).to.be.equal expectedError
               queue.next()

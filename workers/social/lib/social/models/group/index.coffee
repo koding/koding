@@ -816,26 +816,6 @@ module.exports = class JGroup extends Module
         callback new KodingError '404 Membership policy not found'
       else policy.remove callback
 
-  convertPublicToPrivate =(group, callback=->)->
-    group.createMembershipPolicy callback
-
-  convertPrivateToPublic =(group, client, callback=->)->
-    kallback = (err)->
-      return callback err if err
-      queue.next()
-
-    daisy queue = [
-      -> group.destroyMemebershipPolicy kallback
-      -> callback null
-    ]
-
-  setPrivacy:(privacy, client)->
-    if @privacy is 'public' and privacy is 'private'
-      convertPublicToPrivate this
-    else if @privacy is 'private' and privacy is 'public'
-      convertPrivateToPublic this, client
-    @privacy = privacy
-
 
   modify: permit
     advanced : [
@@ -846,7 +826,6 @@ module.exports = class JGroup extends Module
       # do not allow people to change there slugs
       delete formData.slug
       delete formData.slug_
-      @setPrivacy formData.privacy, client
       @update {$set:formData}, callback
 
   modifyMembershipPolicy: permit
