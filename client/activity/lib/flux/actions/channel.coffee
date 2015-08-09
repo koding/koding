@@ -1,9 +1,10 @@
-kd                = require 'kd'
-actionTypes       = require './actiontypes'
-fetchChatChannels = require 'activity/util/fetchChatChannels'
-isKoding          = require 'app/util/isKoding'
-getGroup          = require 'app/util/getGroup'
-MessageActions    = require './message'
+kd                      = require 'kd'
+actionTypes             = require './actiontypes'
+fetchChatChannels       = require 'activity/util/fetchChatChannels'
+isKoding                = require 'app/util/isKoding'
+getGroup                = require 'app/util/getGroup'
+MessageActions          = require './message'
+realtimeActionCreators  = require './realtime/actioncreators'
 { actions: appActions } = require 'app/flux'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -35,6 +36,7 @@ loadChannelByName = (name) ->
       dispatch LOAD_CHANNEL_BY_NAME_FAIL, { err }
       return
 
+    realtimeActionCreators.bindChannelEvents channel
     dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
     MessageActions.loadMessages channel.id
 
@@ -87,8 +89,10 @@ loadFollowedPrivateChannels = (options = {}) ->
       dispatch LOAD_FOLLOWED_PRIVATE_CHANNELS_FAIL, { err }
       return
 
-    channels.forEach (channel) ->
-      dispatch LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, { channel, options }
+    kd.singletons.reactor.batch ->
+      channels.forEach (channel) ->
+        realtimeActionCreators.bindChannelEvents channel
+        dispatch LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, { channel, options }
 
 
 ###*
@@ -110,8 +114,10 @@ loadFollowedPublicChannels = (options = {}) ->
       dispatch LOAD_FOLLOWED_PUBLIC_CHANNELS_FAIL, { err }
       return
 
-    channels.forEach (channel) ->
-      dispatch LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, { channel, options }
+    kd.singletons.reactor.batch ->
+      channels.forEach (channel) ->
+        realtimeActionCreators.bindChannelEvents channel
+        dispatch LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, { channel, options }
 
 
 ###*
