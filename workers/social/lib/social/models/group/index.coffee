@@ -213,6 +213,8 @@ module.exports = class JGroup extends Module
           (signature Function)
         fetchUserStatus:
           (signature Object, Function)
+        toggleFeature:
+          (signature Object, Function)
     schema          :
       title         :
         type        : String
@@ -828,6 +830,30 @@ module.exports = class JGroup extends Module
       @fetchMembershipPolicy (err, policy)->
         if err then callback err
         else policy.update $set: formData, callback
+
+
+  toggleFeature: permit 'grant permissions',
+    success:(client, options, callback)->
+      if not options.feature or not options.role or not options.operation
+        return callback {message:"request is not valid"}
+
+      @disabledFeatures = {}  unless @disabledFeatures
+      @disabledFeatures[options.role] =[]  unless @disabledFeatures[options.role]
+
+      if options.operation is "disable"
+        if options.feature not in @disabledFeatures?[options.role]
+          @disabledFeatures[options.role].push options.feature
+          return @update callback
+        else
+          return callback {message:"item is not in the list "}
+      else
+
+        if options.feature not in @disabledFeatures?[options.role]
+          return callback {message:"item is not in the list"}
+        else
+          ops = (feature for feature in @disabledFeatures?[options.role] when feature isnt options.feature)
+          @disabledFeatures[options.role] = ops
+          return @update callback
 
 
   canEditGroup: permit 'grant permissions',
