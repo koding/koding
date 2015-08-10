@@ -5,20 +5,6 @@ import (
 	"os/exec"
 )
 
-func tarFolder(folderName, outputFileName string) error {
-	isExist, err := exists(folderName)
-	if err != nil {
-		return err
-	}
-
-	if !isExist {
-		return ErrFolderNotFound
-	}
-
-	_, err = exec.Command("tar", "-cf", outputFileName, folderName).Output()
-	return err
-}
-
 func untarFile(fileName, outputFolder string) error {
 	isExist, err := exists(fileName)
 	if err != nil {
