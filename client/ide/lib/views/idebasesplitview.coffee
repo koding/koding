@@ -19,6 +19,7 @@ module.exports = class IDEBaseSplitView extends KDSplitView
 
     @on 'ResizeFirstSplitView', @bound 'resizeFirstSplitView'
 
+
   _resizePanels: ->
 
     first = @lastKnownFileTreeSize
