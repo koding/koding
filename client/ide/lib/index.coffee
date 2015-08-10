@@ -117,6 +117,13 @@ class IDEAppController extends AppController
 
       @runOnboarding()  if @isMachineRunning()
 
+      # Re-draw layout if it is broken.
+      if app.getId() is @getId() and @isBrokenLayout
+        @isBrokenLayout = no
+        snapshot = @getWorkspaceSnapshot()
+        @layoutManager.clearLayout()
+        kd.utils.defer => @layoutManager.resurrectSnapshot snapshot
+
 
   prepareIDE: (withFakeViews = no) ->
 
@@ -1083,7 +1090,8 @@ class IDEAppController extends AppController
 
   handleIDEBecameReady: (machine) ->
 
-    {finderController} = @finderPane
+    { finderController } = @finderPane
+
     if @workspaceData
       finderController.updateMachineRoot @mountedMachine.uid, @workspaceData.rootPath
     else
@@ -1104,6 +1112,7 @@ class IDEAppController extends AppController
         # Just resurrect snapshot for the host with/without a session.
         if snapshot and @amIHost
           @layoutManager.resurrectSnapshot snapshot
+          @isBrokenLayout = yes  unless @getActiveInstance().isActive
         else
           @addInitialViews()  unless @initialViewsReady
 
