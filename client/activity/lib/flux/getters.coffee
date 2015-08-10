@@ -86,7 +86,7 @@ channelThreads = [
   (threads, messages, channelFlags) ->
     threads.map (thread) ->
       channelId = thread.get 'channelId'
-      thread.set 'flags', channelFlags.get channelId
+      thread = thread.set 'flags', channelFlags.get channelId
       thread.update 'messages', (msgs) -> msgs.map (messageId) ->
         message = messages.get messageId
         if message.has('__editedBody')
