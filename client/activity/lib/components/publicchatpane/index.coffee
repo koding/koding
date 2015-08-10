@@ -6,6 +6,9 @@ ChatPane        = require 'activity/components/chatpane'
 
 
 module.exports = class PublicChatPane extends React.Component
+  constructor: (options = {}, data) ->
+
+    @state = { skip : 0 }
 
 
   @defaultProps =
@@ -41,7 +44,10 @@ module.exports = class PublicChatPane extends React.Component
 
 
   onScrollThresholdReached: ->
-    console.log "load messages"
+
+    @state.skip += 25
+
+    ActivityFlux.actions.message.loadMessages @channel('id'), @state.skip
 
 
   render: ->
