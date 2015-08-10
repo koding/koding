@@ -656,6 +656,8 @@ class IDEAppController extends AppController
 
     @isSidebarCollapsed = yes
 
+    splitView.emit 'ResizeFirstSplitView'
+
     tabView.on 'PaneDidShow', (pane) ->
       return if pane.options.name is 'Dummy'
       @expandSidebar()  if @isSidebarCollapsed
@@ -673,6 +675,8 @@ class IDEAppController extends AppController
     floatedPanel.unsetClass 'floating'
     @isSidebarCollapsed = no
     filesPane.tabView.showPaneByName @activeFilesPaneName
+
+    splitView.emit 'ResizeFirstSplitView'
 
 
   toggleSidebar: ->
