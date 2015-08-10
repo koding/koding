@@ -116,10 +116,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
-        fetchGroupsWithPendingInvitations: [
-          (signature Function)
-          (signature Object, Function)
-        ]
         cancelRequest:
           (signature String, Function)
         acceptInvitation:
@@ -975,10 +971,6 @@ module.exports = class JAccount extends jraphical.Module
       return callback err  if err
       JGroup = require './group'
       JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
-
-
-  fetchGroupsWithPendingInvitations:(options, callback)->
-    @fetchGroupsWithPending '', 'sent', options, callback
 
 
   cancelRequest: secure (client, slug, callback)->
