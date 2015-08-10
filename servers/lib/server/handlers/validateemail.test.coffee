@@ -148,7 +148,7 @@ runTests = -> describe 'server.handlers.validateemail', ->
         request.post validateEmailRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist
           expect(res.statusCode)  .to.be.equal 400
-          expect(body)            .to.be.equal 'Email is taken!'
+          expect(body)            .to.be.equal 'Bad request'
           queue.next()
 
       -> done()
