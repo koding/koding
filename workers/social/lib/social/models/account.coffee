@@ -956,22 +956,6 @@ module.exports = class JAccount extends jraphical.Module
 
       @emit 'messageBusEvent', {type: "dispatcher_notify_user", message: message}
 
-  fetchGroupsWithPending:(method, status, options, callback)->
-    [callback, options] = [options, callback]  unless callback
-    options ?= {}
-
-    selector    = {}
-    if options.groupIds
-      selector.sourceId = $in:(ObjectId groupId for groupId in options.groupIds)
-      delete options.groupIds
-
-    relOptions = targetOptions: selector: {status}
-
-    @["fetchInvitation#{method}s"] {}, relOptions, (err, rels)->
-      return callback err  if err
-      JGroup = require './group'
-      JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
-
 
   cancelRequest: secure (client, slug, callback)->
     options = targetOptions: selector: status: 'pending'
