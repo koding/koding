@@ -98,11 +98,6 @@ module.exports = class GroupsInvitationTabView extends KDTabView
         @createInvitationCodeButton.show()
 
   getTabs:-> [
-  #   name         : "#{if @approvalEnabled then 'Membership' else 'Invitation'} Requests"
-  #   hiddenHandle : @getData().privacy is 'public'
-  #   viewOptions  :
-  #     viewClass  : GroupsMembershipRequestsTabPaneView
-  # ,
     name         : 'Invitations'
     testPath     : "groups-dashboard-invitations"
     viewOptions  :
