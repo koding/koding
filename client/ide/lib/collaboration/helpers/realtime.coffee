@@ -1,5 +1,6 @@
+_       = require 'lodash'
 getNick = require 'app/util/nick'
-_ = require 'lodash'
+
 
 ###*
  * Fetches collaboration file with given fileName and calls the callback with it.
@@ -126,11 +127,10 @@ getTargetUser = (participants, field, predicateValue) ->
 ###*
  * Returns an object with the necessary google drive maps and lists are set.
  *
- * TODO: `initialSnapshot` may be irrelevant here.
  *
  * @param {RealtimeManager} manager
  * @param {string} channelId
- * @param {object} initialSnapshot
+ * @param {Object} initialSnapshot
 ###
 getReferences = (manager, channelId, initialSnapshot) ->
 
@@ -147,7 +147,7 @@ getReferences = (manager, channelId, initialSnapshot) ->
     broadcastMessages : getFromManager manager, 'broadcastMessages', 'list', []
     pingTime          : getFromManager manager, 'pingTime', 'list', []
     watchMap          : getFromManager manager, watchMapName, 'map', {}
-    snapshot          : getFromManager manager, snapshotName, 'map', initialSnapshot
+    snapshot          : getFromManager manager, snapshotName, 'map', layout: initialSnapshot
 
   manager.bindRealtimeListeners refs.changes, 'list'
   manager.bindRealtimeListeners refs.broadcastMessages, 'list'
@@ -238,11 +238,7 @@ removeParticipantFromList = (participants, nickname) ->
 ###
 removeParticipantFromMaps = (manager, nickname) ->
 
-  myWatchMapName = "#{nickname}WatchMap"
-  mySnapshotName = "#{nickname}Snapshot"
-
-  manager.delete 'map', myWatchMapName
-  manager.delete 'map', mySnapshotName
+  manager.delete 'map', "#{nickname}WatchMap"
 
 
 ###*

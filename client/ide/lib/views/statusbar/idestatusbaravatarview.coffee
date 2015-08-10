@@ -4,6 +4,7 @@ FSHelper                    = require 'app/util/fs/fshelper'
 AvatarView                  = require 'app/commonviews/avatarviews/avatarview'
 IDEChatHeadWatchItemView    = require './idechatheadwatchitemview'
 IDEChatHeadReadOnlyItemView = require './idechatheadreadonlyitemview'
+IDELayoutManager            = require '../../workspace/idelayoutmanager'
 
 
 module.exports = class IDEStatusBarAvatarView extends AvatarView
@@ -47,8 +48,9 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     MENU.destroy()  if MENU
 
     { appManager } = kd.singletons
-    { rtm }        = appManager.getFrontApp()
-    changes        = rtm.getFromModel("#{@nickname}Snapshot")?.values() or []
+    { frontApp }   = appManager
+    { rtm }        = frontApp
+
     menuItems      = {}
     menuData       =
       terminals    : []
@@ -63,33 +65,33 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
     hasChanges = no
 
-    changes.forEach (change, i) ->
+    panes = frontApp.getSnapshotFromDrive @nickname, yes
 
-      return if not change.type or not change.context
+    panes.forEach (pane, i) ->
 
-      { type, context: { file, paneType } }       = change
+      return  if not pane.context
+
+      { context: { file, paneType } }             = pane
       { editors, terminals, drawings, browsers }  = menuData
-
-      return unless type is 'NewPaneCreated'
 
       hasChanges = yes
 
       switch paneType
-        when 'editor'   then editors.push   { change, title : FSHelper.getFileNameFromPath file.path }
-        when 'terminal' then terminals.push { change }
-        when 'drawing'  then drawings.push  { change }
-        when 'browser'  then browsers.push  { change }
+        when 'editor'   then editors.push   { pane, title : FSHelper.getFileNameFromPath file.path }
+        when 'terminal' then terminals.push { pane }
+        when 'drawing'  then drawings.push  { pane }
+        when 'browser'  then browsers.push  { pane }
 
     for own section, items of menuData
 
       items.forEach (item, i) ->
-        { context: { paneType } } = item.change
+        { context: { paneType } } = item.pane
         title = item.title or "#{paneType.capitalize()} #{i+1}"
         label = menuLabels[paneType]
         menuItems[label] or= children: {}
         targetObj = menuItems[label].children
         targetObj[title] = { title }
-        targetObj[title].change = item.change
+        targetObj[title].change = context: item.pane.context
         targetObj[title].callback = (it) ->
           appManager.tell 'IDE', 'createPaneFromChange', it.getData().change
           @destroy()
@@ -175,6 +177,9 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     methodName = if state then 'watchParticipant' else 'unwatchParticipant'
 
     kd.singletons.appManager.tell 'IDE', methodName, @nickname
+
+    if state
+      kd.singletons.appManager.tell 'IDE', 'showConfirmToSyncLayout', @nickname
 
 
   setReadOnlyState: (state) ->

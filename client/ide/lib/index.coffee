@@ -86,6 +86,7 @@ class IDEAppController extends AppController
           }
         ]
 
+    @silent    = no
     @workspace = new IDEWorkspace { layoutOptions }
     @ideViews  = []
 
@@ -234,11 +235,18 @@ class IDEAppController extends AppController
     kd.utils.defer -> pane.setFocus? state
 
 
-  splitTabView: (type = 'vertical', ideViewOptions, saveSnapshot = yes) ->
+  ###*
+   * @param {Object} options
+  ###
+  splitTabView: (options) ->
+
+    { type, ideViewOptions, dontSave, newIdeViewHash, silent } = options
 
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
-    newIDEView     = new IDEView ideViewOptions
+    newIdeView     = new IDEView ideViewOptions
+
+    newIdeView.setHash newIdeViewHash
 
     splitViewPanel = @activeTabView.parent.parent
     if splitViewPanel instanceof KDSplitViewPanel
@@ -249,14 +257,14 @@ class IDEAppController extends AppController
 
     ideView.detach()
 
-    splitView   = new KDSplitView
-      type      : type
-      views     : [ null, newIDEView ]
+    splitView = new KDSplitView
+      type  : type
+      views : [ null, newIdeView ]
 
     layout.split(type is 'vertical')
     splitView._layout = layout
 
-    @registerIDEView newIDEView
+    @registerIDEView newIdeView
 
     splitView.once 'viewAppended', =>
       splitView.panels.first.attach ideView
@@ -271,12 +279,18 @@ class IDEAppController extends AppController
       @doResize()
 
     ideParent.addSubView splitView
-    @setActiveTabView newIDEView.tabView
+    @setActiveTabView newIdeView.tabView
 
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
 
+    if not silent
+      newIdeView.emit 'NewSplitViewCreated',
+        ideView    : ideView
+        newIdeView : newIdeView
+        direction  : type
+
     @recalculateHandles()
-    @writeSnapshot()  if saveSnapshot
+    @writeSnapshot()  unless dontSave
     @resizeActiveTerminalPane()
 
 
@@ -290,13 +304,16 @@ class IDEAppController extends AppController
       view.holderView[closeHandleMethod]()
       view.ensureSplitHandlers()
 
+  ###*
+   * @param {boolean=} silent  Don't dispatch the `SplitViewWasMerged` event if it is `yes`
+  ###
+  mergeSplitView: (silent = no) ->
 
-  mergeSplitView: ->
-
-    tabView    = @activeTabView
-    panel      = tabView.parent.parent
-    splitView  = panel.parent
-    { parent } = splitView
+    tabView     = @activeTabView
+    panel       = tabView.parent.parent
+    splitView   = panel.parent
+    ideViewHash = tabView.parent.hash
+    { parent }  = splitView
 
     return  unless panel instanceof KDSplitViewPanel
 
@@ -330,11 +347,15 @@ class IDEAppController extends AppController
 
     parent.attach targetView  # Attach again.
 
+    @setActiveTabView targetIdeView.tabView
     @updateLayoutMap_ splitView, targetView
 
     # I'm not sure about the usage of private method. I had to...
     # Is it the best way for view resizing?
     targetView._windowDidResize()
+
+    if not silent
+      targetIdeView.emit 'SplitViewMerged', { ideViewHash, targetIdeView }
 
     @doResize()
     @recalculateHandles()
@@ -437,7 +458,7 @@ class IDEAppController extends AppController
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
 
-          @splitTabView 'horizontal', createNewEditor: no, no
+          @splitTabView type: 'horizontal', dontSave: yes
 
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
@@ -451,17 +472,19 @@ class IDEAppController extends AppController
         else
 
           @fetchSnapshot (snapshot) =>
-            return @resurrectLocalSnapshot snapshot  if snapshot
 
-            @splitTabView 'horizontal', createNewEditor: no, no
+            # Just resurrect snapshot for host or without collaboration.
+            # Because we need check the `@myWatchMap` and it is not possible here.
+            if snapshot and @amIHost
+              return @layoutManager.resurrectSnapshot snapshot
 
-            @ideViews.first.createEditor()
-            @ideViews.last.createTerminal { machine }
-            @setActiveTabView @ideViews.first.tabView
-            @initialViewsReady = yes
+            # Be quiet. Don't write initial views's changes to snapshot.
+            # After that, get participant's snapshot from collaboration data and build workspace.
+            @silent = yes  if @isInSession and not @amIHost
 
-            @forEachSubViewInIDEViews_ (pane) ->
-              pane.isInitial = yes
+            @splitTabView type: 'horizontal', dontSave: yes
+
+            @addInitialViews()
 
 
   setMountedMachine: (machine) ->
@@ -659,12 +682,12 @@ class IDEAppController extends AppController
 
   splitVertically: ->
 
-    @splitTabView 'vertical'
+    @splitTabView type: 'vertical'
 
 
   splitHorizontally: ->
 
-    @splitTabView 'horizontal'
+    @splitTabView type: 'horizontal'
 
   createNewFile: do ->
     newFileSeed = 1
@@ -719,11 +742,15 @@ class IDEAppController extends AppController
 
     return  unless targetPanel?.subViews.first.tabView   # Defensive check.
 
-    { pane } = tabView.removePane tabView.getActivePane(), yes
+    { pane }      = tabView.removePane tabView.getActivePane(), yes
+    { view }      = pane
+    targetTabView = targetPanel.subViews.first.tabView
 
-    targetPanel.subViews.first.tabView.addPane pane
+    targetTabView.addPane pane
     @setActiveTabView targetPanel.subViews.first.tabView
     @doResize()
+
+    targetTabView.parent.emit 'IDETabMoved', { view, tabView, targetTabView }
 
 
   moveTabUp: -> @moveTab 'north'
@@ -780,6 +807,7 @@ class IDEAppController extends AppController
         @mountedMachine.getBaseKite().removeFromActiveSessions session
 
       @statusBar.showInformation()  if ideViewLength is 0
+
       @writeSnapshot()
 
     ideView.tabView.on 'PaneAdded', (pane) =>
@@ -787,7 +815,7 @@ class IDEAppController extends AppController
       @writeSnapshot()
 
     ideView.on 'ChangeHappened', (change) =>
-      @syncChange change  if @rtm
+      @syncChange change  if @rtm?.isReady
 
     ideView.on 'UpdateWorkspaceSnapshot', =>
       @writeSnapshot()
@@ -795,13 +823,13 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
-    ## Only host can write snapshot to Kite
-    return  if @isDestroyed or not @isMachineRunning() or not @amIHost
+    return  if @isDestroyed or not @isMachineRunning() or @silent
 
     name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
 
     @mountedMachine.getBaseKite().storageSetQueued name, value
+    @emit 'SnapshotUpdated'
 
 
   removeWorkspaceSnapshot: (username = nick()) ->
@@ -828,7 +856,7 @@ class IDEAppController extends AppController
     @generatedPanes[view.hash] = yes
 
     view.on 'ChangeHappened', (change) =>
-      @syncChange change  if @rtm
+      @syncChange change  if @rtm?.isReady
 
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
@@ -1069,8 +1097,9 @@ class IDEAppController extends AppController
 
       unless @isLocalSnapshotRestored
 
-        if snapshot
-          @resurrectLocalSnapshot snapshot
+        # Just resurrect snapshot for the host with/without a session.
+        if snapshot and @amIHost
+          @layoutManager.resurrectSnapshot snapshot
         else
           @addInitialViews()  unless @initialViewsReady
 
@@ -1099,13 +1128,8 @@ class IDEAppController extends AppController
     @setActiveTabView @ideViews.first.tabView
     @initialViewsReady = yes
 
-
-  resurrectLocalSnapshot: (snapshot) ->
-
-    return  if snapshot then @layoutManager.resurrectSnapshot snapshot
-
-    @fetchSnapshot (snapshot)->
-      @layoutManager.resurrectSnapshot snapshot  if snapshot
+    @forEachSubViewInIDEViews_ (pane) ->
+      pane.isInitial = yes
 
 
   toggleFullscreenIDEView: ->
@@ -1172,12 +1196,12 @@ class IDEAppController extends AppController
   syncChange: (change) ->
 
     { context } = change
+
     return  if not @rtm or not @rtm.isReady or not context
 
-    change.rtmHash = @rtm.hash
-
-    {paneHash} = context
-    nickname   = nick()
+    change.rtmHash              = @rtm.hash
+    { paneHash, ideViewHash }   = context
+    nickname                    = nick()
 
     if change.origin is nickname
 
@@ -1194,6 +1218,9 @@ class IDEAppController extends AppController
         else if change.type is 'ContentChange'
 
           {content, path} = context.file
+
+          return  unless content
+
           string = @rtm.getFromModel path
           string.setText content  if string
 
@@ -1202,13 +1229,18 @@ class IDEAppController extends AppController
 
       @changes.push change
 
-    switch change.type
 
-      when 'NewPaneCreated'
-        @mySnapshot.set paneHash, change  if paneHash
+  ###*
+   * Am I watching to change's owner?
+   *
+   * @param {string} origin  Nickname of the change's owner
+   * @return {boolean}
+  ###
+  amIWatchingChangeOwner: (origin) ->
 
-      when 'PaneRemoved'
-        @mySnapshot.delete paneHash  if paneHash
+    return  if not @myWatchMap or not @myWatchMap.keys()
+
+    return @myWatchMap.keys().indexOf(origin) > -1
 
 
   handleChange: (change) ->
@@ -1217,15 +1249,27 @@ class IDEAppController extends AppController
 
     return if not context or not origin or (origin is nick() and rtmHash is @rtm.hash)
 
-    amIWatchingChangeOwner = @myWatchMap.keys().indexOf(origin) > -1
-
     mustSyncChanges = [ 'CursorActivity', 'FileSaved' ]
 
-    if amIWatchingChangeOwner or type in mustSyncChanges
+    if @amIWatchingChangeOwner(origin) or type in mustSyncChanges
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
         @createPaneFromChange change
+
+      else if type is 'NewSplitViewCreated'
+        @handleSplitViewChanges change, =>
+          @splitTabView
+            type            : context.direction
+            newIdeViewHash  : context.newIdeViewHash
+            silent          : yes
+
+      else if type is 'SplitViewMerged'
+        @handleSplitViewChanges change, =>
+          @mergeSplitView yes
+
+      else if type is 'IDETabMoved'
+        @handleMoveTabChanges context
 
       else if type in ['TabChanged', 'PaneRemoved', 'TerminalRenamed']
         paneView = targetPane?.parent
@@ -1246,6 +1290,53 @@ class IDEAppController extends AppController
 
 
       targetPane?.handleChange? change, @rtm
+
+
+  ###*
+   * @param {Object} context
+  ###
+  handleMoveTabChanges: (context) ->
+
+    originTabView = @getTabViewByIDEViewHash context.originIDEViewHash
+    targetTabView = @getTabViewByIDEViewHash context.targetIDEViewHash
+
+    return  if not originTabView or not targetTabView
+
+    @forEachSubViewInIDEViews_ context.paneType, (p) =>
+
+      if p.hash is context.paneHash
+
+        check = originTabView.panes.filter (p) -> p.hash is context.paneHash
+        if not originTabView.panes.length or not check.length
+          originTabView = p.parent.parent # Reach the `IDEApplicationTabView`
+
+        originTabView.activePane = null
+        { pane } = originTabView.removePane p.parent, yes, yes
+
+        originTabView.showPaneByIndex 0  if originTabView.panes.length
+
+        kd.utils.defer =>
+          targetTabView.addPane pane
+
+          # Update `AceView`s delegate
+          if pane.view instanceof IDEEditorPane
+            pane.view.updateAceViewDelegate targetTabView.parent
+
+          @setActiveTabView targetTabView
+          @doResize()
+
+
+  ###*
+   * @param {Object} change
+   * @param {Function=} callback
+  ###
+  handleSplitViewChanges: (change, callback = kd.noop) ->
+
+    tabView = @getTabViewByIDEViewHash change.context.ideViewHash
+    return  unless tabView
+
+    @setActiveTabView tabView
+    callback()
 
 
   getPaneByChange: (change) ->
@@ -1274,24 +1365,30 @@ class IDEAppController extends AppController
 
     return  if not @rtm and not isFromLocalStorage
 
-    { context } = change
+    { context, origin } = change
     return  unless context
 
     paneHash = context.paneHash or context.hash
 
-    { paneType } = context
+    { paneType, ideViewHash } = context
 
     return  if not paneType or not paneHash
 
-    @changeActiveTabView paneType  if not isFromLocalStorage and not @amIHost
+    # if the pane is already opened on IDE, don't re-open it. Show it.
+    if pane = @getPaneByChange change
+      paneView = pane.parent
+      tabView  = paneView.parent
+      return tabView.showPane paneView
+
+
+    if ideViewHash and @amIWatchingChangeOwner origin
+      targetTabView = @getTabViewByIDEViewHash ideViewHash
+      @setActiveTabView targetTabView  if targetTabView
 
     switch paneType
       when 'terminal' then @createTerminalPaneFromChange change, paneHash
       when 'editor'   then @createEditorPaneFromChange change, paneHash
       when 'drawing'  then @createDrawingPaneFromChange change, paneHash
-
-    if @mySnapshot and not @mySnapshot.get paneHash
-      @mySnapshot.set paneHash, change
 
 
   createTerminalPaneFromChange: (change, hash) ->
@@ -1488,7 +1585,7 @@ class IDEAppController extends AppController
           @openFile { file, contents }
 
 
-  fetchSnapshot: (callback) ->
+  fetchSnapshot: (callback, username = nick()) ->
 
     if not @mountedMachine or not @mountedMachine.isRunning()
       callback null
@@ -1504,7 +1601,7 @@ class IDEAppController extends AppController
       key = @getWorkspaceSnapshotName username
       @mountedMachine.getBaseKite().storageGet key
 
-    fetch nick()
+    fetch username
 
       .then (snapshot) =>
 
@@ -1543,6 +1640,8 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) =>
       @removePaneFromTabView pane  if pane.isInitial
 
+    @mergeSplitView yes
+
 
   setTargetTabView: (tabView) ->
 
@@ -1552,7 +1651,9 @@ class IDEAppController extends AppController
   handleTabDropped: (event, splitView, index) ->
 
     @moveTabToPanel @targetTabView, splitView, index  if @targetTabView
+
     @emit 'IDETabDropped'
+    @targetTabView = null  # Reset
 
 
   moveTabToPanel: (tabView, targetPanel, index) ->
@@ -1578,6 +1679,10 @@ class IDEAppController extends AppController
 
     @setActiveTabView targetTabView
     @doResize()
+
+    { view } = pane
+
+    targetTabView.parent.emit 'IDETabMoved', { view, tabView, targetTabView }
 
 
   runOnboarding: ->
@@ -1624,3 +1729,16 @@ class IDEAppController extends AppController
     view._layout.merge()
 
     @layoutMap[view._layout.data.offset] = view
+
+
+  ###*
+   * Get/find an `ideView` by `hash`
+   *
+   * @param {string} hash
+   * @return {IDEApplicationTabView}
+  ###
+  getTabViewByIDEViewHash: (hash) ->
+
+    [ target ] = @ideViews.filter (ideView) -> ideView.hash is hash
+
+    return target?.tabView

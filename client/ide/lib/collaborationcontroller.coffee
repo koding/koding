@@ -5,6 +5,7 @@ sinkrow                       = require 'sinkrow'
 globals                       = require 'globals'
 kd                            = require 'kd'
 KDNotificationView            = kd.NotificationView
+KDModalView                   = kd.ModalView
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
@@ -20,6 +21,7 @@ CollaborationStateMachine     = require './collaboration/collaborationstatemachi
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
 IDELayoutManager              = require './workspace/idelayoutmanager'
+IDEView                       = require './views/tabview/ideview'
 
 
 {warn} = kd
@@ -235,7 +237,7 @@ module.exports = CollaborationController =
   activateRealtimeManagerForParticipant: ->
 
     @startRealtimePolling()
-    @resurrectSnapshot()
+    @resurrectParticipantSnapshot()
 
     if @permissions.get(nick()) is 'read'
       @makeReadOnly()
@@ -243,9 +245,7 @@ module.exports = CollaborationController =
 
   setCollaborativeReferences: ->
 
-    initialSnapshot = if @amIHost then @getHostSnapshot() else {}
-
-    refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), initialSnapshot
+    refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), @getWorkspaceSnapshot()
 
     # for backwards compatibility.
     # TODO: keep this until CollaborationModel abstraction. ~Umut
@@ -287,12 +287,63 @@ module.exports = CollaborationController =
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
+  ###*
+   * Show confirm modal to sync layout to host's layout.
+   *
+   * @param {string} nickname
+  ###
+  showConfirmToSyncLayout: (nickname) ->
+
+    isHostWatched = nickname is @collaborationHost
+    return  if not isHostWatched or @amIHost
+
+    modal = new KDModalView
+      title         : "Host's layout is updated since you last watched his changes."
+      cssClass      : "modal-with-text layout-changed-modal"
+      content       : """
+        If you click yes below we'll change your tabs layout to match host's layout.
+        You won't lose your changes, if you have any.<br/><br/>
+        Would you like to proceed?
+      """
+      overlay       : yes
+      buttons       :
+        "Yes"       :
+          cssClass  : "solid medium red"
+          callback  : =>
+            modal.destroy()
+            @applyHostLayoutToParticipant()
+        "Cancel"    :
+          cssClass  : "solid medium light-gray"
+          callback  : => modal.destroy()
+
+
+  applyHostLayoutToParticipant: ->
+
+    @getHostSnapshot (snapshot) =>
+
+      remainingPanes = @layoutManager.clearLayout yes # Recover opened panes
+      @layoutManager.resurrectSnapshot snapshot, yes
+
+      return  unless remainingPanes.length
+
+      kd.utils.defer =>
+        for pane in remainingPanes
+          isAdded = no
+
+          @forEachSubViewInIDEViews_ (p) ->
+            isAdded = yes  if p.hash is pane.view.hash
+
+          @activeTabView.addPane pane  unless isAdded
+
+        @doResize()
+
+
   bindSocialChannelEvents: ->
 
     @socialChannel
       .on 'AddedToChannel', @bound 'participantAdded'
-      .on 'ChannelDeleted', @bound 'stopCollaborationSession'
-      .on 'MessageAdded', @bound 'channelMessageAdded'
+      .on 'MessageAdded',   @bound 'channelMessageAdded'
+      .on 'ChannelDeleted', => @stopCollaborationSession()  # Don't pass any arguments.
 
 
   participantAdded: (participant) ->
@@ -526,29 +577,23 @@ module.exports = CollaborationController =
     @mountMachine @mountedMachine
 
 
-  resurrectSnapshot: ->
+  ###*
+   * Resurrect snapshot for participant
+  ###
+  resurrectParticipantSnapshot: ->
 
-    return  if @fakeTabView
+    @whenRealtimeReady =>
 
-    snapshot = @mySnapshot.values().filter (item) -> not item.isInitial
-    snapshot = @appendHostSnapshot snapshot  unless @amIHost
+      @removeInitialViews()
+      mapLength = @myWatchMap.values()?.length
 
-    @removeInitialViews()
-
-    for change in snapshot when change.context
-      @createPaneFromChange change
-
-    @changeActiveTabView change?.context?.paneType
-
-
-  appendHostSnapshot: (snapshot) ->
-
-    return snapshot  if snapshot?.length
-
-    key = "#{@collaborationHost}Snapshot"
-
-    if hostSnapshot = @rtm.getFromModel(key)?.values()
-      return snapshot.concat hostSnapshot
+      ## The `mapLength=0` meant the participant joined the collaboration just now.
+      if not mapLength or @amIWatchingChangeOwner(@collaborationHost)
+        @getHostSnapshot (snapshot) =>
+          @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
+      else
+        @fetchSnapshot (snapshot) =>
+          @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
 
 
   showShareButton: ->
@@ -761,7 +806,8 @@ module.exports = CollaborationController =
     # attach realtime manager when a new editor pane is opened.
     @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
 
-    @on 'SetMachineUser', @bound 'broadcastMachineUserChange'
+    @on 'SetMachineUser',   @bound 'broadcastMachineUserChange'
+    @on 'SnapshotUpdated',  @bound 'handleSnapshotUpdated'
 
 
   transitionViewsToActive: ->
@@ -793,6 +839,7 @@ module.exports = CollaborationController =
         @handleCollaborationEndedForHost()
     else
       @endCollaborationForParticipant =>
+        @silent = yes
         @modal?.destroy()
         @handleCollaborationEndedForParticipant()
 
@@ -878,6 +925,10 @@ module.exports = CollaborationController =
 
   showChat: ->
 
+    # Show this message while "@stateMachine" is preparing when a session is over just now.
+    # It will be ready in a few seconds.
+    return showError 'Please wait a few seconds.'  unless @stateMachine
+
     switch @stateMachine.state
       when 'Active'     then @showChatPane()
       when 'Prepared'   then @chat.show()
@@ -945,7 +996,7 @@ module.exports = CollaborationController =
 
     machineBox = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
 
-    if machineBox.listController.getItemCount() > 1
+    if machineBox?.listController.getItemCount() > 1
       machineBox.removeWorkspace @workspaceData.getId()
     else
       activitySidebar.removeMachineNode @mountedMachine
@@ -1097,9 +1148,6 @@ module.exports = CollaborationController =
       then @stateMachine.transition 'Loading'
 
 
-  getHostSnapshot: -> IDELayoutManager.convertSnapshotToFlatArray @getWorkspaceSnapshot()
-
-
   setInitialSessionSetting: (name, value) ->
 
     @initialSettings ?= {}
@@ -1139,3 +1187,23 @@ module.exports = CollaborationController =
         participants.push user.nickname
 
     return participants
+
+
+  getHostSnapshot: (callback = kd.noop) ->
+
+    @fetchSnapshot (snapshot) =>
+      callback snapshot
+    ,@getCollaborationHost()
+
+
+  handleSnapshotUpdated: -> @mySnapshot.set 'layout', @getWorkspaceSnapshot()
+
+
+  getSnapshotFromDrive: (username = nick(), isFlat = no) ->
+
+    layout = @mySnapshot?.get 'layout'
+
+    if layout and isFlat
+      return IDELayoutManager.convertSnapshotToFlatArray layout
+
+    return layout
