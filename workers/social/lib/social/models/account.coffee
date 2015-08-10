@@ -696,7 +696,6 @@ module.exports = class JAccount extends jraphical.Module
 
   updateFlags: secure (client, flags, callback)->
     {delegate} = client.connection
-    JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$set: globalFlags: flags}, callback
     else
