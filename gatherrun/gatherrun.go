@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -92,7 +93,7 @@ func (c *GatherRun) GetGatherBinary() (*GatherBinary, error) {
 		return nil, err
 	}
 
-	tarFile := c.DestFolder + "/" + c.Fetcher.GetFileName()
+	tarFile := filepath.Join(c.DestFolder, c.Fetcher.GetFileName())
 	if err := untarFile(tarFile, c.DestFolder); err != nil {
 		return nil, err
 	}
