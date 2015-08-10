@@ -996,7 +996,7 @@ module.exports = CollaborationController =
 
     machineBox = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
 
-    if machineBox.listController.getItemCount() > 1
+    if machineBox?.listController.getItemCount() > 1
       machineBox.removeWorkspace @workspaceData.getId()
     else
       activitySidebar.removeMachineNode @mountedMachine
