@@ -10,7 +10,6 @@ import (
 	"net"
 	"net/http"
 	"runtime"
-	"time"
 
 	"github.com/PuerkitoBio/throttled"
 	"github.com/PuerkitoBio/throttled/store"
@@ -61,8 +60,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	th := throttled.RateLimit(
-		throttled.Q{Requests: 10, Window: time.Hour},
-		&throttled.VaryBy{Path: true},
+		throttled.PerHour(10),
+		&throttled.VaryBy{RemoteAddr: true, Path: false},
 		store.NewRedisStore(redisConn.Pool(), WorkerName, 0),
 	)
 
