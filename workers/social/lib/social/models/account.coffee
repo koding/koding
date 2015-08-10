@@ -930,16 +930,6 @@ module.exports = class JAccount extends jraphical.Module
 
     JUser.one {username: @profile.nickname}, callback
 
-  @taintedAccounts = {}
-  @taint =(id)->
-    @taintedAccounts[id] = yes
-
-  @untaint =(id)->
-    delete @taintedAccounts[id]
-
-  @isTainted =(id)->
-    isTainted = @taintedAccounts[id]
-    isTainted
 
   sendNotification: (event, contents) ->
     @createSocialApiId (err, socialApiId) =>
