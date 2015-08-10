@@ -8,7 +8,7 @@ module.exports = class InfiniteScroll extends React.Component
   @defaultProps =
     isDataLoading   : no
     scrollDirection : 'up'
-    scrollOffset    : 5
+    scrollOffset    : 200
     isScrollBottom  : yes
 
 
@@ -44,7 +44,7 @@ module.exports = class InfiniteScroll extends React.Component
     else
       InfiniteScroll.scrollTop = @scrollTop + (InfiniteScroll.scrollHeight - @scrollHeight)
 
-    kd.utils.wait 373, =>
+    kd.utils.wait 273, =>
       if @shouldScrollBottomAtFirst and @offsetHeight
         InfiniteScroll.scrollTop = InfiniteScroll.scrollHeight
         @shouldScrollBottomAtFirst = no
