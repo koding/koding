@@ -8,7 +8,6 @@ GroupPermissionsView = require './views/grouppermissionsview'
 GroupProductSettingsView = require './views/groupproductsettingsview'
 GroupProductsController = require './controllers/groupproductscontroller'
 GroupsBlockedUserView = require './views/groupsblockeduserview'
-GroupsInvitationView = require './views/groupsinvitationview'
 GroupsMemberPermissionsView = require './views/groupsmemberpermissionsview'
 GroupsMembershipPolicyDetailView = require './views/groupsmembershippolicydetailview'
 OnboardingDashboardView = require './views/onboarding/onboardingdashboardview'
@@ -41,11 +40,6 @@ module.exports = class DashboardAppController extends AppController
           viewClass  : GroupsMemberPermissionsView
           lazy       : yes
           callback   : @bound 'membersViewAdded'
-      ,
-        name         : 'Invitations'
-        viewOptions  :
-          viewClass  : GroupsInvitationView
-          lazy       : yes
       ,
         name         : 'Permissions'
         viewOptions  :
