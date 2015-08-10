@@ -266,6 +266,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         options.path = frontApp.workspaceData.rootPath
 
     terminalPane = new IDETerminalPane options
+
     @createPane_ terminalPane, { name: 'Terminal' }
 
 

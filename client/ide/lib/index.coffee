@@ -1742,3 +1742,8 @@ class IDEAppController extends AppController
     [ target ] = @ideViews.filter (ideView) -> ideView.hash is hash
 
     return target?.tabView
+
+
+  isChatInputFocused: ->
+
+    return kd.dom.hasClass document.activeElement, 'collab-chat-input'
