@@ -14,11 +14,20 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.LOAD_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
+    @on actions.LOAD_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
+    @on actions.LOAD_POPULAR_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
 
 
   handleLoadChannelSuccess: (channels, { channel }) ->
 
     return channels.set channel.id, toImmutable channel
+
+
+  handleLoadChannelListSuccess: (currentChannels, { channels }) ->
+
+    return currentChannels.withMutations (map) ->
+      map.set channel.id, toImmutable channel for channel in  channels
+      return map
 
 
 initChannel = (channels, id) ->

@@ -18,6 +18,7 @@ ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 MessageThreadsStore            = [['MessageThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
+PopularChannelIdsStore         = [['PopularChannelIdsStore'], withEmptyMap]
 ChannelParticipantIdsStore     = [['ChannelParticipantIdsStore'], withEmptyMap]
 ChannelPopularMessageIdsStore  = [['ChannelPopularMessageIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
@@ -34,6 +35,11 @@ FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
 CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
 CommonEmojiListFlagsStore           = [['CommonEmojiListFlagsStore'], withEmptyMap]
 
+ChatInputChannelsQueryStore         = ['ChatInputChannelsQueryStore']
+ChatInputChannelsSelectedIndexStore = ['ChatInputChannelsSelectedIndexStore']
+ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
+
+
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
 # visual components) to use.
@@ -48,6 +54,12 @@ followedPublicChannels = [
 # Maps followed private channel ids with relevant channel instances.
 followedPrivateChannels = [
   FollowedPrivateChannelIdsStore
+  ChannelsStore
+  (ids, channels) -> ids.map (id) -> channels.get id
+]
+
+popularChannels = [
+  PopularChannelIdsStore
   ChannelsStore
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
@@ -234,6 +246,32 @@ commonEmojiListSelectedItem  = [
   (emojis, index) -> emojis.get index
 ]
 
+chatInputChannelsQuery         = ChatInputChannelsQueryStore
+chatInputChannelsSelectedIndex = ChatInputChannelsSelectedIndexStore
+chatInputChannes               = [
+  ChannelsStore
+  popularChannels
+  chatInputChannelsQuery
+  (channels, popularChannels, query) ->
+    return popularChannels.toList()  unless query
+
+    query = query.toLowerCase()
+    channels.toList().filter (channel) ->
+      channelName = channel.get('name').toLowerCase()
+      return channelName.indexOf(query) is 0
+]
+chatInputChannelsSelectedItem = [
+  chatInputChannes
+  chatInputChannelsSelectedIndex
+  (channels, index) ->
+    return  unless channels.size > 0
+
+    index = index % channels.size  if index >= channels.size
+    index = channels.size + index  if index < 0
+    return channels.get index
+]
+chatInputChannelsVisibility = ChatInputChannelsVisibilityStore
+
 module.exports = {
   followedPublicChannelThreads
   followedPrivateChannelThreads
@@ -263,4 +301,10 @@ module.exports = {
   commonEmojiListSelectedIndex
   commonEmojiListFlags
   commonEmojiListSelectedItem
+
+  chatInputChannes
+  chatInputChannelsQuery
+  chatInputChannelsSelectedIndex
+  chatInputChannelsSelectedItem
+  chatInputChannelsVisibility
 }

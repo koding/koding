@@ -1,24 +1,26 @@
-actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 
 ###*
- * Store to contain filtered emoji list query
+ * Base class to store and manage a query of list
 ###
-module.exports = class FilteredEmojiListQueryStore extends KodingFluxStore
-
-  @getterPath = 'FilteredEmojiListQueryStore'
+module.exports = class ChatInputQueryStore extends KodingFluxStore
 
   getInitialState: -> null
 
 
-  initialize: ->
+  ###*
+   * Descendant class should call this method
+   * to bind action names to proper methods
+   *
+   * @param {object} actions
+  ###
+  bindActions: (actions) ->
 
-    @on actions.SET_FILTERED_EMOJI_LIST_QUERY,   @setQuery
-    @on actions.UNSET_FILTERED_EMOJI_LIST_QUERY, @unsetQuery
+    @on actions.setQuery,   @setQuery
+    @on actions.unsetQuery, @unsetQuery
 
 
   ###*
-   * Handler of SET_FILTERED_EMOJI_LIST_QUERY action
    * It updates current query with a given value
    *
    * @param {string} currentState
@@ -30,7 +32,6 @@ module.exports = class FilteredEmojiListQueryStore extends KodingFluxStore
 
 
   ###*
-   * Handler of UNSET_FILTERED_EMOJI_LIST_QUERY action
    * It resets current query to initial value
    *
    * @param {string} currentState

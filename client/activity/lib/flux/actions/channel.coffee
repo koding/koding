@@ -150,6 +150,129 @@ loadPopularMessages = (channelId, options = {}) ->
       messages.forEach (message) ->
         dispatch LOAD_POPULAR_MESSAGE_SUCCESS, { channelId, message }
 
+###*
+ * Action to load popular channels with given options
+ *
+ * @param {object=} options
+###
+loadPopularChannels = (options = {}) ->
+
+  { LOAD_POPULAR_CHANNELS_BEGIN
+    LOAD_POPULAR_CHANNELS_SUCCESS
+    LOAD_POPULAR_CHANNELS_FAIL } = actionTypes
+
+  dispatch LOAD_POPULAR_CHANNELS_BEGIN
+
+  kd.singletons.socialapi.channel.fetchPopularTopics options, (err, channels) ->
+    if err
+      dispatch LOAD_POPULAR_CHANNELS_FAIL, { err }
+      return
+
+    dispatch LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
+
+
+###*
+ * Action to load channels filtered by given query
+ *
+ * @param {string}  query
+ * @param {object=} options
+###
+loadChannelsByQuery = (query, options = {}) ->
+
+  { LOAD_CHANNELS_BEGIN
+    LOAD_CHANNELS_SUCCESS
+    LOAD_CHANNELS_FAIL } = actionTypes
+
+  options.name = query
+
+  dispatch LOAD_CHANNELS_BEGIN
+
+  kd.singletons.socialapi.channel.searchTopics options, (err, channels) ->
+    if err
+      dispatch LOAD_CHANNELS_FAIL, { err, query }
+      return
+
+    dispatch LOAD_CHANNELS_SUCCESS, { channels }
+
+
+###*
+ * Action to set current query of chat input channels.
+ * Also, it resets channels selected index and loads channels
+ * depending on query's value:
+ * - if query is empty, it loads popular channels
+ * - otherwise, it loads channels filtered by query
+ *
+ * @param {string} query
+###
+setChatInputChannelsQuery = (query) ->
+
+  if query
+    { SET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
+    dispatch SET_CHAT_INPUT_CHANNELS_QUERY, { query }
+    resetChatInputChannelsSelectedIndex()
+    loadChannelsByQuery query
+  else
+    unsetChatInputChannelsQuery()
+    loadPopularChannels()
+
+
+###*
+ * Action to unset current query of chat input channels.
+ * Also, it resets channels selected index
+###
+unsetChatInputChannelsQuery = ->
+
+  { UNSET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
+  dispatch UNSET_CHAT_INPUT_CHANNELS_QUERY
+
+  resetChatInputChannelsSelectedIndex()
+
+
+###*
+ * Action to set selected index of chat input channels
+ *
+ * @param {number} index
+###
+setChatInputChannelsSelectedIndex = (index) ->
+
+  { SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
+  dispatch SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
+
+
+###*
+ * Action to increment channels selected index
+###
+moveToNextChatInputChannelsIndex = ->
+
+  { MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
+  dispatch MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX
+
+
+###*
+ * Action to decrement channels selected index
+###
+moveToPrevChatInputChannelsIndex = ->
+
+  { MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
+  dispatch MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX
+
+
+###*
+ * Action to reset channels selected index to initial value
+###
+resetChatInputChannelsSelectedIndex = ->
+
+  { RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
+  dispatch RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
+
+
+###*
+ * Action to set visibility of chat input channels
+###
+setChatInputChannelsVisibility = (visible) ->
+
+  { SET_CHAT_INPUT_CHANNELS_VISIBILITY } = actionTypes
+  dispatch SET_CHAT_INPUT_CHANNELS_VISIBILITY, { visible }
 
 
 module.exports = {
@@ -158,4 +281,11 @@ module.exports = {
   loadFollowedPublicChannels
   loadParticipants
   loadPopularMessages
+  setChatInputChannelsQuery
+  unsetChatInputChannelsQuery
+  setChatInputChannelsSelectedIndex
+  moveToNextChatInputChannelsIndex
+  moveToPrevChatInputChannelsIndex
+  resetChatInputChannelsSelectedIndex
+  setChatInputChannelsVisibility
 }

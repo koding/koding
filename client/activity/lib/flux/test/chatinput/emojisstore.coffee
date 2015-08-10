@@ -2,8 +2,7 @@
 
 Reactor = require 'app/flux/reactor'
 
-EmojisStore = require 'activity/flux/stores/emojis/emojisstore'
-actionTypes = require 'activity/flux/actions/actiontypes'
+EmojisStore = require 'activity/flux/stores/chatinput/emojisstore'
 
 describe 'EmojisStore', ->
 
