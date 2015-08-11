@@ -142,36 +142,17 @@ runTests = -> describe 'server.handlers.register', ->
 
     email = "kodingtestuser+#{generateRandomString()}@gmail.com"
 
-    queue = [
+    [username, host] = email.split '@'
 
-      ->
+    username  = username.replace /(.)/g, '$1.'
+    email = "#{username}@#{host}"
 
-        registerParams = generateRegisterRequestParams body: {email}
+    registerParams = generateRegisterRequestParams body: {email}
 
-        request.post registerParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
-
-      ->
-
-        [username, host] = email.split '@'
-
-        username  = username.replace /(.)/g, '$1.'
-        email = "#{username}@#{host}"
-
-        registerParams = generateRegisterRequestParams body: {email}
-
-        request.post registerParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          queue.next()
-
-      -> done()
-
-    ]
-
-    daisy queue
+    request.post registerParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 400
+      done()
 
 
   it 'should send HTTP 400 if agree is set as off', (done) ->

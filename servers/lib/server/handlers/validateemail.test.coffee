@@ -134,28 +134,12 @@ runTests = -> describe 'server.handlers.validateemail', ->
       body     :
         email  : candidate
 
-    queue = [
-
-      ->
-        # registering a new user
-        request.post registerRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
-
-      ->
-        # expecting email validation to fail using already registered email
-        request.post validateEmailRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          expect(body)            .to.be.equal 'Bad request'
-          queue.next()
-
-      -> done()
-
-    ]
-
-    daisy queue
+    # expecting email validation to fail using already registered email
+    request.post validateEmailRequestParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 400
+      expect(body)            .to.be.equal 'Bad request'
+      done()
 
 
   it 'should send HTTP 400 if email is in use and password is invalid', (done) ->
