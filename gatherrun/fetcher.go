@@ -52,7 +52,10 @@ func (s *S3Fetcher) Download(folderName string) error {
 	}
 
 	w, err := os.Create(filepath.Join(folderName, s.FileName))
-	defer w.Close()
+	if w != nil {
+		defer w.Close()
+	}
+
 	if err != nil {
 		return err
 	}

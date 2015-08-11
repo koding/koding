@@ -4,35 +4,55 @@ import (
 	"archive/tar"
 	"io"
 	"os"
-	"strings"
+	"path/filepath"
 )
 
-func untarFile(tarFile string) error {
-	var outputFile = strings.TrimSuffix(tarFile, tarSuffix)
+// var outputFile = strings.TrimSuffix(tarFile, tarSuffix)
 
-	reader, err := os.Open(tarFile)
+func untar(tarFilePath, outputFolder string) error {
+	tarFileReader, err := os.Open(tarFilePath)
 	if err != nil {
 		return err
 	}
 
-	tarBallReader := tar.NewReader(reader)
+	tarBallReader := tar.NewReader(tarFileReader)
 
-	_, err = tarBallReader.Next()
-	if err != nil && err != io.EOF {
-		return err
+	for {
+		header, err := tarBallReader.Next()
+		if err != nil && err != io.EOF {
+			return err
+		}
+
+		if err == io.EOF {
+			return nil
+		}
+
+		fullPath := filepath.Join(outputFolder, header.Name)
+
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if err := os.MkdirAll(fullPath, os.FileMode(header.Mode)); err != nil {
+				return err
+			}
+		case tar.TypeReg:
+			fh, err := os.Create(fullPath)
+			if fh != nil {
+				defer fh.Close()
+			}
+
+			if err != nil {
+				return err
+			}
+
+			if _, err := io.Copy(fh, tarBallReader); err != nil {
+				return err
+			}
+
+			if err := os.Chmod(fh.Name(), os.FileMode(header.Mode)); err != nil {
+				return err
+			}
+		}
 	}
 
-	writer, err := os.Create(outputFile)
-	if err != nil {
-		return err
-	}
-
-	if err := writer.Chmod(os.ModePerm); err != nil {
-		return err
-	}
-
-	_, err = io.Copy(writer, tarBallReader)
-	defer writer.Close()
-
-	return err
+	return nil
 }

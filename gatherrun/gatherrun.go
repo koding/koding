@@ -97,7 +97,8 @@ func (c *GatherRun) GetGatherBinary() (*GatherBinary, error) {
 	}
 
 	tarFile := filepath.Join(c.DestFolder, c.Fetcher.GetFileName())
-	if err := untarFile(tarFile); err != nil {
+	outputFolder := strings.TrimSuffix(tarFile, tarSuffix)
+	if err := untar(tarFile, outputFolder); err != nil {
 		return nil, err
 	}
 
