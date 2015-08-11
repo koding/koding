@@ -6,6 +6,6 @@ module.exports = class IDEAce extends Ace
 
   focus: ->
 
-    return  if kd.singletons.appManager.frontApp.isChatInputFocused()
+    return  if kd.singletons.appManager.frontApp.isChatInputFocused?()
 
     super

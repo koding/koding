@@ -7,6 +7,6 @@ module.exports = class IDEWebTermView extends WebTermView
 
   setFocus: (state = yes) ->
 
-    return  if kd.singletons.appManager.frontApp.isChatInputFocused()
+    return  if kd.singletons.appManager.frontApp.isChatInputFocused?()
 
     super state
