@@ -25,6 +25,7 @@ module.exports = class ChatListItem extends React.Component
     isMenuOpen     : no
     editInputValue : ''
 
+
   constructor: (props) ->
 
     super props
