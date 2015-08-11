@@ -12,7 +12,7 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
  *
  * @param {string} channelId
 ###
-loadMessages = (channelId, skip = 0) ->
+loadMessages = (channelId, from) ->
 
   { socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
