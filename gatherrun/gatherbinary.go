@@ -16,7 +16,7 @@ type GatherBinary struct {
 
 func (g *GatherBinary) Run() ([]interface{}, error) {
 	cmd := exec.Command(g.Path)
-	cmd.Env = append(os.Environ(), g.ScriptType)
+	cmd.Env = append(os.Environ(), envVarName+"="+g.ScriptType)
 
 	output, err := cmd.Output()
 	if err != nil {

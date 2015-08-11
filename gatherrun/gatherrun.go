@@ -13,6 +13,7 @@ import (
 var (
 	abuseInterval     = time.Minute * 30
 	analyticsInterval = time.Hour * 24
+	envVarName        = "GATHER"
 	awsAccessKey      = ""
 	awsSecretKey      = ""
 )
