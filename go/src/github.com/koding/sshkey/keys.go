@@ -11,11 +11,12 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func GenerateKeys() (string, error) {
+func GenerateKeys() (pubKey string, privKey string, err error) {
+
 	// genereate key pair
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2014)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	/// convert to private key
@@ -31,7 +32,7 @@ func GenerateKeys() (string, error) {
 	publicKey := privateKey.PublicKey
 	publicKeyDer, err := x509.MarshalPKIXPublicKey(&publicKey)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	publicKeyBlock := pem.Block{
 		Type:    "PUBLIC KEY",
@@ -40,16 +41,18 @@ func GenerateKeys() (string, error) {
 	}
 	publicKeyPem := string(pem.EncodeToMemory(&publicKeyBlock))
 
-	fmt.Println(privateKeyPem)
+	// fmt.Println(privateKeyPem)
 	fmt.Println(publicKeyPem)
+
+	privKey = privateKeyPem
 
 	////
 	pub, err := ssh.NewPublicKey(&publicKey)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	pubKey := fmt.Sprintf("ssh-rsa %v", base64.StdEncoding.EncodeToString(pub.Marshal()))
+	pubKey = fmt.Sprintf("ssh-rsa %v", base64.StdEncoding.EncodeToString(pub.Marshal()))
 
-	return pubKey, nil
+	return pubKey, privKey, nil
 }
