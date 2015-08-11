@@ -3,8 +3,11 @@ package gatherrun
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"os/exec"
+
+	"github.com/koding/klient/command"
 )
 
 type Options map[string]interface{}
@@ -18,12 +21,16 @@ func (g *GatherBinary) Run() ([]interface{}, error) {
 	cmd := exec.Command(g.Path)
 	cmd.Env = append(os.Environ(), envVarName+"="+g.ScriptType)
 
-	output, err := cmd.Output()
+	output, err := command.NewOutput(cmd)
 	if err != nil {
 		return nil, err
 	}
 
-	buf := bytes.NewBuffer(output)
+	if output.Stderr != "" {
+		return nil, errors.New(output.Stderr)
+	}
+
+	buf := bytes.NewBuffer([]byte(output.Stdout))
 
 	var results []interface{}
 	if err := json.NewDecoder(buf).Decode(&results); err != nil {
