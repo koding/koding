@@ -33,5 +33,5 @@ module.exports = class GroupStackSettingsV2 extends kd.View
 
     defineStackView.on ['Cancel', 'Completed'], =>
       @initialView.show()
-      @destroy()
+      defineStackView.destroy()
 
