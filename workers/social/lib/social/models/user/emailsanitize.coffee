@@ -1,14 +1,5 @@
 sanitize = (email, options = {}) ->
 
-  email = email.trim().toLowerCase()
-
-  return switch
-    when checkGmail email then sanitizeGmail email, options
-    else email
-
-
-sanitizeGmail = (email, options = {}) ->
-
   options.excludeDots or= no
   options.excludePlus or= no
 
@@ -36,6 +27,9 @@ sanitizeGmail = (email, options = {}) ->
 checkGmail = (email) -> /^(.)+@(gmail|googlemail).com/.test email
 
 
+checkKoding = (email) -> /^(.)+@koding.com/.test email
+
+
 excludeDots = (username) -> username.replace /\./g, ''
 
 
@@ -43,4 +37,10 @@ excludePlus = (username) ->
   parts[0]  if (parts = username.split '+').length
 
 
-module.exports = sanitize
+module.exports = (email, options = {}) ->
+
+  email = email.trim().toLowerCase()
+
+  if checkKoding email
+  then email
+  else sanitize email, options
