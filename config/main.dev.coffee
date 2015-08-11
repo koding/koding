@@ -218,6 +218,7 @@ Configuration = (options={}) ->
 
     vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-dev" }
     gowebserver                    : {port          : 6500}
+    gatheringestor                 : {port          : 6800}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
     mq                             : mq
@@ -679,6 +680,23 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/janitor -c #{socialapi.configFilePath} -kite-init=true"
       healthCheckURL    : "http://localhost:#{socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapi.janitor.port}/version"
+
+    gatheringestor      :
+      ports             :
+        incoming        : KONFIG.gatheringestor.port
+      group             : "environment"
+      instances         : 1
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/gatheringestor -c #{configName}"
+          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
+      nginx             :
+        locations       : [
+          location      : "~ /-/ingestor/(.*)"
+          proxyPass     : "http://gatheringestor/$1$is_args$args"
+        ]
 
     integration         :
       group             : "socialapi"
@@ -1646,6 +1664,16 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "vmwatchertests" ]; then
         go test koding/vmwatcher -test.v=true
+
+      elif [ "$1" == "janitortests" ]; then
+        cd go/src/koding/workers/janitor
+        ./test.sh
+
+      elif [ "$1" == "gatheringestortests" ]; then
+        go test koding/workers/gatheringestor -test.v=true
+
+      elif [ "$1" == "gomodeltests" ]; then
+        go test koding/db/mongodb/modelhelper -test.v=true
 
       elif [ "$1" == "socialworkertests" ]; then
         #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
