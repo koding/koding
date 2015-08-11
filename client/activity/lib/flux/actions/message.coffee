@@ -20,7 +20,7 @@ loadMessages = (channelId, from) ->
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId }
 
-  socialapi.channel.fetchActivities {id: channelId, skip}, (err, messages) ->
+  socialapi.channel.fetchActivities {id: channelId, from}, (err, messages) ->
     if err
       dispatch LOAD_MESSAGES_FAIL, { err, channelId }
       return
