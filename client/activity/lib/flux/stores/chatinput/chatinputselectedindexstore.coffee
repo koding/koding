@@ -1,27 +1,29 @@
-actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 toImmutable     = require 'app/util/toImmutable'
 
 ###*
- * Store to contain filtered emoji list selected index
+ * Base class to store and manage selected index of list
 ###
-module.exports = class FilteredEmojiListSelectedIndexStore extends KodingFluxStore
-
-  @getterPath = 'FilteredEmojiListSelectedIndexStore'
+module.exports = class ChatInputSelectedIndexStore extends KodingFluxStore
 
   getInitialState: -> 0
 
 
-  initialize: ->
+  ###*
+   * Descendant class should call this method
+   * to bind action names to proper methods
+   *
+   * @param {object} actions
+  ###
+  bindActions: (actions) ->
 
-    @on actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX,   @setIndex
-    @on actions.MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX,   @moveToNextIndex
-    @on actions.MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX,   @moveToPrevIndex
-    @on actions.RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, @resetIndex
+    @on actions.setIndex,        @setIndex
+    @on actions.resetIndex,      @resetIndex
+    @on actions.moveToNextIndex, @moveToNextIndex  if actions.moveToNextIndex
+    @on actions.moveToPrevIndex, @moveToPrevIndex  if actions.moveToPrevIndex
 
 
   ###*
-   * Handler of SET_FILTERED_EMOJI_LIST_SELECTED_INDEX action
    * It updates current selected index with a given value
    *
    * @param {number} currentState
@@ -33,7 +35,6 @@ module.exports = class FilteredEmojiListSelectedIndexStore extends KodingFluxSto
 
 
   ###*
-   * Handler of MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX action
    * It increments current selected index
    *
    * @param {number} currentState
@@ -43,7 +44,6 @@ module.exports = class FilteredEmojiListSelectedIndexStore extends KodingFluxSto
 
 
   ###*
-   * Handler of MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX action
    * It decrements current selected index
    *
    * @param {number} currentState
@@ -53,7 +53,6 @@ module.exports = class FilteredEmojiListSelectedIndexStore extends KodingFluxSto
 
 
   ###*
-   * Handler of RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX action
    * It resets current selected index to initial value
    *
    * @param {number} currentState

@@ -1,10 +1,18 @@
 kd              = require 'kd'
 React           = require 'kd-react'
+immutable       = require 'immutable'
 ActivityFlux    = require 'activity/flux'
 classnames      = require 'classnames'
 formatEmojiName = require 'activity/util/formatEmojiName'
 
 module.exports = class EmojiSelectorItem extends React.Component
+
+  @defaultProps =
+    emoji        : immutable.Map()
+    isFirstInRow : no
+    isSelected   : no
+    index        : 0
+
 
   handleSelect: ->
 
