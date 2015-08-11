@@ -9,9 +9,8 @@ SidebarChannelsListItem = require 'activity/components/sidebarchannelslistitem'
 module.exports = class SidebarChannelsSection extends React.Component
 
   @defaultProps =
-    threads       : immutable.Map()
-    selectedId    : null
-    itemComponent : React.createFactory 'div'
+    threads    : immutable.Map()
+    selectedId : null
 
   render: ->
     <SidebarSection title="Channels" className="SidebarChannelsSection">
