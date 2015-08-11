@@ -4,7 +4,9 @@ immutable       = require 'immutable'
 ActivityFlux    = require 'activity/flux'
 ChatPane        = require 'activity/components/chatpane'
 
+
 module.exports = class PublicChatPane extends React.Component
+
 
   @defaultProps =
     thread   : immutable.Map()
@@ -38,12 +40,17 @@ module.exports = class PublicChatPane extends React.Component
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
 
+  onScrollThresholdReached: ->
+    console.log "load messages"
+
+
   render: ->
     <ChatPane
+      thread={@props.thread}
       className="PublicChatPane"
-      title={@channel 'name'}
       messages={@props.messages}
       onSubmit={@bound 'onSubmit'}
+      onScrollThresholdReached={@bound 'onScrollThresholdReached'}
     />
 
 

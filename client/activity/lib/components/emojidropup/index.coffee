@@ -1,83 +1,106 @@
 $               = require 'jquery'
 kd              = require 'kd'
 React           = require 'kd-react'
+immutable       = require 'immutable'
 classnames      = require 'classnames'
+formatEmojiName = require 'activity/util/formatEmojiName'
 ActivityFlux    = require 'activity/flux'
+Dropup          = require 'activity/components/dropup'
 EmojiDropupItem = require 'activity/components/emojidropupitem'
+
 
 module.exports = class EmojiDropup extends React.Component
 
-  isVisible: -> @props.emojis?.size > 0
+  @defaultProps =
+    items        : immutable.List()
+    selectedItem : null
 
 
-  componentDidMount: ->
-
-    document.addEventListener 'mousedown', @bound 'handleMouseClick'
+  isActive: -> @props.items.size > 0
 
 
-  componentWillUnmount: ->
-
-    document.removeEventListener 'mousedown', @bound 'handleMouseClick'
+  hasOnlyItem: -> @props.items.size is 1
 
 
-  componentDidUpdate: ->
+  confirmSelectedItem: ->
 
-    return  unless @isVisible()
+    { selectedItem } = @props
 
-    element = $(React.findDOMNode this.refs.dropup)
-    element.css top : -element.outerHeight()
+    @props.onItemConfirmed? formatEmojiName selectedItem
+    @close()
 
 
-  handleItemSelect: (index) ->
+  close: ->
+
+    ActivityFlux.actions.emoji.unsetFilteredListQuery()
+
+
+  moveToNextPosition: ->
+
+    if @hasOnlyItem()
+      @close()
+      return no
+    else
+      ActivityFlux.actions.emoji.moveToNextFilteredListIndex()
+      return yes
+
+
+  moveToPrevPosition: ->
+
+    if @hasOnlyItem()
+      @close()
+      return no
+    else
+      ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
+      return yes
+
+
+  setQuery: (query) ->
+
+    matchResult = query?.match /^\:(.+)/
+    query = matchResult?[1]
+
+    if @isActive() or query
+      ActivityFlux.actions.emoji.setFilteredListQuery query
+
+
+  onItemSelected: (index) ->
 
     ActivityFlux.actions.emoji.setFilteredListSelectedIndex index
 
 
-  handleItemClick: ->
-
-    @props.onItemConfirmed?()
-
-
-  handleMouseClick: (event) ->
-
-    return  unless @isVisible()
-
-    { target } = event
-    element    = React.findDOMNode this
-    innerClick = $.contains element, target
-
-    ActivityFlux.actions.emoji.unsetFilteredListQuery()  unless innerClick
-
-
   renderList: ->
 
-    { emojis, selectedEmoji } = @props
+    { items, selectedItem } = @props
 
-    emojis.map (emoji, index) =>
-      isSelected = emoji is selectedEmoji
+    items.map (item, index) =>
+      isSelected = item is selectedItem
+
       <EmojiDropupItem
-        emoji      = { emoji }
-        isSelected = { isSelected }
-        index      = { index }
-        onSelect   = { @bound 'handleItemSelect'}
-        onClick    = { @bound 'handleItemClick' }
-        key        = { emoji }
+        isSelected  = { isSelected }
+        index       = { index }
+        item        = { item }
+        onSelected  = { @bound 'onItemSelected' }
+        onConfirmed = { @bound 'confirmSelectedItem' }
+        key         = item
       />
 
 
   render: ->
 
-    { emojis, emojiQuery } = @props
-    className = classnames
-      'EmojiDropup-container' : yes
-      'hidden'                : not @isVisible()
+    { items, query } = @props
 
-    <div className={className}>
-      <div className="EmojiDropup" ref="dropup">
-        <div className="EmojiDropup-header">
-          Emojis matching <strong>:{emojiQuery}</strong>
-        </div>
+    <Dropup
+      className      = "EmojiDropup"
+      items          = { items }
+      visible        = { @isActive() }
+      onOuterClick   = { @bound 'close' }
+    >
+      <div className="Dropup-header">
+        Emojis matching <strong>:{query}</strong>
+      </div>
+      <div className="EmojiDropup-list">
         {@renderList()}
         <div className="clearfix" />
       </div>
-    </div>
+    </Dropup>

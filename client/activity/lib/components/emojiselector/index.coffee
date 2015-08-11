@@ -2,6 +2,7 @@ $                 = require 'jquery'
 kd                = require 'kd'
 React             = require 'kd-react'
 classnames        = require 'classnames'
+immutable         = require 'immutable'
 emojify           = require 'emojify.js'
 formatEmojiName   = require 'activity/util/formatEmojiName'
 ActivityFlux      = require 'activity/flux'
@@ -9,8 +10,14 @@ EmojiSelectorItem = require 'activity/components/emojiselectoritem'
 
 module.exports = class EmojiSelector extends React.Component
 
-  DEFAULT_ITEMS_PER_ROW = 8
   ESC = 27
+
+  @defaultProps =
+    emojis        : immutable.List()
+    visible       : no
+    itemsPerRow   : 8
+    selectedEmoji : immutable.Map()
+
 
   componentDidMount: ->
 
@@ -65,7 +72,6 @@ module.exports = class EmojiSelector extends React.Component
   renderList: ->
 
     { emojis, itemsPerRow, selectedEmoji } = @props
-    itemsPerRow ?= DEFAULT_ITEMS_PER_ROW
 
     emojis.map (emoji, index) =>
       isFirstInRow = (index + 1) % itemsPerRow is 1

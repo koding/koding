@@ -1,3 +1,5 @@
+_ = require 'lodash'
+
 ###*
  * Sanitizes given payload to meet the request criteria.
  *
@@ -6,7 +8,7 @@
 ###
 sanitizePayload = (payload) ->
 
-  unless typeof payload is 'object'
+  unless _.isPlainObject payload
     payload = {}
 
   return payload

@@ -105,3 +105,19 @@ describe 'MessageThreadsStore', ->
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
       expect(storeState['123']['comments']['007']).to.eql '007'
 
+
+  describe '#handleRemoveMessageSuccess', ->
+
+    it 'removes deleted message from message thread lists', ->
+
+      comment = createFakeMessage '007', 'bond'
+      @reactor.dispatch actions.CREATE_COMMENT_SUCCESS, { comment, messageId: '123' }
+
+      storeState = @reactor.evaluateToJS ['MessageThreadsStore']
+      expect(storeState['123']['comments']['007']).to.eql '007'
+
+      @reactor.dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: comment.id }
+
+      storeState = @reactor.evaluateToJS ['MessageThreadsStore']
+      expect(storeState['123']['comments']['007']).to.be.undefined
+
