@@ -206,6 +206,7 @@ Configuration = (options={}) ->
     # -- WORKER CONFIGURATION -- #
     vmwatcher                      : {port          : "6400"                      , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey   , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-sandbox" }
     gowebserver                    : {port          : 6500}
+    gatheringestor                 : {port          : 6800}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
     mq                             : mq
@@ -478,6 +479,21 @@ Configuration = (options={}) ->
     #   supervisord       :
     #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
 
+    gatheringestor      :
+      ports             :
+        incoming        : KONFIG.gatheringestor.port
+      group             : "environment"
+      instances         : 1
+      supervisord       :
+        command         : "#{GOBIN}/gatheringestor -c #{configName}"
+        stopwaitsecs    : 20
+      healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
+      nginx             :
+        locations       : [
+          location      : "~ /-/ingestor/(.*)"
+          proxyPass     : "http://gatheringestor/$1$is_args$args"
+        ]
 
     # Social API workers
     socialapi           :
