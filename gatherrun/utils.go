@@ -27,6 +27,10 @@ func untarFile(tarFile string) error {
 		return err
 	}
 
+	if err := writer.Chmod(os.ModePerm); err != nil {
+		return err
+	}
+
 	_, err = io.Copy(writer, tarBallReader)
 	return err
 }
