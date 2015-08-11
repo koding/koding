@@ -6,10 +6,6 @@ ChatPane        = require 'activity/components/chatpane'
 
 
 module.exports = class PublicChatPane extends React.Component
-  constructor: (options = {}, data) ->
-
-    @state = { skip : 0 }
-
 
   @defaultProps =
     thread   : immutable.Map()
@@ -45,9 +41,8 @@ module.exports = class PublicChatPane extends React.Component
 
   onScrollThresholdReached: ->
 
-    @state.skip += 25
-
-    ActivityFlux.actions.message.loadMessages @channel('id'), @state.skip
+    from = @props.messages.first().get('createdAt')
+    ActivityFlux.actions.message.loadMessages @channel('id'), from
 
 
   render: ->
