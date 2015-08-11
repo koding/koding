@@ -2,6 +2,7 @@ kd         = require 'kd'
 React      = require 'kd-react'
 immutable  = require 'immutable'
 classnames = require 'classnames'
+Link       = require 'app/components/common/link'
 
 
 module.exports = class SidebarListItem extends React.Component
@@ -26,9 +27,9 @@ module.exports = class SidebarListItem extends React.Component
   render: ->
     <div className={@getClassName()} onClick={@props.onClick}>
       <cite className="SidebarListItem-icon" />
-      <a className="SidebarListItem-link" href={@props.href}>
+      <Link className="SidebarListItem-link" href={@props.href}>
         {@props.title}
-      </a>
+      </Link>
       {@renderUnreadCount()}
     </div>
 
