@@ -1,3 +1,4 @@
+// Package sshkey provides public and private key pair for ssh usage
 package sshkey
 
 import (
@@ -11,48 +12,35 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func GenerateKeys() (pubKey string, privKey string, err error) {
+const (
+	privateKeyType = "RSA PRIVATE KEY"
+	bitSize        = 2048
+)
 
+// Generate creates public and private key pairs for using as ssh keys uses
+// RSA for generating keys
+func Generate() (pubKey string, privKey string, err error) {
 	// genereate key pair
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2014)
+	privateKey, err := rsa.GenerateKey(rand.Reader, bitSize)
 	if err != nil {
 		return "", "", err
 	}
 
-	/// convert to private key
-	privateKeyDer := x509.MarshalPKCS1PrivateKey(privateKey)
+	/// convert to private key block
 	privateKeyBlock := pem.Block{
-		Type:    "RSA PRIVATE KEY",
+		Type:    privateKeyType,
 		Headers: nil,
-		Bytes:   privateKeyDer,
+		Bytes:   x509.MarshalPKCS1PrivateKey(privateKey),
 	}
-	privateKeyPem := string(pem.EncodeToMemory(&privateKeyBlock))
 
 	// convert to public key
-	publicKey := privateKey.PublicKey
-	publicKeyDer, err := x509.MarshalPKIXPublicKey(&publicKey)
-	if err != nil {
-		return "", "", err
-	}
-	publicKeyBlock := pem.Block{
-		Type:    "PUBLIC KEY",
-		Headers: nil,
-		Bytes:   publicKeyDer,
-	}
-	publicKeyPem := string(pem.EncodeToMemory(&publicKeyBlock))
-
-	// fmt.Println(privateKeyPem)
-	fmt.Println(publicKeyPem)
-
-	privKey = privateKeyPem
-
-	////
-	pub, err := ssh.NewPublicKey(&publicKey)
+	pub, err := ssh.NewPublicKey(&privateKey.PublicKey)
 	if err != nil {
 		return "", "", err
 	}
 
 	pubKey = fmt.Sprintf("ssh-rsa %v", base64.StdEncoding.EncodeToString(pub.Marshal()))
+	privKey = string(pem.EncodeToMemory(&privateKeyBlock))
 
 	return pubKey, privKey, nil
 }
