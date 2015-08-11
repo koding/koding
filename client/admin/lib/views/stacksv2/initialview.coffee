@@ -23,6 +23,9 @@ module.exports = class InitialView extends kd.View
     @stackTemplateList.listView.on 'ItemSelected', (stackTemplate) =>
       @emit 'EditStack', stackTemplate
 
+    @stackTemplateList.listController.on 'ItemsLoaded', (stackTemplates) =>
+      @emit 'NoTemplatesFound'  if stackTemplates.length is 0
+
 
   reload: ->
     @stackTemplateList.listController.loadItems()

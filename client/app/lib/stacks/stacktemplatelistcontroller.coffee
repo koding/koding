@@ -33,10 +33,13 @@ module.exports = class StackTemplateListController extends AccountListViewContro
 
       currentGroup = getGroup()
 
+      stackTemplates ?= []
       stackTemplates.map (template) ->
         template.inuse = template._id in (currentGroup.stackTemplates or [])
 
       @instantiateListItems stackTemplates
+
+      @emit 'ItemsLoaded', stackTemplates
 
 
   loadView: ->
