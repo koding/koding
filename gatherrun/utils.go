@@ -32,5 +32,7 @@ func untarFile(tarFile string) error {
 	}
 
 	_, err = io.Copy(writer, tarBallReader)
+	defer writer.Close()
+
 	return err
 }
