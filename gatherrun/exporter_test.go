@@ -1,6 +1,7 @@
 package gatherrun
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,7 @@ func TestExporter(t *testing.T) {
 		exporter := NewKodingExporter()
 		exporter.URI = "localhost:2939"
 
-		err := exporter.SendResult(nil)
+		err := exporter.SendStats(nil)
 		So(err, ShouldNotBeNil)
 	})
 
@@ -60,7 +61,7 @@ func TestExporter(t *testing.T) {
 			},
 		}
 
-		err = exporter.SendResult(result)
+		err = exporter.SendStats(result)
 		So(err, ShouldBeNil)
 	})
 
@@ -77,7 +78,7 @@ func TestExporter(t *testing.T) {
 		exporter, err := newTestExporterHandler(handler)
 		So(err, ShouldBeNil)
 
-		gErr := &GatherError{Error: "Something went wrong!"}
+		gErr := &GatherError{Errors: []error{errors.New("Something went wrong!")}}
 
 		err = exporter.SendError(gErr)
 		So(err, ShouldBeNil)

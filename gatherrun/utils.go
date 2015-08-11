@@ -1,29 +1,32 @@
 package gatherrun
 
 import (
+	"archive/tar"
+	"io"
 	"os"
-	"os/exec"
+	"strings"
 )
 
-func untarFile(fileName, outputFolder string) error {
-	isExist, err := exists(fileName)
+func untarFile(tarFile string) error {
+	var outputFile = strings.TrimSuffix(tarFile, tarSuffix)
+
+	reader, err := os.Open(tarFile)
 	if err != nil {
 		return err
 	}
 
-	if !isExist {
-		return ErrFolderNotFound
+	tarBallReader := tar.NewReader(reader)
+
+	_, err = tarBallReader.Next()
+	if err != nil && err != io.EOF {
+		return err
 	}
 
-	_, err = exec.Command("tar", "-xf", fileName, "-C", outputFolder).Output()
+	writer, err := os.Create(outputFile)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(writer, tarBallReader)
 	return err
-}
-
-func exists(name string) (bool, error) {
-	var err error
-	if _, err = os.Stat(name); os.IsNotExist(err) {
-		return false, nil
-	}
-
-	return true, err
 }

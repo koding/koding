@@ -2,6 +2,7 @@ package gatherrun
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	. "github.com/koding/klient/Godeps/_workspace/src/github.com/smartystreets/goconvey/convey"
@@ -54,7 +55,7 @@ func TestFetcher(t *testing.T) {
 			err = fetcher.Download(folderName)
 			So(err, ShouldBeNil)
 
-			isExists, err := exists(folderName + "/" + binaryTar)
+			isExists, err := exists(filepath.Join(folderName, binaryTar))
 			So(err, ShouldBeNil)
 			So(isExists, ShouldBeTrue)
 		})

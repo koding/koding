@@ -52,7 +52,7 @@ deploy:
     - script:
         name: build klient binary
         code: |
-          go build -v -ldflags "-X github.com/koding/klient/protocol.Version 0.1.$NEWBUILDNO -X github.com/koding/klient/protocol.Environment $CHANNEL" github.com/koding/klient
+          go build -v -ldflags "-X github.com/koding/klient/protocol.Version 0.1.$NEWBUILDNO -X github.com/koding/klient/protocol.Environment $CHANNEL -X github.com/koding/klient/gather.awsAccessKey $S3_ACCESS_KEY -X github.com/koding/klient/gather.awsSecretKey $S3_SECRET_KEY" github.com/koding/klient
 
     - script:
         name: validate klient version

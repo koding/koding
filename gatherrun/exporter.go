@@ -12,7 +12,7 @@ const defaultKodingURI = "https://koding.com/-/ingestor"
 // Exporter defines the interface for sending gather data from
 // user VMs to external server.
 type Exporter interface {
-	SendResult(*GatherStat) error
+	SendStats(*GatherStat) error
 	SendError(*GatherError) error
 }
 
@@ -29,7 +29,7 @@ func NewKodingExporter() *KodingExporter {
 	return &KodingExporter{URI: defaultKodingURI}
 }
 
-func (k *KodingExporter) SendResult(stats *GatherStat) error {
+func (k *KodingExporter) SendStats(stats *GatherStat) error {
 	return k.send("/ingest", stats)
 }
 

@@ -1,13 +1,13 @@
 package gatherrun
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 const (
@@ -30,13 +30,14 @@ type S3Fetcher struct {
 	Region     string
 }
 
-func (s *S3Fetcher) Bucket() *s3.S3 {
+func (s *S3Fetcher) Downloader() *s3manager.Downloader {
 	config := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(s.AccessKey, s.SecretKey, ""),
 		Region:      s.Region,
 	}
 
-	return s3.New(config)
+	client := s3.New(config)
+	return s3manager.NewDownloader(&s3manager.DownloadOptions{S3: client})
 }
 
 func (s *S3Fetcher) GetFileName() string {
@@ -50,24 +51,12 @@ func (s *S3Fetcher) Download(folderName string) error {
 		Key:    aws.String(s.FileName),
 	}
 
-	resp, err := s.Bucket().GetObject(params)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if resp != nil {
-			resp.Body.Close()
-		}
-	}()
-
 	w, err := os.Create(filepath.Join(folderName, s.FileName))
+	defer w.Close()
 	if err != nil {
 		return err
 	}
-	defer w.Close()
 
-	_, err = io.Copy(w, resp.Body)
-
+	_, err = s.Downloader().Download(w, params)
 	return err
 }

@@ -13,20 +13,23 @@ import (
 var (
 	abuseInterval     = time.Minute * 30
 	analyticsInterval = time.Hour * 24
+	awsAccessKey      = ""
+	awsSecretKey      = ""
 )
 
 type GatherRun struct {
 	DestFolder string
 	Exporter   Exporter
 	Fetcher    Fetcher
-	Output     *Gather
+	Env        string
+	Username   string
 	ScriptType string
 }
 
 func Run(env, username string) {
 	fetcher := &S3Fetcher{
-		AccessKey:  "AKIAJFKDHRJ7Q5G4MOUQ",
-		SecretKey:  "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",
+		AccessKey:  awsAccessKey,
+		SecretKey:  awsSecretKey,
 		BucketName: "gather-vm",
 		FileName:   "gather.tar",
 		Region:     "us-east-1",
@@ -34,11 +37,9 @@ func Run(env, username string) {
 
 	exporter := NewKodingExporter()
 
-	opts := &Gather{Env: env, Username: username}
-
 	go func() {
-		New(fetcher, exporter, opts, "abuse").Run()
-		New(fetcher, exporter, opts, "analytics").Run()
+		New(fetcher, exporter, env, username, "abuse").Run()
+		New(fetcher, exporter, env, username, "analytics").Run()
 	}()
 
 	abuseTimer := time.NewTimer(abuseInterval)
@@ -47,14 +48,14 @@ func Run(env, username string) {
 	for {
 		select {
 		case <-abuseTimer.C:
-			New(fetcher, exporter, opts, "abuse").Run()
+			New(fetcher, exporter, env, username, "abuse").Run()
 		case <-analyticsTimer.C:
-			New(fetcher, exporter, opts, "analytics").Run()
+			New(fetcher, exporter, env, username, "analytics").Run()
 		}
 	}
 }
 
-func New(fetcher Fetcher, exporter Exporter, output *Gather, scriptType string) *GatherRun {
+func New(fetcher Fetcher, exporter Exporter, env, username, scriptType string) *GatherRun {
 	tmpDir, err := ioutil.TempDir("/tmp", "gather")
 	if err != nil {
 		// TODO: how to deal with errs
@@ -64,20 +65,21 @@ func New(fetcher Fetcher, exporter Exporter, output *Gather, scriptType string) 
 		Fetcher:    fetcher,
 		Exporter:   exporter,
 		DestFolder: tmpDir,
-		Output:     output,
+		Env:        env,
+		Username:   username,
 		ScriptType: scriptType,
 	}
 }
 
-func (c *GatherRun) Run() error {
-	defer c.Cleanup()
+func (c *GatherRun) Run() (err error) {
+	defer func() { err = c.Cleanup() }()
 
 	binary, err := c.GetGatherBinary()
 	if err != nil {
 		return err
 	}
 
-	if err := c.Export(binary.Run()); err != nil {
+	if err = c.Export(binary.Run()); err != nil {
 		return err
 	}
 
@@ -94,25 +96,12 @@ func (c *GatherRun) GetGatherBinary() (*GatherBinary, error) {
 	}
 
 	tarFile := filepath.Join(c.DestFolder, c.Fetcher.GetFileName())
-	if err := untarFile(tarFile, c.DestFolder); err != nil {
+	if err := untarFile(tarFile); err != nil {
 		return nil, err
 	}
 
 	binaryPath := strings.TrimSuffix(tarFile, tarSuffix)
 	return &GatherBinary{Path: binaryPath, ScriptType: c.ScriptType}, nil
-}
-
-func (c *GatherRun) CreateDestFolder() error {
-	folderExists, err := exists(c.DestFolder)
-	if err != nil {
-		return err
-	}
-
-	if !folderExists {
-		err = os.Mkdir(c.DestFolder, 0777)
-	}
-
-	return err
 }
 
 func (c *GatherRun) DownloadScripts(folderName string) error {
@@ -121,30 +110,48 @@ func (c *GatherRun) DownloadScripts(folderName string) error {
 
 func (c *GatherRun) Export(raw []interface{}, err error) error {
 	if err != nil {
-		output := NewGatherError(c.Output, err)
-		return c.Exporter.SendError(output)
+		c.sendErrors(err)
 	}
 
-	results := []GatherSingleStat{}
+	var stats = []GatherSingleStat{}
+	var errors = []error{}
 
 	for _, r := range raw {
 		buf := new(bytes.Buffer)
 		if err := json.NewEncoder(buf).Encode(r); err != nil {
+			errors = append(errors, err)
 			continue
 		}
 
 		var stat GatherSingleStat
 		if err := json.NewDecoder(buf).Decode(&stat); err != nil {
+			errors = append(errors, err)
 			continue
 		}
 
-		results = append(results, stat)
+		stats = append(stats, stat)
 	}
 
-	output := NewGatherStat(c.Output, results)
-	return c.Exporter.SendResult(output)
+	if len(errors) > 0 {
+		c.sendErrors(errors...)
+	}
+
+	if len(stats) > 1 {
+		gStat := &GatherStat{Env: c.Env, Username: c.Username, Stats: stats}
+		return c.Exporter.SendStats(gStat)
+	}
+
+	return nil
 }
 
 func (c *GatherRun) Cleanup() error {
 	return os.RemoveAll(c.DestFolder)
+}
+
+func (c *GatherRun) sendErrors(errs ...error) {
+	gErr := &GatherError{
+		Env: c.Env, Username: c.Username, Errors: errs,
+	}
+
+	c.Exporter.SendError(gErr)
 }
