@@ -12,6 +12,7 @@ module.exports = class UsersStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_USER_SUCCESS, @handleLoadSuccess
+    @on actions.LOAD_USERS_SUCCESS, @handleLoadListSuccess
 
 
   ###*
@@ -25,5 +26,12 @@ module.exports = class UsersStore extends KodingFluxStore
   handleLoadSuccess: (users, { id, account }) ->
 
     return users.set id, toImmutable account
+
+
+  handleLoadListSuccess: (currentUsers, { users }) ->
+
+    return currentUsers.withMutations (map) ->
+      map.set user._id, toImmutable user for user in users
+      return map
 
 

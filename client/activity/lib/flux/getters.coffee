@@ -34,11 +34,12 @@ FilteredEmojiListQueryStore         = ['FilteredEmojiListQueryStore']
 FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
 CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
 CommonEmojiListFlagsStore           = [['CommonEmojiListFlagsStore'], withEmptyMap]
-
 ChatInputChannelsQueryStore         = ['ChatInputChannelsQueryStore']
 ChatInputChannelsSelectedIndexStore = ['ChatInputChannelsSelectedIndexStore']
 ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
-
+ChatInputUsersQueryStore            = ['ChatInputUsersQueryStore']
+ChatInputUsersSelectedIndexStore    = ['ChatInputUsersSelectedIndexStore']
+ChatInputUsersVisibilityStore       = ['ChatInputUsersVisibilityStore']
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -272,6 +273,32 @@ chatInputChannelsSelectedItem = [
 ]
 chatInputChannelsVisibility = ChatInputChannelsVisibilityStore
 
+chatInputUsersQuery         = ChatInputUsersQueryStore
+chatInputUsersSelectedIndex = ChatInputUsersSelectedIndexStore
+chatInputUsers              = [
+  UsersStore
+  selectedChannelParticipants
+  chatInputUsersQuery
+  (users, participants, query) ->
+    return participants?.toList() ? immutable.List()  unless query
+
+    query = query.toLowerCase()
+    users.toList().filter (user) ->
+      userName = user.getIn(['profile', 'nickname']).toLowerCase()
+      return userName.indexOf(query) is 0
+]
+chatInputUsersSelectedItem = [
+  chatInputUsers
+  chatInputUsersSelectedIndex
+  (users, index) ->
+    return  unless users.size > 0
+
+    index = index % users.size  if index >= users.size
+    index = users.size + index  if index < 0
+    return users.get index
+]
+chatInputUsersVisibility = ChatInputUsersVisibilityStore
+
 module.exports = {
   followedPublicChannelThreads
   followedPrivateChannelThreads
@@ -307,4 +334,10 @@ module.exports = {
   chatInputChannelsSelectedIndex
   chatInputChannelsSelectedItem
   chatInputChannelsVisibility
+
+  chatInputUsers
+  chatInputUsersQuery
+  chatInputUsersSelectedIndex
+  chatInputUsersSelectedItem
+  chatInputUsersVisibility
 }

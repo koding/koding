@@ -3,6 +3,7 @@ React           = require 'kd-react'
 TextArea        = require 'react-autosize-textarea'
 EmojiDropup     = require 'activity/components/emojidropup'
 ChannelDropup   = require 'activity/components/channeldropup'
+UserDropup      = require 'activity/components/userdropup'
 EmojiSelector   = require 'activity/components/emojiselector'
 ActivityFlux    = require 'activity/flux'
 KDReactorMixin  = require 'app/flux/reactormixin'
@@ -43,10 +44,15 @@ module.exports = class ChatInputWidget extends React.Component
       channelsSelectedItem           : getters.chatInputChannelsSelectedItem
       channelsQuery                  : getters.chatInputChannelsQuery
       channelsVisibility             : getters.chatInputChannelsVisibility
+      users                          : getters.chatInputUsers
+      usersQuery                     : getters.chatInputUsersQuery
+      userSelectedIndex              : getters.chatInputUsersSelectedIndex
+      usersSelectedItem              : getters.chatInputUsersSelectedItem
+      usersVisibility                : getters.chatInputUsersVisibility
     }
 
 
-  getDropups: -> [ @refs.emojiDropup, @refs.channelDropup ]
+  getDropups: -> [ @refs.emojiDropup, @refs.channelDropup, @refs.userDropup ]
 
 
   onChange: (event) ->
@@ -186,12 +192,27 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
+  renderUserDropup: ->
+
+    { users, usersSelectedItem, usersQuery, usersVisibility } = @state
+
+    <UserDropup
+      items           = { users }
+      selectedItem    = { usersSelectedItem }
+      query           = { usersQuery }
+      visible         = { usersVisibility }
+      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
+      ref             = 'userDropup'
+    />
+
+
   render: ->
 
     <div className="ChatInputWidget">
       { @renderEmojiSelector() }
       { @renderEmojiDropup() }
       { @renderChannelDropup() }
+      { @renderUserDropup() }
       <TextArea
         value     = { @state.value }
         onChange  = { @bound 'onChange' }

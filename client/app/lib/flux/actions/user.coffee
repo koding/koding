@@ -33,7 +33,29 @@ loadAccount = (id) ->
 ###
 generateOrigin = (id) -> { id, constructorName: 'JAccount', _id: id }
 
+
+loadAccounts = (query, options = {}) ->
+
+  { LOAD_USERS_BEGIN
+    LOAD_USERS_SUCCESS
+    LOAD_USERS_FAIL } = actions
+
+  { reactor } = kd.singletons
+
+  reactor.dispatch LOAD_USERS_BEGIN, { query }
+
+  group    = kd.getSingleton('groupsController').getCurrentGroup()
+  selector = query ? ''
+  group.searchMembers selector, options, (err, users) ->
+    if err
+      reactor.dispatch LOAD_USERS_FAIL, { err, query }
+      return
+
+    reactor.dispatch LOAD_USERS_SUCCESS, { users }
+
+
 module.exports = {
   loadAccount
+  loadAccounts
 }
 
