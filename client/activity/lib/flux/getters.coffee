@@ -220,6 +220,7 @@ currentSuggestionsFlags = SuggestionsFlagsStore
 
 filteredEmojiListQuery         = FilteredEmojiListQueryStore
 filteredEmojiListSelectedIndex = FilteredEmojiListSelectedIndexStore
+# Returns a list of emojis filtered by current query
 filteredEmojiList              = [
   EmojisStore
   filteredEmojiListQuery
@@ -227,6 +228,7 @@ filteredEmojiList              = [
     return immutable.List()  unless query
     emojis.filter (emoji) -> emoji.indexOf(query) is 0
 ]
+# Returns emoji from emoji list by current selected index
 filteredEmojiListSelectedItem  = [
   filteredEmojiList
   filteredEmojiListSelectedIndex
@@ -241,6 +243,7 @@ filteredEmojiListSelectedItem  = [
 commonEmojiList              = EmojisStore
 commonEmojiListSelectedIndex = CommonEmojiListSelectedIndexStore
 commonEmojiListFlags         = CommonEmojiListFlagsStore
+# Returns emoji from emoji list by current selected index
 commonEmojiListSelectedItem  = [
   commonEmojiList
   commonEmojiListSelectedIndex
@@ -249,6 +252,9 @@ commonEmojiListSelectedItem  = [
 
 chatInputChannelsQuery         = ChatInputChannelsQueryStore
 chatInputChannelsSelectedIndex = ChatInputChannelsSelectedIndexStore
+# Returns a list of channels depending on the current query
+# If query if empty, returns popular channels
+# Otherwise, returns channels filtered by query
 chatInputChannes               = [
   ChannelsStore
   popularChannels
@@ -261,6 +267,7 @@ chatInputChannes               = [
       channelName = channel.get('name').toLowerCase()
       return channelName.indexOf(query) is 0
 ]
+# Returns a channel from channel list by current selected index
 chatInputChannelsSelectedItem = [
   chatInputChannes
   chatInputChannelsSelectedIndex
@@ -275,6 +282,9 @@ chatInputChannelsVisibility = ChatInputChannelsVisibilityStore
 
 chatInputUsersQuery         = ChatInputUsersQueryStore
 chatInputUsersSelectedIndex = ChatInputUsersSelectedIndexStore
+# Returns a list of users depending on the current query
+# If query is empty, returns selected channel participants
+# Otherwise, returns users filtered by query
 chatInputUsers              = [
   UsersStore
   selectedChannelParticipants
@@ -287,6 +297,7 @@ chatInputUsers              = [
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
       return userName.indexOf(query) is 0
 ]
+# Returns a user from user list by current selected index
 chatInputUsersSelectedItem = [
   chatInputUsers
   chatInputUsersSelectedIndex

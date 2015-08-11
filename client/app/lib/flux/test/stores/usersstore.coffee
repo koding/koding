@@ -23,3 +23,17 @@ describe 'UsersStore', ->
       expect(storeState['123']).to.eql account
 
 
+  describe '#handleLoadListSuccess', ->
+
+    it 'loads user list', ->
+
+      account1 = generateDummyAccount '123', 'qwertyuser'
+      account2 = generateDummyAccount '456', 'testuser'
+      users    = [ account1, account2 ]
+
+      @reactor.dispatch actions.LOAD_USERS_SUCCESS, { users }
+
+      storeState = @reactor.evaluateToJS [UsersStore.getterPath]
+
+      expect(storeState['123']).to.eql account1
+      expect(storeState['456']).to.eql account2

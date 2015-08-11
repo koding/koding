@@ -24,9 +24,9 @@ describe 'PopularChannelIdsStore', ->
       @reactor.dispatch actionTypes.LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
 
       storeState = @reactor.evaluate ['popularChannelIds']
-      
+
       expect(storeState.size).to.eql 2
-      
+
       storeState = storeState.toJS()
 
       expect(storeState.koding).to.eql 'koding'
@@ -41,7 +41,7 @@ describe 'PopularChannelIdsStore', ->
       storeState = @reactor.evaluate ['popularChannelIds']
 
       expect(storeState.size).to.eql 4
-      
+
       storeState = storeState.toJS()
 
       expect(storeState.programming).to.eql 'programming'

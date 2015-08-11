@@ -28,6 +28,13 @@ module.exports = class UsersStore extends KodingFluxStore
     return users.set id, toImmutable account
 
 
+  ###*
+   * Load account list.
+   *
+   * @param {Immutable.Map} currentUsers
+   * @param {object} payload
+   * @param {array} payload.users
+  ###
   handleLoadListSuccess: (currentUsers, { users }) ->
 
     return currentUsers.withMutations (map) ->
