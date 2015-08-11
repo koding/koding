@@ -3,6 +3,8 @@ KDView              = kd.View
 KDHitEnterInputView = kd.HitEnterInputView
 KDTabHandleView     = kd.TabHandleView
 KDCustomHTMLView    = kd.CustomHTMLView
+IDEEditorPane       = require '../../workspace/panes/ideeditorpane'
+FSHelper            = require 'app/util/fs/fshelper'
 
 
 module.exports = class IDETabHandleView extends KDTabHandleView
@@ -25,17 +27,19 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     return  if @titleText
 
-    { view, title } = @getOptions()
+    { view, title, pane } = @getOptions()
 
     @titleText  = new KDView
       tagName  : 'b'
       cssClass : 'tab-handle-text'
       partial  : title
+
     view.addSubView @titleText
 
     @titleInput = new KDHitEnterInputView
       type     : 'text'
       cssClass : 'tab-handle-input'
+
     @titleInput.on 'EnterPerformed', =>
       { title } = @getOptions()
       newTitle  = @titleInput.getValue()
@@ -51,6 +55,8 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     @on 'dblclick', @lazyBound 'setTitleEditMode', yes
     @on 'ReceivedClickElsewhere', @lazyBound 'setTitleEditMode', no
+
+    @updateTitleAttribute pane  if pane.view instanceof IDEEditorPane
 
 
   setDraggable: ->
@@ -117,3 +123,16 @@ module.exports = class IDETabHandleView extends KDTabHandleView
       @menu.once 'KDObjectWillBeDestroyed', =>
         @unsetClass 'menu-visible'
         @menu = null
+
+
+  ###*
+   * Update HTML title attribute of pane
+   *
+   * @param {KDTabPaneView} pane
+  ###
+  updateTitleAttribute: (pane) ->
+
+    return  if pane.data.isDummyFile()
+
+    @setAttribute 'title', FSHelper.plainPath pane.data.path
+
