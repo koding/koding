@@ -18,17 +18,15 @@ type GatherError struct {
 }
 
 func (g *GatherError) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	var req = models.GatherError{Id: bson.NewObjectId()}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		write404Err(g.log, err, w)
 		return
 	}
-
-	defer func() {
-		if r != nil {
-			r.Body.Close()
-		}
-	}()
 
 	if err := modelhelper.SaveGatherError(&req); err != nil {
 		write500Err(g.log, err, w)
