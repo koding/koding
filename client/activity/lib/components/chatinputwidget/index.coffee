@@ -145,8 +145,6 @@ module.exports = class ChatInputWidget extends React.Component
     textInput = React.findDOMNode this.refs.textInput
     textInput.focus()
 
-    ActivityFlux.actions.emoji.setCommonListVisibility no
-
 
   handleEmojiButtonClick: (event) ->
 
