@@ -56,6 +56,9 @@ module.exports =
         browser.end()
       else
         @openMenuAndClick(browser, splitButtonSelector)
+        @asserSplit(browser, splitViewSelector)
 
-        browser.elements 'css selector', splitViewSelector, (result) =>
-          assert.equal result.value.length, length + 1
+  assertSplit: (browser, splitViewSelector) ->
+
+    browser.elements 'css selector', splitViewSelector, (result) =>
+      assert.equal result.value.length, length + 1

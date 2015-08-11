@@ -26,24 +26,28 @@ module.exports =
 
     browser.pause 5000 # wait for snapshot restore
 
-    handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
-
-    doClose = ->
+    doClose = (handleSelector) ->
       browser
         .moveToElement handleSelector, 5, 5
         .click         handleSelector + ' .close-tab'
         .pause         300
 
 
-    close = ->
-      browser.elements 'css selector', handleSelector, (result) ->
-        length = result.value.length
+    close = (handleSelector) ->
+      @getAmountOfTab browser, (length, handleSelector) ->
 
-        if result.value.length isnt 0 then doClose()
-        if length - 1 > 0 then close()
+        if length isnt 0 then doClose(handleSelector)
+        if length - 1 > 0 then close(handleSelector)
 
-    close()
+    close(handleSelector)
 
+  getAmountOfTabs: (browser,callback) ->
+
+    handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
+
+    browser.elements 'css selector', handleSelector, (result) ->
+      length = result.value.length
+      callback length, handleSelector
 
   openContextMenu: (browser) ->
 
