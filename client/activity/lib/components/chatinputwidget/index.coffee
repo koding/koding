@@ -38,9 +38,9 @@ module.exports = class ChatInputWidget extends React.Component
       filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem
       filteredEmojiListQuery         : getters.filteredEmojiListQuery
       commonEmojiList                : getters.commonEmojiList
-      commonEmojiListFlags           : getters.commonEmojiListFlags
       commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem
-      channels                       : getters.chatInputChannes
+      commonEmojiListVisibility      : getters.commonEmojiListVisibility
+      channels                       : getters.chatInputChannels
       channelsSelectedItem           : getters.chatInputChannelsSelectedItem
       channelsQuery                  : getters.chatInputChannelsQuery
       channelsVisibility             : getters.chatInputChannelsVisibility
@@ -135,17 +135,17 @@ module.exports = class ChatInputWidget extends React.Component
       helpers.setCursorPosition textInput, cursorPosition
 
 
-  onEmojiSelectorItemConfirmed: ->
+  onSelectorItemConfirmed: (item) ->
 
-    { commonEmojiListSelectedItem, value } = @state
+    { value } = @state
 
-    newValue = value + formatEmojiName commonEmojiListSelectedItem
+    newValue = value + item
     @setState { value : newValue }
 
     textInput = React.findDOMNode this.refs.textInput
     textInput.focus()
 
-    ActivityFlux.actions.emoji.resetCommonListFlags()
+    ActivityFlux.actions.emoji.setCommonListVisibility no
 
 
   handleEmojiButtonClick: (event) ->
@@ -168,13 +168,13 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderEmojiSelector: ->
 
-    { commonEmojiList, commonEmojiListFlags, commonEmojiListSelectedItem } = @state
+    { commonEmojiList, commonEmojiListVisibility, commonEmojiListSelectedItem } = @state
 
     <EmojiSelector
-      emojis          = { commonEmojiList }
-      visible         = { commonEmojiListFlags.get 'visible' }
-      selectedEmoji   = { commonEmojiListSelectedItem }
-      onItemConfirmed = { @bound 'onEmojiSelectorItemConfirmed' }
+      items           = { commonEmojiList }
+      visible         = { commonEmojiListVisibility }
+      selectedItem    = { commonEmojiListSelectedItem }
+      onItemConfirmed = { @bound 'onSelectorItemConfirmed' }
     />
 
 

@@ -33,7 +33,7 @@ EmojisStore                         = [['EmojisStore'], withEmptyList]
 FilteredEmojiListQueryStore         = ['FilteredEmojiListQueryStore']
 FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
 CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
-CommonEmojiListFlagsStore           = [['CommonEmojiListFlagsStore'], withEmptyMap]
+CommonEmojiListVisibilityStore      = ['CommonEmojiListVisibilityStore']
 ChatInputChannelsQueryStore         = ['ChatInputChannelsQueryStore']
 ChatInputChannelsSelectedIndexStore = ['ChatInputChannelsSelectedIndexStore']
 ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
@@ -242,7 +242,7 @@ filteredEmojiListSelectedItem  = [
 
 commonEmojiList              = EmojisStore
 commonEmojiListSelectedIndex = CommonEmojiListSelectedIndexStore
-commonEmojiListFlags         = CommonEmojiListFlagsStore
+commonEmojiListVisibility    = CommonEmojiListVisibilityStore
 # Returns emoji from emoji list by current selected index
 commonEmojiListSelectedItem  = [
   commonEmojiList
@@ -255,7 +255,7 @@ chatInputChannelsSelectedIndex = ChatInputChannelsSelectedIndexStore
 # Returns a list of channels depending on the current query
 # If query if empty, returns popular channels
 # Otherwise, returns channels filtered by query
-chatInputChannes               = [
+chatInputChannels              = [
   ChannelsStore
   popularChannels
   chatInputChannelsQuery
@@ -269,7 +269,7 @@ chatInputChannes               = [
 ]
 # Returns a channel from channel list by current selected index
 chatInputChannelsSelectedItem = [
-  chatInputChannes
+  chatInputChannels
   chatInputChannelsSelectedIndex
   (channels, index) ->
     return  unless channels.size > 0
@@ -337,10 +337,10 @@ module.exports = {
 
   commonEmojiList
   commonEmojiListSelectedIndex
-  commonEmojiListFlags
+  commonEmojiListVisibility
   commonEmojiListSelectedItem
 
-  chatInputChannes
+  chatInputChannels
   chatInputChannelsQuery
   chatInputChannelsSelectedIndex
   chatInputChannelsSelectedItem

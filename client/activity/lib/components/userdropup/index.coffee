@@ -121,11 +121,8 @@ module.exports = class UserDropup extends React.Component
 
   render: ->
 
-    { items, query } = @props
-
     <Dropup
       className      = "UserDropup"
-      items          = { items }
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
       ref            = 'dropup'
