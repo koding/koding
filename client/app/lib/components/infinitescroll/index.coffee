@@ -10,15 +10,23 @@ module.exports = class InfiniteScroll extends React.Component
     scrollDirection : 'up'
     scrollOffset    : 200
     isScrollBottom  : yes
+    scrollMoveTo    : 'up'
 
 
-  shouldScrollBottomAtFirst: yes
+  isInitialLoadComplete: no
+
+
+  onWheel: (event) ->
+
+    @props.scrollMoveTo = 'up'   if event.deltaY < 0
+    @props.scrollMoveTo = 'down' if event.deltaY > 0
 
 
   onScroll: (event) ->
 
     isScrollLoadable = isScrollThresholdReached
       el              : event.target
+      scrollMoveTo    : @props.scrollMoveTo
       isDataLoading   : @props.isDataLoading
       scrollDirection : @props.scrollDirection
       scrollOffset    : @props.scrollOffset
@@ -44,14 +52,13 @@ module.exports = class InfiniteScroll extends React.Component
     else
       InfiniteScroll.scrollTop = @scrollTop + (InfiniteScroll.scrollHeight - @scrollHeight)
 
-    kd.utils.wait 273, =>
-      if @shouldScrollBottomAtFirst and @offsetHeight
-        InfiniteScroll.scrollTop = InfiniteScroll.scrollHeight
-        @shouldScrollBottomAtFirst = no
+    if not @props.isDataLoading and not @isInitialLoadComplete and @offsetHeight
+      InfiniteScroll.scrollTop = InfiniteScroll.scrollHeight
+      @isInitialLoadComplete = yes
 
 
   render: ->
-    <div className="InfiniteScroll" ref="InfiniteScroll" onScroll={ @bound 'onScroll' }>
+    <div className="InfiniteScroll" ref="InfiniteScroll" onScroll={ @bound 'onScroll' } onWheel={ @bound 'onWheel'}>
       {@props.children}
     </div>
 
