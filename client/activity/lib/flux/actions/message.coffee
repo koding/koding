@@ -3,6 +3,7 @@ whoami                 = require 'app/util/whoami'
 actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
 messageHelpers         = require '../helpers/message'
+realtimeActionCreators = require './realtime/actioncreators'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -14,7 +15,8 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 loadMessages = (channelId) ->
 
   { socialapi } = kd.singletons
-  { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL, LOAD_MESSAGE_SUCCESS } = actionTypes
+  { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
+    LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId }
 
@@ -23,12 +25,27 @@ loadMessages = (channelId) ->
       dispatch LOAD_MESSAGES_FAIL, { err, channelId }
       return
 
-    # get the channel instance from cache and dispatch it.
-    channel = socialapi.retrieveCachedItemById channelId
-
     kd.singletons.reactor.batch ->
       messages.forEach (message) ->
-        dispatch LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
+        dispatchLoadMessageSuccess channelId, message
+
+
+###*
+ * An action creator to group load message action operations.
+ * It wraps given message with realtimeActionCreators to transform realtime
+ * events to flux actions.
+ *
+ * @param {string} channelId
+ * @param {SocialMessage} message
+ * @api private
+###
+dispatchLoadMessageSuccess = (channelId, message) ->
+
+  channel = kd.singletons.socialapi.retrieveCachedItemById channelId
+
+  realtimeActionCreators.bindMessageEvents message
+  dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
+
 
 
 ###*
@@ -50,7 +67,7 @@ loadMessageBySlug = (slug) ->
       dispatch LOAD_MESSAGE_BY_SLUG_FAIL, { err, slug }
       return
 
-    dispatch LOAD_MESSAGE_SUCCESS, { messageId: message.id, message }
+    dispatchLoadMessageSuccess message.initialChannelId, message
     loadComments message.id
 
 
@@ -85,6 +102,7 @@ createMessage = (channelId, body, payload) ->
 
     channel = socialapi.retrieveCachedItemById channelId
 
+    realtimeActionCreators.bindMessageEvents message
     dispatch CREATE_MESSAGE_SUCCESS, {
       message, channelId, clientRequestId, channel
     }
@@ -187,6 +205,7 @@ editMessage = (messageId, body, payload) ->
       dispatch EDIT_MESSAGE_FAIL, { err, messageId }
       return
 
+    realtimeActionCreators.bindMessageEvents message
     dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
 
 
@@ -213,6 +232,7 @@ loadComments = (messageId, from, limit) ->
 
     kd.singletons.reactor.batch ->
       comments.forEach (comment) ->
+        realtimeActionCreators.bindMessageEvents comment
         dispatch LOAD_COMMENT_SUCCESS, { messageId, comment }
 
 
@@ -241,6 +261,10 @@ createComment = (messageId, body, payload) ->
       dispatch CREATE_COMMENT_FAIL, { err, comment, clientRequestId }
       return
 
+    addMessageReply = require 'activity/mixins/addmessagereply'
+    message         = socialapi.retrieveCachedItemById messageId
+    realtimeActionCreators.bindMessageEvents comment
+    addMessageReply message, comment
     dispatch CREATE_COMMENT_SUCCESS, { messageId, comment, clientRequestId }
 
 
