@@ -1345,9 +1345,10 @@ class IDEAppController extends AppController
 
     return @finderPane  if change.type is 'FileTreeInteraction'
 
-    targetPane = null
-    {context}  = change
-    {paneType} = context
+    targetPane    = null
+    { context }   = change
+    { paneType }  = context
+    paneHash      = context.paneHash or context.hash
 
     @forEachSubViewInIDEViews_ paneType, (pane) =>
 
@@ -1356,7 +1357,7 @@ class IDEAppController extends AppController
           targetPane = pane
 
       else
-        targetPane = pane  if pane.hash is context.paneHash
+        targetPane = pane  if pane.hash is paneHash
 
     return targetPane
 
