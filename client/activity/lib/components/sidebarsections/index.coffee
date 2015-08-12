@@ -3,6 +3,7 @@ React                  = require 'kd-react'
 ActivityFlux           = require 'activity/flux'
 KDReactorMixin         = require 'app/flux/reactormixin'
 SidebarChannelsSection = require 'activity/components/sidebarchannelssection'
+SidebarMessagesSection = require 'activity/components/sidebarmessagessection'
 
 
 module.exports = class SidebarSections extends React.Component
@@ -29,9 +30,16 @@ module.exports = class SidebarSections extends React.Component
       selectedId={@state.selectedThreadId} />
 
 
+  renderMessagesSection: ->
+    <SidebarMessagesSection
+      threads={@state.privateChannels}
+      selectedId={@state.selectedThreadId} />
+
+
   render: ->
     <div className="SidebarSections">
       {@renderChannelsSection()}
+      {@renderMessagesSection()}
     </div>
 
 
