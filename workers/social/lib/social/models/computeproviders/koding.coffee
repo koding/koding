@@ -60,7 +60,7 @@ module.exports = class Koding extends ProviderInterface
 
           meta =
             type          : 'aws'
-            region        : region ? SUPPORTED_REGIONS[0]
+            region        : SUPPORTED_REGIONS[1]
             source_ami    : '' # Kloud is updating this field after a successfull build
             instance_type : 't2.micro'
             storage_size  : storage
