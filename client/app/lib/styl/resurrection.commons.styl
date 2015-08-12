@@ -900,43 +900,46 @@ button.app-settings-menu
 //
 
 .koding-on-off
-  size                  66px 34px
-  rounded               18px
-  bg                    color, #D4D4D4
-  vendor                transition, background-color .3s ease
-  cursor                pointer
-  padding               2px
+  size                      66px 34px
+  rounded                   18px
+  bg                        color, #D4D4D4
+  vendor                    transition, background-color .3s ease
+  cursor                    pointer
+  padding                   2px
   noTextSelection()
   borderBox()
   rel()
   &.on
-    bg                  color, #22BD52
+    bg                      color, #22BD52
     a.knob
-      vendor            transform, translateX(32px)
+      vendor                transform, translateX(32px)
   a.knob
-    bg                  color, #F4F4F4
-    size                30px 30px
-    display             block
-    rounded             50%
-    -webkit-transition  -webkit-transform .1s ease
-    -moz-transition     -moz-transform .1s ease
-    transition          transform .1s ease
+    bg                      color, #F4F4F4
+    size                    30px 30px
+    display                 block
+    rounded                 50%
+    -webkit-transition      -webkit-transform .1s ease
+    -moz-transition         -moz-transform .1s ease
+    transition              transform .1s ease
 
   &.small
-    size                52px 28px
-    rounded             14px
+    size                    52px 28px
+    rounded                 14px
     &.on a.knob
-      vendor            transform, translateX(24px)
+      vendor                transform, translateX(24px)
     a.knob
-      size              24px 24px
+      size                  24px 24px
 
   &.tiny
-    size                  34px 18px
-    rounded               9px
+    size                    34px 18px
+    rounded                 9px
     &.on a.knob
-      vendor              transform, translateX(16px)
+      vendor                transform, translateX(16px)
     a.knob
-      size                14px 14px
+      size                  14px 14px
+
+  &[disabled]
+    cursor                  default
 
 //
 // KODING RESURRECTION MODAL THEME

@@ -18,6 +18,8 @@ module.exports = class MachinesListItem extends kd.ListItemView
     delegate = @getDelegate()
     { alwaysOn, slug, label } = machine = @getData()
 
+    isManaged = machine.isManaged()
+
     @labelLink      = new kd.CustomHTMLView
       cssClass      : 'label-link'
       tagName       : 'span'
@@ -25,9 +27,12 @@ module.exports = class MachinesListItem extends kd.ListItemView
       click         : ->
         kd.singletons.router.handleRoute "/IDE/#{slug}"
 
+    alwaysOn = yes  if isManaged
+
     @alwaysOnToggle = new KodingSwitch
       cssClass      : 'tiny'
       defaultValue  : alwaysOn
+      disabled      : isManaged
       callback      : @bound 'handleAlwaysOnStateChanged'
 
     # removed from the view since functionality isn't there - SY
