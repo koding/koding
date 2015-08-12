@@ -13,6 +13,14 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+// Info returns the current State of the given Machine. As an optiminzation,
+// Info decides the machine state based on it's ability to communicate
+// with Klient.
+//
+// If Klient cannot be found, the machine will go through the full Stop
+// process.
+//
+// If Klient can be found, the machine is Running.
 func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	dbState := m.State()
 	resultState := dbState
@@ -26,15 +34,36 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		}, nil
 	}
 
+	// On Defer, update db state if the up-to-date state from the
+	// provider is different than the state stored in the database.
 	defer func() {
-		// Update db state if the up-to-date state is different than the db.
-		if resultState != dbState {
-			m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
-				resultState, reason)
+		// If the two states are in sync no action is needed.
+		if resultState == dbState {
+			return
+		}
 
-			if err := m.checkAndUpdateState(resultState); err != nil {
-				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
-			}
+		// If the machine's state is being transitioned into Stop, use the
+		// normal Stop() method to use a proper shutdown sequence with Kloud.
+		// This ensures that the machine will never store Stopped in the
+		// database, while still running on the provider.
+		if resultState == machinestate.Stopped {
+			// Note that this Stop() call is done in a goroutine so that it
+			// does not block the Info() call.
+			go func() {
+				err := m.Stop(ctx)
+				if err != nil {
+					m.Log.Debug("Info decision: Error while Stopping machine. Err: %v",
+						m.Id, err)
+				}
+			}()
+			return
+		}
+
+		m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
+			resultState, reason)
+
+		if err := m.checkAndUpdateState(resultState); err != nil {
+			m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
 		}
 	}()
 
