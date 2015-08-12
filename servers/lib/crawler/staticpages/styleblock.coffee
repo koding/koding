@@ -1,3 +1,4 @@
+# coffeelint: disable=no_unnecessary_double_quotes
 module.exports = ->
   """
   <meta charset="utf-8" />
