@@ -16,17 +16,15 @@ fetcher := S3Fetcher{
 // initialize `Exporter` to save results to elasticsearch
 exporter := NewEsExporter("localhost", "gather")
 
-// initialize optional args to pass to client initializer below
-options = ClientArgs{
-  Username:   "indianajones",
-  InstanceId: "i-00000000",
-}
+// user and env vars
+username := "indianajones"
+env := "production"
 
 // initialize `Gather` client to download (to /tmp) & run the binary and
 // save the results
 //
 // when done, it'll delete the download binary and tar file
-err := New(fetcher, exporter, options).RunAllScripts()
+err := New(fetcher, exporter, env, username, options).RunAllScripts()
 if err != nil {
   return err
 }
