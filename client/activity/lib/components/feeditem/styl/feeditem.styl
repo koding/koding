@@ -2,9 +2,8 @@ $base-padding               = 18px
 
 .FeedItem
   width                     100%
-  background                $white
   border-radius             $border-radius
-  // border                    1px solid #EAEAEA
+  border                    1px solid #EAEAEA
   margin-bottom             10px
   padding                   0
   font-size                 $fs-regular
@@ -13,7 +12,9 @@ $base-padding               = 18px
     opacity                 .5 !important
 
 .FeedItem-header
+  background                $white
   padding                   $base-padding $base-padding 0 $base-padding
+  border-radius             $border-radius $border-radius 0 0
 
 .FeedItem-date
   font-size                 $fs-small
@@ -31,6 +32,7 @@ $base-padding               = 18px
   vertical-align            middle
 
 .FeedItem-body
+  background                $white
   padding                   ($base-padding/2) $base-padding
 
 .FeedItemAction
@@ -43,7 +45,7 @@ $base-padding               = 18px
 
 .FeedItem-footer
   dispFlex()
-  border                    1px solid #EAEAEA
+  border-top                1px solid #EAEAEA
   bg                        color #FBFAF9
   border-radius             0 0 $border-radius $border-radius
   padding                   $base-padding
