@@ -12,8 +12,9 @@ module.exports = class SidebarSections extends React.Component
 
   getDataBindings: ->
     return {
-      publicChannels: getters.followedPublicChannelThreads
-      selectedThreadId: getters.selectedChannelThreadId
+      publicChannels   : getters.followedPublicChannelThreads
+      privateChannels  : getters.followedPrivateChannelThreads
+      selectedThreadId : getters.selectedChannelThreadId
     }
 
 
