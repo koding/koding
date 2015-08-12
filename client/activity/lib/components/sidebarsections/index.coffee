@@ -20,6 +20,8 @@ module.exports = class SidebarSections extends React.Component
 
   componentDidMount: ->
     actions.channel.loadFollowedPublicChannels()
+    actions.channel.loadFollowedPrivateChannels()
+
 
   renderChannelsSection: ->
     <SidebarChannelsSection
