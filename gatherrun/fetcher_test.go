@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	bucketName = "gather-vm-test"
+	bucketName = "koding-gather-test"
 	binaryName = "gather"
 	binaryTar  = "gather.tar"
 )

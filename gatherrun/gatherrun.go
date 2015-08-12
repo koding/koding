@@ -31,7 +31,7 @@ func Run(env, username string) {
 	fetcher := &S3Fetcher{
 		AccessKey:  awsAccessKey,
 		SecretKey:  awsSecretKey,
-		BucketName: "gather-vm",
+		BucketName: "koding-gather",
 		FileName:   "gather.tar",
 		Region:     "us-east-1",
 	}
