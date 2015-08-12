@@ -12,7 +12,7 @@ module.exports = class UsersStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_USER_SUCCESS, @handleLoadSuccess
-    @on actions.LOAD_USERS_SUCCESS, @handleLoadListSuccess
+    @on actions.SEARCH_USERS_SUCCESS, @handleLoadListSuccess
 
 
   ###*

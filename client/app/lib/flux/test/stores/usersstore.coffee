@@ -31,7 +31,7 @@ describe 'UsersStore', ->
       account2 = generateDummyAccount '456', 'testuser'
       users    = [ account1, account2 ]
 
-      @reactor.dispatch actions.LOAD_USERS_SUCCESS, { users }
+      @reactor.dispatch actions.SEARCH_USERS_SUCCESS, { users }
 
       storeState = @reactor.evaluateToJS [UsersStore.getterPath]
 

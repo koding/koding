@@ -35,12 +35,12 @@ describe 'ChatInputUsersQueryStore', ->
 
     it 'clears current query', ->
 
-      query = 'alex'
+      testQuery = 'alex'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_QUERY, query : query
+      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_QUERY, query : testQuery
       query = @reactor.evaluate ['chatInputUsersQuery']
 
-      expect(query).to.equal query
+      expect(query).to.equal testQuery
 
       @reactor.dispatch actions.UNSET_CHAT_INPUT_USERS_QUERY
       query = @reactor.evaluate ['chatInputUsersQuery']
