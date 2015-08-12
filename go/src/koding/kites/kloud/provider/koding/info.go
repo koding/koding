@@ -42,6 +42,9 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			return
 		}
 
+		m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
+			resultState, reason)
+
 		// If the machine's state is being transitioned into Stop, use the
 		// normal Stop() method to use a proper shutdown sequence with Kloud.
 		// This ensures that the machine will never store Stopped in the
@@ -50,6 +53,12 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			// Note that this Stop() call is done in a goroutine so that it
 			// does not block the Info() call.
 			go func() {
+				// Note that we are ignoring any potential Lock Errors, as
+				// we are Forcing the Stop state. In the future we may want to
+				// queue the Stop method, to avoid race conditions.
+				m.Lock()
+				defer m.Unlock()
+
 				err := m.Stop(ctx)
 				if err != nil {
 					m.Log.Debug("Info decision: Error while Stopping machine. Err: %v",
@@ -58,9 +67,6 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			}()
 			return
 		}
-
-		m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
-			resultState, reason)
 
 		if err := m.checkAndUpdateState(resultState); err != nil {
 			m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
