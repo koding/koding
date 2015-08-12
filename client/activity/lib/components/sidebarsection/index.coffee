@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'React'
+React = require 'kd-react'
 classnames = require 'classnames'
 
 
