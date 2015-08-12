@@ -85,24 +85,32 @@ module.exports = class AccountTwoFactorAuth extends kd.View
           itemClass        : kd.ButtonView
           title            : 'Disable 2-Factor Auth'
           style            : 'solid medium disable-tf'
-          callback         : =>
+          callback         : @bound 'handleDisableFormButton'
 
-            { password }   = inputForm.inputs
 
-            options        =
-              password     : password.getValue()
-              disable      : yes
+  handleDisableFormButton: ->
 
-            me = whoami()
-            me.setup2FactorAuth options, (err) =>
+    { password }   = @disableForm.inputs
 
-              return  if @showError err
+    options        =
+      password     : password.getValue()
+      disable      : yes
 
-              new kd.NotificationView
-                title      : 'Successfully Disabled!'
-                type       : 'mini'
+    @handleProcessOf2FactorAuth options, 'Successfully Disabled!'
 
-              @buildInitialView()
+
+  handleProcessOf2FactorAuth: (options, message) ->
+
+    me = whoami()
+    me.setup2FactorAuth options, (err) =>
+
+      return  if @showError err
+
+      new kd.NotificationView
+        title : message
+        type  : 'mini'
+
+      @buildInitialView()
 
 
   getFormView: ->
@@ -129,23 +137,19 @@ module.exports = class AccountTwoFactorAuth extends kd.View
     @addSubView new kd.ButtonView
       title            : 'Enable 2-Factor Auth'
       style            : 'solid green small enable-tf'
-      callback         : =>
+      callback         : @bound 'handleEnableFormButton'
 
-        options        =
-          key          : @_activeKey
-          password     : password.getValue()
-          verification : tfcode.getValue()
 
-        me = whoami()
-        me.setup2FactorAuth options, (err) =>
+  handleEnableFormButton: ->
 
-          return  if @showError err
+    { password, tfcode } = @enableForm.inputs
 
-          new kd.NotificationView
-            title : 'Successfully Enabled!'
-            type  : 'mini'
+    options =
+      key          : @_activeKey
+      password     : password.getValue()
+      verification : tfcode.getValue()
 
-          @buildInitialView()
+    @handleProcessOf2FactorAuth options, 'Successfully Enabled!'
 
 
   getQrCodeView: (url) ->
