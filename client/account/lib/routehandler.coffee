@@ -29,5 +29,6 @@ module.exports = -> lazyrouter.bind 'account', (type, info, state, path, ctx) ->
     when 'referrer' then kd.singletons.router.handleRoute '/'
     when 'section' then handle info, path
     when 'recover'
+      ctx.clear()
       kookies.expire 'clientId'
       global.location.href = '/Recover'
