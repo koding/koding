@@ -22,6 +22,7 @@ module.exports =
       .waitForElementVisible  activeEditorSelector, 20000 # Assertion
 
 
+
   closeAllTabs: (browser) ->
 
     browser.pause 5000 # wait for snapshot restore
@@ -33,21 +34,26 @@ module.exports =
         .pause         300
 
 
-    close = (handleSelector) ->
-      @getAmountOfTab browser, (length, handleSelector) ->
+    close = =>
+      @getAmountOfTabs browser, (length, handleSelector) ->
 
         if length isnt 0 then doClose(handleSelector)
         if length - 1 > 0 then close(handleSelector)
 
-    close(handleSelector)
+    close()
 
   getAmountOfTabs: (browser,callback) ->
+
+    @getTabHandleElements browser, (result, handleSelector) ->
+      length = result.length
+      callback length, handleSelector
+
+  getTabHandleElements: (browser,callback) ->
 
     handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
 
     browser.elements 'css selector', handleSelector, (result) ->
-      length = result.value.length
-      callback length, handleSelector
+      callback result.value, handleSelector
 
   openContextMenu: (browser) ->
 
