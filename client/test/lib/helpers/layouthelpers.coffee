@@ -58,7 +58,15 @@ module.exports =
         @openMenuAndClick(browser, splitButtonSelector)
         @asserSplit(browser, splitViewSelector)
 
-  assertSplit: (browser, splitViewSelector) ->
+  getNumberOfPanels: (browser, splitViewSelector, callback) ->
 
     browser.elements 'css selector', splitViewSelector, (result) =>
-      assert.equal result.value.length, length + 1
+      length = result.value.length
+      callback(length)
+
+
+
+  assertSplit: (browser, splitViewSelector, prevLength) ->
+
+    browser.elements 'css selector', splitViewSelector, (result) ->
+      assert.equal result.value.length, prevLength + 1
