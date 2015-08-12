@@ -11,7 +11,6 @@ module.exports = class SidebarChannelsListItem extends React.Component
       title={@channel 'name'}
       unreadCount={@channel 'unreadCount'}
       active={@props.active}
-      onClick={@bound 'onClick'}
       href={prepareThreadLink @props.thread} />
 
 
