@@ -16,11 +16,14 @@ $base-padding               = 18px
   padding                   $base-padding $base-padding 0 $base-padding
   border-radius             $border-radius $border-radius 0 0
 
+.FeedItem-headerContentWrapper
+  rel()
+
 .FeedItem-date
   font-size                 $fs-small
   color                     $color-light-text
 
-
+.FeedItem .MessageLikeLink:before
 .FeedItem-date:before
   content                   ""
   display                   inline-block
@@ -30,6 +33,20 @@ $base-padding               = 18px
   font-size                 8px
   margin                    0 6px
   vertical-align            middle
+
+.FeedItem .MessageLikeLink
+  abs()
+
+  &:after
+    abs                     3px 0 0 0
+    content                 ''
+    r-sprite                activity icon-feed-like-empty
+    size                    17px 15px
+    pointer()
+
+  &.is-likedByUser:after
+    r-sprite                activity icon-feed-like
+    size                    17px 15px
 
 .FeedItem-body
   background                $white
@@ -73,3 +90,4 @@ $base-padding               = 18px
   flex                      4
   dispFlex()
   justify-content           flex-end
+

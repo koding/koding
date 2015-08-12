@@ -9,6 +9,8 @@ ProfileText          = require 'app/components/profile/profiletext'
 FeedItemAction       = require './feeditemaction'
 MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+MessageLikeLink      = require 'activity/components/common/messagelikelink'
+
 
 module.exports = class FeedItem extends React.Component
 
@@ -30,6 +32,7 @@ module.exports = class FeedItem extends React.Component
         <div className="FeedItem-headerContentWrapper">
           {makeProfileLink message.get 'account'}
           {makeTimeAgo message.get 'createdAt'}
+          {makeLikeLink message}
         </div>
       </header>
       <section className="FeedItem-body">
@@ -81,5 +84,9 @@ makeAvatar = (imAccount) ->
     <Avatar className="FeedItem-Avatar" width={35} height={35} />
   </ProfileLinkContainer>
 
+
+makeLikeLink = (message) ->
+
+  <MessageLikeLink message={message} />
 
 
