@@ -134,5 +134,5 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     return  if pane.data.isDummyFile()
 
-    @setAttribute 'title', FSHelper.plainPath pane.data.path
+    @setAttribute 'title', pane.data.path  # Show full path with machine uid.
 
