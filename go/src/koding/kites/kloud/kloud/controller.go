@@ -127,6 +127,10 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, NewError(ErrStaterNotImplemented)
 	}
 
+	if stater.ProviderName() != args.Provider {
+		return nil, NewError(ErrProviderIsWrong)
+	}
+
 	// Check if the given method is in valid methods of that current state. For
 	// example if the method is "build", and the state is "stopped" than this
 	// will return an error.

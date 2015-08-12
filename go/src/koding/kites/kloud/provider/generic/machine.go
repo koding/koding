@@ -40,3 +40,5 @@ func (m *Machine) State() machinestate.State {
 func (m *Machine) PublicIpAddress() string {
 	return m.IpAddress
 }
+
+func (m *Machine) ProviderName() string { return m.Provider }
