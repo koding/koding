@@ -31,6 +31,7 @@ environmentDataProvider         = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList       = require './sidebarsharedmachineslist'
 ChannelActivitySideView         = require './channelactivitysideview'
 SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
+isReactivityEnabled             = require 'app/util/isReactivityEnabled'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -482,6 +483,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     super
 
     @addMachineList()
+
+    if isReactivityEnabled()
+      @addReactivitySidebarSections()
+
     @addFollowedTopics()
     @addMessages()
 
@@ -662,6 +667,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machinesWrapper.addSubView list
 
     return list
+
+
+  addReactivitySidebarSections: ->
+
+    SidebarSectionsView = require 'activity/components/sidebarsections/view'
+
+    @addSubView new SidebarSectionsView
 
 
   addFollowedTopics: ->
