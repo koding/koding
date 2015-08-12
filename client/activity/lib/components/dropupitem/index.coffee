@@ -26,20 +26,26 @@ module.exports = class DropupItem extends React.Component
     onConfirmed? item
 
 
-  render: ->
+  getClassName: ->
 
     { isSelected, className } = @props
 
-    classesObj =
+    classes =
       'DropupItem'          : yes
       'DropupItem-selected' : isSelected
-    classesObj[className]   = yes  if className
-    classes = classnames classesObj
+    classes[className]      = yes  if className
+
+    return classnames classes
+
+
+  render: ->
+
+    className = @getClassName()
 
     <div
-      className    = {classes}
+      className    = {className}
       onMouseEnter = {@bound 'handleSelect'}
       onClick      = {@bound 'handleClick'}
     >
-      {this.props.children}
+      {@props.children}
     </div>
