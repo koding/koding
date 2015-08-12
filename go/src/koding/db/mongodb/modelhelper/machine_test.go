@@ -85,3 +85,57 @@ func TestUnshareMachine(t *testing.T) {
 		t.Errorf("only owner should have sudo and owner priv.")
 	}
 }
+
+func TestGetMachinesByUsernameAndProvider(t *testing.T) {
+	initMongoConn()
+	defer Close()
+
+	user := &models.User{Name: "testuser", ObjectId: bson.NewObjectId()}
+	defer RemoveUser(user.Name)
+
+	if err := CreateUser(user); err != nil {
+		t.Error(err)
+	}
+
+	// koding provider machine
+	m1 := &models.Machine{
+		ObjectId: bson.NewObjectId(),
+		Uid:      bson.NewObjectId().Hex(),
+		Provider: "koding",
+		Users: []models.MachineUser{
+			models.MachineUser{Id: user.ObjectId, Owner: true},
+		},
+	}
+
+	if err := CreateMachine(m1); err != nil {
+		t.Errorf(err.Error())
+	}
+
+	defer DeleteMachine(m1.ObjectId)
+
+	// non koding provider machine
+	m2 := &models.Machine{
+		ObjectId: bson.NewObjectId(),
+		Uid:      bson.NewObjectId().Hex(),
+		Provider: "amazon",
+		Users: []models.MachineUser{
+			models.MachineUser{Id: user.ObjectId, Owner: true},
+		},
+	}
+
+	if err := CreateMachine(m2); err != nil {
+		t.Errorf(err.Error())
+	}
+
+	defer DeleteMachine(m2.ObjectId)
+
+	// should only get koding provider machine
+	machines, err := GetMachinesByUsernameAndProvider(user.Name, m1.Provider)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if len(machines) != 1 {
+		t.Errorf("machine count should be 2, got: %d", len(machines))
+	}
+}
