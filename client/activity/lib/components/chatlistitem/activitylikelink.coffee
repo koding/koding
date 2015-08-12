@@ -1,6 +1,7 @@
 React        = require 'kd-react'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
+Link         = require 'app/components/link'
 
 
 module.exports = class ActivityLikeLink extends React.Component
@@ -27,7 +28,7 @@ module.exports = class ActivityLikeLink extends React.Component
 
   render: ->
 
-    <a className={@getClassName()} onClick={ @bound 'onClick'} ></a>
+    <Link className={@getClassName()} onClick={@bound 'onClick'} ></Link>
 
 
 
