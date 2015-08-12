@@ -1,17 +1,17 @@
 bongo = require './bongo'
 
-generateHumanstxt = (req, res)->
-  {JAccount}       = bongo.models
-  JAccount.some {'globalFlags': 'staff'}, {}, (err, accounts)->
+generateHumanstxt = (req, res) ->
+  { JAccount }       = bongo.models
+  JAccount.some { 'globalFlags': 'staff' }, {}, (err, accounts) ->
     if err or not accounts
       return res.status(500).end()
     else
-      body = ""
+      body = ''
       for acc in accounts
 
         if acc?.profile?.nickname?
-          {firstName, lastName, nickname} = acc.profile
-          person = ""
+          { firstName, lastName, nickname } = acc.profile
+          person = ''
           if firstName
             person = "#{firstName} "
             person += "#{lastName}\n" if lastName
@@ -21,10 +21,11 @@ generateHumanstxt = (req, res)->
 
           if acc?.locationTags?
             person +=  "Location: #{acc.locationTags}\n"
-          person += "\n"
+          person += '\n'
 
           body += person
 
+      # coffeelint: disable=no_unnecessary_double_quotes
       header =
         """
         /* TEAM */
@@ -55,6 +56,8 @@ generateHumanstxt = (req, res)->
                                                   /\\____/
                                                   \\_/__/
         """
+      # coffeelint: enable=no_unnecessary_double_quotes
+
       content = header + body + footer
       res.setHeader 'Content-Type', 'text/plain'
       return res.status(200).send content
