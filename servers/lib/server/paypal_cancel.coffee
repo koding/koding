@@ -1,7 +1,7 @@
 { serve } = require './helpers'
 
 module.exports = (req, res) ->
-  {token}  = req.query
+  { token }  = req.query
   template = """
     <!DOCTYPE html>
     <html lang="en">
