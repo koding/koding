@@ -1,8 +1,11 @@
-kd     = require 'kd'
-whoami = require 'app/util/whoami'
+kd                  = require 'kd'
+whoami              = require 'app/util/whoami'
+KDView              = kd.View
+KDButtonView        = kd.ButtonView
 
 
-module.exports = class AccountTwoFactorAuth extends kd.View
+module.exports = class AccountTwoFactorAuth extends KDView
+
 
   constructor: (options = {}, data) ->
 
@@ -82,7 +85,7 @@ module.exports = class AccountTwoFactorAuth extends kd.View
         button             :
           label            : '&nbsp;'
           cssClass         : 'Formline--half'
-          itemClass        : kd.ButtonView
+          itemClass        : KDButtonView
           title            : 'Disable 2-Factor Auth'
           style            : 'solid medium disable-tf'
           callback         : @bound 'handleDisableFormButton'
