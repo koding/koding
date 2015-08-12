@@ -7,7 +7,6 @@ SidebarChannelsSection = require 'activity/components/sidebarchannelssection'
 
 module.exports = class SidebarSections extends React.Component
 
-  @include [KDReactorMixin]
 
   { getters } = ActivityFlux
 
@@ -29,3 +28,5 @@ module.exports = class SidebarSections extends React.Component
       {@renderChannelsSection()}
     </div>
 
+
+React.Component.include.call SidebarSections, [KDReactorMixin]
