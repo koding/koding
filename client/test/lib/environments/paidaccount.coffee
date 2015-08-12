@@ -75,6 +75,8 @@ module.exports =
             environmentHelpers.clickAddVMButton(browser)
             environmentHelpers.clickCreateVMButton(browser)
           else
+            regionSelector = '.computeplan-modal.paid-plan select.region'
+            browser.setValue regionSelector, 'eu-west-1'
             environmentHelpers.clickCreateVMButton(browser)
 
 
