@@ -354,7 +354,7 @@ func (k *Klient) Run() {
 	}
 
 	if isKoding {
-		go gatherrun.Run(k.config.Environment, k.config.Name)
+		go gatherrun.Run(k.config.Environment, k.kite.Config.Username)
 	}
 
 	k.kite.Run()
