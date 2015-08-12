@@ -14,17 +14,25 @@ module.exports =
     # Ctrl+ALT+O - Search file by name
     shortcutHelpers.ctrlAltKey(browser, "o")
     browser.waitForElementVisible(".file-finder", 20000)
+    shortcutHelpers.escape(browser)
 
     # Ctrl+ALT+F - Search all files
-    shortcutHelpers.ctrlAltKey(browser, "o")
-    browser.waitForElementVisible(".formline.whereinput")
+    shortcutHelpers.ctrlAltKey(browser, "f")
+    browser.waitForElementVisible(".formline.whereinput", 20000)
+    shortcutHelpers.escape(browser)
 
     # Ctrl+ALT+V - Split vertically
-    shortcutHelpers.ctrlAltKey(browser, "v")
-    browser.waitForElementVisible(".panel-1", 20000)
-    layoutHelpers.assertSplit(browser, ".panel-1 .kdsplitview-vertical")
+    verticalSelector = ".panel-1 .kdsplitview-vertical"
+    layoutHelpers.getNumberOfPanels browser, verticalSelector, (length) ->
+      shortcutHelpers.ctrlAltKey(browser, "v")
+      browser.waitForElementVisible(".panel-1", 20000)
+      layoutHelpers.assertSplit(browser, verticalSelector, length)
 
     # Ctrl+ALT+H - Split horizontally
-    shortcutHelpers.ctrlAltKey(browser, "h")
-    browser.waitForElementVisible(".panel-1",20000)
-    layoutHelpers.assertSplit(browser, ".panel-1 .kdsplitview-horizontal"
+    horizontalSelector = ".panel-1 .kdsplitview-horizontal"
+    layoutHelpers.getNumberOfPanels browser, verticalSelector, (length) ->
+      shortcutHelpers.ctrlAltKey(browser, "h")
+      browser.waitForElementVisible(".panel-1",20000)
+      layoutHelpers.assertSplit(browser, horizontalSelector, length)
+      browser.end()
+
