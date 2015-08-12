@@ -32,7 +32,7 @@ module.exports = class IDEBaseSplitView extends KDSplitView
     @resizePanel first, 0, kd.noop, yes
 
 
-  resizeFirstSplitView: -> @getFirstSplitView()?._windowDidResize()
+  resizeFirstSplitView: -> @getFirstSplitView()?._windowDidResize?()
 
 
   getFirstSplitView: ->
