@@ -213,18 +213,6 @@ module.exports = class ChatListItem extends React.Component
       />
 
 
-  getClassNames: ->
-    editForm: classnames
-     'ChatItem-updateMessageForm': yes
-     'hidden': not @state.editMode
-    mediaContent: classnames
-      'hidden': @state.editMode
-    contentWrapper: classnames
-      'ChatItem-contentWrapper': yes
-      'MediaObject': yes
-      'editing': @state.editMode
-
-
   render: ->
     { message } = @props
     <div {...@getItemProps()}>
