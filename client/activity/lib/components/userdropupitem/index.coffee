@@ -20,9 +20,6 @@ module.exports = class UserDropupItem extends React.Component
     account     = item.toJS()
     { profile } = account
 
-    statusClass   = classnames
-      'UserDropupItem-status'   : yes
-      'UserDropupItem-online'   : account.onlineStatus is 'online'
     fullNameClass = classnames
       'UserDropupItem-fullName' : yes
       'hidden'                  : not (profile.firstName and profile.lastName)
@@ -33,7 +30,6 @@ module.exports = class UserDropupItem extends React.Component
         <span className='UserDropupItem-nickname'>
           {account.profile.nickname}
         </span>
-        <span className={statusClass}></span>
         <span className={fullNameClass}>
           <ProfileText account={account} />
         </span>

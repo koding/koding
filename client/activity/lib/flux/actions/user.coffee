@@ -20,7 +20,7 @@ setChatInputUsersQuery = (query) ->
     { SET_CHAT_INPUT_USERS_QUERY } = actionTypes
     dispatch SET_CHAT_INPUT_USERS_QUERY, { query }
     resetChatInputUsersSelectedIndex()
-    appActions.user.loadAccounts query
+    appActions.user.searchAccounts query
   else
     unsetChatInputUsersQuery()
 
