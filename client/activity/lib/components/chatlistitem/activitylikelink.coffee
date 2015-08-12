@@ -21,9 +21,8 @@ module.exports = class ActivityLikeLink extends React.Component
     { likeMessage, unlikeMessage } = ActivityFlux.actions.message
 
     if @props.interactions.like.isInteracted
-      unlikeMessage @props.messageId
-    else
-      likeMessage @props.messageId
+    then unlikeMessage @props.messageId
+    else likeMessage @props.messageId
 
 
   render: ->
