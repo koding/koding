@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 )
 
-// var outputFile = strings.TrimSuffix(tarFile, tarSuffix)
-
 func untar(tarFilePath, outputFolder string) error {
 	tarFileReader, err := os.Open(tarFilePath)
 	if err != nil {

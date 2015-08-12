@@ -111,7 +111,7 @@ func (c *GatherRun) DownloadScripts(folderName string) error {
 
 func (c *GatherRun) Export(raw []interface{}, err error) error {
 	if err != nil {
-		c.sendErrors(err)
+		return c.sendErrors(err)
 	}
 
 	var stats = []GatherSingleStat{}
@@ -137,7 +137,7 @@ func (c *GatherRun) Export(raw []interface{}, err error) error {
 		c.sendErrors(errors...)
 	}
 
-	if len(stats) > 1 {
+	if len(stats) > 0 {
 		gStat := &GatherStat{Env: c.Env, Username: c.Username, Stats: stats}
 		return c.Exporter.SendStats(gStat)
 	}
@@ -149,10 +149,10 @@ func (c *GatherRun) Cleanup() error {
 	return os.RemoveAll(c.DestFolder)
 }
 
-func (c *GatherRun) sendErrors(errs ...error) {
+func (c *GatherRun) sendErrors(errs ...error) error {
 	gErr := &GatherError{
 		Env: c.Env, Username: c.Username, Errors: errs,
 	}
 
-	c.Exporter.SendError(gErr)
+	return c.Exporter.SendError(gErr)
 }
