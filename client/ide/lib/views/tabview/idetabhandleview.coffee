@@ -15,8 +15,12 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     options.draggable ?= yes
     options.bind       = 'dragstart dblclick'
+    options.view       = new KDView { tagName : 'span' }
 
-    options.view = new KDView { tagName : 'span' }
+    { pane } = options
+
+    if pane?.view instanceof IDEEditorPane and not pane.data.isDummyFile()
+      options.attributes = title : pane.data.path
 
     super options, data
 
@@ -55,8 +59,6 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     @on 'dblclick', @lazyBound 'setTitleEditMode', yes
     @on 'ReceivedClickElsewhere', @lazyBound 'setTitleEditMode', no
-
-    @updateTitleAttribute pane  if pane.view instanceof IDEEditorPane
 
 
   setDraggable: ->
@@ -123,16 +125,4 @@ module.exports = class IDETabHandleView extends KDTabHandleView
       @menu.once 'KDObjectWillBeDestroyed', =>
         @unsetClass 'menu-visible'
         @menu = null
-
-
-  ###*
-   * Update HTML title attribute of pane
-   *
-   * @param {KDTabPaneView} pane
-  ###
-  updateTitleAttribute: (pane) ->
-
-    return  if pane.data.isDummyFile()
-
-    @setAttribute 'title', pane.data.path  # Show full path with machine uid.
 
