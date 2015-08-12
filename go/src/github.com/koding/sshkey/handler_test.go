@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// TestHandler tests the Handler function
 func TestHandler(t *testing.T) {
 
 	req, err := http.NewRequest("GET", "http://example.com/foo", nil)
@@ -28,7 +29,7 @@ func TestHandler(t *testing.T) {
 
 }
 
-// TestHandlerDecode tests the Handler function
+// TestHandlerDecode tests the Handler function can encode data or not
 func TestHandlerDecode(t *testing.T) {
 
 	req, err := http.NewRequest("GET", "http://example.com/foo", nil)
