@@ -38,6 +38,15 @@ module.exports = class PublicChatPane extends React.Component
 
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
+    @moveScrollToBottom()
+
+
+  moveScrollToBottom: ->
+
+    ChatPaneWrapper = @refs.ChatPaneWrapper.getDOMNode()
+    InfiniteScroll = ChatPaneWrapper.querySelector '.InfiniteScroll'
+    InfiniteScroll.scrollTop = InfiniteScroll.scrollHeight
+
 
   onScrollThresholdReached: ->
 
@@ -46,12 +55,15 @@ module.exports = class PublicChatPane extends React.Component
 
 
   render: ->
-    <ChatPane
-      thread={@props.thread}
-      className="PublicChatPane"
-      messages={@props.messages}
-      onSubmit={@bound 'onSubmit'}
-      onScrollThresholdReached={@bound 'onScrollThresholdReached'}
-    />
+    <div ref="ChatPaneWrapper">
+      <ChatPane
+        thread={@props.thread}
+        className="PublicChatPane"
+        messages={@props.messages}
+        onSubmit={@bound 'onSubmit'}
+        onScrollThresholdReached={@bound 'onScrollThresholdReached'}
+      />
+    </div>
+
 
 
