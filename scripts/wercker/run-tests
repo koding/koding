@@ -9,7 +9,7 @@ async = require 'async'
 
 monitor = require './monitor-test'
 
-RETRY_COUNT = 5
+RETRY_COUNT = 1
 
 unless filename = process.argv[2]
   console.error 'error: data file is not specified'
