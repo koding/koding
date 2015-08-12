@@ -8,7 +8,7 @@ SidebarChannelsSection = require 'activity/components/sidebarchannelssection'
 module.exports = class SidebarSections extends React.Component
 
 
-  { getters } = ActivityFlux
+  { getters, actions } = ActivityFlux
 
   getDataBindings: ->
     return {
@@ -16,6 +16,9 @@ module.exports = class SidebarSections extends React.Component
       selectedThreadId: getters.selectedChannelThreadId
     }
 
+
+  componentDidMount: ->
+    actions.channel.loadFollowedPublicChannels()
 
   renderChannelsSection: ->
     <SidebarChannelsSection
