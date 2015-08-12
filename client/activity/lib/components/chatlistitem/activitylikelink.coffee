@@ -1,7 +1,7 @@
 React        = require 'kd-react'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
-Link         = require 'app/components/link'
+Link         = require 'app/components/common/link'
 
 
 module.exports = class ActivityLikeLink extends React.Component
