@@ -31,7 +31,7 @@ module.exports = (req, res, next) ->
   client              = {}
   context             = { group: slug }
   client.context      = context
-  clientIPAddress     = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  clientIPAddress     = req.headers['x-forwarded-for'] or req.connection.remoteAddress
   # parsing booling from string
   alreadyMember       = alreadyMember is 'true'
 
@@ -43,7 +43,7 @@ module.exports = (req, res, next) ->
         client = client_
         # when there is an error in the fetchClient, it returns message in it
         if client.message
-          console.error JSON.stringify {req, client}
+          console.error JSON.stringify { req, client }
           return res.status(500).send client.message
 
         client.clientIP = (clientIPAddress.split ',')[0]
@@ -119,8 +119,8 @@ generateCreateGroupKallback = (client, req, res, body) ->
     # need to find another way - SY
 
     teamDomain = switch environment
-      when 'production'  then ".koding.com"
-      when 'development' then ".dev.koding.com"
+      when 'production'  then '.koding.com'
+      when 'development' then '.dev.koding.com'
       else ".#{environment}.koding.com"
 
     # set session token for later usage down the line
@@ -150,14 +150,14 @@ generateCreateGroupKallback = (client, req, res, body) ->
 
         # add other parallel operations here
         -> createInvitations client, invitees, (err) ->
-            console.error "Err while creating invitations", err  if err
+            console.error 'Err while creating invitations', err  if err
             queue.fin()
 
       ]
 
-      dash queue, (err)->
+      dash queue, (err) ->
         # do not block group creation
-        console.error "Error while creating group artifacts", body, err if err
+        console.error 'Error while creating group artifacts', body, err if err
 
         opt =
           username  : result.account.profile.nickname
@@ -181,7 +181,7 @@ validateGroupDataAndReturnError = (body) ->
 
 # convertToArray converts given comma separated string value into cleaned,
 # trimmed, lowercased, unified array of string
-convertToArray = (commaSeparatedData = '')->
+convertToArray = (commaSeparatedData = '') ->
   return []  if commaSeparatedData is ''
 
   data = commaSeparatedData.split(',') or []
@@ -194,7 +194,7 @@ convertToArray = (commaSeparatedData = '')->
 
 # createInvitations converts given invitee list into JInvitation and creates
 # them in db
-createInvitations = (client, invitees, callback)->
+createInvitations = (client, invitees, callback) ->
   inviteEmails = convertToArray invitees
 
   return callback null  if inviteEmails.length is 0 # return early

@@ -259,7 +259,7 @@ runTests = -> describe 'server.handlers.jointeam', ->
   it 'should handle unregistered user with an email from an allowed domain', (done) ->
 
     slug                    = generateRandomString()
-    domains                 = "gmail.com, koding.com"
+    domains                 = 'gmail.com, koding.com'
     domainsArray            = convertToArray domains
 
     createTeamRequestParams = generateCreateTeamRequestParams
@@ -304,7 +304,7 @@ runTests = -> describe 'server.handlers.jointeam', ->
     slug                    = generateRandomString()
     username                = generateRandomString()
     password                = 'testpass'
-    allowedDomain           = "gmail.com"
+    allowedDomain           = 'gmail.com'
     inviteeEmail            = "#{generateRandomString()}@#{allowedDomain}"
 
     registerRequestParams   = generateRegisterRequestParams
@@ -375,7 +375,7 @@ runTests = -> describe 'server.handlers.jointeam', ->
   it 'should send HTTP 400 if user email is not in allowedDomains', (done) ->
 
     slug                    = generateRandomString()
-    domains                 = "gmail.com, koding.com"
+    domains                 = 'gmail.com, koding.com'
     domainsArray            = convertToArray domains
 
     createTeamRequestParams = generateCreateTeamRequestParams

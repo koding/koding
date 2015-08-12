@@ -131,9 +131,9 @@ runTests = -> describe 'server.handlers.validateemail', ->
         passwordConfirm : password
 
     validateEmailRequestParams = generateValidateEmailRequestParams
-        body       :
-          email    : email
-          password : 'someInvalidPassword'
+      body       :
+        email    : email
+        password : 'someInvalidPassword'
 
     queue = [
 
@@ -171,9 +171,9 @@ runTests = -> describe 'server.handlers.validateemail', ->
         passwordConfirm : password
 
     validateEmailRequestParams = generateValidateEmailRequestParams
-        body       :
-          email    : email
-          password : password
+      body       :
+        email    : email
+        password : password
 
     queue = [
 
@@ -187,7 +187,7 @@ runTests = -> describe 'server.handlers.validateemail', ->
 
       ->
         # setting two factor authentication on by adding twofactorkey field
-        JUser.update { username }, { $set: twofactorkey: 'somekey' }, (err) ->
+        JUser.update { username }, { $set: { twofactorkey: 'somekey' } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -220,9 +220,9 @@ runTests = -> describe 'server.handlers.validateemail', ->
         passwordConfirm : password
 
     validateEmailRequestParams = generateValidateEmailRequestParams
-        body       :
-          email    : email
-          password : password
+      body       :
+        email    : email
+        password : password
 
     queue = [
 
