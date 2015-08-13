@@ -52,19 +52,19 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		if resultState == machinestate.Stopped {
 			// Note that this Stop() call is done in a goroutine so that it
 			// does not block the Info() call.
-			go func() {
+			go func(machine *Machine) {
 				// Note that we are ignoring any potential Lock Errors, as
 				// we are Forcing the Stop state. In the future we may want to
 				// queue the Stop method, to avoid race conditions.
-				m.Lock()
-				defer m.Unlock()
+				machine.Lock()
+				defer machine.Unlock()
 
-				err := m.Stop(ctx)
+				err := machine.Stop(ctx)
 				if err != nil {
-					m.Log.Debug("Info decision: Error while Stopping machine. Err: %v",
-						m.Id, err)
+					machine.Log.Debug("Info decision: Error while Stopping machine. Err: %v",
+						machine.Id, err)
 				}
-			}()
+			}(m)
 			return
 		}
 
