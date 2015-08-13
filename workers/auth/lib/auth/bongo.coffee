@@ -1,12 +1,12 @@
 nodePath    = require 'path'
 Bongo       = require 'bongo'
 Broker      = require 'broker'
-{argv}      = require 'optimist'
-{extend}    = require 'underscore'
+{ argv }    = require 'optimist'
+{ extend }  = require 'underscore'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-{mq, projectRoot, authWorker} = KONFIG
+{ mq, projectRoot, authWorker } = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}"
 
