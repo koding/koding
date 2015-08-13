@@ -96,7 +96,7 @@ var (
     "variable": {
         "username": {
             "default": "fatih"
-        },
+        }
     },
     "provider": {
         "aws": {
