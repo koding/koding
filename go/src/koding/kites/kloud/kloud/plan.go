@@ -114,11 +114,11 @@ func (t *terraformCredential) appendAWSVariable(template string) (string, error)
 		return "", err
 	}
 
-	data.Variable["access_key"] = map[string]interface{}{
+	data.Variable["aws_access_key"] = map[string]interface{}{
 		"default": accessKey,
 	}
 
-	data.Variable["secret_key"] = map[string]interface{}{
+	data.Variable["aws_secret_key"] = map[string]interface{}{
 		"default": secretKey,
 	}
 
