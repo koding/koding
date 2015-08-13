@@ -8,6 +8,7 @@ MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
 FeedItemAction       = require './feeditemaction'
 MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
+Avatar               = require 'app/components/profile/avatar'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 MessageLikeLink      = require 'activity/components/common/messagelikelink'
 
@@ -81,7 +82,7 @@ makeProfileLink = (imAccount) ->
 
 makeAvatar = (imAccount) ->
   <ProfileLinkContainer origin={imAccount.toJS()}>
-    <Avatar className="FeedItem-Avatar" width={35} height={35} />
+    <Avatar className="FeedItem-Avatar" width={28} height={28} />
   </ProfileLinkContainer>
 
 
