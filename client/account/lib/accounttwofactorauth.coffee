@@ -79,9 +79,6 @@ module.exports = class AccountTwoFactorAuth extends KDView
           name             : 'password'
           type             : 'password'
           label            : 'Password'
-          keydown          : (e) =>
-            @handleKeyDown e, @bound 'handleDisableFormButton'
-
         button             :
           label            : '&nbsp;'
           cssClass         : 'Formline--half'
@@ -127,15 +124,11 @@ module.exports = class AccountTwoFactorAuth extends KDView
           name             : 'password'
           type             : 'password'
           label            : 'Password'
-          keydown          : (e) =>
-            @handleKeyDown e, @bound 'handleEnableFormButton'
         tfcode             :
           cssClass         : 'Formline--half'
           placeholder      : 'Enter the verification code'
           name             : 'tfcode'
           label            : 'Verification Code'
-          keydown          : (e) =>
-            @handleKeyDown e, @bound 'handleEnableFormButton'
 
     @addSubView new kd.ButtonView
       title            : 'Enable 2-Factor Auth'
@@ -225,9 +218,4 @@ module.exports = class AccountTwoFactorAuth extends KDView
         below and click the “Enable” button.
 
       """
-
-
-  handleKeyDown: (e, method = kd.noop) ->
-
-    method.call()  if (e.which or e.keyCode) is 13
 
