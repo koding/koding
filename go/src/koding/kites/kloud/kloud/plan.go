@@ -245,8 +245,8 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifie
 		return nil, fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
 	}
 
-	// 2- fetch credential from publickey via args
-	credentials, err := modelhelper.GetCredentialsFromPublicKeys(identifiers...)
+	// 2- fetch credential from identifiers via args
+	credentials, err := modelhelper.GetCredentialsFromIdentifiers(identifiers...)
 	if err != nil {
 		return nil, err
 	}
@@ -268,20 +268,20 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifie
 
 		count, err := modelhelper.RelationshipCount(selector)
 		if err != nil || count == 0 {
-			// we return for any not validated public key.
-			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.Identifier)
+			// we return for any not validated identifier key.
+			return nil, fmt.Errorf("credential with identifier '%s' is not validated", cred.Identifier)
 		}
 
 		validKeys[cred.Identifier] = cred.Provider
 	}
 
-	// 4- fetch credentialdata with publickey
-	validPublicKeys := make([]string, 0)
+	// 4- fetch credentialdata with identifier
+	validIdentifiers := make([]string, 0)
 	for pKey := range validKeys {
-		validPublicKeys = append(validPublicKeys, pKey)
+		validIdentifiers = append(identifiers, pKey)
 	}
 
-	credentialData, err := modelhelper.GetCredentialDatasFromPublicKeys(validPublicKeys...)
+	credentialData, err := modelhelper.GetCredentialDatasFromIdentifiers(validIdentifiers...)
 	if err != nil {
 		return nil, err
 	}

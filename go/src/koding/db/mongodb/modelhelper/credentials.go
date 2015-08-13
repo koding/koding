@@ -13,7 +13,7 @@ const (
 	CredentialDatasColl = "jCredentialDatas"
 )
 
-func GetCredentialsFromPublicKeys(identifier ...string) ([]*models.Credential, error) {
+func GetCredentialsFromIdentifiers(identifier ...string) ([]*models.Credential, error) {
 	var credentials []*models.Credential
 	if err := Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"identifier": bson.M{"$in": identifier}}).All(&credentials)
@@ -24,7 +24,7 @@ func GetCredentialsFromPublicKeys(identifier ...string) ([]*models.Credential, e
 	return credentials, nil
 }
 
-func GetCredentialDatasFromPublicKeys(identifier ...string) ([]*models.CredentialData, error) {
+func GetCredentialDatasFromIdentifiers(identifier ...string) ([]*models.CredentialData, error) {
 	var credentialData []*models.CredentialData
 
 	if err := Mongo.Run(CredentialDatasColl, func(c *mgo.Collection) error {
