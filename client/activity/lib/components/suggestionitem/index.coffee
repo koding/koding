@@ -5,29 +5,31 @@ Avatar                = require 'app/components/profile/avatar'
 SuggestionMessageBody = require 'activity/components/suggestionmessagebody'
 ProfileText           = require 'app/components/profile/profiletext'
 ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
-formatPlural = kd.utils.formatPlural
-groupifyLink = require 'app/util/groupifyLink'
+formatPlural          = kd.utils.formatPlural
+classnames            = require 'classnames'
 
 module.exports = class SuggestionItem extends React.Component
 
-  handleClick: ->
+  handleSelect: ->
 
-    { router } = kd.singletons
-    slug       = @props.suggestion.getIn ['message', 'slug']
-
-    router.handleRoute groupifyLink "/Activity/Post/#{slug}"
+    { onSelected, index } = @props
+    onSelected? index
 
 
   render: ->
 
-    { suggestion }  = @props
+    { suggestion, isSelected, onConfirmed }  = @props
     message         = suggestion.get 'message'
     highlightResult = suggestion.get 'highlightResult'
     messageBody     = highlightResult?.getIn(['body', 'value']) ? message.get('body')
 
     { makeAvatar, makeProfileLink, makeInfoText } = helper
 
-    <div className="ActivitySuggestionItem" onClick={@bound 'handleClick'}>
+    className = classnames
+      'ActivitySuggestionItem'          : yes
+      'ActivitySuggestionItem-selected' : isSelected
+
+    <div className={className} onClick={onConfirmed} onMouseEnter={@bound 'handleSelect'}>
       <div className="ActivitySuggestionItem-authorAvatar">
         {makeAvatar message.get('account')}
       </div>

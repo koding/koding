@@ -18,7 +18,10 @@ ActivityFlux            = require 'activity/flux'
 
 module.exports = class ActivityInputWidget extends KDView
 
-  {noop} = kd
+  UP_ARROW   = 38
+  DOWN_ARROW = 40
+  ENTER      = 13
+  {noop}     = kd
 
   constructor: (options = {}, data) ->
     options.cssClass = kd.utils.curry "activity-input-widget", options.cssClass
@@ -75,7 +78,7 @@ module.exports = class ActivityInputWidget extends KDView
 
     return  unless @getOptions().isSuggestionEnabled
 
-    @input.on 'keydown', kd.utils.debounce 300, @bound 'updateSuggestionsQuery'
+    @input.on 'keydown', @bound 'handleKeydown'
     @input.on 'focus',   @bound 'makeSuggestionsVisible'
     @suggestions.on 'SubmitRequested', @bound 'handleSubmitRequested'
 
@@ -89,6 +92,27 @@ module.exports = class ActivityInputWidget extends KDView
 
     ActivityFlux.actions.suggestions.setVisibility no
     @submitButton.click()
+
+
+  handleKeydown: (event) ->
+
+    return  unless @suggestions
+
+    @suggestionsQueryFunc ?= kd.utils.debounce 300, @bound 'updateSuggestionsQuery'
+    @suggestionsQueryFunc()
+
+    return  unless @suggestions.isVisible
+
+    switch event.which
+      when DOWN_ARROW
+        kd.utils.stopDOMEvent event
+        @suggestions.moveToNextIndex()
+      when UP_ARROW
+        kd.utils.stopDOMEvent event
+        @suggestions.moveToPrevIndex()
+      when ENTER
+        kd.utils.stopDOMEvent event
+        @suggestions.confirmSelectedItem()
 
 
   submit: (value) ->
