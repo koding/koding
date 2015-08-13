@@ -112,7 +112,7 @@ module.exports = class CopyrightView extends JView
       <p class='p3'>
         Koding, Inc.<br>
         358 Brannan Street<br>
-        San Francisco CA 94107<br>
+        San Francisco, CA 94107<br>
         USA<br><br>
         or via email at <span class='s1'>legal@koding.com</span>, Subject: DMCA Notice
       </p>
