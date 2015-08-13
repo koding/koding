@@ -1,6 +1,7 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
 whoami               = require 'app/util/whoami'
+isMyPost             = require 'app/util/isMyPost'
 toImmutable          = require 'app/util/toImmutable'
 SidebarListItem      = require 'activity/components/sidebarlist/sidebarlistitem'
 ProfileTextContainer = require 'app/components/profile/profiletextcontainer'
@@ -64,7 +65,7 @@ helper =
 
     lastMessageOwner = lastMessage.account
 
-    origins  = if lastMessageOwner._id is whoami()._id then [] else [lastMessageOwner]
+    origins = if isMyPost lastMessage then [] else [lastMessageOwner]
 
     filtered = participantsPreview.filter (p) ->
       return not (p._id in [whoami()._id, lastMessageOwner._id])
