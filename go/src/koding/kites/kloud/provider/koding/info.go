@@ -66,7 +66,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 					machine.Log.Debug("Info decision: Error while Stopping machine. Err: %v",
 						machine.Id, err)
 				}
-				m.Log.Info("======> STOP finished (inconsistent state)<======")
+				machine.Log.Info("======> STOP finished (inconsistent state)<======")
 			}(m)
 			return
 		}
