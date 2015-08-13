@@ -7,6 +7,7 @@ import (
 	"koding/common"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
+	"koding/tools/utils"
 	"net"
 	"net/http"
 	"runtime"
@@ -61,7 +62,12 @@ func main() {
 
 	th := throttled.RateLimit(
 		throttled.PerHour(10),
-		&throttled.VaryBy{RemoteAddr: true, Path: false},
+		&throttled.VaryBy{
+			Path: false,
+			Custom: func(r *http.Request) string {
+				return utils.GetIpAddress(r)
+			},
+		},
 		store.NewRedisStore(redisConn.Pool(), WorkerName, 0),
 	)
 
