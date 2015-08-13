@@ -15,6 +15,8 @@ import (
 	"socialapi/workers/api/modules/reply"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
+
+	"github.com/koding/sshkey"
 )
 
 func AddHandlers(m *mux.Mux) {
@@ -609,6 +611,15 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatechannel-count",
 			Type:     handler.GetRequest,
 			Endpoint: "/privatechannel/count",
+		},
+	)
+
+	m.AddUnscopedHandler(
+		handler.Request{
+			Handler:  sshkey.Handler,
+			Name:     "ssh-key-generator",
+			Type:     handler.GetRequest,
+			Endpoint: "/sshkey",
 		},
 	)
 }
