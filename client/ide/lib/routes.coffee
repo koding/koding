@@ -71,7 +71,8 @@ loadIDE = (data) ->
         app.collaborationHost = username
         app.channelId         = channelId
       else
-        # Don't remove this flag. It's a critical movement. If you want it, ping Turunc or Acet.
+        # Don't remove this flag. Snapshot restoring procedure depends on this property.
+        # If you want it, ping Turunc or Acet.
         app.amIHost           = yes
 
       app.mountMachineByMachineUId machineUId
