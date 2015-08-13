@@ -80,12 +80,13 @@ module.exports = class AccountTwoFactorAuth extends KDView
           type             : 'password'
           label            : 'Password'
         button             :
+          type             : 'submit'
           label            : '&nbsp;'
           cssClass         : 'Formline--half'
           itemClass        : KDButtonView
           title            : 'Disable 2-Factor Auth'
           style            : 'solid medium disable-tf'
-          callback         : @bound 'handleDisableFormButton'
+      callback             : @bound 'handleDisableFormButton'
 
 
   handleDisableFormButton: ->
@@ -129,11 +130,12 @@ module.exports = class AccountTwoFactorAuth extends KDView
           placeholder      : 'Enter the verification code'
           name             : 'tfcode'
           label            : 'Verification Code'
-
-    @addSubView new kd.ButtonView
-      title            : 'Enable 2-Factor Auth'
-      style            : 'solid green small enable-tf'
-      callback         : @bound 'handleEnableFormButton'
+      buttons              :
+        Enable             :
+          type             : 'submit'
+          title            : 'Enable 2-Factor Auth'
+          style            : 'solid green small enable-tf'
+      callback             : @bound 'handleEnableFormButton'
 
 
   handleEnableFormButton: ->
