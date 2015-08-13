@@ -1,6 +1,6 @@
 module.exports = providersParser = (content) ->
 
-    regex     = /\$\{var\.(.*?)\_/g
+    regex     = /\$\{var\.(\w+?)\_/g
     providers = {}
     match     = regex.exec content
 
