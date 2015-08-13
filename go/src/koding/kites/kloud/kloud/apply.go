@@ -31,8 +31,8 @@ type Stack struct {
 	// jMachine ids
 	Machines []string
 
-	// jCredential public keys
-	PublicKeys []string
+	// jCredential provider to identifiers
+	Credentials map[string][]string
 
 	// Terraform template
 	Template string
@@ -169,8 +169,8 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
-	creds, err := fetchCredentials(username, groupname, sess.DB, stack.PublicKeys)
+	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
+	creds, err := fetchCredentials(username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
@@ -255,8 +255,8 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
-	creds, err := fetchCredentials(username, groupname, sess.DB, stack.PublicKeys)
+	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
+	creds, err := fetchCredentials(username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
@@ -383,9 +383,9 @@ func fetchStack(stackId string) (*Stack, error) {
 	}
 
 	return &Stack{
-		Machines:   machineIds,
-		PublicKeys: stackTemplate.Credentials,
-		Template:   stackTemplate.Template.Content,
+		Machines:    machineIds,
+		Credentials: stackTemplate.Credentials,
+		Template:    stackTemplate.Template.Content,
 	}, nil
 }
 

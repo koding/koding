@@ -29,9 +29,9 @@ type terraformCredentials struct {
 }
 
 type terraformCredential struct {
-	Provider  string
-	PublicKey string
-	Data      map[string]string `mapstructure:"data"`
+	Provider   string
+	Identifier string
+	Data       map[string]string `mapstructure:"data"`
 }
 
 // region returns the region from the credential data
@@ -43,7 +43,7 @@ func (t *terraformCredential) region() (string, error) {
 
 	region := t.Data["region"]
 	if region == "" {
-		return "", fmt.Errorf("region for publicKey '%s' is not set", t.PublicKey)
+		return "", fmt.Errorf("region for identifer '%s' is not set", t.Identifier)
 	}
 
 	return region, nil
@@ -59,12 +59,12 @@ func (t *terraformCredential) awsCredentials() (string, string, error) {
 	// better
 	accessKey := t.Data["access_key"]
 	if accessKey == "" {
-		return "", "", fmt.Errorf("accessKey for publicKey '%s' is not set", t.PublicKey)
+		return "", "", fmt.Errorf("accessKey for identifier '%s' is not set", t.Identifier)
 	}
 
 	secretKey := t.Data["secret_key"]
 	if secretKey == "" {
-		return "", "", fmt.Errorf("secretKey for publicKey '%s' is not set", t.PublicKey)
+		return "", "", fmt.Errorf("secretKey for identifier '%s' is not set", t.Identifier)
 	}
 
 	return accessKey, secretKey, nil
@@ -92,7 +92,7 @@ func (t *terraformCredential) appendAWSVariable(template string) (string, error)
 
 	credRegion := t.Data["region"]
 	if credRegion == "" {
-		return "", fmt.Errorf("region for publicKey '%s' is not set", t.PublicKey)
+		return "", fmt.Errorf("region for identifier '%s' is not set", t.Identifier)
 	}
 
 	// if region is not added, add it via credRegion
@@ -165,7 +165,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	k.Log.Debug("Fetching credentials for id %v", stackTemplate.Credentials)
-	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, stackTemplate.Credentials)
+	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, flattenValues(stackTemplate.Credentials))
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	return machines, nil
 }
 
-func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []string) (*terraformCredentials, error) {
+func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformCredentials, error) {
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
@@ -246,7 +246,7 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []st
 	}
 
 	// 2- fetch credential from publickey via args
-	credentials, err := modelhelper.GetCredentialsFromPublicKeys(keys...)
+	credentials, err := modelhelper.GetCredentialsFromPublicKeys(identifiers...)
 	if err != nil {
 		return nil, err
 	}
@@ -269,10 +269,10 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []st
 		count, err := modelhelper.RelationshipCount(selector)
 		if err != nil || count == 0 {
 			// we return for any not validated public key.
-			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.PublicKey)
+			return nil, fmt.Errorf("credential with publicKey '%s' is not validated", cred.Identifier)
 		}
 
-		validKeys[cred.PublicKey] = cred.Provider
+		validKeys[cred.Identifier] = cred.Provider
 	}
 
 	// 4- fetch credentialdata with publickey
@@ -292,9 +292,9 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []st
 	}
 
 	for _, data := range credentialData {
-		provider, ok := validKeys[data.PublicKey]
+		provider, ok := validKeys[data.Identifier]
 		if !ok {
-			return nil, fmt.Errorf("provider is not found for key: %s", data.PublicKey)
+			return nil, fmt.Errorf("provider is not found for identifer: %s", data.Identifier)
 		}
 		// for now we only support aws
 		if provider != "aws" {
@@ -302,8 +302,8 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, keys []st
 		}
 
 		cred := &terraformCredential{
-			Provider:  provider,
-			PublicKey: data.PublicKey,
+			Provider:   provider,
+			Identifier: data.Identifier,
 		}
 
 		if err := mapstructure.Decode(data.Meta, &cred.Data); err != nil {

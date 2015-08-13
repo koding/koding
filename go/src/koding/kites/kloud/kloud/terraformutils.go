@@ -377,3 +377,14 @@ func parseAccountID(arn string) (string, error) {
 
 	return splitted[0], nil
 }
+
+// flattenValues converts the values of a map[string][]string to a []string slice.
+func flattenValues(kv map[string][]string) []string {
+	values := []string{}
+
+	for _, val := range kv {
+		values = append(values, val...)
+	}
+
+	return values
+}
