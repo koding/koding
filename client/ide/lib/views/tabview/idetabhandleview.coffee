@@ -3,7 +3,7 @@ KDView              = kd.View
 KDHitEnterInputView = kd.HitEnterInputView
 KDTabHandleView     = kd.TabHandleView
 KDCustomHTMLView    = kd.CustomHTMLView
-IDEEditorPane       = require '../../workspace/panes/ideeditorpane'
+IDEEditorPane       = require 'ide/workspace/panes/ideeditorpane'
 FSHelper            = require 'app/util/fs/fshelper'
 
 
