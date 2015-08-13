@@ -1,17 +1,11 @@
 .ChatInputWidget
-  bottom                    0
-  right                     0
-  width                     calc(100% \- 258px)
-  height                    auto
+  rel()
   min-height                44px
-  padding                   0
   bg                        color white
   border-top                1px solid #f2f2f2
-  z-index                   100
   cursor                    text
   font-size                 0
   borderBox()
-  fix()
 
   &:before
     content                 ""
@@ -29,7 +23,7 @@
     line-height             19px
     min-height              44px
     max-height              196px
-    padding                 13px 40px 12px 54px
+    padding                 13px 50px 12px 54px
     font-weight             400
     rounded                 0
     resize                  none
@@ -41,6 +35,5 @@
     abs()
     size                    20px 20px
     top                     13px
-    right                   38px
-    bg                      color, #dfdfdf
-    rounded                 50%
+    right                   46px
+    r-sprite                'activity', 'emoji'
