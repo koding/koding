@@ -717,3 +717,19 @@ footer.main-footer
             &.puff
               opacity   1
 
+// Smartphones and tablets [Commons]
+@media only screen and (min-width : 320px) and (max-width : 1250px)
+  .mobile-menu
+    &.active
+      padding-top           10px
+      height                130px
+      margin-top            -130px
+
+  .main-header.mobile-menu-active
+    top                     130px !important
+
+    nav a
+      color                 #f6f6f6 !important
+
+    .hamburger-menu.active
+      background            transparent
