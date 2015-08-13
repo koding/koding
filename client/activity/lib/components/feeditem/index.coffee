@@ -43,8 +43,6 @@ module.exports = class FeedItem extends React.Component
       </section>
       <footer className="FeedItem-footer">
         <div className="FeedItem-summary">
-          {makeLikes message.getIn ['interactions', 'like', 'actorsCount']}
-          {makeComments message.get 'repliesCount'}
         </div>
         <div className="FeedItem-footerActionContainer">
           <button
@@ -55,19 +53,6 @@ module.exports = class FeedItem extends React.Component
     </div>
 
 
-makeComments = (count) ->
-  return null  unless count
-  <span className="FeedItem-summaryItem FeedItem-replyCount">
-    <cite>{count}</cite>
-    Comments
-  </span>
-
-makeLikes = (count) ->
-  return null  unless count
-  <span className="FeedItem-summaryItem FeedItem-likeCount">
-    <cite>{count}</cite>
-    Likes
-  </span>
 
 
 makeTimeAgo = (createdAt) ->
