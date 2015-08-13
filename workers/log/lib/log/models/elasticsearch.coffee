@@ -1,6 +1,6 @@
 elasticsearch = require 'es'
 UAParser      = require 'ua-parser-js'
-_             = require "underscore"
+_             = require 'underscore'
 
 require_koding_model = require '../require_koding_model'
 
@@ -10,12 +10,12 @@ require_koding_model = require '../require_koding_model'
   Base
 } = require 'bongo'
 
-{argv} = require 'optimist'
+{ argv } = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 {
   log           : { run }
-  elasticSearch : { host, port}
+  elasticSearch : { host, port }
 } = KONFIG
 
 config = {
@@ -28,7 +28,7 @@ config = {
 es = elasticsearch config
 
 module.exports = class ElasticSearch extends Base
-  @getIndexOptions: (name, type)->
+  @getIndexOptions: (name, type) ->
     rawCurr   = new Date()
     currDate  = rawCurr.getDate()
     currMonth = rawCurr.getMonth() + 1
@@ -50,17 +50,17 @@ module.exports = class ElasticSearch extends Base
 
     return indexOptions
 
-  @getUserInfo: (client, callback)->
-    {sessionToken} = client
+  @getUserInfo: (client, callback) ->
+    { sessionToken } = client
     JSession       = require_koding_model 'session'
-    JSession.one {clientId: sessionToken}, (err, session) =>
+    JSession.one { clientId: sessionToken }, (err, session) ->
       return callback err  if err
 
       unless session
-        console.error "session not found", sessionToken
-        return callback {message : "session not found"}
+        console.error "session not found #{sessionToken}"
+        return callback { message : 'session not found' }
 
-      {username, clientIP} = session
+      { username, clientIP } = session
 
       if username and not /^guest-/.test username
         loggedIn = true
@@ -75,7 +75,7 @@ module.exports = class ElasticSearch extends Base
 
       callback null, record
 
-  @parseUserAgent: (userAgent)->
+  @parseUserAgent: (userAgent) ->
     parser = new UAParser()
     result = parser.setUA(userAgent).getResult()
 
@@ -90,9 +90,9 @@ module.exports = class ElasticSearch extends Base
       }
     } = result
 
-    return {browser_version, browser_name, os_version, os_name}
+    return { browser_version, browser_name, os_version, os_name }
 
-  @create: (indexOptions, documents, callback)->
+  @create: (indexOptions, documents, callback) ->
     return  callback null  unless run
 
     for doc in documents
@@ -100,6 +100,6 @@ module.exports = class ElasticSearch extends Base
         userAgentParams = @parseUserAgent userAgent
         doc = _.extend doc, userAgentParams
 
-      doc["@timestamp"] ?= new Date
+      doc['@timestamp'] ?= new Date
 
     es.bulkIndex indexOptions, documents, callback
