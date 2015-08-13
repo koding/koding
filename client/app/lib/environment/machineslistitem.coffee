@@ -78,14 +78,19 @@ module.exports = class MachinesListItem extends kd.ListItemView
     logo  = pData.logo or provider.toLowerCase()
     url   = pData.url
 
+    logoImg = """
+      <img class="logo #{provider}" src="/a/images/providers/#{logo}.png" />
+    """
+
+    # If the url has text, make the logoImg into a link
+    logoImg = "<a href='#{url}' target='_blank'>#{logoImg}</a>"  if url
+
     """
       <div>
         {{> @labelLink}}
       </div>
       <div>
-        <a href="#{url}" target="_blank">
-          <img class="logo #{provider}" src="/a/images/providers/#{logo}.png" />
-        </a>
+        #{logoImg}
       </div>
       <div>
         <span>VM{{> @settingsLink}}</span>
@@ -101,15 +106,16 @@ module.exports = class MachinesListItem extends kd.ListItemView
     """
 
   PROVIDERS      =
-    Azure        : url: 'https://azure.microsoft.com/en-us'
-    HPCloud      : url: 'http://www.hpcloud.com'
-    Joyent       : url: 'https://www.joyent.com/'
-    SoftLayer    : url: 'http://www.softlayer.com'
-    Rackspace    : url: 'http://www.rackspace.com'
-    GoogleCloud  : url: 'https://cloud.google.com'
-    DigitalOcean : url: 'https://www.digitalocean.com'
-    AWS          : url: 'http://aws.amazon.com'
+    Azure           : url: 'https://azure.microsoft.com/en-us'
+    HPCloud         : url: 'http://www.hpcloud.com'
+    Joyent          : url: 'https://www.joyent.com/'
+    SoftLayer       : url: 'http://www.softlayer.com'
+    Rackspace       : url: 'http://www.rackspace.com'
+    GoogleCloud     : url: 'https://cloud.google.com'
+    DigitalOcean    : url: 'https://www.digitalocean.com'
+    AWS             : url: 'http://aws.amazon.com'
+    UnknownProvider : {}
 
     # handle `jMachine.provider` field.
-    aws          : url: 'http://aws.amazon.com'
-    koding       : url: 'http://aws.amazon.com', logo: 'aws'
+    aws             : url: 'http://aws.amazon.com'
+    koding          : url: 'http://aws.amazon.com', logo: 'aws'
