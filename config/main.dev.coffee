@@ -1139,6 +1139,9 @@ Configuration = (options={}) ->
         # Create default workspaces
         node scripts/create-default-workspace
 
+        # Sanitize email addresses
+        node #{projectRoot}/scripts/sanitize-email
+
         # Run all the worker daemons in KONFIG.workers
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers when val.supervisord).join(" ")}
 
