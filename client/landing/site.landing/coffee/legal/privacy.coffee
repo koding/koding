@@ -20,7 +20,7 @@ module.exports = class PrivacyView extends JView
        <b>Data Controller and Owner</b><br>
         Koding, Inc.<br>
         358 Brannan Street<br>
-        San Francisco CA 94107<br>
+        San Francisco, CA 94107<br>
         USA<br>
 
       <p class='p5'>
@@ -296,7 +296,7 @@ module.exports = class PrivacyView extends JView
       <p class='p4'>
         Koding, Inc.<br>
         358 Brannan Street<br>
-        San Francisco CA 94107<br>
+        San Francisco, CA 94107<br>
         USA<br><br>
         Or by email: <span class='s3'>privacy@koding.com</span>. We will respond
         to your inquiry within 30 days of its receipt.
