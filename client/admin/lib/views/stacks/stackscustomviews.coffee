@@ -172,7 +172,10 @@ module.exports = class StacksCustomViews extends CustomViews
       title, stackTemplate, machines } = data
 
     title     or= 'Default stack template'
-    credentials = [credential.publicKey]  if credential
+    credentials = {}
+
+    if credential
+      credentials[credential.provider] = [credential.identifier]
 
     if stackTemplate
       dataToUpdate = if machines \

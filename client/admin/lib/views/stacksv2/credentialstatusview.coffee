@@ -18,7 +18,7 @@ module.exports = class CredentialStatusView extends kd.View
     super options, data
 
     { @credentials } = (@getOption 'stackTemplate') or {}
-    @credentials   or= []
+    @credentials   or= {}
 
     # Waiting state view
     @waitingView = new kd.View
@@ -42,9 +42,9 @@ module.exports = class CredentialStatusView extends kd.View
       partial    : 'Credentials are not set'
       click      : =>
 
-        modal = new CredentialSelectorModal {
-          selectedCredentials: @credentials
-        }
+        modal = new CredentialSelectorModal
+          selectedCredentials:
+            (@credentials[val].first.identifier for val of @credentials)
 
         modal.on 'ItemSelected', (credential) =>
 
@@ -57,8 +57,11 @@ module.exports = class CredentialStatusView extends kd.View
             modal.destroy()
 
 
-    if @credentials.length > 0
-      [credential] = @credentials
+    creds = Object.keys @credentials
+
+    if creds.length > 0
+      # TODO you know it. ~GG
+      credential = @credentials[creds.first].first
 
       remote.api.JCredential.one credential, (err, credential) =>
         if err
@@ -72,8 +75,9 @@ module.exports = class CredentialStatusView extends kd.View
 
     return @setNotVerified()  unless credential
 
+    creds             = {}
     @credentialsData  = [credential]
-    @credentials      = [credential.publicKey]
+    @credentials      = creds[credential.provider] = [credential.identifier]
     {provider, title} = credential
     @setVerified "
       A credential titled as '#{title}' for #{provider} provider is selected.

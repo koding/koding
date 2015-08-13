@@ -40,7 +40,8 @@ module.exports = class CredentialListItem extends kd.ListItemView
     { stackTemplate }       = @getOptions()
     { selectedCredentials } = delegate.getOptions()
 
-    credentials = stackTemplate?.credentials ? []
+    credentials = stackTemplate?.credentials ? {}
+    credentials = (credentials[val].first.identifier for val of credentials)
     credentials = credentials.concat (selectedCredentials or [])
 
     if identifier in credentials
