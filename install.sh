@@ -114,7 +114,7 @@ sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "
 err=$?; if [ "$err" -ne 0 ]; then
     cat << EOF
 $err: Service failed to register with Koding. If this continues to happen,
-please contact support@digitalocean.com
+please contact support@koding.com
 EOF
     exit $err
 fi
@@ -164,8 +164,7 @@ in the sidebar.
 
 For some reason if this machine does not show up on your koding account
 in the next 2-3 minutes, please re-run the install script or contact us
-at support@koding.com. Note, we have no access to your DigitalOcean
-droplet so please debug on your own as much as you can.
+at support@koding.com.
 
 
 
