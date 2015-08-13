@@ -113,7 +113,9 @@ module.exports = class JUser extends jraphical.Module
       sanitizedEmail:
         type        : String
         validate    : JName.validateEmail
-        set         : (value) -> emailsanitize value, excludeDots: yes, excludePlus: yes
+        set         : (value) ->
+          return  unless typeof value is 'string'
+          emailsanitize value, excludeDots: yes, excludePlus: yes
       password      : String
       salt          : String
       twofactorkey  : String
