@@ -42,17 +42,32 @@ module.exports = class FeedItem extends React.Component
       </section>
       <footer className="FeedItem-footer">
         <div className="FeedItem-summary">
+          {makeAvatarGroup message}
         </div>
         <div className="FeedItem-footerActionContainer">
           <button
             onClick={@bound 'onConversationButtonClick'}
             className="Button Button--info">View Conversation</button>
+          {makeRepliesCount message}
         </div>
       </footer>
     </div>
 
 
+makeAvatarGroup = (message) ->
+  return null  unless message.get('replies').size
+  avatars = message.get('replies')
+    .reduce (people, reply) ->
+      people.set reply.getIn(['account', '_id']), reply.get 'account'
+    , immutable.Map()
+    .map makeAvatar
 
+  return (
+    <span className="FeedItem-avatarGroup">
+      <span className="FeedItem-avatarGroupLabel">People:</span>
+      {avatars}
+    </span>
+  )
 
 makeTimeAgo = (createdAt) ->
   <Link className="FeedItem-date u-color-light-text">
@@ -74,4 +89,12 @@ makeLikeLink = (message) ->
 
   <MessageLikeLink message={message} />
 
+makeRepliesCount = (message) ->
+  repliesCount = message.get 'repliesCount'
+  label = if repliesCount is 1 then 'reply' else 'replies'
+
+  <span className="FeedItem-repliesCount">
+    <span className="FeedItem-repliesCountNumber">{repliesCount}</span>
+    <span className="FeedItem-repliesCountLable">{label}</span>
+  </span>
 
