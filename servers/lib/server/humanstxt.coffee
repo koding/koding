@@ -25,9 +25,8 @@ generateHumanstxt = (req, res) ->
 
           body += person
 
-      # coffeelint: disable=no_unnecessary_double_quotes
       header =
-        """
+        '''
         /* TEAM */
         Koding, Inc.
         Contact     : hello@koding.com
@@ -36,7 +35,7 @@ generateHumanstxt = (req, res) ->
         GitHub      : github.com/koding
         Location    : San Francisco
         \n
-        """
+        '''
 
       footer =
         """
@@ -56,7 +55,6 @@ generateHumanstxt = (req, res) ->
                                                   /\\____/
                                                   \\_/__/
         """
-      # coffeelint: enable=no_unnecessary_double_quotes
 
       content = header + body + footer
       res.setHeader 'Content-Type', 'text/plain'
