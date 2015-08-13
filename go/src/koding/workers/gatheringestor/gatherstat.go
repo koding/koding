@@ -7,8 +7,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 
-	"labix.org/v2/mgo/bson"
-
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 )
@@ -23,7 +21,7 @@ func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 	}
 
-	var req = &models.GatherStat{Id: bson.NewObjectId()}
+	var req = models.NewGatherStat()
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		write404Err(g.log, err, w)
 		return

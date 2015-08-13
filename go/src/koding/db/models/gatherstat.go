@@ -31,10 +31,16 @@ type GatherSingleStat struct {
 	Value interface{} `bson:"value" json:"value"`
 }
 
-func NewGatherError(err error) *GatherError {
-	return &GatherError{Error: err.Error()}
+func NewGatherError() *GatherError {
+	return &GatherError{
+		Id:        bson.NewObjectId(),
+		CreatedAt: time.Now().UTC(),
+	}
 }
 
-func NewGatherStat(results []GatherSingleStat) *GatherStat {
-	return &GatherStat{Stats: results}
+func NewGatherStat() *GatherStat {
+	return &GatherStat{
+		Id:        bson.NewObjectId(),
+		CreatedAt: time.Now().UTC(),
+	}
 }
