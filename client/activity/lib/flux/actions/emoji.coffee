@@ -104,16 +104,6 @@ setCommonListVisibility = (visible) ->
   dispatch SET_COMMON_EMOJI_LIST_VISIBILITY, { visible }
 
 
-###*
- * Action to reset flags of common emoji list
- * to initial values
-###
-resetCommonListFlags = ->
-
-  { RESET_COMMON_EMOJI_LIST_FLAGS } = actionTypes
-  dispatch RESET_COMMON_EMOJI_LIST_FLAGS
-
-
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
@@ -128,5 +118,4 @@ module.exports = {
   setCommonListSelectedIndex
   resetCommonListSelectedIndex
   setCommonListVisibility
-  resetCommonListFlags
 }

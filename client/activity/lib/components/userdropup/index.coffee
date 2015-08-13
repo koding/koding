@@ -1,14 +1,14 @@
-$                 = require 'jquery'
-kd                = require 'kd'
-React             = require 'kd-react'
-immutable         = require 'immutable'
-classnames        = require 'classnames'
-ActivityFlux      = require 'activity/flux'
-Dropup            = require 'activity/components/dropup'
-ChannelDropupItem = require 'activity/components/channeldropupitem'
+$              = require 'jquery'
+kd             = require 'kd'
+React          = require 'kd-react'
+immutable      = require 'immutable'
+classnames     = require 'classnames'
+ActivityFlux   = require 'activity/flux'
+Dropup         = require 'activity/components/dropup'
+UserDropupItem = require 'activity/components/userdropupitem'
 
 
-module.exports = class ChannelDropup extends React.Component
+module.exports = class UserDropup extends React.Component
 
   @defaultProps =
     items        : immutable.List()
@@ -29,13 +29,13 @@ module.exports = class ChannelDropup extends React.Component
 
     { selectedItem } = @props
     
-    @props.onItemConfirmed? "##{selectedItem.get 'name'}"
+    @props.onItemConfirmed? "@#{selectedItem.getIn ['profile', 'nickname']}"
     @close()
 
 
   close: ->
 
-    ActivityFlux.actions.channel.setChatInputChannelsVisibility no
+    ActivityFlux.actions.user.setChatInputUsersVisibility no
 
 
   moveToNextPosition: ->
@@ -44,7 +44,7 @@ module.exports = class ChannelDropup extends React.Component
       @close()
       return no
     else
-      ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()
+      ActivityFlux.actions.user.moveToNextChatInputUsersIndex()
       return yes
 
 
@@ -54,17 +54,17 @@ module.exports = class ChannelDropup extends React.Component
       @close()
       return no
     else
-      ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()
+      ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()
       return yes
 
 
   setQuery: (query) ->
 
-    matchResult = query?.match /^#(.*)/
+    matchResult = query?.match /^@(.*)/
     if matchResult
       query = matchResult[1]
-      ActivityFlux.actions.channel.setChatInputChannelsQuery query
-      ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
+      ActivityFlux.actions.user.setChatInputUsersQuery query
+      ActivityFlux.actions.user.setChatInputUsersVisibility yes
     else if @isActive()
       @close()
 
@@ -75,7 +75,7 @@ module.exports = class ChannelDropup extends React.Component
     return  if prevProps.selectedItem is selectedItem or not selectedItem
 
     containerElement = $ @refs.dropup.getMainElement()
-    itemElement      = $ React.findDOMNode @refs[selectedItem.get 'id']
+    itemElement      = $ React.findDOMNode @refs[selectedItem.get '_id']
 
     containerScrollTop    = containerElement.scrollTop()
     containerHeight       = containerElement.height()
@@ -98,7 +98,7 @@ module.exports = class ChannelDropup extends React.Component
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex index
+    ActivityFlux.actions.user.setChatInputUsersSelectedIndex index
 
 
   renderList: ->
@@ -108,30 +108,30 @@ module.exports = class ChannelDropup extends React.Component
     items.map (item, index) =>
       isSelected = item is selectedItem
 
-      <ChannelDropupItem
+      <UserDropupItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = { item.get 'id' }
-        ref         = { item.get 'id' }
+        key         = { item.get '_id' }
+        ref         = { item.get '_id' }
       />
 
 
   render: ->
 
     <Dropup
-      className      = "ChannelDropup"
+      className      = "UserDropup"
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
       ref            = 'dropup'
     >
-      <div className="ChannelDropup-innerContainer">
+      <div className="UserDropup-innerContainer">
         <div className="Dropup-header">
-          Channels
+          People
         </div>
-        <div className="ChannelDropup-list">
+        <div className="UserDropup-list">
           {@renderList()}
         </div>
       </div>

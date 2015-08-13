@@ -35,12 +35,12 @@ describe 'FilteredEmojiListQueryStore', ->
 
     it 'clears current query', ->
 
-      query = 'smile'
+      testQuery = 'smile'
 
-      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, query : query
+      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, query : testQuery
       query = @reactor.evaluate ['filteredEmojiListQuery']
 
-      expect(query).to.equal query
+      expect(query).to.equal testQuery
 
       @reactor.dispatch actions.UNSET_FILTERED_EMOJI_LIST_QUERY
       query = @reactor.evaluate ['filteredEmojiListQuery']

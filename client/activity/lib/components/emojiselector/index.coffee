@@ -6,6 +6,7 @@ immutable         = require 'immutable'
 emojify           = require 'emojify.js'
 formatEmojiName   = require 'activity/util/formatEmojiName'
 ActivityFlux      = require 'activity/flux'
+Dropup            = require 'activity/components/dropup'
 EmojiSelectorItem = require 'activity/components/emojiselectoritem'
 
 module.exports = class EmojiSelector extends React.Component
@@ -13,52 +14,46 @@ module.exports = class EmojiSelector extends React.Component
   ESC = 27
 
   @defaultProps =
-    emojis        : immutable.List()
-    visible       : no
-    itemsPerRow   : 8
-    selectedEmoji : immutable.Map()
+    items        : immutable.List()
+    visible      : no
+    itemsPerRow  : 8
+    selectedItem : immutable.Map()
 
 
   componentDidMount: ->
 
-    document.addEventListener 'mousedown', @bound 'handleMouseClick'
     document.addEventListener 'keydown',   @bound 'handleKeyDown'
 
-    element = React.findDOMNode this.refs.emojiList
+    element = React.findDOMNode this.refs.list
     emojify.run element
 
 
   componentWillUnmount: ->
 
-    document.removeEventListener 'mousedown', @bound 'handleMouseClick'
     document.removeEventListener 'keydown',   @bound 'handleKeyDown'
 
 
   componentDidUpdate: (prevProps, prevState) ->
 
-    element = React.findDOMNode this.refs.selectedEmoji
+    element = React.findDOMNode this.refs.selectedItem
     emojify.run element
 
 
-  handleItemSelected: (index) ->
+  onItemSelected: (index) ->
 
     ActivityFlux.actions.emoji.setCommonListSelectedIndex index
 
 
-  handleItemClicked: ->
+  onItemConfirmed: ->
 
-    @props.onItemConfirmed?()
+    { selectedItem } = @props
+    @props.onItemConfirmed? formatEmojiName selectedItem
+    @close()
 
 
-  handleMouseClick: (event) ->
+  close: ->
 
-    return  unless @props.visible
-
-    { target } = event
-    element    = React.findDOMNode this
-    innerClick = $.contains element, target
-
-    ActivityFlux.actions.emoji.resetCommonListFlags()  unless innerClick
+    ActivityFlux.actions.emoji.setCommonListVisibility no
 
 
   handleKeyDown: (event) ->
@@ -66,49 +61,47 @@ module.exports = class EmojiSelector extends React.Component
     return  unless @props.visible and event.which is ESC
 
     kd.utils.stopDOMEvent event
-    ActivityFlux.actions.emoji.resetCommonListFlags()
+    @close()
 
 
   renderList: ->
 
-    { emojis, itemsPerRow, selectedEmoji } = @props
+    { items, itemsPerRow, selectedItem } = @props
 
-    emojis.map (emoji, index) =>
+    items.map (item, index) =>
       isFirstInRow = (index + 1) % itemsPerRow is 1
-      isSelected   = selectedEmoji is emoji
+      isSelected   = selectedItem is item
 
       <EmojiSelectorItem
-        emoji        = { emoji }
+        item         = { item }
         index        = { index }
         isFirstInRow = { isFirstInRow }
         isSelected   = { isSelected }
-        onSelect     = { kd.utils.throttle 300, @bound 'handleItemSelected' }
-        onClick      = { @bound 'handleItemClicked' }
-        key          = { emoji }
+        onSelected   = { kd.utils.throttle 300, @bound 'onItemSelected' }
+        onConfirmed  = { @bound 'onItemConfirmed' }
+        key          = { item }
       />
 
 
   render: ->
 
-    { visible, selectedEmoji } = @props
+    { visible, selectedItem } = @props
 
-    className = classnames
-      'EmojiSelector-container' : yes
-      'hidden'                  : not visible
-
-    <div className={className}>
-      <div className="EmojiSelector">
-        <div className="EmojiSelector-emojiList" ref="emojiList">
-          {@renderList()}
-        </div>
-        <div className="EmojiSelector-footer">
-          <div className="EmojiSelector-selectedEmojiIcon" ref="selectedEmoji">
-            {formatEmojiName selectedEmoji}
-          </div>
-          <div className="EmojiSelector-selectedEmojiName">
-            {formatEmojiName selectedEmoji}
-          </div>
-          <div className="clearfix" />
-        </div>
+    <Dropup
+      className      = "EmojiSelector"
+      visible        = { visible }
+      onOuterClick   = { @bound 'close' }
+    >
+      <div className="EmojiSelector-list" ref="list">
+        {@renderList()}
       </div>
-    </div>
+      <div className="EmojiSelector-footer">
+        <div className="EmojiSelector-selectedItemIcon" ref="selectedItem">
+          {formatEmojiName selectedItem}
+        </div>
+        <div className="EmojiSelector-selectedItemName">
+          {formatEmojiName selectedItem}
+        </div>
+        <div className="clearfix" />
+      </div>
+    </Dropup>

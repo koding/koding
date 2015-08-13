@@ -43,16 +43,24 @@ module.exports = class Dropup extends React.Component
     @props.onOuterClick?()  unless innerClick
 
 
-  render: ->
+  getClassName: ->
 
     { className, visible } = @props
+
     classes =
       'Dropup-container' : yes
       'hidden'           : not visible
     classes[className]   = yes  if className
 
-    <div className={classnames classes}>
+    return classnames classes
+
+
+  render: ->
+
+    className = @getClassName()
+
+    <div className={className}>
       <div className="Dropup" ref="dropup">
-        {this.props.children}
+        {@props.children}
       </div>
     </div>

@@ -35,12 +35,12 @@ describe 'ChatInputChannelsQueryStore', ->
 
     it 'clears current query', ->
 
-      query = 'koding'
+      testQuery = 'koding'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_QUERY, query : query
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_QUERY, query : testQuery
       query = @reactor.evaluate ['chatInputChannelsQuery']
 
-      expect(query).to.equal query
+      expect(query).to.equal testQuery
 
       @reactor.dispatch actions.UNSET_CHAT_INPUT_CHANNELS_QUERY
       query = @reactor.evaluate ['chatInputChannelsQuery']
