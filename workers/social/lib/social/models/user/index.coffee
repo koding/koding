@@ -233,6 +233,7 @@ module.exports = class JUser extends jraphical.Module
 
       userValues = {
         email           : email
+        sanitizedEmail  : email
         status          : 'deleted'
         sshKeys         : []
         username        : username
