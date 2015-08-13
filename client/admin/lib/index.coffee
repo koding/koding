@@ -5,8 +5,8 @@ AdminMembersView           = require './views/members/adminmembersview'
 AdministrationView         = require './views/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
 TopicModerationView        = require './views/moderation/topicmoderationview'
+GroupStackSettingsV1       = require './views/groupstacksettingsv1'
 GroupStackSettings         = require './views/groupstacksettings'
-GroupStackSettingsV2       = require './views/groupstacksettingsv2'
 OnboardingAdminView        = require './views/onboarding/onboardingadminview'
 AdminInvitationsView       = require './views/invitations/admininvitationsview'
 GroupPermissionsView       = require './views/grouppermissionsview'
@@ -43,7 +43,7 @@ module.exports = class AdminAppController extends AppController
           ]
         }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
-        { slug : 'StacksV2',       title : 'Compute Stacks',    viewClass : GroupStackSettingsV2     }
+        { slug : 'StacksV1',       title : 'Compute Stacks',    viewClass : GroupStackSettingsV1     }
       ]
     koding     :
       title    : 'Koding Administration'
