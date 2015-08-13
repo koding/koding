@@ -35,12 +35,12 @@ type AwsBootstrapOutput struct {
 
 type TerraformBootstrapRequest struct {
 	// Identifiers contains identifers to be used with terraform
-	Identifiers []string `json:"publicKeys"`
+	Identifiers []string `json:"identifiers"`
 
 	GroupName string `json:"groupName"`
 
-	// Destroy destroys the bootstrap resource associated with the given public
-	// keys
+	// Destroy destroys the bootstrap resource associated with the given
+	// identifiers
 	Destroy bool
 }
 
@@ -153,7 +153,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 
 		if args.Destroy {
 			mongodDBOperator = "$unset"
-			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.Identifier)
+			k.Log.Info("Destroying bootstrap resources belonging to identifier '%s'", cred.Identifier)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -162,7 +162,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				return nil, err
 			}
 		} else {
-			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.Identifier)
+			k.Log.Info("Creating bootstrap resources belonging to identifier '%s'", cred.Identifier)
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,

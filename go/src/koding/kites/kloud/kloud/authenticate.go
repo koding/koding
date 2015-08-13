@@ -34,7 +34,7 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 	}
 
 	if len(args.Identifiers) == 0 {
-		return nil, errors.New("publicKeys are not passed")
+		return nil, errors.New("identifiers are not passed")
 	}
 
 	if args.GroupName == "" {
