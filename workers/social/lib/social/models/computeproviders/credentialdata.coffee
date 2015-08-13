@@ -7,7 +7,7 @@ module.exports = class JCredentialData extends Module
   @set
 
     indexes           :
-      publicKey       : 'unique'
+      identifier      : 'unique'
 
     sharedEvents      :
 
@@ -16,7 +16,7 @@ module.exports = class JCredentialData extends Module
 
     schema            :
 
-      publicKey       :
+      identifier      :
         type          : String
         default       : require 'hat'
 

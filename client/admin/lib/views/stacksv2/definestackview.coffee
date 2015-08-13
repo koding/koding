@@ -142,13 +142,13 @@ module.exports = class DefineStackView extends kd.View
 
         @outputView.add 'Bootstrap required, initiating to bootstrap...'
 
-        publicKeys = [credential.publicKey]
+        identifiers = [credential.identifier]
 
         { computeController } = kd.singletons
 
         computeController.getKloud()
 
-          .bootstrap { publicKeys }
+          .bootstrap { identifiers }
 
           .then (response) =>
 

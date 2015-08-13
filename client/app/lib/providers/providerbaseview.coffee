@@ -147,7 +147,7 @@ module.exports = class ProviderBaseView extends KDTabPaneView
 
     @addCredentialForm.on "CredentialAdded", (credential)=>
       @addCredentialForm.unsetClass 'in'
-      @paneSelected yes, credential.publicKey
+      @paneSelected yes, credential.identifier
       @createAddCredentialForm()
 
     @content.addSubView @addCredentialForm
@@ -222,9 +222,9 @@ module.exports = class ProviderBaseView extends KDTabPaneView
       @_credOptions = []
 
       for cred in credentials
-        @_credentials[cred.publicKey] = cred
+        @_credentials[cred.identifier] = cred
         @_credOptions.push
-          title: cred.title, value: cred.publicKey
+          title: cred.title, value: cred.identifier
 
       @_credOptions.push
         title: "Add new credential...", value: "_add_"

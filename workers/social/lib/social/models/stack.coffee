@@ -52,9 +52,6 @@ module.exports = class JComputeStack extends jraphical.Module
         { name : 'updateInstance' }
       ]
 
-    indexes              :
-      publicKey          : 'unique'
-
     schema               :
 
       title              :

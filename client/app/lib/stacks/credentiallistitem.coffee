@@ -12,7 +12,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
     super options, data
 
     delegate = @getDelegate()
-    { publicKey, owner, title, verified } = @getData()
+    { identifier, owner, title, verified } = @getData()
 
     @deleteButton = new kd.ButtonView
       cssClass : 'solid compact outline red secondary'
@@ -43,7 +43,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
     credentials = stackTemplate?.credentials ? []
     credentials = credentials.concat (selectedCredentials or [])
 
-    if publicKey in credentials
+    if identifier in credentials
       @inuseView.show()
 
     @warningView = new kd.CustomHTMLView
@@ -68,7 +68,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   verifyCredential: ->
 
-    {publicKey} = @getData()
+    {identifier} = @getData()
 
     @warningView.hide()
 
@@ -76,7 +76,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       .verify this
       .timeout 10000
       .then (response) =>
-        @setVerified response?[publicKey]
+        @setVerified response?[identifier]
 
       .catch (err) =>
         @setVerified no, err.message

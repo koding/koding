@@ -227,13 +227,13 @@ module.exports = class StacksCustomViews extends CustomViews
 
     outputView.addContent 'Bootstrapping started...'
 
-    publicKeys = [credential.publicKey]
+    identifiers = [credential.identifier]
 
     { computeController } = kd.singletons
 
     computeController.getKloud()
 
-      .bootstrap { publicKeys }
+      .bootstrap { identifiers }
 
       .then (response) ->
 
