@@ -50,6 +50,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		// This ensures that the machine will never store Stopped in the
 		// database, while still running on the provider.
 		if resultState == machinestate.Stopped {
+			m.Log.Info("======> STOP started (inconsistent state)<======")
+
 			// Note that this Stop() call is done in a goroutine so that it
 			// does not block the Info() call.
 			go func(machine *Machine) {
@@ -64,6 +66,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 					machine.Log.Debug("Info decision: Error while Stopping machine. Err: %v",
 						machine.Id, err)
 				}
+				m.Log.Info("======> STOP finished (inconsistent state)<======")
 			}(m)
 			return
 		}
