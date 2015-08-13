@@ -43,7 +43,7 @@ module.exports = class AdminAppController extends AppController
           ]
         }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
-        { slug : 'StacksV1',       title : 'Compute Stacks',    viewClass : GroupStackSettingsV1     }
+      # { slug : 'StacksV1',       title : 'Compute Stacks',    viewClass : GroupStackSettingsV1     }
       ]
     koding     :
       title    : 'Koding Administration'
