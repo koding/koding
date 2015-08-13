@@ -77,6 +77,18 @@ module.exports = class JComputeStack extends jraphical.Module
 
       meta               : require 'bongo/bundles/meta'
 
+      # Identifiers of JCredentials
+      # structured like following;
+      #  { Provider: [JCredential.identifier ] }
+      #  ---
+      #  {
+      #    aws: [123123, 123124]
+      #    github: [234234]
+      #  }
+      credentials        :
+        type             : Object
+        default          : -> {}
+
       status             :
         type             : String
         enum             : ["Wrong type specified!", [
