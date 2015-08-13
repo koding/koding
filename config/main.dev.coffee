@@ -1187,6 +1187,7 @@ Configuration = (options={}) ->
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
         echo "  run importusers           : to import koding user data"
+        echo "  run sanitize-email        : to sanitize email"
         echo "  run help                  : to show this list"
         echo ""
 
@@ -1684,6 +1685,9 @@ Configuration = (options={}) ->
       # To run specific test directory or a single test file
       elif [ "$1" == "nodetestfiles" ]; then
         #{projectRoot}/scripts/node-testing/mocha-runner $2
+
+      elif [ "$1" == "sanitize-email" ]; then
+        node #{projectRoot}/scripts/sanitize-email
 
       else
         echo "Unknown command: $1"
