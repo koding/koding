@@ -14,7 +14,10 @@ import (
 
 const (
 	privateKeyType = "RSA PRIVATE KEY"
-	bitSize        = 2048
+	// while generating ssh key,
+	// 2048 bit size is the default size.
+	// as optional it can be 1024 or 4096 etc..
+	bitSize = 2048
 )
 
 // Generate creates public and private key pairs for using as ssh keys uses
@@ -39,6 +42,7 @@ func Generate() (pubKey string, privKey string, err error) {
 		return "", "", err
 	}
 
+	// standart github ssh preferences
 	pubKey = fmt.Sprintf("ssh-rsa %v", base64.StdEncoding.EncodeToString(pub.Marshal()))
 	privKey = string(pem.EncodeToMemory(&privateKeyBlock))
 
