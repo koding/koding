@@ -11,6 +11,7 @@ type GatherStat struct {
 	Env        string             `json:"env"`
 	Username   string             `json:"username"`
 	InstanceId string             `json:"instanceId"`
+	Type       string             `json:"type"`
 	Stats      []GatherSingleStat `json:"stats"`
 }
 

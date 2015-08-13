@@ -138,7 +138,9 @@ func (c *GatherRun) Export(raw []interface{}, err error) error {
 	}
 
 	if len(stats) > 0 {
-		gStat := &GatherStat{Env: c.Env, Username: c.Username, Stats: stats}
+		gStat := &GatherStat{
+			Env: c.Env, Username: c.Username, Stats: stats, Type: c.ScriptType,
+		}
 		return c.Exporter.SendStats(gStat)
 	}
 
