@@ -61,7 +61,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	th := throttled.RateLimit(
-		throttled.PerHour(10),
+		throttled.PerHour(50),
 		&throttled.VaryBy{
 			Path: false,
 			Custom: func(r *http.Request) string {
