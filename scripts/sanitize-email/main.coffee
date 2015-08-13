@@ -57,7 +57,7 @@ handleAbuse = (user) ->
 handleError = (user, err) ->
 
   switch err.code
-    when 11000 # duplicate key error
+    when 11000, 11001 # duplicate key error
       handleAbuse user
     else
       console.error "error: #{JSON.stringify err}"
