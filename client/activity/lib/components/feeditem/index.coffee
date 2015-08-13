@@ -85,9 +85,8 @@ makeAvatar = (imAccount) ->
   </ProfileLinkContainer>
 
 
-makeLikeLink = (message) ->
+makeLikeLink = (message) -> <MessageLikeLink message={message} />
 
-  <MessageLikeLink message={message} />
 
 makeRepliesCount = (message) ->
   repliesCount = message.get 'repliesCount'
