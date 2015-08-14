@@ -5,6 +5,7 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
 	"time"
@@ -54,6 +55,7 @@ type Machine struct {
 	Checker  plans.Checker          `bson:"-"`
 	Session  *session.Session       `bson:"-"`
 	Log      logging.Logger         `bson:"-"`
+	locker   kloud.Locker           `bson:"-"`
 
 	// cleanFuncs are a list of functions that are called when after a method
 	// is finished
@@ -204,4 +206,24 @@ func (m *Machine) isKlientReady() bool {
 	}
 
 	return true
+}
+
+// Lock performs a Lock on this Machine
+func (m *Machine) Lock() error {
+	if !m.Id.Valid() {
+		return kloud.NewError(kloud.ErrMachineIdMissing)
+	}
+
+	return m.locker.Lock(m.Id.Hex())
+}
+
+// Unlock performs an Unlock on this Machine instance
+func (m *Machine) Unlock() error {
+	if !m.Id.Valid() {
+		return kloud.NewError(kloud.ErrMachineIdMissing)
+	}
+
+	// Unlock does not return an error
+	m.locker.Unlock(m.Id.Hex())
+	return nil
 }
