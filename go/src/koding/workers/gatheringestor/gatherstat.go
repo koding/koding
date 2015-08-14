@@ -7,13 +7,15 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 )
 
 type GatherStat struct {
-	log logging.Logger
-	dog *metrics.DogStatsD
+	log        logging.Logger
+	dog        *metrics.DogStatsD
+	kiteClient *kite.Client
 }
 
 func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {

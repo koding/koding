@@ -8,19 +8,27 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"koding/tools/utils"
+	"log"
 	"net"
 	"net/http"
 	"runtime"
+	"time"
+
+	kiteConfig "github.com/koding/kite/config"
 
 	"github.com/PuerkitoBio/throttled"
 	"github.com/PuerkitoBio/throttled/store"
+	"github.com/cenkalti/backoff"
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/koding/redis"
 )
 
 var (
-	WorkerName = "ingestor"
+	WorkerName    = "gatheringestor"
+	WorkerVersion = "0.0.1"
+
 	flagConfig = flag.String("c", "dev", "Configuration profile from file")
 )
 
@@ -55,7 +63,12 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	stathandler := &GatherStat{log: log, dog: dogclient}
+	var kiteClient *kite.Client
+	if conf.GatherIngestor.ConnectToKloud {
+		kiteClient = initializeKiteClient(conf)
+	}
+
+	stathandler := &GatherStat{log: log, dog: dogclient, kiteClient: kiteClient}
 	errhandler := &GatherError{log: log, dog: dogclient}
 
 	mux := http.NewServeMux()
@@ -94,6 +107,39 @@ func main() {
 	if err = http.Serve(listener, mux); err != nil {
 		log.Fatal(err.Error())
 	}
+}
+
+func initializeKiteClient(conf *config.Config) *kite.Client {
+	var err error
+
+	// create new kite
+	k := kite.New(WorkerName, WorkerVersion)
+	config, err := kiteConfig.Get()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// set skeleton config
+	k.Config = config
+
+	// create a new connection to the cloud
+	kiteClient := k.NewClient(conf.GatherIngestor.KloudAddr)
+	kiteClient.Auth = &kite.Auth{
+		Type: WorkerName,
+		Key:  conf.GatherIngestor.KloudSecretKey,
+	}
+	kiteClient.Reconnect = true
+
+	operation := func() error {
+		return kiteClient.DialTimeout(time.Second * 10)
+	}
+
+	err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+	if err != nil {
+		log.Fatal("%s. Is kloud/kontrol running?", err)
+	}
+
+	return kiteClient
 }
 
 func write500Err(log logging.Logger, err error, w http.ResponseWriter) {

@@ -216,9 +216,9 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-dev" }
+    vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey  , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-dev" }
     gowebserver                    : {port          : 6500}
-    gatheringestor                 : {port          : 6800}
+    gatheringestor                 : {port          : 6800                , kloudAddr: kloud.address                         ,  connectToKloud : false                          , secretKey : "gatheringestorsecretkey-dev" }
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
     mq                             : mq
@@ -361,7 +361,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port}  -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile}  -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey} -janitorsecretkey=#{socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{paymentwebhook.secretKey}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port}  -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile}  -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey} -janitorsecretkey=#{socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{paymentwebhook.secretKey} -gatheringestorsecretkey=#{KONFIG.gatheringestor.secretKey}"
       nginx             :
         websocket       : yes
         locations       : [
