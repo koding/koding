@@ -65,7 +65,6 @@ runTests = -> describe 'server.handlers.validateemail', ->
       done()
 
 
-  # returns 200 with invalid email address, needs to be investigated
   it 'should send HTTP 400 if email is not valid', (done) ->
 
     validateEmailRequestParams = generateValidateEmailRequestParams
@@ -115,6 +114,32 @@ runTests = -> describe 'server.handlers.validateemail', ->
     ]
 
     daisy queue
+
+
+  it 'should send HTTP 400 if dotted gmail address is in use', (done) ->
+
+    email     = generateRandomEmail 'gmail.com'
+    username  = generateRandomUsername()
+
+    registerRequestParams = generateRegisterRequestParams
+      body     :
+        email  : email
+
+    [username, host] = email.split '@'
+
+    username  = username.replace /(.)/g, '$1.'
+    candidate = "#{username}@#{host}"
+
+    validateEmailRequestParams = generateValidateEmailRequestParams
+      body     :
+        email  : candidate
+
+    # expecting email validation to fail using already registered email
+    request.post validateEmailRequestParams, (err, res, body) ->
+      expect(err)             .to.not.exist
+      expect(res.statusCode)  .to.be.equal 400
+      expect(body)            .to.be.equal 'Bad request'
+      done()
 
 
   it 'should send HTTP 400 if email is in use and password is invalid', (done) ->

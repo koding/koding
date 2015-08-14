@@ -3,7 +3,6 @@ React        = require 'kd-react'
 immutable    = require 'immutable'
 ActivityFlux = require 'activity/flux'
 classnames   = require 'classnames'
-Link         = require 'app/components/common/link'
 
 
 module.exports = class DropupItem extends React.Component
@@ -27,20 +26,26 @@ module.exports = class DropupItem extends React.Component
     onConfirmed? item
 
 
-  render: ->
+  getClassName: ->
 
     { isSelected, className } = @props
 
-    linkClasses =
+    classes =
       'DropupItem'          : yes
       'DropupItem-selected' : isSelected
-    linkClasses[className]  = yes  if className
-    linkClassName = classnames linkClasses
+    classes[className]      = yes  if className
 
-    <Link
-      className    = {linkClassName}
+    return classnames classes
+
+
+  render: ->
+
+    className = @getClassName()
+
+    <div
+      className    = {className}
       onMouseEnter = {@bound 'handleSelect'}
       onClick      = {@bound 'handleClick'}
     >
-      <span className='DropupItem-itemName'>{this.props.children}</span>
-    </Link>
+      {@props.children}
+    </div>

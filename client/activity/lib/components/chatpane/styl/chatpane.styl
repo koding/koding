@@ -8,7 +8,7 @@
 .ChatPane-contentWrapper
   dispFlex()
   bg                        color, #fcfcfc
-  height                    100vh
+  kalc                      height, 100vh \- 52px
   flex-direction            column
 
 .ChatPane-body
@@ -31,20 +31,12 @@
     height                  auto
     abs                     0 0 0px 0
 
-.ChatPane-footer
-  rel()
-  height                    70px
-  flex                      0 0 120px
-
 .ChatPane .ChatInputWidget
-  abs()
   borderBox()
   bg                        color, #FCFCFC
   border                    none
   size                      100%, 100%
-  padding                   0 25px 25px 25px
-  right                     auto
-  left                      0
+  padding                   0 25px 15px 25px
 
   &:before
     left                    37px

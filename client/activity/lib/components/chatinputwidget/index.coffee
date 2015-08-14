@@ -3,6 +3,7 @@ React           = require 'kd-react'
 TextArea        = require 'react-autosize-textarea'
 EmojiDropup     = require 'activity/components/emojidropup'
 ChannelDropup   = require 'activity/components/channeldropup'
+UserDropup      = require 'activity/components/userdropup'
 EmojiSelector   = require 'activity/components/emojiselector'
 ActivityFlux    = require 'activity/flux'
 KDReactorMixin  = require 'app/flux/reactormixin'
@@ -37,16 +38,21 @@ module.exports = class ChatInputWidget extends React.Component
       filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem
       filteredEmojiListQuery         : getters.filteredEmojiListQuery
       commonEmojiList                : getters.commonEmojiList
-      commonEmojiListFlags           : getters.commonEmojiListFlags
       commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem
-      channels                       : getters.chatInputChannes
+      commonEmojiListVisibility      : getters.commonEmojiListVisibility
+      channels                       : getters.chatInputChannels
       channelsSelectedItem           : getters.chatInputChannelsSelectedItem
       channelsQuery                  : getters.chatInputChannelsQuery
       channelsVisibility             : getters.chatInputChannelsVisibility
+      users                          : getters.chatInputUsers
+      usersQuery                     : getters.chatInputUsersQuery
+      userSelectedIndex              : getters.chatInputUsersSelectedIndex
+      usersSelectedItem              : getters.chatInputUsersSelectedItem
+      usersVisibility                : getters.chatInputUsersVisibility
     }
 
 
-  getDropups: -> [ @refs.emojiDropup, @refs.channelDropup ]
+  getDropups: -> [ @refs.emojiDropup, @refs.channelDropup, @refs.userDropup ]
 
 
   onChange: (event) ->
@@ -129,17 +135,15 @@ module.exports = class ChatInputWidget extends React.Component
       helpers.setCursorPosition textInput, cursorPosition
 
 
-  onEmojiSelectorItemConfirmed: ->
+  onSelectorItemConfirmed: (item) ->
 
-    { commonEmojiListSelectedItem, value } = @state
+    { value } = @state
 
-    newValue = value + formatEmojiName commonEmojiListSelectedItem
+    newValue = value + item
     @setState { value : newValue }
 
     textInput = React.findDOMNode this.refs.textInput
     textInput.focus()
-
-    ActivityFlux.actions.emoji.resetCommonListFlags()
 
 
   handleEmojiButtonClick: (event) ->
@@ -162,13 +166,13 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderEmojiSelector: ->
 
-    { commonEmojiList, commonEmojiListFlags, commonEmojiListSelectedItem } = @state
+    { commonEmojiList, commonEmojiListVisibility, commonEmojiListSelectedItem } = @state
 
     <EmojiSelector
-      emojis          = { commonEmojiList }
-      visible         = { commonEmojiListFlags.get 'visible' }
-      selectedEmoji   = { commonEmojiListSelectedItem }
-      onItemConfirmed = { @bound 'onEmojiSelectorItemConfirmed' }
+      items           = { commonEmojiList }
+      visible         = { commonEmojiListVisibility }
+      selectedItem    = { commonEmojiListSelectedItem }
+      onItemConfirmed = { @bound 'onSelectorItemConfirmed' }
     />
 
 
@@ -186,12 +190,27 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
+  renderUserDropup: ->
+
+    { users, usersSelectedItem, usersQuery, usersVisibility } = @state
+
+    <UserDropup
+      items           = { users }
+      selectedItem    = { usersSelectedItem }
+      query           = { usersQuery }
+      visible         = { usersVisibility }
+      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
+      ref             = 'userDropup'
+    />
+
+
   render: ->
 
     <div className="ChatInputWidget">
       { @renderEmojiSelector() }
       { @renderEmojiDropup() }
       { @renderChannelDropup() }
+      { @renderUserDropup() }
       <TextArea
         value     = { @state.value }
         onChange  = { @bound 'onChange' }

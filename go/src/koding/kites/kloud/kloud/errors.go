@@ -48,6 +48,7 @@ const (
 	ErrBuilderNotImplemented  = 407
 	ErrProviderIsMissing      = 408
 	ErrStaterNotImplemented   = 409
+	ErrProviderIsWrong        = 410
 
 	ErrUserNotConfirmed = 500
 )
@@ -82,6 +83,7 @@ var kloudErrors = map[int]string{
 	ErrBuilderNotImplemented:  "Provider doesn't implement the builder interface",
 	ErrStaterNotImplemented:   "Provider doesn't implement the stater interface",
 	ErrProviderIsMissing:      "Provider argument is missing.",
+	ErrProviderIsWrong:        "Provider doesn't match the internal name",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",

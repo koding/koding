@@ -1,17 +1,11 @@
-.EmojiSelector-container
-  position                  relative
-  width                     100%
-
 .EmojiSelector
-  abs()
-  top                       -375px
-  right                     0px
-  border                    1px solid #dcdcdc
-  shadow                    0 5px 15px rgba(0,0,0,0.2)
-  rounded                   3px
-  bg                        color, #fff
+  .Dropup
+    right                   0px
+    rounded                 3px
+    width                   auto
+    max-height              none
 
-.EmojiSelector-emojiList
+.EmojiSelector-list
   size                      298px 270px
   overflow                  auto
   padding                   18px
@@ -21,7 +15,7 @@
   padding                   16px
   bg                        color, #f8f8f8
 
-.EmojiSelector-selectedEmojiIcon
+.EmojiSelector-selectedItemIcon
   fl()
   margin-right              15px
   size                      32px 32px
@@ -29,7 +23,7 @@
   .emoji
     size                    32px 32px
 
-.EmojiSelector-selectedEmojiName
+.EmojiSelector-selectedItemName
   color                     #646565
   font-size                 16px
   padding-top               6px

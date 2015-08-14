@@ -168,7 +168,8 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		return nil, errors.New("session context is not passed")
 	}
 
-	var awsOutput *AwsBootstrapOutput
+	awsOutput := &AwsBootstrapOutput{}
+
 	for _, cred := range creds.Creds {
 		if cred.Provider != "aws" {
 			continue

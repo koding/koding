@@ -93,8 +93,8 @@ func (c *context) Get(contentID string) (*KodingContext, error) {
 	kc.Provisioners = c.Provisioners
 	kc.LocalStorage = c.LocalStorage
 	kc.RemoteStorage = c.RemoteStorage
-
 	kc.ContentID = contentID
+	kc.log = c.log
 
 	return kc, nil
 }
