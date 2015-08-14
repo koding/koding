@@ -484,11 +484,12 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @addMachineList()
 
-    if isReactivityEnabled()
-      @addReactivitySidebarSections()
-
-    @addFollowedTopics()
-    @addMessages()
+    kd.singletons.mainController.ready =>
+      if isReactivityEnabled()
+        @addReactivitySidebarSections()
+      else
+        @addFollowedTopics()
+        @addMessages()
 
 
   initiateFakeCounter: ->
