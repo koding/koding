@@ -67,6 +67,13 @@ module.exports = class SuggestionMenuView extends ReactView
     router.handleRoute groupifyLink "/Activity/Post/#{slug}"
 
 
-  disable: ->
+  disable: -> ActivityFlux.actions.suggestions.setAccessibility no
 
-    ActivityFlux.actions.suggestions.setAccessibility no
+
+  setVisibility: (visible) -> ActivityFlux.actions.suggestions.setVisibility visible
+
+
+  setQuery: (query) -> ActivityFlux.actions.suggestions.setQuery query
+
+
+  reset: -> ActivityFlux.actions.suggestions.reset()

@@ -81,7 +81,7 @@ module.exports = class ActivityInputWidget extends KDView
     @input.on 'UpArrow',   @bound 'handleUpArrow'
     @input.on 'Esc',       @bound 'handleEsc'
     @input.on 'RawEnter',  @bound 'handleRawEnter'
-    @suggestions.on 'SubmitRequested', @bound 'handleSubmitRequested'
+    @suggestions.on 'SubmitRequested', @bound 'handleSuggestionsSubmit'
 
 
   focusSubmit: ->
@@ -89,9 +89,11 @@ module.exports = class ActivityInputWidget extends KDView
     @submitButton.focus()
 
 
-  handleSubmitRequested: ->
+  handleSuggestionsSubmit: ->
 
-    ActivityFlux.actions.suggestions.setVisibility no
+    return  unless @suggestions
+
+    @suggestions.setVisibility no
     @submitButton.click()
 
 
@@ -122,6 +124,7 @@ module.exports = class ActivityInputWidget extends KDView
   handleRawEnter: (event) ->
 
     return  unless @suggestions and @suggestions.isVisible
+
     kd.utils.stopDOMEvent event
     @suggestions.confirmSelectedItem()
 
@@ -222,7 +225,7 @@ module.exports = class ActivityInputWidget extends KDView
     if unlock then @unlockSubmit()
     else kd.utils.wait 8000, @bound 'unlockSubmit'
 
-    ActivityFlux.actions.suggestions.reset()  if @getOptions().isSuggestionEnabled
+    @suggestions.reset()  if @getOptions().isSuggestionEnabled
 
 
   getEmbedBoxPayload: -> return @embedBox.getData()
@@ -305,14 +308,17 @@ module.exports = class ActivityInputWidget extends KDView
 
   makeSuggestionsVisible: ->
 
-    ActivityFlux.actions.suggestions.setVisibility yes
+    return  unless @suggestions
+    @suggestions.setVisibility yes
 
 
   updateSuggestionsQuery: ->
 
+    return  unless @suggestions
+
     query = @input.getValue()
     { reactor } = kd.singletons
-    { getters, actions } = ActivityFlux
+    { getters } = ActivityFlux
 
     lastQuery = reactor.evaluate getters.currentSuggestionsQuery
-    actions.suggestions.setQuery query  if query isnt lastQuery
+    @suggestions.setQuery query  if query isnt lastQuery
