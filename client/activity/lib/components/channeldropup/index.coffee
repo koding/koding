@@ -121,11 +121,8 @@ module.exports = class ChannelDropup extends React.Component
 
   render: ->
 
-    { items, query } = @props
-
     <Dropup
       className      = "ChannelDropup"
-      items          = { items }
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
       ref            = 'dropup'

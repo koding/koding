@@ -33,7 +33,26 @@ loadAccount = (id) ->
 ###
 generateOrigin = (id) -> { id, constructorName: 'JAccount', _id: id }
 
+
+searchAccounts = (query, options = {}) ->
+
+  { SEARCH_USERS_BEGIN
+    SEARCH_USERS_SUCCESS
+    SEARCH_USERS_FAIL } = actions
+
+  { reactor } = kd.singletons
+
+  reactor.dispatch SEARCH_USERS_BEGIN, { query }
+
+  kd.singletons.search.searchAccounts(query, options)
+    .then (users) ->
+      reactor.dispatch SEARCH_USERS_SUCCESS, { users }
+    .catch (err) ->
+      reactor.dispatch SEARCH_USERS_FAIL, { err, query }
+
+
 module.exports = {
   loadAccount
+  searchAccounts
 }
 

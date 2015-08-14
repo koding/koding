@@ -1,8 +1,11 @@
-kd     = require 'kd'
-whoami = require 'app/util/whoami'
+kd                  = require 'kd'
+whoami              = require 'app/util/whoami'
+KDView              = kd.View
+KDButtonView        = kd.ButtonView
 
 
-module.exports = class AccountTwoFactorAuth extends kd.View
+module.exports = class AccountTwoFactorAuth extends KDView
+
 
   constructor: (options = {}, data) ->
 
@@ -67,7 +70,7 @@ module.exports = class AccountTwoFactorAuth extends kd.View
         #{@getLearnLink()}
       "
 
-    @addSubView inputForm  = new kd.FormViewWithFields
+    @addSubView @disableForm = new kd.FormViewWithFields
       cssClass             : 'AppModal-form'
       fields               :
         password           :
@@ -77,34 +80,43 @@ module.exports = class AccountTwoFactorAuth extends kd.View
           type             : 'password'
           label            : 'Password'
         button             :
+          type             : 'submit'
           label            : '&nbsp;'
           cssClass         : 'Formline--half'
-          itemClass        : kd.ButtonView
+          itemClass        : KDButtonView
           title            : 'Disable 2-Factor Auth'
           style            : 'solid medium disable-tf'
-          callback         : =>
+      callback             : @bound 'handleDisableFormButton'
 
-            { password }   = inputForm.inputs
 
-            options        =
-              password     : password.getValue()
-              disable      : yes
+  handleDisableFormButton: ->
 
-            me = whoami()
-            me.setup2FactorAuth options, (err) =>
+    { password }   = @disableForm.inputs
 
-              return  if @showError err
+    options        =
+      password     : password.getValue()
+      disable      : yes
 
-              new kd.NotificationView
-                title      : 'Successfully Disabled!'
-                type       : 'mini'
+    @handleProcessOf2FactorAuth options, 'Successfully Disabled!'
 
-              @buildInitialView()
+
+  handleProcessOf2FactorAuth: (options, message) ->
+
+    me = whoami()
+    me.setup2FactorAuth options, (err) =>
+
+      return  if @showError err
+
+      new kd.NotificationView
+        title : message
+        type  : 'mini'
+
+      @buildInitialView()
 
 
   getFormView: ->
 
-    @addSubView inputForm  = new kd.FormViewWithFields
+    @addSubView @enableForm  = new kd.FormViewWithFields
       cssClass             : 'AppModal-form'
       fields               :
         password           :
@@ -118,29 +130,24 @@ module.exports = class AccountTwoFactorAuth extends kd.View
           placeholder      : 'Enter the verification code'
           name             : 'tfcode'
           label            : 'Verification Code'
+      buttons              :
+        Enable             :
+          type             : 'submit'
+          title            : 'Enable 2-Factor Auth'
+          style            : 'solid green small enable-tf'
+      callback             : @bound 'handleEnableFormButton'
 
-    { password, tfcode } = inputForm.inputs
 
-    @addSubView new kd.ButtonView
-      title            : 'Enable 2-Factor Auth'
-      style            : 'solid green small enable-tf'
-      callback         : =>
+  handleEnableFormButton: ->
 
-        options        =
-          key          : @_activeKey
-          password     : password.getValue()
-          verification : tfcode.getValue()
+    { password, tfcode } = @enableForm.inputs
 
-        me = whoami()
-        me.setup2FactorAuth options, (err) =>
+    options =
+      key          : @_activeKey
+      password     : password.getValue()
+      verification : tfcode.getValue()
 
-          return  if @showError err
-
-          new kd.NotificationView
-            title : 'Successfully Enabled!'
-            type  : 'mini'
-
-          @buildInitialView()
+    @handleProcessOf2FactorAuth options, 'Successfully Enabled!'
 
 
   getQrCodeView: (url) ->
@@ -213,3 +220,4 @@ module.exports = class AccountTwoFactorAuth extends kd.View
         below and click the “Enable” button.
 
       """
+

@@ -127,6 +127,10 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, NewError(ErrStaterNotImplemented)
 	}
 
+	if stater.ProviderName() != args.Provider {
+		return nil, NewError(ErrProviderIsWrong)
+	}
+
 	// Check if the given method is in valid methods of that current state. For
 	// example if the method is "build", and the state is "stopped" than this
 	// will return an error.
@@ -155,14 +159,15 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 			Percentage: 100,
 		}
 
-		k.Log.Info("[%s] ======> %s started <======", args.MachineId, strings.ToUpper(r.Method))
+		k.Log.Info("[%s] ======> %s started (requester: %s, provider: %s)<======",
+			args.MachineId, strings.ToUpper(r.Method), r.Username, args.Provider)
 		start := time.Now()
 		err := fn(ctx, machine)
 		if err != nil {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
-			k.Log.Error("[%s][%s] ======> %s finished with error: '%s' <======",
-				args.Provider, args.MachineId, strings.ToUpper(r.Method), err)
+			k.Log.Error("[%s] ======> %s finished with error: '%s' (requester: %s, provider: %s) <======",
+				args.MachineId, strings.ToUpper(r.Method), err, r.Username, args.Provider)
 
 			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
 
@@ -174,8 +179,8 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 
 			finalEvent.Status = stater.State() // fallback to to old state
 		} else {
-			k.Log.Info("[%s][%s] ======> %s finished (time: %s) <======",
-				args.Provider, args.MachineId, strings.ToUpper(r.Method), time.Since(start))
+			k.Log.Info("[%s] ======> %s finished (time: %s, requester: %s, provider: %s) <======",
+				args.MachineId, strings.ToUpper(r.Method), time.Since(start), r.Username, args.Provider)
 		}
 
 		ev.Push(finalEvent)

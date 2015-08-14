@@ -9,7 +9,7 @@ import (
 )
 
 // Plan defines a single koding plan. All Koding plans should have:
-// 1. 60 min timeout for non-always on vms
+// 1. 50 min timeout for non-always on vms
 // 2. only t2.micro's as vm type
 type Plan struct {
 	// Name defines the plan name
@@ -64,6 +64,9 @@ var Plans = map[string]*Plan{
 	"betatester":   Betatester,
 }
 
+// For any plan changes, please update the following files:
+//
+// - /workers/social/lib/social/models/computeproviders/plans.coffee
 var (
 	// Free: 1 VM, 0 Always On, 3GB total storage
 	Free = &Plan{
@@ -72,7 +75,7 @@ var (
 		SnapshotTotalLimit: 0,
 		AlwaysOnLimit:      0,
 		StorageLimit:       3,
-		Timeout:            60 * time.Minute,
+		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
@@ -85,7 +88,7 @@ var (
 		SnapshotTotalLimit: 1,
 		AlwaysOnLimit:      1,
 		StorageLimit:       10,
-		Timeout:            60 * time.Minute,
+		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
@@ -98,7 +101,7 @@ var (
 		SnapshotTotalLimit: 3,
 		AlwaysOnLimit:      1,
 		StorageLimit:       25,
-		Timeout:            60 * time.Minute,
+		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
@@ -111,7 +114,7 @@ var (
 		SnapshotTotalLimit: 5,
 		AlwaysOnLimit:      2,
 		StorageLimit:       50,
-		Timeout:            60 * time.Minute,
+		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
@@ -124,7 +127,7 @@ var (
 		SnapshotTotalLimit: 10,
 		AlwaysOnLimit:      5,
 		StorageLimit:       100,
-		Timeout:            60 * time.Minute,
+		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
@@ -138,7 +141,7 @@ var (
 		SnapshotTotalLimit: 20,
 		AlwaysOnLimit:      20,
 		StorageLimit:       200,
-		Timeout:            60 * time.Minute,
+		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
 			T2Micro: {}, T2Small: {}, T2Medium: {},
 		},
@@ -151,7 +154,7 @@ var (
 		SnapshotTotalLimit: 0,
 		AlwaysOnLimit:      1,
 		StorageLimit:       3,
-		Timeout:            60 * time.Minute,
+		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},

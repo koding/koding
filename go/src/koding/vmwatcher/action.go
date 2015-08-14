@@ -68,7 +68,7 @@ func blockUserAndDestroyVm(machineId, username, reason string) error {
 		return err
 	}
 
-	machines, err := modelhelper.GetMachinesByUsername(username)
+	machines, err := modelhelper.GetMachinesByUsernameAndProvider(username, KodingProvider)
 	if err != nil {
 		return err
 	}
