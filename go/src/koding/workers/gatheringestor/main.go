@@ -26,8 +26,13 @@ import (
 )
 
 var (
-	WorkerName    = "gatheringestor"
-	WorkerVersion = "0.0.1"
+	WorkerName       = "gatheringestor"
+	WorkerVersion    = "0.0.1"
+	GlobalDisableKey = "globalStopDisabled"
+	ExemptUsersKey   = "exemptUsers"
+	DefaultReason    = "abuse found in user VM"
+	KodingProvider   = "koding"
+	KloudTimeout     = 10 * time.Second
 
 	flagConfig = flag.String("c", "dev", "Configuration profile from file")
 )
@@ -55,6 +60,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+	redisConn.SetPrefix(WorkerName)
 
 	defer redisConn.Close()
 

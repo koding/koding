@@ -10,33 +10,49 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+	"github.com/koding/redis"
 )
 
 type GatherStat struct {
 	log        logging.Logger
 	dog        *metrics.DogStatsD
+	redis      *redis.RedisSession
 	kiteClient *kite.Client
 }
 
-func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r != nil {
-		defer r.Body.Close()
-	}
+type kloudRequestArgs struct {
+	MachineId string `json:"machineId"`
+	Reason    string `json:"reason"`
+	Provider  string `json:"provider"`
+}
 
+func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req = models.NewGatherStat()
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		write404Err(g.log, err, w)
 		return
 	}
 
-	if err := modelhelper.SaveGatherStat(req); err != nil {
+	if r != nil {
+		defer r.Body.Close()
+	}
+
+	if err := g.save(req); err != nil {
 		write500Err(g.log, err, w)
 		return
 	}
 
-	for _, stat := range req.Stats {
+	w.WriteHeader(200)
+}
+
+func (g *GatherStat) save(s *models.GatherStat) error {
+	if err := modelhelper.SaveGatherStat(s); err != nil {
+		return err
+	}
+
+	for _, stat := range s.Stats {
 		name := fmt.Sprintf("gather:stats:%s", stat.Name)
-		tags := []string{"username:" + req.Username, "env" + req.Env}
+		tags := []string{"username:" + s.Username, "env" + s.Env}
 
 		var value float64
 
@@ -56,5 +72,63 @@ func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.WriteHeader(200)
+	return nil
+}
+
+// shouldStop returns if machine should be stopped or not. Abuse type
+// of stat is only sent when there's abuse.
+func (g *GatherStat) shouldStop(s *models.GatherStat) bool {
+	return s.Type == models.GatherStatAbuse && g.globalStopEnabled()
+}
+
+// globalStopEnabled is a lock to enable/disable stopping of VMs.
+func (g *GatherStat) globalStopEnabled() bool {
+	return !g.redis.Exists(GlobalDisableKey)
+}
+
+// isUserExempt checks if user is exempt from having their machines.
+func (g *GatherStat) isUserExempt(username string) (bool, error) {
+	isEmployee, err := isKodingEmployee(username)
+	if err != nil {
+		return false, err
+	}
+
+	if isEmployee {
+		return true, nil
+	}
+
+	return isInExemptList(g.redis, username)
+}
+
+func (g *GatherStat) stopVM(username string) error {
+	machines, err := modelhelper.GetMachinesByUsername(username)
+	if err != nil {
+		return err
+	}
+
+	for _, machine := range machines {
+		if g.kiteClient == nil {
+			g.log.Info("KloudClient not initialized. Not stopping: %s", machine.ObjectId)
+			return nil
+		}
+
+		if machine.Status.State != "Running" {
+			g.log.Info("Machine: '%s' has status: '%s'...skipping", machine.ObjectId, machine.Status.State)
+			return nil
+		}
+
+		g.log.Info("Starting to stop machine: '%s' for username: '%s'", machine.ObjectId, username)
+
+		_, err = g.kiteClient.TellWithTimeout("stop", KloudTimeout, &kloudRequestArgs{
+			MachineId: machine.ObjectId.Hex(),
+			Reason:    DefaultReason,
+			Provider:  KodingProvider,
+		})
+
+		if err != nil {
+			g.log.Info("Failed to stop machine: '%s' for username: '%s' due to: %s", machine.ObjectId, username, err)
+		}
+	}
+
+	return nil
 }

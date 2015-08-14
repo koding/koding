@@ -1,8 +1,13 @@
 package main
 
-import "koding/db/mongodb/modelhelper"
+import (
+	"koding/db/mongodb/modelhelper"
+	"koding/tools/config"
+)
+
+var conf *config.Config
 
 func init() {
-	conf := initializeConf()
+	conf = initializeConf()
 	modelhelper.Initialize(conf.Mongo)
 }

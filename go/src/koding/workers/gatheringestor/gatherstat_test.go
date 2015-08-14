@@ -9,39 +9,65 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+	"github.com/koding/redis"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGatherStat(t *testing.T) {
-	Convey("It should save stats", t, func() {
+	Convey("", t, func() {
 		dogclient, err := metrics.NewDogStatsD(WorkerName)
 		So(err, ShouldBeNil)
 
+		defer dogclient.Close()
+
+		redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+		So(err, ShouldBeNil)
+
+		defer redisConn.Close()
+
+		redisConn.SetPrefix(WorkerName)
+
 		log := logging.NewLogger(WorkerName)
 
+		g := &GatherStat{dog: dogclient, log: log, redis: redisConn}
+
 		mux := http.NewServeMux()
-		mux.Handle("/", &GatherStat{dog: dogclient, log: log})
+		mux.Handle("/", g)
 
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		reqBuf := bytes.NewBuffer([]byte(`{"username":"indianajones"}`))
+		Convey("It should save stats", func() {
+			reqBuf := bytes.NewBuffer([]byte(`{"username":"indianajones"}`))
 
-		res, err := http.Post(server.URL, "application/json", reqBuf)
-		So(err, ShouldBeNil)
+			res, err := http.Post(server.URL, "application/json", reqBuf)
+			So(err, ShouldBeNil)
 
-		defer res.Body.Close()
+			defer res.Body.Close()
 
-		So(res.StatusCode, ShouldEqual, 200)
+			So(res.StatusCode, ShouldEqual, 200)
 
-		docs, err := modeltesthelper.GetGatherStatsForUser("indianajones")
-		So(err, ShouldBeNil)
+			docs, err := modeltesthelper.GetGatherStatsForUser("indianajones")
+			So(err, ShouldBeNil)
 
-		So(len(docs), ShouldEqual, 1)
-		So(docs[0].Username, ShouldEqual, "indianajones")
+			So(len(docs), ShouldEqual, 1)
+			So(docs[0].Username, ShouldEqual, "indianajones")
 
-		Reset(func() {
-			modeltesthelper.DeleteGatherStatsForUser("indianajones")
+			Reset(func() {
+				modeltesthelper.DeleteGatherStatsForUser("indianajones")
+			})
+		})
+
+		Convey("It should return status of global stop", func() {
+			_, err := g.redis.Del(GlobalDisableKey)
+			So(err, ShouldBeNil)
+
+			So(g.globalStopEnabled(), ShouldBeTrue)
+
+			So(g.redis.Set(GlobalDisableKey, "true"), ShouldBeNil)
+			So(g.globalStopEnabled(), ShouldBeFalse)
+
+			defer g.redis.Del(GlobalDisableKey)
 		})
 	})
 }

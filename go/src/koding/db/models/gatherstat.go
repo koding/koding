@@ -6,6 +6,11 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const (
+	GatherStatAbuse     = "abuse"
+	GatherStatAnalytics = "analytics"
+)
+
 type GatherStat struct {
 	Id         bson.ObjectId      `bson:"_id" json:"-"`
 	Env        string             `bson:"env" json:"env"`
