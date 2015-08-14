@@ -117,10 +117,11 @@ class IDEAppController extends AppController
 
       @runOnboarding()  if @isMachineRunning()
 
-      # Re-draw layout if it is broken.
-      if app.getId() is @getId() and @isBrokenLayout
-        @isBrokenLayout = no
-        snapshot = @getWorkspaceSnapshot()
+      if app.getId() is @getId() and not @layoutManager.isSnapshotRestored()
+        snapshot = @layoutManager.getStoredSnapshot()
+
+        return  unless snapshot
+
         @layoutManager.clearLayout()
         kd.utils.defer => @layoutManager.resurrectSnapshot snapshot
 
@@ -1107,14 +1108,16 @@ class IDEAppController extends AppController
         @removeFakeViews()
         @fakeViewsDestroyed = yes
 
-      unless @isLocalSnapshotRestored
+      # Just resurrect snapshot for the host with/without a session.
+      if snapshot and @amIHost
 
-        # Just resurrect snapshot for the host with/without a session.
-        if snapshot and @amIHost
+        if @getActiveInstance().isActive
           @layoutManager.resurrectSnapshot snapshot
-          @isBrokenLayout = yes  unless @getActiveInstance().isActive
         else
-          @addInitialViews()  unless @initialViewsReady
+          @layoutManager.keepSnapshot snapshot
+
+      else
+        @addInitialViews()  unless @initialViewsReady
 
 
       { mainView } = kd.singletons
