@@ -13,10 +13,10 @@ const (
 	CredentialDatasColl = "jCredentialDatas"
 )
 
-func GetCredentialsFromPublicKeys(publicKey ...string) ([]*models.Credential, error) {
+func GetCredentialsFromIdentifiers(identifier ...string) ([]*models.Credential, error) {
 	var credentials []*models.Credential
 	if err := Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
-		return c.Find(bson.M{"publicKey": bson.M{"$in": publicKey}}).All(&credentials)
+		return c.Find(bson.M{"identifier": bson.M{"$in": identifier}}).All(&credentials)
 	}); err != nil {
 		return nil, fmt.Errorf("credentials lookup error: %v", err)
 	}
@@ -24,11 +24,11 @@ func GetCredentialsFromPublicKeys(publicKey ...string) ([]*models.Credential, er
 	return credentials, nil
 }
 
-func GetCredentialDatasFromPublicKeys(publicKey ...string) ([]*models.CredentialData, error) {
+func GetCredentialDatasFromIdentifiers(identifier ...string) ([]*models.CredentialData, error) {
 	var credentialData []*models.CredentialData
 
 	if err := Mongo.Run(CredentialDatasColl, func(c *mgo.Collection) error {
-		return c.Find(bson.M{"publicKey": bson.M{"$in": publicKey}}).All(&credentialData)
+		return c.Find(bson.M{"identifier": bson.M{"$in": identifier}}).All(&credentialData)
 	}); err != nil {
 		return nil, fmt.Errorf("credential data lookup error: %v", err)
 	}
@@ -36,14 +36,14 @@ func GetCredentialDatasFromPublicKeys(publicKey ...string) ([]*models.Credential
 	return credentialData, nil
 }
 
-func UpdateCredentialData(publicKey string, data bson.M) error {
+func UpdateCredentialData(identifier string, data bson.M) error {
 	return Mongo.Run(CredentialDatasColl, func(c *mgo.Collection) error {
-		return c.Update(bson.M{"publicKey": publicKey}, data)
+		return c.Update(bson.M{"identifier": identifier}, data)
 	})
 }
 
-func UpdateCredential(publicKey string, data bson.M) error {
+func UpdateCredential(identifier string, data bson.M) error {
 	return Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
-		return c.Update(bson.M{"publicKey": publicKey}, data)
+		return c.Update(bson.M{"identifier": identifier}, data)
 	})
 }
