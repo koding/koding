@@ -8,20 +8,18 @@ Link       = require 'app/components/common/link'
 module.exports = class SidebarListItem extends React.Component
 
   getClassName: ->
-    classnames(
+    classnames
       SidebarListItem : yes
       active          : @props.active
-    )
 
 
   renderUnreadCount: ->
     return null  unless @props.unreadCount > 0
 
-    return (
+    return \
       <cite className="SidebarListItem-unreadCount">
         {@props.unreadCount}
       </cite>
-    )
 
 
   render: ->

@@ -54,9 +54,8 @@ helper =
     else
       children = helper.makeProfileText sample.get 0
 
-    return (
+    return \
       <span>{children}</span>
-    )
 
 
   getParticipantOrigins: (channel) ->
@@ -80,9 +79,8 @@ helper =
     # if it's immutable turn it to regular object.
     origin = origin.toJS()  if typeof origin.toJS is 'function'
 
-    return (
+    return \
       <ProfileTextContainer origin={origin} />
-    )
 
 
   getSeparatorPartial: (participantCount, nameCount, position) ->
@@ -99,6 +97,7 @@ helper =
   getPlusMorePartial: (participantCount, nameCount) ->
     text = " #{participantCount - nameCount - 1} more"
 
-    <span>{text}</span>
+    return \
+      <span>{text}</span>
 
 
