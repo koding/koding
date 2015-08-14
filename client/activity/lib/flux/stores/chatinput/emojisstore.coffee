@@ -25,6 +25,7 @@ module.exports = class EmojisStore extends KodingFluxStore
     'white_medium_small_square'
     'white_medium_square'
     'white_small_square'
+    'crescent_moon'
   ]
 
   getInitialState: ->

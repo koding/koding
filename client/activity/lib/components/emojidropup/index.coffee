@@ -88,11 +88,10 @@ module.exports = class EmojiDropup extends React.Component
 
   render: ->
 
-    { items, query } = @props
+    { query } = @props
 
     <Dropup
       className      = "EmojiDropup"
-      items          = { items }
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
     >

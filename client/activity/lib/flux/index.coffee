@@ -6,6 +6,7 @@ module.exports =
     channel     : require './actions/channel'
     suggestions : require './actions/suggestions'
     emoji       : require './actions/emoji'
+    user        : require './actions/user'
   stores    : [
     require './stores/messagesstore'
     require './stores/channelsstore'
@@ -27,9 +28,12 @@ module.exports =
     require './stores/chatinput/filteredemojilistquerystore'
     require './stores/chatinput/filteredemojilistselectedindexstore'
     require './stores/chatinput/commonemojilistselectedindexstore'
-    require './stores/chatinput/commonemojilistflagsstore'
+    require './stores/chatinput/commonemojilistvisibilitystore'
     require './stores/chatinput/chatinputchannelsselectedindexstore'
     require './stores/chatinput/chatinputchannelsquerystore'
     require './stores/chatinput/chatinputchannelsvisibilitystore'
+    require './stores/chatinput/chatinputusersselectedindexstore'
+    require './stores/chatinput/chatinputusersquerystore'
+    require './stores/chatinput/chatinputusersvisibilitystore'
   ]
 

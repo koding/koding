@@ -5,6 +5,8 @@ curryIn              = require 'app/util/curryIn'
 showError            = require 'app/util/showError'
 
 {yamlToJson}         = require './yamlutils'
+providersParser      = require './providersparser'
+
 OutputView           = require './outputview'
 StackEditorView      = require './stackeditorview'
 updateStackTemplate  = require './updatestacktemplate'
@@ -204,6 +206,11 @@ module.exports = class DefineStackView extends kd.View
 
     {title}         = @inputTitle.getData()
     templateContent = @editorView.getValue()
+
+    @outputView
+      .add 'Parsing template for credential requirements...'
+      .add 'Following credentials are required:'
+      .add '-', providersParser templateContent
 
     # TODO this needs to be filled in when we implement
     # Github flow for new stack editor

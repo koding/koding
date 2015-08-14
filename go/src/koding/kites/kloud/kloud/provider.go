@@ -66,7 +66,8 @@ type PublicIpAddressFetcher interface {
 	PublicIpAddress() string
 }
 
-// Stater returns the state of a machine
+// Stater returns the state of a machine and the provider name
 type Stater interface {
 	State() machinestate.State
+	ProviderName() string
 }

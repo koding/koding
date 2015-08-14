@@ -93,6 +93,11 @@ var (
 
 	machineCount      = 2
 	terraformTemplate = `{
+    "variable": {
+        "username": {
+            "default": "fatih"
+        },
+    },
     "provider": {
         "aws": {
             "access_key": "${var.access_key}",
@@ -105,7 +110,7 @@ var (
             "example": {
 				"count": %d,
                 "instance_type": "t2.micro",
-                "user_data": "sudo apt-get install sl -y\ntouch /tmp/arslan.txt"
+                "user_data": "sudo apt-get install sl -y\ntouch /tmp/${var.username}.txt"
             }
         }
     }

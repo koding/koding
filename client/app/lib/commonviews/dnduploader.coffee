@@ -84,6 +84,9 @@ module.exports = class DNDUploader extends KDView
 
       for item in items
         entry = item.webkitGetAsEntry()
+
+        return  unless entry  # Fix for Chrome OS / Chromium
+
         if entry.isDirectory
           @walkDirectory entry.filesystem.root, (file)=>
             # upload walked file

@@ -60,6 +60,22 @@ func GetRunningVms(provider string) ([]*models.Machine, error) {
 	return findMachine(query)
 }
 
+func GetMachinesByUsernameAndProvider(username, provider string) ([]*models.Machine, error) {
+	user, err := GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	query := bson.M{
+		"provider": provider,
+		"users": bson.M{
+			"$elemMatch": bson.M{"id": user.ObjectId, "owner": true},
+		},
+	}
+
+	return findMachine(query)
+}
+
 func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	user, err := GetUser(username)
 	if err != nil {
