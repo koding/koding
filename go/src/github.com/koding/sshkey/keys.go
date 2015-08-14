@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// This is a default value for private key block
 	privateKeyType = "RSA PRIVATE KEY"
 	// while generating ssh key,
 	// 2048 bit size is the default size.
