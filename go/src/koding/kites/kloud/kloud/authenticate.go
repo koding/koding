@@ -17,8 +17,8 @@ import (
 )
 
 type AuthenticateRequest struct {
-	// PublicKeys contains publicKeys to be authenticated
-	PublicKeys []string `json:"publicKeys"`
+	// Identifiers contains identifiers to be authenticated
+	Identifiers []string `json:"identifiers"`
 
 	GroupName string `json:"groupName"`
 }
@@ -33,8 +33,8 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if len(args.PublicKeys) == 0 {
-		return nil, errors.New("publicKeys are not passed")
+	if len(args.Identifiers) == 0 {
+		return nil, errors.New("identifiers are not passed")
 	}
 
 	if args.GroupName == "" {
@@ -47,7 +47,7 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.PublicKeys)
+	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.Identifiers)
 	if err != nil {
 		return nil, err
 	}
@@ -80,13 +80,13 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 			verified = false
 		}
 
-		if err := modelhelper.UpdateCredential(cred.PublicKey, bson.M{
+		if err := modelhelper.UpdateCredential(cred.Identifier, bson.M{
 			"$set": bson.M{"verified": verified},
 		}); err != nil {
 			return nil, err
 		}
 
-		result[cred.PublicKey] = verified
+		result[cred.Identifier] = verified
 	}
 
 	return result, nil

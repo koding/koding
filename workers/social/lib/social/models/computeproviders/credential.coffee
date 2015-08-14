@@ -61,7 +61,7 @@ module.exports = class JCredential extends jraphical.Module
       ]
 
     indexes           :
-      publicKey       : 'unique'
+      identifier      : 'unique'
 
     schema            :
 
@@ -73,7 +73,7 @@ module.exports = class JCredential extends jraphical.Module
         type          : String
         required      : yes
 
-      publicKey       :
+      identifier      :
         type          : String
         required      : yes
 
@@ -121,8 +121,8 @@ module.exports = class JCredential extends jraphical.Module
       credData.save (err)->
         return  if failed err, callback
 
-        {publicKey} = credData
-        credential = new JCredential { provider, title, publicKey, originId }
+        { identifier } = credData
+        credential = new JCredential { provider, title, identifier, originId }
 
         credential.save (err)->
           return  if failed err, callback, credData
@@ -135,11 +135,11 @@ module.exports = class JCredential extends jraphical.Module
               callback null, credential
 
 
-  @fetchByPublicKey = (client, publicKey, callback)->
+  @fetchByIdentifier = (client, identifier, callback)->
 
     options =
       limit         : 1
-      targetOptions : selector : { publicKey }
+      targetOptions : selector : { identifier }
 
     {delegate} = client.connection
     delegate.fetchCredential { }, options, (err, res)->
@@ -157,9 +157,9 @@ module.exports = class JCredential extends jraphical.Module
 
   @one$ = permit 'list credentials',
 
-    success: (client, publicKey, callback)->
+    success: (client, identifier, callback)->
 
-      @fetchByPublicKey client, publicKey, callback
+      @fetchByIdentifier client, identifier, callback
 
 
   @some$ = permit 'list credentials',
