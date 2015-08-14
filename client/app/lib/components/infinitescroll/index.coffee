@@ -18,15 +18,15 @@ module.exports = class InfiniteScroll extends React.Component
 
   onWheel: (event) ->
 
-    @props.scrollMoveTo = 'up'   if event.deltaY < 0
-    @props.scrollMoveTo = 'down' if event.deltaY > 0
+    @scrollMoveTo = 'up'   if event.deltaY < 0
+    @scrollMoveTo = 'down' if event.deltaY > 0
 
 
   onScroll: (event) ->
 
     isScrollLoadable = isScrollThresholdReached
       el              : event.target
-      scrollMoveTo    : @props.scrollMoveTo
+      scrollMoveTo    : @scrollMoveTo
       isDataLoading   : @props.isDataLoading
       scrollDirection : @props.scrollDirection
       scrollOffset    : @props.scrollOffset
