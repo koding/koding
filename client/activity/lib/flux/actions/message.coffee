@@ -12,8 +12,10 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
  *
  * @param {string} channelId
 ###
-loadMessages = (channelId, from) ->
+loadMessages = (channelId, options = {}) ->
 
+  options.limit ?= 25
+  { from, limit } = options
   { socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
     LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
@@ -218,8 +220,10 @@ editMessage = (messageId, body, payload) ->
  * @param {string} from
  * @param {number} limit
 ###
-loadComments = (messageId, from, limit) ->
+loadComments = (messageId, options = {}) ->
 
+  options.limit ?= 25
+  { from, limit } = options
   { socialapi } = kd.singletons
   { LOAD_COMMENTS_BEGIN
     LOAD_COMMENTS_FAIL
