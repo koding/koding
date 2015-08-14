@@ -2,7 +2,7 @@ actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 
 ###*
- * Store to contain channels selected index
+ * Store to contain suggestions selected index
 ###
 module.exports = class SuggestionsSelectedIndexStore extends KodingFluxStore
 
