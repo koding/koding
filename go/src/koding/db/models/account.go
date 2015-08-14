@@ -7,6 +7,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const AccountFlagStaff = "staff"
+
 type Account struct {
 	Id          bson.ObjectId  `bson:"_id" json:"_id"`
 	GlobalFlags []string       `bson:"globalFlags" json:"globalFlags"`
