@@ -64,20 +64,21 @@ module.exports = class AccountCredentialList extends KDListView
 
     credential = item.getData()
     credential.fetchData (err, data) ->
-      unless showError err
+      return if showError err
 
-        data.meta.publicKey = credential.publicKey
+      data.meta.identifier = credential.identifier
 
-        cred = JSON.stringify data.meta, null, 2
-        cred = hljs.highlight('json', cred).value
+      cred = JSON.stringify data.meta, null, 2
+      cred = hljs.highlight('json', cred).value
 
-        new KDModalView
-          title          : credential.title
-          subtitle       : credential.provider
-          cssClass       : 'has-markdown'
-          overlay        : yes
-          overlayOptions : cssClass : 'second-overlay'
-          content        : "<pre><code>#{cred}</code></pre>"
+      new KDModalView
+        title          : credential.title
+        subtitle       : credential.provider
+        cssClass       : 'has-markdown'
+        overlay        : yes
+        overlayOptions : cssClass : 'second-overlay'
+        content        : "<pre><code>#{cred}</code></pre>"
+
 
   checkIsBootstrapped: (item) ->
 
@@ -91,15 +92,15 @@ module.exports = class AccountCredentialList extends KDListView
   bootstrap: (item) ->
 
     credential = item.getData()
-    publicKeys = [credential.publicKey]
+    identifiers = [credential.identifier]
 
-    console.log { publicKeys }
+    console.log { identifiers }
 
     { computeController } = kd.singletons
 
     computeController.getKloud()
 
-      .bootstrap { publicKeys }
+      .bootstrap { identifiers }
 
       .then (response) ->
 
@@ -113,15 +114,15 @@ module.exports = class AccountCredentialList extends KDListView
   verify: (item) ->
 
     credential = item.getData()
-    publicKeys = [credential.publicKey]
+    identifiers = [credential.identifier]
 
-    console.log { publicKeys }
+    console.log { identifiers }
 
     { computeController } = kd.singletons
 
     computeController.getKloud()
 
-      .checkCredential { publicKeys }
+      .checkCredential { identifiers }
 
       .then (response) ->
 
