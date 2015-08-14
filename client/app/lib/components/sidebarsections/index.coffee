@@ -2,8 +2,8 @@ kd                     = require 'kd'
 React                  = require 'kd-react'
 ActivityFlux           = require 'activity/flux'
 KDReactorMixin         = require 'app/flux/reactormixin'
-SidebarChannelsSection = require 'activity/components/sidebarchannelssection'
-SidebarMessagesSection = require 'activity/components/sidebarmessagessection'
+SidebarChannelsSection = require 'app/components/sidebarchannelssection'
+SidebarMessagesSection = require 'app/components/sidebarmessagessection'
 
 
 module.exports = class SidebarSections extends React.Component

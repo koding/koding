@@ -671,7 +671,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   addReactivitySidebarSections: ->
 
-    SidebarSectionsView = require 'activity/components/sidebarsections/view'
+    SidebarSectionsView = require 'app/components/sidebarsections/view'
 
     @addSubView new SidebarSectionsView
 

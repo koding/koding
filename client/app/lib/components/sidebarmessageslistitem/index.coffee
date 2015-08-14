@@ -3,7 +3,7 @@ React                = require 'kd-react'
 whoami               = require 'app/util/whoami'
 isMyPost             = require 'app/util/isMyPost'
 toImmutable          = require 'app/util/toImmutable'
-SidebarListItem      = require 'activity/components/sidebarlist/sidebarlistitem'
+SidebarListItem      = require 'app/components/sidebarlist/sidebarlistitem'
 ProfileTextContainer = require 'app/components/profile/profiletextcontainer'
 
 

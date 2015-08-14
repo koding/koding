@@ -1,8 +1,8 @@
 React                   = require 'kd-react'
 immutable               = require 'immutable'
-SidebarList             = require 'activity/components/sidebarlist'
-SidebarSection          = require 'activity/components/sidebarsection'
-SidebarMessagesListItem = require 'activity/components/sidebarmessageslistitem'
+SidebarList             = require 'app/components/sidebarlist'
+SidebarSection          = require 'app/components/sidebarsection'
+SidebarMessagesListItem = require 'app/components/sidebarmessageslistitem'
 
 
 module.exports = class SidebarMessagesSection extends React.Component

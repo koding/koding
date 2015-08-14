@@ -1,5 +1,5 @@
 React = require 'kd-react'
-SidebarListItem = require 'activity/components/sidebarlist/sidebarlistitem'
+SidebarListItem = require 'app/components/sidebarlist/sidebarlistitem'
 
 
 module.exports = class SidebarChannelsListItem extends React.Component
