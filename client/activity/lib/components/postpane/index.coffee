@@ -25,8 +25,12 @@ module.exports = class PostPane extends React.Component
 
     ActivityFlux.actions.message.createComment @message('id'), event.value
 
+
   onScrollThresholdReached: (event) ->
-    console.log 'loadComments '
+
+    from = @props.messages.first().get('createdAt')
+    ActivityFlux.actions.message.loadComments @channel('id'), { from }
+
 
   render: ->
     <ChatPane
