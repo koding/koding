@@ -172,7 +172,10 @@ module.exports = class StacksCustomViews extends CustomViews
       title, stackTemplate, machines } = data
 
     title     or= 'Default stack template'
-    credentials = [credential.publicKey]  if credential
+    credentials = {}
+
+    if credential
+      credentials[credential.provider] = [credential.identifier]
 
     if stackTemplate
       dataToUpdate = if machines \
@@ -227,13 +230,13 @@ module.exports = class StacksCustomViews extends CustomViews
 
     outputView.addContent 'Bootstrapping started...'
 
-    publicKeys = [credential.publicKey]
+    identifiers = [credential.identifier]
 
     { computeController } = kd.singletons
 
     computeController.getKloud()
 
-      .bootstrap { publicKeys }
+      .bootstrap { identifiers }
 
       .then (response) ->
 

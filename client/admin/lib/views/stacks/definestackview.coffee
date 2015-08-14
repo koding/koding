@@ -142,13 +142,13 @@ module.exports = class DefineStackView extends kd.View
 
         @outputView.add 'Bootstrap required, initiating to bootstrap...'
 
-        publicKeys = [credential.publicKey]
+        identifiers = [credential.identifier]
 
         { computeController } = kd.singletons
 
         computeController.getKloud()
 
-          .bootstrap { publicKeys }
+          .bootstrap { identifiers }
 
           .then (response) =>
 
@@ -220,7 +220,13 @@ module.exports = class DefineStackView extends kd.View
     credential      = @credentialStatus.credentialsData.first
 
     if 'yaml' is @editorView.getOption 'contentType'
-      templateContent = (yamlToJson templateContent).content
+      convertedDoc = yamlToJson templateContent
+
+      if convertedDoc.err
+        return callback 'Failed to convert YAML to JSON, fix document and try again.'
+
+      templateContent = convertedDoc.content
+
 
     updateStackTemplate {
       template: templateContent, templateDetails

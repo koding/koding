@@ -34,13 +34,13 @@ type AwsBootstrapOutput struct {
 }
 
 type TerraformBootstrapRequest struct {
-	// PublicKeys contains publicKeys to be used with terraform
-	PublicKeys []string `json:"publicKeys"`
+	// Identifiers contains identifers to be used with terraform
+	Identifiers []string `json:"identifiers"`
 
 	GroupName string `json:"groupName"`
 
-	// Destroy destroys the bootstrap resource associated with the given public
-	// keys
+	// Destroy destroys the bootstrap resource associated with the given
+	// identifiers
 	Destroy bool
 }
 
@@ -54,8 +54,8 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if len(args.PublicKeys) == 0 {
-		return nil, errors.New("publicKeys are not passed")
+	if len(args.Identifiers) == 0 {
+		return nil, errors.New("identifiers are not passed")
 	}
 
 	if args.GroupName == "" {
@@ -68,7 +68,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.PublicKeys)
+	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.Identifiers)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		k.Log.Debug("Appending variables for %s", cred.PublicKey)
+		k.Log.Debug("Appending variables for %s", cred.Identifier)
 		finalBootstrap, err := cred.appendAWSVariable(awsBootstrap)
 		if err != nil {
 			return nil, err
@@ -137,7 +137,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		k.Log.Debug("[%s] Final bootstrap:", cred.PublicKey)
+		k.Log.Debug("[%s] Final bootstrap:", cred.Identifier)
 		k.Log.Debug(finalBootstrap)
 
 		// Important so bootstraping is distributed amongs multiple users. If I
@@ -153,7 +153,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 
 		if args.Destroy {
 			mongodDBOperator = "$unset"
-			k.Log.Info("Destroying bootstrap resources belonging to public key '%s'", cred.PublicKey)
+			k.Log.Info("Destroying bootstrap resources belonging to identifier '%s'", cred.Identifier)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -162,7 +162,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				return nil, err
 			}
 		} else {
-			k.Log.Info("Creating bootstrap resources belonging to public key '%s'", cred.PublicKey)
+			k.Log.Info("Creating bootstrap resources belonging to identifier '%s'", cred.Identifier)
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -171,14 +171,14 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				return nil, err
 			}
 
-			k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.PublicKey, state.RootModule().Outputs)
+			k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.Identifier, state.RootModule().Outputs)
 			if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
 				return nil, err
 			}
 		}
 
-		k.Log.Debug("[%s] Aws Output: %+v", cred.PublicKey, awsOutput)
-		if err := modelhelper.UpdateCredentialData(cred.PublicKey, bson.M{
+		k.Log.Debug("[%s] Aws Output: %+v", cred.Identifier, awsOutput)
+		if err := modelhelper.UpdateCredentialData(cred.Identifier, bson.M{
 			mongodDBOperator: bson.M{
 				"meta.acl":        awsOutput.ACL,
 				"meta.cidr_block": awsOutput.CidrBlock,
@@ -241,8 +241,8 @@ type awsTemplateData struct {
 var awsBootstrap = `{
     "provider": {
         "aws": {
-            "access_key": "${var.access_key}",
-            "secret_key": "${var.secret_key}",
+            "access_key": "${var.aws_access_key}",
+            "secret_key": "${var.aws_secret_key}",
             "region": "${var.region}"
         }
     },
