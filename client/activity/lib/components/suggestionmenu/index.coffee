@@ -29,7 +29,7 @@ module.exports = class SuggestionMenu extends React.Component
   handleClose: (e) ->
 
     e.preventDefault()
-    ActivityFlux.actions.suggestions.setAccessibility no
+    @props.onDisabled?()
 
 
   isVisible: ->

@@ -23,6 +23,7 @@ module.exports = class SuggestionMenuView extends ReactView
       checkVisibility = { @bound 'checkVisibility' }
       onSubmit        = { @bound 'handleSubmit' }
       onItemConfirmed = { @bound 'confirmSelectedItem' }
+      onDisabled      = { @bound 'disable' }
     />
 
 
@@ -64,3 +65,8 @@ module.exports = class SuggestionMenuView extends ReactView
 
     slug = selectedItem.getIn ['message', 'slug']
     router.handleRoute groupifyLink "/Activity/Post/#{slug}"
+
+
+  disable: ->
+
+    ActivityFlux.actions.suggestions.setAccessibility no

@@ -223,7 +223,7 @@ currentSuggestionsSelectedIndex = [
   SuggestionsSelectedIndexStore
   (suggestions, index) ->
     { size } = suggestions
-    return 0  unless size > 0
+    return -1  unless size > 0
 
     unless 0 <= index < size
       index = index % suggestions.size

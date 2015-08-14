@@ -18,9 +18,6 @@ ActivityFlux            = require 'activity/flux'
 
 module.exports = class ActivityInputWidget extends KDView
 
-  UP_ARROW   = 38
-  DOWN_ARROW = 40
-  ENTER      = 13
   {noop}     = kd
 
   constructor: (options = {}, data) ->
@@ -78,8 +75,12 @@ module.exports = class ActivityInputWidget extends KDView
 
     return  unless @getOptions().isSuggestionEnabled
 
-    @input.on 'keydown', @bound 'handleKeydown'
-    @input.on 'focus',   @bound 'makeSuggestionsVisible'
+    @input.on 'keydown',   kd.utils.debounce 300, @bound 'updateSuggestionsQuery'
+    @input.on 'focus',     @bound 'makeSuggestionsVisible'
+    @input.on 'DownArrow', @bound 'handleDownArrow'
+    @input.on 'UpArrow',   @bound 'handleUpArrow'
+    @input.on 'Esc',       @bound 'handleEsc'
+    @input.on 'RawEnter',  @bound 'handleRawEnter'
     @suggestions.on 'SubmitRequested', @bound 'handleSubmitRequested'
 
 
@@ -94,25 +95,35 @@ module.exports = class ActivityInputWidget extends KDView
     @submitButton.click()
 
 
-  handleKeydown: (event) ->
+  handleDownArrow: (event) ->
 
-    return  unless @suggestions
+    return  unless @suggestions and @suggestions.isVisible
 
-    @suggestionsQueryFunc ?= kd.utils.debounce 300, @bound 'updateSuggestionsQuery'
-    @suggestionsQueryFunc()
+    kd.utils.stopDOMEvent event
+    @suggestions.moveToNextIndex()
 
-    return  unless @suggestions.isVisible
 
-    switch event.which
-      when DOWN_ARROW
-        kd.utils.stopDOMEvent event
-        @suggestions.moveToNextIndex()
-      when UP_ARROW
-        kd.utils.stopDOMEvent event
-        @suggestions.moveToPrevIndex()
-      when ENTER
-        kd.utils.stopDOMEvent event
-        @suggestions.confirmSelectedItem()
+  handleUpArrow: (event) ->
+
+    return  unless @suggestions and @suggestions.isVisible
+
+    kd.utils.stopDOMEvent event
+    @suggestions.moveToPrevIndex()
+
+
+  handleEsc: (event) ->
+
+    return  unless @suggestions and @suggestions.isVisible
+
+    kd.utils.stopDOMEvent event
+    @suggestions.disable()
+
+
+  handleRawEnter: (event) ->
+
+    return  unless @suggestions and @suggestions.isVisible
+    kd.utils.stopDOMEvent event
+    @suggestions.confirmSelectedItem()
 
 
   submit: (value) ->
