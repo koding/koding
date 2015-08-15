@@ -75,7 +75,7 @@ module.exports = class ChatListItem extends React.Component
     adminMenuItems = [
       {title: 'Mark User as Troll', key: 'markuser',    onClick: @bound 'markUser'}
       {title: 'Block User',         key: 'blockuser',   onClick: @bound 'blockUser'}
-      {title: 'impersonate User',   key: 'impersonate', onClick: @bound 'impersonate'}
+      {title: 'Impersonate User',   key: 'impersonate', onClick: @bound 'impersonate'}
     ]
 
     return @getDefaultMenuItems().concat adminMenuItems
