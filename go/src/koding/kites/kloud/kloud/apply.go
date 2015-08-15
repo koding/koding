@@ -31,8 +31,8 @@ type Stack struct {
 	// jMachine ids
 	Machines []string
 
-	// jCredential public keys
-	PublicKeys []string
+	// jCredential provider to identifiers
+	Credentials map[string][]string
 
 	// Terraform template
 	Template string
@@ -116,12 +116,8 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
 			k.Log.New(args.StackId).Error("%s error: %s", r.Method, err)
-			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
-			// however, eventerErr is an error we want to pass explicitly to
-			// the client side
-			if eventerErr, ok := err.(*EventerError); ok {
-				finalEvent.Error = eventerErr.Error()
-			}
+
+			finalEvent.Error = err.Error()
 		}
 
 		k.Log.New(args.StackId).Info("======> %s finished (time: %s) <======",
@@ -169,8 +165,8 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
-	creds, err := fetchCredentials(username, groupname, sess.DB, stack.PublicKeys)
+	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
+	creds, err := fetchCredentials(username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
@@ -255,8 +251,8 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.PublicKeys), username)
-	creds, err := fetchCredentials(username, groupname, sess.DB, stack.PublicKeys)
+	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
+	creds, err := fetchCredentials(username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
@@ -383,9 +379,9 @@ func fetchStack(stackId string) (*Stack, error) {
 	}
 
 	return &Stack{
-		Machines:   machineIds,
-		PublicKeys: stackTemplate.Credentials,
-		Template:   stackTemplate.Template.Content,
+		Machines:    machineIds,
+		Credentials: stackTemplate.Credentials,
+		Template:    stackTemplate.Template.Content,
 	}, nil
 }
 

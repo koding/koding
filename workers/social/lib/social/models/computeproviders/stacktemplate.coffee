@@ -82,8 +82,17 @@ module.exports = class JStackTemplate extends Module
         sum           : String
         details       : Object
 
-      # Public keys of JCredentials
-      credentials     : [ String ]
+      # Identifiers of JCredentials
+      # structured like following;
+      #  { Provider: [ JCredential.identifier ] }
+      #  ---
+      #  {
+      #    aws: [123123, 123124]
+      #    github: [234234]
+      #  }
+      credentials     :
+        type          : Object
+        default       : -> {}
 
 
   generateTemplateObject = (content, details) ->
@@ -119,7 +128,7 @@ module.exports = class JStackTemplate extends Module
         machines    : data.machines    ? []
         accessLevel : data.accessLevel ? 'private'
         template    : generateTemplateObject data.template, data.templateDetails
-        credentials : data.credentials ? []
+        credentials : data.credentials
 
       stackTemplate.save (err) ->
         if err
