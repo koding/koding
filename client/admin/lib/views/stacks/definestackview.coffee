@@ -42,9 +42,19 @@ module.exports = class DefineStackView extends kd.View
 
     { @credentialStatus } = @inputTitle.inputs
 
-    @editorView      = new StackEditorView {delegate: this, content}
+    @editorView      = new StackEditorView { delegate: this, content }
 
     @outputView      = new OutputView
+
+    @outputView.add 'Welcome to Stack Template Editor'
+
+    @editorView.addSubView new kd.ButtonView
+      title    : 'Logs'
+      cssClass : 'solid compact showlogs-link'
+      callback : @outputView.bound 'raise'
+
+    # FIXME Not liked this ~ GG
+    @editorView.on 'click', @outputView.bound 'fall'
 
     @cancelButton    = new kd.ButtonView
       title          : 'Cancel'
